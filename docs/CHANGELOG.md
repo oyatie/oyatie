@@ -1,4 +1,9 @@
 
+## 2026-05-12 — Foundry RAG retrieve API contract
+
+- Added the stable `foundry.rag.retrieve` REST boundary via `oya-foundry-rag-api`, enforcing tenant/index namespace binding, Foundry authorization evidence, idempotent retrieval semantics, privacy-program data-class allowlists, and purpose-bound consent receipts before citation return.
+- Registered `contracts/openapi/foundry/rag-v1.yaml` in the OpenAPI registries, catalog, SPEC, Foundry PRD, and machine-readable contract mirror.
+
 ## 2026-05-12 — Foundry capability publish API contract
 
 - Added the stable `foundry.capability.publish` REST boundary via `oya-foundry-registry-api`, enforcing path/body capability binding, Cedar authorization evidence, idempotent publish semantics, typed capability schema projection, provider/cost validation, and signed passing eval gates.

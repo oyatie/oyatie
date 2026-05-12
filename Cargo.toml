@@ -108,6 +108,7 @@ members = [
   "crates/oya-foundry-policy-kernel",
   "crates/oya-foundry-policy-api",
   "crates/oya-foundry-registry-api",
+  "crates/oya-foundry-rag-api",
   "crates/oya-foundry-raci-team-coverage-kernel",
   "crates/oya-foundry-readme-doc-coverage-kernel",
   "crates/oya-workspace-address-book-kernel",

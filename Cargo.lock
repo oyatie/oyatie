@@ -595,6 +595,13 @@ name = "oya-foundry-raci-team-coverage-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-rag-api"
+version = "0.1.0"
+dependencies = [
+ "oya-platform-data-boundary-kernel",
+]
+
+[[package]]
 name = "oya-foundry-readme-doc-coverage-kernel"
 version = "0.1.0"
 

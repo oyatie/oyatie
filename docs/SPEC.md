@@ -129,7 +129,7 @@ Per-vertical surface set; each vertical's PRD §4.3 enumerates. Examples:
 | `foundry.adapter.{anthropic,openai,gemini}.{api,subscription}.invoke` | data | provider-bound | provider-failover-supported; cost-ceiling-enforced | stable | `oya-foundry-adapter-{anthropic,openai,gemini}-{api,subscription}-*` |
 | `foundry.policy.autonomy-ceiling.publish` | control | REST | Cedar-backed; per-tenant per-capability scope; OpenAPI source `contracts/openapi/foundry/policy-v1.yaml` | stable | `oya-foundry-policy-api` |
 | `foundry.evidence.emit` | data | event | every capability invocation emits to `oya.foundry.capability.invoked`; audit-chain anchored | stable | `oya-foundry-evidence-app` |
-| `foundry.rag.retrieve` | data | REST | per-tenant boundary; per-class allowlist; consent-receipt cited | stable | `oya-foundry-rag-api` |
+| `foundry.rag.retrieve` | data | REST | per-tenant boundary; per-class allowlist; consent-receipt cited; OpenAPI source `contracts/openapi/foundry/rag-v1.yaml` | stable | `oya-foundry-rag-api` |
 | `foundry.eval.run` | analytics | REST | per-capability golden-set evaluation; pass-threshold per capability; OpenAPI source `contracts/openapi/foundry/eval-v1.yaml` | stable | `oya-foundry-eval-app` |
 | `foundry.sandbox.spawn` | data | REST | Wasmtime / Firecracker; per-tool resource caps; per-agent worktree | stable | `oya-foundry-sandbox-app` |
 | `foundry.cli` (`oya dev/admin/build/agent/ops/pack/catalog/gate`) | control | CLI + MCP | persona-split per [DESIGN §13.4.1](DESIGN.md) | stable | `oya-foundry-cli-{persona}-*` |
