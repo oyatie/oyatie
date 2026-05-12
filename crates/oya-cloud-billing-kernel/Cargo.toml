@@ -1,0 +1,18 @@
+[package]
+name = "oya-cloud-billing-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-region-kernel = { path = "../oya-cloud-region-kernel" }
+oya-cloud-resource-kernel = { path = "../oya-cloud-resource-kernel" }
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-platform-metering-kernel = { path = "../oya-platform-metering-kernel" }
+
+[lib]
+name = "oya_cloud_billing_kernel"
+path = "src/lib.rs"
+doctest = false

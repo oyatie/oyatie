@@ -1,0 +1,9 @@
+context: platform
+role: app
+capability: metering-event
+plane: data
+slo: stable-data-plane
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

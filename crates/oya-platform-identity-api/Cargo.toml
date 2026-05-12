@@ -1,0 +1,15 @@
+[package]
+name = "oya-platform-identity-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-platform-identity-kernel = { path = "../oya-platform-identity-kernel" }
+
+[lib]
+name = "oya_platform_identity_api"
+path = "src/lib.rs"
+doctest = false

@@ -1,0 +1,16 @@
+[package]
+name = "oya-foundry-evidence-adapter-file"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-foundry-evidence-kernel = { path = "../oya-foundry-evidence-kernel" }
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+
+[lib]
+name = "oya_foundry_evidence_adapter_file"
+path = "src/lib.rs"
+doctest = false

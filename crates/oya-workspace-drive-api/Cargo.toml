@@ -1,0 +1,16 @@
+[package]
+name = "oya-workspace-drive-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-workspace-drive-kernel = { path = "../oya-workspace-drive-kernel" }
+
+[lib]
+name = "oya_workspace_drive_api"
+path = "src/lib.rs"
+doctest = false

@@ -1,0 +1,10 @@
+[package]
+name = "oya-cloud-iam-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-iam-kernel = { path = "../oya-cloud-iam-kernel" }
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }

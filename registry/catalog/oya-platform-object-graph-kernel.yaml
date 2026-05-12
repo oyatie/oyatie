@@ -1,0 +1,9 @@
+context: platform
+role: kernel
+capability: object-graph
+plane: data
+slo: preview-data-plane
+data_classes_owned: [INTERNAL_ONLY, PII_IDENTIFYING, FINANCIAL_KR_신용정보, PHI, PCI, SENSITIVE_PIPA_ART23]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

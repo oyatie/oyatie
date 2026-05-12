@@ -1,0 +1,258 @@
+openapi: 3.2.0
+info:
+  title: Oyatie Foundry Capability API
+  version: 1.0.0
+  description: Tenant-scoped capability invocation contract for Foundry.
+servers:
+  - url: https://api.oyatie.com
+paths:
+  /v1/capabilities/{capability_id}/invoke:
+    post:
+      operationId: invokeCapability
+      summary: Invoke a tenant-granted Foundry capability.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: capability_id
+          in: path
+          required: true
+          schema:
+            type: string
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Request-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: X-Tenant-Id
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            minLength: 1
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CapabilityInvocationRequest'
+      responses:
+        '202':
+          description: Invocation accepted and audit evidence scheduled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilityInvokeApiSuccessResponse'
+        '400':
+          description: Request shape, transport binding, path/body capability binding, or idempotency fingerprint binding is invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilityInvokeApiErrorResponse'
+        '403':
+          description: Foundation tenant, capability, data-class, budget, or autonomy policy rejected the invocation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CapabilityInvokeApiErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: STS
+  schemas:
+    CapabilityInvocationRequest:
+      type: object
+      required:
+        - tenant_id
+        - user_id
+        - capability_id
+        - purpose
+        - subject_class
+        - budget_window_id
+        - projected_cost_micros
+        - started_at_epoch_seconds
+      properties:
+        tenant_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        user_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        capability_id:
+          type: string
+          description: Must match the `{capability_id}` path parameter.
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        purpose:
+          type: string
+          x-oyatie-rust-type: Purpose
+          x-oyatie-data-class: INTERNAL_ONLY
+        subject_class:
+          type: string
+          description: Typed subject class for autonomy ceiling evaluation; Minor callers must use the minor variant tracked by the Rust request context.
+          enum:
+            - Adult
+            - Minor
+            - Elderly
+            - Vulnerable
+            - Authority
+          x-oyatie-rust-type: SubjectClass
+          x-oyatie-data-class: INTERNAL_ONLY
+        budget_window_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        projected_cost_micros:
+          type: integer
+          format: uint64
+          minimum: 0
+          x-oyatie-rust-type: u64
+          x-oyatie-data-class: INTERNAL_ONLY
+        started_at_epoch_seconds:
+          type: integer
+          format: uint64
+          minimum: 0
+          x-oyatie-rust-type: u64
+          x-oyatie-data-class: INTERNAL_ONLY
+    CapabilityInvocationReceipt:
+      type: object
+      required:
+        - tenant_id
+        - user_id
+        - capability_id
+        - evidence_event_hash
+      properties:
+        tenant_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        user_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        capability_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        evidence_event_hash:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        cost_reservation_id:
+          type: string
+          x-oyatie-rust-type: Option<String>
+          x-oyatie-data-class: INTERNAL_ONLY
+        cost_budget_warning:
+          type: string
+          x-oyatie-rust-type: Option<BudgetWarning>
+          x-oyatie-data-class: INTERNAL_ONLY
+        run_id:
+          type: string
+          x-oyatie-rust-type: Option<String>
+          x-oyatie-data-class: INTERNAL_ONLY
+        foundry_step_id:
+          type: string
+          x-oyatie-rust-type: Option<String>
+          x-oyatie-data-class: INTERNAL_ONLY
+        foundry_evidence_id:
+          type: string
+          x-oyatie-rust-type: Option<String>
+          x-oyatie-data-class: INTERNAL_ONLY
+    CapabilityInvokeApiSuccessResponse:
+      type: object
+      required:
+        - data
+        - metadata
+      properties:
+        data:
+          $ref: '#/components/schemas/CapabilityInvocationReceipt'
+          x-oyatie-rust-type: CapabilityInvocationReceipt
+          x-oyatie-data-class: INTERNAL_ONLY
+        metadata:
+          $ref: '#/components/schemas/CapabilityInvokeApiResponseMetadata'
+          x-oyatie-rust-type: CapabilityInvokeApiResponseMetadata
+          x-oyatie-data-class: INTERNAL_ONLY
+    CapabilityInvokeApiResponseMetadata:
+      type: object
+      required:
+        - request_id
+      properties:
+        request_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+    CapabilityInvokeApiErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          $ref: '#/components/schemas/CapabilityInvokeApiErrorBody'
+          x-oyatie-rust-type: CapabilityInvokeApiErrorBody
+          x-oyatie-data-class: INTERNAL_ONLY
+    CapabilityInvokeApiErrorBody:
+      type: object
+      required:
+        - code
+        - message
+        - request_id
+        - details
+      properties:
+        code:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        message:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        message_localized:
+          type: string
+          x-oyatie-rust-type: Option<String>
+          x-oyatie-data-class: INTERNAL_ONLY
+        request_id:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/CapabilityInvokeApiErrorDetail'
+          x-oyatie-rust-type: Vec<CapabilityInvokeApiErrorDetail>
+          x-oyatie-data-class: INTERNAL_ONLY
+        retry_after_seconds:
+          type: integer
+          format: uint64
+          x-oyatie-rust-type: Option<u64>
+          x-oyatie-data-class: INTERNAL_ONLY
+    CapabilityInvokeApiErrorDetail:
+      type: object
+      required:
+        - field
+        - issue
+      properties:
+        field:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY
+        issue:
+          type: string
+          x-oyatie-rust-type: String
+          x-oyatie-data-class: INTERNAL_ONLY

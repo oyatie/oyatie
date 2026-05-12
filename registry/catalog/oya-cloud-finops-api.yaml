@@ -1,0 +1,9 @@
+context: cloud
+role: api
+capability: finops-report
+plane: analytics
+slo: stable-control-plane
+data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL_KR_신용정보]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

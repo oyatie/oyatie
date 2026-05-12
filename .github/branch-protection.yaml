@@ -1,0 +1,18 @@
+# GitHub ruleset source for ADR-0039/ADR-0041. Applied by repository admins once
+# the GitHub org namespace exists; validated locally by the supply-chain gate.
+branches:
+  main:
+    require_pull_request: true
+    require_linear_history: true
+    disallow_force_push: true
+    require_signed_commits: true
+    require_signed_tags: true
+    required_approving_reviews: 1
+    required_status_checks:
+      - cargo-fmt
+      - cargo-check
+      - cargo-clippy
+      - cargo-nextest
+      - oya-foundry-fitness-supply-chain
+      - oya-foundry-fitness-cohesion
+      - oya-foundry-fitness-api-semver

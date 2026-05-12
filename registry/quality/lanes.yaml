@@ -1,0 +1,387 @@
+# Oyatie quality lane registry. Source of truth mirrored by docs/standards/ci-lanes.md.
+# Fields: id, stage, status, owner_team, purpose, source, runtime_budget_seconds, optional check_command.
+lanes:
+  - id: oya-foundry-fitness-authority-cohesion
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: authority-chain declarations in CONSTITUTION, AGENTS, and README stay identical
+    source: CONSTITUTION.md
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate authority-cohesion
+  - id: oya-foundry-fitness-claim-ceiling
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: prevent unshipped stability, security, and supply-chain claims above foundation evidence
+    source: ADR-0037 / registry/catalog
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate claim-ceiling
+  - id: oya-foundry-fitness-codeowners-mirror
+    stage: foundation
+    status: active
+    owner_team: ops-sre-reliability
+    purpose: RACI per-surface owner matches CODEOWNERS team ownership
+    source: RACI-OWNERSHIP.md
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate codeowners-mirror
+  - id: oya-foundry-fitness-cohesion
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: cross-axis contract review-class label
+    source: ADR-0011
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate cohesion
+  - id: oya-foundry-fitness-constitution-cite-coverage
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: tier-one docs cite constitutional authority at heading level
+    source: CONSTITUTION.md
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate constitution-cite-coverage
+  - id: oya-foundry-fitness-data-class
+    stage: foundation
+    status: active
+    owner_team: council-privacy
+    purpose: enforce ADR-0008 data-class annotation
+    source: ADR-0008
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate data-class
+  - id: oya-foundry-fitness-doc-catalog
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: every consolidated doc has a DOC-CATALOG row
+    source: DOC-CATALOG.md
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate doc-catalog
+  - id: oya-foundry-fitness-docs
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: documentation-system pipeline registry and wiki quickref stay grounded
+    source: DOCUMENTATION.md / registry/docs/pipeline.tsv
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system
+  - id: oya-foundry-fitness-quality-lanes
+    stage: foundation
+    status: active
+    owner_team: axis-foundry
+    purpose: registry/quality/lanes.yaml and this CI-lanes doc mirror stay in sync
+    source: standards/ci-lanes.md
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate quality-lanes
+  - id: oya-foundry-fitness-foundation-bypass
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: foundation-bypass expiry monitor
+    source: ADR-0040
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate foundation-bypass
+  - id: oya-foundry-fitness-glossary-cross-doc-coverage
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: every glossary term appears outside GLOSSARY when active
+    source: GLOSSARY.md §11 / ADR-0018
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate glossary-cross-doc-coverage
+  - id: oya-foundry-fitness-glossary-vocabulary
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: retired-vocab hard-fail plus casing/acronym warning baseline ratchet
+    source: GLOSSARY.md §11 / ADR-0018
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate glossary-vocabulary
+  - id: oya-foundry-fitness-placeholder-debt
+    stage: foundation
+    status: active
+    owner_team: axis-foundry
+    purpose: fail-closed `TODO` / `TBD` registry so placeholder cleanup is tracked outside glossary acronym warnings
+    source: AGENTS.md Done-Definition / MISTAKES doctrine
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate placeholder-debt
+  - id: oya-foundry-fitness-license
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: enforce ADR-0013 license posture
+    source: ADR-0013
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate license-policy
+  - id: oya-foundry-fitness-plane-class
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: catalog plane-class changes require explicit review
+    source: ADR-0004
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate plane-class
+  - id: oya-foundry-fitness-raci-team-coverage
+    stage: foundation
+    status: active
+    owner_team: ops-sre-reliability
+    purpose: every team charter has RACI and CODEOWNERS coverage
+    source: RACI-OWNERSHIP.md
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate raci-team-coverage
+  - id: oya-foundry-fitness-readme-doc-coverage
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: every root doc has catalog and README discoverability
+    source: README.md / DOC-CATALOG.md
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate readme-doc-coverage
+  - id: oya-foundry-fitness-runbook-index-resolves
+    stage: foundation
+    status: active
+    owner_team: ops-sre-reliability
+    purpose: every RUNBOOKS-INDEX entry is a real file
+    source: RUNBOOKS-INDEX.md
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate runbook-index-resolves
+  - id: oya-foundry-fitness-slo-coverage
+    stage: foundation
+    status: active
+    owner_team: ops-sre-reliability
+    purpose: every catalog record carries SLO coverage
+    source: SLO-CATALOG.md
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate slo-coverage
+  - id: oya-foundry-fitness-catalog-records
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: every Cargo workspace member has a catalog record
+    source: ADR-0015 / registry/catalog
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- catalog validate
+  - id: oya-foundry-fitness-flat-crates
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: per-PR flat-crates path, legacy-tree, and role-boundary check
+    source: ADR-0015
+    runtime_budget_seconds: 120
+    check_command: scripts/check-architecture-boundaries.sh
+  - id: oya-foundry-fitness-product-index
+    stage: foundation
+    status: active
+    owner_team: axis-foundry
+    purpose: product README index and machine-readable product catalog stay in sync
+    source: products/README.md
+    runtime_budget_seconds: 120
+    check_command: scripts/check-product-index.py
+  - id: oya-foundry-fitness-adr-citation
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: only-new-pack-citations check
+    source: ADR-LEGACY-REGRESSION-MAPPING
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate adr-citation
+  - id: oya-foundry-fitness-brand-residue
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: tautological brand transition check
+    source: ADR-0017 / MFL-0011
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate brand-residue
+  - id: cargo-fmt
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: "`cargo fmt --all -- --check`"
+    source: TOOLCHAIN.md
+    runtime_budget_seconds: 120
+    check_command: cargo fmt --all -- --check
+  - id: cargo-check
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: "`cargo check --workspace --all-targets --all-features`"
+    source: TOOLCHAIN.md
+    runtime_budget_seconds: 600
+    check_command: cargo check --workspace --all-targets --all-features
+  - id: cargo-clippy
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: "`cargo clippy --workspace --all-features --all-targets -D warnings`"
+    source: standards/testing.md
+    runtime_budget_seconds: 900
+    check_command: cargo clippy --workspace --all-targets --all-features -- -D warnings
+  - id: cargo-nextest
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: "`cargo nextest run --workspace --all-features --no-fail-fast`"
+    source: standards/testing.md
+    runtime_budget_seconds: 1200
+    check_command: cargo nextest run --workspace --all-features --no-fail-fast
+  - id: cargo-deny
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: per ADR-0013 license + advisory check
+    source: ADR-0013
+    runtime_budget_seconds: 300
+    check_command: cargo deny check
+  - id: oya-foundation-demo-smoke
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: "`oya demo` foundation smoke path exercises tenant, MCP, audit, run, step, outbox, and secret flows"
+    source: PRD.md
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- demo
+  - id: machine-readable-json-parse
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: every docs/machine-readable JSON file parses before merge
+    source: DOC-CATALOG.md
+    runtime_budget_seconds: 60
+    check_command: json.loads(path.read_text())
+  - id: cargo-machete
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: unused-deps
+    source: TOOLCHAIN.md
+    runtime_budget_seconds: 300
+    check_command: cargo machete
+  - id: pnpm-typecheck
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: TS workspace typecheck
+    source: TOOLCHAIN.md
+    runtime_budget_seconds: 600
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate typescript-workspace --lane typecheck
+  - id: pnpm-test
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: TS unit + integration
+    source: TOOLCHAIN.md
+    runtime_budget_seconds: 600
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate typescript-workspace --lane test
+  - id: oya-foundry-fitness-supply-chain
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: Trivy 4-layer + Cosign per ADR-0039
+    source: ADR-0039
+    runtime_budget_seconds: 900
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate supply-chain --require-adr0039-evidence
+  - id: oya-foundry-fitness-supply-chain-bootstrap
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: source-only supply-chain guard plus RustSec and deny wiring
+    source: ADR-0039
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate supply-chain
+  - id: traceability-validator
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: PR template carries the 5 mandatory traceability H2 sections
+    source: STANDARDS-AND-TEMPLATES.md
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate pr-traceability
+  - id: oya-foundry-fitness-api-semver
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: public-API stability tier per ADR-0037
+    source: ADR-0037
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate api-semver
+  - id: oya-foundry-fitness-cargo-prefix
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: every workspace member starts with `oya-`
+    source: ADR-0017
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate cargo-prefix
+  - id: oya-foundry-fitness-pre-push
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: repoctl pre-push command contract maps to the checked local verification bundle
+    source: AGENTS.md D12
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push --verify-contract
+  - id: foundry-eval-nightly
+    stage: nightly
+    status: active
+    owner_team: axis-foundry
+    purpose: per-capability eval set per ADR-0024
+    source: ADR-0024
+    runtime_budget_seconds: 3600
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate foundry-eval
+  - id: chain-replay-drill
+    stage: nightly
+    status: active
+    owner_team: ops-sre-reliability
+    purpose: per-shard audit-chain integrity per ADR-0003
+    source: ADR-0003
+    runtime_budget_seconds: 3600
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate audit-chain-replay
+  - id: cross-tenant-access-fuzz
+    stage: nightly
+    status: active
+    owner_team: council-privacy
+    purpose: per-cell isolation per ADR-0009
+    source: ADR-0009
+    runtime_budget_seconds: 3600
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate cross-tenant-access-fuzz
+  - id: oya-foundry-fitness-vendor-contract-recency
+    stage: nightly
+    status: active
+    owner_team: council-architecture
+    purpose: per VENDOR-PARTNER-LEDGER
+    source: VENDOR-PARTNER-LEDGER.md
+    runtime_budget_seconds: 900
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate vendor-contract-recency
+  - id: oya-foundry-fitness-mobile-native
+    stage: nightly
+    status: active
+    owner_team: axis-foundry
+    purpose: per ADR-0051
+    source: ADR-0051
+    runtime_budget_seconds: 1800
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate mobile-native
+  - id: release-supply-chain
+    stage: per-release
+    status: active
+    owner_team: council-architecture
+    purpose: Cosign keyless + Rekor + SBOM per ADR-0039
+    source: ADR-0039
+    runtime_budget_seconds: 3600
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate release-supply-chain --phase pre-release
+  - id: release-evidence-pack
+    stage: per-release
+    status: active
+    owner_team: ops-sre-reliability
+    purpose: per-regulator evidence regen per COMPLIANCE-MATRIX
+    source: COMPLIANCE-MATRIX.md
+    runtime_budget_seconds: 3600
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate release-evidence-pack
+  - id: release-runbook-freshness
+    stage: per-release
+    status: active
+    owner_team: ops-sre-reliability
+    purpose: freshness SLA per RUNBOOKS-INDEX §3
+    source: RUNBOOKS-INDEX.md
+    runtime_budget_seconds: 900
+    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate runbook-freshness

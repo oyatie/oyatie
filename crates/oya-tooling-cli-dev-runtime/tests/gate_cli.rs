@@ -1,0 +1,3864 @@
+use std::fs;
+use std::path::Path;
+use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+#[test]
+fn foundation_bypass_gate_allows_empty_or_fresh_ledgers() {
+    let temp = temp_dir("gate-fresh");
+    fs::create_dir_all(&temp).expect("ledger dir created");
+    fs::write(
+        temp.join("byp_0001.yaml"),
+        "id: byp_0001\npr_ref: gh:oyatie/oyatie#123\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: temporary foundation sequencing gap\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
+    )
+    .expect("bypass record written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            temp.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "19",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("foundation gate exception ledger validation passed: 1 records, 1 open"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn foundation_bypass_gate_rejects_zero_window_and_expired_records() {
+    let temp = temp_dir("gate-expired");
+    fs::create_dir_all(&temp).expect("ledger dir created");
+    fs::write(
+        temp.join("byp_0002.yaml"),
+        "id: byp_0002\npr_ref: gh:oyatie/oyatie#124\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: temporary foundation sequencing gap\nregression_window_days: 0\ncreated_at_epoch_days: 10\n",
+    )
+    .expect("bypass record written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            temp.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "19",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr)
+        .contains("foundation gate exception ledger validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn foundation_bypass_gate_requires_an_explicit_ledger_directory() {
+    let temp = temp_dir("gate-missing-ledger");
+    let missing_ledger = temp.join("missing-ledger");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            missing_ledger.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "19",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr)
+        .contains("foundation gate exception ledger validation failed"));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("directory unreadable"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn foundation_bypass_gate_rejects_malformed_or_unknown_record_fields() {
+    let malformed = temp_dir("gate-malformed-bypass");
+    fs::create_dir_all(&malformed).expect("ledger dir created");
+    fs::write(
+        malformed.join("byp_malformed.yaml"),
+        "id: byp_malformed\nthis line is not yaml-ish\npr_ref: gh:oyatie/oyatie#125\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
+    )
+    .expect("malformed bypass record written");
+
+    let malformed_output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            malformed.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "19",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!malformed_output.status.success());
+    assert!(String::from_utf8_lossy(&malformed_output.stderr).contains("malformed line"));
+
+    let unknown = temp_dir("gate-unknown-bypass-field");
+    fs::create_dir_all(&unknown).expect("ledger dir created");
+    fs::write(
+        unknown.join("byp_unknown.yaml"),
+        "id: byp_unknown\npr_ref: gh:oyatie/oyatie#126\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 10\ncreated_at_epoch_days: 10\nsurprise_field: no\n",
+    )
+    .expect("unknown-field bypass record written");
+
+    let unknown_output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            unknown.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "19",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!unknown_output.status.success());
+    assert!(String::from_utf8_lossy(&unknown_output.stderr).contains("unknown field"));
+
+    fs::remove_dir_all(malformed).ok();
+    fs::remove_dir_all(unknown).ok();
+}
+
+#[test]
+fn foundation_bypass_gate_rejects_duplicate_record_fields() {
+    let temp = temp_dir("gate-duplicate-bypass-field");
+    fs::create_dir_all(&temp).expect("ledger dir created");
+    fs::write(
+        temp.join("byp_duplicate.yaml"),
+        "id: byp_duplicate\npr_ref: gh:oyatie/oyatie#127\ncrate_ref: oya-foundry-capability-kernel\ngate_bypassed: architecture\nbypassing_actor: usr_architect\nrationale: strict parse fixture\nregression_window_days: 0\nregression_window_days: 10\ncreated_at_epoch_days: 10\n",
+    )
+    .expect("duplicate-field bypass record written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            temp.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "19",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("duplicate field regression_window_days"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn foundation_bypass_gate_validates_autonomy_break_glass_records_in_same_ledger() {
+    let temp = temp_dir("gate-break-glass");
+    fs::create_dir_all(&temp).expect("ledger dir created");
+    fs::write(
+        temp.join("abg_0001.yaml"),
+        "entry_class: autonomy-break-glass\nid: abg_0001\ntenant_id: ten_healthcare\ncapability_id: cap.clinical.assist\nrequested_tier: T4AutoExecute\npermitted_tier: T4AutoExecute\nrequesting_actor: usr_operator\napproving_actors: usr_security,usr_privacy\napproval_quorum: two-of-three\nrationale: patient safety emergency with explicit expiry\ncreated_at_epoch_days: 10\nexpires_at_epoch_days: 12\n",
+    )
+    .expect("break-glass record written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            temp.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "12",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("foundation gate exception ledger validation passed: 1 records, 1 open"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn foundation_bypass_gate_rejects_expired_or_underapproved_break_glass_records() {
+    let expired = temp_dir("gate-expired-break-glass");
+    fs::create_dir_all(&expired).expect("ledger dir created");
+    fs::write(
+        expired.join("abg_0002.yaml"),
+        "entry_class: autonomy-break-glass\nid: abg_0002\ntenant_id: ten_healthcare\ncapability_id: cap.clinical.assist\nrequested_tier: T4AutoExecute\npermitted_tier: T4AutoExecute\nrequesting_actor: usr_operator\napproving_actors: usr_security,usr_privacy\napproval_quorum: two-of-three\nrationale: patient safety emergency with explicit expiry\ncreated_at_epoch_days: 10\nexpires_at_epoch_days: 12\n",
+    )
+    .expect("break-glass record written");
+
+    let expired_output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            expired.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "13",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!expired_output.status.success());
+    assert!(
+        String::from_utf8_lossy(&expired_output.stderr).contains("ExpiredBypass"),
+        "stderr={}",
+        String::from_utf8_lossy(&expired_output.stderr)
+    );
+
+    let underapproved = temp_dir("gate-underapproved-break-glass");
+    fs::create_dir_all(&underapproved).expect("ledger dir created");
+    fs::write(
+        underapproved.join("abg_0003.yaml"),
+        "entry_class: autonomy-break-glass\nid: abg_0003\ntenant_id: ten_healthcare\ncapability_id: cap.clinical.assist\nrequested_tier: T4AutoExecute\npermitted_tier: T4AutoExecute\nrequesting_actor: usr_operator\napproving_actors: usr_security\napproval_quorum: two-of-three\nrationale: patient safety emergency with explicit expiry\ncreated_at_epoch_days: 10\nexpires_at_epoch_days: 12\n",
+    )
+    .expect("break-glass record written");
+
+    let underapproved_output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "foundation-bypass",
+            "--ledger",
+            underapproved.to_str().expect("utf8 ledger"),
+            "--now-epoch-days",
+            "11",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!underapproved_output.status.success());
+    assert!(
+        String::from_utf8_lossy(&underapproved_output.stderr)
+            .contains("InsufficientBreakGlassApprovals"),
+        "stderr={}",
+        String::from_utf8_lossy(&underapproved_output.stderr)
+    );
+
+    fs::remove_dir_all(expired).ok();
+    fs::remove_dir_all(underapproved).ok();
+}
+
+#[test]
+fn plane_class_gate_accepts_stable_catalog_planes() {
+    let temp = temp_dir("plane-stable");
+    let baseline = temp.join("baseline");
+    let current = temp.join("current");
+    write_catalog_record(&baseline, "oya-foundry-capability-kernel", "control");
+    write_catalog_record(&current, "oya-foundry-capability-kernel", "control");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "plane-class",
+            "--registry",
+            current.to_str().expect("utf8 current registry"),
+            "--baseline",
+            baseline.to_str().expect("utf8 baseline registry"),
+        ])
+        .output()
+        .expect("plane gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("plane class validation passed: 1 records, 0 reviewed changes"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn plane_class_gate_rejects_unreviewed_plane_changes() {
+    let temp = temp_dir("plane-change");
+    let baseline = temp.join("baseline");
+    let current = temp.join("current");
+    write_catalog_record(&baseline, "oya-foundry-capability-kernel", "control");
+    write_catalog_record(&current, "oya-foundry-capability-kernel", "data");
+
+    let rejected = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "plane-class",
+            "--registry",
+            current.to_str().expect("utf8 current registry"),
+            "--baseline",
+            baseline.to_str().expect("utf8 baseline registry"),
+        ])
+        .output()
+        .expect("plane gate command runs");
+
+    assert!(!rejected.status.success());
+    assert!(String::from_utf8_lossy(&rejected.stderr).contains("plane class validation failed"));
+
+    let reviewed = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "plane-class",
+            "--registry",
+            current.to_str().expect("utf8 current registry"),
+            "--baseline",
+            baseline.to_str().expect("utf8 baseline registry"),
+            "--reviewed-change",
+            "oya-foundry-capability-kernel",
+        ])
+        .output()
+        .expect("plane gate command runs");
+
+    assert!(
+        reviewed.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&reviewed.stdout),
+        String::from_utf8_lossy(&reviewed.stderr)
+    );
+    assert!(String::from_utf8_lossy(&reviewed.stdout)
+        .contains("plane class validation passed: 1 records, 1 reviewed changes"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn claim_ceiling_gate_rejects_catalog_claims_above_foundation() {
+    let temp = temp_dir("claim-ceiling");
+    write_catalog_record_with_claim(&temp, "oya-foundry-capability-kernel", "control", "stable");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "claim-ceiling",
+            "--registry",
+            temp.to_str().expect("utf8 registry"),
+        ])
+        .output()
+        .expect("claim gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("claim ceiling validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn license_policy_gate_rejects_forbidden_workspace_crate_license() {
+    let temp = temp_dir("license-policy");
+    let crate_dir = temp.join("crates/oya-foundry-capability-kernel");
+    fs::create_dir_all(&crate_dir).expect("crate dir created");
+    fs::write(
+        temp.join("Cargo.toml"),
+        r#"[workspace]
+members = ["crates/oya-foundry-capability-kernel"]
+"#,
+    )
+    .expect("workspace manifest written");
+    fs::write(
+        crate_dir.join("Cargo.toml"),
+        r#"[package]
+name = "oya-foundry-capability-kernel"
+edition = "2021"
+version = "0.1.0"
+license = "GPL-3.0"
+"#,
+    )
+    .expect("crate manifest written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "license-policy",
+            "--workspace",
+            temp.join("Cargo.toml").to_str().expect("utf8 workspace"),
+        ])
+        .output()
+        .expect("license gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("license policy validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn vendor_contract_recency_gate_accepts_explicit_no_signed_contracts_declaration() {
+    let temp = temp_dir("vendor-contract-recency-empty");
+    let ledger = write_vendor_contract_ledger(
+        &temp,
+        "| `vcr-no-signed-contracts-2026-05-10` | All listed vendors and partners | no-signed-contracts | n/a | n/a | `gtm-partnerships` + `ops-security` |\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(vendor_contract_recency_args(&ledger, "2026-05-10"))
+        .output()
+        .expect("vendor contract recency gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("vendor contract recency validation passed: 1 records, 0 contracted, 0 renewal tasks required"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn vendor_contract_recency_gate_accepts_near_expiry_contract_with_task() {
+    let temp = temp_dir("vendor-contract-recency-tasked");
+    let ledger = write_vendor_contract_ledger(
+        &temp,
+        "| `ctr-oci-001` | OCI | contracted | 2026-06-01 | gh:oyatie/oyatie#123 | `gtm-partnerships` |\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(vendor_contract_recency_args(&ledger, "2026-05-10"))
+        .output()
+        .expect("vendor contract recency gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("vendor contract recency validation passed: 1 records, 1 contracted, 1 renewal tasks required"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn vendor_contract_recency_gate_rejects_near_expiry_contract_without_task() {
+    let temp = temp_dir("vendor-contract-recency-missing-task");
+    let ledger = write_vendor_contract_ledger(
+        &temp,
+        "| `ctr-oci-001` | OCI | contracted | 2026-06-01 | n/a | `gtm-partnerships` |\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(vendor_contract_recency_args(&ledger, "2026-05-10"))
+        .output()
+        .expect("vendor contract recency gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("RenewalTaskRequired"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn mobile_native_gate_accepts_explicit_web_only_preview_manifest() {
+    let temp = temp_dir("mobile-native-web-only");
+    let manifest = write_mobile_native_manifest(&temp, "");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(mobile_native_args(&manifest, &temp))
+        .output()
+        .expect("mobile native gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "mobile native validation passed: current_wave=W-Foundry-Preview, 0 native products, 0 native project markers, 0 quality records"
+    ));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn mobile_native_gate_rejects_native_marker_without_product_manifest_row() {
+    let temp = temp_dir("mobile-native-marker-without-row");
+    let manifest = write_mobile_native_manifest(&temp, "");
+    fs::create_dir_all(temp.join("apps/workspace/ios")).expect("native dir created");
+    fs::write(temp.join("apps/workspace/ios/App.swift"), "struct App {}\n")
+        .expect("native marker written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(mobile_native_args(&manifest, &temp))
+        .output()
+        .expect("mobile native gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("NativeMarkersWithoutDeclaredProducts"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn mobile_native_gate_accepts_native_product_with_quality_evidence() {
+    let temp = temp_dir("mobile-native-product");
+    fs::create_dir_all(temp.join("apps/workspace/ios")).expect("native dir created");
+    fs::write(temp.join("apps/workspace/ios/App.swift"), "struct App {}\n")
+        .expect("native marker written");
+    let manifest = write_mobile_native_manifest(
+        &temp,
+        "workspace-mail-mobile\tworkspace\tnative-in-scope\tdocs/products/workspace/PRD.md#mail\tdocs/products/workspace/mobile.md#target-matrix\tdocs/products/workspace/mobile.md#tech-stack\tdocs/regional-packs/kr.md#store-policy\ttrue\tartifact://mobile/workspace-mail/accessibility.json\ttrue\tartifact://mobile/workspace-mail/parity.json\ttrue\tartifact://mobile/workspace-mail/sbom.spdx.json\t0\t9950\t20\t2000\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(mobile_native_args(&manifest, &temp))
+        .output()
+        .expect("mobile native gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "mobile native validation passed: current_wave=W-Foundry-Preview, 1 native products, 1 native project markers, 1 quality records"
+    ));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn typescript_workspace_gate_accepts_absent_workspace_for_active_pnpm_lanes() {
+    let temp = temp_dir("typescript-workspace-absent");
+    fs::create_dir_all(&temp).expect("temp dir created");
+
+    for lane in ["typecheck", "test"] {
+        let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+            .args(typescript_workspace_args(&temp, lane))
+            .output()
+            .expect("typescript workspace gate command runs");
+
+        assert!(
+            output.status.success(),
+            "lane={lane}\nstdout={}\nstderr={}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(String::from_utf8_lossy(&output.stdout)
+            .contains(&format!("lane={lane}, workspace_present=false")));
+    }
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn typescript_workspace_gate_rejects_missing_repo_root() {
+    let missing = temp_dir("typescript-workspace-missing-root");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(typescript_workspace_args(&missing, "typecheck"))
+        .output()
+        .expect("typescript workspace gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("repo root is not a directory"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn typescript_workspace_gate_accepts_pnpm_workspace_scripts() {
+    let temp = temp_dir("typescript-workspace-valid");
+    write_typescript_workspace_fixture(
+        &temp,
+        r#"{
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}
+"#,
+        true,
+        true,
+    );
+
+    for lane in ["typecheck", "test"] {
+        let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+            .args(typescript_workspace_args(&temp, lane))
+            .output()
+            .expect("typescript workspace gate command runs");
+
+        assert!(
+            output.status.success(),
+            "lane={lane}\nstdout={}\nstderr={}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(String::from_utf8_lossy(&output.stdout)
+            .contains(&format!("lane={lane}, workspace_present=true")));
+    }
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn typescript_workspace_gate_rejects_ts_marker_without_package_json() {
+    let temp = temp_dir("typescript-workspace-no-package");
+    fs::create_dir_all(temp.join("src")).expect("src dir created");
+    fs::write(temp.join("src/index.ts"), "export const ok = true;\n").expect("ts marker written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(typescript_workspace_args(&temp, "typecheck"))
+        .output()
+        .expect("typescript workspace gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingRootPackageJson"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn typescript_workspace_gate_rejects_missing_required_script() {
+    let temp = temp_dir("typescript-workspace-missing-script");
+    write_typescript_workspace_fixture(
+        &temp,
+        r#"{
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "test": "vitest run"
+  }
+}
+"#,
+        true,
+        true,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(typescript_workspace_args(&temp, "typecheck"))
+        .output()
+        .expect("typescript workspace gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("RequiredScriptMissing"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn typescript_workspace_gate_rejects_non_pnpm_package_manager() {
+    let temp = temp_dir("typescript-workspace-npm");
+    write_typescript_workspace_fixture(
+        &temp,
+        r#"{
+  "packageManager": "npm@10.0.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  }
+}
+"#,
+        true,
+        true,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(typescript_workspace_args(&temp, "typecheck"))
+        .output()
+        .expect("typescript workspace gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("PackageManagerNotPnpm"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn adr_citation_gate_accepts_new_pack_refs_and_forensic_mapping_refs() {
+    let temp = temp_dir("adr-citation-valid");
+    write_adr_citation_fixture(
+        &temp,
+        "ADR-0051 is the mobile/native source.",
+        "Legacy ADR-0201 maps to ADR-0051.",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(adr_citation_args(&temp))
+        .output()
+        .expect("ADR citation gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("ADR citation validation passed: 4 documents, 3 citations, 2 pack ADRs"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn adr_citation_gate_rejects_legacy_ref_in_active_doc() {
+    let temp = temp_dir("adr-citation-legacy");
+    write_adr_citation_fixture(
+        &temp,
+        "Legacy ADR-0201 must not appear here.",
+        "Legacy ADR-0201 maps to ADR-0051.",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(adr_citation_args(&temp))
+        .output()
+        .expect("ADR citation gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("DisallowedAdrCitation"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn adr_citation_gate_rejects_future_ref_without_pack_file() {
+    let temp = temp_dir("adr-citation-future");
+    write_adr_citation_fixture(
+        &temp,
+        "ADR-0052 has not landed yet.",
+        "Legacy ADR-0201 maps to ADR-0051.",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(adr_citation_args(&temp))
+        .output()
+        .expect("ADR citation gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("ADR-0052"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn brand_residue_gate_accepts_canonical_brand_and_real_transitions() {
+    let temp = temp_dir("brand-residue-valid");
+    write_brand_residue_file(
+        &temp,
+        "docs/GLOSSARY.md",
+        "# Glossary\n\nOyatie is the product brand.\n| `oyatie-*` Cargo prefix | `oya-*` | ADR-0017 |\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(brand_residue_args(&temp))
+        .output()
+        .expect("brand residue gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("brand residue validation passed: 1 files, 1 transition patterns"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn brand_residue_gate_rejects_tautological_rebrand_statement() {
+    let temp = temp_dir("brand-residue-tautology");
+    write_brand_residue_file(
+        &temp,
+        "docs/PRD.md",
+        "All product strings rebrand from `Oyatie` → `Oyatie`.\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(brand_residue_args(&temp))
+        .output()
+        .expect("brand residue gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("TautologicalBrandTransition"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn brand_residue_gate_rejects_tautological_retired_term_rows() {
+    let temp = temp_dir("brand-residue-table");
+    write_brand_residue_file(
+        &temp,
+        "docs/GLOSSARY.md",
+        "| Old | New | Reason |\n|---|---|---|\n| Oyatie | Oyatie | Brand rename per ADR-0017 |\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(brand_residue_args(&temp))
+        .output()
+        .expect("brand residue gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("RetiredTermsTable"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn api_semver_gate_accepts_bootstrap_without_contracts() {
+    let temp = temp_dir("api-semver-empty");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(api_semver_args(&temp))
+        .output()
+        .expect("API semver gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("API semver validation passed: 0 contracts, 0 metadata records"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn api_semver_gate_accepts_contract_with_metadata() {
+    let temp = temp_dir("api-semver-valid");
+    write_api_contract(
+        &temp,
+        "contracts/openapi/workspace/mail-v1.yaml",
+        "openapi: 3.2.0\ninfo:\n  title: Mail\n  version: 1.0.0\n",
+    );
+    write_api_contract(
+        &temp,
+        "contracts/openapi/workspace/mail-v1.meta.yaml",
+        "tier: preview\nowner_team: platform-api-sdk\nversion: 1.0.0\nsunset: none\nrelated_adrs: [ADR-0037]\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(api_semver_args(&temp))
+        .output()
+        .expect("API semver gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("API semver validation passed: 1 contracts, 1 metadata records"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn api_semver_gate_rejects_contract_without_metadata() {
+    let temp = temp_dir("api-semver-missing-metadata");
+    write_api_contract(
+        &temp,
+        "contracts/openapi/workspace/mail-v1.yaml",
+        "openapi: 3.2.0\ninfo:\n  title: Mail\n  version: 1.0.0\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(api_semver_args(&temp))
+        .output()
+        .expect("API semver gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingMetadata"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn api_semver_gate_rejects_metadata_version_mismatch() {
+    let temp = temp_dir("api-semver-version-mismatch");
+    write_api_contract(
+        &temp,
+        "contracts/openapi/workspace/mail-v2.yaml",
+        "openapi: 3.2.0\ninfo:\n  title: Mail\n  version: 2.0.0\n",
+    );
+    write_api_contract(
+        &temp,
+        "contracts/openapi/workspace/mail-v2.meta.yaml",
+        "tier: stable\nowner_team: platform-api-sdk\nversion: 1.0.0\nsunset: none\nrelated_adrs:\n  - ADR-0037\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(api_semver_args(&temp))
+        .output()
+        .expect("API semver gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("VersionSuffixMismatch"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn supply_chain_gate_accepts_source_only_bootstrap() {
+    let temp = temp_dir("supply-chain-valid");
+    write_supply_chain_fixture(
+        &temp,
+        "source-only",
+        "cargo audit\ncargo deny check\n",
+        None,
+        false,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(supply_chain_args(&temp))
+        .output()
+        .expect("supply chain gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("supply chain validation passed: 1 catalog records, 1 source-only attestations"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn supply_chain_gate_rejects_missing_cargo_audit_wiring() {
+    let temp = temp_dir("supply-chain-no-audit");
+    write_supply_chain_fixture(&temp, "source-only", "cargo deny check\n", None, false);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(supply_chain_args(&temp))
+        .output()
+        .expect("supply chain gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingCargoAuditCheck"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn supply_chain_gate_rejects_unpinned_third_party_actions() {
+    let temp = temp_dir("supply-chain-unpinned-action");
+    write_supply_chain_fixture(
+        &temp,
+        "source-only",
+        "cargo audit\ncargo deny check\n",
+        Some(
+            "name: supply\njobs:\n  guard:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: vendor/tool@v1\n",
+        ),
+        false,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(supply_chain_args(&temp))
+        .output()
+        .expect("supply chain gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("UnpinnedThirdPartyAction"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn supply_chain_gate_rejects_release_manifest_without_adr0039_evidence() {
+    let temp = temp_dir("supply-chain-release-manifest");
+    write_supply_chain_fixture(
+        &temp,
+        "source-only",
+        "cargo audit\ncargo deny check\n",
+        None,
+        true,
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(supply_chain_args(&temp))
+        .output()
+        .expect("supply chain gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("ReleaseManifestWithoutAdr0039Evidence"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_supply_chain_gate_accepts_complete_release_attestation_evidence() {
+    let temp = temp_dir("release-supply-chain-valid");
+    write_release_supply_chain_fixture(&temp, "123", "0", "true");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_supply_chain_args(&temp))
+        .output()
+        .expect("release supply chain gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("release supply chain validation passed: 1 artifacts, 1 evidence records"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_supply_chain_gate_rejects_missing_rekor_inclusion() {
+    let temp = temp_dir("release-supply-chain-missing-rekor");
+    write_release_supply_chain_fixture(&temp, "0", "0", "true");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_supply_chain_args(&temp))
+        .output()
+        .expect("release supply chain gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingRekorInclusion"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_supply_chain_gate_rejects_open_high_critical_findings() {
+    let temp = temp_dir("release-supply-chain-open-findings");
+    write_release_supply_chain_fixture(&temp, "123", "1", "true");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_supply_chain_args(&temp))
+        .output()
+        .expect("release supply chain gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("OpenHighCriticalFindings"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_supply_chain_gate_accepts_pre_release_empty_scope_declaration() {
+    let temp = temp_dir("release-supply-chain-pre-release-empty");
+    write_pre_release_image_manifest(&temp);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_supply_chain_args_with_phase(&temp, "pre-release"))
+        .output()
+        .expect("release supply chain gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains(
+            "release supply chain validation passed: 0 artifacts, 0 evidence records, phase=pre-release"
+        ),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_supply_chain_gate_rejects_pre_release_empty_scope_without_rationale() {
+    let temp = temp_dir("release-supply-chain-pre-release-no-rationale");
+    fs::create_dir_all(temp.join("registry/release")).expect("release registry dir created");
+    fs::write(
+        temp.join("registry/release/images.yaml"),
+        "# release_state: pre-release\nimages: []\n",
+    )
+    .expect("release image manifest written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_supply_chain_args_with_phase(&temp, "pre-release"))
+        .output()
+        .expect("release supply chain gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingPreReleaseEmptyScopeRationale"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_supply_chain_gate_rejects_release_phase_without_artifacts() {
+    let temp = temp_dir("release-supply-chain-release-empty");
+    write_pre_release_image_manifest(&temp);
+    fs::create_dir_all(temp.join("registry/release/supply-chain"))
+        .expect("release supply-chain evidence dir created");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_supply_chain_args_with_phase(&temp, "release"))
+        .output()
+        .expect("release supply chain gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("NoReleaseArtifacts"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_evidence_pack_gate_accepts_explicit_pre_release_bootstrap() {
+    let temp = temp_dir("release-evidence-pack-bootstrap");
+    write_release_evidence_pack_fixture(&temp, "");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_evidence_pack_args(&temp))
+        .output()
+        .expect("release evidence pack gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "release evidence pack validation passed: 3 known regulators, 0 records, 0 published"
+    ));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_evidence_pack_gate_rejects_bootstrap_when_records_required() {
+    let temp = temp_dir("release-evidence-pack-requires-records");
+    write_release_evidence_pack_fixture(&temp, "");
+    let mut args = release_evidence_pack_args(&temp);
+    args.push("--require-records".into());
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(args)
+        .output()
+        .expect("release evidence pack gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("RecordsRequired"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_evidence_pack_gate_accepts_published_regulator_pack() {
+    let temp = temp_dir("release-evidence-pack-published");
+    write_release_evidence_pack_fixture(
+        &temp,
+        "GDPR\teu\toya-pack-eu\t0.1.0\tper-release\t2026-05-01\t2026-05-10\tops-compliance\tartifact://release/0.1.0/evidence/gdpr.md\trekor://log/123/evidence-pack\tEVT-EVIDENCE-PACK-PUBLISHED-0001\t1000\t1240\t8\t8\ttrue\ttrue\tpublished\n",
+    );
+    rewrite_release_evidence_pack_version(&temp, "0.1.0", "n/a");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_evidence_pack_args(&temp))
+        .output()
+        .expect("release evidence pack gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "release evidence pack validation passed: 3 known regulators, 1 records, 1 published"
+    ));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_evidence_pack_gate_rejects_unknown_regulator() {
+    let temp = temp_dir("release-evidence-pack-unknown-regulator");
+    write_release_evidence_pack_fixture(
+        &temp,
+        "Unknown\teu\toya-pack-eu\t0.1.0\tper-release\t2026-05-01\t2026-05-10\tops-compliance\tartifact://release/0.1.0/evidence/unknown.md\trekor://log/123/evidence-pack\tEVT-EVIDENCE-PACK-PUBLISHED-0001\t1000\t1240\t8\t8\ttrue\ttrue\tpublished\n",
+    );
+    rewrite_release_evidence_pack_version(&temp, "0.1.0", "n/a");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_evidence_pack_args(&temp))
+        .output()
+        .expect("release evidence pack gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("UnknownRegulator"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn release_evidence_pack_gate_rejects_sla_over_four_hours() {
+    let temp = temp_dir("release-evidence-pack-sla");
+    write_release_evidence_pack_fixture(
+        &temp,
+        "GDPR\teu\toya-pack-eu\t0.1.0\tper-release\t2026-05-01\t2026-05-10\tops-compliance\tartifact://release/0.1.0/evidence/gdpr.md\trekor://log/123/evidence-pack\tEVT-EVIDENCE-PACK-PUBLISHED-0001\t1000\t1241\t8\t8\ttrue\ttrue\tpublished\n",
+    );
+    rewrite_release_evidence_pack_version(&temp, "0.1.0", "n/a");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(release_evidence_pack_args(&temp))
+        .output()
+        .expect("release evidence pack gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("RegenerationSlaExceeded"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn supply_chain_gate_accepts_full_adr0039_static_wiring() {
+    let temp = temp_dir("supply-chain-full-valid");
+    write_supply_chain_fixture(
+        &temp,
+        "source-only",
+        "cargo audit\ncargo deny check\n",
+        Some("name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n"),
+        true,
+    );
+    write_supply_chain_adr0039_script(&temp);
+    write_supply_chain_branch_protection(&temp);
+    write_supply_chain_admission_policy(&temp);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(supply_chain_full_args(&temp))
+        .output()
+        .expect("supply chain gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("supply chain validation passed: 1 catalog records, 1 source-only attestations"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn supply_chain_gate_accepts_full_adr0039_static_wiring_with_pre_release_empty_scope() {
+    let temp = temp_dir("supply-chain-full-pre-release-empty-scope");
+    write_supply_chain_fixture(
+        &temp,
+        "source-only",
+        "cargo audit\ncargo deny check\n",
+        Some("name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n"),
+        false,
+    );
+    write_pre_release_contract_image_manifest(&temp);
+    write_supply_chain_adr0039_script(&temp);
+    write_supply_chain_branch_protection(&temp);
+    write_supply_chain_admission_policy(&temp);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(supply_chain_full_args(&temp))
+        .output()
+        .expect("supply chain gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn supply_chain_gate_rejects_full_adr0039_without_signed_commit_policy() {
+    let temp = temp_dir("supply-chain-full-missing-branch-policy");
+    write_supply_chain_fixture(
+        &temp,
+        "source-only",
+        "cargo audit\ncargo deny check\n",
+        Some("name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n"),
+        true,
+    );
+    write_supply_chain_adr0039_script(&temp);
+    write_supply_chain_admission_policy(&temp);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(supply_chain_full_args(&temp))
+        .output()
+        .expect("supply chain gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("signed_commit_policy_wired"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn cargo_prefix_gate_accepts_oya_workspace_members() {
+    let temp = temp_dir("cargo-prefix-valid");
+    write_cargo_prefix_workspace(
+        &temp,
+        "crates/oya-foundry-capability-kernel",
+        "oya-foundry-capability-kernel",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(cargo_prefix_args(&temp))
+        .output()
+        .expect("cargo prefix gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("cargo prefix validation passed: 1 workspace members"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn cargo_prefix_gate_rejects_unprefixed_package_name() {
+    let temp = temp_dir("cargo-prefix-unprefixed-package");
+    write_cargo_prefix_workspace(
+        &temp,
+        "crates/oya-foundry-capability-kernel",
+        "foundry-capability-kernel",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(cargo_prefix_args(&temp))
+        .output()
+        .expect("cargo prefix gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("PackageNamePrefixViolation"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn cargo_prefix_gate_rejects_member_path_package_name_mismatch() {
+    let temp = temp_dir("cargo-prefix-mismatch");
+    write_cargo_prefix_workspace(
+        &temp,
+        "crates/oya-foundry-capability-kernel",
+        "oya-foundry-policy-kernel",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(cargo_prefix_args(&temp))
+        .output()
+        .expect("cargo prefix gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("PackageNamePathMismatch"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn authority_cohesion_gate_rejects_drifted_chain_declarations() {
+    let temp = temp_dir("authority-cohesion");
+    fs::create_dir_all(&temp).expect("docs dir created");
+    write_authority_doc(&temp, "CONSTITUTION.md", "canonical");
+    write_authority_doc(&temp, "AGENTS.md", "drifted");
+    write_authority_doc(&temp, "README.md", "canonical");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "authority-cohesion",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+        ])
+        .output()
+        .expect("authority gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("authority cohesion validation failed")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn constitution_cite_gate_rejects_tier_one_doc_without_heading_citation() {
+    let temp = temp_dir("constitution-cite");
+    fs::create_dir_all(&temp).expect("docs dir created");
+    fs::write(
+        temp.join("README.md"),
+        "# Docs\n\n## Tier-1 documents\n\n- [`AGENTS.md`](AGENTS.md) — contract.\n\n## Layer redirects\n",
+    )
+    .expect("docs readme written");
+    fs::write(
+        temp.join("AGENTS.md"),
+        "# Agent Contract\n\nBody cites [CONSTITUTION.md](CONSTITUTION.md), but heading does not.\n",
+    )
+    .expect("agent doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "constitution-cite-coverage",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+        ])
+        .output()
+        .expect("constitution cite gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr)
+        .contains("constitution cite coverage validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn runbook_index_gate_rejects_indexed_missing_runbook() {
+    let temp = temp_dir("runbook-index");
+    fs::create_dir_all(temp.join("runbooks/foundry")).expect("runbooks dir created");
+    fs::write(
+        temp.join("RUNBOOKS-INDEX.md"),
+        "# Runbooks\n\n## 2. Critical runbooks\n\n- `foundry/missing.md`\n",
+    )
+    .expect("runbooks index written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "runbook-index-resolves",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+        ])
+        .output()
+        .expect("runbook index gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("runbook index validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn runbook_index_gate_checks_prefixed_index_entries() {
+    let temp = temp_dir("runbook-index-prefixed");
+    fs::create_dir_all(temp.join("runbooks/foundry")).expect("runbooks dir created");
+    fs::write(temp.join("runbooks/foundry/valid.md"), "# Valid\n").expect("runbook written");
+    fs::write(
+        temp.join("RUNBOOKS-INDEX.md"),
+        "# Runbooks\n\n## 2. Critical runbooks\n\n- `foundry/valid.md`\n- `runbooks/foundry/missing.md`\n",
+    )
+    .expect("runbooks index written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "runbook-index-resolves",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+        ])
+        .output()
+        .expect("runbook index gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("runbook index validation failed"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn data_class_gate_rejects_untracked_unannotated_kernel_field() {
+    let temp = temp_dir("data-class-untracked");
+    write_kernel_workspace(
+        &temp,
+        "pub struct Example {\n    pub tenant_id: String,\n}\n",
+    );
+    fs::write(temp.join("legacy.tsv"), "").expect("legacy ledger written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "data-class",
+            "--workspace",
+            temp.join("Cargo.toml").to_str().expect("utf8 workspace"),
+            "--legacy",
+            temp.join("legacy.tsv").to_str().expect("utf8 legacy"),
+        ])
+        .output()
+        .expect("data-class gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("data class fitness validation failed")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn data_class_gate_accepts_annotated_fields_and_tracked_legacy_fields() {
+    let temp = temp_dir("data-class-tracked");
+    write_kernel_workspace(
+        &temp,
+        "pub struct Example {\n    pub display_name: String, // data_class: PUBLIC\n    pub tenant_id: String,\n}\n",
+    );
+    fs::write(
+        temp.join("legacy.tsv"),
+        "crates/example-kernel/src/lib.rs\tExample\ttenant_id\tMFL-0008 bootstrap ledger; new fields must be annotated\n",
+    )
+    .expect("legacy ledger written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "data-class",
+            "--workspace",
+            temp.join("Cargo.toml").to_str().expect("utf8 workspace"),
+            "--legacy",
+            temp.join("legacy.tsv").to_str().expect("utf8 legacy"),
+        ])
+        .output()
+        .expect("data-class gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "data class fitness validation passed: 2 fields checked, 1 annotated, 1 legacy unannotated"
+    ));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn slo_coverage_gate_rejects_catalog_record_without_slo() {
+    let temp = temp_dir("slo-coverage-missing");
+    write_slo_catalog_record(&temp, "oya-foundry-capability-kernel", None);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "slo-coverage",
+            "--registry",
+            temp.to_str().expect("utf8 registry"),
+        ])
+        .output()
+        .expect("slo coverage gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("slo coverage validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn slo_coverage_gate_accepts_catalog_records_with_slo() {
+    let temp = temp_dir("slo-coverage-present");
+    write_slo_catalog_record(
+        &temp,
+        "oya-foundry-capability-kernel",
+        Some("preview-control-plane"),
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "slo-coverage",
+            "--registry",
+            temp.to_str().expect("utf8 registry"),
+        ])
+        .output()
+        .expect("slo coverage gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("slo coverage validation passed: 1 records"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn cohesion_gate_rejects_implemented_contract_source_missing_catalog() {
+    let temp = temp_dir("cohesion-missing-catalog");
+    write_workspace_manifest(&temp, &["crates/example-kernel"]);
+    write_package_manifest(&temp.join("crates/example-kernel"), "example-kernel");
+    let registry = temp.join("registry");
+    fs::create_dir_all(&registry).expect("registry dir created");
+    let contracts = temp.join("contracts.json");
+    write_contracts_json(
+        &contracts,
+        "TENANT_KERNEL",
+        "crates/example-kernel",
+        "cross-axis",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "cohesion",
+            "--workspace",
+            temp.join("Cargo.toml").to_str().expect("utf8 workspace"),
+            "--registry",
+            registry.to_str().expect("utf8 registry"),
+            "--contracts",
+            contracts.to_str().expect("utf8 contracts"),
+        ])
+        .output()
+        .expect("cohesion gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("cohesion validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn cohesion_gate_accepts_implemented_contract_source_with_catalog() {
+    let temp = temp_dir("cohesion-present-catalog");
+    write_workspace_manifest(&temp, &["crates/example-kernel"]);
+    write_package_manifest(&temp.join("crates/example-kernel"), "example-kernel");
+    let registry = temp.join("registry");
+    write_slo_catalog_record(&registry, "example-kernel", Some("preview-control-plane"));
+    let contracts = temp.join("contracts.json");
+    write_contracts_json(
+        &contracts,
+        "TENANT_KERNEL",
+        "crates/example-kernel",
+        "cross-axis",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "cohesion",
+            "--workspace",
+            temp.join("Cargo.toml").to_str().expect("utf8 workspace"),
+            "--registry",
+            registry.to_str().expect("utf8 registry"),
+            "--contracts",
+            contracts.to_str().expect("utf8 contracts"),
+        ])
+        .output()
+        .expect("cohesion gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("cohesion validation passed: 1 contracts, 1 implemented sources"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn codeowners_mirror_gate_rejects_unknown_team_owner() {
+    let temp = temp_dir("codeowners-unknown-team");
+    write_codeowners_fixture(&temp, "@teams/missing-team");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "codeowners-mirror",
+            "--codeowners",
+            temp.join(".github/CODEOWNERS")
+                .to_str()
+                .expect("utf8 codeowners"),
+            "--teams-dir",
+            temp.join("teams").to_str().expect("utf8 teams dir"),
+        ])
+        .output()
+        .expect("codeowners mirror gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("codeowners mirror validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn cohesion_gate_rejects_non_object_contract_registry_entries() {
+    let temp = temp_dir("cohesion-non-object-entry");
+    write_workspace_manifest(&temp, &["crates/example-kernel"]);
+    write_package_manifest(&temp.join("crates/example-kernel"), "example-kernel");
+    let registry = temp.join("registry");
+    write_slo_catalog_record(&registry, "example-kernel", Some("preview-control-plane"));
+    let contracts = temp.join("contracts.json");
+    fs::write(
+        &contracts,
+        r#"{
+  "cross_axis_contracts": [
+    {
+      "id": "TENANT_KERNEL",
+      "owner_axis": "saas",
+      "consumer_axes": ["all"],
+      "location": "crates/example-kernel",
+      "change_review": "cross-axis"
+    },
+    null
+  ]
+}"#,
+    )
+    .expect("contracts json written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "cohesion",
+            "--workspace",
+            temp.join("Cargo.toml").to_str().expect("utf8 workspace"),
+            "--registry",
+            registry.to_str().expect("utf8 registry"),
+            "--contracts",
+            contracts.to_str().expect("utf8 contracts"),
+        ])
+        .output()
+        .expect("cohesion gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("cross_axis_contracts contains non-object entry"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn cohesion_gate_rejects_empty_contract_registry_entries() {
+    let temp = temp_dir("cohesion-empty-entry");
+    write_workspace_manifest(&temp, &["crates/example-kernel", "crates/second-kernel"]);
+    write_package_manifest(&temp.join("crates/example-kernel"), "example-kernel");
+    write_package_manifest(&temp.join("crates/second-kernel"), "second-kernel");
+    let registry = temp.join("registry");
+    write_slo_catalog_record(&registry, "example-kernel", Some("preview-control-plane"));
+    write_slo_catalog_record(&registry, "second-kernel", Some("preview-control-plane"));
+    let contracts = temp.join("contracts.json");
+    fs::write(
+        &contracts,
+        r#"{
+  "cross_axis_contracts": [
+    {
+      "id": "TENANT_KERNEL",
+      "owner_axis": "saas",
+      "consumer_axes": ["all"],
+      "location": "crates/example-kernel",
+      "change_review": "cross-axis"
+    },,
+    {
+      "id": "SECOND_KERNEL",
+      "owner_axis": "saas",
+      "consumer_axes": ["all"],
+      "location": "crates/second-kernel",
+      "change_review": "cross-axis"
+    }
+  ]
+}"#,
+    )
+    .expect("contracts json written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "cohesion",
+            "--workspace",
+            temp.join("Cargo.toml").to_str().expect("utf8 workspace"),
+            "--registry",
+            registry.to_str().expect("utf8 registry"),
+            "--contracts",
+            contracts.to_str().expect("utf8 contracts"),
+        ])
+        .output()
+        .expect("cohesion gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("cross_axis_contracts contains empty entry"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn codeowners_mirror_gate_accepts_chartered_team_owners() {
+    let temp = temp_dir("codeowners-valid");
+    write_codeowners_fixture(&temp, "@teams/council-architecture");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "codeowners-mirror",
+            "--codeowners",
+            temp.join(".github/CODEOWNERS")
+                .to_str()
+                .expect("utf8 codeowners"),
+            "--teams-dir",
+            temp.join("teams").to_str().expect("utf8 teams dir"),
+        ])
+        .output()
+        .expect("codeowners mirror gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("codeowners mirror validation passed: 5 entries, 5 owners"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn raci_team_coverage_gate_rejects_team_missing_raci_row() {
+    let temp = temp_dir("raci-team-missing-raci");
+    write_raci_team_coverage_fixture(&temp, false, true);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(raci_team_coverage_args(&temp))
+        .output()
+        .expect("raci team coverage gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("raci team coverage validation failed")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn raci_team_coverage_gate_rejects_team_missing_codeowners_owner() {
+    let temp = temp_dir("raci-team-missing-codeowners");
+    write_raci_team_coverage_fixture(&temp, true, false);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(raci_team_coverage_args(&temp))
+        .output()
+        .expect("raci team coverage gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("raci team coverage validation failed")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn raci_team_coverage_gate_accepts_raci_and_codeowners_covered_teams() {
+    let temp = temp_dir("raci-team-covered");
+    write_raci_team_coverage_fixture(&temp, true, true);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(raci_team_coverage_args(&temp))
+        .output()
+        .expect("raci team coverage gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("raci team coverage validation passed: 2 teams"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn readme_doc_coverage_gate_rejects_root_doc_missing_readme_link() {
+    let temp = temp_dir("readme-doc-missing-link");
+    write_readme_doc_coverage_fixture(&temp, &["README.md", "CONSTITUTION.md"], &["README.md"]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(readme_doc_coverage_args(&temp))
+        .output()
+        .expect("readme doc coverage gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("readme doc coverage validation failed")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn readme_doc_coverage_gate_rejects_catalog_missing_root_doc() {
+    let temp = temp_dir("readme-doc-missing-catalog");
+    write_readme_doc_coverage_fixture(
+        &temp,
+        &["README.md", "CONSTITUTION.md"],
+        &["README.md", "CONSTITUTION.md"],
+    );
+    fs::write(
+        temp.join("machine-readable/catalog.json"),
+        r#"{
+  "docs": {
+    "doc.readme": {
+      "path": "docs/README.md",
+      "owner_team": "council-architecture",
+      "dependent_docs": [],
+      "validation_check": "readme-doc-coverage"
+    }
+  }
+}
+"#,
+    )
+    .expect("machine catalog rewritten");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(readme_doc_coverage_args(&temp))
+        .output()
+        .expect("readme doc coverage gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("readme doc coverage validation failed")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn readme_doc_coverage_gate_accepts_root_docs_with_catalog_and_links() {
+    let temp = temp_dir("readme-doc-covered");
+    write_readme_doc_coverage_fixture(
+        &temp,
+        &["README.md", "CONSTITUTION.md"],
+        &["README.md", "CONSTITUTION.md"],
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(readme_doc_coverage_args(&temp))
+        .output()
+        .expect("readme doc coverage gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("readme doc coverage validation passed: 2 documents"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_cross_doc_gate_rejects_machine_term_missing_glossary_markdown() {
+    let temp = temp_dir("glossary-missing-markdown");
+    write_glossary_coverage_fixture(&temp, "Old Alias", "", "Alpha Term");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_coverage_args(&temp))
+        .output()
+        .expect("glossary coverage gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr)
+        .contains("glossary cross-doc coverage validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_cross_doc_gate_rejects_active_term_missing_cross_doc_coverage() {
+    let temp = temp_dir("glossary-missing-cross-doc");
+    write_glossary_coverage_fixture(
+        &temp,
+        "Alpha Term\nOld Alias",
+        "No covered term here.",
+        "Alpha Term",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_coverage_args(&temp))
+        .output()
+        .expect("glossary coverage gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr)
+        .contains("glossary cross-doc coverage validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_cross_doc_gate_accepts_active_and_retired_term_policy() {
+    let temp = temp_dir("glossary-covered");
+    write_glossary_coverage_fixture(
+        &temp,
+        "Alpha Term\nOld Alias",
+        "Alpha Term is covered outside the glossary.",
+        "Alpha Term",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_coverage_args(&temp))
+        .output()
+        .expect("glossary coverage gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("glossary cross-doc coverage validation passed: 2 terms, 1 cross-doc terms"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_vocabulary_gate_rejects_forbidden_active_vocabulary() {
+    let temp = temp_dir("glossary-vocab-forbidden");
+    write_glossary_vocabulary_fixture(&temp, "Trust portal MVP launch.", &["ADR"]);
+    write_glossary_vocabulary_baseline(&temp, &[]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_vocabulary_args(&temp))
+        .output()
+        .expect("glossary vocabulary gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("glossary vocabulary validation failed")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_vocabulary_gate_rejects_warning_outside_baseline() {
+    let temp = temp_dir("glossary-vocab-new-warning");
+    write_glossary_vocabulary_fixture(&temp, "ABC appears.", &["ADR"]);
+    write_glossary_vocabulary_baseline(&temp, &[]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_vocabulary_args(&temp))
+        .output()
+        .expect("glossary vocabulary gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("NewWarningOutsideBaseline"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_vocabulary_gate_accepts_forensic_retired_terms_and_reports_warnings() {
+    let temp = temp_dir("glossary-vocab-warnings");
+    write_glossary_vocabulary_fixture(
+        &temp,
+        "oyatie documents ABC support.",
+        &["ABC", "MVP", "CUG"],
+    );
+    write_glossary_vocabulary_baseline(&temp, &["casing-variant\toyatie"]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_vocabulary_args(&temp))
+        .output()
+        .expect("glossary vocabulary gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "glossary vocabulary validation passed: 2 documents, 1 casing warnings, 0 uncited acronym warnings"
+    ));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_vocabulary_gate_uses_rationalized_ignored_uppercase_words() {
+    let temp = temp_dir("glossary-vocab-ignored-words");
+    write_glossary_vocabulary_fixture(
+        &temp,
+        "YES for ALL docs; ABC remains.",
+        &["ADR", "MVP", "CUG"],
+    );
+    write_glossary_vocabulary_ignored_words(
+        &temp,
+        &[
+            "YES\tdoc-catalog boolean value",
+            "ALL\temphatic ordinary prose word",
+        ],
+    );
+    write_glossary_vocabulary_baseline(&temp, &["uncited-acronym\tABC"]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_vocabulary_args(&temp))
+        .output()
+        .expect("glossary vocabulary gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "glossary vocabulary validation passed: 2 documents, 0 casing warnings, 1 uncited acronym warnings"
+    ));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_vocabulary_gate_rejects_stale_ignored_uppercase_words() {
+    let temp = temp_dir("glossary-vocab-stale-ignored-word");
+    write_glossary_vocabulary_fixture(&temp, "ABC remains.", &["ADR", "MVP", "CUG"]);
+    write_glossary_vocabulary_ignored_words(&temp, &["YES\tdoc-catalog boolean value"]);
+    write_glossary_vocabulary_baseline(&temp, &["uncited-acronym\tABC"]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_vocabulary_args(&temp))
+        .output()
+        .expect("glossary vocabulary gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("StaleIgnoredUppercaseWord"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn glossary_vocabulary_gate_writes_warning_source_report() {
+    let temp = temp_dir("glossary-vocab-warning-report");
+    write_glossary_vocabulary_fixture(
+        &temp,
+        "oyatie documents ABC support.",
+        &["ADR", "MVP", "CUG"],
+    );
+    write_glossary_vocabulary_baseline(&temp, &["casing-variant\toyatie", "uncited-acronym\tABC"]);
+    let report_path = temp.join("warning-report.tsv");
+    let mut args = glossary_vocabulary_args(&temp);
+    args.push("--write-warning-report".into());
+    args.push(report_path.to_str().expect("utf8 warning report").into());
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(args)
+        .output()
+        .expect("glossary vocabulary gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let report = fs::read_to_string(report_path).expect("warning report written");
+    assert!(report.contains("casing-variant\toyatie\tdocs/README.md"));
+    assert!(report.contains("uncited-acronym\tABC\tdocs/README.md"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn placeholder_debt_gate_rejects_unregistered_marker() {
+    let temp = temp_dir("placeholder-debt-unregistered");
+    write_placeholder_debt_docs(&temp, "TODO: decide the owner.");
+    write_placeholder_debt_registry(&temp, &[]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(placeholder_debt_args(&temp))
+        .output()
+        .expect("placeholder debt gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("NewPlaceholderOutsideRegistry"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn placeholder_debt_gate_accepts_registry_and_writes_report() {
+    let temp = temp_dir("placeholder-debt-tracked");
+    write_placeholder_debt_docs(&temp, "TODO: decide the owner. TBD by council.");
+    write_placeholder_debt_registry(
+        &temp,
+        &[
+            "TODO\tdocs/README.md\t1\tTODO: decide the owner. TBD by council.\towner=council-architecture; issue=PLACEHOLDER-DEBT-README; captured_at=2026-05-10; action=burn-down",
+            "TBD\tdocs/README.md\t1\tTODO: decide the owner. TBD by council.\towner=council-architecture; issue=PLACEHOLDER-DEBT-README; captured_at=2026-05-10; action=burn-down",
+        ],
+    );
+    let report_path = temp.join("placeholder-report.tsv");
+    let mut args = placeholder_debt_args(&temp);
+    args.push("--write-report".into());
+    args.push(report_path.to_str().expect("utf8 report").into());
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(args)
+        .output()
+        .expect("placeholder debt gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "placeholder debt validation passed: 1 documents, 2 open placeholders, 2 registry records"
+    ));
+    let report = fs::read_to_string(report_path).expect("placeholder report written");
+    assert!(report.contains("TODO\tdocs/README.md\t1\tTODO: decide the owner. TBD by council."));
+    assert!(report.contains("TBD\tdocs/README.md\t1\tTODO: decide the owner. TBD by council."));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn placeholder_debt_gate_writes_bootstrap_registry() {
+    let temp = temp_dir("placeholder-debt-bootstrap");
+    write_placeholder_debt_docs(&temp, "TODO: decide the owner.");
+    let registry_path = temp.join("generated-registry.tsv");
+    let mut args = placeholder_debt_args(&temp);
+    args.push("--write-registry".into());
+    args.push(
+        registry_path
+            .to_str()
+            .expect("utf8 generated registry")
+            .into(),
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(args)
+        .output()
+        .expect("placeholder debt gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let registry = fs::read_to_string(&registry_path).expect("placeholder registry written");
+    assert!(registry.contains("TODO\tdocs/README.md\t1\tTODO: decide the owner."));
+    assert!(registry.contains("BOOTSTRAP_ONLY owner=TBD; issue=TBD; captured_at=2026-05-10"));
+
+    let enforcement_output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "placeholder-debt",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+            "--registry",
+            registry_path.to_str().expect("utf8 generated registry"),
+        ])
+        .output()
+        .expect("placeholder debt enforcement command runs");
+    assert!(!enforcement_output.status.success());
+    assert!(String::from_utf8_lossy(&enforcement_output.stderr).contains("bootstrap-only"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn quality_lanes_gate_accepts_registry_doc_and_check_wiring() {
+    let temp = temp_dir("quality-lanes-valid");
+    write_quality_lanes_fixture(
+        &temp,
+        "cargo fmt --all -- --check",
+        "`cargo fmt --all -- --check`",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(quality_lanes_args(&temp))
+        .output()
+        .expect("quality lanes gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains(
+        "quality lane validation passed: 1 registry records, 1 markdown rows, 1 active commands, 1 owner teams"
+    ));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn quality_lanes_gate_rejects_markdown_purpose_drift() {
+    let temp = temp_dir("quality-lanes-purpose-drift");
+    write_quality_lanes_fixture(
+        &temp,
+        "cargo fmt --all -- --check",
+        "`cargo check --workspace`",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(quality_lanes_args(&temp))
+        .output()
+        .expect("quality lanes gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("PurposeDrift"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn quality_lanes_gate_rejects_unwired_active_command() {
+    let temp = temp_dir("quality-lanes-unwired");
+    write_quality_lanes_fixture(
+        &temp,
+        "cargo fmt --all -- --check",
+        "`cargo fmt --all -- --check`",
+    );
+    fs::write(temp.join("check.sh"), "#!/usr/bin/env bash\ncargo check\n")
+        .expect("check script rewritten");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(quality_lanes_args(&temp))
+        .output()
+        .expect("quality lanes gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("CheckCommandNotWired"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn quality_lanes_gate_rejects_unknown_owner_team() {
+    let temp = temp_dir("quality-lanes-unknown-owner");
+    write_quality_lanes_fixture(
+        &temp,
+        "cargo fmt --all -- --check",
+        "`cargo fmt --all -- --check`",
+    );
+    let registry_path = temp.join("registry/quality/lanes.yaml");
+    let registry = fs::read_to_string(&registry_path)
+        .expect("quality lane registry readable")
+        .replace("owner_team: axis-foundry", "owner_team: missing-team");
+    fs::write(registry_path, registry).expect("quality lane registry rewritten");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(quality_lanes_args(&temp))
+        .output()
+        .expect("quality lanes gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("UnknownOwnerTeam"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_catalog_gate_rejects_root_doc_missing_machine_row() {
+    let temp = temp_dir("doc-catalog-missing-machine");
+    write_doc_catalog_fixture(&temp, &["README.md", "CONSTITUTION.md"], &["README.md"]);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "doc-catalog",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+            "--catalog",
+            temp.join("machine-readable/catalog.json")
+                .to_str()
+                .expect("utf8 catalog"),
+        ])
+        .output()
+        .expect("doc-catalog gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("doc catalog validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_catalog_gate_accepts_root_docs_with_machine_and_markdown_rows() {
+    let temp = temp_dir("doc-catalog-complete");
+    write_doc_catalog_fixture(
+        &temp,
+        &["README.md", "CONSTITUTION.md"],
+        &["README.md", "CONSTITUTION.md", "DOC-CATALOG.md"],
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "doc-catalog",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+            "--catalog",
+            temp.join("machine-readable/catalog.json")
+                .to_str()
+                .expect("utf8 catalog"),
+        ])
+        .output()
+        .expect("doc-catalog gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("doc catalog validation passed: 3 documents"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_catalog_gate_accepts_owner_team_arrays_from_machine_catalog() {
+    let temp = temp_dir("doc-catalog-owner-array");
+    write_doc_catalog_fixture(&temp, &["README.md"], &["README.md", "DOC-CATALOG.md"]);
+    let catalog_path = temp.join("machine-readable/catalog.json");
+    let catalog = fs::read_to_string(&catalog_path).expect("machine catalog read");
+    fs::write(
+        &catalog_path,
+        catalog.replace(
+            r#""owner_team": "council-architecture""#,
+            r#""owner_team": ["council-architecture", "axis-foundry"]"#,
+        ),
+    )
+    .expect("machine catalog updated");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "doc-catalog",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+            "--catalog",
+            catalog_path.to_str().expect("utf8 catalog"),
+        ])
+        .output()
+        .expect("doc-catalog gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("doc catalog validation passed: 2 documents"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_catalog_gate_rejects_unknown_dependent_doc_id() {
+    let temp = temp_dir("doc-catalog-unknown-dependency");
+    write_doc_catalog_fixture(&temp, &["README.md"], &["README.md", "DOC-CATALOG.md"]);
+    let catalog_path = temp.join("machine-readable/catalog.json");
+    let catalog = fs::read_to_string(&catalog_path).expect("machine catalog read");
+    fs::write(
+        &catalog_path,
+        catalog.replacen(
+            r#""dependent_docs": []"#,
+            r#""dependent_docs": ["doc.missing"]"#,
+            1,
+        ),
+    )
+    .expect("machine catalog updated");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "doc-catalog",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+            "--catalog",
+            catalog_path.to_str().expect("utf8 catalog"),
+        ])
+        .output()
+        .expect("doc-catalog gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("doc catalog validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_catalog_gate_rejects_unresolved_path_dependency() {
+    let temp = temp_dir("doc-catalog-unresolved-path");
+    write_doc_catalog_fixture(&temp, &["README.md"], &["README.md", "DOC-CATALOG.md"]);
+    let catalog_path = temp.join("machine-readable/catalog.json");
+    let catalog = fs::read_to_string(&catalog_path).expect("machine catalog read");
+    fs::write(
+        &catalog_path,
+        catalog.replacen(
+            r#""dependent_docs": []"#,
+            r#""dependent_docs": ["products/*/PRD.md"]"#,
+            1,
+        ),
+    )
+    .expect("machine catalog updated");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "doc-catalog",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+            "--catalog",
+            catalog_path.to_str().expect("utf8 catalog"),
+        ])
+        .output()
+        .expect("doc-catalog gate command runs");
+
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("doc catalog validation failed"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_catalog_gate_accepts_path_glob_adr_and_codeowners_dependencies() {
+    let temp = temp_dir("doc-catalog-resolved-dependencies");
+    write_doc_catalog_fixture(&temp, &["README.md"], &["README.md", "DOC-CATALOG.md"]);
+    fs::create_dir_all(temp.join("products/foundry")).expect("product dir created");
+    fs::write(temp.join("products/foundry/PRD.md"), "# Foundry PRD\n").expect("product written");
+    fs::create_dir_all(temp.join("decisions")).expect("decisions dir created");
+    fs::write(
+        temp.join("decisions/ADR-0050-automation-first-pipeline.md"),
+        "# ADR-0050\n",
+    )
+    .expect("adr written");
+    fs::create_dir_all(temp.join(".github")).expect("github dir created");
+    fs::write(
+        temp.join(".github/CODEOWNERS"),
+        "* @teams/council-architecture\n",
+    )
+    .expect("codeowners written");
+
+    let catalog_path = temp.join("machine-readable/catalog.json");
+    let catalog = fs::read_to_string(&catalog_path).expect("machine catalog read");
+    fs::write(
+        &catalog_path,
+        catalog.replacen(
+            r#""dependent_docs": []"#,
+            r#""dependent_docs": ["products/*/PRD.md", "machine-readable/catalog.json (this file)", "ADR-0050", ".github/CODEOWNERS"]"#,
+            1,
+        ),
+    )
+    .expect("machine catalog updated");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "doc-catalog",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+            "--catalog",
+            catalog_path.to_str().expect("utf8 catalog"),
+        ])
+        .output()
+        .expect("doc-catalog gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout)
+        .contains("doc catalog validation passed: 2 documents"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn documentation_system_gate_accepts_pipeline_registry_and_quickref_baseline() {
+    let temp = temp_dir("documentation-system-valid");
+    write_documentation_system_fixture(&temp);
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(documentation_system_args(&temp))
+        .output()
+        .expect("documentation system gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains(
+            "documentation system validation passed: 6 pipeline records, 2 active, 3 adoption-guard, 1 tracked-deferred"
+        ),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn documentation_system_gate_rejects_missing_quickref_baseline() {
+    let temp = temp_dir("documentation-system-missing-quickref");
+    write_documentation_system_fixture(&temp);
+    fs::remove_file(temp.join("docs/wiki/quickref/README.md")).expect("quickref removed");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(documentation_system_args(&temp))
+        .output()
+        .expect("documentation system gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("WikiQuickrefMissing"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn documentation_system_gate_rejects_unwired_pipeline_guard() {
+    let temp = temp_dir("documentation-system-unwired");
+    write_documentation_system_fixture(&temp);
+    fs::write(
+        temp.join("scripts/check.sh"),
+        "cargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system\n",
+    )
+    .expect("check script rewritten");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(documentation_system_args(&temp))
+        .output()
+        .expect("documentation system gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("UnwiredPipelineCommand"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+fn write_documentation_system_fixture(root: &Path) {
+    fs::create_dir_all(root.join("docs/wiki/quickref")).expect("quickref dir created");
+    fs::create_dir_all(root.join("docs/decisions")).expect("decisions dir created");
+    fs::create_dir_all(root.join("docs/machine-readable")).expect("machine docs dir created");
+    fs::create_dir_all(root.join("registry/catalog")).expect("catalog dir created");
+    fs::create_dir_all(root.join("registry/docs")).expect("docs registry dir created");
+    fs::create_dir_all(root.join("scripts")).expect("scripts dir created");
+    fs::write(
+        root.join("docs/DOCUMENTATION.md"),
+        "# Documentation System\n\nThe `oya-foundry-fitness-docs` lane covers docs/wiki/quickref/*.\n",
+    )
+    .expect("documentation system doc written");
+    fs::write(
+        root.join("docs/wiki/quickref/README.md"),
+        "# Wiki quick reference\n\nOwned by `council-architecture`.\n",
+    )
+    .expect("quickref written");
+    fs::write(
+        root.join("scripts/check.sh"),
+        "cargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system\ncargo run -p oya-tooling-cli-dev-runtime -- gate validate api-semver\ncargo run -p oya-tooling-cli-dev-runtime -- gate validate adr-citation\ncargo run -p oya-tooling-cli-dev-runtime -- catalog validate\ncargo run -p oya-tooling-cli-dev-runtime -- gate validate doc-catalog\n",
+    )
+    .expect("check script written");
+    fs::write(
+        root.join("registry/docs/pipeline.tsv"),
+        documentation_pipeline_tsv(),
+    )
+    .expect("documentation pipeline registry written");
+}
+
+fn documentation_pipeline_tsv() -> &'static str {
+    "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\nrustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\nopenapi\toya doc openapi\tadoption-guard\tcargo run -p oya-tooling-cli-dev-runtime -- gate validate api-semver\tcontracts\tcontracts are absent; api-semver guards first contract adoption\nmdbook\toya doc mdbook\tadoption-guard\tcargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\nadr-index\toya doc adr-index\tadoption-guard\tcargo run -p oya-tooling-cli-dev-runtime -- gate validate adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\ncatalog\toya doc catalog\tactive\tcargo run -p oya-tooling-cli-dev-runtime -- catalog validate\tregistry/catalog\t\nlint\toya doc lint\tactive\tcargo run -p oya-tooling-cli-dev-runtime -- gate validate doc-catalog\tdocs\t\n"
+}
+
+fn documentation_system_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "documentation-system".into(),
+        "--documentation".into(),
+        root.join("docs/DOCUMENTATION.md")
+            .to_str()
+            .expect("utf8 docs")
+            .into(),
+        "--pipeline".into(),
+        root.join("registry/docs/pipeline.tsv")
+            .to_str()
+            .expect("utf8 pipeline")
+            .into(),
+        "--check-script".into(),
+        root.join("scripts/check.sh")
+            .to_str()
+            .expect("utf8 check script")
+            .into(),
+        "--wiki-quickref".into(),
+        root.join("docs/wiki/quickref/README.md")
+            .to_str()
+            .expect("utf8 quickref")
+            .into(),
+        "--repo-root".into(),
+        root.to_str().expect("utf8 root").into(),
+    ]
+}
+
+fn write_authority_doc(docs_dir: &Path, file_name: &str, second_line: &str) {
+    fs::write(
+        docs_dir.join(file_name),
+        format!(
+            "---\nauthority_chain_declaration: |\n  docs/consolidated/CONSTITUTION.md\n  > {second_line}\n---\n"
+        ),
+    )
+    .expect("authority doc written");
+}
+
+fn write_slo_catalog_record(registry_dir: &Path, crate_id: &str, slo: Option<&str>) {
+    fs::create_dir_all(registry_dir).expect("registry dir created");
+    let slo_row = slo.map(|slo| format!("slo: {slo}\n")).unwrap_or_default();
+    fs::write(
+        registry_dir.join(format!("{crate_id}.yaml")),
+        format!(
+            "context: foundry\nrole: kernel\ncapability: capability\nplane: control\n{slo_row}data_classes_owned: [INTERNAL_ONLY]\napi_stability: preview\nsecurity_review: unreviewed\nsupply_chain: source-only\n"
+        ),
+    )
+    .expect("catalog record written");
+}
+
+fn write_kernel_workspace(root: &Path, lib_rs: &str) {
+    let crate_dir = root.join("crates/example-kernel");
+    fs::create_dir_all(crate_dir.join("src")).expect("crate source dir created");
+    write_workspace_manifest(root, &["crates/example-kernel"]);
+    write_package_manifest(&crate_dir, "example-kernel");
+    fs::write(crate_dir.join("src/lib.rs"), lib_rs).expect("kernel source written");
+}
+
+fn write_workspace_manifest(root: &Path, members: &[&str]) {
+    fs::create_dir_all(root).expect("workspace dir created");
+    let members = members
+        .iter()
+        .map(|member| format!("\"{member}\""))
+        .collect::<Vec<_>>()
+        .join(", ");
+    fs::write(
+        root.join("Cargo.toml"),
+        format!("[workspace]\nmembers = [{members}]\n"),
+    )
+    .expect("workspace manifest written");
+}
+
+fn write_package_manifest(crate_dir: &Path, package_name: &str) {
+    fs::create_dir_all(crate_dir.join("src")).expect("crate source dir created");
+    fs::write(
+        crate_dir.join("Cargo.toml"),
+        format!(
+            "[package]\nname = \"{package_name}\"\nedition = \"2021\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n"
+        ),
+    )
+    .expect("crate manifest written");
+    fs::write(crate_dir.join("src/lib.rs"), "").expect("crate lib written");
+}
+
+fn write_contracts_json(path: &Path, contract_id: &str, location: &str, change_review: &str) {
+    fs::write(
+        path,
+        format!(
+            r#"{{
+  "cross_axis_contracts": [
+    {{
+      "id": "{contract_id}",
+      "owner_axis": "saas",
+      "consumer_axes": ["all"],
+      "location": "{location}",
+      "change_review": "{change_review}"
+    }}
+  ]
+}}"#
+        ),
+    )
+    .expect("contracts json written");
+}
+
+fn write_codeowners_fixture(root: &Path, fallback_owner: &str) {
+    let teams = root.join("teams");
+    for team_id in ["council-architecture", "axis-foundry"] {
+        fs::create_dir_all(teams.join(team_id)).expect("team dir created");
+        fs::write(
+            teams.join(team_id).join("CHARTER.md"),
+            format!("# {team_id}\n"),
+        )
+        .expect("team charter written");
+    }
+    fs::create_dir_all(root.join(".github")).expect("github dir created");
+    fs::write(
+        root.join(".github/CODEOWNERS"),
+        format!(
+            "* {fallback_owner}\ncrates/oya-foundry-* @teams/axis-foundry\nregistry/catalog/ @teams/axis-foundry\ndocs/teams/*/CHARTER.md @teams/council-architecture\ndocs/RACI-OWNERSHIP.md @teams/council-architecture\n"
+        ),
+    )
+    .expect("CODEOWNERS written");
+}
+
+fn write_raci_team_coverage_fixture(
+    root: &Path,
+    include_all_raci: bool,
+    include_all_codeowners: bool,
+) {
+    let teams = root.join("teams");
+    for team_id in ["axis-foundry", "axis-cloud"] {
+        fs::create_dir_all(teams.join(team_id)).expect("team dir created");
+        fs::write(
+            teams.join(team_id).join("CHARTER.md"),
+            format!("# {team_id}\n"),
+        )
+        .expect("team charter written");
+    }
+    let raci_rows = if include_all_raci {
+        "| `axis-foundry` | `docs/teams/axis-foundry/CHARTER.md` | `@teams/axis-foundry` |\n| `axis-cloud` | `docs/teams/axis-cloud/CHARTER.md` | `@teams/axis-cloud` |\n"
+    } else {
+        "| `axis-foundry` | `docs/teams/axis-foundry/CHARTER.md` | `@teams/axis-foundry` |\n"
+    };
+    fs::write(
+        root.join("RACI-OWNERSHIP.md"),
+        format!(
+            "# RACI\n\n## Team charter coverage\n\n| team_id | charter | codeowners |\n|---|---|---|\n{raci_rows}"
+        ),
+    )
+    .expect("RACI written");
+    fs::create_dir_all(root.join(".github")).expect("github dir created");
+    let cloud_owner = if include_all_codeowners {
+        "docs/teams/axis-cloud/CHARTER.md @teams/axis-cloud\n"
+    } else {
+        ""
+    };
+    fs::write(
+        root.join(".github/CODEOWNERS"),
+        format!("docs/teams/axis-foundry/CHARTER.md @teams/axis-foundry\n{cloud_owner}"),
+    )
+    .expect("CODEOWNERS written");
+}
+
+fn raci_team_coverage_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "raci-team-coverage".into(),
+        "--teams-dir".into(),
+        root.join("teams").to_str().expect("utf8 teams dir").into(),
+        "--raci".into(),
+        root.join("RACI-OWNERSHIP.md")
+            .to_str()
+            .expect("utf8 raci")
+            .into(),
+        "--codeowners".into(),
+        root.join(".github/CODEOWNERS")
+            .to_str()
+            .expect("utf8 codeowners")
+            .into(),
+    ]
+}
+
+fn write_readme_doc_coverage_fixture(docs_dir: &Path, root_docs: &[&str], readme_links: &[&str]) {
+    fs::create_dir_all(docs_dir.join("machine-readable")).expect("machine-readable dir created");
+    for doc in root_docs {
+        fs::write(docs_dir.join(doc), format!("# {doc}\n")).expect("root doc written");
+    }
+    let links = readme_links
+        .iter()
+        .map(|doc| format!("- [`{doc}`]({doc})\n"))
+        .collect::<String>();
+    fs::write(docs_dir.join("README.md"), format!("# Docs\n\n{links}")).expect("README written");
+    let entries = root_docs
+        .iter()
+        .map(|doc| {
+            let doc_id = doc
+                .trim_end_matches(".md")
+                .to_ascii_lowercase()
+                .replace('-', "_");
+            format!(
+                r#""doc.{doc_id}": {{
+      "path": "docs/{doc}",
+      "owner_team": "council-architecture",
+      "dependent_docs": [],
+      "validation_check": "readme-doc-coverage"
+    }}"#
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(",\n");
+    fs::write(
+        docs_dir.join("machine-readable/catalog.json"),
+        format!("{{\n  \"docs\": {{\n{entries}\n  }}\n}}\n"),
+    )
+    .expect("machine catalog written");
+}
+
+fn readme_doc_coverage_args(docs_dir: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "readme-doc-coverage".into(),
+        "--docs-dir".into(),
+        docs_dir.to_str().expect("utf8 docs dir").into(),
+        "--catalog".into(),
+        docs_dir
+            .join("machine-readable/catalog.json")
+            .to_str()
+            .expect("utf8 catalog")
+            .into(),
+    ]
+}
+
+fn write_glossary_coverage_fixture(
+    docs_dir: &Path,
+    glossary_body: &str,
+    cross_doc_body: &str,
+    active_term: &str,
+) {
+    fs::create_dir_all(docs_dir.join("machine-readable")).expect("machine-readable dir created");
+    fs::write(
+        docs_dir.join("GLOSSARY.md"),
+        format!("# Glossary\n\n{glossary_body}\n"),
+    )
+    .expect("glossary written");
+    fs::write(
+        docs_dir.join("README.md"),
+        format!("# Docs\n\n{cross_doc_body}\n"),
+    )
+    .expect("cross doc written");
+    fs::write(
+        docs_dir.join("machine-readable/glossary.json"),
+        format!(
+            r#"{{
+  "term_categories": {{
+    "industry_standard": {{
+      "architecture": ["{active_term}"],
+      "operations": [],
+      "cloud": [],
+      "auth": [],
+      "data_search_ml": [],
+      "ads": [],
+      "compliance_kr": [],
+      "compliance_global": []
+    }},
+    "oyatie_specific": [],
+    "retired_terms": [
+      {{"old": "Old Alias", "new": "Current Term", "retirement_date": "2026-05-09"}}
+    ]
+  }}
+}}
+"#
+        ),
+    )
+    .expect("machine glossary written");
+}
+
+fn glossary_coverage_args(docs_dir: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "glossary-cross-doc-coverage".into(),
+        "--docs-dir".into(),
+        docs_dir.to_str().expect("utf8 docs dir").into(),
+        "--glossary".into(),
+        docs_dir
+            .join("GLOSSARY.md")
+            .to_str()
+            .expect("utf8 glossary")
+            .into(),
+        "--machine".into(),
+        docs_dir
+            .join("machine-readable/glossary.json")
+            .to_str()
+            .expect("utf8 machine glossary")
+            .into(),
+    ]
+}
+
+fn write_glossary_vocabulary_fixture(docs_dir: &Path, active_doc_body: &str, acronyms: &[&str]) {
+    fs::create_dir_all(docs_dir).expect("docs dir created");
+    let acronym_rows = acronyms
+        .iter()
+        .map(|acronym| format!("| {acronym} | Test expansion | fixture |\n"))
+        .collect::<String>();
+    fs::write(
+        docs_dir.join("GLOSSARY.md"),
+        format!(
+            "# Glossary\n\n## 10. Acronym index\n\n| Acronym | Expansion | See |\n|---|---|---|\n{acronym_rows}\n## 11. Deprecated / renamed terms\n\nM0 / M1 / M2 / M3 / MVP and CUG are retired.\n"
+        ),
+    )
+    .expect("glossary written");
+    fs::write(
+        docs_dir.join("README.md"),
+        format!("# Docs\n\n{active_doc_body}\n"),
+    )
+    .expect("active doc written");
+    write_glossary_vocabulary_ignored_words(docs_dir, &[]);
+}
+
+fn write_glossary_vocabulary_baseline(docs_dir: &Path, warning_rows: &[&str]) {
+    let rows = warning_rows
+        .iter()
+        .map(|row| format!("{row}\n"))
+        .collect::<String>();
+    fs::write(
+        docs_dir.join("warning-baseline.tsv"),
+        format!("# test glossary warning baseline\n{rows}"),
+    )
+    .expect("warning baseline written");
+}
+
+fn write_glossary_vocabulary_ignored_words(docs_dir: &Path, ignored_rows: &[&str]) {
+    let rows = ignored_rows
+        .iter()
+        .map(|row| format!("{row}\n"))
+        .collect::<String>();
+    fs::write(
+        docs_dir.join("ignored-uppercase-words.tsv"),
+        format!("# test glossary ignored uppercase prose words\n{rows}"),
+    )
+    .expect("ignored uppercase words written");
+}
+
+fn glossary_vocabulary_args(docs_dir: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "glossary-vocabulary".into(),
+        "--docs-dir".into(),
+        docs_dir.to_str().expect("utf8 docs dir").into(),
+        "--glossary".into(),
+        docs_dir
+            .join("GLOSSARY.md")
+            .to_str()
+            .expect("utf8 glossary")
+            .into(),
+        "--baseline".into(),
+        docs_dir
+            .join("warning-baseline.tsv")
+            .to_str()
+            .expect("utf8 baseline")
+            .into(),
+        "--ignored-uppercase-words".into(),
+        docs_dir
+            .join("ignored-uppercase-words.tsv")
+            .to_str()
+            .expect("utf8 ignored uppercase words")
+            .into(),
+    ]
+}
+
+fn write_placeholder_debt_docs(docs_dir: &Path, body: &str) {
+    fs::create_dir_all(docs_dir).expect("docs dir created");
+    fs::write(docs_dir.join("README.md"), format!("# Docs\n\n{body}\n"))
+        .expect("placeholder doc written");
+}
+
+fn write_placeholder_debt_registry(docs_dir: &Path, rows: &[&str]) {
+    let rows = rows
+        .iter()
+        .map(|row| format!("{row}\n"))
+        .collect::<String>();
+    fs::write(
+        docs_dir.join("placeholder-registry.tsv"),
+        format!("# test placeholder debt registry\n{rows}"),
+    )
+    .expect("placeholder registry written");
+}
+
+fn placeholder_debt_args(docs_dir: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "placeholder-debt".into(),
+        "--docs-dir".into(),
+        docs_dir.to_str().expect("utf8 docs dir").into(),
+        "--registry".into(),
+        docs_dir
+            .join("placeholder-registry.tsv")
+            .to_str()
+            .expect("utf8 placeholder registry")
+            .into(),
+    ]
+}
+
+fn write_adr_citation_fixture(root: &Path, active_body: &str, forensic_body: &str) {
+    fs::create_dir_all(root.join("docs/decisions")).expect("decisions dir created");
+    fs::write(
+        root.join("docs/README.md"),
+        format!("# Docs\n\n{active_body}\n"),
+    )
+    .expect("active doc written");
+    fs::write(
+        root.join("docs/ADR-LEGACY-REGRESSION-MAPPING.md"),
+        format!("# Legacy mapping\n\n{forensic_body}\n"),
+    )
+    .expect("forensic mapping written");
+    fs::write(
+        root.join("docs/decisions/ADR-0001-cohesion.md"),
+        "# Cohesion\n",
+    )
+    .expect("ADR-0001 written");
+    fs::write(root.join("docs/decisions/ADR-0051-mobile.md"), "# Mobile\n")
+        .expect("ADR-0051 written");
+}
+
+fn adr_citation_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "adr-citation".into(),
+        "--docs-dir".into(),
+        root.join("docs").to_str().expect("utf8 docs dir").into(),
+        "--decisions-dir".into(),
+        root.join("docs/decisions")
+            .to_str()
+            .expect("utf8 decisions dir")
+            .into(),
+    ]
+}
+
+fn write_brand_residue_file(root: &Path, relative_path: &str, contents: &str) {
+    let path = root.join(relative_path);
+    fs::create_dir_all(path.parent().expect("brand residue parent"))
+        .expect("brand residue parent dir created");
+    fs::write(path, contents).expect("brand residue fixture written");
+}
+
+fn brand_residue_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "brand-residue".into(),
+        "--docs-dir".into(),
+        root.join("docs").to_str().expect("utf8 docs dir").into(),
+    ]
+}
+
+fn write_api_contract(root: &Path, relative_path: &str, contents: &str) {
+    let path = root.join(relative_path);
+    fs::create_dir_all(path.parent().expect("API contract parent"))
+        .expect("API contract parent dir created");
+    fs::write(path, contents).expect("API contract fixture written");
+}
+
+fn api_semver_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "api-semver".into(),
+        "--contracts-dir".into(),
+        root.join("contracts")
+            .to_str()
+            .expect("utf8 contracts dir")
+            .into(),
+    ]
+}
+
+fn write_supply_chain_fixture(
+    root: &Path,
+    attestation: &str,
+    check_script: &str,
+    workflow: Option<&str>,
+    release_manifest: bool,
+) {
+    fs::create_dir_all(root.join("registry/catalog")).expect("supply catalog dir created");
+    fs::create_dir_all(root.join("scripts")).expect("scripts dir created");
+    fs::write(
+        root.join("registry/catalog/oya-foundry-capability-kernel.yaml"),
+        format!(
+            "context: foundry\nrole: kernel\ncapability: capability\nplane: control\ndata_classes_owned: [INTERNAL_ONLY]\napi_stability: preview\nsecurity_review: unreviewed\nsupply_chain: {attestation}\n"
+        ),
+    )
+    .expect("supply catalog record written");
+    fs::write(root.join("deny.toml"), "[licenses]\nallow = []\n").expect("deny config written");
+    fs::write(root.join("scripts/check.sh"), check_script).expect("check script written");
+    if let Some(workflow) = workflow {
+        fs::create_dir_all(root.join(".github/workflows")).expect("workflows dir created");
+        fs::write(root.join(".github/workflows/supply.yml"), workflow).expect("workflow written");
+    }
+    if release_manifest {
+        fs::create_dir_all(root.join("contracts/release")).expect("release contract dir created");
+        fs::write(
+            root.join("contracts/release/images.yaml"),
+            "images:\n  - name: ghcr.io/oyatie/app\n",
+        )
+        .expect("release images contract written");
+    }
+}
+
+fn supply_chain_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "supply-chain".into(),
+        "--registry".into(),
+        root.join("registry/catalog")
+            .to_str()
+            .expect("utf8 registry")
+            .into(),
+        "--deny".into(),
+        root.join("deny.toml").to_str().expect("utf8 deny").into(),
+        "--check-script".into(),
+        root.join("scripts/check.sh")
+            .to_str()
+            .expect("utf8 check script")
+            .into(),
+        "--adr0039-script".into(),
+        root.join("scripts/supply-chain-adr0039.sh")
+            .to_str()
+            .expect("utf8 adr0039 script")
+            .into(),
+        "--workflows-dir".into(),
+        root.join(".github/workflows")
+            .to_str()
+            .expect("utf8 workflows dir")
+            .into(),
+        "--release-images".into(),
+        root.join("contracts/release/images.yaml")
+            .to_str()
+            .expect("utf8 release images")
+            .into(),
+    ]
+}
+
+fn supply_chain_full_args(root: &Path) -> Vec<String> {
+    let mut args = supply_chain_args(root);
+    args.extend([
+        "--branch-protection".into(),
+        root.join(".github/branch-protection.yaml")
+            .to_str()
+            .expect("utf8 branch protection")
+            .into(),
+        "--admission-policy".into(),
+        root.join("infra/kyverno/policies/require-signed-images.yaml")
+            .to_str()
+            .expect("utf8 admission policy")
+            .into(),
+        "--require-adr0039-evidence".into(),
+    ]);
+    args
+}
+
+fn write_release_supply_chain_fixture(
+    root: &Path,
+    rekor_log_index: &str,
+    high_critical_findings_open: &str,
+    signed: &str,
+) {
+    let digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    let artifact_ref = format!("ghcr.io/oyatie/oya-tooling-cli-dev-runtime@{digest}");
+    fs::create_dir_all(root.join("registry/release/supply-chain"))
+        .expect("release supply-chain evidence dir created");
+    fs::write(
+        root.join("registry/release/images.yaml"),
+        format!("images:\n  - ref: {artifact_ref}\n"),
+    )
+    .expect("release image manifest written");
+    fs::write(
+        root.join("registry/release/supply-chain/oya-tooling-cli-dev-runtime.yaml"),
+        format!(
+            r#"artifact_ref: {artifact_ref}
+artifact_digest: {digest}
+release_version: 0.1.0
+source_revision: 0123456789abcdef0123456789abcdef01234567
+sbom_spdx_ref: artifact://release/0.1.0/oya-tooling-cli-dev-runtime.spdx.json
+sbom_cyclonedx_ref: artifact://release/0.1.0/oya-tooling-cli-dev-runtime.cyclonedx.json
+cosign_signature_ref: rekor://log/{rekor_log_index}/signature
+cosign_certificate_ref: rekor://log/{rekor_log_index}/certificate
+rekor_log_index: {rekor_log_index}
+trivy_filesystem_scan_ref: artifact://release/0.1.0/trivy-fs.sarif
+trivy_container_scan_ref: artifact://release/0.1.0/trivy-image.sarif
+trivy_iac_scan_ref: artifact://release/0.1.0/trivy-iac.sarif
+trivy_dependency_scan_ref: artifact://release/0.1.0/trivy-dep.sarif
+provenance_attestation_ref: artifact://release/0.1.0/provenance.intoto.jsonl
+audit_event_type: oya.audit.builder_supply_attest
+attestor: axis-foundry
+high_critical_findings_open: {high_critical_findings_open}
+signed: {signed}
+"#
+        ),
+    )
+    .expect("release supply-chain evidence written");
+}
+
+fn release_supply_chain_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "release-supply-chain".into(),
+        "--release-images".into(),
+        root.join("registry/release/images.yaml")
+            .to_str()
+            .expect("utf8 release images")
+            .into(),
+        "--evidence-dir".into(),
+        root.join("registry/release/supply-chain")
+            .to_str()
+            .expect("utf8 release supply-chain evidence dir")
+            .into(),
+    ]
+}
+
+fn release_supply_chain_args_with_phase(root: &Path, phase: &str) -> Vec<String> {
+    let mut args = release_supply_chain_args(root);
+    args.extend(["--phase".into(), phase.into()]);
+    args
+}
+
+fn write_pre_release_image_manifest(root: &Path) {
+    fs::create_dir_all(root.join("registry/release")).expect("release registry dir created");
+    fs::write(
+        root.join("registry/release/images.yaml"),
+        "# release_state: pre-release\n# empty_scope_rationale: No digest-pinned release artifacts exist before a release candidate.\nimages: []\n",
+    )
+    .expect("release image manifest written");
+}
+
+fn write_pre_release_contract_image_manifest(root: &Path) {
+    fs::create_dir_all(root.join("contracts/release")).expect("release contract dir created");
+    fs::write(
+        root.join("contracts/release/images.yaml"),
+        "# release_state: pre-release\n# empty_scope_rationale: No digest-pinned release artifacts exist before a release candidate.\nimages: []\n",
+    )
+    .expect("release image manifest written");
+}
+
+fn write_release_evidence_pack_fixture(root: &Path, rows: &str) {
+    fs::create_dir_all(root.join("registry/release")).expect("release registry dir created");
+    fs::create_dir_all(root.join("docs/machine-readable"))
+        .expect("machine-readable docs dir created");
+    fs::write(
+        root.join("registry/release/evidence-packs.tsv"),
+        format!(
+            "# release_version: pre-release\n# empty_scope_rationale: No regulator-facing release evidence packs exist before a release candidate.\nregulator\tregion\tpack_id\trelease_version\taudit_cycle\tcoverage_window_start\tcoverage_window_end\towner_team\tevidence_pack_ref\tcosign_attestation_ref\taudit_event_id\trequested_at_epoch_minutes\tregenerated_at_epoch_minutes\tcontrols_mapped\tevidence_links\ttrust_portal_mirror_regenerated\tregulator_notification_sent\tstatus\n{rows}"
+        ),
+    )
+    .expect("release evidence-pack manifest written");
+    fs::write(
+        root.join("docs/machine-readable/compliance.json"),
+        r#"{
+  "regulators_per_region": {
+    "kr": ["KR PIPA"],
+    "eu": ["GDPR"]
+  },
+  "cross_regional_standards": ["SOC 2 Type II"]
+}
+"#,
+    )
+    .expect("compliance matrix fixture written");
+}
+
+fn rewrite_release_evidence_pack_version(root: &Path, version: &str, rationale: &str) {
+    let path = root.join("registry/release/evidence-packs.tsv");
+    let contents = fs::read_to_string(&path).expect("release evidence manifest readable");
+    let mut lines = contents.lines().map(str::to_string).collect::<Vec<_>>();
+    lines[0] = format!("# release_version: {version}");
+    lines[1] = format!("# empty_scope_rationale: {rationale}");
+    fs::write(&path, format!("{}\n", lines.join("\n")))
+        .expect("release evidence manifest rewritten");
+}
+
+fn release_evidence_pack_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "release-evidence-pack".into(),
+        "--manifest".into(),
+        root.join("registry/release/evidence-packs.tsv")
+            .to_str()
+            .expect("utf8 release evidence manifest")
+            .into(),
+        "--compliance".into(),
+        root.join("docs/machine-readable/compliance.json")
+            .to_str()
+            .expect("utf8 compliance matrix")
+            .into(),
+    ]
+}
+
+fn write_supply_chain_adr0039_script(root: &Path) {
+    fs::create_dir_all(root.join("scripts")).expect("scripts dir created");
+    fs::write(
+        root.join("scripts/supply-chain-adr0039.sh"),
+        r#"#!/usr/bin/env bash
+trivy fs --severity HIGH,CRITICAL --exit-code 1 .
+trivy image --severity HIGH,CRITICAL --exit-code 1 "$image"
+trivy config --severity HIGH,CRITICAL --exit-code 1 infra/
+trivy fs --scanners vuln,secret,license --format sarif --output artifacts/trivy.sarif .
+trivy fs --format spdx-json --output artifacts/sbom/oyatie.spdx.json .
+trivy fs --format cyclonedx --output artifacts/sbom/oyatie.cyclonedx.json .
+cosign sign --yes "$image"
+cosign verify --rekor-url https://rekor.sigstore.dev "$image"
+cosign attest --yes --predicate artifacts/provenance.json "$image"
+"#,
+    )
+    .expect("ADR-0039 script written");
+}
+
+fn write_supply_chain_branch_protection(root: &Path) {
+    fs::create_dir_all(root.join(".github")).expect("github dir created");
+    fs::write(
+        root.join(".github/branch-protection.yaml"),
+        "branches:\n  main:\n    require_signed_commits: true\n    require_signed_tags: true\n",
+    )
+    .expect("branch protection written");
+}
+
+fn write_supply_chain_admission_policy(root: &Path) {
+    fs::create_dir_all(root.join("infra/kyverno/policies")).expect("kyverno dir created");
+    fs::write(
+        root.join("infra/kyverno/policies/require-signed-images.yaml"),
+        "apiVersion: kyverno.io/v1\nkind: ClusterPolicy\nspec:\n  rules:\n    - name: verify\n      verifyImages:\n        - imageReferences: ['ghcr.io/oyatie/*']\n          attestors:\n            - entries:\n                - keyless:\n                    rekor:\n                      url: https://rekor.sigstore.dev\n",
+    )
+    .expect("admission policy written");
+}
+
+fn write_cargo_prefix_workspace(root: &Path, member_path: &str, package_name: &str) {
+    let crate_dir = root.join(member_path);
+    fs::create_dir_all(&crate_dir).expect("cargo prefix crate dir created");
+    fs::write(
+        root.join("Cargo.toml"),
+        format!("[workspace]\nmembers = [\"{member_path}\"]\n"),
+    )
+    .expect("cargo prefix workspace manifest written");
+    fs::write(
+        crate_dir.join("Cargo.toml"),
+        format!(
+            "[package]\nname = \"{package_name}\"\nedition = \"2021\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n"
+        ),
+    )
+    .expect("cargo prefix package manifest written");
+}
+
+fn cargo_prefix_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "cargo-prefix".into(),
+        "--workspace".into(),
+        root.join("Cargo.toml")
+            .to_str()
+            .expect("utf8 workspace")
+            .into(),
+    ]
+}
+
+fn write_quality_lanes_fixture(root: &Path, check_command: &str, markdown_purpose: &str) {
+    fs::create_dir_all(root.join("registry/quality")).expect("quality registry dir created");
+    fs::create_dir_all(root.join("docs/standards")).expect("standards dir created");
+    fs::create_dir_all(root.join("docs/teams/axis-foundry")).expect("team charter dir created");
+    fs::write(
+        root.join("registry/quality/lanes.yaml"),
+        format!(
+            "lanes:\n  - id: cargo-fmt\n    stage: per-pr\n    status: active\n    owner_team: axis-foundry\n    purpose: `cargo fmt --all -- --check`\n    source: TOOLCHAIN.md\n    runtime_budget_seconds: 300\n    check_command: {check_command}\n"
+        ),
+    )
+    .expect("quality lane registry written");
+    fs::write(
+        root.join("docs/teams/axis-foundry/CHARTER.md"),
+        "# Team: Axis Foundry\n",
+    )
+    .expect("team charter written");
+    fs::write(
+        root.join("docs/standards/ci-lanes.md"),
+        format!(
+            "# CI\n\n### 1.2 Per-PR gates\n\n| Lane | Purpose |\n|---|---|\n| `cargo-fmt` | {markdown_purpose} |\n"
+        ),
+    )
+    .expect("quality lane doc written");
+    fs::write(
+        root.join("check.sh"),
+        format!("#!/usr/bin/env bash\n{check_command}\n"),
+    )
+    .expect("check script written");
+}
+
+fn quality_lanes_args(root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "quality-lanes".into(),
+        "--registry".into(),
+        root.join("registry/quality/lanes.yaml")
+            .to_str()
+            .expect("utf8 quality registry")
+            .into(),
+        "--ci-lanes".into(),
+        root.join("docs/standards/ci-lanes.md")
+            .to_str()
+            .expect("utf8 quality docs")
+            .into(),
+        "--check-script".into(),
+        root.join("check.sh")
+            .to_str()
+            .expect("utf8 check script")
+            .into(),
+        "--teams-dir".into(),
+        root.join("docs/teams")
+            .to_str()
+            .expect("utf8 teams dir")
+            .into(),
+    ]
+}
+
+fn write_vendor_contract_ledger(root: &Path, rows: &str) -> std::path::PathBuf {
+    fs::create_dir_all(root).expect("vendor ledger dir created");
+    let ledger = root.join("VENDOR-PARTNER-LEDGER.md");
+    fs::write(
+        &ledger,
+        format!(
+            "# Vendor ledger\n\n## Contract recency ledger\n\n| Contract ID | Vendor / partner | Status | Expiry date | Renewal task | Owner |\n|---|---|---|---|---|---|\n{rows}"
+        ),
+    )
+    .expect("vendor ledger written");
+    ledger
+}
+
+fn vendor_contract_recency_args(ledger: &Path, today: &str) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "vendor-contract-recency".into(),
+        "--ledger".into(),
+        ledger.to_str().expect("utf8 vendor ledger").into(),
+        "--today".into(),
+        today.into(),
+    ]
+}
+
+fn write_mobile_native_manifest(root: &Path, rows: &str) -> std::path::PathBuf {
+    fs::create_dir_all(root).expect("mobile native manifest dir created");
+    let manifest = root.join("mobile-native-products.tsv");
+    fs::write(
+        &manifest,
+        format!(
+            "# current_wave: W-Foundry-Preview\n# empty_scope_rationale: ADR-0051 keeps native out of scope before W-Workspace-Stable.\nproduct_id\taxis\tstatus\tcanonical_web_reference\ttarget_matrix_ref\ttech_stack_rationale_ref\tstore_policy_ref\tstore_policy_validator_passed\taccessibility_audit_ref\taccessibility_audit_passed\tcapability_parity_ref\tcapability_parity_passed\tsbom_ref\tnative_binary_blobs_without_sbom\tcrash_free_sessions_bps\tcrash_free_regression_bps\tcold_start_p99_ms\n{rows}"
+        ),
+    )
+    .expect("mobile native manifest written");
+    manifest
+}
+
+fn mobile_native_args(manifest: &Path, repo_root: &Path) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "mobile-native".into(),
+        "--manifest".into(),
+        manifest.to_str().expect("utf8 mobile manifest").into(),
+        "--repo-root".into(),
+        repo_root.to_str().expect("utf8 repo root").into(),
+    ]
+}
+
+fn write_typescript_workspace_fixture(
+    root: &Path,
+    package_json: &str,
+    write_lockfile: bool,
+    write_tsconfig: bool,
+) {
+    fs::create_dir_all(root.join("src")).expect("typescript src dir created");
+    fs::write(root.join("package.json"), package_json).expect("package.json written");
+    fs::write(
+        root.join("src/index.ts"),
+        "export const ok: boolean = true;\n",
+    )
+    .expect("typescript marker written");
+    if write_lockfile {
+        fs::write(root.join("pnpm-lock.yaml"), "lockfileVersion: '9.0'\n")
+            .expect("pnpm lockfile written");
+    }
+    if write_tsconfig {
+        fs::write(root.join("tsconfig.json"), "{\"compilerOptions\": {}}\n")
+            .expect("tsconfig written");
+    }
+}
+
+fn typescript_workspace_args(root: &Path, lane: &str) -> Vec<String> {
+    vec![
+        "gate".into(),
+        "validate".into(),
+        "typescript-workspace".into(),
+        "--repo-root".into(),
+        root.to_str().expect("utf8 repo root").into(),
+        "--lane".into(),
+        lane.into(),
+    ]
+}
+
+fn write_doc_catalog_fixture(docs_dir: &Path, root_docs: &[&str], catalog_docs: &[&str]) {
+    fs::create_dir_all(docs_dir.join("machine-readable")).expect("machine-readable dir created");
+    for doc in root_docs {
+        fs::write(docs_dir.join(doc), format!("# {doc}\n")).expect("root doc written");
+    }
+    let mut markdown = "# Doc Catalog\n\n| id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |\n|---|---|---|---|---|---|---|---|\n".to_string();
+    for doc in catalog_docs {
+        let doc_id = doc
+            .trim_end_matches(".md")
+            .to_ascii_lowercase()
+            .replace('-', "_");
+        markdown.push_str(&format!(
+            "| `doc.{doc_id}` | `{doc}` | `council-architecture` | event | monthly | (none) | `doc-catalog-self-coverage` | YES |\n"
+        ));
+    }
+    fs::write(docs_dir.join("DOC-CATALOG.md"), markdown).expect("doc catalog written");
+
+    let entries = catalog_docs
+        .iter()
+        .map(|doc| {
+            let doc_id = doc
+                .trim_end_matches(".md")
+                .to_ascii_lowercase()
+                .replace('-', "_");
+            format!(
+                r#""doc.{doc_id}": {{
+      "path": "docs/{doc}",
+      "owner_team": "council-architecture",
+      "dependent_docs": [],
+      "validation_check": "doc-catalog-self-coverage"
+    }}"#
+            )
+        })
+        .collect::<Vec<_>>()
+        .join(",\n");
+    fs::write(
+        docs_dir.join("machine-readable/catalog.json"),
+        format!("{{\n  \"docs\": {{\n{entries}\n  }}\n}}\n"),
+    )
+    .expect("machine catalog written");
+}
+
+fn write_catalog_record(registry_dir: &Path, crate_id: &str, plane: &str) {
+    write_catalog_record_with_claim(registry_dir, crate_id, plane, "preview");
+}
+
+fn write_catalog_record_with_claim(
+    registry_dir: &Path,
+    crate_id: &str,
+    plane: &str,
+    api_stability: &str,
+) {
+    fs::create_dir_all(registry_dir).expect("registry dir created");
+    fs::write(
+        registry_dir.join(format!("{crate_id}.yaml")),
+        format!(
+            "context: foundry\nrole: kernel\ncapability: capability\nplane: {plane}\ndata_classes_owned: [INTERNAL_ONLY]\napi_stability: {api_stability}\nsecurity_review: unreviewed\nsupply_chain: source-only\n"
+        ),
+    )
+    .expect("catalog record written");
+}
+
+fn temp_dir(label: &str) -> std::path::PathBuf {
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock after epoch")
+        .as_nanos();
+    std::env::temp_dir().join(format!("oya-{label}-{}-{nanos}", std::process::id()))
+}

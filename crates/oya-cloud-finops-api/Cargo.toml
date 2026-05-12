@@ -1,0 +1,18 @@
+[package]
+name = "oya-cloud-finops-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-billing-kernel = { path = "../oya-cloud-billing-kernel" }
+oya-cloud-finops-kernel = { path = "../oya-cloud-finops-kernel" }
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-platform-metering-kernel = { path = "../oya-platform-metering-kernel" }
+
+[lib]
+name = "oya_cloud_finops_api"
+path = "src/lib.rs"
+doctest = false

@@ -1,0 +1,9 @@
+context: foundry
+role: kernel
+capability: license-policy
+plane: control
+slo: preview-control-plane
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

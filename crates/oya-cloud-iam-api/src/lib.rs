@@ -1,0 +1,1048 @@
+//! Cloud IAM API boundary for IAM role creation and STS token issuance.
+//!
+//! This crate owns tenant/header/path/body normalization before handing typed
+//! requests to the Cloud IAM kernel.
+
+use std::collections::BTreeMap;
+
+use oya_cloud_iam_kernel::{
+    AssumeRoleRequest, CloudIamError, IamDirectory, IamRole, IamRoleCreate, StsSession,
+};
+use oya_platform_data_boundary_kernel::parse_data_class_label;
+
+pub const CLOUD_IAM_ROLE_CREATE_SURFACE: &str = "cloud.iam.role.create";
+pub const CLOUD_IAM_STS_TOKEN_SURFACE: &str = "cloud.iam.sts.token";
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamRoleCreateApiStatus {
+    Created,
+    BadRequest,
+    Forbidden,
+    Conflict,
+    UnprocessableEntity,
+}
+
+impl CloudIamRoleCreateApiStatus {
+    pub const fn code(self) -> u16 {
+        match self {
+            Self::Created => 201,
+            Self::BadRequest => 400,
+            Self::Forbidden => 403,
+            Self::Conflict => 409,
+            Self::UnprocessableEntity => 422,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamStsTokenApiStatus {
+    Ok,
+    BadRequest,
+    Forbidden,
+    Conflict,
+    UnprocessableEntity,
+}
+
+impl CloudIamStsTokenApiStatus {
+    pub const fn code(self) -> u16 {
+        match self {
+            Self::Ok => 200,
+            Self::BadRequest => 400,
+            Self::Forbidden => 403,
+            Self::Conflict => 409,
+            Self::UnprocessableEntity => 422,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CloudIamApiErrorCode {
+    RequestIdEmpty,
+    TenantHeaderEmpty,
+    IdempotencyKeyEmpty,
+    PathRoleIdEmpty,
+    RoleIdMismatch,
+    TenantMismatch,
+    PrincipalMismatch,
+    AuthorizationDecisionIdEmpty,
+    AuthorizationTenantMismatch,
+    AuthorizationPrincipalMismatch,
+    AuthorizationDenied,
+    IdempotencyKeyReused,
+    DataClassInvalid,
+    IamInvalidRequest,
+    IamForbidden,
+    IamConflict,
+}
+
+impl CloudIamApiErrorCode {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::RequestIdEmpty => "CLOUD_IAM_REQUEST_ID_EMPTY",
+            Self::TenantHeaderEmpty => "CLOUD_IAM_TENANT_HEADER_EMPTY",
+            Self::IdempotencyKeyEmpty => "CLOUD_IAM_IDEMPOTENCY_KEY_EMPTY",
+            Self::PathRoleIdEmpty => "CLOUD_IAM_PATH_ROLE_ID_EMPTY",
+            Self::RoleIdMismatch => "CLOUD_IAM_ROLE_ID_MISMATCH",
+            Self::TenantMismatch => "CLOUD_IAM_TENANT_MISMATCH",
+            Self::PrincipalMismatch => "CLOUD_IAM_PRINCIPAL_MISMATCH",
+            Self::AuthorizationDecisionIdEmpty => "CLOUD_IAM_AUTHORIZATION_DECISION_ID_EMPTY",
+            Self::AuthorizationTenantMismatch => "CLOUD_IAM_AUTHORIZATION_TENANT_MISMATCH",
+            Self::AuthorizationPrincipalMismatch => "CLOUD_IAM_AUTHORIZATION_PRINCIPAL_MISMATCH",
+            Self::AuthorizationDenied => "CLOUD_IAM_AUTHORIZATION_DENIED",
+            Self::IdempotencyKeyReused => "CLOUD_IAM_IDEMPOTENCY_KEY_REUSED",
+            Self::DataClassInvalid => "CLOUD_IAM_DATA_CLASS_INVALID",
+            Self::IamInvalidRequest => "CLOUD_IAM_INVALID_REQUEST",
+            Self::IamForbidden => "CLOUD_IAM_FORBIDDEN",
+            Self::IamConflict => "CLOUD_IAM_CONFLICT",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiBoundaryContext {
+    pub request_id: String,      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,       // data_class: INTERNAL_ONLY
+    pub idempotency_key: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiPrincipal {
+    pub tenant_id: String,    // data_class: INTERNAL_ONLY
+    pub principal_id: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiAuthorization {
+    pub tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub principal_id: String,          // data_class: INTERNAL_ONLY
+    pub decision_id: String,           // data_class: INTERNAL_ONLY
+    pub allowed_surfaces: Vec<String>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamPrincipalRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamScopeRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamRoleCreateRequest {
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub role_id: String,                         // data_class: INTERNAL_ONLY
+    pub region: String,                          // data_class: PUBLIC
+    pub name: String,                            // data_class: PUBLIC
+    pub cedar_policy_id: String,                 // data_class: INTERNAL_ONLY
+    pub cedar_policy_version: String,            // data_class: INTERNAL_ONLY
+    pub assumable_by: Vec<CloudIamPrincipalRef>, // data_class: INTERNAL_ONLY
+    pub max_session_duration_sec: u32,           // data_class: INTERNAL_ONLY
+    pub data_class: String,                      // data_class: PUBLIC
+    pub created_at_epoch_seconds: u64,           // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamRoleCreateApiRequest {
+    pub path_role_id: String,                    // data_class: INTERNAL_ONLY
+    pub boundary: CloudIamApiBoundaryContext,    // data_class: INTERNAL_ONLY
+    pub principal: CloudIamApiPrincipal,         // data_class: INTERNAL_ONLY
+    pub authorization: CloudIamApiAuthorization, // data_class: INTERNAL_ONLY
+    pub body: CloudIamRoleCreateRequest,         // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamStsTokenRequest {
+    pub tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub session_id: String,            // data_class: INTERNAL_ONLY
+    pub role_id: String,               // data_class: INTERNAL_ONLY
+    pub assumed_by: String,            // data_class: INTERNAL_ONLY
+    pub external_id: Option<String>,   // data_class: INTERNAL_ONLY
+    pub requested_duration_sec: u32,   // data_class: INTERNAL_ONLY
+    pub scopes: Vec<CloudIamScopeRef>, // data_class: INTERNAL_ONLY
+    pub issued_at_epoch_seconds: u64,  // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamStsTokenApiRequest {
+    pub boundary: CloudIamApiBoundaryContext, // data_class: INTERNAL_ONLY
+    pub principal: CloudIamApiPrincipal,      // data_class: INTERNAL_ONLY
+    pub authorization: CloudIamApiAuthorization, // data_class: INTERNAL_ONLY
+    pub body: CloudIamStsTokenRequest,        // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudIamRoleCreateIdempotencyLedger {
+    entries: BTreeMap<CloudIamIdempotencyLedgerKey, CloudIamRoleCreateIdempotencyLedgerEntry>, // data_class: INTERNAL_ONLY
+}
+
+impl CloudIamRoleCreateIdempotencyLedger {
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudIamStsTokenIdempotencyLedger {
+    entries: BTreeMap<CloudIamIdempotencyLedgerKey, CloudIamStsTokenIdempotencyLedgerEntry>, // data_class: INTERNAL_ONLY
+}
+
+impl CloudIamStsTokenIdempotencyLedger {
+    pub fn len(&self) -> usize {
+        self.entries.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.entries.is_empty()
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+struct CloudIamIdempotencyLedgerKey {
+    tenant_id: String,       // data_class: INTERNAL_ONLY
+    principal_id: String,    // data_class: INTERNAL_ONLY
+    surface: String,         // data_class: INTERNAL_ONLY
+    idempotency_key: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudIamRoleCreateIdempotencyLedgerEntry {
+    fingerprint: CloudIamRequestFingerprint, // data_class: INTERNAL_ONLY
+    result: CloudIamRoleCreateApiResult,     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudIamStsTokenIdempotencyLedgerEntry {
+    fingerprint: CloudIamRequestFingerprint, // data_class: INTERNAL_ONLY
+    result: CloudIamStsTokenApiResult,       // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CloudIamRequestFingerprint {
+    canonical: String, // data_class: INTERNAL_ONLY
+}
+
+type CloudIamRoleCreateApiResult = Result<CloudIamRoleCreateSuccessResponse, CloudIamApiError>;
+type CloudIamStsTokenApiResult = Result<CloudIamStsTokenSuccessResponse, CloudIamApiError>;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamRoleCreateSuccessResponse {
+    pub data: CloudIamRoleRecord,              // data_class: INTERNAL_ONLY
+    pub metadata: CloudIamApiResponseMetadata, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamStsTokenSuccessResponse {
+    pub data: CloudIamStsSessionRecord, // data_class: INTERNAL_ONLY
+    pub metadata: CloudIamApiResponseMetadata, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiResponseMetadata {
+    pub request_id: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamRoleRecord {
+    pub tenant_id: String,                       // data_class: INTERNAL_ONLY
+    pub role_id: String,                         // data_class: INTERNAL_ONLY
+    pub region: String,                          // data_class: PUBLIC
+    pub name: String,                            // data_class: PUBLIC
+    pub cedar_policy_id: String,                 // data_class: INTERNAL_ONLY
+    pub cedar_policy_version: String,            // data_class: INTERNAL_ONLY
+    pub assumable_by: Vec<CloudIamPrincipalRef>, // data_class: INTERNAL_ONLY
+    pub max_session_duration_sec: u32,           // data_class: INTERNAL_ONLY
+    pub data_class: String,                      // data_class: PUBLIC
+    pub created_at_epoch_seconds: u64,           // data_class: INTERNAL_ONLY
+    pub schema_version: u32,                     // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamStsSessionRecord {
+    pub tenant_id: String,             // data_class: INTERNAL_ONLY
+    pub session_id: String,            // data_class: INTERNAL_ONLY
+    pub role_id: String,               // data_class: INTERNAL_ONLY
+    pub assumed_by: String,            // data_class: INTERNAL_ONLY
+    pub external_id: Option<String>,   // data_class: INTERNAL_ONLY
+    pub issued_at_epoch_seconds: u64,  // data_class: INTERNAL_ONLY
+    pub expires_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub scopes: Vec<CloudIamScopeRef>, // data_class: INTERNAL_ONLY
+    pub token_fingerprint: String,     // data_class: INTERNAL_ONLY
+    pub data_class: String,            // data_class: PUBLIC
+    pub schema_version: u32,           // data_class: PUBLIC
+}
+
+impl CloudIamRoleCreateSuccessResponse {
+    pub fn created(data: CloudIamRoleRecord, request_id: impl Into<String>) -> Self {
+        Self {
+            data,
+            metadata: CloudIamApiResponseMetadata {
+                request_id: request_id.into(),
+            },
+        }
+    }
+}
+
+impl CloudIamStsTokenSuccessResponse {
+    pub fn ok(data: CloudIamStsSessionRecord, request_id: impl Into<String>) -> Self {
+        Self {
+            data,
+            metadata: CloudIamApiResponseMetadata {
+                request_id: request_id.into(),
+            },
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiErrorResponse {
+    pub error: CloudIamApiErrorBody, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiErrorBody {
+    pub code: String,                         // data_class: INTERNAL_ONLY
+    pub message: String,                      // data_class: INTERNAL_ONLY
+    pub message_localized: Option<String>,    // data_class: INTERNAL_ONLY
+    pub request_id: String,                   // data_class: INTERNAL_ONLY
+    pub details: Vec<CloudIamApiErrorDetail>, // data_class: INTERNAL_ONLY
+    pub retry_after_seconds: Option<u64>,     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CloudIamApiErrorDetail {
+    pub field: String, // data_class: INTERNAL_ONLY
+    pub issue: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CloudIamApiError {
+    EmptyRequestId,
+    EmptyTenantHeader,
+    EmptyIdempotencyKey,
+    EmptyPathRoleId,
+    RoleIdMismatch {
+        path_role_id: String, // data_class: INTERNAL_ONLY
+        body_role_id: String, // data_class: INTERNAL_ONLY
+    },
+    TenantMismatch {
+        header_tenant_id: String,    // data_class: INTERNAL_ONLY
+        principal_tenant_id: String, // data_class: INTERNAL_ONLY
+        body_tenant_id: String,      // data_class: INTERNAL_ONLY
+    },
+    PrincipalMismatch {
+        principal_tenant_id: String, // data_class: INTERNAL_ONLY
+        principal_id: String,        // data_class: INTERNAL_ONLY
+        body_tenant_id: String,      // data_class: INTERNAL_ONLY
+        assumed_by: String,          // data_class: INTERNAL_ONLY
+    },
+    EmptyAuthorizationDecisionId,
+    AuthorizationTenantMismatch {
+        authorization_tenant_id: String, // data_class: INTERNAL_ONLY
+        principal_tenant_id: String,     // data_class: INTERNAL_ONLY
+    },
+    AuthorizationPrincipalMismatch {
+        authorization_principal_id: String, // data_class: INTERNAL_ONLY
+        principal_id: String,               // data_class: INTERNAL_ONLY
+    },
+    AuthorizationDenied {
+        surface: String, // data_class: INTERNAL_ONLY
+    },
+    IdempotencyKeyReused {
+        idempotency_key: String, // data_class: INTERNAL_ONLY
+    },
+    InvalidDataClassLabel {
+        data_class: String, // data_class: PUBLIC
+    },
+    Iam(CloudIamError),
+}
+
+impl CloudIamApiError {
+    pub fn role_create_status(&self) -> CloudIamRoleCreateApiStatus {
+        match self.status_kind() {
+            CloudIamApiStatusKind::BadRequest => CloudIamRoleCreateApiStatus::BadRequest,
+            CloudIamApiStatusKind::Forbidden => CloudIamRoleCreateApiStatus::Forbidden,
+            CloudIamApiStatusKind::Conflict => CloudIamRoleCreateApiStatus::Conflict,
+            CloudIamApiStatusKind::UnprocessableEntity => {
+                CloudIamRoleCreateApiStatus::UnprocessableEntity
+            }
+        }
+    }
+
+    pub fn sts_token_status(&self) -> CloudIamStsTokenApiStatus {
+        match self.status_kind() {
+            CloudIamApiStatusKind::BadRequest => CloudIamStsTokenApiStatus::BadRequest,
+            CloudIamApiStatusKind::Forbidden => CloudIamStsTokenApiStatus::Forbidden,
+            CloudIamApiStatusKind::Conflict => CloudIamStsTokenApiStatus::Conflict,
+            CloudIamApiStatusKind::UnprocessableEntity => {
+                CloudIamStsTokenApiStatus::UnprocessableEntity
+            }
+        }
+    }
+
+    pub fn role_create_status_code(&self) -> u16 {
+        self.role_create_status().code()
+    }
+
+    pub fn sts_token_status_code(&self) -> u16 {
+        self.sts_token_status().code()
+    }
+
+    pub fn code(&self) -> CloudIamApiErrorCode {
+        match self {
+            Self::EmptyRequestId => CloudIamApiErrorCode::RequestIdEmpty,
+            Self::EmptyTenantHeader => CloudIamApiErrorCode::TenantHeaderEmpty,
+            Self::EmptyIdempotencyKey => CloudIamApiErrorCode::IdempotencyKeyEmpty,
+            Self::EmptyPathRoleId => CloudIamApiErrorCode::PathRoleIdEmpty,
+            Self::RoleIdMismatch { .. } => CloudIamApiErrorCode::RoleIdMismatch,
+            Self::TenantMismatch { .. } => CloudIamApiErrorCode::TenantMismatch,
+            Self::PrincipalMismatch { .. } => CloudIamApiErrorCode::PrincipalMismatch,
+            Self::EmptyAuthorizationDecisionId => {
+                CloudIamApiErrorCode::AuthorizationDecisionIdEmpty
+            }
+            Self::AuthorizationTenantMismatch { .. } => {
+                CloudIamApiErrorCode::AuthorizationTenantMismatch
+            }
+            Self::AuthorizationPrincipalMismatch { .. } => {
+                CloudIamApiErrorCode::AuthorizationPrincipalMismatch
+            }
+            Self::AuthorizationDenied { .. } => CloudIamApiErrorCode::AuthorizationDenied,
+            Self::IdempotencyKeyReused { .. } => CloudIamApiErrorCode::IdempotencyKeyReused,
+            Self::InvalidDataClassLabel { .. } => CloudIamApiErrorCode::DataClassInvalid,
+            Self::Iam(error) => match cloud_iam_status_kind(error) {
+                CloudIamApiStatusKind::Conflict => CloudIamApiErrorCode::IamConflict,
+                CloudIamApiStatusKind::Forbidden => CloudIamApiErrorCode::IamForbidden,
+                CloudIamApiStatusKind::BadRequest | CloudIamApiStatusKind::UnprocessableEntity => {
+                    CloudIamApiErrorCode::IamInvalidRequest
+                }
+            },
+        }
+    }
+
+    pub fn error_response(&self, request_id: impl Into<String>) -> CloudIamApiErrorResponse {
+        CloudIamApiErrorResponse {
+            error: CloudIamApiErrorBody {
+                code: self.code().as_str().to_string(),
+                message: self.message().to_string(),
+                message_localized: None,
+                request_id: request_id.into(),
+                details: self.details(),
+                retry_after_seconds: None,
+            },
+        }
+    }
+
+    fn status_kind(&self) -> CloudIamApiStatusKind {
+        match self {
+            Self::TenantMismatch { .. }
+            | Self::PrincipalMismatch { .. }
+            | Self::EmptyAuthorizationDecisionId
+            | Self::AuthorizationTenantMismatch { .. }
+            | Self::AuthorizationPrincipalMismatch { .. }
+            | Self::AuthorizationDenied { .. } => CloudIamApiStatusKind::Forbidden,
+            Self::IdempotencyKeyReused { .. } => CloudIamApiStatusKind::UnprocessableEntity,
+            Self::Iam(error) => cloud_iam_status_kind(error),
+            Self::EmptyRequestId
+            | Self::EmptyTenantHeader
+            | Self::EmptyIdempotencyKey
+            | Self::EmptyPathRoleId
+            | Self::RoleIdMismatch { .. }
+            | Self::InvalidDataClassLabel { .. } => CloudIamApiStatusKind::BadRequest,
+        }
+    }
+
+    fn message(&self) -> &'static str {
+        match self {
+            Self::EmptyRequestId => "X-Request-Id header is required",
+            Self::EmptyTenantHeader => "X-Tenant-Id header is required",
+            Self::EmptyIdempotencyKey => "Idempotency-Key header is required",
+            Self::EmptyPathRoleId => "Path role id is required",
+            Self::RoleIdMismatch { .. } => "Path and body role ids must match",
+            Self::TenantMismatch { .. } => {
+                "Tenant header must match authenticated principal and request body"
+            }
+            Self::PrincipalMismatch { .. } => {
+                "Authenticated principal must match the STS assumed_by subject"
+            }
+            Self::EmptyAuthorizationDecisionId => "Authorization decision id is required",
+            Self::AuthorizationTenantMismatch { .. } => {
+                "Authorization decision tenant must match the authenticated principal"
+            }
+            Self::AuthorizationPrincipalMismatch { .. } => {
+                "Authorization decision principal must match the authenticated principal"
+            }
+            Self::AuthorizationDenied { .. } => {
+                "Authorization decision does not allow the requested Cloud IAM surface"
+            }
+            Self::IdempotencyKeyReused { .. } => {
+                "Idempotency key was already used with a different request"
+            }
+            Self::InvalidDataClassLabel { .. } => "Request data_class must be a known data class",
+            Self::Iam(error) => cloud_iam_message(error),
+        }
+    }
+
+    fn details(&self) -> Vec<CloudIamApiErrorDetail> {
+        match self {
+            Self::EmptyRequestId => vec![detail("header.X-Request-Id", "must be non-empty")],
+            Self::EmptyTenantHeader => vec![detail("header.X-Tenant-Id", "must be non-empty")],
+            Self::EmptyIdempotencyKey => {
+                vec![detail("header.Idempotency-Key", "must be non-empty")]
+            }
+            Self::EmptyPathRoleId => vec![detail("path.role_id", "must be non-empty")],
+            Self::RoleIdMismatch { .. } => vec![detail(
+                "role_id",
+                "path role_id and body role_id must match",
+            )],
+            Self::TenantMismatch { .. } => vec![detail(
+                "tenant_id",
+                "header tenant, principal tenant, and body tenant_id must match",
+            )],
+            Self::PrincipalMismatch { .. } => vec![detail(
+                "principal",
+                "authenticated subject must match body assumed_by and tenant_id",
+            )],
+            Self::EmptyAuthorizationDecisionId => vec![detail(
+                "authorization.decision_id",
+                "must be non-empty authorization evidence",
+            )],
+            Self::AuthorizationTenantMismatch { .. } => vec![detail(
+                "authorization.tenant_id",
+                "must match the authenticated principal tenant",
+            )],
+            Self::AuthorizationPrincipalMismatch { .. } => vec![detail(
+                "authorization.principal_id",
+                "must match the authenticated principal id",
+            )],
+            Self::AuthorizationDenied { .. } => vec![detail(
+                "authorization.allowed_surfaces",
+                "must include the requested Cloud IAM surface",
+            )],
+            Self::IdempotencyKeyReused { .. } => vec![detail(
+                "header.Idempotency-Key",
+                "same key cannot be reused with a different request fingerprint",
+            )],
+            Self::InvalidDataClassLabel { .. } => vec![detail(
+                "body.data_class",
+                "must be a canonical privacy data-class label",
+            )],
+            Self::Iam(error) => vec![detail("cloud_iam", cloud_iam_issue(error))],
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum CloudIamApiStatusKind {
+    BadRequest,
+    Forbidden,
+    Conflict,
+    UnprocessableEntity,
+}
+
+pub fn validate_cloud_iam_role_create_request(
+    request: &CloudIamRoleCreateApiRequest,
+) -> Result<(), CloudIamApiError> {
+    validate_boundary(&request.boundary)?;
+    if request.path_role_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyPathRoleId);
+    }
+    if request.path_role_id != request.body.role_id {
+        return Err(CloudIamApiError::RoleIdMismatch {
+            path_role_id: request.path_role_id.clone(),
+            body_role_id: request.body.role_id.clone(),
+        });
+    }
+    validate_tenant_binding(
+        &request.boundary,
+        &request.principal,
+        &request.body.tenant_id,
+    )?;
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_IAM_ROLE_CREATE_SURFACE,
+    )
+}
+
+pub fn validate_cloud_iam_sts_token_request(
+    request: &CloudIamStsTokenApiRequest,
+) -> Result<(), CloudIamApiError> {
+    validate_boundary(&request.boundary)?;
+    validate_tenant_binding(
+        &request.boundary,
+        &request.principal,
+        &request.body.tenant_id,
+    )?;
+    if request.principal.principal_id != request.body.assumed_by {
+        return Err(CloudIamApiError::PrincipalMismatch {
+            principal_tenant_id: request.principal.tenant_id.clone(),
+            principal_id: request.principal.principal_id.clone(),
+            body_tenant_id: request.body.tenant_id.clone(),
+            assumed_by: request.body.assumed_by.clone(),
+        });
+    }
+    validate_authorization(
+        &request.principal,
+        &request.authorization,
+        CLOUD_IAM_STS_TOKEN_SURFACE,
+    )
+}
+
+pub fn create_cloud_iam_role_from_api(
+    directory: &mut IamDirectory,
+    idempotency_ledger: &mut CloudIamRoleCreateIdempotencyLedger,
+    request: CloudIamRoleCreateApiRequest,
+) -> Result<CloudIamRoleCreateSuccessResponse, CloudIamApiError> {
+    validate_cloud_iam_role_create_request(&request)?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_IAM_ROLE_CREATE_SURFACE,
+    );
+    let fingerprint = role_create_fingerprint_for(&request);
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.fingerprint == fingerprint {
+            return entry.result.clone();
+        }
+        return Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let request_id = request.boundary.request_id.clone();
+    let result = role_create_input(request.body)
+        .and_then(|input| directory.create_role(input).map_err(CloudIamApiError::Iam))
+        .map(|role| CloudIamRoleCreateSuccessResponse::created(role_record(role), request_id));
+    idempotency_ledger.entries.insert(
+        key,
+        CloudIamRoleCreateIdempotencyLedgerEntry {
+            fingerprint,
+            result: result.clone(),
+        },
+    );
+    result
+}
+
+pub fn issue_cloud_iam_sts_token_from_api(
+    directory: &mut IamDirectory,
+    idempotency_ledger: &mut CloudIamStsTokenIdempotencyLedger,
+    request: CloudIamStsTokenApiRequest,
+) -> Result<CloudIamStsTokenSuccessResponse, CloudIamApiError> {
+    validate_cloud_iam_sts_token_request(&request)?;
+    let key = idempotency_key_for(
+        &request.boundary,
+        &request.principal,
+        CLOUD_IAM_STS_TOKEN_SURFACE,
+    );
+    let fingerprint = sts_token_fingerprint_for(&request);
+    if let Some(entry) = idempotency_ledger.entries.get(&key) {
+        if entry.fingerprint == fingerprint {
+            return entry.result.clone();
+        }
+        return Err(CloudIamApiError::IdempotencyKeyReused {
+            idempotency_key: request.boundary.idempotency_key,
+        });
+    }
+
+    let request_id = request.boundary.request_id.clone();
+    let result = directory
+        .assume_role(assume_role_request(request.body))
+        .map_err(CloudIamApiError::Iam)
+        .map(|session| CloudIamStsTokenSuccessResponse::ok(session_record(session), request_id));
+    idempotency_ledger.entries.insert(
+        key,
+        CloudIamStsTokenIdempotencyLedgerEntry {
+            fingerprint,
+            result: result.clone(),
+        },
+    );
+    result
+}
+
+fn validate_boundary(boundary: &CloudIamApiBoundaryContext) -> Result<(), CloudIamApiError> {
+    if boundary.request_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyRequestId);
+    }
+    if boundary.tenant_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyTenantHeader);
+    }
+    if boundary.idempotency_key.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyIdempotencyKey);
+    }
+    Ok(())
+}
+
+fn validate_tenant_binding(
+    boundary: &CloudIamApiBoundaryContext,
+    principal: &CloudIamApiPrincipal,
+    body_tenant_id: &str,
+) -> Result<(), CloudIamApiError> {
+    if boundary.tenant_id != principal.tenant_id || boundary.tenant_id != body_tenant_id {
+        return Err(CloudIamApiError::TenantMismatch {
+            header_tenant_id: boundary.tenant_id.clone(),
+            principal_tenant_id: principal.tenant_id.clone(),
+            body_tenant_id: body_tenant_id.to_string(),
+        });
+    }
+    Ok(())
+}
+
+fn validate_authorization(
+    principal: &CloudIamApiPrincipal,
+    authorization: &CloudIamApiAuthorization,
+    surface: &str,
+) -> Result<(), CloudIamApiError> {
+    if authorization.decision_id.trim().is_empty() {
+        return Err(CloudIamApiError::EmptyAuthorizationDecisionId);
+    }
+    if authorization.tenant_id != principal.tenant_id {
+        return Err(CloudIamApiError::AuthorizationTenantMismatch {
+            authorization_tenant_id: authorization.tenant_id.clone(),
+            principal_tenant_id: principal.tenant_id.clone(),
+        });
+    }
+    if authorization.principal_id != principal.principal_id {
+        return Err(CloudIamApiError::AuthorizationPrincipalMismatch {
+            authorization_principal_id: authorization.principal_id.clone(),
+            principal_id: principal.principal_id.clone(),
+        });
+    }
+    if !authorization
+        .allowed_surfaces
+        .iter()
+        .any(|allowed_surface| allowed_surface == surface)
+    {
+        return Err(CloudIamApiError::AuthorizationDenied {
+            surface: surface.to_string(),
+        });
+    }
+    Ok(())
+}
+
+fn role_create_input(body: CloudIamRoleCreateRequest) -> Result<IamRoleCreate, CloudIamApiError> {
+    let data_class = parse_data_class_label(&body.data_class).ok_or_else(|| {
+        CloudIamApiError::InvalidDataClassLabel {
+            data_class: body.data_class.clone(),
+        }
+    })?;
+    Ok(IamRoleCreate {
+        id: body.role_id,
+        tenant_id: body.tenant_id,
+        region: body.region,
+        name: body.name,
+        cedar_policy_id: body.cedar_policy_id,
+        cedar_policy_version: body.cedar_policy_version,
+        assumable_by: body
+            .assumable_by
+            .into_iter()
+            .map(|principal| principal.value)
+            .collect(),
+        max_session_duration_sec: body.max_session_duration_sec,
+        data_class,
+        created_at_epoch_seconds: body.created_at_epoch_seconds,
+    })
+}
+
+fn assume_role_request(body: CloudIamStsTokenRequest) -> AssumeRoleRequest {
+    AssumeRoleRequest {
+        session_id: body.session_id,
+        tenant_id: body.tenant_id,
+        role_id: body.role_id,
+        assumed_by: body.assumed_by,
+        external_id: body.external_id,
+        requested_duration_sec: body.requested_duration_sec,
+        scopes: body.scopes.into_iter().map(|scope| scope.value).collect(),
+        issued_at_epoch_seconds: body.issued_at_epoch_seconds,
+    }
+}
+
+fn idempotency_key_for(
+    boundary: &CloudIamApiBoundaryContext,
+    principal: &CloudIamApiPrincipal,
+    surface: &str,
+) -> CloudIamIdempotencyLedgerKey {
+    CloudIamIdempotencyLedgerKey {
+        tenant_id: boundary.tenant_id.clone(),
+        principal_id: principal.principal_id.clone(),
+        surface: surface.to_string(),
+        idempotency_key: boundary.idempotency_key.clone(),
+    }
+}
+
+fn role_create_fingerprint_for(
+    request: &CloudIamRoleCreateApiRequest,
+) -> CloudIamRequestFingerprint {
+    CloudIamRequestFingerprint {
+        canonical: [
+            format!("path.role_id={}", request.path_role_id),
+            format!("header.tenant_id={}", request.boundary.tenant_id),
+            format!("principal.tenant_id={}", request.principal.tenant_id),
+            format!("principal.principal_id={}", request.principal.principal_id),
+            format!(
+                "authorization.tenant_id={}",
+                request.authorization.tenant_id
+            ),
+            format!(
+                "authorization.principal_id={}",
+                request.authorization.principal_id
+            ),
+            format!(
+                "authorization.decision_id={}",
+                request.authorization.decision_id
+            ),
+            format!(
+                "authorization.allowed_surfaces={}",
+                request.authorization.allowed_surfaces.join(",")
+            ),
+            format!("body.tenant_id={}", request.body.tenant_id),
+            format!("body.role_id={}", request.body.role_id),
+            format!("body.region={}", request.body.region),
+            format!("body.name={}", request.body.name),
+            format!("body.cedar_policy_id={}", request.body.cedar_policy_id),
+            format!(
+                "body.cedar_policy_version={}",
+                request.body.cedar_policy_version
+            ),
+            format!(
+                "body.assumable_by={}",
+                request
+                    .body
+                    .assumable_by
+                    .iter()
+                    .map(|principal| principal.value.as_str())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
+            format!(
+                "body.max_session_duration_sec={}",
+                request.body.max_session_duration_sec
+            ),
+            format!("body.data_class={}", request.body.data_class),
+            format!(
+                "body.created_at_epoch_seconds={}",
+                request.body.created_at_epoch_seconds
+            ),
+        ]
+        .join("|"),
+    }
+}
+
+fn sts_token_fingerprint_for(request: &CloudIamStsTokenApiRequest) -> CloudIamRequestFingerprint {
+    CloudIamRequestFingerprint {
+        canonical: [
+            format!("header.tenant_id={}", request.boundary.tenant_id),
+            format!("principal.tenant_id={}", request.principal.tenant_id),
+            format!("principal.principal_id={}", request.principal.principal_id),
+            format!(
+                "authorization.tenant_id={}",
+                request.authorization.tenant_id
+            ),
+            format!(
+                "authorization.principal_id={}",
+                request.authorization.principal_id
+            ),
+            format!(
+                "authorization.decision_id={}",
+                request.authorization.decision_id
+            ),
+            format!(
+                "authorization.allowed_surfaces={}",
+                request.authorization.allowed_surfaces.join(",")
+            ),
+            format!("body.tenant_id={}", request.body.tenant_id),
+            format!("body.session_id={}", request.body.session_id),
+            format!("body.role_id={}", request.body.role_id),
+            format!("body.assumed_by={}", request.body.assumed_by),
+            format!(
+                "body.external_id={}",
+                request.body.external_id.as_deref().unwrap_or("")
+            ),
+            format!(
+                "body.requested_duration_sec={}",
+                request.body.requested_duration_sec
+            ),
+            format!(
+                "body.scopes={}",
+                request
+                    .body
+                    .scopes
+                    .iter()
+                    .map(|scope| scope.value.as_str())
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
+            format!(
+                "body.issued_at_epoch_seconds={}",
+                request.body.issued_at_epoch_seconds
+            ),
+        ]
+        .join("|"),
+    }
+}
+
+fn role_record(role: IamRole) -> CloudIamRoleRecord {
+    CloudIamRoleRecord {
+        tenant_id: role.tenant_id.value,
+        role_id: role.id.value.value,
+        region: role.region.value.value,
+        name: role.name.value.value,
+        cedar_policy_id: role.cedar_policy_id.value.value,
+        cedar_policy_version: role.cedar_policy_version.value,
+        assumable_by: role
+            .assumable_by
+            .value
+            .into_iter()
+            .map(|principal| CloudIamPrincipalRef {
+                value: principal.value,
+            })
+            .collect(),
+        max_session_duration_sec: role.max_session_duration_sec.value,
+        data_class: role.data_class.value.label().to_string(),
+        created_at_epoch_seconds: role.created_at_epoch_seconds.value,
+        schema_version: role.schema_version.value,
+    }
+}
+
+fn session_record(session: StsSession) -> CloudIamStsSessionRecord {
+    CloudIamStsSessionRecord {
+        tenant_id: session.tenant_id.value,
+        session_id: session.id.value.value,
+        role_id: session.assumed_role.value.value,
+        assumed_by: session.assumed_by.value.value,
+        external_id: session.external_id.value,
+        issued_at_epoch_seconds: session.issued_at_epoch_seconds.value,
+        expires_at_epoch_seconds: session.expires_at_epoch_seconds.value,
+        scopes: session
+            .scopes
+            .value
+            .into_iter()
+            .map(|scope| CloudIamScopeRef { value: scope.value })
+            .collect(),
+        token_fingerprint: session.token_fingerprint.value,
+        data_class: session.data_class.value.label().to_string(),
+        schema_version: session.schema_version.value,
+    }
+}
+
+fn cloud_iam_status_kind(error: &CloudIamError) -> CloudIamApiStatusKind {
+    match error {
+        CloudIamError::DuplicateProvider
+        | CloudIamError::DuplicatePrincipal
+        | CloudIamError::DuplicateRole
+        | CloudIamError::DuplicateSession => CloudIamApiStatusKind::Conflict,
+        CloudIamError::PrincipalCannotAssumeRole
+        | CloudIamError::MfaNotVerified
+        | CloudIamError::ExternalIdRequired
+        | CloudIamError::ProviderTenantMismatch
+        | CloudIamError::TrustPolicyDenied
+        | CloudIamError::TenantMismatch => CloudIamApiStatusKind::Forbidden,
+        CloudIamError::InvalidTenantId
+        | CloudIamError::InvalidPrincipalId
+        | CloudIamError::InvalidRoleId
+        | CloudIamError::InvalidProviderId
+        | CloudIamError::InvalidCedarPolicyId
+        | CloudIamError::InvalidRoleName
+        | CloudIamError::InvalidScope
+        | CloudIamError::InvalidSubjectUri
+        | CloudIamError::InvalidRegionalPack
+        | CloudIamError::InvalidIssuerUri
+        | CloudIamError::InvalidAudience
+        | CloudIamError::InvalidVerificationMaterialRef
+        | CloudIamError::InvalidSessionId
+        | CloudIamError::InvalidExternalId
+        | CloudIamError::InvalidDataClass
+        | CloudIamError::InvalidSemver
+        | CloudIamError::InvalidSessionDuration
+        | CloudIamError::MissingAssumablePrincipal
+        | CloudIamError::DuplicateAssumablePrincipal
+        | CloudIamError::DuplicateScope
+        | CloudIamError::PrincipalKindMismatch
+        | CloudIamError::ProviderRequired
+        | CloudIamError::MissingExternalSubject
+        | CloudIamError::UnexpectedExternalSubject
+        | CloudIamError::UnknownProvider
+        | CloudIamError::UnknownPrincipal
+        | CloudIamError::UnknownRole
+        | CloudIamError::PlatformIdentityRejected(_) => CloudIamApiStatusKind::BadRequest,
+    }
+}
+
+fn cloud_iam_message(error: &CloudIamError) -> &'static str {
+    match cloud_iam_status_kind(error) {
+        CloudIamApiStatusKind::Conflict => "Cloud IAM resource already exists",
+        CloudIamApiStatusKind::Forbidden => "Cloud IAM policy denied the request",
+        CloudIamApiStatusKind::BadRequest => "Cloud IAM rejected the request shape",
+        CloudIamApiStatusKind::UnprocessableEntity => "Cloud IAM rejected request idempotency",
+    }
+}
+
+fn cloud_iam_issue(error: &CloudIamError) -> &'static str {
+    match error {
+        CloudIamError::InvalidTenantId => "tenant_id must be a ten_ identifier",
+        CloudIamError::InvalidPrincipalId => "principal id must match principal kind",
+        CloudIamError::InvalidRoleId => "role_id must be a role_ identifier",
+        CloudIamError::InvalidProviderId => "identity_provider_id must be an idp_ identifier",
+        CloudIamError::InvalidCedarPolicyId => "cedar_policy_id must be a pol_ identifier",
+        CloudIamError::InvalidRoleName => "role name must be canonical lowercase",
+        CloudIamError::InvalidScope => "STS scopes must be non-empty cloud.* scopes",
+        CloudIamError::InvalidSubjectUri => "federated subject must be saml:// or oidc://",
+        CloudIamError::InvalidRegionalPack => "regional pack must use oya-pack- prefix",
+        CloudIamError::InvalidIssuerUri => "issuer_uri must be https",
+        CloudIamError::InvalidAudience => "audience must be non-empty",
+        CloudIamError::InvalidVerificationMaterialRef => {
+            "verification material must match provider kind"
+        }
+        CloudIamError::InvalidSessionId => "session_id must be a sts_ identifier",
+        CloudIamError::InvalidExternalId => "external_id must be non-empty when present",
+        CloudIamError::InvalidDataClass => "role data_class must be a public privacy class",
+        CloudIamError::InvalidSemver => "cedar_policy_version must be semver",
+        CloudIamError::InvalidSessionDuration => {
+            "session duration must be >0 and <= role/platform limit"
+        }
+        CloudIamError::MissingAssumablePrincipal => "role must trust at least one principal",
+        CloudIamError::DuplicateAssumablePrincipal => "role trust policy has duplicate principals",
+        CloudIamError::DuplicateScope => "STS scope list has duplicate scopes",
+        CloudIamError::PrincipalKindMismatch => "principal kind does not match identifier",
+        CloudIamError::PrincipalCannotAssumeRole => "role principals cannot assume roles",
+        CloudIamError::MfaNotVerified => "principal must have verified MFA",
+        CloudIamError::ExternalIdRequired => "external principal requires an external_id",
+        CloudIamError::ProviderRequired => {
+            "federated/external principal requires an identity provider"
+        }
+        CloudIamError::ProviderTenantMismatch => {
+            "identity provider tenant must match principal tenant"
+        }
+        CloudIamError::MissingExternalSubject => {
+            "federated/external principal requires external_subject"
+        }
+        CloudIamError::UnexpectedExternalSubject => {
+            "local principal must not carry external federation fields"
+        }
+        CloudIamError::DuplicateProvider
+        | CloudIamError::DuplicatePrincipal
+        | CloudIamError::DuplicateRole
+        | CloudIamError::DuplicateSession => "resource identifier is already present",
+        CloudIamError::UnknownProvider => {
+            "identity provider must exist before principal registration"
+        }
+        CloudIamError::UnknownPrincipal => "principal must exist and match tenant",
+        CloudIamError::UnknownRole => "role must exist before STS issuance",
+        CloudIamError::TrustPolicyDenied => "principal is not trusted by the role",
+        CloudIamError::TenantMismatch => "tenant-bound IAM resources must match",
+        CloudIamError::PlatformIdentityRejected(_) => {
+            "platform identity rejected credential issuance"
+        }
+    }
+}
+
+fn detail(field: &str, issue: &str) -> CloudIamApiErrorDetail {
+    CloudIamApiErrorDetail {
+        field: field.to_string(),
+        issue: issue.to_string(),
+    }
+}

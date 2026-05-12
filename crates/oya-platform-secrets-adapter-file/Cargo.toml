@@ -1,0 +1,15 @@
+[package]
+name = "oya-platform-secrets-adapter-file"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-platform-secrets-kernel = { path = "../oya-platform-secrets-kernel" }
+
+[lib]
+name = "oya_platform_secrets_adapter_file"
+path = "src/lib.rs"
+doctest = false

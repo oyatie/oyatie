@@ -1,0 +1,10 @@
+context: platform
+role: app
+capability: audit-chain-event
+plane: data
+slo: stable-data-plane
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: [AUDIT]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

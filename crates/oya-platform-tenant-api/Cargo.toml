@@ -1,0 +1,16 @@
+[package]
+name = "oya-platform-tenant-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }
+oya-platform-tenant-kernel = { path = "../oya-platform-tenant-kernel" }
+
+[lib]
+name = "oya_platform_tenant_api"
+path = "src/lib.rs"
+doctest = false

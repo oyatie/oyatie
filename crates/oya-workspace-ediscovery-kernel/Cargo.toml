@@ -1,0 +1,16 @@
+[package]
+name = "oya-workspace-ediscovery-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-workspace-retention-kernel = { path = "../oya-workspace-retention-kernel" }
+
+[lib]
+name = "oya_workspace_ediscovery_kernel"
+path = "src/lib.rs"
+doctest = false

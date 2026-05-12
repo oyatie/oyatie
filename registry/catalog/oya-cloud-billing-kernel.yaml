@@ -1,0 +1,10 @@
+context: cloud
+role: kernel
+capability: billing
+plane: analytics
+slo: preview-analytics-plane
+data_classes_owned: [PUBLIC, INTERNAL_ONLY, FINANCIAL_KR_신용정보]
+operational_classes_owned: [AUDIT]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
