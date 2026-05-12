@@ -1,0 +1,16 @@
+[package]
+name = "oya-platform-dsr-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-platform-dsr-kernel = { path = "../oya-platform-dsr-kernel" }
+
+[lib]
+name = "oya_platform_dsr_app"
+path = "src/lib.rs"
+doctest = false

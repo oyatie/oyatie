@@ -1,0 +1,13 @@
+[package]
+name = "oya-cloud-observability-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-observability-kernel = { path = "../oya-cloud-observability-kernel" }
+oya-platform-audit-chain-kernel = { path = "../oya-platform-audit-chain-kernel" }
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }

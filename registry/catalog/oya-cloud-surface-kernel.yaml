@@ -1,0 +1,10 @@
+context: cloud
+role: kernel
+capability: surface
+plane: control
+slo: stable-control-plane
+data_classes_owned: [PUBLIC, INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

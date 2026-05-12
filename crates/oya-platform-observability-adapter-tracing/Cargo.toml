@@ -1,0 +1,17 @@
+[package]
+name = "oya-platform-observability-adapter-tracing"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-platform-observability-kernel = { path = "../oya-platform-observability-kernel" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[lib]
+name = "oya_platform_observability_adapter_tracing"
+path = "src/lib.rs"
+doctest = false

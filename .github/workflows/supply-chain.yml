@@ -1,0 +1,36 @@
+name: oya-foundry-fitness-supply-chain
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: ['v*']
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  security-events: write
+
+jobs:
+  static-adr0039-wiring:
+    name: static ADR-0039 wiring gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate ADR-0039 supply-chain wiring
+        run: cargo run -p oya-tooling-cli-dev-runtime -- gate validate supply-chain --require-adr0039-evidence
+
+  release-artifact-attestation:
+    name: release artifact Trivy/Cosign/SBOM lane
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: static-adr0039-wiring
+    steps:
+      - uses: actions/checkout@v4
+      - name: Execute ADR-0039 release supply-chain script
+        run: scripts/supply-chain-adr0039.sh registry/release/images.yaml
+      - name: Validate release supply-chain evidence records
+        run: cargo run -p oya-tooling-cli-dev-runtime -- gate validate release-supply-chain --phase release

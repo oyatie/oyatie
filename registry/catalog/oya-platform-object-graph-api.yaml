@@ -1,0 +1,9 @@
+context: platform
+role: api
+capability: object-graph-entity
+plane: data
+slo: stable-data-plane
+data_classes_owned: [INTERNAL_ONLY]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

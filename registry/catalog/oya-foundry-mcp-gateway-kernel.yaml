@@ -1,0 +1,10 @@
+context: foundry
+role: kernel
+capability: mcp-gateway
+plane: data
+slo: preview-data-plane
+data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT]
+operational_classes_owned: [AUDIT]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

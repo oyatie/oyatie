@@ -1,0 +1,264 @@
+---
+doc_class: Operating-Contract
+shape: ~
+length_cap: 360
+authority_tier: 2
+excludes:
+  - path: docs/CONSTITUTION.md
+    reason: Mission, decision rights, prohibitions; the constitutional frame is upstream of this contract.
+  - path: docs/DOC-CATALOG.md
+    reason: Per-doc lifecycle protocol and trigger taxonomy.
+  - path: docs/templates/pull-request-template.md
+    reason: PR body shape; cited and not inlined.
+  - path: docs/decisions/
+    reason: Architectural rationale; ADRs are decision records, not operating contracts.
+  - path: docs/teams/
+    reason: Per-team norms and charters.
+  - path: docs/SPEC.md
+    reason: Surface enumeration; this contract operates on surfaces, does not enumerate them.
+  - path: docs/standards/
+    reason: Cross-cutting authoring norms (code style, testing, security review, etc.); this contract names them, does not inline them.
+  - path: docs/MISTAKES-LEDGER.md
+    reason: Failure-mode catalog; this contract operates the doctrine, does not catalog it.
+authority_chain_declaration: |
+  docs/CONSTITUTION.md
+    > rest of docs/
+    > catalog records (registry/catalog/, contracts/, machine-readable/)
+    > repo-root Redirect-class files (non-authoritative; lane-thin)
+    > working drafts (never authoritative)
+---
+
+# Oyatie Agent Operating Contract
+
+## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
+
+
+This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
+
+If you read only one file before changing this repo, read this one. If you read two, read this one and [`CONSTITUTION.md`](CONSTITUTION.md).
+
+## Authority precedence
+
+The higher source wins on conflict.
+
+```
+docs/CONSTITUTION.md
+  > rest of docs/
+  > catalog records (registry/catalog/, contracts/, machine-readable/)
+  > repo-root Redirect-class files (non-authoritative; lane-thin)
+  > working drafts (never authoritative)
+```
+
+The chain appears verbatim in [`CONSTITUTION.md`](CONSTITUTION.md), in this file, and in [`README.md`](README.md). The `oya-foundry-fitness-authority-cohesion` lane validates the three declarations are character-identical.
+
+## RFC-2119 normative-language statement
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**, **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **NOT RECOMMENDED**, **MAY**, and **OPTIONAL** in this document are to be interpreted as described in BCP 14 [[RFC2119](https://www.rfc-editor.org/rfc/rfc2119)] [[RFC8174](https://www.rfc-editor.org/rfc/rfc8174)] when, and only when, they appear in all capitals, as shown here.
+
+Lowercase forms ("you must", "should consider") have their normal English meanings and carry no normative force.
+
+## Canonical doc map
+
+For any question, route to its authority. Click the link; do not duplicate inline.
+
+| Question | Authority |
+|---|---|
+| Project mission, decision rights, prohibitions, amendments | [`CONSTITUTION.md`](CONSTITUTION.md) |
+| Bootstrap routing for the canonical tree | [`README.md`](README.md) |
+| Architecture, planes, cross-axis contracts, cohesion thesis | [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> |
+| Surfaces (capabilities, APIs, events, indexes, ad slots, cloud resources) | [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 --> |
+| North star, axes, scope, success metrics, decision log | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
+| Wave sequence, per-wave gate criteria | [`ROADMAP.md`](ROADMAP.md) <!-- forward-reference: wave-1 --> |
+| Per-doc lifecycle and update protocol | [`DOC-CATALOG.md`](DOC-CATALOG.md) |
+| Doc-class taxonomy, voice, dual-audience rules | [`standards/doc-style.md`](standards/doc-style.md) <!-- forward-reference: wave-1 --> |
+| Architectural decisions (ADR pack) | [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 --> |
+| Recurring failure modes + mechanical preventions | [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> |
+| Per-axis product PRDs | [`products/`](products/) <!-- forward-reference: wave-1 --> |
+| Per-team charters | [`teams/`](teams/) <!-- forward-reference: wave-1 --> |
+| Per-region packs | [`regional-packs/`](regional-packs/) <!-- forward-reference: wave-1 --> |
+| Runbooks (incident, DR, on-call, per-service) | [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) <!-- forward-reference: wave-1 --> |
+| Templates (PR, ADR, capability, runbook, etc.) | [`templates/`](templates/) <!-- forward-reference: wave-1 --> |
+| Privacy / security / compliance | [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`SECURITY-PROGRAM.md`](SECURITY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) <!-- forward-reference: wave-1 --> |
+| Release / incident / on-call | [`RELEASE-MANAGEMENT.md`](RELEASE-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`INCIDENT-MANAGEMENT.md`](INCIDENT-MANAGEMENT.md) <!-- forward-reference: wave-1 -->, [`standards/on-call.md`](standards/on-call.md) <!-- forward-reference: wave-1 --> |
+| Glossary (canonical vocabulary) | [`GLOSSARY.md`](GLOSSARY.md) <!-- forward-reference: wave-1 --> |
+| Machine-readable mirrors of the catalog | [`machine-readable/`](machine-readable/) <!-- forward-reference: wave-1 --> |
+
+## Pre-flight checklist
+
+Before any change, every agent and every human MUST complete these items.
+
+1. **Identify the change class.** Feature / bugfix / refactor / migration / docs / chore / capability / plugin / runbook / ADR / pack-update. *Why:* a class-blind change misses class-specific validators. *Test:* PR body's `## Issue` section names the class.
+2. **Read the canonical authority for the change class.** Use the §"Canonical doc map" table. *Why:* one-paragraph orientation prevents the most common failure (acting on stale repo memory). *Test:* PR `## Traceability` cites the doc(s) read.
+3. **Confirm Data Use Boundary.** Every new field on a kernel struct MUST carry a `data_class` annotation. *Why:* cross-pillar flows that bypass `data_class` violate the cohesion principle. *Test:* `oya-foundry-fitness-data-class` lane.
+4. **Confirm autonomy ceiling.** Capability bindings MUST declare T1 / T2 / T3 / T4 in the capability record. Tier uplift MUST land an accompanying Cedar policy + runtime gate. *Why:* config-flag tier uplift bypasses the audit chain. *Test:* `oya-foundry-fitness-autonomy-ceiling` lane.
+5. **Confirm license posture.** New dependencies MUST clear `cargo deny check`. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code. *Why:* license drift is hard to undo. *Test:* `cargo deny check` exit 0.
+6. **Search MISTAKES-LEDGER for the failure-mode class.** *Why:* re-introducing a fixed defect is a regression. *Test:* PR `## Traceability` cites the relevant `MFL-NNNN` row OR a "no prior row" search note.
+7. **Identify the per-change-class reviewer agent.** *Why:* the reviewer signs `## Code Review` at merge time; no signature, no merge. *Test:* §"Per-change-class reviewer agents" table below; merge-gate hook validates.
+8. **For cross-axis contract changes:** apply the cross-axis review label per [`checklists/cross-axis-contract-change.md`](checklists/cross-axis-contract-change.md) <!-- forward-reference: wave-1 -->; notify consumer-axis teams. *Why:* silent cross-axis changes break consumers. *Test:* PR label + `oya-foundry-fitness-cross-axis-notify` lane.
+9. **For hook / harness / CLI changes:** run the harness self-test first. *Why:* a broken hook silently disables every downstream gate. *Test:* harness self-test command (per harness; see §"Per-agent appendices").
+
+## Per-change-class reviewer agents
+
+Each change class has a designated reviewer agent that runs proactively on the PR and signs `## Code Review` at merge time.
+
+| Change class | Reviewer agent |
+|---|---|
+| `*.rs` | `rust-reviewer` |
+| `*.ts` / `*.tsx` / `*.js` / `*.jsx` | `typescript-reviewer` |
+| `*.py` | `python-reviewer` |
+| Migrations / SQL | `database-reviewer` |
+| Auth / secret / payment paths | `security-reviewer` |
+| Privacy / consent / DSR paths | `privacy-reviewer` |
+| New feature or bugfix | `tdd-guide` (TDD enforcement) |
+| Error-handling change | `silent-failure-hunter` |
+| API or contract change | `doc-updater` |
+| Doc-only change | `doc-style-reviewer` |
+| Capability publish | `capability-reviewer` |
+| Performance change | `perf-reviewer` |
+
+The reviewer-agent verdict is `APPROVE` or `REQUEST CHANGES`. The PR body's `## Code Review` section MUST contain the agent name, the verdict, and the resolved + deferred items. Without this section the merge gate refuses (`scripts/hooks/guard-pr-merge-review.mjs`, PreToolUse on `Bash`).
+
+## During-change discipline
+
+While the change is in flight, every agent and every human MUST observe these rules.
+
+- **No `--no-verify`, no hook bypass, no signing skip.** Hook failure is a signal; the fix is the underlying issue.
+- **No untyped values at API boundaries.** Use the result types prescribed in [`standards/error-handling.md`](standards/error-handling.md) <!-- forward-reference: wave-1 -->.
+- **No new struct fields in kernel crates without `data_class`.** Pre-commit blocks; respect it.
+- **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
+- **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
+- **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
+
+## PR shape
+
+Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 H2 sections, CI-enforced by `traceability-validator`:
+
+1. `## Issue` — `Closes #<n>` or `Refs #<n>`.
+2. `## Summary` — 1–3 bullets on what + why.
+3. `## Verification` — pass/fail line per check; reviewer-agent verdict pasted.
+4. `## Traceability` — catalog records touched, cross-axis contracts touched, ADRs cited.
+5. `## Evidence` — audit-chain emission ID; foundation-bypass (if any); per-pack regulator-watch impact (if any).
+
+At merge time the lead author adds `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items. The merge-gate hook refuses any merge without this section.
+
+## Done-Definition checklist
+
+Before declaring any change complete, every agent and every human MUST re-walk these items. Each box has a typed artifact (a command, a lane, or an explicit `(advisory)` marker).
+
+- [ ] **D1** All §"Pre-flight checklist" items checked. *Test:* per-item reviewer audit on PR.
+- [ ] **D2** Affected canonical docs updated in this same PR per [`DOC-CATALOG.md`](DOC-CATALOG.md). *Test:* `oya-foundry-fitness-doc-catalog` lane.
+- [ ] **D3** New ADRs (if any) authored from [`templates/adr-template.md`](templates/adr-template.md) <!-- forward-reference: wave-1 --> with all required sections. *Test:* `oya-foundry-fitness-adr-shape` lane.
+- [ ] **D4** New runbooks (if any) authored from [`templates/runbook-template.md`](templates/runbook-template.md) <!-- forward-reference: wave-1 -->; discoverable in [`RUNBOOKS-INDEX.md`](RUNBOOKS-INDEX.md) <!-- forward-reference: wave-1 -->. *Test:* `oya-foundry-fitness-runbook-index-resolves` lane.
+- [ ] **D5** New capabilities (if any) ship: capability record, eval set (golden + adversarial + linguistic), autonomy tier, audit-chain topic, Cosign signing. *Test:* `oya-foundry-fitness-capability-publish` lane.
+- [ ] **D6** New schemas (if any) carry `oyatie.data_class = "..."` per field. *Test:* `oya-foundry-fitness-data-class` lane.
+- [ ] **D7** Per-PR fitness lanes pass: `oya-foundry-fitness-{license, data-class, cohesion, glossary, adr-citation, brand-residue, bypass, flat-crates, runbook-index-resolves, doc-catalog}`. *Test:* CI status check.
+- [ ] **D8** Per-change-class reviewer agent ran; verdict captured in `## Code Review`. *Test:* merge-gate hook (`scripts/hooks/guard-pr-merge-review.mjs`).
+- [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Test:* command output pasted in `## Verification`.
+- [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Test:* command output.
+- [ ] **D11** `cargo deny check` passes. *Test:* command output.
+- [ ] **D12** `repoctl pre-push` passes. *Test:* command output.
+- [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-foundry-fitness-perf-evidence` lane.
+- [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-foundry-fitness-schema-migration` lane.
+- [ ] **D15** PR body has all 5 canonical H2 sections; `## Code Review` added at merge time. *Test:* `traceability-validator` lane.
+- [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-foundry-fitness-audit-emission` lane.
+- [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-foundry-fitness-mistakes-ledger-cite` lane.
+- [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-foundry-fitness-changelog-row` lane.
+
+If any box is unchecked, the change is not complete. Loop back; do not declare success.
+
+## Repository topology
+
+| Path | Purpose |
+|---|---|
+| [`docs/`](.) | Canonical engineering doc tree. Authority. |
+| [`docs/raw/`](raw/) <!-- forward-reference: wave-1 --> | Working drafts. Never authoritative. |
+| [`crates/`](../crates/) <!-- forward-reference: wave-1 --> | Flat-crates target: `oya-<context>-<role>[-<capability>]/`. |
+| `infra/`, `scripts/`, `registry/` | Supporting implementation and governance tree; `registry/catalog/` is the live crate catalog. |
+| `modules/`, `services/`, `platform/`, `tools/` | Retired legacy implementation roots; do not recreate. |
+| `product-control/` | Capability records + metering events (Foundry-consumed). |
+| `contracts/` | Per-cross-axis contract spec files (OpenAPI, Protobuf, AsyncAPI). |
+| Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`) | Redirect-class discovery files. Non-authoritative. ≤25 lines each. Lane: `oya-foundry-fitness-redirect-thinness`. |
+
+## Boundaries
+
+- Every agent MUST NOT touch `/Users/home/Documents/GitHub/claude-code` (read-only reference).
+- Every agent MUST preserve user state — no removal of unrelated files, processes, or worktrees.
+- Local `AGENTS.md` files (under sub-directories) MAY narrow context but MUST NOT lower the bar set by this canonical contract.
+- `docs/raw/` MUST be treated as throwaway. Never cite from `docs/raw/` in canonical docs.
+- The implementation rebrand (`oyatie-*` → `oya-*`) MUST proceed as a coordinated multi-batch migration; blanket-sed is forbidden.
+- Risky actions (force-push, hard-reset, package downgrade, migration to shared infra, sending external messages) MUST be confirmed with the user before execution unless the user has authorized the scope in advance.
+
+## Long-running loop rule
+
+When operating in a Ralph / autopilot / ultrawork / team loop, the loop MUST re-walk §"Done-Definition checklist" against the latest state before exiting. Loops MUST NOT exit silently.
+
+The cancellation contract is `/oh-my-claudecode:cancel`. Cancel only when the change is complete and verified, OR when the loop is structurally blocked.
+
+## Per-agent appendices
+
+Each appendix is ≤40 lines. Per-agent harness deltas only — no rule duplication from above.
+
+### Claude Code <a id="claude-claude-code"></a>
+
+The Claude Code harness loads `CLAUDE.md` at session start (memory-bootstrap convention per [Anthropic docs](https://docs.anthropic.com/en/docs/claude-code/memory)). Repo-root `CLAUDE.md` is a Redirect-class file pointing to this contract.
+
+Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `superpowers:test-driven-development`, `superpowers:verification-before-completion`, `superpowers:systematic-debugging`, `search-first`. Language and domain skills load from file context (`rust-*`, `frontend-*`, `postgres-patterns`, `healthcare-phi-compliance`).
+
+Active hooks (PreToolUse / PostToolUse / Stop / SessionStart): merge-review gate (`scripts/hooks/guard-pr-merge-review.mjs`), pre-push gate, telemetry, loop-cancellation enforcement, memory bootstrap.
+
+OMC magic-keyword routing: `autopilot`, `ralph`, `ulw` / `ultrawork`, `team`, `ralplan`, `cancelomc`. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
+
+Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definition checklist."
+
+Boundary: do not edit `~/.claude/` from project sessions — user-machine state.
+
+Self-test: `npm --prefix /Users/home/.codex test` before relying on hook / harness changes.
+
+### Codex (OpenAI Codex CLI)
+
+The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENTS.md convention](https://agents.md). Repo-root `AGENTS.md` is a Redirect-class file pointing to this contract.
+
+Build / test commands: `cargo build`, `cargo test`, `cargo nextest run --workspace --all-features --no-fail-fast`, `cargo clippy --all-features --all-targets -- -D warnings`, `pnpm build`, `pnpm test` (Node 20). Lint: `cargo clippy`, `pnpm lint`.
+
+Active integration: `.codex/skills/` holds project skills; `.codex/worktree_init.sh` initializes per-issue workspaces.
+
+Cancellation: terminate the Codex run; the orchestrator records the partial state for replay.
+
+### Gemini (Gemini CLI)
+
+The Gemini CLI loads `GEMINI.md` if present at repo root, else falls back to `AGENTS.md`. If admitted, repo-root `GEMINI.md` is a Redirect-class file pointing to this contract.
+
+Tool mapping: Gemini uses different tool names than Claude Code; the cross-tool AGENTS.md spec gives the mapping (also embedded in [`standards/multi-agent-tool-map.md`](standards/multi-agent-tool-map.md) <!-- forward-reference: wave-2 -->).
+
+Build / test commands: same as Codex appendix.
+
+Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
+
+### OMC (oh-my-claudecode subagents)
+
+OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls.
+
+Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`. Route per change class.
+
+Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
+
+State: OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped; do not commit unless explicitly asked.
+
+## Anti-overlap
+
+This contract does not cover:
+
+- **Constitutional frame** — see [`CONSTITUTION.md`](CONSTITUTION.md).
+- **Per-doc lifecycle protocol** — see [`DOC-CATALOG.md`](DOC-CATALOG.md).
+- **PR template body** — see [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->.
+- **Architectural rationale per decision** — see [`decisions/`](decisions/) <!-- forward-reference: wave-1 --> indexed at [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 -->.
+- **Per-team norms** — see [`teams/`](teams/) <!-- forward-reference: wave-1 -->.
+- **Surface enumeration** — see [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 -->.
+- **Cross-cutting authoring norms** (code style, testing, security review, etc.) — see [`standards/`](standards/) <!-- forward-reference: wave-1 -->.
+- **Failure-mode catalog** — see [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 -->.
+
+The full machine-readable list is in this file's front-matter `excludes:` block.
+
+## Sources scanned
+
+- 2026-05-10 — initial draft authored from agentic-workflow best practice (Anthropic CLAUDE.md memory + cross-tool AGENTS.md convention) + RFC-2119 + RFC-8174 + Diátaxis + openai/symphony benchmark.

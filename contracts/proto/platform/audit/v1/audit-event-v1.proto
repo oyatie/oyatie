@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package platform.audit.v1;
+
+message AuditEventEmit {
+  string id = 1;
+  string tenant_id = 2;
+  string surface = 3;
+  string plane = 4;
+  string purpose = 5;
+  repeated string data_classes_touched = 6;
+  string decision = 7;
+  string idempotency_key = 8;
+  uint64 emitted_at_epoch_seconds = 9;
+}
