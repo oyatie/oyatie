@@ -118,6 +118,7 @@ runtime   — composition root (binary; the daemon)
 | `oya-foundry-registry-api` | api | Capability publish boundary (`foundry.capability.publish`) over schema + eval gates |
 | `oya-foundry-rag-kernel` | kernel | RAG primitives (Query → Retrieve → Cite) |
 | `oya-foundry-rag-app` | app | RAG saga (consumes search axis); cite surface |
+| `oya-foundry-rag-api` | api | Stable inbound `foundry.rag.retrieve` boundary with tenant/data-class/consent receipt enforcement; OpenAPI source `contracts/openapi/foundry/rag-v1.yaml` |
 | `oya-foundry-secret-app` | app | SecretProvider binding (OpenBao per ADR-0043) |
 | `oya-foundry-mcp-adapter` | adapter | Model Context Protocol server / client (per ADR-0001) |
 | `oya-foundry-memory-kernel` | kernel | Cross-session memory (per ADR-0024) |
@@ -149,7 +150,7 @@ runtime   — composition root (binary; the daemon)
 |---|---|---|---|
 | `Foundry Capability API` (HTTP + gRPC) | `contracts/foundry-capability.openapi.yaml` + `contracts/foundry-capability.proto` | control + data + audit | p99 ≤ 200 ms invoke; 99.95% (preview) → 99.95% (GA) |
 | `Foundry Eval API` | `contracts/openapi/foundry/eval-v1.yaml` | analytics + audit | p99 ≤ 500 ms eval-run record; 99.9% |
-| `Foundry RAG Endpoint` | `contracts/foundry-rag.proto` | data + audit | p99 ≤ 250 ms (consumes search axis SLO) |
+| `Foundry RAG Endpoint` | `contracts/openapi/foundry/rag-v1.yaml` | data + audit | p99 ≤ 250 ms (consumes search axis SLO) |
 | `Foundry Registry API` | `contracts/foundry-registry.openapi.yaml` | control | p99 ≤ 100 ms; 99.99% |
 | `Foundry Evidence Query API` | `contracts/foundry-evidence.openapi.yaml` | analytics + audit | p99 ≤ 500 ms; 99.9% |
 | `Foundry Provider Adapter Surface` | `oya-foundry-provider-kernel` (Rust trait) + per-adapter REST | data | per-provider SLO (depends on upstream provider) |
@@ -171,7 +172,7 @@ runtime   — composition root (binary; the daemon)
 | Evidence emission | `Evidence::emit(record)` in `oya-foundry-evidence-kernel` | All axes (every regulated capability emits; ties to `oya-platform-audit-chain-kernel`) |
 | Eval run gate | `run_foundry_eval_from_api(...)` in `oya-foundry-eval-app` over `EvalGate` | Capability publishing, nightly eval, A/B routing, and replay gates |
 | Provider adapter | `ProviderAdapter` trait + `ProviderAuth` enum in `oya-foundry-provider-kernel` | Foundry-internal (not directly consumed by other axes; routed through capability invocation) |
-| RAG endpoint | `Rag::retrieve(query, namespace, k)` in `oya-foundry-rag-kernel` | All axes that ground LLM responses in tenant/public corpus |
+| RAG endpoint | `Rag::retrieve(query, namespace, k)` in `oya-foundry-rag-kernel`; inbound retrieval via `retrieve_foundry_rag_from_api(...)` in `oya-foundry-rag-api` | All axes that ground LLM responses in tenant/public corpus |
 | Registry projection | `Registry::resolve(capability_id)` in `oya-foundry-registry-kernel`; inbound publish via `publish_foundry_capability_from_api(...)` in `oya-foundry-registry-api` | All axes (capability discovery); Foundry engineering platform catalog (source-of-truth) |
 | OG Agent Gateway | `OgAg::tool_call(...)` per ADR-0021 | All axes that allow LLM tool-use against Object Graph |
 | Cross-session memory | `Memory::recall / persist` (ADR-0024) | Foundry-internal capabilities; tenant agents |
