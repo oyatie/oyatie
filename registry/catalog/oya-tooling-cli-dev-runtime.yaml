@@ -1,0 +1,9 @@
+context: tooling
+role: runtime
+capability: dev-cli
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

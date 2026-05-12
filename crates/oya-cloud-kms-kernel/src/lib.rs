@@ -1,0 +1,1080 @@
+//! Cloud KMS aggregate kernel.
+//!
+//! The kernel owns the typed control/data contract behind
+//! `cloud.kms.encrypt` / `cloud.kms.decrypt`: per-tenant keys, per-cell HSM
+//! partition binding, residency, KCMVP/FIPS validation, key-use receipts, and
+//! key-destruction evidence. It does not perform cryptography or HSM I/O; those
+//! belong in adapter/runtime crates that consume these invariants.
+
+use std::collections::BTreeMap;
+
+use oya_cloud_region_kernel::{CellId, RegionCode};
+use oya_cloud_resource_kernel::{CloudResourceError, ResourceId, ResourceKind};
+use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_platform_residency_kernel::{residency_class_allows_home_region_label, ResidencyClass};
+
+const KMS_SCHEMA_VERSION: u32 = 1;
+const TENANT_ID_PREFIX: &str = "ten_";
+const USER_PRINCIPAL_PREFIX: &str = "usr_";
+const SERVICE_PRINCIPAL_PREFIX: &str = "sp_";
+const EVENT_ID_PREFIX: &str = "kmsuse_";
+const DESTRUCTION_PROOF_PREFIX: &str = "kproof_";
+const MATERIAL_REF_PREFIX: &str = "matref/";
+const CIPHERTEXT_REF_PREFIX: &str = "ct/";
+const KMS_KEY_PREFIX: &str = "kms";
+const BYOK_KEY_PREFIX: &str = "byok";
+const HYOK_KEY_PREFIX: &str = "hyok";
+const HSM_PARTITION_PREFIX: &str = "hsm/";
+const MAX_DESTRUCTION_SLA_SECONDS: u64 = 86_400;
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct KmsKeyId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct HsmPartitionRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct MaterialRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct CiphertextRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct ActorRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct KmsUseEventId {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub struct DestructionProofRef {
+    pub value: String, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum KmsKeyOrigin {
+    OyatieManaged,
+    Byok,
+    Hyok,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum KmsKeyUsage {
+    EncryptDecrypt,
+    SignVerify,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum HsmValidation {
+    KcmvpFips1403Level3,
+    Fips1403Level3,
+    Cryptrec,
+    CommonCriteriaEal4,
+    PciHsm,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum KmsKeyState {
+    PendingImport,
+    Enabled,
+    Disabled,
+    PendingDeletion,
+    Destroyed,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum KmsPurpose {
+    CloudObjectStorage,
+    CloudBlockStorage,
+    CloudFileStorage,
+    CloudArchiveStorage,
+    WorkspaceDriveObject,
+    WorkspaceRecording,
+    SecretProvider,
+    CrossRegionReplication,
+    DatabaseBackup,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum KmsOperation {
+    Encrypt,
+    Decrypt,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsKeyCreate {
+    pub resource_id: String,               // data_class: INTERNAL_ONLY
+    pub key_id: String,                    // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                 // data_class: INTERNAL_ONLY
+    pub region: String,                    // data_class: PUBLIC
+    pub cell_id: String,                   // data_class: PUBLIC
+    pub hsm_partition_ref: String,         // data_class: INTERNAL_ONLY
+    pub origin: KmsKeyOrigin,              // data_class: PUBLIC
+    pub usage: KmsKeyUsage,                // data_class: PUBLIC
+    pub hsm_validation: HsmValidation,     // data_class: PUBLIC
+    pub residency: ResidencyClass,         // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,             // data_class: INTERNAL_ONLY
+    pub state: KmsKeyState,                // data_class: PUBLIC
+    pub rotation_period_days: Option<u16>, // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: u64,     // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsKey {
+    pub resource_id: Classified<ResourceId>, // data_class: INTERNAL_ONLY
+    pub key_id: Classified<KmsKeyId>,        // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,       // data_class: INTERNAL_ONLY
+    pub region: Classified<RegionCode>,      // data_class: PUBLIC
+    pub cell_id: Classified<CellId>,         // data_class: PUBLIC
+    pub hsm_partition_ref: Classified<HsmPartitionRef>, // data_class: INTERNAL_ONLY
+    pub origin: Classified<KmsKeyOrigin>,    // data_class: PUBLIC
+    pub usage: Classified<KmsKeyUsage>,      // data_class: PUBLIC
+    pub hsm_validation: Classified<HsmValidation>, // data_class: PUBLIC
+    pub residency: Classified<ResidencyClass>, // data_class: INTERNAL_ONLY
+    pub data_class: Classified<PrivacyDataClass>, // data_class: INTERNAL_ONLY
+    pub state: Classified<KmsKeyState>,      // data_class: PUBLIC
+    pub current_version: Classified<u32>,    // data_class: INTERNAL_ONLY
+    pub rotation_period_days: Classified<Option<u16>>, // data_class: INTERNAL_ONLY
+    pub created_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub updated_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,     // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsEncryptRequest {
+    pub event_id: String,                // data_class: INTERNAL_ONLY
+    pub key_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub plaintext_ref: String,           // data_class: INTERNAL_ONLY
+    pub ciphertext_ref: String,          // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,           // data_class: INTERNAL_ONLY
+    pub purpose: KmsPurpose,             // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub aad_fingerprint: String,         // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsDecryptRequest {
+    pub event_id: String,                // data_class: INTERNAL_ONLY
+    pub key_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub ciphertext_ref: String,          // data_class: INTERNAL_ONLY
+    pub data_class: DataClass,           // data_class: INTERNAL_ONLY
+    pub purpose: KmsPurpose,             // data_class: INTERNAL_ONLY
+    pub actor: String,                   // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KmsUseReceipt {
+    pub event_id: Classified<KmsUseEventId>, // data_class: INTERNAL_ONLY
+    pub key_id: Classified<KmsKeyId>,        // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,       // data_class: INTERNAL_ONLY
+    pub operation: Classified<KmsOperation>, // data_class: PUBLIC
+    pub material_ref: Classified<Option<MaterialRef>>, // data_class: INTERNAL_ONLY
+    pub ciphertext_ref: Classified<CiphertextRef>, // data_class: INTERNAL_ONLY
+    pub data_class: Classified<PrivacyDataClass>, // data_class: INTERNAL_ONLY
+    pub purpose: Classified<KmsPurpose>,     // data_class: INTERNAL_ONLY
+    pub actor: Classified<ActorRef>,         // data_class: INTERNAL_ONLY
+    pub key_version: Classified<u32>,        // data_class: INTERNAL_ONLY
+    pub hsm_partition_ref: Classified<HsmPartitionRef>, // data_class: INTERNAL_ONLY
+    pub occurred_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>,     // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KeyDestructionRequest {
+    pub key_id: String,                  // data_class: INTERNAL_ONLY
+    pub tenant_id: String,               // data_class: INTERNAL_ONLY
+    pub proof_ref: String,               // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+    pub completed_at_epoch_seconds: u64, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct KeyDestructionReceipt {
+    pub key_id: Classified<KmsKeyId>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub proof_ref: Classified<DestructionProofRef>, // data_class: INTERNAL_ONLY
+    pub requested_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub completed_at_epoch_seconds: Classified<u64>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: PUBLIC
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum CloudKmsError {
+    InvalidTenantId,
+    InvalidResourceId,
+    ResourceTenantMismatch,
+    ResourceRegionMismatch,
+    ResourceKindMismatch,
+    InvalidKeyId,
+    KeyIdOriginMismatch,
+    KeyIdTenantMismatch,
+    KeyIdRegionMismatch,
+    InvalidCellId,
+    CellRegionMismatch,
+    InvalidHsmPartitionRef,
+    HsmPartitionMismatch,
+    HsmValidationDenied,
+    ResidencyRegionMismatch,
+    InvalidDataClass,
+    InvalidKeyState,
+    InvalidKeyUsage,
+    InvalidRotationPeriod,
+    InvalidEventId,
+    InvalidMaterialRef,
+    InvalidCiphertextRef,
+    InvalidActorRef,
+    InvalidAadFingerprint,
+    InvalidTimeOrder,
+    DestructionSlaExceeded,
+    InvalidDestructionProofRef,
+    DuplicateKey,
+    UnknownKey,
+    DuplicateUseEvent,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct KmsKeyIdParts {
+    origin: KmsKeyOrigin, // data_class: PUBLIC
+    region: RegionCode,   // data_class: PUBLIC
+    tenant_id: String,    // data_class: INTERNAL_ONLY
+    name: String,         // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct CloudKmsDirectory {
+    keys: BTreeMap<KmsKeyId, KmsKey>,
+    receipts: BTreeMap<KmsUseEventId, KmsUseReceipt>,
+    destruction_receipts: BTreeMap<KmsKeyId, KeyDestructionReceipt>,
+}
+
+pub trait KmsRepo {
+    fn create_key(&mut self, input: KmsKeyCreate) -> Result<KmsKey, CloudKmsError>;
+    fn authorize_encrypt(
+        &mut self,
+        input: KmsEncryptRequest,
+    ) -> Result<KmsUseReceipt, CloudKmsError>;
+    fn authorize_decrypt(
+        &mut self,
+        input: KmsDecryptRequest,
+    ) -> Result<KmsUseReceipt, CloudKmsError>;
+    fn rotate_key(
+        &mut self,
+        key_id: &KmsKeyId,
+        updated_at_epoch_seconds: u64,
+    ) -> Result<KmsKey, CloudKmsError>;
+    fn destroy_key(
+        &mut self,
+        input: KeyDestructionRequest,
+    ) -> Result<KeyDestructionReceipt, CloudKmsError>;
+}
+
+impl KmsKeyOrigin {
+    pub const fn id_prefix(self) -> &'static str {
+        match self {
+            Self::OyatieManaged => KMS_KEY_PREFIX,
+            Self::Byok => BYOK_KEY_PREFIX,
+            Self::Hyok => HYOK_KEY_PREFIX,
+        }
+    }
+}
+
+impl KmsKeyState {
+    pub const fn can_serve_crypto(self) -> bool {
+        matches!(self, Self::Enabled)
+    }
+
+    pub const fn is_terminal(self) -> bool {
+        matches!(self, Self::Destroyed)
+    }
+}
+
+impl KmsKeyId {
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudKmsError> {
+        let value = value.into();
+        parse_kms_key_id(&value)?;
+        Ok(Self { value })
+    }
+
+    pub fn origin(&self) -> Result<KmsKeyOrigin, CloudKmsError> {
+        Ok(self.parts()?.origin)
+    }
+
+    pub fn region(&self) -> Result<RegionCode, CloudKmsError> {
+        Ok(self.parts()?.region)
+    }
+
+    pub fn tenant_id(&self) -> Result<String, CloudKmsError> {
+        Ok(self.parts()?.tenant_id)
+    }
+
+    pub fn name(&self) -> Result<String, CloudKmsError> {
+        Ok(self.parts()?.name)
+    }
+
+    fn parts(&self) -> Result<KmsKeyIdParts, CloudKmsError> {
+        parse_kms_key_id(&self.value)
+    }
+}
+
+impl HsmPartitionRef {
+    pub fn new(
+        value: impl Into<String>,
+        region: &RegionCode,
+        cell_id: &CellId,
+    ) -> Result<Self, CloudKmsError> {
+        let value = value.into();
+        let expected = format!("{HSM_PARTITION_PREFIX}{}/{}", region.value, cell_id.value);
+        if value == expected {
+            Ok(Self { value })
+        } else {
+            Err(CloudKmsError::HsmPartitionMismatch)
+        }
+    }
+}
+
+impl MaterialRef {
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudKmsError> {
+        let value = value.into();
+        validate_prefixed_ref(
+            &value,
+            MATERIAL_REF_PREFIX,
+            CloudKmsError::InvalidMaterialRef,
+        )?;
+        Ok(Self { value })
+    }
+}
+
+impl CiphertextRef {
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudKmsError> {
+        let value = value.into();
+        validate_prefixed_ref(
+            &value,
+            CIPHERTEXT_REF_PREFIX,
+            CloudKmsError::InvalidCiphertextRef,
+        )?;
+        Ok(Self { value })
+    }
+}
+
+impl ActorRef {
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudKmsError> {
+        let value = value.into();
+        if (value.starts_with(USER_PRINCIPAL_PREFIX) && value.len() > USER_PRINCIPAL_PREFIX.len())
+            || (value.starts_with(SERVICE_PRINCIPAL_PREFIX)
+                && value.len() > SERVICE_PRINCIPAL_PREFIX.len())
+        {
+            Ok(Self { value })
+        } else {
+            Err(CloudKmsError::InvalidActorRef)
+        }
+    }
+}
+
+impl KmsUseEventId {
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudKmsError> {
+        let value = value.into();
+        if value.starts_with(EVENT_ID_PREFIX) && value.len() > EVENT_ID_PREFIX.len() {
+            Ok(Self { value })
+        } else {
+            Err(CloudKmsError::InvalidEventId)
+        }
+    }
+}
+
+impl DestructionProofRef {
+    pub fn new(value: impl Into<String>) -> Result<Self, CloudKmsError> {
+        let value = value.into();
+        if value.starts_with(DESTRUCTION_PROOF_PREFIX)
+            && value.len() > DESTRUCTION_PROOF_PREFIX.len()
+        {
+            Ok(Self { value })
+        } else {
+            Err(CloudKmsError::InvalidDestructionProofRef)
+        }
+    }
+}
+
+impl KmsKey {
+    pub fn new(input: KmsKeyCreate) -> Result<Self, CloudKmsError> {
+        validate_tenant_id(&input.tenant_id)?;
+        if input.state.is_terminal() || matches!(input.state, KmsKeyState::PendingDeletion) {
+            return Err(CloudKmsError::InvalidKeyState);
+        }
+        validate_rotation_period(input.rotation_period_days)?;
+        let region = RegionCode::new(input.region).map_err(|_| CloudKmsError::InvalidResourceId)?;
+        let cell_id = CellId::new(input.cell_id).map_err(|_| CloudKmsError::InvalidCellId)?;
+        validate_cell_region(&cell_id, &region)?;
+        validate_hsm_for_region(input.hsm_validation, &region)?;
+        if !residency_class_allows_home_region_label(&input.residency, &region.value) {
+            return Err(CloudKmsError::ResidencyRegionMismatch);
+        }
+        let resource_id = resource_id_for(&input.resource_id, &input.tenant_id, &region)?;
+        let key_id = KmsKeyId::new(input.key_id)?;
+        validate_key_id_matches(&key_id, input.origin, &input.tenant_id, &region)?;
+        let hsm_partition_ref = HsmPartitionRef::new(input.hsm_partition_ref, &region, &cell_id)?;
+        Ok(Self {
+            resource_id: internal(resource_id),
+            key_id: internal(key_id),
+            tenant_id: internal(input.tenant_id),
+            region: public(region),
+            cell_id: public(cell_id),
+            hsm_partition_ref: internal(hsm_partition_ref),
+            origin: public(input.origin),
+            usage: public(input.usage),
+            hsm_validation: public(input.hsm_validation),
+            residency: internal(input.residency),
+            data_class: internal(privacy_class(input.data_class)?),
+            state: public(input.state),
+            current_version: internal(1),
+            rotation_period_days: internal(input.rotation_period_days),
+            created_at_epoch_seconds: internal(input.created_at_epoch_seconds),
+            updated_at_epoch_seconds: internal(input.created_at_epoch_seconds),
+            schema_version: public(KMS_SCHEMA_VERSION),
+        })
+    }
+
+    pub fn rotate(&self, updated_at_epoch_seconds: u64) -> Result<Self, CloudKmsError> {
+        validate_time_order(
+            self.updated_at_epoch_seconds.value,
+            updated_at_epoch_seconds,
+        )?;
+        if !self.state.value.can_serve_crypto() {
+            return Err(CloudKmsError::InvalidKeyState);
+        }
+        if matches!(self.origin.value, KmsKeyOrigin::Hyok) {
+            return Err(CloudKmsError::InvalidKeyState);
+        }
+        let mut updated = self.clone();
+        updated.current_version = internal(self.current_version.value + 1);
+        updated.updated_at_epoch_seconds = internal(updated_at_epoch_seconds);
+        Ok(updated)
+    }
+
+    pub fn destroy(
+        &self,
+        input: KeyDestructionRequest,
+    ) -> Result<(Self, KeyDestructionReceipt), CloudKmsError> {
+        let key_id = KmsKeyId::new(input.key_id)?;
+        if key_id != self.key_id.value {
+            return Err(CloudKmsError::UnknownKey);
+        }
+        if input.tenant_id != self.tenant_id.value {
+            return Err(CloudKmsError::ResourceTenantMismatch);
+        }
+        validate_time_order(
+            input.requested_at_epoch_seconds,
+            input.completed_at_epoch_seconds,
+        )?;
+        if input.completed_at_epoch_seconds - input.requested_at_epoch_seconds
+            > MAX_DESTRUCTION_SLA_SECONDS
+        {
+            return Err(CloudKmsError::DestructionSlaExceeded);
+        }
+        let receipt = KeyDestructionReceipt {
+            key_id: internal(key_id),
+            tenant_id: internal(input.tenant_id),
+            proof_ref: internal(DestructionProofRef::new(input.proof_ref)?),
+            requested_at_epoch_seconds: internal(input.requested_at_epoch_seconds),
+            completed_at_epoch_seconds: internal(input.completed_at_epoch_seconds),
+            schema_version: public(KMS_SCHEMA_VERSION),
+        };
+        let mut destroyed = self.clone();
+        destroyed.state = public(KmsKeyState::Destroyed);
+        destroyed.updated_at_epoch_seconds = internal(input.completed_at_epoch_seconds);
+        Ok((destroyed, receipt))
+    }
+}
+
+impl KmsUseReceipt {
+    pub fn encrypt(key: &KmsKey, input: KmsEncryptRequest) -> Result<Self, CloudKmsError> {
+        validate_use_key(key, &input.key_id, &input.tenant_id, input.data_class)?;
+        validate_aad_fingerprint(&input.aad_fingerprint)?;
+        Ok(Self {
+            event_id: internal(KmsUseEventId::new(input.event_id)?),
+            key_id: internal(KmsKeyId::new(input.key_id)?),
+            tenant_id: internal(input.tenant_id),
+            operation: public(KmsOperation::Encrypt),
+            material_ref: internal(Some(MaterialRef::new(input.plaintext_ref)?)),
+            ciphertext_ref: internal(CiphertextRef::new(input.ciphertext_ref)?),
+            data_class: internal(privacy_class(input.data_class)?),
+            purpose: internal(input.purpose),
+            actor: internal(ActorRef::new(input.actor)?),
+            key_version: internal(key.current_version.value),
+            hsm_partition_ref: internal(key.hsm_partition_ref.value.clone()),
+            occurred_at_epoch_seconds: internal(input.requested_at_epoch_seconds),
+            schema_version: public(KMS_SCHEMA_VERSION),
+        })
+    }
+
+    pub fn decrypt(key: &KmsKey, input: KmsDecryptRequest) -> Result<Self, CloudKmsError> {
+        validate_use_key(key, &input.key_id, &input.tenant_id, input.data_class)?;
+        Ok(Self {
+            event_id: internal(KmsUseEventId::new(input.event_id)?),
+            key_id: internal(KmsKeyId::new(input.key_id)?),
+            tenant_id: internal(input.tenant_id),
+            operation: public(KmsOperation::Decrypt),
+            material_ref: internal(None),
+            ciphertext_ref: internal(CiphertextRef::new(input.ciphertext_ref)?),
+            data_class: internal(privacy_class(input.data_class)?),
+            purpose: internal(input.purpose),
+            actor: internal(ActorRef::new(input.actor)?),
+            key_version: internal(key.current_version.value),
+            hsm_partition_ref: internal(key.hsm_partition_ref.value.clone()),
+            occurred_at_epoch_seconds: internal(input.requested_at_epoch_seconds),
+            schema_version: public(KMS_SCHEMA_VERSION),
+        })
+    }
+}
+
+impl KmsRepo for CloudKmsDirectory {
+    fn create_key(&mut self, input: KmsKeyCreate) -> Result<KmsKey, CloudKmsError> {
+        let key = KmsKey::new(input)?;
+        if self.keys.contains_key(&key.key_id.value) {
+            return Err(CloudKmsError::DuplicateKey);
+        }
+        self.keys.insert(key.key_id.value.clone(), key.clone());
+        Ok(key)
+    }
+
+    fn authorize_encrypt(
+        &mut self,
+        input: KmsEncryptRequest,
+    ) -> Result<KmsUseReceipt, CloudKmsError> {
+        let key_id = KmsKeyId::new(input.key_id.clone())?;
+        let key = self.keys.get(&key_id).ok_or(CloudKmsError::UnknownKey)?;
+        let receipt = KmsUseReceipt::encrypt(key, input)?;
+        self.insert_receipt(receipt)
+    }
+
+    fn authorize_decrypt(
+        &mut self,
+        input: KmsDecryptRequest,
+    ) -> Result<KmsUseReceipt, CloudKmsError> {
+        let key_id = KmsKeyId::new(input.key_id.clone())?;
+        let key = self.keys.get(&key_id).ok_or(CloudKmsError::UnknownKey)?;
+        let receipt = KmsUseReceipt::decrypt(key, input)?;
+        self.insert_receipt(receipt)
+    }
+
+    fn rotate_key(
+        &mut self,
+        key_id: &KmsKeyId,
+        updated_at_epoch_seconds: u64,
+    ) -> Result<KmsKey, CloudKmsError> {
+        let current = self.keys.get(key_id).ok_or(CloudKmsError::UnknownKey)?;
+        let updated = current.rotate(updated_at_epoch_seconds)?;
+        self.keys.insert(key_id.clone(), updated.clone());
+        Ok(updated)
+    }
+
+    fn destroy_key(
+        &mut self,
+        input: KeyDestructionRequest,
+    ) -> Result<KeyDestructionReceipt, CloudKmsError> {
+        let key_id = KmsKeyId::new(input.key_id.clone())?;
+        let current = self.keys.get(&key_id).ok_or(CloudKmsError::UnknownKey)?;
+        let (destroyed, receipt) = current.destroy(input)?;
+        self.keys.insert(key_id.clone(), destroyed);
+        self.destruction_receipts.insert(key_id, receipt.clone());
+        Ok(receipt)
+    }
+}
+
+impl CloudKmsDirectory {
+    pub fn keys(&self) -> impl Iterator<Item = &KmsKey> {
+        self.keys.values()
+    }
+
+    pub fn receipts(&self) -> impl Iterator<Item = &KmsUseReceipt> {
+        self.receipts.values()
+    }
+
+    pub fn destruction_receipts(&self) -> impl Iterator<Item = &KeyDestructionReceipt> {
+        self.destruction_receipts.values()
+    }
+
+    fn insert_receipt(&mut self, receipt: KmsUseReceipt) -> Result<KmsUseReceipt, CloudKmsError> {
+        if self.receipts.contains_key(&receipt.event_id.value) {
+            return Err(CloudKmsError::DuplicateUseEvent);
+        }
+        self.receipts
+            .insert(receipt.event_id.value.clone(), receipt.clone());
+        Ok(receipt)
+    }
+}
+
+fn parse_kms_key_id(value: &str) -> Result<KmsKeyIdParts, CloudKmsError> {
+    let parts: Vec<&str> = value.split('/').collect();
+    if parts.len() != 4 || parts.iter().any(|part| part.trim().is_empty()) {
+        return Err(CloudKmsError::InvalidKeyId);
+    }
+    let origin = match parts[0] {
+        KMS_KEY_PREFIX => KmsKeyOrigin::OyatieManaged,
+        BYOK_KEY_PREFIX => KmsKeyOrigin::Byok,
+        HYOK_KEY_PREFIX => KmsKeyOrigin::Hyok,
+        _ => return Err(CloudKmsError::InvalidKeyId),
+    };
+    let region = RegionCode::new(parts[1]).map_err(|_| CloudKmsError::InvalidKeyId)?;
+    validate_tenant_id(parts[2]).map_err(|_| CloudKmsError::InvalidKeyId)?;
+    validate_canonical_segment(parts[3], CloudKmsError::InvalidKeyId)?;
+    Ok(KmsKeyIdParts {
+        origin,
+        region,
+        tenant_id: parts[2].to_string(),
+        name: parts[3].to_string(),
+    })
+}
+
+fn validate_key_id_matches(
+    key_id: &KmsKeyId,
+    origin: KmsKeyOrigin,
+    tenant_id: &str,
+    region: &RegionCode,
+) -> Result<(), CloudKmsError> {
+    let parts = key_id.parts()?;
+    if parts.origin != origin {
+        return Err(CloudKmsError::KeyIdOriginMismatch);
+    }
+    if parts.tenant_id != tenant_id {
+        return Err(CloudKmsError::KeyIdTenantMismatch);
+    }
+    if parts.region != *region {
+        return Err(CloudKmsError::KeyIdRegionMismatch);
+    }
+    Ok(())
+}
+
+fn resource_id_for(
+    value: &str,
+    tenant_id: &str,
+    region: &RegionCode,
+) -> Result<ResourceId, CloudKmsError> {
+    let id = ResourceId::new(value.to_string()).map_err(map_resource_error)?;
+    if id.tenant_id().map_err(map_resource_error)? != tenant_id {
+        return Err(CloudKmsError::ResourceTenantMismatch);
+    }
+    if id.region().map_err(map_resource_error)? != *region {
+        return Err(CloudKmsError::ResourceRegionMismatch);
+    }
+    if id.kind_label().map_err(map_resource_error)? != ResourceKind::KmsKey.type_label() {
+        return Err(CloudKmsError::ResourceKindMismatch);
+    }
+    Ok(id)
+}
+
+fn validate_use_key(
+    key: &KmsKey,
+    key_id: &str,
+    tenant_id: &str,
+    data_class: DataClass,
+) -> Result<(), CloudKmsError> {
+    let key_id = KmsKeyId::new(key_id.to_string())?;
+    if key_id != key.key_id.value {
+        return Err(CloudKmsError::UnknownKey);
+    }
+    if tenant_id != key.tenant_id.value {
+        return Err(CloudKmsError::ResourceTenantMismatch);
+    }
+    if !key.state.value.can_serve_crypto() {
+        return Err(CloudKmsError::InvalidKeyState);
+    }
+    if key.usage.value != KmsKeyUsage::EncryptDecrypt {
+        return Err(CloudKmsError::InvalidKeyUsage);
+    }
+    let request_data_class = privacy_class(data_class)?;
+    if request_data_class != key.data_class.value {
+        return Err(CloudKmsError::InvalidDataClass);
+    }
+    Ok(())
+}
+
+fn validate_hsm_for_region(
+    validation: HsmValidation,
+    region: &RegionCode,
+) -> Result<(), CloudKmsError> {
+    let required = if region.value.starts_with("kr-") {
+        HsmValidation::KcmvpFips1403Level3
+    } else {
+        HsmValidation::Fips1403Level3
+    };
+    if validation == required {
+        Ok(())
+    } else {
+        Err(CloudKmsError::HsmValidationDenied)
+    }
+}
+
+fn validate_cell_region(cell_id: &CellId, region: &RegionCode) -> Result<(), CloudKmsError> {
+    let expected_prefix = format!("cell-{}-", region.value);
+    if cell_id.value.starts_with(&expected_prefix) {
+        Ok(())
+    } else {
+        Err(CloudKmsError::CellRegionMismatch)
+    }
+}
+
+fn validate_rotation_period(value: Option<u16>) -> Result<(), CloudKmsError> {
+    match value {
+        Some(days) if !(30..=730).contains(&days) => Err(CloudKmsError::InvalidRotationPeriod),
+        Some(_) | None => Ok(()),
+    }
+}
+
+fn validate_prefixed_ref(
+    value: &str,
+    prefix: &str,
+    error: CloudKmsError,
+) -> Result<(), CloudKmsError> {
+    if value.starts_with(prefix)
+        && value.len() > prefix.len()
+        && !value
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte == b' ')
+    {
+        Ok(())
+    } else {
+        Err(error)
+    }
+}
+
+fn validate_aad_fingerprint(value: &str) -> Result<(), CloudKmsError> {
+    if value.len() == 64 && value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        Ok(())
+    } else {
+        Err(CloudKmsError::InvalidAadFingerprint)
+    }
+}
+
+fn validate_tenant_id(value: &str) -> Result<(), CloudKmsError> {
+    if value.starts_with(TENANT_ID_PREFIX) && value.len() > TENANT_ID_PREFIX.len() {
+        Ok(())
+    } else {
+        Err(CloudKmsError::InvalidTenantId)
+    }
+}
+
+fn validate_time_order(start: u64, end: u64) -> Result<(), CloudKmsError> {
+    if end >= start {
+        Ok(())
+    } else {
+        Err(CloudKmsError::InvalidTimeOrder)
+    }
+}
+
+fn validate_canonical_segment(value: &str, error: CloudKmsError) -> Result<(), CloudKmsError> {
+    if value.trim().is_empty()
+        || value.starts_with('-')
+        || value.ends_with('-')
+        || value.contains("--")
+        || !value
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
+    {
+        return Err(error);
+    }
+    Ok(())
+}
+
+fn privacy_class(data_class: DataClass) -> Result<PrivacyDataClass, CloudKmsError> {
+    PrivacyDataClass::new(data_class).map_err(|_| CloudKmsError::InvalidDataClass)
+}
+
+fn map_resource_error(error: CloudResourceError) -> CloudKmsError {
+    match error {
+        CloudResourceError::InvalidResourceId => CloudKmsError::InvalidResourceId,
+        CloudResourceError::ResourceIdTenantMismatch => CloudKmsError::ResourceTenantMismatch,
+        CloudResourceError::ResourceIdRegionMismatch => CloudKmsError::ResourceRegionMismatch,
+        CloudResourceError::ResourceIdKindMismatch => CloudKmsError::ResourceKindMismatch,
+        CloudResourceError::InvalidTenantId => CloudKmsError::InvalidTenantId,
+        _ => CloudKmsError::InvalidResourceId,
+    }
+}
+
+fn public<T>(value: T) -> Classified<T> {
+    Classified::new(value, DataClass::Public)
+}
+
+fn internal<T>(value: T) -> Classified<T> {
+    Classified::new(value, DataClass::InternalOnly)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn key_create() -> KmsKeyCreate {
+        KmsKeyCreate {
+            resource_id: "oya:cloud:kr-seoul:ten_kr:kms-key:object-key".to_string(),
+            key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+            tenant_id: "ten_kr".to_string(),
+            region: "kr-seoul".to_string(),
+            cell_id: "cell-kr-seoul-a-001".to_string(),
+            hsm_partition_ref: "hsm/kr-seoul/cell-kr-seoul-a-001".to_string(),
+            origin: KmsKeyOrigin::OyatieManaged,
+            usage: KmsKeyUsage::EncryptDecrypt,
+            hsm_validation: HsmValidation::KcmvpFips1403Level3,
+            residency: ResidencyClass::StrictKr,
+            data_class: DataClass::PiiIdentifying,
+            state: KmsKeyState::Enabled,
+            rotation_period_days: Some(90),
+            created_at_epoch_seconds: 1_700_000_000,
+        }
+    }
+
+    fn encrypt_request(event_id: &str) -> KmsEncryptRequest {
+        KmsEncryptRequest {
+            event_id: event_id.to_string(),
+            key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+            tenant_id: "ten_kr".to_string(),
+            plaintext_ref: "matref/ten_kr/object/001".to_string(),
+            ciphertext_ref: "ct/ten_kr/object/001".to_string(),
+            data_class: DataClass::PiiIdentifying,
+            purpose: KmsPurpose::CloudObjectStorage,
+            actor: "sp_storage".to_string(),
+            aad_fingerprint: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                .to_string(),
+            requested_at_epoch_seconds: 1_700_000_010,
+        }
+    }
+
+    #[test]
+    fn creates_kms_key_with_resource_hsm_residency_and_validation_binding() {
+        let key = KmsKey::new(key_create()).expect("key is valid");
+
+        assert_eq!(key.resource_id.value.kind_label().unwrap(), "kms-key");
+        assert_eq!(
+            key.key_id.value.origin().unwrap(),
+            KmsKeyOrigin::OyatieManaged
+        );
+        assert_eq!(key.region.value.value, "kr-seoul");
+        assert_eq!(key.cell_id.value.value, "cell-kr-seoul-a-001");
+        assert_eq!(
+            key.hsm_partition_ref.value.value,
+            "hsm/kr-seoul/cell-kr-seoul-a-001"
+        );
+        assert_eq!(key.current_version.value, 1);
+        assert_eq!(key.schema_version.value, KMS_SCHEMA_VERSION);
+    }
+
+    #[test]
+    fn rejects_key_id_resource_and_hsm_partition_drift() {
+        let wrong_origin = KmsKey::new(KmsKeyCreate {
+            key_id: "byok/kr-seoul/ten_kr/object-key".to_string(),
+            ..key_create()
+        })
+        .expect_err("key id origin must match declared origin");
+        assert_eq!(wrong_origin, CloudKmsError::KeyIdOriginMismatch);
+
+        let wrong_kind = KmsKey::new(KmsKeyCreate {
+            resource_id: "oya:cloud:kr-seoul:ten_kr:bucket:object-key".to_string(),
+            ..key_create()
+        })
+        .expect_err("resource id kind must be kms-key");
+        assert_eq!(wrong_kind, CloudKmsError::ResourceKindMismatch);
+
+        let wrong_partition = KmsKey::new(KmsKeyCreate {
+            hsm_partition_ref: "hsm/kr-seoul/cell-kr-seoul-b-001".to_string(),
+            ..key_create()
+        })
+        .expect_err("HSM partition is cell-bound");
+        assert_eq!(wrong_partition, CloudKmsError::HsmPartitionMismatch);
+    }
+
+    #[test]
+    fn enforces_kr_kcmvp_global_fips_and_residency_rules() {
+        let hsm_error = KmsKey::new(KmsKeyCreate {
+            hsm_validation: HsmValidation::Fips1403Level3,
+            ..key_create()
+        })
+        .expect_err("KR keys require KCMVP+FIPS validation");
+        assert_eq!(hsm_error, CloudKmsError::HsmValidationDenied);
+
+        for validation in [
+            HsmValidation::Cryptrec,
+            HsmValidation::CommonCriteriaEal4,
+            HsmValidation::PciHsm,
+        ] {
+            let global_error = KmsKey::new(KmsKeyCreate {
+                resource_id: "oya:cloud:us-east:ten_us:kms-key:object-key".to_string(),
+                key_id: "kms/us-east/ten_us/object-key".to_string(),
+                tenant_id: "ten_us".to_string(),
+                region: "us-east".to_string(),
+                cell_id: "cell-us-east-a-001".to_string(),
+                hsm_partition_ref: "hsm/us-east/cell-us-east-a-001".to_string(),
+                hsm_validation: validation,
+                residency: ResidencyClass::Global,
+                ..key_create()
+            })
+            .expect_err("global KMS keys require FIPS 140-3 validation");
+            assert_eq!(global_error, CloudKmsError::HsmValidationDenied);
+        }
+
+        let global = KmsKey::new(KmsKeyCreate {
+            resource_id: "oya:cloud:us-east:ten_us:kms-key:object-key".to_string(),
+            key_id: "kms/us-east/ten_us/object-key".to_string(),
+            tenant_id: "ten_us".to_string(),
+            region: "us-east".to_string(),
+            cell_id: "cell-us-east-a-001".to_string(),
+            hsm_partition_ref: "hsm/us-east/cell-us-east-a-001".to_string(),
+            hsm_validation: HsmValidation::Fips1403Level3,
+            residency: ResidencyClass::Global,
+            ..key_create()
+        })
+        .expect("global KMS key accepts FIPS 140-3 validation");
+        assert_eq!(global.hsm_validation.value, HsmValidation::Fips1403Level3);
+
+        let residency_error = KmsKey::new(KmsKeyCreate {
+            resource_id: "oya:cloud:us-east:ten_kr:kms-key:object-key".to_string(),
+            key_id: "kms/us-east/ten_kr/object-key".to_string(),
+            region: "us-east".to_string(),
+            cell_id: "cell-us-east-a-001".to_string(),
+            hsm_partition_ref: "hsm/us-east/cell-us-east-a-001".to_string(),
+            hsm_validation: HsmValidation::Fips1403Level3,
+            ..key_create()
+        })
+        .expect_err("strict KR key cannot be created in US region");
+        assert_eq!(residency_error, CloudKmsError::ResidencyRegionMismatch);
+    }
+
+    #[test]
+    fn authorizes_encrypt_and_decrypt_as_auditable_receipts() {
+        let key = KmsKey::new(key_create()).expect("key is valid");
+        let encrypt = KmsUseReceipt::encrypt(&key, encrypt_request("kmsuse_encrypt_001"))
+            .expect("encrypt request is valid");
+        assert_eq!(encrypt.operation.value, KmsOperation::Encrypt);
+        assert!(encrypt.material_ref.value.is_some());
+        assert_eq!(encrypt.key_version.value, 1);
+
+        let decrypt = KmsUseReceipt::decrypt(
+            &key,
+            KmsDecryptRequest {
+                event_id: "kmsuse_decrypt_001".to_string(),
+                key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+                tenant_id: "ten_kr".to_string(),
+                ciphertext_ref: "ct/ten_kr/object/001".to_string(),
+                data_class: DataClass::PiiIdentifying,
+                purpose: KmsPurpose::CloudObjectStorage,
+                actor: "usr_alice".to_string(),
+                requested_at_epoch_seconds: 1_700_000_020,
+            },
+        )
+        .expect("decrypt request is valid");
+        assert_eq!(decrypt.operation.value, KmsOperation::Decrypt);
+        assert!(decrypt.material_ref.value.is_none());
+    }
+
+    #[test]
+    fn rejects_crypto_use_when_state_usage_actor_or_data_class_is_invalid() {
+        let disabled = KmsKey::new(KmsKeyCreate {
+            state: KmsKeyState::Disabled,
+            ..key_create()
+        })
+        .expect("disabled key can exist");
+        let state_error = KmsUseReceipt::encrypt(&disabled, encrypt_request("kmsuse_disabled"))
+            .expect_err("disabled key cannot serve crypto");
+        assert_eq!(state_error, CloudKmsError::InvalidKeyState);
+
+        let key = KmsKey::new(key_create()).expect("key is valid");
+        let actor_error = KmsUseReceipt::encrypt(
+            &key,
+            KmsEncryptRequest {
+                actor: "tenant-admin".to_string(),
+                ..encrypt_request("kmsuse_bad_actor")
+            },
+        )
+        .expect_err("actor must be a typed principal ref");
+        assert_eq!(actor_error, CloudKmsError::InvalidActorRef);
+
+        let data_error = KmsUseReceipt::encrypt(
+            &key,
+            KmsEncryptRequest {
+                data_class: DataClass::Pci,
+                ..encrypt_request("kmsuse_bad_class")
+            },
+        )
+        .expect_err("request class must match key policy class");
+        assert_eq!(data_error, CloudKmsError::InvalidDataClass);
+    }
+
+    #[test]
+    fn rotates_enabled_managed_keys_and_rejects_hyok_rotation() {
+        let key = KmsKey::new(key_create()).expect("key is valid");
+        let rotated = key.rotate(1_700_000_100).expect("managed key rotates");
+        assert_eq!(rotated.current_version.value, 2);
+
+        let hyok = KmsKey::new(KmsKeyCreate {
+            resource_id: "oya:cloud:kr-seoul:ten_kr:kms-key:tenant-held".to_string(),
+            key_id: "hyok/kr-seoul/ten_kr/tenant-held".to_string(),
+            origin: KmsKeyOrigin::Hyok,
+            rotation_period_days: None,
+            ..key_create()
+        })
+        .expect("HYOK key can exist");
+        let error = hyok
+            .rotate(1_700_000_100)
+            .expect_err("tenant-held key rotation is not controlled by Oyatie KMS");
+        assert_eq!(error, CloudKmsError::InvalidKeyState);
+    }
+
+    #[test]
+    fn directory_rejects_duplicate_use_events_and_records_key_destruction() {
+        let mut directory = CloudKmsDirectory::default();
+        let key = directory
+            .create_key(key_create())
+            .expect("create key succeeds");
+        let receipt = directory
+            .authorize_encrypt(encrypt_request("kmsuse_encrypt_001"))
+            .expect("first use event succeeds");
+        assert_eq!(receipt.key_id.value, key.key_id.value);
+        assert_eq!(
+            directory
+                .authorize_encrypt(encrypt_request("kmsuse_encrypt_001"))
+                .expect_err("event ids are idempotency/audit identities"),
+            CloudKmsError::DuplicateUseEvent
+        );
+
+        let destruction = directory
+            .destroy_key(KeyDestructionRequest {
+                key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+                tenant_id: "ten_kr".to_string(),
+                proof_ref: "kproof_tenant_offboard_001".to_string(),
+                requested_at_epoch_seconds: 1_700_000_200,
+                completed_at_epoch_seconds: 1_700_000_300,
+            })
+            .expect("destruction receipt is valid");
+        assert_eq!(
+            destruction.proof_ref.value.value,
+            "kproof_tenant_offboard_001"
+        );
+    }
+
+    #[test]
+    fn rejects_destruction_outside_twenty_four_hour_evidence_sla() {
+        let key = KmsKey::new(key_create()).expect("key is valid");
+        let error = key
+            .destroy(KeyDestructionRequest {
+                key_id: "kms/kr-seoul/ten_kr/object-key".to_string(),
+                tenant_id: "ten_kr".to_string(),
+                proof_ref: "kproof_tenant_offboard_001".to_string(),
+                requested_at_epoch_seconds: 1_700_000_000,
+                completed_at_epoch_seconds: 1_700_090_401,
+            })
+            .expect_err("destruction proof must meet 24h evidence SLA");
+        assert_eq!(error, CloudKmsError::DestructionSlaExceeded);
+    }
+}

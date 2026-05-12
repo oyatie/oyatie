@@ -1,0 +1,290 @@
+# Doc Catalog & Update Protocol
+
+## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
+
+
+> **Status:** Draft v0.1 — 2026-05-09. Treat as a *protocol*, not a guideline. Every consolidated doc is mutable but the *trigger* for the mutation is rule-bound. Agents and humans both consult this catalog before authoring or auto-updating any doc.
+
+---
+
+## 0. Reading guide
+
+Each doc has a row in §2 with these columns:
+
+| Column | Meaning |
+|---|---|
+| `id` | Stable doc identifier (used by JSON catalog and agent tooling) |
+| `path` | File path |
+| `owner_team` | Team-charter ID owning the doc |
+| `update_trigger` | The event(s) that obligate an update |
+| `update_cadence` | The latest schedule for a refresh even absent triggers |
+| `dependent_docs` | Other docs that MUST be re-read or re-authored when this doc changes |
+| `validation_check` | The CI / agent / reviewer check that must pass after an update |
+| `agent_authoring_allowed` | Whether agents may author updates without human review (rare) |
+
+The machine-readable mirror is [`machine-readable/catalog.json`](machine-readable/catalog.json).
+
+---
+
+## 1. Update-triggering events (the "when")
+
+Each event below maps to specific docs. The §2 rows enumerate the docs per event.
+
+| Event ID | Description |
+|---|---|
+| `EVT-AXIS-SCOPE-CHANGE` | Any of the 7 axes changes scope (in-scope item moves to out-of-scope, or vice versa). |
+| `EVT-AXIS-CONTRACT-CHANGE` | Any inter-axis contract row in DESIGN §10 is added, modified, or removed. |
+| `EVT-ADR-PROMOTED` | An ADR moves from Proposed → Accepted (or any other status transition). |
+| `EVT-ADR-AUTHORED` | A new ADR is drafted (Proposed). |
+| `EVT-CAPABILITY-AUTHORED` | A new capability is registered (catalog/registry/capabilities/). |
+| `EVT-CONTRACT-AUTHORED` | A new contract (OpenAPI / proto / event-schema) is added under `contracts/`. |
+| `EVT-FLAT-CRATE-MOVED` | An ADR-0015 / Issue #1458 phase PR lands. |
+| `EVT-AUDIT-FINDING` | A new audit recommendation is published (audits/, security review). |
+| `EVT-INCIDENT-CLOSED` | A Sev-1/2 incident is closed; postmortem published. |
+| `EVT-REGULATORY-CHANGE` | A regulator (KISA, MFDS, FSC, KCC, NIS, foreign equiv) issues a new control or revision. |
+| `EVT-VERTICAL-ADDED` | A new vertical product is approved by Architecture Council. |
+| `EVT-TENANT-CLASS-ADDED` | A new tenant class override is added (Privacy Council). |
+| `EVT-WAVE-GATE-PASSED` | A wave gate per PRD §3.1 (W-Foundation, W-Foundry-Preview, W-Foundry-Preview, W-Cloud-Preview, W-SaaS-Preview, W-Search-Preview, W-Vertical-Pilot, W-Vertical-Fan-Out, W-Cloud-Stable, W-Search-Stable, W-Ads-Preview, W-Ads-Stable, W-Region-Expansion) passes its readiness pack. |
+| `EVT-FOUNDRY-CAPABILITY-PROMOTED` | A capability promotes from preview → stable in Foundry. |
+| `EVT-RENAME-PHASE-PASSED` | A brand-rename phase (per ADR-0017 PG-0a) completes. |
+| `EVT-RISK-MATERIALIZED` | A row in RISK-REGISTER changes severity or owner. |
+| `EVT-DSR-CASCADE-RUN` | A DSR cascade completes; proof-of-erasure published. |
+| `EVT-PRICING-CHANGE` | Any product pricing or packaging changes. |
+| `EVT-HIRE-NEW-TEAM-LEAD` | A new team-lead hire — charter handoff required. |
+
+---
+
+## 2. The catalog
+
+> Path conventions: rooted at `docs/`. Owner team IDs match `teams/<team-id>/CHARTER.md`. Validation checks named here exist (or will be created) under `oya-foundry-fitness-doc-catalog`.
+
+### 2.1 Tier 1 — Strategy / Architecture / Compliance
+
+| id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |
+|---|---|---|---|---|---|---|---|
+| `doc.constitution` | `CONSTITUTION.md` | `council-architecture` | authority / constitutional contract change | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
+| `doc.agents` | `AGENTS.md` | `axis-foundry` + `council-architecture` | agent operating-contract change | quarterly | CONSTITUTION.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
+| `doc.prd` | `PRD.md` | `council-architecture` | EVT-AXIS-SCOPE-CHANGE, EVT-PRICING-CHANGE, EVT-VERTICAL-ADDED | quarterly | DESIGN.md, ROADMAP.md, GTM-PLAN.md, products/*/PRD.md | `prd-internal-consistency`, `prd-axis-coverage`, `prd-glossary-alignment` | NO — council-only |
+| `doc.design` | `DESIGN.md` | `council-architecture` | EVT-AXIS-CONTRACT-CHANGE, EVT-ADR-PROMOTED (cross-cutting axis), EVT-FLAT-CRATE-MOVED (target-shape change only) | monthly | SPEC.md, ROADMAP.md, ADR-INDEX.md, contracts.json | `design-contracts-mirror`, `design-vs-adr-cite-coverage` | NO |
+| `doc.spec` | `SPEC.md` | `platform-api-sdk` | EVT-CONTRACT-AUTHORED, EVT-CAPABILITY-AUTHORED, EVT-AXIS-CONTRACT-CHANGE | weekly | DESIGN.md, products/*/PRD.md, machine-readable/contracts.json | `spec-contract-mirror`, `spec-capability-coverage` | YES — agent may auto-PR for additions only; deletions need human review |
+| `doc.roadmap` | `ROADMAP.md` | `tactical-m3-launch` (until [wave name per PRD §3.1]); thereafter rolling | EVT-WAVE-GATE-PASSED, EVT-FOUNDRY-CAPABILITY-PROMOTED, EVT-AUDIT-FINDING (P0/P1) | bi-weekly | PRD.md, batches.json, RISK-REGISTER.md | `roadmap-band-totals`, `roadmap-foundry-batch-shape` | YES — agent may rebalance bands; band-promotion requires human |
+| `doc.adr_index` | `ADR-INDEX.md` | `crew-adr-promotion` | EVT-ADR-AUTHORED, EVT-ADR-PROMOTED | per event | DESIGN.md, machine-readable/decisions.json | `adr-index-completeness`, `adr-supersession-graph` | YES — agent re-emits index from `decisions/` directory |
+| `doc.adr_consolidation_plan` | `ADR-CONSOLIDATION-PLAN.md` | `crew-adr-promotion` | ADR consolidation strategy change | per event | ADR-INDEX.md, DESIGN.md | `adr-index-completeness` | NO |
+| `doc.adr_legacy_regression_mapping` | `ADR-LEGACY-REGRESSION-MAPPING.md` | `crew-adr-promotion` | legacy ADR regression discovered or retired | per event | ADR-INDEX.md, DESIGN.md | `adr-index-completeness` | NO |
+| `doc.risk_register` | `RISK-REGISTER.md` | `council-architecture` | EVT-RISK-MATERIALIZED, EVT-INCIDENT-CLOSED, EVT-AUDIT-FINDING | weekly | ROADMAP.md, machine-readable/risks.json | `risk-register-coverage` | YES for low/med; NO for catastrophic |
+| `doc.contradiction_ledger` | `CONTRADICTION-LEDGER.md` | `council-architecture` | contradiction opened, resolved, or escalated | weekly | DESIGN.md, RISK-REGISTER.md | `risk-register-coverage` | NO |
+| `doc.compliance_matrix` | `COMPLIANCE-MATRIX.md` | `ops-compliance` | EVT-REGULATORY-CHANGE, EVT-AUDIT-FINDING | monthly | SECURITY-PROGRAM.md, PRIVACY-PROGRAM.md, machine-readable/compliance.json | `compliance-matrix-coverage`, `compliance-evidence-recency` | NO |
+| `doc.security_program` | `SECURITY-PROGRAM.md` | `ops-security` | EVT-REGULATORY-CHANGE, EVT-AUDIT-FINDING, EVT-INCIDENT-CLOSED (security-class) | quarterly | COMPLIANCE-MATRIX.md, INCIDENT-MANAGEMENT.md | `security-controls-coverage` | NO |
+| `doc.privacy_program` | `PRIVACY-PROGRAM.md` | `council-privacy` | EVT-DSR-CASCADE-RUN, EVT-REGULATORY-CHANGE, EVT-TENANT-CLASS-ADDED | monthly | DESIGN.md, COMPLIANCE-MATRIX.md, ADR-0008 (Data Use Boundary) | `privacy-class-taxonomy-coverage`, `privacy-consent-flow-completeness` | NO |
+| `doc.gtm_plan` | `GTM-PLAN.md` | `gtm-sales-se` | EVT-PRICING-CHANGE, EVT-AXIS-SCOPE-CHANGE, EVT-WAVE-GATE-PASSED | monthly | PRD.md, products/*/PRD.md, ROADMAP.md | `gtm-pricing-coverage` | NO |
+| `doc.competitive_gap_analysis` | `COMPETITIVE-GAP-ANALYSIS.md` | `council-architecture` | competitive gap or scope constraint changes | quarterly | PRD.md, ROADMAP.md | `prd-axis-coverage` | NO |
+
+### 2.2 Tier 2 — Operations / Delivery
+
+| id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |
+|---|---|---|---|---|---|---|---|
+| `doc.runbooks_index` | `RUNBOOKS-INDEX.md` | `ops-sre-reliability` | new runbook authored, runbook deprecation | weekly | SLO-CATALOG.md, INCIDENT-MANAGEMENT.md | `runbook-discoverability`, `runbook-orphan-check` | YES |
+| `doc.slo_catalog` | `SLO-CATALOG.md` | `ops-sre-reliability` | new surface, SLO drift, error-budget exhaustion | weekly | RELEASE-MANAGEMENT.md (burn-rate gate), DESIGN.md plane § | `slo-surface-coverage` | YES |
+| `doc.release_management` | `RELEASE-MANAGEMENT.md` | `ops-sre-reliability` + `axis-foundry` | new CI lane, gate ratchet, rollout strategy change | monthly | SLO-CATALOG.md, QA-TEST-STRATEGY.md, ADR-0050/0188 | `release-lane-coverage` | NO |
+| `doc.qa_test_strategy` | `QA-TEST-STRATEGY.md` | `axis-foundry` | new test class, fixture-discipline change | quarterly | RELEASE-MANAGEMENT.md | `qa-coverage-by-class` | NO |
+| `doc.raci_ownership` | `RACI-OWNERSHIP.md` | `council-architecture` | new team, surface owner change, decision-rights matrix update | quarterly | teams/*/CHARTER.md, CODEOWNERS | `raci-team-coverage`, `codeowners-mirror` | YES — agent may sync from CODEOWNERS |
+| `doc.incident_management` | `INCIDENT-MANAGEMENT.md` | `ops-sre-reliability` | EVT-INCIDENT-CLOSED, severity taxonomy change | per Sev-1/2 + quarterly | RUNBOOKS-INDEX.md, SECURITY-PROGRAM.md | `incident-template-completeness` | NO |
+
+### 2.3 Tier 3 — Business / Resourcing
+
+| id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |
+|---|---|---|---|---|---|---|---|
+| `doc.hiring_capacity_plan` | `HIRING-CAPACITY-PLAN.md` | `council-architecture` (until founder hires CFO/COO) | EVT-HIRE-NEW-TEAM-LEAD, quarterly capacity review | quarterly | RACI-OWNERSHIP.md, FINOPS-PLAN.md | `hiring-axis-coverage` | NO |
+| `doc.finops_plan` | `FINOPS-PLAN.md` | `ops-finops` | EVT-PRICING-CHANGE, capacity-cost ≥ 10% drift | monthly | SLO-CATALOG.md, ROADMAP.md, machine-readable/products.json | `finops-margin-coverage` | YES (re-pull cost numbers) |
+| `doc.vendor_partner_ledger` | `VENDOR-PARTNER-LEDGER.md` | `gtm-partnerships` + `ops-security` | new vendor onboarded, contract expiring < 90 days | quarterly | RISK-REGISTER.md, COMPLIANCE-MATRIX.md | `vendor-contract-recency` | NO |
+| `doc.legal_ip_ledger` | `LEGAL-IP-LEDGER.md` | `gtm-partnerships` + Founder | new patent / trademark / contract template | quarterly | PRD.md (anti-scope), GTM-PLAN.md | `legal-ip-recency` | NO |
+| `doc.internationalization` | `INTERNATIONALIZATION.md` | `council-architecture` + `gtm-marketing` | new locale, regulator-by-region update | quarterly | COMPLIANCE-MATRIX.md, GTM-PLAN.md | `i18n-locale-coverage` | YES (locale data only) |
+
+### 2.4 Cross-cutting
+
+| id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |
+|---|---|---|---|---|---|---|---|
+| `doc.changelog` | `CHANGELOG.md` | (system-emitted) | every consolidated-doc commit | per commit | (none) | `changelog-completeness` | YES — automated emission |
+| `doc.glossary` | `GLOSSARY.md` | `council-architecture` | new domain term, taxonomy resolution per ADR-0017 | monthly | PRD.md, DESIGN.md, SPEC.md, all per-product PRDs | `glossary-cross-doc-coverage`, `glossary-vocabulary` | YES — agent extracts new terms; humans rename |
+| `doc.doc_catalog` | `DOC-CATALOG.md` (this doc) | `council-architecture` | canonical doc added/removed | per change + monthly | (all canonical docs) | `doc-catalog-self-coverage` | NO |
+| `doc.doc_update_protocol` | `DOC-UPDATE-PROTOCOL.md` | `council-architecture` | protocol change | quarterly | (all canonical docs) | `doc-catalog-self-coverage` | NO |
+| `doc.documentation` | `DOCUMENTATION.md` | `council-architecture` | documentation-system contract change | quarterly | DOC-CATALOG.md, README.md | `doc-catalog-self-coverage`, `documentation-system` | NO |
+| `doc.standards_and_templates` | `STANDARDS-AND-TEMPLATES.md` | `axis-foundry` + `council-architecture` | standard or template change | quarterly | DOC-CATALOG.md, TOOLCHAIN.md | `doc-catalog-self-coverage` | NO |
+| `doc.toolchain` | `TOOLCHAIN.md` | `axis-foundry` | toolchain or CI contract change | quarterly | RELEASE-MANAGEMENT.md, STANDARDS-AND-TEMPLATES.md | `release-lane-coverage` | NO |
+| `doc.mistakes_ledger` | `MISTAKES-LEDGER.md` | `council-architecture` | mistake discovered, remediated, or escalated | monthly | CONTRADICTION-LEDGER.md, RUNBOOKS-INDEX.md | `runbook-orphan-check` | NO |
+| `doc.readme` | `README.md` | `council-architecture` | new file added in `docs/` | per change | (all canonical docs) | `readme-doc-coverage` | YES |
+
+### 2.5 Per-product PRDs (Layer 2)
+
+Each `products/<product-id>/PRD.md` follows the same pattern with the per-product team owning it.
+
+| product-id | owner_team | update_trigger | update_cadence | depends_on |
+|---|---|---|---|---|
+| `saas-platform` | `axis-saas` | scope, contract, capability | monthly | `doc.prd`, `doc.design`, `doc.spec` |
+| `foundry` | `axis-foundry` | capability, autonomy-ceiling, model, provider adapter, gate / scorecard / fitness-fn (Foundry consolidates agent runtime + engineering platform per ADR-0025) | bi-weekly | `doc.design`, `doc.privacy_program`, `doc.release_management`, ADR-0020/0021/0022/0024/0025/0050 |
+| `workspace` | `axis-workspace` | mail / docs / sheets / slides / drive / calendar / meet / chat / forms / sites / tasks / notes / translate / recordings | bi-weekly | `doc.design`, `doc.privacy_program`, ADR-0017 |
+| `cloud` | `axis-cloud` | resource type, region, KCMVP/CSAP gate | monthly | `doc.design`, `doc.compliance_matrix` |
+| `search` | `axis-search` | index lifecycle, ranker | monthly | `doc.privacy_program`, ADR-0047 |
+| `ads-analytics` | `axis-ads-analytics` | data-class taxonomy, KR adtech change | monthly | `doc.privacy_program` (the ADR is gating) |
+| `vertical-corporate` | `vertical-corporate` | KR statutory change, ADR-0050 wave plan | weekly during [wave name per PRD §3.1] push, monthly otherwise | `doc.compliance_matrix` (KR), ADR-0033/0126/0127 |
+| `vertical-healthcare` | `vertical-healthcare` | MFDS / 의료법 / clinical-AI ADR | monthly | `doc.compliance_matrix` (MFDS), ADR-0016/0137 |
+| `vertical-industrial` | `vertical-industrial` | ISA-95, OPC UA, OT safety ADR | monthly | ADR-0033 |
+| `vertical-logistics` | `vertical-logistics` | EDI standard, customs change | monthly | `doc.compliance_matrix` (logistics) |
+| `vertical-fintech` | `vertical-fintech` | FSC / KYC standard / NACHA / RTP | monthly | `doc.compliance_matrix` (FSC + PCI), ADR-0027 |
+| `vertical-legal` | `vertical-legal` | corpus update, contract template | quarterly | ADR-0033 |
+| (others) | per-team | scope/regulatory | quarterly | per-team |
+
+### 2.6 Per-team charters (Layer 4)
+
+Every team charter is owned by the team itself; meta-supervised by `council-architecture`.
+
+| Trigger | What updates |
+|---|---|
+| New team formed | `teams/<id>/CHARTER.md` authored, README updated, RACI updated, FINOPS updated |
+| Team scope shift | charter, RACI, dependent contracts re-checked |
+| Team disbanded | charter archived, work re-assigned, RACI updated |
+
+---
+
+## 3. The update protocol (the "how")
+
+For *any* update to *any* doc in this catalog, follow:
+
+### 3.1 Pre-flight checklist
+
+1. ☐ Identify the trigger (which `EVT-*` from §1).
+2. ☐ Read the doc you intend to change AND every doc in its `dependent_docs` column AND every upstream doc that points to it.
+3. ☐ Read the team charter of `owner_team`. If you are not on that team, request a co-author from that team.
+4. ☐ If the trigger is regulatory (`EVT-REGULATORY-CHANGE`), read the relevant section of `COMPLIANCE-MATRIX.md` for the regulator + the relevant ADR.
+5. ☐ Open the issue tracker (`gh issue view`) for any referenced GitHub issue.
+6. ☐ Confirm `agent_authoring_allowed` for the doc — if NO and you are an agent, hand off to a human reviewer.
+
+### 3.2 Authoring
+
+7. ☐ Author the change.
+8. ☐ Add a row to `CHANGELOG.md` with `<doc.id> <iso-date> <author> <one-line-summary>`.
+9. ☐ Update the doc's "Sources scanned" footer with current timestamps.
+10. ☐ If the change adds/removes/renames a doc, update `README.md` AND `DOC-CATALOG.md` (this file) AND `machine-readable/catalog.json`.
+11. ☐ If the change touches an axis contract (DESIGN §10), update `machine-readable/contracts.json`.
+12. ☐ If the change is a new ADR, run the ADR-INDEX regeneration validator.
+13. ☐ If the change touches a Foundry batch shape, regenerate `machine-readable/batches.json`.
+
+### 3.3 Validation
+
+14. ☐ Run the `validation_check` listed in §2 row.
+15. ☐ Run the dependent-docs cross-link check (`oya-foundry-fitness-doc-catalog`).
+16. ☐ Run `oya-foundry-fitness-glossary` to sync any new terms into `GLOSSARY.md`.
+17. ☐ For agent authoring: emit an evidence record to the audit chain (per ADR-0003) tagged with the doc id, trigger event, and validator hash.
+
+### 3.4 Review
+
+18. ☐ Open PR with `## Verification` section listing every check from §3.3 and its outcome.
+19. ☐ Reviewer-of-record from `owner_team` reviews and approves.
+20. ☐ For Tier 1 docs (PRD/DESIGN/SPEC/ROADMAP/ADR-INDEX/RISK-REGISTER/COMPLIANCE/SECURITY/PRIVACY/GTM): a second council reviewer signs off.
+21. ☐ Merge using `gh pr merge` per `guard-pr-merge-review.mjs` rules.
+22. ☐ Post-merge: emit `EVT-DOC-UPDATED` audit-chain record.
+
+### 3.5 Publish
+
+23. ☐ If the doc is regulator-relevant, the trust portal mirror is regenerated (see `RUNBOOKS-INDEX.md` "trust portal publish").
+24. ☐ If the change is a contract change, the cross-axis announcement goes to all consumer teams' charter inboxes.
+25. ☐ If the doc is `doc.glossary` and a term changed, run the `glossary-rename-cascade` agent.
+
+---
+
+## 4. Validation checks (the "is it right" layer)
+
+Each validation check below is a binary CI gate. Failing one blocks the merge.
+
+| Check | Does what |
+|---|---|
+| `prd-internal-consistency` | PRD §1-§9 cross-references resolve; success metrics and constraints are reflexive (no constraint violates a metric). |
+| `prd-axis-coverage` | All 7 axes appear in PRD §3 (in-scope) or §3.2 (out-of-scope); no axis is absent. |
+| `prd-glossary-alignment` | Every new domain term in PRD has a row in GLOSSARY.md. |
+| `design-contracts-mirror` | Every row in DESIGN §10 has a row in `machine-readable/contracts.json`. |
+| `design-vs-adr-cite-coverage` | DESIGN sections that reference an ADR include the ADR's current status. |
+| `spec-contract-mirror` | Every source contract in `contracts/openapi/**/*.yaml` is in SPEC.md, `machine-readable/contracts.json`, and the OpenAPI runtime/schema binding registries, with typed explicit response-status parity, request/response schema shape and scalar type parity, and vice versa. |
+| `spec-capability-coverage` | Every capability in `registry/catalog/capabilities/` has a section in SPEC.md. |
+| `roadmap-band-totals` | Sum of leaves per band matches `machine-readable/batches.json`. |
+| `roadmap-foundry-batch-shape` | Every batch declares fanout=N + SHARED-WRITES. |
+| `adr-index-completeness` | Every file in `decisions/` has a row in ADR-INDEX.md (or is explicitly excluded). |
+| `adr-supersession-graph` | Every Superseded ADR has a `superseded_by`; every superseder has a `supersedes` back-link. |
+| `risk-register-coverage` | DESIGN §11 contradiction risks all appear in RISK-REGISTER.md. |
+| `compliance-matrix-coverage` | Every regulator referenced in PRD / DESIGN / per-product PRDs has a row. |
+| `compliance-evidence-recency` | No control evidence older than its declared cadence. |
+| `security-controls-coverage` | Every CIS/ISO 27001/SOC2 control class has a row. |
+| `privacy-class-taxonomy-coverage` | Every data class in §2.2.1 of PRIVACY-PROGRAM is referenced by every cross-axis flow in DESIGN. |
+| `privacy-consent-flow-completeness` | Every consent tier (PRIVACY §2.2.2) has a UI surface, a backend gate, and an audit-emission point. |
+| `gtm-pricing-coverage` | Every product PRD has a pricing model reference in GTM-PLAN. |
+| `runbook-discoverability` | Every runbook in `docs/runbooks/` is in RUNBOOKS-INDEX. |
+| `runbook-orphan-check` | No runbook references a deleted SLO or capability. |
+| `slo-surface-coverage` | Every public surface from SPEC.md has an SLO entry. |
+| `release-lane-coverage` | Every CI lane in ADR-0042 / `docs/standards/ci-lanes.md` is in RELEASE-MANAGEMENT.md. |
+| `qa-coverage-by-class` | Test pyramid covers every kernel/domain/app/adapter role per ADR-0015. |
+| `raci-team-coverage` | Every team in `teams/*/CHARTER.md` has a row in RACI-OWNERSHIP. |
+| `codeowners-mirror` | RACI-OWNERSHIP per-surface owner matches `CODEOWNERS`. |
+| `incident-template-completeness` | Severity taxonomy + comms templates + postmortem template present. |
+| `hiring-axis-coverage` | Every team has a per-axis headcount row. |
+| `finops-margin-coverage` | Every product PRD has a per-tenant unit-economic estimate. |
+| `vendor-contract-recency` | No vendor contract within 90 days of expiry without a renewal task. |
+| `legal-ip-recency` | Trademark / patent dates updated; OSS license inventory current. |
+| `i18n-locale-coverage` | Every supported locale has a regulator + currency row. |
+| `changelog-completeness` | Every consolidated-doc commit has a CHANGELOG row. |
+| `glossary-cross-doc-coverage` | Every term in GLOSSARY appears in ≥1 consolidated doc. |
+| `glossary-vocabulary` | Retired vocabulary hard-fails outside forensic docs; casing/acronym drift ratchets against `registry/glossary-vocabulary/warning-baseline.tsv` per ADR-0018. |
+| `placeholder-debt` | `TODO` / `TBD` markers are tracked in `registry/placeholder-debt/registry.tsv`; new, stale, or count-drifted placeholders fail CI instead of hiding in glossary warnings. |
+| `quality-lanes` | `registry/quality/lanes.yaml`, `docs/standards/ci-lanes.md`, owner-team charters, runtime budgets, and active `scripts/check.sh` commands stay mirrored. |
+| `cargo-prefix` | Every Cargo workspace member path and package name keeps the ADR-0017 `oya-` prefix, and the member path matches the package name. |
+| `adr-citation` | Active docs cite only existing new-pack ADRs; legacy ADR numbers are confined to the explicit forensic consolidation surfaces. |
+| `brand-residue` | Product-brand usage stays canonical while sed-style tautological rebrand / rename residues fail CI. |
+| `api-semver` | Public contract artifacts under `contracts/` must carry ADR-0037 tier, owner, semver, sunset, and ADR metadata before becoming tenant-facing commitments. |
+| `supply-chain` | Catalog supply-chain claims stay source-only unless ADR-0039 scan, signing, and SBOM evidence is wired; RustSec and deny checks remain in the per-PR script. |
+| `release-supply-chain` | Every digest-pinned release artifact has Trivy 4-layer, dual-SBOM, Cosign/Rekor, provenance, audit-event, and zero HIGH/CRITICAL evidence before release. |
+| `pr-traceability` | Pull-request bodies carry the five mandatory Issue / Summary / Verification / Traceability / Evidence H2 sections, and `## Code Review` stays merge-time lead-owned. |
+| `runbook-freshness` | Every runbook carries a parsable `Last verified` date and stays within the RUNBOOKS-INDEX freshness SLA by severity; unscoped deferred stubs use the Sev-4 / 365-day freshness ceiling. |
+| `audit-chain-replay` | Checked-in audit shard fixtures replay through the ADR-0003 hash-chain verifier; malformed, empty, or tampered shards fail the chain-replay drill. |
+| `foundry-eval` | Published capability records under `product-control/capabilities/` must point at signed eval-set and latest-run artifacts that pass ADR-0024 adversarial, linguistic, threshold, and publish-readiness checks. |
+| `cross-tenant-access-fuzz` | Deterministic tenant/cell isolation probes prove cross-tenant MCP discovery, tool invocation, capability grants, and cell rebinding fail closed while same-tenant control access still succeeds. |
+| `doc-catalog-self-coverage` | Every canonical doc has a row in this catalog (this is what saves us from drift). |
+| `documentation-system` | `docs/DOCUMENTATION.md`, `registry/docs/pipeline.tsv`, and `docs/wiki/quickref/README.md` stay mutually grounded. |
+| `readme-doc-coverage` | Every cataloged root doc in `docs/` has a link in README. |
+
+The `oya-foundry-fitness-doc-catalog` CI lane runs all of the above on every PR touching `docs/**`.
+
+---
+
+## 5. Roles and escalation
+
+| Role | Owner team | Authority |
+|---|---|---|
+| Doc Catalog Curator | `council-architecture` | Adds/removes catalog rows; enforces protocol. |
+| Doc Author (per doc) | `owner_team` (per row) | Drafts updates within the doc's update trigger. |
+| Doc Reviewer (Tier 1) | `council-architecture` second member | Approves Tier 1 updates. |
+| Doc Reviewer (Tier 2/3) | `owner_team` peer | Approves Tier 2/3 updates. |
+| Glossary Editor | `council-architecture` | Final say on term naming. |
+| ADR Index Curator | `crew-adr-promotion` | Owns ADR-INDEX freshness + supersession graph. |
+
+Escalation: a stuck doc update goes to `council-architecture`. A blocked council goes to the Founder.
+
+---
+
+## 6. Anti-patterns
+
+1. **Editing a Tier 1 doc without reading its dependents.** Almost guaranteed to introduce drift.
+2. **Letting an agent author a Tier 1 doc end-to-end.** Agents may *propose* updates; humans approve.
+3. **Skipping the CHANGELOG entry.** Erases audit history.
+4. **Renaming a glossary term without running the cascade.** Silent drift across docs.
+5. **Multiple-doc batch PR.** Each doc update is one PR. Bundling > 2 docs at once is anti-pattern unless the change is a coordinated rename (rare).
+
+---
+
+## 7. Sources scanned
+
+- `README.md` (this directory)
+- All consolidated docs §0 ("Status" lines)
+- ADR-0015 (repo structure), ADR-0037 (deprecation governance), ADR-0050 (governance umbrella)
+- `CLAUDE.md` (project memory)
+- `.github/CODEOWNERS`
+- `registry/quality/claude-integration.json`
+
+*Footer regenerated whenever this doc is edited.*

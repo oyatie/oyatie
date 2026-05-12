@@ -1,0 +1,9 @@
+context: platform
+role: adapter
+capability: eventing-file-outbox
+plane: data
+slo: preview-data-plane
+data_classes_owned: [INTERNAL_ONLY]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

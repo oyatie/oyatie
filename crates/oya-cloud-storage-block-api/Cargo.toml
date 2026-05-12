@@ -1,0 +1,17 @@
+[package]
+name = "oya-cloud-storage-block-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-storage-kernel = { path = "../oya-cloud-storage-kernel" }
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }
+
+[lib]
+name = "oya_cloud_storage_block_api"
+path = "src/lib.rs"
+doctest = false

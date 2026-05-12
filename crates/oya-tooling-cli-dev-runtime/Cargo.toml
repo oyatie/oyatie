@@ -1,0 +1,63 @@
+[package]
+name = "oya-tooling-cli-dev-runtime"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+default-run = "oya"
+license = "Apache-2.0"
+
+[dependencies]
+oya-foundation-app = { path = "../oya-foundation-app" }
+oya-foundry-adr-citation-kernel = { path = "../oya-foundry-adr-citation-kernel" }
+oya-foundry-adr-index-kernel = { path = "../oya-foundry-adr-index-kernel" }
+oya-foundry-api-semver-kernel = { path = "../oya-foundry-api-semver-kernel" }
+oya-foundry-authority-cohesion-kernel = { path = "../oya-foundry-authority-cohesion-kernel" }
+oya-foundry-brand-residue-kernel = { path = "../oya-foundry-brand-residue-kernel" }
+oya-foundry-bypass-kernel = { path = "../oya-foundry-bypass-kernel" }
+oya-foundry-cargo-prefix-kernel = { path = "../oya-foundry-cargo-prefix-kernel" }
+oya-foundry-catalog-kernel = { path = "../oya-foundry-catalog-kernel" }
+oya-foundry-claim-ceiling-kernel = { path = "../oya-foundry-claim-ceiling-kernel" }
+oya-foundry-codeowners-mirror-kernel = { path = "../oya-foundry-codeowners-mirror-kernel" }
+oya-foundry-cohesion-fitness-kernel = { path = "../oya-foundry-cohesion-fitness-kernel" }
+oya-foundry-constitution-cite-kernel = { path = "../oya-foundry-constitution-cite-kernel" }
+oya-foundry-data-class-fitness-kernel = { path = "../oya-foundry-data-class-fitness-kernel" }
+oya-foundry-doc-catalog-kernel = { path = "../oya-foundry-doc-catalog-kernel" }
+oya-foundry-documentation-system-kernel = { path = "../oya-foundry-documentation-system-kernel" }
+oya-foundry-evidence-adapter-file = { path = "../oya-foundry-evidence-adapter-file" }
+oya-foundry-glossary-coverage-kernel = { path = "../oya-foundry-glossary-coverage-kernel" }
+oya-foundry-glossary-vocabulary-kernel = { path = "../oya-foundry-glossary-vocabulary-kernel" }
+oya-foundry-license-policy-kernel = { path = "../oya-foundry-license-policy-kernel" }
+oya-foundry-mdbook-kernel = { path = "../oya-foundry-mdbook-kernel" }
+oya-foundry-openapi-kernel = { path = "../oya-foundry-openapi-kernel" }
+oya-foundry-mobile-native-kernel = { path = "../oya-foundry-mobile-native-kernel" }
+oya-foundry-placeholder-debt-kernel = { path = "../oya-foundry-placeholder-debt-kernel" }
+oya-foundry-pre-push-kernel = { path = "../oya-foundry-pre-push-kernel" }
+oya-foundry-pr-traceability-kernel = { path = "../oya-foundry-pr-traceability-kernel" }
+oya-foundry-quality-lane-kernel = { path = "../oya-foundry-quality-lane-kernel" }
+oya-foundry-raci-team-coverage-kernel = { path = "../oya-foundry-raci-team-coverage-kernel" }
+oya-foundry-readme-doc-coverage-kernel = { path = "../oya-foundry-readme-doc-coverage-kernel" }
+oya-foundry-release-evidence-pack-kernel = { path = "../oya-foundry-release-evidence-pack-kernel" }
+oya-foundry-run-adapter-file = { path = "../oya-foundry-run-adapter-file" }
+oya-foundry-runbook-freshness-kernel = { path = "../oya-foundry-runbook-freshness-kernel" }
+oya-foundry-runbook-index-kernel = { path = "../oya-foundry-runbook-index-kernel" }
+oya-foundry-run-kernel = { path = "../oya-foundry-run-kernel" }
+oya-foundry-slo-coverage-kernel = { path = "../oya-foundry-slo-coverage-kernel" }
+oya-foundry-supply-chain-kernel = { path = "../oya-foundry-supply-chain-kernel" }
+oya-foundry-typescript-workspace-kernel = { path = "../oya-foundry-typescript-workspace-kernel" }
+oya-foundry-vendor-contract-recency-kernel = { path = "../oya-foundry-vendor-contract-recency-kernel" }
+oya-foundry-step-adapter-file = { path = "../oya-foundry-step-adapter-file" }
+oya-foundry-step-kernel = { path = "../oya-foundry-step-kernel" }
+oya-platform-audit-chain-adapter-file = { path = "../oya-platform-audit-chain-adapter-file" }
+oya-platform-eventing-adapter-file = { path = "../oya-platform-eventing-adapter-file" }
+oya-platform-eventing-kernel = { path = "../oya-platform-eventing-kernel" }
+oya-platform-secrets-adapter-file = { path = "../oya-platform-secrets-adapter-file" }
+oya-platform-secrets-kernel = { path = "../oya-platform-secrets-kernel" }
+
+[[bin]]
+name = "oya"
+path = "src/main.rs"
+
+[[bin]]
+name = "repoctl"
+path = "src/repoctl.rs"

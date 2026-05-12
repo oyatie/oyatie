@@ -1,0 +1,78 @@
+# Oyatie — Mistakes-and-Fixes Ledger
+
+## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
+
+
+> **Owner:** `council-architecture` (curator). Per-team contributors.
+> **Cadence:** per-incident + per-audit + per-quarter.
+> **Companion:** [`standards/prevention-doctrine.md`](standards/prevention-doctrine.md), [INCIDENT-MANAGEMENT.md](INCIDENT-MANAGEMENT.md), [RISK-REGISTER.md](RISK-REGISTER.md).
+
+---
+
+## 1. Why this ledger exists
+
+Mistakes are unavoidable. Repeating the same mistake is preventable. This ledger captures every prevention-class learning so:
+
+- Future engineers see the failure mode + prevention + when shipped
+- Foundry capabilities can replay against past traces to verify continued prevention
+- Auditors see chain of remediation
+- Council can spot patterns across mistakes (e.g. recurring failure-mode class)
+
+## 2. Entry format
+
+```
+| ID | Date | Mistake (1 line) | System gap (1 line) | Mechanical prevention | Shipped on | Link |
+```
+
+Each entry:
+- **ID**: `MFL-NNNN` sequential
+- **Date**: when the mistake surfaced (not when prevention shipped)
+- **Mistake**: short description, no PII
+- **System gap**: what system / process / contract was missing
+- **Mechanical prevention**: the CI lane / hook / validator / fitness function name
+- **Shipped on**: date prevention landed
+- **Link**: PR / ADR / runbook / incident postmortem
+
+## 3. Active ledger
+
+| ID | Date | Mistake | System gap | Mechanical prevention | Shipped | Link |
+|---|---|---|---|---|---|---|
+| MFL-0001 | 2026-05-09 | Legacy ADRs cited in active consolidated docs after pack consolidation | No CI gate enforcing only-new-pack-citations | `oya-foundry-fitness-adr-citation` lane | shipped 2026-05-10 (active gate) | per [ADR-CONSOLIDATION-PLAN.md](ADR-CONSOLIDATION-PLAN.md) |
+| MFL-0002 | 2026-05-09 | Deprecated brand aliases or tautological brand-transition text persisted after standardization on Oyatie | No CI gate enforcing brand-residue check | `oya-foundry-fitness-brand-residue` lane | shipped 2026-05-10 (active tautology gate) | per [ADR-0017 brand-naming](decisions/ADR-0017-brand-naming-and-repo-layout.md) |
+| MFL-0003 | 2026-05-09 | M3/MVP vocabulary leaking from legacy docs into new docs after retirement | No CI gate for retired-vocab | `oya-foundry-fitness-glossary` (extended for retired terms) | (target with W-Foundation gate) | per [GLOSSARY.md §11](GLOSSARY.md) |
+| MFL-0004 | 2026-05-09 | CUG (Closed-User-Group) terminology persisted after Team rename | Same as MFL-0003 | Same lane | (target with W-Foundation gate) | per [GLOSSARY.md §11](GLOSSARY.md) |
+| MFL-0005 | (future-prevention) | Cross-axis contract change without consumer-axis review | Cross-axis review label not auto-emitted | `oya-foundry-fitness-blast-radius` per [DESIGN §3.0.5.3](DESIGN.md) blast-radius classifier | (target with W-Foundation gate) | per [ADR-0011 cross-axis-contract-registry](decisions/ADR-0011-cross-axis-contract-registry.md) |
+| MFL-0006 | (future-prevention) | New external dep adopted without ledger entry | No CI gate on dep additions without ledger | `oya-foundry-fitness-build-vs-buy` per [ADR-0014 build-vs-buy-policy](decisions/) | (target with W-Foundation gate) | per [VENDOR-PARTNER-LEDGER.md](VENDOR-PARTNER-LEDGER.md) |
+| MFL-0007 | (future-prevention) | AGPL/GPL dep introduced into product code | License-class CI gate gap | `oya-foundry-fitness-license` per [ADR-0013 product-license-policy](decisions/ADR-0013-product-license-policy.md) | (target with W-Foundation gate) | per License Policy ADR |
+| MFL-0008 | (future-prevention) | Data class annotation missing on new struct field in kernel crate | Pre-commit data-class hook gap | `pre-commit-data-class.sh` + `oya-foundry-fitness-data-class` per [ADR-0008 data-use-boundary](decisions/ADR-0008-data-use-boundary.md) | (target with W-Foundation gate) | per Data Use Boundary ADR |
+| MFL-0009 | 2026-05-09 | Legacy mobile-clients ADR cluster silently dropped during pack consolidation; no consolidated successor authored | Regression-mapping had only enumerative coverage, no per-cluster successor-authoring discipline | `oya-foundry-fitness-adr-citation` lane + per-PARTIAL-row authoring obligation in [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md) | shipped 2026-05-09 (ADR-0051 mobile-and-native-client-strategy) | per [ADR-0051](decisions/ADR-0051-mobile-and-native-client-strategy.md) + Codex Round 2 verdict |
+| MFL-0010 | 2026-05-09 | RUNBOOKS-INDEX referenced 49 P0 runbook files that did not exist on disk after the cleanup | No CI gate verifying RUNBOOKS-INDEX entries resolve to real files | `oya-foundry-fitness-runbook-index-resolves` lane (planned) + per-runbook stub authoring at index-update time | shipped 2026-05-09 (49 P0 stubs under `runbooks/`) | per Codex Round 2 verdict + RUNBOOKS-INDEX §1 |
+| MFL-0011 | 2026-05-09 | Brand-rebrand sed introduced false equality statements where both sides of a brand transition matched | Sed had no semantic awareness of historical-mention vs current-brand context | `oya-foundry-fitness-brand-residue` lane catches tautological transition pairs | shipped 2026-05-10 (active gate) | per Codex Round 2 verdict |
+| MFL-0012 | 2026-05-11 | Legacy `modules/`, `services/`, or `platform/` tree could be reintroduced after flat-crates migration work | Flat-crates lane checked role edges but not legacy top-level implementation directories or exact workspace package paths | `oya-foundry-fitness-flat-crates` self-test + architecture boundary check | shipped 2026-05-11 (active gate) | per [ADR-0015](decisions/ADR-0015-architectural-flattening-target.md) + [flat-crates move runbook](runbooks/flat-crates-move-pr.md) |
+| MFL-0013 | 2026-05-11 | OpenAPI 3.2 `query` or `additionalOperations` operations could be skipped by contract validation and runtime parity | OpenAPI validator hard-coded the pre-3.2 fixed-method set and did not traverse nested `additionalOperations` | `oya doc openapi` + `oya-foundry-openapi-kernel` source/runtime parity tests for `query`, custom additional operations, fixed-method collisions, and response-schema parity | shipped 2026-05-11 (active gate) | per [API design standard](standards/api-design.md) + [SPEC.md](SPEC.md) |
+
+> **More entries** populate as mistakes surface. The ledger is the institutional memory of the project.
+
+## 4. Pattern detection (review per quarter)
+
+Per [`standards/prevention-doctrine.md §6`](standards/prevention-doctrine.md):
+- Council reviews ledger quarterly
+- Patterns (recurring failure-mode class) trigger meta-prevention
+- Top-10-by-recurrence reported to Founder
+- Foundry capability `oya.mistakes.detect-pattern` proposes meta-prevention
+
+## 5. Per-prevention verification
+
+Per `standards/prevention-doctrine.md §5 step 6`:
+- Each shipped prevention tested against the original failure mode (replay or fuzz)
+- Replay-as-eval per [ADR-0024 foundry-eval-harness-and-replay](decisions/ADR-0024-foundry-eval-harness-and-replay.md)
+- Per-quarter `oya.prevention.verify-coverage` capability run
+
+## 6. Sources
+
+- [`standards/prevention-doctrine.md`](standards/prevention-doctrine.md)
+- [INCIDENT-MANAGEMENT.md](INCIDENT-MANAGEMENT.md)
+- ADR-0003 (audit chain) for `EVT-PREVENTION-SHIPPED`
+- All per-incident postmortems
+- All per-audit findings
+- CLAUDE.md prevention-doctrine pointer

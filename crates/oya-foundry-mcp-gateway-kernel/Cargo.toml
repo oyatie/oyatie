@@ -1,0 +1,16 @@
+[package]
+name = "oya-foundry-mcp-gateway-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-foundry-capability-kernel = { path = "../oya-foundry-capability-kernel" }
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+
+[lib]
+name = "oya_foundry_mcp_gateway_kernel"
+path = "src/lib.rs"
+doctest = false

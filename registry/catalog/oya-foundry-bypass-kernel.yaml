@@ -1,0 +1,10 @@
+context: foundry
+role: kernel
+capability: bypass
+plane: control
+slo: preview-control-plane
+data_classes_owned: [PUBLIC]
+operational_classes_owned: [AUDIT]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only

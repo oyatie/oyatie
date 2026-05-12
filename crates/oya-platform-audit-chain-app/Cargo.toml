@@ -1,0 +1,17 @@
+[package]
+name = "oya-platform-audit-chain-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-platform-audit-chain-kernel = { path = "../oya-platform-audit-chain-kernel" }
+oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-platform-eventing-kernel = { path = "../oya-platform-eventing-kernel" }
+
+[lib]
+name = "oya_platform_audit_chain_app"
+path = "src/lib.rs"
+doctest = false

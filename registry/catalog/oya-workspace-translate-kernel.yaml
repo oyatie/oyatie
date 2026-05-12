@@ -1,0 +1,10 @@
+context: workspace
+role: kernel
+capability: translate
+plane: data
+slo: preview-data-plane
+data_classes_owned: [PII_IDENTIFYING, INTERNAL_ONLY]
+operational_classes_owned: [AUDIT]
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
