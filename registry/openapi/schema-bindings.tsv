@@ -279,3 +279,12 @@ FoundryCapabilityPublishMetadata	contracts/openapi/foundry/registry-v1.yaml	oya-
 FoundryCapabilityPublishApiErrorResponse	contracts/openapi/foundry/registry-v1.yaml	oya-foundry-registry-api	crates/oya-foundry-registry-api/src/lib.rs	FoundryCapabilityPublishApiErrorResponse
 FoundryCapabilityPublishApiErrorBody	contracts/openapi/foundry/registry-v1.yaml	oya-foundry-registry-api	crates/oya-foundry-registry-api/src/lib.rs	FoundryCapabilityPublishApiErrorBody
 FoundryCapabilityPublishApiErrorDetail	contracts/openapi/foundry/registry-v1.yaml	oya-foundry-registry-api	crates/oya-foundry-registry-api/src/lib.rs	FoundryCapabilityPublishApiErrorDetail
+FoundryRagConsentReceiptRequest	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagConsentReceiptRequest
+FoundryRagRetrieveRequest	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagRetrieveRequest
+FoundryRagRetrieveSuccessResponse	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagRetrieveSuccessResponse
+FoundryRagRetrieveRecord	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagRetrieveRecord
+FoundryRagCitationRecord	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagCitationRecord
+FoundryRagRetrieveMetadata	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagRetrieveMetadata
+FoundryRagRetrieveApiErrorResponse	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagRetrieveApiErrorResponse
+FoundryRagRetrieveApiErrorBody	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagRetrieveApiErrorBody
+FoundryRagRetrieveApiErrorDetail	contracts/openapi/foundry/rag-v1.yaml	oya-foundry-rag-api	crates/oya-foundry-rag-api/src/lib.rs	FoundryRagRetrieveApiErrorDetail
