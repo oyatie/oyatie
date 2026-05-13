@@ -40,6 +40,7 @@ This is the canonical engineering documentation tree for **Oyatie**, one cohesiv
 
 ## Tier-1 documents
 
+- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and ultimately from `docs/CONSTITUTION.md`. Foundation ADRs: ADR-0052, ADR-0053, ADR-0054.
 - [`CONSTITUTION.md`](CONSTITUTION.md) — mission, decision rights, prohibitions, amendments.
 - [`AGENTS.md`](AGENTS.md) — single agent operating contract for every agent and every human.
 - [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> — architecture, planes, cross-axis contracts.
@@ -70,6 +71,7 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 | id | doc | tier | owner_team |
 |---|---|---|---|
 | `doc.readme` | [`README.md`](README.md) | `cross-cutting` | `council-architecture` |
+| `doc.masterplan` | [`MASTERPLAN.md`](MASTERPLAN.md) | `0` | `council-architecture` |
 | `doc.constitution` | [`CONSTITUTION.md`](CONSTITUTION.md) | `1` | `council-architecture` |
 | `doc.agents` | [`AGENTS.md`](AGENTS.md) | `1` | `axis-foundry, council-architecture` |
 | `doc.prd` | [`PRD.md`](PRD.md) | `1` | `council-architecture` |

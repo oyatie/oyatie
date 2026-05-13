@@ -6,10 +6,10 @@
 
 ## At-a-glance
 
-- **Total ADRs:** 51
-- **Numbering:** contiguous ADR-0001 .. ADR-0051 (gap-free)
-- **Next ADR number:** 0052
-- **Status counts:** Accepted 2, Proposed 49
+- **Total ADRs:** 52
+- **Numbering:** contiguous ADR-0001 .. ADR-0054 (ADR-0052 and ADR-0053 pending; ADR-0054 landed)
+- **Next ADR number:** 0055
+- **Status counts:** Accepted 3, Proposed 49
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -67,11 +67,14 @@
 | ADR-0049 | Proposed | Cross-region replication + residency — per-pack default residency class, opt-in cross-region per consent, immutable post-create | council-architecture | [`ADR-0049-cross-region-replication-and-residency.md`](decisions/ADR-0049-cross-region-replication-and-residency.md) |
 | ADR-0050 | Proposed | Automation-first pipeline — Google + Amazon doctrine, sccache + remote execution, affected-graph testing, Foundry-driven PR triage | axis-foundry | [`ADR-0050-automation-first-pipeline.md`](decisions/ADR-0050-automation-first-pipeline.md) |
 | ADR-0051 | Accepted | Mobile and Native Client Strategy | axis-workspace (productivity native apps) + axis-saas (tenant-builder native apps) + council-architecture | [`ADR-0051-mobile-and-native-client-strategy.md`](decisions/ADR-0051-mobile-and-native-client-strategy.md) |
+| ADR-0052 | Accepted | Canonical inventory ledger for the grit/icm cutover — classifies 211 artifacts across oyatie/ and bominal/ by closed-set action (KEEP/ARCHIVE/DELETE/FLAG-FOR-USER); satisfies spec A2; Cross-cutting / Tooling | council-architecture + axis-foundry | [`ADR-0052-inventory-grit-cutover.md`](decisions/ADR-0052-inventory-grit-cutover.md) |
+| ADR-0053 | Accepted | grit + icm + oya-tooling-agent-read as sole sanctioned primitives for agentic work — fixes agent-callable coordination/state-transition set; enforced by `oya-foundry-fitness-banned-primitives` | council-architecture + axis-foundry | [`ADR-0053-grit-icm-as-sanctioned-primitives.md`](decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) |
+| ADR-0054 | Accepted | Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback) | council-architecture + axis-foundry | [`ADR-0054-grit-scaffold-claim-pattern.md`](decisions/ADR-0054-grit-scaffold-claim-pattern.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and contiguous numbering (next available number: 0052).
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and contiguous numbering (next available number: 0055).
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 

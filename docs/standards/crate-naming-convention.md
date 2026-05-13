@@ -1,0 +1,389 @@
+---
+doc_class: Standard
+shape: ~
+length_cap: 500
+authority_tier: 2
+status: Accepted
+date: 2026-05-12
+purpose: |
+  Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and
+  every `[package.metadata.oya]` block in the oyatie workspace. Resolves the
+  forward-reference left by `docs/standards/code-style-rust.md` §5 (naming
+  conventions) and binds the `oya-foundry-fitness-naming-convention` lane.
+canonical_authority: docs/CONSTITUTION.md
+enforced_by: oya-foundry-fitness-naming-convention
+companion_docs:
+  - docs/standards/code-style-rust.md
+  - docs/standards/doc-style.md
+  - docs/audits/convention-audit-2026-05-12.md
+  - docs/plans/rename-plan-2026-05-12.md
+  - .omc/fitness-lanes/naming-convention.md
+  - docs/research/hyperscaler-best-practices-2026-05-12.md
+related_adrs:
+  - ADR-0015
+  - ADR-0017
+  - ADR-0053
+  - ADR-0054
+authority_chain_declaration: |
+  docs/CONSTITUTION.md > docs/AGENTS.md > docs/standards/code-style-rust.md
+  > THIS DOC > .omc/fitness-lanes/naming-convention.md
+---
+
+# Crate Naming Convention
+
+## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+
+This standard operates within the [`CONSTITUTION.md`](../CONSTITUTION.md)
+frame (§Architecture, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
+downstream of [`docs/standards/code-style-rust.md`](code-style-rust.md) §5.
+Every `oya-*` crate path under `crates/` MUST conform to the grammar in §2.
+The lane [`oya-foundry-fitness-naming-convention`](../../.omc/fitness-lanes/naming-convention.md)
+mechanically enforces it. Severity = **BLOCKER**.
+
+This standard ports the convergent hyperscaler practice for crate naming:
+AWS publishes [`aws-sdk-<service>`](https://github.com/awslabs/aws-sdk-rust) for
+service SDKs and [`aws-smithy-<role>`](https://crates.io/crates/aws-smithy-runtime)
+for framework-internal crates — a strict three-segment grammar with a
+controlled role enum. Microsoft publishes [`azure_<service>`](https://github.com/Azure/azure-sdk-for-rust)
+with a one-crate-per-service rule per the
+[Azure SDK Rust Guidelines](https://azure.github.io/azure-sdk/rust_introduction.html).
+Google's Rust workspace presence (`google-cloud-<service>`, e.g.
+[`google-cloud-storage`](https://crates.io/crates/google-cloud-storage)) follows
+the same shape. Oracle's OCI Rust surface is too narrow to constitute a precedent.
+The shared pattern is: **fixed top-level prefix → product/context segment →
+service/role segment → optional capability tail**. Oyatie adopts the same
+discipline, expressed as a BNF below.
+
+Sources scanned: [`hyperscaler-best-practices-2026-05-12.md`](../research/hyperscaler-best-practices-2026-05-12.md)
+Domain 3 (workspace structure) and Domain 4 (CI/CD tooling);
+[Rust API Guidelines — Naming](https://rust-lang.github.io/api-guidelines/naming.html);
+[Cargo Book — Workspaces](https://doc.rust-lang.org/cargo/reference/workspaces.html);
+[cargo-deny configuration](https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html);
+[cargo-semver-checks](https://crates.io/crates/cargo-semver-checks);
+[AWS SDK for Rust](https://github.com/awslabs/aws-sdk-rust);
+[Azure SDK for Rust](https://github.com/Azure/azure-sdk-for-rust);
+[Google Cloud Rust](https://github.com/googleapis/google-cloud-rust).
+
+## 1. Vocabulary
+
+The keywords MUST, MUST NOT, REQUIRED, SHALL, SHALL NOT, SHOULD, SHOULD NOT,
+RECOMMENDED, NOT RECOMMENDED, MAY, and OPTIONAL in this document are to be
+interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
+and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when,
+they appear in all capitals.
+
+## 2. Canonical grammar (BNF)
+
+The crate-name grammar is the following, evaluated left-to-right on the
+package-name kebab string:
+
+```bnf
+crate          ::= "oya" "-" context "-" feature "-" role ( "-" capability )?
+context        ::= "cloud" | "foundation" | "foundry" | "platform"
+                 | "tooling" | "workspace"
+role           ::= "kernel" | "domain" | "app" | "api" | "worker"
+                 | "adapter" | "runtime" | "cli" | "sdk"
+feature        ::= kebab-token ( "-" kebab-token )*       (* 1..3 tokens *)
+capability     ::= kebab-token ( "-" kebab-token )*       (* 1..2 tokens *)
+kebab-token    ::= [a-z] [a-z0-9]*
+```
+
+Constraints layered on top of the BNF (the lane verifies all of them):
+
+1. **Segment count.** Total segments (counting `oya` as segment 1) MUST be
+   `>=4` AND MUST be `<=6`. The strongly-preferred range is `4..=5`; a
+   6-segment name REQUIRES the lane to surface it as AMBER (advisory) and
+   the author to ADR-cite the compound feature rationale.
+2. **Context enum.** `context` MUST be one of the six listed values.
+   Adding a new context is a **breaking change**: it REQUIRES an ADR, a
+   `[workspace.metadata.oya]` registry update, and a CI re-roll. See §3.
+3. **Role enum.** `role` MUST be one of the nine listed values. The
+   semantics of each role are bound to ADR-0015 §"layered architecture";
+   see §4 for the role table. Adding a new role REQUIRES an ADR.
+4. **Capability tail.** REQUIRED for `role = adapter` (per ADR-0015 §3:
+   adapters bind a kernel trait to *one* provider/capability, and the
+   provider/capability identity belongs in the crate name). OPTIONAL for
+   every other role. Forbidden for `role = kernel` (kernels are by
+   definition capability-agnostic). The capability MUST be the *terminal*
+   segments — no role token may follow a capability.
+5. **Feature locality.** `feature` MUST be 1..3 kebab-tokens. Multi-token
+   feature names (e.g. `audit-chain`, `policy-cedar`, `object-graph`,
+   `data-class`, `release-evidence-pack`) are admitted as compound features
+   ONLY when one of the following holds: (a) the feature is a proper
+   noun the rest of `docs/` already cites (audit-chain, policy-cedar,
+   object-graph); (b) the feature names a multi-token external referent
+   (vendor-contract-recency, raci-team-coverage). A unilateral compound
+   that fails both tests MUST be renamed; the lane flags it RED.
+6. **Bin-only tooling exemption.** A crate that ships ONLY a `[[bin]]` and
+   has no library surface MAY use `role = cli` or `role = runtime` with no
+   capability tail, and MAY collapse the `feature` segment to a single token.
+   See §5.
+
+The package name (`[package] name`) MUST equal the directory name. The
+`[lib]` `name` field, when present, MUST equal the package name with `-`
+replaced by `_` (per Cargo's library-name rule).
+
+## 3. Context enum — semantic table
+
+| Context | Definition | Layer | Examples in workspace |
+|---|---|---|---|
+| `cloud` | Cloud-provider plane: compute, storage, network, IAM, KMS, billing, region, observability. Maps to the AWS/Azure/GCP-equivalent surface. | provider-facing | `oya-cloud-compute-vm-api`, `oya-cloud-iam-kernel` |
+| `foundation` | Top-of-stack composition root that binds every other context together; **at most one crate** SHOULD use this context (the workspace's single foundation-app). | composition | `oya-foundation-app` |
+| `foundry` | The engineering platform itself: fitness lanes, capability registry, evidence/eval, governance, documentation system, runbooks, supply chain. | meta-engineering | `oya-foundry-evidence-kernel`, `oya-foundry-policy-api` |
+| `platform` | Cross-axis runtime substrate: tenant, identity, audit-chain, eventing, observability, secrets, object-graph, residency, regulatory-pack, policy. | runtime substrate | `oya-platform-tenant-kernel`, `oya-platform-audit-chain-app` |
+| `tooling` | Developer/agent tooling: CLIs, agent helpers, repo-ops binaries. Not deployed; not part of any runtime image. | dev-time | `oya-tooling-cli-dev-runtime`, `oya-tooling-agent-read` |
+| `workspace` | The Google-Workspace-equivalent product axis: drive, mail, calendar, chat, meet, docs, sheets, slides, forms, sites, tasks, notes, recordings, dlp, ediscovery, translate, retention, trust-portal, address-book. | product axis | `oya-workspace-drive-kernel`, `oya-workspace-chat-api` |
+
+A new context REQUIRES: (1) an ADR proposing the name, (2) a row added to
+this table, (3) the lane regex re-rolled in
+`.omc/fitness-lanes/naming-convention.md`, (4) a `[workspace.metadata.oya]
+contexts` registry update.
+
+## 4. Role enum — semantic table
+
+The role taxonomy mirrors ADR-0015's
+`runtime ◀── { api │ worker │ adapter } ◀── app ◀── domain ◀── kernel`
+hierarchy and adds three terminal-binary roles (`cli`, `sdk`, `runtime`).
+
+| Role | Layer | Surface | Capability tail | Imports allowed |
+|---|---|---|---|---|
+| `kernel` | innermost; pure-domain types, no I/O, no async, no provider deps | library only (`[lib]`) | **forbidden** | nothing project-internal (only `oya-platform-data-boundary-kernel` per ADR-0015) |
+| `domain` | business invariants; pure functions on kernel types | library only | optional | `kernel` |
+| `app` | use-case orchestration; speaks to providers via traits | library only | optional | `kernel`, `domain` |
+| `api` | process-boundary inputs (HTTP/gRPC/queue handlers) bound to a feature | library + optional bin | optional | `kernel`, `domain`, `app` |
+| `worker` | scheduled / queue-driven process | library + bin | optional | `kernel`, `domain`, `app` |
+| `adapter` | provider implementations bound to one capability | library only | **REQUIRED** | `kernel`, `domain`, `app`; never another adapter |
+| `runtime` | runtime binary composing api/worker/adapter via DI | bin (and a thin library shim is permitted) | optional | every lower layer |
+| `cli` | developer/agent terminal tool (not deployed) | bin | optional | every lower layer |
+| `sdk` | externally-published client surface (consumer-facing) | library only | optional | `kernel`, `domain`, `app` |
+
+The lane verifies (a) the role token is present, (b) capability-required
+adapters have a tail, (c) kernels do NOT have a tail.
+
+### 4.1 Why this enum and not AWS-style `sdk`-everywhere
+
+AWS uses `aws-sdk-<service>` because **every** crate it publishes is a
+consumer-facing SDK. Oyatie publishes near-zero crates publicly; the role
+enum optimizes for **layered-architecture clarity**, not consumer ergonomics.
+Google's Rust surface
+([`google-cloud-storage`](https://crates.io/crates/google-cloud-storage),
+[`google-cloud-pubsub`](https://crates.io/crates/google-cloud-pubsub)) makes
+the same trade for the same reason. When (if) oyatie starts publishing
+public client surfaces, those crates SHALL use `role = sdk`, matching the
+AWS / Azure / Google convention.
+
+## 5. Capability tail — required-when, forbidden-when
+
+| Role | Capability tail | Examples |
+|---|---|---|
+| `kernel` | **forbidden** | `oya-foundry-evidence-kernel` (no tail) |
+| `domain` | optional | n/a in workspace yet |
+| `app` | optional | `oya-cloud-billing-tax-app` (tail = `tax` on feature `billing`) |
+| `api` | optional | `oya-cloud-compute-vm-api` (tail = `vm` on feature `compute`) |
+| `worker` | optional | n/a in workspace yet |
+| `adapter` | **REQUIRED** | `oya-foundry-evidence-adapter-file` (file backend) |
+| `runtime` | optional | `oya-tooling-cli-dev-runtime` (tail = `dev`; see §6.1) |
+| `cli` | optional | n/a in workspace yet |
+| `sdk` | optional | n/a in workspace yet |
+
+Compound capability tails (`-adapter-tracing`, `-adapter-file`) MUST be a
+single token. Two-token capability tails are admitted ONLY when the
+provider/backend name is itself multi-token externally (e.g.
+`-adapter-azure-blob` if Azure Blob Storage support is added). The lane
+flags 6-segment names AMBER and requires an ADR cite.
+
+## 6. Compound / multi-token features
+
+Workspace evidence (2026-05-12 inventory) records these multi-token
+features as accepted compound nouns:
+
+| Compound feature | Origin / referent | Crates using it |
+|---|---|---|
+| `audit-chain` | governance audit-chain doctrine (CONSTITUTION §Governance) | kernel/app/adapter |
+| `policy-cedar` | Cedar policy engine binding | kernel/api |
+| `object-graph` | object-graph platform substrate | kernel/api |
+| `regional-pack` | regional regulatory pack | kernel |
+| `regulatory-pack` | regulatory-pack contract | api |
+| `data-class` | data-classification fitness | (extended below) |
+| `compute-vm` / `compute-k8s` / `compute-functions` | cloud-compute sub-surfaces | api |
+| `storage-object` / `storage-block` | cloud-storage sub-surfaces | api |
+| `network-vpc` / `network-dns` / `network-lb` | cloud-network sub-surfaces | api |
+| `billing-tax` | cloud-billing tax sub-app | app |
+| `address-book` / `document-format` / `trust-portal` / `collab-runtime` | workspace-axis sub-features | kernel |
+| `agent-read` | tooling-agent read-only surface | bin-only tooling |
+| `api-semver` | foundry fitness check on api semver | kernel |
+| `cargo-prefix` / `cli-dev` | foundry / tooling sub-surfaces | kernel / runtime |
+| `audit-chain-adapter` (= feature `audit-chain` + role `adapter`) | governance binding | adapter |
+
+Rules:
+
+1. A compound feature MUST appear in the above registry to count as GREEN.
+   New compounds REQUIRE an ADR row plus a registry update.
+2. Compound features that are simply a noun-phrase ("readme-doc-coverage",
+   "vendor-contract-recency", "raci-team-coverage", "release-evidence-pack",
+   "data-class-fitness") are AMBER if ≤5 segments total, RED if 6 segments.
+   The recommended resolution is to fold the noun-phrase into a single
+   token: `release-evidence-pack` → feature `release-pack`, capability
+   `evidence`. See `docs/plans/rename-plan-2026-05-12.md`.
+3. Compounds MUST NOT cross the role boundary: `oya-foundry-data-class-fitness-kernel`
+   parses as feature=`data-class-fitness` (3 tokens) + role=`kernel`,
+   exceeding the feature-token cap; rename per the plan.
+
+### 6.1 The `tooling` exemption
+
+The `tooling` context covers dev-time-only binaries with no library
+surface published outside the workspace. The exemption is narrow:
+
+- A `tooling` crate MAY ship ONLY a `[[bin]]`.
+- A `tooling` crate MAY use feature=`cli` or feature=`agent` etc. without
+  the compound-feature ADR requirement, because the audience is internal
+  and the surface is non-load-bearing.
+- A `tooling` crate that produces a multi-binary distribution (e.g.
+  `oya-tooling-cli-dev-runtime` ships two bins) MUST use `role = runtime`
+  with a feature describing the runtime kind.
+
+## 7. Cargo.toml requirements (per crate)
+
+Every workspace member's `Cargo.toml` MUST include:
+
+```toml
+[package]
+name             = "oya-<context>-<feature>-<role>[-<capability>]"
+edition          .workspace = true
+version          .workspace = true
+rust-version     .workspace = true
+license          = "Apache-2.0"
+publish          = false                    # unless role = sdk
+
+[lib]                                       # for non-bin-only crates
+name = "oya_<context>_<feature>_<role>[_<capability>]"   # underscored
+path = "src/lib.rs"
+doctest = false                              # unless explicitly opted in
+
+[lints]
+workspace = true                             # MANDATORY per workspace lints inheritance
+
+[package.metadata.oya]
+context     = "<context>"                   # MUST match name
+role        = "<role>"                      # MUST match name
+feature     = "<feature>"                   # MUST match name
+capability  = "<capability>" | ""           # "" when none
+layer       = <ADR-0015 layer enum>         # for cross-check with role
+audit_chain = <bool>                        # true if crate emits to audit-chain
+```
+
+The `[package.metadata.oya]` block is the machine-readable inventory. The
+lane parses it, cross-checks against the package name, and refuses any
+mismatch.
+
+### 7.1 Workspace-level registry
+
+`Cargo.toml` (workspace root) MUST grow a `[workspace.metadata.oya]`
+block that pins the closed enums:
+
+```toml
+[workspace.metadata.oya]
+contexts = ["cloud", "foundation", "foundry", "platform", "tooling", "workspace"]
+roles    = ["kernel", "domain", "app", "api", "worker", "adapter",
+            "runtime", "cli", "sdk"]
+compound_features = [
+  "audit-chain", "policy-cedar", "object-graph",
+  "regional-pack", "regulatory-pack",
+  "compute-vm", "compute-k8s", "compute-functions",
+  "storage-object", "storage-block",
+  "network-vpc", "network-dns", "network-lb",
+  "billing-tax", "address-book", "document-format",
+  "trust-portal", "collab-runtime", "agent-read",
+  "api-semver", "cargo-prefix", "cli-dev",
+]
+```
+
+Adding to any list REQUIRES an ADR cite in the workspace `CHANGELOG`.
+
+## 8. Reserved suffixes (fixtures, not crates)
+
+Fixture and test-support artifacts MUST be carried as either (a) `dev-dependencies`
+inside the crate they support, or (b) integration-test directories
+(`tests/`, `benches/`, `examples/`) inside the same crate. Standalone
+fixture crates MUST use one of these terminal suffixes:
+
+| Suffix | Use | Cargo placement |
+|---|---|---|
+| `-test` | shared test harness crate | `[dev-dependencies]` only |
+| `-bench` | benchmark harness crate | `[dev-dependencies]` only |
+| `-example` | example crate | `[[example]]` target on a host crate, preferred over a standalone crate |
+| `-integration` | cross-crate integration-test scaffolding | `[dev-dependencies]` only |
+
+Fixture crates MUST NOT appear in any production binary's dependency tree.
+The lane fails the workspace if a fixture suffix appears as a normal
+`[dependencies]` entry.
+
+## 9. Hyperscaler practice mapping
+
+| Practice | Source | Oyatie equivalent |
+|---|---|---|
+| `aws-sdk-<service>` strict three-segment grammar | [AWS SDK for Rust](https://github.com/awslabs/aws-sdk-rust) | The BNF in §2 (analogous three-segment core, with `feature` + optional `capability` extension) |
+| `aws-smithy-<role>` for framework-internal crates | [aws-smithy-runtime](https://crates.io/crates/aws-smithy-runtime) | The `foundry` context (engineering-platform crates) |
+| `azure_<service>`, one crate per service | [Azure SDK Rust Guidelines](https://azure.github.io/azure-sdk/rust_introduction.html) | The `cloud` context's sub-features (`compute-vm`, `storage-object`, …) |
+| `google-cloud-<service>` | [Google Cloud Rust](https://github.com/googleapis/google-cloud-rust) | The `cloud` context root-feature naming |
+| `cargo-deny` `bans` for crate-name policy | [cargo-deny — bans](https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html) | Lane mechanism in `.omc/fitness-lanes/naming-convention.md` |
+| `cargo-semver-checks` on every crate | [cargo-semver-checks](https://crates.io/crates/cargo-semver-checks) | Already in `code-style-rust.md` §8; complements naming lane |
+| Rust API Guidelines — Naming | [API Guidelines](https://rust-lang.github.io/api-guidelines/naming.html) | §10 in-crate identifier rules below |
+
+## 10. In-crate identifier hygiene
+
+Inside a crate, the standard tracks the
+[Rust API Guidelines — Naming](https://rust-lang.github.io/api-guidelines/naming.html):
+
+- Modules: `snake_case`, file-per-module (no `mod.rs`); enforced by
+  `clippy::mod_module_files = deny` (already in `code-style-rust.md` §2.1).
+- Types: `PascalCase`. Traits: noun phrases (`Provider`, `EventEmitter`),
+  not `-able` adjectives.
+- Functions / methods: `snake_case`, verb-first.
+- Constants / statics: `SCREAMING_SNAKE_CASE`.
+- Generic params: single capital (`T`, `E`, `R`) or descriptive PascalCase
+  when ≥ 2 generics are in scope.
+- Crate-root re-exports: `pub use` only the public surface; everything
+  else is `pub(crate)`. Enforced by `unreachable_pub = warn` in `code-style-rust.md`.
+
+## 11. Anti-patterns
+
+1. **Adapter without capability tail.** A crate named `oya-*-adapter` is
+   ambiguous (which provider?). Always include the capability tail:
+   `-adapter-file`, `-adapter-tracing`, `-adapter-postgres`.
+2. **Kernel with capability tail.** A kernel is by definition
+   capability-agnostic; if the kernel needs a capability tail, it isn't a
+   kernel — it's an adapter or an app.
+3. **Headless adapter** (e.g. `oya-foundry-evidence-file`). The role token
+   is missing; readers cannot tell whether the crate is a kernel with a
+   file-format feature or an adapter binding evidence to a file backend.
+4. **Compound feature without ADR.** Adding a fourth-token feature
+   (`release-evidence-pack-kernel`, six segments total) bypasses the
+   compound registry; the lane flags it RED.
+5. **Crate name ≠ directory name.** Cargo allows it; the lane refuses it.
+6. **Bin-only crate using `role = kernel`.** Kernels have no I/O. A
+   bin-only crate is `cli` or `runtime`.
+7. **Cross-context renames absent ADR.** Moving `oya-platform-X-kernel` to
+   `oya-foundry-X-kernel` changes the data-class boundary and the
+   audit-chain emission; an ADR is REQUIRED.
+
+## 12. Sources scanned
+
+- [`docs/research/hyperscaler-best-practices-2026-05-12.md`](../research/hyperscaler-best-practices-2026-05-12.md)
+- [`docs/research/lts-versions-verified-2026-05-12.md`](../research/lts-versions-verified-2026-05-12.md)
+- [`docs/standards/code-style-rust.md`](code-style-rust.md)
+- [`docs/standards/doc-style.md`](doc-style.md)
+- [Rust API Guidelines — Naming](https://rust-lang.github.io/api-guidelines/naming.html)
+- [Cargo Book — Workspaces](https://doc.rust-lang.org/cargo/reference/workspaces.html)
+- [Cargo Book — Manifest](https://doc.rust-lang.org/cargo/reference/manifest.html)
+- [cargo-deny — Bans](https://embarkstudios.github.io/cargo-deny/checks/bans/cfg.html)
+- [cargo-semver-checks](https://crates.io/crates/cargo-semver-checks)
+- [cargo-public-api](https://github.com/cargo-public-api/cargo-public-api)
+- [AWS SDK for Rust](https://github.com/awslabs/aws-sdk-rust)
+- [aws-smithy-rs](https://github.com/smithy-lang/smithy-rs)
+- [Azure SDK for Rust](https://github.com/Azure/azure-sdk-for-rust)
+- [Azure SDK Rust Guidelines](https://azure.github.io/azure-sdk/rust_introduction.html)
+- [Google Cloud Rust](https://github.com/googleapis/google-cloud-rust)
+- [Firecracker](https://firecracker-microvm.github.io/) (AWS workspace structure precedent)
+- [Hyperlight](https://opensource.microsoft.com/blog/2024/11/07/introducing-hyperlight-virtual-machine-based-security-for-functions-at-scale/) (Microsoft workspace structure precedent)
+- ADR-0015 (flat crates), ADR-0017 (`oya-` prefix), ADR-0053, ADR-0054.
