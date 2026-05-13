@@ -50,6 +50,9 @@ Before (P20 state — all lanes in report-only mode):
 - name: shardability-check
   run: cargo run -p oya-check-shardability -- --migrations-dir migrations/ --report-only
 
+- name: doc-coverage-check                         # LEAN-A5; ADR-0063
+  run: cargo run -p oya-check-doc-coverage -- --workspace --report-only
+
 - name: architecture-dependency-direction
   run: cargo run -p oya-check-architecture -- dependency-direction --workspace --report-only
 
@@ -71,6 +74,12 @@ Before (P20 state — all lanes in report-only mode):
 - name: architecture-sdk-kernel-only
   run: cargo run -p oya-check-architecture -- sdk-kernel-only --workspace --report-only
 
+- name: architecture-canonical-base-neutrality     # ADR-0064 §8
+  run: cargo run -p oya-check-architecture -- canonical-base-neutrality --workspace --report-only
+
+- name: architecture-cross-pack-refusal            # ADR-0064 §7
+  run: cargo run -p oya-check-architecture -- cross-pack-refusal --workspace --report-only
+
 - name: perf-budget-check
   run: cargo run -p oya-check-perf-budget -- --workspace --report-only
 
@@ -85,6 +94,9 @@ After (P22 state — BLOCKER):
 
 - name: shardability-check
   run: cargo run -p oya-check-shardability -- --migrations-dir migrations/
+
+- name: doc-coverage-check                         # LEAN-A5; ADR-0063; --blocker required because the CLI exits 1 only with --blocker
+  run: cargo run -p oya-check-doc-coverage -- --workspace --blocker
 
 - name: architecture-dependency-direction
   run: cargo run -p oya-check-architecture -- dependency-direction --workspace
@@ -107,6 +119,12 @@ After (P22 state — BLOCKER):
 - name: architecture-sdk-kernel-only
   run: cargo run -p oya-check-architecture -- sdk-kernel-only --workspace
 
+- name: architecture-canonical-base-neutrality     # ADR-0064 §8 — BLOCKER
+  run: cargo run -p oya-check-architecture -- canonical-base-neutrality --workspace
+
+- name: architecture-cross-pack-refusal            # ADR-0064 §7 — BLOCKER
+  run: cargo run -p oya-check-architecture -- cross-pack-refusal --workspace
+
 - name: perf-budget-check
   run: cargo run -p oya-check-perf-budget -- --workspace
 
@@ -115,7 +133,11 @@ After (P22 state — BLOCKER):
 ```
 
 The remaining 3 standard lanes (`cargo-check`, `cargo-nextest`, `cargo-deny`) are
-already BLOCKER from P20 and require no change.
+already BLOCKER from P20 and require no change. doc-coverage uses explicit
+`--blocker` flag because the CLI exits 1 only when `--blocker` is set
+(`crates/oya-check-doc-coverage/src/main.rs:38`); removing `--report-only`
+alone leaves it permissive. canonical-base-neutrality + cross-pack-refusal
+are added per ADR-0064 §7 §8 enforcement.
 
 ### `docs/architecture/m02-exit-checklist.md` (full content)
 

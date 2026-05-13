@@ -188,6 +188,10 @@ crates/oya-check-shardability/src/main.rs::main
 crates/oya-check-perf-budget/src/main.rs::main
 crates/oya-check-benchmark/src/main.rs::main
 crates/oya-check-architecture/src/main.rs::main
+crates/oya-check-doc-coverage/src/main.rs::main
+crates/oya-check-doc-coverage/src/algorithm.rs::run
+crates/oya-check-doc-coverage/src/manifest.rs::read_pack_catalog
+crates/oya-check-doc-coverage/src/registry.rs::read_workspace_microservices
 .github/workflows/ci-fitness-lanes.yml::fitness-lanes-job
 ```
 
