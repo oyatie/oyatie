@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P08-kms
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; P06-secrets merged (OpenBao adapter available; KMS depends
   on Secrets for key material storage references); oya-tenancy-kernel ships;

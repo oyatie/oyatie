@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P11-finance-library
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; cargo check --workspace exits 0. Finance library has NO
   Postgres dependency — it is a pure computation crate; no other substrate

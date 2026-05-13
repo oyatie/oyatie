@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M03-first-paying-tenant
 phase: P04-connect-pro-mail
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02-substrate-schema-foundation complete (oya-ontology-entity-kernel + oya-workflow-engine-kernel ship);
   oya-kms-kernel ships (tenant DEK envelope encryption per ADR-0111);

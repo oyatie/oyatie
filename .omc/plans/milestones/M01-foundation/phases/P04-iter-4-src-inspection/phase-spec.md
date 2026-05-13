@@ -3,7 +3,8 @@ doc_class: PhaseSpec
 template_id: TPL-PHASE-SPEC
 milestone: M01-foundation
 phase: P04-iter-4-src-inspection
-status: Proposed
+status: Complete
+acceptance_lanes: []
 entry_gate: |
   P02-shard-1-atomic-rename complete; workspace compiles clean; all 114 renamed
   crates present on disk. The 88 STUB-pending-iter-4-src-inspection cells in

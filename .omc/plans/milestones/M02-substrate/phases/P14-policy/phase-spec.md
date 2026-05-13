@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P14-policy
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02/P03-identity complete; oya-identity-kernel ships with User, Person, Organization,
   Employee types + sealed port traits; cargo check clean; grit done on all P03 symbols;

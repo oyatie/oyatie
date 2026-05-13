@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P19-application
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02/P02-ontology complete; M02/P12-workflow-engine complete; M02/P03-identity
   complete; M02/P13-tenancy complete (TenantProductRegistry live); M02/P14-policy

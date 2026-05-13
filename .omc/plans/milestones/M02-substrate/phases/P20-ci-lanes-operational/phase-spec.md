@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P20-ci-lanes-operational
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   Wave-A phases P01–P11 all complete; at least Wave-B phases P12–P14 complete (enough
   substrate exists to run meaningful statelessness + shardability checks); oya-check-*

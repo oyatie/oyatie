@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P13-tenancy
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02/P03-identity complete; oya-identity-kernel ships with UserStore, PersonStore,
   OrganizationStore, EmployeeStore, SessionStore, AuthChallenger port traits; cargo

@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P17-capability-registry
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02/P14-policy complete; oya-policy-engine-kernel ships with PolicyEvaluator port;
   Cedar engine live; cargo check clean; grit done on all P14 symbols; ICM phase-handoff

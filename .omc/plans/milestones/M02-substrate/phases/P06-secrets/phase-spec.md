@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P06-secrets
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; oya-tenancy-kernel ships; OpenBao reachable in dev
   (docker: openbao/openbao); cargo check exits 0.

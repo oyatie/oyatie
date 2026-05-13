@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M01-foundation
 phase: P01-bnf-v4-adrs-finalized
 status: Complete
+acceptance_lanes: []
 entry_gate: |
   None (first phase of M01). Pre-condition: workspace exists at main HEAD
   with v3 crate names and Shard 0 tooling (xtask-metadata-augment + 4 LEAN

@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M03-first-paying-tenant
 phase: P03-accounting
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M03/P02-payroll complete; PayrollRunCompleted Workflow event registered;
   PayrollEntry Object Type registered in Ontology;

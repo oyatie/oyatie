@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P16-records
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02/P02-ontology complete; oya-ontology-kernel ships with ObjectStore + ActionStore
   port traits; cargo check clean; grit done on all P02 symbols; ICM phase-handoff emitted.

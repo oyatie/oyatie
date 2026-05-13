@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P21-architecture-planes-green
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   All Wave-A (P01–P11) and Wave-B (P12–P16) and Wave-C (P17–P19) phases complete;
   P20-ci-lanes-operational complete (all 14 fitness lane binaries operational in

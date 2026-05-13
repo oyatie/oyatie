@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M03-first-paying-tenant
 phase: P08-kr-acceptance-evidence
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M03/P06-application-b2b-live complete (B2B shell live; all µservices enabled);
   M03/P07-workflow-studio-editor complete (Studio live; 10 domain templates loaded);

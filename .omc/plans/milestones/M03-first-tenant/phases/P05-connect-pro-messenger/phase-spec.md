@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M03-first-paying-tenant
 phase: P05-connect-pro-messenger
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M03/P04-connect-pro-mail complete; oya-connect-app binary ships;
   oya-connect-mail-kernel + oya-connect-legal-hold-kernel crates exist;

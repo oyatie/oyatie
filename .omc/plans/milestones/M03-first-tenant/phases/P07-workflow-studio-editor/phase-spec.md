@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M03-first-paying-tenant
 phase: P07-workflow-studio-editor
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02-substrate-schema-foundation complete; oya-workflow-engine-kernel + oya-workflow-engine-domain ship (M02/P12);
   oya-workflow-approvals-kernel ships; oya-workflow-sla-domain ships;
