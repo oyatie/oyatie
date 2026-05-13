@@ -431,6 +431,15 @@ lanes:
     source: ADR-0063
     runtime_budget_seconds: 600
     check_command: cargo run -p oya-check-documentation -- --workspace --report-only
+  - id: lean-a10-no-silent-regression
+    stage: per-pr
+    status: planned     # crate oya-check-no-silent-regression authored in M02-P21 IP-005; lane BLOCKER day 1 once operational
+    severity: BLOCKER
+    owner_team: council-architecture
+    purpose: catch attempted silent regressions of public contracts (manifest.json schema bump without ADR; Cedar policy widening; Protobuf field reuse; fitness lane severity downgrade; µservice removal without retirement ADR; doc frontmatter schema downgrade; event topic schema regression); per feedback_no_silent_regression.md (Linus-style)
+    source: ADR-0067 §5.5
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-check-no-silent-regression -- --workspace --blocker   # planned (M02-P21 scope; crate not yet a workspace member)
   # New quality lanes (report-only; flip to BLOCKER in M02)
   - id: quality-statelessness
     stage: per-pr
