@@ -1,0 +1,11 @@
+[package]
+name = "oya-check-benchmark"
+version.workspace = true
+edition.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_check_benchmark"
+path = "src/lib.rs"
+doctest = false
