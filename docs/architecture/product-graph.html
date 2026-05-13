@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Oyatie Architecture Dashboard</title>
+<script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<script src="https://unpkg.com/cytoscape-fcose@2.2.0/cytoscape-fcose.js"></script>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #1a1d24;
+    --border: #2a2f3a;
+    --text: #d8dde5;
+    --muted: #8a93a3;
+    --accent: #4dabf7;
+    --green: #4ade80;
+    --yellow: #facc15;
+    --red: #f87171;
+    --orange: #fb923c;
+    --purple: #c084fc;
+    --blue: #60a5fa;
+    --pink: #f472b6;
+    --teal: #2dd4bf;
+    --gray: #94a3b8;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    display: grid;
+    grid-template-columns: 280px 1fr 360px;
+    grid-template-rows: 56px 1fr;
+    grid-template-areas:
+      "header header header"
+      "filters graph detail";
+  }
+  header {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  header .stats {
+    color: var(--muted);
+    font-size: 11px;
+    font-family: ui-monospace, SFMono-Regular, monospace;
+  }
+  aside {
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 14px;
+  }
+  aside#filters { grid-area: filters; }
+  aside#detail {
+    grid-area: detail;
+    border-right: 0;
+    border-left: 1px solid var(--border);
+  }
+  main#cy {
+    grid-area: graph;
+    background: var(--bg);
+    height: 100%;
+  }
+  .section { margin-bottom: 18px; }
+  .section h2 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--muted);
+    margin: 0 0 8px 0;
+  }
+  label.chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    background: #232832;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+  }
+  label.chip:hover { background: #2a3140; }
+  label.chip input { margin: 0; }
+  label.chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    display: inline-block;
+  }
+  label.chip .count {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 11px;
+    font-family: ui-monospace, monospace;
+  }
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .legend-line {
+    display: inline-block;
+    width: 24px;
+    height: 2px;
+  }
+  .detail-empty {
+    color: var(--muted);
+    font-style: italic;
+    text-align: center;
+    padding: 40px 8px;
+    font-size: 12px;
+  }
+  .detail-node h3 {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .detail-node .pill {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 4px;
+    margin-bottom: 8px;
+  }
+  .detail-node h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    margin: 14px 0 4px 0;
+  }
+  .detail-node .field {
+    padding: 4px 0;
+    border-top: 1px solid var(--border);
+  }
+  .detail-node .field:first-of-type { border-top: 0; }
+  .detail-node code {
+    background: #232832;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+  }
+  .detail-node ul { margin: 4px 0 0 0; padding-left: 16px; }
+  .detail-node li { margin-bottom: 2px; font-size: 11px; }
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  select, input[type=search] {
+    width: 100%;
+    background: #232832;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-family: inherit;
+  }
+  button.action {
+    background: var(--accent);
+    color: var(--bg);
+    border: 0;
+    border-radius: 4px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.action:hover { filter: brightness(1.1); }
+  /* status pills */
+  .pill.s-shipped     { background: #14532d; color: var(--green); }
+  .pill.s-active      { background: #14532d; color: var(--green); }
+  .pill.s-planned     { background: #422006; color: var(--orange); }
+  .pill.s-future      { background: #1e293b; color: var(--gray); }
+  .pill.s-internal    { background: #4a044e; color: var(--purple); }
+  .pill.s-substrate   { background: #1e3a5f; color: var(--blue); }
+  .pill.s-adapter     { background: #422006; color: var(--yellow); }
+  .pill.s-cloud       { background: #0c3a3c; color: var(--teal); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Oyatie Architecture Dashboard <span style="color: var(--muted); font-weight: normal;">— M01-M12+ horizon</span></h1>
+  <span class="stats" id="stats">loading…</span>
+</header>
+
+<aside id="filters">
+  <div class="section">
+    <h2>Search</h2>
+    <input id="search" type="search" placeholder="filter by name…" />
+  </div>
+
+  <div class="section">
+    <h2>Status</h2>
+    <div id="status-filters"></div>
+  </div>
+
+  <div class="section">
+    <h2>Cluster</h2>
+    <div id="cluster-filters"></div>
+  </div>
+
+  <div class="section">
+    <h2>Lead milestone</h2>
+    <select id="milestone-filter">
+      <option value="">all</option>
+    </select>
+  </div>
+
+  <div class="section">
+    <h2>Edges (adapter rule)</h2>
+    <div class="legend-row"><span class="legend-line" style="background: var(--yellow);"></span> Workflow orchestrates</div>
+    <div class="legend-row"><span class="legend-line" style="background: var(--blue);"></span> Substrate call</div>
+    <div class="legend-row"><span class="legend-line" style="background: var(--orange); border: 1px dashed var(--orange);"></span> KR pack overlay</div>
+    <div class="legend-row"><span class="legend-line" style="background: var(--purple);"></span> Cloud runtime</div>
+  </div>
+
+  <div class="section">
+    <button class="action" onclick="resetView()">reset view</button>
+    <button class="action" onclick="relayout()" style="margin-left: 4px;">relayout</button>
+  </div>
+
+  <div class="section" style="font-size: 11px; color: var(--muted); line-height: 1.5;">
+    Sources: <code>docs/MASTERPLAN.md</code>,
+    <code>docs/DOC-COVERAGE.md</code>,
+    <code>localization-packs/kr/pack.yaml</code>,
+    <code>Cargo.toml</code> workspace metadata.<br/>
+    Re-emit this file via <code>oya doc graph emit</code> (M02-P20 scope).
+  </div>
+</aside>
+
+<main id="cy"></main>
+
+<aside id="detail">
+  <div class="detail-empty">Click a node to see µservice detail.</div>
+</aside>
+
+<script>
+// ---------- Data ----------
+// Source: docs/MASTERPLAN.md §2.1 catalog + Cargo.toml workspace metadata + kr/pack.yaml
+// status: shipped | active | planned | future | internal | substrate | adapter | cloud
+const microservices = [
+  // Foundry (internal-only)
+  { id: 'foundry', cluster: 'foundry', status: 'internal',
+    lead: 'M01-M02', registered: true,
+    desc: 'Internal engineering engine. grit + icm + oya-tooling-agent-read + 5 LEAN check binaries + 9 architecture sub-cmds + Proof Ladder L0..L7 + 9 architecture planes + Wave integration framework.',
+    bcs: ['engine-evidence','engine-eval','engine-mcp-gateway','engine-run','engine-step','engine-catalog','engine-cargo-prefix','engine-corpus','engine-adapter','engine-capability','engine-bypass','engine-mdbook','engine-openapi'],
+    kr_pack: null,
+    perf: 'grit claim ≤50ms; grit done ≤5s; oya-check-* ≤300s (workspace ~140 crates)',
+    bench: 'rtk-ai/grit | AWS Bedrock Guardrails | Bazel | ArchUnit | OPA' },
+
+  // Application (B2B shell)
+  { id: 'application', cluster: 'application', status: 'planned',
+    lead: 'M02-P19', registered: true,
+    desc: 'B2B unified shell. OIDC/SAML SSO, product-enablement console, Leptos SSR/SPA, ≤5-min tenant onboarding.',
+    bcs: ['tenant-shell','sso-configuration','product-enablement','tenant-user','session','shell-audit-log'],
+    kr_pack: { material_scope: true, lead: 'M03' },
+    perf: 'shell-frame p99 ≤100ms @ 10k sessions; tenant onboarding ≤5min',
+    bench: 'AWS Console | Microsoft 365 admin | Workday tenant admin' },
+
+  // Adapter plane (Workflow + Ontology)
+  { id: 'workflow', cluster: 'adapter', status: 'adapter',
+    lead: 'M02-P12', registered: true,
+    desc: 'n8n-class hero product. Cross-µservice action/orchestration adapter (per ADR-0059). Visual editor + durable execution (Temporal-parity) + 10 KR domain templates + agentic LLM nodes.',
+    bcs: ['studio','engine','transitions','approvals','sla','automations','triggers','integrations'],
+    kr_pack: { material_scope: true, lead: 'M03' },
+    perf: 'visual editor first-paint ≤500ms; node-drop ≤16ms (60fps); 10k+ concurrent workflows per cell; sub-second event-to-action',
+    bench: 'n8n | Zapier | Make | Workato | Temporal | Camunda | Airflow | GitHub Actions | Linear Workflow | Slack Builder | ServiceNow Flow | Power Automate | Salesforce Flow' },
+  { id: 'ontology', cluster: 'adapter', status: 'adapter',
+    lead: 'M02-P02', registered: true,
+    desc: 'Cross-µservice information adapter (Palantir Ontology equivalent). Object Types + Link Types + Action Types + Functions + Agent Gateway + Audit Chain + Pillar (Org/Person).',
+    bcs: ['entity','link','action','function','agent-gateway','audit-chain','pillar'],
+    kr_pack: null,
+    perf: 'p99 read ≤50ms (Ontology Functions); p99 write ≤200ms (Action Types); 10k+ RPS per cell',
+    bench: 'Palantir Foundry Ontology | Salesforce Data Cloud' },
+
+  // Substrate µservices
+  { id: 'tenancy', cluster: 'substrate', status: 'substrate', lead: 'M02-P13', registered: true,
+    desc: 'Tenant lifecycle, RLS partition key, customer×domain isolation (Bominal ADR-0018).',
+    bcs: ['tenant','onboarding','isolation-policy'], kr_pack: null,
+    perf: 'tenant onboarding ≤5min self-serve (Bominal ADR-0118)' },
+  { id: 'identity', cluster: 'substrate', status: 'substrate', lead: 'M02-P03', registered: true,
+    desc: 'User/Person/Session; OIDC + passkey (Bominal ADR-0123).',
+    bcs: ['user','person','session','oidc','passkey'], kr_pack: null,
+    perf: 'auth ≤100ms p99; passkey verify ≤50ms' },
+  { id: 'audit-chain', cluster: 'substrate', status: 'substrate', lead: 'M02-P04', registered: true,
+    desc: 'Merkle-sealed Ed25519 segments per (tenant_id, period); Bominal ADR-0028.',
+    bcs: ['segment','event','merkle-root','ed25519-signer','mldsa87-signer'], kr_pack: null,
+    perf: 'segment-seal <1s per (tenant, period); 0% tamper tolerance' },
+  { id: 'eventing', cluster: 'substrate', status: 'substrate', lead: 'M02-P05', registered: true,
+    desc: 'Outbox → Kafka KRaft; Bominal ADR-0116.',
+    bcs: ['outbox','publisher','topic-registry','consumer-group'], kr_pack: null,
+    perf: 'sub-second outbox → consumer; 100k+ events/sec per cell' },
+  { id: 'secrets', cluster: 'substrate', status: 'substrate', lead: 'M02-P06', registered: true,
+    desc: 'OpenBao + HSM per-cell (Bominal ADR-0111; user instruction: local OpenBao default for Foundry Phase 00).',
+    bcs: ['secret-reference','rotation','envelope'], kr_pack: null,
+    perf: 'lookup ≤10ms p99; rotation atomic' },
+  { id: 'observability', cluster: 'substrate', status: 'substrate', lead: 'M02-P07', registered: true,
+    desc: 'OpenTelemetry + VictoriaMetrics; structured JSON logs; p50/p99/p999 histograms.',
+    bcs: ['otel-collector','metric','log','trace'], kr_pack: null,
+    perf: 'trace overhead <1% throughput; metric scrape 15s default' },
+  { id: 'kms', cluster: 'substrate', status: 'planned', lead: 'M02-P08', registered: true,
+    desc: 'KMS envelope encryption + per-cell HSM (Bominal ADR-0111).',
+    bcs: ['envelope','rotation','tenant-dek'], kr_pack: null,
+    perf: 'envelope encrypt ≤10ms; rotation atomic per tenant' },
+  { id: 'policy', cluster: 'substrate', status: 'substrate', lead: 'M02-P14', registered: true,
+    desc: 'Cedar engine + per-tenant rule packs (Bominal ADR-0132).',
+    bcs: ['cedar-engine','rule-pack','pillar-isolation'], kr_pack: { material_scope: false, lead: 'M03' },
+    perf: 'authz eval ≤50ms p99' },
+  { id: 'search', cluster: 'substrate', status: 'planned', lead: 'M02-P09', registered: true,
+    desc: 'pgroonga (KR morphology Mecab-ko/Khaiii) + Tantivy (English).',
+    bcs: ['pgroonga-index','tantivy-index','morphology-analyzer','query'], kr_pack: { material_scope: true, lead: 'M03' },
+    perf: 'p99 ≤50ms top-10 (60/40 pgroonga/Tantivy split)' },
+  { id: 'vector', cluster: 'substrate', status: 'planned', lead: 'M02-P10', registered: true,
+    desc: 'pgvector HNSW; per-tenant per-object-type embedding tables.',
+    bcs: ['embeddings','similarity'], kr_pack: null,
+    perf: 'p99 ≤200ms top-10 cosine (1536-dim, 1M rows/tenant)' },
+  { id: 'data-boundary', cluster: 'substrate', status: 'substrate', lead: 'M02-P15', registered: true,
+    desc: 'Data-Use Boundary enforcement; DSR cascade engine.',
+    bcs: ['boundary','dsr','cascade-engine'], kr_pack: { material_scope: false, lead: 'M03' } },
+  { id: 'finance-library', cluster: 'substrate', status: 'planned', lead: 'M02-P11', registered: true,
+    desc: 'Pure Rust: Money/CurrencyCode/JournalEntry + PV/FV/NPV/IRR/XIRR/WACC + depreciation/amortization. Zero I/O deps.',
+    bcs: ['money','journal','time-value','depreciation','amortization'], kr_pack: null,
+    perf: '0 floating-point money; Excel round-trip ±$0.01 tolerance' },
+  { id: 'capability-registry', cluster: 'substrate', status: 'planned', lead: 'M02-P17', registered: true,
+    desc: 'Agent autonomy-ceiling + capability tokens (Bominal ADR-0107).',
+    bcs: ['capability','autonomy-ceiling','token-mint'], kr_pack: null,
+    perf: 'ceiling validation ≤50ms; token mint ≤100ms' },
+  { id: 'records', cluster: 'substrate', status: 'planned', lead: 'M02-P16', registered: true,
+    desc: 'FHIR R5-canonical records substrate. Healthcare-pack adapters per ADR-0064 §1.5.',
+    bcs: ['fhir-r5-entity','provenance','provenance-link'], kr_pack: { material_scope: true, lead: 'M04' } },
+  { id: 'ads', cluster: 'substrate', status: 'future', lead: 'M12+',
+    desc: 'Ads substrate (Personal context only; opt-in; never on org-pillar data).' },
+  { id: 'analytics', cluster: 'substrate', status: 'future', lead: 'M12+',
+    desc: 'Cross-µservice analytics; ClickHouse-backed; tenant-scoped.' },
+
+  // Workforce cluster
+  { id: 'hr', cluster: 'workforce', status: 'planned', lead: 'M03-P01', registered: true,
+    desc: 'Employee/Employment/Organization. ADR-0125 naming canon; ADR-0126 8-class enum.',
+    bcs: ['employee','employment','organization','offboarding'],
+    kr_pack: { material_scope: true, lead: 'M03', bindings: ['4대보험 취득/상실','근로계약서','근로기준법'] },
+    perf: 'read p99 ≤50ms; write p99 ≤150ms; bulk 10k ≤60s',
+    bench: '더존비즈온 | ADP | Workday | SAP SuccessFactors' },
+  { id: 'payroll', cluster: 'workforce', status: 'planned', lead: 'M03-P02', registered: true,
+    desc: 'Gross-to-net engine; statutory-rate seam; disbursement port.',
+    bcs: ['run','insurance','year-end','payslip','disbursement'],
+    kr_pack: { material_scope: true, lead: 'M03', bindings: ['NPS/NHIS/고용/산재 EDI v5.0','연말정산 21-category','간이세액표','bank CMS/NEMS'] },
+    perf: 'payroll-run 3k ≤30s wall; payslip read p99 ≤50ms',
+    bench: '더존 iCUBE | ADP | Workday Payroll' },
+  { id: 'accounting', cluster: 'workforce', status: 'planned', lead: 'M03-P03', registered: true,
+    desc: 'Double-entry journal kernel; period close; chart-of-accounts seam.',
+    bcs: ['account','fiscal-period','journal-entry','journal-line'],
+    kr_pack: { material_scope: true, lead: 'M03', bindings: ['K-GAAP COA','재무상태표','손익계산서','현금흐름표','자본변동표 Typst'] },
+    bench: '더존 iCUBE | NetSuite | Xero' },
+  { id: 'ats', cluster: 'workforce', status: 'future', lead: 'M08-P01',
+    desc: 'Applicant funnel: candidate → interview → offer → onboarding handoff.',
+    bench: 'Greenhouse | Lever | Workday ATS' },
+  { id: 'grc', cluster: 'workforce', status: 'future', lead: 'M08-P02',
+    desc: 'Controls library + recurring audit cycle (SOC2/ISO27001 templates).',
+    bench: 'Vanta | Drata | Tugboat Logic' },
+  { id: 'performance', cluster: 'workforce', status: 'future', lead: 'M08-P03',
+    desc: 'OKR / 360 / calibration cycle.',
+    bench: 'Lattice | 15Five | Workday Performance' },
+  { id: 'workforce-analytics', cluster: 'workforce', status: 'future', lead: 'M08-P04',
+    desc: 'Attrition / engagement / comp-spend; ClickHouse-backed.',
+    bench: 'Visier | Workday Prism' },
+
+  // Healthcare cluster
+  { id: 'medical', cluster: 'healthcare', status: 'future', lead: 'M04-P01', registered: true,
+    desc: 'Encounter / Practitioner / Organization (FHIR R5 in `records` substrate).',
+    bcs: ['encounter','practitioner','organization','observation'],
+    kr_pack: { material_scope: true, lead: 'M04', bindings: ['HIRA DUR','NHIS 청구','KHIRA','의료법','EMR cross-walk 더존/유비케어/비트컴퓨터'] },
+    bench: '유비케어 | 비트컴퓨터 | Epic | Cerner' },
+  { id: 'pharmacy', cluster: 'healthcare', status: 'future', lead: 'M04-P02',
+    desc: 'Prescription / Dispense / MedicationRequest.',
+    kr_pack: { material_scope: true, lead: 'M04', bindings: ['HIRA DUR realtime ≤200ms p99','KFDA recall/dispatch'] } },
+  { id: 'patient', cluster: 'healthcare', status: 'future', lead: 'M04-P04',
+    desc: 'B2C portal (separate from clinician surface).',
+    kr_pack: { material_scope: true, lead: 'M04', bindings: ['의료법 환자 권리','appointment booking','Connect Personal link'] } },
+  { id: 'emergency', cluster: 'healthcare', status: 'future', lead: 'M04-P05',
+    desc: 'Routing / Handoff / Dispatch.',
+    kr_pack: { material_scope: true, lead: 'M04', bindings: ['119 응급의료','응급의료법'] } },
+  { id: 'clinical', cluster: 'healthcare', status: 'future', lead: 'M04-P01',
+    desc: 'Workflow handoffs across encounter lifecycle.',
+    kr_pack: { material_scope: true, lead: 'M04' } },
+  { id: 'healthcare-portal', cluster: 'healthcare', status: 'future', lead: 'M04-P04',
+    desc: 'Provider-facing portal (cross-clinic ops).',
+    kr_pack: { material_scope: true, lead: 'M04' } },
+
+  // FinTech cluster
+  { id: 'payments', cluster: 'fintech', status: 'future', lead: 'M06-P01',
+    desc: 'Charge / Refund / Chargeback / Idempotency-key.',
+    kr_pack: { material_scope: true, lead: 'M06', bindings: ['간편결제 (토스/카카오/네이버/페이코)','카드사 매입 (KB/신한/현대/삼성/롯데/BC/하나)','전자금융업','PCI DSS L1'] },
+    bench: 'Stripe | 토스 | 카카오뱅크 | 케이뱅크' },
+  { id: 'insurance', cluster: 'fintech', status: 'future', lead: 'M06-P04',
+    desc: 'Policy / Claim / Underwriting.',
+    kr_pack: { material_scope: true, lead: 'M06', bindings: ['보험업법 손해/생명 분리'] } },
+  { id: 'finance-quant', cluster: 'fintech', status: 'future', lead: 'M06-P05',
+    desc: 'Pluggable quant lib (consumes `finance-library` substrate).' },
+  { id: 'settlement', cluster: 'fintech', status: 'future', lead: 'M06-P03',
+    desc: 'T+1 settlement / reconciliation / payout.',
+    kr_pack: { material_scope: true, lead: 'M06' } },
+
+  // Industrial cluster
+  { id: 'manufacturing', cluster: 'industrial', status: 'future', lead: 'M07-P01',
+    desc: 'MES integration; SOP execution; defect-routing.',
+    kr_pack: { material_scope: true, lead: 'M07', bindings: ['산업안전보건법','중대재해처벌법','화학물질관리법'] } },
+  { id: 'logistics', cluster: 'industrial', status: 'future', lead: 'M07-P02',
+    desc: 'TMS / WMS / last-mile / carrier integration.',
+    kr_pack: { material_scope: true, lead: 'M07', bindings: ['CJ대한통운/한진/롯데/우체국','화물자동차운수사업법','항만운송사업법'] } },
+  { id: 'facility-ops', cluster: 'industrial', status: 'future', lead: 'M07-P03',
+    desc: 'Shift handover / incident-IR.' },
+  { id: 'procurement', cluster: 'industrial', status: 'future', lead: 'M07-P04',
+    desc: 'Vendor onboarding / PO / Receipt.' },
+  { id: 'security', cluster: 'industrial', status: 'future', lead: 'M07-P05',
+    desc: 'Physical security + audit + access logs.' },
+
+  // Connect cluster
+  { id: 'connect', cluster: 'connect', status: 'planned', lead: 'M03-P04', registered: true,
+    desc: 'Mail + Messenger + Calendar + Drive + Docs + Meet + Tasks + Notes (dual-context Pro/Personal per ADR-0208).',
+    bcs: ['mail','messenger','calendar','drive','docs','sheets','slides','meet','tasks','notes','legal-hold','retention','ediscovery'],
+    kr_pack: { material_scope: true, lead: 'M03', bindings: ['메신저/메일 보관 의무 (ADR-0215 KR-mode)','legal-hold + eDiscovery'] },
+    perf: 'WS message delivery ≤200ms p99; 5k concurrent WS / cell',
+    bench: 'Slack | Gmail (Google Workspace) | Signal | Notion' },
+  { id: 'community', cluster: 'connect', status: 'future', lead: 'M05-P04',
+    desc: 'Public channels / forums (B2C).' },
+  { id: 'social-graph', cluster: 'connect', status: 'future', lead: 'M05-P04',
+    desc: 'Person↔Person relationships (Personal context).' },
+  { id: 'profile-personal', cluster: 'connect', status: 'future', lead: 'M05-P04',
+    desc: 'B2C profile + privacy controls.' },
+
+  // Hospitality cluster
+  { id: 'hospitality', cluster: 'hospitality', status: 'future', lead: 'M12+',
+    desc: 'Restaurant / hotel / leisure ops.' },
+  { id: 'dining', cluster: 'hospitality', status: 'future', lead: 'M12+',
+    desc: 'Reservation / table / menu / order.' },
+  { id: 'cellar', cluster: 'hospitality', status: 'future', lead: 'M12+',
+    desc: 'Beverage inventory + pairings.' },
+
+  // Cloud substrate
+  { id: 'cloud-tenancy', cluster: 'cloud', status: 'cloud', lead: 'M02-P18', registered: true,
+    desc: 'Runtime tenant lifecycle; cell binding; region pinning.' },
+  { id: 'cloud-iam', cluster: 'cloud', status: 'cloud', lead: 'M02-P18', registered: true,
+    desc: 'Runtime IAM (service-to-service).' },
+  { id: 'cloud-kms', cluster: 'cloud', status: 'cloud', lead: 'M02-P18', registered: true,
+    desc: 'Runtime KMS API (envelope encryption surface).' },
+  { id: 'cloud-compute', cluster: 'cloud', status: 'cloud', lead: 'M02-P18', registered: true,
+    desc: 'VM / K8s / Functions / Capacity.' },
+  { id: 'cloud-storage', cluster: 'cloud', status: 'cloud', lead: 'M02-P18', registered: true,
+    desc: 'Object / Block / File runtime API.' },
+  { id: 'cloud-network', cluster: 'cloud', status: 'cloud', lead: 'M02-P18', registered: true,
+    desc: 'VCN / LB / DNS runtime API.' },
+  { id: 'cloud-billing', cluster: 'cloud', status: 'cloud', lead: 'M02-P18', registered: true,
+    desc: 'Usage metering + tax + invoicing.' },
+  { id: 'cloud-cell', cluster: 'cloud', status: 'cloud', lead: 'M02-P18', registered: true,
+    desc: 'Per-cell isolation primitive (Bominal ADR-0009).' },
+  { id: 'cloud-region', cluster: 'cloud', status: 'cloud', lead: 'M02-P18',
+    desc: 'Region taxonomy.' },
+  { id: 'cloud-observability', cluster: 'cloud', status: 'cloud', lead: 'M02-P07 / M02-P18',
+    desc: 'Runtime obs (separate from substrate observability).' },
+];
+
+const edges = [
+  // Application enables AdapterLayer (workflow/ontology)
+  { source: 'application', target: 'workflow', kind: 'enables' },
+  { source: 'application', target: 'ontology', kind: 'enables' },
+
+  // Workflow orchestrates every customer-facing µservice
+  ...['hr','payroll','accounting','ats','grc','performance','workforce-analytics',
+      'medical','pharmacy','patient','emergency','clinical','healthcare-portal',
+      'payments','insurance','finance-quant','settlement',
+      'manufacturing','logistics','facility-ops','procurement','security',
+      'connect','community','social-graph','profile-personal',
+      'hospitality','dining','cellar']
+    .map(t => ({ source: 'workflow', target: t, kind: 'orchestrates' })),
+
+  // Ontology serves every customer-facing µservice (information plane)
+  ...['hr','payroll','accounting','ats','grc','performance','workforce-analytics',
+      'medical','pharmacy','patient','emergency','clinical','healthcare-portal',
+      'payments','insurance','finance-quant','settlement',
+      'manufacturing','logistics','facility-ops','procurement','security',
+      'connect','community','social-graph','profile-personal',
+      'hospitality','dining','cellar']
+    .map(t => ({ source: 'ontology', target: t, kind: 'serves' })),
+
+  // Customer-facing → substrate calls (sampled key dependencies)
+  { source: 'payroll', target: 'finance-library', kind: 'substrate' },
+  { source: 'accounting', target: 'finance-library', kind: 'substrate' },
+  { source: 'medical', target: 'records', kind: 'substrate' },
+  { source: 'pharmacy', target: 'records', kind: 'substrate' },
+  { source: 'patient', target: 'records', kind: 'substrate' },
+  { source: 'clinical', target: 'records', kind: 'substrate' },
+  { source: 'connect', target: 'records', kind: 'substrate' },
+  { source: 'finance-quant', target: 'finance-library', kind: 'substrate' },
+
+  // Workflow + Ontology call substrate
+  { source: 'workflow', target: 'eventing', kind: 'substrate' },
+  { source: 'workflow', target: 'audit-chain', kind: 'substrate' },
+  { source: 'workflow', target: 'policy', kind: 'substrate' },
+  { source: 'workflow', target: 'capability-registry', kind: 'substrate' },
+  { source: 'ontology', target: 'audit-chain', kind: 'substrate' },
+  { source: 'ontology', target: 'policy', kind: 'substrate' },
+  { source: 'ontology', target: 'search', kind: 'substrate' },
+  { source: 'ontology', target: 'vector', kind: 'substrate' },
+  { source: 'ontology', target: 'eventing', kind: 'substrate' },
+
+  // Application substrate dependencies
+  { source: 'application', target: 'identity', kind: 'substrate' },
+  { source: 'application', target: 'tenancy', kind: 'substrate' },
+  { source: 'application', target: 'policy', kind: 'substrate' },
+  { source: 'application', target: 'capability-registry', kind: 'substrate' },
+
+  // Substrate → cloud runtime
+  { source: 'audit-chain', target: 'cloud-storage', kind: 'cloud' },
+  { source: 'eventing', target: 'cloud-compute', kind: 'cloud' },
+  { source: 'secrets', target: 'cloud-kms', kind: 'cloud' },
+  { source: 'kms', target: 'cloud-kms', kind: 'cloud' },
+  { source: 'observability', target: 'cloud-observability', kind: 'cloud' },
+  { source: 'tenancy', target: 'cloud-tenancy', kind: 'cloud' },
+  { source: 'identity', target: 'cloud-iam', kind: 'cloud' },
+  { source: 'search', target: 'cloud-storage', kind: 'cloud' },
+  { source: 'vector', target: 'cloud-storage', kind: 'cloud' },
+  { source: 'records', target: 'cloud-storage', kind: 'cloud' },
+];
+
+const clusterColors = {
+  foundry: '#c084fc',       // purple
+  application: '#60a5fa',   // blue
+  adapter: '#facc15',       // yellow
+  substrate: '#4dabf7',     // light blue
+  workforce: '#4ade80',     // green
+  healthcare: '#f472b6',    // pink
+  fintech: '#fb923c',       // orange
+  industrial: '#facc15',    // yellow-ish
+  connect: '#2dd4bf',       // teal
+  hospitality: '#f87171',   // red
+  cloud: '#0ea5e9',         // sky
+};
+
+const clusterLabels = {
+  foundry: 'Foundry',
+  application: 'Application (B2B)',
+  adapter: 'Workflow + Ontology',
+  substrate: 'Substrate',
+  workforce: 'Workforce',
+  healthcare: 'Healthcare',
+  fintech: 'FinTech',
+  industrial: 'Industrial',
+  connect: 'Connect',
+  hospitality: 'Hospitality',
+  cloud: 'Cloud',
+};
+
+// ---------- Build Cytoscape elements ----------
+const elements = [];
+for (const ms of microservices) {
+  elements.push({
+    data: {
+      id: ms.id,
+      label: ms.id,
+      cluster: ms.cluster,
+      status: ms.status,
+      lead: ms.lead || '',
+      kr_material: ms.kr_pack?.material_scope ? 1 : 0,
+      microservice: ms,
+    }
+  });
+}
+for (const e of edges) {
+  elements.push({
+    data: { id: `${e.source}->${e.target}`, source: e.source, target: e.target, kind: e.kind }
+  });
+}
+
+// ---------- Filters UI ----------
+const statusList = ['internal','adapter','substrate','cloud','planned','future','shipped'];
+const statusEl = document.getElementById('status-filters');
+const statusCounts = {};
+for (const ms of microservices) statusCounts[ms.status] = (statusCounts[ms.status] || 0) + 1;
+for (const s of statusList) {
+  const n = statusCounts[s] || 0;
+  if (n === 0) continue;
+  const lbl = document.createElement('label');
+  lbl.className = 'chip';
+  lbl.innerHTML = `<input type="checkbox" data-status="${s}" checked /> <span>${s}</span><span class="count">${n}</span>`;
+  statusEl.appendChild(lbl);
+}
+
+const clusterEl = document.getElementById('cluster-filters');
+const clusterCounts = {};
+for (const ms of microservices) clusterCounts[ms.cluster] = (clusterCounts[ms.cluster] || 0) + 1;
+for (const c of Object.keys(clusterLabels)) {
+  const n = clusterCounts[c] || 0;
+  const lbl = document.createElement('label');
+  lbl.className = 'chip';
+  lbl.innerHTML = `<input type="checkbox" data-cluster="${c}" checked /> <span class="dot" style="background: ${clusterColors[c]};"></span><span>${clusterLabels[c]}</span><span class="count">${n}</span>`;
+  clusterEl.appendChild(lbl);
+}
+
+const milestoneSel = document.getElementById('milestone-filter');
+const milestones = new Set();
+for (const ms of microservices) {
+  const m = (ms.lead || '').split('-')[0];
+  if (m) milestones.add(m);
+}
+for (const m of [...milestones].sort()) {
+  const opt = document.createElement('option');
+  opt.value = m;
+  opt.textContent = m;
+  milestoneSel.appendChild(opt);
+}
+
+document.getElementById('stats').textContent =
+  `${microservices.length} µservices  •  ${microservices.filter(m=>m.registered).length} registered  •  ${edges.length} edges`;
+
+// ---------- Cytoscape init ----------
+const cy = cytoscape({
+  container: document.getElementById('cy'),
+  elements,
+  style: [
+    {
+      selector: 'node',
+      style: {
+        'label': 'data(label)',
+        'color': '#fff',
+        'background-color': (ele) => clusterColors[ele.data('cluster')] || '#888',
+        'background-opacity': 0.85,
+        'border-width': 1.5,
+        'border-color': '#1a1d24',
+        'font-size': 11,
+        'font-weight': 500,
+        'text-valign': 'center',
+        'text-halign': 'center',
+        'width': (ele) => Math.max(50, ele.data('label').length * 7),
+        'height': 28,
+        'shape': 'round-rectangle',
+        'text-outline-width': 0,
+      }
+    },
+    {
+      selector: 'node[status="adapter"]',
+      style: { 'border-width': 3, 'border-color': '#facc15', 'height': 40, 'font-size': 13, 'font-weight': 700 }
+    },
+    {
+      selector: 'node[status="internal"]',
+      style: { 'shape': 'octagon' }
+    },
+    {
+      selector: 'node[status="cloud"]',
+      style: { 'shape': 'diamond' }
+    },
+    {
+      selector: 'node[status="future"]',
+      style: { 'background-opacity': 0.35, 'border-style': 'dashed' }
+    },
+    {
+      selector: 'edge',
+      style: {
+        'curve-style': 'bezier',
+        'width': 1,
+        'opacity': 0.4,
+        'target-arrow-shape': 'triangle',
+        'arrow-scale': 0.6,
+      }
+    },
+    {
+      selector: 'edge[kind="orchestrates"]',
+      style: { 'line-color': '#facc15', 'target-arrow-color': '#facc15', 'width': 1.5 }
+    },
+    {
+      selector: 'edge[kind="serves"]',
+      style: { 'line-color': '#f472b6', 'target-arrow-color': '#f472b6', 'width': 1, 'line-style': 'dashed' }
+    },
+    {
+      selector: 'edge[kind="substrate"]',
+      style: { 'line-color': '#60a5fa', 'target-arrow-color': '#60a5fa', 'width': 1.5 }
+    },
+    {
+      selector: 'edge[kind="cloud"]',
+      style: { 'line-color': '#c084fc', 'target-arrow-color': '#c084fc', 'width': 1, 'line-style': 'dotted' }
+    },
+    {
+      selector: 'edge[kind="enables"]',
+      style: { 'line-color': '#4ade80', 'target-arrow-color': '#4ade80', 'width': 2 }
+    },
+    {
+      selector: 'node:selected',
+      style: { 'border-color': '#fff', 'border-width': 3 }
+    },
+    {
+      selector: '.dimmed',
+      style: { 'opacity': 0.15 }
+    },
+  ],
+  layout: { name: 'fcose', animate: true, animationDuration: 600, randomize: true, nodeRepulsion: 8000, idealEdgeLength: 90 },
+  wheelSensitivity: 0.2,
+  minZoom: 0.2,
+  maxZoom: 3,
+});
+
+// ---------- Interactions ----------
+cy.on('tap', 'node', (evt) => {
+  const ms = evt.target.data('microservice');
+  showDetail(ms);
+  highlightNeighborhood(evt.target);
+});
+cy.on('tap', (evt) => { if (evt.target === cy) clearHighlight(); });
+
+function highlightNeighborhood(node) {
+  cy.elements().addClass('dimmed');
+  const neighborhood = node.closedNeighborhood();
+  neighborhood.removeClass('dimmed');
+}
+function clearHighlight() {
+  cy.elements().removeClass('dimmed');
+  document.getElementById('detail').innerHTML = '<div class="detail-empty">Click a node to see µservice detail.</div>';
+}
+
+function showDetail(ms) {
+  const krBindings = ms.kr_pack?.bindings ? `<ul>${ms.kr_pack.bindings.map(b => `<li>${b}</li>`).join('')}</ul>` : '<em style="color: var(--muted);">no overlay</em>';
+  const krMat = ms.kr_pack ? `<code>material_scope: ${ms.kr_pack.material_scope}</code> (M${ms.kr_pack.lead.replace('M','')})` : '<em style="color: var(--muted);">pack-neutral / out-of-scope</em>';
+
+  const html = `<div class="detail-node">
+    <h3>${ms.id}</h3>
+    <span class="pill s-${ms.status}">${ms.status}</span>
+    <span class="pill" style="background: ${clusterColors[ms.cluster]}33; color: ${clusterColors[ms.cluster]};">${clusterLabels[ms.cluster]}</span>
+    ${ms.registered ? '<span class="pill s-active">registered</span>' : '<span class="pill s-planned">unregistered</span>'}
+
+    <div class="field">
+      <h4>Scope</h4>
+      <p>${ms.desc}</p>
+    </div>
+
+    <div class="field">
+      <h4>Lead phase</h4>
+      <code>${ms.lead}</code>
+    </div>
+
+    ${ms.bcs ? `<div class="field"><h4>Bounded contexts</h4><ul>${ms.bcs.map(b => `<li><code>${b}</code></li>`).join('')}</ul></div>` : ''}
+
+    <div class="field">
+      <h4>KR pack overlay</h4>
+      <div>${krMat}</div>
+      ${krBindings}
+    </div>
+
+    ${ms.perf ? `<div class="field"><h4>Perf targets</h4><p>${ms.perf}</p></div>` : ''}
+    ${ms.bench ? `<div class="field"><h4>Competitive benchmark</h4><p>${ms.bench}</p></div>` : ''}
+
+    <div class="field">
+      <h4>Crate refs</h4>
+      <code>oya-${ms.id}-{kernel,domain,application,adapter,rest|grpc|graphql|worker,app,sdk}</code>
+    </div>
+  </div>`;
+  document.getElementById('detail').innerHTML = html;
+}
+
+// Filter wiring
+function applyFilters() {
+  const activeStatuses = new Set([...document.querySelectorAll('[data-status]:checked')].map(el => el.dataset.status));
+  const activeClusters = new Set([...document.querySelectorAll('[data-cluster]:checked')].map(el => el.dataset.cluster));
+  const milestoneVal = milestoneSel.value;
+  const search = document.getElementById('search').value.trim().toLowerCase();
+
+  cy.nodes().forEach(n => {
+    const ms = n.data('microservice');
+    const okStatus = activeStatuses.has(ms.status);
+    const okCluster = activeClusters.has(ms.cluster);
+    const okMilestone = !milestoneVal || (ms.lead || '').startsWith(milestoneVal);
+    const okSearch = !search || ms.id.toLowerCase().includes(search) || (ms.desc || '').toLowerCase().includes(search);
+    const visible = okStatus && okCluster && okMilestone && okSearch;
+    n.style('display', visible ? 'element' : 'none');
+  });
+  // Hide edges whose endpoints are filtered out
+  cy.edges().forEach(e => {
+    const visible = e.source().style('display') !== 'none' && e.target().style('display') !== 'none';
+    e.style('display', visible ? 'element' : 'none');
+  });
+}
+
+document.getElementById('filters').addEventListener('change', applyFilters);
+document.getElementById('search').addEventListener('input', applyFilters);
+
+function relayout() {
+  cy.layout({ name: 'fcose', animate: true, animationDuration: 600, randomize: false, nodeRepulsion: 8000, idealEdgeLength: 90 }).run();
+}
+function resetView() {
+  document.getElementById('search').value = '';
+  document.querySelectorAll('[data-status], [data-cluster]').forEach(el => el.checked = true);
+  milestoneSel.value = '';
+  applyFilters();
+  cy.fit(null, 30);
+  clearHighlight();
+}
+</script>
+
+</body>
+</html>
