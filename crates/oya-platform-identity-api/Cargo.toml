@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-platform-identity-kernel = { path = "../oya-platform-identity-kernel" }
+oya-identity-domain = { path = "../oya-identity-domain" }
 
 [lib]
 name = "oya_platform_identity_api"

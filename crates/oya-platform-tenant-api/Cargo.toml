@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }
-oya-platform-tenant-kernel = { path = "../oya-platform-tenant-kernel" }
+oya-residency-domain = { path = "../oya-residency-domain" }
+oya-tenancy-domain = { path = "../oya-tenancy-domain" }
 
 [lib]
 name = "oya_platform_tenant_api"

@@ -7,7 +7,7 @@ license = "Apache-2.0"
 publish = false
 
 [dependencies]
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 
 [lib]
 name = "oya_foundry_rag_api"

@@ -187,9 +187,18 @@ fn generate_rename_map(plan_path: &str, names_out: &str, map_out: &str) -> Resul
     let plan = std::fs::read_to_string(plan_path)
         .with_context(|| format!("reading plan at {plan_path}"))?;
 
-    // Extract lines from the audit tables in §3 that follow the 11-column format:
-    // | # | current_name | vertical | bounded_context | kind | layer | ... | proposed_name | ...
-    // We look for table rows where current_name != proposed_name.
+    // Extract rename pairs from the §3 audit tables.  Two column schemas appear:
+    //
+    // 11-column (§3.2 Cloud, §3.3 Foundry non-check, §3.3.2 check crates):
+    //   # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected
+    //   proposed_name at index 7
+    //
+    // 9-column (§3.1 Platform, §3.4 Connect/Workspace, §3.5 Foundation+Tooling):
+    //   # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected
+    //   proposed_name at index 6
+    //
+    // PROTOCOL-UNKNOWN rows (26 deferred to Shard 1.5) have proposed_name starting with
+    // "PROTOCOL-UNKNOWN" — these are skipped.
     let mut rename_pairs: Vec<(String, String)> = Vec::new();
 
     for line in plan.lines() {
@@ -204,15 +213,18 @@ fn generate_rename_map(plan_path: &str, names_out: &str, map_out: &str) -> Resul
             .map(str::trim)
             .collect();
 
-        // Row format: # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected
-        // That's 11 cells (indices 0-10). Skip header/separator rows.
-        if cells.len() < 11 {
+        // Need at least 9 cells for the narrower schema.
+        if cells.len() < 9 {
             continue;
         }
 
         let row_num = cells[0];
-        // Skip header rows (first cell is not a number)
+        // Skip header rows and separator rows.
         if row_num.is_empty() || row_num.starts_with('-') || row_num == "#" || row_num == "--:" {
+            continue;
+        }
+        // Row number must parse as an integer (e.g. "1", "29", "138").
+        if row_num.trim_start_matches('*').parse::<u32>().is_err() {
             continue;
         }
 
@@ -220,15 +232,20 @@ fn generate_rename_map(plan_path: &str, names_out: &str, map_out: &str) -> Resul
             .trim_matches('`')
             .trim_matches('*')
             .trim();
-        let proposed = cells[7]
+
+        // Determine proposed_name index based on column count:
+        // 11 columns → index 7; 9 columns → index 6.
+        let proposed_idx = if cells.len() >= 11 { 7 } else { 6 };
+        let proposed = cells[proposed_idx]
             .trim_matches('`')
             .trim_matches('*')
             .trim();
 
-        // Skip rows with PROTOCOL-UNKNOWN proposed names or non-crate entries
+        // Skip PROTOCOL-UNKNOWN deferred rows and non-crate entries.
         if current.is_empty()
             || proposed.is_empty()
             || proposed.starts_with("PROTOCOL-UNKNOWN")
+            || proposed.starts_with("STUB")
             || !current.starts_with("oya-")
             || !proposed.starts_with("oya-")
         {

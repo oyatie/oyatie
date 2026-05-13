@@ -1,0 +1,15 @@
+[package]
+name = "oya-connect-collab-runtime-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+
+[lib]
+name = "oya_connect_collab_runtime_domain"
+path = "src/lib.rs"
+doctest = false
