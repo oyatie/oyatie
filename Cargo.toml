@@ -140,6 +140,12 @@ members = [
   "crates/oya-foundation-app",
   "crates/oya-tooling-cli-dev-runtime",
   "crates/oya-tooling-agent-read",
+  # Shard 0: xtask + 4 LEAN check crates (scaffolded empty; populated in Shard 1)
+  "tools/xtask-metadata-augment",
+  "crates/oya-shared-architecture-check-cli",
+  "crates/oya-shared-bounded-contexts-check-cli",
+  "crates/oya-shared-supply-chain-check-cli",
+  "crates/oya-shared-semver-check-cli",
 ]
 resolver = "2"
 
@@ -147,6 +153,25 @@ resolver = "2"
 edition = "2021"
 version = "0.1.0"
 rust-version = "1.78"
+
+[workspace.metadata.oya]
+# v4 3-slot BNF registry: oya-<shared|vertical>-<bounded-context>-<layer>
+# Layer enum (12 canonical values): kernel|domain|application|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk
+# Verticals registry (open set; single-token kebab names)
+[workspace.metadata.oya.verticals.cloud]
+owner = "council-cloud"
+rationale = "Cloud infrastructure vertical: compute, storage, network, billing, IAM, KMS, observability."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.verticals.foundry]
+owner = "council-foundry"
+rationale = "Engineering platform vertical: evidence, eval, MCP gateway, capability registry, run/step pipeline."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.verticals.workspace]
+owner = "council-workspace"
+rationale = "Workspace productivity vertical: mail, calendar, drive, chat, meet, docs, sheets, slides, tasks."
+adr_cite = "ADR-0056"
 
 [workspace.dependencies]
 tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }

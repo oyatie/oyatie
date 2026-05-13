@@ -96,12 +96,19 @@ graph MUST topologically match it.
   passes a timestamp parameter. Crate-naming role: `kernel`. Crate-naming
   capability tail: **forbidden**.
 
-- **`domain`** — Workflow orchestration over kernel types. Defines
-  **ports**: Rust traits (`trait FooStore: Send + Sync { ... }`) that the
-  app layer holds and the adapter layer implements. I/O happens here only
-  through ports; the domain itself stays I/O-free. Depends on
-  `kernel` only. Crate-naming role: `domain` (not yet used in the
-  workspace; reserved for the post-cutover cohort).
+- **`kernel`** (ports addendum) — **Port trait declarations live in `kernel`,
+  not `domain`.** Per [ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)
+  §"Port location", a port is a pure trait contract (`trait FooStore: Send + Sync { … }`);
+  it belongs in the innermost layer alongside the types it operates on, not in
+  the layer that uses it. The domain layer holds business logic that *calls
+  through* ports; it does not define them.
+
+- **`domain`** — Business logic on kernel types: entities, domain services,
+  invariant enforcement. Uses (calls through) port traits defined in `kernel`.
+  I/O happens only through those ports; the domain itself is pure (no I/O,
+  no async, no framework deps). Depends on `kernel` only. Crate-naming layer:
+  `domain`. See [ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)
+  for the canonical 12-value layer enum that replaces the v3 role token.
 
 - **`app`** — Use-case composition. Each public function realises one
   user-facing or system-facing operation by combining domain workflows

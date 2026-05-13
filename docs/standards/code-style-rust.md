@@ -8,9 +8,10 @@ date: 2026-05-12
 purpose: |
   Canonical Rust code style for the oyatie workspace. Defines clippy-pedantic with
   cherry-picked allow-list, `#![deny(unsafe_code)]` policy, the `[workspace.lints]`
-  inheritance table, the `oya-<context>-<role>[-<capability>]` naming convention, and
-  the kernel ← domain ← app ← {api, worker, adapter} ← runtime module organization
-  per ADR-0015.
+  inheritance table, the `oya-<shared|vertical>-<bounded-context>-<layer>` 3-slot BNF
+  (per ADR-0056; supersedes the v3 `oya-<context>-<role>[-<capability>]` convention),
+  and the 12-value canonical layer enum (kernel, domain, application, app, adapter,
+  infrastructure, cli, rest, grpc, graphql, worker, sdk) per ADR-0056.
 canonical_authority: docs/CONSTITUTION.md
 enforced_by: oya-foundry-fitness-clippy-pedantic
 companion_docs:
@@ -130,23 +131,27 @@ Sources: [AWS — How Kani is used](https://aws.amazon.com/blogs/opensource/how-
 
 ## 5. Naming conventions
 
-Per [`docs/AGENTS.md`](../AGENTS.md) §Repository topology and
-ADR-0015 (flat crates), every Rust crate path under `crates/` matches:
+Per [`docs/AGENTS.md`](../AGENTS.md) §Repository topology,
+ADR-0015 (flat crates), and **[ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)**
+(v4 3-slot BNF, supersedes v3), every Rust crate path under `crates/` or `tools/` matches:
 
-```
-oya-<context>-<role>[-<capability>]
+```bnf
+oya-<shared|vertical>-<bounded-context>-<layer>
 ```
 
 Rules:
 
-- `<context>` ∈ axis or platform layer: `foundry`, `cloud`, `saas`, `search`,
-  `workspace`, `ads`, `platform`, `tenancy`, `audit`, `tooling`.
-- `<role>` ∈ architectural layer: `kernel` (pure-domain types, no I/O),
-  `domain` (business logic), `app` (use-cases), `api` / `worker` / `adapter`
-  (process boundary), `runtime` (binary).
-- `<capability>` ∈ optional capability slug (lowercase, hyphen-separated).
-- Package name MUST equal the directory name. Lane: `cargo-prefix`
-  ([DOC-CATALOG.md](../DOC-CATALOG.md) §4).
+- `<shared|vertical>` — slot 2: the literal `shared` (cross-vertical shared BC) OR a
+  registered single-token vertical name from `[workspace.metadata.oya.verticals]`
+  (`cloud`, `foundry`, `workspace`, plus future verticals per ADR-0056 §"Vertical naming policy").
+- `<bounded-context>` — slot 3: 1..N kebab tokens; open set; registered in
+  `docs/standards/bounded-contexts.md`. Adding a BC is a 0-ADR action.
+- `<layer>` — slot 4 (final token): one of 12 canonical values per ADR-0056 §"12-Value Layer Enum":
+  `kernel`, `domain`, `application`, `app`, `adapter`, `infrastructure`,
+  `cli`, `rest`, `grpc`, `graphql`, `worker`, `sdk`. Adding a layer is a 1-ADR action.
+- Cross-cutting check crates use the flat namespace: `oya-check-<rule-name>` (exempt from 3-slot BNF).
+- Package name MUST equal the directory name. `[lib] name` MUST equal snake_case of `[package] name`.
+  Enforced by `oya-shared-architecture-check-cli -- lib-name-parity`.
 
 Inside a crate:
 
@@ -159,27 +164,49 @@ Inside a crate:
 - Generic params: single capital letter (`T`, `E`, `R`) or descriptive
   PascalCase when ≥ 2 generics in scope.
 
-## 6. Module organization — kernel ← domain ← app ← {api, worker, adapter} ← runtime
+## 6. Module organization — 12-value canonical layer enum (v4; per ADR-0056)
 
-Per ADR-0015 layered architecture, dependencies flow **downward** only:
+Per ADR-0015 layered architecture and **[ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)**
+(v4 3-slot BNF), dependencies flow **inward only** (outer → inner):
 
 ```
-runtime  ──► { api │ worker │ adapter } ──► app ──► domain ──► kernel
+{ cli | rest | grpc | graphql | worker }
+        │
+        ▼
+  { adapter | infrastructure }
+        │
+        ▼
+   application
+        │
+        ▼
+     domain
+        │
+        ▼
+     kernel      ◄── sdk (kernel only)
+        ▲
+        └── app (composition root; unrestricted inward deps)
 ```
 
-| Layer | Role | MAY import | MUST NOT import |
+| Layer | Canonical meaning (ADR-0056 §"Layer semantics") | MAY import | MUST NOT import |
 |---|---|---|---|
-| `kernel` | Pure domain types; no I/O, no async, no provider deps | (nothing project-internal) | anything from `domain`/`app`/`adapter`/`api`/`worker`/`runtime` |
-| `domain` | Business invariants; pure functions on kernel types | `kernel` | `app`, `adapter`, `api`, `worker`, `runtime` |
-| `app` | Use-cases; orchestrates domain via traits | `kernel`, `domain` | concrete adapters; only trait abstractions |
-| `api`, `worker` | Process-boundary inputs (HTTP, gRPC, queue, scheduler) | `kernel`, `domain`, `app` | other `api`/`worker` peers (use traits) |
-| `adapter` | Provider implementations (cloud SDKs, DBs, message brokers) | `kernel`, `domain`, `app` | other adapters; cross-axis adapters |
-| `runtime` | Binaries that compose api/worker/adapter via DI | every lower layer | (none) |
+| `kernel` | Pure types + port trait declarations; zero logic, zero I/O | (nothing project-internal) | any other layer |
+| `domain` | Business logic on kernel types; uses ports defined in kernel | `kernel` | `application`, `adapter`, `infrastructure`, presentation, `app` |
+| `application` | Use-case orchestrators holding port-trait bounds | `domain`, `kernel` | `adapter`, `infrastructure`, presentation, `app` |
+| `adapter` | Trait implementations of kernel ports + DTO mappers | `application`, `domain`, `kernel` | `infrastructure`, presentation, `app`, other `adapter` |
+| `infrastructure` | Framework/driver glue (no kernel-trait impl as primary surface) | `application`, `domain`, `kernel`, `adapter` | presentation, `app` |
+| `cli` / `rest` / `grpc` / `graphql` / `worker` | Presentation / entry-point layers | `application`, `domain`, `kernel` | `adapter`, `infrastructure` directly (wire via `app`) |
+| `app` | Composition-root binary; wires all layers into a deployable | every other layer | (none; unrestricted) |
+| `sdk` | Client library for external consumers | `kernel` | everything except `kernel` |
+
+**Dev-dependencies excluded from enforcement**: kernel/domain crates may carry
+`tokio` in `[dev-dependencies]` for integration tests without triggering a
+layer violation (per ADR-0056 §"LEAN-A1 dependency-direction allowed-set").
 
 Lanes enforcing this:
 
-- `oya-foundry-fitness-flat-crates` validates the path / name pair.
-- `oya-foundry-fitness-layering` (NEW; pending) refuses upward imports.
+- `oya-shared-architecture-check-cli -- dependency-direction` enforces the 12-value matrix (LEAN-A1).
+- `oya-shared-architecture-check-cli -- layer-correctness` verifies each crate's declared layer matches its code shape.
+- `oya-shared-architecture-check-cli -- lib-name-parity` validates `[lib] name` = snake_case(`[package] name`).
 - `oya-foundry-fitness-provider-coupling` per Directive 4 refuses provider
   imports outside `oya-*-adapter-<provider>-*` crates.
 

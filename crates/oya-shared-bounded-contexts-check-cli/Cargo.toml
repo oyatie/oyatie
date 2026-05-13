@@ -1,0 +1,24 @@
+[package]
+name = "oya-shared-bounded-contexts-check-cli"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+vertical = "shared"
+bounded_context = "bounded-contexts-check"
+kind = "shared"
+layer = "cli"
+purpose = "LEAN-A2: BC registry validation, cross-vertical refusal, transitive walker, public_layers per-hop, overlap governance jaro-winkler."
+
+[[bin]]
+name = "oya-shared-bounded-contexts-check-cli"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
