@@ -11,7 +11,7 @@
 
 ## Context
 
-Every axis ships APIs. Tenants and ISVs build against those APIs. Without a structured stability tier and deprecation discipline, every API evolution becomes a per-tenant compatibility break, every minor version becomes a customer-support incident, and the cohesion thesis ("one product across seven axes") collapses into a per-axis API governance debate.
+Every axis ships APIs. Tenants and ISVs build against those APIs. Without a structured stability tier and deprecation discipline, every API evolution becomes a per-tenant compatibility break, every minor version becomes a customer-support incident, and the cohesion thesis ("one product across all microservices") collapses into a per-microservice API governance debate.
 
 The pack-of-19 foundation ADRs named API stability as a need but did not pin the tier vocabulary, the per-PR semver-diff gate, the contract-first SDK generation pipeline, or the per-deprecation telemetry surface. This ADR pins them so that an API consumer (tenant developer, ISV, internal-axis caller) can read a single contract, see its tier, see its deprecation timeline, and consume a per-tier SDK without bespoke versioning conversations.
 
@@ -34,7 +34,7 @@ We adopt **three stability tiers** (preview / stable / GA), a **per-PR semver-di
 Every PR that touches a contract artifact runs `oya contract-diff` (lane: `oya-foundry-fitness-api-semver`). The tool classifies the diff:
 
 ```rust
-// crates/oya-platform-contract-diff
+// crates/oya-shared-semver-check-cli
 pub enum SemverDiff {
     /// Additive change (new endpoint, new optional field, new enum value at end)
     Minor { additions: Vec<Addition> },
@@ -150,11 +150,11 @@ Each axis owns its API contracts:
 
 | Axis | Contracts owner |
 |---|---|
-| SaaS platform | `axis-foundry` |
+| SaaS platform | `foundry` |
 | Workspace | `axis-workspace` |
 | Vertical | `axis-vertical` (per-vertical sub-owners) |
-| Foundry | `axis-foundry` |
-| Cloud | `axis-cloud` |
+| Foundry | `foundry` |
+| Cloud | `cloud` |
 | Search | `axis-search` |
 | Ads/Analytics | `axis-ads-analytics` |
 
@@ -209,7 +209,7 @@ This ADR does not define internal-only API governance (those follow lighter rule
 
 ### Alternative C — Per-axis stability vocabulary (each axis defines its own tiers)
 
-- **Pros:** axis-team flexibility.
+- **Pros:** microservice-team flexibility.
 - **Cons:** consumers see N vocabularies; cohesion violated.
 - **Rejected because:** the cohesion thesis applies to API governance.
 
@@ -234,7 +234,7 @@ This ADR does not define internal-only API governance (those follow lighter rule
 ## References
 
 - `docs/PRD.md` §7 (API surface), §11 (per-tenant SDK)
-- `docs/DESIGN.md` §10 (cross-axis contracts), §11 (cross-axis contradictions)
+- `docs/DESIGN.md` §10 (cross-microservice contracts), §11 (cross-microservice contradictions)
 - OpenAPI 3.2 spec; AsyncAPI 3.0 spec; Protocol Buffers; GraphQL spec
 - Semver 2.0.0 spec
 - ADR-0001 (cohesion), ADR-0003 (audit), ADR-0011 (capability registry), ADR-0033 (vertical pack), ADR-0036 (plugin substrate), ADR-0038 (trust portal), ADR-0042 (observability), ADR-0050 (automation pipeline)

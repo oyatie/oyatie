@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `platform-tenancy-identity` (Cedar surface) + `axis-foundry` (autonomy ceiling) + `council-privacy`
+> **Owner:** `tenancy-identity` (Cedar surface) + `foundry` (autonomy ceiling) + `council-privacy`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0002, ADR-0003, ADR-0008, ADR-0011
 
@@ -11,7 +11,7 @@
 
 ## Context
 
-Cohesion (ADR-0001) requires a single authorization surface across seven axes. Without a unified policy DSL, every axis ships its own AuthZ logic — and the prior decade of multi-product engineering shows that drift between them produces both privacy regressions (over-grant) and operational regressions (under-grant breaks workflows). Cedar (AWS-authored, Apache-2 licensed, open-source policy DSL with formally-verifiable evaluator) gives the right shape: declarative, attribute-aware, suitable for both per-tenant scope (tenant-author policies) and global scope (council-author policies).
+Cohesion (ADR-0001) requires a single authorization surface across all microservices. Without a unified policy DSL, every axis ships its own AuthZ logic — and the prior decade of multi-product engineering shows that drift between them produces both privacy regressions (over-grant) and operational regressions (under-grant breaks workflows). Cedar (AWS-authored, Apache-2 licensed, open-source policy DSL with formally-verifiable evaluator) gives the right shape: declarative, attribute-aware, suitable for both per-tenant scope (tenant-author policies) and global scope (council-author policies).
 
 The agent runtime adds a second pressure. Foundry capabilities range from "summarize this doc" (low blast radius) to "provision 10k cloud VMs" (massive blast radius) to "execute this drug-prescription workflow" (regulator-bound). A single boolean allow/deny is insufficient; what's needed is a tier-graded autonomy scale where higher tiers require either per-step human approval or council-ratified uplift. The persona-tier framing (T1–T4) lets every capability declare its required ceiling, every tenant declare its accepted ceiling, and the runtime hard-fail any invocation that would exceed either.
 
@@ -23,10 +23,10 @@ We adopt **Cedar** as the sole authorization policy engine for RBAC/ABAC across 
 
 ### Cedar surface
 
-- Engine: Cedar (Apache-2.0; in-house Rust binding under `crates/oya-platform-policy-cedar-*`).
+- Engine: Cedar (Apache-2.0; in-house Rust binding under `crates/oya-policy-cedar-*`).
 - Per-tenant scope: tenant admins author tenant-local policies via the Workflow Studio + admin CLI.
 - Global scope: `council-privacy` and `council-architecture` author baseline policies (e.g. PHI hard-deny, defense-vertical exclusions per ADR-0008 §2.2.3).
-- Cedar entity types are generated from `oya-platform-tenant-kernel` + `oya-platform-identity-kernel` so policy authoring stays type-safe end-to-end.
+- Cedar entity types are generated from `oya-tenancy-kernel` + `oya-identity-kernel` so policy authoring stays type-safe end-to-end.
 
 ```cedar
 // Example: PHI hard-deny for ad targeting (ADR-0008 §2.2.1)
@@ -118,7 +118,7 @@ pub async fn evaluate_invocation(
 
 ### Boundary
 
-- Applies to: every capability invocation (Foundry runtime), every cross-axis API call that bears regulated authority, every cloud control-plane mutation, every workflow step that touches Object Graph (ADR-0006).
+- Applies to: every capability invocation (Foundry runtime), every cross-microservice API call that bears regulated authority, every cloud control-plane mutation, every workflow step that touches Ontology (ADR-0006).
 - Does not apply to: per-cell ephemeral synchronous calls strictly inside a single capability invocation (which is itself authorized at the boundary).
 
 ---
@@ -128,13 +128,13 @@ pub async fn evaluate_invocation(
 ### Positive
 
 - One Cedar surface = mechanically true cohesion at the AuthZ substrate.
-- Persona-tier ceiling lets every regulated workflow declare its autonomy requirement explicitly; agents cannot escape via misconfigured per-axis logic.
+- Persona-tier ceiling lets every regulated workflow declare its autonomy requirement explicitly; agents cannot escape via misconfigured per-microservice logic.
 - Cedar's formally-verified evaluator and explicit-deny-by-default semantics give regulator-defensible authorization decisions.
 - Per-capability `autonomy_tier_required` is a catalog field; auditors can ask "what runs at T4 in this tenant?" and the answer is a SQL query, not a code crawl.
 
 ### Negative
 
-- Cedar policy authoring has a learning curve; mitigated by Cedar tooling + per-axis policy templates + Workflow Studio policy authoring UI.
+- Cedar policy authoring has a learning curve; mitigated by Cedar tooling + per-microservice policy templates + Workflow Studio policy authoring UI.
 - Per-invocation Cedar evaluation adds 0.5–2 ms; the cohesion + audit guarantee justifies the cost.
 - T3 per-step approval is operationally expensive for high-frequency capabilities; mitigation is per-tenant T4 uplift with bounded delta + audit emission.
 
@@ -177,17 +177,17 @@ pub async fn evaluate_invocation(
 
 ## Open questions
 
-1. **Q1.** Per-tenant Cedar policy size cap — what's the budget before evaluation latency degrades? Default: 10k policy lines per tenant; soft warn at 7k. → owner: `platform-tenancy-identity`.
+1. **Q1.** Per-tenant Cedar policy size cap — what's the budget before evaluation latency degrades? Default: 10k policy lines per tenant; soft warn at 7k. → owner: `tenancy-identity`.
 2. **Q2.** Cedar policy hot-reload cadence — eventual consistency vs strong-consistency on policy publish? Default: strong-consistent within a region (≤ 1 s); eventual cross-region. → ADR-0010 (regional packs).
-3. **Q3.** Is `T0` needed (read-prohibited stand-down mode for break-glass aftermath)? Default: NO; `T1` + per-capability deny achieves the same. → owner: `axis-foundry`.
-4. **Q4.** Per-capability eval-set ownership — Foundry team or per-axis team? Default: per-axis authors; Foundry runs the harness. → ADR-0011.
+3. **Q3.** Is `T0` needed (read-prohibited stand-down mode for break-glass aftermath)? Default: NO; `T1` + per-capability deny achieves the same. → owner: `foundry`.
+4. **Q4.** Per-capability eval-set ownership — Foundry team or per-microservice team? Default: per-microservice authors; Foundry runs the harness. → ADR-0011.
 5. **Q5.** Agent-on-behalf-of-user — does the agent inherit the user's autonomy ceiling, or the tenant's? Default: minimum of both (most-restrictive). → ADR-0008.
 
 ---
 
 ## References
 
-- `docs/DESIGN.md` §3 (Foundry: capability registry, autonomy ceiling, evidence emission), §10 (cross-axis contract `Autonomy ceiling policy`)
+- `docs/DESIGN.md` §3 (Foundry: capability registry, autonomy ceiling, evidence emission), §10 (cross-microservice contract `Autonomy ceiling policy`)
 - `docs/PRIVACY-PROGRAM.md` §2.2.8 (agent-runtime specifics under autonomy ceiling)
 - `docs/COMPLIANCE-MATRIX.md` §3.7 (EU AI Act Art 14 human oversight)
 - `docs/GLOSSARY.md` §8 ("Persona tier (T1..T4)", "Autonomy ceiling")

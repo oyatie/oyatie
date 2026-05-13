@@ -86,7 +86,7 @@ The lane runs on every PR touching `Cargo.lock`, `pnpm-lock.yaml`, `requirements
 2. Maps every dep to an SPDX identifier (failing on unidentifiable licenses).
 3. Hard-fails any Tier 2 license in product code.
 4. Emits a `requires-review` label for any Tier 3 license; merge blocked until review sign-off in PR `## Code Review` block.
-5. Validates per-axis allow-list (some axes may further restrict; e.g. defense pack may forbid even Tier 3 LGPL).
+5. Validates per-microservice allow-list (some axes may further restrict; e.g. defense pack may forbid even Tier 3 LGPL).
 6. Writes the dep graph + license map into the per-PR build artifact for SBOM generation.
 
 ### Per-release SBOM
@@ -146,7 +146,7 @@ Per-release tag, the build pipeline:
 ### Alternative C — Per-axis license policy (each axis decides its own)
 
 - **Pros:** axis autonomy.
-- **Cons:** cohesion violation; cross-axis consumer of an axis with looser policy inherits the obligation.
+- **Cons:** cohesion violation; cross-microservice consumer of an axis with looser policy inherits the obligation.
 - **Rejected because:** ADR-0001.
 
 ### Alternative D — Allow Tier 3 freely without review

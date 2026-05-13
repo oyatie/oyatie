@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0036, ADR-0037, ADR-0038, ADR-0040, ADR-0041, ADR-0043, ADR-0050
 
@@ -11,7 +11,7 @@
 
 ## Context
 
-The supply chain is the single most-exploited attack surface in enterprise software (SolarWinds, Codecov, log4shell, xz-utils backdoor). For Oyatie — which ships seven axes, dozens of vertical packs, and a third-party plugin marketplace — supply-chain integrity is not a feature but a precondition. The pack-of-19 foundation ADRs named supply chain as a concern but did not pin the scanner topology, the signing chain, the SBOM dual-format, the commit-signing requirement, or the admission policy.
+The supply chain is the single most-exploited attack surface in enterprise software (SolarWinds, Codecov, log4shell, xz-utils backdoor). For Oyatie — which ships all microservices, dozens of vertical packs, and a third-party plugin marketplace — supply-chain integrity is not a feature but a precondition. The pack-of-19 foundation ADRs named supply chain as a concern but did not pin the scanner topology, the signing chain, the SBOM dual-format, the commit-signing requirement, or the admission policy.
 
 This ADR pins the discipline so that every artifact landing in production carries verifiable provenance, every dep is scanned at multiple layers, every commit is cryptographically attributable, and every cluster admission decision can refuse unsigned artifacts.
 
@@ -88,7 +88,7 @@ Repo-wide enforcement:
 GitHub branch-protection ruleset (codified in `.github/branch-protection.yaml`):
 
 - Require PR before merge.
-- Require status checks: `oya-foundry-fitness-supply-chain`, `oya-foundry-fitness-cohesion` (per ADR-0001), `oya-foundry-fitness-api-semver` (per ADR-0037), per-axis fitness lanes.
+- Require status checks: `oya-foundry-fitness-supply-chain`, `oya-foundry-fitness-cohesion` (per ADR-0001), `oya-foundry-fitness-api-semver` (per ADR-0037), per-microservice fitness lanes.
 - Require signed commits.
 - Require linear history (squash or rebase merge only).
 - Require ≥ 1 reviewer (≥ 2 for substrate kernel changes per ADR-0001).
@@ -210,17 +210,17 @@ This ADR does not own the per-cell HSM partition (per ADR-0043). Does not own pe
 ## Open questions
 
 1. **Q1.** Per-cell private Rekor mirror at Phase 2 or Phase 3? Default: Phase 2 (KR colo); reduces public-Sigstore dependency for KR sovereignty. → ADR-0028.
-2. **Q2.** SLSA Build L4 target — at GA or W+24? Default: L3 at GA; L4 at W+24 if commercial buyers require. → owner: `axis-foundry`.
-3. **Q3.** Per-PR Trivy budget — fail at HIGH/CRITICAL or also MEDIUM? Default: HIGH/CRITICAL; MEDIUM advisory only. → owner: `axis-foundry`.
-4. **Q4.** Signed-commit enforcement — SSH or GPG primary? Default: SSH (lower friction, GitHub native). → owner: `axis-foundry`.
-5. **Q5.** SBOM exposure on trust portal — per artifact or per axis aggregate? Default: per artifact downloadable; per-axis aggregate dashboard. → ADR-0038.
+2. **Q2.** SLSA Build L4 target — at GA or W+24? Default: L3 at GA; L4 at W+24 if commercial buyers require. → owner: `foundry`.
+3. **Q3.** Per-PR Trivy budget — fail at HIGH/CRITICAL or also MEDIUM? Default: HIGH/CRITICAL; MEDIUM advisory only. → owner: `foundry`.
+4. **Q4.** Signed-commit enforcement — SSH or GPG primary? Default: SSH (lower friction, GitHub native). → owner: `foundry`.
+5. **Q5.** SBOM exposure on trust portal — per artifact or per axis aggregate? Default: per artifact downloadable; per-microservice aggregate dashboard. → ADR-0038.
 
 ---
 
 ## References
 
 - `docs/PRD.md` §10 (security program)
-- `docs/DESIGN.md` §11 (supply chain), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (supply chain), §10 (cross-microservice contracts)
 - US Executive Order 14028; CISA Secure Software Self-Attestation
 - KR 「소프트웨어 진흥법」, KISA 시큐어코딩 가이드
 - SLSA framework v1.0; SPDX 2.3; CycloneDX 1.5; SARIF 2.1.0

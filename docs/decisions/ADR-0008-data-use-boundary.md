@@ -13,7 +13,7 @@
 
 Oyatie simultaneously hosts regulated tenant data (PHI, PII, PCI, KR `신용정보`, KR `영상정보`), a search index that *could* index that data, an ad-targeting auction that *could* monetize behavioral signal, an AI agent runtime that operates on tenant data, and a cloud control plane that provisions resources holding all of the above. No competitor faces this exact intersection. A single PHI leak into the search index or as an ad-targeting feature is a regulator-visible event that cannot be unwound — KR PIPA Art 34, GDPR Art 33, HIPAA Breach Notification Rule, and PCI-DSS all assume the leak is permanent and require notification within 24–72 hours.
 
-The cohesion thesis (ADR-0001) compounds the risk. Without a structurally enforceable contract for what data may flow across axes, every cross-axis PR becomes a gamble against the privacy posture. Policy-only enforcement has historically failed (a contractor adds a topic without reading the memo). The contradiction ledger LEDG-001, LEDG-003, LEDG-005 record the prior failures; the resolution path adopted in PRIVACY-PROGRAM.md §2 is the structural-enforcement-first design that this ADR formalizes.
+The cohesion thesis (ADR-0001) compounds the risk. Without a structurally enforceable contract for what data may flow across axes, every cross-microservice PR becomes a gamble against the privacy posture. Policy-only enforcement has historically failed (a contractor adds a topic without reading the memo). The contradiction ledger LEDG-001, LEDG-003, LEDG-005 record the prior failures; the resolution path adopted in PRIVACY-PROGRAM.md §2 is the structural-enforcement-first design that this ADR formalizes.
 
 ---
 
@@ -43,7 +43,7 @@ We adopt the **Data Use Boundary** as the contract that governs which tenant dat
 ### 2. Orthogonal subject_class attribute
 
 ```rust
-// crates/oya-platform-data-policy-kernel
+// crates/oya-data-boundary-policy-kernel
 pub struct RecordAttributes {
     pub data_class: DataClass,                 // one of the 12 above
     pub subject_class: SubjectClass,           // adult | minor | elderly | vulnerable | ...
@@ -113,8 +113,8 @@ Any cross-pillar flow that does not match this matrix is a CI failure on the pro
 ### 6. Six-layer structural enforcement
 
 1. **Schema annotation** — every `.proto`, SQL DDL, event schema carries `oyatie.data_class = "..."` per field; `oya-foundry-fitness-data-class` lints.
-2. **Lint-time check** — `oya-foundry-fitness-data-class` walks every cross-axis call site and verifies the source class is allowed at the destination.
-3. **Source crate singleton** — only `oya-platform-ads-gate` and `oya-platform-analytics-router` may publish to ads/analytics topics; other crates are rejected at the eventing layer (ADR-0005).
+2. **Lint-time check** — `oya-foundry-fitness-data-class` walks every cross-microservice call site and verifies the source class is allowed at the destination.
+3. **Source crate singleton** — only `oya-ads-gate` and `oya-analytics-router` may publish to ads/analytics topics; other crates are rejected at the eventing layer (ADR-0005).
 4. **Architecture fitness gate** — `oya-foundry-fitness-flat-crates` rejects any new flat crate whose dep graph imports an ads/analytics adapter from outside the approved gate crates.
 5. **Audit-chain emission per decision** — every ad-targeting decision emits an evidence record (ADR-0003) with consenting tenant, user, classes used, audience, ad, and the rules that fired; missing emission = capability-invocation reject.
 6. **Runtime guard** — final guard at the auction boundary re-validates consent vs purpose; blocks if any class drifted.
@@ -134,7 +134,7 @@ DSR (export, delete, restrict) or consent withdrawal triggers a 30-day cascade a
 ### Positive
 
 - Privacy posture becomes a compile-time invariant; structural failure modes catch regressions before merge.
-- Every cross-axis data flow has an audit record (ADR-0003); regulator queries answerable in minutes.
+- Every cross-microservice data flow has an audit record (ADR-0003); regulator queries answerable in minutes.
 - Verticals get tighter defaults that cannot be misconfigured.
 - Foundry agents inherit the contract automatically (ADR-0007); no special-case agent privacy logic.
 - Closes LEDG-001 (12-class taxonomy with orthogonal subject_class), LEDG-003 (purpose-permission matrix), LEDG-005 (four-pillar matrix).

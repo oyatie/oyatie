@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0011, ADR-0028, ADR-0029, ADR-0033, ADR-0034, ADR-0049
 
@@ -13,18 +13,18 @@
 
 Every axis needs workflow: SaaS tenant onboarding, Workspace meeting scheduling, Vertical-pack claim adjudication, Foundry agent task execution, Cloud DCIM workorder dispatch. The pack-of-19 foundation ADRs named workflow as a cross-cutting need but did not pin the engine architecture. Two industry mainstreams compete: (a) **pure BPMN** (Camunda / Activiti / jBPM) which is rich but heavyweight and notoriously hard to version per tenant; (b) **pure DAG** (Airflow / Dagster / Argo Workflows) which is lightweight but lacks first-class state-machine semantics for human-in-the-loop and saga compensation.
 
-Neither matches Oyatie's requirements: per-tenant workflow definition versioning (one tenant on V12, another on V14), per-jurisdiction overlay (KR claim adjudication has different mandatory steps than US), saga compensation across cross-axis calls, and agent-authored steps where a Foundry agent can synthesize a step at runtime within autonomy ceiling. This ADR pins a **hybrid state-machine + DAG** engine that gives us state-machine semantics where they belong (human approvals, sealed-step gates, saga compensation) and DAG semantics where they belong (parallel computation, fan-out / fan-in).
+Neither matches Oyatie's requirements: per-tenant workflow definition versioning (one tenant on V12, another on V14), per-jurisdiction overlay (KR claim adjudication has different mandatory steps than US), saga compensation across cross-microservice calls, and agent-authored steps where a Foundry agent can synthesize a step at runtime within autonomy ceiling. This ADR pins a **hybrid state-machine + DAG** engine that gives us state-machine semantics where they belong (human approvals, sealed-step gates, saga compensation) and DAG semantics where they belong (parallel computation, fan-out / fan-in).
 
 ---
 
 ## Decision
 
-We build `crates/oya-platform-workflow-*` as the canonical workflow engine for the entire ecosystem. The engine is a **hybrid state-machine + DAG**: at the top level, every workflow is a state machine; within each state, computation can be expressed as a DAG. Per-tenant workflow definition versioning is first-class; per-jurisdiction overlays bind at runtime via the regional-pack architecture.
+We build `crates/oya-workflow-*` as the canonical workflow engine for the entire ecosystem. The engine is a **hybrid state-machine + DAG**: at the top level, every workflow is a state machine; within each state, computation can be expressed as a DAG. Per-tenant workflow definition versioning is first-class; per-jurisdiction overlays bind at runtime via the regional-pack architecture.
 
 ### Engine architecture
 
 ```rust
-// crates/oya-platform-workflow-kernel
+// crates/oya-workflow-kernel
 pub struct WorkflowDefinition {
     pub workflow_id: WorkflowId,
     pub version: WorkflowVersion,                  // per-tenant pinnable
@@ -108,10 +108,10 @@ The workflow engine does not own the audit chain (ADR-0003), does not own the ag
 
 ### Positive
 
-- Hybrid state-machine + DAG matches the actual computational shape of cross-axis workflows; neither pure BPMN nor pure DAG forces the model.
+- Hybrid state-machine + DAG matches the actual computational shape of cross-microservice workflows; neither pure BPMN nor pure DAG forces the model.
 - Per-tenant versioning + per-jurisdiction overlay let one definition serve many tenants in many regions without per-tenant forks.
 - Agent-authored steps give Foundry agents a structured way into business workflows, governed by autonomy ceiling.
-- Saga compensation across cross-axis calls is first-class — the cohesion thesis depends on cross-axis transactions being safe.
+- Saga compensation across cross-microservice calls is first-class — the cohesion thesis depends on cross-microservice transactions being safe.
 
 ### Negative
 
@@ -160,9 +160,9 @@ The workflow engine does not own the audit chain (ADR-0003), does not own the ag
 ## Open questions
 
 1. **Q1.** Workflow Studio visual editor — Yrs CRDT collaborative or single-author? Default: single-author at GA; collaborative at W+12. → ADR-0029.
-2. **Q2.** Per-step retry policy default — exponential backoff with jitter, max 5 attempts? Default: yes; per-step override allowed. → owner: `axis-foundry`.
+2. **Q2.** Per-step retry policy default — exponential backoff with jitter, max 5 attempts? Default: yes; per-step override allowed. → owner: `foundry`.
 3. **Q3.** Workflow definition format — proprietary JSON or attempt CNCF Serverless Workflow / DMN compatibility? Default: proprietary at GA; Serverless Workflow import adapter at W+12. → ADR-0037.
-4. **Q4.** Replay scope — full re-execution (excluding sealed steps) or evidence-only? Default: evidence-only at GA; full re-execution requires explicit admin approval. → owner: `axis-foundry`.
+4. **Q4.** Replay scope — full re-execution (excluding sealed steps) or evidence-only? Default: evidence-only at GA; full re-execution requires explicit admin approval. → owner: `foundry`.
 5. **Q5.** Agent-authored step max latency budget? Default: 30s P95; SLA degradation alarms at 10s. → ADR-0007.
 
 ---
@@ -170,7 +170,7 @@ The workflow engine does not own the audit chain (ADR-0003), does not own the ag
 ## References
 
 - `docs/PRD.md` §7 (workflow engine), §11 (per-jurisdiction overlay)
-- `docs/DESIGN.md` §4 (workflow), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §4 (workflow), §10 (cross-microservice contracts)
 - BPMN 2.0 spec; CNCF Serverless Workflow; DMN 1.4
 - KR 「의료법」 §21 (consent before PHI processing); 「전자금융거래법」 §6 (KYC workflow mandatory steps)
 - ADR-0001 (cohesion), ADR-0003 (audit), ADR-0007 (Cedar + persona tier), ADR-0011 (capability registry), ADR-0028 (cloud), ADR-0029 (workspace tasks), ADR-0033 (vertical pack), ADR-0034 (per-vertical override), ADR-0037 (API stability), ADR-0038 (DSR cascade), ADR-0042 (observability), ADR-0045 (database tier), ADR-0049 (residency)

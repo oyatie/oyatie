@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0020 (provider adapter), ADR-0021 (capability registry), ADR-0023 (sandbox; complements process-level isolation), ADR-0024 (eval harness; adversarial cases test the ceiling), ADR-0025 (engineering-platform; same gates apply to agent-authored PRs)
 
@@ -154,10 +154,10 @@ Capabilities namespaced under `ads.*` whose action is `bid` or `budget.adjust` d
 
 ## Open questions
 
-1. What is the latency budget for the Cedar evaluation, and how do we cache without breaking decision freshness on policy push? *Owner: `axis-foundry` + `ops-sre-reliability`.*
-2. Is the break-glass approver pool tenant-scoped, region-scoped, or global? Different scopes have different attack surfaces. *Owner: `axis-foundry` + `ops-security`.*
-3. How does the ceiling interact with cross-capability invocations (a T2 capability invoking a T3 sub-capability)? Inheritance, intersection, or independent re-evaluation? *Owner: `axis-foundry`.*
-4. Should the ceiling decision be replayable against a past tenant snapshot for forensic analysis? *Owner: `axis-foundry` + `ops-compliance`.*
+1. What is the latency budget for the Cedar evaluation, and how do we cache without breaking decision freshness on policy push? *Owner: `foundry` + `ops-sre-reliability`.*
+2. Is the break-glass approver pool tenant-scoped, region-scoped, or global? Different scopes have different attack surfaces. *Owner: `foundry` + `ops-security`.*
+3. How does the ceiling interact with cross-capability invocations (a T2 capability invoking a T3 sub-capability)? Inheritance, intersection, or independent re-evaluation? *Owner: `foundry`.*
+4. Should the ceiling decision be replayable against a past tenant snapshot for forensic analysis? *Owner: `foundry` + `ops-compliance`.*
 
 ---
 

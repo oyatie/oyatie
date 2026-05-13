@@ -25,12 +25,12 @@ Establish two cleanly-separated layers as oyatie's single source of truth, with 
 5. **Parallel agent work is first-class.** The cutover and the subsequent `/ralplan`-driven implementation are expected to run multiple agents in parallel. Every agent claims its symbols with `grit claim --agent X --intent "…"` before any edit; `--with-deps` is used wherever the work crosses callee boundaries. `grit session` carves the multi-agent feature-branch space.
 6. **No git/gh shortcuts in CI either.** CI flows that previously invoked `gh pr create` or `git rebase --autosquash` for agent-authored work route through the same sanctioned helpers; the merge-gate hook validates that the PR's authoring sequence references a `grit done --agent` event rather than a manual rebase.
 7. **Linus-style discipline.** Delete bureaucracy that hides bad data structures. Eliminate special cases by reshaping the data, not by adding shims. Flat structure > deep hierarchy when the deep one is ceremony. "Good taste" means the simplest representation that handles all cases without branching. No half-finished implementations.
-8. **bominal-to-oyatie boundary is explicit.** `oyatie/docs/PRD.md` cites `bominal/docs/consolidated/PRD.md` as portfolio parent; `bominal` references `oyatie` as the canonical implementation home for the seven-axis product. Cross-cite enforcement lands as a new fitness lane: `oya-foundry-fitness-portfolio-citation`.
+8. **bominal-to-oyatie boundary is explicit.** `oyatie/docs/PRD.md` cites `bominal/docs/consolidated/PRD.md` as portfolio parent; `bominal` references `oyatie` as the canonical implementation home for the flat-catalog product. Cross-cite enforcement lands as a new fitness lane: `oya-foundry-fitness-portfolio-citation`.
 9. **All four OPEN ledger entries stay open.** Direction shift does not force-close LEDG-008, LEDG-017, LEDG-021, LEDG-024. They continue on their existing resolution-batch ownership.
 
 ## Non-Goals
 
-- Re-scoping the seven-axis EaaS product frame. The product definition survives the direction shift unchanged.
+- Re-scoping the flat-catalog EaaS product frame. The product definition survives the direction shift unchanged.
 - Re-decomposing the foundry kernels. The 7 suspect fitness/policy kernels (`claim-ceiling`, `authority-cohesion`, `bypass`, `pr-traceability`, `pre-push`, `quality-lane`, `cohesion-fitness`) are not coordination kernels; they govern product-quality and survive.
 - Reversing ADR-0025 (Builder-OS → Foundry consolidation) or any other 2026-05-09 reframing decision.
 - Rewriting `~/.claude/CLAUDE.md` (user-machine config). The agentic-pipeline rules land in `oyatie/CLAUDE.md` and `oyatie/AGENTS.md` only, unless the user explicitly broadens the rule.
@@ -74,7 +74,7 @@ oyatie/
   Cargo.toml                       # flat-crates workspace, 140+ crates, unchanged
   crates/                          # kernel ← domain ← app ← {api, worker, adapter} ← runtime
   docs/                            # canonical product authority (CONSTITUTION, PRD, DESIGN, SPEC, ADRs)
-  contracts/                       # per-cross-axis contract files (OpenAPI/Proto/AsyncAPI)
+  contracts/                       # per-cross-microservice contract files (OpenAPI/Proto/AsyncAPI)
   registry/, product-control/      # catalog + capability records
   scripts/                         # build/lint/release helpers (humans + sanctioned CI)
   tools/oya-agent-read/            # NEW: sanctioned read-only helper CLI
@@ -124,7 +124,7 @@ Each row in the inventory ledger uses one of:
 
 | Entity | Stable definition | Where it lives |
 |---|---|---|
-| **Oyatie** | One cohesive ecosystem-as-a-service across seven axes (SaaS, Workspace, Vertical, Foundry, Cloud, Search, Ads + Analytics). Single product. | `oyatie/docs/PRD.md` (canonical) ← `bominal/docs/consolidated/PRD.md` (portfolio parent) |
+| **Oyatie** | One cohesive ecosystem-as-a-service across all microservices (SaaS, Workspace, Vertical, Foundry, Cloud, Search, Ads + Analytics). Single product. | `oyatie/docs/PRD.md` (canonical) ← `bominal/docs/consolidated/PRD.md` (portfolio parent) |
 | **Foundry** | Axis 4: AI agent runtime + engineering platform + control plane. Unified per ADR-0025 (2026-05-09). Multi-provider adapter (Claude/OpenAI/Gemini, plus future in-house). | `oyatie/docs/DESIGN.md §3` |
 | **grit (rtk-ai/grit)** | Upstream coordination CLI. Agents claim symbols, work in worktrees, release via `done`. Symbol-locking guarantees merge-conflict-free parallel agent work. | Installed at `~/.cargo/bin/grit v0.3.0`. Local state in `.grit/`. |
 | **icm (rtk-ai/icm)** | Upstream persistent-memory CLI. Topic-partitioned, importance-tagged, recall via keyword search. Survives session compaction. | External storage; project-canonical decisions duplicated into `oyatie/docs/` per Constraint 2. |
@@ -154,7 +154,7 @@ No remaining entity-stability issues. The 7-axis EaaS frame is stable across all
 **Evidence that shaped the interview**:
 - Foundry kernel inspection showed the suspect `oya-foundry-*-kernel` crates are fitness/policy kernels, not coordination — they survive. The deletion target is the orchestration glue layer, not the foundry crates.
 - `grit status` showed expired stale claims in bominal — exactly the failure mode `grit gc` handles natively, validating the "don't reinvent" thesis.
-- The published `bominal/docs/consolidated/PRD.md` and the existing `oyatie/docs/PRD.md` use identical seven-axis language but did not cross-cite. Bidirectional citation closes that gap without merging the two.
+- The published `bominal/docs/consolidated/PRD.md` and the existing `oyatie/docs/PRD.md` use identical flat-catalog language but did not cross-cite. Bidirectional citation closes that gap without merging the two.
 
 **Trace path**: `docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation.md`
 

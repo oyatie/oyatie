@@ -11,7 +11,7 @@
 
 ## Context
 
-Korean is morphologically rich: a single eojeol can carry stem + tense + politeness + connective in one orthographic word. Generic Unicode tokenization (whitespace + ICU) destroys retrievability for Korean queries. The KR launch requires first-class Korean tokenization at the Search axis (per ADR-0030), at the Workspace search-within-Drive surface (per ADR-0029), at the Vertical-pack record search, and at the Foundry agent retrieval.
+Korean is morphologically rich: a single eojeol can carry stem + tense + politeness + connective in one orthographic word. Generic Unicode tokenization (whitespace + ICU) destroys retrievability for Korean queries. The KR launch requires first-class Korean tokenization at the search microservice (per ADR-0030), at the Workspace search-within-Drive surface (per ADR-0029), at the Vertical-pack record search, and at the Foundry agent retrieval.
 
 Two mature open-source KR morphology engines exist: **mecab-ko** (LGPL; the canonical KR adaptation of the Japanese MeCab analyzer) and **khaiii** (Apache-2; Kakao's KR-specific deep-learning-based analyzer). Both ship as C/C++ libraries; both require FFI binding from Rust. License posture differs: khaiii is Apache-2 (clean), mecab-ko is LGPL (legal isolation per License Policy ADR).
 
@@ -21,12 +21,12 @@ The pack-of-19 foundation ADRs named KR morphology as a launch requirement but d
 
 ## Decision
 
-We adopt a **`Tokenizer` trait per language family** under `crates/oya-platform-tokenizer-*`; **mecab-ko + khaiii via FFI day-1** (with mecab-ko legal-isolation analysis per License Policy + Apache-2 khaiii as the cleaner option for tenants who can use it); **in-house Rust port** of the KR morphology engine long-horizon; **per-pack tokenizer impl** for JP / ZH / EN / Indic / Arabic.
+We adopt a **`Tokenizer` trait per language family** under `crates/oya-search-tokenizer-*`; **mecab-ko + khaiii via FFI day-1** (with mecab-ko legal-isolation analysis per License Policy + Apache-2 khaiii as the cleaner option for tenants who can use it); **in-house Rust port** of the KR morphology engine long-horizon; **per-pack tokenizer impl** for JP / ZH / EN / Indic / Arabic.
 
 ### `Tokenizer` trait
 
 ```rust
-// crates/oya-platform-tokenizer-kernel
+// crates/oya-search-tokenizer-kernel
 pub trait Tokenizer {
     fn locale(&self) -> LocaleId;
     fn tokenize(&self, text: &str) -> Result<Vec<Token>>;
@@ -58,7 +58,7 @@ pub enum TokenKind {
 
 | Family | Locale codes | Engine (day-1) | Engine (long-horizon) |
 |---|---|---|---|
-| Korean | `ko-KR`, `ko-KP` | mecab-ko (LGPL) + khaiii (Apache-2) via FFI | in-house Rust port (`crates/oya-platform-tokenizer-ko-rs`) |
+| Korean | `ko-KR`, `ko-KP` | mecab-ko (LGPL) + khaiii (Apache-2) via FFI | in-house Rust port (`crates/oya-search-tokenizer-ko-rs`) |
 | Japanese | `ja-JP` | MeCab-ja (BSD-style) + IPADic via FFI | in-house Rust port (long-horizon) |
 | Chinese (Simplified) | `zh-CN`, `zh-SG` | jieba-rs (MIT; Rust-native port) | jieba-rs upgraded |
 | Chinese (Traditional) | `zh-TW`, `zh-HK` | HanLP (Apache-2) via JNI bridge — alternative: jieba-rs with TW dict | in-house Rust port |
@@ -72,7 +72,7 @@ pub enum TokenKind {
 ### Korean: day-1 mecab-ko + khaiii FFI
 
 ```rust
-// crates/oya-platform-tokenizer-ko-mecab
+// crates/oya-search-tokenizer-ko-mecab
 pub struct MecabKoTokenizer {
     pub tagger: mecab::Tagger,    // FFI to libmecab + mecab-ko-dic
     pub dictionary_path: PathBuf,
@@ -80,7 +80,7 @@ pub struct MecabKoTokenizer {
 
 impl Tokenizer for MecabKoTokenizer { /* impl */ }
 
-// crates/oya-platform-tokenizer-ko-khaiii
+// crates/oya-search-tokenizer-ko-khaiii
 pub struct KhaiiiTokenizer {
     pub khaiii: khaiii_ffi::Khaiii,    // FFI to libkhaiii
     pub model_path: PathBuf,
@@ -97,7 +97,7 @@ impl Tokenizer for KhaiiiTokenizer { /* impl */ }
 mecab-ko is LGPL-2.1+. Per License Policy ADR + per FSF guidance on LGPL dynamic linking:
 
 - mecab-ko is loaded as a dynamic library (`.so` / `.dylib` / `.dll`); not statically linked into our product binaries.
-- The FFI shim (`crates/oya-platform-tokenizer-ko-mecab`) is the boundary; no LGPL code is inlined.
+- The FFI shim (`crates/oya-search-tokenizer-ko-mecab`) is the boundary; no LGPL code is inlined.
 - Per-cell deployment includes mecab-ko as a separate library; per-cell legal-isolation evidence record.
 - Documented in `docs/legal/mecab-ko-legal-isolation.md`.
 
@@ -105,7 +105,7 @@ khaiii is Apache-2 — no isolation needed.
 
 ### Korean: in-house Rust port (long-horizon)
 
-`crates/oya-platform-tokenizer-ko-rs` long-horizon target:
+`crates/oya-search-tokenizer-ko-rs` long-horizon target:
 
 - Pure-Rust implementation of mecab-class viterbi morphological analyzer.
 - mecab-ko-dic compiled to Rust-native FST format.
@@ -133,7 +133,7 @@ Fallback: ICU word-break for unrecognized locales.
 
 ### Tokenizer dispatch elsewhere
 
-Workspace Drive search, Vertical-pack record search, Foundry agent retrieval — all consume the same `Tokenizer` trait via `crates/oya-platform-tokenizer-kernel`; no axis ships its own tokenizer.
+Workspace Drive search, Vertical-pack record search, Foundry agent retrieval — all consume the same `Tokenizer` trait via `crates/oya-search-tokenizer-kernel`; no axis ships its own tokenizer.
 
 ### Per-tenant tokenizer configuration
 
@@ -153,7 +153,7 @@ This ADR does not own the search architecture (per ADR-0030, consumes tokenizer)
 
 ### Positive
 
-- Single `Tokenizer` trait across all axes — no per-axis tokenizer drift.
+- Single `Tokenizer` trait across all axes — no per-microservice tokenizer drift.
 - Day-1 KR launch capability via mecab-ko + khaiii FFI.
 - Apache-2 khaiii path lets tenants who can't use LGPL-isolated dependencies still get top-quality KR morphology.
 - In-house Rust port long-horizon eliminates dep risk + reduces FFI overhead.
@@ -199,7 +199,7 @@ This ADR does not own the search architecture (per ADR-0030, consumes tokenizer)
 ### Alternative D — Per-axis tokenizer choice
 
 - **Pros:** axis flexibility.
-- **Cons:** drift; per-axis dict maintenance; cross-axis search hits inconsistent results.
+- **Cons:** drift; per-microservice dict maintenance; cross-microservice search hits inconsistent results.
 - **Rejected because:** tokenizer is a substrate concern.
 
 ---
@@ -217,7 +217,7 @@ This ADR does not own the search architecture (per ADR-0030, consumes tokenizer)
 ## References
 
 - `docs/PRD.md` §10 (multi-locale)
-- `docs/DESIGN.md` §11 (tokenization), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (tokenization), §10 (cross-microservice contracts)
 - mecab-ko + mecab-ko-dic project; khaiii (Kakao) project; Stanza (Stanford NLP); IndicNLP; PyThaiNLP
 - FSF guidance on LGPL dynamic linking; OSI license review board
 - ADR-0001 (cohesion), ADR-0013 (License Policy), ADR-0030 (search), ADR-0033 (vertical pack), ADR-0047 (search backend)

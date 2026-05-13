@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-cloud`
+> **Owner:** `cloud`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0010
 
@@ -11,9 +11,9 @@
 
 ## Context
 
-The PRD declares horizontal-scale-end-to-end and cell-isolation-evidence as foundation invariants. Without explicit cell architecture, the seven-axis cohesion claim degrades in two predictable ways: (a) a single tenant's runaway query, audit emission, or capability invocation starves other tenants in the same shared compute pool; (b) regulator-required isolation evidence (KR CSAP, K-ISMS-P; EU GAIA-X; US FedRAMP; SOC 2 CC7) cannot be produced because the deployment topology has no isolation primitive smaller than "region." LEDG-010 captures the prior single-cluster OCI posture as a contradiction with the AWS-class cloud claim; this ADR closes it.
+The PRD declares horizontal-scale-end-to-end and cell-isolation-evidence as foundation invariants. Without explicit cell architecture, the flat-catalog cohesion claim degrades in two predictable ways: (a) a single tenant's runaway query, audit emission, or capability invocation starves other tenants in the same shared compute pool; (b) regulator-required isolation evidence (KR CSAP, K-ISMS-P; EU GAIA-X; US FedRAMP; SOC 2 CC7) cannot be produced because the deployment topology has no isolation primitive smaller than "region." LEDG-010 captures the prior single-cluster OCI posture as a contradiction with the AWS-class cloud claim; this ADR closes it.
 
-The cell concept is well established in industry (AWS cell-based architecture, Google's per-locale shards, Azure scale units) and provides the right size — large enough for operational efficiency, small enough that a noisy-neighbor incident is bounded to a known blast radius. Oyatie's seven-axis posture intensifies the requirement: a cell needs to absorb cross-axis traffic for the tenants it hosts (workflow + workspace + capability + cloud + search + ads) and must isolate audit-chain shards (ADR-0003), eventing partitions (ADR-0005), Object Graph row-level boundaries (ADR-0006), and HSM partitions (KCMVP, FIPS 140-3) cleanly.
+The cell concept is well established in industry (AWS cell-based architecture, Google's per-locale shards, Azure scale units) and provides the right size — large enough for operational efficiency, small enough that a noisy-neighbor incident is bounded to a known blast radius. Oyatie's flat-catalog posture intensifies the requirement: a cell needs to absorb cross-microservice traffic for the tenants it hosts (workflow + connect + capability + cloud + search + ads) and must isolate audit-chain shards (ADR-0003), eventing partitions (ADR-0005), Ontology row-level boundaries (ADR-0006), and HSM partitions (KCMVP, FIPS 140-3) cleanly.
 
 ---
 
@@ -30,14 +30,14 @@ We adopt **cells as the primary blast-radius isolation primitive**, sized per-te
 | `Shared-medium` | Up to ~100 tenants | ≤ 100 | SMB / startup tier |
 | `Shared-large` | Up to ~1000 tenants | ≤ 1000 | Free / prosumer / Workspace-Personal |
 | `Foundry-runtime` | Foundry agent execution; per-agent worktree isolation | per-agent | Agent invocation cells (ADR-0007 runtime) |
-| `Public-corpus` | Search public-web ingestion; no tenant data | — | Search axis public corpus only |
+| `Public-corpus` | Search public-web ingestion; no tenant data | — | search microservice public corpus only |
 
 Tier promotion (e.g. `Shared-small` → `Dedicated`) is a council-approved migration with an evidence record; downgrade is forbidden mid-tenancy (would cross blast-radius posture).
 
 ### Cell entity
 
 ```rust
-// crates/oya-platform-cell-kernel
+// crates/oya-tenancy-cell-kernel
 pub struct CellId(pub uuid::Uuid);
 
 pub struct Cell {
@@ -49,7 +49,7 @@ pub struct Cell {
     pub hsm_partition: HsmPartitionRef,  // per-cell KCMVP / FIPS 140-3 partition
     pub broker_pool: BrokerPoolRef,      // per-cell or per-region pool with cell-keyed partitions (ADR-0005)
     pub audit_shard: AuditShardRef,      // ADR-0003
-    pub object_graph_shard: OgShardRef,  // ADR-0006 Citus shard
+    pub ontology_shard: OntologyShardRef,  // ADR-0006 Citus shard
     pub plane_affinity: BTreeSet<Plane>, // ADR-0004; data-plane is cell-local, control + analytics are global per region
     pub residency: ResidencyClass,
 }
@@ -59,7 +59,7 @@ pub struct Cell {
 
 1. **Edge routing.** The edge gateway (Envoy per ADR-0013 ancestry) reads the request's `Tenant-Id` claim from the JWT, looks up the tenant's cell binding, and steers the request to the cell's regional ingress. Cross-region routing requires `residency.cross_region_replicated == true` AND a per-call audit record.
 2. **Mesh routing.** Istio Ambient (per ADR-0044 ancestry) carries the `cell_id` as a request header; sidecars route across services within the cell and reject cross-cell calls unless explicitly declared in the catalog as a `cross_cell_contract`.
-3. **Store routing.** Object Graph (ADR-0006) reads the `cell_id` from the session context and binds Postgres RLS + Citus shard to the cell. Per-cell HSM partition unwraps DEKs only for the cell's tenants.
+3. **Store routing.** Ontology (ADR-0006) reads the `cell_id` from the session context and binds Postgres RLS + Citus shard to the cell. Per-cell HSM partition unwraps DEKs only for the cell's tenants.
 4. **Event routing.** Eventing backbone (ADR-0005) partition key is `(tenant_shard, cell_id)`. Per-cell consumers subscribe with cell-prefixed group ids; cross-cell event consumption is explicit catalog declaration.
 
 ### Per-cell HSM partition
@@ -80,7 +80,7 @@ Evidence emits to the trust portal per ADR-0003.
 
 ### Boundary
 
-- Applies to: every tenant data plane, every Foundry agent invocation, every cross-axis call carrying tenant scope.
+- Applies to: every tenant data plane, every Foundry agent invocation, every cross-microservice call carrying tenant scope.
 - Does not apply to: control-plane management (region-global by design per ADR-0004); analytics-plane projections (region-global with per-cell-tagged rows); public-corpus search ingestion (its own `Public-corpus` tier).
 
 ---
@@ -136,9 +136,9 @@ Evidence emits to the trust portal per ADR-0003.
 
 1. **Q1.** Public-corpus-tier cell — does it need an HSM at all (no tenant data)? Default: NO HSM; per-record signing only. → owner: `axis-search`.
 2. **Q2.** Foundry-runtime-cell sizing — one cell per tenant or one cell per agent run? Default: one cell per tenant; per-run worktree isolation inside. → ADR-0007.
-3. **Q3.** Cross-cell read-only projection (e.g. cross-cell search) — does this require explicit catalog declaration? Default: YES; treated as cross-axis-contract. → ADR-0011.
+3. **Q3.** Cross-cell read-only projection (e.g. cross-cell search) — does this require explicit catalog declaration? Default: YES; treated as cross-microservice-contract. → ADR-0011.
 4. **Q4.** Cell-tier downgrade path — strictly forbidden, or council-approved with evidence? Default: forbidden mid-tenancy; only via tenant offboarding + re-onboarding to lower tier. → owner: `council-architecture`.
-5. **Q5.** Per-region cell cap before sub-regional split — what's the practical cap on cell count per region before mesh routing becomes lossy? Default: 5000 cells per region; revisit. → owner: `axis-cloud`.
+5. **Q5.** Per-region cell cap before sub-regional split — what's the practical cap on cell count per region before mesh routing becomes lossy? Default: 5000 cells per region; revisit. → owner: `cloud`.
 
 ---
 

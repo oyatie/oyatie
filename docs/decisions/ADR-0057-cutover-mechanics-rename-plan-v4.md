@@ -57,7 +57,7 @@ squash-merge.
 - No existing crate is renamed in Shard 0.
 
 **Shard 1 (atomic rename, gated on Shard 0 acceptance + 48 h freeze)**:
-- All ~140 existing crates renamed per §3 audit table.
+- All 114 atomic-safe crates renamed (140 total − 26 PROTOCOL-UNKNOWN deferred to Shard 1.5).
 - `[package.metadata.oya]` blocks emitted to all 140 manifests via xtask `--apply`.
 - All dep-edges rewritten (est. 200–400 sites).
 - Cargo.lock rewritten via `xtask-metadata-augment lockfile-rename`.
@@ -65,6 +65,20 @@ squash-merge.
 - 4 LEAN check crates populated (moved from scaffold to implementation).
 - Standards co-edits finalised (bounded-contexts.md, clean-architecture.md §2.1 port-location fix).
 - Single squash-merge; single lockfile event.
+
+### Shard 1.5: PROTOCOL-UNKNOWN deferred renames
+
+**Scope**: 26 rows = 5 platform-`*-api` + 13 cloud-`*-api` + 4 foundry-`*-api` + 4 workspace-`*-api`, all marked `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` in §3 audit body.
+
+**Gate to enter**: iter-4 src-inspection completes protocol classification for every row (each `-api` crate identifies as `rest`, `grpc`, `graphql`, or other 12-enum-member protocol layer).
+
+**Timing**: post-Shard-1 commit, no freeze window required (these are existing v3 names; Shard 1.5 only renames the protocol-classified subset).
+
+**Cross-reference**: §3.6 row counts must subtract the 26 from each partition's "renamed: N" line; the §3.6 totals are *aspirational* across both Shards.
+
+**BNF effect**: Shard 1 still meets the "atomic rename" property *for its scoped 114 rows*; Shard 1.5 is a follow-on, not a partial first attempt.
+
+> **Naming justification for "Shard 1.5"**: This is a milestone-naming convention, not a BNF crate name. BNF (ADR-0056) governs `oya-*` crate identifiers only. Milestone labels like "Shard 0", "Shard 1", "Shard 1.5" are coordination vocabulary outside BNF scope. "1.5" denotes a sequentially ordered follow-on to Shard 1, within the same major-milestone bracket, consistent with the Hybrid C topology naming convention established in this ADR.
 
 ### Lockfile-Rename xtask
 

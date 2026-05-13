@@ -98,10 +98,11 @@ graph MUST topologically match it.
 
 - **`kernel`** (ports addendum) — **Port trait declarations live in `kernel`,
   not `domain`.** Per [ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)
-  §"Port location", a port is a pure trait contract (`trait FooStore: Send + Sync { … }`);
-  it belongs in the innermost layer alongside the types it operates on, not in
-  the layer that uses it. The domain layer holds business logic that *calls
-  through* ports; it does not define them.
+  §"Port location" (v4.1 BNF), a port is a pure trait contract
+  (`trait FooStore: Send + Sync { … }`); it belongs in the innermost layer
+  alongside the types it operates on, not in the layer that uses it. The domain
+  layer holds business logic that *calls through* ports; it does not define them.
+  Crate name: `oya-<microservice>[-<bc>]-kernel` per BNF v4.1.
 
 - **`domain`** — Business logic on kernel types: entities, domain services,
   invariant enforcement. Uses (calls through) port traits defined in `kernel`.

@@ -11,9 +11,9 @@
 
 ## Context
 
-Every Oyatie surface — across all seven axes — falls into one of three execution profiles: low-frequency / high-trust / audit-heavy operations that *configure* the system; high-frequency / latency-bounded operations that *execute* requests; and read-mostly operations that *aggregate* for learning, reporting, and FinOps. Mixing these profiles in a single store, a single deployable, or a single transactional unit produces a cascade of operational problems: a control-plane mutation blocks a data-plane query path; an analytics scan blows out a data-plane index cache; a tenant-onboarding event is replayed alongside a billion ad-impression events.
+Every Oyatie surface — across all all microservices — falls into one of three execution profiles: low-frequency / high-trust / audit-heavy operations that *configure* the system; high-frequency / latency-bounded operations that *execute* requests; and read-mostly operations that *aggregate* for learning, reporting, and FinOps. Mixing these profiles in a single store, a single deployable, or a single transactional unit produces a cascade of operational problems: a control-plane mutation blocks a data-plane query path; an analytics scan blows out a data-plane index cache; a tenant-onboarding event is replayed alongside a billion ad-impression events.
 
-The cohesion thesis (ADR-0001) makes plane discipline more important, not less, because every axis must compose cleanly with every other. Without explicit plane class declared at the catalog layer, cross-axis calls become accidental cross-plane calls; a control-plane mutation in cloud-IAM accidentally synchronously waits on a data-plane storage write; a search-axis index lifecycle event gets routed through a control-plane queue sized for tens-of-events-per-second and stalls. The only sustainable answer is to make the plane a first-class declaration on every surface.
+The cohesion thesis (ADR-0001) makes plane discipline more important, not less, because every axis must compose cleanly with every other. Without explicit plane class declared at the catalog layer, cross-microservice calls become accidental cross-plane calls; a control-plane mutation in cloud-IAM accidentally synchronously waits on a data-plane storage write; a search-axis index lifecycle event gets routed through a control-plane queue sized for tens-of-events-per-second and stalls. The only sustainable answer is to make the plane a first-class declaration on every surface.
 
 ---
 
@@ -106,14 +106,14 @@ PRs that change a surface's `plane` field, or add/modify a `cross_plane_calls` e
 
 ### Negative
 
-- Up-front declaration cost on every surface; per-axis surfaces with mixed read/write profiles must be split, sometimes painfully.
+- Up-front declaration cost on every surface; per-microservice surfaces with mixed read/write profiles must be split, sometimes painfully.
 - Some legacy crates (per ADR-0015 migration target) ship with implicit cross-plane edges that must be declared explicitly during migration.
 - Read-after-write expectations across planes degrade to read-after-projection-lag (typically ms but bounded by eventing-backbone fan-out); customer-facing UX must be designed around this.
 
 ### Operational
 
 - `oya-foundry-fitness-plane` runs on every PR; cross-plane label triggers two-team review.
-- Per-plane SLO catalog: control plane targets p99 < 1 s; data plane per-axis (ads < 100 ms; search < 200 ms; SaaS workflow step < 500 ms); analytics targets per-pipeline freshness window.
+- Per-plane SLO catalog: control plane targets p99 < 1 s; data plane per-microservice (ads < 100 ms; search < 200 ms; SaaS workflow step < 500 ms); analytics targets per-pipeline freshness window.
 - Runbooks: `runbooks/cross-plane-call-introduction.md`, `runbooks/plane-class-correction.md`.
 - The plane × axis matrix above is the source of truth; quarterly review by `council-architecture` regenerates it from the catalog.
 
@@ -137,7 +137,7 @@ PRs that change a surface's `plane` field, or add/modify a `cross_plane_calls` e
 
 - **Pros:** zero source-tree change.
 - **Cons:** boundary validation requires source-tree visibility; Helm-only declaration cannot enforce import discipline.
-- **Rejected because:** ADR-0011 contract registry requires plane in catalog for cross-axis review.
+- **Rejected because:** ADR-0011 contract registry requires plane in catalog for cross-microservice review.
 
 ---
 
@@ -152,7 +152,7 @@ PRs that change a surface's `plane` field, or add/modify a `cross_plane_calls` e
 
 ## References
 
-- `docs/DESIGN.md` §2 (plane separation), §10 (cross-axis contracts: `Plane class`), §3.0.5.3 (blast-radius classes)
+- `docs/DESIGN.md` §2 (plane separation), §10 (cross-microservice contracts: `Plane class`), §3.0.5.3 (blast-radius classes)
 - `docs/PRD.md` §6 constraint 9 (plane separation)
-- `docs/CONTRADICTION-LEDGER.md` resolution batches: cross-axis-contracts requires plane discipline
-- ADR-0001 (cohesion thesis), ADR-0005 (eventing backbone — projection mechanism), ADR-0011 (cross-axis contract registry — plane is a contract field), ADR-0015 (architectural flattening — kernel/domain/app/api/worker/adapter roles map cleanly to planes)
+- `docs/CONTRADICTION-LEDGER.md` resolution batches: cross-microservice-contracts requires plane discipline
+- ADR-0001 (cohesion thesis), ADR-0005 (eventing backbone — projection mechanism), ADR-0011 (cross-microservice contract registry — plane is a contract field), ADR-0015 (architectural flattening — kernel/domain/app/api/worker/adapter roles map cleanly to planes)

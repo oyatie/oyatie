@@ -8,8 +8,9 @@ date: 2026-05-12
 purpose: |
   Canonical Rust code style for the oyatie workspace. Defines clippy-pedantic with
   cherry-picked allow-list, `#![deny(unsafe_code)]` policy, the `[workspace.lints]`
-  inheritance table, the `oya-<shared|vertical>-<bounded-context>-<layer>` 3-slot BNF
-  (per ADR-0056; supersedes the v3 `oya-<context>-<role>[-<capability>]` convention),
+  inheritance table, the `oya-<microservice>[-<bc>]-<layer>` BNF v4.1
+  (per ADR-0056 v4.1; supersedes the v3 `oya-<context>-<role>[-<capability>]` and
+  v4 `oya-<shared|vertical>-<bc>-<layer>` conventions),
   and the 12-value canonical layer enum (kernel, domain, application, app, adapter,
   infrastructure, cli, rest, grpc, graphql, worker, sdk) per ADR-0056.
 canonical_authority: docs/CONSTITUTION.md
@@ -136,14 +137,15 @@ ADR-0015 (flat crates), and **[ADR-0056](../decisions/ADR-0056-rust-clean-archit
 (v4 3-slot BNF, supersedes v3), every Rust crate path under `crates/` or `tools/` matches:
 
 ```bnf
-oya-<shared|vertical>-<bounded-context>-<layer>
+oya-<microservice>[-<bc>]-<layer>
 ```
 
 Rules:
 
-- `<shared|vertical>` — slot 2: the literal `shared` (cross-vertical shared BC) OR a
-  registered single-token vertical name from `[workspace.metadata.oya.verticals]`
-  (`cloud`, `foundry`, `workspace`, plus future verticals per ADR-0056 §"Vertical naming policy").
+- `<microservice>` — slot 2: a registered µservice name (1..3 kebab tokens) from
+  `[workspace.metadata.oya.microservices]`. The literal `shared` and the
+  `shared|vertical` binary are **retired** per BNF v4.1 (ADR-0056 v4.1).
+  Everything is flat; every µservice is independent.
 - `<bounded-context>` — slot 3: 1..N kebab tokens; open set; registered in
   `docs/standards/bounded-contexts.md`. Adding a BC is a 0-ADR action.
 - `<layer>` — slot 4 (final token): one of 12 canonical values per ADR-0056 §"12-Value Layer Enum":

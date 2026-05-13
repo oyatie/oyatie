@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0020 (provider adapter model), ADR-0022 (autonomy ceiling enforcement), ADR-0024 (eval harness — gates publish), ADR-0025 (Foundry as engineering platform)
 
@@ -11,7 +11,7 @@
 
 ## Context
 
-Capabilities are the unit of work in the Foundry runtime: each capability is a typed contract (input schema, output schema, autonomy requirement, data classes touched, audit-chain emission topic, regulatory packs consumed, cost profile, sunset policy) that an agent can invoke. Without a single registry, capability authors would scatter contracts across crates and consumers would have no agent-discoverable entry point; every cross-axis surface would need a bespoke client. Without an industry-standard discovery surface, we cannot integrate with the agent ecosystem (Claude Desktop, Cursor, Continue, Cline, OpenAI Apps SDK) without per-client adapters. Without a per-tenant endpoint, we cannot enforce per-tenant routing, autonomy ceilings, or evidence emission boundaries at the protocol layer.
+Capabilities are the unit of work in the Foundry runtime: each capability is a typed contract (input schema, output schema, autonomy requirement, data classes touched, audit-chain emission topic, regulatory packs consumed, cost profile, sunset policy) that an agent can invoke. Without a single registry, capability authors would scatter contracts across crates and consumers would have no agent-discoverable entry point; every cross-microservice surface would need a bespoke client. Without an industry-standard discovery surface, we cannot integrate with the agent ecosystem (Claude Desktop, Cursor, Continue, Cline, OpenAI Apps SDK) without per-client adapters. Without a per-tenant endpoint, we cannot enforce per-tenant routing, autonomy ceilings, or evidence emission boundaries at the protocol layer.
 
 We need a capability schema rich enough to gate autonomy, route providers, attribute cost, and emit audit-chain evidence — and a discovery surface that any MCP (Model Context Protocol) client can consume so agents outside our runtime can invoke our capabilities under the same trust envelope.
 
@@ -116,17 +116,17 @@ Each subcommand is mirrored as an MCP tool in the gateway, so the same surface i
 
 1. **Bespoke RPC instead of MCP.** Pros: no spec churn risk; full control. Cons: every agent client needs a custom adapter; we lose the upstream ecosystem; we re-invent discovery semantics. Rejected — the cost of building agent-client adapters dwarfs the spec churn cost.
 2. **Single global endpoint (no per-tenant endpoint).** Pros: simpler operations. Cons: tenant isolation becomes an application-layer responsibility; one routing bug becomes a cross-tenant leak. Rejected — the isolation must be structural.
-3. **Separate registries per axis.** Pros: each axis owns its own surface. Cons: agents can't discover across axes without a federation layer; cohesion fractures; cost ceilings cannot be enforced globally. Rejected — capability registry is a Foundry-owned cross-axis contract.
+3. **Separate registries per axis.** Pros: each axis owns its own surface. Cons: agents can't discover across axes without a federation layer; cohesion fractures; cost ceilings cannot be enforced globally. Rejected — capability registry is a Foundry-owned cross-microservice contract.
 4. **OpenAPI as the discovery surface (instead of MCP).** Pros: mature; widely tooled. Cons: not agent-native; doesn't carry tool descriptions in an agent-consumable shape; doesn't carry per-prompt server-level workflows. Rejected for agent-facing discovery (we still publish OpenAPI for programmatic clients).
 
 ---
 
 ## Open questions
 
-1. How do we version the MCP endpoint when the protocol evolves? Per-tenant endpoint pin to a protocol version, or roll all tenants forward together? *Owner: `axis-foundry`; target the next pack.*
-2. What is the rate-limit shape on the per-tenant MCP endpoint? Per-capability, per-tenant, per-IP? *Owner: `axis-foundry` + `ops-sre-reliability`.*
-3. Should agent-authored capabilities (capabilities composed by another capability) be marked structurally distinct in the registry to prevent infinite-loop discovery? *Owner: `axis-foundry`.*
-4. How are per-region MCP gateway endpoints reconciled with tenant residency — does a strict-KR tenant ever expose a non-KR endpoint? *Owner: `axis-foundry` + `platform-privacy-dub`.*
+1. How do we version the MCP endpoint when the protocol evolves? Per-tenant endpoint pin to a protocol version, or roll all tenants forward together? *Owner: `foundry`; target the next pack.*
+2. What is the rate-limit shape on the per-tenant MCP endpoint? Per-capability, per-tenant, per-IP? *Owner: `foundry` + `ops-sre-reliability`.*
+3. Should agent-authored capabilities (capabilities composed by another capability) be marked structurally distinct in the registry to prevent infinite-loop discovery? *Owner: `foundry`.*
+4. How are per-region MCP gateway endpoints reconciled with tenant residency — does a strict-KR tenant ever expose a non-KR endpoint? *Owner: `foundry` + `platform-privacy-dub`.*
 
 ---
 

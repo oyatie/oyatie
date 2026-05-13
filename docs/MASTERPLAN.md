@@ -1,16 +1,15 @@
 ---
 doc_class: MasterPlan
 shape: anchor
-length_cap: 500
+length_cap: 800
 authority_tier: 0
 status: Accepted
-date: 2026-05-12
+date: 2026-05-13
 owners: ["council-architecture"]
 canonical_authority: docs/CONSTITUTION.md
 companion_docs:
   - docs/PRD.md
   - docs/DESIGN.md
-  - docs/SPEC.md
   - docs/ROADMAP.md
   - docs/RACI-OWNERSHIP.md
   - docs/RISK-REGISTER.md
@@ -21,207 +20,523 @@ foundation_adrs:
   - ADR-0052
   - ADR-0053
   - ADR-0054
+  - ADR-0056
 ---
 
 # Oyatie — MASTERPLAN
 
 ## §Authority-anchor
 
-This is the canonical Master Plan for oyatie. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and ultimately from `docs/CONSTITUTION.md`.
+This is the canonical Master Plan for oyatie. All milestone INDEXes / phase INDEXes / Implementation Plans under `.omc/plans/milestones/M*/` derive their authority chain from this document and ultimately from `docs/CONSTITUTION.md`.
+
+The planning implementation tree lives at `.omc/plans/milestones/`. `docs/MASTERPLAN.md` (this file) is the canonical product/architecture masterplan; `.omc/plans/MASTERPLAN.md` is deleted — this file is the single source.
 
 ---
 
 > **Status:** Accepted (canonical at `docs/MASTERPLAN.md`).
 > **Owner:** council-architecture (cross-axis); Founder Jason Lee (north-star arbiter).
-> **Date:** 2026-05-12.
+> **Date:** 2026-05-13.
+> **Supersedes:** pre-2026-05-13 masterplan (7-axis / vertical-grouping / platform-terminology model).
 
-## 1. Executive summary
+---
 
-Oyatie is one cohesive **ecosystem-as-a-service** expressed across **seven axes** — SaaS, Workspace, Vertical, Foundry, Cloud, Search, Ads + Analytics — sharing one tenancy model, one identity surface, one capability registry, one audit chain, and one agent runtime (per [`docs/CONSTITUTION.md`](CONSTITUTION.md) §Mission and [`docs/PRD.md`](PRD.md) §1). The integration thesis: non-leakage of identity / audit / tenancy / runtime across every layer is more valuable than best-of-breed substitutes, because it removes the integration tax every multi-vendor stack pays ([`docs/PRD.md`](PRD.md) §1, §5).
+## 1. Vision
 
-This Master Plan is the single anchor for product launch at AWS/Google/Microsoft/Oracle quality. Six milestones (plus one cross-cutting cluster) decompose into ~33 phases and ~84 implementation plans, all built to **final shape on day one** — no MVP-shaped artifacts that need replacement, no placeholders that need migration.
+Oyatie is one cohesive **ecosystem-as-a-service**, expressed as a **flat catalog of independent µservices** that integrate via Workflow and Ontology — the two load-bearing adapter primitives. Any tenant enables any µservice subset à-la-carte. No grouping, no arms, no vertical privilege.
 
-**Current state (2026-05-12).** Cloud foundations kernels are shipping in flight at ~114 catalog/workspace records. The grit/icm agentic-pipeline cutover is mid-consensus iter-2. Foundry Phase 00 contract surface is salvaged from upstream bominal ultragoal awaiting cross-cite.
+**Oyatie ≡ Bominal** — two parallel codebases of the same product family. Bominal ADR decisions are inherited 1:1 with glossary translation unless an explicit oyatie session override exists (see §5).
 
-**Definition of "done" at the masterplan level:** see §13.
+**Markets:** Korea-first + US parallel; EU after; jurisdiction-pluggable via regional pack seams.
 
-## 2. Compound principles (the directive stack)
+**Operating posture:** No legacy protocols; own payment rails (M04+); complete-product-not-MVP; modular SME→enterprise; Bominal Proof Ladder L0..L7 + 9 architecture planes green at every milestone gate.
 
-All ten principles compound; none overrides. Every artifact in the milestone tree inherits them.
+---
 
-Foundation ADRs underpinning this section: **ADR-0052** (4-tier hierarchy), **ADR-0053** (final-shape discipline), **ADR-0054** (provider-agnostic interface contract).
+## 2. Architecture
 
-| # | Principle | Rationale | Verification |
-|---|---|---|---|
-| 1 | **4-tier hierarchy.** Master Plan > Milestone > Phase > Implementation Plan. Every file in `docs/plans/milestones/` declares its tier in frontmatter. | A fresh agent should be able to descend the tree in O(log n) clicks; flat lists do not scale to 84+ IPs. | `oya-foundry-fitness-plan-hierarchy` lane validates frontmatter `doc_class ∈ {MasterPlan, MilestoneIndex, PhaseIndex, ImplementationPlan}` and parent-pointer present. |
-| 2 | **Autonomous senior-engineering decisions for long-term outcomes.** Take on upfront cost if the long-term outcome benefits. No corner-cutting for short-term wins. | AWS / Google / MS / Oracle decisions optimize for 5-10 year maintainability; we adopt the same posture. | Per-IP `decision-log:` frontmatter field; ADR required when an IP defers a known-better-but-costlier path. |
-| 3 | **Final-shape adoption from day one.** Build to the final form. No MVP that needs replacement; no placeholders; no temporary names; no stub implementations marked "to be rewritten." | Migration cost across 84 IPs and 21 axis/vertical product directories dwarfs upfront cost. | Per-IP `final_shape_compliance:` field; `oya-foundry-fitness-no-placeholder` lane refuses code containing `TODO`/`FIXME`/`unimplemented!()`/`todo!()` outside `flaky/` or explicit ADR-tracked carve-outs. |
-| 4 | **Provider-agnostic by default.** Cloud, KMS, storage, network, observability, secrets, identity, AI providers — all use provider-neutral interfaces. Provider-specific code lives in `oya-<context>-adapter-<provider>-*` crates only. | Already proven in Foundry's Claude/OpenAI/Gemini adapter pattern (per [`docs/DESIGN.md`](DESIGN.md) §3.0). Extends to AWS/OCI/GCP/Azure cloud, OpenBao/Vault/AWS-KMS for secrets, Postgres/RDS/Cloud-SQL for db. | `oya-foundry-fitness-provider-coupling` lane refuses provider-specific imports outside adapter crates. |
-| 5 | **Distroless + smallest-image containers.** Production binaries are `cargo build --release` + static (or `musl` static-linked where possible) and ship in `gcr.io/distroless/static-debian12` (or `distroless/cc-debian12` for FFI). No shells, no package managers, no debug tooling. | Smaller attack surface, faster pull, smaller registry storage. Hyperscaler convention. | `oya-foundry-fitness-image-discipline` lane: image-size budget per binary, distroless-base verified, no `apt`/`apk` layers. |
-| 6 | **AWS / Google / MS / Oracle launch-quality bar.** Working Backwards / PRFAQ for product launches; Design Doc per phase; SRE postmortem-blameless on every Sev-1/2; Microsoft 1ES-templated CI; Oracle Engineering Excellence Council–style merge gate. | Customers buying Oracle/AWS/Google-tier products expect Oracle/AWS/Google-tier engineering rigor. | Per-milestone INDEX declares which named practices apply; `oya-foundry-fitness-hyperscaler-practice` lane checks adoption. |
-| 7 | **Linus-style discipline.** Delete bureaucracy; reshape data to eliminate special cases; flat over deep when the deep is ceremony; good taste = simplest representation handling all cases without branching. | The "good-taste audit" PR section is mandatory per SP-01 A10 and inherited here per-IP. | Per-IP PR template "good-taste audit" block must enumerate special cases eliminated; empty block = fail. |
-| 8 | **Current LTS dependencies, CI-enforced.** Every direct dependency tracks the current LTS major.minor where the project publishes LTS lines. Placeholder targets (pending verification): Rust stable (≥ 1.82), Node 20 "Iron" LTS, Python 3.12, PostgreSQL 16, Kubernetes 1.31, Debian 12 base, OpenTelemetry SDK current LTS. | LTS-tracking reduces CVE exposure, eliminates surprise EOL migration storms. | `oya-foundry-fitness-lts-dependency` lane (CI gate, blocking); per-IP `dependency-additions:` listed with LTS-conformance flag. |
-| 9 | **Hyperscaler-bar internal toolchain + architectural robustness.** Practices adopted: AWS Working-Backwards / PRFAQ, Google Design-Doc + Postmortem-blameless, Microsoft 1ES-templated-pipelines, Oracle Engineering-Excellence-Council. Rust: `cargo-deny`, `cargo-audit`, `cargo-nextest`, `cargo-semver-checks`, `sccache`, `cargo-llvm-cov`. CI/CD: Sigstore/SLSA, OpenTelemetry, Distroless. | These are the field-proven practices at the four reference vendors. | Per-phase INDEX cites which Rust-practice gates inherit; per-IP CI checklist verifies. |
-| 10 | **Auto-doc + purpose-driven + agentic-dev-optimized.** Generated docs > hand-written wherever a machine-readable source exists (rustdoc, OpenAPI, ADR-INDEX, fitness-lane reports). Every artifact has a declared `purpose` in frontmatter. Every directory has an INDEX.md or .json. IP files name their grit-claim symbols as real `file::Identifier`. | A fresh agent must navigate the tree without orchestrator hand-holding (read MASTERPLAN → pick milestone → pick phase → pick IP → grit-claim → work → icm-store → grit-done). | `oya-foundry-fitness-doc-freshness`, `-orphan-detection`, `-agentic-navigability` lanes. |
-| 11 | **Visualization-as-code, Foundry-owned, auto-updated.** Architecture, product map, service map, tech-stack, roadmap, and dependency graphs are auto-generated from canonical sources (Cargo workspace metadata, `contracts/`, `docs/products/`, `docs/ROADMAP.md`, `docs/ADR-INDEX.md`, milestone/phase/IP frontmatter). The Foundry visualization kernel (`oya-foundry-architecture-map-kernel`) walks these sources and emits Mermaid (inline mdbook) + D2 (`terrastruct/d2` for richer service maps) + Graphviz (DAG fallback). Outputs are SVG + PNG + versioned markdown source. | Hand-drawn architecture diagrams age out of sync the moment they ship; the only sustainable form at AWS/Google/MS/Oracle scale is generated-from-truth. | `oya-foundry-fitness-architecture-map-freshness` lane blocks PRs that drift from generated state. Renders publish via `oya-foundry-mdbook-kernel`. |
-| 12 | **Pragmatic git/gh — permitted with documented genuine need.** Default sanctioned primitives remain `{grit, icm, oya-tooling-agent-read}`. Direct `git`/`gh` invocation is permitted (by any operator — agent or human) when no grit/icm primitive exists AND inventing one would be over-engineering. Rationale logged via `icm store -t direct-tool-invocations -c "<one-line rationale>" -i high -k "git,<context>"` BEFORE execution. Workflows that repeatedly invoke `git`/`gh` for a common purpose are migration candidates into `oya-tooling-agent-read` to amortize the audit cost. | A strict ban produces theater; a documented exception produces an audit trail with migration signal. | `oya-foundry-fitness-banned-primitives` lane (revised): catches *undocumented* `git`/`gh` invocations in agent-instruction sections, not all invocations. Repeat invocations (≥ 5 of the same shape in 30 days) auto-emit a migration-candidate row in `MISTAKES-LEDGER`. |
+### 2.1 Flat µservice catalog
 
-## 3. Milestone index (the 4-tier root)
-
-| ID | Title | Wave alignment (per [`docs/ROADMAP.md`](ROADMAP.md)) | Status | Phases | Owner axis | Index |
-|---|---|---|---|---|---|---|
-| **M01** | Foundation | W-Foundation | open | 6 | council-architecture + platform-tenancy-identity | [`docs/plans/milestones/M01-foundation/INDEX.md`](plans/milestones/M01-foundation/INDEX.md) |
-| **M02** | Foundry-Preview | W-Foundry-Preview | gated on M01 | 6 | axis-foundry | [`docs/plans/milestones/M02-foundry-preview/INDEX.md`](plans/milestones/M02-foundry-preview/INDEX.md) |
-| **M03** | Cloud + SaaS + Search + Workspace Preview (parallel) | W-Cloud-Preview ∥ W-SaaS-Preview ∥ W-Search-Preview ∥ W-Workspace-Preview | gated on M02 | 8 | axis-cloud + axis-saas + axis-search + axis-workspace | [`docs/plans/milestones/M03-cloud-saas-search-workspace-preview/INDEX.md`](plans/milestones/M03-cloud-saas-search-workspace-preview/INDEX.md) |
-| **M04** | Vertical-Pilot (Korea-first) | W-Vertical-Pilot | gated on M03 | 4 | vertical-corporate (or council-elected) + tactical-first-vertical-pilot | [`docs/plans/milestones/M04-vertical-pilot-korea/INDEX.md`](plans/milestones/M04-vertical-pilot-korea/INDEX.md) |
-| **M05** | Cloud-Stable + Search-Stable | W-Cloud-Stable + W-Search-Stable | gated on M04 | 4 | axis-cloud + axis-search + ops-compliance | [`docs/plans/milestones/M05-cloud-search-stable/INDEX.md`](plans/milestones/M05-cloud-search-stable/INDEX.md) |
-| **M06** | Ads-Preview + Vertical-Fan-Out | W-Ads-Preview + W-Vertical-Fan-Out | gated on M05 | 4 | axis-ads-analytics + all vertical teams | [`docs/plans/milestones/M06-ads-vertical-fanout/INDEX.md`](plans/milestones/M06-ads-vertical-fanout/INDEX.md) |
-| **M-CC** | Cross-cutting workstreams (thread across all milestones) | n/a (parallel) | open | 8 | per-thread owner; council-architecture coordinates | [`docs/plans/milestones/M-CC-cross-cutting/INDEX.md`](plans/milestones/M-CC-cross-cutting/INDEX.md) |
-
-Long-horizon waves (W-DataCenter-Operations, W-Robotics-Vision-Speech, W-AI-Model-Substrate, W-AI-Model-Stable, W-Ads-Stable, W-Region-Fan-Out) become M07..M12 once the first commercial wave (M01..M04) is committed. They are named here for completeness but their milestone folders are NOT pre-instantiated to avoid orphaning before scope crystallizes.
-
-## 4. Dependency graph
+There are no Product Groups, no Verticals, no Arms. Every µservice is independent and modular.
 
 ```
-        M01 (Foundation) ──┐
-                           ▼
-                    M02 (Foundry-Preview) ──┐
-                                            ▼
-                              M03 (Cloud + SaaS + Search + Workspace Preview, 4-way parallel) ──┐
-                                                                                                ▼
-                                                                                M04 (Vertical-Pilot KR) ──┐
-                                                                                                          ▼
-                                                                                          M05 (Cloud-Stable + Search-Stable) ──┐
-                                                                                                                               ▼
-                                                                                                            M06 (Ads-Preview + Vertical-Fan-Out)
+Foundry (internal-only engine)
+  grit + icm + oya-tooling-agent-read + LEAN check binaries
+  + Cedar + Wasmtime + Proof Ladder + 9 planes + Wave integration framework
 
-  M-CC (cross-cutting) threads through every milestone above; its phases land in parallel with whichever
-  milestone is in flight.
+Application (B2B unified shell — µservice)
+  Tenants sign in; enable µservices à-la-carte (AWS-console model).
+
+Flat catalog — customer-facing enable-able µservices (any tenant, any subset):
+  medical, pharmacy, healthcare-portal, emergency, clinical
+  hr, payroll, accounting, ats, grc, performance
+  manufacturing, logistics, facility-ops, procurement, security
+  payments, insurance, finance-quant
+  connect (dual-context: messenger + mail + community)
+  dining, cellar, …
+
+Workflow µservice (cross-µservice action/orchestration adapter)
+  State machines, DAGs, approvals, escalations, SLA timers, handoffs.
+  Products publish typed events; Workflow routes them; consumers subscribe.
+
+Ontology µservice (cross-µservice information adapter — Palantir Ontology equivalent)
+  Typed Object Types + Link Types + Action Types + Functions.
+  Audit-chain provenance, RLS-enforced tenant isolation, jurisdiction overlays.
+  Bounded contexts: entity, link, action, function, agent-gateway, audit-chain, pillar.
+
+Substrate µservices (always-on; underpin every other µservice):
+  tenancy, identity, audit-chain, eventing, secrets,
+  observability, kms, policy (Cedar), search, vector,
+  data-boundary, finance-library, capability-registry,
+  records (FHIR-canonical), ads, analytics
+
+Cloud µservices (runtime substrate):
+  cloud-tenancy, cloud-iam, cloud-kms, cloud-compute, cloud-storage,
+  cloud-network, cloud-billing, cloud-cell, cloud-region,
+  cloud-observability
+
+Connect Personal (B2C entry path — separate from Application shell)
 ```
 
-Critical-path: **M01 → M02 → M03 → M04 → M05 → M06.** Within each milestone, phases parallelize per the milestone INDEX `§Parallelism strategy`.
+### 2.2 Workflow + Ontology = ecosystem adapter layer (load-bearing rule)
 
-## 5. Parallelism strategy (batches across milestones)
+All inter-µservice integration flows through Workflow (action/orchestration) or Ontology (information/data). µservices never call each other directly. This is the central architectural invariant enforced by LEAN-A2 (cross-µservice refusal check).
 
-At any time, at least one M-CC phase and one main-spine milestone phase run concurrently. Within M03, four axis previews run as 4-way parallel. Within M04, vertical pilot serializes by design but its phases (capability-pack authoring, regulatory binding, design-partner onboarding, evidence collection) parallelize. M05 splits Cloud-Stable and Search-Stable across two teams in parallel.
+### 2.3 BNF v4.1
 
-Target: ≥ 3-5 agents in parallel per active milestone; ≥ 2 active milestones at any time (one main-spine + one M-CC phase batch). Per-agent worktree, merge-queue serialization on root `Cargo.toml [workspace.members]` per [`docs/DESIGN.md`](DESIGN.md) §3.0.5.2.
+```bnf
+crate          ::= "oya" "-" microservice ( "-" bc-tokens )? "-" layer
+microservice   ::= kebab-token ( "-" kebab-token )*    (* 1..3 tokens; registered in [workspace.metadata.oya.microservices] *)
+bc-tokens      ::= kebab-token ( "-" kebab-token )*    (* 0..N; OPTIONAL *)
+layer          ::= one of 12 canonical layer values per ADR-0056 §"Layer enum"
+                   kernel | domain | application | app | adapter | infrastructure
+                   cli | rest | grpc | graphql | worker | sdk
+```
 
-## 6. Per-tier artifact contract (the agentic-navigation contract)
+BC slot is OPTIONAL. Omit when the µservice has a single concept at the layer. Include when the µservice has multiple BC-level splits. Cross-cutting check crates: `oya-check-<rule-name>` (BNF-exempt).
 
-A fresh agent navigates: MASTERPLAN → milestone INDEX → phase INDEX → IP → grit-claim → work → icm-store → grit-done. The contract enforces this end-to-end.
+Examples: `oya-medical-encounter-domain`, `oya-payments-ledger-application`, `oya-workflow-state-machine-domain`, `oya-ontology-entity-kernel`, `oya-foundry-grit-cli`, `oya-application-product-enablement-rest`, `oya-connect-messenger-grpc`.
 
-**Master Plan** (this file): §1 exec summary, §2 principles, §3 milestone index, §4 dependency graph, §5 parallelism, §6 contract, §7 dual-audience, §8 cross-cutting workstreams, §9 risks, §10 RACI, §11 cadence, §12 communication, §13 done-definition, §14 out-of-scope, §15 status footer.
+### 2.4 Glossary (hard rules — no exceptions in docs, code, or plans)
 
-**Milestone INDEX** (`docs/plans/milestones/<MNN>/INDEX.md`, ≤100 lines): frontmatter `doc_class: MilestoneIndex`, `parent: MASTERPLAN.md`, `status:`, `wave:`, `owner:`, `purpose:`. Body: §Purpose, §Status, §Scope, §Dependencies, §Acceptance gate, §Phases (linked list), §Hyperscaler practices adopted, §Agent-navigability-pointer (the first symbol/file an agent should claim).
+| Retired term | Canonical term |
+|---|---|
+| platform (architectural) | shared or specific µservice name |
+| Object Graph | Ontology |
+| Shell / Modular Product Shell | Application |
+| Workspace (µservice) | Connect |
+| Vertical / Arm / Product Group | flat µservice catalog |
+| shared\|vertical slot2 enum | µservice name (open kebab) |
 
-**Phase INDEX** (`docs/plans/milestones/<MNN>/phases/<PNN-slug>/INDEX.md`, ≤50 lines): frontmatter `doc_class: PhaseIndex`, `parent: <MNN>/INDEX.md`. Body: §Purpose (1 line), §Acceptance, §Implementation Plans (linked list), §Estimated parallelism, §Symbols-touched (high level), §Agent-handoff (icm-store payload to emit at phase complete).
+Sales-segmentation labels (Healthcare / Enterprise / FinTech / Social) are GTM-only — NOT architecture. They do not appear in crate names, directory names, or architectural docs.
 
-**Implementation Plan** (`docs/plans/milestones/<MNN>/phases/<PNN-slug>/IP-NNN-<slug>.md`, ≤80 lines stub / full when lifted): frontmatter `doc_class: ImplementationPlan`, `parent: <PNN>/INDEX.md`, `final_shape_compliance:`, `dependency-additions:`. Body: §Purpose, §Symbols-to-grit-claim (real `file::Identifier`), §Agent-prerequisites, §Acceptance-test-commands, §Done-criteria, §Rollback-procedure, §Next-IP-pointer, §Icm-store-payload, §Decision-log (Linus good-taste row).
+---
 
-Every IP that ships a deployed binary additionally includes:
-- "Distroless image built; size < {budget}; no provider-specific deps outside adapter crates."
-- "Dependency additions are current LTS or have ADR-tracked exception."
+## 3. Inheritance posture (per ADR-0060)
 
-## 7. Dual-audience contract (agent + junior developer)
+Default: inherit Bominal ADR decisions 1:1 with glossary translation. Explicit oyatie overrides (higher precedence):
 
-Each IP has two sections. The **agent-actionable** section is fenced `<!-- agent-instructions:start --> ... <!-- agent-instructions:end -->` and contains only sanctioned primitives (`grit`, `icm`, `oya-tooling-agent-read`). The **junior-developer** section sits outside the fence and contains plain-English summary, doc/runbook/ADR pointers, `rtk`-prefixed terminal commands (per [`docs/CONSTITUTION.md`](CONSTITUTION.md) §4 dual-audience clause), expected output samples.
-
-## 8. Cross-cutting workstreams (the M-CC milestone)
-
-Threads across every milestone. Each thread is a phase under [`docs/plans/milestones/M-CC-cross-cutting/`](plans/milestones/M-CC-cross-cutting/INDEX.md):
-
-| Phase | Title | Owner |
+| # | Override | Oyatie decision |
 |---|---|---|
-| M-CC-P01 | Agentic-pipeline cutover (grit/icm SoT) | axis-foundry + council-architecture |
-| M-CC-P02 | Documentation auto-generation + freshness | crew-adr-promotion + axis-foundry |
-| M-CC-P03 | Purpose-discipline + orphan-detection lane | council-architecture |
-| M-CC-P04 | Agentic-development optimization (navigability lanes) | axis-foundry |
-| M-CC-P05 | Provider-agnosticism + adapter discipline | council-architecture + per-axis leads |
-| M-CC-P06 | Distroless + image-discipline + LTS-dependency hygiene | ops-security + ops-sre-reliability |
-| M-CC-P07 | Hyperscaler-practice adoption (Working Backwards / Design Doc / Postmortem / 1ES / Eng-Excellence) | council-architecture |
-| M-CC-P08 | Supply-chain security (Cosign + Rekor + SLSA + SBOM) per ADR-0039 | ops-security |
-| M-CC-P09 | Visualization-as-code (Foundry-owned architecture/product/service/tech-stack maps) | axis-foundry |
+| 1 | Workflow placement | shared µservice; `oya-workflow-*` |
+| 2 | Object Graph naming | Renamed to **Ontology** |
+| 3 | Platform glossary | `platform` retired; `shared` canonical |
+| 4 | Vertical/Arm grouping | Flat µservice catalog; Arms retired |
+| 5 | BNF `shared\|vertical` slot2 | µservice name (open kebab) — retired binary |
+| 6 | Workspace product | Workspace → Connect dual-context |
+| 7 | Shell terminology | Application (capital A) |
+| 8 | Sales segmentation | GTM only — NOT architecture |
+| 9 | Workflow+Ontology centrality | THE ecosystem adapter layer |
 
-## 9. Risk register (top 10 across all milestones)
+Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR-0021, ADR-0028, ADR-0100–ADR-0112, ADR-0116–ADR-0128, ADR-0132, ADR-0140, ADR-0208–ADR-0215, ADR-0223–ADR-0232.
 
-| ID | Description | Prob | Impact | Mitigation owner | Linked milestones | Status |
-|---|---|---|---|---|---|---|
-| RM-01 | Cross-axis contract drift | High | High | council-architecture | M03, M-CC-P02 | open |
-| RM-02 | Tenant data leak into Search/Ads via PHI/PII | Med | Catastrophic | council-privacy | M01, M03, M05, M06 | open |
-| RM-03 | Agent runtime escapes autonomy ceiling | Med | Catastrophic | axis-foundry | M02 | open |
-| RM-04 | Flattening migration breaks `main` | Med | High | council-architecture | M01, M02 | open |
-| RM-05 | grit 0.3.0 session bug widens | Low | High | axis-foundry | M-CC-P01 | open |
-| RM-06 | Cloud axis built before tenancy/Move-#0 evidence | Med | High | axis-cloud + platform-tenancy-identity | M01, M03 | open |
-| RM-07 | Banned-primitives lane bypass (agent uses raw git/gh) | Med | High | axis-foundry | M-CC-P01 | open |
-| RM-08 | Provider-adapter secret leak | Low | Catastrophic | ops-security + axis-foundry | M02 | open |
-| RM-09 | Korea regulatory shift mid-build | Med | Med | regional-packs + ops-compliance | M04, M05 | open |
-| RM-10 | Provider lock-in regression (provider-specific code outside adapter) | Med | High | council-architecture | M-CC-P05 | open |
+---
 
-Full register at [`docs/RISK-REGISTER.md`](RISK-REGISTER.md).
+## 4. Milestones
 
-## 10. RACI summary
+### M01 — v4 BNF cutover (IN FLIGHT)
 
-| Milestone | Responsible | Accountable | Consulted | Informed |
+**Scope:** Atomic rename of all `oya-platform-*` / `oya-shared-*` / `oya-workspace-*` crates to BNF v4.1 flat µservice names. Amend ADR-0056 to v4.1. Four LEAN check binaries green.
+
+**Status:** Shard 0 landed (commit ec0aee3). Shard 1 queued (114-row TSV regen pending BNF v4.1 flag in xtask-metadata-augment).
+
+**Exit criteria:** 114-row atomic rename merged + 26-row Shard 1.5 deferred rows resolved + 4 LEAN checks green on `main`.
+
+**Phases:**
+- P01 — Shard 0 ✓ (landed)
+- P02 — Shard 1 atomic rename (114 rows; regenerate TSV with `--bnf-version v4.1`)
+- P03 — Shard 1.5 deferred rows (26 rows)
+- P04 — iter-4 src-inspection (BNF v4.1 compliance audit across all crates)
+- P05 — Post-cutover hardening (LEAN checks flip from `--report-only` to BLOCKER)
+
+### M02 — Substrate ready
+
+**Scope:** Foundry engine + Cloud-Tenancy substrate + Ontology µservice + Workflow µservice + Application B2B shell + all substrate µservices (tenancy, identity, audit-chain, eventing, secrets, observability, kms, policy, search, vector, data-boundary, finance-library, capability-registry, records, ads, analytics).
+
+**Exit criteria:** Sibling team scaffolds + ships any µservice via `grit claim/work/done` with zero build-team help; 9 architecture planes green at L4-L5; all `--report-only` lanes flipped to BLOCKER; Application deployable.
+
+**Phases:** See §7 Implementation-Plan Index for full phase + IP breakdown.
+
+### M03 — First-paying-tenant GA
+
+**Scope** (= Bominal M3, per ADR-0210): Enterprise µservices (HR + Payroll + Accounting + broader Corporate per user scope — not merely payroll/HR SaaS) + Connect Professional (Mail + Messenger with legal hold + eDiscovery per Bominal ADR-0215) + Cloud-Tenancy substrate.
+
+**Exit criteria:** 1 KR group paying tenant live; 4대보험 EDI; 연말정산; audit chain Merkle/Ed25519 segmented per (tenant_id, period); Connect Pro Mail with legal-hold/eDiscovery; Application enabling product subset.
+
+**Phases:** See §7 Implementation-Plan Index.
+
+### M04+ — DEFERRED
+
+Per user instruction 2026-05-13: "missing some aspects later but we can solidify on our near term plans as is."
+
+Deferred scope (to be planned in a follow-up session):
+- Healthcare expansion (medical/pharmacy/portal/emergency/clinical) — 의료법, HIRA DUR, KFDA, NHIS, KHIRA, FHIR R5, HIPAA (US)
+- FinTech expansion (payments/insurance/finance-quant) — 전자금융업, 간편결제, 인터넷전문은행, PCI DSS, KYC/AML, settlement
+- Connect Personal context launch — crypto-audit + cold-start
+- Industrial Suite (manufacturing/logistics/facility-ops/security per Bominal ADR-0011) with shared Workflow
+- International expansion (US, EU jurisdictions per Bominal ADR-0140)
+
+---
+
+## 5. Known forthcoming regulatory gates (deferred to M04+ but visible)
+
+- Payment: 전자금융업 → 간편결제 → 인터넷전문은행 (M05+)
+- Healthcare KR: 의료법, HIRA DUR, KFDA, NHIS, KHIRA (M04)
+- Healthcare US/EU: HIPAA, FHIR R5, GDPR (M04+)
+- All compliance traits pluggable per Bominal ADR-0140
+
+---
+
+## 6. Operating model
+
+| Concern | Canonical source |
+|---|---|
+| Proof Ladder L0..L7 | Bominal ADR-0223 |
+| 9 architecture planes | Bominal ADR-0224..ADR-0231 |
+| Wave integration framework | Bominal ADR-0232 |
+| Sanctioned primitives | oyatie ADR-0053 (grit/icm/oya-tooling-agent-read) |
+| Naming justification CI | feedback-naming-justification |
+| Milestone > Phase > Impl-plan hierarchy | feedback-milestone-phase-hierarchy |
+| 4 LEAN check binaries | oya-check-architecture-cli (pending Shard 1) |
+
+**Compound principles:** Final-shape from day one (no MVP → rewrite); provider-agnostic by default (adapter crates only for provider-specific code); distroless + smallest-image containers; hyperscaler-bar engineering (Working Backwards / Design Doc / Postmortem / 1ES / Eng-Excellence); auto-doc + agentic-dev-optimized.
+
+---
+
+## 7. Tech stack
+
+- **Rust** 1.82+; **PostgreSQL** 16 + Citus + RLS; **ClickHouse**; **TimescaleDB**; **Valkey**; **Kafka** KRaft
+- **OpenBao** day-1 + HSM per-cell; **Istio** Ambient; **OpenTelemetry** + VictoriaMetrics
+- **Wasmtime** + **Firecracker**; **pgroonga** + Tantivy; **pgvector**; Ed25519 + ML-DSA-87; **Cedar**; Typst
+- **Trivy** + Cosign + SBOM + Kyverno; distroless containers
+- **Clients:** Leptos web + 5 native (Win/Mac/Linux/iOS/Android) + SvelteKit prototype lane
+- **Runtime:** OCI A1 → OKE stages (Bominal ADR-0117); on-prem capable; AWS-ready; no GCP/Azure
+
+---
+
+## 8. Quality and Performance Bar
+
+### 8.1 Quality — Industry Leaders
+
+Oyatie's quality bar is set by industry leaders (competitive-benchmarked) and hyperscalers (100M+ user scale). Horizontal scalability is mandatory from day one. No single-instance-only designs. No MVP-quality first releases — feature-complete or not shipped.
+
+| Dimension | Reference standard |
+|---|---|
+| API design | Stripe (REST/gRPC contracts, idempotency, pagination, error model) |
+| Data layer | Palantir Ontology (typed entities + provenance + audit) — Ontology µservice |
+| UI/UX craft | Linear / Stripe / Superhuman (flat dual-mode surfaces) |
+| Operational telemetry | Palantir Foundry-grade observability + on-call runbooks |
+| Auth + identity | Auth0 / Okta capability parity + own-rails per Bominal ADR-0123 |
+| Eventing | Confluent Kafka (KRaft) + Apache schema registry parity |
+| Search | OpenSearch / Algolia parity; oyatie uses pgroonga + Tantivy |
+
+Every PRD must include a **Competitive Benchmark** section naming the industry leader(s) the µservice targets parity with, listing quality dimensions benchmarked, and citing primary-source research.
+
+### 8.2 Performance — Hyperscaler
+
+| Dimension | Target |
+|---|---|
+| API p99 latency | ≤50ms read-only (Ontology Functions, per Bominal ADR-0107); ≤200ms write (Action Types) |
+| Throughput | 10k+ req/sec per cell baseline; sharding to 100k+ aggregate via cell architecture |
+| Concurrency | 100M+ users architecture (Bominal master-plan); cell-bounded blast-radius |
+| Event lag | Sub-second propagation outbox → consumer |
+| Audit chain | <1s segment-seal latency per (tenant, period) per Bominal ADR-0028 |
+| Failover | RTO ≤30s per-cell; RPO ≤5s with outbox + cross-region replication |
+| Cold start | ≤500ms per Bominal ADR-0020 multi-runtime standard |
+| Tenant onboarding | ≤5min for self-serve SaaS path (Bominal ADR-0118) |
+
+Every PRD must include a **Performance Targets** section with concrete p50/p99/p999 latency targets, throughput targets, error-budget allocation, and SLO burn-rate alarms. Every Implementation Plan must include a `## Load test` section with results meeting declared perf targets before merging to main.
+
+### 8.3 Horizontal Scalability — Mandatory
+
+| Requirement | Enforcement |
+|---|---|
+| Stateless services | Required for all `application` / `rest` / `grpc` / `graphql` / `worker` layer crates. State lives only in adapter+infrastructure. Enforced by `oya-check-statelessness-cli` (TBD M02-P09). |
+| Sharded state | Postgres + Citus per Bominal ADR-0117; ClickHouse + replicas; Valkey cluster. Single-DB-only designs fail `oya-check-shardability-cli` (TBD M02-P09). |
+| Event-driven | Outbox → Kafka KRaft. Direct synchronous cross-µservice calls require ADR justification. |
+| Cell architecture | All tenant-bound state partitioned per (cell, region); per Bominal ADR-0009 + oyatie ADR-0009. |
+| Active-active capable | All `worker` + `adapter` layers declare `active_active_compatibility` per Bominal ADR-0019. |
+| Cross-region replication | Required for high-consequence µservices (medical, payments, connect-pro). Per Bominal ADR-0049. |
+
+Every PRD must include a **Horizontal Scalability** section declaring state strategy, active-active compatibility, per-cell capacity envelope, scale-out trigger metrics, and cross-region story.
+
+New CI fitness lanes (authored in M02-P09):
+- `oya-check-statelessness-cli` — presentation/application/worker layers have no module-level mutable state
+- `oya-check-shardability-cli` — DB designs declare tenant_id partition key + row-level isolation
+- `oya-check-perf-budget-cli` — impl plans include load-test results meeting declared perf targets
+- `oya-check-benchmark-cli` — PRDs include competitive-benchmark section before µservice graduates Proof-Ladder L4→L5
+
+---
+
+## 9. Industry Competitive Map
+
+| µservice cluster | Oyatie competitive references |
+|---|---|
+| HR / Payroll | 더존비즈온, ADP, Workday, SAP SuccessFactors |
+| Accounting / Finance | 더존 iCUBE, NetSuite, Xero |
+| Healthcare (medical/pharmacy/clinical) | 유비케어, 비트컴퓨터, Epic Systems, Cerner |
+| FinTech (payments/banking) | Stripe, 토스, 카카오뱅크, 케이뱅크 |
+| Connect (messenger/mail/community) | Slack, Gmail (Google Workspace), Signal, Notion |
+| Search | Algolia, Elasticsearch/OpenSearch, Naver Search |
+| Ontology (data layer) | Palantir Foundry (Ontology + Object Graph) |
+| Cloud substrate | AWS, OCI, GCP |
+| Identity | Auth0, Okta, Keycloak |
+| Eventing | Confluent Kafka, Apache Pulsar |
+| Workflow | Temporal, Camunda, AWS Step Functions |
+
+Each µservice PRD lists the competitor set, the specific benchmark dimensions, and the primary-source evidence. Quality parity is a gate on Proof Ladder L4→L5 graduation.
+
+---
+
+## 10. Sales segmentation (GTM only — NOT architecture)
+
+| Label | GTM bucket for |
+|---|---|
+| Healthcare (의료) | medical / pharmacy / portal / emergency / clinical µservices |
+| Enterprise (기업) | hr / payroll / accounting / manufacturing / logistics / facility-ops / procurement / security / grc / ats |
+| FinTech (금융) | payments / insurance / finance-quant µservices |
+| Social | connect dual-context µservice + future social-graph µservices |
+
+---
+
+## 11. Risk register (top items)
+
+| ID | Description | Prob | Impact | Owner |
 |---|---|---|---|---|
-| M01 | platform-tenancy-identity + platform-audit-evidence + platform-eventing-og | council-architecture | council-privacy, ops-security | All teams |
-| M02 | axis-foundry | council-architecture | council-privacy, ops-security | All teams |
-| M03 | axis-cloud + axis-saas + axis-search + axis-workspace | council-architecture | platform-tenancy-identity, regional-packs | All teams |
-| M04 | vertical-corporate (or council-elected) | council-architecture + gtm-customer-success | All preceding M-owners | All teams |
-| M05 | axis-cloud + axis-search + ops-compliance | council-architecture | regional-packs (KR) | All teams |
-| M06 | axis-ads-analytics + per-vertical leads | council-architecture | council-privacy | All teams |
-| M-CC | per-phase owner (see §8) | council-architecture | All teams | All teams |
+| RM-01 | Cross-µservice contract drift | High | High | council-architecture |
+| RM-02 | Tenant data leak via PHI/PII into search/ads | Med | Catastrophic | council-privacy |
+| RM-03 | Agent runtime escapes autonomy ceiling | Med | Catastrophic | axis-foundry |
+| RM-04 | BNF v4.1 rename breaks `main` | Med | High | council-architecture |
+| RM-05 | Workflow or Ontology adapter boundary violated | Med | High | council-architecture |
 
-Full RACI at [`docs/RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md).
+Full register: `docs/RISK-REGISTER.md`.
 
-## 11. Status reporting cadence
+---
 
-- **Weekly** Monday 09:00 KST: per-milestone one-row update `MNN | active phases | % | blockers | next gate`. Archived to `docs/status-reports/YYYY-Www.md`.
-- **Fortnightly** stakeholder review: Founder + Council-Architecture + axis leads walk the milestone tree, dependency graph, risk register.
-- **Wave-gate** review: at each W- boundary, Council-Architecture signs per [`docs/ROADMAP.md`](ROADMAP.md) §2 acceptance lists.
-- **Escalation**: Sev-1 → incident commander → Council-Architecture → Founder. Blocked milestone ≥1 week → owner lead → Council-Architecture.
+## 12. RACI summary
 
-## 12. Communication plan
+| Milestone | Responsible | Accountable |
+|---|---|---|
+| M01 | axis-foundry (rename execution) | council-architecture |
+| M02 | platform-substrate + axis-foundry | council-architecture |
+| M03 | axis-enterprise + axis-connect + axis-cloud | council-architecture + gtm-customer-success |
+| M-CC | per-phase owner | council-architecture |
 
-| Channel | Audience | Frequency | Owner |
+Full RACI: `docs/RACI-OWNERSHIP.md`.
+
+---
+
+## 13. Implementation-Plan Index
+
+This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EXISTS]** are already authored under `.omc/plans/milestones/`. Files marked **[TBD]** need authoring in a Wave 2 planning session — the path is the canonical target location.
+
+### M-CC — Cross-cutting workstreams
+
+| Phase | Phase path | Impl Plan | Status |
 |---|---|---|---|
-| `#oyatie-masterplan-status` | All contributors + agents | continuous + weekly summary | council-architecture |
-| Milestone/phase/IP PR threads | Per-IP contributors | per PR | IP owning team |
-| Council-Architecture sync | Council members | weekly | council-architecture chair |
-| Stakeholder review | Founder + axis leads | fortnightly | council-architecture chair |
-| `MISTAKES-LEDGER` row | All | per Sev-1/Sev-2 | Incident commander |
-| `CHANGELOG.md` row | All | per merged PR (auto via Foundry `pr.changelog.row`) | axis-foundry |
-| Regulator audit packs | KR-MFDS/PIPC/FSC/KISA/KCC/NIS | quarterly + on-request | ops-compliance |
+| P01 agentic-pipeline-cutover | `.omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/` | IP-001-adr-0054-scaffold-claim.md | **[EXISTS]** |
+| P01 | | IP-002-inventory-adr-0052.md | **[EXISTS]** |
+| P01 | | IP-003-oya-tooling-agent-read.md | **[EXISTS]** |
+| P01 | | IP-004-bidirectional-prd-cite.md | **[EXISTS]** |
+| P01 | | IP-005-foundry-corpus-cross-cite.md | **[EXISTS]** |
+| P01 | | IP-006-agent-facing-memory.md | **[EXISTS]** |
+| P01 | | IP-007-hook-skill-audit.md | **[EXISTS]** |
+| P01 | | IP-008-archive-glue.md | **[EXISTS]** |
+| P01 | | IP-009-delete-active-path.md | **[EXISTS]** |
+| P01 | | IP-010-parallel-claim-demo.md | **[EXISTS]** |
+| P01 | | IP-011-upstream-grit-bug.md | **[EXISTS]** |
+| P01 | | IP-012-authoritative-tracked-audit.md | **[EXISTS]** |
+| P02 doc-automation-freshness | `.omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/` | IP-001-mdbook-pipeline.md | **[EXISTS]** |
+| P02 | | IP-002-doc-freshness-lane.md | **[EXISTS]** |
+| P02 | | IP-003-doc-style-lane.md | **[EXISTS]** |
+| P03 purpose-orphan-detection | `.omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/` | IP-001-purpose-frontmatter-audit.md | **[EXISTS]** |
+| P03 | | IP-002-orphan-detection-lane.md | **[EXISTS]** |
+| P04 agentic-navigability | `.omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/` | IP-001-navigability-lane.md | **[EXISTS]** |
+| P04 | | IP-002-predictable-naming.md | **[EXISTS]** |
+| P05 provider-agnosticism | `.omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/` | IP-001-provider-coupling-lane.md | **[EXISTS]** |
+| P05 | | IP-002-cloud-multi-provider-audit.md | **[EXISTS]** |
+| P05 | | IP-003-adapter-substitution-harness.md | **[EXISTS]** |
+| P06 distroless-lts-image | `.omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/` | IP-001-distroless-image-lane.md | **[EXISTS]** |
+| P06 | | IP-002-lts-dependency-lane.md | **[EXISTS]** |
+| P06 | | IP-003-static-musl-build.md | **[EXISTS]** |
+| P07 hyperscaler-practices | `.omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/` | IP-001-prfaq-designdoc-postmortem.md | **[EXISTS]** |
+| P07 | | IP-002-1es-ci-templates.md | **[EXISTS]** |
+| P07 | | IP-003-eng-excellence-merge-gate.md | **[EXISTS]** |
+| P07 | | IP-004-rust-toolchain-gates.md | **[EXISTS]** |
+| P08 supply-chain-security | `.omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/` | IP-001-cosign-rekor.md | **[EXISTS]** |
+| P08 | | IP-002-sbom-pipeline.md | **[EXISTS]** |
+| P08 | | IP-003-license-policy-lane.md | **[EXISTS]** |
+| P08 | | IP-004-slsa-attestation.md | **[EXISTS]** |
+| P09 visualization-as-code | `.omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/` | IP-001-architecture-map-walkers.md | **[EXISTS]** |
+| P09 | | IP-002-mermaid-d2-graphviz-emitters.md | **[EXISTS]** |
+| P09 | | IP-003-mdbook-publish-integration.md | **[EXISTS]** |
+| P09 | | IP-004-architecture-map-freshness-lane.md | **[EXISTS]** |
 
-## 13. Definition of "done" at the masterplan level
+### M01 — v4 BNF cutover
 
-Oyatie has shipped the first commercial wave (M04 complete) when **all** of:
+| Phase | Phase path | Impl Plan | Status |
+|---|---|---|---|
+| P01 data-use-boundary-tenancy | `.omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/` | IP-001-data-use-boundary-adr.md | **[EXISTS]** |
+| P01 | | IP-002-tenant-kernel-contracts.md | **[EXISTS]** |
+| P01 | | IP-003-dsr-cascade-engine.md | **[EXISTS]** |
+| P02 identity-cedar | `.omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/` | IP-001-identity-kernel.md | **[EXISTS]** |
+| P02 | | IP-002-sts-rotation.md | **[EXISTS]** |
+| P02 | | IP-003-cedar-policy-substrate.md | **[EXISTS]** |
+| P03 audit-chain-evidence | `.omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/` | IP-001-merkle-ed25519-kernel.md | **[EXISTS]** |
+| P03 | | IP-002-audit-asyncapi-proto.md | **[EXISTS]** |
+| P03 | | IP-003-tamper-evidence-drill.md | **[EXISTS]** |
+| P04 eventing-ontology | `.omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/` | IP-001-outbox-topic-registry.md | **[EXISTS]** |
+| P04 | | IP-002-object-graph-property-tiers.md | **[EXISTS]** (note: "object-graph" slug is legacy; content = Ontology) |
+| P04 | | IP-003-eventing-adapters.md | **[EXISTS]** |
+| P05 cell-plane | `.omc/plans/milestones/M01-foundation/phases/P05-cell-plane/` | IP-001-cell-routing-primitive.md | **[EXISTS]** |
+| P05 | | IP-002-plane-separation-lane.md | **[EXISTS]** |
+| P06 regional-pack-flattening | `.omc/plans/milestones/M01-foundation/phases/P06-regional-pack-flattening/` | IP-001-regional-pack-adr-kernel.md | **[EXISTS]** |
+| P06 | | IP-002-flat-crates-guard.md | **[EXISTS]** |
+| **P-Shard1** BNF-v4.1-rename | `.omc/plans/milestones/M01-foundation/phases/P-shard1-bnf-rename/` | IP-001-tsv-regen-v4.1.md | **[TBD]** |
+| P-Shard1 | | IP-002-atomic-rename-114-rows.md | **[TBD]** |
+| P-Shard1 | | IP-003-shard-1.5-deferred-26-rows.md | **[TBD]** |
+| P-Shard1 | | IP-004-iter4-src-inspection.md | **[TBD]** |
+| P-Shard1 | | IP-005-lean-checks-blocker-flip.md | **[TBD]** |
 
-1. M01 (Foundation) merged: all foundation ADRs Accepted; fitness lanes hard-fail on violations.
-2. M02 (Foundry-Preview) merged: capability registry ≥ 50 capabilities; 3 providers × 2 auth modes operational; autonomy ceiling Cedar+runtime; audit-chain on every regulated invocation; license-policy gate hard-fails.
-3. M03 (Cloud/SaaS/Search/Workspace Preview) merged: W-Cloud-Preview gate per [`docs/ROADMAP.md`](ROADMAP.md) §2.3; all 14 Workspace surfaces stable; ≥ 2 regional packs onboarded.
-4. M04 (Vertical-Pilot KR) merged: ≥ 1 design-partner tenant end-to-end with full audit-chain emission; pilot retention ≥ 80% over 8 weeks.
-5. M-CC-P01 through M-CC-P08 all merged: agentic-pipeline, doc-automation, purpose-discipline, agentic-navigability, provider-agnosticism, distroless+LTS, hyperscaler practices, supply-chain — all lanes green on `main`.
-6. [`docs/PRD.md`](PRD.md) §4.1 first-commercial-wave metrics met: ≥ 3 KR Group tenants live; ≥ 50K Foundry agent runs/week at ≥ 99.5%; 100% audit-chain on regulated invocations.
-7. `oya-foundry-fitness-authority-cohesion` lane green: `docs/CONSTITUTION.md` cite-coverage 100% on Tier-1 docs.
+### M02 — Substrate ready
 
-M05 + M06 then unlock the next-wave commercialization (Cloud-Stable, Search-Stable, Ads-Preview, Vertical-Fan-Out).
+| Phase | Phase path | Impl Plan | Status |
+|---|---|---|---|
+| P00 account-auth | `.omc/plans/milestones/M02-foundry-preview/phases/P00-account-auth/` | IP-001-clean-arch-skeleton.md | **[EXISTS]** |
+| P00 | | IP-002-domain-types-state-machine.md | **[EXISTS]** |
+| P00 | | IP-003-secret-store-port.md | **[EXISTS]** |
+| P01 provider-gateway | `.omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway/` | IP-001-anthropic-adapter.md | **[EXISTS]** |
+| P01 | | IP-002-openai-adapter.md | **[EXISTS]** |
+| P01 | | IP-003-gemini-adapter.md | **[EXISTS]** |
+| P01 | | IP-004-usage-window-route-policy.md | **[EXISTS]** |
+| P02 multi-subscription-pool | `.omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/` | IP-001-provider-account-pool-kernel.md | **[EXISTS]** |
+| P02 | | IP-002-anthropic-compat-adapter.md | **[EXISTS]** |
+| P02 | | IP-003-openai-compat-adapter.md | **[EXISTS]** |
+| P02 | | IP-004-oauth-subscription-capture.md | **[EXISTS]** |
+| P02 | | IP-005-upstream-api-drift-lane.md | **[EXISTS]** |
+| P02 | | IP-006-tos-policy-audit-chain.md | **[EXISTS]** |
+| P02-vis visibility-operator-plane | `.omc/plans/milestones/M02-foundry-preview/phases/P02-visibility-operator-plane/` | IP-001-readonly-api-kernel.md | **[EXISTS]** |
+| P02-vis | | IP-002-dashboard-svelte.md | **[EXISTS]** |
+| P02-vis | | IP-003-dry-run-surface.md | **[EXISTS]** |
+| P03 gates-validators-evidence | `.omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/` | IP-001-phase00-evidence-validator.md | **[EXISTS]** |
+| P03 | | IP-002-foundry-fitness-lane-ratchet.md | **[EXISTS]** |
+| P03 | | IP-003-adr-template-bypass-ledger.md | **[EXISTS]** |
+| P04 transport-parity-write-gates | `.omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/` | IP-001-rest-graphql-transports.md | **[EXISTS]** |
+| P04 | | IP-002-sse-websocket-transports.md | **[EXISTS]** |
+| P04 | | IP-003-write-gate-foundations.md | **[EXISTS]** |
+| P05 capability-registry-autonomy | `.omc/plans/milestones/M02-foundry-preview/phases/P05-capability-registry-autonomy/` | IP-001-capability-registry.md | **[EXISTS]** |
+| P05 | | IP-002-autonomy-ceiling.md | **[EXISTS]** |
+| P05 | | IP-003-rag-endpoint.md | **[EXISTS]** |
+| **P06** ontology-µservice | `.omc/plans/milestones/M02-foundry-preview/phases/P06-ontology-microservice/` | IP-001-ontology-entity-link-kernel.md | **[TBD]** |
+| P06 | | IP-002-ontology-action-function-kernel.md | **[TBD]** |
+| P06 | | IP-003-ontology-agent-gateway.md | **[TBD]** |
+| P06 | | IP-004-ontology-rls-audit-chain.md | **[TBD]** |
+| **P07** workflow-µservice | `.omc/plans/milestones/M02-foundry-preview/phases/P07-workflow-microservice/` | IP-001-workflow-state-machine-domain.md | **[TBD]** |
+| P07 | | IP-002-workflow-approvals-escalations.md | **[TBD]** |
+| P07 | | IP-003-workflow-sla-automation.md | **[TBD]** |
+| P07 | | IP-004-workflow-adapter-kafka.md | **[TBD]** |
+| **P08** application-shell | `.omc/plans/milestones/M02-foundry-preview/phases/P08-application-shell/` | IP-001-application-product-enablement-api.md | **[TBD]** |
+| P08 | | IP-002-application-tenant-onboarding-flow.md | **[TBD]** |
+| P08 | | IP-003-application-capability-menu.md | **[TBD]** |
+| **P09** substrate-µservices | `.omc/plans/milestones/M02-foundry-preview/phases/P09-substrate-microservices/` | IP-001-search-vector-substrate.md | **[TBD]** |
+| P09 | | IP-002-finance-library-capability-registry.md | **[TBD]** |
+| P09 | | IP-003-records-data-boundary.md | **[TBD]** |
+| P09 | | IP-004-ads-analytics-substrate.md | **[TBD]** |
 
-## 14. Out-of-scope (this masterplan)
+### M03 — First-paying-tenant GA
 
-- Frontier-model R&D / AGI lab (per [`docs/PRD.md`](PRD.md) §1 non-goals; W-AI-Model-Substrate is a future milestone).
-- Custom silicon / chip design.
-- Consumer social network.
-- Multi-region day-one (W-Region-Fan-Out is future).
-- Public ad serving (W-Ads-Stable is future).
-- Defense / weaponized robotics.
-- GitHub repo slug rename (per ADR-0017).
-- `~/.claude/CLAUDE.md` user-machine config edits.
+| Phase | Phase path | Impl Plan | Status |
+|---|---|---|---|
+| P01 cloud-foundations | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/` | IP-001-kms-api-adapters.md | **[EXISTS]** |
+| P01 | | IP-002-storage-api-adapters.md | **[EXISTS]** |
+| P01 | | IP-003-network-api-adapters.md | **[EXISTS]** |
+| P01 | | IP-004-iam-cedar-sso-sts.md | **[EXISTS]** |
+| P01 | | IP-005-region-az-cell-taxonomy.md | **[EXISTS]** |
+| P02 cloud-compute | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/` | IP-001-vm-api-adapters.md | **[EXISTS]** |
+| P02 | | IP-002-k8s-functions-api.md | **[EXISTS]** |
+| P02 | | IP-003-capacity-management.md | **[EXISTS]** |
+| P03 cloud-data-billing-observability | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability/` | IP-001-cloud-data-adapters.md | **[EXISTS]** |
+| P03 | | IP-002-billing-tax-metering.md | **[EXISTS]** |
+| P03 | | IP-003-observability-otel.md | **[EXISTS]** |
+| P03 | | IP-004-finops-report.md | **[EXISTS]** |
+| P03 | | IP-005-marketplace-isv.md | **[EXISTS]** |
+| P04 saas-platform-preview | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P04-saas-platform-preview/` | IP-001-workflow-engine.md | **[EXISTS]** |
+| P04 | | IP-002-plugin-substrate.md | **[EXISTS]** |
+| P04 | | IP-003-marketplace-listing.md | **[EXISTS]** |
+| P05 search-preview | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P05-search-preview/` | IP-001-pgroonga-morphology.md | **[EXISTS]** |
+| P05 | | IP-002-pgvector-tenant-private.md | **[EXISTS]** |
+| P05 | | IP-003-rag-endpoint-data-boundary.md | **[EXISTS]** |
+| P06 workspace-14-surfaces | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/` | IP-001-mail-calendar.md | **[EXISTS]** |
+| P06 | | IP-002-docs-sheets-slides-sites.md | **[EXISTS]** |
+| P06 | | IP-003-drive-kms-shred.md | **[EXISTS]** |
+| P06 | | IP-004-meet-chat-recordings.md | **[EXISTS]** |
+| P06 | | IP-005-forms-address-tasks-notes-translate.md | **[EXISTS]** |
+| P07 regional-pack-onboarding | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/` | IP-001-kr-pack.md | **[EXISTS]** |
+| P07 | | IP-002-second-pack.md | **[EXISTS]** |
+| P08 cross-axis-contracts | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/` | IP-001-saas-pairs.md | **[EXISTS]** |
+| P08 | | IP-002-cloud-pairs.md | **[EXISTS]** |
+| P08 | | IP-003-search-ads-pairs.md | **[EXISTS]** |
+| P08 | | IP-004-vertical-workspace-pairs.md | **[EXISTS]** |
+| **P09** enterprise-µservices-hr-payroll | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P09-enterprise-hr-payroll/` | IP-001-hr-domain-kernel.md | **[TBD]** |
+| P09 | | IP-002-payroll-4대보험-edi.md | **[TBD]** |
+| P09 | | IP-003-payroll-연말정산.md | **[TBD]** |
+| P09 | | IP-004-accounting-domain-kernel.md | **[TBD]** |
+| **P10** connect-professional | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P10-connect-professional/` | IP-001-connect-mail-legal-hold.md | **[TBD]** |
+| P10 | | IP-002-connect-messenger-ediscovery.md | **[TBD]** |
+| P10 | | IP-003-connect-dual-context-boundary.md | **[TBD]** |
+| **P11** audit-chain-tenant-segmentation | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P11-audit-chain-tenant-segmentation/` | IP-001-merkle-segmented-per-tenant-period.md | **[TBD]** |
+| P11 | | IP-002-ed25519-signing-rotation.md | **[TBD]** |
+| **P12** first-paying-tenant-onboarding | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P12-first-paying-tenant-onboarding/` | IP-001-kr-group-tenant-onboarding.md | **[TBD]** |
+| P12 | | IP-002-go-live-evidence-pack.md | **[TBD]** |
+
+### M04 — Vertical-Pilot Korea (pre-2026-05-13 plan; may need refresh after M04+ scoping session)
+
+| Phase | Phase path | Impl Plan | Status |
+|---|---|---|---|
+| P01 vertical-capability-pack | `.omc/plans/milestones/M04-vertical-pilot-korea/phases/P01-vertical-capability-pack/` | IP-001-council-resolution.md | **[EXISTS]** |
+| P01 | | IP-002-capability-pack-kernel.md | **[EXISTS]** |
+| P01 | | IP-003-vertical-workflows.md | **[EXISTS]** |
+| P02 kr-regulatory-binding | `.omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/` | IP-001-pipa-csap-evidence.md | **[EXISTS]** |
+| P02 | | IP-002-isms-p-kcmvp-hsm.md | **[EXISTS]** |
+| P02 | | IP-003-kr-vertical-surfaces.md | **[EXISTS]** |
+| P03 design-partner-onboarding | `.omc/plans/milestones/M04-vertical-pilot-korea/phases/P03-design-partner-onboarding/` | IP-001-tenant-onboarding.md | **[EXISTS]** |
+| P03 | | IP-002-tenant-workflows.md | **[EXISTS]** |
+| P03 | | IP-003-foundry-agents-activation.md | **[EXISTS]** |
+| P04 evidence-retention-audit | `.omc/plans/milestones/M04-vertical-pilot-korea/phases/P04-evidence-retention-audit/` | IP-001-evidence-pipeline.md | **[EXISTS]** |
+| P04 | | IP-002-retention-kpi.md | **[EXISTS]** |
+| P04 | | IP-003-audit-pack-generator.md | **[EXISTS]** |
+
+---
+
+## 14. References
+
+- Memory files: `~/.claude/projects/-Users-jasonlee-oyatie/memory/MEMORY.md`
+- ADRs: `docs/decisions/ADR-*.md` (especially ADR-0056 v4.1, ADR-0058..0061 overrides)
+- Bominal cross-reference: `/Users/jasonlee/bominal/decisions/` and `/Users/jasonlee/bominal/docs/`
+- Planning tree: `.omc/plans/milestones/`
+
+---
 
 ## 15. Status footer
 
 Status: **Accepted** (canonical at `docs/MASTERPLAN.md`).
-Iteration: 3 — restructured to 4-tier hierarchy + 12 compound principles per coordinator directives 1-12 (2026-05-12). Adds Directive 11 (visualization-as-code Foundry-owned) and Directive 12 (pragmatic git/gh — documented genuine need permitted).
-Lifted: Stage 1 Wave 1 — 2026-05-12 (promoted from `.omc/plans/MASTERPLAN.md` to canonical `docs/MASTERPLAN.md`).
-
-Sources scanned: [`docs/CONSTITUTION.md`](CONSTITUTION.md), [`docs/PRD.md`](PRD.md), [`docs/DESIGN.md`](DESIGN.md), [`docs/SPEC.md`](SPEC.md), [`docs/ROADMAP.md`](ROADMAP.md), [`docs/RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md), `docs/products/` (21 axis subdirs).
+Iteration: 4 — full rewrite 2026-05-13 per /deep-interview session consensus. Adopts flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index, M04+ deferred per user instruction.

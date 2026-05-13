@@ -28,7 +28,7 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 |---|---|---|---|---|
 | 1 | **SoT-ownership / orchestration** (Lane 2) is the structural problem | High | Strong | All 4 corpora declare authority but the bominal-parent → oyatie-child boundary is implicit; canonical-home symlink rule is declared in `ultragoal/2026-05-12-foundry-ultragoal-mega-plan.md §0.2` but unenforced; orchestration glue (ledger.jsonl, codex-goal-*.json, omx ultragoal checkpoint) duplicates what grit's primitives already provide |
 | 2 | **Contradiction / stale-premise** (Lane 3) is real but tracked | High | Moderate | Corpus has working machinery (CONTRADICTION-LEDGER 77 entries, MISTAKES-LEDGER, MFL fitness lanes); known contradictions are owned with SLAs; newly-discovered gaps (Workspace SPEC undercount, datacenter anti-scope editorial gap) are mechanical, not pathological |
-| 3 | **Authoritative-content drift** (Lane 1) is minor — definitions agree | Medium | Weak-Moderate | All 4 corpora agree on "one cohesive seven-axis EaaS (SaaS, Workspace, Vertical, Foundry, Cloud, Search, Ads + Analytics)"; divergences are sequencing/timeline (Foundry-second-vs-immediately-after-Foundation, in-house model timeline), not identity |
+| 3 | **Authoritative-content drift** (Lane 1) is minor — definitions agree | Medium | Weak-Moderate | All 4 corpora agree on "one cohesive flat-catalog EaaS (SaaS, Workspace, Vertical, Foundry, Cloud, Search, Ads + Analytics)"; divergences are sequencing/timeline (Foundry-second-vs-immediately-after-Foundation, in-house model timeline), not identity |
 
 ## Evidence Summary by Hypothesis
 
@@ -46,7 +46,7 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 
 ### Hypothesis 2 — Contradiction / stale-premise
 - `CONTRADICTION-LEDGER.md` carries 77 contradictions across BLOCKER/HIGH/MED/LOW with explicit owners and resolution batches. `MISTAKES-LEDGER.md` carries 13 active mistakes each backed by a CI fitness lane.
-- Known OPEN BLOCKER/HIGH entries: LEDG-008 (5-6 vs 7 axis history), LEDG-017 (lifestyle/consumer scope), LEDG-021 (Connect "no ads, ever" vs Ads axis), LEDG-024 (Korea regulatory gaps).
+- Known OPEN BLOCKER/HIGH entries: LEDG-008 (5-6 vs 7 axis history), LEDG-017 (lifestyle/consumer scope), LEDG-021 (Connect "no ads, ever" vs ads microservice), LEDG-024 (Korea regulatory gaps).
 - Newly-discovered (not in existing ledger):
   - `SPEC.md §4` enumerates only 10 of the 14 Workspace surfaces declared in `DESIGN.md §1` (forms, sites, tasks, notes, translate, recordings missing).
   - `PRD.md §1 line 31/39` says owning datacenters is in-scope at W-DataCenter-Operations (updated 2026-05-09), but `PRD.md §3.3` anti-scope table still says "Hardware / data-center construction (always — leased always)" — same document contradicts itself.
@@ -57,7 +57,7 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 ### Hypothesis 3 — Authoritative-content drift
 - Unified definition across OYATIE-ROOT, OYATIE-DOCS, OYATIE-OMX, and ULTRAGOAL: *"one cohesive ecosystem-as-a-service across SaaS, Workspace, Vertical, Foundry, Cloud, Search, and Ads + Analytics."*
 - BOMINAL-DOCS does not define oyatie; it routes oyatie questions back to oyatie/docs via `source-of-truth.md`. Bominal-as-parent owns portfolio strategy (healthcare/corporate/fintech/hospitality arms) — not the oyatie product frame.
-- Real divergences: ULTRAGOAL baseline says "20 product PRDs (6 axis + 14 vertical)"; OYATIE-DOCS PRD says "one product across seven axes" with 14 verticals *within* the Vertical axis. This is a taxonomy-granularity drift, not an identity drift.
+- Real divergences: ULTRAGOAL baseline says "20 product PRDs (6 axis + 14 vertical)"; OYATIE-DOCS PRD says "one product across all microservices" with 14 verticals *within* the Vertical axis. This is a taxonomy-granularity drift, not an identity drift.
 - Sequencing drift: OYATIE-DOCS ROADMAP gates Foundry on Foundation completion; ULTRAGOAL brief sequences "Phase 00 Foundry self-hosting account-auth bundle" *immediately after* Foundation ADRs accept. Both interpretations land within DESIGN §3 "Foundry is second, not first." Not a fundamental conflict.
 
 ## Evidence Against / Missing Evidence
@@ -65,10 +65,10 @@ The direction shift is therefore not a product re-scoping; it is an **agentic-pi
 ### Against Hypothesis 1
 - Both repos declare matching authority chains (validated by `oya-foundry-fitness-authority-cohesion` lane per `oyatie/docs/CONSTITUTION.md:114`). Authority is not in conflict, only un-cross-referenced.
 - `RACI-OWNERSHIP.md` exists in oyatie and explicitly maps ownership — the boundary is not undefined, only weakly cross-cited.
-- The "ownership leak" Lane 2 flagged (oyatie/docs/PRD.md not existing) was incorrect — Lane 1 verified the file exists and contains the canonical seven-axis definition.
+- The "ownership leak" Lane 2 flagged (oyatie/docs/PRD.md not existing) was incorrect — Lane 1 verified the file exists and contains the canonical flat-catalog definition.
 
 ### Against Hypothesis 2
-- Contradictions are tracked. Auto-emit machinery exists (`oya-foundry-fitness-cohesion` cross-axis drift detector emits `EVT-CROSS-AXIS-CONTRADICTION-FOUND`). Resolution batches assign owners + waves.
+- Contradictions are tracked. Auto-emit machinery exists (`oya-foundry-fitness-cohesion` cross-microservice drift detector emits `EVT-CROSS-AXIS-CONTRADICTION-FOUND`). Resolution batches assign owners + waves.
 - 4 of 6 newly-discovered contradictions are mechanical/known; 2 are honest gaps in documentation completeness, not logical contradictions.
 - Q-NEW pattern explicitly marks unresolved questions; the corpus acknowledges what it doesn't know.
 

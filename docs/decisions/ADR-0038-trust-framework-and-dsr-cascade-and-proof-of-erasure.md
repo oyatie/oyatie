@@ -1,4 +1,4 @@
-# ADR-0038: Trust framework — cross-axis lineage, DSR cascade across all seven axes, Cosign-signed proof-of-erasure, tenant trust portal
+# ADR-0038: Trust framework — cross-microservice lineage, DSR cascade across all all microservices, Cosign-signed proof-of-erasure, tenant trust portal
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -11,7 +11,7 @@
 
 ## Context
 
-The cohesion thesis (ADR-0001) commits us to *one* audit chain, *one* identity surface, *one* consent store. The Data Use Boundary (ADR-0008) commits us to enforced cross-axis flow gating. The per-vertical override pack (ADR-0034) commits us to hard-deny floors. None of those commitments are visible to tenants unless we expose them — and none survive a regulator request unless we can prove cross-axis erasure on demand.
+The cohesion thesis (ADR-0001) commits us to *one* audit chain, *one* identity surface, *one* consent store. The Data Use Boundary (ADR-0008) commits us to enforced cross-microservice flow gating. The per-vertical override pack (ADR-0034) commits us to hard-deny floors. None of those commitments are visible to tenants unless we expose them — and none survive a regulator request unless we can prove cross-microservice erasure on demand.
 
 The DUBO § 2.2.9 (referenced from PRD/DESIGN) defines the **DSR cascade** model: a Data Subject Request (PIPA Art 36 correction/deletion, GDPR Art 17 erasure, CCPA delete, CPRA correction) must propagate across SaaS / Workspace / Vertical / Foundry / Cloud / Search / Ads / Analytics — and produce a **proof-of-erasure record per affected store**, signed by Cosign. The pack-of-19 foundation ADRs decided this in principle but did not pin the cascade mechanism, the SLA, the proof shape, or the tenant-visible trust portal. This ADR pins all four.
 
@@ -19,12 +19,12 @@ The DUBO § 2.2.9 (referenced from PRD/DESIGN) defines the **DSR cascade** model
 
 ## Decision
 
-We adopt the **trust framework** as the cross-axis lineage + DSR cascade + proof-of-erasure spine. Per-tenant trust portal is the customer-visible surface; cross-axis lineage tracks per-data-class flow across all seven axes; DSR cascade walks the lineage on every request; per-store proof-of-erasure is Cosign-signed and audit-chained.
+We adopt the **trust framework** as the cross-microservice lineage + DSR cascade + proof-of-erasure spine. Per-tenant trust portal is the customer-visible surface; cross-microservice lineage tracks per-data-class flow across all all microservices; DSR cascade walks the lineage on every request; per-store proof-of-erasure is Cosign-signed and audit-chained.
 
 ### Cross-axis trust framework
 
 ```rust
-// crates/oya-platform-trust-framework
+// crates/oya-identity-trust-framework-kernel
 pub struct TrustFramework {
     pub lineage: CrossAxisLineageGraph,
     pub dsr_orchestrator: DsrOrchestrator,
@@ -58,7 +58,7 @@ A DSR is initiated via the trust portal (or per-tenant API endpoint). The orches
 
 1. Resolves the data subject identity → set of (tenant_id, data_class) tuples.
 2. For each tuple, walks the lineage graph → set of `StoreRef`.
-3. For each `StoreRef`, dispatches a per-axis erase / correct / export action via the capability registry (ADR-0011).
+3. For each `StoreRef`, dispatches a per-microservice erase / correct / export action via the capability registry (ADR-0011).
 4. Awaits per-store proof-of-erasure (or proof-of-correction / proof-of-export).
 5. Aggregates proofs → Cosign-signed DSR completion record → audit chain.
 6. Notifies the data subject + tenant DPO via Workspace mail (ADR-0029).
@@ -71,7 +71,7 @@ A DSR is initiated via the trust portal (or per-tenant API endpoint). The orches
 | Stable | 14 days |
 | GA | 7 days |
 
-The SLA reflects the maturity of the per-axis erase implementations; GA-tier means every axis has a measured, audited erase path.
+The SLA reflects the maturity of the per-microservice erase implementations; GA-tier means every axis has a measured, audited erase path.
 
 ### Per-store proof-of-erasure
 
@@ -156,12 +156,12 @@ Trust framework does not own per-class data definition (per ADR-0008 DUBO). Does
 - Lineage maintenance has overhead per write; the SaaS / Vertical hot paths must batch updates.
 - Per-store proof-of-erasure is per-store, which means dozens of proofs per DSR; the proof archive grows quickly.
 - Per-axis erase implementations are heavy engineering investments — Search index rebuild, Analytics cohort recount, Foundry memory rebuild are all non-trivial.
-- 7-day GA SLA is ambitious; any per-axis regression slips the SLA.
+- 7-day GA SLA is ambitious; any per-microservice regression slips the SLA.
 
 ### Operational
 
 - Trust portal SLA: 99.99% (it is the regulator-facing surface).
-- Per-DSR cascade SLA dashboard; per-axis breakdown of latency contribution.
+- Per-DSR cascade SLA dashboard; per-microservice breakdown of latency contribution.
 - Per-quarter DSR completion audit by external auditor (per ISO 27701 / SOC 2 alignment).
 - Per-axis erase regression test suite runs nightly with synthetic DSRs.
 - Sub-processor list change notification ships via Workspace mail per ADR-0029.
@@ -173,8 +173,8 @@ Trust framework does not own per-class data definition (per ADR-0008 DUBO). Does
 
 ### Alternative A — Per-axis DSR endpoint, no cascade orchestrator
 
-- **Pros:** simpler per-axis implementation.
-- **Cons:** tenants chase the DSR across N axes; per-axis SLA drift; regulator sees fragmented compliance posture.
+- **Pros:** simpler per-microservice implementation.
+- **Cons:** tenants chase the DSR across N axes; per-microservice SLA drift; regulator sees fragmented compliance posture.
 - **Rejected because:** the cascade is the trust moat.
 
 ### Alternative B — DSR cascade in a queue with no per-store proof
@@ -183,9 +183,9 @@ Trust framework does not own per-class data definition (per ADR-0008 DUBO). Does
 - **Cons:** "trust us, it's done" is not an audit-chain claim; regulators routinely demand per-store evidence.
 - **Rejected because:** the proof is the differentiator.
 
-### Alternative C — Trust portal as per-axis dashboard (no unified portal)
+### Alternative C — Trust portal as per-microservice dashboard (no unified portal)
 
-- **Pros:** axis-team independence.
+- **Pros:** microservice-team independence.
 - **Cons:** customer-facing fragmentation; the cohesion-thesis-promise becomes invisible.
 - **Rejected because:** the portal is the cohesion-thesis customer-facing artifact.
 
@@ -210,7 +210,7 @@ Trust framework does not own per-class data definition (per ADR-0008 DUBO). Does
 ## References
 
 - `docs/PRD.md` §11 (data use boundary), §11 (DSR cascade)
-- `docs/DESIGN.md` §11 (trust framework), §11 (cross-axis contradictions), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (trust framework), §11 (cross-microservice contradictions), §10 (cross-microservice contracts)
 - KR 「개인정보보호법」 Art 26 (sub-processor notice), Art 36 (correction/deletion), Art 38 (data subject rights notice), Art 39 (penalties)
 - EU GDPR Art 16, 17, 18, 20, 21, 22, 26, 28, 30, 33, 34, 83
 - US: CCPA / CPRA (Cal. Civ. Code §1798.105 et seq); HIPAA Privacy Rule

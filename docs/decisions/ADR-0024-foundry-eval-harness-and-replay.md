@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0020 (provider adapter — A/B targets), ADR-0021 (capability registry — eval gate at publish), ADR-0022 (autonomy ceiling — adversarial cohort tests bypass attempts), ADR-0023 (sandbox — replay needs deterministic tool execution), ADR-0026 (in-house substrate — eval is the gate that decides when an in-house variant supplants a provider)
 
@@ -87,7 +87,7 @@ Production traces (per `EVT-FOUNDRY-CAPABILITY-INVOKED` and per-step) are stored
 
 ### Nightly cadence
 
-A nightly job (CI lane `foundry-eval-nightly`) runs every published capability's eval set against its current route; failures open an issue and notify `axis-foundry`. Drift alerts fire when the per-capability pass rate drops below the per-capability `pass_threshold` for two consecutive runs.
+A nightly job (CI lane `foundry-eval-nightly`) runs every published capability's eval set against its current route; failures open an issue and notify `foundry`. Drift alerts fire when the per-capability pass rate drops below the per-capability `pass_threshold` for two consecutive runs.
 
 ### CI lanes
 
@@ -128,7 +128,7 @@ A nightly job (CI lane `foundry-eval-nightly`) runs every published capability's
 1. **No mandatory eval set.** Pros: faster initial publish. Cons: every capability becomes a black box; regression detection impossible. Rejected — eval is the foundation of capability lifecycle hygiene.
 2. **Hosted eval product (e.g. third-party harness).** Pros: less to build. Cons: external system-of-record for our most critical decision-making artifact; license, retention, and data-flow concerns. Rejected per the build-vs-buy posture.
 3. **Manual eval only (no automation).** Pros: human judgment first. Cons: cannot scale to nightly cadence; cannot gate publish; cannot run A/B; cannot replay. Rejected — manual is one input, not the substrate.
-4. **Per-axis eval substrates (each axis owns its own).** Pros: axis autonomy. Cons: no cross-axis comparability; no shared adversarial cohort; in-house substrate effort gets fragmented. Rejected — eval is Foundry-owned cross-axis contract.
+4. **Per-axis eval substrates (each axis owns its own).** Pros: axis autonomy. Cons: no cross-microservice comparability; no shared adversarial cohort; in-house substrate effort gets fragmented. Rejected — eval is Foundry-owned cross-microservice contract.
 
 ---
 
@@ -136,7 +136,7 @@ A nightly job (CI lane `foundry-eval-nightly`) runs every published capability's
 
 1. **Replay retention vs DSR erasure: cryptographic shredding, not record deletion.** Replay traces are stored encrypted with per-subject-keyed envelopes (one DEK per data subject, wrapped by the per-tenant KEK per ADR-0043). When a DSR-cascade purge fires for a subject, the cascade walks the replay store and destroys the per-subject DEK; the encrypted record remains in the store but is unreplayable for the erased subject. The shred event emits to the audit chain per ADR-0003 with `EVT-REPLAY-SUBJECT-SHRED`. Cross-cohort eval continuity is preserved for non-affected subjects because their DEKs survive. Maximum non-shred replay-trace retention horizon: 24 months from emit (per privacy-program retention SLA), after which the entire trace's per-subject DEKs auto-shred and the trace becomes archive-only (replay-disabled).
 2. **HumanJudged rubric scaling**: per-capability rubrics use a small Founder-or-domain-expert-seeded gold pool (≥ 50 cases per capability) and a multi-rater consistency gate (Cohen's κ ≥ 0.7). Rubrics are versioned in `decisions/eval-rubrics/<capability>/`; rubric updates re-score the gold pool first to prevent rubric drift confounding capability-quality signal.
-3. **Adversarial cohorts are tenant-extensible** for verticals with regulated content (healthcare PHI-extraction patterns, fintech AML evasion patterns) but extensions land in a per-tenant adversarial subspace that does not pollute the cross-tenant cohort. Per-vertical cohort-extension governance is owned by the vertical team + `axis-foundry`.
+3. **Adversarial cohorts are tenant-extensible** for verticals with regulated content (healthcare PHI-extraction patterns, fintech AML evasion patterns) but extensions land in a per-tenant adversarial subspace that does not pollute the cross-tenant cohort. Per-vertical cohort-extension governance is owned by the vertical team + `foundry`.
 4. **Per-capability eval token budget** is split: the capability owner cost-center pays for the per-capability gold + adversarial + linguistic cohorts (Foundry rate-cards the eval invocations); Foundry shared budget pays for cross-capability replay infrastructure (the harness, the subject-keyed shred system, the cohort store).
 
 ## Open questions

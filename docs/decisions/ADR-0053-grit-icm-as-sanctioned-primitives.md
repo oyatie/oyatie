@@ -4,7 +4,7 @@ status: Accepted
 date: 2026-05-12
 owners:
   - council-architecture
-  - axis-foundry
+  - foundry
 supersedes: []
 superseded_by: []
 doc_class: DecisionRecord
@@ -19,7 +19,7 @@ enforced_by: oya-foundry-fitness-banned-primitives
 
 - **Status:** Accepted
 - **Date:** 2026-05-12
-- **Owners:** `council-architecture`, `axis-foundry`
+- **Owners:** `council-architecture`, `foundry`
 - **Supersedes:** (none)
 - **Superseded by:** (none)
 - **Enforced by:** `oya-foundry-fitness-banned-primitives`
@@ -83,7 +83,7 @@ Rewrite agent-facing memory FIRST (P4), ship `oya-tooling-agent-read` SECOND (P2
 ## Why Chosen
 
 - Maps cleanly to spec acceptance criteria A1 (cross-cite), A2 (inventory), A3 (archive+delete), A4 (helper CLI), A5 (rewrite agent memory), A6 (hook+skill audit), A7 (parallel-claim demo), A8 (authoritative-tracked invariant), A9 (plan handoff), A10 (Linus-audit).
-- Preserves the seven-axis product frame; no product-content change.
+- Preserves the flat-catalog product frame; no product-content change.
 - Preserves the flat-crates clean architecture (`kernel ← domain ← app ← {api, worker, adapter} ← runtime`).
 - Preserves the 140+ existing `oya-*` crates and the in-tree fitness/policy kernels (`claim-ceiling`, `authority-cohesion`, `bypass`, `pr-traceability`, `pre-push`, `quality-lane`, `cohesion-fitness`) — they govern product-quality, not agent-coordination, and survive the cutover.
 - Leaves all four OPEN ledger entries (LEDG-008, LEDG-017, LEDG-021, LEDG-024) on their existing resolution batches; the direction shift is orthogonal to product-scope decisions.

@@ -24,7 +24,7 @@ We adopt **per-pack default residency class** (`strict_kr` / `kr_with_us_failove
 ### Residency classes
 
 ```rust
-// crates/oya-platform-residency-kernel
+// crates/oya-tenancy-residency-kernel
 pub enum ResidencyClass {
     /// All data + all replicas + all backups + all derived data stay in KR cells
     StrictKr,
@@ -216,7 +216,7 @@ This ADR does not own the data class registry (per ADR-0008). Does not own the p
 ## References
 
 - `docs/PRD.md` §11 (residency)
-- `docs/DESIGN.md` §11 (residency), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (residency), §10 (cross-microservice contracts)
 - KR 「개인정보보호법」 Art 28-8 (cross-border transfer); 「전자금융감독규정」 §15; 「전자정부법」
 - EU GDPR Art 44-49 (cross-border); EU-US Data Privacy Framework; Schrems II/III judgments; EHDS (European Health Data Space)
 - US: HIPAA Privacy Rule; CCPA/CPRA; per-state privacy

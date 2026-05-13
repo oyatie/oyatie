@@ -1,9 +1,9 @@
-# ADR-0014: Build-vs-buy policy — per-axis matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, per-dep metadata (license tier + maturity + isolation + replacement plan + owning team), oya-foundry-fitness-build-vs-buy CI lane
+# ADR-0014: Build-vs-buy policy — per-microservice matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, per-dep metadata (license tier + maturity + isolation + replacement plan + owning team), oya-foundry-fitness-build-vs-buy CI lane
 
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `council-architecture` + per-axis leads
+> **Owner:** `council-architecture` + per-microservice leads
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0011, ADR-0013, ADR-0015, ADR-0019
 
@@ -11,7 +11,7 @@
 
 ## Context
 
-PRD §3.1 commitment 4 sets the build-vs-buy posture: "in-house build over external dep wherever the dep is not as mature as `axum` / `tokio` / `serde` / a Postgres driver / OS kernel-grade tools." TOOLCHAIN §6 codifies the decision flow chart (existing → industry-standard with license + maturity → in-house). What's missing is a *per-axis* matrix that tells a PR author whether a dep choice is normally OK, normally not OK, or requires review — and a CI gate that rejects deps that violate the matrix.
+PRD §3.1 commitment 4 sets the build-vs-buy posture: "in-house build over external dep wherever the dep is not as mature as `axum` / `tokio` / `serde` / a Postgres driver / OS kernel-grade tools." TOOLCHAIN §6 codifies the decision flow chart (existing → industry-standard with license + maturity → in-house). What's missing is a *per-microservice* matrix that tells a PR author whether a dep choice is normally OK, normally not OK, or requires review — and a CI gate that rejects deps that violate the matrix.
 
 Without this ADR, every dep adoption is an ad-hoc judgment call. The license tier (ADR-0013) is necessary but not sufficient: an Apache-2 dep can still be the wrong choice if it duplicates an in-house obligatory surface (substrate kernels, audit chain, capability registry) or if the replacement plan is missing. The contradiction ledger LEDG-004 + LEDG-013 captured prior dep-choice drift; this ADR closes the protocol gap.
 
@@ -19,13 +19,13 @@ Without this ADR, every dep adoption is an ad-hoc judgment call. The license tie
 
 ## Decision
 
-We adopt a **per-axis build-vs-buy matrix**, a **decision flow chart**, **per-dep metadata** in the catalog, and a CI lane that enforces the matrix.
+We adopt a **per-microservice build-vs-buy matrix**, a **decision flow chart**, **per-dep metadata** in the catalog, and a CI lane that enforces the matrix.
 
 ### Per-axis matrix (in-house obligatory / external acceptable / requires-review)
 
 | Axis surface | Default | Rationale |
 |---|---|---|
-| **Foundation kernels** (Tenant, Identity, Audit chain, Capability registry, Plane, Eventing, Policy/Cedar, Object Graph) | **In-house obligatory** | Substrate forking forbidden (ADR-0001); cohesion + sovereignty |
+| **Foundation kernels** (Tenant, Identity, Audit chain, Capability registry, Plane, Eventing, Policy/Cedar, Ontology) | **In-house obligatory** | Substrate forking forbidden (ADR-0001); cohesion + sovereignty |
 | **Foundry runtime** (capability invocation, autonomy ceiling, evidence emission, RAG endpoint, sandbox kernel) | **In-house obligatory** | Same as above |
 | **Provider adapters — API mode** (Anthropic / OpenAI / Gemini API) | **In-house** (direct HTTP + serde) | Avoid vendor SDK lock; license-clean |
 | **Provider adapters — subscription mode** | **In-house wrapper around Chromiumoxide** | Headless browser is acceptable adapter-layer dep |
@@ -105,7 +105,7 @@ external_deps:
 
 Runs on every PR that touches `Cargo.toml`, `package.json`, `requirements.txt`, `go.mod`, or any catalog record. It:
 
-1. Resolves added deps against the per-axis matrix.
+1. Resolves added deps against the per-microservice matrix.
 2. Hard-fails any "in-house obligatory" surface that imports an external dep.
 3. Emits `requires-review` label for any dep not in the matrix.
 4. Verifies per-dep metadata is present in the catalog (license_tier + maturity + isolation + replacement_plan + owning_team).
@@ -179,4 +179,4 @@ Runs on every PR that touches `Cargo.toml`, `package.json`, `requirements.txt`, 
 - `docs/TOOLCHAIN.md` §3 (language-stack matrix — agnostic of legacy), §6 (toolchain decision flow chart), §7 (license manifest)
 - `docs/VENDOR-PARTNER-LEDGER.md` (per-dep metadata target)
 - `docs/CONTRADICTION-LEDGER.md` LEDG-004 (license posture conflict), LEDG-013 (Foundry/Furnace mismatch as build-vs-buy edge case)
-- ADR-0001 (cohesion), ADR-0011 (catalog hosts external_deps metadata), ADR-0013 (license tier feeds build-vs-buy decision), ADR-0015 (per-axis crate roles inform matrix), ADR-0019 (catalog protocol)
+- ADR-0001 (cohesion), ADR-0011 (catalog hosts external_deps metadata), ADR-0013 (license tier feeds build-vs-buy decision), ADR-0015 (per-microservice crate roles inform matrix), ADR-0019 (catalog protocol)

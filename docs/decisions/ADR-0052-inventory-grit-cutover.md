@@ -5,7 +5,7 @@ status: Accepted
 date: 2026-05-12
 owners:
   - council-architecture
-  - axis-foundry
+  - foundry
 supersedes: []
 superseded_by: []
 doc_class: DecisionRecord
@@ -27,7 +27,7 @@ tags:
 
 > **Status:** Accepted
 > **Date:** 2026-05-12
-> **Owners:** `council-architecture`, `axis-foundry` — see [`teams/`](../teams/)
+> **Owners:** `council-architecture`, `foundry` — see [`teams/`](../teams/)
 > **Supersedes:** — **Superseded-by:** —
 > **Siblings (parallel wave):** ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim)
 
@@ -293,18 +293,18 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 
 | Path | Type | Classification | Maps to spec criterion | Notes |
 |---|---|---|---|---|
-| oyatie/docs/runbooks/ | dir | KEEP | A8 | 200+ runbooks (incident response, operational playbooks); all KEEP; organized by axis + cross-axis |
+| oyatie/docs/runbooks/ | dir | KEEP | A8 | 200+ runbooks (incident response, operational playbooks); all KEEP; organized by axis + cross-microservice |
 | oyatie/docs/runbooks/*.md | files (200+) | KEEP | A8 | All incident/operational runbooks; list-only at depth 2 due to size (200+ files) |
-| oyatie/docs/runbooks/ads/ | subdir | KEEP | A8 | Ads axis runbooks (auction-engine, click-fraud, data-use-boundary) |
-| oyatie/docs/runbooks/cloud/ | subdir | KEEP | A8 | Cloud axis runbooks (billing, cell-isolation, DCops, IAM, KMS, region-failover) |
-| oyatie/docs/runbooks/foundry/ | subdir | KEEP | A8 | Foundry axis runbooks (autonomy-ceiling, capability-eval, cost-ceiling, prompt-injection, sandbox-escape) |
-| oyatie/docs/runbooks/search/ | subdir | KEEP | A8 | Search axis runbooks (crawler, index-corruption, RTBF, SERP-quality) |
-| oyatie/docs/runbooks/workspace/ | subdir | KEEP | A8 | Workspace axis runbooks (doc-CRDT, drive-permission, mail, Meet SFU, recording) |
+| oyatie/docs/runbooks/ads/ | subdir | KEEP | A8 | ads microservice runbooks (auction-engine, click-fraud, data-use-boundary) |
+| oyatie/docs/runbooks/cloud/ | subdir | KEEP | A8 | cloud microservice runbooks (billing, cell-isolation, DCops, IAM, KMS, region-failover) |
+| oyatie/docs/runbooks/foundry/ | subdir | KEEP | A8 | foundry runbooks (autonomy-ceiling, capability-eval, cost-ceiling, prompt-injection, sandbox-escape) |
+| oyatie/docs/runbooks/search/ | subdir | KEEP | A8 | search microservice runbooks (crawler, index-corruption, RTBF, SERP-quality) |
+| oyatie/docs/runbooks/workspace/ | subdir | KEEP | A8 | Connect microservice runbooks (doc-CRDT, drive-permission, mail, Meet SFU, recording) |
 | oyatie/docs/runbooks/vertical-fintech/ | subdir | KEEP | A8 | Fintech vertical runbooks (AML, CDE-isolation, PCI) |
 | oyatie/docs/runbooks/vertical-healthcare/ | subdir | KEEP | A8 | Healthcare vertical runbooks (clinical-safety, PHI-leak) |
 | oyatie/docs/runbooks/vertical-industrial/ | subdir | KEEP | A8 | Industrial vertical runbooks (OT-safety) |
 | oyatie/docs/runbooks/vertical-logistics/ | subdir | KEEP | A8 | Logistics vertical runbooks (EDI-counterparty) |
-| oyatie/docs/runbooks/cross-axis/ | subdir | KEEP | A8 | Cross-axis coordination runbooks (audit-chain-integrity, cohesion-fitness, DSR-cascade, regional-pack) |
+| oyatie/docs/runbooks/cross-microservice/ | subdir | KEEP | A8 | Cross-axis coordination runbooks (audit-chain-integrity, cohesion-fitness, DSR-cascade, regional-pack) |
 
 ### oyatie/docs/site/ (public documentation site)
 
@@ -540,21 +540,21 @@ Files currently in `.gitignored` paths that ANY part of the corpus treats as aut
 
 ## Follow-ups
 
-1. **ADR-0053 — Sanctioned primitives closed set.** Owner: `council-architecture` + `axis-foundry`. Lands in the same wave (parallel). Defines the executable meaning of `REPLACE-WITH-GRIT` and `REPLACE-WITH-ICM` classification classes.
+1. **ADR-0053 — Sanctioned primitives closed set.** Owner: `council-architecture` + `foundry`. Lands in the same wave (parallel). Defines the executable meaning of `REPLACE-WITH-GRIT` and `REPLACE-WITH-ICM` classification classes.
 
-2. **ADR-0054 — grit scaffold-claim pattern.** Owner: `axis-foundry`. Lands in the same wave (parallel). Defines the `icm-coordination-lock` fallback for new-crate phases where `grit symbols` cannot index `Cargo.toml::workspace_members`.
+2. **ADR-0054 — grit scaffold-claim pattern.** Owner: `foundry`. Lands in the same wave (parallel). Defines the `icm-coordination-lock` fallback for new-crate phases where `grit symbols` cannot index `Cargo.toml::workspace_members`.
 
-3. **P3 — Bidirectional PRD citation.** Owner: `axis-foundry` (P3 executor). Apply `KEEP+ANNOTATE` to `oyatie/docs/PRD.md` and `bominal/docs/consolidated/PRD.md` per rows above. Gate: this ADR merged.
+3. **P3 — Bidirectional PRD citation.** Owner: `foundry` (P3 executor). Apply `KEEP+ANNOTATE` to `oyatie/docs/PRD.md` and `bominal/docs/consolidated/PRD.md` per rows above. Gate: this ADR merged.
 
-4. **P4 — Agent-instruction rewrite.** Owner: `axis-foundry` (P4 executor). Apply `KEEP+ANNOTATE` to `oyatie/CLAUDE.md`, `oyatie/AGENTS.md`, `oyatie/docs/AGENTS.md`. Gate: ADR-0053 merged (sanctioned-primitives closed set must be committed before agent-instruction rewrites reference it).
+4. **P4 — Agent-instruction rewrite.** Owner: `foundry` (P4 executor). Apply `KEEP+ANNOTATE` to `oyatie/CLAUDE.md`, `oyatie/AGENTS.md`, `oyatie/docs/AGENTS.md`. Gate: ADR-0053 merged (sanctioned-primitives closed set must be committed before agent-instruction rewrites reference it).
 
-5. **P6 — Archive moves.** Owner: human orchestrator + `axis-foundry`. Move all 13 `ARCHIVE`-class rows from `bominal/agents/ultragoal/` to `archive/pre-grit-cutover-2026-05-12/`. Gate: this ADR merged + `oya-foundry-fitness-archive-orphan` lane scaffolded.
+5. **P6 — Archive moves.** Owner: human orchestrator + `foundry`. Move all 13 `ARCHIVE`-class rows from `bominal/agents/ultragoal/` to `archive/pre-grit-cutover-2026-05-12/`. Gate: this ADR merged + `oya-foundry-fitness-archive-orphan` lane scaffolded.
 
 6. **P7 — Deletion.** Owner: human orchestrator. Remove 8 `DELETE`-class rows. Gate: three checks per RALPLAN pre-mortem item 2 — (a) banned-primitives lane green post-P6, (b) `oya-foundry-fitness-archive-orphan` lane confirms no living references to archived paths, (c) every ARCHIVE-class row has a non-null `archived_at` timestamp in icm.
 
 7. **FLAG-FOR-USER — Global RTK extension.** Owner: human principal. Decide whether to extend the agent-instruction grit/icm primitive ban to `~/.claude/CLAUDE.md`. Default per spec §Non-Goals: no; scope is `oyatie/` only until the user explicitly broadens it.
 
-8. **`oya-foundry-fitness-inventory-tracker` lane.** Owner: `axis-foundry`. Implement markdown-table parser that validates every row in this ADR has a classification value from the closed set; emit CI failure on gap. Required before P7 deletion gate (item 6 above).
+8. **`oya-foundry-fitness-inventory-tracker` lane.** Owner: `foundry`. Implement markdown-table parser that validates every row in this ADR has a classification value from the closed set; emit CI failure on gap. Required before P7 deletion gate (item 6 above).
 
 ---
 
