@@ -1,0 +1,327 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1778627712167,
+  "projectRoot": "/Users/jasonlee/oyatie",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Rust",
+        "version": "1.78",
+        "confidence": "high",
+        "markers": [
+          "Cargo.toml"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "cargo",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "icm store -t preferences -c \"Distroless + smallest-image directive (2026-05-12): every deployed binary ships in distroless containers (gcr.io/distroless/static-debian12 or distroless/cc-debian12 for FFI). cargo build --release + musl static linking where possible. No shells, no package managers, no debug tooling in production images. CI verifies image-size budget per PR. Combined with provider-agnostic: distroless choice is itself provider-neutral (distroless images run on any K8s/container runtime). Combined with final-shape: build the distroless pipeline NOW for every deployable; do not 'add distroless later'.\" -i critical -k \"distroless,smallest-image,static-binary,cargo-musl,image-size-budget,container-discipline\" 2>&1 | tail -3",
+    "testCommand": "cat > /tmp/gen_ips3.sh <<'BASH_SCRIPT'\n#!/bin/bash\nset -euo pipefail\nROOT=/Users/jasonlee/oyatie/.omc/plans/milestones\n\ngen_simple_ip() {\n  local path=\"$1\" id=\"$2\" title=\"$3\" purpose=\"$4\" symbols=\"$5\"\n  mkdir -p \"$(dirname \"$path\")\"\n  cat > \"$path\" <<EOF\n---\ndoc_class: ImplementationPlan\nparent: ./INDEX.md\nid: $id\ntitle: $title\nstatus: stub\nfinal_shape_compliance: true\ndependency_additions: []\npurpose: $purpose\n---\n\n# $id — $title\n\n## Purpose\n$purpose\n\n## Symbols-to-grit-claim\n\\`\\`\\`\n$symbols\n\\`\\`\\`\n(Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)\n\n## Agent-prerequisites\nPhase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles understood; M-CC-P01 ≥ P5 merged (except for IPs IN M-CC-P01 itself).\n\n## Acceptance-test-commands\n\\`\\`\\`\ncargo test -p <owning-crate> --all-features\ncargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>\nscripts/check.sh\n\\`\\`\\`\n\n## Done-criteria\n- All acceptance-test commands return 0.\n- Distroless image built (if IP ships a deployed binary); size < per-binary budget per \\`docs/standards/image-size-budgets.md\\`.\n- No provider-specific deps outside adapter crates (Directive 4).\n- All direct deps current LTS or have ADR-tracked exception (Directive 8).\n- PR \"good-taste audit\" section non-empty (Directive 7).\n\n## Rollback-procedure\n\\`grit done\\` is atomic per-symbol; if a subsequent IP regresses, revert the merge commit.\n\n## Next-IP-pointer\nNext IP in this phase's INDEX list (or first IP of next phase if phase complete).\n\n## Icm-store-payload\n\\`\\`\\`\nicm store -t context-oyatie -c '$id $title shipped; acceptance commands green' -i high -k '$id,complete'\n\\`\\`\\`\n\n## Decision-log (Linus good-taste row)\nSpecial cases eliminated by this IP: (to be filled at PR time; empty section = fail).\nEOF\n}\n\n# M-CC-P01 (12 IPs — the cutover phases)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md\" \"M-CC-P01-IP-001\" \"ADR-0054 scaffold-claim pattern + RACI human-orchestrator row (P0.5)\" \"Land ADR-0054 + RACI human-orchestrator row.\" \"docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md::Decision\ndocs/RACI-OWNERSHIP.md::human-orchestrator-row\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md\" \"M-CC-P01-IP-002\" \"Inventory pass + ADR-0052 (P1)\" \"Land inventory ADR-0052 with archived_at column per row.\" \"docs/decisions/ADR-0052-grit-cutover-inventory.md::InventoryTable\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md\" \"M-CC-P01-IP-003\" \"oya-tooling-agent-read helper (P2)\" \"Ship the sanctioned read-only helper CLI.\" \"tools/oya-tooling-agent-read/src/main.rs::main\ntools/oya-tooling-agent-read/src/commands/log.rs::run\ntools/oya-tooling-agent-read/src/commands/diff.rs::run\ntools/oya-tooling-agent-read/src/commands/pr_view.rs::run\ntools/oya-tooling-agent-read/src/commands/pr_comments.rs::run\ntools/oya-tooling-agent-read/src/audit.rs::emit_event\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite.md\" \"M-CC-P01-IP-004\" \"Bidirectional PRD citation + portfolio-citation lane (P3)\" \"Cross-cite oyatie/docs/PRD.md and bominal/docs/consolidated/PRD.md; ship portfolio-citation lane.\" \"docs/PRD.md::bominal-cite\ncrates/oya-foundry-fitness-portfolio-citation-kernel/src/lib.rs::verify\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md\" \"M-CC-P01-IP-005\" \"Foundry corpus cross-cite + PHASE-00-SPEC.md (P3.5)\" \"Land PHASE-00-SPEC and cross-cite the bominal foundry corpus.\" \"docs/products/foundry/PHASE-00-SPEC.md::Contracts\ndocs/products/foundry/PRD.md::bominal-cite-block\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md\" \"M-CC-P01-IP-006\" \"Agent-facing memory rewrite (P4)\" \"Rewrite CLAUDE.md / AGENTS.md / docs/AGENTS.md agent-instruction sections.\" \"CLAUDE.md::agent-instructions\nAGENTS.md::agent-instructions\ndocs/AGENTS.md::sanctioned-primitives-section\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md\" \"M-CC-P01-IP-007\" \"Hook + skill audit + banned-primitives lane activation (P5)\" \"Audit hooks and skills; activate banned-primitives lane (revised per Directive 12).\" \"docs/AGENT-INSTRUCTION-SOURCES.md::Enumeration\ncrates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs::check_documented_genuine_need\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md\" \"M-CC-P01-IP-008\" \"Archive orchestration glue + archive-orphan lane (P6)\" \"Archive orchestration glue under bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/; ship archive-orphan lane.\" \"bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/::ArchiveDir\ncrates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs::check\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md\" \"M-CC-P01-IP-009\" \"Delete archived glue from active path (P7)\" \"git rm archived glue from active path after three concrete gates green.\" \"bominal/agents/ultragoal/ledger.jsonl::delete\nbominal/agents/ultragoal/goals.json::delete\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md\" \"M-CC-P01-IP-010\" \"Parallel-claim demo runbook (P8)\" \"Reproducible parallel-claim demo on pinned symbols.\" \"docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md::Procedure\ndocs/runbooks/agentic-pipeline/grit-parallel-claim-demo.sh::Script\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md\" \"M-CC-P01-IP-011\" \"File upstream grit session bug (P9)\" \"Author local artifact + file upstream rtk-ai/grit issue with documented genuine need.\" \"docs/runbooks/grit-session-bug-upstream.md::Reproducer\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit.md\" \"M-CC-P01-IP-012\" \"Authoritative-tracked repo-walk audit (P10)\" \"Ship authoritative-tracked lane that walks docs/AGENTS.md authoritative list and verifies all are tracked.\" \"crates/oya-foundry-fitness-authoritative-tracked-kernel/src/lib.rs::check\"\n\n# M-CC-P02 (3 IPs)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-001-mdbook-pipeline.md\" \"M-CC-P02-IP-001\" \"mdbook publishing pipeline kernel + source walkers\" \"Ship mdbook kernel that walks rustdoc + OpenAPI + ADR-INDEX + frontmatter.\" \"crates/oya-foundry-mdbook-kernel/src/lib.rs::walk_sources\ncrates/oya-foundry-mdbook-kernel/src/lib.rs::publish_site\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-002-doc-freshness-lane.md\" \"M-CC-P02-IP-002\" \"Doc-freshness CI lane\" \"Block PRs that change source-of-truth without regenerating dependent docs.\" \"crates/oya-foundry-fitness-doc-freshness-kernel/src/lib.rs::check\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-003-doc-style-lane.md\" \"M-CC-P02-IP-003\" \"Doc-style enforcement lane + auto-format\" \"Enforce docs/standards/doc-style.md; auto-format on commit.\" \"crates/oya-foundry-fitness-doc-style-kernel/src/lib.rs::check_style\"\n\n# M-CC-P03 (2 IPs)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit.md\" \"M-CC-P03-IP-001\" \"Purpose-frontmatter authoring (audit every existing doc/JSON)\" \"Audit every existing doc/JSON for purpose declaration; backfill where missing.\" \"docs/**::purpose-frontmatter\n**/*.json::purpose-field\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-002-orphan-detection-lane.md\" \"M-CC-P03-IP-002\" \"Orphan-detection lane kernel\" \"Lane CI-blocks orphan artifacts (no inbound reference; not in known-orphan allowlist).\" \"crates/oya-foundry-fitness-orphan-detection-kernel/src/lib.rs::detect_orphans\"\n\n# M-CC-P04 (2 IPs)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-001-navigability-lane.md\" \"M-CC-P04-IP-001\" \"Agentic-navigability lane kernel + parent-pointer validator\" \"Lane CI-blocks missing INDEX.md / missing parent-pointer / undeclared symbols / undeclared purpose.\" \"crates/oya-foundry-fitness-agentic-navigability-kernel/src/lib.rs::check\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-002-predictable-naming.md\" \"M-CC-P04-IP-002\" \"Predictable-naming convention enforcement\" \"Lane CI-blocks filename patterns that violate canonical pattern.\" \"crates/oya-foundry-fitness-predictable-naming-kernel/src/lib.rs::check_naming\"\n\n# M-CC-P05 (3 IPs)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-001-provider-coupling-lane.md\" \"M-CC-P05-IP-001\" \"Provider-coupling lane kernel\" \"Block provider-specific imports outside adapter crates.\" \"crates/oya-foundry-fitness-provider-coupling-kernel/src/lib.rs::check\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit.md\" \"M-CC-P05-IP-002\" \"Multi-provider adapter audit + remediation across Cloud kernels\" \"Audit Cloud kernels; ensure ≥2 adapters per kernel.\" \"crates/oya-cloud-*-adapter-{aws,oci,gcp,azure,naver,kt,kakao}-*::Adapter\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-003-adapter-substitution-harness.md\" \"M-CC-P05-IP-003\" \"Adapter-substitution integration-test harness\" \"Harness runs kernel integration tests against ≥2 adapters and verifies contract identity.\" \"tools/oya-adapter-substitution-test/src/main.rs::main\"\n\n# M-CC-P06 (3 IPs)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-001-distroless-image-lane.md\" \"M-CC-P06-IP-001\" \"Distroless base + image-discipline lane\" \"Block non-distroless bases + shells/package-managers + oversized images.\" \"crates/oya-foundry-fitness-image-discipline-kernel/src/lib.rs::check\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md\" \"M-CC-P06-IP-002\" \"LTS-dependency lane + LTS roster doc\" \"LTS roster doc + lane that blocks non-LTS direct deps without ADR exception.\" \"docs/standards/lts-versions.md::Roster\ncrates/oya-foundry-fitness-lts-dependency-kernel/src/lib.rs::check\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-003-static-musl-build.md\" \"M-CC-P06-IP-003\" \"Static / musl-linked binary build pipeline\" \"Ship static / musl-linked release build pipeline.\" \".github/workflows/release-musl.yml::Workflow\nDockerfile.distroless::Distroless\"\n\n# M-CC-P07 (4 IPs)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem.md\" \"M-CC-P07-IP-001\" \"PRFAQ + Design-Doc + Postmortem templates\" \"Land standard templates per AWS / Google / SRE.\" \"docs/standards/prfaq-template.md::Template\ndocs/standards/design-doc-template.md::Template\ndocs/standards/postmortem-template.md::Template\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-002-1es-ci-templates.md\" \"M-CC-P07-IP-002\" \"1ES-templated CI pipelines\" \"Adopt Microsoft 1ES-style templated CI pipelines.\" \".github/workflows/_template-ci-lane.yml::Template\n.github/workflows/_template-release.yml::Template\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate.md\" \"M-CC-P07-IP-003\" \"Engineering Excellence Council merge gate\" \"Council-Architecture signs every cross-axis-contract PR; merge-gate enforces signature.\" \"scripts/hooks/guard-pr-merge-review.mjs::CouncilSignature\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-004-rust-toolchain-gates.md\" \"M-CC-P07-IP-004\" \"Rust toolchain hyperscaler-gate set\" \"Integrate cargo-deny / audit / nextest / semver-checks / sccache / llvm-cov into scripts/check.sh.\" \"scripts/check.sh::ToolchainGates\ndeny.toml::Policy\"\n\n# M-CC-P08 (4 IPs)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-001-cosign-rekor.md\" \"M-CC-P08-IP-001\" \"Cosign + Rekor signing pipeline\" \"Ship Cosign signing + Rekor anchoring for every artifact.\" \".github/workflows/cosign.yml::Workflow\ncrates/oya-foundry-fitness-supply-chain-kernel/src/lib.rs::check_signed\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-002-sbom-pipeline.md\" \"M-CC-P08-IP-002\" \"SBOM generation per build (CycloneDX / SPDX)\" \"Ship SBOM generation per build at releases/<tag>/sbom.json.\" \".github/workflows/sbom.yml::Workflow\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-003-license-policy-lane.md\" \"M-CC-P08-IP-003\" \"License-policy lane (AGPL/GPL/SSPL/BUSL/RSAL hard-deny)\" \"Lane hard-denies AGPL/GPL/SSPL/BUSL/RSAL in product code.\" \"crates/oya-foundry-fitness-license-policy-kernel/src/lib.rs::check\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-004-slsa-attestation.md\" \"M-CC-P08-IP-004\" \"SLSA level ≥3 attestation publishing\" \"Publish SLSA-3 attestation per release tag.\" \".github/workflows/slsa.yml::Workflow\"\n\n# M-CC-P09 (4 IPs)\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md\" \"M-CC-P09-IP-001\" \"oya-foundry-architecture-map-kernel source walkers\" \"Walk Cargo metadata + contracts/ + docs/products/ + ROADMAP + ADR-INDEX + milestone frontmatter.\" \"crates/oya-foundry-architecture-map-kernel/src/lib.rs::walk_cargo_metadata\ncrates/oya-foundry-architecture-map-kernel/src/lib.rs::walk_openapi\ncrates/oya-foundry-architecture-map-kernel/src/lib.rs::walk_frontmatter\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters.md\" \"M-CC-P09-IP-002\" \"Mermaid + D2 + Graphviz emitters\" \"Emit diagrams in Mermaid + D2 + Graphviz formats.\" \"crates/oya-foundry-architecture-map-kernel/src/emit/mermaid.rs::Emitter\ncrates/oya-foundry-architecture-map-kernel/src/emit/d2.rs::Emitter\ncrates/oya-foundry-architecture-map-kernel/src/emit/graphviz.rs::Emitter\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-003-mdbook-publish-integration.md\" \"M-CC-P09-IP-003\" \"mdbook publishing integration\" \"Wire architecture-map output into mdbook publishing pipeline.\" \"crates/oya-foundry-mdbook-kernel/src/lib.rs::wire_architecture_map\"\ngen_simple_ip \"$ROOT/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md\" \"M-CC-P09-IP-004\" \"oya-foundry-fitness-architecture-map-freshness lane\" \"Lane blocks PRs that change source-of-truth without regenerating visualizations.\" \"crates/oya-foundry-fitness-architecture-map-freshness-kernel/src/lib.rs::check\"\n\necho \"BATCH-3 DONE\"\nBASH_SCRIPT\nbash /tmp/gen_ips3.sh && find /Users/jasonlee/oyatie/.omc/plans/milestones -name \"IP-*.md\" | wc -l && echo \"---PHASE-INDEXES---\" && find /Users/jasonlee/oyatie/.omc/plans/milestones -name \"INDEX.md\" | wc -l && echo \"---ALL-FILES---\" && find /Users/jasonlee/oyatie/.omc/plans/milestones -type f | wc -l",
+    "lintCommand": "cargo clippy",
+    "devCommand": "cargo run",
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs",
+      "scripts"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "contracts": {
+      "path": "contracts",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1778627712141,
+      "keyFiles": []
+    },
+    "crates": {
+      "path": "crates",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1778627712147,
+      "keyFiles": []
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 37,
+      "lastAccessed": 1778627712151,
+      "keyFiles": [
+        "ADR-CONSOLIDATION-PLAN.md",
+        "ADR-INDEX.md",
+        "ADR-LEGACY-REGRESSION-MAPPING.md",
+        "AGENTS.md",
+        "CHANGELOG.md"
+      ]
+    },
+    "infra": {
+      "path": "infra",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1778627712153,
+      "keyFiles": []
+    },
+    "product-control": {
+      "path": "product-control",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1778627712157,
+      "keyFiles": []
+    },
+    "registry": {
+      "path": "registry",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1778627712158,
+      "keyFiles": []
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 4,
+      "lastAccessed": 1778627712160,
+      "keyFiles": [
+        "check-architecture-boundaries.sh",
+        "check-product-index.py",
+        "check.sh",
+        "supply-chain-adr0039.sh"
+      ]
+    },
+    "target": {
+      "path": "target",
+      "purpose": null,
+      "fileCount": 2,
+      "lastAccessed": 1778627712162,
+      "keyFiles": [
+        "CACHEDIR.TAG"
+      ]
+    },
+    "registry/docs": {
+      "path": "registry/docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1778627712165,
+      "keyFiles": [
+        "pipeline.tsv"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "docs/AGENTS.md",
+      "accessCount": 8,
+      "lastAccessed": 1778633933687,
+      "type": "file"
+    },
+    {
+      "path": "docs/CONSTITUTION.md",
+      "accessCount": 7,
+      "lastAccessed": 1778633891122,
+      "type": "file"
+    },
+    {
+      "path": "AGENTS.md",
+      "accessCount": 4,
+      "lastAccessed": 1778631574883,
+      "type": "file"
+    },
+    {
+      "path": "CLAUDE.md",
+      "accessCount": 3,
+      "lastAccessed": 1778629189755,
+      "type": "file"
+    },
+    {
+      "path": "docs/DOC-CATALOG.md",
+      "accessCount": 3,
+      "lastAccessed": 1778633876381,
+      "type": "file"
+    },
+    {
+      "path": "docs/DESIGN.md",
+      "accessCount": 3,
+      "lastAccessed": 1778633891766,
+      "type": "file"
+    },
+    {
+      "path": "docs/MISTAKES-LEDGER.md",
+      "accessCount": 3,
+      "lastAccessed": 1778634032508,
+      "type": "file"
+    },
+    {
+      "path": "Cargo.toml",
+      "accessCount": 2,
+      "lastAccessed": 1778631574485,
+      "type": "file"
+    },
+    {
+      "path": "docs/RACI-OWNERSHIP.md",
+      "accessCount": 2,
+      "lastAccessed": 1778633823181,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-cohesion-fitness-kernel/src/lib.rs",
+      "accessCount": 2,
+      "lastAccessed": 1778633875621,
+      "type": "file"
+    },
+    {
+      "path": "docs/PRD.md",
+      "accessCount": 2,
+      "lastAccessed": 1778633891822,
+      "type": "file"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "accessCount": 2,
+      "lastAccessed": 1778633891974,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+      "accessCount": 2,
+      "lastAccessed": 1778634112606,
+      "type": "file"
+    },
+    {
+      "path": "README.md",
+      "accessCount": 1,
+      "lastAccessed": 1778627911094,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-placeholder-debt-kernel/src/lib.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778628005359,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-tooling-cli-dev-runtime/src/lib.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778628006061,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-glossary-vocabulary-kernel/src/lib.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778628006349,
+      "type": "file"
+    },
+    {
+      "path": "docs/DOC-UPDATE-PROTOCOL.md",
+      "accessCount": 1,
+      "lastAccessed": 1778629051278,
+      "type": "file"
+    },
+    {
+      "path": "docs/CONTRADICTION-LEDGER.md",
+      "accessCount": 1,
+      "lastAccessed": 1778629067554,
+      "type": "file"
+    },
+    {
+      "path": "docs/ADR-CONSOLIDATION-PLAN.md",
+      "accessCount": 1,
+      "lastAccessed": 1778629068787,
+      "type": "file"
+    },
+    {
+      "path": "docs/SPEC.md",
+      "accessCount": 1,
+      "lastAccessed": 1778631430141,
+      "type": "file"
+    },
+    {
+      "path": ".omx/notepad.md",
+      "accessCount": 1,
+      "lastAccessed": 1778631430531,
+      "type": "file"
+    },
+    {
+      "path": "deny.toml",
+      "accessCount": 1,
+      "lastAccessed": 1778631575389,
+      "type": "file"
+    },
+    {
+      "path": "docs/templates/pull-request-template.md",
+      "accessCount": 1,
+      "lastAccessed": 1778633833167,
+      "type": "file"
+    },
+    {
+      "path": "docs/templates/adr-template.md",
+      "accessCount": 1,
+      "lastAccessed": 1778633833727,
+      "type": "file"
+    },
+    {
+      "path": "docs/templates/capability-record-template.yaml",
+      "accessCount": 1,
+      "lastAccessed": 1778633833923,
+      "type": "file"
+    },
+    {
+      "path": "docs/templates/runbook-template.md",
+      "accessCount": 1,
+      "lastAccessed": 1778633834133,
+      "type": "file"
+    },
+    {
+      "path": "docs/templates/incident-postmortem-template.md",
+      "accessCount": 1,
+      "lastAccessed": 1778633834528,
+      "type": "file"
+    },
+    {
+      "path": "docs/checklists/pre-merge.md",
+      "accessCount": 1,
+      "lastAccessed": 1778633835395,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-cohesion-fitness-kernel/Cargo.toml",
+      "accessCount": 1,
+      "lastAccessed": 1778633848965,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-runbook-freshness-kernel/src/lib.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778633875334,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-mdbook-kernel/src/lib.rs",
+      "accessCount": 1,
+      "lastAccessed": 1778633881598,
+      "type": "file"
+    },
+    {
+      "path": "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+      "accessCount": 1,
+      "lastAccessed": 1778634112413,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}
