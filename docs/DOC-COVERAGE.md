@@ -156,7 +156,7 @@ This file is the canonical coverage snapshot for the oyatie documentation suite 
 
 Status: `planned/foundational`. Flips to `active` when all promotion blockers in `kr/pack.yaml` are green (corpus.lock signed + ≥1 µservice overlay shipped + ≥1 acceptance evidence signed + 1 paying tenant live).
 
-**Scope source of truth**: `docs/localization-packs/kr/pack.yaml > microservices_in_scope` (28 µservices across Workforce / Healthcare / FinTech / Industrial / Connect / Hospitality clusters). The `material_scope: bool` per-µservice flag in the manifest determines whether an overlay PRD is required (per ADR-0063 §2).
+**Scope source of truth**: `docs/localization-packs/kr/pack.yaml > microservices_in_scope` (27 µservices across Workforce / Healthcare / FinTech / Industrial / Connect / Hospitality clusters). The `material_scope: bool` per-µservice flag in the manifest determines whether an overlay PRD is required (per ADR-0063 §2).
 
 | Pack artifact | Path | Status |
 |---|---|---|
@@ -164,9 +164,9 @@ Status: `planned/foundational`. Flips to `active` when all promotion blockers in
 | Overview | `docs/localization-packs/kr.md` | 🟢 authored |
 | Corpus lock | `docs/localization-packs/kr/corpus.lock` | 🔴 TBD (promotion blocker) |
 | Evidence dir | `docs/localization-packs/kr/evidence/` | 🟢 directory exists; 🔴 0 µservice evidence docs yet |
-| Per-µservice overlay PRDs (material_scope=true; 20 µservices) | `docs/prds/<microservice>-kr.md` | 🔴 0/20 |
-| Per-µservice regulatory ADRs (every µservice in scope) | `docs/decisions/ADR-NNNN-kr-<microservice>-regulatory.md` | 🔴 0/28 |
-| Per-µservice acceptance evidence | `docs/localization-packs/kr/evidence/<microservice>.md` | 🔴 0/28 |
+| Per-µservice overlay PRDs (material_scope=true; 18 µservices) | `docs/prds/<microservice>-kr.md` | 🔴 0/18 |
+| Per-µservice regulatory ADRs (every µservice in scope) | `docs/decisions/ADR-NNNN-kr-<microservice>-regulatory.md` | 🔴 0/27 |
+| Per-µservice acceptance evidence | `docs/localization-packs/kr/evidence/<microservice>.md` | 🔴 0/27 |
 
 ### `us` / `eu` / `jp` / `sea-*` / `mena-*` packs
 
