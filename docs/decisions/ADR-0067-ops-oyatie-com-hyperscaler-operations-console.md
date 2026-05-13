@@ -109,13 +109,13 @@ Per user directive 2026-05-13 ("Linus Torvalds style no silent regression princi
 
 In `ops.oyatie.com` terms:
 
-- `/ci-runs` surface displays `lean-a10-no-silent-regression` results per-PR; failed lane shows the specific protected contract + the proposed delta + the required ADR template inline.
+- `/ci-runs` surface displays `lean-a10-regression` results per-PR; failed lane shows the specific protected contract + the proposed delta + the required ADR template inline.
 - `/audit-view` shows every regression-detection event (Ed25519-signed segment per Bominal ADR-0028) including: who attempted what change, when, against which contract, and the ADR (or supersession ADR) that authorized or rejected it.
 - `/architecture` surface highlights any cross-product / cross-pack / cross-µservice contract widening with a red banner — never silent.
 - `/tenant-mgmt` surface shows a per-tenant "contract version" — when oyatie rolls a new contract version, tenants see the sunset countdown for the prior version.
 - Cedar policy widening (Bominal ADR-0132) NEVER expands silently — every policy bump emits an audit-chain event visible in `/audit-view`, and `/user-mgmt` displays the policy diff to tenant admins before activation.
 
-CI lane `lean-a10-no-silent-regression` is **BLOCKER day 1** (no report-only ramp). The whole point of the lane is catching what humans would otherwise miss; report-only mode would defeat the principle.
+CI lane `lean-a10-regression` is **BLOCKER day 1** (no report-only ramp). The whole point of the lane is catching what humans would otherwise miss; report-only mode would defeat the principle.
 
 The four primary protected contracts on `ops.oyatie.com` itself:
 
