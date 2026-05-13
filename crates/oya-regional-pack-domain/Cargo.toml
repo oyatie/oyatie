@@ -1,0 +1,16 @@
+[package]
+name = "oya-regional-pack-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-residency-domain = { path = "../oya-residency-domain" }
+
+[lib]
+name = "oya_regional_pack_domain"
+path = "src/lib.rs"
+doctest = false

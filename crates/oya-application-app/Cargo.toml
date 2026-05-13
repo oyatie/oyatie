@@ -1,0 +1,41 @@
+[package]
+name = "oya-application-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-foundry-adapter-domain = { path = "../oya-foundry-adapter-domain" }
+oya-foundry-bypass-domain = { path = "../oya-foundry-bypass-domain" }
+oya-foundry-capability-domain = { path = "../oya-foundry-capability-domain" }
+oya-check-cost-budget = { path = "../oya-check-cost-budget" }
+oya-foundry-evidence-domain = { path = "../oya-foundry-evidence-domain" }
+oya-foundry-eval-domain = { path = "../oya-foundry-eval-domain" }
+oya-foundry-mcp-gateway-domain = { path = "../oya-foundry-mcp-gateway-domain" }
+oya-foundry-policy-domain = { path = "../oya-foundry-policy-domain" }
+oya-foundry-run-domain = { path = "../oya-foundry-run-domain" }
+oya-foundry-step-domain = { path = "../oya-foundry-step-domain" }
+oya-audit-chain-domain = { path = "../oya-audit-chain-domain" }
+oya-cell-domain = { path = "../oya-cell-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-identity-domain = { path = "../oya-identity-domain" }
+oya-regional-pack-domain = { path = "../oya-regional-pack-domain" }
+oya-residency-domain = { path = "../oya-residency-domain" }
+oya-ontology-domain = { path = "../oya-ontology-domain" }
+oya-observability-domain = { path = "../oya-observability-domain" }
+oya-policy-cedar-domain = { path = "../oya-policy-cedar-domain" }
+oya-eventing-domain = { path = "../oya-eventing-domain" }
+oya-secrets-domain = { path = "../oya-secrets-domain" }
+oya-tenancy-domain = { path = "../oya-tenancy-domain" }
+
+[lib]
+name = "oya_application_app"
+path = "src/lib.rs"
+doctest = false
+
+[dev-dependencies]
+oya-observability-tracing-adapter = { path = "../oya-observability-tracing-adapter" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

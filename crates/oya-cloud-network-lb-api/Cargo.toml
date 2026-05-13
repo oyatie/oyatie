@@ -7,11 +7,11 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-network-kernel = { path = "../oya-cloud-network-kernel" }
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-cloud-network-domain = { path = "../oya-cloud-network-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 
 [dev-dependencies]
-oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }
+oya-residency-domain = { path = "../oya-residency-domain" }
 
 [lib]
 name = "oya_cloud_network_lb_api"

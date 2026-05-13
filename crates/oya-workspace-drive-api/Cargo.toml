@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
-oya-workspace-drive-kernel = { path = "../oya-workspace-drive-kernel" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-connect-drive-domain = { path = "../oya-connect-drive-domain" }
 
 [lib]
 name = "oya_workspace_drive_api"

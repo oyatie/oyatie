@@ -6,8 +6,8 @@ rust-version.workspace = true
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-kms-kernel = { path = "../oya-cloud-kms-kernel" }
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-cloud-kms-domain = { path = "../oya-cloud-kms-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 
 [dev-dependencies]
-oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }
+oya-residency-domain = { path = "../oya-residency-domain" }

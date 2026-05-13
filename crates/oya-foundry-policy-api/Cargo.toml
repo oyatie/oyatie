@@ -7,9 +7,9 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-foundry-capability-kernel = { path = "../oya-foundry-capability-kernel" }
-oya-foundry-policy-kernel = { path = "../oya-foundry-policy-kernel" }
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-foundry-capability-domain = { path = "../oya-foundry-capability-domain" }
+oya-foundry-policy-domain = { path = "../oya-foundry-policy-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 
 [lib]
 name = "oya_foundry_policy_api"

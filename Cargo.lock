@@ -401,834 +401,1056 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
-name = "oya-cloud-billing-app"
+name = "oya-application-app"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-billing-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-eventing-kernel",
- "oya-platform-metering-kernel",
+ "oya-audit-chain-domain",
+ "oya-cell-domain",
+ "oya-check-cost-budget",
+ "oya-data-boundary-kernel",
+ "oya-eventing-domain",
+ "oya-foundry-adapter-domain",
+ "oya-foundry-bypass-domain",
+ "oya-foundry-capability-domain",
+ "oya-foundry-eval-domain",
+ "oya-foundry-evidence-domain",
+ "oya-foundry-mcp-gateway-domain",
+ "oya-foundry-policy-domain",
+ "oya-foundry-run-domain",
+ "oya-foundry-step-domain",
+ "oya-identity-domain",
+ "oya-observability-domain",
+ "oya-observability-tracing-adapter",
+ "oya-ontology-domain",
+ "oya-policy-cedar-domain",
+ "oya-regional-pack-domain",
+ "oya-residency-domain",
+ "oya-secrets-domain",
+ "oya-tenancy-domain",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
-name = "oya-cloud-billing-kernel"
+name = "oya-audit-chain-application"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-metering-kernel",
+ "oya-audit-chain-domain",
+ "oya-data-boundary-kernel",
+ "oya-eventing-domain",
 ]
 
 [[package]]
-name = "oya-cloud-billing-tax-app"
+name = "oya-audit-chain-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-billing-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-metering-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-cloud-capacity-kernel"
+name = "oya-audit-chain-file-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-billing-kernel",
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-metering-kernel",
+ "oya-audit-chain-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-cloud-cell-app"
+name = "oya-cell-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-kernel",
- "oya-platform-cell-kernel",
- "oya-platform-residency-kernel",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-check-adr-citation"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-adr-index"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-authority-cohesion"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-brand-residue"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-claim-ceiling"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-catalog-domain",
+]
+
+[[package]]
+name = "oya-check-codeowners-mirror"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-cohesion"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-constitution-cite"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-cost-budget"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-check-data-class"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-doc-catalog"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-documentation-system"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-glossary-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-glossary-vocabulary"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-license-policy"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-mobile-native"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-placeholder-debt"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-pr-traceability"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-pre-push"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-quality-lane"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-raci-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-readme-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-release-pack"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-runbook-freshness"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-runbook-index"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-slo-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-supply-chain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-typescript-workspace"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-vendor-recency"
+version = "0.1.0"
+
+[[package]]
+name = "oya-cloud-billing-application"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-billing-domain",
+ "oya-data-boundary-kernel",
+ "oya-eventing-domain",
+ "oya-metering-domain",
+]
+
+[[package]]
+name = "oya-cloud-billing-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
+]
+
+[[package]]
+name = "oya-cloud-billing-tax-application"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-billing-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
+]
+
+[[package]]
+name = "oya-cloud-capacity-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-billing-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
+]
+
+[[package]]
+name = "oya-cloud-cell-application"
+version = "0.1.0"
+dependencies = [
+ "oya-cell-domain",
+ "oya-cloud-region-domain",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-cloud-compute-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-cloud-iam-domain",
+ "oya-cloud-network-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-compute-functions-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-compute-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-compute-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-compute-k8s-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-compute-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
-]
-
-[[package]]
-name = "oya-cloud-compute-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-cloud-iam-kernel",
- "oya-cloud-network-kernel",
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-compute-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-compute-vm-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-compute-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-compute-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-data-kernel"
+name = "oya-cloud-data-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-kms-kernel",
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-kms-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-dcops-kernel"
+name = "oya-cloud-dcops-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-cloud-finops-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-billing-kernel",
- "oya-cloud-finops-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-metering-kernel",
+ "oya-cloud-billing-domain",
+ "oya-cloud-finops-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
 ]
 
 [[package]]
-name = "oya-cloud-finops-kernel"
+name = "oya-cloud-finops-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-billing-kernel",
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-metering-kernel",
+ "oya-cloud-billing-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
 ]
 
 [[package]]
 name = "oya-cloud-iam-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-iam-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-cloud-iam-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-cloud-iam-kernel"
+name = "oya-cloud-iam-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-identity-kernel",
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+ "oya-identity-domain",
 ]
 
 [[package]]
 name = "oya-cloud-kms-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-kms-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-kms-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-kms-kernel"
+name = "oya-cloud-kms-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-marketplace-kernel"
+name = "oya-cloud-marketplace-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-billing-kernel",
- "oya-cloud-region-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-metering-kernel",
+ "oya-cloud-billing-domain",
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+ "oya-metering-domain",
 ]
 
 [[package]]
 name = "oya-cloud-network-dns-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-network-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-network-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-network-kernel"
+name = "oya-cloud-network-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-network-lb-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-network-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-network-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-network-vpc-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-network-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-network-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-observability-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-observability-kernel",
- "oya-platform-audit-chain-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-audit-chain-domain",
+ "oya-cloud-observability-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-observability-kernel"
+name = "oya-cloud-observability-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-iam-kernel",
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-audit-chain-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-observability-kernel",
- "oya-platform-residency-kernel",
+ "oya-audit-chain-domain",
+ "oya-cloud-iam-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-observability-domain",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-region-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-region-domain",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-region-kernel"
+name = "oya-cloud-region-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-cell-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cell-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-resource-kernel"
+name = "oya-cloud-resource-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-region-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-region-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-storage-block-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-storage-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-storage-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-storage-kernel"
+name = "oya-cloud-storage-domain"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-kms-kernel",
- "oya-cloud-region-kernel",
- "oya-cloud-resource-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-kms-domain",
+ "oya-cloud-region-domain",
+ "oya-cloud-resource-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-cloud-storage-object-api"
 version = "0.1.0"
 dependencies = [
- "oya-cloud-kms-kernel",
- "oya-cloud-resource-kernel",
- "oya-cloud-storage-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-cloud-kms-domain",
+ "oya-cloud-resource-domain",
+ "oya-cloud-storage-domain",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
-name = "oya-cloud-surface-kernel"
+name = "oya-cloud-surface-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-foundation-app"
+name = "oya-codeview-cli"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-adapter-kernel",
- "oya-foundry-bypass-kernel",
- "oya-foundry-capability-kernel",
- "oya-foundry-cost-budget-kernel",
- "oya-foundry-eval-kernel",
- "oya-foundry-evidence-kernel",
- "oya-foundry-mcp-gateway-kernel",
- "oya-foundry-policy-kernel",
- "oya-foundry-run-kernel",
- "oya-foundry-step-kernel",
- "oya-platform-audit-chain-kernel",
- "oya-platform-cell-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-eventing-kernel",
- "oya-platform-identity-kernel",
- "oya-platform-object-graph-kernel",
- "oya-platform-observability-adapter-tracing",
- "oya-platform-observability-kernel",
- "oya-platform-policy-cedar-kernel",
- "oya-platform-regional-pack-kernel",
- "oya-platform-residency-kernel",
- "oya-platform-secrets-kernel",
- "oya-platform-tenant-kernel",
- "tracing",
- "tracing-subscriber",
+ "anyhow",
+ "chrono",
+ "clap",
+ "regex",
+ "serde",
+ "serde_json",
+ "walkdir",
 ]
 
 [[package]]
-name = "oya-foundry-adapter-kernel"
+name = "oya-connect-address-book-domain"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-capability-kernel",
- "oya-foundry-cost-budget-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-secrets-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-foundry-adr-citation-kernel"
+name = "oya-connect-calendar-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-collab-runtime-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-dlp-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-docs-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-document-format-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-collab-runtime-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-drive-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-dsr-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-retention-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-ediscovery-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-retention-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-forms-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-mail-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-meet-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-messenger-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-notes-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-collab-runtime-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-recordings-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-meet-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-retention-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-sheets-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-collab-runtime-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-sites-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-collab-runtime-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-slides-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-collab-runtime-domain",
+ "oya-connect-document-format-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-tasks-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
+]
+
+[[package]]
+name = "oya-connect-translate-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-connect-trust-portal-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-dsr-domain",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-data-boundary-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-adr-index-kernel"
+name = "oya-dev-cli"
 version = "0.1.0"
+dependencies = [
+ "oya-application-app",
+ "oya-audit-chain-file-adapter",
+ "oya-check-adr-citation",
+ "oya-check-adr-index",
+ "oya-check-authority-cohesion",
+ "oya-check-brand-residue",
+ "oya-check-claim-ceiling",
+ "oya-check-codeowners-mirror",
+ "oya-check-cohesion",
+ "oya-check-constitution-cite",
+ "oya-check-data-class",
+ "oya-check-doc-catalog",
+ "oya-check-documentation-system",
+ "oya-check-glossary-coverage",
+ "oya-check-glossary-vocabulary",
+ "oya-check-license-policy",
+ "oya-check-mobile-native",
+ "oya-check-placeholder-debt",
+ "oya-check-pr-traceability",
+ "oya-check-pre-push",
+ "oya-check-quality-lane",
+ "oya-check-raci-coverage",
+ "oya-check-readme-coverage",
+ "oya-check-release-pack",
+ "oya-check-runbook-freshness",
+ "oya-check-runbook-index",
+ "oya-check-slo-coverage",
+ "oya-check-supply-chain",
+ "oya-check-typescript-workspace",
+ "oya-check-vendor-recency",
+ "oya-eventing-domain",
+ "oya-eventing-file-adapter",
+ "oya-foundry-api-semver-domain",
+ "oya-foundry-bypass-domain",
+ "oya-foundry-cargo-prefix-domain",
+ "oya-foundry-catalog-domain",
+ "oya-foundry-evidence-file-adapter",
+ "oya-foundry-mdbook-domain",
+ "oya-foundry-openapi-domain",
+ "oya-foundry-run-domain",
+ "oya-foundry-run-file-adapter",
+ "oya-foundry-step-domain",
+ "oya-foundry-step-file-adapter",
+ "oya-secrets-domain",
+ "oya-secrets-file-adapter",
+]
+
+[[package]]
+name = "oya-dsr-application"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-dsr-domain",
+]
+
+[[package]]
+name = "oya-dsr-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-eventing-application"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-eventing-domain",
+]
+
+[[package]]
+name = "oya-eventing-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-eventing-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-eventing-domain",
+]
+
+[[package]]
+name = "oya-foundry-adapter-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-check-cost-budget",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
+ "oya-secrets-domain",
+]
 
 [[package]]
 name = "oya-foundry-api"
 version = "0.1.0"
 dependencies = [
- "oya-foundation-app",
+ "oya-application-app",
 ]
 
 [[package]]
-name = "oya-foundry-api-semver-kernel"
+name = "oya-foundry-api-semver-domain"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-authority-cohesion-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-brand-residue-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-bypass-kernel"
+name = "oya-foundry-bypass-domain"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-capability-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
 ]
 
 [[package]]
-name = "oya-foundry-capability-kernel"
+name = "oya-foundry-capability-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-foundry-cargo-prefix-kernel"
+name = "oya-foundry-cargo-prefix-domain"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-catalog-kernel"
+name = "oya-foundry-catalog-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-foundry-claim-ceiling-kernel"
+name = "oya-foundry-cloud-mutation-domain"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-catalog-kernel",
+ "oya-audit-chain-domain",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
+ "oya-foundry-policy-domain",
 ]
 
 [[package]]
-name = "oya-foundry-cloud-mutation-kernel"
+name = "oya-foundry-eval-application"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-capability-kernel",
- "oya-foundry-policy-kernel",
- "oya-platform-audit-chain-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-foundry-eval-domain",
 ]
 
 [[package]]
-name = "oya-foundry-codeowners-mirror-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-cohesion-fitness-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-constitution-cite-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-cost-budget-kernel"
+name = "oya-foundry-eval-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-foundry-data-class-fitness-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-doc-catalog-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-documentation-system-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-eval-app"
+name = "oya-foundry-evidence-domain"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-eval-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-foundry-eval-kernel"
+name = "oya-foundry-evidence-file-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-evidence-domain",
 ]
 
 [[package]]
-name = "oya-foundry-evidence-adapter-file"
+name = "oya-foundry-mcp-gateway-domain"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-evidence-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
 ]
 
 [[package]]
-name = "oya-foundry-evidence-kernel"
+name = "oya-foundry-mdbook-domain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-foundry-openapi-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
 ]
-
-[[package]]
-name = "oya-foundry-glossary-coverage-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-glossary-vocabulary-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-license-policy-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-mcp-gateway-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-capability-kernel",
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-foundry-mdbook-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-mobile-native-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-openapi-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-foundry-placeholder-debt-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-foundry-policy-api"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-capability-kernel",
- "oya-foundry-policy-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
+ "oya-foundry-policy-domain",
 ]
 
 [[package]]
-name = "oya-foundry-policy-kernel"
+name = "oya-foundry-policy-domain"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-capability-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
 ]
-
-[[package]]
-name = "oya-foundry-pr-traceability-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-pre-push-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-quality-lane-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-raci-team-coverage-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-foundry-rag-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
 ]
-
-[[package]]
-name = "oya-foundry-readme-doc-coverage-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-foundry-registry-api"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-capability-kernel",
- "oya-foundry-eval-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
+ "oya-foundry-eval-domain",
 ]
 
 [[package]]
-name = "oya-foundry-release-evidence-pack-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-run-adapter-file"
+name = "oya-foundry-run-domain"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-capability-kernel",
- "oya-foundry-run-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
 ]
 
 [[package]]
-name = "oya-foundry-run-kernel"
+name = "oya-foundry-run-file-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-capability-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-capability-domain",
+ "oya-foundry-run-domain",
 ]
 
 [[package]]
-name = "oya-foundry-runbook-freshness-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-runbook-index-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-slo-coverage-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-step-adapter-file"
+name = "oya-foundry-step-domain"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-step-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-foundry-step-kernel"
+name = "oya-foundry-step-file-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-foundry-step-domain",
 ]
 
 [[package]]
-name = "oya-foundry-supply-chain-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-typescript-workspace-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-vendor-contract-recency-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-platform-audit-chain-adapter-file"
+name = "oya-identity-application"
 version = "0.1.0"
 dependencies = [
- "oya-platform-audit-chain-kernel",
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-identity-domain",
 ]
 
 [[package]]
-name = "oya-platform-audit-chain-app"
+name = "oya-identity-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-audit-chain-kernel",
- "oya-platform-data-boundary-kernel",
- "oya-platform-eventing-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-platform-audit-chain-kernel"
+name = "oya-metering-application"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-eventing-domain",
+ "oya-metering-domain",
 ]
 
 [[package]]
-name = "oya-platform-cell-kernel"
+name = "oya-metering-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-platform-data-boundary-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-platform-dsr-app"
+name = "oya-observability-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-dsr-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
-name = "oya-platform-dsr-kernel"
+name = "oya-observability-tracing-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-observability-domain",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
-name = "oya-platform-eventing-adapter-file"
+name = "oya-ontology-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-eventing-kernel",
-]
-
-[[package]]
-name = "oya-platform-eventing-app"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-eventing-kernel",
-]
-
-[[package]]
-name = "oya-platform-eventing-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-platform-identity-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-identity-kernel",
-]
-
-[[package]]
-name = "oya-platform-identity-app"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-identity-kernel",
-]
-
-[[package]]
-name = "oya-platform-identity-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-platform-metering-app"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-eventing-kernel",
- "oya-platform-metering-kernel",
-]
-
-[[package]]
-name = "oya-platform-metering-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-identity-domain",
 ]
 
 [[package]]
 name = "oya-platform-object-graph-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-object-graph-kernel",
-]
-
-[[package]]
-name = "oya-platform-object-graph-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-platform-observability-adapter-tracing"
-version = "0.1.0"
-dependencies = [
- "oya-platform-observability-kernel",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-platform-observability-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-ontology-domain",
 ]
 
 [[package]]
 name = "oya-platform-policy-cedar-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-policy-cedar-kernel",
-]
-
-[[package]]
-name = "oya-platform-policy-cedar-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-platform-regional-pack-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-policy-cedar-domain",
 ]
 
 [[package]]
 name = "oya-platform-regulatory-pack-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-regional-pack-kernel",
- "oya-platform-residency-kernel",
-]
-
-[[package]]
-name = "oya-platform-residency-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-platform-secrets-adapter-file"
-version = "0.1.0"
-dependencies = [
- "oya-platform-secrets-kernel",
-]
-
-[[package]]
-name = "oya-platform-secrets-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-regional-pack-domain",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-platform-tenant-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-residency-kernel",
- "oya-platform-tenant-kernel",
+ "oya-residency-domain",
+ "oya-tenancy-domain",
 ]
 
 [[package]]
-name = "oya-platform-tenant-kernel"
+name = "oya-policy-cedar-domain"
+version = "0.1.0"
+
+[[package]]
+name = "oya-regional-pack-domain"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-residency-kernel",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
+]
+
+[[package]]
+name = "oya-residency-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-secrets-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-secrets-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "oya-secrets-domain",
 ]
 
 [[package]]
@@ -1272,265 +1494,43 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-tooling-agent-read"
+name = "oya-tenancy-domain"
 version = "0.1.0"
 dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "regex",
- "serde",
- "serde_json",
- "walkdir",
-]
-
-[[package]]
-name = "oya-tooling-cli-dev-runtime"
-version = "0.1.0"
-dependencies = [
- "oya-foundation-app",
- "oya-foundry-adr-citation-kernel",
- "oya-foundry-adr-index-kernel",
- "oya-foundry-api-semver-kernel",
- "oya-foundry-authority-cohesion-kernel",
- "oya-foundry-brand-residue-kernel",
- "oya-foundry-bypass-kernel",
- "oya-foundry-cargo-prefix-kernel",
- "oya-foundry-catalog-kernel",
- "oya-foundry-claim-ceiling-kernel",
- "oya-foundry-codeowners-mirror-kernel",
- "oya-foundry-cohesion-fitness-kernel",
- "oya-foundry-constitution-cite-kernel",
- "oya-foundry-data-class-fitness-kernel",
- "oya-foundry-doc-catalog-kernel",
- "oya-foundry-documentation-system-kernel",
- "oya-foundry-evidence-adapter-file",
- "oya-foundry-glossary-coverage-kernel",
- "oya-foundry-glossary-vocabulary-kernel",
- "oya-foundry-license-policy-kernel",
- "oya-foundry-mdbook-kernel",
- "oya-foundry-mobile-native-kernel",
- "oya-foundry-openapi-kernel",
- "oya-foundry-placeholder-debt-kernel",
- "oya-foundry-pr-traceability-kernel",
- "oya-foundry-pre-push-kernel",
- "oya-foundry-quality-lane-kernel",
- "oya-foundry-raci-team-coverage-kernel",
- "oya-foundry-readme-doc-coverage-kernel",
- "oya-foundry-release-evidence-pack-kernel",
- "oya-foundry-run-adapter-file",
- "oya-foundry-run-kernel",
- "oya-foundry-runbook-freshness-kernel",
- "oya-foundry-runbook-index-kernel",
- "oya-foundry-slo-coverage-kernel",
- "oya-foundry-step-adapter-file",
- "oya-foundry-step-kernel",
- "oya-foundry-supply-chain-kernel",
- "oya-foundry-typescript-workspace-kernel",
- "oya-foundry-vendor-contract-recency-kernel",
- "oya-platform-audit-chain-adapter-file",
- "oya-platform-eventing-adapter-file",
- "oya-platform-eventing-kernel",
- "oya-platform-secrets-adapter-file",
- "oya-platform-secrets-kernel",
-]
-
-[[package]]
-name = "oya-workspace-address-book-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-calendar-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-data-boundary-kernel",
+ "oya-residency-domain",
 ]
 
 [[package]]
 name = "oya-workspace-chat-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-chat-kernel",
-]
-
-[[package]]
-name = "oya-workspace-chat-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-collab-runtime-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-dlp-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-docs-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-document-format-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-collab-runtime-kernel",
+ "oya-connect-messenger-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-workspace-drive-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-drive-kernel",
-]
-
-[[package]]
-name = "oya-workspace-drive-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-dsr-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-retention-kernel",
-]
-
-[[package]]
-name = "oya-workspace-ediscovery-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-retention-kernel",
+ "oya-connect-drive-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-workspace-forms-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-forms-kernel",
-]
-
-[[package]]
-name = "oya-workspace-forms-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-mail-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
+ "oya-connect-forms-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]
 name = "oya-workspace-meet-api"
 version = "0.1.0"
 dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-meet-kernel",
-]
-
-[[package]]
-name = "oya-workspace-meet-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-notes-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-collab-runtime-kernel",
-]
-
-[[package]]
-name = "oya-workspace-recordings-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-meet-kernel",
-]
-
-[[package]]
-name = "oya-workspace-retention-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-sheets-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-collab-runtime-kernel",
-]
-
-[[package]]
-name = "oya-workspace-sites-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-collab-runtime-kernel",
-]
-
-[[package]]
-name = "oya-workspace-slides-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-workspace-collab-runtime-kernel",
- "oya-workspace-document-format-kernel",
-]
-
-[[package]]
-name = "oya-workspace-tasks-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-capability-kernel",
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-translate-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-workspace-trust-portal-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-platform-data-boundary-kernel",
- "oya-platform-dsr-kernel",
- "oya-platform-residency-kernel",
+ "oya-connect-meet-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]

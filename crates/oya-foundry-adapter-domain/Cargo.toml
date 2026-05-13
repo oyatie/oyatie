@@ -1,0 +1,18 @@
+[package]
+name = "oya-foundry-adapter-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-foundry-capability-domain = { path = "../oya-foundry-capability-domain" }
+oya-check-cost-budget = { path = "../oya-check-cost-budget" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-secrets-domain = { path = "../oya-secrets-domain" }
+
+[lib]
+name = "oya_foundry_adapter_domain"
+path = "src/lib.rs"
+doctest = false

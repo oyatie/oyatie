@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-platform-regional-pack-kernel = { path = "../oya-platform-regional-pack-kernel" }
-oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }
+oya-regional-pack-domain = { path = "../oya-regional-pack-domain" }
+oya-residency-domain = { path = "../oya-residency-domain" }
 
 [lib]
 name = "oya_platform_regulatory_pack_api"
