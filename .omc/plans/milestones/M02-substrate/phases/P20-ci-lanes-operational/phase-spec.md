@@ -10,13 +10,15 @@ entry_gate: |
   namespace reserved in [workspace.metadata.oya.microservices]; cargo check clean;
   ICM phase-handoff rows emitted for all prerequisite phases.
 exit_gate: |
-  All 4 new CI fitness lane binaries operational: oya-check-statelessness,
-  oya-check-shardability, oya-check-perf-budget, oya-check-benchmark; all 7
-  architecture-check sub-commands ship in oya-check-architecture (renamed from
-  oya-shared-architecture-check-cli per BNF v4.1); all 14 CI lanes run on every PR
-  in --report-only mode (flip to BLOCKER at P22 exit gate); all crates pass cargo
-  check/build/clippy/nextest/deny; grit done on all P20 symbols; ICM phase-complete
-  row emitted.
+  All 5 new CI fitness lane binaries operational: oya-check-statelessness,
+  oya-check-shardability, oya-check-perf-budget, oya-check-benchmark,
+  oya-check-doc-coverage (LEAN-A5, per ADR-0063); all 9 architecture-check
+  sub-commands ship in oya-check-architecture (renamed from
+  oya-shared-architecture-check-cli per BNF v4.1) — including the 7 base
+  sub-commands plus canonical-base-neutrality and cross-pack-refusal (per
+  ADR-0064 §7 §8); all 14+ CI lanes run on every PR in --report-only mode (flip
+  to BLOCKER at P22 exit gate); all crates pass cargo check/build/clippy/nextest/deny;
+  grit done on all P20 symbols; ICM phase-complete row emitted.
 depends_on:
   - milestone: M02
     phase: P01-foundry-engine-consolidation
@@ -34,7 +36,7 @@ Delivers the four new CI fitness lane binaries required by
 These lanes enforce the hyperscaler-grade quality bar at compile time and CI time so that
 every subsequent PR (M02 Wave-B through M03) runs against automated checks.
 
-The four new lanes:
+The five new lanes:
 - `oya-check-statelessness` — verifies no module-level mutable state in presentation /
   application / worker layer crates. Horizontal scalability prerequisite.
 - `oya-check-shardability` — verifies every DB table with tenant-bound data declares
@@ -44,11 +46,22 @@ The four new lanes:
   with declared p99 targets; CI blocks merge if missing.
 - `oya-check-benchmark` — verifies every PRD includes a `## Competitive Benchmark` section
   before the µservice graduates L4 → L5 on the Proof Ladder.
+- `oya-check-doc-coverage` (**LEAN-A5**, per ADR-0063) — verifies every µservice in
+  `[workspace.metadata.oya.microservices]` ships a complete documentation suite (PRD +
+  Microservice record + Naming ADR + BC registrations + Phase-Spec + Impl-Plan) plus
+  per-pack overlay PRDs / regulatory ADRs / acceptance evidence for every (pack ×
+  µservice) pair with `material_scope: true` in `pack.yaml`. Performs orphan-scan to
+  flag doc files referencing retired µservices. Performs masterplan↔workspace registry
+  reconciliation: every µservice in MASTERPLAN §2.1 catalog has a workspace metadata
+  entry (or is explicitly tagged `planned-only`).
 
-The 7 `oya-check-architecture` sub-commands (renamed from `oya-shared-architecture-check-cli`
+The 9 `oya-check-architecture` sub-commands (renamed from `oya-shared-architecture-check-cli`
 per BNF v4.1 flat namespace):
-`dependency-direction`, `layer-correctness`, `lib-name-parity`, `port-location`,
-`cross-product-refusal`, `composition-root-only`, `sdk-kernel-only`.
+- 7 base: `dependency-direction`, `layer-correctness`, `lib-name-parity`, `port-location`,
+  `cross-product-refusal`, `composition-root-only`, `sdk-kernel-only`.
+- 2 added (per ADR-0064 §7 §8): `canonical-base-neutrality` (no statutory rates / jurisdiction
+  codes / language strings / authority names in canonical-base crates) and `cross-pack-refusal`
+  (no inter-pack imports; cross-pack integration must flow via Workflow + Ontology).
 
 Wave-D classification: runs in parallel with Waves A–C since it produces tooling not
 product substrate. Can begin once enough substrate crates exist to validate against.

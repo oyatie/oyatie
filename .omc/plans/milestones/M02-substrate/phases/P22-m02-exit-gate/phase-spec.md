@@ -82,18 +82,22 @@ M02 is declared complete only when all three goals are achieved and ICM phase-co
 ## Acceptance Gates
 
 ```bash
-# 1. All 14 lanes pass as BLOCKER (no --report-only)
+# 1. All lanes pass as BLOCKER (no --report-only); doc-coverage + canonical-base-neutrality
+#    + cross-pack-refusal flip from --report-only to BLOCKER here per ADR-0063 / ADR-0064.
 cargo run -p oya-check-statelessness -- --workspace             # exit 0; 0 BLOCKER violations
 cargo run -p oya-check-shardability -- --migrations-dir migrations/  # exit 0; 0 BLOCKER violations
-cargo run -p oya-check-architecture -- dependency-direction --workspace     # exit 0
-cargo run -p oya-check-architecture -- layer-correctness --workspace        # exit 0
-cargo run -p oya-check-architecture -- lib-name-parity --workspace          # exit 0
-cargo run -p oya-check-architecture -- port-location --workspace            # exit 0
-cargo run -p oya-check-architecture -- cross-product-refusal --workspace    # exit 0
-cargo run -p oya-check-architecture -- composition-root-only --workspace    # exit 0
-cargo run -p oya-check-architecture -- sdk-kernel-only --workspace          # exit 0
-cargo run -p oya-check-perf-budget -- --workspace                           # exit 0
-cargo run -p oya-check-benchmark -- --workspace                             # exit 0
+cargo run -p oya-check-doc-coverage -- --workspace              # exit 0 (LEAN-A5; ADR-0063)
+cargo run -p oya-check-architecture -- dependency-direction --workspace        # exit 0
+cargo run -p oya-check-architecture -- layer-correctness --workspace           # exit 0
+cargo run -p oya-check-architecture -- lib-name-parity --workspace             # exit 0
+cargo run -p oya-check-architecture -- port-location --workspace               # exit 0
+cargo run -p oya-check-architecture -- cross-product-refusal --workspace       # exit 0
+cargo run -p oya-check-architecture -- composition-root-only --workspace       # exit 0
+cargo run -p oya-check-architecture -- sdk-kernel-only --workspace             # exit 0
+cargo run -p oya-check-architecture -- canonical-base-neutrality --workspace   # exit 0 (ADR-0064 §8)
+cargo run -p oya-check-architecture -- cross-pack-refusal --workspace          # exit 0 (ADR-0064 §7)
+cargo run -p oya-check-perf-budget -- --workspace                              # exit 0
+cargo run -p oya-check-benchmark -- --workspace                                # exit 0
 
 # 2. Full workspace compile + test + deny
 cargo check --workspace --all-features               # exit 0

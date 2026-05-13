@@ -3,7 +3,7 @@ goal_id: implement-masterplan
 status: active
 created: 2026-05-13
 trigger: "Implement the masterplan" | "/goal implement-masterplan" | autonomous re-entry
-horizon: M02-substrate + M03-first-tenant
+horizon: M02-substrate → M03-first-tenant → M04-healthcare-kr → M05-connect-personal → M06-fintech-kr → M07-industrial-kr → M08-enterprise-breadth → M09-us-expansion → M10-eu-expansion → M11-healthcare-intl → M12-hyperscaler-maturity
 authority: durable; supersedes ad-hoc execution prompts
 ---
 
@@ -11,7 +11,7 @@ authority: durable; supersedes ad-hoc execution prompts
 
 ## 1. Intent
 
-Drive oyatie from current state (M01 cutover landed; 114 crates on BNF v4.1; 4 LEAN lanes BLOCKER) to **M3 closure**: 1 paying KR group tenant live on oyatie with HR / Payroll / Accounting / Connect Pro Mail+Messenger / Application B2B shell / Workflow Studio hero product, all 14 CI lanes BLOCKER, audit chain Ed25519-sealed, ADR-0210 35-checkbox evidence bundle complete.
+Drive oyatie from current state (M01 cutover landed; 114 crates on BNF v4.1; 4 LEAN lanes BLOCKER) through the **full M02–M12 horizon** per `docs/MASTERPLAN.md` iteration 5+. The near-term target (M3 closure): 1 paying KR group tenant live on oyatie with HR / Payroll / Accounting / Connect Pro Mail+Messenger / Application B2B shell / Workflow Studio hero product, all 14+ CI lanes BLOCKER (LEAN-A5 doc-coverage + canonical-base-neutrality + cross-pack-refusal added in M02-P20→P22), audit chain Ed25519-sealed, ADR-0210 35-checkbox evidence bundle complete. The full horizon (M04+) extends KR coverage to healthcare/fintech/industrial/personal-connect, then US/EU regions (M09-M10), then international healthcare (M11), then hyperscaler maturity (M12+). Each milestone's exit gate is the next milestone's entry gate per the parallelization manifest.
 
 ## 2. Entry point
 

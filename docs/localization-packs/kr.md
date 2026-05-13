@@ -1,19 +1,28 @@
 ---
 doc_class: LocalizationPack
 pack_code: kr
-status: active
-lifecycle: active
+status: planned                          # `active` requires shipped overlay + paying tenant — see promotion_blockers in pack.yaml
+lifecycle: planned-foundational
 foundational: true
 lead_milestones: [M01, M02, M03, M04, M05, M06, M07]
 languages: [ko, en]
 date: 2026-05-13
 owners: ["council-architecture", "gtm-customer-success-kr"]
-authority_chain: docs/MASTERPLAN.md §2.5, §5.5 → ADR-0064 → docs/localization-packs/INDEX.md → this file
+authority_chain: docs/MASTERPLAN.md §2.5, §5.5 → ADR-0064 → docs/localization-packs/INDEX.md → pack.yaml (authoritative) → this file
+manifest: docs/localization-packs/kr/pack.yaml
 ---
 
-# Korea Localization Pack (`kr`) — Pack #1
+# Korea Localization Pack (`kr`) — Pack #1 (planned, foundational)
 
 The foundational localization pack. M01–M07 ship the canonical base **plus** the KR pack in lock-step because oyatie's first paying tenant is a KR group.
+
+**Status:** `planned/foundational`. Status flips to `active` when **all** promotion blockers in `pack.yaml` are green:
+- `kr/corpus.lock` signed
+- ≥1 µservice has overlay crate + overlay PRD + regulatory ADR shipped
+- Acceptance evidence for at least one µservice signed
+- 1 paying KR tenant lives on at least one pack-covered µservice
+
+**Source of truth:** [`pack.yaml`](kr/pack.yaml) is authoritative for scope (`microservices_in_scope`), regulatory bindings, connectors, and lifecycle status. This overview doc and `docs/localization-packs/INDEX.md` MUST stay consistent with the manifest; `lean-a5-doc-coverage` enforces parity.
 
 ---
 
