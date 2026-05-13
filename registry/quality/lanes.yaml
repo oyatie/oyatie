@@ -385,3 +385,77 @@ lanes:
     source: RUNBOOKS-INDEX.md
     runtime_budget_seconds: 900
     check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate runbook-freshness
+  # LEAN-A1..A4: flipped from report-only to BLOCKER at M01-P05 (2026-05-13)
+  - id: lean-a1-architecture
+    stage: per-pr
+    status: active
+    severity: BLOCKER
+    owner_team: council-architecture
+    purpose: layer-correctness — no dep-direction violations per ADR-0056 §2.2
+    source: ADR-0056
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-shared-architecture-check-cli -- check --workspace
+  - id: lean-a2-bounded-contexts
+    stage: per-pr
+    status: active
+    severity: BLOCKER
+    owner_team: council-architecture
+    purpose: microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override)
+    source: ADR-0056
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-shared-bounded-contexts-check-cli -- check --workspace
+  - id: lean-a3-supply-chain
+    stage: per-pr
+    status: active
+    severity: BLOCKER
+    owner_team: council-architecture
+    purpose: supply-chain integrity — Trivy + RustSec + deny per ADR-0039
+    source: ADR-0039
+    runtime_budget_seconds: 600
+    check_command: cargo run -p oya-shared-supply-chain-check-cli -- check --workspace
+  - id: lean-a4-semver
+    stage: per-pr
+    status: active
+    severity: BLOCKER
+    owner_team: council-architecture
+    purpose: API semver stability tier per ADR-0037
+    source: ADR-0037
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-shared-semver-check-cli -- check --workspace
+  # New quality lanes (report-only; flip to BLOCKER in M02)
+  - id: quality-statelessness
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: council-architecture
+    purpose: no module-level mutable state in application/worker/presentation layers per ADR-0062
+    source: ADR-0062
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-check-statelessness -- check --workspace
+  - id: quality-shardability
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: council-architecture
+    purpose: all DB designs declare tenant_id partition key + RLS per ADR-0062
+    source: ADR-0062
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-check-shardability -- check --workspace
+  - id: quality-perf-budget
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: council-architecture
+    purpose: impl plans include load-test results meeting declared perf targets per ADR-0062
+    source: ADR-0062
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-check-perf-budget -- check --workspace
+  - id: quality-benchmark
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: council-architecture
+    purpose: PRDs include competitive-benchmark section before L4→L5 per ADR-0062
+    source: ADR-0062
+    runtime_budget_seconds: 300
+    check_command: cargo run -p oya-check-benchmark -- check --workspace
