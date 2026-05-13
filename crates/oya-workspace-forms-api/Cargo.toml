@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
-oya-workspace-forms-kernel = { path = "../oya-workspace-forms-kernel" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-connect-forms-domain = { path = "../oya-connect-forms-domain" }
 
 [lib]
 name = "oya_workspace_forms_api"

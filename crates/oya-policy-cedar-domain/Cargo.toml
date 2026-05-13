@@ -1,0 +1,12 @@
+[package]
+name = "oya-policy-cedar-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_policy_cedar_domain"
+path = "src/lib.rs"
+doctest = false

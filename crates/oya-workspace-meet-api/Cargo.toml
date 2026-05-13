@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
-oya-workspace-meet-kernel = { path = "../oya-workspace-meet-kernel" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-connect-meet-domain = { path = "../oya-connect-meet-domain" }
 
 [lib]
 name = "oya_workspace_meet_api"

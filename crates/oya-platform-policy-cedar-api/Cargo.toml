@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-platform-policy-cedar-kernel = { path = "../oya-platform-policy-cedar-kernel" }
+oya-policy-cedar-domain = { path = "../oya-policy-cedar-domain" }
 
 [lib]
 name = "oya_platform_policy_cedar_api"
