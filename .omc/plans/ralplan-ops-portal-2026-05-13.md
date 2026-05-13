@@ -21,7 +21,7 @@ parent_of:
 2. **Hot/warm/cold extractor classes (per ADR-0066).** Real-time SLA per class, not workspace-wide. Hot ≤500ms / SSE ≤2s; warm ≤30s; cold ≤10min scheduled. Per-extractor freshness fields in `manifest.json`.
 3. **Source-of-truth partitioned by content kind (ADR-0065 preserved).** Prose docs → markdown+frontmatter canonical. Code facts → code+telemetry canonical via extractors. No "machine-readable takes over prose long-term."
 4. **No stubs, no compat seams; strict migration with hard sunset.** `lean-a8-dead-code-zero-tolerance` BLOCKER day 1, no opt-outs. `lean-a5-documentation` report-only → BLOCKER M02-P22 hard sunset.
-5. **Linus-style no silent regression** (per `feedback_no_silent_regression.md` + `lean-a10-no-silent-regression` BLOCKER day 1). Every public contract change requires ADR + version bump + sunset window + audit-chain event.
+5. **Linus-style no silent regression** (per `feedback_no_silent_regression.md` + `lean-a10-regression` BLOCKER day 1). Every public contract change requires ADR + version bump + sunset window + audit-chain event.
 6. **Cedar-policy-gated audience tiers.** Public / tenant-member / tenant-admin / internal-sre / internal-foundry / internal-admin. Red-team probe required before any non-public surface ships (per pre-mortem §4 in docs sub-plan).
 
 7. **Public AND private both tracked (visibility taxonomy mandatory).** Per user directive: every artifact in the workspace — public endpoints, private endpoints, public Rust items (`pub`), private items (`pub(crate)`+below), open ADRs, confidential ADRs, customer-facing µservices, Foundry-internal µservices, secret references (presence only, never values), audit segments — has an EXPLICIT visibility class in the manifest. No artifact escapes tracking. Visibility class drives Cedar policy + portal surface routing.
@@ -40,7 +40,7 @@ parent_of:
 
 **Option α — Layered per-BC delivery across M03-M04+ (RECOMMENDED).**
 - **Wave 1 (M03-P04..P08)**: docs BC (per docs ralplan v3 — already in consensus loop). 24 crates + 16 extractors + 4 CI lanes (lean-a5/a6/a7/a8) + `oya-docs-watch` daemon (renamed `oya-ops-docs-watch`) + 13 MVP Leptos pages incl. /endpoints /dep-graph /dead-code /live.
-- **Wave 2 (M03-P06 IP extension)**: overview + dashboards + tech-stack + architecture BCs. Read-only surfaces using the existing extractor manifest. ~32 crates (4 BCs × 6-8 layer crates avg). NEW lane: `lean-a10-no-silent-regression` operational.
+- **Wave 2 (M03-P06 IP extension)**: overview + dashboards + tech-stack + architecture BCs. Read-only surfaces using the existing extractor manifest. ~32 crates (4 BCs × 6-8 layer crates avg). NEW lane: `lean-a10-regression` operational.
 - **Wave 3 (M03-P07 IP extension)**: database + schema BCs. Pgroonga + Citus introspection adapters. Ontology Object Type browser. ~16 crates.
 - **Wave 4 (M03-P08 IP extension)**: observability + health BCs. OTel + VictoriaMetrics + SLO dashboards. Cross-µservice trace stitching. ~16 crates.
 - **Wave 5 (M04-Pxx — first M04 phase)**: tenant-mgmt + user-mgmt + deployments BCs. Cedar policy fragments authored + red-team probe suite. NEW lane `lean-a9-ops-policy-coverage`. ~24 crates.
@@ -129,7 +129,7 @@ Each BC's layer crates: `oya-ops-<bc>-{kernel,domain,application,adapter,rest,wo
 | `lean-a7-endpoint-coverage` (Wave 1) | report-only → BLOCKER M02-P22 | oya-check-endpoint-coverage (new) | ADR-0066 |
 | `lean-a8-dead-code-zero-tolerance` (Wave 1) | BLOCKER day 1 | oya-check-dead-code (new) | ADR-0066 + `feedback_autonomous_implementation_artifacts.md` |
 | `lean-a9-ops-policy-coverage` (Wave 5) | BLOCKER day 1 for every non-public surface | oya-check-ops-policy-coverage (new) | ADR-0067 + pre-mortem §3 |
-| `lean-a10-no-silent-regression` (Wave 1+) | BLOCKER day 1 | oya-check-no-silent-regression (new; M02-P21 scope) | `feedback_no_silent_regression.md` + ADR-0067 §5.5 |
+| `lean-a10-regression` (Wave 1+) | BLOCKER day 1 | oya-check-regression (new; M02-P21 scope) | `feedback_no_silent_regression.md` + ADR-0067 §5.5 |
 | `lean-a11-visibility-coverage` (Wave 1; NEW per user directive 2026-05-13 "public/private all needs to be tracked") | BLOCKER day 1 | oya-check-visibility-coverage (new; M02-P21 scope) | §6(d') Visibility taxonomy + Principle 7 |
 
 ### (c) Dispatch sequence
@@ -137,7 +137,7 @@ Each BC's layer crates: `oya-ops-<bc>-{kernel,domain,application,adapter,rest,wo
 ```
 M02-P19 (Application B2B substrate) — IP-X1 ADDED: register `ops` µservice (planned status); add Ops Portal entry to product-enablement menu scaffold
 M02-P20 (CI lanes operational) — IP-005 EXPANDED: author 5 G1 hot extractors + oya-check-docs-generated (lean-a6)
-M02-P21 (Architecture planes green) — IP-005 EXPANDED: author 4 G2 warm + 4 G3 warm extractors + oya-check-endpoint-coverage (lean-a7) + oya-check-dead-code (lean-a8 BLOCKER day 1) + oya-check-no-silent-regression (lean-a10 BLOCKER day 1)
+M02-P21 (Architecture planes green) — IP-005 EXPANDED: author 4 G2 warm + 4 G3 warm extractors + oya-check-endpoint-coverage (lean-a7) + oya-check-dead-code (lean-a8 BLOCKER day 1) + oya-check-regression (lean-a10 BLOCKER day 1)
 M02-P22 exit gate — flips lean-a5/a6/a7 to BLOCKER (lean-a8/a10 already BLOCKER)
                                     ↓
 Wave 1: M03-P04..P08 — docs BC (per docs sub-plan v3; in-flight consensus)
