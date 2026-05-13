@@ -72,34 +72,52 @@ interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
 and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when,
 they appear in all capitals.
 
-## 2. Canonical grammar (BNF)
+## 2. Canonical grammar (BNF) — v4 3-slot (per ADR-0056)
 
-The crate-name grammar is the following, evaluated left-to-right on the
-package-name kebab string:
+> **v4 supersedes v3.** This section is updated per
+> [ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)
+> (accepted 2026-05-13). The v3 BNF (`oya-<context>-<feature>-<role>[-<capability>]`)
+> is retired. The v4 3-slot BNF is the canonical grammar for all `oya-*` crates
+> from Shard 1 forward.
+
+The crate-name grammar, evaluated left-to-right on the package-name kebab string:
 
 ```bnf
-crate          ::= "oya" "-" context "-" feature "-" role ( "-" capability )?
-context        ::= "cloud" | "foundation" | "foundry" | "platform"
-                 | "tooling" | "workspace"
-role           ::= "kernel" | "domain" | "app" | "api" | "worker"
-                 | "adapter" | "runtime" | "cli" | "sdk"
-feature        ::= kebab-token ( "-" kebab-token )*       (* 1..3 tokens *)
-capability     ::= kebab-token ( "-" kebab-token )*       (* 1..2 tokens *)
-kebab-token    ::= [a-z] [a-z0-9]*
+crate              ::= "oya" "-" shared-or-vertical "-" bounded-context "-" layer
+                     | "oya" "-" "check" "-" rule-name
+
+shared-or-vertical ::= "shared"
+                      | vertical
+
+vertical           ::= kebab-token          (* exactly 1 token; registry-validated *)
+
+bounded-context    ::= kebab-token ( "-" kebab-token )*   (* 1..N tokens; open *)
+
+layer              ::= "kernel" | "domain" | "application" | "app"
+                     | "adapter" | "infrastructure"
+                     | "cli" | "rest" | "grpc" | "graphql"
+                     | "worker" | "sdk"
+
+rule-name          ::= kebab-token ( "-" kebab-token )*   (* 1..4 tokens *)
+
+kebab-token        ::= [a-z] [a-z0-9]*
 ```
 
-Constraints layered on top of the BNF (the lane verifies all of them):
+**Parser rule**: split on `-`; LAST token = layer (one of 12); SECOND token
+(after `oya-`) = `shared` OR registered vertical; middle tokens = bounded-context.
+`oya-check-*` crates are exempt from the 3-slot grammar.
 
-1. **Segment count.** Total segments (counting `oya` as segment 1) MUST be
-   `>=4` AND MUST be `<=6`. The strongly-preferred range is `4..=5`; a
-   6-segment name REQUIRES the lane to surface it as AMBER (advisory) and
-   the author to ADR-cite the compound feature rationale.
-2. **Context enum.** `context` MUST be one of the six listed values.
-   Adding a new context is a **breaking change**: it REQUIRES an ADR, a
-   `[workspace.metadata.oya]` registry update, and a CI re-roll. See §3.
-3. **Role enum.** `role` MUST be one of the nine listed values. The
-   semantics of each role are bound to ADR-0015 §"layered architecture";
-   see §4 for the role table. Adding a new role REQUIRES an ADR.
+Constraints (the lane `oya-shared-architecture-check-cli` verifies all of them):
+
+1. **Segment count.** Total segments (counting `oya` as segment 1) MUST be `>=4`;
+   NO upper bound (multi-token bounded-context names are first-class; no AMBER tax
+   for long names). Granularity is expressed by making the BC name more specific
+   (e.g. `policy` → `policy-evaluator-cedar`).
+2. **Slot-2 enum.** MUST be the literal `shared` OR a vertical name registered in
+   `[workspace.metadata.oya.verticals]`. Adding a vertical is a **1-ADR action**.
+   `shared` is RESERVED and cannot be used as a vertical name.
+3. **Layer enum (closed, 12 values).** LAST token MUST be one of 12 canonical
+   values per ADR-0056 §"12-Value Layer Enum". Adding a layer is a **1-ADR action**.
 4. **Capability tail.** REQUIRED for `role = adapter` (per ADR-0015 §3:
    adapters bind a kernel trait to *one* provider/capability, and the
    provider/capability identity belongs in the crate name). OPTIONAL for

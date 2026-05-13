@@ -195,3 +195,71 @@ After step 7, subsequent agents may claim symbols inside `tools/oya-agent-read/`
 - ADR-0053 — grit + icm as sanctioned coordination primitives (sibling)
 - ADR-0015 — flat-crates layout (new crates must conform to `crates/oya-<context>-<role>/` naming)
 - ADR-0041 — GitOps trunk-based development (scaffold lands to base via `grit done`)
+
+---
+
+## Amendment — 2026-05-13: Rename-Event Scaffold-Claim Authority (Shard 0 Precursor)
+
+> **Amendment status:** Accepted — same-commit as ADR-0056 + ADR-0057 (Shard 0 precursor commit, 2026-05-13).
+> **Architect iter-1 condition B2:** CLOSED by this amendment.
+
+### Extension
+
+The scaffold-claim authority established in this ADR is hereby extended to cover
+**rename events**, not only new-crate scaffolds. A rename event is any operation
+that changes a crate's directory path, `[package] name`, or `[lib] name` in the
+workspace manifest — including the ~140-crate atomic rename planned for Shard 1.
+
+### Rationale
+
+The original ADR (2026-05-12) covered the chicken-and-egg case for new crate
+creation: no source files → no indexed symbols → cannot take a native grit lock.
+The rename case has an analogous gap: the pre-rename symbol path (e.g.,
+`crates/oya-platform-tenant-kernel/src/lib.rs::TenantId`) is valid for a grit
+claim, but atomically claiming ~140 symbols across the workspace is impractical
+at grit v0.3.0.
+
+The icm-coordination-lock fallback generalises naturally: a rename window is
+opened in `scaffold-locks-oyatie` before any `git mv` operation, held for the
+duration of the rename batch, and closed after `cargo check --workspace --locked
+--offline` exits 0.
+
+### Amended 7-step sequence for rename events
+
+```
+1. icm store -t scaffold-locks-oyatie \
+     -c "agent=<id> path=<workspace-root> window=open intent='rename-cutover-v4 Shard 1 — ~140 crate renames'" \
+     -i critical
+
+2. For each crate in rename map:
+     git mv crates/<old-name> crates/<new-name>
+
+3. xtask-metadata-augment --apply  (rewrites [package] name, [lib] name, dep-edges, Cargo.lock)
+
+4. cargo check --workspace --locked --offline  (verifies no non-name delta crept in)
+
+5. grit done --agent <id>          (lands the rename batch to base)
+
+6. grit init                       (re-indexes new symbol paths)
+
+7. icm store -t scaffold-locks-oyatie \
+     -c "agent=<id> path=<workspace-root> window=closed intent='rename-cutover-v4 Shard 1 complete'" \
+     -i high
+```
+
+### ICM scaffold-claim rows for Shard 0 check crates
+
+Per the original ADR, each crate scaffolded in Shard 0 requires an OPEN and
+a CLOSE row in `scaffold-locks-oyatie`. The 4 LEAN check crates + xtask are
+covered by the single batch lock opened at Shard 0 execution start (see §5.1
+step 0 of the v4 plan). Individual per-crate rows are also emitted:
+
+- `oya-shared-architecture-check-cli` — LEAN-A1
+- `oya-shared-bounded-contexts-check-cli` — LEAN-A2
+- `oya-shared-supply-chain-check-cli` — LEAN-A3
+- `oya-shared-semver-check-cli` — LEAN-A4
+- `xtask-metadata-augment` — workspace build tool
+
+These rows are logged to `scaffold-locks-oyatie` by the executing agent
+immediately after each crate directory is created (per ADR-0054 §"7-step
+scaffold-claim sequence", step 1 applied per crate).
