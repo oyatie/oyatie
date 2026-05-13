@@ -108,7 +108,7 @@ pub fn verify_canonical_suite(repo_root: &Path, registered: &[String], report: &
         if !has_phase_spec_reference(&phases_dir, ms) {
             report.push(Violation {
                 kind: ViolationKind::MissingCanonicalArtifact,
-                path: format!(".omc/plans/milestones/M*/phases/*/phase-spec.md"),
+                path: ".omc/plans/milestones/M*/phases/*/phase-spec.md".to_string(),
                 description: format!(
                     "no phase-spec references µservice `{}` — every registered µservice MUST have an introducing phase per ADR-0063 §1",
                     ms
@@ -119,7 +119,7 @@ pub fn verify_canonical_suite(repo_root: &Path, registered: &[String], report: &
         if !has_impl_plan_reference(&phases_dir, ms) {
             report.push(Violation {
                 kind: ViolationKind::MissingCanonicalArtifact,
-                path: format!(".omc/plans/milestones/M*/phases/*/impl-plan.md"),
+                path: ".omc/plans/milestones/M*/phases/*/impl-plan.md".to_string(),
                 description: format!("no impl-plan references µservice `{}` per ADR-0063 §1", ms),
             });
         }
@@ -262,6 +262,23 @@ pub fn verify_milestone_artifacts(repo_root: &Path, report: &mut Report) {
     }
 }
 
+/// Returns true when a phase-spec / impl-plan path lives under a legacy milestone
+/// directory slated for physical removal per ADR-0063 §7 (stale removed in
+/// reality). Section-completeness checks skip these paths since the docs will
+/// be deleted, not brought up to the new template.
+fn is_legacy_milestone_path(path: &Path) -> bool {
+    const LEGACY_MILESTONES: &[&str] = &[
+        "M-CC-cross-cutting",
+        "M02-foundry-preview",
+        "M03-cloud-saas-search-workspace-preview",
+        "M04-vertical-pilot-korea",
+        "M05-cloud-search-stable",
+        "M06-ads-vertical-fanout",
+    ];
+    let s = path.to_string_lossy();
+    LEGACY_MILESTONES.iter().any(|m| s.contains(m))
+}
+
 /// Step 7: PRD / Phase-Spec / Impl-Plan section-completeness checks.
 pub fn verify_section_completeness(repo_root: &Path, report: &mut Report) {
     // PRDs need: Competitive Benchmark / Performance Targets / Horizontal Scalability / Bounded Contexts
@@ -284,6 +301,9 @@ pub fn verify_section_completeness(repo_root: &Path, report: &mut Report) {
     if phases.exists() {
         for entry in WalkDir::new(&phases).into_iter().filter_map(|r| r.ok()) {
             if entry.file_name() == "phase-spec.md" {
+                if is_legacy_milestone_path(entry.path()) {
+                    continue;
+                }
                 let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
                 for marker in phase_required {
                     if !content.contains(marker) {
@@ -313,6 +333,9 @@ pub fn verify_section_completeness(repo_root: &Path, report: &mut Report) {
                 || (entry.file_name().to_string_lossy().starts_with("IP-")
                     && entry.file_name().to_string_lossy().ends_with(".md"))
             {
+                if is_legacy_milestone_path(entry.path()) {
+                    continue;
+                }
                 let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
                 for marker in impl_required {
                     if !content.contains(marker) {
