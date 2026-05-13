@@ -24,6 +24,8 @@ parent_of:
 5. **Linus-style no silent regression** (per `feedback_no_silent_regression.md` + `lean-a10-no-silent-regression` BLOCKER day 1). Every public contract change requires ADR + version bump + sunset window + audit-chain event.
 6. **Cedar-policy-gated audience tiers.** Public / tenant-member / tenant-admin / internal-sre / internal-foundry / internal-admin. Red-team probe required before any non-public surface ships (per pre-mortem §4 in docs sub-plan).
 
+7. **Public AND private both tracked (visibility taxonomy mandatory).** Per user directive: every artifact in the workspace — public endpoints, private endpoints, public Rust items (`pub`), private items (`pub(crate)`+below), open ADRs, confidential ADRs, customer-facing µservices, Foundry-internal µservices, secret references (presence only, never values), audit segments — has an EXPLICIT visibility class in the manifest. No artifact escapes tracking. Visibility class drives Cedar policy + portal surface routing.
+
 ## §2 Decision Drivers (top 3)
 
 1. **One canonical ops surface** (user mandate `ops.oyatie.com`). Pre-empts multi-portal architectures.
@@ -118,7 +120,7 @@ Total: ~160 crates over Waves 1-7 (M03-P04 → M04-P03).
 
 Each BC's layer crates: `oya-ops-<bc>-{kernel,domain,application,adapter,rest,worker,sdk}`. Composition-root binary: `oya-ops-app` (single binary serving all BCs).
 
-### (b) CI lane inventory (5 lanes total)
+### (b) CI lane inventory (7 lanes total)
 
 | Lane id | Severity | Crate | Source |
 |---|---|---|---|
@@ -127,7 +129,8 @@ Each BC's layer crates: `oya-ops-<bc>-{kernel,domain,application,adapter,rest,wo
 | `lean-a7-endpoint-coverage` (Wave 1) | report-only → BLOCKER M02-P22 | oya-check-endpoint-coverage (new) | ADR-0066 |
 | `lean-a8-dead-code-zero-tolerance` (Wave 1) | BLOCKER day 1 | oya-check-dead-code (new) | ADR-0066 + `feedback_autonomous_implementation_artifacts.md` |
 | `lean-a9-ops-policy-coverage` (Wave 5) | BLOCKER day 1 for every non-public surface | oya-check-ops-policy-coverage (new) | ADR-0067 + pre-mortem §3 |
-| `lean-a10-no-silent-regression` (NEW; Wave 1+) | BLOCKER day 1 | oya-check-no-silent-regression (new; M02-P21 scope) | `feedback_no_silent_regression.md` + ADR-0067 §5.5 |
+| `lean-a10-no-silent-regression` (Wave 1+) | BLOCKER day 1 | oya-check-no-silent-regression (new; M02-P21 scope) | `feedback_no_silent_regression.md` + ADR-0067 §5.5 |
+| `lean-a11-visibility-coverage` (Wave 1; NEW per user directive 2026-05-13 "public/private all needs to be tracked") | BLOCKER day 1 | oya-check-visibility-coverage (new; M02-P21 scope) | §6(d') Visibility taxonomy + Principle 7 |
 
 ### (c) Dispatch sequence
 
@@ -146,6 +149,86 @@ Wave 5: M04-P01 IP-Y1..Y3 — tenant-mgmt + user-mgmt + deployments (NEW lane le
 Wave 6: M04-P02 IP-Y1..Y4 — capacity + finops + on-call + incident
 Wave 7: M04-P03 IP-Y1..Y4 — audit-view + icm-browser + grit-status + ci-runs (Foundry-internal first; tenant read-only second)
 ```
+
+### (d') Visibility taxonomy (Principle 7; mandatory for every artifact)
+
+Every artifact in the manifest carries a `visibility` field. The 6-tier taxonomy maps to Cedar policy fragments + portal surface routing:
+
+| Visibility class | Examples | Cedar role required | Portal surface |
+|---|---|---|---|
+| `public` | Open ADRs (e.g., this ADR-0067); oyatie open µservice catalog; OpenAPI public-tier endpoints | none (anonymous) | /docs, /microservices (filtered), /endpoints (public-only) |
+| `tenant-public` | Per-tenant µservice enablement; per-tenant SLO; per-tenant billing summary | `tenant-member` | /, /dashboards (own tenant), /health (own tenant) |
+| `tenant-private` | Per-tenant user list; per-tenant Cedar policy; per-tenant detailed billing | `tenant-admin` | /user-mgmt, /tenant-mgmt, /finops detail (own tenant) |
+| `internal-public` | Fleet KPIs; aggregated health; oyatie team roster; sanitized incident timelines | `internal-*` (any internal role) | /architecture, /tech-stack (fleet-wide), /health (fleet aggregated) |
+| `internal-private` | Per-µservice cargo dep graph; raw cargo-deny output; ICM rows; grit symbol-locks; raw audit segments; deployment rollback button | `internal-foundry` or `internal-admin` per surface | /icm-browser, /grit-status, /audit-view (raw), /deployments (rollback) |
+| `system-only` | Secret values (NEVER UI-visible); raw event payloads with PHI/PII; cross-tenant join data; rustdoc JSON for `pub(crate)` items | (none — system enforcement) | NOT exposed in any portal page; manifest emits presence + classification ONLY (no payload) |
+
+Extractor manifest extension (per ADR-0066 §6 + this rule):
+
+```json
+{
+  "docs": [
+    {
+      "doc_class": "ADR",
+      "id": "ADR-0067",
+      "visibility": "public",
+      ...
+    },
+    {
+      "doc_class": "ADR",
+      "id": "ADR-0099-confidential-pricing",
+      "visibility": "tenant-private",
+      ...
+    }
+  ],
+  "endpoints": [
+    {
+      "kind": "rest",
+      "method": "POST",
+      "path": "/api/v1/payments/charge",
+      "visibility": "tenant-public",
+      ...
+    },
+    {
+      "kind": "rest",
+      "method": "POST",
+      "path": "/internal/v1/foundry/grit/done",
+      "visibility": "internal-private",
+      ...
+    }
+  ],
+  "microservices": [
+    {
+      "id": "payroll",
+      "visibility": "public",
+      ...
+    },
+    {
+      "id": "foundry",
+      "visibility": "internal-public",   // tracked, but internal-only consumers
+      ...
+    }
+  ],
+  "secrets": [
+    {
+      "ref": "openbao://tenants/<tenant_id>/kms-master-key",
+      "visibility": "system-only",
+      "present": true,
+      "last_rotated_at": "2026-05-13T00:00:00Z"
+      // value NEVER emitted; only presence + metadata
+    }
+  ]
+}
+```
+
+CI lane `lean-a11-visibility-coverage` (NEW; Wave 1 along with lean-a10) checks:
+
+1. Every artifact in the manifest has a `visibility` field (no implicit default).
+2. Every visibility class has a corresponding Cedar policy fragment (Wave 5 inventory below).
+3. No `system-only` artifact leaks its payload to any non-system-only surface; integration test fixtures include attempted-leak probes (e.g., a `tenant-admin` query for a `system-only` secret must return only the metadata header, never the value).
+4. `pub` Rust items in SDK crates are `visibility: public`; `pub(crate)` items are `visibility: internal-private`; everything else is properly classified by extractor inference.
+
+`lean-a11-visibility-coverage` is **BLOCKER day 1** alongside lean-a8 + lean-a10 (no opt-outs; no report-only ramp; the lane catches what would otherwise let tenant data leak across visibility boundaries).
 
 ### (d) Cedar policy fragment inventory (Wave 5 deliverable)
 
