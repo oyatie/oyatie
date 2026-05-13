@@ -7,13 +7,13 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-kms-kernel = { path = "../oya-cloud-kms-kernel" }
-oya-cloud-resource-kernel = { path = "../oya-cloud-resource-kernel" }
-oya-cloud-storage-kernel = { path = "../oya-cloud-storage-kernel" }
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-cloud-kms-domain = { path = "../oya-cloud-kms-domain" }
+oya-cloud-resource-domain = { path = "../oya-cloud-resource-domain" }
+oya-cloud-storage-domain = { path = "../oya-cloud-storage-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 
 [dev-dependencies]
-oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }
+oya-residency-domain = { path = "../oya-residency-domain" }
 
 [lib]
 name = "oya_cloud_storage_object_api"

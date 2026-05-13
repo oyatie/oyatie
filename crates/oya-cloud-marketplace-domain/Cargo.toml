@@ -1,0 +1,18 @@
+[package]
+name = "oya-cloud-marketplace-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-cloud-billing-domain = { path = "../oya-cloud-billing-domain" }
+oya-cloud-region-domain = { path = "../oya-cloud-region-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-metering-domain = { path = "../oya-metering-domain" }
+
+[lib]
+name = "oya_cloud_marketplace_domain"
+path = "src/lib.rs"
+doctest = false

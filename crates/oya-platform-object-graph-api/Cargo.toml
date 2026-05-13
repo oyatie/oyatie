@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
-oya-platform-object-graph-kernel = { path = "../oya-platform-object-graph-kernel" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-ontology-domain = { path = "../oya-ontology-domain" }
 
 [lib]
 name = "oya_platform_object_graph_api"

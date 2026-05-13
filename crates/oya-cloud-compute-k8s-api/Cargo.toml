@@ -7,10 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-compute-kernel = { path = "../oya-cloud-compute-kernel" }
-oya-cloud-resource-kernel = { path = "../oya-cloud-resource-kernel" }
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
-oya-platform-residency-kernel = { path = "../oya-platform-residency-kernel" }
+oya-cloud-compute-domain = { path = "../oya-cloud-compute-domain" }
+oya-cloud-resource-domain = { path = "../oya-cloud-resource-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-residency-domain = { path = "../oya-residency-domain" }
 
 [lib]
 name = "oya_cloud_compute_k8s_api"

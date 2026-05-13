@@ -6,5 +6,5 @@ rust-version.workspace = true
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-iam-kernel = { path = "../oya-cloud-iam-kernel" }
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
+oya-cloud-iam-domain = { path = "../oya-cloud-iam-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }

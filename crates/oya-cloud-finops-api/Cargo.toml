@@ -7,10 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-cloud-billing-kernel = { path = "../oya-cloud-billing-kernel" }
-oya-cloud-finops-kernel = { path = "../oya-cloud-finops-kernel" }
-oya-platform-data-boundary-kernel = { path = "../oya-platform-data-boundary-kernel" }
-oya-platform-metering-kernel = { path = "../oya-platform-metering-kernel" }
+oya-cloud-billing-domain = { path = "../oya-cloud-billing-domain" }
+oya-cloud-finops-domain = { path = "../oya-cloud-finops-domain" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-metering-domain = { path = "../oya-metering-domain" }
 
 [lib]
 name = "oya_cloud_finops_api"

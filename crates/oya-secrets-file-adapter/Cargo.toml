@@ -1,0 +1,15 @@
+[package]
+name = "oya-secrets-file-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-secrets-domain = { path = "../oya-secrets-domain" }
+
+[lib]
+name = "oya_secrets_file_adapter"
+path = "src/lib.rs"
+doctest = false
