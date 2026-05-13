@@ -270,6 +270,80 @@ rationale = "Substrate µservice: FHIR-R5-canonical records substrate; healthcar
 adr_cite = "ADR-0056"
 status = "planned"
 
+# M03 workforce µservices (Phase-Specs exist; crates ship in M03)
+[workspace.metadata.oya.microservices.hr]
+owner = "axis-enterprise"
+rationale = "HR µservice — employees / employments / classifications / organizations (Bominal ADR-0125 / 0126 inherited). KR pack pack #1 material_scope. Introducing phase: M03-P01-hr."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.payroll]
+owner = "axis-enterprise"
+rationale = "Payroll µservice — gross-to-net + 4대보험 EDI + 연말정산 + disbursement (KR pack #1 material_scope). Introducing phase: M03-P02-payroll."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.accounting]
+owner = "axis-enterprise"
+rationale = "Accounting µservice — K-GAAP double-entry + auto-journal from Payroll + period-close + Typst statements (KR pack #1 material_scope). Introducing phase: M03-P03-accounting."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.medical]
+owner = "axis-healthcare"
+rationale = "Medical µservice — encounter / clinical / HIRA DUR / NHIS billing (KR pack #1 material_scope). Introducing phase: M04-P01-medical-clinical."
+adr_cite = "ADR-0056"
+status = "planned"
+
+# M02-P18 Cloud sub-µservices (each owns a distinct kernel; per MASTERPLAN §2.1)
+[workspace.metadata.oya.microservices.cloud-tenancy]
+owner = "council-cloud"
+rationale = "Cloud-tenancy µservice — runtime tenant lifecycle, cell binding, region pinning. Introducing phase: M02-P18-cloud-tenancy."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.cloud-iam]
+owner = "council-cloud"
+rationale = "Cloud-IAM µservice — runtime IAM (separate from substrate identity; for service-to-service auth). Introducing phase: M02-P18-cloud-tenancy."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.cloud-kms]
+owner = "council-cloud"
+rationale = "Cloud-KMS µservice — runtime KMS API (envelope encryption surface; differs from substrate kms which provides per-cell HSM). Introducing phase: M02-P18-cloud-tenancy."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.cloud-compute]
+owner = "council-cloud"
+rationale = "Cloud-compute µservice — VM / K8s / Functions / Capacity. Introducing phase: M02-P18-cloud-tenancy."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.cloud-storage]
+owner = "council-cloud"
+rationale = "Cloud-storage µservice — Object/Block/File runtime API. Introducing phase: M02-P18-cloud-tenancy."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.cloud-network]
+owner = "council-cloud"
+rationale = "Cloud-network µservice — VCN / LB / DNS runtime API. Introducing phase: M02-P18-cloud-tenancy."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.cloud-billing]
+owner = "council-cloud"
+rationale = "Cloud-billing µservice — usage metering + tax + invoicing. Introducing phase: M02-P18-cloud-tenancy."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.cloud-cell]
+owner = "council-cloud"
+rationale = "Cloud-cell µservice — per-cell isolation primitive (Bominal ADR-0009 inherited). Introducing phase: M02-P18-cloud-tenancy."
+adr_cite = "ADR-0056"
+status = "planned"
+
 
 [workspace.metadata.oya.verticals.connect]
 owner = "council-connect"
