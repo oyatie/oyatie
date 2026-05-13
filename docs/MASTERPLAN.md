@@ -732,7 +732,7 @@ This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EX
 
 ## 13.5 Documentation suite coverage (CI-enforced)
 
-Every planned µservice ships with a complete documentation suite. Coverage is **CI-enforced** via `oya-check-doc-coverage-cli` (LEAN-A5; report-only until M02-P22, BLOCKER thereafter). See ADR-0063.
+Every planned µservice ships with a complete documentation suite. Coverage is **CI-enforced** via `oya-check-documentation-cli` (LEAN-A5; report-only until M02-P22, BLOCKER thereafter). See ADR-0063.
 
 ### 13.5.1 Per-µservice canonical artifact suite
 
@@ -764,7 +764,7 @@ Pack `pack.yaml` manifests at `docs/localization-packs/<pack>/pack.yaml` declare
 | Milestone README | `.omc/plans/milestones/M<NN>-<slug>/README.md` (`milestone-readme-template.md`) |
 | Acceptance evidence bundle | `.omc/plans/milestones/M<NN>-<slug>/acceptance-evidence/` |
 
-### 13.5.4 Enforcement — `oya-check-doc-coverage-cli` (LEAN-A5)
+### 13.5.4 Enforcement — `oya-check-documentation-cli` (LEAN-A5)
 
 Lane registered in `registry/quality/lanes.yaml`. Runs on every PR.
 
@@ -798,4 +798,4 @@ A phase that registers a new µservice (or new BC) is **not Complete** until the
 ## 15. Status footer
 
 Status: **Accepted** (canonical at `docs/MASTERPLAN.md`).
-Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-doc-coverage-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.
+Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-documentation-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.

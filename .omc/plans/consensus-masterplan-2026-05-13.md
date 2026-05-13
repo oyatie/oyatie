@@ -23,14 +23,14 @@ Adopt the **iteration-5d state of `docs/MASTERPLAN.md`** as the canonical extend
 
 1. **Canonical global base + localization seams / adapters / packs** (per ADR-0064 §1, §1.5). Every customer-facing µservice has a jurisdiction-neutral canonical base + zero or more localization overlays chosen per-concern from three forms: seam (port + DI for values), adapter (discrete I/O surface), pack (deployable bundle). Korea is **pack #1 — foundational**; M01–M07 ship canonical + KR pack in lock-step.
 
-2. **Documentation suite coverage CI-enforced** (per ADR-0063). Every µservice registered in `[workspace.metadata.oya.microservices]` ships full suite (PRD + Microservice record + Naming ADR + BC registrations + Phase-Spec reference + Impl-Plan reference). Pack overlays per (pack × µservice). Section-completeness checks (Competitive Benchmark / Performance Targets / Horizontal Scalability / Bounded Contexts / Load test / Grit Claim Symbols / ICM Rows / acceptance_lanes frontmatter). Enforced via `lean-a5-doc-coverage` lane operational at HEAD (commit chain through 27309f6); flips to BLOCKER at M02-P22.
+2. **Documentation suite coverage CI-enforced** (per ADR-0063). Every µservice registered in `[workspace.metadata.oya.microservices]` ships full suite (PRD + Microservice record + Naming ADR + BC registrations + Phase-Spec reference + Impl-Plan reference). Pack overlays per (pack × µservice). Section-completeness checks (Competitive Benchmark / Performance Targets / Horizontal Scalability / Bounded Contexts / Load test / Grit Claim Symbols / ICM Rows / acceptance_lanes frontmatter). Enforced via `lean-a5-documentation` lane operational at HEAD (commit chain through 27309f6); flips to BLOCKER at M02-P22.
 
 3. **Workflow + Ontology = sole inter-µservice adapter layer** (per ADR-0059). Products NEVER call each other directly; cross-product integration MUST flow via Workflow (orchestration) or Ontology (information). Pack-isolation rule inherits: pack crates MUST NOT import other pack crates (cross-pack via Workflow + Ontology).
 
 ## §Decision drivers (top 3, deliberate-mode)
 
 1. **Long-term right > short-term cost.** Every M04-M12 milestone is fully scoped with regulatory roadmap, exit criteria, and parallelization-aware dependency chain. No deferrals within scope.
-2. **Enforceability mechanically wired.** ADR-0063 + ADR-0064 enforcement is not paper — `oya-check-doc-coverage` (real workspace crate; 2/2 tests pass; runs against live workspace producing 1136 actionable violations); `lean-a5-doc-coverage` lane registered; P22 BLOCKER list includes `--blocker` flag.
+2. **Enforceability mechanically wired.** ADR-0063 + ADR-0064 enforcement is not paper — `oya-check-documentation` (real workspace crate; 2/2 tests pass; runs against live workspace producing 1136 actionable violations); `lean-a5-documentation` lane registered; P22 BLOCKER list includes `--blocker` flag.
 3. **Pack-pluggability for international expansion.** US (M09), EU (M10), JP/SEA/MENA (M12+) are pack-authoring projects against the same canonical base, not new µservice forks. Cross-jurisdictional tenants supported by Workflow + Ontology federation.
 
 ## §Viable options + invalidation rationale
@@ -45,7 +45,7 @@ Adopt the **iteration-5d state of `docs/MASTERPLAN.md`** as the canonical extend
 
 ## §Pre-mortem (3 scenarios — deliberate-mode required)
 
-1. **Lane never lands as BLOCKER.** M02-P22 exit gate slips; lane stays `--report-only`. Mitigation: P22 phase-spec explicitly lists `cargo run -p oya-check-doc-coverage -- --workspace --blocker` (committed at HEAD). Detection: weekly violation-count trend.
+1. **Lane never lands as BLOCKER.** M02-P22 exit gate slips; lane stays `--report-only`. Mitigation: P22 phase-spec explicitly lists `cargo run -p oya-check-documentation -- --workspace --blocker` (committed at HEAD). Detection: weekly violation-count trend.
 2. **Lane gives false positives — agents silence it.** Orphan-scan over-flags templates / generic words. Mitigation: filename whitelist (INDEX/README/MASTERPLAN/RETIRED/CHANGELOG + `-template.md` suffix); planned-catalog cross-check before flagging; canonical-base matcher strict to `oya-<ms>-` prefix (per iter-5d fix). Detection: per-PR coverage delta.
 3. **pack.yaml drifts from kr.md / DOC-COVERAGE.md / INDEX.md.** Mitigation: parity check planned in M02-P20 IP-005; `pack.yaml` is single source of truth and overview docs are derived from it.
 
@@ -53,7 +53,7 @@ Adopt the **iteration-5d state of `docs/MASTERPLAN.md`** as the canonical extend
 
 | Tier | Coverage | Fixture / harness |
 |---|---|---|
-| Unit | `read_workspace_microservices`, `read_masterplan_catalog`, `read_pack_catalog`, helpers | `crates/oya-check-doc-coverage/tests/smoke.rs` (2/2 pass); per-module units in M02-P20. |
+| Unit | `read_workspace_microservices`, `read_masterplan_catalog`, `read_pack_catalog`, helpers | `crates/oya-check-documentation/tests/smoke.rs` (2/2 pass); per-module units in M02-P20. |
 | Integration | Synthesized tmp dir with workspace + pack manifest; verify report contains expected violation kinds | M02-P20 IP-005. |
 | E2E | `.github/workflows/ci-fitness-lanes.yml` invokes binary on every PR; archives markdown report | M02-P20 IP-004. |
 | Observability | Prometheus gauge `oyatie_doc_coverage_violations{kind="..."}` for trend tracking | M02-P20. |
@@ -62,9 +62,9 @@ Adopt the **iteration-5d state of `docs/MASTERPLAN.md`** as the canonical extend
 
 ```bash
 git rev-parse HEAD                                                  # confirm commit
-cargo run -p oya-check-doc-coverage -- --workspace --report-only    # exit 0; markdown report
-cargo test -p oya-check-doc-coverage                                # 2/2 pass
-rg -nP "oya-check-doc-coverage" registry/quality/lanes.yaml         # lane registered
+cargo run -p oya-check-documentation -- --workspace --report-only    # exit 0; markdown report
+cargo test -p oya-check-documentation                                # 2/2 pass
+rg -nP "oya-check-documentation" registry/quality/lanes.yaml         # lane registered
 rg -nP "## Architect verdict" docs/MASTERPLAN.md || echo informational
 grep -nP "M04-healthcare-kr|M05-connect-personal|M06-fintech-kr|M07-industrial-kr|M08-enterprise-breadth|M09-us-expansion|M10-eu-expansion|M11-healthcare-intl|M12-hyperscaler-maturity" docs/MASTERPLAN.md  # 9 milestones present
 test -f docs/decisions/ADR-0063-documentation-suite-coverage.md
@@ -114,7 +114,7 @@ If round 3 returns APPROVE: consensus reached. If ITERATE, address residual gaps
 2. Dispatch KR-pack executor sweep to author the 72 missing pack overlay artifacts (regulatory ADRs + acceptance evidence + overlay PRDs per `material_scope` flag).
 3. Author missing impl-plan sections (933 violations across legacy and new impl-plans).
 4. Remove legacy milestone dirs (M-CC / M02-foundry-preview / M03-cloud-saas-search-workspace-preview / M04-vertical-pilot-korea / M05-cloud-search-stable / M06-ads-vertical-fanout) per ADR-0063 §7 "stale removed in reality"; their content has either migrated to M01-foundation/M02-substrate/M03-first-tenant or is superseded by the new M04-M12 plan.
-5. Implement `oya-check-doc-coverage` full algorithm per M02-P20 IP-005 (pack.yaml parity check + integration tests + GitHub Actions wiring + Prometheus observability).
+5. Implement `oya-check-documentation` full algorithm per M02-P20 IP-005 (pack.yaml parity check + integration tests + GitHub Actions wiring + Prometheus observability).
 6. Author the 9 sub-commands of `oya-check-architecture` (currently 7; adding `canonical-base-neutrality` + `cross-pack-refusal` per ADR-0064 §7 §8).
 
 ## §ADR record

@@ -77,11 +77,11 @@ Every Impl-Plan MUST contain:
 - `## Grit Claim Symbols` (list of symbols + TTL)
 - `## ICM Rows to Emit` (phase-start, phase-complete)
 
-### 5. Enforcement — `oya-check-doc-coverage-cli` (LEAN-A5)
+### 5. Enforcement — `oya-check-documentation-cli` (LEAN-A5)
 
-Crate: `crates/oya-check-doc-coverage/` (BNF-exempt; `oya-check-*` namespace).
+Crate: `crates/oya-check-documentation/` (BNF-exempt; `oya-check-*` namespace).
 
-Lane registered in `registry/quality/lanes.yaml` as `lean-a5-doc-coverage`. Runs on every PR.
+Lane registered in `registry/quality/lanes.yaml` as `lean-a5-documentation`. Runs on every PR.
 
 Algorithm:
 
@@ -134,7 +134,7 @@ A µservice removed from `[workspace.metadata.oya.microservices]` MUST have its 
 
 ## Compliance
 
-CI lane: `lean-a5-doc-coverage`.
+CI lane: `lean-a5-documentation`.
 
 Owner team: `council-architecture` (matrix authority) + `axis-foundry` (lane implementation).
 
@@ -150,7 +150,7 @@ Per RALPLAN-DR deliberate mode, three concrete failure scenarios with triggers, 
 
 - **Trigger**: M02-P22 exit gate slips; lane stays `--report-only` indefinitely.
 - **Blast radius**: New µservices land without docs; coverage erosion compounds; by M04+ the doc-debt is unrecoverable.
-- **Prevention**: M02-P22 phase-spec + impl-plan explicitly list `cargo run -p oya-check-doc-coverage -- --workspace --blocker` in BLOCKER command list (per `.omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/phase-spec.md` + `impl-plan.md`). The CLI exits nonzero only when `--blocker` is set (`crates/oya-check-doc-coverage/src/main.rs:38`); removing `--report-only` alone leaves the lane permissive, so the explicit `--blocker` flag is the load-bearing invariant. M02-P22 cannot pass its exit gate without doc-coverage going green under `--blocker` or being explicitly waived per ADR.
+- **Prevention**: M02-P22 phase-spec + impl-plan explicitly list `cargo run -p oya-check-documentation -- --workspace --blocker` in BLOCKER command list (per `.omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/phase-spec.md` + `impl-plan.md`). The CLI exits nonzero only when `--blocker` is set (`crates/oya-check-documentation/src/main.rs:38`); removing `--report-only` alone leaves the lane permissive, so the explicit `--blocker` flag is the load-bearing invariant. M02-P22 cannot pass its exit gate without doc-coverage going green under `--blocker` or being explicitly waived per ADR.
 - **Detection**: Weekly report comparing previous-week violation count vs current; rising count = warning, doubled count = page.
 - **Rollback**: Flip lane back to `--report-only` and open a remediation phase before re-flipping.
 
@@ -174,7 +174,7 @@ Per RALPLAN-DR deliberate mode, three concrete failure scenarios with triggers, 
 
 | Tier | Coverage | Fixture / harness |
 |---|---|---|
-| **Unit** (parser correctness) | `read_workspace_microservices` returns the keys of `[workspace.metadata.oya.microservices]`; `read_masterplan_catalog` extracts kebab-case tokens from §2.1; `read_pack_catalog` discovers every `pack.yaml`; `has_naming_adr` matches the `ADR-NNNN-microservice-<ms>.md` pattern. | `crates/oya-check-doc-coverage/tests/smoke.rs` (already has 2 tests); planned per-module unit tests in M02-P20. |
+| **Unit** (parser correctness) | `read_workspace_microservices` returns the keys of `[workspace.metadata.oya.microservices]`; `read_masterplan_catalog` extracts kebab-case tokens from §2.1; `read_pack_catalog` discovers every `pack.yaml`; `has_naming_adr` matches the `ADR-NNNN-microservice-<ms>.md` pattern. | `crates/oya-check-documentation/tests/smoke.rs` (already has 2 tests); planned per-module unit tests in M02-P20. |
 | **Integration** (end-to-end against synthetic repo) | Synthesize a tmp dir with: (a) Cargo.toml registering 3 µservices, (b) 1 PRD authored, (c) 1 pack.yaml with `material_scope: true`. Verify the report contains exactly the expected violation kinds. | `tests/integration/` fixtures (M02-P20 scope). |
 | **E2E** (lane in CI) | The `.github/workflows/ci-fitness-lanes.yml` job runs the binary against `HEAD` of the actual workspace; archives the markdown report. Pre-M02-P22: `--report-only` (exit 0). Post-M02-P22: `--blocker` (exit nonzero if violations). | `.github/workflows/ci-fitness-lanes.yml` (M02-P20 scope). |
 | **Observability** | The markdown report is the canonical observability surface; total violation count is emitted as a Prometheus gauge `oyatie_doc_coverage_violations{kind="..."}` for trend tracking. | M02-P20 scope; gauge wired into VictoriaMetrics per Bominal ADR-0020. |
@@ -185,12 +185,12 @@ To re-verify this consensus in 1 week (or N weeks) without conversation context,
 
 ```bash
 git rev-parse HEAD                                                # confirm working commit
-cargo run -p oya-check-doc-coverage -- --workspace --report-only  # exit 0; lane operational
-cargo test -p oya-check-doc-coverage                              # 2/2 pass
-rg -nP "oya-check-doc-coverage" registry/quality/lanes.yaml      # lean-a5 lane registered
+cargo run -p oya-check-documentation -- --workspace --report-only  # exit 0; lane operational
+cargo test -p oya-check-documentation                              # 2/2 pass
+rg -nP "oya-check-documentation" registry/quality/lanes.yaml      # lean-a5 lane registered
 rg -nP "## Architect verdict" docs/MASTERPLAN.md || echo no-consensus-block-in-masterplan
 diff <(rg -nP '^\s*-\s+`(\w[\w-]*)`' docs/MASTERPLAN.md | grep -oE '`\w+[\w-]*`' | tr -d '`' | sort -u) \
-     <(cargo run -p oya-check-doc-coverage -- --workspace --report-only 2>/dev/null | grep -oE 'pack regulatory ADR for \([a-z]+, [a-z-]+\)' | grep -oE '[a-z-]+\)' | tr -d ')' | sort -u) \
+     <(cargo run -p oya-check-documentation -- --workspace --report-only 2>/dev/null | grep -oE 'pack regulatory ADR for \([a-z]+, [a-z-]+\)' | grep -oE '[a-z-]+\)' | tr -d ')' | sort -u) \
      || echo masterplan-catalog-vs-pack-scope-diverged
 icm recall -t context-oyatie -q "ralplan masterplan consensus" --limit 3
 ```

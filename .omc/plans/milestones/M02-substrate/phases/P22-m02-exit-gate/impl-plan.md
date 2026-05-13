@@ -51,7 +51,7 @@ Before (P20 state — all lanes in report-only mode):
   run: cargo run -p oya-check-shardability -- --migrations-dir migrations/ --report-only
 
 - name: doc-coverage-check                         # LEAN-A5; ADR-0063
-  run: cargo run -p oya-check-doc-coverage -- --workspace --report-only
+  run: cargo run -p oya-check-documentation -- --workspace --report-only
 
 - name: architecture-dependency-direction
   run: cargo run -p oya-check-architecture -- dependency-direction --workspace --report-only
@@ -96,7 +96,7 @@ After (P22 state — BLOCKER):
   run: cargo run -p oya-check-shardability -- --migrations-dir migrations/
 
 - name: doc-coverage-check                         # LEAN-A5; ADR-0063; --blocker required because the CLI exits 1 only with --blocker
-  run: cargo run -p oya-check-doc-coverage -- --workspace --blocker
+  run: cargo run -p oya-check-documentation -- --workspace --blocker
 
 - name: architecture-dependency-direction
   run: cargo run -p oya-check-architecture -- dependency-direction --workspace
@@ -135,7 +135,7 @@ After (P22 state — BLOCKER):
 The remaining 3 standard lanes (`cargo-check`, `cargo-nextest`, `cargo-deny`) are
 already BLOCKER from P20 and require no change. doc-coverage uses explicit
 `--blocker` flag because the CLI exits 1 only when `--blocker` is set
-(`crates/oya-check-doc-coverage/src/main.rs:38`); removing `--report-only`
+(`crates/oya-check-documentation/src/main.rs:38`); removing `--report-only`
 alone leaves it permissive. canonical-base-neutrality + cross-pack-refusal
 are added per ADR-0064 §7 §8 enforcement.
 

@@ -13,7 +13,7 @@ entry_gate: |
 exit_gate: |
   All 5 new CI fitness lane binaries operational: oya-check-statelessness,
   oya-check-shardability, oya-check-perf-budget, oya-check-benchmark,
-  oya-check-doc-coverage (LEAN-A5, per ADR-0063); all 9 architecture-check
+  oya-check-documentation (LEAN-A5, per ADR-0063); all 9 architecture-check
   sub-commands ship in oya-check-architecture (renamed from
   oya-shared-architecture-check-cli per BNF v4.1) — including the 7 base
   sub-commands plus canonical-base-neutrality and cross-pack-refusal (per
@@ -47,7 +47,7 @@ The five new lanes:
   with declared p99 targets; CI blocks merge if missing.
 - `oya-check-benchmark` — verifies every PRD includes a `## Competitive Benchmark` section
   before the µservice graduates L4 → L5 on the Proof Ladder.
-- `oya-check-doc-coverage` (**LEAN-A5**, per ADR-0063) — verifies every µservice in
+- `oya-check-documentation` (**LEAN-A5**, per ADR-0063) — verifies every µservice in
   `[workspace.metadata.oya.microservices]` ships a complete documentation suite (PRD +
   Microservice record + Naming ADR + BC registrations + Phase-Spec + Impl-Plan) plus
   per-pack overlay PRDs / regulatory ADRs / acceptance evidence for every (pack ×
@@ -80,7 +80,7 @@ product substrate. Can begin once enough substrate crates exist to validate agai
 | `check` (exempt namespace) | — | `crates/oya-check-perf-budget/` | `oya-check-perf-budget` |
 | `check` (exempt namespace) | — | `crates/oya-check-benchmark/` | `oya-check-benchmark` |
 | `check` (exempt namespace) | — | `crates/oya-check-architecture/` | `oya-check-architecture` |
-| `check` (exempt namespace) | — | `crates/oya-check-doc-coverage/` (scaffolded at HEAD; P20 expands algorithm + tests) | `oya-check-doc-coverage` |
+| `check` (exempt namespace) | — | `crates/oya-check-documentation/` (scaffolded at HEAD; P20 expands algorithm + tests) | `oya-check-documentation` |
 | `foundry` | `ci` | `.github/workflows/ci-fitness-lanes.yml` | — |
 
 Naming justification:
@@ -113,7 +113,7 @@ JUSTIFICATION:
 | [`IP-002-ci-lanes-perf-budget-benchmark.md`](IP-002-ci-lanes-perf-budget-benchmark.md) | Implement oya-check-perf-budget + oya-check-benchmark binaries with markdown parsing | pending | `council-foundry` |
 | [`IP-003-ci-lanes-architecture-check.md`](IP-003-ci-lanes-architecture-check.md) | Implement oya-check-architecture with all 7 sub-commands; rename from oya-shared-architecture-check-cli | pending | `council-foundry` |
 | [`IP-004-ci-lanes-github-workflow.md`](IP-004-ci-lanes-github-workflow.md) | Wire all 14+ lanes (incl. LEAN-A5 doc-coverage) into .github/workflows/ci-fitness-lanes.yml in --report-only mode | pending | `council-foundry` |
-| [`IP-005-doc-coverage-full-algorithm.md`](IP-005-doc-coverage-full-algorithm.md) | Expand oya-check-doc-coverage from HEAD scaffold to full ADR-0063 §5 algorithm: pack.yaml parity check (kr.md / INDEX.md / DOC-COVERAGE.md regenerated from manifest); integration tests; CI wiring | pending | `council-foundry` |
+| [`IP-005-doc-coverage-full-algorithm.md`](IP-005-doc-coverage-full-algorithm.md) | Expand oya-check-documentation from HEAD scaffold to full ADR-0063 §5 algorithm: pack.yaml parity check (kr.md / INDEX.md / DOC-COVERAGE.md regenerated from manifest); integration tests; CI wiring | pending | `council-foundry` |
 
 ---
 
@@ -138,14 +138,14 @@ cargo nextest run -p oya-check-shardability --test self_test    # exit 0
 cargo nextest run -p oya-check-perf-budget --test self_test     # exit 0
 cargo nextest run -p oya-check-benchmark --test self_test       # exit 0
 cargo nextest run -p oya-check-architecture --test self_test    # exit 0; all 9 sub-cmds
-cargo nextest run -p oya-check-doc-coverage --test smoke        # exit 0; LEAN-A5 (ADR-0063)
+cargo nextest run -p oya-check-documentation --test smoke        # exit 0; LEAN-A5 (ADR-0063)
 
 # Run statelessness check against workspace (--report-only; no blocker yet)
 cargo run -p oya-check-statelessness -- --workspace --report-only   # exit 0; report generated
 # Run shardability check against workspace
 cargo run -p oya-check-shardability -- --workspace --report-only    # exit 0; report generated
 # Run doc-coverage check against workspace
-cargo run -p oya-check-doc-coverage -- --workspace --report-only    # exit 0; report generated
+cargo run -p oya-check-documentation -- --workspace --report-only    # exit 0; report generated
 # Run architecture check all 9 sub-commands
 cargo run -p oya-check-architecture -- dependency-direction --workspace --report-only
 cargo run -p oya-check-architecture -- cross-product-refusal --workspace --report-only
@@ -188,10 +188,10 @@ crates/oya-check-shardability/src/main.rs::main
 crates/oya-check-perf-budget/src/main.rs::main
 crates/oya-check-benchmark/src/main.rs::main
 crates/oya-check-architecture/src/main.rs::main
-crates/oya-check-doc-coverage/src/main.rs::main
-crates/oya-check-doc-coverage/src/algorithm.rs::run
-crates/oya-check-doc-coverage/src/manifest.rs::read_pack_catalog
-crates/oya-check-doc-coverage/src/registry.rs::read_workspace_microservices
+crates/oya-check-documentation/src/main.rs::main
+crates/oya-check-documentation/src/algorithm.rs::run
+crates/oya-check-documentation/src/manifest.rs::read_pack_catalog
+crates/oya-check-documentation/src/registry.rs::read_workspace_microservices
 .github/workflows/ci-fitness-lanes.yml::fitness-lanes-job
 ```
 

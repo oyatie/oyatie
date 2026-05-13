@@ -103,7 +103,7 @@ Plus:
 - Load tests meet Performance Targets per impl-plan `## Load test`
 - Audit log emits per Bominal ADR-0028 (Merkle-sealed Ed25519 per `(tenant_id, period)`)
 - Phase docs reflect shipped state (no drift between spec and code)
-- **Documentation suite coverage** green per ADR-0063 for every µservice the phase touches: canonical PRD + Microservice record + Naming-scope ADR + BC registrations + Phase-Spec + Impl-Plan; plus per-pack overlay (PRD + regulatory ADR + acceptance evidence) for every (pack × µservice) pair in pack scope. Enforced by `lean-a5-doc-coverage` (report-only until M02-P22; BLOCKER thereafter).
+- **Documentation suite coverage** green per ADR-0063 for every µservice the phase touches: canonical PRD + Microservice record + Naming-scope ADR + BC registrations + Phase-Spec + Impl-Plan; plus per-pack overlay (PRD + regulatory ADR + acceptance evidence) for every (pack × µservice) pair in pack scope. Enforced by `lean-a5-documentation` (report-only until M02-P22; BLOCKER thereafter).
 - **Canonical-base neutrality**: if the phase touches canonical-base crates, `oya-check-architecture --canonical-base-neutrality` green (no jurisdiction codes / statutory rates / authority names baked into canonical base) per ADR-0064.
 - `icm store -t context-oyatie -c "Phase X complete" -i high` row emitted
 - `grit done --agent <id>` succeeds
