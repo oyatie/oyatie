@@ -166,6 +166,7 @@ are added per ADR-0064 §7 §8 enforcement.
 |---|---|---|---|---|
 | statelessness | oya-check-statelessness | 0 | 0 | 0 |
 | shardability | oya-check-shardability | 0 | 0 | 0 |
+| doc-coverage (LEAN-A5) | oya-check-documentation `--blocker` | 0 | 0 | 0 |
 | dependency-direction | oya-check-architecture | 0 | 0 | 0 |
 | layer-correctness | oya-check-architecture | 0 | 0 | 0 |
 | lib-name-parity | oya-check-architecture | 0 | 0 | 0 |
@@ -173,6 +174,8 @@ are added per ADR-0064 §7 §8 enforcement.
 | cross-product-refusal | oya-check-architecture | 0 | 0 | 0 |
 | composition-root-only | oya-check-architecture | 0 | 0 | 0 |
 | sdk-kernel-only | oya-check-architecture | 0 | 0 | 0 |
+| canonical-base-neutrality (ADR-0064 §8) | oya-check-architecture | 0 | 0 | 0 |
+| cross-pack-refusal (ADR-0064 §7) | oya-check-architecture | 0 | 0 | 0 |
 | perf-budget | oya-check-perf-budget | 0 | 0 | 0 |
 | benchmark | oya-check-benchmark | 0 | 0 | 0 |
 | cargo-check | cargo | 0 | 0 | — |
@@ -211,22 +214,25 @@ Next milestone: **M03** (Citus deployment + mTLS Istio + Grafana dashboards + ac
 
 ```bash
 # Verify BLOCKER mode — each must exit 0 (means 0 violations when running against full workspace)
-cargo run -p oya-check-statelessness -- --workspace                          # exit 0
-cargo run -p oya-check-shardability -- --migrations-dir migrations/          # exit 0
-cargo run -p oya-check-architecture -- dependency-direction --workspace      # exit 0
-cargo run -p oya-check-architecture -- layer-correctness --workspace         # exit 0
-cargo run -p oya-check-architecture -- lib-name-parity --workspace           # exit 0
-cargo run -p oya-check-architecture -- port-location --workspace             # exit 0
-cargo run -p oya-check-architecture -- cross-product-refusal --workspace     # exit 0
-cargo run -p oya-check-architecture -- composition-root-only --workspace     # exit 0
-cargo run -p oya-check-architecture -- sdk-kernel-only --workspace           # exit 0
-cargo run -p oya-check-perf-budget -- --workspace                            # exit 0
-cargo run -p oya-check-benchmark -- --workspace                              # exit 0
-cargo check --workspace --all-features                                        # exit 0
-cargo nextest run --workspace --all-features                                  # exit 0; 0 failures
-cargo deny check                                                              # exit 0
-oya gate validate planes --all                                                # exit 0
-oya gate validate wave-integration --milestone M02                            # exit 0; no cycles
+cargo run -p oya-check-statelessness -- --workspace                              # exit 0
+cargo run -p oya-check-shardability -- --migrations-dir migrations/              # exit 0
+cargo run -p oya-check-documentation -- --workspace --blocker                    # exit 0 (LEAN-A5; ADR-0063)
+cargo run -p oya-check-architecture -- dependency-direction --workspace          # exit 0
+cargo run -p oya-check-architecture -- layer-correctness --workspace             # exit 0
+cargo run -p oya-check-architecture -- lib-name-parity --workspace               # exit 0
+cargo run -p oya-check-architecture -- port-location --workspace                 # exit 0
+cargo run -p oya-check-architecture -- cross-product-refusal --workspace         # exit 0
+cargo run -p oya-check-architecture -- composition-root-only --workspace         # exit 0
+cargo run -p oya-check-architecture -- sdk-kernel-only --workspace               # exit 0
+cargo run -p oya-check-architecture -- canonical-base-neutrality --workspace     # exit 0 (ADR-0064 §8)
+cargo run -p oya-check-architecture -- cross-pack-refusal --workspace            # exit 0 (ADR-0064 §7)
+cargo run -p oya-check-perf-budget -- --workspace                                # exit 0
+cargo run -p oya-check-benchmark -- --workspace                                  # exit 0
+cargo check --workspace --all-features                                            # exit 0
+cargo nextest run --workspace --all-features                                      # exit 0; 0 failures
+cargo deny check                                                                  # exit 0
+oya gate validate planes --all                                                    # exit 0
+oya gate validate wave-integration --milestone M02                                # exit 0; no cycles
 ```
 
 ---
@@ -234,14 +240,16 @@ oya gate validate wave-integration --milestone M02                            # 
 ## Test Plan
 
 No new test code. This IP modifies GitHub Actions YAML and produces a documentation artifact.
-The "test" is CI itself: the first PR merged after this IP must have all 14 lanes green in
-BLOCKER mode with no violations.
+The "test" is CI itself: the first PR merged after this IP must have all 17 lanes green in
+BLOCKER mode with no violations (14 originally planned + LEAN-A5 doc-coverage +
+canonical-base-neutrality + cross-pack-refusal sub-commands added in iter-5/iter-5f).
 
 | Verification step | Tool | Expected |
 |---|---|---|
 | statelessness BLOCKER | oya-check-statelessness (no --report-only) | exit 0 |
 | shardability BLOCKER | oya-check-shardability (no --report-only) | exit 0 |
-| architecture checks BLOCKER | oya-check-architecture (7 sub-cmds, no --report-only) | exit 0 |
+| doc-coverage BLOCKER (LEAN-A5; ADR-0063) | oya-check-documentation --blocker | exit 0 |
+| architecture checks BLOCKER | oya-check-architecture (9 sub-cmds incl. canonical-base-neutrality + cross-pack-refusal, no --report-only) | exit 0 |
 | perf-budget BLOCKER | oya-check-perf-budget (no --report-only) | exit 0 |
 | benchmark BLOCKER | oya-check-benchmark (no --report-only) | exit 0 |
 | CI green | GitHub Actions ci-fitness-lanes workflow | all jobs green |
