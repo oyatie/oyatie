@@ -1,0 +1,36 @@
+---
+doc_class: PhaseIndex
+parent: ../../INDEX.md
+id: M-CC-P02
+title: Doc Auto-Generation + Freshness
+status: stub
+purpose: Generate docs from machine-readable truth (rustdoc, OpenAPI, ADR-INDEX, fitness reports); CI lane catches drift.
+---
+
+# M-CC-P02 — Doc Auto-Generation + Freshness
+
+## Purpose
+Per MASTERPLAN §2 Directive 10. Hand-written docs are reserved for narrative; everything machine-derivable is generated.
+
+## Acceptance
+- `oya-foundry-mdbook-kernel` publishes rustdoc + OpenAPI Redoc + AsyncAPI + ADR-INDEX + glossary + COMPLIANCE-MATRIX as a single mdbook site.
+- `oya-foundry-fitness-doc-freshness` lane CI-blocks PRs that change source-of-truth without regenerating dependent docs.
+- `oya-foundry-fitness-doc-style` lane enforces canonical doc-style per `docs/standards/doc-style.md`.
+
+## Implementation Plans
+| IP | Title | Status | File |
+|---|---|---|---|
+| IP-001 | mdbook publishing pipeline kernel + source walkers | stub | [`IP-001-mdbook-pipeline.md`](IP-001-mdbook-pipeline.md) |
+| IP-002 | Doc-freshness CI lane | stub | [`IP-002-doc-freshness-lane.md`](IP-002-doc-freshness-lane.md) |
+| IP-003 | Doc-style enforcement lane + auto-format | stub | [`IP-003-doc-style-lane.md`](IP-003-doc-style-lane.md) |
+
+## Estimated parallelism
+3 agents.
+
+## Symbols-touched
+`crates/oya-foundry-mdbook-kernel`, `crates/oya-foundry-fitness-{doc-freshness,doc-style}-kernel`.
+
+## Agent-handoff
+```
+icm store -t context-oyatie -c "M-CC-P02 complete: doc auto-generation + freshness lane green" -i critical -k "M-CC,P02,doc-automation,freshness,complete"
+```
