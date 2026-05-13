@@ -67,12 +67,12 @@ Application (B2B unified shell — µservice)
   Tenants sign in; enable µservices à-la-carte (AWS-console model).
 
 Flat catalog — customer-facing enable-able µservices (any tenant, any subset):
-  medical, pharmacy, healthcare-portal, emergency, clinical
-  hr, payroll, accounting, ats, grc, performance
+  medical, pharmacy, healthcare-portal, emergency, clinical, patient
+  hr, payroll, accounting, ats, grc, performance, workforce-analytics
   manufacturing, logistics, facility-ops, procurement, security
-  payments, insurance, finance-quant
-  connect (dual-context: messenger + mail + community)
-  dining, cellar, …
+  payments, insurance, finance-quant, settlement
+  connect (dual-context: messenger + mail), community, social-graph, profile-personal
+  hospitality, dining, cellar
 
 Workflow µservice (cross-µservice action/orchestration adapter)
   State machines, DAGs, approvals, escalations, SLA timers, handoffs.
@@ -129,6 +129,35 @@ Examples: `oya-medical-encounter-domain`, `oya-payments-ledger-application`, `oy
 
 Sales-segmentation labels (Healthcare / Enterprise / FinTech / Social) are GTM-only — NOT architecture. They do not appear in crate names, directory names, or architectural docs.
 
+### 2.5 Canonical global base + localization seams / adapters / packs (load-bearing rule)
+
+**The expectation, set globally:** every oyatie µservice has a **canonical global base** that expresses the universal business model, and zero or more **localization overlays** that bind jurisdiction-specific concerns. The overlay form is chosen per-concern — three forms exist, all valid:
+
+| Form | When to use | Example |
+|---|---|---|
+| **Seam** | Canonical base declares a port (trait); the jurisdiction plugs in a value or thin trait impl via DI | `payroll-run-domain` calls `StatutoryRateProvider`; KR pack supplies the impl with 4대보험 rates + 간이세액표 |
+| **Adapter** | A separate adapter crate translates jurisdiction-specific I/O (protocol / format / portal) into canonical domain types | `oya-payroll-kr-edi-adapter` translates NPS EDI v5.0 ↔ canonical `PayrollFinalized` event |
+| **Pack** | Coherent bundle of seams + adapters + Cedar fragments + Workflow templates + Typst templates, shipped as one deployable unit per jurisdiction | `kr` pack = all KR seams + adapters + policies + templates for hr / payroll / accounting / medical / pharmacy / etc. |
+
+**Choosing the form** (per-concern, whichever is most appropriate): use a **seam** when the variation is a value or small trait impl. Use an **adapter** when there is a discrete I/O surface (EDI, API protocol, government portal). Use a **pack** for the deployable bundle and the doc-suite + audit-chain unit. The forms layer cleanly — a pack composes seams + adapters.
+
+**Canonical global base = universal product.** No statutory rates baked in. No jurisdiction codes in business logic (only in pack adapters). No language strings in domain types (i18n keys only; locale resolution at presentation). No regulatory-authority names in domain types. CI lane `oya-check-architecture --canonical-base-neutrality` (per ADR-0064 §8) enforces.
+
+**Pluggability rule:** A customer-facing µservice ships to a paying tenant only when (a) its canonical base passes the M02 substrate quality bar **AND** (b) at least one localization pack exists for it OR an explicit ADR declares it pack-neutral (e.g., `connect-messenger` core protocol is pack-neutral; only retention windows are pack-specific). The canonical base alone is **not** shippable to a paying tenant.
+
+**Pack #1 — Korea (`kr`)** is the foundational localization pack. M01–M07 milestones ship the canonical base **plus** the KR pack in lock-step (oyatie's first paying tenant is KR). M09+ adds US pack; M10+ adds EU pack; JP/SEA/MENA follow under H4.
+
+**Pack composition** (canonical, per ADR-0064):
+
+- `pack.yaml` manifest (regulations covered, supported language(s), connectors, signed `corpus.lock` per ADR-0190)
+- Per-µservice seam impls + adapter crates (BNF v4.1: `oya-<microservice>-<pack>-<bc>-<layer>` for seams inline; `oya-pack-<pack>-<microservice>-<layer>` for discrete adapter bundles)
+- Per-jurisdiction Cedar policy fragments (PIPA / GDPR / HIPAA legal bases)
+- Per-jurisdiction Workflow Studio templates (KR clinical handoff, US W-2 cycle, EU SEPA cycle)
+- Per-jurisdiction Typst document templates (KR 급여명세서, US W-2, EU SEPA mandate)
+- Acceptance evidence bundle (regulatory submission samples + signed audit-chain segment)
+
+Canonical anchor: `docs/localization-packs/INDEX.md`. Each pack has a dedicated overview doc (`docs/localization-packs/<code>.md`).
+
 ---
 
 ## 3. Inheritance posture (per ADR-0060)
@@ -184,25 +213,115 @@ Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR
 
 **Phases:** See §7 Implementation-Plan Index.
 
-### M04+ — DEFERRED
+### M04 — Healthcare KR foundation
 
-Per user instruction 2026-05-13: "missing some aspects later but we can solidify on our near term plans as is."
+**Scope:** Activate medical / pharmacy / patient / records-fhir / emergency µservices with full Korean regulatory binding. Workflow Studio gains clinical-handoff, prescription-lifecycle, intake-routing, and pharmacy-DUR templates. Ontology gains FHIR R5 entity types (Patient, Encounter, Observation, MedicationRequest, Prescription, Practitioner, Organization, Coverage, AllergyIntolerance).
 
-Deferred scope (to be planned in a follow-up session):
-- Healthcare expansion (medical/pharmacy/portal/emergency/clinical) — 의료법, HIRA DUR, KFDA, NHIS, KHIRA, FHIR R5, HIPAA (US)
-- FinTech expansion (payments/insurance/finance-quant) — 전자금융업, 간편결제, 인터넷전문은행, PCI DSS, KYC/AML, settlement
-- Connect Personal context launch — crypto-audit + cold-start
-- Industrial Suite (manufacturing/logistics/facility-ops/security per Bominal ADR-0011) with shared Workflow
-- International expansion (US, EU jurisdictions per Bominal ADR-0140)
+**Regulatory:** 의료법, HIRA DUR (의약품안전사용서비스), KFDA (식약처) recall/dispatch, NHIS / 건보공단 청구, KHIRA outcomes, EMR vendor cross-walk (유비케어, 비트컴퓨터, 이지스헬스케어).
+
+**Exit:** 1 KR hospital (≥30-bed) live; DUR realtime check p99 ≤200ms at prescription; HIRA submission automation green; FHIR R5 export pack signed; pharmacy → accounting auto-journal green.
+
+### M05 — Connect Personal launch (B2C)
+
+**Scope:** Activate Personal context of Connect (separate path from Application B2B shell). E2EE messaging (PQXDH + Signal ratchet, user-controlled keys; org cannot decrypt); Personal mail with user-owned audit chain; community channels; social-graph foundation; profile-personal µservice. Cross-context safety invariant: Personal data never flows to org policy engine, never indexed by org Search, never exposed via org Ontology.
+
+**Regulatory:** 개인정보보호법 (PIPA) full B2C posture; cross-border data minimization; child-safety + minor protection (KFTC + KCC).
+
+**Exit:** Personal context GA; cold-start cohort ≥10k MAU; cross-context safety drill passed (red-team verifies no leak in either direction); onboarding <2hr trust threshold.
+
+### M06 — FinTech KR foundation
+
+**Scope:** Activate payments / insurance / finance-quant / settlement µservices. KR payment rails: card acquirer adapters (KEB Hana, Shinhan Card, BC Card), 간편결제 partner APIs (토스/카카오페이/네이버페이), virtual account, recurring billing, 정산 (T+1 settlement), refund cycle, chargeback handling.
+
+**Regulatory:** 전자금융업 등록 → 간편결제업 → 인터넷전문은행 (phased; multi-year ramp). PCI DSS L1 service-provider, KYC/AML, FSC quarterly reporting. Insurance: 보험업법 (손해/생명 separate licenses; phased).
+
+**Exit:** 전자금융업 license registered; 1 SME tenant taking payments via oyatie rails (≥1k tx/day); settlement T+1 green; finance-quant cleanly pluggable to accounting (auto-journal); PCI L1 RoC issued.
+
+### M07 — Industrial Suite KR
+
+**Scope:** Activate manufacturing / logistics / facility-ops / procurement / security µservices. Workflow Studio templates: SOP-execution, shift-handover, defect-routing, last-mile-delivery, vendor-onboarding, security-audit, incident-IR, MES integration. Ontology gains domain entity types: Asset, WorkOrder, Shipment, Defect, Vendor, PO, Receipt.
+
+**Regulatory:** 산업안전보건법, 중대재해처벌법, 화학물질관리법 (manufacturing); 화물자동차운수사업법, 항만운송사업법 (logistics); 개인정보보호법 (security records).
+
+**Exit:** 1 KR manufacturer (≥50 employees) or 3PL logistics tenant live; cross-µservice flow proven (procurement → accounting → payroll); defect-MTTR ≤2h; shipment-tracking p99 ≤300ms.
+
+### M08 — Enterprise breadth + workforce depth
+
+**Scope:** Activate ats / grc / performance / workforce-analytics µservices at Workday / SAP SuccessFactors parity. ATS funnel (candidate → interview → offer → onboarding handoff to HR); GRC controls library + recurring audit cycle (SOC2/ISO27001 templates); performance review cycle (OKR / 360 / calibration); workforce analytics (attrition, engagement, comp-spend).
+
+**Exit:** ATS-to-Payroll handoff via Workflow + Ontology proven end-to-end (no direct cross-product import); perf review cycle 1.0 shipped; SOC2-style internal audit cycle complete on tenant.
+
+### M09 — International expansion — United States
+
+**Scope:** Stand up US region (us-east-1 + us-west-2 OCI ARM64 cells). HIPAA-Compliant baseline (medical/pharmacy/records-fhir). PCI DSS L1 (payments). SOC 2 Type II audit (12-month observation). US payroll: federal + 50-state tax tables; W-2/W-4/1099/I-9/ACA; 401(k) recordkeeper integration; ADP / Workday parity. USD primary; settlement via Stripe / Plaid / Dwolla. US healthcare: Epic / Cerner FHIR R5 adapters.
+
+**Exit:** 1 US tenant live; HIPAA BAA signed; PCI DSS L1 certified; SOC 2 Type II report issued; cross-region failover drill passed (us-east-1 ↔ us-west-2 RTO ≤30s).
+
+### M10 — International expansion — European Union
+
+**Scope:** Stand up EU region (eu-frankfurt-1 + eu-zurich-1 cells; Schrems II-safe — no US transfer). GDPR full posture (Articles 5, 6, 9, 17, 28, 32, 33, 35). eIDAS qualified signatures. SEPA Direct Debit + Credit Transfer + Instant. IFRS bindings (accounting). NIS2 (security). DORA (financial). Per-tenant data residency pinning.
+
+**Regulatory:** GDPR, eIDAS, SEPA, IFRS, NIS2, DORA, MDR (medical devices).
+
+**Exit:** 1 EU tenant live; Article 28 DPA template signed; SEPA mandate flow green; cross-border data minimization audit passed.
+
+### M11 — Healthcare expansion US/EU
+
+**Scope:** US: HIPAA-Compliant medical/pharmacy/records-fhir; Epic FHIR R5 + USCDI v3; CDA / IPS export; HL7 v2.x cross-walk. EU: GDPR special-category PHI posture; eMedRec / NHS-compatible records; MDR conformance for device-data ingestion; cross-border PHI never transmitted without Article 9(2) basis.
+
+**Exit:** 1 US or EU healthcare tenant live; HL7 v2 + FHIR R5 dual-stack proven; MDR / HIPAA cross-residency audit drill complete.
+
+### M12+ — Hyperscaler maturity (future-horizon)
+
+**Scope:** 100M-user load validated against multi-region active-active. Carbon-aware compute scheduling. Wasmtime-sandboxed third-party agent marketplace. ISV plugin ecosystem (third-party µservice authoring SDK + signed-attestation gate). Open µservice marketplace where tenants enable community-authored µservices. AI agent marketplace with autonomy-ceiling governance.
+
+**Exit:** 100M synthetic-tenant load test green at <30ms p50 read; carbon-aware scheduler 30% reduction; ≥10 third-party ISV µservices live; agent marketplace governance audit clean.
 
 ---
 
-## 5. Known forthcoming regulatory gates (deferred to M04+ but visible)
+## 4.5 Horizons
 
-- Payment: 전자금융업 → 간편결제 → 인터넷전문은행 (M05+)
-- Healthcare KR: 의료법, HIRA DUR, KFDA, NHIS, KHIRA (M04)
-- Healthcare US/EU: HIPAA, FHIR R5, GDPR (M04+)
-- All compliance traits pluggable per Bominal ADR-0140
+| Horizon | Milestones | End state |
+|---|---|---|
+| **H1: KR enterprise foundation** | M01–M03 | 1 KR group paying tenant on HR/Payroll/Accounting + Connect Pro Mail/Messenger; substrate complete; Application + Workflow Studio live |
+| **H2: KR domain breadth** | M04–M07 | KR Healthcare, FinTech, Industrial, Connect Personal live; ≥1 design-partner tenant per domain |
+| **H3: International + enterprise depth** | M08–M11 | US + EU regions live; HIPAA + GDPR compliant; ATS/GRC/Performance shipped; cross-border data residency |
+| **H4: Hyperscaler maturity** | M12+ | 100M-user load validated; multi-region active-active for high-consequence µservices; ISV + AI-agent marketplace |
+
+## 5. Regulatory roadmap (full horizon — visible from day one)
+
+| Jurisdiction | Regime | Milestone |
+|---|---|---|
+| KR | 4대보험 EDI (NPS / NHIS / 고용 / 산재) | M03 |
+| KR | 연말정산 21-category deduction model | M03 |
+| KR | Bominal ADR-0215 dual-context legal-hold / retention (Pro) | M03 |
+| KR | 의료법, HIRA DUR, KFDA, NHIS 청구, KHIRA | M04 |
+| KR | EMR cross-walk (유비케어 / 비트컴퓨터 / 이지스헬스케어) | M04 |
+| KR | 개인정보보호법 (PIPA) — B2C posture + child-safety | M05 |
+| KR | 전자금융업 → 간편결제업 → 인터넷전문은행 (phased) | M06 |
+| KR | PCI DSS L1; 보험업법 (손해/생명 separate licenses) | M06 |
+| KR | 산업안전보건법, 중대재해처벌법, 화학물질관리법 | M07 |
+| KR | 화물자동차운수사업법, 항만운송사업법 | M07 |
+| US | SOC 2 Type II, HIPAA (BAA), PCI DSS L1 | M09 |
+| US | Federal + 50-state payroll tax; ACA; W-2/W-4/1099; I-9 | M09 |
+| US | USCDI v3, CDA, IPS, Epic / Cerner FHIR R5 | M11 |
+| EU | GDPR (Articles 5/6/9/17/28/32/33/35), eIDAS, SEPA, IFRS | M10 |
+| EU | NIS2, DORA, MDR | M10–M11 |
+
+All compliance traits pluggable per Bominal ADR-0140 regional-pack pattern; oyatie inherits 1:1.
+
+## 5.5 Localization pack catalog
+
+| Pack | Code | Status | Milestones | Scope |
+|---|---|---|---|---|
+| **Korea** | `kr` | **Pack #1 — foundational** | M01–M07 | 4대보험 EDI, 연말정산, K-GAAP, HIRA/KFDA/NHIS/KHIRA, PIPA, 전자금융업/간편결제, FSS, 산업안전보건법, 화물자동차운수사업법, 의료법, 119, 더존/유비케어/비트컴퓨터 cross-walk |
+| **United States** | `us` | Planned (H3) | M09, M11 | HIPAA-BAA, PCI DSS L1, SOC2 Type II, federal+50-state tax, W-2/W-4/1099/I-9/ACA, 401(k), USCDI v3, Epic/Cerner FHIR R5, ADP/Workday parity |
+| **European Union** | `eu` | Planned (H3) | M10, M11 | GDPR (Art 5/6/9/17/28/32/33/35), eIDAS, SEPA DD/CT/Instant, IFRS, NIS2, DORA, MDR, eMedRec/NHS, multi-language (DE/FR/ES/NL/IT) |
+| **Japan** | `jp` | Future (H4) | M12+ | 国民健康保険, 厚生年金, 源泉徴収, インボイス制度, FSA, 医療法 (JP) |
+| **SEA pilot (SG/MY/TH/VN)** | `sea-*` | Future (H4) | M12+ | Per-country tax + payments rails (NETS, GrabPay, PromptPay) |
+| **MENA pilot (SA/AE)** | `mena-*` | Future (H4) | M12+ | Zakat/VAT, NCC, mada |
+
+**Anchor:** `docs/localization-packs/INDEX.md` is the canonical pack catalog. Each pack has a dedicated doc (`docs/localization-packs/<code>.md`) declaring: scope, regulatory binding list, supported µservices, ADRs locking pack-specific decisions, fitness lane coverage, evidence bundle template.
 
 ---
 
@@ -508,22 +627,162 @@ This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EX
 | **P12** first-paying-tenant-onboarding | `.omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P12-first-paying-tenant-onboarding/` | IP-001-kr-group-tenant-onboarding.md | **[TBD]** |
 | P12 | | IP-002-go-live-evidence-pack.md | **[TBD]** |
 
-### M04 — Vertical-Pilot Korea (pre-2026-05-13 plan; may need refresh after M04+ scoping session)
+### M04 — Healthcare KR foundation
 
-| Phase | Phase path | Impl Plan | Status |
+| Phase | Phase path | Scope summary | Status |
 |---|---|---|---|
-| P01 vertical-capability-pack | `.omc/plans/milestones/M04-vertical-pilot-korea/phases/P01-vertical-capability-pack/` | IP-001-council-resolution.md | **[EXISTS]** |
-| P01 | | IP-002-capability-pack-kernel.md | **[EXISTS]** |
-| P01 | | IP-003-vertical-workflows.md | **[EXISTS]** |
-| P02 kr-regulatory-binding | `.omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/` | IP-001-pipa-csap-evidence.md | **[EXISTS]** |
-| P02 | | IP-002-isms-p-kcmvp-hsm.md | **[EXISTS]** |
-| P02 | | IP-003-kr-vertical-surfaces.md | **[EXISTS]** |
-| P03 design-partner-onboarding | `.omc/plans/milestones/M04-vertical-pilot-korea/phases/P03-design-partner-onboarding/` | IP-001-tenant-onboarding.md | **[EXISTS]** |
-| P03 | | IP-002-tenant-workflows.md | **[EXISTS]** |
-| P03 | | IP-003-foundry-agents-activation.md | **[EXISTS]** |
-| P04 evidence-retention-audit | `.omc/plans/milestones/M04-vertical-pilot-korea/phases/P04-evidence-retention-audit/` | IP-001-evidence-pipeline.md | **[EXISTS]** |
-| P04 | | IP-002-retention-kpi.md | **[EXISTS]** |
-| P04 | | IP-003-audit-pack-generator.md | **[EXISTS]** |
+| P01 medical-clinical | `.omc/plans/milestones/M04-healthcare-kr/phases/P01-medical-clinical/` | medical encounter kernel + clinician UI + DUR hook | **[TBD]** |
+| P02 pharmacy-dur | `.../P02-pharmacy-dur/` | pharmacy prescription kernel + realtime DUR (의약품안전사용서비스) | **[TBD]** |
+| P03 records-fhir-kr | `.../P03-records-fhir-kr/` | FHIR R5 entity types + EMR cross-walk (유비케어/비트컴퓨터/이지스) | **[TBD]** |
+| P04 patient-portal-b2c | `.../P04-patient-portal-b2c/` | patient record access + appointment booking + Connect Personal linkage | **[TBD]** |
+| P05 emergency-handoff | `.../P05-emergency-handoff/` | 119 routing + handoff workflow + cross-clinic dispatch | **[TBD]** |
+| P06 kr-regulatory-binding | `.../P06-kr-regulatory-binding/` | HIRA / KFDA / NHIS / KHIRA submission + recall adapters | **[TBD]** |
+| P07 kr-hospital-acceptance | `.../P07-kr-hospital-acceptance/` | 30-bed tenant onboarding + ADR-style evidence bundle | **[TBD]** |
+
+### M05 — Connect Personal launch (B2C)
+
+| Phase | Phase path | Scope summary | Status |
+|---|---|---|---|
+| P01 personal-context-bootstrap | `.omc/plans/milestones/M05-connect-personal/phases/P01-personal-context-bootstrap/` | Personal context flag + dual-context boundary enforcement (Bominal ADR-0208) | **[TBD]** |
+| P02 e2ee-user-keys | `.../P02-e2ee-user-keys/` | PQXDH + Signal ratchet under user-controlled keys (org cannot decrypt) | **[TBD]** |
+| P03 personal-mail-audit | `.../P03-personal-mail-audit/` | Personal mail + user-owned audit chain (separate Merkle root per user) | **[TBD]** |
+| P04 community-social-graph | `.../P04-community-social-graph/` | community channels + social-graph foundation + profile-personal µservice | **[TBD]** |
+| P05 cross-context-safety | `.../P05-cross-context-safety/` | cross-context safety drill (red-team verifies no leak either direction) | **[TBD]** |
+| P06 cold-start-launch | `.../P06-cold-start-launch/` | Personal context GA; 10k MAU cold-start cohort; <2hr trust onboarding | **[TBD]** |
+
+### M06 — FinTech KR foundation
+
+| Phase | Phase path | Scope summary | Status |
+|---|---|---|---|
+| P01 payments-kernel | `.omc/plans/milestones/M06-fintech-kr/phases/P01-payments-kernel/` | payment intent / charge / refund / chargeback domain | **[TBD]** |
+| P02 kr-acquirer-adapters | `.../P02-kr-acquirer-adapters/` | KEB Hana / Shinhan / BC Card adapters; 토스/카카오페이/네이버페이 partner APIs | **[TBD]** |
+| P03 settlement-t1 | `.../P03-settlement-t1/` | T+1 settlement + reconciliation + finance-quant auto-journal | **[TBD]** |
+| P04 insurance-kernel | `.../P04-insurance-kernel/` | 손해/생명 insurance kernel; policy/claim/underwriting | **[TBD]** |
+| P05 finance-quant-pluggable | `.../P05-finance-quant-pluggable/` | finance-quant µservice pluggable to accounting via Ontology | **[TBD]** |
+| P06 fsc-regulatory-binding | `.../P06-fsc-regulatory-binding/` | 전자금융업 등록 → 간편결제업 (phased); PCI DSS L1; KYC/AML | **[TBD]** |
+| P07 sme-acceptance | `.../P07-sme-acceptance/` | 1 SME tenant taking payments live; ≥1k tx/day; settlement green | **[TBD]** |
+
+### M07 — Industrial Suite KR
+
+| Phase | Phase path | Scope summary | Status |
+|---|---|---|---|
+| P01 manufacturing-mes | `.omc/plans/milestones/M07-industrial-kr/phases/P01-manufacturing-mes/` | manufacturing MES integration + SOP execution + defect-routing | **[TBD]** |
+| P02 logistics-tms | `.../P02-logistics-tms/` | TMS / WMS adapters; last-mile-delivery; carrier integrations | **[TBD]** |
+| P03 facility-ops | `.../P03-facility-ops/` | facility-ops µservice; shift handover; incident-IR | **[TBD]** |
+| P04 procurement-flow | `.../P04-procurement-flow/` | procurement → accounting → payroll cross-µservice flow proven | **[TBD]** |
+| P05 security-physical | `.../P05-security-physical/` | physical security + audit; cross-walks 개인정보보호법 records | **[TBD]** |
+| P06 kr-industrial-regulatory | `.../P06-kr-industrial-regulatory/` | 산업안전보건법 / 중대재해처벌법 / 화학물질관리법 bindings | **[TBD]** |
+| P07 industrial-acceptance | `.../P07-industrial-acceptance/` | 1 KR manufacturer ≥50 emp or 3PL logistics tenant live | **[TBD]** |
+
+### M08 — Enterprise breadth + workforce depth
+
+| Phase | Phase path | Scope summary | Status |
+|---|---|---|---|
+| P01 ats-funnel | `.omc/plans/milestones/M08-enterprise-breadth/phases/P01-ats-funnel/` | applicant tracking funnel (candidate → interview → offer → onboarding) | **[TBD]** |
+| P02 grc-controls | `.../P02-grc-controls/` | GRC controls library + recurring audit cycle (SOC2/ISO27001 templates) | **[TBD]** |
+| P03 performance-cycle | `.../P03-performance-cycle/` | performance review cycle (OKR / 360 / calibration) | **[TBD]** |
+| P04 workforce-analytics | `.../P04-workforce-analytics/` | attrition / engagement / comp-spend analytics | **[TBD]** |
+| P05 enterprise-handoffs | `.../P05-enterprise-handoffs/` | ATS → HR → Payroll handoff via Workflow + Ontology end-to-end | **[TBD]** |
+
+### M09 — International expansion — United States
+
+| Phase | Phase path | Scope summary | Status |
+|---|---|---|---|
+| P01 us-region-cells | `.omc/plans/milestones/M09-us-expansion/phases/P01-us-region-cells/` | us-east-1 + us-west-2 OCI ARM64 cells; cross-region failover RTO ≤30s | **[TBD]** |
+| P02 us-payroll-tax | `.../P02-us-payroll-tax/` | federal + 50-state tax; W-2/W-4/1099/I-9/ACA; 401(k) recordkeeper integration | **[TBD]** |
+| P03 us-payments-rails | `.../P03-us-payments-rails/` | USD primary; Stripe / Plaid / Dwolla; ACH; same-day ACH; wire | **[TBD]** |
+| P04 hipaa-baa-baseline | `.../P04-hipaa-baa-baseline/` | HIPAA-Compliant medical/pharmacy/records-fhir; BAA template | **[TBD]** |
+| P05 soc2-pci-certification | `.../P05-soc2-pci-certification/` | SOC 2 Type II (12-mo observation); PCI DSS L1 service-provider RoC | **[TBD]** |
+| P06 us-tenant-acceptance | `.../P06-us-tenant-acceptance/` | 1 US tenant live; cross-region failover drill passed | **[TBD]** |
+
+### M10 — International expansion — European Union
+
+| Phase | Phase path | Scope summary | Status |
+|---|---|---|---|
+| P01 eu-region-cells | `.omc/plans/milestones/M10-eu-expansion/phases/P01-eu-region-cells/` | eu-frankfurt-1 + eu-zurich-1; Schrems II-safe (no US transfer) | **[TBD]** |
+| P02 gdpr-posture | `.../P02-gdpr-posture/` | GDPR Articles 5/6/9/17/28/32/33/35; per-tenant data-residency pinning | **[TBD]** |
+| P03 eidas-sepa | `.../P03-eidas-sepa/` | eIDAS qualified signatures; SEPA Direct Debit + Credit Transfer + Instant | **[TBD]** |
+| P04 ifrs-accounting | `.../P04-ifrs-accounting/` | IFRS bindings (accounting); cross-walks to K-GAAP / US GAAP | **[TBD]** |
+| P05 nis2-dora-mdr | `.../P05-nis2-dora-mdr/` | NIS2 (security), DORA (financial), MDR (medical devices) | **[TBD]** |
+| P06 eu-tenant-acceptance | `.../P06-eu-tenant-acceptance/` | 1 EU tenant live; Article 28 DPA signed; SEPA mandate green | **[TBD]** |
+
+### M11 — Healthcare expansion US/EU
+
+| Phase | Phase path | Scope summary | Status |
+|---|---|---|---|
+| P01 hipaa-fhir-r5-usa | `.omc/plans/milestones/M11-healthcare-intl/phases/P01-hipaa-fhir-r5-usa/` | Epic / Cerner FHIR R5 adapters; USCDI v3; CDA / IPS export | **[TBD]** |
+| P02 hl7v2-crosswalk | `.../P02-hl7v2-crosswalk/` | HL7 v2.x dual-stack with FHIR R5; legacy hospital interop | **[TBD]** |
+| P03 gdpr-phi-eu | `.../P03-gdpr-phi-eu/` | GDPR special-category PHI posture (Article 9(2) bases) | **[TBD]** |
+| P04 emedrec-nhs-eu | `.../P04-emedrec-nhs-eu/` | eMedRec / NHS-compatible records; cross-border PHI minimization | **[TBD]** |
+| P05 mdr-device-ingestion | `.../P05-mdr-device-ingestion/` | MDR conformance for medical-device data ingestion | **[TBD]** |
+| P06 intl-healthcare-acceptance | `.../P06-intl-healthcare-acceptance/` | 1 US or EU healthcare tenant live; dual-stack proven | **[TBD]** |
+
+### M12+ — Hyperscaler maturity (future-horizon)
+
+| Phase | Phase path | Scope summary | Status |
+|---|---|---|---|
+| P01 100m-load-validation | `.omc/plans/milestones/M12-hyperscaler-maturity/phases/P01-100m-load-validation/` | 100M synthetic-tenant load test; multi-region active-active | **[TBD]** |
+| P02 carbon-aware-scheduling | `.../P02-carbon-aware-scheduling/` | carbon-aware compute scheduler; 30%+ carbon reduction | **[TBD]** |
+| P03 isv-marketplace | `.../P03-isv-marketplace/` | ISV plugin ecosystem; signed-attestation gate; ≥10 third-party µservices | **[TBD]** |
+| P04 agent-marketplace | `.../P04-agent-marketplace/` | Wasmtime-sandboxed agent marketplace; autonomy-ceiling governance | **[TBD]** |
+
+> **Note on legacy M04 directory:** The old `.omc/plans/milestones/M04-vertical-pilot-korea/` phases were authored under the pre-2026-05-13 "Vertical-Pilot Korea" model. That model retires the "vertical/arm" terminology and is superseded by the flat µservice catalog. The legacy directory is scheduled for physical removal in a dedicated cleanup phase (no compat seams; stale removed in reality, per `feedback_autonomous_implementation_artifacts.md`). M04 is now Healthcare KR foundation.
+
+---
+
+## 13.5 Documentation suite coverage (CI-enforced)
+
+Every planned µservice ships with a complete documentation suite. Coverage is **CI-enforced** via `oya-check-doc-coverage-cli` (LEAN-A5; report-only until M02-P22, BLOCKER thereafter). See ADR-0063.
+
+### 13.5.1 Per-µservice canonical artifact suite
+
+For every µservice registered in `[workspace.metadata.oya.microservices]`:
+
+| Artifact | Path convention | Template |
+|---|---|---|
+| Microservice record | `docs/microservices/<microservice>.md` | `docs/templates/microservice-template.md` |
+| Product Requirements (canonical, pack-neutral) | `docs/prds/<microservice>.md` | `docs/templates/prd-template.md` |
+| Naming-scope ADR | `docs/decisions/ADR-NNNN-microservice-<microservice>.md` | `docs/templates/adr-template.md` |
+| Bounded-context registrations (one per BC) | `docs/bounded-contexts/<microservice>-<bc>.md` | `docs/templates/bounded-context-registration-template.md` |
+| Phase-Specs (≥1 referencing the µservice) | `.omc/plans/milestones/M*/phases/*/phase-spec.md` | `docs/templates/phase-spec-template.md` |
+| Impl-Plans (one per IP) | `.omc/plans/milestones/M*/phases/*/impl-plan.md` | `docs/templates/impl-plan-template.md` |
+
+### 13.5.2 Per-localization-pack overlay suite (per pack × per µservice in pack scope)
+
+| Artifact | Path convention |
+|---|---|
+| Pack overlay PRD | `docs/prds/<microservice>-<pack>.md` (required when pack adds material scope; optional otherwise) |
+| Pack regulatory ADR | `docs/decisions/ADR-NNNN-<pack>-<microservice>-regulatory.md` |
+| Pack acceptance evidence | `docs/localization-packs/<pack>/evidence/<microservice>.md` |
+
+Pack `pack.yaml` manifests at `docs/localization-packs/<pack>/pack.yaml` declare which µservices the pack covers; the CI lane derives the required (pack × µservice) cross-product from there.
+
+### 13.5.3 Per-milestone artifacts
+
+| Artifact | Path convention |
+|---|---|
+| Milestone README | `.omc/plans/milestones/M<NN>-<slug>/README.md` (`milestone-readme-template.md`) |
+| Acceptance evidence bundle | `.omc/plans/milestones/M<NN>-<slug>/acceptance-evidence/` |
+
+### 13.5.4 Enforcement — `oya-check-doc-coverage-cli` (LEAN-A5)
+
+Lane registered in `registry/quality/lanes.yaml`. Runs on every PR.
+
+Algorithm:
+
+1. Parse `[workspace.metadata.oya.microservices]` for canonical µservice list
+2. For each µservice, verify every row in §13.5.1 exists; report missing as violation
+3. Parse `docs/localization-packs/INDEX.md` for active packs + each `pack.yaml` for scope
+4. For each (pack × µservice) pair in pack scope, verify §13.5.2 rows; report missing
+5. Per-milestone: verify §13.5.3 rows exist for every milestone directory in `.omc/plans/milestones/`
+6. Section-completeness checks: every PRD has a `## Competitive Benchmark` section (per quality bar); every Impl-Plan has a `## Load test` section (per perf bar); every Phase-Spec frontmatter declares `acceptance_lanes:`
+7. Exit nonzero in BLOCKER mode if any required artifact missing or any required section absent
+
+Coverage snapshot (auto-emitted by the lane): `docs/DOC-COVERAGE.md`.
+
+### 13.5.5 Suite-completeness is a phase exit gate
+
+A phase that registers a new µservice (or new BC) is **not Complete** until the doc-coverage lane is green for that µservice. Per `feedback_autonomous_decision_principles.md` scope-completion rule: no stubs, no placeholders, no deferrals. The doc suite ships in the same commit that introduces the µservice.
 
 ---
 
@@ -539,4 +798,4 @@ This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EX
 ## 15. Status footer
 
 Status: **Accepted** (canonical at `docs/MASTERPLAN.md`).
-Iteration: 4 — full rewrite 2026-05-13 per /deep-interview session consensus. Adopts flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index, M04+ deferred per user instruction.
+Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-doc-coverage-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.
