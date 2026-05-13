@@ -139,6 +139,7 @@ members = [
   "crates/oya-workspace-trust-portal-kernel",
   "crates/oya-foundation-app",
   "crates/oya-tooling-cli-dev-runtime",
+  "crates/oya-tooling-agent-read",
 ]
 resolver = "2"
 
