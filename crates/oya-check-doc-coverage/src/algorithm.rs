@@ -9,25 +9,66 @@ use std::path::Path;
 use walkdir::WalkDir;
 
 /// Step 2: reconcile workspace metadata against MASTERPLAN §2.1 catalog.
-/// A planned µservice with no workspace registration AND no Phase-Spec
-/// referencing it is logged but not failed (it's `planned-only`).
+/// Per ADR-0063 §5 step 2: every planned µservice MUST appear in workspace
+/// metadata once it has a Phase-Spec referencing it. Planned-only µservices
+/// with no Phase-Spec are exempt from §1 enforcement but logged.
 pub fn reconcile_registered_vs_planned(
+    repo_root: &Path,
     registered: &[String],
     planned: &[String],
-    _report: &mut Report,
+    report: &mut Report,
 ) {
-    // Currently advisory-only per ADR-0063 §5 step 2 ("planned-only µservices
-    // are exempt from §1 enforcement but logged"). Future iteration: emit
-    // an info-level row when planned ⊄ registered ∪ phase-referenced.
-    let _ = (registered, planned);
+    let registered_set: std::collections::HashSet<&String> = registered.iter().collect();
+    // Index every phase-spec.md once; record (microservice → phase-spec path) refs
+    let phases_dir = repo_root.join(".omc/plans/milestones");
+    let mut phase_refs: std::collections::HashMap<String, Vec<String>> = Default::default();
+    if phases_dir.exists() {
+        for entry in WalkDir::new(&phases_dir).into_iter().filter_map(|r| r.ok()) {
+            if entry.file_name() == "phase-spec.md" {
+                let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+                for ms in planned {
+                    // Match µservice token as a kebab-bounded reference: `<ms>` or `<ms>-` or whitespace-bounded
+                    let needle1 = format!("`{}`", ms);
+                    let needle2 = format!("`{}-", ms);
+                    let needle3 = format!("oya-{}-", ms);
+                    let needle4 = format!(" {} ", ms);
+                    if content.contains(&needle1)
+                        || content.contains(&needle2)
+                        || content.contains(&needle3)
+                        || content.contains(&needle4)
+                    {
+                        phase_refs
+                            .entry(ms.clone())
+                            .or_default()
+                            .push(entry.path().display().to_string());
+                    }
+                }
+            }
+        }
+    }
+    for ms in planned {
+        if registered_set.contains(ms) {
+            continue;
+        }
+        if phase_refs.contains_key(ms) {
+            // Planned µservice referenced by ≥1 Phase-Spec but not in workspace metadata → violation
+            report.push(Violation {
+                kind: ViolationKind::UnreconciledPlanned,
+                path: format!("Cargo.toml [workspace.metadata.oya.microservices.{}]", ms),
+                description: format!(
+                    "µservice `{}` is referenced by Phase-Spec(s) [{}] but is not registered in [workspace.metadata.oya.microservices]",
+                    ms,
+                    phase_refs[ms].join(", ")
+                ),
+            });
+        }
+        // else: planned-only, no introducing phase yet — advisory only, not a violation
+    }
 }
 
 /// Step 3: for each registered µservice, verify §1 artifacts exist.
-pub fn verify_canonical_suite(
-    repo_root: &Path,
-    registered: &[String],
-    report: &mut Report,
-) {
+pub fn verify_canonical_suite(repo_root: &Path, registered: &[String], report: &mut Report) {
+    let phases_dir = repo_root.join(".omc/plans/milestones");
     for ms in registered {
         // Microservice record
         check_path(
@@ -53,15 +94,100 @@ pub fn verify_canonical_suite(
                 description: format!("missing naming-scope ADR for `{}`", ms),
             });
         }
+        // BC registrations — at least one BC registration must exist when the µservice has BCs
+        // (currently we cannot enumerate BCs from metadata, so we check at least one entry exists
+        // whose filename starts with `<ms>-` under docs/bounded-contexts/, OR the µservice has no
+        // declared BCs in any phase-spec).
+        if !has_bounded_context_registration(repo_root, ms) {
+            report.push(Violation {
+                kind: ViolationKind::MissingCanonicalArtifact,
+                path: format!("docs/bounded-contexts/{}-*.md", ms),
+                description: format!(
+                    "missing bounded-context registration(s) for `{}` (at least one BC registration required per ADR-0063 §1)",
+                    ms
+                ),
+            });
+        }
+        // Phase-Spec reference — at least one phase-spec must reference this µservice
+        if !has_phase_spec_reference(&phases_dir, ms) {
+            report.push(Violation {
+                kind: ViolationKind::MissingCanonicalArtifact,
+                path: format!(".omc/plans/milestones/M*/phases/*/phase-spec.md"),
+                description: format!(
+                    "no phase-spec references µservice `{}` — every registered µservice MUST have an introducing phase per ADR-0063 §1",
+                    ms
+                ),
+            });
+        }
+        // Impl-Plan reference — at least one impl-plan must reference this µservice
+        if !has_impl_plan_reference(&phases_dir, ms) {
+            report.push(Violation {
+                kind: ViolationKind::MissingCanonicalArtifact,
+                path: format!(".omc/plans/milestones/M*/phases/*/impl-plan.md"),
+                description: format!(
+                    "no impl-plan references µservice `{}` per ADR-0063 §1",
+                    ms
+                ),
+            });
+        }
     }
 }
 
+fn has_bounded_context_registration(repo_root: &Path, microservice: &str) -> bool {
+    let dir = repo_root.join("docs/bounded-contexts");
+    if !dir.exists() {
+        return false;
+    }
+    let prefix = format!("{}-", microservice);
+    std::fs::read_dir(&dir)
+        .map(|rd| {
+            rd.filter_map(|e| e.ok()).any(|e| {
+                let name = e.file_name().to_string_lossy().to_string();
+                name.starts_with(&prefix) && name.ends_with(".md")
+            })
+        })
+        .unwrap_or(false)
+}
+
+fn has_phase_spec_reference(phases_dir: &Path, microservice: &str) -> bool {
+    if !phases_dir.exists() {
+        return false;
+    }
+    let needle = format!("oya-{}-", microservice);
+    let needle_bareword = format!("`{}`", microservice);
+    for entry in WalkDir::new(phases_dir).into_iter().filter_map(|r| r.ok()) {
+        if entry.file_name() == "phase-spec.md" {
+            let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+            if content.contains(&needle) || content.contains(&needle_bareword) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+fn has_impl_plan_reference(phases_dir: &Path, microservice: &str) -> bool {
+    if !phases_dir.exists() {
+        return false;
+    }
+    let needle = format!("oya-{}-", microservice);
+    let needle_bareword = format!("`{}`", microservice);
+    for entry in WalkDir::new(phases_dir).into_iter().filter_map(|r| r.ok()) {
+        let fname = entry.file_name().to_string_lossy().to_string();
+        if fname == "impl-plan.md"
+            || (fname.starts_with("IP-") && fname.ends_with(".md"))
+        {
+            let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+            if content.contains(&needle) || content.contains(&needle_bareword) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// Step 5: per-pack overlay artifacts.
-pub fn verify_pack_overlays(
-    repo_root: &Path,
-    packs: &[PackManifest],
-    report: &mut Report,
-) {
+pub fn verify_pack_overlays(repo_root: &Path, packs: &[PackManifest], report: &mut Report) {
     for pack in packs {
         if pack.pack.status == "retired" {
             continue;
@@ -118,7 +244,12 @@ pub fn verify_milestone_artifacts(repo_root: &Path, report: &mut Report) {
     if !dir.exists() {
         return;
     }
-    for entry in WalkDir::new(&dir).min_depth(1).max_depth(1).into_iter().filter_map(|r| r.ok()) {
+    for entry in WalkDir::new(&dir)
+        .min_depth(1)
+        .max_depth(1)
+        .into_iter()
+        .filter_map(|r| r.ok())
+    {
         if !entry.file_type().is_dir() {
             continue;
         }
@@ -152,7 +283,12 @@ pub fn verify_section_completeness(repo_root: &Path, report: &mut Report) {
     check_sections_in_dir(repo_root, "docs/prds", prd_required, report);
 
     // Phase-Specs need: acceptance_lanes / depends_on / entry_gate / exit_gate in frontmatter
-    let phase_required = &["acceptance_lanes:", "depends_on:", "entry_gate:", "exit_gate:"];
+    let phase_required = &[
+        "acceptance_lanes:",
+        "depends_on:",
+        "entry_gate:",
+        "exit_gate:",
+    ];
     let phases = repo_root.join(".omc/plans/milestones");
     if phases.exists() {
         for entry in WalkDir::new(&phases).into_iter().filter_map(|r| r.ok()) {
@@ -182,7 +318,10 @@ pub fn verify_section_completeness(repo_root: &Path, report: &mut Report) {
     ];
     if phases.exists() {
         for entry in WalkDir::new(&phases).into_iter().filter_map(|r| r.ok()) {
-            if entry.file_name() == "impl-plan.md" || (entry.file_name().to_string_lossy().starts_with("IP-") && entry.file_name().to_string_lossy().ends_with(".md")) {
+            if entry.file_name() == "impl-plan.md"
+                || (entry.file_name().to_string_lossy().starts_with("IP-")
+                    && entry.file_name().to_string_lossy().ends_with(".md"))
+            {
                 let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
                 for marker in impl_required {
                     if !content.contains(marker) {
@@ -229,7 +368,11 @@ pub fn orphan_scan(
         if !dir.exists() {
             continue;
         }
-        for entry in WalkDir::new(&dir).max_depth(2).into_iter().filter_map(|r| r.ok()) {
+        for entry in WalkDir::new(&dir)
+            .max_depth(2)
+            .into_iter()
+            .filter_map(|r| r.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -264,13 +407,23 @@ pub fn orphan_scan(
     }
     // Pack evidence orphan scan
     for pack in packs {
-        let evidence_dir = repo_root.join(format!("docs/localization-packs/{}/evidence", pack.pack.code));
+        let evidence_dir = repo_root.join(format!(
+            "docs/localization-packs/{}/evidence",
+            pack.pack.code
+        ));
         if !evidence_dir.exists() {
             continue;
         }
-        let scope_names: std::collections::HashSet<&String> =
-            pack.microservices_in_scope.iter().map(|s| &s.microservice).collect();
-        for entry in WalkDir::new(&evidence_dir).max_depth(1).into_iter().filter_map(|r| r.ok()) {
+        let scope_names: std::collections::HashSet<&String> = pack
+            .microservices_in_scope
+            .iter()
+            .map(|s| &s.microservice)
+            .collect();
+        for entry in WalkDir::new(&evidence_dir)
+            .max_depth(1)
+            .into_iter()
+            .filter_map(|r| r.ok())
+        {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -295,13 +448,7 @@ pub fn orphan_scan(
 
 // --- helpers ---
 
-fn check_path(
-    repo_root: &Path,
-    rel: &str,
-    kind: ViolationKind,
-    desc: &str,
-    report: &mut Report,
-) {
+fn check_path(repo_root: &Path, rel: &str, kind: ViolationKind, desc: &str, report: &mut Report) {
     if !repo_root.join(rel).exists() {
         report.push(Violation {
             kind,
@@ -321,9 +468,7 @@ fn has_naming_adr(repo_root: &Path, microservice: &str) -> bool {
         .map(|rd| {
             rd.filter_map(|e| e.ok()).any(|e| {
                 let name = e.file_name().to_string_lossy().to_string();
-                name.starts_with("ADR-")
-                    && name.contains(&needle)
-                    && name.ends_with(".md")
+                name.starts_with("ADR-") && name.contains(&needle) && name.ends_with(".md")
             })
         })
         .unwrap_or(false)
@@ -339,9 +484,7 @@ fn has_pack_regulatory_adr(repo_root: &Path, pack: &str, microservice: &str) -> 
         .map(|rd| {
             rd.filter_map(|e| e.ok()).any(|e| {
                 let name = e.file_name().to_string_lossy().to_string();
-                name.starts_with("ADR-")
-                    && name.contains(&needle)
-                    && name.ends_with(".md")
+                name.starts_with("ADR-") && name.contains(&needle) && name.ends_with(".md")
             })
         })
         .unwrap_or(false)
@@ -352,7 +495,11 @@ fn check_sections_in_dir(repo_root: &Path, rel_dir: &str, required: &[&str], rep
     if !dir.exists() {
         return;
     }
-    for entry in WalkDir::new(&dir).max_depth(2).into_iter().filter_map(|r| r.ok()) {
+    for entry in WalkDir::new(&dir)
+        .max_depth(2)
+        .into_iter()
+        .filter_map(|r| r.ok())
+    {
         let fname = entry.file_name().to_string_lossy().to_string();
         if !fname.ends_with(".md") || fname == "INDEX.md" {
             continue;

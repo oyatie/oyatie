@@ -11,8 +11,8 @@
 //! `registry/quality/lanes.yaml` lane `lean-a5-doc-coverage`).
 
 pub mod algorithm;
-pub mod registry;
 pub mod manifest;
+pub mod registry;
 pub mod types;
 
 pub use types::{Report, Violation, ViolationKind};
@@ -27,7 +27,7 @@ pub fn run(repo_root: &std::path::Path) -> anyhow::Result<Report> {
     let planned = registry::read_masterplan_catalog(repo_root)?;
     let packs = manifest::read_pack_catalog(repo_root)?;
 
-    algorithm::reconcile_registered_vs_planned(&registered, &planned, &mut report);
+    algorithm::reconcile_registered_vs_planned(repo_root, &registered, &planned, &mut report);
     algorithm::verify_canonical_suite(repo_root, &registered, &mut report);
     algorithm::verify_pack_overlays(repo_root, &packs, &mut report);
     algorithm::verify_milestone_artifacts(repo_root, &mut report);

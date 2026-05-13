@@ -52,7 +52,10 @@ impl Report {
         let mut out = String::from("# Doc-coverage report\n\n");
         out.push_str(&format!("**{}** violation(s):\n\n", self.violations.len()));
         for v in &self.violations {
-            out.push_str(&format!("- {:?}: `{}` — {}\n", v.kind, v.path, v.description));
+            out.push_str(&format!(
+                "- {:?}: `{}` — {}\n",
+                v.kind, v.path, v.description
+            ));
         }
         out
     }

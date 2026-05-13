@@ -86,7 +86,7 @@ M02 is declared complete only when all three goals are achieved and ICM phase-co
 #    + cross-pack-refusal flip from --report-only to BLOCKER here per ADR-0063 / ADR-0064.
 cargo run -p oya-check-statelessness -- --workspace             # exit 0; 0 BLOCKER violations
 cargo run -p oya-check-shardability -- --migrations-dir migrations/  # exit 0; 0 BLOCKER violations
-cargo run -p oya-check-doc-coverage -- --workspace              # exit 0 (LEAN-A5; ADR-0063)
+cargo run -p oya-check-doc-coverage -- --workspace --blocker    # exit 0 (LEAN-A5; ADR-0063; --blocker post-P22)
 cargo run -p oya-check-architecture -- dependency-direction --workspace        # exit 0
 cargo run -p oya-check-architecture -- layer-correctness --workspace           # exit 0
 cargo run -p oya-check-architecture -- lib-name-parity --workspace             # exit 0

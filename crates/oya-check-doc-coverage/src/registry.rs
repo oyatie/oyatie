@@ -51,7 +51,10 @@ pub fn read_masterplan_catalog(repo_root: &Path) -> Result<Vec<String>> {
         if in_catalog {
             for tok in line.split(|c: char| !c.is_ascii_alphanumeric() && c != '-') {
                 let t = tok.trim();
-                if t.len() >= 2 && t.chars().all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-') {
+                if t.len() >= 2
+                    && t.chars()
+                        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+                {
                     names.push(t.to_string());
                 }
             }
@@ -61,4 +64,3 @@ pub fn read_masterplan_catalog(repo_root: &Path) -> Result<Vec<String>> {
     names.dedup();
     Ok(names)
 }
-

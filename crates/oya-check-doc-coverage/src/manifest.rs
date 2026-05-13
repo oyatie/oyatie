@@ -40,7 +40,11 @@ pub fn read_pack_catalog(repo_root: &Path) -> Result<Vec<PackManifest>> {
         return Ok(Vec::new());
     }
     let mut packs = Vec::new();
-    for entry in WalkDir::new(&dir).max_depth(2).into_iter().filter_map(|r| r.ok()) {
+    for entry in WalkDir::new(&dir)
+        .max_depth(2)
+        .into_iter()
+        .filter_map(|r| r.ok())
+    {
         if entry.file_name() == "pack.yaml" {
             let content = std::fs::read_to_string(entry.path())?;
             let manifest: PackManifest = serde_yaml::from_str(&content)?;

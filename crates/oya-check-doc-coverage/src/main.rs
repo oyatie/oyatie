@@ -6,7 +6,10 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 #[derive(Parser, Debug)]
-#[command(version, about = "Verify oyatie documentation suite coverage per ADR-0063")]
+#[command(
+    version,
+    about = "Verify oyatie documentation suite coverage per ADR-0063"
+)]
 struct Cli {
     /// Run against the entire workspace. Default: yes.
     #[arg(long, default_value = "true")]

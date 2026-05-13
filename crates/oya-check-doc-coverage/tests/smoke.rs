@@ -27,6 +27,10 @@ fn missing_canonical_artifacts_for_registered_microservice() {
     let report = oya_check_doc_coverage::run(tmp.path()).unwrap();
     // hr is registered but has no docs/microservices/hr.md, no docs/prds/hr.md, no naming ADR
     assert!(!report.is_clean());
-    let kinds: Vec<_> = report.violations.iter().map(|v| format!("{:?}", v.kind)).collect();
+    let kinds: Vec<_> = report
+        .violations
+        .iter()
+        .map(|v| format!("{:?}", v.kind))
+        .collect();
     assert!(kinds.iter().any(|k| k == "MissingCanonicalArtifact"));
 }
