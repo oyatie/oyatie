@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `platform-tenancy-identity`
+> **Owner:** `tenancy-identity`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0008, ADR-0009, ADR-0010
 
@@ -11,9 +11,9 @@
 
 ## Context
 
-The cohesion thesis (ADR-0001) names *single tenancy* and *single identity* as two of the six shared substrates. Without a dedicated kernel that owns the `Tenant` shape and the identity primitives, every axis trends toward an axis-local tenant struct + a vendor-shaped IdP adapter, and the cohesion moat erodes within months. The contradiction ledger LEDG-009 already records one such regression: client-supplied tenant IDs in the X-Tenant-ID header in healthcare services — exactly the failure mode an axis-local tenancy model produces.
+The cohesion thesis (ADR-0001) names *single tenancy* and *single identity* as two of the six shared substrates. Without a dedicated kernel that owns the `Tenant` shape and the identity primitives, every axis trends toward an microservice-local tenant struct + a vendor-shaped IdP adapter, and the cohesion moat erodes within months. The contradiction ledger LEDG-009 already records one such regression: client-supplied tenant IDs in the X-Tenant-ID header in healthcare services — exactly the failure mode an microservice-local tenancy model produces.
 
-The kernel must serve seven axes simultaneously: SaaS workflow execution, Workspace per-user state, Vertical regulatory bindings, Foundry agent invocation, Cloud control-plane mutation, Search index segregation, and Ads ad-eligibility evaluation. Each consumer reads a different slice of the same Tenant entity — region, residency, regulatory packs, autonomy tier, data-use consent, billing account — and the slice must be authoritative or the cross-axis contract drifts. Identity is harder still because it spans tenant-issued credentials, federated SSO via regional packs, agent-bound short-lived tokens, and customer-builder service principals; without a single STS-backed kernel, every axis ships a different credential surface.
+The kernel must serve all microservices simultaneously: workflow orchestration, connect communications, regulatory bindings, Foundry agent invocation, cloud control-plane mutation, search index segregation, and ads eligibility evaluation. Each consumer reads a different slice of the same Tenant entity — region, residency, regulatory packs, autonomy tier, data-use consent, billing account — and the slice must be authoritative or the cross-microservice contract drifts. Identity is harder still because it spans tenant-issued credentials, federated SSO via regional packs, agent-bound short-lived tokens, and customer-builder service principals; without a single STS-backed kernel, every axis ships a different credential surface.
 
 ---
 
@@ -21,13 +21,13 @@ The kernel must serve seven axes simultaneously: SaaS workflow execution, Worksp
 
 We establish two co-located kernel crates that together form the *tenant + identity substrate*:
 
-- `crates/oya-platform-tenant-kernel` — owns the `Tenant`, `TenantId`, `TenantBinding`, and `TenantPlaneGrants` types.
-- `crates/oya-platform-identity-kernel` — owns the `Principal`, `Subject`, `Session`, `Credential`, `Role`, and `Capability-Grant` types, with Cedar-backed RBAC/ABAC and STS-issued short-lived credentials.
+- `crates/oya-tenancy-kernel` — owns the `Tenant`, `TenantId`, `TenantBinding`, and `TenantPlaneGrants` types.
+- `crates/oya-identity-kernel` — owns the `Principal`, `Subject`, `Session`, `Credential`, `Role`, and `Capability-Grant` types, with Cedar-backed RBAC/ABAC and STS-issued short-lived credentials.
 
 ### The Tenant entity
 
 ```rust
-// crates/oya-platform-tenant-kernel
+// crates/oya-tenancy-kernel
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct TenantId(pub uuid::Uuid);
 
@@ -52,12 +52,12 @@ pub struct RegionBinding {
 
 - **Per-region binding is immutable.** A tenant's `region_binding.primary` is set at creation and may never be mutated by a non-migration path. Cross-region migration is a council-approved, evidence-emitting procedure with a new `TenantId` (the residency class is part of identity).
 - **`regulatory_packs` is set-valued and inherited by every axis.** Vertical onboarding adds packs; revocation requires regulator-defined wind-down evidence.
-- **Cross-axis change-review class.** Any PR that mutates the `Tenant` struct, its derived types, or the catalog record of `oya-platform-tenant-kernel` is auto-labeled `cross-axis-tenant-mutation` and routed for all-axis review per ADR-0011.
+- **Cross-axis change-review class.** Any PR that mutates the `Tenant` struct, its derived types, or the catalog record of `oya-tenancy-kernel` is auto-labeled `cross-microservice-tenant-mutation` and routed for all-axis review per ADR-0011.
 
 ### The Identity entity
 
 ```rust
-// crates/oya-platform-identity-kernel
+// crates/oya-identity-kernel
 pub enum Principal {
     Human { user_id: UserId, tenant: TenantId },
     Agent { agent_id: AgentId, tenant: TenantId, on_behalf_of: Option<UserId> },
@@ -82,20 +82,20 @@ pub struct AccessDecision {
 }
 ```
 
-- **Cedar policy is the sole authoritative AuthZ engine** for every cross-axis decision. Per-axis caches are read-through projections of Cedar's evaluation; they may not author decisions.
+- **Cedar policy is the sole authoritative AuthZ engine** for every cross-microservice decision. Per-axis caches are read-through projections of Cedar's evaluation; they may not author decisions.
 - **STS-issued short-lived credentials** are the only credential class accepted at the runtime boundary. Long-lived service-account static secrets are forbidden in product code (per the supply-chain requirements consumed by ADR-0013 license posture and ADR-0007 policy enforcement).
 - **Federated identity providers ship as regional-pack seam impls** (ADR-0010): KR `본인확인서비스`, JP `マイナンバーカード`, EU `eIDAS`, US `Login.gov`, IN `Aadhaar`, BR `ICP-Brasil`, KSA `Absher`, UAE `UAEPass`, ANZ `Digital ID`, SG `SingPass`. Adding a region adds a pack, never a kernel patch.
 
 ### Validators and CI lanes
 
 - `oya-foundry-fitness-tenant-isolation` — fails PRs that derive tenancy from request headers or other untrusted inputs (closes LEDG-009).
-- `oya-foundry-fitness-iam-lockstep` — fails PRs where the cloud-IAM surface (ADR consumers in `oya-cloud-iam-*`) drifts from `oya-platform-identity-kernel` (closes LEDG-028).
+- `oya-foundry-fitness-iam-lockstep` — fails PRs where the cloud-IAM surface (ADR consumers in `oya-cloud-iam-*`) drifts from `oya-identity-kernel` (closes LEDG-028).
 - `oya-foundry-fitness-substrate-forking` — fails PRs that introduce a new `Tenant`-shaped struct anywhere outside the kernel.
 
 ### Boundary
 
-- Applies to: every cross-axis call, every regulated capability invocation, every regional-pack identity adapter, every audit emission cite (ADR-0003).
-- Does not apply to: per-axis read-only projections (e.g. a search-axis cache of `tenant.residency` is allowed if the projection is sourced from this kernel and refreshed via the eventing backbone in ADR-0005).
+- Applies to: every cross-microservice call, every regulated capability invocation, every regional-pack identity adapter, every audit emission cite (ADR-0003).
+- Does not apply to: per-microservice read-only projections (e.g. a search-axis cache of `tenant.residency` is allowed if the projection is sourced from this kernel and refreshed via the eventing backbone in ADR-0005).
 
 ---
 
@@ -104,14 +104,14 @@ pub struct AccessDecision {
 ### Positive
 
 - Closes LEDG-009 (X-Tenant-ID header derivation) at the substrate level.
-- Every axis inherits region, residency, regulatory packs, autonomy tier, and consent atomically — no per-axis interpretation drift.
+- Every axis inherits region, residency, regulatory packs, autonomy tier, and consent atomically — no per-microservice interpretation drift.
 - Cedar-backed RBAC/ABAC + STS short-lived creds aligns with KR PIPA Art 29 (security measures), GDPR Art 32, HIPAA §164.312, PCI-DSS Req 8.
-- The `Tenant` struct becomes the single most-reviewed kernel in the repository, by design — the cross-axis review tax is concentrated at the substrate boundary, where it is recoverable.
+- The `Tenant` struct becomes the single most-reviewed kernel in the repository, by design — the cross-microservice review tax is concentrated at the substrate boundary, where it is recoverable.
 
 ### Negative
 
-- Tenant-mutation PRs become slower because the cross-axis review label is mandatory.
-- The substrate is a single point of architectural failure — a regression here cascades to seven axes. Mitigation: kernel ships with an exhaustive property-test suite + a quarterly rotation of architecture-council review.
+- Tenant-mutation PRs become slower because the cross-microservice review label is mandatory.
+- The substrate is a single point of architectural failure — a regression here cascades to all microservices. Mitigation: kernel ships with an exhaustive property-test suite + a quarterly rotation of architecture-council review.
 - Per-region IdP onboarding requires a regional-pack PR even for adjacent locales; the seam exists to prevent kernel patching, but it is real per-pack work.
 
 ### Operational
@@ -125,9 +125,9 @@ pub struct AccessDecision {
 
 ## Alternatives considered
 
-### Alternative A — Per-axis tenant struct + cross-axis adapter
+### Alternative A — Per-axis tenant struct + cross-microservice adapter
 
-- **Pros:** axis-team autonomy; faster per-axis iteration.
+- **Pros:** microservice-team autonomy; faster per-microservice iteration.
 - **Cons:** drift on every axis at every wave; LEDG-009 demonstrated the failure mode in production.
 - **Rejected because:** ADR-0001 forbids substrate forking.
 
@@ -149,14 +149,14 @@ pub struct AccessDecision {
 
 1. **Q1.** Cross-tenant individual identity linking (`cross_tenant_individual` purpose per ADR-0008) — under what evidence threshold does the kernel allow it? Default: founder + privacy-council ratification per request, never automated. → owner: `council-privacy`.
 2. **Q2.** Where does the per-tenant HSM partition (ADR-0009) bind to the identity kernel — at session issuance, or at credential decryption? Default: at session issuance. → ADR-0009.
-3. **Q3.** Schema-version migration of the `Tenant` struct — what is the maximum supported lag between schema versions in production? Default: two versions; older tenants migrated within one wave. → owner: `platform-tenancy-identity`.
-4. **Q4.** Does the customer-builder persona (Workspace axis ISVs) get a distinct `Principal` variant or reuse `ServicePrincipal`? Default: reuse, with `owning_capability` differentiating. → owner: `axis-foundry`.
+3. **Q3.** Schema-version migration of the `Tenant` struct — what is the maximum supported lag between schema versions in production? Default: two versions; older tenants migrated within one wave. → owner: `tenancy-identity`.
+4. **Q4.** Does the customer-builder persona (Connect microservice ISVs) get a distinct `Principal` variant or reuse `ServicePrincipal`? Default: reuse, with `owning_capability` differentiating. → owner: `foundry`.
 
 ---
 
 ## References
 
-- `docs/DESIGN.md` §5 (unifying tenancy model), §10 (cross-axis contracts: `Tenant` kernel, `Identity / RBAC / Cedar policy`)
+- `docs/DESIGN.md` §5 (unifying tenancy model), §10 (cross-microservice contracts: `Tenant` kernel, `Identity / RBAC / Cedar policy`)
 - `docs/PRIVACY-PROGRAM.md` §2.2.7 (KR data residency PIPA Art 17), §2.2.8 (agent-runtime specifics under autonomy ceiling)
 - `docs/COMPLIANCE-MATRIX.md` §3.1 (KR PIPA Art 15/17/22/29), §3.2 (GDPR Art 5/6/32), §3.3 (HIPAA §164.312)
 - `docs/CONTRADICTION-LEDGER.md` LEDG-009 (X-Tenant-ID header), LEDG-024 (KR identity coverage), LEDG-028 (cloud-IAM lockstep)

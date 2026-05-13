@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0007, ADR-0011, ADR-0037, ADR-0039, ADR-0040, ADR-0041, ADR-0042
 
@@ -53,7 +53,7 @@ endpoint = "https://s3.kr-seoul-1.oya.cloud"   # ADR-0028 storage surface
 ```
 
 - **sccache** (Apache-2; Mozilla) shared per-cell cache; per-author hit rate target ≥ 80%.
-- **Remote execution.** Bazel-style remote execution for cross-axis builds; per-action cache.
+- **Remote execution.** Bazel-style remote execution for cross-microservice builds; per-action cache.
 - **Per-cell cache** (per ADR-0028 cell) keeps cache co-located with build runners.
 
 ### Per-affected-graph testing
@@ -84,8 +84,8 @@ One-PR-at-a-time for any PR touching root Cargo.toml / pnpm-workspace / branch-p
 ### Auto-rebase + auto-review-bot + auto-merge gates
 
 - **Auto-rebase.** PRs auto-rebase against `main` when the merge-queue picks them up.
-- **Auto-review-bot.** A Foundry agent (`workflow.builder.pr-review`) at `coworker` autonomy tier reviews every PR for style / typos / per-axis review-checklist items; emits a comment; never approves on its own.
-- **Auto-merge.** PRs labeled `auto-merge` merge after all required checks PASS + at least one human approval (or per-axis CODEOWNERS approval per ADR-0041).
+- **Auto-review-bot.** A Foundry agent (`workflow.builder.pr-review`) at `coworker` autonomy tier reviews every PR for style / typos / per-microservice review-checklist items; emits a comment; never approves on its own.
+- **Auto-merge.** PRs labeled `auto-merge` merge after all required checks PASS + at least one human approval (or per-microservice CODEOWNERS approval per ADR-0041).
 
 ### Per-lane CI time budget
 
@@ -113,7 +113,7 @@ inputs: ["pr_diff", "pr_metadata", "repo_codeowners"]
 outputs: ["labels", "reviewers", "changelog_draft"]
 ```
 
-- **PR triage.** Agent reads diff + emits labels (per-axis, per-tier per ADR-0037, per-blast-radius below).
+- **PR triage.** Agent reads diff + emits labels (per-microservice, per-tier per ADR-0037, per-blast-radius below).
 - **Changelog drafting.** Agent drafts changelog entry per `keepachangelog` format; human reviewer approves.
 - **Release-note authoring.** Agent drafts release notes from per-PR changelog entries; human reviewer approves.
 - **Persona-tier autonomy (per ADR-0007).** Agents at `coworker` tier can comment + label; never merge / approve.
@@ -227,7 +227,7 @@ This ADR does not own the gitops branch model (per ADR-0041). Does not own the s
 ### Alternative D — Per-axis automation choice
 
 - **Pros:** axis flexibility.
-- **Cons:** per-axis CI configuration drift; cohesion violated.
+- **Cons:** per-microservice CI configuration drift; cohesion violated.
 - **Rejected because:** automation pipeline is a substrate concern.
 
 ---
@@ -236,8 +236,8 @@ This ADR does not own the gitops branch model (per ADR-0041). Does not own the s
 
 1. **Q1.** Foundry-driven PR triage at GA, or staged (label → comment → changelog → release-notes)? Default: staged; label at GA, others at W+6 / W+12. → ADR-0011.
 2. **Q2.** Per-cell sccache vs per-region — start per-region (one cache per KR / US / EU)? Default: per-region at GA; per-cell at Phase 2 if hit-rate degrades. → ADR-0028.
-3. **Q3.** Remote execution backend — Bazel BuildBuddy (commercial) or in-house? Default: in-house at GA (smaller scale); BuildBuddy or equivalent at W+12 if scale demands. → owner: `axis-foundry`.
-4. **Q4.** Per-test owner enforcement — at quarantine-time or earlier? Default: at quarantine-time (avoids "every test needs an owner" overhead). → owner: `axis-foundry`.
+3. **Q3.** Remote execution backend — Bazel BuildBuddy (commercial) or in-house? Default: in-house at GA (smaller scale); BuildBuddy or equivalent at W+12 if scale demands. → owner: `foundry`.
+4. **Q4.** Per-test owner enforcement — at quarantine-time or earlier? Default: at quarantine-time (avoids "every test needs an owner" overhead). → owner: `foundry`.
 5. **Q5.** Auto-merge default scope — opt-in per PR or default-on for `local` blast-radius? Default: opt-in at GA; default-on for `docs` blast-radius at W+6. → ADR-0041.
 
 ---
@@ -245,7 +245,7 @@ This ADR does not own the gitops branch model (per ADR-0041). Does not own the s
 ## References
 
 - `docs/PRD.md` §10 (engineering operating model)
-- `docs/DESIGN.md` §11 (automation pipeline), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (automation pipeline), §10 (cross-microservice contracts)
 - Google SRE Workbook (toil reduction); Amazon "you build it, you run it"; Bazel remote execution spec
 - sccache docs (Apache-2; Mozilla); `keepachangelog.com`
 - `~/.claude/skills/superpowers/using-git-worktrees`

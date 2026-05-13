@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0011, ADR-0029, ADR-0033, ADR-0034, ADR-0037, ADR-0038, ADR-0039
 
@@ -24,7 +24,7 @@ We adopt **Wasmtime + WASI Preview 2** as the canonical plugin runtime; **capabi
 ### Runtime: Wasmtime + WASI Preview 2
 
 ```rust
-// crates/oya-platform-plugin-runtime
+// crates/oya-foundry-plugin-runtime-kernel
 pub struct PluginRuntime {
     pub engine: wasmtime::Engine,
     pub linker: wasmtime::component::Linker<PluginContext>,
@@ -202,18 +202,18 @@ Plugins do not get raw network access, raw filesystem access, or raw process spa
 
 ## Open questions
 
-1. **Q1.** Day-1 verified-ISV bar — security review by internal team or third-party? Default: internal; consider third-party at W+24. → owner: `axis-foundry`.
+1. **Q1.** Day-1 verified-ISV bar — security review by internal team or third-party? Default: internal; consider third-party at W+24. → owner: `foundry`.
 2. **Q2.** Per-plugin signing key rotation cadence? Default: per-release (Cosign keyless rotates per OIDC session, no manual rotation needed). → ADR-0043.
 3. **Q3.** Plugin marketplace at GA (Workspace + Vertical + Search), or staged? Default: Workspace at GA; Vertical + Search at W+12. → ADR-0029.
 4. **Q4.** Per-plugin observability — opt-in OpenTelemetry hooks or default-on? Default: default-on per ADR-0042 stack; per-plugin export to plugin author with tenant consent. → ADR-0042.
-5. **Q5.** Plugin marketplace currency support — KRW + USD only at GA, or full multi-currency? Default: KRW + USD at GA; JPY + EUR + others at W+12. → owner: `axis-foundry`.
+5. **Q5.** Plugin marketplace currency support — KRW + USD only at GA, or full multi-currency? Default: KRW + USD at GA; JPY + EUR + others at W+12. → owner: `foundry`.
 
 ---
 
 ## References
 
 - `docs/PRD.md` §7 (plugin substrate)
-- `docs/DESIGN.md` §4 (plugin runtime), §11 (cross-axis contracts)
+- `docs/DESIGN.md` §4 (plugin runtime), §11 (cross-microservice contracts)
 - WebAssembly Component Model + WASI Preview 2 spec; WIT (WebAssembly Interface Types)
 - Sigstore Cosign + Rekor specs; SLSA framework
 - KR 「부가가치세법」 (VAT for plugin marketplace); 「전자상거래법」

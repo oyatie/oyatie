@@ -11,9 +11,9 @@
 
 ## Context
 
-The legacy repo tree under `modules/` `services/` `platform/` evolved over multiple eras and accumulated three problems that compound as the seven-axis cohesion claim takes shape. First, the same bounded context lives in multiple places (a healthcare entity in `modules/healthcare-*`, a healthcare service in `services/healthcare-*`, a healthcare adapter in `platform/health-*`); cross-axis review needs to chase the same domain across three trees. Second, the role of each crate (entity vs domain vs adapter vs runtime) is implicit; the boundary validator must infer dep direction from naming. Third, the migration target — flat `crates/oya-<context>-<role>[-<capability>]/` per legacy flat-crates ancestry (now superseded by this ADR per [`ADR-LEGACY-REGRESSION-MAPPING.md`](../ADR-LEGACY-REGRESSION-MAPPING.md)) — needs an authoritative ADR in this Foundation pack so every other ADR in 0001-0019 cites a single source for crate naming + dep-direction enforcement.
+The legacy repo tree under `modules/` `services/` `platform/` evolved over multiple eras and accumulated three problems that compound as the flat-catalog cohesion claim takes shape. First, the same bounded context lives in multiple places (a healthcare entity in `modules/healthcare-*`, a healthcare service in `services/healthcare-*`, a healthcare adapter in `platform/health-*`); cross-microservice review needs to chase the same domain across three trees. Second, the role of each crate (entity vs domain vs adapter vs runtime) is implicit; the boundary validator must infer dep direction from naming. Third, the migration target — flat `crates/oya-<context>-<role>[-<capability>]/` per legacy flat-crates ancestry (now superseded by this ADR per [`ADR-LEGACY-REGRESSION-MAPPING.md`](../ADR-LEGACY-REGRESSION-MAPPING.md)) — needs an authoritative ADR in this Foundation pack so every other ADR in 0001-0019 cites a single source for crate naming + dep-direction enforcement.
 
-The cohesion thesis (ADR-0001) makes the flatten more important, not less, because every cross-axis contract row (ADR-0011) cites a `source_of_truth` crate, and every license + build-vs-buy decision (ADR-0013, ADR-0014) cites a per-crate role. Without an authoritative crate-naming + role-taxonomy ADR, the registry rows become ambiguous.
+The cohesion thesis (ADR-0001) makes the flatten more important, not less, because every cross-microservice contract row (ADR-0011) cites a `source_of_truth` crate, and every license + build-vs-buy decision (ADR-0013, ADR-0014) cites a per-crate role. Without an authoritative crate-naming + role-taxonomy ADR, the registry rows become ambiguous.
 
 ---
 
@@ -31,9 +31,9 @@ crates/oya-<context>-<role>[-<capability>]/
 
 - `<context>` = one of the bounded-context names: `platform`, `saas`, `workspace`, `vertical-<industry>`, `foundry`, `cloud`, `search`, `ads`, `analytics`, `tooling`, `pack-<pack-id>`, `foundation`.
 - `<role>` ∈ closed taxonomy below.
-- `<capability>` (optional) = the specific capability inside the role (e.g. `oya-platform-tenant-kernel-residency` if the kernel splits by capability).
+- `<capability>` (optional) = the specific capability inside the role (e.g. `oya-tenancy-residency-kernel` if the kernel splits by capability).
 
-Examples: `oya-platform-tenant-kernel`, `oya-foundry-runtime-policy-app`, `oya-cloud-iam-api`, `oya-search-index-vector-adapter-pgvector`, `oya-pack-kr-tax-app`.
+Examples: `oya-tenancy-kernel`, `oya-foundry-runtime-policy-app`, `oya-cloud-iam-api`, `oya-search-index-vector-adapter-pgvector`, `oya-pack-kr-tax-app`.
 
 ### Role taxonomy (closed)
 
@@ -92,7 +92,7 @@ Each axis ships kernels sized for its bounded contexts (per DESIGN §4):
 
 | Axis | Kernel crate count | Example kernels |
 |---|---|---|
-| SaaS | 6-10 | `oya-platform-tenant-kernel`, `oya-platform-identity-kernel` |
+| SaaS | 6-10 | `oya-tenancy-kernel`, `oya-identity-kernel` |
 | Workspace | 4-8 | `oya-workspace-doc-kernel`, `oya-workspace-mail-kernel` |
 | Vertical | 1-3 per vertical | `oya-vertical-healthcare-kernel`, `oya-vertical-fintech-kernel` |
 | Foundry (runtime) | 4-6 | `oya-foundry-capability-kernel`, `oya-foundry-evidence-kernel` |
@@ -157,13 +157,13 @@ This section is retained as migration doctrine and historical sequencing context
 ### Alternative A — Keep `modules/` `services/` `platform/` tree
 
 - **Pros:** zero migration cost.
-- **Cons:** drift across three trees; cross-axis review impossible; ADR-0011 cannot point at a single source of truth.
+- **Cons:** drift across three trees; cross-microservice review impossible; ADR-0011 cannot point at a single source of truth.
 - **Rejected because:** cohesion (ADR-0001).
 
 ### Alternative B — Per-axis monorepo split (one repo per axis)
 
-- **Pros:** per-axis autonomy.
-- **Cons:** cross-axis contract changes (ADR-0011) become cross-repo coordination; substrate kernels (ADR-0002, 0003, 0006, 0007) need to be co-developed in lockstep.
+- **Pros:** per-microservice autonomy.
+- **Cons:** cross-microservice contract changes (ADR-0011) become cross-repo coordination; substrate kernels (ADR-0002, 0003, 0006, 0007) need to be co-developed in lockstep.
 - **Rejected because:** cohesion + workspace-stays-green invariant.
 
 ### Alternative C — Flat crates without role taxonomy (just `oya-<feature>`)
@@ -185,7 +185,7 @@ This section is retained as migration doctrine and historical sequencing context
 
 ## References
 
-- `docs/DESIGN.md` §4 (per-axis bounded contexts, four-layer hexagonal stack), §8 (architectural flattening — phase order)
+- `docs/DESIGN.md` §4 (per-microservice bounded contexts, four-layer hexagonal stack), §8 (architectural flattening — phase order)
 - `docs/PRD.md` §6 constraint 4 (architectural flattening), constraint 5 (clean-architecture boundaries inside each crate)
 - `docs/TOOLCHAIN.md` §3 (per-stack default), §9 Q5 (cargo workspace splitting)
-- ADR-0001 (cohesion — substrate kernels are flat crates), ADR-0002 (Tenant + Identity kernel — flat target), ADR-0006 (Object Graph — flat kernel), ADR-0011 (contract registry cites flat crates), ADR-0014 (build-vs-buy matrix per role), ADR-0017 (brand rename + Cargo prefix)
+- ADR-0001 (cohesion — substrate kernels are flat crates), ADR-0002 (Tenant + Identity kernel — flat target), ADR-0006 (Ontology — flat kernel), ADR-0011 (contract registry cites flat crates), ADR-0014 (build-vs-buy matrix per role), ADR-0017 (brand rename + Cargo prefix)

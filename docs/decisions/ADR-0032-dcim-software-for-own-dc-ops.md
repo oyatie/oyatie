@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-cloud`
+> **Owner:** `cloud`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0011, ADR-0028, ADR-0029, ADR-0042, ADR-0049
 
@@ -11,7 +11,7 @@
 
 ## Context
 
-ADR-0028 commits the Cloud axis to a three-phase trajectory ending in greenfield Oyatie mega-DCs. From Phase 2 onward we operate physical infrastructure: rack-and-stack, power, cooling, network ops, sustainability, regulatory compliance. The industry-standard term for the software that runs a DC is **DCIM** (Data Center Infrastructure Management). Off-the-shelf DCIM (Sunbird, Nlyte, Schneider EcoStruxure, Vertiv Trellis) is built for colocation operators and enterprise IT, not for a cloud provider whose tenants are themselves multi-axis SaaS workloads. None of them consume the cohesion-thesis substrates (Tenant / Identity / Audit / Capability / Runtime / Autonomy); all of them ship their own auth, their own audit log, and their own scripting surface — which is exactly the cohesion violation pattern we exist to prevent.
+ADR-0028 commits the cloud microservice to a three-phase trajectory ending in greenfield Oyatie mega-DCs. From Phase 2 onward we operate physical infrastructure: rack-and-stack, power, cooling, network ops, sustainability, regulatory compliance. The industry-standard term for the software that runs a DC is **DCIM** (Data Center Infrastructure Management). Off-the-shelf DCIM (Sunbird, Nlyte, Schneider EcoStruxure, Vertiv Trellis) is built for colocation operators and enterprise IT, not for a cloud provider whose tenants are themselves multi-axis SaaS workloads. None of them consume the cohesion-thesis substrates (Tenant / Identity / Audit / Capability / Runtime / Autonomy); all of them ship their own auth, their own audit log, and their own scripting surface — which is exactly the cohesion violation pattern we exist to prevent.
 
 We must also be explicit about anti-scope: every cloud provider that has tried to design custom silicon (NICs, switches, accelerators, optical transceivers) has burned years and capital. We adopt the discipline that we use commercial silicon only and own nothing below the OEM line. This ADR pins the in-house DCIM bounded contexts, the integration surfaces (BMS / BAS / power monitoring / cooling / physical security / asset lifecycle / capacity planning / dispatch / sustainability / regulatory), and the anti-scope.
 
@@ -105,7 +105,7 @@ Per-vendor adapters live behind the trait; the rest of DCIM never sees vendor sp
 
 - **Capacity model.** Per-cell compute / power / cooling / network / floorspace headroom; alerts at 70%.
 - **Thermal model.** Per-rack thermal envelope; per-aisle hot/cold separation; CFD seed inputs to per-region engineering.
-- **Forecast.** ML model fed by per-axis growth telemetry; recommends procurement quarters in advance.
+- **Forecast.** ML model fed by per-microservice growth telemetry; recommends procurement quarters in advance.
 
 ### Workorder + technician dispatch
 
@@ -189,18 +189,18 @@ If at Phase 3+ scale a per-component RFP returns no acceptable commercial bid, f
 
 ## Open questions
 
-1. **Q1.** Phase-2 colo BMS/BAS — start with Siemens Desigo or Honeywell Niagara as primary adapter? Default: Siemens (KR colo penetration). → owner: `axis-cloud`.
+1. **Q1.** Phase-2 colo BMS/BAS — start with Siemens Desigo or Honeywell Niagara as primary adapter? Default: Siemens (KR colo penetration). → owner: `cloud`.
 2. **Q2.** Vision substrate (CCTV anomaly detection) — Foundry capability or DCIM-internal? Default: Foundry capability per ADR-0007 governance. → ADR-0011.
-3. **Q3.** Per-tenant carbon attribution at GA or W+24? Default: experimental at GA, GA at W+24. → owner: `axis-cloud`.
+3. **Q3.** Per-tenant carbon attribution at GA or W+24? Default: experimental at GA, GA at W+24. → owner: `cloud`.
 4. **Q4.** Liquid-cooling at Phase 2 (some colos) or Phase 3 only? Default: Phase 2 for GPU SKUs in colos that support rear-door HX; full direct-to-chip Phase 3. → ADR-0028.
-5. **Q5.** Anti-scope revisit cadence? Default: annual founder review at end of Phase 2. → owner: `axis-cloud`.
+5. **Q5.** Anti-scope revisit cadence? Default: annual founder review at end of Phase 2. → owner: `cloud`.
 
 ---
 
 ## References
 
 - `docs/PRD.md` §7 (cloud axis), §10 (sustainability)
-- `docs/DESIGN.md` §4 (cloud), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §4 (cloud), §10 (cross-microservice contracts)
 - Uptime Institute Tier-III/IV; EN 50600 series; ASHRAE TC9.9 thermal guidelines
 - KR ISMS-DC; KISA 클라우드보안인증 (CSAP); CSA STAR-Cloud
 - NIST 800-88 Rev 1 (media sanitization); GHG Protocol Scope 1/2/3

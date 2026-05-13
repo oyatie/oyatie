@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0037, ADR-0039, ADR-0040, ADR-0042, ADR-0050
 
@@ -114,19 +114,19 @@ serialize_when_paths_modified:
 
 Detection is by glob match on PR file diff; serialization is enforced by the merge queue refusing to add a second root-touching PR until the first one merges or aborts.
 
-### CODEOWNERS-equivalent (per-axis ownership)
+### CODEOWNERS-equivalent (per-microservice ownership)
 
 ```
 # .github/CODEOWNERS
-crates/oya-platform-*           @council-architecture @council-architecture
+crates/oya-<microservice>-*           @council-architecture @council-architecture
 crates/oya-workspace-*          @axis-workspace
 crates/oya-vertical-*           @axis-vertical
-crates/oya-foundry-*            @axis-foundry
-crates/oya-cloud-*              @axis-cloud
+crates/oya-foundry-*            @foundry
+crates/oya-cloud-*              @cloud
 crates/oya-search-*             @axis-search
 crates/oya-ads-*                @axis-ads-analytics
 contracts/                      @council-architecture
-infra/                          @axis-foundry @axis-cloud
+infra/                          @foundry @cloud
 .github/                        @council-architecture
 docs/decisions/    @council-architecture
 ```
@@ -148,7 +148,7 @@ This ADR adopts the gitops posture from the legacy `decisions/ADR-0041-gitops-de
 
 ### Anti-scope
 
-This ADR does not define rollout mechanics (per ADR-0040). Does not define the supply-chain signing chain (per ADR-0039). Does not define API stability tiers (per ADR-0037). Does not own per-axis fitness lanes (each axis ADR owns its lanes; this ADR aggregates them into branch protection).
+This ADR does not define rollout mechanics (per ADR-0040). Does not define the supply-chain signing chain (per ADR-0039). Does not define API stability tiers (per ADR-0037). Does not own per-microservice fitness lanes (each axis ADR owns its lanes; this ADR aggregates them into branch protection).
 
 ---
 
@@ -166,8 +166,8 @@ This ADR does not define rollout mechanics (per ADR-0040). Does not define the s
 
 - Trunk-based requires fast CI (per ADR-0050 automation pipeline) — slow CI and trunk-based don't coexist gracefully.
 - Squash-merge loses fine-grained commit history within PRs (mitigated by allowing rebase as alternative).
-- One-PR-at-a-time root-Cargo-touch can become a bottleneck if many cross-axis PRs land in the same hour; queue ordering matters.
-- Branch protection-as-code requires per-axis discipline (no axis can lower its own protection).
+- One-PR-at-a-time root-Cargo-touch can become a bottleneck if many cross-microservice PRs land in the same hour; queue ordering matters.
+- Branch protection-as-code requires per-microservice discipline (no axis can lower its own protection).
 
 ### Operational
 
@@ -213,13 +213,13 @@ This ADR does not define rollout mechanics (per ADR-0040). Does not define the s
 2. **Q2.** CODEOWNERS-mediated review for substrate kernels — 2 reviewers from council, or 1? Default: 2 per ADR-0001 substrate guidance. → ADR-0001.
 3. **Q3.** Release branch sunset timing — at GA-deprecation end or earlier? Default: at GA-deprecation end (12mo per ADR-0037); revisit if storage cost matters. → ADR-0037.
 4. **Q4.** Per-axis "skip merge queue" emergency lever — exists or not? Default: yes, requires `council-architecture` signoff + audit-chain entry. → ADR-0050.
-5. **Q5.** Lockfile updates (per dep PR) — same merge-queue serialization or separate? Default: same; lockfile changes count as root-touch. → owner: `axis-foundry`.
+5. **Q5.** Lockfile updates (per dep PR) — same merge-queue serialization or separate? Default: same; lockfile changes count as root-touch. → owner: `foundry`.
 
 ---
 
 ## References
 
 - `docs/PRD.md` §10 (release management)
-- `docs/DESIGN.md` §11 (release pipeline), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (release pipeline), §10 (cross-microservice contracts)
 - Trunk-Based Development paterns (paulhammant.com); GitHub branch protection docs
 - ADR-0001 (cohesion), ADR-0037 (API stability), ADR-0039 (supply chain), ADR-0040 (progressive delivery), ADR-0042 (observability), ADR-0050 (automation pipeline)

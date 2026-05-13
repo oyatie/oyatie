@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry` (model substrates) + `vertical-industrial` (robotics control consumers)
+> **Owner:** `foundry` (model substrates) + `vertical-industrial` (robotics control consumers)
 > **Date:** 2026-05-09
 > **Related:** ADR-0020 (provider adapter — vision/speech models extend the trait), ADR-0022 (autonomy ceiling — T4 disabled by default for safety-critical actuation), ADR-0024 (eval harness — per-substrate eval cohorts), ADR-0026 (in-house substrate — vision/speech models live on the same kernel)
 
@@ -198,11 +198,11 @@ pub fn refuse_anti_scope(capability: &Capability) -> Result<(), AntiScopeViolati
 
 ## Open questions
 
-1. The deterministic-latency budgets for robotics — what is the right p99 / max ceiling per SafetyClass, and how do we measure compliance under field conditions? *Owner: `axis-foundry` + `vertical-industrial`.*
-2. How do we reconcile the per-region facial-recognition lawful-basis matrix with multi-region tenants whose data flows cross regions? *Owner: `axis-foundry` + `platform-privacy-dub` + `vertical-public-sector`.*
+1. The deterministic-latency budgets for robotics — what is the right p99 / max ceiling per SafetyClass, and how do we measure compliance under field conditions? *Owner: `foundry` + `vertical-industrial`.*
+2. How do we reconcile the per-region facial-recognition lawful-basis matrix with multi-region tenants whose data flows cross regions? *Owner: `foundry` + `platform-privacy-dub` + `vertical-public-sector`.*
 3. The autonomous-vehicle scope is broad — do we restrict to closed-environment AVs (yard tractors, port AGVs) initially, or include public-road? Public-road is an order-of-magnitude harder regulatory and safety story. *Owner: `vertical-industrial` + founder.*
-4. Voice cloning / TTS voice profile: how do we detect and refuse a capability that requests cloning of a public figure without consent? *Owner: `axis-foundry` + `ops-security`.*
-5. Sim-suite vendoring vs. in-house authoring per vertical — which actuation classes can ride a third-party simulator (e.g. Gazebo / Isaac Sim) vs. need an in-house sim? *Owner: `axis-foundry` + `vertical-industrial`.*
+4. Voice cloning / TTS voice profile: how do we detect and refuse a capability that requests cloning of a public figure without consent? *Owner: `foundry` + `ops-security`.*
+5. Sim-suite vendoring vs. in-house authoring per vertical — which actuation classes can ride a third-party simulator (e.g. Gazebo / Isaac Sim) vs. need an in-house sim? *Owner: `foundry` + `vertical-industrial`.*
 
 ---
 

@@ -11,9 +11,9 @@
 
 ## Context
 
-The consolidated docs tree (PRD, DESIGN, ROADMAP, PRIVACY-PROGRAM, COMPLIANCE-MATRIX, GLOSSARY, TOOLCHAIN, CONTRADICTION-LEDGER, ADR-INDEX, plus per-axis + per-vertical + per-pack + per-runbook entries) is a living artifact whose freshness depends on every team noticing when their domain shifts. Without a catalog that names *who owns each doc*, *what events trigger an update*, *what cadence the doc is reviewed at*, *which other docs depend on it*, and *what validation runs at PR time*, the inevitable failure mode is doc drift — the PRD shifts but COMPLIANCE-MATRIX doesn't catch up; the Glossary retires a term but a downstream README still uses it.
+The consolidated docs tree (PRD, DESIGN, ROADMAP, PRIVACY-PROGRAM, COMPLIANCE-MATRIX, GLOSSARY, TOOLCHAIN, CONTRADICTION-LEDGER, ADR-INDEX, plus per-microservice + per-vertical + per-pack + per-runbook entries) is a living artifact whose freshness depends on every team noticing when their domain shifts. Without a catalog that names *who owns each doc*, *what events trigger an update*, *what cadence the doc is reviewed at*, *which other docs depend on it*, and *what validation runs at PR time*, the inevitable failure mode is doc drift — the PRD shifts but COMPLIANCE-MATRIX doesn't catch up; the Glossary retires a term but a downstream README still uses it.
 
-Cohesion (ADR-0001) compounds the risk. The seven-axis cohesion claim is articulated across multiple docs; if any one doc lags, the cohesion artifact fragments. The audit chain (ADR-0003) needs to record doc-level events (`EVT-DOC-PUBLISHED`, `EVT-DOC-UPDATED`, `EVT-CROSS-AXIS-CONTRADICTION-FOUND`) so doc freshness becomes auditor-visible. Agent-authoring discipline (PRD §3.1 commitment 5) requires explicit roles for what agents may write directly vs what agents propose for human ratification.
+Cohesion (ADR-0001) compounds the risk. The flat-catalog cohesion claim is articulated across multiple docs; if any one doc lags, the cohesion artifact fragments. The audit chain (ADR-0003) needs to record doc-level events (`EVT-DOC-PUBLISHED`, `EVT-DOC-UPDATED`, `EVT-CROSS-AXIS-CONTRADICTION-FOUND`) so doc freshness becomes auditor-visible. Agent-authoring discipline (PRD §3.1 commitment 5) requires explicit roles for what agents may write directly vs what agents propose for human ratification.
 
 ---
 
@@ -30,7 +30,7 @@ doc_id: doc.privacy_program
 title: PRIVACY-PROGRAM.md
 path: docs/PRIVACY-PROGRAM.md
 owner: council-privacy
-secondary_owners: [axis-foundry, council-architecture]
+secondary_owners: [foundry, council-architecture]
 trigger_events:
   - EVT-REGULATORY-CHANGE-DETECTED        # per-pack regulator-watch lane
   - EVT-AUDIT-FINDING                      # per regulator audit
@@ -54,8 +54,8 @@ Every doc change passes through:
 
 1. **Pre-flight.** PR author checks the doc's catalog row for owner, dependent docs, validation lane. The author confirms the change is in scope; cross-doc impact is enumerated in the PR's `## Traceability` block.
 2. **Authoring.** Doc edit happens; if agent-authored, the agent attaches its trace evidence to the PR's `## Evidence` block. Per-doc `agent_authoring_policy` controls what an agent may write directly vs what requires human draft + agent assist.
-3. **Validation.** Per-doc CI lane runs (cohesion lane for cross-axis docs; glossary lane for terminology; license lane for vendor-partner-ledger; data-class lane for privacy program; etc.). Failure blocks merge.
-4. **Review.** Owner team reviews + approves; for cross-axis docs the dependent-docs owners co-review per ADR-0011 protocol.
+3. **Validation.** Per-doc CI lane runs (cohesion lane for cross-microservice docs; glossary lane for terminology; license lane for vendor-partner-ledger; data-class lane for privacy program; etc.). Failure blocks merge.
+4. **Review.** Owner team reviews + approves; for cross-microservice docs the dependent-docs owners co-review per ADR-0011 protocol.
 5. **Publish.** On merge: catalog row updated with `last_updated_at`, `last_updated_pr`; `EVT-DOC-PUBLISHED` emitted to the audit chain (ADR-0003); machine-readable mirror regenerated; trust portal updated for customer-facing docs.
 
 ### Agent-authoring policy
@@ -74,7 +74,7 @@ Agents that violate the policy are caught by `oya-foundry-fitness-agent-authorin
 
 | Doc class | Lane |
 |---|---|
-| PRD / DESIGN / ROADMAP | `oya-foundry-fitness-cohesion` (cross-axis claims must be backed by ADRs) |
+| PRD / DESIGN / ROADMAP | `oya-foundry-fitness-cohesion` (cross-microservice claims must be backed by ADRs) |
 | PRIVACY-PROGRAM | `oya-foundry-fitness-data-class` (data-class taxonomy consistency per ADR-0008) |
 | COMPLIANCE-MATRIX | `oya-foundry-fitness-regulatory-binding` (every regulator row maps to a pack per ADR-0010) |
 | GLOSSARY | `oya-foundry-fitness-glossary` (forbidden vocab + industry alignment per ADR-0018) |
@@ -112,7 +112,7 @@ A doc's cadence is the *floor*, not the ceiling. Trigger events (regulator chang
 - Every doc has explicit owner, trigger, cadence, dependent-docs, and validation; reviewers know exactly what to check.
 - Agent-authoring policy lets agents do real work (catalog records, mirrors, triage labels) without crossing into human-only territory.
 - Machine-readable mirrors close the loop: agents consume the same canonical source, eliminating "agent reads outdated copy" failure modes.
-- Closes LEDG-026 (Foundry fitness vs axis-team autonomy) at the protocol level by codifying the fitness-fn dispute path through this same lifecycle.
+- Closes LEDG-026 (Foundry fitness vs microservice-team autonomy) at the protocol level by codifying the fitness-fn dispute path through this same lifecycle.
 
 ### Negative
 
@@ -154,8 +154,8 @@ A doc's cadence is the *floor*, not the ceiling. Trigger events (regulator chang
 ## Open questions
 
 1. **Q1.** Per-doc cadence baseline — quarterly default, with exceptions? Or per-doc declared? Default: per-doc declared in the catalog row; quarterly is the safe minimum. → owner: `council-architecture`.
-2. **Q2.** Agent-direct-write for catalog records — does this require a per-PR human approve, or is the validator + automated sign-off sufficient? Default: human approve initially; promote to validator-only when agent reliability proven via eval (ADR-0007 eval harness ancestry, owned by `axis-foundry`). → owner: `axis-foundry`.
-3. **Q3.** Machine-readable mirror format — JSON Schema versioned per mirror, or unified across mirrors? Default: per-mirror schema versioning. → owner: `axis-foundry`.
+2. **Q2.** Agent-direct-write for catalog records — does this require a per-PR human approve, or is the validator + automated sign-off sufficient? Default: human approve initially; promote to validator-only when agent reliability proven via eval (ADR-0007 eval harness ancestry, owned by `foundry`). → owner: `foundry`.
+3. **Q3.** Machine-readable mirror format — JSON Schema versioned per mirror, or unified across mirrors? Default: per-mirror schema versioning. → owner: `foundry`.
 4. **Q4.** Per-pack doc cadence — does each pack have its own catalog or share this one? Default: shared catalog with `regional_pack:` field on per-pack rows. → ADR-0010.
 5. **Q5.** Customer-facing doc subset (trust portal) — automatic from catalog `customer_facing: true` flag, or hand-selected? Default: catalog flag. → ADR-0003 (trust portal).
 6. **Q6.** Council-secretariat conflict (LEDG-029 — `platform-privacy-dub` drafts ADRs + runs governance) — does this ADR codify a secretariat-rotation rule? Default: yes; per-doc council chair cannot be from the doc's owning team. → owner: `council-architecture`.
@@ -166,7 +166,7 @@ A doc's cadence is the *floor*, not the ceiling. Trigger events (regulator chang
 
 - `docs/DOC-CATALOG.md` (the live catalog this ADR formalizes)
 - `docs/DOC-UPDATE-PROTOCOL.md` (the protocol this ADR formalizes)
-- `docs/CONTRADICTION-LEDGER.md` LEDG-026 (Foundry vs axis-team autonomy), LEDG-029 (council secretariat conflict)
+- `docs/CONTRADICTION-LEDGER.md` LEDG-026 (Foundry vs microservice-team autonomy), LEDG-029 (council secretariat conflict)
 - `docs/PRD.md` §3.1 commitment 5 (quality of contract over time-to-launch)
-- ADR-0001 (cohesion), ADR-0003 (`EVT-DOC-PUBLISHED` audit emission), ADR-0011 (cross-axis contract registry — catalog is generated), ADR-0013 (per-release SBOM cadence), ADR-0016 (per-wave gate evidence emission cadence), ADR-0017 (brand-rename batch evidence emission), ADR-0018 (glossary lane consumes machine-readable mirror)
+- ADR-0001 (cohesion), ADR-0003 (`EVT-DOC-PUBLISHED` audit emission), ADR-0011 (cross-microservice contract registry — catalog is generated), ADR-0013 (per-release SBOM cadence), ADR-0016 (per-wave gate evidence emission cadence), ADR-0017 (brand-rename batch evidence emission), ADR-0018 (glossary lane consumes machine-readable mirror)
 - Diátaxis documentation framework (https://diataxis.fr/), Google docs-as-code references

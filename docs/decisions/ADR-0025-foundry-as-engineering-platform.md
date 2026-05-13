@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0020 (provider adapter), ADR-0021 (capability registry), ADR-0022 (autonomy ceiling), ADR-0023 (sandbox), ADR-0024 (eval harness — same gate substrate)
 
@@ -19,7 +19,7 @@ The forces are: (a) recursion — the same agent runtime that authors customer w
 
 ## Decision
 
-We consolidate the engineering platform surfaces into the Foundry axis. The axis owns: `repoctl`, the catalog, the claim-ceiling validator, the foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, supply-chain (Trivy / Cosign / SBOM), plugin substrate trust gates, plugin marketplace authoring, and the customer-facing builder surfaces (workflow studio, plugin authoring, regional-pack authoring). Recursion is structural: the same runtime authors workflows and PRs; the same fitness function gates both.
+We consolidate the engineering platform surfaces into the foundry. The axis owns: `repoctl`, the catalog, the claim-ceiling validator, the foundation-bypass ledger, plane-gated CI lanes, scorecards, fitness functions, ADR templates, branch-protection-as-code, signed commits, supply-chain (Trivy / Cosign / SBOM), plugin substrate trust gates, plugin marketplace authoring, and the customer-facing builder surfaces (workflow studio, plugin authoring, regional-pack authoring). Recursion is structural: the same runtime authors workflows and PRs; the same fitness function gates both.
 
 ### Crate layout
 
@@ -40,7 +40,7 @@ crates/oya-foundry-plugin-substrate-app     — plugin sandbox + signing
 crates/oya-foundry-marketplace-app          — plugin + capability marketplace authoring
 ```
 
-The `oya-foundry-*` namespace is governed by the same team as `oya-foundry-*`; cross-crate review within Foundry does not require a cross-axis label.
+The `oya-foundry-*` namespace is governed by the same team as `oya-foundry-*`; cross-crate review within Foundry does not require a cross-microservice label.
 
 ### Catalog as ground truth
 
@@ -49,7 +49,7 @@ The `oya-foundry-*` namespace is governed by the same team as `oya-foundry-*`; c
 pub struct CatalogRecord {
     pub crate_id: CrateId,
     pub plane: Plane,                      // control | data | analytics
-    pub lane_class: LaneClass,             // rust | typescript | database | security | cross-axis
+    pub lane_class: LaneClass,             // rust | typescript | database | security | cross-microservice
     pub claims: ClaimSet {
         pub api_stability: StabilityTier,  // preview | stable | GA
         pub security_review: SecurityReviewState,
@@ -72,7 +72,7 @@ Bypasses are real (the system would freeze without them) but bounded: every entr
 
 ### Plane-gated CI lanes
 
-Every PR is routed to its plane lane (`rust-control`, `rust-data`, `rust-analytics`, `typescript-control`, `database-data`, `security-cross-axis`, ...) and only the relevant fitness functions execute. A PR that touches multiple planes runs the union.
+Every PR is routed to its plane lane (`rust-control`, `rust-data`, `rust-analytics`, `typescript-control`, `database-data`, `security-cross-microservice`, ...) and only the relevant fitness functions execute. A PR that touches multiple planes runs the union.
 
 ### Fitness functions
 
@@ -86,7 +86,7 @@ Per-domain fitness functions live as crates under `oya-foundry-fitness-*`. Examp
 - `oya-foundry-fitness-doc-catalog` — every public surface has a docs page.
 - `oya-foundry-fitness-product-prd` — every product has a PRD with the required sections.
 - `oya-foundry-fitness-horizontal-scale` — every stateful surface has a documented horizontal-scale story.
-- `oya-foundry-fitness-contract-orphan` — every cross-axis contract has both an owner and a consumer.
+- `oya-foundry-fitness-contract-orphan` — every cross-microservice contract has both an owner and a consumer.
 - `oya-foundry-fitness-license` — license-tier gate (AGPL/GPL hard-fail in product code; SSPL/BUSL ADR review).
 - `oya-foundry-fitness-supply-chain` — Cosign + Trivy + SBOM coverage.
 
@@ -137,7 +137,7 @@ The same agent runtime that authors customer workflows authors PRs against the s
 
 ## Alternatives considered
 
-1. **Keep Foundry engineering platform as a separate axis.** Pros: clean per-axis bounded contexts. Cons: two policy stores, two scorecards, two reviewer pools; the recursion thesis fragments. Rejected — cohesion is the entire point.
+1. **Keep Foundry engineering platform as a separate axis.** Pros: clean per-microservice bounded contexts. Cons: two policy stores, two scorecards, two reviewer pools; the recursion thesis fragments. Rejected — cohesion is the entire point.
 2. **Push engineering platform into a `platform-*` cross-cutting team.** Pros: signals it is shared substrate. Cons: dilutes ownership; the platform team would not own the runtime that consumes the platform, so the recursion is broken. Rejected.
 3. **Adopt an external developer-platform product (Backstage / Port / OpsLevel / Cortex / Humanitec) as system of record.** Pros: less to build. Cons: external SoR for our most cohesion-critical authority surface; cannot enforce our autonomy-ceiling shape; cannot author capabilities; cannot run our fitness functions natively. Rejected per the build-vs-buy posture.
 4. **Customer-facing builder surfaces in a separate "ISV product" axis.** Pros: clarity for commercial customers. Cons: produces a parallel trust substrate that drifts from the internal one. Rejected — we sell the same substrate we use.
@@ -146,10 +146,10 @@ The same agent runtime that authors customer workflows authors PRs against the s
 
 ## Open questions
 
-1. When the Foundry team splits into sub-teams (runtime / platform / customer-builder), how do we keep the catalog and fitness-function authority unified? *Owner: `axis-foundry` + `council-architecture`.*
-2. The customer-facing capability authoring SDK ships in Rust + TypeScript; do we author one and codegen the other, or maintain both natively? *Owner: `axis-foundry` + `platform-api-sdk`.*
-3. Bypass-ledger expiry monitor — at what alert noise level does the monitor lose attention? Do we need a graduated escalation? *Owner: `axis-foundry` + `ops-sre-reliability`.*
-4. Recursion failure mode: what is the playbook when a fitness-function bug blocks both human and agent PRs and the fix itself requires a PR? Foundation-bypass is the answer; what is the bypass policy for this exact case? *Owner: `axis-foundry`.*
+1. When the Foundry team splits into sub-teams (runtime / platform / customer-builder), how do we keep the catalog and fitness-function authority unified? *Owner: `foundry` + `council-architecture`.*
+2. The customer-facing capability authoring SDK ships in Rust + TypeScript; do we author one and codegen the other, or maintain both natively? *Owner: `foundry` + `platform-api-sdk`.*
+3. Bypass-ledger expiry monitor — at what alert noise level does the monitor lose attention? Do we need a graduated escalation? *Owner: `foundry` + `ops-sre-reliability`.*
+4. Recursion failure mode: what is the playbook when a fitness-function bug blocks both human and agent PRs and the fix itself requires a PR? Foundation-bypass is the answer; what is the bypass policy for this exact case? *Owner: `foundry`.*
 
 ---
 

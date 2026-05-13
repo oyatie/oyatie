@@ -19,7 +19,7 @@ The 127 legacy ADRs at `decisions/ADR-NNNN-<slug>.md` are **RETIRED**. They:
 | Index of new pack | [`docs/decisions/README.md`](README.md) + [`docs/ADR-INDEX.md`](../ADR-INDEX.md) (the latter to be regenerated as the new pack's index) |
 | Consolidation strategy + supersession map | [`docs/ADR-CONSOLIDATION-PLAN.md`](../ADR-CONSOLIDATION-PLAN.md) |
 | Forensic legacy index | (eventually) `docs/ADR-INDEX-LEGACY.md` snapshot of pre-2026-05-09 state |
-| Per-axis decisions | per-axis ADR cluster in `docs/decisions/` (e.g. Cloud = ADR-0028, Foundry = ADR-0020..0027, etc.) |
+| Per-axis decisions | per-microservice ADR cluster in `docs/decisions/` (e.g. Cloud = ADR-0028, Foundry = ADR-0020..0027, etc.) |
 
 ## Citation rules
 

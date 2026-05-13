@@ -72,50 +72,51 @@ interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
 and [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) when, and only when,
 they appear in all capitals.
 
-## 2. Canonical grammar (BNF) — v4 3-slot (per ADR-0056)
+## 2. Canonical grammar (BNF) — v4.1 flat µservice (per ADR-0056 v4.1)
 
-> **v4 supersedes v3.** This section is updated per
-> [ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)
-> (accepted 2026-05-13). The v3 BNF (`oya-<context>-<feature>-<role>[-<capability>]`)
-> is retired. The v4 3-slot BNF is the canonical grammar for all `oya-*` crates
-> from Shard 1 forward.
+> **v4.1 supersedes v4.** This section is updated per ADR-0056 v4.1
+> (accepted 2026-05-13). The v4 `shared|vertical` binary is **retired** — the flat
+> µservice catalog makes every µservice independent; the `shared` literal is dropped
+> from slot2. The v3 BNF (`oya-<context>-<feature>-<role>[-<capability>]`) is also
+> retired. v4.1 is the canonical grammar for all `oya-*` crates from Shard 1 forward.
 
 The crate-name grammar, evaluated left-to-right on the package-name kebab string:
 
 ```bnf
-crate              ::= "oya" "-" shared-or-vertical "-" bounded-context "-" layer
-                     | "oya" "-" "check" "-" rule-name
+crate          ::= "oya" "-" microservice ( "-" bc-tokens )? "-" layer
+                 | "oya" "-" "check" "-" rule-name
 
-shared-or-vertical ::= "shared"
-                      | vertical
+microservice   ::= kebab-token ( "-" kebab-token )*    (* 1..3 tokens; registry-validated *)
 
-vertical           ::= kebab-token          (* exactly 1 token; registry-validated *)
+bc-tokens      ::= kebab-token ( "-" kebab-token )*    (* 0..N; OPTIONAL *)
 
-bounded-context    ::= kebab-token ( "-" kebab-token )*   (* 1..N tokens; open *)
+layer          ::= "kernel" | "domain" | "application" | "app"
+                 | "adapter" | "infrastructure"
+                 | "cli" | "rest" | "grpc" | "graphql"
+                 | "worker" | "sdk"
 
-layer              ::= "kernel" | "domain" | "application" | "app"
-                     | "adapter" | "infrastructure"
-                     | "cli" | "rest" | "grpc" | "graphql"
-                     | "worker" | "sdk"
+rule-name      ::= kebab-token ( "-" kebab-token )*    (* 1..4 tokens *)
 
-rule-name          ::= kebab-token ( "-" kebab-token )*   (* 1..4 tokens *)
-
-kebab-token        ::= [a-z] [a-z0-9]*
+kebab-token    ::= [a-z] [a-z0-9]*
 ```
 
 **Parser rule**: split on `-`; LAST token = layer (one of 12); SECOND token
-(after `oya-`) = `shared` OR registered vertical; middle tokens = bounded-context.
-`oya-check-*` crates are exempt from the 3-slot grammar.
+(after `oya-`) = registered µservice name; remaining middle tokens (if any) =
+optional BC tokens. `oya-check-*` crates are exempt from this grammar.
 
-Constraints (the lane `oya-shared-architecture-check-cli` verifies all of them):
+**BC optionality rule**: BC slot is OPTIONAL. Omit when the µservice has a single
+concept at the layer (e.g., `oya-medical-domain`, `oya-tenancy-kernel`). Include
+when the µservice has multiple BC-level splits at the same layer (e.g.,
+`oya-foundry-grit-cli`, `oya-workflow-state-machine-domain`).
 
-1. **Segment count.** Total segments (counting `oya` as segment 1) MUST be `>=4`;
-   NO upper bound (multi-token bounded-context names are first-class; no AMBER tax
-   for long names). Granularity is expressed by making the BC name more specific
-   (e.g. `policy` → `policy-evaluator-cedar`).
-2. **Slot-2 enum.** MUST be the literal `shared` OR a vertical name registered in
-   `[workspace.metadata.oya.verticals]`. Adding a vertical is a **1-ADR action**.
-   `shared` is RESERVED and cannot be used as a vertical name.
+Constraints (the lane `oya-check-architecture-cli` verifies all of them):
+
+1. **Segment count.** Total segments (counting `oya` as segment 1) MUST be `>=3`
+   (microservice + layer minimum); NO upper bound.
+2. **Slot-2 µservice enum.** MUST be a µservice name registered in
+   `[workspace.metadata.oya.microservices]`. Adding a µservice is a **1-ADR action**.
+   The literals `shared`, `platform`, `vertical` are **retired** and must NOT appear
+   as slot-2 values.
 3. **Layer enum (closed, 12 values).** LAST token MUST be one of 12 canonical
    values per ADR-0056 §"12-Value Layer Enum". Adding a layer is a **1-ADR action**.
 4. **Capability tail.** REQUIRED for `role = adapter` (per ADR-0015 §3:
@@ -141,21 +142,28 @@ The package name (`[package] name`) MUST equal the directory name. The
 `[lib]` `name` field, when present, MUST equal the package name with `-`
 replaced by `_` (per Cargo's library-name rule).
 
-## 3. Context enum — semantic table
+## 3. Microservice registry — semantic table (selected examples)
 
-| Context | Definition | Layer | Examples in workspace |
-|---|---|---|---|
-| `cloud` | Cloud-provider plane: compute, storage, network, IAM, KMS, billing, region, observability. Maps to the AWS/Azure/GCP-equivalent surface. | provider-facing | `oya-cloud-compute-vm-api`, `oya-cloud-iam-kernel` |
-| `foundation` | Top-of-stack composition root that binds every other context together; **at most one crate** SHOULD use this context (the workspace's single foundation-app). | composition | `oya-foundation-app` |
-| `foundry` | The engineering platform itself: fitness lanes, capability registry, evidence/eval, governance, documentation system, runbooks, supply chain. | meta-engineering | `oya-foundry-evidence-kernel`, `oya-foundry-policy-api` |
-| `platform` | Cross-axis runtime substrate: tenant, identity, audit-chain, eventing, observability, secrets, object-graph, residency, regulatory-pack, policy. | runtime substrate | `oya-platform-tenant-kernel`, `oya-platform-audit-chain-app` |
-| `tooling` | Developer/agent tooling: CLIs, agent helpers, repo-ops binaries. Not deployed; not part of any runtime image. | dev-time | `oya-tooling-cli-dev-runtime`, `oya-tooling-agent-read` |
-| `workspace` | The Google-Workspace-equivalent product axis: drive, mail, calendar, chat, meet, docs, sheets, slides, forms, sites, tasks, notes, recordings, dlp, ediscovery, translate, retention, trust-portal, address-book. | product axis | `oya-workspace-drive-kernel`, `oya-workspace-chat-api` |
+The full registry lives in `[workspace.metadata.oya.microservices]` in the root
+`Cargo.toml`. Examples of registered µservices:
 
-A new context REQUIRES: (1) an ADR proposing the name, (2) a row added to
-this table, (3) the lane regex re-rolled in
-`.omc/fitness-lanes/naming-convention.md`, (4) a `[workspace.metadata.oya]
-contexts` registry update.
+| Microservice | Definition | Layer examples |
+|---|---|---|
+| `cloud` | Cloud-provider plane: compute, storage, network, IAM, KMS, billing, region, observability. | `oya-cloud-compute-vm-rest`, `oya-cloud-iam-kernel` |
+| `foundry` | Internal engineering engine: fitness lanes, capability registry, evidence/eval, governance, grit, icm, Proof Ladder, 9 planes, Wave framework. | `oya-foundry-evidence-kernel`, `oya-foundry-grit-cli` |
+| `ontology` | Palantir-Ontology-equivalent information adapter: typed entities + links + actions + functions, audit-chain, RLS, jurisdiction overlays. Replaces retired `object-graph`. | `oya-ontology-entity-kernel`, `oya-ontology-agent-gateway-rest` |
+| `workflow` | Cross-µservice action/orchestration adapter: state machines, DAGs, approvals, SLA timers, escalations, handoffs. | `oya-workflow-state-machine-domain`, `oya-workflow-approvals-application` |
+| `application` | B2B unified shell: tenants sign in; enable µservices à-la-carte. | `oya-application-product-enablement-rest` |
+| `connect` | Dual-context (Personal + Professional) messaging: messenger, mail, community. Replaces retired `workspace`. | `oya-connect-messenger-grpc`, `oya-connect-mail-rest` |
+| `tenancy` | Tenant lifecycle, multi-tenant isolation, RLS enforcement. | `oya-tenancy-kernel`, `oya-tenancy-adapter` |
+| `identity` | Authentication, STS token issue, PKCE+nonce, SSO binding. | `oya-identity-kernel`, `oya-identity-rest` |
+| `medical` | Electronic medical records, FHIR R5, clinical workflows. | `oya-medical-encounter-domain` |
+| `payroll` | Salary calculation, 4대보험 EDI, 연말정산, payroll journal. | `oya-payroll-ledger-application` |
+| `payments` | Payment rails, settlement, reconciliation. | `oya-payments-ledger-application` |
+
+Adding a µservice REQUIRES: (1) an ADR proposing the name + justification,
+(2) a row in `[workspace.metadata.oya.microservices]`, (3) the lane regex updated
+in the naming-convention fitness lane.
 
 ## 4. Role enum — semantic table
 
@@ -301,18 +309,31 @@ block that pins the closed enums:
 
 ```toml
 [workspace.metadata.oya]
-contexts = ["cloud", "foundation", "foundry", "platform", "tooling", "workspace"]
-roles    = ["kernel", "domain", "app", "api", "worker", "adapter",
-            "runtime", "cli", "sdk"]
-compound_features = [
-  "audit-chain", "policy-cedar", "object-graph",
-  "regional-pack", "regulatory-pack",
+# microservices = open kebab registry; slot-2 of BNF v4.1.
+# "shared", "platform", "vertical", "workspace" are RETIRED — do not add.
+microservices = [
+  "cloud", "foundry", "ontology", "workflow", "application", "connect",
+  "tenancy", "identity", "audit-chain", "eventing", "secrets",
+  "observability", "kms", "policy", "search", "vector",
+  "data-boundary", "finance-library", "capability-registry",
+  "records", "ads", "analytics",
+  "medical", "pharmacy", "healthcare-portal", "emergency", "clinical",
+  "hr", "payroll", "accounting", "ats", "grc", "performance",
+  "manufacturing", "logistics", "facility-ops", "procurement", "security",
+  "payments", "insurance", "finance-quant",
+  "dining", "cellar",
+]
+layers = ["kernel", "domain", "application", "app", "adapter", "infrastructure",
+          "cli", "rest", "grpc", "graphql", "worker", "sdk"]
+compound_bc_tokens = [
+  "audit-chain", "policy-cedar", "regional-pack", "regulatory-pack",
   "compute-vm", "compute-k8s", "compute-functions",
   "storage-object", "storage-block",
   "network-vpc", "network-dns", "network-lb",
   "billing-tax", "address-book", "document-format",
-  "trust-portal", "collab-runtime", "agent-read",
+  "trust-portal", "agent-read",
   "api-semver", "cargo-prefix", "cli-dev",
+  "state-machine", "agent-gateway", "product-enablement",
 ]
 ```
 

@@ -3,7 +3,7 @@
 > **Status:** Accepted
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `council-architecture` + `axis-foundry`
+> **Owner:** `council-architecture` + `foundry`
 > **Date:** 2026-05-12
 > **doc_class:** DecisionRecord
 > **purpose:** Resolve the new-crate chicken-and-egg with grit symbol-locking via the icm-coordination-lock fallback pattern (scaffold-locks-oyatie topic). Cargo.toml::workspace_members is verified NOT indexed by grit at v0.3.0, so the primary scaffold-claim path is the icm fallback.
@@ -215,7 +215,7 @@ workspace manifest — including the ~140-crate atomic rename planned for Shard 
 The original ADR (2026-05-12) covered the chicken-and-egg case for new crate
 creation: no source files → no indexed symbols → cannot take a native grit lock.
 The rename case has an analogous gap: the pre-rename symbol path (e.g.,
-`crates/oya-platform-tenant-kernel/src/lib.rs::TenantId`) is valid for a grit
+`crates/oya-tenancy-kernel/src/lib.rs::TenantId`) is valid for a grit
 claim, but atomically claiming ~140 symbols across the workspace is impractical
 at grit v0.3.0.
 

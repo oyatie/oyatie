@@ -25,9 +25,9 @@ We adopt **descriptive wave names**, **per-wave gate criteria**, **`preview / st
 
 | Wave | Description |
 |---|---|
-| **W-Foundation** | Foundation correctness: tenancy + identity kernel (ADR-0002), audit chain (ADR-0003), plane separation (ADR-0004), eventing backbone (ADR-0005), Object Graph + property tiers (ADR-0006), Cedar + autonomy ceiling (ADR-0007), Data Use Boundary (ADR-0008), cell architecture (ADR-0009), regional pack architecture (ADR-0010), cross-axis contract registry (ADR-0011), license policy (ADR-0013), build-vs-buy (ADR-0014), flat-crates (ADR-0015) |
+| **W-Foundation** | Foundation correctness: tenancy + identity kernel (ADR-0002), audit chain (ADR-0003), plane separation (ADR-0004), eventing backbone (ADR-0005), Ontology + property tiers (ADR-0006), Cedar + autonomy ceiling (ADR-0007), Data Use Boundary (ADR-0008), cell architecture (ADR-0009), regional pack architecture (ADR-0010), cross-microservice contract registry (ADR-0011), license policy (ADR-0013), build-vs-buy (ADR-0014), flat-crates (ADR-0015) |
 | **W-Foundry-Preview** | Foundry preview: SecretProvider/KMS, multi-provider adapter (Claude/OpenAI/Gemini × subscription + API), capability registry, autonomy ceiling enforcement, evidence emission, RAG endpoint, foundry surfaces (catalog, claim-ceiling validator, foundation-bypass ledger, plane-gated CI lanes, repoctl, scorecards, fitness functions, supply-chain Cosign+Trivy+SBOM) |
-| **W-SaaS-Preview** | SaaS platform preview: workflow engine, Object Graph property tiers, plugin substrate (signing + sandbox), public REST API stability tier, webhook signing, plugin marketplace catalog |
+| **W-SaaS-Preview** | SaaS platform preview: workflow engine, Ontology property tiers, plugin substrate (signing + sandbox), public REST API stability tier, webhook signing, plugin marketplace catalog |
 | **W-Workspace-Preview** | Workspace / Productivity Suite preview: Mail / Docs / Sheets / Slides / Drive / Calendar / Meet / Chat / Forms / Sites / Tasks / Notes / Translate / Recordings |
 | **W-Cloud-Preview** | Cloud provider preview: IAM (Cedar + SSO + STS), region/AZ/cell taxonomy, compute (managed k8s + functions), storage (object + block + KMS-shred), network (VPC + LB + DNS + interconnect), billing (per-region tax-invoice via regional pack), observability |
 | **W-Search-Preview** | Search preview: pgroonga day-1, KR/JP/EN morphology, inverted index sharding, vector index (pgvector), tenant-private indexes, RAG endpoint to Foundry, per-class data boundary enforcement |
@@ -132,10 +132,10 @@ W-Ads-Preview ─→ W-Ads-Stable
 - **Cons:** number does not communicate substrate-or-axis content; reviewers must look up "what is W3."
 - **Rejected because:** descriptive names are self-documenting.
 
-### Alternative C — Track per-axis status without wave concept
+### Alternative C — Track per-microservice status without wave concept
 
 - **Pros:** simpler.
-- **Cons:** loses cross-axis dependency tracking; W-Foundation gating is explicit.
+- **Cons:** loses cross-microservice dependency tracking; W-Foundation gating is explicit.
 - **Rejected because:** cohesion + dependency clarity.
 
 ---
@@ -143,7 +143,7 @@ W-Ads-Preview ─→ W-Ads-Stable
 ## Open questions
 
 1. **Q1.** Per-pack wave subdivision (W-Region-Fan-Out is a single wave covering multiple packs) — split per pack or keep aggregate? Default: aggregate; per-pack onboarding is a sub-batch. → ADR-0010.
-2. **Q2.** "GA" criteria per-axis — pinned to per-pack regulator-equivalent OR global SLO commit? Default: per-pack regulator-equivalent for the regions in scope. → COMPLIANCE-MATRIX.
+2. **Q2.** "GA" criteria per-microservice — pinned to per-pack regulator-equivalent OR global SLO commit? Default: per-pack regulator-equivalent for the regions in scope. → COMPLIANCE-MATRIX.
 3. **Q3.** Cross-wave status (e.g. an axis's data-plane is `stable` while its analytics-plane is `preview`) — per-plane status? Default: per-surface status per the catalog `plane:` field; an axis is "stable" when all its data-plane surfaces are stable. → ADR-0004.
 
 ---
@@ -154,4 +154,4 @@ W-Ads-Preview ─→ W-Ads-Stable
 - `docs/ROADMAP.md` §1 (canonical wave sequence), §2 (per-wave gate criteria)
 - `docs/GLOSSARY.md` §11 (deprecated terms)
 - `docs/CONTRADICTION-LEDGER.md` (resolution batches sequenced by wave)
-- ADR-0001 (cohesion), ADR-0011 (cross-axis contract registry per wave gate), ADR-0012 (axis admission), ADR-0018 (forbidden-vocab fitness lane), ADR-0019 (per-wave evidence emission cadence)
+- ADR-0001 (cohesion), ADR-0011 (cross-microservice contract registry per wave gate), ADR-0012 (axis admission), ADR-0018 (forbidden-vocab fitness lane), ADR-0019 (per-wave evidence emission cadence)

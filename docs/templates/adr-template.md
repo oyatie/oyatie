@@ -1,67 +1,179 @@
-# ADR-NNNN: <Decision Title (imperative form)>
+---
+doc_class: Template
+template_id: TPL-ADR
+status: Accepted
+date: 2026-05-13
+purpose: |
+  Canonical ADR shape for every oyatie architectural decision. Enforces BNF v4.1
+  naming justification, Bominal inheritance citation, and concrete file-path consequences.
+  Every executor authoring a new ADR MUST start from this template.
+enforcing_fitness_lane: oya-foundry-fitness-plan-hierarchy
+owner_team: council-architecture
+related:
+  - docs/standards/naming.md
+  - docs/decisions/ADR-INDEX.md
+  - docs/templates/INDEX.md
+adrs_cited:
+  - ADR-0056  # BNF v4.1 + layer enum
+  - ADR-0057  # LEAN checks
+---
 
-> **Status:** Proposed | Accepted | Deprecated | Superseded
-> **Supersedes:** ADR-0050 (or `-`)
-> **Superseded-by:** ADR-0050 (or `-`)
-> **Owner:** `<team-id>` from [`teams/`](../teams/)
-> **Date:** YYYY-MM-DD
-> **Related:** ADR-0050, ADR-YYYY (cross-reference)
+# ADR-XXXX: <Decision Title — imperative present tense>
+
+---
+
+## Frontmatter
+
+| Field | Value |
+|---|---|
+| **id** | ADR-XXXX |
+| **title** | <Decision Title> |
+| **status** | Proposed \| Accepted \| Superseded |
+| **date** | YYYY-MM-DD |
+| **supersedes** | ADR-YYYY (or `-`) |
+| **superseded_by** | ADR-ZZZZ (or `-`) |
+| **owner** | `<team-id>` from `docs/teams/` |
+| **related** | ADR-AAAA, ADR-BBBB |
+| **bominal_source** | Bominal ADR-NNNN (inherited) \| oyatie override \| no Bominal equivalent |
 
 ---
 
 ## Context
 
-What is the problem? What forces drove the decision? Quote relevant constraints (regulatory, technical, organizational). Cite source ADRs that bear on this decision.
+What is the problem? What forces drove the decision? Quote relevant constraints
+(regulatory, technical, organizational). Cite Bominal ADRs that bear on this decision
+using the format: "per Bominal ADR-XXXX (inherited)" or "per oyatie
+[[memory-slug]] (override)".
 
-Two-paragraph maximum unless the context requires deeper exposition.
+State whether this decision **inherits** from Bominal (default) or **overrides**
+it (per `feedback_bominal_inheritance_precedence.md`).
+
+Two paragraphs maximum unless the context requires deeper exposition.
 
 ---
 
 ## Decision
 
-The decision in declarative form. *Active voice. Present tense. Specific.*
+The decision in declarative form. Active voice. Present tense. Specific.
 
-If the decision is structural (e.g. "we will adopt X library") include:
-- Exact target (library + version range, or contract surface)
-- Boundary (where the decision applies; where it does not)
-- Migration path from current state (if any)
+If the decision introduces new artifact names (crates, binaries, modules, BCs),
+include the **Naming Justification block** for EACH name (mandatory per
+`feedback_naming_justification.md`):
+
+```
+NAME: oya-<microservice>[-<bc-tokens>]-<layer>
+JUSTIFICATION:
+- microservice = <kebab-token(s)>: <product/capability name; registered in
+  [workspace.metadata.oya.microservices]; cite ADR-0056 v4.1 flat BNF — no
+  shared|vertical bisection>
+- bc-tokens = <kebab-token(s)> (OPTIONAL): <omit when µservice has single
+  binary/concept; include when µservice has multiple binaries or BC-level splits
+  at the same layer; cite ADR-0056 v4.1 BC-optionality rule>
+- layer = <layer>: <which of the 12 enum values; cite ADR-0056 §"Layer semantics"
+  rule that fits: e.g., "use-case orchestrator holding port-trait bounds →
+  application", "composition-root binary → app", "framework/driver glue →
+  infrastructure">
+- exemptions claimed (if any): <cite specific BNF exception, e.g.,
+  "check-namespace per ADR-0056 line 79-80">
+```
+
+Glossary enforcement (auto-reject if any of these appear unqualified):
+- "platform" → use "shared"
+- "Object Graph" → use "Ontology"
+- "Application Shell" / "Modular Product Shell" → use "Application"
+- "Product Group" / "Arm" → use flat µservice catalog
+- `shared|vertical` BNF slot → use open kebab µservice name (BNF v4.1)
 
 ---
 
 ## Consequences
 
+### Concrete file and crate changes
+
+List every file path, crate name, or layer assignment that changes as a result
+of this decision. An autonomous executor must be able to act without escalation:
+
+| Path / Crate | Change type | BNF v4.1 name | Layer |
+|---|---|---|---|
+| `crates/oya-<ms>-<bc>-<layer>/` | create \| rename \| delete | `oya-<ms>[-<bc>]-<layer>` | `<layer-enum>` |
+| `docs/standards/<file>.md` | update | — | — |
+
+### Integration via Workflow + Ontology
+
+State which typed events this decision emits to Workflow and which Object Types /
+Link Types it writes to Ontology (per `feedback_workflow_objectgraph_adapter_layer.md`):
+
+- **Workflow events produced**: `<EventType>` — consumed by `<µservice>`
+- **Workflow events consumed**: `<EventType>` — produced by `<µservice>`
+- **Ontology writes**: Object Type `<T>`, Link Type `<L>`
+- **Ontology reads**: Object Type `<T>` via `<query shape>`
+
+If this ADR does not touch Workflow or Ontology directly, state "not applicable"
+and cite the integration point in the affected µservice's PRD.
+
 ### Positive
-- Bullet list
+- Bullet list of benefits.
 
 ### Negative
-- Bullet list (be honest)
+- Bullet list of trade-offs (be honest).
 
 ### Operational
-- What this means for on-call, CI, runbooks
+- CI lane changes (new LEAN check, fitness lane flip from `--report-only` to BLOCKER).
+- Grit symbol space affected (`<µservice>` symbols registered at `grit claim`).
 
 ---
 
-## Alternatives considered
+## Clean Architecture Impact
 
-For each alternative considered:
-- Name
+State which CI lanes this decision affects. Required before ADR can be marked Accepted.
+
+| Lane | Impact | Action required |
+|---|---|---|
+| `dependency-direction` (LEAN-A1) | Affected \| Not affected | `<new crate added; layer declared>` or `none` |
+| `cross-product-refusal` (LEAN-A2) | Affected \| Not affected | `<new cross-product boundary introduced>` or `none` |
+| `port-location` | Affected \| Not affected | `<port trait moved to kernel>` or `none` |
+| `layer-correctness` | Affected \| Not affected | `<layer enum value declared>` or `none` |
+| `composition-root-only` | Affected \| Not affected | `<app-layer binary changed>` or `none` |
+| `sdk-kernel-only` | Affected \| Not affected | `<SDK crate added/changed>` or `none` |
+
+Port traits introduced by this decision (must live in `kernel` layer, per
+`feedback_clean_architecture_requirements.md` §3):
+
+```rust
+// In oya-<ms>-<bc>-kernel/src/ports.rs
+// Port trait declarations — ZERO business logic; ZERO I/O
+
+#[doc(hidden)]
+mod sealed { pub trait Sealed {} }
+
+#[async_trait::async_trait]
+pub trait <PortTrait>: Send + Sync + sealed::Sealed {
+    async fn <method>(&self, ...) -> Result<..., ...>;
+}
+```
+
+Implementations live in `oya-<ms>-<bc>-adapter` (or `-infrastructure`).
+Domain calls through port; domain never imports adapter.
+
+---
+
+## Alternatives Considered
+
+For each alternative:
+
+**Alternative N — <name>**
+- Description
 - Pros
 - Cons
 - Reason rejected
-
-If only one alternative was considered (i.e., status quo), state that explicitly.
-
----
-
-## Open questions
-
-Numbered list of items that need a future decision. Each gets a target ADR or owner.
 
 ---
 
 ## References
 
-- Industry references (papers, RFCs, vendor docs)
-- Internal ADRs cited
-- Codex / Claude / external review feedback (if applicable)
-- Related issues (`Refs #N`, `Closes #N`)
+- Bominal ADR-XXXX: <title> (inherited \| translated \| overridden)
+- oyatie memory: `feedback_<slug>.md` (override rationale)
+- ADR-0056 BNF v4.1 (naming authority)
+- ADR-0057 LEAN checks (cross-vertical enforcement)
+- Related oyatie ADRs: ADR-AAAA, ADR-BBBB
+- Issues: `Refs #N`, `Closes #N`

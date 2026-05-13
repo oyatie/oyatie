@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0020 (provider adapter — the trait extends to in-house IDs), ADR-0024 (eval harness — the cutover gate), ADR-0025 (engineering platform — supplies the data and gate substrate), ADR-0027 (vision/speech/robotics sub-substrates — built on the same kernel)
 
@@ -86,7 +86,7 @@ Training data flows through the Data Use Boundary (DUB) gate. Differential priva
 
 ### GPU fleet
 
-The GPU fleet lives on the Cloud axis (`axis-cloud` provisions; Foundry consumes). Per-region pinning aligns with tenant residency: a strict-KR tenant's training and inference run on a KR-region fleet.
+The GPU fleet lives on the cloud microservice (`cloud` provisions; Foundry consumes). Per-region pinning aligns with tenant residency: a strict-KR tenant's training and inference run on a KR-region fleet.
 
 ### Safety + red-team substrate
 
@@ -124,7 +124,7 @@ The eval harness (ADR-0024) is also the red-team substrate for in-house models. 
 - Runbook: `runbooks/foundry-model-cutover.md` — eval-suite review, A/B run, router-preference change, monitor.
 - Runbook: `runbooks/foundry-model-training-incident.md` — training-pipeline failure, attestation mismatch, data-flow breach.
 - Runbook: `runbooks/foundry-model-lora-adapter-rollback.md` — tenant adapter rollback procedure.
-- On-call: GPU-fleet capacity alerts go to `axis-cloud`; in-house model serving alerts go to `axis-foundry`.
+- On-call: GPU-fleet capacity alerts go to `cloud`; in-house model serving alerts go to `foundry`.
 - Quarterly: per-vertical cutover review — which capabilities are still on provider vs. in-house, and where is the eval gap closing or widening.
 
 ---
@@ -140,11 +140,11 @@ The eval harness (ADR-0024) is also the red-team substrate for in-house models. 
 
 ## Open questions
 
-1. What is the trigger to enter W-AI-Model-Substrate? Per-vertical revenue threshold? Per-capability volume threshold? Provider price shock? *Owner: `axis-foundry` + founder.*
-2. How do per-tenant LoRA adapters reconcile with DSR cascades — when a subject is erased, do we have to retrain the adapter, or is differential-privacy attestation sufficient? *Owner: `axis-foundry` + `platform-privacy-dub`.*
-3. Open-source baseline selection — do we standardize on one base family (e.g. Llama / Mistral / Qwen / DeepSeek) or maintain optionality? *Owner: `axis-foundry`.*
-4. How do we structure the talent ramp without fragmenting the team that owns the runtime + platform? *Owner: founder + `axis-foundry`.*
-5. Which capability gets the first cutover gate evaluated? (My instinct: embedding for Korean RAG — high volume, narrow task, eval-tractable.) *Owner: `axis-foundry`; target the next pack.*
+1. What is the trigger to enter W-AI-Model-Substrate? Per-vertical revenue threshold? Per-capability volume threshold? Provider price shock? *Owner: `foundry` + founder.*
+2. How do per-tenant LoRA adapters reconcile with DSR cascades — when a subject is erased, do we have to retrain the adapter, or is differential-privacy attestation sufficient? *Owner: `foundry` + `platform-privacy-dub`.*
+3. Open-source baseline selection — do we standardize on one base family (e.g. Llama / Mistral / Qwen / DeepSeek) or maintain optionality? *Owner: `foundry`.*
+4. How do we structure the talent ramp without fragmenting the team that owns the runtime + platform? *Owner: founder + `foundry`.*
+5. Which capability gets the first cutover gate evaluated? (My instinct: embedding for Korean RAG — high volume, narrow task, eval-tractable.) *Owner: `foundry`; target the next pack.*
 
 ---
 

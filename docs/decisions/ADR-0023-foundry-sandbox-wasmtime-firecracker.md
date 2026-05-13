@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0020 (provider adapter), ADR-0021 (capability registry — capability declares which sandbox class it needs), ADR-0022 (autonomy ceiling — sandbox is process-level defense-in-depth), ADR-0025 (engineering platform — sandbox-spawn metering rolls into scorecards)
 
@@ -140,10 +140,10 @@ Detection emits `EVT-FOUNDRY-SANDBOX-ESCAPE-ATTEMPT` and triggers an automatic s
 
 ## Open questions
 
-1. How do we share Wasm modules across spawns without losing the per-tenant isolation guarantee? Module cache by digest is safe; module cache by name is not. *Owner: `axis-foundry`; target the next pack.*
-2. What is the policy when a tool's resource caps are too tight for the actual workload — auto-promote to a higher cap (and re-emit), or always fail? *Owner: `axis-foundry` + `ops-sre-reliability`.*
-3. Should the per-tool egress allowlist support time-windowed grants (e.g. a one-shot egress for a one-shot data pull)? *Owner: `axis-foundry` + `ops-security`.*
-4. How does the warm pool reconcile with per-region residency — do strict-residency tenants get region-pinned warm VMs, or do we burn warm-pool capacity per region? *Owner: `axis-foundry` + `axis-cloud`.*
+1. How do we share Wasm modules across spawns without losing the per-tenant isolation guarantee? Module cache by digest is safe; module cache by name is not. *Owner: `foundry`; target the next pack.*
+2. What is the policy when a tool's resource caps are too tight for the actual workload — auto-promote to a higher cap (and re-emit), or always fail? *Owner: `foundry` + `ops-sre-reliability`.*
+3. Should the per-tool egress allowlist support time-windowed grants (e.g. a one-shot egress for a one-shot data pull)? *Owner: `foundry` + `ops-security`.*
+4. How does the warm pool reconcile with per-region residency — do strict-residency tenants get region-pinned warm VMs, or do we burn warm-pool capacity per region? *Owner: `foundry` + `cloud`.*
 
 ---
 

@@ -45,7 +45,7 @@ We adopt **canonical-architecture + regional-pack plug-ins** as the locale model
 The architecture publishes seams; packs supply impls.
 
 ```rust
-// crates/oya-platform-regional-pack-kernel
+// crates/oya-tenancy-regional-pack-kernel
 pub trait RegulatoryPack {
     fn pack_id(&self) -> RegulatoryPackId;
     fn controls(&self) -> &[ControlMapping];
@@ -110,7 +110,7 @@ Each pack declares the residency classes it supports. A tenant's `Tenant.residen
 
 ### Boundary
 
-- Applies to: every cross-axis surface that touches per-locale concerns (any axis that takes locale, currency, tax, IdP, payment, address, content safety, ad policy, industry data model, or vendor partner as input).
+- Applies to: every cross-microservice surface that touches per-locale concerns (any axis that takes locale, currency, tax, IdP, payment, address, content safety, ad policy, industry data model, or vendor partner as input).
 - Does not apply to: kernel surfaces that are explicitly locale-agnostic (Tenant kernel itself, audit chain, eventing backbone, OG kernel).
 
 ---
@@ -177,4 +177,4 @@ Each pack declares the residency classes it supports. A tenant's `Tenant.residen
 - `docs/COMPLIANCE-MATRIX.md` §2 (cross-region regulator inventory — drives the initial pack set)
 - `docs/CONTRADICTION-LEDGER.md` LEDG-014 (KR binders missing), LEDG-024 (KR identity coverage gap), LEDG-017 (defense scope)
 - `docs/PRD.md` §1 ("cloud sovereignty is a global window, not a Korea-specific one"), §3.1 commitment 3 (canonical-architecture + regional-pack plug-ins)
-- ADR-0001 (cohesion), ADR-0002 (Tenant.regulatory_packs + residency), ADR-0003 (per-pack evidence emission), ADR-0008 (tenant-class overrides per regulator), ADR-0009 (per-cell residency), ADR-0011 (catalog cross-axis contracts include pack-bound seams), ADR-0012 (axis admission — defense scope decision)
+- ADR-0001 (cohesion), ADR-0002 (Tenant.regulatory_packs + residency), ADR-0003 (per-pack evidence emission), ADR-0008 (tenant-class overrides per regulator), ADR-0009 (per-cell residency), ADR-0011 (catalog cross-microservice contracts include pack-bound seams), ADR-0012 (axis admission — defense scope decision)

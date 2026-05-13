@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0026, ADR-0030, ADR-0033, ADR-0045, ADR-0047
 
@@ -13,7 +13,7 @@
 
 Vector search underlies semantic retrieval (Search RAG per ADR-0030), Foundry agent memory (per ADR-0007 cross-session memory equivalent), per-vertical entity matching (e.g. clinical document similarity), and Workspace Drive content search. Without a pinned vector-store strategy, every axis would adopt its own vector engine; license posture would fragment; per-tenant residency would be a per-engine retrofit.
 
-The pack-of-19 foundation ADRs named vector search as a need but did not pin the engine, the license posture, or the scale trajectory. This ADR pins all three: pgvector at day-1 (lives in our OLTP tier per ADR-0045; license-clean PostgreSQL Lic + extension), in-house Rust HNSW/IVF at billion-scale long-horizon (under `crates/oya-platform-vector-*`), and FAISS / Milvus / Qdrant only as adapters behind a port — never as primary stores.
+The pack-of-19 foundation ADRs named vector search as a need but did not pin the engine, the license posture, or the scale trajectory. This ADR pins all three: pgvector at day-1 (lives in our OLTP tier per ADR-0045; license-clean PostgreSQL Lic + extension), in-house Rust HNSW/IVF at billion-scale long-horizon (under `crates/oya-vector-*`), and FAISS / Milvus / Qdrant only as adapters behind a port — never as primary stores.
 
 ---
 
@@ -52,10 +52,10 @@ CREATE INDEX search_embeddings_hnsw
 
 ### In-house Rust HNSW/IVF at billion-scale long-horizon
 
-When per-tenant embedding count exceeds the practical pgvector ceiling (~100M per index per cell), we transition to an in-house Rust implementation under `crates/oya-platform-vector-*`:
+When per-tenant embedding count exceeds the practical pgvector ceiling (~100M per index per cell), we transition to an in-house Rust implementation under `crates/oya-vector-*`:
 
 ```rust
-// crates/oya-platform-vector-hnsw
+// crates/oya-vector-hnsw-kernel
 pub struct HnswIndex<const DIM: usize> {
     pub graph: HnswGraph,
     pub vectors: VectorStore,     // disk-backed, mmap-friendly
@@ -81,7 +81,7 @@ pub struct IvfIndex<const DIM: usize> {
 ### FAISS (MIT) only as adapter
 
 ```rust
-// crates/oya-platform-vector-faiss-adapter
+// crates/oya-vector-faiss-adapter
 pub struct FaissAdapter {
     pub index: faiss::Index,    // FFI to libfaiss
 }
@@ -136,7 +136,7 @@ Per ADR-0038:
 
 ### Anti-scope
 
-This ADR does not own the search backend (per ADR-0047, but vector index informs Search). Does not own the embedding-model serving (per ADR-0026 in-house AI substrate). Does not own per-axis embedding usage policy (per-axis ADR governs).
+This ADR does not own the search backend (per ADR-0047, but vector index informs Search). Does not own the embedding-model serving (per ADR-0026 in-house AI substrate). Does not own per-microservice embedding usage policy (per-microservice ADR governs).
 
 ---
 
@@ -194,18 +194,18 @@ This ADR does not own the search backend (per ADR-0047, but vector index informs
 
 ## Open questions
 
-1. **Q1.** pgvector → in-house transition trigger — vector count or query latency? Default: query latency P95 > 100ms per cell triggers transition. → owner: `axis-foundry`.
-2. **Q2.** In-house disk format — Parquet-derived or Arrow-IPC? Default: Arrow-IPC (consistent with DataFusion per ADR-0045). → owner: `axis-foundry`.
+1. **Q1.** pgvector → in-house transition trigger — vector count or query latency? Default: query latency P95 > 100ms per cell triggers transition. → owner: `foundry`.
+2. **Q2.** In-house disk format — Parquet-derived or Arrow-IPC? Default: Arrow-IPC (consistent with DataFusion per ADR-0045). → owner: `foundry`.
 3. **Q3.** Per-tenant BYO embedding model — at GA or W+24? Default: GA opt-in for plus-tier tenants. → ADR-0026.
 4. **Q4.** Per-pack embedding model versioning — per-tenant pinning at GA? Default: yes; per-tenant migration is opt-in. → ADR-0026.
-5. **Q5.** Quantization (PQ / SQ / binary) — at GA or W+12? Default: SQ (scalar quantization) at GA; PQ at W+12 if cost reductions warrant. → owner: `axis-foundry`.
+5. **Q5.** Quantization (PQ / SQ / binary) — at GA or W+12? Default: SQ (scalar quantization) at GA; PQ at W+12 if cost reductions warrant. → owner: `foundry`.
 
 ---
 
 ## References
 
 - `docs/PRD.md` §10 (data plane)
-- `docs/DESIGN.md` §11 (vector store), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (vector store), §10 (cross-microservice contracts)
 - pgvector docs (PostgreSQL Lic); FAISS docs (MIT); Milvus + Qdrant docs (Apache-2 verified)
 - HNSW (Malkov & Yashunin 2018); IVF / IVFADC (Jégou et al.)
 - ADR-0001 (cohesion), ADR-0026 (AI substrate), ADR-0030 (search), ADR-0033 (vertical pack), ADR-0045 (database tier), ADR-0047 (search backend)

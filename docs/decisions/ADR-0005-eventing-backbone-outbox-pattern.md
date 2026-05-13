@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry` (eventing kernel) + `council-architecture`
+> **Owner:** `foundry` (eventing kernel) + `council-architecture`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0009, ADR-0011, ADR-0013
 
@@ -11,7 +11,7 @@
 
 ## Context
 
-The cohesion thesis (ADR-0001), the audit chain (ADR-0003), and the plane-separation invariants (ADR-0004) together require a single eventing backbone that every axis writes to and reads from. Each cross-axis contract row in DESIGN §10 — Tenant updates, IAM mutations, capability invocations, audit-chain emissions, billing events, DSR cascades, search-index lifecycle, ad-targeting decisions — flows through events. Without a single backbone, each axis selects its own broker, each integration becomes bespoke, the outbox-pattern guarantees diverge, and the audit chain cannot reliably correlate cross-axis flows.
+The cohesion thesis (ADR-0001), the audit chain (ADR-0003), and the plane-separation invariants (ADR-0004) together require a single eventing backbone that every axis writes to and reads from. Each cross-microservice contract row in DESIGN §10 — Tenant updates, IAM mutations, capability invocations, audit-chain emissions, billing events, DSR cascades, search-index lifecycle, ad-targeting decisions — flows through events. Without a single backbone, each axis selects its own broker, each integration becomes bespoke, the outbox-pattern guarantees diverge, and the audit chain cannot reliably correlate cross-microservice flows.
 
 License posture (ADR-0013) constrains the choice. Confluent Community License, Redpanda BSL, and AWS-FSL are all `requires-review` or `forbidden` for product code; the only strictly Apache-2 broker that meets the scale + ecosystem bar is Apache Kafka itself. The PRD §3.1 commitment to optimization-built-in (`outbox + Kafka` per the toolchain manifest) and the prevention-doctrine commitment to single-source-of-truth integration patterns both push toward one canonical backbone.
 
@@ -29,10 +29,10 @@ We adopt **Apache Kafka** as the single eventing backbone, **outbox pattern** fo
 
 ### Outbox pattern
 
-Every transactional state change that emits an event writes the event into an `outbox` table inside the *same* DB transaction as the state change. A separate poller (or per-axis CDC connector) ships outbox rows to Kafka. This guarantees at-least-once delivery without requiring a distributed transaction across the DB and the broker.
+Every transactional state change that emits an event writes the event into an `outbox` table inside the *same* DB transaction as the state change. A separate poller (or per-microservice CDC connector) ships outbox rows to Kafka. This guarantees at-least-once delivery without requiring a distributed transaction across the DB and the broker.
 
 ```rust
-// crates/oya-platform-eventing-kernel
+// crates/oya-eventing-kernel
 pub struct OutboxRow {
     pub event_id: EventId,                     // ULID, monotonic per partition
     pub tenant_shard: TenantId,
@@ -70,20 +70,20 @@ Per-axis fan-out adds a secondary topic with an axis-specific partitioner (e.g. 
 
 ### CloudEvents + Protobuf + schema registry
 
-- CloudEvents 1.0 envelope is mandatory for cross-axis topics; per-axis-internal topics may use raw Protobuf if they declare so in catalog.
+- CloudEvents 1.0 envelope is mandatory for cross-microservice topics; per-microservice-internal topics may use raw Protobuf if they declare so in catalog.
 - Protobuf payload schemas live under `contracts/eventschemas/<axis>/<event>.proto`.
-- Schema registry is in-house (`crates/oya-platform-schema-registry-*`); license posture forbids Confluent Schema Registry for production.
+- Schema registry is in-house (`crates/oya-eventing-schema-registry-*`); license posture forbids Confluent Schema Registry for production.
 - Compatibility rule: backward + transitive (consumers MUST tolerate older payloads).
 
 ### Per-event audit emission
 
-Every event that crosses an axis boundary, touches a regulated data class (per ADR-0008), or invokes a capability (per ADR-0007) carries the `data_classes_touched` and `regulatory_packs_consumed` CloudEvents extensions. The audit-chain emitter (ADR-0003) consumes these directly; missing extensions on a cross-axis topic are a CI failure.
+Every event that crosses an axis boundary, touches a regulated data class (per ADR-0008), or invokes a capability (per ADR-0007) carries the `data_classes_touched` and `regulatory_packs_consumed` CloudEvents extensions. The audit-chain emitter (ADR-0003) consumes these directly; missing extensions on a cross-microservice topic are a CI failure.
 
 ### Topic governance
 
 - Topic creation goes through a catalog PR (`registry/topics/<topic>.yaml`) — not via the broker admin API.
 - Topic schema changes go through `oya-foundry-fitness-event-schema` validator (forward + backward + transitive compat).
-- Per-axis-team owns its own topics; cross-axis topics are co-owned per `RACI-OWNERSHIP.md`.
+- Per-microservice-team owns its own topics; cross-microservice topics are co-owned per `RACI-OWNERSHIP.md`.
 
 ### Boundary
 
@@ -104,15 +104,15 @@ Every event that crosses an axis boundary, touches a regulated data class (per A
 
 ### Negative
 
-- Apache Kafka operability is non-trivial (per-cell broker pool sizing, partition rebalancing, KRaft cluster ops). Mitigation: managed Kafka via Cloud axis; per-cell isolation reduces blast radius.
-- Outbox poller adds 100–500 ms of typical latency between DB commit and broker visibility; cross-axis sagas account for this.
-- Protobuf-only forces non-Rust consumers to compile generated bindings; mitigation: SDK gen ships per ADR-0011 cross-axis contract registry.
+- Apache Kafka operability is non-trivial (per-cell broker pool sizing, partition rebalancing, KRaft cluster ops). Mitigation: managed Kafka via cloud microservice; per-cell isolation reduces blast radius.
+- Outbox poller adds 100–500 ms of typical latency between DB commit and broker visibility; cross-microservice sagas account for this.
+- Protobuf-only forces non-Rust consumers to compile generated bindings; mitigation: SDK gen ships per ADR-0011 cross-microservice contract registry.
 
 ### Operational
 
 - On-call: per-cell broker SLO + per-topic consumer-lag SLO; alerts on `EVT-OUTBOX-POLLER-LAG > 30s` and `EVT-CONSUMER-LAG > regulator-bound`.
 - Runbooks: `runbooks/outbox-poller-recovery.md`, `runbooks/topic-schema-rollback.md`, `runbooks/per-cell-broker-failover.md`.
-- CI: `oya-foundry-fitness-event-schema` (compat), `oya-foundry-fitness-eventing-cohesion` (every cross-axis event must declare audit extensions).
+- CI: `oya-foundry-fitness-event-schema` (compat), `oya-foundry-fitness-eventing-cohesion` (every cross-microservice event must declare audit extensions).
 - DR: per-region broker mirror + cross-region MirrorMaker2 for residency-class `cross_region_replicated`.
 
 ---
@@ -147,17 +147,17 @@ Every event that crosses an axis boundary, touches a regulated data class (per A
 
 ## Open questions
 
-1. **Q1.** Per-axis topic naming convention vs per-domain — `oya.cloud.iam.role-published.v1` or `oya.iam.role-published.v1`? Default: per-axis prefix (cohesion). → ADR-0011.
+1. **Q1.** Per-axis topic naming convention vs per-domain — `oya.cloud.iam.role-published.v1` or `oya.iam.role-published.v1`? Default: per-microservice prefix (cohesion). → ADR-0011.
 2. **Q2.** Per-cell broker pool vs per-region broker pool — does each cell get its own brokers, or do cells share a per-region pool with cell-keyed partitions? Default: per-region pool with cell-keyed partitions; per-cell brokers only for sovereign-isolation tenants. → ADR-0009.
-3. **Q3.** Cross-region replication for `cross_region_replicated` residency: MirrorMaker2 vs in-house Rust replicator? Default: MirrorMaker2 initially; in-house when scale demands. → owner: `axis-cloud`.
-4. **Q4.** High-frequency data-plane events (ad serving, search query): are they on this backbone or on a dedicated low-latency path? Default: dedicated per-axis low-latency adapter feeds an aggregate emission to this backbone. → ads-axis ADR + search-axis ADR.
+3. **Q3.** Cross-region replication for `cross_region_replicated` residency: MirrorMaker2 vs in-house Rust replicator? Default: MirrorMaker2 initially; in-house when scale demands. → owner: `cloud`.
+4. **Q4.** High-frequency data-plane events (ad serving, search query): are they on this backbone or on a dedicated low-latency path? Default: dedicated per-microservice low-latency adapter feeds an aggregate emission to this backbone. → ads-axis ADR + search-axis ADR.
 
 ---
 
 ## References
 
-- `docs/DESIGN.md` §10 (cross-axis contract `Eventing backbone (outbox + Kafka topic)`)
+- `docs/DESIGN.md` §10 (cross-microservice contract `Eventing backbone (outbox + Kafka topic)`)
 - `docs/TOOLCHAIN.md` §3 (Kafka per ADR-0050 — Apache 2.0; CloudEvents + Protobuf + schema registry)
 - `docs/PRIVACY-PROGRAM.md` §2.2.4 layer 3 (singleton source services for ads/analytics topics)
-- ADR-0001 (cohesion), ADR-0003 (audit chain — consumes events), ADR-0004 (plane separation — events as cross-plane mechanism), ADR-0009 (cell architecture — partition key), ADR-0011 (cross-axis contract registry — schemas), ADR-0013 (license policy — Apache-2 selection rationale)
+- ADR-0001 (cohesion), ADR-0003 (audit chain — consumes events), ADR-0004 (plane separation — events as cross-plane mechanism), ADR-0009 (cell architecture — partition key), ADR-0011 (cross-microservice contract registry — schemas), ADR-0013 (license policy — Apache-2 selection rationale)
 - CloudEvents 1.0 spec (https://cloudevents.io/), Apache Kafka KIP catalog

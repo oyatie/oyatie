@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0028, ADR-0037, ADR-0038, ADR-0041, ADR-0042, ADR-0050
 
@@ -11,7 +11,7 @@
 
 ## Context
 
-A release that ships to 100% of tenants on cut is the highest-blast-radius operation in the system. The pack-of-19 foundation ADRs decided that progressive delivery is mandatory but did not pin the mechanics: which controller, what canary percentages, what gating signals, what rollback math, what posture for stateful surfaces (databases, message queues, mail spools) where blue-green is the only credible path. Without pinning, every axis evolves its own rollout pattern; every per-axis pattern fails differently; the cohesion thesis collapses at the deployment plane.
+A release that ships to 100% of tenants on cut is the highest-blast-radius operation in the system. The pack-of-19 foundation ADRs decided that progressive delivery is mandatory but did not pin the mechanics: which controller, what canary percentages, what gating signals, what rollback math, what posture for stateful surfaces (databases, message queues, mail spools) where blue-green is the only credible path. Without pinning, every axis evolves its own rollout pattern; every per-microservice pattern fails differently; the cohesion thesis collapses at the deployment plane.
 
 The release-management dimension binds the SLO catalog (per ADR-0042) to the deployment pipeline: a rollout is just a controlled experiment in degrading reliability, and the experimenter must abort when the data says abort. This ADR pins the controller, the canary stages, the metric-gated rollback math (Google SRE Workbook burn-rate alerts), the per-region phased pattern, and the per-cell rollback unit.
 
@@ -160,7 +160,7 @@ This ADR does not own the SLO catalog (per ADR-0042). Does not own the gitops br
 
 ### Operational
 
-- Per-rollout dashboard with stage-progression + analysis result; per-axis SLO panel.
+- Per-rollout dashboard with stage-progression + analysis result; per-microservice SLO panel.
 - Per-cell rollback runbook.
 - Argo Rollouts + Prometheus / VictoriaMetrics adapter (per ADR-0042) maintained per-cell.
 - Per-quarter rollback drill: deliberately deploy a faulty version to a preview cell and confirm auto-rollback fires.
@@ -174,7 +174,7 @@ This ADR does not own the SLO catalog (per ADR-0042). Does not own the gitops br
 
 - **Pros:** also CNCF; lighter weight; service-mesh native.
 - **Cons:** less rich analysis primitives; less mature blue-green support; smaller community in 2026.
-- **Rejected because:** Argo Rollouts has the richer feature set we need for cross-axis use.
+- **Rejected because:** Argo Rollouts has the richer feature set we need for cross-microservice use.
 
 ### Alternative B — Big-bang releases with feature flags
 
@@ -184,7 +184,7 @@ This ADR does not own the SLO catalog (per ADR-0042). Does not own the gitops br
 
 ### Alternative C — Per-axis controller choice
 
-- **Pros:** axis-team flexibility.
+- **Pros:** microservice-team flexibility.
 - **Cons:** N controllers; per-controller drift; the cohesion thesis applied to ops collapses.
 - **Rejected because:** the cohesion thesis applies to deployment.
 
@@ -200,8 +200,8 @@ This ADR does not own the SLO catalog (per ADR-0042). Does not own the gitops br
 
 1. **Q1.** Per-axis SLO target — 99.9% (3 nines) or 99.95% (3.5 nines) for GA? Default: 99.95% per ADR-0037 GA tier; some critical paths (audit chain, identity) at 99.99%. → ADR-0042.
 2. **Q2.** Stateful blue-green soak — 24h or 7d default? Default: 24h for non-regulated; 7d for regulated (healthcare / fintech). → ADR-0034.
-3. **Q3.** Per-cell rollback authority — automatic only on Sev-1, or per-cell on-call discretion? Default: automatic on Sev-1; on-call discretion for Sev-2. → owner: `axis-foundry`.
-4. **Q4.** Cross-region rollout halt — does a Sev-2 in region 1 halt rollout to region 2? Default: yes by default; explicit override allowed. → owner: `axis-foundry`.
+3. **Q3.** Per-cell rollback authority — automatic only on Sev-1, or per-cell on-call discretion? Default: automatic on Sev-1; on-call discretion for Sev-2. → owner: `foundry`.
+4. **Q4.** Cross-region rollout halt — does a Sev-2 in region 1 halt rollout to region 2? Default: yes by default; explicit override allowed. → owner: `foundry`.
 5. **Q5.** Per-axis cadence enforcement — does shipping early require ADR? Default: yes for stable+GA tiers; preview tier ships at axis discretion. → ADR-0037.
 
 ---
@@ -209,7 +209,7 @@ This ADR does not own the SLO catalog (per ADR-0042). Does not own the gitops br
 ## References
 
 - `docs/PRD.md` §10 (release management), §11 (per-tenant SLA)
-- `docs/DESIGN.md` §11 (release pipeline), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (release pipeline), §10 (cross-microservice contracts)
 - Google SRE Workbook §5 (Alerting on SLOs); CNCF Argo Rollouts spec
 - `docs/standards/prevention-doctrine.md` (post-incident fix-the-system discipline)
 - ADR-0001 (cohesion), ADR-0003 (audit), ADR-0028 (cloud cells), ADR-0037 (API stability), ADR-0038 (trust portal), ADR-0039 (supply chain), ADR-0041 (gitops), ADR-0042 (observability), ADR-0050 (automation pipeline)

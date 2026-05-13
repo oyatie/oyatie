@@ -4,9 +4,11 @@ shape: ~
 length_cap: 1200
 authority_tier: 3
 status: approved
+bnf_version: v4.1
 execution: approved-by-user-2026-05-13
 iteration: 2
 consensus_loop: v4-iter-5-approve-fold
+bnf_amendment: v4.1-2026-05-13 (BC optional; flat catalog; drop shared|vertical binary; microservice = slot2 open kebab)
 last_modified: 2026-05-13
 architect_iter_1: 7-conditions-CLOSED (B1–B7 per §15)
 critic_iter_1: ITERATE-7 (folded; C1–C7 per §15 closure block; consistency fixes 8–13 per §15a)
@@ -23,23 +25,19 @@ critic: codex-gpt-5.5-xhigh
 supersedes: docs/plans/rename-plan-v3-2026-05-12.md
 date: 2026-05-13
 purpose: |
-  Execution plan v4 for the 140-crate workspace cutover. Supersedes v3 by
-  replacing v3's verbose 4–5-segment BNF + fitness/freeze/expedite primitives
-  with a canonical Rust Clean Architecture grammar:
-  `oya-<shared|vertical>-<bounded-context>-<layer>` (3-slot grammar;
-  slot-2 is either the reserved literal `shared` or a registered
-  single-token vertical name from `[workspace.metadata.oya.verticals]`;
-  multi-token bounded-context names in slot-3 express granularity) +
-  a flat `oya-check-<rule-name>` namespace for cross-cutting checks.
-  Carries forward
-  Hybrid C topology (Shard 0 pure-tooling precursor + Shard 1 atomic
-  rename/metadata/dep-edge/CI cutover), the xtask-metadata-augment Rust crate
-  (with `lockfile-rename` subcommand), the 4-layer branch pipeline, the
-  scripted-rewrite + `--locked --offline` lockfile primitive, the
-  Hybrid-C-Lite escape hatch, and the deterministic §8.1 acceptance gates.
-  Drops: 6-context closed enum, 9-role enum, compound-features registry,
-  fitness-as-feature insertion, freeze-window-kernel lane, expedite_override_token,
-  ICM lane-config topic, and all "fitness" terminology.
+  Execution plan v4.1 for the 140-crate workspace cutover (amended 2026-05-13).
+  BNF v4.1: `oya-<microservice>[-<bc>]-<layer>` — microservice is slot2 open
+  kebab (no shared|vertical binary; everything is shared per flat catalog);
+  BC slot is OPTIONAL (omit when microservice has a single concept at the layer).
+  Check crates remain `oya-check-<rule-name>` flat namespace (BNF-exempt).
+  Atomic rename = old crate name GONE on disk; no aliases, no dead code.
+  Carries forward Hybrid C topology (Shard 0 + Shard 1 atomic rename),
+  xtask-metadata-augment (with `lockfile-rename --bnf-version v4.1` flag),
+  4-layer branch pipeline, scripted-rewrite + `--locked --offline` lockfile
+  primitive, and deterministic §8.1 acceptance gates.
+  Drops: shared|vertical binary slot, verticals registry, cross-vertical
+  refusal (LEAN-A2 simplifies; microservice isolation replaces vertical-kind
+  enforcement), fitness terminology, freeze-window-kernel lane.
 canonical_authority: docs/CONSTITUTION.md
 companion_docs:
   - docs/standards/crate-naming-convention.md
@@ -56,7 +54,7 @@ related_adrs:
   - ADR-0057
 ---
 
-# Rename Plan v4 — Clean Architecture (2026-05-13, Hybrid C: Shard 0 + atomic Shard 1)
+# Rename Plan v4.1 — Clean Architecture / Flat Catalog BNF (2026-05-13, Hybrid C: Shard 0 + atomic Shard 1)
 
 > **Supersedes** [`rename-plan-v3-2026-05-12.md`](rename-plan-v3-2026-05-12.md).
 > v3 reached consensus-approval but a user pressure-test exposed three
@@ -282,30 +280,38 @@ drivers above; no single-viable-option invalidation rationale needed.
 
 ## §2 BNF + layer enum + check namespace formal definition
 
-### 2.1 Canonical BNF
+### 2.1 Canonical BNF (v4.1 — amended 2026-05-13)
+
+> **BNF v4.1 amendment**: the `shared|vertical` binary slot is retired.
+> Everything is shared in the flat microservice catalog. Slot2 is now the
+> microservice name (open kebab). BC slot is optional. ADR-0056 must be
+> amended to v4.1 per [[feedback-flat-product-catalog]].
 
 ```bnf
-crate           ::= "oya" "-" shared-or-vertical "-" bounded-context "-" layer
-                  | "oya" "-" "check" "-" rule-name
-shared-or-vertical ::= "shared"                            (* literal; cross-vertical; reserved non-vertical *)
-                  | vertical                                (* single kebab token from verticals registry *)
-vertical        ::= kebab-token                            (* EXACTLY 1 token per ADR-0056 §"Vertical naming policy" Option A; registry-validated; "shared" is RESERVED and refused as a vertical name *)
-bounded-context ::= kebab-token ( "-" kebab-token )*       (* 1..N tokens; open *)
-layer           ::= "kernel" | "domain" | "application" | "app"
-                  | "adapter" | "infrastructure"
-                  | "cli" | "rest" | "grpc" | "graphql"
-                  | "worker" | "sdk"
-rule-name       ::= kebab-token ( "-" kebab-token )*       (* 1..4 tokens; open *)
-kebab-token     ::= [a-z] [a-z0-9]*
+crate          ::= "oya" "-" microservice ( "-" bc-tokens )? "-" layer
+                 | "oya" "-" "check" "-" rule-name
+microservice   ::= kebab-token ( "-" kebab-token )*    (* 1..3 tokens; registered in [workspace.metadata.oya.microservices] *)
+bc-tokens      ::= kebab-token ( "-" kebab-token )*    (* 0..N; OPTIONAL — omit when microservice has single concept at the layer *)
+layer          ::= "kernel" | "domain" | "application" | "app"
+                 | "adapter" | "infrastructure"
+                 | "cli" | "rest" | "grpc" | "graphql"
+                 | "worker" | "sdk"
+rule-name      ::= kebab-token ( "-" kebab-token )*    (* 1..4 tokens; open *)
+kebab-token    ::= [a-z] [a-z0-9]*
 ```
 
-**FINAL BNF (3 slots; supersedes draft-5 2-slot per iter-2 supplement
-#2)**: each crate name encodes `oya-<shared|vertical>-<bc>-<layer>`.
-The slot-2 token is either the literal `shared` (cross-vertical;
-formerly "platform/foundation/tooling/core" axis values, now collapsed
-to a single literal) OR a registered vertical kebab name (`cloud`,
-`foundry`, `workspace`, plus future `healthcare`, `corporate`, etc.;
-registered in `[workspace.metadata.oya.verticals]` per §3.0a).
+**BC optionality rule**: omit BC when the microservice has a single
+binary or single concept at that layer (e.g., `oya-medical-domain`,
+`oya-tenancy-kernel`, `oya-cloud-cli`). Include BC when the microservice
+has multiple binaries or multiple BC-level splits at the same layer (e.g.,
+`oya-foundry-grit-cli`, `oya-foundry-icm-cli`,
+`oya-workflow-state-machine-domain`, `oya-workflow-approvals-application`).
+
+**FINAL BNF v4.1**: each crate name encodes
+`oya-<microservice>[-<bc>]-<layer>`. The microservice slot is an open
+kebab registered in `[workspace.metadata.oya.microservices]`. There is
+no `shared|vertical` binary — every feature/product is a microservice
+in the flat catalog.
 
 Parser rule: split crate name on `-`; LAST token MUST be a layer value
 (one of 12 canonical); SECOND token (after `oya-`) MUST be `shared` OR
@@ -541,6 +547,20 @@ The set of `oya-check-*` crates IS the workspace's enforcement surface.
 v4 ships six in Shard 0 (scaffolded empty) + Shard 1 (populated); the
 team adds more over time as new checks emerge.
 
+> **Check-namespace duality (clarification):** Two crate forms coexist by design:
+> 1. **LEAN check binaries** (4 crates, 3-slot BNF, `cli` layer):
+>    `oya-shared-architecture-check-cli`, `oya-shared-bounded-contexts-check-cli`,
+>    `oya-shared-supply-chain-check-cli`, `oya-shared-semver-check-cli`.
+>    These are the toolchain executables that *run* checks. Justification:
+>    slot2 = `shared` (cross-vertical toolchain), slot3 = check subject domain,
+>    slot4 = `cli` (12-enum value; presentation layer per ADR-0056).
+> 2. **Per-rule check crates** (29 crates, BNF-exempt flat namespace):
+>    `oya-check-<rule-name>` per ADR-0056 line 79-80. These are the
+>    individual rule implementations that the LEAN binaries discover/consume.
+>    Exemption claim: ADR-0056 BNF second production `crate ::= ... | "oya" "-"
+>    "check" "-" rule-name`.
+> Both forms are canonical. They are not interchangeable.
+
 ### 2.4 Bounded-context registry (living document)
 
 ADR-0056 §"Bounded context registry as a living document" establishes:
@@ -599,25 +619,32 @@ Column semantics:
 > explicit `PROTOCOL-UNKNOWN` deferral marker. This is the iter-3
 > open-item #1 from `.omc/plans/open-questions.md`.
 
-**v3 axis → v4 vertical translation rule** (applied when iter-3
-populates body cells):
-- v3 `oya-platform-*` → vertical = `shared`
-- v3 `oya-foundation-*` → vertical = `shared`
-- v3 `oya-tooling-*` → vertical = `shared`
-- v3 `oya-cloud-*` → vertical = `cloud`
-- v3 `oya-foundry-*` → vertical = `foundry`
-- v3 `oya-workspace-*` → vertical = `workspace`
+**v3 axis → v4.1 translation rule** (BNF v4.1 amendment applied row-by-row):
+- `oya-platform-<bc>-<layer>` → `oya-<bc>-<layer>` (drop slot2 entirely; BC promoted to slot2)
+- `oya-foundation-<bc>-<layer>` → `oya-<bc>-<layer>` (same rule; foundation prefix dropped)
+- `oya-tooling-<bc>-<layer>` → `oya-<bc>-<layer>` (same rule; tooling prefix dropped)
+- `oya-foundry-<bc>-<layer>` → unchanged (foundry is the µservice name)
+- `oya-cloud-<bc>-<layer>` → unchanged (cloud is the µservice name)
+- `oya-workspace-<bc>-<layer>` → `oya-connect-<bc>-<layer>` (workspace renamed to connect per Round 4 decision [[feedback-flat-product-catalog]])
+- `oya-shared-<bc>-<layer>` → `oya-<bc>-<layer>` (drop redundant shared prefix)
+- `oya-check-<rule>` → unchanged (BNF-exempt)
 
-Examples of 3-slot `proposed_name` after translation:
-- v3 `oya-platform-tenant-kernel` → v4 `oya-shared-tenant-domain`
-  (assuming `src/`-inspection shows business logic → `domain` layer;
-  if pure types + ports, `oya-shared-tenant-kernel`).
-- v3 `oya-foundry-policy-api` → v4 `oya-foundry-policy-rest` (assuming
-  REST protocol confirmed by `src/`-inspection).
-- v3 `oya-cloud-storage-object-api` → v4 `oya-cloud-storage-object-rest`.
-- v3 `oya-foundation-app` → v4 `oya-shared-composition-app` (composition
-  root binary).
-- v3 `oya-tooling-agent-read` → v4 `oya-shared-codeview-cli`.
+> **Atomic rename rule**: old crate name is DELETED from disk. No aliases.
+> No compatibility shims. After Shard 1, `oya-platform-*` directory does
+> not exist; only `oya-<bc>-*` exists. Old `Cargo.toml` package names
+> are gone from `Cargo.lock` (verified by `lockfile-parity` gate).
+
+Examples of v4.1 `proposed_name` after translation:
+- `oya-platform-tenant-kernel` → `oya-tenancy-kernel`
+  (BC promoted to slot2; domain noun `tenancy` per ADR-0125)
+- `oya-platform-identity-kernel` → `oya-identity-kernel`
+- `oya-platform-audit-chain-kernel` → `oya-audit-chain-kernel`
+- `oya-foundry-policy-api` → `oya-foundry-policy-rest`
+- `oya-cloud-storage-object-api` → `oya-cloud-storage-object-rest`
+- `oya-foundation-app` → `oya-application-app` (B2B shell µservice)
+- `oya-tooling-agent-read` → `oya-codeview-cli`
+- `oya-workspace-mail-kernel` → `oya-connect-mail-domain`
+- `oya-workspace-chat-api` → `oya-connect-chat-rest`
 
 > **Audit table format note (superseded by D1)**: the iter-1-fold-A
 > "thing-slot 2-slot column-schema rework" §5.1 step 15c is now
@@ -689,38 +716,43 @@ audit defaults applied below pending Codex iter-1 `src/`-inspection:
   crates or SDK-publish crates. New `*-infrastructure-*` and `*-sdk`
   crates will emerge organically post-Shard-1 as the team writes them.
 
-### 3.1 Platform context crates (n = 18)
+### 3.1 Platform / shared µservice crates (n = 28) — BNF v4.1: drop `oya-platform-` prefix, BC becomes slot2
 
-| # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected |
-|--:|---|---|---|---|---|---|---|---|:-:|--:|
-| 1 | `oya-platform-data-boundary-kernel` | `shared` | `data-boundary` | `shared` | `kernel` | `STUB-pending-iter-4-src-inspection` (canonical-decision-tree §2.2.4: per `docs/standards/clean-architecture.md §3` named-by-identity, this is the ONLY kernel allowed to receive cross-layer deps; pure types + ports posture confirmed by standard; default layer = `kernel`) | `oya-shared-data-boundary-kernel` | PROPOSED-NEW | **5** | ~95 |
-| 2 | `oya-platform-residency-kernel` | `shared` | `residency` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` (v3 kernel carrying business logic per audit doc; default layer = `domain`) | `oya-shared-residency-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 3 | `oya-platform-dsr-kernel` | `shared` | `dsr` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-dsr-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 4 | `oya-platform-dsr-app` | `shared` | `dsr` | `shared` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-shared-dsr-application` | PROPOSED-NEW | 2 | est. 3–5 |
-| 5 | `oya-platform-tenant-kernel` | `shared` | `tenant` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-tenant-domain` | PROPOSED-NEW | 4 | est. 30–50 |
-| 6 | `oya-platform-tenant-api` | `shared` | `tenant` | `shared` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (v3 `-api`; tenant likely REST control-plane but tenant-event streams could be gRPC) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
-| 7 | `oya-platform-identity-kernel` | `shared` | `identity` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-identity-domain` | PROPOSED-NEW | 4 | est. 30–50 |
-| 8 | `oya-platform-identity-api` | `shared` | `identity` | `shared` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (v3 `-api`; identity flows typically REST + OIDC, but gRPC mTLS plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
-| 9 | `oya-platform-identity-app` | `shared` | `identity` | `shared` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-shared-identity-application` | PROPOSED-NEW | 3 | est. 5–10 |
-| 10 | `oya-platform-metering-kernel` | `shared` | `metering` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-metering-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 11 | `oya-platform-metering-app` | `shared` | `metering` | `shared` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-shared-metering-application` | PROPOSED-NEW | 2 | est. 3–5 |
-| 12 | `oya-platform-cell-kernel` | `shared` | `cell` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-cell-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 13 | `oya-platform-audit-chain-kernel` | `shared` | `audit-chain` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-audit-chain-domain` | PROPOSED-NEW | 4 | est. 30–50 |
-| 14 | `oya-platform-audit-chain-app` | `shared` | `audit-chain` | `shared` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-shared-audit-chain-application` | PROPOSED-NEW | 3 | est. 5–10 |
-| 15 | `oya-platform-audit-chain-adapter-file` | `shared` | `audit-chain-file` | `shared` | `adapter` | `STUB-pending-iter-4-src-inspection` (v3 `*-adapter-file` = trait impl + DTO mapping per §2.2.1; classified `adapter`) | `oya-shared-audit-chain-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 16 | `oya-platform-eventing-kernel` | `shared` | `eventing` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-eventing-domain` | PROPOSED-NEW | 4 | est. 30–50 |
-| 17 | `oya-platform-eventing-app` | `shared` | `eventing` | `shared` | `application` | `STUB-pending-iter-4-src-inspection` | `oya-shared-eventing-application` | PROPOSED-NEW | 3 | est. 5–10 |
-| 18 | `oya-platform-eventing-adapter-file` | `shared` | `eventing-file` | `shared` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-shared-eventing-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 19 | `oya-platform-object-graph-kernel` | `shared` | `object-graph` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-object-graph-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 20 | `oya-platform-object-graph-api` | `shared` | `object-graph` | `shared` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (v3 `-api`; object-graph queries plausibly GraphQL given semantics) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 21 | `oya-platform-observability-kernel` | `shared` | `observability` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-observability-domain` | PROPOSED-NEW | 4 | est. 30–50 |
-| 22 | `oya-platform-observability-adapter-tracing` | `shared` | `observability-tracing` | `shared` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-shared-observability-tracing-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
-| 23 | `oya-platform-policy-cedar-kernel` | `shared` | `policy-cedar` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-policy-cedar-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 24 | `oya-platform-policy-cedar-api` | `shared` | `policy-cedar` | `shared` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (v3 `-api`; policy evaluator typically REST request/response) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 25 | `oya-platform-regional-pack-kernel` | `shared` | `regional-pack` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-regional-pack-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 26 | `oya-platform-regulatory-pack-api` | `shared` | `regulatory-pack` | `shared` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (v3 `-api`; regulatory-pack contract typically REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 27 | `oya-platform-secrets-kernel` | `shared` | `secrets` | `shared` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-shared-secrets-domain` | PROPOSED-NEW | 3 | est. 10–20 |
-| 28 | `oya-platform-secrets-adapter-file` | `shared` | `secrets-file` | `shared` | `adapter` | `STUB-pending-iter-4-src-inspection` | `oya-shared-secrets-file-adapter` | PROPOSED-NEW | 2 | est. 3–5 |
+> **v4.1 rule**: `oya-platform-<bc>-<layer>` → `oya-<bc>-<layer>`. Old
+> directory `crates/oya-platform-<bc>-<layer>/` is DELETED and replaced
+> by `crates/oya-<bc>-<layer>/`. No alias. No compatibility shim.
+> Object Graph crates renamed to Ontology per [[feedback-glossary-ontology-not-object-graph]].
+
+| # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected |
+|--:|---|---|---|---|---|---|:-:|--:|
+| 1 | `oya-platform-data-boundary-kernel` | `data-boundary` | — | `kernel` | pure types + ports (named-by-identity per clean-architecture.md §3; only kernel allowed cross-layer deps) | `oya-data-boundary-kernel` | **5** | ~95 |
+| 2 | `oya-platform-residency-kernel` | `residency` | — | `domain` | `STUB-pending-src-inspection` (v3 kernel with business logic) | `oya-residency-domain` | 3 | est. 10–20 |
+| 3 | `oya-platform-dsr-kernel` | `dsr` | — | `domain` | `STUB-pending-src-inspection` | `oya-dsr-domain` | 2 | est. 5–10 |
+| 4 | `oya-platform-dsr-app` | `dsr` | — | `application` | `STUB-pending-src-inspection` | `oya-dsr-application` | 2 | est. 3–5 |
+| 5 | `oya-platform-tenant-kernel` | `tenancy` | — | `domain` | `STUB-pending-src-inspection` | `oya-tenancy-domain` | 4 | est. 30–50 |
+| 6 | `oya-platform-tenant-api` | `tenancy` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST control-plane likely; gRPC event stream possible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 3 | est. 5–10 |
+| 7 | `oya-platform-identity-kernel` | `identity` | — | `domain` | `STUB-pending-src-inspection` | `oya-identity-domain` | 4 | est. 30–50 |
+| 8 | `oya-platform-identity-api` | `identity` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST + OIDC typical; gRPC mTLS plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 3 | est. 5–10 |
+| 9 | `oya-platform-identity-app` | `identity` | — | `application` | `STUB-pending-src-inspection` | `oya-identity-application` | 3 | est. 5–10 |
+| 10 | `oya-platform-metering-kernel` | `metering` | — | `domain` | `STUB-pending-src-inspection` | `oya-metering-domain` | 3 | est. 10–20 |
+| 11 | `oya-platform-metering-app` | `metering` | — | `application` | `STUB-pending-src-inspection` | `oya-metering-application` | 2 | est. 3–5 |
+| 12 | `oya-platform-cell-kernel` | `cell` | — | `domain` | `STUB-pending-src-inspection` | `oya-cell-domain` | 3 | est. 10–20 |
+| 13 | `oya-platform-audit-chain-kernel` | `audit-chain` | — | `domain` | `STUB-pending-src-inspection` | `oya-audit-chain-domain` | 4 | est. 30–50 |
+| 14 | `oya-platform-audit-chain-app` | `audit-chain` | — | `application` | `STUB-pending-src-inspection` | `oya-audit-chain-application` | 3 | est. 5–10 |
+| 15 | `oya-platform-audit-chain-adapter-file` | `audit-chain` | `file` | `adapter` | trait impl + DTO mapping; classified `adapter` | `oya-audit-chain-file-adapter` | 2 | est. 3–5 |
+| 16 | `oya-platform-eventing-kernel` | `eventing` | — | `domain` | `STUB-pending-src-inspection` | `oya-eventing-domain` | 4 | est. 30–50 |
+| 17 | `oya-platform-eventing-app` | `eventing` | — | `application` | `STUB-pending-src-inspection` | `oya-eventing-application` | 3 | est. 5–10 |
+| 18 | `oya-platform-eventing-adapter-file` | `eventing` | `file` | `adapter` | `STUB-pending-src-inspection` | `oya-eventing-file-adapter` | 2 | est. 3–5 |
+| 19 | `oya-platform-object-graph-kernel` | `ontology` | — | `domain` | `STUB-pending-src-inspection` (renamed object-graph → ontology per [[feedback-glossary-ontology-not-object-graph]]) | `oya-ontology-domain` | 3 | est. 10–20 |
+| 20 | `oya-platform-object-graph-api` | `ontology` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (GraphQL plausible given typed-entity semantics) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 21 | `oya-platform-observability-kernel` | `observability` | — | `domain` | `STUB-pending-src-inspection` | `oya-observability-domain` | 4 | est. 30–50 |
+| 22 | `oya-platform-observability-adapter-tracing` | `observability` | `tracing` | `adapter` | `STUB-pending-src-inspection` | `oya-observability-tracing-adapter` | 2 | est. 3–5 |
+| 23 | `oya-platform-policy-cedar-kernel` | `policy` | `cedar` | `domain` | `STUB-pending-src-inspection` | `oya-policy-cedar-domain` | 3 | est. 10–20 |
+| 24 | `oya-platform-policy-cedar-api` | `policy` | `cedar` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST request/response typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 25 | `oya-platform-regional-pack-kernel` | `regional-pack` | — | `domain` | `STUB-pending-src-inspection` | `oya-regional-pack-domain` | 2 | est. 5–10 |
+| 26 | `oya-platform-regulatory-pack-api` | `regulatory-pack` | — | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 27 | `oya-platform-secrets-kernel` | `secrets` | — | `domain` | `STUB-pending-src-inspection` | `oya-secrets-domain` | 3 | est. 10–20 |
+| 28 | `oya-platform-secrets-adapter-file` | `secrets` | `file` | `adapter` | `STUB-pending-src-inspection` | `oya-secrets-file-adapter` | 2 | est. 3–5 |
 
 > Note: rows 13–28 actually total 16 (audit-chain trio + eventing trio +
 > object-graph pair + observability pair + policy-cedar pair + regional/
@@ -786,7 +818,7 @@ to the flat `check` namespace.
 |--:|---|---|---|---|---|---|---|---|:-:|--:|
 | 60 | `oya-foundry-api` | `foundry` | `meta` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (foundry meta-surface; aggregator API; likely REST but iter-4 must confirm. BC = `meta` disambiguates from per-feature foundry-* BCs) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 3 | est. 5–10 |
 | 61 | `oya-foundry-adapter-kernel` | `foundry` | `adapter` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (note: BC is `adapter` as a domain noun — this crate is the foundry's pluggable-adapter framework, not itself a `adapter` layer crate) | `oya-foundry-adapter-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 62 | `oya-foundry-bypass-kernel` | `foundry` | `bypass` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-bypass-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+| 62 | `oya-foundry-bypass-kernel` | `foundry` | `bypass` | `vertical` | `domain` | `product-quality-governance-kernel-per-ICM-01KRF94HM1PW4ET58CQHJHKXS0; domain (NOT check-namespace) because business-logic enforcing foundation-bypass tracking on actual repo entities, not a cross-cutting policy probe` | `oya-foundry-bypass-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 | 63 | `oya-foundry-capability-kernel` | `foundry` | `capability` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-capability-domain` | PROPOSED-NEW | 3 | est. 10–20 |
 | 64 | `oya-foundry-catalog-kernel` | `foundry` | `catalog` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-catalog-domain` | PROPOSED-NEW | 2 | est. 5–10 |
 | 65 | `oya-foundry-cloud-mutation-kernel` | `foundry` | `cloud-mutation` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-foundry-cloud-mutation-domain` | PROPOSED-NEW | 2 | est. 5–10 |
@@ -873,36 +905,42 @@ to the flat `check` namespace.
 > 11-check expansion are both SUPERSEDED — see §4a LEAN-A1–LEAN-A4 for
 > current canonical and §15a/§15b for the journey history.
 
-### 3.4 Workspace product axis crates (n = 23)
+### 3.4 Connect µservice crates (formerly workspace; n = 26) — BNF v4.1: `oya-workspace-*` → `oya-connect-*`
 
-| # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected |
-|--:|---|---|---|---|---|---|---|---|:-:|--:|
-| 112 | `oya-workspace-address-book-kernel` | `workspace` | `address-book` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-address-book-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 113 | `oya-workspace-calendar-kernel` | `workspace` | `calendar` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-calendar-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 114 | `oya-workspace-chat-kernel` | `workspace` | `chat` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-chat-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 115 | `oya-workspace-chat-api` | `workspace` | `chat` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (chat APIs commonly WebSocket; modern UIs often GraphQL subscriptions; may require split rest+worker) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 116 | `oya-workspace-collab-runtime-kernel` | `workspace` | `collab-runtime` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-collab-runtime-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 117 | `oya-workspace-document-format-kernel` | `workspace` | `document-format` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-document-format-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 118 | `oya-workspace-dlp-kernel` | `workspace` | `dlp` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-dlp-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 119 | `oya-workspace-ediscovery-kernel` | `workspace` | `ediscovery` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-ediscovery-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 120 | `oya-workspace-docs-kernel` | `workspace` | `docs` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-docs-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 121 | `oya-workspace-drive-kernel` | `workspace` | `drive` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-drive-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 122 | `oya-workspace-drive-api` | `workspace` | `drive` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (drive file CRUD typically REST; modern UI surfaces may use GraphQL) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 123 | `oya-workspace-dsr-kernel` | `workspace` | `dsr` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` (BC = `dsr` inside `workspace` vertical disambiguates from `shared/dsr` at row 3 via vertical namespacing — no `workspace-dsr` compound BC needed) | `oya-workspace-dsr-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 124 | `oya-workspace-forms-kernel` | `workspace` | `forms` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-forms-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 125 | `oya-workspace-forms-api` | `workspace` | `forms` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (forms CRUD typically REST) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 126 | `oya-workspace-mail-kernel` | `workspace` | `mail` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-mail-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 127 | `oya-workspace-meet-kernel` | `workspace` | `meet` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-meet-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 128 | `oya-workspace-meet-api` | `workspace` | `meet` | `vertical` | `PROTOCOL-UNKNOWN` | `pending-iter-4-protocol-inspection` (meet signaling typically REST or WebSocket; media data-plane is SRTP/WebRTC; control vs media-event split candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | PROPOSED-NEW | 2 | est. 5–10 |
-| 129 | `oya-workspace-notes-kernel` | `workspace` | `notes` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-notes-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 130 | `oya-workspace-recordings-kernel` | `workspace` | `recordings` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-recordings-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 131 | `oya-workspace-retention-kernel` | `workspace` | `retention` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-retention-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 132 | `oya-workspace-sheets-kernel` | `workspace` | `sheets` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-sheets-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 133 | `oya-workspace-sites-kernel` | `workspace` | `sites` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-sites-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 134 | `oya-workspace-slides-kernel` | `workspace` | `slides` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-slides-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 135 | `oya-workspace-tasks-kernel` | `workspace` | `tasks` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-tasks-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 136 | `oya-workspace-translate-kernel` | `workspace` | `translate` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-translate-domain` | PROPOSED-NEW | 2 | est. 5–10 |
-| 137 | `oya-workspace-trust-portal-kernel` | `workspace` | `trust-portal` | `vertical` | `domain` | `STUB-pending-iter-4-src-inspection` | `oya-workspace-trust-portal-domain` | PROPOSED-NEW | 2 | est. 5–10 |
+> **v4.1 rule**: workspace renamed to connect per Round 4 session decision
+> [[feedback-flat-product-catalog]]. Old `crates/oya-workspace-<bc>-<layer>/`
+> directory is DELETED; replaced by `crates/oya-connect-<bc>-<layer>/`.
+> No alias. Connect covers dual-context: Professional (B2B) + Personal (B2C)
+> per Bominal ADR-0208.
+
+| # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected |
+|--:|---|---|---|---|---|---|:-:|--:|
+| 112 | `oya-workspace-address-book-kernel` | `connect` | `address-book` | `domain` | `STUB-pending-src-inspection` | `oya-connect-address-book-domain` | 2 | est. 5–10 |
+| 113 | `oya-workspace-calendar-kernel` | `connect` | `calendar` | `domain` | `STUB-pending-src-inspection` | `oya-connect-calendar-domain` | 2 | est. 5–10 |
+| 114 | `oya-workspace-chat-kernel` | `connect` | `messenger` | `domain` | `STUB-pending-src-inspection` (chat → messenger per ADR-0208 dual-context nomenclature) | `oya-connect-messenger-domain` | 2 | est. 5–10 |
+| 115 | `oya-workspace-chat-api` | `connect` | `messenger` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (WebSocket / GraphQL subscriptions plausible) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 116 | `oya-workspace-collab-runtime-kernel` | `connect` | `collab-runtime` | `domain` | `STUB-pending-src-inspection` | `oya-connect-collab-runtime-domain` | 2 | est. 5–10 |
+| 117 | `oya-workspace-document-format-kernel` | `connect` | `document-format` | `domain` | `STUB-pending-src-inspection` | `oya-connect-document-format-domain` | 2 | est. 5–10 |
+| 118 | `oya-workspace-dlp-kernel` | `connect` | `dlp` | `domain` | `STUB-pending-src-inspection` | `oya-connect-dlp-domain` | 2 | est. 5–10 |
+| 119 | `oya-workspace-ediscovery-kernel` | `connect` | `ediscovery` | `domain` | `STUB-pending-src-inspection` | `oya-connect-ediscovery-domain` | 2 | est. 5–10 |
+| 120 | `oya-workspace-docs-kernel` | `connect` | `docs` | `domain` | `STUB-pending-src-inspection` | `oya-connect-docs-domain` | 2 | est. 5–10 |
+| 121 | `oya-workspace-drive-kernel` | `connect` | `drive` | `domain` | `STUB-pending-src-inspection` | `oya-connect-drive-domain` | 2 | est. 5–10 |
+| 122 | `oya-workspace-drive-api` | `connect` | `drive` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical; GraphQL possible for UI surface) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 123 | `oya-workspace-dsr-kernel` | `connect` | `dsr` | `domain` | `STUB-pending-src-inspection` | `oya-connect-dsr-domain` | 2 | est. 5–10 |
+| 124 | `oya-workspace-forms-kernel` | `connect` | `forms` | `domain` | `STUB-pending-src-inspection` | `oya-connect-forms-domain` | 2 | est. 5–10 |
+| 125 | `oya-workspace-forms-api` | `connect` | `forms` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST typical) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 126 | `oya-workspace-mail-kernel` | `connect` | `mail` | `domain` | `STUB-pending-src-inspection` | `oya-connect-mail-domain` | 2 | est. 5–10 |
+| 127 | `oya-workspace-meet-kernel` | `connect` | `meet` | `domain` | `STUB-pending-src-inspection` | `oya-connect-meet-domain` | 2 | est. 5–10 |
+| 128 | `oya-workspace-meet-api` | `connect` | `meet` | `PROTOCOL-UNKNOWN` | `pending-protocol-inspection` (REST signaling + WebRTC data-plane split candidate) | `PROTOCOL-UNKNOWN, deferred to ADR-0056 §"Protocol classification"` | 2 | est. 5–10 |
+| 129 | `oya-workspace-notes-kernel` | `connect` | `notes` | `domain` | `STUB-pending-src-inspection` | `oya-connect-notes-domain` | 2 | est. 5–10 |
+| 130 | `oya-workspace-recordings-kernel` | `connect` | `recordings` | `domain` | `STUB-pending-src-inspection` | `oya-connect-recordings-domain` | 2 | est. 5–10 |
+| 131 | `oya-workspace-retention-kernel` | `connect` | `retention` | `domain` | `STUB-pending-src-inspection` | `oya-connect-retention-domain` | 2 | est. 5–10 |
+| 132 | `oya-workspace-sheets-kernel` | `connect` | `sheets` | `domain` | `STUB-pending-src-inspection` | `oya-connect-sheets-domain` | 2 | est. 5–10 |
+| 133 | `oya-workspace-sites-kernel` | `connect` | `sites` | `domain` | `STUB-pending-src-inspection` | `oya-connect-sites-domain` | 2 | est. 5–10 |
+| 134 | `oya-workspace-slides-kernel` | `connect` | `slides` | `domain` | `STUB-pending-src-inspection` | `oya-connect-slides-domain` | 2 | est. 5–10 |
+| 135 | `oya-workspace-tasks-kernel` | `connect` | `tasks` | `domain` | `STUB-pending-src-inspection` | `oya-connect-tasks-domain` | 2 | est. 5–10 |
+| 136 | `oya-workspace-translate-kernel` | `connect` | `translate` | `domain` | `STUB-pending-src-inspection` | `oya-connect-translate-domain` | 2 | est. 5–10 |
+| 137 | `oya-workspace-trust-portal-kernel` | `connect` | `trust-portal` | `domain` | `STUB-pending-src-inspection` | `oya-connect-trust-portal-domain` | 2 | est. 5–10 |
 
 > Note: row 123 (`oya-workspace-dsr-kernel`) keeps the `workspace-`
 > prefix because row 3 already claims `dsr` for the platform-DSR
@@ -910,32 +948,44 @@ to the flat `check` namespace.
 > `workspace-dsr`. 26 product-axis crates (rows 112–137); plus the
 > additional foundation/tooling crates (rows 138–140) total exactly 140.
 
-### 3.5 Foundation + tooling crates (n = 3)
+### 3.5 Foundation + tooling crates (n = 3) — BNF v4.1: drop `oya-foundation-`/`oya-tooling-` prefix
 
-| # | current_name | vertical | bounded_context | kind | layer | layer_evidence | proposed_name | bc_registry_status | risk | dep_edges_affected |
-|--:|---|---|---|---|---|---|---|---|:-:|--:|
-| 138 | `oya-foundation-app` | `shared` | `composition` | `shared` | `app` | `STUB-pending-iter-4-src-inspection` (composition-root binary per canonical decision tree §2.2.4 step 4; wires every other layer per `docs/standards/clean-architecture.md`) | `oya-shared-composition-app` | PROPOSED-NEW | 3 | est. 10–20 |
-| 139 | `oya-tooling-cli-dev-runtime` | `shared` | `dev` | `shared` | `cli` | `STUB-pending-iter-4-src-inspection` (hosts `oya` + `repoctl` bins; row-37-equivalent — touches 3 CI workflows + ~30 script sites + test fixtures + release artefacts per v3 EDIT-7) | `oya-shared-dev-cli` | PROPOSED-NEW | **5** | est. 30+ |
-| 140 | `oya-tooling-agent-read` | `shared` | `codeview` | `shared` | `cli` | `STUB-pending-iter-4-src-inspection` (sanctioned-primitive triad READ slot per `git-workflow.md §2-3`; every agent/script invoking `oya-tooling-agent-read` needs update) | `oya-shared-codeview-cli` | PROPOSED-NEW | 3 | est. 10–20 |
+> **v4.1 rule**: `oya-foundation-<bc>-<layer>` → `oya-<bc>-<layer>`;
+> `oya-tooling-<bc>-<layer>` → `oya-<bc>-<layer>`. Old directories
+> DELETED. No alias. `oya-foundation-app` becomes `oya-application-app`
+> (the B2B Application shell µservice per [[feedback-flat-product-catalog]]).
 
-> Note on row 140: v3 had no clean BNF parse for this crate (`agent-read`
-> has no role token). v4 reads it as: bounded context = `codeview` (a
-> domain noun — the agent's read-only view of code), layer = `cli`. This
-> is the load-bearing example for the v4 BNF.
+| # | current_name | microservice | bounded_context | layer | layer_evidence | proposed_name | risk | dep_edges_affected |
+|--:|---|---|---|---|---|---|:-:|--:|
+| 138 | `oya-foundation-app` | `application` | — | `app` | composition-root binary per decision tree §2.2.4 step 4; wires all other layers | `oya-application-app` | 3 | est. 10–20 |
+| 139 | `oya-tooling-cli-dev-runtime` | `dev` | — | `cli` | hosts `oya` + `repoctl` bins; touches 3 CI workflows + ~30 script sites + test fixtures | `oya-dev-cli` | **5** | est. 30+ |
+| 140 | `oya-tooling-agent-read` | `codeview` | — | `cli` | sanctioned-primitive READ slot per git-workflow.md §2-3; every agent/script invoking `oya-tooling-agent-read` needs update | `oya-codeview-cli` | 3 | est. 10–20 |
 
-### 3.6 Audit summary (synced with §1 per Codex iter-2 D2)
+> Note on row 140: v4.1 reads `oya-tooling-agent-read` as: microservice =
+> `codeview` (domain noun for the agent's read-only code view), layer = `cli`.
+> Under v4.1 BNF the BC slot is omitted (single concept at cli layer).
+> Old crate dir `crates/oya-tooling-agent-read/` deleted; replaced by
+> `crates/oya-codeview-cli/`.
 
-| Group | Crates | Rename required | Stays the same |
-|---|---:|---:|---:|
-| Platform (becomes `shared` slot-2 in v4 3-slot grammar) | 28 | 28 | 0 |
-| Cloud (vertical preserved) | 31 | 31 | 0 |
-| Foundry non-check (vertical preserved) | 23 | 23 (rows 60, 72, 73, 74 rename `-api` → `PROTOCOL-UNKNOWN` deferred to ADR-0056 §"Protocol classification" pending iter-5 `src/`-inspection per body rows in §3.3.1; layer-suffix changes everywhere else) | 0 |
-| Foundry check (move to flat `oya-check-*` namespace; see §4a LEAN-A1–A4) | 29 | 29 | 0 |
-| Workspace product axis (vertical preserved) | 26 | 26 | 0 |
-| Foundation + tooling (becomes `shared` slot-2; `oya-foundation-app` → `oya-shared-composition-app`, `oya-tooling-agent-read` → `oya-shared-codeview-cli`, `oya-tooling-cli-dev-runtime` → `oya-shared-dev-cli`) | 3 | 3 | 0 |
-| **Subtotal — existing crates renamed** | **140** | **140** | **0** |
-| **NEW — 4 LEAN check crates scaffolded fresh** (`oya-check-architecture`, `oya-check-bounded-contexts`, `oya-check-supply-chain`, `oya-check-semver`) | **+4** | n/a (new scaffolds, not renames) | n/a |
-| **Total crate-name-affecting ops** | **144** | **140 + 4 new = 144** | **0** |
+### 3.6 Audit summary — BNF v4.1 (amended 2026-05-13)
+
+| Group | Crates | Rename required | Old dir deleted |
+|---|---:|---:|---|
+| Platform µservices (drop `oya-platform-` prefix; BC becomes slot2; Ontology rename) | 28 | 28 | `crates/oya-platform-*/` ALL deleted |
+| Cloud µservice (unchanged; foundry is µservice name) | 31 | 31 | dirs renamed per new name |
+| Foundry non-check µservice (unchanged; foundry is µservice name) | 23 | 23 | dirs renamed per new name |
+| Foundry check crates (move to flat `oya-check-*` namespace) | 29 | 29 | `crates/oya-foundry-*-kernel/` (check subset) deleted |
+| Connect µservice (formerly workspace; ALL `oya-workspace-*` → `oya-connect-*`) | 26 | 26 | `crates/oya-workspace-*/` ALL deleted |
+| Foundation + tooling (drop prefix; `oya-foundation-app` → `oya-application-app`; `oya-tooling-*` → µservice names) | 3 | 3 | `crates/oya-foundation-*/` + `crates/oya-tooling-*/` deleted |
+| **Subtotal — existing crates renamed** | **140** | **140** | **140 old dirs gone** |
+| **NEW — 4 LEAN check crates scaffolded fresh** (`oya-check-architecture`, `oya-check-bounded-contexts`, `oya-check-supply-chain`, `oya-check-semver`) | **+4** | n/a (new scaffolds) | n/a |
+| **Total crate-name-affecting ops** | **144** | **140 + 4 new = 144** | — |
+
+> **Atomic rename = old name GONE**: after Shard 1 merges, zero crate
+> directories matching `oya-platform-*`, `oya-workspace-*`, `oya-foundation-*`,
+> `oya-tooling-*`, `oya-shared-*` (the old `shared` prefix from v4 iter-1–5
+> interim names) may exist. Verified by §8.1 "Zero old-names" and
+> "Cargo.lock zero old-names" gates. No alias crates. No re-export shims.
 
 > Audit cross-check (Codex iter-4 F2 mechanical-arithmetic fix): v3
 > Cargo.toml lists **exactly 140 workspace members** (Cargo.toml lines
@@ -965,6 +1015,20 @@ to the flat `check` namespace.
 > `-api` → {rest, grpc, graphql, worker} + shared-vs-vertical slot-2
 > classification per the 3-slot grammar) is the largest pressure-test
 > surface for Codex iter-3 (§10 question 1).
+
+> **§3.6 deferral note:** "renamed: N" lines are *aspirational* (cover both
+> Shard 1 + Shard 1.5). Shard 1 atomic scope is 114 rows = 140 − 26
+> PROTOCOL-UNKNOWN. Per-partition Shard 1 counts:
+> | Partition | §3 total | PROTOCOL-UNKNOWN deferred | Shard 1 actual |
+> |---|---:|---:|---:|
+> | platform | 28 | 5 | 23 |
+> | cloud | 31 | 13 | 18 |
+> | foundry non-check | 23 | 4 | 19 |
+> | foundry check | 29 | 0 | 29 |
+> | workspace | 26 | 4 | 22 |
+> | foundation+tooling | 3 | 0 | 3 |
+> | **total** | **140** | **26** | **114** |
+> The 26 deferred rows ship in Shard 1.5 per ADR-0057.
 
 ## §4 Cutover order (Hybrid C, ported unchanged from v3)
 
@@ -1094,6 +1158,16 @@ subcommands; collates JSON output; produces one consolidated PR comment.
 metadata + per-crate `[package.metadata.oya]` blocks + `cargo metadata`
 deps. Emits structured JSON for the LEAN-A1 orchestrator's report.
 **Severity**: BLOCKER post-§8.2 flip.
+
+> **LEAN-A2 deployment note (v4.1 update):** Under BNF v4.1 the
+> `shared|vertical` binary is retired; LEAN-A2 cross-vertical refusal
+> is replaced by **microservice isolation enforcement**: no direct
+> import edges between distinct µservice crates except through Workflow
+> (action adapter) or Ontology (information adapter) per
+> [[feedback-workflow-objectgraph-adapter-layer]]. The `public_layers`
+> allowlist mechanism is retired. LEAN-A2 is simplified to: refuse any
+> dep edge where source µservice ≠ target µservice AND neither endpoint
+> is `workflow` or `ontology`. BLOCKER at Shard 1 merge.
 
 ### LEAN-A3 — `oya-check-supply-chain` (cargo deny wrapper)
 
@@ -1436,12 +1510,18 @@ Same shape as v3 §5.2; row counts updated:
 **Shard 0**: rare. `git revert <shard-0-sha>` removes xtask, ADR-0054
 amendment, ADR-0056, ADR-0057, new check crate scaffolds, registry block.
 
-**Shard 1**: `git revert <shard-1-sha>` restores all ~139 directory names,
+**Shard 1**: `git revert <shard-1-sha>` restores all 140 directory names,
 member list, dep-edges, CI/scripts, doc references, and Cargo.lock
 (single commit ⇒ single revert). Then run §8.1 gates against pre-Shard-1
 state. Lockfile inverse-rename via `cargo run --release -p xtask-metadata-augment
--- lockfile-rename --rename-map /tmp/rename-map.tsv --lockfile Cargo.lock --inplace --reverse`
+-- lockfile-rename --bnf-version v4.1 --rename-map /tmp/rename-map.tsv --lockfile Cargo.lock --inplace --reverse`
 then `cargo check --workspace --locked --offline`.
+
+> **BNF v4.1 flag**: `--bnf-version v4.1` instructs the xtask to apply
+> the v4.1 translation rule (`oya-platform-<bc>` → `oya-<bc>`,
+> `oya-workspace-<bc>` → `oya-connect-<bc>`, etc.) rather than the
+> v4.0 `shared|vertical` rule. The xtask must be updated in Shard 0
+> to accept this flag before Shard 1 dispatches.
 
 ### 7.2 Pre-authorised emergency revert lane
 

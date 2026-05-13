@@ -11,7 +11,7 @@
 
 ## Context
 
-Search backend is the indexing + retrieval engine that sits behind the Search axis (per ADR-0030). The pack-of-19 foundation ADRs decided that search is critical but did not pin the engine. The decision is constrained on three axes: (a) **license**: Elasticsearch is SSPL (forbidden in product surface); OpenSearch is Apache-2 (clean); Tantivy is MIT (clean); pgroonga is LGPL (requires legal isolation per License Policy); (b) **scale**: pgroonga is appropriate for tens of millions of docs; Tantivy / OpenSearch handles billions; (c) **KR-specific**: pgroonga's mecab-ko integration ships day-1 KR morphology with minimal additional work.
+Search backend is the indexing + retrieval engine that sits behind the search microservice (per ADR-0030). The pack-of-19 foundation ADRs decided that search is critical but did not pin the engine. The decision is constrained on three axes: (a) **license**: Elasticsearch is SSPL (forbidden in product surface); OpenSearch is Apache-2 (clean); Tantivy is MIT (clean); pgroonga is LGPL (requires legal isolation per License Policy); (b) **scale**: pgroonga is appropriate for tens of millions of docs; Tantivy / OpenSearch handles billions; (c) **KR-specific**: pgroonga's mecab-ko integration ships day-1 KR morphology with minimal additional work.
 
 This ADR pins a four-stage trajectory: pgroonga day-1 (KR launch with legal-isolation analysis), Tantivy in-Rust at scale (transition when we cross 100M docs per cell), OpenSearch as Apache-2-only adapter for tenants that need per-tenant private enterprise search at large scale before in-house Tantivy is GA-ready, and in-house long-horizon (KR morphology + Tantivy + custom ranker).
 
@@ -207,7 +207,7 @@ This ADR does not own the search architecture (per ADR-0030, but supplies the en
 ## References
 
 - `docs/PRD.md` §10 (search backend)
-- `docs/DESIGN.md` §11 (search engine), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (search engine), §10 (cross-microservice contracts)
 - pgroonga docs (LGPL); Tantivy docs (MIT); OpenSearch docs (Apache-2)
 - OSI position on SSPL; FSF guidance on LGPL linking
 - ADR-0001 (cohesion), ADR-0030 (search), ADR-0045 (database tier), ADR-0046 (vector store), ADR-0048 (Korean morphology)

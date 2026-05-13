@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0011, ADR-0028, ADR-0036, ADR-0037, ADR-0038, ADR-0040, ADR-0043
 
@@ -24,7 +24,7 @@ We adopt **OpenTelemetry SDK** as the canonical instrumentation surface; **Victo
 ### OpenTelemetry SDK (Apache-2)
 
 ```rust
-// crates/oya-platform-observability
+// crates/oya-observability
 pub struct ObservabilityKit {
     pub tracer: opentelemetry::global::BoxedTracer,
     pub meter: opentelemetry::metrics::Meter,
@@ -63,23 +63,23 @@ let _guard = tracing_subscriber::registry()
 ### Logs storage tier — license-clean alternatives to Loki
 
 - **Day 1.** ClickHouse (Apache-2) for log storage, with `vector.dev` (MPL-2) as the agent.
-- **Long horizon.** In-house log storage (Rust + columnar layout) under `crates/oya-platform-logs-*`.
+- **Long horizon.** In-house log storage (Rust + columnar layout) under `crates/oya-observability-logs-*`.
 
 (Loki is AGPL-3 since 2024 and is forbidden in our product surface per License Policy.)
 
 ### Traces storage tier — license-clean alternatives to Tempo
 
 - **Day 1.** Jaeger (Apache-2; CNCF Graduated) backed by ClickHouse.
-- **Long horizon.** In-house trace storage under `crates/oya-platform-traces-*`.
+- **Long horizon.** In-house trace storage under `crates/oya-observability-traces-*`.
 
 (Tempo is AGPL-3 since 2024.)
 
 ### In-house Leptos observability portal (long-horizon)
 
-`crates/oya-platform-observability-portal-*` is the in-house UI:
+`crates/oya-observability-portal-*` is the in-house UI:
 
 - Built in Leptos (Rust → WASM) per platform stack policy.
-- Per-cell + per-tenant + per-axis dashboards.
+- Per-cell + per-tenant + per-microservice dashboards.
 - Per-capability gen_ai dashboards.
 - Per-SLO burn-rate panels (per ADR-0040 metric gating).
 - Per-DSR cascade tracking surface (per ADR-0038).
@@ -106,7 +106,7 @@ Cross-cell aggregation requires explicit operator action + audit-chain emission.
 
 Per-tenant FinOps surface (per ADR-0028):
 
-- Per-tenant per-axis cost breakdown.
+- Per-tenant per-microservice cost breakdown.
 - Per-tenant per-resource utilization.
 - Per-tenant cost anomaly detection.
 - Per-tenant unit-economics (cost per active user / per workflow / per invocation).
@@ -200,26 +200,26 @@ This ADR does not own audit-chain primitives (per ADR-0003). Does not own per-ro
 
 ### Alternative D — Per-axis observability stack
 
-- **Pros:** axis-team independence.
-- **Cons:** N stacks; per-stack drift; cross-axis tracing impossible.
-- **Rejected because:** cross-axis tracing is a primary value of OTel.
+- **Pros:** microservice-team independence.
+- **Cons:** N stacks; per-stack drift; cross-microservice tracing impossible.
+- **Rejected because:** cross-microservice tracing is a primary value of OTel.
 
 ---
 
 ## Open questions
 
-1. **Q1.** In-house portal GA target — W+18 or W+24? Default: W+24; W+18 is stretch. → owner: `axis-foundry`.
+1. **Q1.** In-house portal GA target — W+18 or W+24? Default: W+24; W+18 is stretch. → owner: `foundry`.
 2. **Q2.** Per-tenant retention default — 90d for metrics, 30d for logs, 14d for traces? Default: yes; per-vertical override per ADR-0034. → ADR-0034.
-3. **Q3.** Long-term metric retention (>1y) — VictoriaMetrics or in-house long-term store? Default: VictoriaMetrics with `vmstorage` cluster; in-house at W+24+. → owner: `axis-foundry`.
+3. **Q3.** Long-term metric retention (>1y) — VictoriaMetrics or in-house long-term store? Default: VictoriaMetrics with `vmstorage` cluster; in-house at W+24+. → owner: `foundry`.
 4. **Q4.** Per-cell vs per-region collector topology — collectors per cell or one regional collector? Default: per cell for isolation; regional aggregator for cross-cell. → ADR-0028.
-5. **Q5.** OTel collector version pinning — track latest stable or LTS? Default: LTS. → owner: `axis-foundry`.
+5. **Q5.** OTel collector version pinning — track latest stable or LTS? Default: LTS. → owner: `foundry`.
 
 ---
 
 ## References
 
 - `docs/PRD.md` §10 (observability)
-- `docs/DESIGN.md` §11 (observability), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (observability), §10 (cross-microservice contracts)
 - `docs/SLO-CATALOG.md` (existing source of truth for SLOs)
 - OpenTelemetry spec; OpenTelemetry gen_ai semantic conventions (SIG); W3C Trace Context
 - VictoriaMetrics docs; ClickHouse docs; Jaeger CNCF docs

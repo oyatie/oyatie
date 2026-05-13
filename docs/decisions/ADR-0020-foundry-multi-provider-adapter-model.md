@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0021 (capability registry + MCP gateway), ADR-0022 (autonomy ceiling enforcement), ADR-0024 (eval harness + replay), ADR-0026 (in-house model substrate roadmap)
 

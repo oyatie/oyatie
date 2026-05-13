@@ -58,6 +58,31 @@ adrs_cited:
 | CHK-XAXIS | `cross-axis-contract-change-checklist.md` | Cross-axis contract change cascade. | `council-architecture` | `oya-foundry-fitness-cross-axis-notify` |
 | CHK-ESC | `escalation-checklist.md` | When agent halts and emits `BLOCKED_ON_HUMAN_ORCHESTRATOR`. | `council-architecture` | `oya-foundry-fitness-banned-primitives` (audits halt events) |
 
+## Canonical Templates (2026-05-13 — BNF v4.1 + Workflow Studio + Clean-Arch)
+
+Added by Wave 2 Templates partition executor. These 7 templates are the
+authoritative scaffold for all planning and product artifacts. Starting
+from these templates is mandatory per `feedback_autonomous_implementation_artifacts.md`.
+
+| ID | File | Purpose (1-line) | Owner | Enforcing fitness lane |
+|---|---|---|---|---|
+| TPL-ADR | `adr-template.md` | ADR with BNF v4.1 naming-justification block, Bominal inheritance citation, clean-arch impact section, and concrete file-path consequences. SUPERSEDES `adr-template-v2.md` for new ADRs. | `council-architecture` | `oya-foundry-fitness-adr-shape` |
+| TPL-PHASE-SPEC | `phase-spec-template.md` | Phase spec with entry/exit gates, in/out scope, impl-plan list, acceptance commands, clean-arch compliance block, grit symbols, ICM fields. | `council-architecture` | `oya-foundry-fitness-plan-hierarchy` |
+| TPL-IMPL | `impl-plan-template.md` | Implementation plan with concrete file targets, crate BNF justification, code skeleton, clean-arch compliance block, load-test section, grit symbols, ICM payload, halt conditions. SUPERSEDES `implementation-plan-template.md` for new IPs. | `council-architecture` | `oya-foundry-fitness-plan-hierarchy` |
+| TPL-PRD | `prd-template.md` | PRD with functional/non-functional requirements, BC layer map, port traits in kernel, Workflow+Ontology integration, Competitive Benchmark, Performance Targets, Horizontal Scalability. | `council-architecture` | `oya-check-benchmark-cli` + `oya-check-perf-budget-cli` |
+| TPL-MS | `microservice-template.md` | µservice scaffold: naming-justification, Cargo workspace entries, 12-layer skeleton, BC list, `[package.metadata.oya]` schema, test scaffolding, grit symbols. | `council-architecture` | `oya-foundry-fitness-plan-hierarchy` |
+| TPL-BC-REG | `bounded-context-registration-template.md` | BC registration schema for `docs/standards/bounded-contexts.md`: name justification, owner µservice, entities, Workflow events, Ontology types, acceptance criteria. | `council-architecture` | `oya-shared-bounded-contexts-check-cli` (LEAN-A2) |
+| TPL-MILE-README | `milestone-readme-template.md` | Milestone README for `.omc/plans/milestones/M0X-*/README.md`: intent, entry/exit gates, phase index table, risk register, Bominal ADR citations, agent-navigability pointer. SUPERSEDES `milestone-index-template.md` for new milestones. | `council-architecture` | `oya-foundry-fitness-plan-hierarchy` |
+
+Glossary enforced in all 7 templates:
+- "shared" not "platform" (retired per `feedback_glossary_shared_not_platform.md`)
+- "Ontology" not "Object Graph" (renamed per `feedback_glossary_ontology_not_object_graph.md`)
+- "Application" not "Shell" (override #8 per `feedback_bominal_inheritance_precedence.md`)
+- flat µservice catalog; no "Product Group" / "Arm"
+- BNF v4.1: `oya-<microservice>[-<bc-tokens>]-<layer>` (no `shared|vertical` slot)
+
+---
+
 ## Conflicts resolved with existing oyatie docs
 
 - `pull-request-template.md`, `adr-template.md`, `capability-record-template.yaml`, `runbook-template.md` already existed at `docs/templates/`. Lifted variants are saved as `*-v2` files and supersede the prior files once reviewed.

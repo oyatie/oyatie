@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0028, ADR-0033, ADR-0034, ADR-0040, ADR-0042, ADR-0049
 
@@ -11,7 +11,7 @@
 
 ## Context
 
-Every axis stores state. The pack-of-19 foundation ADRs decided that database choice is a substrate concern but did not pin the per-tier strategy: which engine for OLTP, which for OLAP, which for lakehouse. Without a pinned strategy, every axis re-decides; every per-axis choice has its own license posture, scaling profile, backup story, residency story; the cohesion thesis collapses at the data plane.
+Every axis stores state. The pack-of-19 foundation ADRs decided that database choice is a substrate concern but did not pin the per-tier strategy: which engine for OLTP, which for OLAP, which for lakehouse. Without a pinned strategy, every axis re-decides; every per-microservice choice has its own license posture, scaling profile, backup story, residency story; the cohesion thesis collapses at the data plane.
 
 The license dimension is sharp: PostgreSQL is PostgreSQL Lic (clean); Citus extension is Apache-2 (clean); ClickHouse is Apache-2 but the licensing of some ClickHouse-derived enterprise products has shifted (we use the Apache-2 fork explicitly); Iceberg is Apache-2; DataFusion is Apache-2. This ADR pins the per-tier engine + per-tier extension topology + per-tenant per-cell sharding + retention + DSR cascade integration.
 
@@ -176,7 +176,7 @@ This ADR does not own the vector store (per ADR-0046, but pgvector lives in OLTP
 
 ### Alternative D — Per-axis DB choice
 
-- **Pros:** axis-team flexibility.
+- **Pros:** microservice-team flexibility.
 - **Cons:** N engines; per-engine ops; per-DSR multiplied; cohesion violated.
 - **Rejected because:** DB tier is a substrate concern.
 
@@ -184,10 +184,10 @@ This ADR does not own the vector store (per ADR-0046, but pgvector lives in OLTP
 
 ## Open questions
 
-1. **Q1.** PostgreSQL major-version cadence — track upstream LTS or stay one version behind? Default: track LTS minus one major (currently PG 16). → owner: `axis-foundry`.
-2. **Q2.** Citus per-shard count default — 32 or 64? Default: 32 at GA; per-cell tunable. → owner: `axis-foundry`.
+1. **Q1.** PostgreSQL major-version cadence — track upstream LTS or stay one version behind? Default: track LTS minus one major (currently PG 16). → owner: `foundry`.
+2. **Q2.** Citus per-shard count default — 32 or 64? Default: 32 at GA; per-cell tunable. → owner: `foundry`.
 3. **Q3.** ClickHouse fork tracking cadence — quarterly merge or per-release? Default: per-release with quarterly review. → ADR-0013.
-4. **Q4.** Iceberg catalog (Polaris vs in-house) — at GA Polaris or in-house? Default: Polaris at GA; in-house at W+24+. → owner: `axis-foundry`.
+4. **Q4.** Iceberg catalog (Polaris vs in-house) — at GA Polaris or in-house? Default: Polaris at GA; in-house at W+24+. → owner: `foundry`.
 5. **Q5.** Per-tenant BYOK for OLTP encryption-at-rest at GA, or W+12? Default: W+12 (per ADR-0043 BYOK question). → ADR-0043.
 
 ---
@@ -195,7 +195,7 @@ This ADR does not own the vector store (per ADR-0046, but pgvector lives in OLTP
 ## References
 
 - `docs/PRD.md` §10 (data plane)
-- `docs/DESIGN.md` §11 (database tier), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (database tier), §10 (cross-microservice contracts)
 - PostgreSQL docs; Citus extension docs; ClickHouse docs; Apache Iceberg + DataFusion docs
 - KR 「개인정보의 안전성 확보조치 기준」 (encryption-at-rest requirements)
 - ADR-0001 (cohesion), ADR-0003 (audit), ADR-0028 (cloud), ADR-0033 (vertical pack), ADR-0034 (per-vertical override), ADR-0040 (progressive delivery), ADR-0042 (observability), ADR-0049 (residency)

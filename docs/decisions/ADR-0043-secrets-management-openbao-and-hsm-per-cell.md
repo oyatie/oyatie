@@ -3,7 +3,7 @@
 > **Status:** Proposed
 > **Supersedes:** -
 > **Superseded-by:** -
-> **Owner:** `axis-foundry`
+> **Owner:** `foundry`
 > **Date:** 2026-05-09
 > **Related:** ADR-0001, ADR-0003, ADR-0007, ADR-0011, ADR-0028, ADR-0029, ADR-0036, ADR-0038, ADR-0039
 
@@ -24,7 +24,7 @@ We adopt **OpenBao** (MPL-2) as the canonical secrets store; **per-tenant per-ce
 ### OpenBao (MPL-2) supersedes Vault (BUSL)
 
 ```rust
-// crates/oya-platform-secrets-openbao
+// crates/oya-secrets-openbao
 pub struct OpenBaoClient {
     pub addr: VaultAddress,             // per-cell endpoint
     pub auth: OpenBaoAuth,              // OIDC / Kubernetes auth method
@@ -62,7 +62,7 @@ Tenant deletion (or DSR erase) shreds the per-tenant KEK; all DEKs become unreco
 Foundry adapters that authenticate to external AI providers (per ADR-0026) often use long-lived API keys. The session-token vault is the indirection layer:
 
 ```rust
-// crates/oya-platform-secrets-session-token
+// crates/oya-secrets-session-token-kernel
 pub struct SessionTokenVault {
     pub provider_keys: BTreeMap<ProviderId, ProviderKeySet>,  // sealed in OpenBao
     pub session_issuer: SessionIssuer,
@@ -79,7 +79,7 @@ let token = vault.issue_session(provider_id, ttl: Duration::minutes(15)).await?;
 ### Per-capability `SecretProvider` trait
 
 ```rust
-// crates/oya-platform-secrets/src/provider.rs
+// crates/oya-secrets-openbao/src/provider.rs
 pub trait SecretProvider {
     async fn get(&self, secret_ref: SecretRef) -> Result<SecretValue>;
     async fn rotate(&self, secret_ref: SecretRef) -> Result<RotationResult>;
@@ -158,7 +158,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 - Per-cell HSM health alarmed; per-cell HSM partition utilization > 80% triggers capacity review.
 - Per-tenant key rotation completion tracked.
 - Per-quarter drill outcome audit-chained.
-- Per-cell secret-leak detection (Trivy + per-axis scanners) wired to alarms.
+- Per-cell secret-leak detection (Trivy + per-microservice scanners) wired to alarms.
 - Annual KCMVP / FIPS audit per cell.
 - Per-region HSM vendor relationship review.
 
@@ -180,7 +180,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 
 ### Alternative C — Per-axis secret store (each axis runs its own)
 
-- **Pros:** axis-team independence.
+- **Pros:** microservice-team independence.
 - **Cons:** N stores; per-store drift; per-rotation-drill multiplied; cohesion violated.
 - **Rejected because:** secrets are a substrate concern.
 
@@ -197,7 +197,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 1. **Q1.** Per-tenant KEK rotation cadence — quarterly or annual? Default: quarterly for regulated tenants (HC / FIN / PUB); annual for general SaaS. → ADR-0034.
 2. **Q2.** Per-cell HSM vendor diversity — single vendor or multi-vendor? Default: single vendor per cell at GA; multi-vendor per region at Phase 2. → ADR-0028.
 3. **Q3.** Session-token TTL default — 15 min or 5 min? Default: 15 min; 5 min for `proxy`-tier autonomy actions per ADR-0007. → ADR-0007.
-4. **Q4.** Out-of-band emergency rotation — break-glass YubiHSM or per-cell tamper-evident binder? Default: YubiHSM per operator + tamper-evident binder for cell-recovery secret; both required (M-of-N). → owner: `axis-foundry`.
+4. **Q4.** Out-of-band emergency rotation — break-glass YubiHSM or per-cell tamper-evident binder? Default: YubiHSM per operator + tamper-evident binder for cell-recovery secret; both required (M-of-N). → owner: `foundry`.
 5. **Q5.** Per-tenant BYOK (Bring Your Own Key) at GA, or W+12? Default: W+12 (regulated tenants); GA preview only. → ADR-0034.
 
 ---
@@ -205,7 +205,7 @@ This ADR does not own per-tenant identity (per ADR-0002). Does not own audit cha
 ## References
 
 - `docs/PRD.md` §10 (security program), §11 (per-tenant residency)
-- `docs/DESIGN.md` §11 (secrets management), §10 (cross-axis contracts)
+- `docs/DESIGN.md` §11 (secrets management), §10 (cross-microservice contracts)
 - KR KCMVP (Korean Cryptographic Module Validation Program) — KISA guidance
 - FIPS 140-3 (NIST); ISO 27018 (cloud privacy); PCI HSM standards
 - OpenBao docs (LF Edge); OpenBao migration guide from Vault
