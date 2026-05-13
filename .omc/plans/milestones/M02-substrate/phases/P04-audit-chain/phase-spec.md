@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P04-audit-chain
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; oya-tenancy-kernel ships (TenantId available);
   oya-kms-kernel ships (KeyId, ChainSigner port available — co-deployed

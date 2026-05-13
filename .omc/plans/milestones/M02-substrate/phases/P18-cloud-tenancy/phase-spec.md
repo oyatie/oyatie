@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P18-cloud-tenancy
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02/P13-tenancy complete (TenantProductRegistry live; oyatie.set_current_tenant()
   deployed); M02/P08-kms complete (oya-kms-kernel ships with envelope encryption ports);

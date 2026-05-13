@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P03-identity
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; oya-tenancy-kernel ships (TenantId type available);
   Postgres 16 with pgcrypto available; cargo check --workspace exits 0.

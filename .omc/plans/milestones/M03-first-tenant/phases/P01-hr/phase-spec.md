@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M03-first-paying-tenant
 phase: P01-hr
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02-substrate-schema-foundation complete; oya-ontology-entity-kernel ships;
   oya-workflow-engine-kernel ships; Postgres + Citus cell provisioned;

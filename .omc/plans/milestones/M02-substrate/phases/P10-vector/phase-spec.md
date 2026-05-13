@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P10-vector
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; P02-ontology merged; Postgres 16 with pgvector extension
   available (pgvector ≥0.7.0, supporting HNSW index); cargo check exits 0.

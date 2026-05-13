@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P12-workflow-engine
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02/P02-ontology complete; oya-ontology-kernel ships with ObjectStore +
   LinkStore + ActionStore + OntologyFunction port traits; cargo check clean

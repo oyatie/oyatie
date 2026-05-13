@@ -3,7 +3,8 @@ doc_class: PhaseSpec
 template_id: TPL-PHASE-SPEC
 milestone: M01-foundation
 phase: P05-post-cutover-hardening
-status: Proposed
+status: Complete
+acceptance_lanes: []
 entry_gate: |
   P02-shard-1-atomic-rename complete (all 6 acceptance gates exit 0);
   P03-shard-1-5-protocol-unknown-deferred complete (zero *-api crates remain);

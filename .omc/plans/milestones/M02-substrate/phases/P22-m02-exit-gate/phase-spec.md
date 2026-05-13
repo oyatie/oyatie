@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P22-m02-exit-gate
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   All Wave-A (P01–P11), Wave-B (P12–P16), Wave-C (P17–P19), Wave-D (P20) and
   Wave-E/P21 complete; plane-verification-M02.md and wave-integration-report-M02.md

@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P01-foundry-engine-consolidation
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; oya-tooling-agent-read scaffold merged; grit v0.3.0
   installed; icm CLI installed; cargo check --workspace exits 0 on main.

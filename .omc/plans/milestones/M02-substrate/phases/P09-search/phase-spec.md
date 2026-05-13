@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P09-search
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; P02-ontology merged (Ontology objects are the primary
   searchable corpus); Postgres 16 with pgroonga extension available;

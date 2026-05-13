@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P02-ontology
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M01-P05 complete; cargo check --workspace exits 0; Postgres 16 available
   in dev environment; oya-tenancy-kernel exists (tenancy RLS bootstrap function

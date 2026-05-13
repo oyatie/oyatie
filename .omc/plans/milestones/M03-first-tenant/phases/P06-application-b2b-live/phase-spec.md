@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M03-first-paying-tenant
 phase: P06-application-b2b-live
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M03/P01-hr through P05-connect-pro-messenger complete (all µservices ship);
   oya-tenancy-kernel + oya-identity-kernel ship (M02 substrate);

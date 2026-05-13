@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P15-data-boundary
 status: Proposed
+acceptance_lanes: []
 entry_gate: |
   M02/P03-identity complete; oya-identity-kernel ships; cargo check clean; grit done
   on all P03 symbols. P14-policy SHOULD be complete (Cedar engine available) but P15
