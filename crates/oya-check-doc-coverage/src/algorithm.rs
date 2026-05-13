@@ -199,14 +199,31 @@ pub fn verify_section_completeness(repo_root: &Path, report: &mut Report) {
 }
 
 /// Step 8: orphan-scan — doc files referencing retired µservices.
+///
+/// A doc is an orphan only when its referenced µservice token is NOT in the
+/// workspace registry AND NOT in the MASTERPLAN §2.1 planned catalog. Planned-only
+/// µservices with docs are acceptable (they predate their introducing phase).
+///
+/// Whitelisted filenames (templates / index / governance docs) are skipped.
 pub fn orphan_scan(
     repo_root: &Path,
     registered: &[String],
     packs: &[PackManifest],
     report: &mut Report,
 ) {
-    let scan_dirs = ["docs/microservices", "docs/prds", "docs/bounded-contexts"];
+    const FILENAME_WHITELIST: &[&str] = &[
+        "INDEX.md",
+        "README.md",
+        "MASTERPLAN.md",
+        "DOC-COVERAGE.md",
+        "RETIRED.md",
+        "CHANGELOG.md",
+    ];
+    const SUFFIX_WHITELIST: &[&str] = &["-template.md"];
+    let planned = crate::registry::read_masterplan_catalog(repo_root).unwrap_or_default();
     let registered_set: std::collections::HashSet<&String> = registered.iter().collect();
+    let planned_set: std::collections::HashSet<&String> = planned.iter().collect();
+    let scan_dirs = ["docs/microservices", "docs/prds", "docs/bounded-contexts"];
     for dir_rel in &scan_dirs {
         let dir = repo_root.join(dir_rel);
         if !dir.exists() {
@@ -217,24 +234,32 @@ pub fn orphan_scan(
                 continue;
             }
             let fname = entry.file_name().to_string_lossy().to_string();
-            if !fname.ends_with(".md") || fname == "INDEX.md" {
+            if !fname.ends_with(".md") {
+                continue;
+            }
+            if FILENAME_WHITELIST.contains(&fname.as_str()) {
+                continue;
+            }
+            if SUFFIX_WHITELIST.iter().any(|s| fname.ends_with(s)) {
                 continue;
             }
             // Filename stem typically encodes µservice; e.g. "hr.md" or "hr-kr.md" or "hr-payroll.md"
             let stem = fname.trim_end_matches(".md");
-            // Take the leading kebab token as the µservice
             let ms_token = stem.split('-').next().unwrap_or(stem).to_string();
-            if !registered_set.contains(&ms_token) && !ms_token.is_empty() {
-                // Could be a planned-only doc; only flag if MASTERPLAN doesn't list it either
-                report.push(Violation {
-                    kind: ViolationKind::OrphanDoc,
-                    path: entry.path().display().to_string(),
-                    description: format!(
-                        "doc references µservice token `{}` not in workspace metadata",
-                        ms_token
-                    ),
-                });
+            if ms_token.is_empty() {
+                continue;
             }
+            if registered_set.contains(&ms_token) || planned_set.contains(&ms_token) {
+                continue;
+            }
+            report.push(Violation {
+                kind: ViolationKind::OrphanDoc,
+                path: entry.path().display().to_string(),
+                description: format!(
+                    "doc references µservice token `{}` not in workspace metadata AND not in MASTERPLAN §2.1 catalog",
+                    ms_token
+                ),
+            });
         }
     }
     // Pack evidence orphan scan

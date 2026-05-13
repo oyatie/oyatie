@@ -176,6 +176,100 @@ owner = "council-connect"
 rationale = "Connect µservice (dual-context: Professional B2B + Personal B2C): mail, calendar, drive, messenger, meet, docs, sheets, slides, tasks."
 adr_cite = "ADR-0056"
 
+# M02 substrate µservices (registered when at least one workspace crate exists; see oya-check-doc-coverage)
+[workspace.metadata.oya.microservices.application]
+owner = "council-application"
+rationale = "Application B2B unified shell — tenants sign in, enable µservices à-la-carte (per ADR-0061)."
+adr_cite = "ADR-0061"
+
+[workspace.metadata.oya.microservices.ontology]
+owner = "council-architecture"
+rationale = "Cross-µservice information adapter (Palantir Ontology equivalent): Object Types + Link Types + Action Types + Functions; audit-chain provenance; RLS tenant isolation."
+adr_cite = "ADR-0059"
+
+[workspace.metadata.oya.microservices.tenancy]
+owner = "platform-substrate"
+rationale = "Substrate µservice: Tenant lifecycle, RLS partition key, customer × domain isolation (Bominal ADR-0018 inherited)."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.identity]
+owner = "platform-substrate"
+rationale = "Substrate µservice: User, Person, Session, OIDC auth principal (Bominal ADR-0123 inherited)."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.audit-chain]
+owner = "platform-substrate"
+rationale = "Substrate µservice: Merkle-sealed Ed25519 segments per (tenant_id, period) (Bominal ADR-0028 inherited)."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.eventing]
+owner = "platform-substrate"
+rationale = "Substrate µservice: outbox → Kafka KRaft (Bominal ADR-0116 inherited)."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.secrets]
+owner = "platform-substrate"
+rationale = "Substrate µservice: OpenBao + HSM per-cell SecretReference path."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.observability]
+owner = "ops-sre-reliability"
+rationale = "Substrate µservice: OpenTelemetry + VictoriaMetrics structured JSON logs + p50/p99/p999 histograms (Bominal ADR-0020 inherited)."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.policy]
+owner = "council-privacy"
+rationale = "Substrate µservice: Cedar engine + per-tenant rule packs (Bominal ADR-0132 inherited)."
+adr_cite = "ADR-0056"
+
+[workspace.metadata.oya.microservices.data-boundary]
+owner = "council-privacy"
+rationale = "Substrate µservice: Data-Use Boundary enforcement, DSR cascade engine, tenant data isolation."
+adr_cite = "ADR-0056"
+
+# M02 µservices registered as planned (Phase-Spec exists; introducing phase will scaffold crates)
+[workspace.metadata.oya.microservices.workflow]
+owner = "council-architecture"
+rationale = "Workflow µservice — cross-µservice action/orchestration adapter (per ADR-0059); n8n-class hero product per Workflow Studio scope. Introducing phase: M02-P12-workflow-engine."
+adr_cite = "ADR-0059"
+status = "planned"
+
+[workspace.metadata.oya.microservices.kms]
+owner = "platform-substrate"
+rationale = "Substrate µservice: KMS envelope encryption + per-cell HSM (Bominal ADR-0111 inherited). Introducing phase: M02-P08-kms."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.search]
+owner = "platform-substrate"
+rationale = "Substrate µservice: pgroonga + Tantivy + Mecab-ko/Khaiii morphology. Introducing phase: M02-P09-search."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.vector]
+owner = "platform-substrate"
+rationale = "Substrate µservice: pgvector HNSW + per-tenant per-object-type embedding tables. Introducing phase: M02-P10-vector."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.finance-library]
+owner = "council-architecture"
+rationale = "Substrate µservice: Money/CurrencyCode/JournalEntry + PV/FV/NPV/IRR/WACC + depreciation/amortization (Bominal ADR-0120 inherited). Pure crate, no I/O. Introducing phase: M02-P11-finance-library."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.capability-registry]
+owner = "axis-foundry"
+rationale = "Substrate µservice: agent autonomy ceiling + capability registry (Bominal ADR-0107 inherited). Introducing phase: M02-P17-capability-registry."
+adr_cite = "ADR-0056"
+status = "planned"
+
+[workspace.metadata.oya.microservices.records]
+owner = "platform-substrate"
+rationale = "Substrate µservice: FHIR-R5-canonical records substrate; healthcare-pack adapters per ADR-0064 §1.5. Introducing phase: M02-P16-records."
+adr_cite = "ADR-0056"
+status = "planned"
+
 
 [workspace.metadata.oya.verticals.connect]
 owner = "council-connect"
