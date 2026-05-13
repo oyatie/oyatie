@@ -19,7 +19,11 @@ pub fn reconcile_registered_vs_planned(
     report: &mut Report,
 ) {
     let registered_set: std::collections::HashSet<&String> = registered.iter().collect();
-    // Index every phase-spec.md once; record (microservice → phase-spec path) refs
+    // Index every phase-spec.md once; record (microservice → phase-spec path) refs.
+    //
+    // Match strictly via BNF v4.1 crate-name prefix `oya-<ms>-`: this is the
+    // canonical way phase-specs reference a µservice. Backtick-bounded `<ms>`
+    // alone is too loose (catches layer terms like `entity` / `adapter`).
     let phases_dir = repo_root.join(".omc/plans/milestones");
     let mut phase_refs: std::collections::HashMap<String, Vec<String>> = Default::default();
     if phases_dir.exists() {
@@ -27,16 +31,8 @@ pub fn reconcile_registered_vs_planned(
             if entry.file_name() == "phase-spec.md" {
                 let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
                 for ms in planned {
-                    // Match µservice token as a kebab-bounded reference: `<ms>` or `<ms>-` or whitespace-bounded
-                    let needle1 = format!("`{}`", ms);
-                    let needle2 = format!("`{}-", ms);
-                    let needle3 = format!("oya-{}-", ms);
-                    let needle4 = format!(" {} ", ms);
-                    if content.contains(&needle1)
-                        || content.contains(&needle2)
-                        || content.contains(&needle3)
-                        || content.contains(&needle4)
-                    {
+                    let crate_prefix = format!("oya-{}-", ms);
+                    if content.contains(&crate_prefix) {
                         phase_refs
                             .entry(ms.clone())
                             .or_default()
@@ -124,10 +120,7 @@ pub fn verify_canonical_suite(repo_root: &Path, registered: &[String], report: &
             report.push(Violation {
                 kind: ViolationKind::MissingCanonicalArtifact,
                 path: format!(".omc/plans/milestones/M*/phases/*/impl-plan.md"),
-                description: format!(
-                    "no impl-plan references µservice `{}` per ADR-0063 §1",
-                    ms
-                ),
+                description: format!("no impl-plan references µservice `{}` per ADR-0063 §1", ms),
             });
         }
     }
@@ -174,9 +167,7 @@ fn has_impl_plan_reference(phases_dir: &Path, microservice: &str) -> bool {
     let needle_bareword = format!("`{}`", microservice);
     for entry in WalkDir::new(phases_dir).into_iter().filter_map(|r| r.ok()) {
         let fname = entry.file_name().to_string_lossy().to_string();
-        if fname == "impl-plan.md"
-            || (fname.starts_with("IP-") && fname.ends_with(".md"))
-        {
+        if fname == "impl-plan.md" || (fname.starts_with("IP-") && fname.ends_with(".md")) {
             let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
             if content.contains(&needle) || content.contains(&needle_bareword) {
                 return true;
