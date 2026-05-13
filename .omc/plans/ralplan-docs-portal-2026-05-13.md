@@ -11,13 +11,13 @@ codex_model: gpt-5.5 / xhigh
 
 # Implementation Plan: Live-Introspection Docs Portal (Leptos SSR)
 
-## §1 Principles (RALPLAN-DR)
+## §1 Principles (RALPLAN-DR; v3 — internally consistent with §6 and §8)
 
-1. **Real-time over snapshot.** No drift between code and docs; extractors are the canonical source; daemon emits SSE updates within ≤2s p99 incremental (per ADR-0066 §2).
-2. **Machine-readable canonical, human-facing visualized.** Structured schema per doc_class is the source-of-truth long-term; Leptos is the projection. Markdown prose body preserved as a free-text section inside the structured record.
-3. **Composable extractors.** 16 small independent extractor binaries; each emits a JSON section to the unified manifest. Per-extractor failure does not blackbox the whole manifest.
-4. **No stubs, no compat seams.** Per `feedback_autonomous_decision_principles.md` + `feedback_autonomous_implementation_artifacts.md`. Dead-code lane (LEAN-A8) BLOCKER from day 1, not report-only.
-5. **Gradual conversion, not big-bang migration.** Existing markdown remains valid. We tighten the frontmatter schema per doc_class incrementally and emit the machine-readable form alongside the markdown; once a doc_class has converted ≥80%, the schema is locked and remaining stragglers must comply on first edit.
+1. **Hot/warm/cold extractor classes.** Real-time SLA applies per class, not workspace-wide. Hot extractors (cargo_metadata / frontmatter / pack-yaml / phase-spec / lanes-yaml): ≤500ms p99 typical; daemon SSE fan-out ≤2s p99 incremental. Warm (rustdoc-JSON / openapi / proto / async-graphql / SQL-migrations / cargo-machete-udeps-deny): ≤10s typical; on-commit / on-PR refreshed. Cold (ICM / grit / GH Actions): ≤60s scheduled every 5-10min. Manifest exposes `freshness_class` + `data_age_seconds` + `last_run_status` per extractor.
+2. **Source-of-truth partitioned by content kind (ADR-0065 preserved).** Prose docs (ADR / PRD / microservice record / BC registration / phase-spec / impl-plan / milestone README / pack manifest / evidence bundle): **markdown body + YAML/TOML frontmatter canonical**. Code facts (workspace graph / rustdoc / endpoints / SQL / dep-graph / dead-code / ICM / grit / GH Actions): **code+telemetry canonical via extractors**. No "machine-readable takes over prose long-term" without a superseding ADR.
+3. **Composable extractors.** 16 small independent extractor modules; each emits its own JSON section to the unified manifest. Per-extractor failure surfaces in `manifest.extractors[].last_run_status = "degraded" | "failed"` and does not blackbox other sections.
+4. **No stubs, no compat seams (strict).** Per `feedback_autonomous_decision_principles.md` + `feedback_autonomous_implementation_artifacts.md`. Dead-code lane (`lean-a8`) BLOCKER from day 1. NO `#[doc(hidden)]` / `// docs:internal` opt-outs for dead-code (those markers may exist only for ADR-0066 endpoint-coverage exemptions, never for dead-code tolerance). The only way to silence `lean-a8` is to physically delete the orphan.
+5. **Strict migration with hard sunset (no thresholds).** `lean-a5-documentation` is report-only from M02-P20 to M02-P22 with a **hard sunset at M02-P22 exit gate**: zero non-conformant docs allowed thereafter (every doc either conforms or is physically removed). No 80% threshold, no permanent stragglers, no permanent compat seam.
 
 ## §2 Decision Drivers (top 3)
 
@@ -65,22 +65,35 @@ codex_model: gpt-5.5 / xhigh
 - **Detection**: manifest-size lane warning at 50MB / fail at 200MB; portal Lighthouse perf budget.
 - **Rollback**: lazy-load aggressive defaults; per-section drop to `metadata-only` view.
 
-### Scenario 3: SSE fan-out under live commit storms (e.g., autopilot Phase 2 dispatch)
-- **Trigger**: 20 executor agents land 50 commits/min during Phase 2; daemon re-runs extractors per commit; SSE pushes 50 manifest deltas/min to N portal clients.
+### Scenario 3: SSE fan-out under live commit storms with hot/warm/cold split
+- **Trigger**: 20 executor agents land 50 commits/min during Phase 2; daemon must re-run hot extractors per debounced window (1s) + cold extractors stay on schedule.
 - **Blast radius**: portal clients freeze; daemon OOM; observability shows extractor backlog.
-- **Prevention**: daemon **debounces** commits to a 5s rolling window; runs one extractor pass per window. SSE delta is **diff-only** (changed paths in `docs/.generated/`), never full manifest. Per-cell daemon: each cell has its own daemon serving its cell's tenants only.
-- **Detection**: Prometheus `oyatie_docs_watch_queue_depth` gauge; alert >50.
-- **Rollback**: daemon switches to 30s window under high pressure; portal banner "live updates batched at high commit rate".
+- **Prevention**: per-class scheduling. **Hot class**: 1s debounce; SSE delta within 2s p99. **Warm class**: on-commit on PR (≤2min); not on every commit. **Cold class**: 5-10min cron; not coupled to commit storms. SSE delta is **diff-only JSON Patch** (changed manifest sections), never full manifest. Per-cell daemon (each cell serves its tenants only).
+- **Detection**: Prometheus `oyatie_docs_watch_queue_depth_per_class` (hot/warm/cold gauges); alert >50 hot or >200 warm.
+- **Rollback**: daemon escalates hot debounce to 5s under sustained pressure; portal banner "live updates batched at high commit rate".
+
+### Scenario 4: Tenant-redaction policy failure exposes confidential data
+- **Trigger**: Cedar policy fragment for `/files` (or `/live` SSE, or `/manifest`) has a bug; tenant A receives data scoped to tenant B; or the daemon emits unfiltered manifest section to an unauthenticated client.
+- **Blast radius**: cross-tenant data leak (compliance incident; PIPA / GDPR / HIPAA failure); brand damage.
+- **Prevention**: Cedar policy validation lane `oya-check-architecture --policy-coverage` (per Bominal ADR-0132 inheritance) runs at build time + against synthetic-tenant fixture in CI. SSE worker enforces Cedar before fan-out. `/files` admin-role-only (never public in production). `/manifest` JSON API requires authenticated tenant token; returns per-tenant-filtered view ALWAYS (no anonymous full-manifest endpoint exists). Integration test suite includes per-surface red-team probes simulating tenant A claiming tenant B's identity.
+- **Detection**: integration tests pre-deploy + Cedar audit-log emits `denied` events (per Bominal ADR-0028 inheritance). Anomaly detector alerts on policy bypass attempts.
+- **Rollback**: portal kills the affected surface (return 503 + canned message); daemon stops fan-out to non-validated subscribers; incident-response playbook engages.
 
 ## §5 Expanded Test Plan (deliberate-mode required)
 
 | Tier | Coverage |
 |---|---|
-| **Unit** (extractor-by-extractor) | Each extractor against golden fixtures: cargo_metadata against a 3-crate tmp workspace; rustdoc JSON against a fixture crate; openapi against `contracts/sample.yaml`; proto against `contracts/sample.proto`; async-graphql against a fixture schema; markdown frontmatter against 1-row-per-doc_class fixture; pack.yaml against `kr/pack.yaml`; phase-spec frontmatter against M02 phase-specs; lanes.yaml against the live registry; cargo-machete/udeps against a fixture with intentional unused deps; cargo-deny against a clean fixture; ICM against a sqlite fixture; grit against a `grit status --json` capture; GH Actions against a recorded API response. 16 extractors × ~3 golden fixtures = ~48 unit tests minimum. |
-| **Integration** (end-to-end manifest emission) | `cargo run -p oya-docs-generator -- --workspace <tmp>` against synthesized tmp workspace + the live oyatie workspace. Validate emitted `docs/.generated/manifest.json` against JSON Schema; verify per-section files emitted; verify deterministic-bytes property (re-run produces identical files). |
-| **E2E** (browser-driven portal smoke) | Playwright suite against `oya-docs-portal-app` running locally: navigate /, /microservices, /microservices/payroll, /decisions/ADR-0066, /endpoints, /dep-graph, /dead-code, /live. Assert page-render correctness, time-to-interactive ≤2s SSR, SPA navigation ≤200ms. |
-| **Observability** | Daemon emits Prometheus per-extractor: latency (histogram), error counter, queue depth gauge. Grafana dashboard with 16 extractor panels + manifest-size + SSE-fanout. |
-| **Lane self-tests** | lean-a5/a6/a7/a8 each ship with known-violation + known-clean fixtures; lane self-test runs in CI. |
+| **Unit** (extractor-by-extractor) | Each extractor against golden fixtures. 16 extractors × ≥3 fixtures = ~48 unit tests min. Plus `freshness_class` self-declaration test per extractor (asserts `last_run_status` flips to "failed" on error fixture and "degraded" on partial-failure fixture). |
+| **Integration** (end-to-end manifest emission) | `cargo run -p oya-docs-generator -- --workspace <tmp>` against synthesized tmp workspace + live oyatie workspace. Validate emitted `docs/.generated/manifest.json` against JSON Schema (incl. extractor freshness fields per §6(b)); verify per-section files emitted; verify deterministic-bytes (re-run produces identical files). |
+| **E2E** (browser-driven portal smoke) | Playwright against `oya-docs-portal-app` locally: navigate /, /microservices/payroll, /decisions/ADR-0066, /endpoints, /dep-graph, /dead-code, /live. Assert page-render correctness, SSR time-to-interactive ≤2s, SPA navigation ≤200ms. |
+| **Hot SLA** | k6 + extractor-latency probe: hot extractors complete ≤500ms p99 over 1000-sample workload; daemon SSE delta arrives at subscribed client ≤2s p99 from commit push. |
+| **Warm SLA** | Same: warm extractors ≤10s p99 over on-commit workload. |
+| **Cold SLA** | Same: cold extractors complete ≤60s p99 every 5-10min schedule; missed-schedule alarm wires to observability. |
+| **SSE delta contract** | Subscribed client receives only JSON-Patch ops for changed manifest sections (not full manifest); patch size ≤10KB p99 for hot updates. Test against synthetic commit pushes touching 1 / 5 / 50 files. |
+| **Degraded manifest rendering** | Portal correctly renders `last_run_status: "degraded"` and `last_run_status: "failed"` extractor sections with staleness badges + retry-eta hint; no portal crashes on missing section. |
+| **Cedar redaction** | Per-surface red-team probe suite per §6.5 + pre-mortem §4: tenant A subscribed to `/live` SSE never receives tenant B events. `/files` returns 403 to non-admin role. `/manifest` returns per-tenant-filtered view (assert via cross-tenant JSON diff). |
+| **Observability** | Daemon emits Prometheus per-extractor: latency (histogram tagged by `freshness_class`), error counter, queue depth gauge (one per class). Cedar audit-log emits `denied` events for policy failures (per Bominal ADR-0028 inheritance). Grafana dashboard: 16 extractor panels + manifest-size + SSE-fanout + per-class queue + Cedar deny-rate. |
+| **Lane self-tests** | lean-a5/a6/a7/a8 each ship with known-violation + known-clean fixtures; lane self-test runs in CI. lean-a7 fixture includes a synthetic crate exposing a REST endpoint NOT in the manifest (must fail). lean-a8 fixture includes intentional unused-dep + orphan-doc (must fail; cannot be silenced). |
 
 ## §6 Specific decisions (a-g per consensus task)
 
@@ -229,19 +242,19 @@ M02-P22 (exit gate)
   ↓ flips lean-a5/a6/a7 to BLOCKER (lean-a8 already BLOCKER)
   ↓ flips canonical-base-neutrality + cross-pack-refusal to BLOCKER
 M03-P01..P03 (HR + Payroll + Accounting) — UNCHANGED
-M03-P04 (Connect Pro Mail) — IP-X1 ADDED (NEW)
+M03-first-tenant-P04 (connect-pro-mail) — IP-X1 ADDED (NEW)
   ↓ IP-X1: author oya-docs-{portal,generator,manifest}-* crates (kernel/domain/application/adapter/rest/worker/cli/app)
   ↓ IP-X1: author 12 docs substrate crates
-M03-P05 (Connect Pro Messenger) — IP-X1 ADDED (NEW)
+M03-first-tenant-P05 (connect-pro-messenger) — IP-X1 ADDED (NEW)
   ↓ IP-X1: author oya-docs-{search,cross-ref,live-diff}-* crates (~10 crates)
-  ↓ IP-X1: author 3 G4 telemetry extractors (ICM / grit / GH Actions)
+  ↓ IP-X1: author 3 G4 cold extractors (ICM / grit / GH Actions)
   ↓ IP-X1: author oya-docs-watch daemon + SSE wiring + per-cell daemon manifest
-M03-P06 (Application B2B live) — IP-X1 ADDED (NEW)
+M03-first-tenant-P06 (application-b2b-live) — IP-X1 ADDED (NEW)
   ↓ IP-X1: expose Docs Portal as the SECOND product in Application B2B shell (Workflow Studio is first)
-  ↓ IP-X1: tenant SSO scoping (Cedar) — `/files`, `/live`, `/manifest` redaction policies
+  ↓ IP-X1: tenant SSO scoping (Cedar) — `/files`, `/live`, `/manifest` redaction policies (§6.5)
   ↓ IP-X1: pgroonga + pgvector indexes seeded
-M03-P07 (Workflow Studio editor) — UNCHANGED (parallel to P06)
-M03-P08 (KR acceptance evidence)
+M03-first-tenant-P07 (workflow-studio-editor) — UNCHANGED (parallel to P06)
+M03-first-tenant-P08 (kr-acceptance-evidence)
   ↓ Evidence bundle INCLUDES: 16 extractors green; lean-a5/a6/a7 BLOCKER green; lean-a8 BLOCKER green; daemon ≤2s p99 incremental for hot extractors; Docs Portal in Stage 0 OCI ARM64 cell.
 ```
 
@@ -281,35 +294,48 @@ Cedar policy authoring is an M03-P06 IP-X1 deliverable; portal MUST NOT enable a
 | R2 | Manifest size growth | Sharded manifest + lazy-load (pre-mortem §2) |
 | R3 | SSE fan-out under load | Debounce + diff-only deltas + per-cell daemon (pre-mortem §3) |
 | R4 | Schema versioning during gradual migration | Schema version field per doc_class; lane validates compatible-with (forward + backward) |
-| R5 | Dead-code lane false positives | `oya doc lint --fix` autoclean + #[doc(hidden)] / `// docs:internal` opt-out comments |
+| R5 | Dead-code lane false positives | `oya doc lint --fix` autoclean for trivial cases (unused-dep removal; orphan-doc deletion). NO opt-out comments for dead-code (per §1 Principle 4; architect r1 Gap 6 + critic r1). Endpoint-internal markers may exist only for ADR-0066 endpoint-coverage exemptions (`lean-a7`), never for dead-code tolerance. |
 | R6 | M02 exit slip from added P19.5/P21.5 | Phases are bounded + parallelizable; risk monitored at each wave gate |
 
-## §8 ADR record (per ralplan step 6 contract)
+## §8 ADR record (v3; per ralplan step 6 contract; B-prime aligned)
 
-- **Decision**: Adopt Option B — layered docs portal delivery across M02-P19.5 + M02-P20 IP-005 + M02-P21.5 + M03-P09. 26 docs crates + 16 extractors + 4 CI lanes + 1 daemon + 18 Leptos pages (9 MVP + 9 full).
-- **Drivers**: realtime reflection of state (user mandate); zero-gap endpoint/dep/dead-code coverage (user mandate); Leptos SSR stack reuse (Bominal inheritance).
-- **Alternatives considered**: A (frontload all in P19/P20 — phase scope balloons), C (defer to M04+ — contradicts user directive). Both rejected with rationale.
-- **Why chosen**: Option B delivers each capability cleanly in its own phase, respects parallelization-manifest dependencies, gives M02-P22 exit gate teeth (lean-a8 BLOCKER day 1), and matches gradual migration cadence to schema lock-in.
-- **Consequences**: positive (mechanical realtime/zero-gap coverage; portal becomes a tenant-facing product), negative (3 new phases; some schema cost), neutral (Bominal ADR-0209 + ADR-0020 inheritance compose cleanly).
-- **Follow-ups**:
-  1. Author `.omc/plans/milestones/M02-substrate/phases/P19.5-docs-portal-substrate/{phase-spec,impl-plan}.md` (new phase scope)
-  2. Author `.omc/plans/milestones/M02-substrate/phases/P21.5-docs-portal-realtime/{phase-spec,impl-plan}.md`
-  3. Author `.omc/plans/milestones/M03-first-tenant/phases/P09-docs-portal-live/{phase-spec,impl-plan}.md`
-  4. Extend `.omc/plans/M01-M03-parallelization-manifest.md` with the 3 new phases in the dispatch DAG
-  5. Update masterplan §2.1 catalog to add `docs` µservice
-  6. Update workspace.metadata.oya.microservices to register `docs` (planned status)
-  7. Author the 16 extractor + 4 CI lane impl-plans
+- **Decision**: Adopt **Option B-prime** — Live-Introspection Docs Portal delivered as added Impl-Plans inside the EXISTING M02-P19 / P20 / P21 / P22 + M03-first-tenant-P04 / P05 / P06 / P08 phases. **Zero new phase IDs.** 24 docs crates (6 BCs × ~4 layers each minus `-leptos`) + 16 extractors (5 hot G1 + 4 warm G2 + 4 warm G3 + 3 cold G4) + **4 CI lanes via 4 separate binaries** (existing `oya-check-documentation` scope-limited; NEW `oya-check-docs-generated` / `oya-check-endpoint-coverage` / `oya-check-dead-code`) + 1 daemon (`oya-docs-watch`) + 13 MVP Leptos pages (including `/endpoints`, `/dep-graph`, `/dead-code`, `/live`) + 5+ full-set pages M04+ + Cedar-policy redaction per surface (§6.5).
+- **Drivers**: realtime reflection of state (user mandate); zero-gap endpoint/dep/dead-code coverage (user mandate; `feedback_autonomous_implementation_artifacts.md` "no dead code"); Leptos SSR stack reuse (Bominal ADR-0209 inheritance).
+- **Alternatives considered**:
+  - **Option B (rejected)** — new phase IDs P19.5/P21.5/M03-P09. Architect r1 Gap 1: parallelization-manifest DAG re-baseline is more cost than slotting work into existing phases.
+  - **Option A (rejected)** — frontload all 16 extractors + portal in M02-P19/P20. Phase scope balloons; risk to M02 exit-gate chain.
+  - **Option C (rejected)** — defer to M04+. Contradicts user "realtime, automated, no dead code" directive.
+- **Why chosen**: B-prime delivers each capability inside the existing phase DAG (no manifest re-baseline); 4 separate single-purpose lane binaries match `feedback_clean_architecture_requirements §13` LEAN-check pattern; M02-P22 exit gate gains real teeth (lean-a8 BLOCKER day 1); portal ships in M03 alongside Workflow Studio as the SECOND Application B2B product.
+- **Consequences**:
+  - Positive: mechanical realtime/zero-gap coverage; portal becomes a tenant-facing product; parallelization manifest DAG preserved; clean BNF v4.1 conformance (Leptos as `pages/` module inside `-rest`).
+  - Negative: tighter scope per existing phase; partial coupling between docs-portal IPs and Connect/Application phases (mitigated by parallelization-manifest declared parallel capacity).
+  - Neutral: Bominal ADR-0209 (Leptos) + ADR-0020 (OTel) compose cleanly; cargo-deny + cargo-machete + cargo-udeps already in oyatie supply-chain budget.
+- **Follow-ups (no new phase dir authoring; all are IPs added to existing phase dirs)**:
+  1. Author `.omc/plans/milestones/M02-substrate/phases/P19-application/impl-plans/IP-X1-docs-catalog-registration.md`
+  2. Extend `.omc/plans/milestones/M02-substrate/phases/P20-ci-lanes-operational/impl-plans/IP-005-doc-coverage-full-algorithm.md` to author 5 G1 extractors + `oya-check-docs-generated` binary
+  3. Extend `.omc/plans/milestones/M02-substrate/phases/P21-architecture-planes-green/impl-plans/IP-005-docs-portal-realtime.md` (NEW IP-005) to author G2+G3 extractors + `oya-check-endpoint-coverage` + `oya-check-dead-code` binaries
+  4. Extend `.omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/impl-plan.md` BLOCKER list with lean-a5/a6/a7/a8 (lean-a8 already BLOCKER day 1)
+  5. Author `.omc/plans/milestones/M03-first-tenant/phases/P04-connect-pro-mail/impl-plans/IP-X1-docs-portal-substrate-crates.md` (oya-docs-{portal,generator,manifest}-* — 12 crates)
+  6. Author `.omc/plans/milestones/M03-first-tenant/phases/P05-connect-pro-messenger/impl-plans/IP-X1-docs-portal-realtime-substrate.md` (oya-docs-{search,cross-ref,live-diff}-* + oya-docs-watch daemon + 3 G4 cold extractors)
+  7. Author `.omc/plans/milestones/M03-first-tenant/phases/P06-application-b2b-live/impl-plans/IP-X1-docs-portal-as-second-product.md` (Docs Portal exposed as Application's second product; Cedar policy fragments for §6.5 redaction)
+  8. Update `docs/MASTERPLAN.md` §2.1 catalog to add `docs` µservice; update `[workspace.metadata.oya.microservices]` to register `docs` (status: planned until M03-P04 crate scaffold lands)
+  9. `.omc/plans/M01-M03-parallelization-manifest.md` requires NO DAG restructure — only the per-phase IP-list section needs amendment to enumerate the 8 new IPs. Manifest header phase-count stays M02=22 + M03-first-tenant=8.
 
-## §9 Pending Architect+Critic verification
+## §9 Architect+Critic verification status
 
-Architect (codex gpt-5.5 x-high) round 1 dispatch pending. Critic round 1 pending after architect. Loop up to 5 rounds. Acceptance criteria per the 7 deliberate-mode dimensions:
+| Round | Architect | Critic | Iteration delta |
+|---|---|---|---|
+| 1 | ITERATE (7 gaps + 5 principle-violation flags) | ITERATE (7 internal-consistency fixes) | v2 closed architect r1 gaps; v3 closes critic r1 fixes |
+| 2 | _pending_ | _pending_ | — |
+
+Loop up to 5 rounds per ralplan-DR. Acceptance criteria per the 7 deliberate-mode dimensions:
 
 1. Principle-option consistency
 2. Fair alternatives recorded
 3. Risk mitigation clarity
 4. Testable acceptance criteria
 5. Concrete verification steps
-6. Pre-mortem strength (3 scenarios above; concrete)
-7. Expanded test plan (above; concrete)
+6. Pre-mortem strength (4 scenarios in §4 incl. tenant-redaction)
+7. Expanded test plan (§5 incl. hot/warm/cold SLA + SSE delta + Cedar redaction)
 
-On Critic APPROVE: status flips from `pending approval` → `Accepted`; follow-ups dispatched in sequence per §6(g).
+On Critic APPROVE: status flips from `pending approval` → `Accepted`; follow-ups dispatched in sequence per §6(g) (the 9 follow-ups in §8 ADR record).
