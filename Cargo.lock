@@ -476,6 +476,10 @@ name = "oya-check-authority-cohesion"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-benchmark"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-brand-residue"
 version = "0.1.0"
 
@@ -534,6 +538,10 @@ name = "oya-check-mobile-native"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-perf-budget"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-placeholder-debt"
 version = "0.1.0"
 
@@ -570,7 +578,15 @@ name = "oya-check-runbook-index"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-shardability"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-slo-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-statelessness"
 version = "0.1.0"
 
 [[package]]
