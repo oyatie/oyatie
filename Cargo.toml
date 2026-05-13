@@ -67,7 +67,7 @@ members = [
   "crates/oya-check-cost-budget",
   "crates/oya-check-data-class",
   "crates/oya-check-doc-catalog",
-  "crates/oya-check-doc-coverage",
+  "crates/oya-check-documentation",
   "crates/oya-check-documentation-system",
   "crates/oya-check-glossary-coverage",
   "crates/oya-check-glossary-vocabulary",
@@ -176,7 +176,7 @@ owner = "council-connect"
 rationale = "Connect µservice (dual-context: Professional B2B + Personal B2C): mail, calendar, drive, messenger, meet, docs, sheets, slides, tasks."
 adr_cite = "ADR-0056"
 
-# M02 substrate µservices (registered when at least one workspace crate exists; see oya-check-doc-coverage)
+# M02 substrate µservices (registered when at least one workspace crate exists; see oya-check-documentation)
 [workspace.metadata.oya.microservices.application]
 owner = "council-application"
 rationale = "Application B2B unified shell — tenants sign in, enable µservices à-la-carte (per ADR-0061)."

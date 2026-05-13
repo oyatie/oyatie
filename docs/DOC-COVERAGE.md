@@ -3,13 +3,13 @@ doc_class: DocCoverageMatrix
 shape: snapshot
 status: Living
 date: 2026-05-13
-auto_emitted_by: oya-check-doc-coverage-cli (LEAN-A5)
+auto_emitted_by: oya-check-documentation-cli (LEAN-A5)
 authority_chain: docs/MASTERPLAN.md §13.5 → ADR-0063 → this file
 ---
 
 # Documentation Suite Coverage Matrix
 
-This file is the canonical coverage snapshot for the oyatie documentation suite contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation suite. This file is **auto-emitted by `oya-check-doc-coverage-cli`** (LEAN-A5) on every PR; hand-edits get overwritten.
+This file is the canonical coverage snapshot for the oyatie documentation suite contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation suite. This file is **auto-emitted by `oya-check-documentation-cli`** (LEAN-A5) on every PR; hand-edits get overwritten.
 
 ## Status legend
 
@@ -206,7 +206,7 @@ Required sections per Impl-Plan: `## Concrete File Targets`, `## Code Shape`, `#
 
 Required Phase-Spec frontmatter: `acceptance_lanes:`, `depends_on:`, `entry_gate:`, `exit_gate:`.
 
-**Lane will report per-PRD / per-Phase-Spec / per-Impl-Plan section gaps once `oya-check-doc-coverage-cli` is operational (M02-P20).**
+**Lane will report per-PRD / per-Phase-Spec / per-Impl-Plan section gaps once `oya-check-documentation-cli` is operational (M02-P20).**
 
 ---
 
@@ -217,7 +217,7 @@ Each 🔴 / 🟡 row above translates 1:1 to a doc-authoring task. The dispatch 
 1. Author per-cluster sweeps (one executor per cluster) to fill canonical-suite gaps
 2. Per-pack sweep (one executor per pack) to fill pack overlay gaps
 3. Each executor: write all artifacts in scope, commit per `grit claim → work → grit done` protocol
-4. After commit, this matrix re-emits via `oya-check-doc-coverage-cli` and reflects new green status
+4. After commit, this matrix re-emits via `oya-check-documentation-cli` and reflects new green status
 
 ---
 
@@ -228,4 +228,4 @@ Each 🔴 / 🟡 row above translates 1:1 to a doc-authoring task. The dispatch 
 - [MASTERPLAN §13.5](MASTERPLAN.md)
 - [Localization packs INDEX](localization-packs/INDEX.md)
 - [KR pack (#1)](localization-packs/kr.md)
-- Lane registry: `registry/quality/lanes.yaml` (lane id: `lean-a5-doc-coverage`)
+- Lane registry: `registry/quality/lanes.yaml` (lane id: `lean-a5-documentation`)
