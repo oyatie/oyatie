@@ -57,6 +57,33 @@ Read these memory files at session start; they govern every decision:
 | Flat µservice catalog | `feedback_flat_product_catalog.md` |
 | Workflow is shared substrate | `feedback_workflow_is_shared.md` |
 
+### 4.1 Load-bearing ADRs (read at session start)
+
+| Rule | ADR |
+|---|---|
+| BNF v4.1 grammar + 12-layer enum | `docs/decisions/ADR-0056-rust-clean-architecture-bnf.md` |
+| Flat µservice catalog | `docs/decisions/ADR-0058-flat-microservice-catalog.md` |
+| Workflow + Ontology = ecosystem adapter layer | `docs/decisions/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md` |
+| Bominal inheritance precedence + overrides | `docs/decisions/ADR-0060-bominal-inheritance-precedence.md` |
+| Application B2B unified shell | `docs/decisions/ADR-0061-application-b2b-unified-shell.md` |
+| Quality / Performance / Scalability bar (mandatory PRD sections) | `docs/decisions/ADR-0062-quality-performance-scalability-bar.md` |
+| Documentation suite coverage (CI-enforced; LEAN-A5) | `docs/decisions/ADR-0063-documentation-suite-coverage.md` |
+| Canonical global base + localization seams / adapters / packs (KR is pack #1) | `docs/decisions/ADR-0064-canonical-base-and-localization-packs.md` |
+| Localization pack catalog (anchor) | `docs/localization-packs/INDEX.md` |
+| KR pack (pack #1; foundational; M01–M07) | `docs/localization-packs/kr.md` |
+
+### 4.2 Localization architecture (the expectation, set globally)
+
+Every customer-facing µservice has a **canonical global base** (jurisdiction-agnostic) + **localization overlay** chosen per-concern from three forms (per ADR-0064 §1):
+
+- **Seam** — port in canonical base; jurisdiction plugs in a value or thin trait impl via DI. Smallest blast radius. Preferred for statutory rates, tax tables, leave counts, holiday calendars.
+- **Adapter** — separate adapter crate translating jurisdiction-specific I/O (EDI / API / portal) into canonical domain types. Preferred for discrete I/O surfaces.
+- **Pack** — coherent bundle (seams + adapters + Cedar fragments + Workflow templates + Typst templates + acceptance evidence) per jurisdiction. The unit of release and the unit of doc-suite enforcement.
+
+Choose per-concern, whichever is most appropriate. The forms compose: a pack composes seams + adapters.
+
+Canonical base MUST NOT bake in statutory rates, jurisdiction codes, language strings, or regulatory-authority names. Enforced by `oya-check-architecture --canonical-base-neutrality` (M02-P20 scope).
+
 ## 5. Universal phase exit gate
 
 A phase is complete only when **all** of these are true:
@@ -76,6 +103,8 @@ Plus:
 - Load tests meet Performance Targets per impl-plan `## Load test`
 - Audit log emits per Bominal ADR-0028 (Merkle-sealed Ed25519 per `(tenant_id, period)`)
 - Phase docs reflect shipped state (no drift between spec and code)
+- **Documentation suite coverage** green per ADR-0063 for every µservice the phase touches: canonical PRD + Microservice record + Naming-scope ADR + BC registrations + Phase-Spec + Impl-Plan; plus per-pack overlay (PRD + regulatory ADR + acceptance evidence) for every (pack × µservice) pair in pack scope. Enforced by `lean-a5-doc-coverage` (report-only until M02-P22; BLOCKER thereafter).
+- **Canonical-base neutrality**: if the phase touches canonical-base crates, `oya-check-architecture --canonical-base-neutrality` green (no jurisdiction codes / statutory rates / authority names baked into canonical base) per ADR-0064.
 - `icm store -t context-oyatie -c "Phase X complete" -i high` row emitted
 - `grit done --agent <id>` succeeds
 
