@@ -215,7 +215,7 @@ Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR
 
 ### M04 — Healthcare KR foundation
 
-**Scope:** Activate medical / pharmacy / patient / records-fhir / emergency µservices with full Korean regulatory binding. Workflow Studio gains clinical-handoff, prescription-lifecycle, intake-routing, and pharmacy-DUR templates. Ontology gains FHIR R5 entity types (Patient, Encounter, Observation, MedicationRequest, Prescription, Practitioner, Organization, Coverage, AllergyIntolerance).
+**Scope:** Activate medical / pharmacy / patient / records (FHIR-canonical substrate) / emergency µservices with full Korean regulatory binding. Workflow Studio gains clinical-handoff, prescription-lifecycle, intake-routing, and pharmacy-DUR templates. Ontology gains FHIR R5 entity types (Patient, Encounter, Observation, MedicationRequest, Prescription, Practitioner, Organization, Coverage, AllergyIntolerance).
 
 **Regulatory:** 의료법, HIRA DUR (의약품안전사용서비스), KFDA (식약처) recall/dispatch, NHIS / 건보공단 청구, KHIRA outcomes, EMR vendor cross-walk (유비케어, 비트컴퓨터, 이지스헬스케어).
 
@@ -253,7 +253,7 @@ Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR
 
 ### M09 — International expansion — United States
 
-**Scope:** Stand up US region (us-east-1 + us-west-2 OCI ARM64 cells). HIPAA-Compliant baseline (medical/pharmacy/records-fhir). PCI DSS L1 (payments). SOC 2 Type II audit (12-month observation). US payroll: federal + 50-state tax tables; W-2/W-4/1099/I-9/ACA; 401(k) recordkeeper integration; ADP / Workday parity. USD primary; settlement via Stripe / Plaid / Dwolla. US healthcare: Epic / Cerner FHIR R5 adapters.
+**Scope:** Stand up US region (us-east-1 + us-west-2 OCI ARM64 cells). HIPAA-Compliant baseline (medical/pharmacy/records (FHIR-canonical substrate)). PCI DSS L1 (payments). SOC 2 Type II audit (12-month observation). US payroll: federal + 50-state tax tables; W-2/W-4/1099/I-9/ACA; 401(k) recordkeeper integration; ADP / Workday parity. USD primary; settlement via Stripe / Plaid / Dwolla. US healthcare: Epic / Cerner FHIR R5 adapters.
 
 **Exit:** 1 US tenant live; HIPAA BAA signed; PCI DSS L1 certified; SOC 2 Type II report issued; cross-region failover drill passed (us-east-1 ↔ us-west-2 RTO ≤30s).
 
@@ -267,7 +267,7 @@ Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR
 
 ### M11 — Healthcare expansion US/EU
 
-**Scope:** US: HIPAA-Compliant medical/pharmacy/records-fhir; Epic FHIR R5 + USCDI v3; CDA / IPS export; HL7 v2.x cross-walk. EU: GDPR special-category PHI posture; eMedRec / NHS-compatible records; MDR conformance for device-data ingestion; cross-border PHI never transmitted without Article 9(2) basis.
+**Scope:** US: HIPAA-Compliant medical/pharmacy/records (FHIR-canonical substrate); Epic FHIR R5 + USCDI v3; CDA / IPS export; HL7 v2.x cross-walk. EU: GDPR special-category PHI posture; eMedRec / NHS-compatible records; MDR conformance for device-data ingestion; cross-border PHI never transmitted without Article 9(2) basis.
 
 **Exit:** 1 US or EU healthcare tenant live; HL7 v2 + FHIR R5 dual-stack proven; MDR / HIPAA cross-residency audit drill complete.
 
@@ -633,7 +633,7 @@ This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EX
 |---|---|---|---|
 | P01 medical-clinical | `.omc/plans/milestones/M04-healthcare-kr/phases/P01-medical-clinical/` | medical encounter kernel + clinician UI + DUR hook | **[TBD]** |
 | P02 pharmacy-dur | `.../P02-pharmacy-dur/` | pharmacy prescription kernel + realtime DUR (의약품안전사용서비스) | **[TBD]** |
-| P03 records-fhir-kr | `.../P03-records-fhir-kr/` | FHIR R5 entity types + EMR cross-walk (유비케어/비트컴퓨터/이지스) | **[TBD]** |
+| P03 records-kr-healthcare | `.../P03-records-kr-healthcare/` | FHIR R5 entity types in `records` substrate + KR healthcare-pack adapters (EMR cross-walk 유비케어/비트컴퓨터/이지스) | **[TBD]** |
 | P04 patient-portal-b2c | `.../P04-patient-portal-b2c/` | patient record access + appointment booking + Connect Personal linkage | **[TBD]** |
 | P05 emergency-handoff | `.../P05-emergency-handoff/` | 119 routing + handoff workflow + cross-clinic dispatch | **[TBD]** |
 | P06 kr-regulatory-binding | `.../P06-kr-regulatory-binding/` | HIRA / KFDA / NHIS / KHIRA submission + recall adapters | **[TBD]** |
@@ -691,7 +691,7 @@ This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EX
 | P01 us-region-cells | `.omc/plans/milestones/M09-us-expansion/phases/P01-us-region-cells/` | us-east-1 + us-west-2 OCI ARM64 cells; cross-region failover RTO ≤30s | **[TBD]** |
 | P02 us-payroll-tax | `.../P02-us-payroll-tax/` | federal + 50-state tax; W-2/W-4/1099/I-9/ACA; 401(k) recordkeeper integration | **[TBD]** |
 | P03 us-payments-rails | `.../P03-us-payments-rails/` | USD primary; Stripe / Plaid / Dwolla; ACH; same-day ACH; wire | **[TBD]** |
-| P04 hipaa-baa-baseline | `.../P04-hipaa-baa-baseline/` | HIPAA-Compliant medical/pharmacy/records-fhir; BAA template | **[TBD]** |
+| P04 hipaa-baa-baseline | `.../P04-hipaa-baa-baseline/` | HIPAA-Compliant medical/pharmacy/records (FHIR-canonical substrate); BAA template | **[TBD]** |
 | P05 soc2-pci-certification | `.../P05-soc2-pci-certification/` | SOC 2 Type II (12-mo observation); PCI DSS L1 service-provider RoC | **[TBD]** |
 | P06 us-tenant-acceptance | `.../P06-us-tenant-acceptance/` | 1 US tenant live; cross-region failover drill passed | **[TBD]** |
 

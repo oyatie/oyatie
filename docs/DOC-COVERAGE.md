@@ -152,17 +152,21 @@ This file is the canonical coverage snapshot for the oyatie documentation suite 
 
 ## Pack overlay coverage
 
-### `kr` pack (foundational)
+### `kr` pack (planned/foundational — pack #1)
+
+Status: `planned/foundational`. Flips to `active` when all promotion blockers in `kr/pack.yaml` are green (corpus.lock signed + ≥1 µservice overlay shipped + ≥1 acceptance evidence signed + 1 paying tenant live).
+
+**Scope source of truth**: `docs/localization-packs/kr/pack.yaml > microservices_in_scope` (28 µservices across Workforce / Healthcare / FinTech / Industrial / Connect / Hospitality clusters). The `material_scope: bool` per-µservice flag in the manifest determines whether an overlay PRD is required (per ADR-0063 §2).
 
 | Pack artifact | Path | Status |
 |---|---|---|
-| Manifest | `docs/localization-packs/kr/pack.yaml` | 🔴 TBD |
+| Manifest (authoritative) | `docs/localization-packs/kr/pack.yaml` | 🟢 authored |
 | Overview | `docs/localization-packs/kr.md` | 🟢 authored |
-| Corpus lock | `docs/localization-packs/kr/corpus.lock` | 🔴 TBD |
-| Evidence dir | `docs/localization-packs/kr/evidence/` | 🔴 TBD |
-| Per-µservice overlay PRDs (15 µservices in scope) | `docs/prds/<microservice>-kr.md` | 🔴 0/15 |
-| Per-µservice regulatory ADRs | `docs/decisions/ADR-NNNN-kr-<microservice>-regulatory.md` | 🔴 0/15 |
-| Per-µservice acceptance evidence | `docs/localization-packs/kr/evidence/<microservice>.md` | 🔴 0/15 |
+| Corpus lock | `docs/localization-packs/kr/corpus.lock` | 🔴 TBD (promotion blocker) |
+| Evidence dir | `docs/localization-packs/kr/evidence/` | 🟢 directory exists; 🔴 0 µservice evidence docs yet |
+| Per-µservice overlay PRDs (material_scope=true; 20 µservices) | `docs/prds/<microservice>-kr.md` | 🔴 0/20 |
+| Per-µservice regulatory ADRs (every µservice in scope) | `docs/decisions/ADR-NNNN-kr-<microservice>-regulatory.md` | 🔴 0/28 |
+| Per-µservice acceptance evidence | `docs/localization-packs/kr/evidence/<microservice>.md` | 🔴 0/28 |
 
 ### `us` / `eu` / `jp` / `sea-*` / `mena-*` packs
 

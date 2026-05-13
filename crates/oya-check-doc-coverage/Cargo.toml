@@ -1,0 +1,29 @@
+[package]
+name = "oya-check-doc-coverage"
+version.workspace = true
+edition.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "LEAN-A5 — verify oyatie documentation suite coverage per ADR-0063 + ADR-0064"
+
+[lib]
+name = "oya_check_doc_coverage"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-check-doc-coverage"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = "1"
+cargo_metadata = "0.18"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+toml = "0.8"
+walkdir = "2"
+regex = "1"
+
+[dev-dependencies]
+tempfile = "3"

@@ -21,16 +21,17 @@ CI enforcement (`oya-check-doc-coverage-cli` / LEAN-A5) reads this catalog plus 
 
 ## Active packs
 
-| Pack | Code | Status | Lead milestone | Scope summary | Overview doc |
-|---|---|---|---|---|---|
-| **Korea** | `kr` | **Pack #1 — foundational** | M01–M07 | 4대보험 EDI, 연말정산, K-GAAP, HIRA/KFDA/NHIS/KHIRA, PIPA, 전자금융업/간편결제, FSS reporting, 산업안전보건법, 화물자동차운수사업법, 의료법, 119 dispatch, 더존/유비케어/비트컴퓨터 cross-walk | [kr.md](kr.md) |
+(none yet — KR pack will flip from `planned/foundational` to `active` when promotion blockers in `kr/pack.yaml` are met; see kr.md frontmatter)
 
 ## Planned packs
 
-| Pack | Code | Status | Lead milestone | Scope summary |
-|---|---|---|---|---|
-| **United States** | `us` | Planned (H3) | M09, M11 | HIPAA-BAA, PCI DSS L1, SOC2 Type II, federal+50-state tax, W-2/W-4/1099/I-9/ACA, 401(k), USCDI v3, Epic/Cerner FHIR R5, ADP/Workday parity |
-| **European Union** | `eu` | Planned (H3) | M10, M11 | GDPR (Art 5/6/9/17/28/32/33/35), eIDAS, SEPA DD/CT/Instant, IFRS, NIS2, DORA, MDR, eMedRec/NHS, multi-language |
+| Pack | Code | Status | Lead milestone | Manifest | Overview |
+|---|---|---|---|---|---|
+| **Korea** | `kr` | **planned/foundational (pack #1)** | M01–M07 | [kr/pack.yaml](kr/pack.yaml) | [kr.md](kr.md) |
+| **United States** | `us` | Planned (H3) | M09, M11 | TBD | TBD |
+| **European Union** | `eu` | Planned (H3) | M10, M11 | TBD | TBD |
+
+Scope summary — see each pack's `pack.yaml` manifest for authoritative `microservices_in_scope` and `regulatory_bindings` lists. KR pack covers ~28 µservices across Workforce / Healthcare / FinTech / Industrial / Connect / Hospitality clusters; full list and `material_scope` per µservice in `kr/pack.yaml`.
 
 ## Future packs
 

@@ -424,10 +424,10 @@ lanes:
     check_command: cargo run -p oya-shared-semver-check-cli -- check --workspace
   - id: lean-a5-doc-coverage
     stage: per-pr
-    status: active
+    status: active     # crate oya-check-doc-coverage operational at HEAD; flips to BLOCKER at M02-P22
     severity: report-only
     owner_team: council-architecture
-    purpose: documentation suite coverage — every µservice has full canonical + per-pack suite per ADR-0063; flips to BLOCKER at M02-P22 exit gate
+    purpose: documentation suite coverage — every µservice has full canonical + per-pack suite per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22
     source: ADR-0063
     runtime_budget_seconds: 600
     check_command: cargo run -p oya-check-doc-coverage -- --workspace --report-only
