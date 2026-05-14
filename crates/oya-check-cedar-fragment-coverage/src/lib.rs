@@ -73,10 +73,7 @@ pub enum Violation {
         actual_status: FragmentStatus,
     },
     /// C04: status=operational but path missing on disk.
-    C04OperationalPathMissing {
-        fragment_id: String,
-        path: String,
-    },
+    C04OperationalPathMissing { fragment_id: String, path: String },
     /// C04: status≠operational but path exists on disk.
     C04NonOperationalPathExists {
         fragment_id: String,
@@ -153,7 +150,9 @@ pub fn validate(inputs: &CoverageInputs) -> ValidationReport {
 
     // C04
     for row in &inputs.registry_rows {
-        let path_exists = inputs.head_tracked_paths.contains(&row.fragment_path_planned);
+        let path_exists = inputs
+            .head_tracked_paths
+            .contains(&row.fragment_path_planned);
         match (row.status, path_exists) {
             (FragmentStatus::Operational, false) => {
                 violations.push(Violation::C04OperationalPathMissing {
@@ -327,11 +326,9 @@ mod tests {
     #[test]
     fn duplicate_fragment_id() {
         let mut inputs = CoverageInputs::default();
-        inputs.registry_rows.push(row(
-            "dup",
-            ".omc/cedar/dup.cedar",
-            FragmentStatus::Planned,
-        ));
+        inputs
+            .registry_rows
+            .push(row("dup", ".omc/cedar/dup.cedar", FragmentStatus::Planned));
         inputs.registry_rows.push(row(
             "dup",
             ".omc/cedar/dup-other.cedar",
@@ -356,7 +353,11 @@ mod tests {
         .collect();
         assert_eq!(
             names,
-            vec!["operational", "planned", "blocked-by-foundation-prerequisite"]
+            vec![
+                "operational",
+                "planned",
+                "blocked-by-foundation-prerequisite"
+            ]
         );
     }
 

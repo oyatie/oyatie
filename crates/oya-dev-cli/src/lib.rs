@@ -23,10 +23,10 @@ use oya_foundry_cargo_prefix_domain::{validate_cargo_prefix, CargoPrefixMember};
 
 mod active_artifact_contract_gate;
 mod api_contract_registry;
-mod cedar_fragment_coverage_gate;
 mod architecture_plane_gates;
 mod catalog_contract_gates;
 mod catalog_registry;
+mod cedar_fragment_coverage_gate;
 mod codeview_read_surface_gates;
 mod command_output;
 mod command_process;
@@ -57,9 +57,6 @@ mod yaml_scan;
 pub(crate) use active_artifact_contract_gate::{
     parse_active_artifact_contract_validate_args, validate_active_artifact_contract_gate,
 };
-pub(crate) use cedar_fragment_coverage_gate::{
-    parse_cedar_fragment_coverage_validate_args, validate_cedar_fragment_coverage_gate,
-};
 pub(crate) use api_contract_registry::{is_api_contract_metadata_path, read_api_contract_records};
 pub(crate) use architecture_plane_gates::{
     parse_planes_validate_args, parse_wave_integration_validate_args, validate_planes_gate,
@@ -70,6 +67,9 @@ pub(crate) use catalog_contract_gates::{
     validate_slo_coverage_gate,
 };
 pub(crate) use catalog_registry::read_catalog_records;
+pub(crate) use cedar_fragment_coverage_gate::{
+    parse_cedar_fragment_coverage_validate_args, validate_cedar_fragment_coverage_gate,
+};
 pub(crate) use codeview_read_surface_gates::{
     parse_codeview_read_surface_validate_args, validate_codeview_read_surface_gate,
 };

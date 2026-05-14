@@ -5,8 +5,8 @@
 //! so contract drift breaks the build.
 
 use oya_ops_docs_portal_kernel::{
-    ExtractorClass, ExtractorId, ExtractorRecord, LiveFeedEvent, LiveFeedEventKind,
-    ManifestPort, ManifestQuery, ManifestSnapshot, TenantScope,
+    ExtractorClass, ExtractorId, ExtractorRecord, LiveFeedEvent, LiveFeedEventKind, ManifestPort,
+    ManifestQuery, ManifestSnapshot, TenantScope,
 };
 
 /// Wire shape mirroring `#/components/schemas/ExtractorRecord`.
@@ -231,7 +231,10 @@ mod tests {
     fn wire_live_feed_event_serializes_kinds() {
         let cases = [
             (LiveFeedEventKind::ExtractorRefreshed, "extractor-refreshed"),
-            (LiveFeedEventKind::ManifestRowChanged, "manifest-row-changed"),
+            (
+                LiveFeedEventKind::ManifestRowChanged,
+                "manifest-row-changed",
+            ),
             (LiveFeedEventKind::DeadCodeDetected, "dead-code-detected"),
             (LiveFeedEventKind::LinkBroken, "link-broken"),
         ];

@@ -249,7 +249,8 @@ mod tests {
 
     #[test]
     fn shell_health_returns_count() {
-        let use_case = ShellHealthUseCase::new(populated_catalog(), "v0.1.0", Some("cell-a".into()));
+        let use_case =
+            ShellHealthUseCase::new(populated_catalog(), "v0.1.0", Some("cell-a".into()));
         let response = use_case.execute();
         assert_eq!(response.status, "healthy");
         assert_eq!(response.surface_count, 3);
