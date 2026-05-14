@@ -741,6 +741,44 @@
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "oya-ops-workspace-shell-application-manifest",
+      "artifact_path": "crates/oya-ops-workspace-shell-application/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Cargo manifest for ops Wave 1 workspace-shell application crate (std-only). Orchestration layer: use cases (ListLive/ListAll/Register/FlipState/Health) compose kernel SurfaceCatalogPort + adapter wire DTOs.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "oya-ops-docs-portal-application-manifest",
+      "artifact_path": "crates/oya-ops-docs-portal-application/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Cargo manifest for ops Wave 1 docs-portal application crate (std-only). Use cases: GetManifest, RefreshExtractor (composite: refresh + emit live-feed), RegisterExtractor, SubscribeLiveFeed.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
     }
   ]
 }

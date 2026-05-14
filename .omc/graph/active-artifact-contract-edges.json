@@ -22,6 +22,8 @@
     { "source": "cedar-fragments-registry", "target": "registry", "edge_type": "declares" },
     { "source": "oya-check-cedar-fragment-coverage-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-ops-workspace-shell-adapter-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-docs-portal-adapter-manifest", "target": "registry", "edge_type": "declares" }
+    { "source": "oya-ops-docs-portal-adapter-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-ops-workspace-shell-application-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-ops-docs-portal-application-manifest", "target": "registry", "edge_type": "declares" }
   ]
 }
