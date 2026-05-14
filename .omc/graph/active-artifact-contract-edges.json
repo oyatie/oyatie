@@ -35,6 +35,7 @@
     { "source": "oya-http-middleware-kernel-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-http-sse-domain-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-http-runtime-hyper-adapter-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "adr-0090-hyper-canonical-http-backbone", "target": "registry", "edge_type": "declares" }
+    { "source": "adr-0090-hyper-canonical-http-backbone", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-ops-workspace-shell-runtime-manifest", "target": "registry", "edge_type": "declares" }
   ]
 }

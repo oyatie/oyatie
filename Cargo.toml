@@ -386,6 +386,7 @@ members = [
   "crates/oya-ops-workspace-shell-adapter",
   "crates/oya-ops-workspace-shell-application",
   "crates/oya-ops-workspace-shell-rest",
+  "crates/oya-ops-workspace-shell-runtime",
   "crates/oya-ops-docs-portal-kernel",
   "crates/oya-ops-docs-portal-adapter",
   "crates/oya-ops-docs-portal-application",
