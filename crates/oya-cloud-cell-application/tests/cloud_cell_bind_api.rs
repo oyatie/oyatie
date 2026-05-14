@@ -1,14 +1,14 @@
-use oya_cloud_cell_app::{
-    bind_cloud_cell_from_api, CloudCellApiAuthorization, CloudCellApiBoundaryContext,
+use oya_cell_domain::CellRouter;
+use oya_cloud_cell_application::{
+    CLOUD_CELL_BIND_SURFACE, CloudCellApiAuthorization, CloudCellApiBoundaryContext,
     CloudCellApiError, CloudCellApiPrincipal, CloudCellBindApiRequest, CloudCellBindApiStatus,
-    CloudCellBindIdempotencyLedger, CloudCellBindRequest, CLOUD_CELL_BIND_SURFACE,
+    CloudCellBindIdempotencyLedger, CloudCellBindRequest, bind_cloud_cell_from_api,
 };
-use oya_cloud_region_kernel::{
+use oya_cloud_region_domain::{
     AzState, CellCapacity, CellUtilization, CloudAzCreate, CloudCellCreate, CloudCellState,
     CloudRegionCatalog, CloudRegionCreate, RegionState, TenantDensityClass,
 };
-use oya_platform_cell_kernel::CellRouter;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_residency_domain::ResidencyClass;
 
 #[test]
 fn openapi_runtime_binding_contracts_are_covered() {

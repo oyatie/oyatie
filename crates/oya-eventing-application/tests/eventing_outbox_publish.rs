@@ -1,12 +1,12 @@
-use oya_platform_eventing_app::{
-    publish_eventing_outbox_from_app, EventingOutboxEnvelopeContext, EventingOutboxPublishAppError,
-    EventingOutboxPublishAppRequest, EventingOutboxPublishAppStatus,
+use oya_eventing_application::{
+    EVENTING_OUTBOX_PUBLISH_ASYNCAPI_CONTRACT, EVENTING_OUTBOX_PUBLISH_PROTO_CONTRACT,
+    EVENTING_OUTBOX_PUBLISH_SCHEMA, EVENTING_OUTBOX_PUBLISH_SOURCE,
+    EVENTING_OUTBOX_PUBLISH_SURFACE, EVENTING_OUTBOX_PUBLISH_TOPIC, EventingOutboxEnvelopeContext,
+    EventingOutboxPublishAppError, EventingOutboxPublishAppRequest, EventingOutboxPublishAppStatus,
     EventingOutboxPublishAuthorization, EventingOutboxPublishIdempotencyLedger,
-    EventingOutboxPublishPayload, EVENTING_OUTBOX_PUBLISH_ASYNCAPI_CONTRACT,
-    EVENTING_OUTBOX_PUBLISH_PROTO_CONTRACT, EVENTING_OUTBOX_PUBLISH_SCHEMA,
-    EVENTING_OUTBOX_PUBLISH_SOURCE, EVENTING_OUTBOX_PUBLISH_SURFACE, EVENTING_OUTBOX_PUBLISH_TOPIC,
+    EventingOutboxPublishPayload, publish_eventing_outbox_from_app,
 };
-use oya_platform_eventing_kernel::Outbox;
+use oya_eventing_domain::Outbox;
 
 const EVENT_ID: &str = "evt_outbox_publish_001";
 const IDEMPOTENCY_KEY: &str = "idem_eventing_outbox_publish_001";

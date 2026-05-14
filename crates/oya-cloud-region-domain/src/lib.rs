@@ -7,11 +7,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_cell_kernel::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
-use oya_platform_data_boundary_kernel::{Classified, DataClass};
-use oya_platform_residency_kernel::{
-    infer_region_jurisdiction_label, residency_class_allows_home_region_label, RegionRef,
-    RegionRefCreate, ResidencyClass, ResidencyError,
+use oya_cell_domain::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
+use oya_data_boundary_kernel::{Classified, DataClass};
+use oya_residency_domain::{
+    RegionRef, RegionRefCreate, ResidencyClass, ResidencyError, infer_region_jurisdiction_label,
+    residency_class_allows_home_region_label,
 };
 
 const CLOUD_REGION_SCHEMA_VERSION: u32 = 1;
@@ -469,7 +469,7 @@ impl CloudRegionCatalog {
                     && cell.state.value == CloudCellState::Active
                     && request
                         .required_density
-                        .map_or(true, |density| density == cell.tenant_density.value)
+                        .is_none_or(|density| density == cell.tenant_density.value)
                     && cell.allows_residency(&request.residency_class)
                     && cell.has_route_capacity()
             })

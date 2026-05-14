@@ -2,8 +2,8 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_platform_eventing_adapter_file::{FileOutboxStore, FileOutboxStoreError};
-use oya_platform_eventing_kernel::Outbox;
+use oya_eventing_domain::Outbox;
+use oya_eventing_file_adapter::{FileOutboxStore, FileOutboxStoreError};
 
 #[test]
 fn file_outbox_store_replays_records_and_appends_only_new_suffix() {

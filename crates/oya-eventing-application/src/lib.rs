@@ -6,8 +6,8 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{parse_data_class_label, PrivacyDataClass};
-use oya_platform_eventing_kernel::{EventingError, Outbox, OutboxRecord};
+use oya_data_boundary_kernel::{PrivacyDataClass, parse_data_class_label};
+use oya_eventing_domain::{EventingError, Outbox, OutboxRecord};
 
 pub const EVENTING_OUTBOX_PUBLISH_SURFACE: &str = "eventing.outbox.publish";
 pub const EVENTING_OUTBOX_PUBLISH_TOPIC: &str = "oya.platform.eventing";

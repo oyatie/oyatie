@@ -2,10 +2,8 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_residency_kernel::{
-    residency_class_allows_home_region_label, RegionRef, ResidencyClass,
-};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_residency_domain::{RegionRef, ResidencyClass, residency_class_allows_home_region_label};
 
 const CELL_BINDING_SCHEMA_VERSION: u32 = 1;
 
@@ -139,7 +137,7 @@ fn internal_data_class() -> PrivacyDataClass {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_residency_kernel::{RegionJurisdiction, RegionRefCreate};
+    use oya_residency_domain::{RegionJurisdiction, RegionRefCreate};
 
     fn region(region_id: &str, jurisdiction: RegionJurisdiction) -> RegionRef {
         RegionRef::new(RegionRefCreate {

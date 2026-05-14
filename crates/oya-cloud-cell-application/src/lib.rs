@@ -6,11 +6,11 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_region_kernel::{
+use oya_cell_domain::{CellBinding, CellError, CellRouter, CellTier};
+use oya_cloud_region_domain::{
     CloudRegionCatalog, CloudRegionError, TenantCellRouteRequest, TenantDensityClass,
 };
-use oya_platform_cell_kernel::{CellBinding, CellError, CellRouter, CellTier};
-use oya_platform_residency_kernel::{parse_residency_class_label, ResidencyClass};
+use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
 
 pub const CLOUD_CELL_BIND_SURFACE: &str = "cloud.cell.bind";
 

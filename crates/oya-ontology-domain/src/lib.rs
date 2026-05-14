@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PropertyTier {

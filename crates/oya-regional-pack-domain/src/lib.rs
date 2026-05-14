@@ -1,7 +1,7 @@
 //! Regional pack kernel: canonical regulatory and residency pack metadata.
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass};
-use oya_platform_residency_kernel::{parse_residency_class_label, ResidencyClass};
+use oya_data_boundary_kernel::{Classified, DataClass};
+use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RegionalPack {
