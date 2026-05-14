@@ -16,6 +16,8 @@
     { "source": "microservices-registry", "target": "registry", "edge_type": "declares" },
     { "source": "bounded-contexts-registry", "target": "registry", "edge_type": "declares" },
     { "source": "oya-ops-workspace-shell-kernel-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-docs-portal-kernel-manifest", "target": "registry", "edge_type": "declares" }
+    { "source": "oya-ops-docs-portal-kernel-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "ops-workspace-shell-openapi-contract", "target": "schema", "edge_type": "declares" },
+    { "source": "ops-docs-openapi-contract", "target": "schema", "edge_type": "declares" }
   ]
 }
