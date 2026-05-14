@@ -4,15 +4,75 @@ members = [
   "crates/oya-residency-domain",
   "crates/oya-dsr-domain",
   "crates/oya-dsr-application",
+  "crates/oya-tenancy-kernel",
   "crates/oya-tenancy-domain",
+  "crates/oya-tenancy-application",
+  "crates/oya-tenancy-adapter",
   "crates/oya-tenancy-rest",
+  "crates/oya-tenancy-grpc",
+  "crates/oya-tenancy-app",
   "crates/oya-identity-domain",
   "crates/oya-identity-rest",
   "crates/oya-identity-application",
+  "crates/oya-identity-users-kernel",
+  "crates/oya-identity-users-domain",
+  "crates/oya-identity-users-application",
+  "crates/oya-identity-users-adapter",
+  "crates/oya-identity-sessions-kernel",
+  "crates/oya-identity-sessions-domain",
+  "crates/oya-identity-sessions-application",
+  "crates/oya-identity-sessions-adapter",
+  "crates/oya-identity-passkeys-kernel",
+  "crates/oya-identity-passkeys-domain",
+  "crates/oya-identity-passkeys-application",
+  "crates/oya-identity-passkeys-adapter",
+  "crates/oya-identity-mfa-kernel",
+  "crates/oya-identity-mfa-domain",
+  "crates/oya-identity-mfa-application",
+  "crates/oya-identity-mfa-adapter",
+  "crates/oya-identity-persons-kernel",
+  "crates/oya-identity-persons-domain",
+  "crates/oya-identity-persons-application",
+  "crates/oya-identity-persons-adapter",
+  "crates/oya-identity-organizations-kernel",
+  "crates/oya-identity-organizations-domain",
+  "crates/oya-identity-organizations-application",
+  "crates/oya-identity-organizations-adapter",
+  "crates/oya-identity-employees-kernel",
+  "crates/oya-identity-employees-domain",
+  "crates/oya-identity-employees-application",
+  "crates/oya-identity-employees-adapter",
+  "crates/oya-identity-employments-kernel",
+  "crates/oya-identity-employments-domain",
+  "crates/oya-identity-employments-application",
+  "crates/oya-identity-employments-adapter",
+  "crates/oya-identity-grpc",
+  "crates/oya-identity-worker",
+  "crates/oya-identity-app",
   "crates/oya-metering-domain",
   "crates/oya-metering-application",
   "crates/oya-cell-domain",
   "crates/oya-cloud-cell-application",
+  "crates/oya-cloud-tenancy-kernel",
+  "crates/oya-cloud-tenancy-domain",
+  "crates/oya-cloud-tenancy-application",
+  "crates/oya-cloud-tenancy-adapter",
+  "crates/oya-cloud-iam-kernel",
+  "crates/oya-cloud-iam-adapter",
+  "crates/oya-cloud-kms-kernel",
+  "crates/oya-cloud-kms-adapter",
+  "crates/oya-cloud-compute-kernel",
+  "crates/oya-cloud-compute-adapter",
+  "crates/oya-cloud-storage-kernel",
+  "crates/oya-cloud-storage-adapter",
+  "crates/oya-cloud-storage-sdk",
+  "crates/oya-cloud-network-kernel",
+  "crates/oya-cloud-network-adapter",
+  "crates/oya-cloud-billing-kernel",
+  "crates/oya-cloud-billing-adapter",
+  "crates/oya-cloud-cell-kernel",
+  "crates/oya-cloud-cell-adapter",
+  "crates/oya-cloud-app",
   "crates/oya-cloud-resource-domain",
   "crates/oya-cloud-region-domain",
   "crates/oya-cloud-region-rest",
@@ -45,20 +105,229 @@ members = [
   "crates/oya-cloud-observability-rest",
   "crates/oya-audit-chain-domain",
   "crates/oya-audit-chain-file-adapter",
+  "crates/oya-audit-chain-events-kernel",
+  "crates/oya-audit-chain-events-domain",
+  "crates/oya-audit-chain-events-application",
+  "crates/oya-audit-chain-events-adapter",
+  "crates/oya-audit-chain-segments-kernel",
+  "crates/oya-audit-chain-segments-domain",
+  "crates/oya-audit-chain-segments-application",
+  "crates/oya-audit-chain-segments-adapter",
+  "crates/oya-audit-chain-signing-kernel",
+  "crates/oya-audit-chain-signing-domain",
+  "crates/oya-audit-chain-signing-application",
+  "crates/oya-audit-chain-signing-adapter",
+  "crates/oya-audit-chain-worker",
+  "crates/oya-audit-chain-rest",
+  "crates/oya-audit-chain-app",
   "crates/oya-eventing-domain",
   "crates/oya-eventing-application",
   "crates/oya-eventing-file-adapter",
+  "crates/oya-eventing-outbox-kernel",
+  "crates/oya-eventing-outbox-domain",
+  "crates/oya-eventing-outbox-application",
+  "crates/oya-eventing-outbox-adapter",
+  "crates/oya-eventing-topics-kernel",
+  "crates/oya-eventing-topics-domain",
+  "crates/oya-eventing-topics-application",
+  "crates/oya-eventing-topics-adapter",
+  "crates/oya-eventing-subscriptions-kernel",
+  "crates/oya-eventing-subscriptions-domain",
+  "crates/oya-eventing-subscriptions-application",
+  "crates/oya-eventing-subscriptions-adapter",
+  "crates/oya-eventing-worker",
+  "crates/oya-eventing-rest",
+  "crates/oya-eventing-app",
   "crates/oya-ontology-domain",
   "crates/oya-ontology-rest",
+  "crates/oya-ontology-app",
+  "crates/oya-ontology-graphql",
+  "crates/oya-ontology-audit-chain-worker",
+  "crates/oya-ontology-audit-chain-adapter",
+  "crates/oya-ontology-audit-chain-application",
+  "crates/oya-ontology-audit-chain-domain",
+  "crates/oya-ontology-audit-chain-kernel",
+  "crates/oya-ontology-agent-gateway-worker",
+  "crates/oya-ontology-agent-gateway-adapter",
+  "crates/oya-ontology-agent-gateway-application",
+  "crates/oya-ontology-agent-gateway-domain",
+  "crates/oya-ontology-agent-gateway-kernel",
+  "crates/oya-ontology-action-worker",
+  "crates/oya-ontology-action-adapter",
+  "crates/oya-ontology-action-application",
+  "crates/oya-ontology-action-domain",
+  "crates/oya-ontology-action-kernel",
+  "crates/oya-ontology-function-worker",
+  "crates/oya-ontology-function-adapter",
+  "crates/oya-ontology-function-application",
+  "crates/oya-ontology-function-domain",
+  "crates/oya-ontology-function-kernel",
+  "crates/oya-ontology-link-worker",
+  "crates/oya-ontology-link-adapter",
+  "crates/oya-ontology-link-application",
+  "crates/oya-ontology-link-domain",
+  "crates/oya-ontology-link-kernel",
+  "crates/oya-ontology-entity-worker",
+  "crates/oya-ontology-entity-adapter",
+  "crates/oya-ontology-entity-application",
+  "crates/oya-ontology-entity-domain",
+  "crates/oya-ontology-entity-kernel",
+  "crates/oya-ontology-pillar-worker",
+  "crates/oya-ontology-pillar-adapter",
+  "crates/oya-ontology-pillar-application",
+  "crates/oya-ontology-pillar-domain",
+  "crates/oya-ontology-pillar-kernel",
   "crates/oya-observability-domain",
   "crates/oya-observability-tracing-adapter",
+  "crates/oya-observability-traces-kernel",
+  "crates/oya-observability-traces-domain",
+  "crates/oya-observability-traces-application",
+  "crates/oya-observability-traces-adapter",
+  "crates/oya-observability-metrics-kernel",
+  "crates/oya-observability-metrics-domain",
+  "crates/oya-observability-metrics-application",
+  "crates/oya-observability-metrics-adapter",
+  "crates/oya-observability-logs-kernel",
+  "crates/oya-observability-logs-domain",
+  "crates/oya-observability-logs-application",
+  "crates/oya-observability-logs-adapter",
+  "crates/oya-observability-worker",
+  "crates/oya-observability-rest",
+  "crates/oya-observability-app",
   "crates/oya-policy-cedar-domain",
   "crates/oya-policy-cedar-rest",
+  "crates/oya-policy-engine-kernel",
+  "crates/oya-policy-engine-domain",
+  "crates/oya-policy-engine-application",
+  "crates/oya-policy-engine-adapter",
+  "crates/oya-policy-engine-grpc",
+  "crates/oya-policy-engine-app",
+  "crates/oya-policy-rule-packs-kernel",
+  "crates/oya-policy-rule-packs-application",
+  "crates/oya-policy-rule-packs-adapter",
+  "crates/oya-data-boundary-engine-kernel",
+  "crates/oya-data-boundary-engine-domain",
+  "crates/oya-data-boundary-engine-application",
+  "crates/oya-data-boundary-engine-adapter",
+  "crates/oya-data-boundary-engine-grpc",
+  "crates/oya-data-boundary-engine-app",
+  "crates/oya-data-boundary-classification-kernel",
+  "crates/oya-data-boundary-classification-adapter",
+  "crates/oya-records-fhir-kernel",
+  "crates/oya-records-fhir-domain",
+  "crates/oya-records-fhir-application",
+  "crates/oya-records-fhir-adapter",
+  "crates/oya-records-fhir-rest",
+  "crates/oya-records-fhir-app",
+  "crates/oya-records-released-view-kernel",
+  "crates/oya-records-released-view-application",
+  "crates/oya-records-released-view-adapter",
+
+  "crates/oya-capability-registry-kernel",
+  "crates/oya-capability-registry-domain",
+  "crates/oya-capability-registry-application",
+  "crates/oya-capability-registry-adapter",
+  "crates/oya-capability-registry-rest",
+  "crates/oya-capability-registry-app",
+  "crates/oya-capability-registry-bindings-kernel",
+  "crates/oya-capability-registry-bindings-adapter",
   "crates/oya-regional-pack-domain",
   "crates/oya-regulatory-pack-rest",
   "crates/oya-secrets-domain",
+  "crates/oya-secrets-refs-kernel",
+  "crates/oya-secrets-refs-domain",
+  "crates/oya-secrets-refs-application",
+  "crates/oya-secrets-refs-adapter",
+  "crates/oya-secrets-rotation-kernel",
+  "crates/oya-secrets-rotation-domain",
+  "crates/oya-secrets-rotation-application",
+  "crates/oya-secrets-rotation-adapter",
+  "crates/oya-secrets-worker",
+  "crates/oya-secrets-rest",
+  "crates/oya-secrets-app",
+  "crates/oya-kms-keys-kernel",
+  "crates/oya-kms-keys-domain",
+  "crates/oya-kms-keys-application",
+  "crates/oya-kms-keys-adapter",
+  "crates/oya-kms-envelope-kernel",
+  "crates/oya-kms-envelope-domain",
+  "crates/oya-kms-envelope-application",
+  "crates/oya-kms-envelope-adapter",
+  "crates/oya-kms-signing-kernel",
+  "crates/oya-kms-signing-domain",
+  "crates/oya-kms-signing-application",
+  "crates/oya-kms-signing-adapter",
+  "crates/oya-kms-worker",
+  "crates/oya-kms-rest",
+  "crates/oya-kms-app",
+  "crates/oya-search-index-kernel",
+  "crates/oya-search-index-domain",
+  "crates/oya-search-index-application",
+  "crates/oya-search-index-adapter",
+  "crates/oya-search-query-kernel",
+  "crates/oya-search-query-domain",
+  "crates/oya-search-query-application",
+  "crates/oya-search-query-adapter",
+  "crates/oya-search-morphology-kernel",
+  "crates/oya-search-morphology-domain",
+  "crates/oya-search-morphology-application",
+  "crates/oya-search-morphology-adapter",
+  "crates/oya-search-worker",
+  "crates/oya-search-rest",
+  "crates/oya-search-app",
+  "crates/oya-vector-embeddings-kernel",
+  "crates/oya-vector-embeddings-domain",
+  "crates/oya-vector-embeddings-application",
+  "crates/oya-vector-embeddings-adapter",
+  "crates/oya-vector-similarity-kernel",
+  "crates/oya-vector-similarity-domain",
+  "crates/oya-vector-similarity-application",
+  "crates/oya-vector-similarity-adapter",
+  "crates/oya-vector-worker",
+  "crates/oya-vector-rest",
+  "crates/oya-vector-app",
+  "crates/oya-finance-library-kernel",
+  "crates/oya-finance-library-domain",
+  "crates/oya-workflow-engine-kernel",
+  "crates/oya-workflow-engine-domain",
+  "crates/oya-workflow-engine-application",
+  "crates/oya-workflow-engine-adapter",
+  "crates/oya-workflow-engine-worker",
+  "crates/oya-workflow-engine-grpc",
+  "crates/oya-workflow-engine-rest",
+  "crates/oya-workflow-engine-app",
+  "crates/oya-workflow-transitions-kernel",
+  "crates/oya-workflow-transitions-adapter",
+  "crates/oya-workflow-approvals-kernel",
+  "crates/oya-workflow-approvals-domain",
+  "crates/oya-workflow-approvals-application",
+  "crates/oya-workflow-approvals-adapter",
+  "crates/oya-workflow-sla-kernel",
+  "crates/oya-workflow-sla-application",
+  "crates/oya-workflow-sla-adapter",
+  "crates/oya-workflow-automations-kernel",
+  "crates/oya-workflow-automations-application",
+  "crates/oya-workflow-automations-adapter",
+  "crates/oya-workflow-triggers-kernel",
+  "crates/oya-workflow-triggers-application",
+  "crates/oya-workflow-triggers-adapter",
+  "crates/oya-workflow-integrations-kernel",
+  "crates/oya-workflow-integrations-application",
+  "crates/oya-workflow-integrations-adapter",
   "crates/oya-secrets-file-adapter",
   "crates/oya-foundry-api-semver-domain",
+  "crates/oya-application-product-enablement-kernel",
+  "crates/oya-application-product-enablement-application",
+  "crates/oya-application-product-enablement-adapter",
+  "crates/oya-application-product-enablement-rest",
+  "crates/oya-application-tenant-navigation-kernel",
+  "crates/oya-application-tenant-navigation-adapter",
+  "crates/oya-application-branding-kernel",
+  "crates/oya-application-branding-adapter",
+  "crates/oya-application-product-launchpad-kernel",
+  "crates/oya-application-product-launchpad-application",
+  "crates/oya-application-sso-hub-kernel",
+  "crates/oya-application-sso-hub-adapter",
   "crates/oya-application-app",
   "crates/oya-foundry-bypass-domain",
   "crates/oya-check-brand-residue",
@@ -67,7 +336,7 @@ members = [
   "crates/oya-check-cost-budget",
   "crates/oya-check-data-class",
   "crates/oya-check-doc-catalog",
-  "crates/oya-check-documentation",
+  "crates/oya-shared-documentation-check-cli",
   "crates/oya-check-documentation-system",
   "crates/oya-check-glossary-coverage",
   "crates/oya-check-glossary-vocabulary",
@@ -104,6 +373,7 @@ members = [
   "crates/oya-foundry-step-domain",
   "crates/oya-foundry-step-file-adapter",
   "crates/oya-check-authority-cohesion",
+  "crates/oya-check-active-artifact-contract",
   "crates/oya-check-adr-citation",
   "crates/oya-check-adr-index",
   "crates/oya-foundry-adapter-domain",
@@ -143,9 +413,9 @@ members = [
   "crates/oya-connect-trust-portal-domain",
   "crates/oya-dev-cli",
   "crates/oya-codeview-cli",
-  "tools/xtask-metadata-augment",
+  "crates/oya-foundry-metadata-augment-cli",
   "crates/oya-shared-architecture-check-cli",
-  "crates/oya-shared-bounded-contexts-check-cli",
+  "crates/oya-shared-bounded-context-check-cli",
   "crates/oya-shared-supply-chain-check-cli",
   "crates/oya-shared-semver-check-cli",
   "crates/oya-audit-chain-application",
@@ -156,7 +426,7 @@ resolver = "2"
 [workspace.package]
 edition = "2021"
 version = "0.1.0"
-rust-version = "1.78"
+rust-version = "1.95.0"
 
 [workspace.metadata.oya]
 # v4.1 BNF registry: oya-<microservice>[-<bc>]-<layer> (flat catalog; no shared|vertical binary)
@@ -176,7 +446,7 @@ owner = "council-connect"
 rationale = "Connect µservice (dual-context: Professional B2B + Personal B2C): mail, calendar, drive, messenger, meet, docs, sheets, slides, tasks."
 adr_cite = "ADR-0056"
 
-# M02 substrate µservices (registered when at least one workspace crate exists; see oya-check-documentation)
+# M02 substrate µservices (registered when at least one workspace crate exists; see oya-shared-documentation-check-cli)
 [workspace.metadata.oya.microservices.application]
 owner = "council-application"
 rationale = "Application B2B unified shell — tenants sign in, enable µservices à-la-carte (per ADR-0061)."
@@ -300,48 +570,56 @@ status = "planned"
 owner = "council-cloud"
 rationale = "Cloud-tenancy µservice — runtime tenant lifecycle, cell binding, region pinning. Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
-status = "planned"
+status = "active"
 
 [workspace.metadata.oya.microservices.cloud-iam]
 owner = "council-cloud"
 rationale = "Cloud-IAM µservice — runtime IAM (separate from substrate identity; for service-to-service auth). Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
-status = "planned"
+status = "active"
 
 [workspace.metadata.oya.microservices.cloud-kms]
 owner = "council-cloud"
 rationale = "Cloud-KMS µservice — runtime KMS API (envelope encryption surface; differs from substrate kms which provides per-cell HSM). Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
-status = "planned"
+status = "active"
 
 [workspace.metadata.oya.microservices.cloud-compute]
 owner = "council-cloud"
 rationale = "Cloud-compute µservice — VM / K8s / Functions / Capacity. Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
-status = "planned"
+status = "active"
 
 [workspace.metadata.oya.microservices.cloud-storage]
 owner = "council-cloud"
 rationale = "Cloud-storage µservice — Object/Block/File runtime API. Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
-status = "planned"
+status = "active"
 
 [workspace.metadata.oya.microservices.cloud-network]
 owner = "council-cloud"
 rationale = "Cloud-network µservice — VCN / LB / DNS runtime API. Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
-status = "planned"
+status = "active"
 
 [workspace.metadata.oya.microservices.cloud-billing]
 owner = "council-cloud"
 rationale = "Cloud-billing µservice — usage metering + tax + invoicing. Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
-status = "planned"
+status = "active"
 
 [workspace.metadata.oya.microservices.cloud-cell]
 owner = "council-cloud"
 rationale = "Cloud-cell µservice — per-cell isolation primitive (Bominal ADR-0009 inherited). Introducing phase: M02-P18-cloud-tenancy."
 adr_cite = "ADR-0056"
+status = "active"
+
+[workspace.metadata.oya.microservices.ops]
+owner = "council-foundry"
+rationale = "Ops µservice — hyperscaler operations console (`ops.oyatie.com`); 20 bounded contexts across 7 waves; Wave 1 = ops.docs (live-introspection docs portal) + ops.workspace (14-surface shell); inherits ADR-0067 perf authority (SSR p99 ≤500ms, SSE p99 ≤2s, 10k concurrent SSE). Introducing phase: M03-cloud-saas-search-workspace-preview/P04-saas-platform-preview (IP-X1-docs-portal-substrate-crates)."
+adr_cite = "ADR-0067"
+bounded_contexts = ["docs", "workspace"]   # Wave 1 only; Waves 2-7 add 18 more BCs per ralplan-ops-portal-2026-05-13.md §6(a)
+naming_scope_adr = "ADR-NNNN-microservice-ops"   # authored at M02-P19 IP-X1 (docs §8 follow-up #1)
 status = "planned"
 
 

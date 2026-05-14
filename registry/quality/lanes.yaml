@@ -8,7 +8,7 @@ lanes:
     purpose: authority-chain declarations in CONSTITUTION, AGENTS, and README stay identical
     source: CONSTITUTION.md
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate authority-cohesion
+    check_command: cargo run -p oya-dev-cli -- gate validate authority-cohesion
   - id: oya-foundry-fitness-claim-ceiling
     stage: foundation
     status: active
@@ -16,7 +16,7 @@ lanes:
     purpose: prevent unshipped stability, security, and supply-chain claims above foundation evidence
     source: ADR-0037 / registry/catalog
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate claim-ceiling
+    check_command: cargo run -p oya-dev-cli -- gate validate claim-ceiling
   - id: oya-foundry-fitness-codeowners-mirror
     stage: foundation
     status: active
@@ -24,7 +24,7 @@ lanes:
     purpose: RACI per-surface owner matches CODEOWNERS team ownership
     source: RACI-OWNERSHIP.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate codeowners-mirror
+    check_command: cargo run -p oya-dev-cli -- gate validate codeowners-mirror
   - id: oya-foundry-fitness-cohesion
     stage: foundation
     status: active
@@ -32,7 +32,7 @@ lanes:
     purpose: cross-axis contract review-class label
     source: ADR-0011
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate cohesion
+    check_command: cargo run -p oya-dev-cli -- gate validate cohesion
   - id: oya-foundry-fitness-constitution-cite-coverage
     stage: foundation
     status: active
@@ -40,7 +40,7 @@ lanes:
     purpose: tier-one docs cite constitutional authority at heading level
     source: CONSTITUTION.md
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate constitution-cite-coverage
+    check_command: cargo run -p oya-dev-cli -- gate validate constitution-cite-coverage
   - id: oya-foundry-fitness-data-class
     stage: foundation
     status: active
@@ -48,7 +48,7 @@ lanes:
     purpose: enforce ADR-0008 data-class annotation
     source: ADR-0008
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate data-class
+    check_command: cargo run -p oya-dev-cli -- gate validate data-class
   - id: oya-foundry-fitness-doc-catalog
     stage: foundation
     status: active
@@ -56,7 +56,7 @@ lanes:
     purpose: every consolidated doc has a DOC-CATALOG row
     source: DOC-CATALOG.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate doc-catalog
+    check_command: cargo run -p oya-dev-cli -- gate validate doc-catalog
   - id: oya-foundry-fitness-docs
     stage: foundation
     status: active
@@ -64,7 +64,7 @@ lanes:
     purpose: documentation-system pipeline registry and wiki quickref stay grounded
     source: DOCUMENTATION.md / registry/docs/pipeline.tsv
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system
+    check_command: cargo run -p oya-dev-cli -- gate validate documentation-system
   - id: oya-foundry-fitness-quality-lanes
     stage: foundation
     status: active
@@ -72,7 +72,7 @@ lanes:
     purpose: registry/quality/lanes.yaml and this CI-lanes doc mirror stay in sync
     source: standards/ci-lanes.md
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate quality-lanes
+    check_command: cargo run -p oya-dev-cli -- gate validate quality-lanes
   - id: oya-foundry-fitness-foundation-bypass
     stage: foundation
     status: active
@@ -80,7 +80,7 @@ lanes:
     purpose: foundation-bypass expiry monitor
     source: ADR-0040
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate foundation-bypass
+    check_command: cargo run -p oya-dev-cli -- gate validate foundation-bypass
   - id: oya-foundry-fitness-glossary-cross-doc-coverage
     stage: foundation
     status: active
@@ -88,7 +88,7 @@ lanes:
     purpose: every glossary term appears outside GLOSSARY when active
     source: GLOSSARY.md §11 / ADR-0018
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate glossary-cross-doc-coverage
+    check_command: cargo run -p oya-dev-cli -- gate validate glossary-cross-doc-coverage
   - id: oya-foundry-fitness-glossary-vocabulary
     stage: foundation
     status: active
@@ -96,7 +96,7 @@ lanes:
     purpose: retired-vocab hard-fail plus casing/acronym warning baseline ratchet
     source: GLOSSARY.md §11 / ADR-0018
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate glossary-vocabulary
+    check_command: cargo run -p oya-dev-cli -- gate validate glossary-vocabulary
   - id: oya-foundry-fitness-placeholder-debt
     stage: foundation
     status: active
@@ -104,7 +104,7 @@ lanes:
     purpose: fail-closed `TODO` / `TBD` registry so placeholder cleanup is tracked outside glossary acronym warnings
     source: AGENTS.md Done-Definition / MISTAKES doctrine
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate placeholder-debt
+    check_command: cargo run -p oya-dev-cli -- gate validate placeholder-debt
   - id: oya-foundry-fitness-license
     stage: foundation
     status: active
@@ -112,7 +112,7 @@ lanes:
     purpose: enforce ADR-0013 license posture
     source: ADR-0013
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate license-policy
+    check_command: cargo run -p oya-dev-cli -- gate validate license-policy
   - id: oya-foundry-fitness-plane-class
     stage: foundation
     status: active
@@ -120,7 +120,7 @@ lanes:
     purpose: catalog plane-class changes require explicit review
     source: ADR-0004
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate plane-class
+    check_command: cargo run -p oya-dev-cli -- gate validate plane-class
   - id: oya-foundry-fitness-raci-team-coverage
     stage: foundation
     status: active
@@ -128,7 +128,7 @@ lanes:
     purpose: every team charter has RACI and CODEOWNERS coverage
     source: RACI-OWNERSHIP.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate raci-team-coverage
+    check_command: cargo run -p oya-dev-cli -- gate validate raci-team-coverage
   - id: oya-foundry-fitness-readme-doc-coverage
     stage: foundation
     status: active
@@ -136,7 +136,7 @@ lanes:
     purpose: every root doc has catalog and README discoverability
     source: README.md / DOC-CATALOG.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate readme-doc-coverage
+    check_command: cargo run -p oya-dev-cli -- gate validate readme-doc-coverage
   - id: oya-foundry-fitness-runbook-index-resolves
     stage: foundation
     status: active
@@ -144,7 +144,7 @@ lanes:
     purpose: every RUNBOOKS-INDEX entry is a real file
     source: RUNBOOKS-INDEX.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate runbook-index-resolves
+    check_command: cargo run -p oya-dev-cli -- gate validate runbook-index-resolves
   - id: oya-foundry-fitness-slo-coverage
     stage: foundation
     status: active
@@ -152,7 +152,7 @@ lanes:
     purpose: every catalog record carries SLO coverage
     source: SLO-CATALOG.md
     runtime_budget_seconds: 180
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate slo-coverage
+    check_command: cargo run -p oya-dev-cli -- gate validate slo-coverage
   - id: oya-foundry-fitness-catalog-records
     stage: foundation
     status: active
@@ -160,7 +160,7 @@ lanes:
     purpose: every Cargo workspace member has a catalog record
     source: ADR-0015 / registry/catalog
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- catalog validate
+    check_command: cargo run -p oya-dev-cli -- catalog validate
   - id: oya-foundry-fitness-flat-crates
     stage: foundation
     status: active
@@ -184,7 +184,7 @@ lanes:
     purpose: only-new-pack-citations check
     source: ADR-LEGACY-REGRESSION-MAPPING
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate adr-citation
+    check_command: cargo run -p oya-dev-cli -- gate validate adr-citation
   - id: oya-foundry-fitness-brand-residue
     stage: foundation
     status: active
@@ -192,7 +192,7 @@ lanes:
     purpose: tautological brand transition check
     source: ADR-0017 / MFL-0011
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate brand-residue
+    check_command: cargo run -p oya-dev-cli -- gate validate brand-residue
   - id: cargo-fmt
     stage: per-pr
     status: active
@@ -240,7 +240,7 @@ lanes:
     purpose: "`oya demo` foundation smoke path exercises tenant, MCP, audit, run, step, outbox, and secret flows"
     source: PRD.md
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- demo
+    check_command: cargo run -p oya-dev-cli -- demo
   - id: machine-readable-json-parse
     stage: per-pr
     status: active
@@ -264,7 +264,7 @@ lanes:
     purpose: TS workspace typecheck
     source: TOOLCHAIN.md
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate typescript-workspace --lane typecheck
+    check_command: cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane typecheck
   - id: pnpm-test
     stage: per-pr
     status: active
@@ -272,7 +272,7 @@ lanes:
     purpose: TS unit + integration
     source: TOOLCHAIN.md
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate typescript-workspace --lane test
+    check_command: cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane test
   - id: oya-foundry-fitness-supply-chain
     stage: per-pr
     status: active
@@ -280,7 +280,7 @@ lanes:
     purpose: Trivy 4-layer + Cosign per ADR-0039
     source: ADR-0039
     runtime_budget_seconds: 900
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate supply-chain --require-adr0039-evidence
+    check_command: cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidence
   - id: oya-foundry-fitness-supply-chain-bootstrap
     stage: per-pr
     status: active
@@ -288,7 +288,7 @@ lanes:
     purpose: source-only supply-chain guard plus RustSec and deny wiring
     source: ADR-0039
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate supply-chain
+    check_command: cargo run -p oya-dev-cli -- gate validate supply-chain
   - id: traceability-validator
     stage: per-pr
     status: active
@@ -296,7 +296,7 @@ lanes:
     purpose: PR template carries the 5 mandatory traceability H2 sections
     source: STANDARDS-AND-TEMPLATES.md
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate pr-traceability
+    check_command: cargo run -p oya-dev-cli -- gate validate pr-traceability
   - id: oya-foundry-fitness-api-semver
     stage: per-pr
     status: active
@@ -304,7 +304,7 @@ lanes:
     purpose: public-API stability tier per ADR-0037
     source: ADR-0037
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate api-semver
+    check_command: cargo run -p oya-dev-cli -- gate validate api-semver
   - id: oya-foundry-fitness-cargo-prefix
     stage: per-pr
     status: active
@@ -312,7 +312,7 @@ lanes:
     purpose: every workspace member starts with `oya-`
     source: ADR-0017
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate cargo-prefix
+    check_command: cargo run -p oya-dev-cli -- gate validate cargo-prefix
   - id: oya-foundry-fitness-pre-push
     stage: per-pr
     status: active
@@ -320,7 +320,7 @@ lanes:
     purpose: repoctl pre-push command contract maps to the checked local verification bundle
     source: AGENTS.md D12
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push --verify-contract
+    check_command: cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract
   - id: foundry-eval-nightly
     stage: nightly
     status: active
@@ -328,7 +328,7 @@ lanes:
     purpose: per-capability eval set per ADR-0024
     source: ADR-0024
     runtime_budget_seconds: 3600
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate foundry-eval
+    check_command: cargo run -p oya-dev-cli -- gate validate foundry-eval
   - id: chain-replay-drill
     stage: nightly
     status: active
@@ -336,7 +336,7 @@ lanes:
     purpose: per-shard audit-chain integrity per ADR-0003
     source: ADR-0003
     runtime_budget_seconds: 3600
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate audit-chain-replay
+    check_command: cargo run -p oya-dev-cli -- gate validate audit-chain-replay
   - id: cross-tenant-access-fuzz
     stage: nightly
     status: active
@@ -344,7 +344,7 @@ lanes:
     purpose: per-cell isolation per ADR-0009
     source: ADR-0009
     runtime_budget_seconds: 3600
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate cross-tenant-access-fuzz
+    check_command: cargo run -p oya-dev-cli -- gate validate cross-tenant-access-fuzz
   - id: oya-foundry-fitness-vendor-contract-recency
     stage: nightly
     status: active
@@ -352,7 +352,7 @@ lanes:
     purpose: per VENDOR-PARTNER-LEDGER
     source: VENDOR-PARTNER-LEDGER.md
     runtime_budget_seconds: 900
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate vendor-contract-recency
+    check_command: cargo run -p oya-dev-cli -- gate validate vendor-contract-recency
   - id: oya-foundry-fitness-mobile-native
     stage: nightly
     status: active
@@ -360,7 +360,7 @@ lanes:
     purpose: per ADR-0051
     source: ADR-0051
     runtime_budget_seconds: 1800
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate mobile-native
+    check_command: cargo run -p oya-dev-cli -- gate validate mobile-native
   - id: release-supply-chain
     stage: per-release
     status: active
@@ -368,7 +368,7 @@ lanes:
     purpose: Cosign keyless + Rekor + SBOM per ADR-0039
     source: ADR-0039
     runtime_budget_seconds: 3600
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate release-supply-chain --phase pre-release
+    check_command: cargo run -p oya-dev-cli -- gate validate release-supply-chain --phase pre-release
   - id: release-evidence-pack
     stage: per-release
     status: active
@@ -376,7 +376,7 @@ lanes:
     purpose: per-regulator evidence regen per COMPLIANCE-MATRIX
     source: COMPLIANCE-MATRIX.md
     runtime_budget_seconds: 3600
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate release-evidence-pack
+    check_command: cargo run -p oya-dev-cli -- gate validate release-evidence-pack
   - id: release-runbook-freshness
     stage: per-release
     status: active
@@ -384,7 +384,7 @@ lanes:
     purpose: freshness SLA per RUNBOOKS-INDEX §3
     source: RUNBOOKS-INDEX.md
     runtime_budget_seconds: 900
-    check_command: cargo run -p oya-tooling-cli-dev-runtime -- gate validate runbook-freshness
+    check_command: cargo run -p oya-dev-cli -- gate validate runbook-freshness
   # LEAN-A1..A4: flipped from report-only to BLOCKER at M01-P05 (2026-05-13)
   - id: lean-a1-architecture
     stage: per-pr
@@ -394,7 +394,7 @@ lanes:
     purpose: layer-correctness — no dep-direction violations per ADR-0056 §2.2
     source: ADR-0056
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-shared-architecture-check-cli -- check --workspace
+    check_command: cargo run -p oya-dev-cli -- check architecture
   - id: lean-a2-bounded-contexts
     stage: per-pr
     status: active
@@ -403,7 +403,7 @@ lanes:
     purpose: microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override)
     source: ADR-0056
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-shared-bounded-contexts-check-cli -- check --workspace
+    check_command: cargo run -p oya-dev-cli -- check bounded-context
   - id: lean-a3-supply-chain
     stage: per-pr
     status: active
@@ -412,7 +412,7 @@ lanes:
     purpose: supply-chain integrity — Trivy + RustSec + deny per ADR-0039
     source: ADR-0039
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-shared-supply-chain-check-cli -- check --workspace
+    check_command: cargo run -p oya-dev-cli -- check supply-chain
   - id: lean-a4-semver
     stage: per-pr
     status: active
@@ -421,59 +421,65 @@ lanes:
     purpose: API semver stability tier per ADR-0037
     source: ADR-0037
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-shared-semver-check-cli -- check --workspace
+    check_command: cargo run -p oya-dev-cli -- check semver
   - id: lean-a5-documentation
     stage: per-pr
-    status: active     # crate oya-check-documentation operational at HEAD; flips to BLOCKER at M02-P22
+    # crate oya-shared-documentation-check-cli is report-only until M02-P22.
+    status: active
     severity: report-only
     owner_team: council-architecture
     purpose: documentation suite coverage — every µservice has full canonical + per-pack suite per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22
     source: ADR-0063
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-check-documentation -- --workspace --report-only
+    check_command: cargo run -p oya-dev-cli -- check documentation
   - id: lean-a10-regression
     stage: per-pr
-    status: planned     # crate oya-check-regression authored in M02-P21 IP-005; lane BLOCKER day 1 once operational
+    # crate oya-check-regression is planned in M02-P21 IP-005.
+    status: planned
     severity: BLOCKER
     owner_team: council-architecture
     purpose: catch attempted silent regressions of public contracts (manifest.json schema bump without ADR; Cedar policy widening; Protobuf field reuse; fitness lane severity downgrade; µservice removal without retirement ADR; doc frontmatter schema downgrade; event topic schema regression); per feedback_no_silent_regression.md (Linus-style)
     source: ADR-0067 §5.5
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-check-regression -- --workspace --blocker   # planned (M02-P21 scope; crate not yet a workspace member)
   # New quality lanes (report-only; flip to BLOCKER in M02)
   - id: quality-statelessness
     stage: per-pr
-    status: active
+    status: planned
     severity: report-only
     owner_team: council-architecture
     purpose: no module-level mutable state in application/worker/presentation layers per ADR-0062
     source: ADR-0062
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-check-statelessness -- check --workspace
   - id: quality-shardability
     stage: per-pr
-    status: active
+    status: planned
     severity: report-only
     owner_team: council-architecture
     purpose: all DB designs declare tenant_id partition key + RLS per ADR-0062
     source: ADR-0062
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-check-shardability -- check --workspace
   - id: quality-perf-budget
     stage: per-pr
-    status: active
+    status: planned
     severity: report-only
     owner_team: council-architecture
     purpose: impl plans include load-test results meeting declared perf targets per ADR-0062
     source: ADR-0062
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-check-perf-budget -- check --workspace
   - id: quality-benchmark
     stage: per-pr
-    status: active
+    status: planned
     severity: report-only
     owner_team: council-architecture
     purpose: PRDs include competitive-benchmark section before L4→L5 per ADR-0062
     source: ADR-0062
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-check-benchmark -- check --workspace
+  - id: lean-a-active-artifact-contract
+    stage: per-pr
+    status: planned
+    severity: blocker
+    owner_team: council-architecture
+    purpose: every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract (per ADR-0069); blocks PRs with unregistered artifacts, duplicate ids, operational-without-evidence, planned-without-prerequisite, blocked-without-foundation-prerequisite, or HEAD-untracked artifact_path
+    source: ADR-0069
+    runtime_budget_seconds: 60
+    check_command: cargo run -p oya-dev-cli -- gate validate active-artifact-contract
