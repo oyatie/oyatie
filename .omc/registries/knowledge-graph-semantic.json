@@ -1,13 +1,19 @@
 {
   "_schema_ref": ".omc/specs/knowledge-graph-schema.json#v1.0.0",
-  "_registry_id": "REG-KNOWLEDGE-GRAPH-CATALOG",
+  "_artifact_id": "knowledge-graph-semantic",
+  "_layer": "semantic",
   "_meta": {
     "doc_class": "Registry",
-    "purpose": "First-class catalog data for the knowledge graph: node-type definitions, edge-type definitions, graph-level invariants, and DRY query examples. Lifted out of .omc/specs/knowledge-graph-schema.json _canonical_* custom keys per architect r17 fix #3 (custom keys are invisible to generic JSON Schema validators).",
+    "purpose": "SEMANTIC layer (Palantir Foundry 3-layer model): static structure of the Oyatie knowledge graph. Type definitions (Object Types), link types (relationship definitions), invariants (semantic rules), and read-side query templates. WHAT THINGS ARE.",
     "owner_team": "council-architecture + axis-foundry",
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
-    "linus_critique_anchor": "architect r17 finding #3 \u2014 split into schema + first-class catalog data"
+    "supersedes_artifact": ".omc/registries/knowledge-graph-catalog.json (unified; now split into 3 Palantir layers per user directive 'separate ontology into semantic, kinetic, dynamic layers')",
+    "sibling_layers": [
+      ".omc/registries/knowledge-graph-kinetic.json (action types + workflows)",
+      ".omc/registries/knowledge-graph-dynamic.json (live state + telemetry pointers)"
+    ],
+    "palantir_analog": "Object Types + Link Types + Functions (read-side) in Palantir Foundry Ontology"
   },
   "node_types": {
     "Artifact": {
@@ -660,7 +666,7 @@
       "remediation_hint": "Specify what evidence is required."
     }
   ],
-  "dry_query_examples": [
+  "read_side_query_examples": [
     {
       "name": "find_duplicate_block_definitions",
       "description": "Returns Block pairs with identical canonical_path or identical structural-hash. Surfaces DRY violations.",
