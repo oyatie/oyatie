@@ -8,11 +8,11 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_billing_kernel::Money;
-use oya_cloud_region_kernel::{CellId, RegionCode};
-use oya_cloud_resource_kernel::InstanceFlavor;
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_metering_kernel::{
+use oya_cloud_billing_domain::Money;
+use oya_cloud_region_domain::{CellId, RegionCode};
+use oya_cloud_resource_domain::InstanceFlavor;
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_metering_domain::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
 };
 
@@ -340,7 +340,7 @@ pub struct CloudCapacityCatalog {
 
 pub trait CapacityRepo {
     fn register_sku(&mut self, input: CapacitySkuCreate)
-        -> Result<CapacitySku, CloudCapacityError>;
+    -> Result<CapacitySku, CloudCapacityError>;
     fn purchase_reservation(
         &mut self,
         cell_capacity: CellCapacityEnvelope,
@@ -829,7 +829,7 @@ fn validate_units_match_sku_shape(
 }
 
 fn required_dimension_unit_count(requested: u32, sku_unit: u32) -> Result<u32, CloudCapacityError> {
-    if requested == 0 || sku_unit == 0 || requested % sku_unit != 0 {
+    if requested == 0 || sku_unit == 0 || !requested.is_multiple_of(sku_unit) {
         return Err(CloudCapacityError::InvalidSkuUnitShape);
     }
     Ok(requested / sku_unit)
@@ -1087,7 +1087,7 @@ fn financial<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_metering_kernel::{MeterUnit, MeterUnitKind};
+    use oya_metering_domain::{MeterUnit, MeterUnitKind};
 
     fn units(vcpu: u32, memory_gb: u32) -> CapacityUnits {
         CapacityUnits {

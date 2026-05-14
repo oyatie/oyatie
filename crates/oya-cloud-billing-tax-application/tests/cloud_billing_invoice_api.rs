@@ -1,12 +1,12 @@
-use oya_cloud_billing_kernel::{CloudBillingError, CloudBillingLedger};
-use oya_cloud_billing_tax_app::{
-    generate_cloud_billing_invoice_from_api, CloudBillingAccountSnapshotRequest,
+use oya_cloud_billing_domain::{CloudBillingError, CloudBillingLedger};
+use oya_cloud_billing_tax_application::{
+    CLOUD_BILLING_INVOICE_GENERATE_SURFACE, CloudBillingAccountSnapshotRequest,
     CloudBillingInvoiceGenerateApiRequest, CloudBillingInvoiceGenerateApiStatus,
     CloudBillingInvoiceGenerateIdempotencyLedger, CloudBillingInvoiceGenerateRequest,
     CloudBillingInvoiceLineItemCreateRequest, CloudBillingMoneyRequest, CloudBillingPeriodRequest,
     CloudBillingTaxApiAuthorization, CloudBillingTaxApiBoundaryContext, CloudBillingTaxApiError,
     CloudBillingTaxApiPrincipal, CloudBillingTaxMeterUnitRequest,
-    CLOUD_BILLING_INVOICE_GENERATE_SURFACE,
+    generate_cloud_billing_invoice_from_api,
 };
 
 const INVOICE_ID: &str = "inv_kr_202605_001";

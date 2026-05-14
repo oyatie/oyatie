@@ -6,10 +6,10 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_region_kernel::RegionCode;
-use oya_cloud_resource_kernel::ResourceId;
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_metering_kernel::{
+use oya_cloud_region_domain::RegionCode;
+use oya_cloud_resource_domain::ResourceId;
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_metering_domain::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
 };
 
@@ -788,11 +788,13 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_metering_kernel::{MeterUnit, MeterUnitKind};
+    use oya_metering_domain::{MeterUnit, MeterUnitKind};
 
     fn units() -> Vec<MeterUnit> {
-        vec![MeterUnit::new(MeterUnitKind::ResourceSecond, 3_600_000_000)
-            .expect("unit fixture is valid")]
+        vec![
+            MeterUnit::new(MeterUnitKind::ResourceSecond, 3_600_000_000)
+                .expect("unit fixture is valid"),
+        ]
     }
 
     fn account_create() -> BillingAccountCreate {

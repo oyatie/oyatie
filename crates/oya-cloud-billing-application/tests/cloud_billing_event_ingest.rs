@@ -1,16 +1,16 @@
-use oya_cloud_billing_app::{
-    ingest_cloud_billing_event_from_app, CloudBillingEventEnvelopeContext,
-    CloudBillingEventIngestAppError, CloudBillingEventIngestAppRequest,
-    CloudBillingEventIngestAppStatus, CloudBillingEventIngestAuthorization,
-    CloudBillingEventIngestIdempotencyLedger, CloudBillingEventIngestPayload,
-    CloudBillingMeterUnitRequest, CLOUD_BILLING_EVENT_ASYNCAPI_CONTRACT,
-    CLOUD_BILLING_EVENT_INGEST_SCHEMA, CLOUD_BILLING_EVENT_INGEST_SOURCE,
-    CLOUD_BILLING_EVENT_INGEST_SURFACE, CLOUD_BILLING_EVENT_PROTO_CONTRACT,
-    CLOUD_BILLING_EVENT_TOPIC,
+use oya_cloud_billing_application::{
+    CLOUD_BILLING_EVENT_ASYNCAPI_CONTRACT, CLOUD_BILLING_EVENT_INGEST_SCHEMA,
+    CLOUD_BILLING_EVENT_INGEST_SOURCE, CLOUD_BILLING_EVENT_INGEST_SURFACE,
+    CLOUD_BILLING_EVENT_PROTO_CONTRACT, CLOUD_BILLING_EVENT_TOPIC,
+    CloudBillingEventEnvelopeContext, CloudBillingEventIngestAppError,
+    CloudBillingEventIngestAppRequest, CloudBillingEventIngestAppStatus,
+    CloudBillingEventIngestAuthorization, CloudBillingEventIngestIdempotencyLedger,
+    CloudBillingEventIngestPayload, CloudBillingMeterUnitRequest,
+    ingest_cloud_billing_event_from_app,
 };
-use oya_cloud_billing_kernel::CloudBillingLedger;
-use oya_platform_eventing_kernel::Outbox;
-use oya_platform_metering_kernel::Meter;
+use oya_cloud_billing_domain::CloudBillingLedger;
+use oya_eventing_domain::Outbox;
+use oya_metering_domain::Meter;
 
 const EVENT_ID: &str = "cbill_ten_kr_resource_created_001";
 const RESOURCE_ID: &str = "oya:cloud:kr-seoul:ten_kr:instance:api-001";

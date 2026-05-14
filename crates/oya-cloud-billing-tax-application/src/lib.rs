@@ -6,13 +6,13 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_billing_kernel::{
+use oya_cloud_billing_domain::{
     BillingAccount, BillingAccountCreate, BillingAccountState, BillingPeriod, CloudBillingError,
     CloudBillingLedger, Invoice, InvoiceGenerate, InvoiceLineItemCreate, InvoiceState, Money,
     TaxInvoiceFormat,
 };
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_platform_metering_kernel::{MeterUnit, MeterUnitKind, MeteringError};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use oya_metering_domain::{MeterUnit, MeterUnitKind, MeteringError};
 
 pub const CLOUD_BILLING_INVOICE_GENERATE_SURFACE: &str = "cloud.billing.invoice.generate";
 
