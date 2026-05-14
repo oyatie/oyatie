@@ -988,6 +988,25 @@
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "oya-ops-workspace-shell-runtime-manifest",
+      "artifact_path": "crates/oya-ops-workspace-shell-runtime/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Layer 6 composition root for the ops/workspace BC. Hyper binary `oya-ops-workspace-shell` listens on 127.0.0.1:OYATIE_OPS_WORKSPACE_PORT (default 8080). Wires kernel \u2192 application \u2192 rest \u2192 router-kernel \u2192 middleware-kernel \u2192 runtime-hyper-adapter into a single tokio::main. Per ADR-0090.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
     }
   ]
 }
