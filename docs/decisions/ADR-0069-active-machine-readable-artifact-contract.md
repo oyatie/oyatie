@@ -43,7 +43,8 @@ Adopt the **active machine-readable artifact contract** v3.0.0 with three load-b
 | Component | Path | Role |
 |---|---|---|
 | Contract schema | `.omc/specs/active-machine-readable-artifact-contract.json` | Defines the 9 capabilities and their required fields. Applies as registry-row shape. |
-| Knowledge-graph schema | `.omc/specs/knowledge-graph-schema.json` | Defines 22 node types + 16 edge types + 14 graph-level invariants. Registries contribute nodes/edges. |
+| Knowledge-graph schema | `.omc/specs/knowledge-graph-schema.json` | Pure meta-schema (post-r17 #3 split). |
+| Knowledge-graph catalog | `.omc/registries/knowledge-graph-catalog.json` | First-class catalog: 24 node types + 18 edge types + 14 graph-level invariants + 5 DRY query examples. |
 | Capability registry | `.omc/registries/artifact-capabilities-registry.json` | Control plane: one row per machine-readable artifact, listing its 9-capability statuses + anchors. |
 | Building-blocks registry | `.omc/registries/reusable-building-blocks-registry.json` | DRY enforcement: one row per reusable block, with canonical_path + consumers + version + deprecation. |
 | Validator crate | `crates/oya-check-active-artifact-contract` | Pure-Rust kernel (std-only) that loads the capability registry, resolves HEAD-tracking, detects duplicate IDs, detects operational-without-evidence. Exposed via `oya check active-artifact-contract` once integrated with `oya-dev-cli`. |
@@ -88,12 +89,12 @@ Per architect r17 review (`.omc/audits/consensus/2026-05-13/architect-r17-torval
 - #9 (HG-RELIABILITY over-claim): inline downgrade to `documentation` evidence class.
 - #10 (evidence cites `/tmp` paths): 12 consensus outputs archived under `.omc/audits/consensus/2026-05-13/`; attestation updated.
 
-### Linus-style findings deferred to follow-up
+### Linus-style findings closed in follow-up commit `b0798b0` (per user "don't defer anything" 2026-05-13)
 
-- #3 (graph catalog hidden under `_canonical_*` keys): split `knowledge-graph-schema.json` into schema + first-class catalog data; tracked.
-- #6 (DRY counts contradictory — partial fix): field renamed; resolution by validator deferred.
-- #7 (consumer refs mix prose + paths): split into `consumer_refs` + `consumer_selectors`; 14-row surgery deferred.
-- #8 (9-capability contract too heavy to author manually): `artifact_profile: schema|registry|template|plan-attestation` defaults system; deferred.
+- #3 (graph catalog hidden under `_canonical_*` keys): CLOSED — `.omc/specs/knowledge-graph-schema.json` reduced to pure meta-schema (199 lines); `.omc/registries/knowledge-graph-catalog.json` NEW with 24 node types + 18 edge types + 14 invariants + 5 DRY queries as first-class catalog data.
+- #6 (DRY counts contradictory): CLOSED inline — field renamed to `consumer_count_resolved_today_auto_computed` (auto-computed by validator); old name retired; the resolved-vs-listed split is documented in `_known_data_quality_gaps_per_architect_r17`.
+- #7 (consumer refs mix prose + paths): CLOSED — all 15 block rows split into `consumer_refs` (resolvable paths) + `consumer_selectors` (predicate strings); `consumer_count_listed` auto-computed per row.
+- #8 (9-capability contract too heavy to author manually): CLOSED — `.omc/specs/artifact-profile-defaults.json` NEW with 7 profiles (schema / registry / template / plan-attestation / ledger / claim-matrix / evidence-bundle); 10 capability-registry rows collapsed to `artifact_profile` + sparse `capability_overrides`; validator gains `ArtifactProfile` enum + 3 new tests (12 total pass).
 
 ---
 
@@ -123,7 +124,7 @@ JUSTIFICATION:
 
 ### Negative
 
-- 9-capability rows are heavy to author manually (architect r17 finding #8). Mitigation: `artifact_profile` defaults system (deferred).
+- 9-capability rows are heavy to author manually (architect r17 finding #8). Mitigation landed in commit `b0798b0`: `artifact_profile` defaults system at `.omc/specs/artifact-profile-defaults.json` with 7 profiles; per-row authoring reduced to `artifact_profile` + sparse `capability_overrides`.
 - Initial implementation is plan-stage only: the validator crate compiles but is not yet integrated with `oya-dev-cli`, the lane is `planned` not `active`, and the foundation prerequisites (cosign, trivy, audit-chain runtime) block some capability promotions to `operational`.
 - Knowledge-graph storage is monolithic registries today; a graph-storage adapter (Neo4j / Memgraph / Postgres recursive CTE) is needed before the design scales past ~10k artifacts.
 - Migration grace period (30 days) means most existing artifacts will not conform on day 1.
