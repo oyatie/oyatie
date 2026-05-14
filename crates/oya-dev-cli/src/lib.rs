@@ -2,28 +2,31 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_foundry_adr_citation_kernel::{validate_adr_citations, AdrCitationDocument};
-use oya_foundry_api_semver_kernel::validate_api_semver;
-use oya_foundry_brand_residue_kernel::{validate_brand_residue, BrandResidueDocument};
-use oya_foundry_cargo_prefix_kernel::{validate_cargo_prefix, CargoPrefixMember};
-use oya_foundry_glossary_vocabulary_kernel::{
+use oya_check_adr_citation::{validate_adr_citations, AdrCitationDocument};
+use oya_check_brand_residue::{validate_brand_residue, BrandResidueDocument};
+use oya_check_glossary_vocabulary::{
     validate_glossary_vocabulary_hygiene_with_baseline_and_ignored_words,
     validate_glossary_vocabulary_hygiene_with_ignored_words, GlossaryVocabularyWarning,
     GlossaryVocabularyWarningKind, GlossaryVocabularyWarningSource, IgnoredUppercaseWord,
     VocabularyDocument,
 };
-use oya_foundry_license_policy_kernel::LicensePolicy;
-use oya_foundry_mobile_native_kernel::{
+use oya_check_license_policy::LicensePolicy;
+use oya_check_mobile_native::{
     validate_mobile_native, MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
     MobileNativeProductRecord,
 };
-use oya_foundry_vendor_contract_recency_kernel::{
+use oya_check_vendor_recency::{
     validate_vendor_contract_recency, VendorContractRecencyPolicy, VendorContractRecord,
 };
+use oya_foundry_api_semver_domain::validate_api_semver;
+use oya_foundry_cargo_prefix_domain::{validate_cargo_prefix, CargoPrefixMember};
 
+mod active_artifact_contract_gate;
 mod api_contract_registry;
+mod architecture_plane_gates;
 mod catalog_contract_gates;
 mod catalog_registry;
+mod codeview_read_surface_gates;
 mod command_output;
 mod command_process;
 mod commands;
@@ -51,11 +54,18 @@ mod workspace_manifest;
 mod yaml_scan;
 
 pub(crate) use api_contract_registry::{is_api_contract_metadata_path, read_api_contract_records};
+pub(crate) use architecture_plane_gates::{
+    parse_planes_validate_args, parse_wave_integration_validate_args, validate_planes_gate,
+    validate_wave_integration_gate,
+};
 pub(crate) use catalog_contract_gates::{
     parse_cohesion_validate_args, parse_slo_coverage_validate_args, validate_cohesion_gate,
     validate_slo_coverage_gate,
 };
 pub(crate) use catalog_registry::read_catalog_records;
+pub(crate) use codeview_read_surface_gates::{
+    parse_codeview_read_surface_validate_args, validate_codeview_read_surface_gate,
+};
 pub(crate) use cross_axis_contracts::read_cross_axis_contracts;
 pub(crate) use cross_tenant_access_gates::{
     parse_cross_tenant_access_fuzz_validate_args, validate_cross_tenant_access_fuzz_gate,
@@ -68,6 +78,9 @@ pub(crate) use documentation_gates::{
     parse_doc_catalog_validate_args, parse_documentation_system_validate_args,
     parse_readme_doc_coverage_validate_args, validate_doc_catalog_gate,
     validate_documentation_system_gate, validate_readme_doc_coverage_gate,
+};
+pub(crate) use active_artifact_contract_gate::{
+    parse_active_artifact_contract_validate_args, validate_active_artifact_contract_gate,
 };
 pub(crate) use foundation_audit_gates::{
     parse_audit_chain_replay_validate_args, parse_foundation_bypass_validate_args,
@@ -142,6 +155,7 @@ pub fn run_cli_from_env() -> ExitCode {
     let mut args = args.into_iter();
     match args.next().as_deref() {
         Some("demo") => commands::demo::run(args.collect(), &usage()),
+        Some("check") => commands::check::run(args.collect(), &usage()),
         Some("dev") => commands::dev::run(args.collect(), &usage()),
         Some("doc") => commands::doc::run(args.collect(), &usage()),
         Some("repoctl") => commands::repoctl::run(args.collect(), &usage()),
@@ -155,14 +169,14 @@ pub fn run_cli_from_env() -> ExitCode {
 }
 
 pub(crate) fn usage() -> String {
-    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya dev check [--check-script <scripts/check.sh>] [--format <text|json>]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       repoctl pre-push [--check-script <scripts/check.sh>] [--format <text|json>] [--verify-contract]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
+    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya dev check [--check-script <scripts/check.sh>] [--format <text|json>]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <product-control/capabilities>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       repoctl pre-push [--check-script <scripts/check.sh>] [--format <text|json>] [--verify-contract]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
         + "\n       oya gate validate foundation-bypass [--ledger <registry/foundation-bypasses>] [--now-epoch-days <days>]"
         + "\n       oya gate validate audit-chain-replay [--shards-dir <registry/audit-chain/shards>]"
         + "\n       oya gate validate foundry-capability-schema [--capabilities-dir <product-control/capabilities>]"
         + "\n       oya gate validate foundry-eval [--capabilities-dir <product-control/capabilities>]"
         + "\n       oya gate validate cross-tenant-access-fuzz"
-        + "\n       oya gate validate adr-citation [--docs-dir <docs>] [--decisions-dir <docs/decisions>]"
+        + "\n       oya gate validate adr-citation [--docs-dir <docs>] [--decisions-dir <docs/decisions>] [--inheritance-registry <registry/adr/inherited-bominal-adrs.yaml>]"
         + "\n       oya gate validate brand-residue [--docs-dir <docs>]"
         + "\n       oya gate validate api-semver [--contracts-dir <contracts>]"
         + "\n       oya gate validate supply-chain [--registry <registry/catalog>] [--deny <deny.toml>] [--check-script <scripts/check.sh>] [--adr0039-script <scripts/supply-chain-adr0039.sh>] [--workflows-dir <.github/workflows>] [--release-images <registry/release/images.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--admission-policy <infra/kyverno/policies/require-signed-images.yaml>] [--require-adr0039-evidence]"
@@ -173,6 +187,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate authority-cohesion [--docs-dir <docs>]"
         + "\n       oya gate validate cargo-prefix [--workspace <Cargo.toml>] [--prefix <oya->]"
         + "\n       oya gate validate claim-ceiling [--registry <registry/catalog>]"
+        + "\n       oya gate validate codeview-read-surface [--spec <.omc/specs/codeview-read-surface.json>]"
         + "\n       oya gate validate cohesion [--workspace <Cargo.toml>] [--registry <registry/catalog>] [--contracts <docs/machine-readable/contracts.json>]"
         + "\n       oya gate validate codeowners-mirror [--codeowners <.github/CODEOWNERS>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate constitution-cite-coverage [--docs-dir <docs>]"
@@ -185,6 +200,8 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-contract-recency [--ledger <docs/VENDOR-PARTNER-LEDGER.md>] [--today <YYYY-MM-DD>] [--renewal-window-days <90>]"
+        + "\n       oya gate validate planes --all [--repo-root <.>]"
+        + "\n       oya gate validate wave-integration --milestone <M02> [--manifest <.omc/plans/M01-M03-parallelization-manifest.md>] [--phases-dir <.omc/plans/milestones/M02-substrate/phases>]"
         + "\n       oya gate validate mobile-native [--manifest <registry/mobile-native/products.tsv>] [--repo-root <.>]"
         + "\n       oya gate validate plane-class [--registry <registry/catalog>] [--baseline <registry/catalog>] [--reviewed-change <crate-id>]"
         + "\n       oya gate validate raci-team-coverage [--teams-dir <docs/teams>] [--raci <docs/RACI-OWNERSHIP.md>] [--codeowners <.github/CODEOWNERS>]"
@@ -560,12 +577,14 @@ struct LicensePolicyValidateArgs {
 struct AdrCitationValidateArgs {
     docs_dir: PathBuf,
     decisions_dir: PathBuf,
+    inheritance_registry: PathBuf,
 }
 
 fn parse_adr_citation_validate_args(args: Vec<String>) -> Result<AdrCitationValidateArgs, String> {
     let mut parsed = AdrCitationValidateArgs {
         docs_dir: PathBuf::from("docs"),
         decisions_dir: PathBuf::from("docs/decisions"),
+        inheritance_registry: PathBuf::from("registry/adr/inherited-bominal-adrs.yaml"),
     };
     let mut iter = args.into_iter();
     while let Some(flag) = iter.next() {
@@ -575,6 +594,7 @@ fn parse_adr_citation_validate_args(args: Vec<String>) -> Result<AdrCitationVali
         match flag.as_str() {
             "--docs-dir" => parsed.docs_dir = PathBuf::from(path),
             "--decisions-dir" => parsed.decisions_dir = PathBuf::from(path),
+            "--inheritance-registry" => parsed.inheritance_registry = PathBuf::from(path),
             _ => return Err(usage()),
         }
     }
@@ -584,7 +604,10 @@ fn parse_adr_citation_validate_args(args: Vec<String>) -> Result<AdrCitationVali
 fn validate_adr_citation_gate(
     args: AdrCitationValidateArgs,
 ) -> Result<(usize, usize, usize), String> {
-    let allowed_pack_adrs = read_pack_adr_ids(&args.decisions_dir)?;
+    let mut allowed_pack_adrs = read_pack_adr_ids(&args.decisions_dir)?;
+    allowed_pack_adrs.extend(read_inherited_adr_ids(&args.inheritance_registry)?);
+    allowed_pack_adrs.sort();
+    allowed_pack_adrs.dedup();
     let allowed_count = allowed_pack_adrs.len();
     let documents = read_adr_citation_documents(&args.docs_dir)?;
     let report = validate_adr_citations(documents, allowed_pack_adrs)
@@ -631,6 +654,60 @@ fn read_pack_adr_ids(decisions_dir: &Path) -> Result<Vec<String>, String> {
     } else {
         Ok(adrs)
     }
+}
+
+fn read_inherited_adr_ids(registry_path: &Path) -> Result<Vec<String>, String> {
+    if !registry_path.exists() {
+        return Ok(Vec::new());
+    }
+    let contents = fs::read_to_string(registry_path).map_err(|error| {
+        format!(
+            "ADR inheritance registry unreadable {}: {error}",
+            registry_path.display()
+        )
+    })?;
+    let mut adrs = Vec::new();
+    for (line_index, raw_line) in contents.lines().enumerate() {
+        let trimmed = raw_line.trim();
+        let Some(value) = trimmed
+            .strip_prefix("- id:")
+            .or_else(|| trimmed.strip_prefix("id:"))
+        else {
+            continue;
+        };
+        let adr = value
+            .split('#')
+            .next()
+            .unwrap_or_default()
+            .trim()
+            .trim_matches('"')
+            .trim_matches('\'');
+        if !is_adr_id(adr) {
+            return Err(format!(
+                "ADR inheritance registry {} line {} has invalid id {:?}",
+                registry_path.display(),
+                line_index + 1,
+                adr
+            ));
+        }
+        adrs.push(adr.to_string());
+    }
+    adrs.sort();
+    adrs.dedup();
+    if adrs.is_empty() {
+        Err(format!(
+            "ADR inheritance registry contains no `id: ADR-NNNN` entries: {}",
+            registry_path.display()
+        ))
+    } else {
+        Ok(adrs)
+    }
+}
+
+fn is_adr_id(value: &str) -> bool {
+    value.len() == 8
+        && value.starts_with("ADR-")
+        && value[4..].bytes().all(|byte| byte.is_ascii_digit())
 }
 
 fn read_adr_citation_documents(docs_dir: &Path) -> Result<Vec<AdrCitationDocument>, String> {
