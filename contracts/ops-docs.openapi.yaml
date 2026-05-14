@@ -40,6 +40,7 @@ paths:
       tags: [manifest]
       summary: Read the current docs portal manifest
       operationId: getManifest
+      x-cedar-fragments: [ops-internal-public, ops-tenant-public, ops-manifest-tenant-filter]
       parameters:
         - in: query
           name: tenant
@@ -69,6 +70,7 @@ paths:
       tags: [live-feed]
       summary: SSE stream of live docs portal events
       operationId: subscribeLiveFeed
+      x-cedar-fragments: [ops-internal-public, ops-live-feed-scope]
       parameters:
         - in: query
           name: tenant
@@ -95,6 +97,7 @@ paths:
       tags: [extractor]
       summary: Trigger extractor refresh (internal-sre+)
       operationId: refreshExtractor
+      x-cedar-fragments: [ops-internal-public, ops-internal-sre]
       parameters:
         - in: path
           name: extractor_id

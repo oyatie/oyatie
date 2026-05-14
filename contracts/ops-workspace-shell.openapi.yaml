@@ -41,6 +41,7 @@ paths:
       tags: [surface-catalog]
       summary: List Live workspace surfaces visible to the principal
       operationId: listLiveSurfaces
+      x-cedar-fragments: [ops-internal-public]
       responses:
         "200":
           description: Live surfaces this principal can see
@@ -57,6 +58,7 @@ paths:
       tags: [surface-catalog]
       summary: Full surface catalog (admin-only)
       operationId: listAllSurfaces
+      x-cedar-fragments: [ops-internal-public, ops-internal-admin]
       parameters:
         - in: query
           name: state
@@ -84,6 +86,7 @@ paths:
       tags: [health]
       summary: Per-cell shell health
       operationId: shellHealth
+      x-cedar-fragments: [ops-internal-public]
       responses:
         "200":
           description: Healthy
