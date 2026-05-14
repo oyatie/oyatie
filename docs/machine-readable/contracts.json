@@ -29,7 +29,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-platform-identity-kernel + crates/oya-platform-identity-app + contracts/openapi/platform/platform-identity-token-v1.yaml + crates/oya-platform-identity-api + contracts/openapi/platform/platform-identity-user-v1.yaml + crates/oya-platform-policy-cedar-kernel + crates/oya-platform-policy-cedar-api + contracts/openapi/platform/platform-policy-cedar-v1.yaml",
+      "location": "crates/oya-identity-domain + crates/oya-identity-application + contracts/openapi/platform/platform-identity-token-v1.yaml + crates/oya-platform-identity-api + contracts/openapi/platform/platform-identity-user-v1.yaml + crates/oya-policy-cedar-domain + crates/oya-platform-policy-cedar-api + contracts/openapi/platform/platform-policy-cedar-v1.yaml",
       "change_review": "cross-axis + security"
     },
     {
@@ -103,7 +103,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-cloud-iam-kernel + crates/oya-platform-identity-kernel + contracts/openapi/cloud/cloud-iam-v1.yaml",
+      "location": "crates/oya-cloud-iam-kernel + crates/oya-identity-domain + contracts/openapi/cloud/cloud-iam-v1.yaml",
       "change_review": "two-ADR-lockstep"
     },
     {
@@ -156,7 +156,7 @@
       "consumer_axes": [
         "all-data-touching"
       ],
-      "location": "crates/oya-platform-dsr-kernel + crates/oya-platform-dsr-app + contracts/openapi/platform/platform-dsr-v1.yaml",
+      "location": "crates/oya-dsr-domain + crates/oya-dsr-application + contracts/openapi/platform/platform-dsr-v1.yaml",
       "change_review": "all-data-touching axes"
     },
     {
@@ -338,7 +338,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-dsr-v1.yaml",
       "operation_id": "executeDsrCascade",
-      "runtime_crate": "oya-platform-dsr-app"
+      "runtime_crate": "oya-dsr-application"
     },
     {
       "id": "audit.event.emit",
@@ -389,7 +389,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-identity-token-v1.yaml",
       "operation_id": "issuePlatformIdentityToken",
-      "runtime_crate": "oya-platform-identity-app"
+      "runtime_crate": "oya-identity-application"
     },
     {
       "id": "regulatory-pack.bind",

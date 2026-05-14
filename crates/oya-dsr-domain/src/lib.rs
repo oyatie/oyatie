@@ -952,6 +952,38 @@ mod tests {
             request.subject_ref.data_class,
             DataClassification::Privacy(subject_data_class())
         );
+        assert_eq!(DsrSlaTier::Preview.max_seconds(), 30 * DAY_SECONDS);
+        assert_eq!(
+            DsrRequest::new(DsrRequestCreate {
+                dsr_id: "dsr-preview-max".into(),
+                tenant_id: "tenant-1".into(),
+                region: "us-east-1".into(),
+                subject_ref: "subject-1".into(),
+                action: DsrAction::Erase,
+                sla_tier: DsrSlaTier::Preview,
+                data_classes: vec![privacy(DataClass::PiiIdentifying)],
+                received_at_epoch_seconds: 1_700_000_000,
+                deadline_epoch_seconds: 1_700_000_000 + DsrSlaTier::Preview.max_seconds(),
+            })
+            .unwrap()
+            .deadline_epoch_seconds
+            .value,
+            1_700_000_000 + (30 * DAY_SECONDS)
+        );
+        assert_eq!(
+            DsrRequest::new(DsrRequestCreate {
+                dsr_id: "dsr-preview-late".into(),
+                tenant_id: "tenant-1".into(),
+                region: "us-east-1".into(),
+                subject_ref: "subject-1".into(),
+                action: DsrAction::Erase,
+                sla_tier: DsrSlaTier::Preview,
+                data_classes: vec![privacy(DataClass::PiiIdentifying)],
+                received_at_epoch_seconds: 1_700_000_000,
+                deadline_epoch_seconds: 1_700_000_000 + DsrSlaTier::Preview.max_seconds() + 1,
+            }),
+            Err(PlatformDsrError::DeadlineExceedsSla)
+        );
 
         assert_eq!(
             DsrRequest::new(DsrRequestCreate {

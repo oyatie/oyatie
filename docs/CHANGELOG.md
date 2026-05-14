@@ -1,3 +1,60 @@
+## 2026-05-14 — M01-P02-IP-001 identity kernel
+
+- Promoted the identity user kernel to current flat-crate surfaces: `oya-identity-domain` now owns `User`, `UserId`, and required per-region `IdpBinding`.
+- Added domain regressions for tenant/user/idp binding validation and kept STS service-principal issuance compatible while preserving ≤1h token gates.
+- Brought `oya-platform-identity-api` into the Rust 1.95.0 / edition 2024 workspace and verified `identity.user.upsert` through its API regression suite.
+- Aligned SPEC and machine-readable contract mirrors to the current identity crates, with repo-root rustfmt `style_edition = "2024"` retained.
+
+## 2026-05-14 — M01-P01 foundation complete
+
+- Closed IP-003 by locking the DSR cascade preview SLA to 30 days with a regression that accepts exactly 30d and rejects `30d + 1s`.
+- Added API-boundary coverage proving `dsr.cascade.execute` emits proof-of-erasure ids for each affected store and rejects completed store acknowledgements missing proof fields.
+- Aligned SPEC and machine-readable contract rows to the current clean-architecture DSR crates: `oya-dsr-domain` and `oya-dsr-application`.
+- Marked M01-P01 complete with evidence, masterplan parity, repo-root `rustfmt.toml` style-edition 2024, and final code-review `APPROVE` / `CLEAR`.
+
+## 2026-05-14 — M01-P01-IP-002 tenancy kernel contracts
+
+- Added `oya-tenancy-kernel` as the final-shape tenancy kernel with `TenantId`, immutable `RegionBinding`, `ResidencyClass`, `TenantContext`, and `TenantScopedRecord` row-level isolation guard.
+- Registered the kernel in the workspace under Rust 1.95.0 / edition 2024, with rustfmt style edition 2024 inherited from repo config.
+- Aligned the data-boundary public privacy label for KR financial data to canonical `FINANCIAL_KR` while retaining the legacy `FINANCIAL_KR_신용정보` parser alias.
+
+## 2026-05-14 — M01-P01-IP-001 Data Use Boundary ADR accepted
+
+- Promoted ADR-0008 Data Use Boundary from Proposed to Accepted and regenerated the ADR index/machine-readable mirror from all 67 `docs/decisions/ADR-*.md` files (31 Accepted / 36 Proposed, next ADR-0091).
+- Published the §2.2.2 consent-tier UI mapping in `docs/PRIVACY-PROGRAM.md`, preserving purpose-permission rows as the authoritative grant model.
+- Recorded the M01-P01-IP-001 scaffold-claim fallback after grit returned the known new/doc-symbol FK failure.
+- Added repo-root `rustfmt.toml` to pin both Rust parsing edition and rustfmt style edition to 2024 under the Rust 1.95.0 stance.
+
+## 2026-05-14 — M-CC-P01 foundation cleared
+
+- Closed the P01 foundation sequence: IP-009 delete-active-path cleanup, IP-010 parallel-claim demo, and IP-012 authoritative-tracked lane all received code-review APPROVE.
+- Marked the P01 phase index `foundation-cleared` with explicit evidence and remaining pre-existing workspace blockers.
+- Standalone P01 gates are green: banned-primitives, archive-orphan, authoritative-tracked, and parallel-claim demo regression.
+
+## 2026-05-14 — M-CC-P01-IP-012 authoritative-tracked lane
+
+- Added `oya-foundry-fitness-authoritative-tracked-kernel` and `tools/oya-foundry-fitness-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
+- The runner parses the canonical doc map, accepts tracked directories through tracked children, and fails on missing, ignored, or untracked authoritative artifacts.
+- Corrected `docs/AGENTS.md` masterplan authority pointer to current tracked `docs/MASTERPLAN.md` after the lane exposed an untracked future-target pointer.
+- Updated the IP-012 good-taste row with the single typed-list behavior.
+
+## 2026-05-14 — M-CC-P01-IP-010 parallel-claim demo runbook
+
+- Added `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` and executable script to prove two session-less `grit` agents can claim non-overlapping symbols in one file.
+- Recorded the 2026-05-14 transcript under `.omc/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`, including the duplicate-claim negative case and final lock cleanup.
+- Updated the runbooks index with the agentic-pipeline demo entry.
+
+## 2026-05-14 — M-CC-P01-IP-009 removed DELETE-class Bominal ultragoal ephemera
+
+- Removed the two ADR-0052 DELETE-class active-path files from `bominal/agents/ultragoal/` after P7 gates passed: banned-primitives, archive-orphan, and non-null ARCHIVE timestamps.
+- Updated IP-009 to target the actual DELETE-class rows and avoid direct VCS wording in the agent-facing plan.
+- Stamped ADR-0052 DELETE-row notes with P7 cleanup time `2026-05-14T13:26:13Z`.
+
+## 2026-05-14 — M-CC-P01-IP-008 archive-orphan lane and Bominal ultragoal archive
+
+- Archived 15 Bominal ultragoal orchestration-glue files under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` and stamped ADR-0052 `Archived at` rows for the ARCHIVE class.
+- Added `oya-foundry-fitness-archive-orphan-kernel` and `tools/oya-foundry-fitness-archive-orphan` to verify archived copies exist, active originals are absent, and living references are zero outside authority/provenance docs.
+- Refined inventory checklist samples so they no longer cite a real archived Bominal runtime path as an active example.
 
 ## 2026-05-12 — Lifted 5 reference docs (deep-dive ×2, hyperscaler, LTS-versions, cutover-amendments) to canonical docs/{specs,research,plans}/ tree
 

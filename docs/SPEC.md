@@ -58,15 +58,15 @@ Owned by `platform-*` teams. Consumed by every axis.
 | id | plane | kind | invariant | tier | crate |
 |---|---|---|---|---|---|
 | `tenant.create` | control | REST | tenant_id is globally unique; region binding immutable post-create; OpenAPI source `contracts/openapi/platform/platform-tenant-v1.yaml` | stable | `oya-platform-tenant-api` |
-| `tenant.dsr.cascade` | control | REST + event | DSR cascade completes ≤ 30d (preview) / 14d (stable) / 7d (GA); proof-of-erasure per affected store | stable | `oya-platform-tenant-app` |
+| `tenant.dsr.cascade` | control | REST + event | DSR cascade completes ≤ 30d (preview) / 14d (stable) / 7d (GA); proof-of-erasure per affected store | stable | `oya-dsr-application` |
 | `identity.user.upsert` | control | REST | per-tenant unique by primary identifier; per-region IdP binding; OpenAPI source `contracts/openapi/platform/platform-identity-user-v1.yaml` | stable | `oya-platform-identity-api` |
-| `identity.token.issue` (STS) | control | REST | short-lived (≤ 1h) per-purpose-bound credentials; never long-lived API key; OpenAPI source `contracts/openapi/platform/platform-identity-token-v1.yaml` | stable | `oya-platform-identity-app` |
+| `identity.token.issue` (STS) | control | REST | short-lived (≤ 1h) per-purpose-bound credentials; never long-lived API key; OpenAPI source `contracts/openapi/platform/platform-identity-token-v1.yaml` | stable | `oya-identity-application` |
 | `cedar.policy.publish` | control | REST | versioned; semver; per-tenant-or-global scope; superseded-by chain; OpenAPI source `contracts/openapi/platform/platform-policy-cedar-v1.yaml` | stable | `oya-platform-policy-cedar-api` |
 | `audit.event.emit` (per ADR-0003) | data | event | append-only; hash-chained; per-tenant-shard; AsyncAPI source `contracts/asyncapi/platform/audit-events-v1.yaml`; Protobuf source `contracts/proto/platform/audit/v1/audit-event-v1.proto` | stable | `oya-platform-audit-chain-app` |
 | `eventing.outbox.publish` | data | event | exactly-once via outbox + Kafka per ADR-0046; AsyncAPI source `contracts/asyncapi/platform/eventing-outbox-v1.yaml`; Protobuf source `contracts/proto/platform/eventing/v1/eventing-outbox-v1.proto` | stable | `oya-platform-eventing-app` |
 | `object-graph.entity.upsert` | data | REST + event | engine-enforced row-level isolation per ADR-0006; data_class annotated; OpenAPI source `contracts/openapi/platform/platform-object-graph-v1.yaml` | stable | `oya-platform-object-graph-api` |
 | `object-graph.property.{vector,timeseries,geo,ciphertext,struct}` | data | REST | per-property-tier semantics per ADR-0006..0112 | preview | `oya-platform-object-graph-{vector,timeseries,geo,ciphertext,struct}-*` |
-| `dsr.cascade.execute` | data | REST | ≤ 30d (preview); proof-of-erasure across all data-class-touching stores; OpenAPI source `contracts/openapi/platform/platform-dsr-v1.yaml` | stable | `oya-platform-dsr-app` |
+| `dsr.cascade.execute` | data | REST | ≤ 30d (preview); proof-of-erasure across all data-class-touching stores; OpenAPI source `contracts/openapi/platform/platform-dsr-v1.yaml` | stable | `oya-dsr-application` |
 | `consent.receipt.emit` | control | event | per-purpose × per-data-class × per-tenant × per-subject grant; revocable; per [PRIVACY-PROGRAM §2.2.2](PRIVACY-PROGRAM.md) | stable | `oya-platform-consent-app` |
 | `webhook.delivery.signed` | data | webhook | rotating-key signed; retry-with-backoff; replay endpoint | stable | `oya-platform-webhook-app` |
 | `metering.event.ingest` | data | event | per-resource per-tenant; idempotency key; AsyncAPI source `contracts/asyncapi/platform/metering-events-v1.yaml`; Protobuf source `contracts/proto/platform/metering/v1/metering-event-v1.proto` | stable | `oya-platform-metering-app` |

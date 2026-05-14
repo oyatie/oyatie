@@ -143,6 +143,46 @@ fn dsr_cascade_execute_completes_once_and_replays_same_idempotent_result() {
 }
 
 #[test]
+fn dsr_cascade_execute_requires_proof_of_erasure_per_affected_store() {
+    let mut directory = PlatformDsrCascadeDirectory::default();
+    let mut ledger = PlatformDsrCascadeExecuteIdempotencyLedger::default();
+    let mut cascade_request = request("req-dsr-multistore", "idem-dsr-multistore");
+    cascade_request
+        .body
+        .targets
+        .push(target("dispatch-002", "drive/object/2", "record_delete"));
+
+    let response = execute_dsr_cascade_from_api(&mut directory, &mut ledger, cascade_request)
+        .expect("each affected store has terminal ack plus erasure proof");
+
+    assert_eq!(response.data.store_count, 2);
+    assert_eq!(
+        response.data.dispatch_ids,
+        vec!["dispatch-001".to_string(), "dispatch-002".to_string()]
+    );
+    assert_eq!(
+        response.data.proof_ids,
+        vec![
+            "proof-dispatch-001".to_string(),
+            "proof-dispatch-002".to_string()
+        ]
+    );
+
+    let mut missing_directory = PlatformDsrCascadeDirectory::default();
+    let mut missing_ledger = PlatformDsrCascadeExecuteIdempotencyLedger::default();
+    let mut missing_proof = request("req-dsr-missing-proof", "idem-dsr-missing-proof");
+    missing_proof.body.targets[0].proof_id = None;
+    let error =
+        execute_dsr_cascade_from_api(&mut missing_directory, &mut missing_ledger, missing_proof)
+            .expect_err("completed store ack without proof is rejected");
+    assert_eq!(error.status_code(), 400);
+    assert!(matches!(
+        error,
+        PlatformDsrApiError::MissingCompletedProofField { .. }
+    ));
+}
+
+#[test]
 fn dsr_cascade_execute_rejects_path_body_tenant_and_principal_drift_before_mutation() {
     let mut directory = PlatformDsrCascadeDirectory::default();
     let mut ledger = PlatformDsrCascadeExecuteIdempotencyLedger::default();

@@ -1,0 +1,3671 @@
+{
+  "$schema": "https://docs.oyatie.dev/schemas/masterplan.schema.json",
+  "$id": "https://docs.oyatie.dev/specs/masterplan.json",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-MASTERPLAN",
+    "version": "1.0.0",
+    "status": "implemented-masterplan-json-live-hierarchy-index",
+    "created_at": "2026-05-14T06:53:11Z",
+    "updated_at": "2026-05-14T17:10:00Z",
+    "owner_team": "council-architecture",
+    "current_markdown_authority": "docs/MASTERPLAN.md",
+    "target_path_after_markdown_retirement": ".omc/specs/masterplan.json",
+    "migration_note": "Seed machine-readable masterplan surface. docs/MASTERPLAN.md remains current authority per root-hub until PHASE-5 migration completes; this JSON carries active machine-readable deltas and must converge to full replacement.",
+    "source_inputs": [
+      "docs/MASTERPLAN.md",
+      ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
+      ".omc/specs/root-hub-pointers.json",
+      ".omc/specs/markdown-retirement-policy.json",
+      ".omc/specs/gitops-vcs-replacement.json",
+      "https://github.com/rtk-ai/grit",
+      ".omc/specs/test-standard.json",
+      ".omc/registries/test-suite-registry.json",
+      ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md"
+    ],
+    "icm_scaffold_lock_id": "01KRJM0QGGKVCMVS2FFVAHZBYS",
+    "gitops_vcs_directive_2026_05_14": "Move the grit-compatible VCS replacement earlier and upgrade it for polyglot AST/semantic claims, enforced unit/integration/e2e standards, CI/CD review-fix loops, controller-owned rebase/merge queue, and GitOps promotion.",
+    "scaffold_lock_ids": [
+      "01KRJM0QGGKVCMVS2FFVAHZBYS",
+      "01KRJMSR5EPNN0E1ATR6QYTGEE",
+      "01KRJMZ2KY3V7PRDRYMH9BS9KZ",
+      "01KRJN9MX6W8BD8TE87NC5GA37"
+    ],
+    "oya_vcs_directive_2026_05_14": "Oya VCS is the provider-neutral, agent-native successor to grit with first-class but replaceable GitHub/GitHub Actions/Trivy/Argo CD adapters, native queue feature parity, semantic ChangeSets, virtual merge stack, queue-aware locks, review/CI fix loops, dev/staging/prod promotion, and Rust compile-latency scheduling."
+  },
+  "vision": {
+    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent µservices integrated through Workflow and Ontology.",
+    "current_markdown_section": "docs/MASTERPLAN.md §1"
+  },
+  "architecture_invariants": [
+    {
+      "id": "workflow-ontology-adapter-layer",
+      "summary": "All inter-µservice integration flows through Workflow or Ontology; direct cross-µservice calls are refused."
+    },
+    {
+      "id": "flat-microservice-catalog",
+      "summary": "No Product Groups, Verticals, or Arms in architecture; every µservice is independently enable-able."
+    },
+    {
+      "id": "dependency-seam-discipline",
+      "summary": "External runtime dependencies are conscious, ledgered, layer-contained, and phase-out-triggered rather than schedule-driven.",
+      "source_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
+      "canonical_home": {
+        "milestone": "M-CC-cross-cutting",
+        "phase": "P06-distroless-lts-image",
+        "implementation_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md"
+      },
+      "rules": [
+        "Public APIs expose Oyatie wrapper/newtype surfaces only; hyper/tokio/bytes/http-body types stay out of kernel/runtime public signatures except adapter-owned boundaries.",
+        "Every tracked dependency has an owner, allowed layer/crate regex, replacement target, trigger, CVE acceleration trigger, status, and ADR citation in .omc/registries/tech-debt-ledger.json.",
+        "Phase-out is trigger-based: ontology stability, p99 budget history, replacement parity, CVE state, and dependent-wave status drive transitions.",
+        "Do not remove hyper/tokio/serde/etc. from workspace dependencies in this phase; ship products first, phase out after Ontology v1 stable or CVE acceleration."
+      ],
+      "layer_model": {
+        "allowed_layers": [
+          "kernel",
+          "runtime",
+          "adapter",
+          "api",
+          "app"
+        ],
+        "banned_layer_in_this_plan": "domain",
+        "allowed_edges": [
+          "adapter->kernel",
+          "runtime->kernel",
+          "adapter->runtime"
+        ],
+        "banned_edges": [
+          "runtime->adapter",
+          "kernel->runtime",
+          "kernel->adapter",
+          "kernel->api",
+          "kernel->app"
+        ]
+      },
+      "round_5_decisions": [
+        "Adopt triggered incremental phase-out with GREEN/AMBER/RED parity bands.",
+        "Add registry-top-level default_evaluator_policies with per-row overrides and structured override warnings.",
+        "Resolve SSE classification by renaming oya-http-sse-domain to oya-http-sse-kernel; defer oya-http-sse-runtime until real orchestration exists.",
+        "Split oya-foundry-trigger-dsl into kernel (pure AST/policy/status graph) and runtime (file/CI evidence resolution).",
+        "Pin ReadinessGate transitions: Initializing -> Ready only after catalog loaded, W0 downstream count zero, and bind succeeded; Ready -> Draining on SIGTERM.",
+        "Treat CI-only gh api/gh pr view carve-out as ADR-0093 Proposed in Step 4 and Accepted only in Step 6 with CODEOWNERS plus same-PR guard."
+      ],
+      "adrs_required": [
+        "ADR-0091",
+        "ADR-0092",
+        "ADR-0093",
+        "ADR-0094"
+      ],
+      "fitness_lanes": [
+        "oya-check-dependency-seam-discipline",
+        "oya-check-replacement-parity",
+        "oya-check-distroless-deployment-bar"
+      ],
+      "seed_dependencies": [
+        "hyper",
+        "hyper-util",
+        "http-body-util",
+        "tokio",
+        "bytes",
+        "tracing",
+        "tracing-subscriber",
+        "serde",
+        "serde_json",
+        "toml",
+        "toml_edit"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M-CC-cross-cutting",
+      "title": "Cross-cutting workstreams",
+      "status": "open",
+      "phases": [
+        {
+          "id": "P00-gitops-vcs-replacement",
+          "title": "Polyglot GitOps-capable VCS replacement",
+          "status": "first-prerequisite-planned-from-approved-ralplan-v5",
+          "source_spec": ".omc/specs/gitops-vcs-replacement.json",
+          "implementation_plans": [
+            {
+              "id": "IP-001-symbol-lock-domain",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Language-agnostic kernel model + symbol graph schema + claim/queue/lease invariants; Rust AST remains first-class, not exclusive.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md"
+            },
+            {
+              "id": "IP-002-remote-lock-store-events",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Local + distributed LockStorePort adapters and watch event stream.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md"
+            },
+            {
+              "id": "IP-003-change-bundle-attestation",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Signed ChangeBundle format with claim coverage manifest and evidence records.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md"
+            },
+            {
+              "id": "IP-004-gitops-promotion-controller",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Controller-owned remote promotion path integrated with CI/CD admission, review/fix loop, rebase, merge queue, and environment reconciliation.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md"
+            },
+            {
+              "id": "IP-005-grit-compat-cli-and-migration-ratchet",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Grit-compatible CLI aliases, migration from local grit, CI ratchet banning local-only closeout for agent fan-out.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md"
+            },
+            {
+              "id": "IP-006-polyglot-indexers",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Swift/Kotlin/C#/C++/XAML/TypeScript/config/contract semantic indexers with cross-language dependency edges.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md"
+            },
+            {
+              "id": "IP-007-review-fix-rebase-merge-queue-loop",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Typed review/fix loop plus controller-owned rebase and merge queue orchestration, with CI/CD evidence and terminal states.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md"
+            },
+            {
+              "id": "IP-008-test-standard-enforcement",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Document and machine-encode unit/integration/e2e standards, registry-driven commands, and CI/CD admission enforcement.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md"
+            },
+            {
+              "id": "IP-009-ast-index-contract",
+              "status": "planned-from-approved-ralplan-v5",
+              "deliverable": "Language-neutral AST symbol/range/dependency contract used by claims, review mapping, impacted tests, and semantic conflict checks.",
+              "execution_unit": "ChangeSet",
+              "changeset_contract": "claimable-verifiable-bundleable-promotable",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
+            }
+          ],
+          "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
+          "phase_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/plan.md",
+          "source_plan": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md"
+        },
+        {
+          "id": "P06-distroless-lts-image",
+          "title": "Distroless + Image-Discipline + Dependency-Seam/LTS Phaseout",
+          "status": "stub",
+          "implementation_plans": [
+            {
+              "id": "M-CC-P06-IP-002",
+              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+              "title": "Dependency-seam discipline + tech-debt ledger + LTS roster",
+              "source_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
+              "status": "expanded-from-round-5-findings"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "evidence_records": [
+    {
+      "class": "documentation",
+      "status": "pass",
+      "source_path": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
+      "summary": "Round-5 dep-seam phaseout findings folded into masterplan JSON and M-CC P06 IP-002 hierarchy.",
+      "freshness": "2026-05-14T06:53:11Z",
+      "command_or_lane": "manual spec update + jq validation",
+      "result": "pending validation",
+      "artifact_ref": ".omc/specs/masterplan.json",
+      "known_gap": "Full Markdown retirement to masterplan.json remains PHASE-5; this is a seed/delta, not complete replacement."
+    },
+    {
+      "class": "documentation",
+      "status": "pass",
+      "source_path": ".omc/specs/gitops-vcs-replacement.json",
+      "summary": "GitOps-capable VCS replacement moved into masterplan JSON as M-CC-P00 first prerequisite.",
+      "freshness": "2026-05-14T07:16:07Z",
+      "command_or_lane": "manual JSON update + jq validation",
+      "result": "pending final validation",
+      "artifact_ref": ".omc/specs/masterplan.json#gitops_vcs_replacement",
+      "known_gap": "Implementation crates and controller are planned by P00 IPs; this slice establishes masterplan priority/contract."
+    },
+    {
+      "class": "documentation",
+      "status": "pass",
+      "source_path": ".omc/specs/gitops-vcs-replacement.json",
+      "summary": "Masterplan JSON now references polyglot indexers plus review/fix/rebase/merge-queue CI/CD loop for M-CC-P00.",
+      "freshness": "2026-05-14T07:19:08Z",
+      "command_or_lane": "manual JSON update + jq validation",
+      "result": "pending final validation",
+      "artifact_ref": ".omc/specs/masterplan.json#gitops_vcs_replacement",
+      "known_gap": "Implementation remains planned in P00 IPs."
+    },
+    {
+      "class": "documentation",
+      "status": "pass",
+      "source_path": ".omc/specs/gitops-vcs-replacement.json",
+      "summary": "Masterplan JSON now requires documented/enforced unit/integration/e2e standards and AST support in M-CC-P00.",
+      "freshness": "2026-05-14T07:20:28Z",
+      "command_or_lane": "manual JSON update + jq validation",
+      "result": "pending final validation",
+      "artifact_ref": ".omc/specs/masterplan.json#gitops_vcs_replacement.test_standard_enforcement",
+      "known_gap": "Implementation artifacts for the standard are P00 planned deliverables."
+    },
+    {
+      "class": "documentation",
+      "status": "pass",
+      "source_path": ".omc/specs/test-standard.json",
+      "summary": "Machine-readable test standard and test-suite registry added as concrete artifacts supporting M-CC-P00.",
+      "freshness": "2026-05-14T07:22:20Z",
+      "command_or_lane": "manual JSON update + jq validation",
+      "result": "pending final validation",
+      "artifact_ref": ".omc/specs/masterplan.json#gitops_vcs_replacement.test_standard_enforcement",
+      "known_gap": "Controller enforcement implementation remains P00 planned work."
+    },
+    {
+      "class": "documentation",
+      "status": "pass",
+      "source_path": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
+      "summary": "Approved Oya VCS ralplan v5 folded into M-CC-P00 phase/IP packet files and global ImplementationPlan-as-ChangeSet contract.",
+      "freshness": "2026-05-14T08:55:00Z",
+      "command_or_lane": "manual masterplan fold-in + jq validation",
+      "result": "pending final validation",
+      "artifact_ref": ".omc/specs/masterplan.json#implementation_plan_contract",
+      "known_gap": "Implementation crates/controllers remain planned by M-CC-P00 IP execution."
+    },
+    {
+      "class": "documentation",
+      "status": "pass",
+      "source_path": ".omc/plans/milestones",
+      "summary": "Generated live milestone/phase/IP implementation index into masterplan JSON from actual .omc/plans/milestones tree.",
+      "freshness": "2026-05-14T09:05:00Z",
+      "command_or_lane": "python frontmatter/index inventory + jq validation",
+      "result": "pending final validation",
+      "artifact_ref": ".omc/specs/masterplan.json#live_implementation_index",
+      "known_gap": "This indexes existing implementation plan files; executing every ChangeSet remains future masterplan work."
+    },
+    {
+      "class": "documentation",
+      "status": "pass",
+      "source_path": ".omc/plans/milestones",
+      "summary": "Regenerated live masterplan implementation index after adding missing milestone and phase INDEX.md hierarchy files.",
+      "freshness": "2026-05-14T09:12:00Z",
+      "command_or_lane": "python hierarchy inventory + jq validation",
+      "result": "pending final validation",
+      "artifact_ref": ".omc/specs/masterplan.json#live_implementation_index",
+      "known_gap": "Executing every product ChangeSet remains future masterplan work; JSON control surface now indexes current tree."
+    }
+  ],
+  "gitops_vcs_replacement": {
+    "source_spec": ".omc/specs/gitops-vcs-replacement.json",
+    "status": "first-prerequisite-planned-from-approved-ralplan-v5",
+    "milestone": "M-CC-cross-cutting",
+    "phase": "P00-gitops-vcs-replacement",
+    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev→staging→production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
+    "must_precede": [
+      "M-CC-P01-agentic-pipeline-cutover",
+      "broad M01/M02/M03 parallel fan-out"
+    ],
+    "planned_ips": [
+      {
+        "id": "IP-001-symbol-lock-domain",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Language-agnostic kernel model + symbol graph schema + claim/queue/lease invariants; Rust AST remains first-class, not exclusive.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md"
+      },
+      {
+        "id": "IP-002-remote-lock-store-events",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Local + distributed LockStorePort adapters and watch event stream.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md"
+      },
+      {
+        "id": "IP-003-change-bundle-attestation",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Signed ChangeBundle format with claim coverage manifest and evidence records.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md"
+      },
+      {
+        "id": "IP-004-gitops-promotion-controller",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Controller-owned remote promotion path integrated with CI/CD admission, review/fix loop, rebase, merge queue, and environment reconciliation.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md"
+      },
+      {
+        "id": "IP-005-grit-compat-cli-and-migration-ratchet",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Grit-compatible CLI aliases, migration from local grit, CI ratchet banning local-only closeout for agent fan-out.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md"
+      },
+      {
+        "id": "IP-006-polyglot-indexers",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Swift/Kotlin/C#/C++/XAML/TypeScript/config/contract semantic indexers with cross-language dependency edges.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md"
+      },
+      {
+        "id": "IP-007-review-fix-rebase-merge-queue-loop",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Typed review/fix loop plus controller-owned rebase and merge queue orchestration, with CI/CD evidence and terminal states.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md"
+      },
+      {
+        "id": "IP-008-test-standard-enforcement",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Document and machine-encode unit/integration/e2e standards, registry-driven commands, and CI/CD admission enforcement.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md"
+      },
+      {
+        "id": "IP-009-ast-index-contract",
+        "status": "planned-from-approved-ralplan-v5",
+        "deliverable": "Language-neutral AST symbol/range/dependency contract used by claims, review mapping, impacted tests, and semantic conflict checks.",
+        "execution_unit": "ChangeSet",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
+      }
+    ],
+    "success_targets": {
+      "merge_conflicts_from_parallel_agents": 0,
+      "unclaimed_diff_promotions": 0,
+      "work_discarded_due_to_hunk_conflicts": 0,
+      "stale_lock_auto_recovery": "<= 2x lease ttl",
+      "ci_claim_coverage": "100% for promoted bundles",
+      "controller_owned_rebases": "100% for promoted bundles",
+      "controller_owned_merge_queue_enrollment": "100% for merge-queue-bound bundles",
+      "polyglot_claim_coverage": "100% for promoted Rust/TS/Swift/Kotlin/C#/C++/XAML/schema/config changes",
+      "review_fix_loop_terminal_state_recorded": "100%"
+    },
+    "review_fix_loop": {
+      "source_spec": ".omc/specs/gitops-vcs-replacement.json#review_fix_loop",
+      "required": true
+    },
+    "rebase_and_merge_queue": {
+      "source_spec": ".omc/specs/gitops-vcs-replacement.json#rebase_and_merge_queue",
+      "controller_owned": true
+    },
+    "polyglot_indexing": {
+      "source_spec": ".omc/specs/gitops-vcs-replacement.json#agentic_development_requirements",
+      "required_languages": [
+        "Rust",
+        "TypeScript/JavaScript",
+        "Swift",
+        "Kotlin",
+        "C#",
+        "C++",
+        "WinUI/XAML",
+        "Schema/Config/Contracts"
+      ]
+    },
+    "test_standard_enforcement": {
+      "source_spec": ".omc/specs/gitops-vcs-replacement.json#test_standard_enforcement",
+      "machine_readable_standard_ref": ".omc/specs/test-standard.json",
+      "test_suite_registry_ref": ".omc/registries/test-suite-registry.json",
+      "required": true
+    },
+    "ast_support": {
+      "source_spec": ".omc/specs/gitops-vcs-replacement.json#test_standard_enforcement.ast_support",
+      "required": true
+    },
+    "product_name": "Oya VCS",
+    "native_and_adapter_boundary_ref": ".omc/specs/gitops-vcs-replacement.json#native_and_adapter_boundary",
+    "rust_compile_latency_strategy_ref": ".omc/specs/gitops-vcs-replacement.json#rust_compile_latency_strategy",
+    "queue_model_ref": ".omc/specs/gitops-vcs-replacement.json#queue_model",
+    "high_throughput_agent_scheduler_ref": ".omc/specs/gitops-vcs-replacement.json#high_throughput_agent_scheduler",
+    "issue_tracker_integration_ref": ".omc/specs/gitops-vcs-replacement.json#issue_tracker_integration",
+    "source_plan": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
+    "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
+    "phase_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/plan.md",
+    "consensus": {
+      "status": "APPROVED v5",
+      "architect_verdict": "APPROVE",
+      "critic_verdict": "APPROVE",
+      "execution_start": [
+        "IP-001-symbol-lock-domain",
+        "IP-009-ast-index-contract"
+      ]
+    },
+    "required_object_chain": [
+      "OyaWorkItem",
+      "IssuePlan",
+      "ChangeSet",
+      "VirtualHead",
+      "QueueAwareLease",
+      "FixupTask",
+      "ChangeBundle",
+      "Promotion",
+      "ReleaseTrain"
+    ],
+    "implementation_plan_semantics": "Each P00 IP is a ChangeSet-sized implementation packet and inherits the global implementation_plan_contract.",
+    "implementation_packet_files": {
+      "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
+      "phase_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/plan.md",
+      "ips": [
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
+        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
+      ]
+    }
+  },
+  "implementation_plan_contract": {
+    "applies_to_globs": [
+      ".omc/plans/milestones/*/phases/*/IP-*.md"
+    ],
+    "definition": "Every ImplementationPlan is a ChangeSet-sized execution unit. It must be claimable, independently verifiable, bundleable, promotable, and small enough to avoid locking an entire tree without graph-proven rationale.",
+    "must_have": [
+      "milestone_parent",
+      "phase_parent",
+      "ip_id",
+      "change_boundary",
+      "grit_claim_or_scaffold_lock_scope",
+      "affected_symbols_or_artifact_pointers",
+      "affected_crates_packages_deployables",
+      "required_test_evidence",
+      "rollback_or_compatibility_path",
+      "icm_completion_payload"
+    ],
+    "split_when": [
+      "unrelated lock scopes",
+      "multiple independently deployable packages without shared invariant",
+      "whole-tree rebuild without declared full-gate reason",
+      "mixed provider adapter and kernel work without explicit contract boundary",
+      "review/fix task independent from original ChangeSet"
+    ],
+    "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
+    "validation_lane": "oya-foundry-fitness-plan-hierarchy + Oya VCS admission once M-CC-P00 is accepted",
+    "current_tree_count": 150,
+    "explicit_frontmatter_coverage": "150/150 existing IP files as of 2026-05-14T09:12:00Z"
+  },
+  "live_implementation_index": {
+    "generated_at": "2026-05-14T09:12:00Z",
+    "source_root": ".omc/plans/milestones",
+    "milestone_count": 9,
+    "phase_count": 78,
+    "implementation_plan_count": 150,
+    "implementation_plan_execution_unit": "ChangeSet",
+    "coverage": {
+      "all_ip_files_have_doc_class_implementation_plan": true,
+      "all_ip_files_have_execution_unit_changeset": true,
+      "all_ip_files_have_changeset_contract": true,
+      "phase_index_missing_count": 0,
+      "milestone_index_missing_count": 0
+    },
+    "coverage_gaps": {
+      "missing_doc_class_implementation_plan": [],
+      "missing_execution_unit_changeset": [],
+      "missing_changeset_contract": [],
+      "missing_phase_index": [],
+      "missing_milestone_index": []
+    },
+    "milestones": [
+      {
+        "id": "M-CC",
+        "slug": "M-CC-cross-cutting",
+        "path": ".omc/plans/milestones/M-CC-cross-cutting",
+        "index": ".omc/plans/milestones/M-CC-cross-cutting/INDEX.md",
+        "readme": null,
+        "title": "Cross-cutting workstreams",
+        "status": "open",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 10,
+        "implementation_plan_count": 46,
+        "phases": [
+          {
+            "id": "M-CC-P00",
+            "slug": "P00-gitops-vcs-replacement",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
+            "title": "Polyglot GitOps-capable VCS Replacement (Oya VCS)",
+            "status": "first-prerequisite-planned",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 9,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P00-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
+                "title": "Symbol lock domain + ChangeSet kernel",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              },
+              {
+                "id": "M-CC-P00-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
+                "title": "Remote lock store + event stream",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              },
+              {
+                "id": "M-CC-P00-IP-003",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
+                "title": "ChangeBundle attestation + provenance",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              },
+              {
+                "id": "M-CC-P00-IP-004",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
+                "title": "GitOps promotion controller + provider seams",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              },
+              {
+                "id": "M-CC-P00-IP-005",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
+                "title": "Grit-compatible CLI + migration ratchet",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              },
+              {
+                "id": "M-CC-P00-IP-006",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
+                "title": "Polyglot AST/indexer adapters",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              },
+              {
+                "id": "M-CC-P00-IP-007",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
+                "title": "Review/fix, rebase, and merge-queue loop",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              },
+              {
+                "id": "M-CC-P00-IP-008",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
+                "title": "Unit/integration/e2e standard enforcement",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              },
+              {
+                "id": "M-CC-P00-IP-009",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md",
+                "title": "AST index contract + impacted-test mapping",
+                "status": "planned-from-approved-ralplan-v5",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": null,
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-gitops-vcs-replacement-20260514.md",
+                "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P01",
+            "slug": "P01-agentic-pipeline-cutover",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/INDEX.md",
+            "title": "Agentic-Pipeline Cutover (grit/icm SoT)",
+            "status": "in-flight iter-2",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 12,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P01-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md",
+                "title": "ADR-0054 scaffold-claim pattern + RACI human-orchestrator row (P0.5)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
+                "title": "Inventory pass + ADR-0052 (P1)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-003",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
+                "title": "oya-tooling-agent-read helper (P2)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-004",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite.md",
+                "title": "Bidirectional PRD citation + portfolio-citation lane (P3)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-005",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
+                "title": "Foundry corpus cross-cite + PHASE-00-SPEC.md (P3.5)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-006",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
+                "title": "Agent-facing memory rewrite (P4)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-007",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
+                "title": "Hook + skill audit + banned-primitives lane activation (P5)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-008",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
+                "title": "Archive orchestration glue + archive-orphan lane (P6)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-009",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
+                "title": "Delete archived glue from active path (P7)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-010",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
+                "title": "Parallel-claim demo runbook (P8)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-011",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md",
+                "title": "File upstream grit session bug (P9)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P01-IP-012",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit.md",
+                "title": "Authoritative-tracked repo-walk audit (P10)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P02",
+            "slug": "P02-doc-automation-freshness",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/INDEX.md",
+            "title": "Doc Auto-Generation + Freshness",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P02-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-001-mdbook-pipeline.md",
+                "title": "mdbook publishing pipeline kernel + source walkers",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P02-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-002-doc-freshness-lane.md",
+                "title": "Doc-freshness CI lane",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P02-IP-003",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-003-doc-style-lane.md",
+                "title": "Doc-style enforcement lane + auto-format",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P03",
+            "slug": "P03-purpose-orphan-detection",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/INDEX.md",
+            "title": "Purpose-Discipline + Orphan-Detection",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P03-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit.md",
+                "title": "Purpose-frontmatter authoring (audit every existing doc/JSON)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P03-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-002-orphan-detection-lane.md",
+                "title": "Orphan-detection lane kernel",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P04",
+            "slug": "P04-agentic-navigability",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/INDEX.md",
+            "title": "Agentic-Dev Optimization (Navigability Lanes)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P04-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-001-navigability-lane.md",
+                "title": "Agentic-navigability lane kernel + parent-pointer validator",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P04-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-002-predictable-naming.md",
+                "title": "Predictable-naming convention enforcement",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P05",
+            "slug": "P05-provider-agnosticism",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/INDEX.md",
+            "title": "Provider-Agnosticism + Adapter Discipline",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P05-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-001-provider-coupling-lane.md",
+                "title": "Provider-coupling lane kernel",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P05-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit.md",
+                "title": "Multi-provider adapter audit + remediation across Cloud kernels",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P05-IP-003",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-003-adapter-substitution-harness.md",
+                "title": "Adapter-substitution integration-test harness",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P06",
+            "slug": "P06-distroless-lts-image",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/INDEX.md",
+            "title": "Distroless + Image-Discipline + Dependency-Seam/LTS Phaseout",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P06-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-001-distroless-image-lane.md",
+                "title": "Distroless base + image-discipline lane",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P06-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+                "title": "Dependency-seam discipline + tech-debt ledger + LTS roster",
+                "status": "expanded-from-round-5-findings",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": "../../../../ralplan-dep-seam-phaseout-round-5.md",
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P06-IP-003",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-003-static-musl-build.md",
+                "title": "Static / musl-linked binary build pipeline",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P07",
+            "slug": "P07-hyperscaler-practices",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/INDEX.md",
+            "title": "Hyperscaler-Practice Adoption (Working Backwards / Design Doc / Postmortem / 1ES / Eng-Excellence)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 4,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P07-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem.md",
+                "title": "PRFAQ + Design-Doc + Postmortem templates",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P07-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-002-1es-ci-templates.md",
+                "title": "1ES-templated CI pipelines",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P07-IP-003",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate.md",
+                "title": "Engineering Excellence Council merge gate",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P07-IP-004",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-004-rust-toolchain-gates.md",
+                "title": "Rust toolchain hyperscaler-gate set",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P08",
+            "slug": "P08-supply-chain-security",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/INDEX.md",
+            "title": "Supply-Chain Security (Cosign + Rekor + SLSA + SBOM)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 4,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P08-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-001-cosign-rekor.md",
+                "title": "Cosign + Rekor signing pipeline",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P08-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-002-sbom-pipeline.md",
+                "title": "SBOM generation per build (CycloneDX / SPDX)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P08-IP-003",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-003-license-policy-lane.md",
+                "title": "License-policy lane (AGPL/GPL/SSPL/BUSL/RSAL hard-deny)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P08-IP-004",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
+                "title": "SLSA level ≥3 attestation publishing",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M-CC-P09",
+            "slug": "P09-visualization-as-code",
+            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code",
+            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/INDEX.md",
+            "title": "Visualization-as-Code (Foundry-Owned Architecture / Product / Service / Tech-Stack Maps)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 4,
+            "implementation_plans": [
+              {
+                "id": "M-CC-P09-IP-001",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md",
+                "title": "oya-foundry-architecture-map-kernel source walkers",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P09-IP-002",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters.md",
+                "title": "Mermaid + D2 + Graphviz emitters",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P09-IP-003",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-003-mdbook-publish-integration.md",
+                "title": "mdbook publishing integration",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M-CC-P09-IP-004",
+                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
+                "title": "oya-foundry-fitness-architecture-map-freshness lane",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "M01",
+        "slug": "M01-foundation",
+        "path": ".omc/plans/milestones/M01-foundation",
+        "index": ".omc/plans/milestones/M01-foundation/INDEX.md",
+        "readme": ".omc/plans/milestones/M01-foundation/README.md",
+        "title": "Foundation",
+        "status": "open",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 11,
+        "implementation_plan_count": 16,
+        "phases": [
+          {
+            "id": "P01-bnf-v4-adrs-finalized",
+            "slug": "P01-bnf-v4-adrs-finalized",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P01-bnf-v4-adrs-finalized",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P01-bnf-v4-adrs-finalized/INDEX.md",
+            "title": "Bnf V4 Adrs Finalized",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "M01-P01",
+            "slug": "P01-data-use-boundary-tenancy",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/INDEX.md",
+            "title": "Data Use Boundary + Tenancy Kernel",
+            "status": "complete",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M01-P01-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-001-data-use-boundary-adr.md",
+                "title": "Data Use Boundary ADR-0008 authoring",
+                "status": "complete",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null,
+                "evidence_ref": ".omc/evidence/foundation/m01-p01-ip-001-data-use-boundary-adr.json"
+              },
+              {
+                "id": "M01-P01-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-002-tenant-kernel-contracts.md",
+                "title": "oya-tenancy-kernel final-shape contracts",
+                "status": "complete",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null,
+                "evidence_ref": ".omc/evidence/foundation/m01-p01-ip-002-tenant-kernel-contracts.json"
+              },
+              {
+                "id": "M01-P01-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-003-dsr-cascade-engine.md",
+                "title": "dsr.cascade.execute ≤30d cascade engine",
+                "status": "complete",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null,
+                "evidence_ref": ".omc/evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json"
+              }
+            ],
+            "phase_evidence_refs": [
+              ".omc/evidence/foundation/m01-p01-ip-001-data-use-boundary-adr.json",
+              ".omc/evidence/foundation/m01-p01-ip-002-tenant-kernel-contracts.json",
+              ".omc/evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json"
+            ]
+          },
+          {
+            "id": "M01-P02",
+            "slug": "P02-identity-cedar",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/INDEX.md",
+            "title": "Identity Kernel + Cedar Policy Substrate",
+            "status": "in-progress",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M01-P02-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/IP-001-identity-kernel.md",
+                "title": "oya-identity-domain user + region + IdP binding",
+                "status": "complete",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null,
+                "evidence_ref": ".omc/evidence/foundation/m01-p02-ip-001-identity-kernel.json"
+              },
+              {
+                "id": "M01-P02-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/IP-002-sts-rotation.md",
+                "title": "oya-platform-identity-app STS issuance + rotation",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M01-P02-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/IP-003-cedar-policy-substrate.md",
+                "title": "Cedar policy substrate (-policy-cedar-*) + publish + supersession",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ],
+            "phase_evidence_refs": [
+              ".omc/evidence/foundation/m01-p02-ip-001-identity-kernel.json"
+            ]
+          },
+          {
+            "id": "P02-shard-1-atomic-rename",
+            "slug": "P02-shard-1-atomic-rename",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P02-shard-1-atomic-rename",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P02-shard-1-atomic-rename/INDEX.md",
+            "title": "Shard 1 Atomic Rename",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "M01-P03",
+            "slug": "P03-audit-chain-evidence",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/INDEX.md",
+            "title": "Audit Chain + Evidence Emission",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M01-P03-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/IP-001-merkle-ed25519-kernel.md",
+                "title": "oya-platform-audit-chain-kernel Merkle + Ed25519",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M01-P03-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/IP-002-audit-asyncapi-proto.md",
+                "title": "Audit event AsyncAPI + Proto contract",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M01-P03-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/IP-003-tamper-evidence-drill.md",
+                "title": "Tamper-evidence Sev-1 drill runbook",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "P03-shard-1-5-protocol-unknown-deferred",
+            "slug": "P03-shard-1-5-protocol-unknown-deferred",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P03-shard-1-5-protocol-unknown-deferred",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P03-shard-1-5-protocol-unknown-deferred/INDEX.md",
+            "title": "Shard 1 5 Protocol Unknown Deferred",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "M01-P04",
+            "slug": "P04-eventing-object-graph",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/INDEX.md",
+            "title": "Eventing Backbone + Outbox + Object Graph",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M01-P04-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/IP-001-outbox-topic-registry.md",
+                "title": "Outbox + topic registry kernel",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M01-P04-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/IP-002-object-graph-property-tiers.md",
+                "title": "Object Graph entity upsert + 5 property tiers",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M01-P04-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/IP-003-eventing-adapters.md",
+                "title": "Kafka / Redpanda / Pulsar provider-agnostic adapters",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "P04-iter-4-src-inspection",
+            "slug": "P04-iter-4-src-inspection",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P04-iter-4-src-inspection",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P04-iter-4-src-inspection/INDEX.md",
+            "title": "Iter 4 Src Inspection",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "M01-P05",
+            "slug": "P05-cell-plane",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P05-cell-plane",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P05-cell-plane/INDEX.md",
+            "title": "Cell Architecture + Plane Separation Enforcement",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M01-P05-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P05-cell-plane/IP-001-cell-routing-primitive.md",
+                "title": "Cell-routing primitive (oya-platform-cell-kernel)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M01-P05-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P05-cell-plane/IP-002-plane-separation-lane.md",
+                "title": "Plane separation enforcement lane",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "P05-post-cutover-hardening",
+            "slug": "P05-post-cutover-hardening",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P05-post-cutover-hardening",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P05-post-cutover-hardening/INDEX.md",
+            "title": "Post Cutover Hardening",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "M01-P06",
+            "slug": "P06-regional-pack-flattening",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P06-regional-pack-flattening",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P06-regional-pack-flattening/INDEX.md",
+            "title": "Regional Pack Architecture + Flattening Ratchet",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M01-P06-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P06-regional-pack-flattening/IP-001-regional-pack-adr-kernel.md",
+                "title": "Regional Pack ADR + kernel",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M01-P06-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P06-regional-pack-flattening/IP-002-flat-crates-guard.md",
+                "title": "Flat-crates guard ratchet",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "M02",
+        "slug": "M02-foundry-preview",
+        "path": ".omc/plans/milestones/M02-foundry-preview",
+        "index": ".omc/plans/milestones/M02-foundry-preview/INDEX.md",
+        "readme": null,
+        "title": "Foundry-Preview",
+        "status": "gated on M01",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 7,
+        "implementation_plan_count": 25,
+        "phases": [
+          {
+            "id": "M02-P00",
+            "slug": "P00-account-auth",
+            "path": ".omc/plans/milestones/M02-foundry-preview/phases/P00-account-auth",
+            "index": ".omc/plans/milestones/M02-foundry-preview/phases/P00-account-auth/INDEX.md",
+            "title": "Account-Auth Contracts (Phase 00 lift)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M02-P00-IP-001",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P00-account-auth/IP-001-clean-arch-skeleton.md",
+                "title": "Clean Architecture skeleton + 7-crate scaffold-claim (ADR-0054 path)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P00-IP-002",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P00-account-auth/IP-002-domain-types-state-machine.md",
+                "title": "Domain types + state machine + 40+ unit tests (P00-02)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P00-IP-003",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P00-account-auth/IP-003-secret-store-port.md",
+                "title": "SecretStorePort + OpenBao adapter (provider-agnostic)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M02-P01",
+            "slug": "P01-provider-gateway",
+            "path": ".omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway",
+            "index": ".omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway/INDEX.md",
+            "title": "Provider Gateway + Multi-Provider Adapter",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 4,
+            "implementation_plans": [
+              {
+                "id": "M02-P01-IP-001",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway/IP-001-anthropic-adapter.md",
+                "title": "Anthropic Claude adapter (API + subscription)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P01-IP-002",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway/IP-002-openai-adapter.md",
+                "title": "OpenAI adapter (API + subscription)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P01-IP-003",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway/IP-003-gemini-adapter.md",
+                "title": "Google Gemini adapter (API + subscription)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P01-IP-004",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P01-provider-gateway/IP-004-usage-window-route-policy.md",
+                "title": "Usage-window kernel + account-route policy",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "P02-multi-subscription-pool",
+            "slug": "P02-multi-subscription-pool",
+            "path": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool",
+            "index": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/INDEX.md",
+            "title": "P02-multi-subscription-pool: Multi-subscription pool + provider-compatible passthrough",
+            "status": "pending approval",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 6,
+            "implementation_plans": [
+              {
+                "id": "IP-001-provider-account-pool-kernel",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-001-provider-account-pool-kernel.md",
+                "title": "IP-001-provider-account-pool-kernel: ProviderAccountPool kernel + value types",
+                "status": "pending approval",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": "",
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "IP-002-anthropic-compat-adapter",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-002-anthropic-compat-adapter.md",
+                "title": "IP-002-anthropic-compat-adapter: `/v1/messages` Anthropic-shape passthrough",
+                "status": "pending approval",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": "",
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "IP-003-openai-compat-adapter",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-003-openai-compat-adapter.md",
+                "title": "IP-003-openai-compat-adapter: `/v1/chat/completions` OpenAI-shape passthrough",
+                "status": "pending approval",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": "",
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "IP-004-oauth-subscription-capture",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-004-oauth-subscription-capture.md",
+                "title": "IP-004-oauth-subscription-capture: Subscription-token OAuth capture flow",
+                "status": "pending approval",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": "",
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "IP-005-upstream-api-drift-lane",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-005-upstream-api-drift-lane.md",
+                "title": "IP-005-upstream-api-drift-lane: Nightly upstream-OpenAPI drift detection",
+                "status": "pending approval",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": "",
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "IP-006-tos-policy-audit-chain",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-006-tos-policy-audit-chain.md",
+                "title": "IP-006-tos-policy-audit-chain: ToS-acknowledgment policy + pool-routing audit emission",
+                "status": "pending approval",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": "",
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M02-P02",
+            "slug": "P02-visibility-operator-plane",
+            "path": ".omc/plans/milestones/M02-foundry-preview/phases/P02-visibility-operator-plane",
+            "index": ".omc/plans/milestones/M02-foundry-preview/phases/P02-visibility-operator-plane/INDEX.md",
+            "title": "Read-Only Visibility / Operator Plane",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M02-P02-IP-001",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-visibility-operator-plane/IP-001-readonly-api-kernel.md",
+                "title": "Read-only REST + WS API kernel",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P02-IP-002",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-visibility-operator-plane/IP-002-dashboard-svelte.md",
+                "title": "SvelteKit dashboard (distroless image per Directive 5)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P02-IP-003",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P02-visibility-operator-plane/IP-003-dry-run-surface.md",
+                "title": "Dry-run surface (what-if analysis)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M02-P03",
+            "slug": "P03-gates-validators-evidence",
+            "path": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence",
+            "index": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/INDEX.md",
+            "title": "Gates / Validators / Evidence Templates",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M02-P03-IP-001",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/IP-001-phase00-evidence-validator.md",
+                "title": "Phase 00 evidence validator",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P03-IP-002",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/IP-002-foundry-fitness-lane-ratchet.md",
+                "title": "Foundry-fitness lane ratchet (7 lanes WARN→BLOCK)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P03-IP-003",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/IP-003-adr-template-bypass-ledger.md",
+                "title": "ADR template + foundation-bypass ledger",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M02-P04",
+            "slug": "P04-transport-parity-write-gates",
+            "path": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates",
+            "index": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/INDEX.md",
+            "title": "Transport Parity + Write-Gate Foundations",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M02-P04-IP-001",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/IP-001-rest-graphql-transports.md",
+                "title": "REST + GraphQL API transports",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P04-IP-002",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/IP-002-sse-websocket-transports.md",
+                "title": "SSE + WebSocket subscription transports",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P04-IP-003",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P04-transport-parity-write-gates/IP-003-write-gate-foundations.md",
+                "title": "Write-gate foundations ADR + state machine",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M02-P05",
+            "slug": "P05-capability-registry-autonomy",
+            "path": ".omc/plans/milestones/M02-foundry-preview/phases/P05-capability-registry-autonomy",
+            "index": ".omc/plans/milestones/M02-foundry-preview/phases/P05-capability-registry-autonomy/INDEX.md",
+            "title": "Capability Registry + Autonomy Ceiling + RAG Endpoint",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M02-P05-IP-001",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P05-capability-registry-autonomy/IP-001-capability-registry.md",
+                "title": "Capability registry kernel + publish surface",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P05-IP-002",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P05-capability-registry-autonomy/IP-002-autonomy-ceiling.md",
+                "title": "Autonomy ceiling Cedar policy + runtime check",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M02-P05-IP-003",
+                "file": ".omc/plans/milestones/M02-foundry-preview/phases/P05-capability-registry-autonomy/IP-003-rag-endpoint.md",
+                "title": "RAG endpoint exposed to Foundry-internal capabilities",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "M02-substrate",
+        "slug": "M02-substrate",
+        "path": ".omc/plans/milestones/M02-substrate",
+        "index": ".omc/plans/milestones/M02-substrate/INDEX.md",
+        "readme": ".omc/plans/milestones/M02-substrate/README.md",
+        "title": "Substrate",
+        "status": "indexed-from-existing-phases",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 22,
+        "implementation_plan_count": 0,
+        "phases": [
+          {
+            "id": "P01-foundry-engine-consolidation",
+            "slug": "P01-foundry-engine-consolidation",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P01-foundry-engine-consolidation",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P01-foundry-engine-consolidation/INDEX.md",
+            "title": "Foundry Engine Consolidation",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P02-ontology",
+            "slug": "P02-ontology",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P02-ontology",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P02-ontology/INDEX.md",
+            "title": "Ontology",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P03-identity",
+            "slug": "P03-identity",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P03-identity",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P03-identity/INDEX.md",
+            "title": "Identity",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P04-audit-chain",
+            "slug": "P04-audit-chain",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P04-audit-chain",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P04-audit-chain/INDEX.md",
+            "title": "Audit Chain",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P05-eventing",
+            "slug": "P05-eventing",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P05-eventing",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P05-eventing/INDEX.md",
+            "title": "Eventing",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P06-secrets",
+            "slug": "P06-secrets",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P06-secrets",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P06-secrets/INDEX.md",
+            "title": "Secrets",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P07-observability",
+            "slug": "P07-observability",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P07-observability",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P07-observability/INDEX.md",
+            "title": "Observability",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P08-kms",
+            "slug": "P08-kms",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P08-kms",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P08-kms/INDEX.md",
+            "title": "Kms",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P09-search",
+            "slug": "P09-search",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P09-search",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P09-search/INDEX.md",
+            "title": "Search",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P10-vector",
+            "slug": "P10-vector",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P10-vector",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P10-vector/INDEX.md",
+            "title": "Vector",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P11-finance-library",
+            "slug": "P11-finance-library",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P11-finance-library",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P11-finance-library/INDEX.md",
+            "title": "Finance Library",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P12-workflow-engine",
+            "slug": "P12-workflow-engine",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P12-workflow-engine",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P12-workflow-engine/INDEX.md",
+            "title": "Workflow Engine",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P13-tenancy",
+            "slug": "P13-tenancy",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P13-tenancy",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P13-tenancy/INDEX.md",
+            "title": "Tenancy",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P14-policy",
+            "slug": "P14-policy",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P14-policy",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P14-policy/INDEX.md",
+            "title": "Policy",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P15-data-boundary",
+            "slug": "P15-data-boundary",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P15-data-boundary",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P15-data-boundary/INDEX.md",
+            "title": "Data Boundary",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P16-records",
+            "slug": "P16-records",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P16-records",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P16-records/INDEX.md",
+            "title": "Records",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P17-capability-registry",
+            "slug": "P17-capability-registry",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P17-capability-registry",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P17-capability-registry/INDEX.md",
+            "title": "Capability Registry",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P18-cloud-tenancy",
+            "slug": "P18-cloud-tenancy",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P18-cloud-tenancy",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P18-cloud-tenancy/INDEX.md",
+            "title": "Cloud Tenancy",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P19-application",
+            "slug": "P19-application",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P19-application",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P19-application/INDEX.md",
+            "title": "Application",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P20-ci-lanes-operational",
+            "slug": "P20-ci-lanes-operational",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P20-ci-lanes-operational",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P20-ci-lanes-operational/INDEX.md",
+            "title": "Ci Lanes Operational",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P21-architecture-planes-green",
+            "slug": "P21-architecture-planes-green",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P21-architecture-planes-green",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P21-architecture-planes-green/INDEX.md",
+            "title": "Architecture Planes Green",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P22-m02-exit-gate",
+            "slug": "P22-m02-exit-gate",
+            "path": ".omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate",
+            "index": ".omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/INDEX.md",
+            "title": "M02 Exit Gate",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          }
+        ]
+      },
+      {
+        "id": "M03",
+        "slug": "M03-cloud-saas-search-workspace-preview",
+        "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview",
+        "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/INDEX.md",
+        "readme": null,
+        "title": "Cloud + SaaS + Search + Workspace Preview (4-way parallel)",
+        "status": "gated on M02",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 8,
+        "implementation_plan_count": 30,
+        "phases": [
+          {
+            "id": "M03-P01",
+            "slug": "P01-cloud-foundations",
+            "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations",
+            "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+            "title": "Cloud Foundations (KMS / Storage / Network / IAM / Region / Cell)",
+            "status": "partial (in-flight)",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 5,
+            "implementation_plans": [
+              {
+                "id": "M03-P01-IP-001",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-001-kms-api-adapters.md",
+                "title": "Cloud KMS provider-agnostic API + adapter set",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P01-IP-002",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-002-storage-api-adapters.md",
+                "title": "Cloud Storage object + block API + adapter set",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P01-IP-003",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-003-network-api-adapters.md",
+                "title": "Cloud Network VPC + LB + DNS + CDN + interconnect API",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P01-IP-004",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-004-iam-cedar-sso-sts.md",
+                "title": "Cloud IAM Cedar + SSO + STS API",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P01-IP-005",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/IP-005-region-az-cell-taxonomy.md",
+                "title": "Cloud region + AZ + cell taxonomy",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M03-P02",
+            "slug": "P02-cloud-compute",
+            "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute",
+            "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/INDEX.md",
+            "title": "Cloud Compute (VM / K8s / Functions / Capacity / DC-Ops)",
+            "status": "partial (in-flight)",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M03-P02-IP-001",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-001-vm-api-adapters.md",
+                "title": "Cloud Compute VM API + provider-agnostic adapters",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P02-IP-002",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-002-k8s-functions-api.md",
+                "title": "Cloud Compute K8s + Functions API",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P02-IP-003",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/IP-003-capacity-management.md",
+                "title": "Capacity management (reserved / committed-use / spot)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M03-P03",
+            "slug": "P03-cloud-data-billing-observability",
+            "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability",
+            "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability/INDEX.md",
+            "title": "Cloud Data + Billing + Observability + FinOps + Marketplace",
+            "status": "partial (in-flight)",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 5,
+            "implementation_plans": [
+              {
+                "id": "M03-P03-IP-001",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability/IP-001-cloud-data-adapters.md",
+                "title": "Cloud Data services kernel + adapters",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P03-IP-002",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability/IP-002-billing-tax-metering.md",
+                "title": "Cloud Billing tax-invoice + metering",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P03-IP-003",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability/IP-003-observability-otel.md",
+                "title": "Cloud Observability audit-read + OpenTelemetry",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P03-IP-004",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability/IP-004-finops-report.md",
+                "title": "Cloud FinOps report + anomaly detection",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P03-IP-005",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability/IP-005-marketplace-isv.md",
+                "title": "Cloud Marketplace ISV onboarding",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M03-P04",
+            "slug": "P04-saas-platform-preview",
+            "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P04-saas-platform-preview",
+            "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P04-saas-platform-preview/INDEX.md",
+            "title": "SaaS Platform Preview (Workflow Engine + Plugin Substrate + Marketplace)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M03-P04-IP-001",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P04-saas-platform-preview/IP-001-workflow-engine.md",
+                "title": "Workflow engine kernel + jurisdiction overlay (regional packs)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P04-IP-002",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P04-saas-platform-preview/IP-002-plugin-substrate.md",
+                "title": "Plugin substrate Wasmtime + Cosign signing",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P04-IP-003",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P04-saas-platform-preview/IP-003-marketplace-listing.md",
+                "title": "Marketplace listing + trust-tier publishing",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M03-P05",
+            "slug": "P05-search-preview",
+            "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P05-search-preview",
+            "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P05-search-preview/INDEX.md",
+            "title": "Search Preview (pgroonga + Morphology + pgvector + RAG)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M03-P05-IP-001",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P05-search-preview/IP-001-pgroonga-morphology.md",
+                "title": "pgroonga inverted index + KR/JP/EN morphology",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P05-IP-002",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P05-search-preview/IP-002-pgvector-tenant-private.md",
+                "title": "pgvector vector index + tenant-private indexes",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P05-IP-003",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P05-search-preview/IP-003-rag-endpoint-data-boundary.md",
+                "title": "RAG endpoint to Foundry + data boundary enforcement",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M03-P06",
+            "slug": "P06-workspace-14-surfaces",
+            "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces",
+            "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/INDEX.md",
+            "title": "Workspace Axis (14 surfaces — Mail, Calendar, Drive, Meet, Chat, +9 more)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 5,
+            "implementation_plans": [
+              {
+                "id": "M03-P06-IP-001",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/IP-001-mail-calendar.md",
+                "title": "Mail + Calendar (SMTP/IMAP/JMAP/CalDAV)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P06-IP-002",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/IP-002-docs-sheets-slides-sites.md",
+                "title": "Docs + Sheets + Slides + Sites (Yrs CRDT)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P06-IP-003",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/IP-003-drive-kms-shred.md",
+                "title": "Drive + KMS-shred",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P06-IP-004",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/IP-004-meet-chat-recordings.md",
+                "title": "Meet + Chat + Recordings",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P06-IP-005",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/IP-005-forms-address-tasks-notes-translate.md",
+                "title": "Forms + Address-Book + Tasks + Notes + Translate + Recordings",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M03-P07",
+            "slug": "P07-regional-pack-onboarding",
+            "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding",
+            "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/INDEX.md",
+            "title": "Regional Pack Onboarding (KR + one of JP/US/EU)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M03-P07-IP-001",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/IP-001-kr-pack.md",
+                "title": "KR pack onboarding (PIPA / CSAP / K-ISMS-P / KCMVP seam)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P07-IP-002",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/IP-002-second-pack.md",
+                "title": "Second pack onboarding (JP/US/EU — council-elected)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M03-P08",
+            "slug": "P08-cross-axis-contracts",
+            "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts",
+            "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/INDEX.md",
+            "title": "Cross-Axis Contract Registry + Fitness Lanes",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 4,
+            "implementation_plans": [
+              {
+                "id": "M03-P08-IP-001",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-001-saas-pairs.md",
+                "title": "SaaS↔Cloud + SaaS↔Search + SaaS↔Agent-runtime contracts",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P08-IP-002",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-002-cloud-pairs.md",
+                "title": "Cloud↔Agent-runtime + Cloud↔Search + Cloud↔Ads contracts",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P08-IP-003",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-003-search-ads-pairs.md",
+                "title": "Search↔Ads + Search↔Agent-runtime + Ads↔Agent-runtime contracts",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M03-P08-IP-004",
+                "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-004-vertical-workspace-pairs.md",
+                "title": "Vertical↔others + Workspace↔others contracts",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "M03-first-tenant",
+        "slug": "M03-first-tenant",
+        "path": ".omc/plans/milestones/M03-first-tenant",
+        "index": ".omc/plans/milestones/M03-first-tenant/INDEX.md",
+        "readme": ".omc/plans/milestones/M03-first-tenant/README.md",
+        "title": "First Tenant",
+        "status": "indexed-from-existing-phases",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 8,
+        "implementation_plan_count": 0,
+        "phases": [
+          {
+            "id": "P01-hr",
+            "slug": "P01-hr",
+            "path": ".omc/plans/milestones/M03-first-tenant/phases/P01-hr",
+            "index": ".omc/plans/milestones/M03-first-tenant/phases/P01-hr/INDEX.md",
+            "title": "Hr",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P02-payroll",
+            "slug": "P02-payroll",
+            "path": ".omc/plans/milestones/M03-first-tenant/phases/P02-payroll",
+            "index": ".omc/plans/milestones/M03-first-tenant/phases/P02-payroll/INDEX.md",
+            "title": "Payroll",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P03-accounting",
+            "slug": "P03-accounting",
+            "path": ".omc/plans/milestones/M03-first-tenant/phases/P03-accounting",
+            "index": ".omc/plans/milestones/M03-first-tenant/phases/P03-accounting/INDEX.md",
+            "title": "Accounting",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P04-connect-pro-mail",
+            "slug": "P04-connect-pro-mail",
+            "path": ".omc/plans/milestones/M03-first-tenant/phases/P04-connect-pro-mail",
+            "index": ".omc/plans/milestones/M03-first-tenant/phases/P04-connect-pro-mail/INDEX.md",
+            "title": "Connect Pro Mail",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P05-connect-pro-messenger",
+            "slug": "P05-connect-pro-messenger",
+            "path": ".omc/plans/milestones/M03-first-tenant/phases/P05-connect-pro-messenger",
+            "index": ".omc/plans/milestones/M03-first-tenant/phases/P05-connect-pro-messenger/INDEX.md",
+            "title": "Connect Pro Messenger",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P06-application-b2b-live",
+            "slug": "P06-application-b2b-live",
+            "path": ".omc/plans/milestones/M03-first-tenant/phases/P06-application-b2b-live",
+            "index": ".omc/plans/milestones/M03-first-tenant/phases/P06-application-b2b-live/INDEX.md",
+            "title": "Application B2B Live",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P07-workflow-studio-editor",
+            "slug": "P07-workflow-studio-editor",
+            "path": ".omc/plans/milestones/M03-first-tenant/phases/P07-workflow-studio-editor",
+            "index": ".omc/plans/milestones/M03-first-tenant/phases/P07-workflow-studio-editor/INDEX.md",
+            "title": "Workflow Studio Editor",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          },
+          {
+            "id": "P08-kr-acceptance-evidence",
+            "slug": "P08-kr-acceptance-evidence",
+            "path": ".omc/plans/milestones/M03-first-tenant/phases/P08-kr-acceptance-evidence",
+            "index": ".omc/plans/milestones/M03-first-tenant/phases/P08-kr-acceptance-evidence/INDEX.md",
+            "title": "Kr Acceptance Evidence",
+            "status": "indexed-from-existing-ips",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 0,
+            "implementation_plans": []
+          }
+        ]
+      },
+      {
+        "id": "M04",
+        "slug": "M04-vertical-pilot-korea",
+        "path": ".omc/plans/milestones/M04-vertical-pilot-korea",
+        "index": ".omc/plans/milestones/M04-vertical-pilot-korea/INDEX.md",
+        "readme": null,
+        "title": "Vertical-Pilot (Korea-first design-partner pack)",
+        "status": "gated on M03",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 4,
+        "implementation_plan_count": 12,
+        "phases": [
+          {
+            "id": "M04-P01",
+            "slug": "P01-vertical-capability-pack",
+            "path": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P01-vertical-capability-pack",
+            "index": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P01-vertical-capability-pack/INDEX.md",
+            "title": "Vertical Election + Capability Pack Authoring",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M04-P01-IP-001",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P01-vertical-capability-pack/IP-001-council-resolution.md",
+                "title": "Council resolution + vertical election",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M04-P01-IP-002",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P01-vertical-capability-pack/IP-002-capability-pack-kernel.md",
+                "title": "Capability pack kernel (oya-vertical-<elected>-pack-kernel)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M04-P01-IP-003",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P01-vertical-capability-pack/IP-003-vertical-workflows.md",
+                "title": "Per-vertical workflows + entity definitions",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M04-P02",
+            "slug": "P02-kr-regulatory-binding",
+            "path": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding",
+            "index": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/INDEX.md",
+            "title": "KR Regulatory Pack Binding (PIPA + CSAP + K-ISMS-P + KCMVP)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M04-P02-IP-001",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/IP-001-pipa-csap-evidence.md",
+                "title": "PIPA + CSAP control evidence pack",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M04-P02-IP-002",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/IP-002-isms-p-kcmvp-hsm.md",
+                "title": "K-ISMS-P + KCMVP HSM operational",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M04-P02-IP-003",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/IP-003-kr-vertical-surfaces.md",
+                "title": "KR vertical-specific surfaces (전자세금계산서 / 휴일·야간 근로 / 실명인증 / 사업자등록)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M04-P03",
+            "slug": "P03-design-partner-onboarding",
+            "path": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P03-design-partner-onboarding",
+            "index": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P03-design-partner-onboarding/INDEX.md",
+            "title": "Design-Partner Tenant Onboarding + Workflow Authoring",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M04-P03-IP-001",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P03-design-partner-onboarding/IP-001-tenant-onboarding.md",
+                "title": "Tenant onboarding via Workflow Studio",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M04-P03-IP-002",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P03-design-partner-onboarding/IP-002-tenant-workflows.md",
+                "title": "Tenant-specific workflow authoring",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M04-P03-IP-003",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P03-design-partner-onboarding/IP-003-foundry-agents-activation.md",
+                "title": "Foundry agents activation under autonomy ceiling",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M04-P04",
+            "slug": "P04-evidence-retention-audit",
+            "path": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P04-evidence-retention-audit",
+            "index": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P04-evidence-retention-audit/INDEX.md",
+            "title": "Evidence Collection + Retention Measurement + Audit Pack",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M04-P04-IP-001",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P04-evidence-retention-audit/IP-001-evidence-pipeline.md",
+                "title": "Continuous evidence collection pipeline",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M04-P04-IP-002",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P04-evidence-retention-audit/IP-002-retention-kpi.md",
+                "title": "Retention measurement + KPI dashboard",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M04-P04-IP-003",
+                "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P04-evidence-retention-audit/IP-003-audit-pack-generator.md",
+                "title": "Regulator audit-pack generator",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "M05",
+        "slug": "M05-cloud-search-stable",
+        "path": ".omc/plans/milestones/M05-cloud-search-stable",
+        "index": ".omc/plans/milestones/M05-cloud-search-stable/INDEX.md",
+        "readme": null,
+        "title": "Cloud-Stable + Search-Stable",
+        "status": "gated on M04",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 4,
+        "implementation_plan_count": 10,
+        "phases": [
+          {
+            "id": "M05-P01",
+            "slug": "P01-cloud-stable-ga",
+            "path": ".omc/plans/milestones/M05-cloud-search-stable/phases/P01-cloud-stable-ga",
+            "index": ".omc/plans/milestones/M05-cloud-search-stable/phases/P01-cloud-stable-ga/INDEX.md",
+            "title": "Cloud-Stable GA (Marketplace + ISV + Multi-AZ + FinOps)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M05-P01-IP-001",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P01-cloud-stable-ga/IP-001-public-marketplace-isv.md",
+                "title": "Public-GA marketplace + ISV onboarding",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M05-P01-IP-002",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P01-cloud-stable-ga/IP-002-multi-az-failover.md",
+                "title": "Multi-AZ failover automation + quarterly drill",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M05-P01-IP-003",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P01-cloud-stable-ga/IP-003-finops-public.md",
+                "title": "FinOps surface public-facing",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M05-P02",
+            "slug": "P02-search-stable-ga",
+            "path": ".omc/plans/milestones/M05-cloud-search-stable/phases/P02-search-stable-ga",
+            "index": ".omc/plans/milestones/M05-cloud-search-stable/phases/P02-search-stable-ga/INDEX.md",
+            "title": "Search-Stable GA (Crawler + Freshness + KG + SERP + Sponsored-Slot Infra)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M05-P02-IP-001",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P02-search-stable-ga/IP-001-crawler-freshness.md",
+                "title": "Public web crawler + freshness pipeline",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M05-P02-IP-002",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P02-search-stable-ga/IP-002-kg-serp.md",
+                "title": "Knowledge graph + SERP rendering",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M05-P02-IP-003",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P02-search-stable-ga/IP-003-sponsored-slot-infra.md",
+                "title": "Sponsored-slot infrastructure (serving off)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M05-P03",
+            "slug": "P03-regulator-attestation",
+            "path": ".omc/plans/milestones/M05-cloud-search-stable/phases/P03-regulator-attestation",
+            "index": ".omc/plans/milestones/M05-cloud-search-stable/phases/P03-regulator-attestation/INDEX.md",
+            "title": "Regulator Attestation Per Region in Scope",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M05-P03-IP-001",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P03-regulator-attestation/IP-001-kr-attestation-production.md",
+                "title": "KR CSAP + K-ISMS-P + KCMVP production attestation",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M05-P03-IP-002",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P03-regulator-attestation/IP-002-second-region-attestation.md",
+                "title": "Second-region attestation (JP/US/EU per council)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M05-P04",
+            "slug": "P04-sla-slo-commitment",
+            "path": ".omc/plans/milestones/M05-cloud-search-stable/phases/P04-sla-slo-commitment",
+            "index": ".omc/plans/milestones/M05-cloud-search-stable/phases/P04-sla-slo-commitment/INDEX.md",
+            "title": "Cloud SLA + Search SLO Public Commitment",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M05-P04-IP-001",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P04-sla-slo-commitment/IP-001-cloud-sla.md",
+                "title": "Cloud SLA public commitment + uphold-or-credit policy",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M05-P04-IP-002",
+                "file": ".omc/plans/milestones/M05-cloud-search-stable/phases/P04-sla-slo-commitment/IP-002-search-slo.md",
+                "title": "Search SLO public commitment",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "M06",
+        "slug": "M06-ads-vertical-fanout",
+        "path": ".omc/plans/milestones/M06-ads-vertical-fanout",
+        "index": ".omc/plans/milestones/M06-ads-vertical-fanout/INDEX.md",
+        "readme": null,
+        "title": "Ads-Preview + Vertical-Fan-Out",
+        "status": "gated on M05",
+        "doc_class": "MilestoneIndex",
+        "phase_count": 4,
+        "implementation_plan_count": 11,
+        "phases": [
+          {
+            "id": "M06-P01",
+            "slug": "P01-ads-preview-internal-auction",
+            "path": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P01-ads-preview-internal-auction",
+            "index": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P01-ads-preview-internal-auction/INDEX.md",
+            "title": "Ads-Preview Internal Auction + Advertiser Console",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 3,
+            "implementation_plans": [
+              {
+                "id": "M06-P01-IP-001",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P01-ads-preview-internal-auction/IP-001-auction-bidding.md",
+                "title": "Auction kernel + bidding engine",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M06-P01-IP-002",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P01-ads-preview-internal-auction/IP-002-advertiser-console.md",
+                "title": "Advertiser console (tenant-internal)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M06-P01-IP-003",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P01-ads-preview-internal-auction/IP-003-ml-isolation.md",
+                "title": "ML training loop with cross-tenant isolation",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M06-P02",
+            "slug": "P02-vertical-fanout-13",
+            "path": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P02-vertical-fanout-13",
+            "index": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P02-vertical-fanout-13/INDEX.md",
+            "title": "Vertical-Fan-Out (13 verticals in parallel)",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 4,
+            "implementation_plans": [
+              {
+                "id": "M06-P02-IP-001",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P02-vertical-fanout-13/IP-001-healthcare-industrial-logistics.md",
+                "title": "Healthcare + Industrial + Logistics verticals (3 packs)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M06-P02-IP-002",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P02-vertical-fanout-13/IP-002-fintech-legal-retail.md",
+                "title": "Fintech + Legal + Retail verticals (3 packs)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M06-P02-IP-003",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P02-vertical-fanout-13/IP-003-education-public-hospitality.md",
+                "title": "Education + Public-Sector + Hospitality verticals (3 packs)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M06-P02-IP-004",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P02-vertical-fanout-13/IP-004-construction-real-estate-agri-food.md",
+                "title": "Construction + Real-Estate + Agriculture + Food verticals (4 packs)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M06-P03",
+            "slug": "P03-per-vertical-regulatory",
+            "path": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P03-per-vertical-regulatory",
+            "index": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P03-per-vertical-regulatory/INDEX.md",
+            "title": "Per-Vertical Regulatory Binding",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M06-P03-IP-001",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P03-per-vertical-regulatory/IP-001-dpia-per-vertical.md",
+                "title": "DPIA template + per-vertical authoring (13 verticals)",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M06-P03-IP-002",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P03-per-vertical-regulatory/IP-002-per-vertical-regulator.md",
+                "title": "Per-vertical regulator binding evidence",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M06-P04",
+            "slug": "P04-analytics-warehouse-streaming",
+            "path": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P04-analytics-warehouse-streaming",
+            "index": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P04-analytics-warehouse-streaming/INDEX.md",
+            "title": "Analytics Warehouse + Streaming + DP-Bounded Reports",
+            "status": "stub",
+            "doc_class": "PhaseIndex",
+            "implementation_plan_count": 2,
+            "implementation_plans": [
+              {
+                "id": "M06-P04-IP-001",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P04-analytics-warehouse-streaming/IP-001-event-warehouse.md",
+                "title": "Analytics event ingestion + warehouse",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              },
+              {
+                "id": "M06-P04-IP-002",
+                "file": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P04-analytics-warehouse-streaming/IP-002-streaming-dp-reports.md",
+                "title": "Streaming + DP-bounded reports",
+                "status": "stub",
+                "doc_class": "ImplementationPlan",
+                "execution_unit": "ChangeSet",
+                "changeset_contract": "claimable-verifiable-bundleable-promotable",
+                "changeset_split_rule": "split-before-execution-if-unrelated-lock-scope-or-deployable",
+                "final_shape_compliance": "true",
+                "dependency_additions": [],
+                "source_plan": null,
+                "source_spec": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
