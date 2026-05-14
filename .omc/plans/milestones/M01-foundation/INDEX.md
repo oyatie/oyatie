@@ -18,6 +18,8 @@ Every cross-axis contract correct from day one. Tenancy µservice kernel, identi
 ## Status
 **open.** No product surface (Foundry, Cloud, SaaS, Workspace, Search) may merge to `main` until this milestone passes.
 
+Current evidence checkpoint (2026-05-14): P01/P02 phase indexes are complete; P03 is in-flight; P04/P05/P06 have focused package probes green but remain acceptance-blocked until the milestone-wide gates below are real. `scripts/check.sh` is still blocked by the missing `scripts/check-stage0-application-shell-prereqs.py`, so this checkpoint is not M01 completion.
+
 ## Scope
 Per [`docs/ROADMAP.md`](../../../../docs/ROADMAP.md) §2.1 W-Foundation gate criteria + the 10 compound principles from [`../../MASTERPLAN.md`](../../MASTERPLAN.md) §2. Foundation µservice crates target the BNF v4.1 names: `oya-tenancy-*`, `oya-identity-*`, `oya-audit-chain-*`, `oya-eventing-*`, `oya-cell-*`, `oya-regional-pack-*`, etc. (no `oya-platform-*` prefix).
 
@@ -41,12 +43,12 @@ None (M01 is the root of the dependency graph). Depends only on M-CC-P01 (agenti
 ## Phases
 | ID | Title | Status | Index |
 |---|---|---|---|
-| P01 | Data Use Boundary + Tenancy Kernel | stub | [`phases/P01-data-use-boundary-tenancy/INDEX.md`](phases/P01-data-use-boundary-tenancy/INDEX.md) |
-| P02 | Identity Kernel + Cedar Policy Substrate | stub | [`phases/P02-identity-cedar/INDEX.md`](phases/P02-identity-cedar/INDEX.md) |
-| P03 | Audit Chain + Evidence Emission | stub | [`phases/P03-audit-chain-evidence/INDEX.md`](phases/P03-audit-chain-evidence/INDEX.md) |
-| P04 | Eventing Backbone + Outbox + Object Graph | stub | [`phases/P04-eventing-object-graph/INDEX.md`](phases/P04-eventing-object-graph/INDEX.md) |
-| P05 | Cell Architecture + Plane Separation Enforcement | stub | [`phases/P05-cell-plane/INDEX.md`](phases/P05-cell-plane/INDEX.md) |
-| P06 | Regional Pack Architecture + Flattening Ratchet | stub | [`phases/P06-regional-pack-flattening/INDEX.md`](phases/P06-regional-pack-flattening/INDEX.md) |
+| P01 | Data Use Boundary + Tenancy Kernel | complete | [`phases/P01-data-use-boundary-tenancy/INDEX.md`](phases/P01-data-use-boundary-tenancy/INDEX.md) |
+| P02 | Identity Kernel + Cedar Policy Substrate | complete | [`phases/P02-identity-cedar/INDEX.md`](phases/P02-identity-cedar/INDEX.md) |
+| P03 | Audit Chain + Evidence Emission | in-flight | [`phases/P03-audit-chain-evidence/INDEX.md`](phases/P03-audit-chain-evidence/INDEX.md) |
+| P04 | Eventing Backbone + Outbox + Object Graph | probe-green / acceptance-blocked | [`phases/P04-eventing-object-graph/INDEX.md`](phases/P04-eventing-object-graph/INDEX.md) |
+| P05 | Cell Architecture + Plane Separation Enforcement | probe-green / acceptance-blocked | [`phases/P05-cell-plane/INDEX.md`](phases/P05-cell-plane/INDEX.md) |
+| P06 | Regional Pack Architecture + Flattening Ratchet | probe-green / acceptance-blocked | [`phases/P06-regional-pack-flattening/INDEX.md`](phases/P06-regional-pack-flattening/INDEX.md) |
 
 ## Parallelism strategy
 P01..P06 partition by µservice with disjoint crate sets, so up to 6 phases can run as parallel batches in two waves: **G1** = {P01, P02, P03} (foundational µservice kernels: tenancy, identity, audit-chain); **G2** = {P04, P05, P06} (consume G1 ports: eventing+ontology, cell+plane, regional-pack+flattening; can fan out once G1 ≥ 50% merged). Target: 3–5 agents per active phase; ≤ 5 concurrent IPs per phase.
