@@ -4,9 +4,9 @@
   "_meta": { "emitter": "oya-dev-cli gate validate cedar-fragment-coverage", "registry_path": ".omc/registries/cedar-fragments.json" },
   "outcome": "success",
   "rows_seen": 7,
-  "openapi_references_seen": 0,
+  "openapi_references_seen": 6,
   "bc_references_seen": 7,
   "cedar_files_seen": 0,
   "violation_count": 0,
-  "validation_duration_ms": 14
+  "validation_duration_ms": 17
 }

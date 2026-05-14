@@ -230,19 +230,22 @@ fn read_openapi_references(contracts_dir: &Path) -> Result<BTreeSet<String>, Str
     Ok(references)
 }
 
-/// Scan YAML text for `cedar_fragments:` arrays. Supports two YAML forms:
-///   1. inline flow: `cedar_fragments: [foo, bar, baz]`
-///   2. block list:
-///        cedar_fragments:
-///          - foo
-///          - bar
-/// References that look like schema-property declarations (followed by
-/// `type:` rather than items) are ignored.
+/// Scan YAML text for fragment-reference arrays. Recognizes both forms:
+///   - `cedar_fragments: [...]` (kernel-shape, for Surface.cedar_fragments[])
+///   - `x-cedar-fragments: [...]` (OpenAPI extension at route/operation level)
+///
+/// Each supports inline flow `[a, b, c]` and block list `- item` syntax.
+/// Schema-property declarations (where the next non-blank line is `type: array`
+/// or similar) are ignored.
 fn scan_yaml_cedar_fragments(text: &str, out: &mut BTreeSet<String>) {
+    const PREFIXES: [&str; 2] = ["cedar_fragments:", "x-cedar-fragments:"];
     let mut lines = text.lines().peekable();
     while let Some(line) = lines.next() {
         let trimmed = line.trim_start();
-        let Some(rest) = trimmed.strip_prefix("cedar_fragments:") else {
+        let Some(rest) = PREFIXES
+            .iter()
+            .find_map(|p| trimmed.strip_prefix(p))
+        else {
             continue;
         };
         let rest_trimmed = rest.trim();
@@ -438,6 +441,16 @@ mod tests {
         assert_eq!(out.len(), 2);
         assert!(out.contains("alpha"));
         assert!(out.contains("beta"));
+    }
+
+    #[test]
+    fn scan_yaml_recognizes_openapi_extension_prefix() {
+        let yaml = "paths:\n  /workspace:\n    get:\n      x-cedar-fragments: [ops-internal-public, ops-tenant-public]\n";
+        let mut out = BTreeSet::new();
+        scan_yaml_cedar_fragments(yaml, &mut out);
+        assert_eq!(out.len(), 2);
+        assert!(out.contains("ops-internal-public"));
+        assert!(out.contains("ops-tenant-public"));
     }
 
     #[test]
