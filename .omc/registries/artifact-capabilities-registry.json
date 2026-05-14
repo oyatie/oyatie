@@ -673,15 +673,34 @@
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
-          "checker_crate": "crates/oya-check-active-artifact-contract",
-          "command": "oya gate validate active-artifact-contract"
+          "checker_crate": "crates/oya-check-cedar-fragment-coverage",
+          "command": "oya gate validate cedar-fragment-coverage"
         },
         "enforcement": {
-          "lane_id": "lean-a-cedar-fragment-coverage (planned)"
+          "lane_id": "lean-a-cedar-fragment-coverage"
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
           "last_modified_at": "2026-05-13T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "oya-check-cedar-fragment-coverage-manifest",
+      "artifact_path": "crates/oya-check-cedar-fragment-coverage/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture",
+      "purpose_short": "Cargo manifest for the cedar-fragment-coverage check kernel (std-only). Validates C01-C04 invariants from cedar-fragments-registry. Backs lean-a-cedar-fragment-coverage lane.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
     }

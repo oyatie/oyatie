@@ -476,10 +476,18 @@ lanes:
     runtime_budget_seconds: 300
   - id: lean-a-active-artifact-contract
     stage: per-pr
-    status: active
-    severity: blocker
+    status: planned
+    severity: report-only
     owner_team: council-architecture
-    purpose: every row in .omc/registries/artifact-capabilities-registry.json has its artifact_path HEAD-tracked and a unique artifact_id (per ADR-0069 v3.0.0 + full-consensus-planner-v3 §5 VL slice). Subcommand wired in oya-dev-cli; failing fixture at crates/oya-dev-cli/tests/fixtures/missing-row-registry.json proves R01 + R02 violations exit-1. Future iteration extends to full 9-capability spec/status reconcile per consensus-v3 amendment #5.
-    source: ADR-0069
+    purpose: every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; planned until oya-dev-cli gate validate active-artifact-contract is wired and scripts/check.sh enforces it
+    source: ADR-0089
     runtime_budget_seconds: 60
-    check_command: cargo run -p oya-dev-cli -- gate validate active-artifact-contract
+  - id: lean-a-cedar-fragment-coverage
+    stage: per-pr
+    status: planned
+    severity: report-only
+    owner_team: council-architecture
+    purpose: enforces invariants C01..C04 from .omc/registries/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; planned until scripts/check.sh invokes oya-dev-cli gate validate cedar-fragment-coverage
+    source: cedar-fragments-registry (commit f00ec87)
+    check_command: cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage
+    runtime_budget_seconds: 30
