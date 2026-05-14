@@ -836,6 +836,25 @@
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "oya-check-openapi-rest-route-parity-manifest",
+      "artifact_path": "crates/oya-check-openapi-rest-route-parity/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture",
+      "purpose_short": "Cargo manifest for openapi-rest-route-parity check kernel (std-only). Compares REST _ROUTE constants vs OpenAPI paths sets. Backs lean-a-openapi-rest-route-parity lane (active in scripts/check.sh).",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
     }
   ]
 }

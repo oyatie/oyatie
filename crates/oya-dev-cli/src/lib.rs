@@ -43,6 +43,7 @@ mod foundry_eval_gates;
 mod glossary_cross_doc_gates;
 mod governance_gates;
 mod json_scan;
+mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
 mod quality_lane_gates;
@@ -109,6 +110,9 @@ pub(crate) use json_scan::{
     extract_json_objects, find_matching_json_delimiter, json_field_has_non_empty_value,
     parse_json_string_array_field, parse_json_string_field, parse_json_string_value,
     quoted_json_len,
+};
+pub(crate) use openapi_rest_route_parity_gate::{
+    parse_openapi_rest_route_parity_validate_args, validate_openapi_rest_route_parity_gate,
 };
 pub(crate) use path_format::slash_path;
 pub(crate) use placeholder_debt_gates::{

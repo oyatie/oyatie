@@ -492,3 +492,12 @@ lanes:
     source: cedar-fragments-registry (commit f00ec87)
     check_command: cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage
     runtime_budget_seconds: 30
+  - id: lean-a-openapi-rest-route-parity
+    stage: per-pr
+    status: active
+    severity: report-only
+    owner_team: council-architecture
+    purpose: enforces 1:1 parity between `pub const *_ROUTE` constants in crates/oya-ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags
+    source: slice-J (commit pending)
+    check_command: cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity
+    runtime_budget_seconds: 30
