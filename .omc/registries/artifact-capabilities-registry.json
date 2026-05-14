@@ -662,6 +662,28 @@
           "last_modified_at": "2026-05-13T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "cedar-fragments-registry",
+      "artifact_path": ".omc/registries/cedar-fragments.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "Catalog of 7 Cedar policy fragments referenced by ops OpenAPI contracts. Drift gate: every cedar_fragments[] reference must resolve here; every Cedar file on disk must appear here.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "enforcement": {
+          "lane_id": "lean-a-cedar-fragment-coverage (planned)"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-13T00:00:00Z"
+        }
+      }
     }
   ]
 }
