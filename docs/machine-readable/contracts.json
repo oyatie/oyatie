@@ -20,7 +20,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-platform-tenant-kernel + crates/oya-platform-tenant-api + contracts/openapi/platform/platform-tenant-v1.yaml",
+      "location": "crates/oya-tenancy-kernel + crates/oya-tenancy-domain + contracts/openapi/platform/platform-tenant-v1.yaml",
       "change_review": "all-axis"
     },
     {
@@ -56,7 +56,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-platform-audit-chain-kernel + crates/oya-platform-audit-chain-app + contracts/proto/platform/audit/v1/audit-event-v1.proto + ADR-0003",
+      "location": "crates/oya-audit-chain-domain + crates/oya-audit-chain-application + crates/oya-audit-chain-file-adapter + contracts/proto/platform/audit/v1/audit-event-v1.proto + ADR-0003",
       "change_review": "audit + downstream"
     },
     {
@@ -114,8 +114,8 @@
         "vertical",
         "ads"
       ],
-      "location": "crates/oya-platform-object-graph-kernel + ADR-0006..0112 + crates/oya-platform-object-graph-api + contracts/openapi/platform/platform-object-graph-v1.yaml",
-      "change_review": "OG + Data-Use-Boundary"
+      "location": "crates/oya-ontology-domain + ADR-0006..0112 + contracts/openapi/platform/platform-object-graph-v1.yaml",
+      "change_review": "ontology + Data-Use-Boundary"
     },
     {
       "id": "SEARCH_INDEX_LIFECYCLE",
@@ -195,7 +195,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-platform-eventing-kernel + crates/oya-platform-eventing-app",
+      "location": "crates/oya-eventing-domain + crates/oya-eventing-application + crates/oya-eventing-file-adapter",
       "change_review": "cross-axis on topic shape"
     },
     {
@@ -290,7 +290,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-tenant-v1.yaml",
       "operation_id": "createPlatformTenant",
-      "runtime_crate": "oya-platform-tenant-api"
+      "runtime_crate": "oya-tenancy-kernel"
     },
     {
       "id": "identity.user.upsert",
@@ -321,12 +321,12 @@
       "axis": "platform_cross_cutting",
       "plane": "data",
       "kind": "REST + event",
-      "invariant": "engine-enforced row-level isolation per ADR-0006; data_class annotated",
+      "invariant": "engine-enforced row-level isolation per ADR-0006; data_class annotated; Ontology domain implementation per ADR-0055",
       "tier": "stable",
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/platform/platform-object-graph-v1.yaml",
       "operation_id": "upsertObjectGraphEntity",
-      "runtime_crate": "oya-platform-object-graph-api"
+      "runtime_crate": "oya-ontology-domain"
     },
     {
       "id": "dsr.cascade.execute",
@@ -351,7 +351,7 @@
       "contract_path": "contracts/asyncapi/platform/audit-events-v1.yaml",
       "message_id": "audit.event.emit.v1",
       "payload_schema": "contracts/proto/platform/audit/v1/audit-event-v1.proto",
-      "runtime_crate": "oya-platform-audit-chain-app"
+      "runtime_crate": "oya-audit-chain-application"
     },
     {
       "id": "eventing.outbox.publish",
@@ -364,7 +364,7 @@
       "contract_path": "contracts/asyncapi/platform/eventing-outbox-v1.yaml",
       "message_id": "eventing.outbox.publish.v1",
       "payload_schema": "contracts/proto/platform/eventing/v1/eventing-outbox-v1.proto",
-      "runtime_crate": "oya-platform-eventing-app"
+      "runtime_crate": "oya-eventing-application"
     },
     {
       "id": "metering.event.ingest",
