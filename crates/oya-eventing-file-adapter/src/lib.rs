@@ -149,6 +149,11 @@ fn map_eventing_error(error: EventingError) -> FileOutboxStoreError {
     match error {
         EventingError::InvalidOutboxHistory => FileOutboxStoreError::InvalidOutboxHistory,
         EventingError::EmptyTopic
+        | EventingError::EmptyTopicAxis
+        | EventingError::EmptyTopicDescription
+        | EventingError::InvalidTopicName
+        | EventingError::DuplicateTopic
+        | EventingError::TopicNotFound
         | EventingError::EmptyIdempotencyKey
         | EventingError::EmptyPayloadRef
         | EventingError::OutboxRecordNotFound => FileOutboxStoreError::MalformedRecord,
