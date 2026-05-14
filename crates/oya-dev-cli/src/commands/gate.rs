@@ -10,8 +10,38 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // missing-ledger, zero-window, or expired records return FAILURE.
         // An explicitly present ledger with zero records means no exception
         // exists.
-        // Tested by oya-tooling-cli-dev-runtime::gate_cli and
-        // oya-foundry-bypass-kernel::foundation_bypass.
+        // Tested by oya-dev-cli::gate_cli and
+        // oya-foundry-bypass-domain::foundation_bypass.
+        // active-artifact-contract: ADR-0069 v3.0.0 vertical enforcement loop.
+        // Validates that every row in .omc/registries/artifact-capabilities-registry.json
+        // (a) has its `artifact_path` HEAD-tracked per `git ls-files`, and
+        // (b) has a unique `artifact_id`.
+        // Optionally emits an evidence bundle and one graph-edge artifact per
+        // full-consensus-planner-v3 amendments #4/#9/#10.
+        (Some("validate"), Some("active-artifact-contract")) => {
+            match crate::parse_active_artifact_contract_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_active_artifact_contract_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "active-artifact-contract validation passed: {} rows, {} HEAD-tracked, {} graph edges, {} ms",
+                            report.rows_seen,
+                            report.head_tracked_count,
+                            report.graph_edges.len(),
+                            report.validation_duration_ms
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("active-artifact-contract validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("foundation-bypass")) => {
             match crate::parse_foundation_bypass_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_foundation_bypass_gate(args) {
@@ -153,7 +183,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::validate_adr_citation_gate(args) {
                     Ok((documents, citations, allowed_pack_adrs)) => {
                         println!(
-                            "ADR citation validation passed: {documents} documents, {citations} citations, {allowed_pack_adrs} pack ADRs"
+                            "ADR citation validation passed: {documents} documents, {citations} citations, {allowed_pack_adrs} allowed ADRs"
                         );
                         ExitCode::SUCCESS
                     }
@@ -329,6 +359,30 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("codeview-read-surface")) => {
+            match crate::parse_codeview_read_surface_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_codeview_read_surface_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "codeview read-surface validation passed: {} commands, {} compatibility binaries, {} provider env vars, {} rejected tokens",
+                            report.commands_checked,
+                            report.compatibility_binaries_checked,
+                            report.provider_env_vars_checked,
+                            report.rejected_tokens_checked
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("codeview read-surface validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("authority-cohesion")) => {
             match crate::parse_authority_cohesion_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_authority_cohesion_gate(args) {
@@ -396,6 +450,48 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     }
                     Err(message) => {
                         eprintln!("vendor contract recency validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("planes")) => {
+            match crate::parse_planes_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_planes_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "architecture plane validation passed: {} planes, {} lanes",
+                            report.planes_checked, report.lanes_checked
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("architecture plane validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("wave-integration")) => {
+            match crate::parse_wave_integration_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_wave_integration_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "wave integration validation passed: {} phases, {} dependencies",
+                            report.phases_checked, report.dependencies_checked
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("wave integration validation failed: {message}");
                         ExitCode::FAILURE
                     }
                 },

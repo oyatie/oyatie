@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "purpose": "Failing-fixture registry for the active-artifact-contract gate per consensus-v3 §5 step 2. Contains one row whose artifact_path is NOT HEAD-tracked and a duplicate artifact_id — the validator MUST exit non-zero on this fixture."
+  },
+  "rows": [
+    {
+      "artifact_id": "fixture-missing-path",
+      "artifact_path": "this-path-does-not-exist-in-head.json",
+      "artifact_profile": "schema"
+    },
+    {
+      "artifact_id": "fixture-duplicate-id",
+      "artifact_path": ".omc/specs/active-machine-readable-artifact-contract.json",
+      "artifact_profile": "schema"
+    },
+    {
+      "artifact_id": "fixture-duplicate-id",
+      "artifact_path": ".omc/specs/plan-schema.json",
+      "artifact_profile": "schema"
+    }
+  ]
+}
