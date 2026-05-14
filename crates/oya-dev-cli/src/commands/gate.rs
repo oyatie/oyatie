@@ -71,6 +71,33 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // architecture-map: emits .omc/graph/architecture-map.json by
+        // walking workspace Cargo.toml + .omc/registries/* + contracts/.
+        // Visualization-as-code directive 2026-05-12.
+        (Some("emit"), Some("architecture-map")) => {
+            match crate::parse_architecture_map_emit_args(args.collect()) {
+                Ok(args) => match crate::emit_architecture_map_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "architecture-map emitted: {} nodes, {} edges, {} orphans, {} ms",
+                            report.node_count,
+                            report.edge_count,
+                            report.orphan_count,
+                            report.duration_ms
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("architecture-map emit failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         // openapi-rest-route-parity: enforces that route constants in
         // crates/oya-*-rest/src/lib.rs stay 1:1 with paths in
         // contracts/*.openapi.yaml. Closes drift between REST handlers and

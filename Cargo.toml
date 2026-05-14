@@ -377,6 +377,7 @@ members = [
   "crates/oya-check-cedar-fragment-coverage",
   "crates/oya-check-openapi-rest-route-parity",
   "crates/oya-foundry-architecture-map-kernel",
+  "crates/oya-foundry-architecture-map-app",
   "crates/oya-ops-workspace-shell-kernel",
   "crates/oya-ops-workspace-shell-adapter",
   "crates/oya-ops-workspace-shell-application",
