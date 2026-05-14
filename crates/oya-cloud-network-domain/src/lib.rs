@@ -10,10 +10,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::str::FromStr;
 
-use oya_cloud_region_kernel::{AzCode, CellId, RegionCode};
-use oya_cloud_resource_kernel::{CloudResourceError, LbProtocol, ResourceId, ResourceKind};
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_residency_kernel::{residency_class_allows_home_region_label, ResidencyClass};
+use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+use oya_cloud_resource_domain::{CloudResourceError, LbProtocol, ResourceId, ResourceKind};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 
 const NETWORK_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
@@ -1364,7 +1364,7 @@ impl DnsZone {
             }
             (DnsZoneKind::Private, None) => return Err(CloudNetworkError::PrivateZoneRequiresVpc),
             (DnsZoneKind::Public, Some(_)) => {
-                return Err(CloudNetworkError::PublicZoneMustNotBindVpc)
+                return Err(CloudNetworkError::PublicZoneMustNotBindVpc);
             }
             (DnsZoneKind::Public, None) => None,
         };
@@ -2253,10 +2253,10 @@ fn validate_mesh_namespace_cell(
 }
 
 fn validate_security_rule(rule: &SecurityRule) -> Result<(), CloudNetworkError> {
-    if let Some((start, end)) = rule.port_range {
-        if start == 0 || end == 0 || start > end || matches!(rule.protocol, IpProtocol::Icmp) {
-            return Err(CloudNetworkError::InvalidSecurityRule);
-        }
+    if let Some((start, end)) = rule.port_range
+        && (start == 0 || end == 0 || start > end || matches!(rule.protocol, IpProtocol::Icmp))
+    {
+        return Err(CloudNetworkError::InvalidSecurityRule);
     }
     if rule.description.trim().is_empty() || rule.description.len() > 128 {
         return Err(CloudNetworkError::InvalidSecurityRule);
@@ -3165,7 +3165,7 @@ mod tests {
         let resource_error = catalog
             .create_ddos_protection(DdosProtectionCreate {
                 protected_resource_ids: vec![
-                    "oya:cloud:kr-seoul:ten_kr:cdn-distribution:missing".to_string()
+                    "oya:cloud:kr-seoul:ten_kr:cdn-distribution:missing".to_string(),
                 ],
                 ..ddos_create()
             })

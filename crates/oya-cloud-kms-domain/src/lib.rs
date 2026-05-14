@@ -8,10 +8,10 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_region_kernel::{CellId, RegionCode};
-use oya_cloud_resource_kernel::{CloudResourceError, ResourceId, ResourceKind};
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_residency_kernel::{residency_class_allows_home_region_label, ResidencyClass};
+use oya_cloud_region_domain::{CellId, RegionCode};
+use oya_cloud_resource_domain::{CloudResourceError, ResourceId, ResourceKind};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 
 const KMS_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";

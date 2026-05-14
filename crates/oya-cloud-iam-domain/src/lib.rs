@@ -7,11 +7,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_region_kernel::RegionCode;
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, Purpose};
-use oya_platform_identity_kernel::{
-    issue_credential, CredentialRequest, CredentialRequestKind, IdentityError, Principal,
-    MAX_TOKEN_TTL_SECONDS,
+use oya_cloud_region_domain::RegionCode;
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, Purpose};
+use oya_identity_domain::{
+    CredentialRequest, CredentialRequestKind, IdentityError, MAX_TOKEN_TTL_SECONDS, Principal,
+    issue_credential,
 };
 
 const IAM_PRINCIPAL_SCHEMA_VERSION: u32 = 1;

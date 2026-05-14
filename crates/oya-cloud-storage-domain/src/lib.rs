@@ -10,15 +10,15 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_kms_kernel::{
+use oya_cloud_kms_domain::{
     CiphertextRef, DestructionProofRef, KmsKeyId, KmsKeyOrigin, KmsPurpose, KmsUseEventId,
     MaterialRef,
 };
-use oya_cloud_region_kernel::{AzCode, CellId, RegionCode};
-pub use oya_cloud_resource_kernel::{BucketTier, FilesystemTier, VolumeTier};
-use oya_cloud_resource_kernel::{CloudResourceError, ResourceId, ResourceKind};
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_residency_kernel::{residency_class_allows_home_region_label, ResidencyClass};
+use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+pub use oya_cloud_resource_domain::{BucketTier, FilesystemTier, VolumeTier};
+use oya_cloud_resource_domain::{CloudResourceError, ResourceId, ResourceKind};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 
 const STORAGE_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";
@@ -1311,10 +1311,12 @@ mod tests {
         assert_eq!(bucket.replication.value.mode(), ReplicationMode::Regional);
         assert_eq!(bucket.encryption.value, EncryptionMode::SseKms);
         assert!(bucket.kms_key.value.is_some());
-        assert!(bucket
-            .allowed_data_classes
-            .value
-            .contains(&PrivacyDataClass::new(DataClass::PiiIdentifying).unwrap()));
+        assert!(
+            bucket
+                .allowed_data_classes
+                .value
+                .contains(&PrivacyDataClass::new(DataClass::PiiIdentifying).unwrap())
+        );
         assert_eq!(bucket.schema_version.value, STORAGE_SCHEMA_VERSION);
     }
 
