@@ -817,6 +817,25 @@
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "oya-foundry-architecture-map-kernel-manifest",
+      "artifact_path": "crates/oya-foundry-architecture-map-kernel/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane \u00d7 contains|exposes|governs|depends-on|enforces.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
     }
   ]
 }
