@@ -375,6 +375,7 @@ members = [
   "crates/oya-check-authority-cohesion",
   "crates/oya-check-active-artifact-contract",
   "crates/oya-check-cedar-fragment-coverage",
+  "crates/oya-foundry-architecture-map-kernel",
   "crates/oya-ops-workspace-shell-kernel",
   "crates/oya-ops-workspace-shell-adapter",
   "crates/oya-ops-workspace-shell-application",
