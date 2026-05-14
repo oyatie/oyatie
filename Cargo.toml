@@ -374,6 +374,7 @@ members = [
   "crates/oya-foundry-step-file-adapter",
   "crates/oya-check-authority-cohesion",
   "crates/oya-check-active-artifact-contract",
+  "crates/oya-check-cedar-fragment-coverage",
   "crates/oya-ops-workspace-shell-kernel",
   "crates/oya-ops-docs-portal-kernel",
   "crates/oya-check-adr-citation",

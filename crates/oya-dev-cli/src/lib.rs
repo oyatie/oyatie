@@ -23,6 +23,7 @@ use oya_foundry_cargo_prefix_domain::{validate_cargo_prefix, CargoPrefixMember};
 
 mod active_artifact_contract_gate;
 mod api_contract_registry;
+mod cedar_fragment_coverage_gate;
 mod architecture_plane_gates;
 mod catalog_contract_gates;
 mod catalog_registry;
@@ -53,6 +54,12 @@ mod typescript_workspace_gates;
 mod workspace_manifest;
 mod yaml_scan;
 
+pub(crate) use active_artifact_contract_gate::{
+    parse_active_artifact_contract_validate_args, validate_active_artifact_contract_gate,
+};
+pub(crate) use cedar_fragment_coverage_gate::{
+    parse_cedar_fragment_coverage_validate_args, validate_cedar_fragment_coverage_gate,
+};
 pub(crate) use api_contract_registry::{is_api_contract_metadata_path, read_api_contract_records};
 pub(crate) use architecture_plane_gates::{
     parse_planes_validate_args, parse_wave_integration_validate_args, validate_planes_gate,
@@ -78,9 +85,6 @@ pub(crate) use documentation_gates::{
     parse_doc_catalog_validate_args, parse_documentation_system_validate_args,
     parse_readme_doc_coverage_validate_args, validate_doc_catalog_gate,
     validate_documentation_system_gate, validate_readme_doc_coverage_gate,
-};
-pub(crate) use active_artifact_contract_gate::{
-    parse_active_artifact_contract_validate_args, validate_active_artifact_contract_gate,
 };
 pub(crate) use foundation_audit_gates::{
     parse_audit_chain_replay_validate_args, parse_foundation_bypass_validate_args,
@@ -350,15 +354,24 @@ fn glossary_vocabulary_forensic_path(path: &str) -> bool {
     matches!(
         path,
         "docs/GLOSSARY.md"
+            | "docs/fitness-lanes/glossary-vocabulary.md"
             | "docs/MISTAKES-LEDGER.md"
             | "docs/ADR-CONSOLIDATION-PLAN.md"
             | "docs/ADR-LEGACY-REGRESSION-MAPPING.md"
             | "docs/CHANGELOG.md"
             | "docs/RISK-REGISTER.md"
+            | "docs/decisions/ADR-0052-inventory-grit-cutover.md"
             | "docs/teams/README.md"
             | "docs/teams/tactical-first-vertical-pilot/CHARTER.md"
     ) || path.starts_with("docs/decisions/ADR-0016-")
         || path.starts_with("docs/decisions/ADR-0018-")
+        || path.starts_with("docs/plans/M-CC-01-cutover/")
+        || path == "docs/plans/cutover-cross-cutting-amendments-2026-05-12.md"
+        || path == "docs/plans/rename-plan-v4-clean-arch-2026-05-13.md"
+        || path.starts_with("docs/specs/deep-dive-oyatie-sst-consolidation")
+        || path.starts_with("docs/specs/deep-dive-trace-oyatie-sst-consolidation")
+        || path.starts_with("docs/decisions/specs/deep-dive-oyatie-sst-consolidation")
+        || path.starts_with("docs/decisions/specs/deep-dive-trace-oyatie-sst-consolidation")
 }
 
 fn read_glossary_warning_baseline(path: &Path) -> Result<Vec<GlossaryVocabularyWarning>, String> {

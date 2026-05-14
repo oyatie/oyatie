@@ -42,6 +42,35 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // cedar-fragment-coverage: enforces C01..C04 from
+        // .omc/registries/cedar-fragments.json. Closes drift between OpenAPI
+        // contracts (cedar_fragments[] arrays), bounded-contexts.json
+        // (cedar_fragments_planned[] arrays), and on-disk .cedar files.
+        (Some("validate"), Some("cedar-fragment-coverage")) => {
+            match crate::parse_cedar_fragment_coverage_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_cedar_fragment_coverage_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "cedar-fragment-coverage validation passed: {} rows, {} openapi-refs, {} bc-refs, {} .cedar files, {} ms",
+                            report.report.rows_seen,
+                            report.report.openapi_references_seen,
+                            report.report.bc_references_seen,
+                            report.report.cedar_files_seen,
+                            report.validation_duration_ms
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("cedar-fragment-coverage validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("foundation-bypass")) => {
             match crate::parse_foundation_bypass_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_foundation_bypass_gate(args) {
