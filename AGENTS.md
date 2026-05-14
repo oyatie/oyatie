@@ -1,11 +1,21 @@
 # Oyatie agent guidance
 
-This repo-root file is Redirect-class and intentionally lane-thin.
+This repo-root file is Redirect-class and intentionally lane-thin. **Agents: read [`.omc/specs/root-hub-pointers.json`](.omc/specs/root-hub-pointers.json) FIRST** — the canonical machine-readable entry-point registry. Markdown-retirement is active per [`.omc/specs/markdown-retirement-policy.json`](.omc/specs/markdown-retirement-policy.json); see ADR-0069.
 
-Canonical agent operating contract: [`docs/AGENTS.md`](docs/AGENTS.md).
-Constitutional authority: [`docs/CONSTITUTION.md`](docs/CONSTITUTION.md).
-Doc lifecycle protocol: [`docs/DOC-CATALOG.md`](docs/DOC-CATALOG.md).
-Flat-crates structure: [`docs/decisions/ADR-0015-architectural-flattening-target.md`](docs/decisions/ADR-0015-architectural-flattening-target.md).
+Canonical authority (current paths; migrating per phases in retirement policy):
+- Agent operating contract: [`docs/AGENTS.md`](docs/AGENTS.md) (→ `.omc/specs/agent-operating-contract.json` PHASE-5; will absorb decision principles from retired Constitution per user directive 2026-05-13)
+- Doc lifecycle: [`docs/DOC-CATALOG.md`](docs/DOC-CATALOG.md) (→ `.omc/registries/doc-catalog.json` PHASE-5)
+- Flat-crates: [`docs/decisions/ADR-0015-architectural-flattening-target.md`](docs/decisions/ADR-0015-architectural-flattening-target.md) (→ `.omc/registries/adrs.json` PHASE-4)
+- Active-artifact contract v3.0.0: [`.omc/specs/active-machine-readable-artifact-contract.json`](.omc/specs/active-machine-readable-artifact-contract.json)
+- Knowledge-graph catalog (Ontology): [`.omc/registries/knowledge-graph-catalog.json`](.omc/registries/knowledge-graph-catalog.json)
+- Capability registry: [`.omc/registries/artifact-capabilities-registry.json`](.omc/registries/artifact-capabilities-registry.json)
+- Reusable building blocks (DRY): [`.omc/registries/reusable-building-blocks-registry.json`](.omc/registries/reusable-building-blocks-registry.json)
+- Master-plan sequencing (grit protocol + forbidden primitives): [`.omc/specs/master-plan-sequencing.json`](.omc/specs/master-plan-sequencing.json)
+- Hyperscaler gates + claim matrix: [`.omc/specs/hyperscaler-gates.json`](.omc/specs/hyperscaler-gates.json)
+- Evidence taxonomy: [`.omc/specs/evidence-taxonomy.json`](.omc/specs/evidence-taxonomy.json)
+- Stop conditions: [`.omc/specs/stop-conditions.json`](.omc/specs/stop-conditions.json)
+- Final-report schema: [`.omc/specs/final-report-schema.json`](.omc/specs/final-report-schema.json)
+- Plan-schema (for ralplan instances): [`.omc/specs/plan-schema.json`](.omc/specs/plan-schema.json)
 
 Before changing this repo, read the contract and follow its checklist.
 
