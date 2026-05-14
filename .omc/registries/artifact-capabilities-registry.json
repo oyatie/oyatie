@@ -855,6 +855,44 @@
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "oya-foundry-architecture-map-app-manifest",
+      "artifact_path": "crates/oya-foundry-architecture-map-app/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Cargo manifest for foundry architecture-map app crate (std-only). Walks workspace Cargo.toml + .omc/registries/* + contracts/ and emits architecture-map.json. Visualization-as-code directive 2026-05-12. No external deps beyond the kernel.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "architecture-map-graph-artifact",
+      "artifact_path": ".omc/graph/architecture-map.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Emitted architecture map JSON. Sources: workspace Cargo.toml + .omc/registries/microservices.json + bounded-contexts.json + cedar-fragments.json + contracts/*.openapi.yaml. Refreshed via `oya gate emit architecture-map`.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
     }
   ]
 }

@@ -1,0 +1,16 @@
+[package]
+name = "oya-foundry-architecture-map-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-foundry-architecture-map-kernel = { path = "../oya-foundry-architecture-map-kernel" }
+
+
+[lib]
+name = "oya_foundry_architecture_map_app"
+path = "src/lib.rs"
+doctest = false

@@ -23,6 +23,7 @@ use oya_foundry_cargo_prefix_domain::{validate_cargo_prefix, CargoPrefixMember};
 
 mod active_artifact_contract_gate;
 mod api_contract_registry;
+mod architecture_map_emit_gate;
 mod architecture_plane_gates;
 mod catalog_contract_gates;
 mod catalog_registry;
@@ -59,6 +60,9 @@ pub(crate) use active_artifact_contract_gate::{
     parse_active_artifact_contract_validate_args, validate_active_artifact_contract_gate,
 };
 pub(crate) use api_contract_registry::{is_api_contract_metadata_path, read_api_contract_records};
+pub(crate) use architecture_map_emit_gate::{
+    emit_architecture_map_gate, parse_architecture_map_emit_args,
+};
 pub(crate) use architecture_plane_gates::{
     parse_planes_validate_args, parse_wave_integration_validate_args, validate_planes_gate,
     validate_wave_integration_gate,
