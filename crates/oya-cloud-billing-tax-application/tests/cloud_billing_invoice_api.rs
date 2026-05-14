@@ -161,7 +161,7 @@ fn invoice_generate_api_creates_invoice_once_and_replays_same_idempotent_result(
     assert_eq!(first.data.tax_invoice_format, "kr_electronic_tax_invoice");
     assert_eq!(first.data.tax_registration_id, "kr-bizreg/1234567890");
     assert_eq!(first.data.state, "issued");
-    assert_eq!(first.data.data_class, "FINANCIAL_KR_신용정보");
+    assert_eq!(first.data.data_class, "FINANCIAL_KR");
     assert_eq!(first.data.schema_version, 1);
 }
 
