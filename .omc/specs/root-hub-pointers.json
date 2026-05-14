@@ -49,12 +49,26 @@
       "migration_phase": "complete",
       "purpose": "v3.0.0 9-capability contract per ADR-0069. Every machine-readable artifact declares enforcement+verification+validation+autogen+selfheal+selfupdate+selfmaintain+telemetry+provenance."
     },
-    "knowledge_graph_catalog": {
+    "knowledge_graph_semantic": {
       "kind": "registry",
-      "current_path": ".omc/registries/knowledge-graph-catalog.json",
+      "current_path": ".omc/registries/knowledge-graph-semantic.json",
       "target_path_after_md_retirement": "same",
-      "migration_phase": "complete",
-      "purpose": "24 node types + 18 edge types + 14 invariants. Cross-artifact graph substrate."
+      "migration_phase": "complete (per Palantir 3-layer split commit 0806f91; supersedes knowledge-graph-catalog.json deleted in same commit)",
+      "purpose": "SEMANTIC layer: 24 node types + 18 edge types + 14 invariants + 5 read-side queries. Static structure of the knowledge graph."
+    },
+    "knowledge_graph_kinetic": {
+      "kind": "registry",
+      "current_path": ".omc/registries/knowledge-graph-kinetic.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (per Palantir 3-layer split commit 0806f91)",
+      "purpose": "KINETIC layer: 14 action types + 4 workflows. Write-side mutations with audit topic + idempotency + lock pattern."
+    },
+    "knowledge_graph_dynamic": {
+      "kind": "registry",
+      "current_path": ".omc/registries/knowledge-graph-dynamic.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (per Palantir 3-layer split commit 0806f91)",
+      "purpose": "DYNAMIC layer: 9 live state sources + OTel telemetry pointers. Real-time graph state."
     },
     "artifact_capabilities_registry": {
       "kind": "registry",
