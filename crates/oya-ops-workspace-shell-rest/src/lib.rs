@@ -1,10 +1,11 @@
 //! Framework-free REST boundary for the ops workspace-shell BC.
 //!
-//! Axum/router bindings are intentionally deferred to the runtime composition
-//! root per the LTS-dependency-enforcement directive (2026-05-12): every new
-//! direct dep requires an LTS-or-exception-ADR. Keeping this crate std-only
-//! means we own the OpenAPI-aligned request/response shapes + handler
-//! functions today and bind to a specific framework once the LTS ADR lands.
+//! Hyper service bindings are intentionally deferred to the runtime composition
+//! root per the LTS-dependency-enforcement directive (2026-05-12). Hyper is
+//! the canonical workspace HTTP backbone (user-issued 2026-05-14: "hyper
+//! everywhere; thats our backbone"). Keeping this crate std-only means we
+//! own the OpenAPI-aligned request/response shapes + handler functions today
+//! and bind hyper services in the runtime crate.
 //!
 //! Route constants here MUST stay 1:1 with paths in
 //! `contracts/ops-workspace-shell.openapi.yaml`. Future lane

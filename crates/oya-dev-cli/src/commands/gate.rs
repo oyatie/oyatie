@@ -71,6 +71,33 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // openapi-rest-route-parity: enforces that route constants in
+        // crates/oya-*-rest/src/lib.rs stay 1:1 with paths in
+        // contracts/*.openapi.yaml. Closes drift between REST handlers and
+        // OpenAPI contracts.
+        (Some("validate"), Some("openapi-rest-route-parity")) => {
+            match crate::parse_openapi_rest_route_parity_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_openapi_rest_route_parity_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "openapi-rest-route-parity validation passed: {} REST routes, {} OpenAPI paths, {} ms",
+                            report.report.rest_route_count,
+                            report.report.openapi_path_count,
+                            report.validation_duration_ms
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("openapi-rest-route-parity validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("foundation-bypass")) => {
             match crate::parse_foundation_bypass_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_foundation_bypass_gate(args) {

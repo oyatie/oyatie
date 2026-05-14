@@ -12,6 +12,7 @@ oya-application-app = { path = "../oya-application-app" }
 oya-check-adr-citation = { path = "../oya-check-adr-citation" }
 oya-check-adr-index = { path = "../oya-check-adr-index" }
 oya-check-cedar-fragment-coverage = { path = "../oya-check-cedar-fragment-coverage" }
+oya-check-openapi-rest-route-parity = { path = "../oya-check-openapi-rest-route-parity" }
 oya-foundry-api-semver-domain = { path = "../oya-foundry-api-semver-domain" }
 oya-check-authority-cohesion = { path = "../oya-check-authority-cohesion" }
 oya-check-brand-residue = { path = "../oya-check-brand-residue" }
@@ -58,6 +59,9 @@ oya-eventing-file-adapter = { path = "../oya-eventing-file-adapter" }
 oya-eventing-domain = { path = "../oya-eventing-domain" }
 oya-secrets-file-adapter = { path = "../oya-secrets-file-adapter" }
 oya-secrets-domain = { path = "../oya-secrets-domain" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
 
 [[bin]]
 name = "oya"

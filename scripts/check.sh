@@ -55,6 +55,7 @@ cargo run -p oya-dev-cli -- catalog validate
 cargo run -p oya-dev-cli -- gate validate active-artifact-contract --emit-evidence .omc/evidence/active-artifact-contract-lane-run.json --emit-graph-edges .omc/graph/active-artifact-contract-edges.json
 cargo run -p oya-dev-cli -- gate validate authority-cohesion
 cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --emit-evidence .omc/evidence/cedar-fragment-coverage-lane-run.json
+cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity --emit-evidence .omc/evidence/openapi-rest-route-parity-lane-run.json
 cargo run -p oya-dev-cli -- gate validate claim-ceiling
 cargo run -p oya-dev-cli -- gate validate codeowners-mirror
 cargo run -p oya-dev-cli -- gate validate cohesion

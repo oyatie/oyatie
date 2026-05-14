@@ -27,6 +27,7 @@
     { "source": "oya-ops-docs-portal-application-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-ops-workspace-shell-rest-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-ops-docs-portal-rest-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-foundry-architecture-map-kernel-manifest", "target": "registry", "edge_type": "declares" }
+    { "source": "oya-foundry-architecture-map-kernel-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-check-openapi-rest-route-parity-manifest", "target": "registry", "edge_type": "declares" }
   ]
 }

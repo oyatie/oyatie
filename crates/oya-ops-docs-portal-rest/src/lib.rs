@@ -1,7 +1,8 @@
 //! Framework-free REST boundary for the ops docs-portal BC.
 //!
-//! Axum/router bindings deferred to the runtime composition root per the
-//! LTS-dependency-enforcement directive. Owns OpenAPI-aligned request /
+//! Hyper service bindings deferred to the runtime composition root per the
+//! LTS-dependency-enforcement directive. Hyper is the canonical workspace HTTP
+//! backbone (user-issued 2026-05-14). Owns OpenAPI-aligned request /
 //! response shapes + handler functions today.
 //!
 //! Routes here MUST stay 1:1 with paths in `contracts/ops-docs.openapi.yaml`.
