@@ -381,6 +381,7 @@ members = [
   "crates/oya-http-router-kernel",
   "crates/oya-http-middleware-kernel",
   "crates/oya-http-sse-domain",
+  "crates/oya-http-runtime-hyper-adapter",
   "crates/oya-ops-workspace-shell-kernel",
   "crates/oya-ops-workspace-shell-adapter",
   "crates/oya-ops-workspace-shell-application",
@@ -646,3 +647,11 @@ adr_cite = "ADR-0056"
 [workspace.dependencies]
 tracing = { version = "0.1.44", default-features = false, features = ["std", "attributes"] }
 tracing-subscriber = { version = "0.3.23", default-features = false, features = ["std", "fmt", "json", "env-filter"] }
+# Hyper canonical HTTP backbone per ADR-0090 (user-issued 2026-05-14).
+# Only oya-http-runtime-hyper-adapter (Layer 5) consumes these directly;
+# Layers 1-4 remain std-only.
+hyper = { version = "1", default-features = false, features = ["server", "http1"] }
+hyper-util = { version = "0.1", default-features = false, features = ["tokio", "server", "server-auto", "http1"] }
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros"] }
+http-body-util = { version = "0.1", default-features = false }
+bytes = { version = "1", default-features = false }
