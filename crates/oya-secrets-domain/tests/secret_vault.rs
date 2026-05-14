@@ -1,7 +1,5 @@
-use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-use oya_platform_secrets_kernel::{
-    SecretError, SecretMaterial, SecretRef, SecretStatus, SecretVault,
-};
+use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+use oya_secrets_domain::{SecretError, SecretMaterial, SecretRef, SecretStatus, SecretVault};
 
 #[test]
 fn secret_vault_versions_provider_secret_without_debug_leak() {
@@ -29,7 +27,7 @@ fn secret_vault_versions_provider_secret_without_debug_leak() {
     );
     assert_eq!(
         version.material.legacy_data_class(),
-        oya_platform_data_boundary_kernel::DataClass::Secret
+        oya_data_boundary_kernel::DataClass::Secret
     );
     #[allow(deprecated)]
     {

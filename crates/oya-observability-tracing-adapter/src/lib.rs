@@ -6,11 +6,11 @@
 use std::error::Error;
 use std::fmt;
 
-use oya_platform_observability_kernel::{
-    fields, CapabilityInvocationTraceContext, CapabilityInvocationTraceObserver,
-    CapabilityInvocationTraceSpan, InvocationTraceResult,
+use oya_observability_domain::{
+    CapabilityInvocationTraceContext, CapabilityInvocationTraceObserver,
+    CapabilityInvocationTraceSpan, InvocationTraceResult, fields,
 };
-use tracing_subscriber::{fmt as tracing_fmt, EnvFilter};
+use tracing_subscriber::{EnvFilter, fmt as tracing_fmt};
 
 /// Runtime tracing subscriber configuration.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -66,7 +66,7 @@ impl CapabilityInvocationTraceObserver for TracingCapabilityInvocationObserver {
 impl TracingCapabilityInvocationSpan {
     fn new(context: &CapabilityInvocationTraceContext) -> Self {
         let span = tracing::info_span!(
-            oya_platform_observability_kernel::CAPABILITY_INVOCATION_SPAN_NAME,
+            oya_observability_domain::CAPABILITY_INVOCATION_SPAN_NAME,
             service.name = context.service_name.as_str(),
             oyatie.tenant.id = context.tenant_id.as_str(),
             oyatie.tenant.region = context.tenant_region.as_str(),
@@ -124,11 +124,7 @@ impl CapabilityInvocationTraceSpan for TracingCapabilityInvocationSpan {
 pub fn install_json_stdout_tracing(
     config: &JsonTracingConfig,
 ) -> Result<(), ObservabilityInitError> {
-    let filter = EnvFilter::try_from_default_env().or_else(|_| {
-        EnvFilter::try_new(config.default_filter.as_str()).map_err(|_| {
-            ObservabilityInitError::InvalidDefaultFilter(config.default_filter.clone())
-        })
-    })?;
+    let filter = build_env_filter(config, std::env::var("RUST_LOG").ok().as_deref())?;
 
     tracing_fmt()
         .json()
@@ -140,24 +136,46 @@ pub fn install_json_stdout_tracing(
         .map_err(|_| ObservabilityInitError::SubscriberAlreadyInstalled)
 }
 
+fn build_env_filter(
+    config: &JsonTracingConfig,
+    env_filter: Option<&str>,
+) -> Result<EnvFilter, ObservabilityInitError> {
+    if let Some(env_filter) = env_filter
+        && let Ok(filter) = EnvFilter::try_new(env_filter)
+    {
+        return Ok(filter);
+    }
+    EnvFilter::try_new(config.default_filter.as_str())
+        .map_err(|_| ObservabilityInitError::InvalidDefaultFilter(config.default_filter.clone()))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{install_json_stdout_tracing, JsonTracingConfig, ObservabilityInitError};
+    use super::{JsonTracingConfig, ObservabilityInitError, build_env_filter};
 
     #[test]
-    fn invalid_default_filter_is_rejected() {
-        let previous_rust_log = std::env::var_os("RUST_LOG");
-        std::env::remove_var("RUST_LOG");
-        let error = install_json_stdout_tracing(&JsonTracingConfig {
-            default_filter: "[".to_string(),
-        })
-        .expect_err("invalid default filter must fail before installing subscriber");
-        if let Some(previous_rust_log) = previous_rust_log {
-            std::env::set_var("RUST_LOG", previous_rust_log);
-        }
+    fn invalid_default_filter_is_rejected_without_env_mutation() {
+        let error = build_env_filter(
+            &JsonTracingConfig {
+                default_filter: "[".to_string(),
+            },
+            None,
+        )
+        .expect_err("invalid default filter must fail when no env override is supplied");
         assert_eq!(
             error,
             ObservabilityInitError::InvalidDefaultFilter("[".to_string())
         );
+    }
+
+    #[test]
+    fn valid_env_filter_overrides_invalid_default_filter() {
+        build_env_filter(
+            &JsonTracingConfig {
+                default_filter: "[".to_string(),
+            },
+            Some("info"),
+        )
+        .expect("valid env filter is accepted before fallback default");
     }
 }
