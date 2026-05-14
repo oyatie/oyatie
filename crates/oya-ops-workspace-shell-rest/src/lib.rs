@@ -1,0 +1,224 @@
+//! Framework-free REST boundary for the ops workspace-shell BC.
+//!
+//! Axum/router bindings are intentionally deferred to the runtime composition
+//! root per the LTS-dependency-enforcement directive (2026-05-12): every new
+//! direct dep requires an LTS-or-exception-ADR. Keeping this crate std-only
+//! means we own the OpenAPI-aligned request/response shapes + handler
+//! functions today and bind to a specific framework once the LTS ADR lands.
+//!
+//! Route constants here MUST stay 1:1 with paths in
+//! `contracts/ops-workspace-shell.openapi.yaml`. Future lane
+//! `lean-a-openapi-rest-route-parity` will enforce this.
+
+use oya_ops_workspace_shell_adapter::{WireHealthResponse, WireSurfaceListResponse};
+use oya_ops_workspace_shell_application::{
+    FlipSurfaceStateUseCase, ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
+};
+use oya_ops_workspace_shell_kernel::{
+    SurfaceCatalogError, SurfaceCatalogPort, SurfaceId, SurfaceState, VisibilityTier,
+};
+
+pub const LIST_LIVE_SURFACES_ROUTE: &str = "/workspace";
+pub const LIST_ALL_SURFACES_ROUTE: &str = "/workspace/api/v1/surfaces";
+pub const SHELL_HEALTH_ROUTE: &str = "/workspace/api/v1/health";
+
+/// HTTP-method constants matching OpenAPI operations.
+pub const LIST_LIVE_SURFACES_METHOD: &str = "GET";
+pub const LIST_ALL_SURFACES_METHOD: &str = "GET";
+pub const SHELL_HEALTH_METHOD: &str = "GET";
+
+/// Request shape for GET /workspace.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ListLiveSurfacesRequest {
+    pub principal_tier: VisibilityTier, // data_class: INTERNAL_ONLY
+}
+
+/// Request shape for GET /workspace/api/v1/surfaces.
+#[derive(Clone, Debug, Eq, PartialEq, Default)]
+pub struct ListAllSurfacesRequest {
+    pub state: Option<SurfaceState>, // data_class: INTERNAL_ONLY
+    pub visibility_tier: Option<VisibilityTier>, // data_class: INTERNAL_ONLY
+}
+
+/// Request shape for GET /workspace/api/v1/health.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ShellHealthRequest;
+
+/// REST handler: GET /workspace (Live + principal-tier-scoped).
+pub fn list_live_surfaces<P: SurfaceCatalogPort>(
+    catalog: P,
+    request: ListLiveSurfacesRequest,
+) -> WireSurfaceListResponse {
+    ListLiveSurfacesUseCase::new(catalog).execute(request.principal_tier)
+}
+
+/// REST handler: GET /workspace/api/v1/surfaces (admin-only).
+pub fn list_all_surfaces<P: SurfaceCatalogPort>(
+    catalog: P,
+    request: ListAllSurfacesRequest,
+) -> WireSurfaceListResponse {
+    ListAllSurfacesUseCase::new(catalog).execute(request.state, request.visibility_tier)
+}
+
+/// REST handler: GET /workspace/api/v1/health.
+pub fn shell_health<P: SurfaceCatalogPort>(
+    catalog: P,
+    _request: ShellHealthRequest,
+    version: impl Into<String>,
+    cell_id: Option<String>,
+) -> WireHealthResponse {
+    ShellHealthUseCase::new(catalog, version, cell_id).execute()
+}
+
+/// Surface state transition (mutating; internal-sre+).
+pub fn flip_surface_state<P: SurfaceCatalogPort>(
+    catalog: P,
+    id: &SurfaceId,
+    new_state: SurfaceState,
+) -> Result<(), SurfaceCatalogError> {
+    let mut use_case = FlipSurfaceStateUseCase::new(catalog);
+    use_case.execute(id, new_state)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use oya_ops_workspace_shell_kernel::{InMemorySurfaceCatalog, Surface};
+
+    fn surface(id: &str, route: &str, state: SurfaceState, tier: VisibilityTier) -> Surface {
+        Surface {
+            id: SurfaceId(id.into()),
+            canonical_route: route.into(),
+            visibility_tier: tier,
+            state,
+            owning_bc_id: format!("ops/{id}"),
+            cedar_fragments: vec![],
+            openapi_contract: None,
+            retired_redirects_to: None,
+        }
+    }
+
+    fn populated() -> InMemorySurfaceCatalog {
+        let mut catalog = InMemorySurfaceCatalog::new();
+        catalog
+            .register_surface(surface(
+                "live-pub",
+                "/workspace/live-pub",
+                SurfaceState::Live,
+                VisibilityTier::Public,
+            ))
+            .unwrap();
+        catalog
+            .register_surface(surface(
+                "live-int",
+                "/workspace/live-int",
+                SurfaceState::Live,
+                VisibilityTier::InternalPublic,
+            ))
+            .unwrap();
+        catalog
+            .register_surface(surface(
+                "soon",
+                "/workspace/soon",
+                SurfaceState::ReservedComingSoon,
+                VisibilityTier::Public,
+            ))
+            .unwrap();
+        catalog
+    }
+
+    #[test]
+    fn routes_match_openapi_paths() {
+        // These must stay 1:1 with `contracts/ops-workspace-shell.openapi.yaml`.
+        assert_eq!(LIST_LIVE_SURFACES_ROUTE, "/workspace");
+        assert_eq!(LIST_ALL_SURFACES_ROUTE, "/workspace/api/v1/surfaces");
+        assert_eq!(SHELL_HEALTH_ROUTE, "/workspace/api/v1/health");
+    }
+
+    #[test]
+    fn http_methods_match_openapi() {
+        assert_eq!(LIST_LIVE_SURFACES_METHOD, "GET");
+        assert_eq!(LIST_ALL_SURFACES_METHOD, "GET");
+        assert_eq!(SHELL_HEALTH_METHOD, "GET");
+    }
+
+    #[test]
+    fn list_live_surfaces_public_tier() {
+        let response = list_live_surfaces(
+            populated(),
+            ListLiveSurfacesRequest {
+                principal_tier: VisibilityTier::Public,
+            },
+        );
+        assert_eq!(response.count, 1);
+        assert_eq!(response.surfaces[0].id, "live-pub");
+    }
+
+    #[test]
+    fn list_live_surfaces_internal_tier_sees_more() {
+        let response = list_live_surfaces(
+            populated(),
+            ListLiveSurfacesRequest {
+                principal_tier: VisibilityTier::InternalPublic,
+            },
+        );
+        assert_eq!(response.count, 2);
+    }
+
+    #[test]
+    fn list_all_surfaces_no_filter() {
+        let response = list_all_surfaces(populated(), ListAllSurfacesRequest::default());
+        assert_eq!(response.count, 3);
+    }
+
+    #[test]
+    fn list_all_surfaces_state_filter() {
+        let response = list_all_surfaces(
+            populated(),
+            ListAllSurfacesRequest {
+                state: Some(SurfaceState::Live),
+                visibility_tier: None,
+            },
+        );
+        assert_eq!(response.count, 2);
+    }
+
+    #[test]
+    fn list_all_surfaces_tier_filter() {
+        let response = list_all_surfaces(
+            populated(),
+            ListAllSurfacesRequest {
+                state: None,
+                visibility_tier: Some(VisibilityTier::Public),
+            },
+        );
+        assert_eq!(response.count, 2);
+    }
+
+    #[test]
+    fn shell_health_includes_surface_count() {
+        let response = shell_health(populated(), ShellHealthRequest, "v0.1.0", None);
+        assert_eq!(response.status, "healthy");
+        assert_eq!(response.surface_count, 3);
+        assert_eq!(response.version, "v0.1.0");
+    }
+
+    #[test]
+    fn flip_state_promotes_reserved_to_live() {
+        let result = flip_surface_state(populated(), &SurfaceId("soon".into()), SurfaceState::Live);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn flip_state_rejects_invalid_transition() {
+        let result = flip_surface_state(
+            populated(),
+            &SurfaceId("live-pub".into()),
+            SurfaceState::ReservedComingSoon,
+        );
+        assert!(matches!(
+            result,
+            Err(SurfaceCatalogError::InvalidStateTransition { .. })
+        ));
+    }
+}

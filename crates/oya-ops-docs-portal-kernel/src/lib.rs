@@ -59,7 +59,7 @@ impl ExtractorRecord {
 
 /// Tenant scope for manifest filtering per Cedar `ops-manifest-tenant-filter.cedar`.
 /// `None` = internal-only (no tenant projection); `Some(tenant_hash)` = filter to that tenant.
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct TenantScope(pub Option<String>); // data_class: INTERNAL_ONLY (SHA-256 of tenant id; never raw)
 
 /// Manifest query: read-side projection of the docs portal state.
@@ -92,7 +92,11 @@ pub trait ManifestPort {
 pub enum ManifestError {
     DuplicateExtractorId(ExtractorId),
     UnknownExtractorId(ExtractorId),
-    StaleTimestamp { id: ExtractorId, prior: u64, attempted: u64 },
+    StaleTimestamp {
+        id: ExtractorId,
+        prior: u64,
+        attempted: u64,
+    },
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -171,11 +175,11 @@ pub enum LiveFeedEventKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LiveFeedEvent {
-    pub kind: LiveFeedEventKind,            // data_class: INTERNAL_ONLY
-    pub extractor_id: Option<ExtractorId>,  // data_class: INTERNAL_ONLY
-    pub tenant_scope: TenantScope,          // data_class: INTERNAL_ONLY
-    pub emitted_at_unix_ms: u64,            // data_class: INTERNAL_ONLY
-    pub payload_hash: String,               // data_class: INTERNAL_ONLY (SHA-256; never raw)
+    pub kind: LiveFeedEventKind,           // data_class: INTERNAL_ONLY
+    pub extractor_id: Option<ExtractorId>, // data_class: INTERNAL_ONLY
+    pub tenant_scope: TenantScope,         // data_class: INTERNAL_ONLY
+    pub emitted_at_unix_ms: u64,           // data_class: INTERNAL_ONLY
+    pub payload_hash: String,              // data_class: INTERNAL_ONLY (SHA-256; never raw)
 }
 
 pub trait LiveFeedPort {
@@ -191,7 +195,7 @@ pub enum LiveFeedError {
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct InMemoryLiveFeed {
-    events: Vec<LiveFeedEvent>, // data_class: INTERNAL_ONLY (chronological)
+    events: Vec<LiveFeedEvent>,  // data_class: INTERNAL_ONLY (chronological)
     high_watermark_unix_ms: u64, // data_class: INTERNAL_ONLY
 }
 
@@ -260,8 +264,10 @@ mod tests {
     #[test]
     fn register_and_query() {
         let mut m = InMemoryManifest::new();
-        m.register_extractor(record("a", ExtractorClass::Hot, 100)).unwrap();
-        m.register_extractor(record("b", ExtractorClass::Cold, 100)).unwrap();
+        m.register_extractor(record("a", ExtractorClass::Hot, 100))
+            .unwrap();
+        m.register_extractor(record("b", ExtractorClass::Cold, 100))
+            .unwrap();
         let snap = m.query(
             &ManifestQuery {
                 tenant_scope: TenantScope(None),
@@ -276,8 +282,10 @@ mod tests {
     #[test]
     fn query_filter_by_class() {
         let mut m = InMemoryManifest::new();
-        m.register_extractor(record("a", ExtractorClass::Hot, 100)).unwrap();
-        m.register_extractor(record("b", ExtractorClass::Cold, 100)).unwrap();
+        m.register_extractor(record("a", ExtractorClass::Hot, 100))
+            .unwrap();
+        m.register_extractor(record("b", ExtractorClass::Cold, 100))
+            .unwrap();
         let snap = m.query(
             &ManifestQuery {
                 tenant_scope: TenantScope(None),
@@ -293,8 +301,10 @@ mod tests {
     #[test]
     fn query_skips_stale_by_default() {
         let mut m = InMemoryManifest::new();
-        m.register_extractor(record("hot-stale", ExtractorClass::Hot, 0)).unwrap();
-        m.register_extractor(record("cold-fresh", ExtractorClass::Cold, 200)).unwrap();
+        m.register_extractor(record("hot-stale", ExtractorClass::Hot, 0))
+            .unwrap();
+        m.register_extractor(record("cold-fresh", ExtractorClass::Cold, 200))
+            .unwrap();
         let snap = m.query(
             &ManifestQuery {
                 tenant_scope: TenantScope(None),
@@ -310,8 +320,10 @@ mod tests {
     #[test]
     fn refresh_monotonic() {
         let mut m = InMemoryManifest::new();
-        m.register_extractor(record("a", ExtractorClass::Hot, 100)).unwrap();
-        m.refresh_extractor(&ExtractorId("a".into()), 5, 200).unwrap();
+        m.register_extractor(record("a", ExtractorClass::Hot, 100))
+            .unwrap();
+        m.refresh_extractor(&ExtractorId("a".into()), 5, 200)
+            .unwrap();
         let result = m.refresh_extractor(&ExtractorId("a".into()), 5, 150);
         assert!(matches!(result, Err(ManifestError::StaleTimestamp { .. })));
     }
@@ -326,9 +338,13 @@ mod tests {
     #[test]
     fn duplicate_extractor_errors() {
         let mut m = InMemoryManifest::new();
-        m.register_extractor(record("a", ExtractorClass::Hot, 0)).unwrap();
+        m.register_extractor(record("a", ExtractorClass::Hot, 0))
+            .unwrap();
         let result = m.register_extractor(record("a", ExtractorClass::Cold, 0));
-        assert!(matches!(result, Err(ManifestError::DuplicateExtractorId(_))));
+        assert!(matches!(
+            result,
+            Err(ManifestError::DuplicateExtractorId(_))
+        ));
     }
 
     fn event(kind: LiveFeedEventKind, ms: u64) -> LiveFeedEvent {
@@ -344,17 +360,23 @@ mod tests {
     #[test]
     fn live_feed_monotonic() {
         let mut feed = InMemoryLiveFeed::new();
-        feed.emit(event(LiveFeedEventKind::ExtractorRefreshed, 100)).unwrap();
-        feed.emit(event(LiveFeedEventKind::ManifestRowChanged, 200)).unwrap();
+        feed.emit(event(LiveFeedEventKind::ExtractorRefreshed, 100))
+            .unwrap();
+        feed.emit(event(LiveFeedEventKind::ManifestRowChanged, 200))
+            .unwrap();
         let result = feed.emit(event(LiveFeedEventKind::DeadCodeDetected, 150));
-        assert!(matches!(result, Err(LiveFeedError::NonMonotonicTimestamp { .. })));
+        assert!(matches!(
+            result,
+            Err(LiveFeedError::NonMonotonicTimestamp { .. })
+        ));
     }
 
     #[test]
     fn live_feed_recent_window() {
         let mut feed = InMemoryLiveFeed::new();
         for ms in [100u64, 200, 300, 400, 500] {
-            feed.emit(event(LiveFeedEventKind::ExtractorRefreshed, ms)).unwrap();
+            feed.emit(event(LiveFeedEventKind::ExtractorRefreshed, ms))
+                .unwrap();
         }
         let since = feed.recent(250, 10);
         assert_eq!(since.len(), 3);
