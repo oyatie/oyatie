@@ -1,10 +1,11 @@
-use oya_platform_dsr_app::{
-    execute_dsr_cascade_from_api, PlatformDsrApiAuthorization, PlatformDsrApiError,
-    PlatformDsrApiPrincipal, PlatformDsrCascadeBoundaryContext, PlatformDsrCascadeDirectory,
+use oya_dsr_application::{
+    PLATFORM_DSR_CASCADE_EXECUTE_SURFACE, PLATFORM_DSR_OPENAPI_CONTRACT,
+    PlatformDsrApiAuthorization, PlatformDsrApiError, PlatformDsrApiPrincipal,
+    PlatformDsrCascadeBoundaryContext, PlatformDsrCascadeDirectory,
     PlatformDsrCascadeExecuteApiRequest, PlatformDsrCascadeExecuteApiStatus,
     PlatformDsrCascadeExecuteIdempotencyLedger, PlatformDsrCascadeExecuteRequest,
     PlatformDsrCascadeMetadata, PlatformDsrCascadeTargetRequest, PlatformDsrCompletionRecord,
-    PLATFORM_DSR_CASCADE_EXECUTE_SURFACE, PLATFORM_DSR_OPENAPI_CONTRACT,
+    execute_dsr_cascade_from_api,
 };
 
 const DSR_ID: &str = "dsr_001";

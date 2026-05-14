@@ -8,13 +8,13 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::parse_data_class_label;
-use oya_platform_dsr_kernel::{
-    platform_dsr_data_class_from_legacy, DsrAckReason, DsrAckStatus, DsrAction, DsrAxis,
-    DsrCascadeAck, DsrCascadeAckCreate, DsrCompletionRecord, DsrCompletionRecordCreate,
-    DsrDispatch, DsrDispatchCreate, DsrProofMethod, DsrRequest, DsrRequestCreate, DsrSlaStatus,
-    DsrSlaTier, DsrStoreKind, DsrStoreRef, DsrStoreRefCreate, ErasureProof, ErasureProofCreate,
-    PlatformDsrError,
+use oya_data_boundary_kernel::parse_data_class_label;
+use oya_dsr_domain::{
+    DsrAckReason, DsrAckStatus, DsrAction, DsrAxis, DsrCascadeAck, DsrCascadeAckCreate,
+    DsrCompletionRecord, DsrCompletionRecordCreate, DsrDispatch, DsrDispatchCreate, DsrProofMethod,
+    DsrRequest, DsrRequestCreate, DsrSlaStatus, DsrSlaTier, DsrStoreKind, DsrStoreRef,
+    DsrStoreRefCreate, ErasureProof, ErasureProofCreate, PlatformDsrError,
+    platform_dsr_data_class_from_legacy,
 };
 
 pub const PLATFORM_DSR_CASCADE_EXECUTE_SURFACE: &str = "dsr.cascade.execute";
@@ -498,13 +498,14 @@ impl PlatformDsrApiError {
         match self {
             Self::EmptyRequestId => vec![detail("header.X-Request-Id", "must be non-empty")],
             Self::EmptyTenantHeader => vec![detail("header.X-Tenant-Id", "must be non-empty")],
-            Self::EmptyIdempotencyKey => vec![detail("header.Idempotency-Key", "must be non-empty")],
+            Self::EmptyIdempotencyKey => {
+                vec![detail("header.Idempotency-Key", "must be non-empty")]
+            }
             Self::EmptyPrincipalId => vec![detail("principal.principal_id", "must be non-empty")],
             Self::InvalidDsrId { .. } => vec![detail("path.dsr_id", "must be non-empty")],
-            Self::DsrIdMismatch { .. } => vec![detail(
-                "dsr_id",
-                "path dsr_id and body dsr_id must match",
-            )],
+            Self::DsrIdMismatch { .. } => {
+                vec![detail("dsr_id", "path dsr_id and body dsr_id must match")]
+            }
             Self::TenantMismatch { .. } => vec![detail(
                 "tenant_id",
                 "header tenant, principal tenant, authorization tenant, and body tenant_id must match",
@@ -565,10 +566,9 @@ impl PlatformDsrApiError {
                 "body.data_classes",
                 "must be canonical privacy data-class labels",
             )],
-            Self::MissingCompletedProofField { field } => vec![detail(
-                field,
-                "is required when ack_status is completed",
-            )],
+            Self::MissingCompletedProofField { field } => {
+                vec![detail(field, "is required when ack_status is completed")]
+            }
             Self::Kernel(error) => vec![detail("platform_dsr", platform_dsr_error_issue(error))],
         }
     }
@@ -890,7 +890,7 @@ fn store_ref_from_target(
 
 fn parse_privacy_data_class_label(
     data_class: &str,
-) -> Result<oya_platform_data_boundary_kernel::PrivacyDataClass, PlatformDsrApiError> {
+) -> Result<oya_data_boundary_kernel::PrivacyDataClass, PlatformDsrApiError> {
     let parsed = parse_data_class_label(data_class).ok_or_else(|| {
         PlatformDsrApiError::InvalidDataClassLabel {
             data_class: data_class.to_string(),
@@ -1014,12 +1014,10 @@ fn ack_reason_from_label(ack_reason: &str) -> Result<DsrAckReason, PlatformDsrAp
     }
 }
 
-fn completion_status_label(status: oya_platform_dsr_kernel::DsrCompletionStatus) -> &'static str {
+fn completion_status_label(status: oya_dsr_domain::DsrCompletionStatus) -> &'static str {
     match status {
-        oya_platform_dsr_kernel::DsrCompletionStatus::Completed => "completed",
-        oya_platform_dsr_kernel::DsrCompletionStatus::CompletedWithBlocks => {
-            "completed_with_blocks"
-        }
+        oya_dsr_domain::DsrCompletionStatus::Completed => "completed",
+        oya_dsr_domain::DsrCompletionStatus::CompletedWithBlocks => "completed_with_blocks",
     }
 }
 

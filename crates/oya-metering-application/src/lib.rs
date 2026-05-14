@@ -6,9 +6,9 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_platform_eventing_kernel::{EventingError, Outbox, OutboxRecord};
-use oya_platform_metering_kernel::{
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use oya_eventing_domain::{EventingError, Outbox, OutboxRecord};
+use oya_metering_domain::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeterUnitKind, MeteringError, PlaneTag,
 };
 
@@ -296,6 +296,11 @@ impl MeteringEventIngestAppError {
             | Self::InvalidDataClassLabel { .. }
             | Self::Metering(_)
             | Self::Eventing(EventingError::EmptyTopic)
+            | Self::Eventing(EventingError::EmptyTopicAxis)
+            | Self::Eventing(EventingError::EmptyTopicDescription)
+            | Self::Eventing(EventingError::InvalidTopicName)
+            | Self::Eventing(EventingError::DuplicateTopic)
+            | Self::Eventing(EventingError::TopicNotFound)
             | Self::Eventing(EventingError::EmptyIdempotencyKey)
             | Self::Eventing(EventingError::EmptyPayloadRef) => {
                 MeteringEventIngestAppStatus::BadRequest

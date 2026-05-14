@@ -1,12 +1,13 @@
-use oya_platform_eventing_kernel::Outbox;
-use oya_platform_metering_app::{
-    ingest_metering_event_from_app, MeteringEventEnvelopeContext, MeteringEventIngestAppError,
-    MeteringEventIngestAppRequest, MeteringEventIngestAppStatus, MeteringEventIngestAuthorization,
-    MeteringEventIngestIdempotencyLedger, MeteringEventIngestPayload, MeteringMeterUnitRequest,
+use oya_eventing_domain::Outbox;
+use oya_metering_application::{
     METERING_EVENT_ASYNCAPI_CONTRACT, METERING_EVENT_INGEST_SCHEMA, METERING_EVENT_INGEST_SOURCE,
     METERING_EVENT_INGEST_SURFACE, METERING_EVENT_PROTO_CONTRACT, METERING_EVENT_TOPIC,
+    MeteringEventEnvelopeContext, MeteringEventIngestAppError, MeteringEventIngestAppRequest,
+    MeteringEventIngestAppStatus, MeteringEventIngestAuthorization,
+    MeteringEventIngestIdempotencyLedger, MeteringEventIngestPayload, MeteringMeterUnitRequest,
+    ingest_metering_event_from_app,
 };
-use oya_platform_metering_kernel::Meter;
+use oya_metering_domain::Meter;
 
 const EVENT_ID: &str = "mtr_cloud_compute_001";
 const IDEMPOTENCY_KEY: &str = "idem_metering_cloud_compute_001";
