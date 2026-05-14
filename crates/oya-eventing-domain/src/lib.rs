@@ -15,8 +15,20 @@ pub struct OutboxRecord {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Topic {
+    pub axis: Classified<String>,
+    pub name: Classified<String>,
+    pub description: Classified<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum EventingError {
     EmptyTopic,
+    EmptyTopicAxis,
+    EmptyTopicDescription,
+    InvalidTopicName,
+    DuplicateTopic,
+    TopicNotFound,
     EmptyIdempotencyKey,
     EmptyPayloadRef,
     OutboxRecordNotFound,
@@ -24,9 +36,73 @@ pub enum EventingError {
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct TopicRegistry {
+    by_name: BTreeMap<String, Topic>,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Outbox {
     records: Vec<OutboxRecord>,
     by_idempotency: BTreeMap<(String, String, String), usize>,
+}
+
+impl Topic {
+    pub fn new(
+        axis: impl Into<String>,
+        name: impl Into<String>,
+        description: impl Into<String>,
+    ) -> Result<Self, EventingError> {
+        let axis = axis.into();
+        let name = name.into();
+        let description = description.into();
+        let axis_trimmed = axis.trim();
+        let name_trimmed = name.trim();
+        let description_trimmed = description.trim();
+
+        if axis_trimmed.is_empty() {
+            return Err(EventingError::EmptyTopicAxis);
+        }
+        if name_trimmed.is_empty() {
+            return Err(EventingError::EmptyTopic);
+        }
+        if description_trimmed.is_empty() {
+            return Err(EventingError::EmptyTopicDescription);
+        }
+
+        let expected_prefix = format!("oya.{axis_trimmed}.");
+        if name_trimmed != name || !name_trimmed.starts_with(&expected_prefix) {
+            return Err(EventingError::InvalidTopicName);
+        }
+
+        Ok(Self {
+            axis: Classified::new(axis_trimmed.to_string(), DataClass::InternalOnly),
+            name: Classified::new(name_trimmed.to_string(), DataClass::InternalOnly),
+            description: Classified::new(description_trimmed.to_string(), DataClass::InternalOnly),
+        })
+    }
+}
+
+impl TopicRegistry {
+    pub fn register(&mut self, topic: Topic) -> Result<Topic, EventingError> {
+        let name = topic.name.value.clone();
+        if self.by_name.contains_key(&name) {
+            return Err(EventingError::DuplicateTopic);
+        }
+        self.by_name.insert(name, topic.clone());
+        Ok(topic)
+    }
+
+    pub fn get(&self, name: &str) -> Option<&Topic> {
+        self.by_name.get(name)
+    }
+
+    pub fn require(&self, name: &str) -> Result<&Topic, EventingError> {
+        self.get(name).ok_or(EventingError::TopicNotFound)
+    }
+
+    pub fn topics(&self) -> Vec<&Topic> {
+        self.by_name.values().collect()
+    }
 }
 
 impl Outbox {
@@ -104,5 +180,67 @@ impl Outbox {
             .ok_or(EventingError::OutboxRecordNotFound)?;
         record.published = true;
         Ok(record.clone())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{EventingError, Outbox, Topic, TopicRegistry};
+
+    #[test]
+    fn topic_registry_enforces_axis_prefixed_names() {
+        let topic = Topic::new(
+            "foundation",
+            "oya.foundation.eventing",
+            "Foundation eventing backbone topic",
+        )
+        .expect("axis-prefixed topic is valid");
+
+        let mut registry = TopicRegistry::default();
+        registry
+            .register(topic.clone())
+            .expect("first registration succeeds");
+
+        assert_eq!(registry.require("oya.foundation.eventing"), Ok(&topic));
+        assert_eq!(registry.topics(), vec![&topic]);
+        assert_eq!(registry.register(topic), Err(EventingError::DuplicateTopic));
+        assert_eq!(
+            Topic::new("foundation", "oya.cloud.eventing", "wrong axis"),
+            Err(EventingError::InvalidTopicName)
+        );
+        assert_eq!(
+            Topic::new("", "oya.foundation.eventing", "missing axis"),
+            Err(EventingError::EmptyTopicAxis)
+        );
+    }
+
+    #[test]
+    fn outbox_publish_remains_exactly_once_per_tenant_topic_and_key() {
+        let mut outbox = Outbox::default();
+        let first = outbox
+            .publish(
+                "tenant-a".to_string(),
+                "oya.foundation.eventing".to_string(),
+                "idem-1".to_string(),
+                "payloads/1".to_string(),
+            )
+            .expect("first publish succeeds");
+        let replay = outbox
+            .publish(
+                "tenant-a".to_string(),
+                "oya.foundation.eventing".to_string(),
+                "idem-1".to_string(),
+                "payloads/1".to_string(),
+            )
+            .expect("idempotent replay succeeds");
+
+        assert_eq!(first, replay);
+        assert_eq!(outbox.records().len(), 1);
+
+        let published = outbox
+            .mark_published("tenant-a", first.sequence)
+            .expect("record can be marked published");
+        assert!(published.published);
+        assert!(outbox.records()[0].published);
     }
 }

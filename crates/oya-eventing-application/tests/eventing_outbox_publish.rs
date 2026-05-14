@@ -10,13 +10,13 @@ use oya_eventing_domain::Outbox;
 
 const EVENT_ID: &str = "evt_outbox_publish_001";
 const IDEMPOTENCY_KEY: &str = "idem_eventing_outbox_publish_001";
-const TARGET_TOPIC: &str = "oya.platform.tenant";
+const TARGET_TOPIC: &str = "oya.foundation.tenancy";
 const PAYLOAD_REF: &str = "tenant-events/ten_kr/provisioned-001";
 
 #[test]
 fn eventing_outbox_contract_runtime_constants_are_covered() {
     assert_eq!(EVENTING_OUTBOX_PUBLISH_SURFACE, "eventing.outbox.publish");
-    assert_eq!(EVENTING_OUTBOX_PUBLISH_TOPIC, "oya.platform.eventing");
+    assert_eq!(EVENTING_OUTBOX_PUBLISH_TOPIC, "oya.foundation.eventing");
     assert_eq!(EVENTING_OUTBOX_PUBLISH_SCHEMA, "eventing.outbox.publish.v1");
     assert_eq!(EVENTING_OUTBOX_PUBLISH_SOURCE, "oyatie://platform/eventing");
     assert_eq!(
@@ -204,7 +204,7 @@ fn publish_request(event_id: &str, idempotency_key: &str) -> EventingOutboxPubli
         envelope: EventingOutboxEnvelopeContext {
             event_id: event_id.to_string(),
             source: EVENTING_OUTBOX_PUBLISH_SOURCE.to_string(),
-            subject: "tenant/ten_kr/topic/oya.platform.tenant".to_string(),
+            subject: "tenant/ten_kr/topic/oya.foundation.tenancy".to_string(),
             topic: EVENTING_OUTBOX_PUBLISH_TOPIC.to_string(),
             schema: EVENTING_OUTBOX_PUBLISH_SCHEMA.to_string(),
             tenant_id: "ten_kr".to_string(),

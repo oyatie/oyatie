@@ -10,7 +10,7 @@ use oya_data_boundary_kernel::{PrivacyDataClass, parse_data_class_label};
 use oya_eventing_domain::{EventingError, Outbox, OutboxRecord};
 
 pub const EVENTING_OUTBOX_PUBLISH_SURFACE: &str = "eventing.outbox.publish";
-pub const EVENTING_OUTBOX_PUBLISH_TOPIC: &str = "oya.platform.eventing";
+pub const EVENTING_OUTBOX_PUBLISH_TOPIC: &str = "oya.foundation.eventing";
 pub const EVENTING_OUTBOX_PUBLISH_SCHEMA: &str = "eventing.outbox.publish.v1";
 pub const EVENTING_OUTBOX_PUBLISH_SOURCE: &str = "oyatie://platform/eventing";
 pub const EVENTING_OUTBOX_PUBLISH_ASYNCAPI_CONTRACT: &str =
@@ -267,6 +267,11 @@ impl EventingOutboxPublishAppError {
             | Self::MissingRegulatoryPacksConsumed
             | Self::InvalidRegulatoryPack { .. }
             | Self::Eventing(EventingError::EmptyTopic)
+            | Self::Eventing(EventingError::EmptyTopicAxis)
+            | Self::Eventing(EventingError::EmptyTopicDescription)
+            | Self::Eventing(EventingError::InvalidTopicName)
+            | Self::Eventing(EventingError::DuplicateTopic)
+            | Self::Eventing(EventingError::TopicNotFound)
             | Self::Eventing(EventingError::EmptyIdempotencyKey)
             | Self::Eventing(EventingError::EmptyPayloadRef) => {
                 EventingOutboxPublishAppStatus::BadRequest
