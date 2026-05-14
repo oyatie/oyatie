@@ -1,0 +1,17 @@
+[package]
+name = "oya-ops-workspace-shell-application"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-ops-workspace-shell-kernel = { path = "../oya-ops-workspace-shell-kernel" }
+oya-ops-workspace-shell-adapter = { path = "../oya-ops-workspace-shell-adapter" }
+
+
+[lib]
+name = "oya_ops_workspace_shell_application"
+path = "src/lib.rs"
+doctest = false
