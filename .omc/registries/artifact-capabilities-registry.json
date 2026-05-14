@@ -1007,6 +1007,63 @@
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "oya-http-tenant-middleware-domain-manifest",
+      "artifact_path": "crates/oya-http-tenant-middleware-domain/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; \u2264128 chars); deny-on-missing/invalid with 400.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "oya-http-deadline-middleware-domain-manifest",
+      "artifact_path": "crates/oya-http-deadline-middleware-domain/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Layer 4 middleware: per-request budget timer; replaces response with 504 when elapsed exceeds budget_ms. Std-only; sync (post-hoc enforcement).",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "oya-http-telemetry-middleware-domain-manifest",
+      "artifact_path": "crates/oya-http-telemetry-middleware-domain/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Layer 4 middleware: per-(method, route, status_class) counter + total_latency_us aggregator. In-memory sink; OTel exporter is a separate slice.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
     }
   ]
 }
