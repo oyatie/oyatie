@@ -779,6 +779,44 @@
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "oya-ops-workspace-shell-rest-manifest",
+      "artifact_path": "crates/oya-ops-workspace-shell-rest/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Cargo manifest for ops Wave 1 workspace-shell rest crate (std-only; framework-free). REST boundary types + handler functions; routes 1:1 with contracts/ops-workspace-shell.openapi.yaml. Axum binding deferred to runtime composition root per LTS-dependency-enforcement directive.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "oya-ops-docs-portal-rest-manifest",
+      "artifact_path": "crates/oya-ops-docs-portal-rest/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Cargo manifest for ops Wave 1 docs-portal rest crate (std-only). REST boundary for /workspace/docs/{manifest, live, api/v1/extractors/{id}/refresh}. Framework binding deferred.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
     }
   ]
 }

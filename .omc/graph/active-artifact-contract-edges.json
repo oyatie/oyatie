@@ -24,6 +24,8 @@
     { "source": "oya-ops-workspace-shell-adapter-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-ops-docs-portal-adapter-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-ops-workspace-shell-application-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-docs-portal-application-manifest", "target": "registry", "edge_type": "declares" }
+    { "source": "oya-ops-docs-portal-application-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-ops-workspace-shell-rest-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-ops-docs-portal-rest-manifest", "target": "registry", "edge_type": "declares" }
   ]
 }
