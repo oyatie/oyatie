@@ -12,6 +12,8 @@
     { "source": "evidence-bundle-template", "target": "template", "edge_type": "declares" },
     { "source": "ops-portal-ledger", "target": "ledger", "edge_type": "declares" },
     { "source": "ops-portal-claim-matrix", "target": "claim-matrix", "edge_type": "declares" },
-    { "source": "ops-portal-plan-suite-accepted-attestation", "target": "plan-attestation", "edge_type": "declares" }
+    { "source": "ops-portal-plan-suite-accepted-attestation", "target": "plan-attestation", "edge_type": "declares" },
+    { "source": "microservices-registry", "target": "registry", "edge_type": "declares" },
+    { "source": "bounded-contexts-registry", "target": "registry", "edge_type": "declares" }
   ]
 }

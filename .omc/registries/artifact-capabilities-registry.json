@@ -548,6 +548,44 @@
           "last_modified_at": "2026-05-13T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "microservices-registry",
+      "artifact_path": ".omc/registries/microservices.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "Machine-readable \u00b5service registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya check active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-13T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "bounded-contexts-registry",
+      "artifact_path": ".omc/registries/bounded-contexts.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "Machine-readable BC registry per ADR-0015 flat-crates. Wave 1 IP-X1 catalog-prelude entry (2 ops BCs).",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya check active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-13T00:00:00Z"
+        }
+      }
     }
   ]
 }
