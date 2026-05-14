@@ -16,13 +16,13 @@ use oya_ops_workspace_shell_kernel::{
 /// `contracts/ops-workspace-shell.openapi.yaml`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WireSurface {
-    pub id: String,                          // data_class: INTERNAL_ONLY
-    pub canonical_route: String,             // data_class: INTERNAL_ONLY
-    pub visibility_tier: String,             // data_class: INTERNAL_ONLY
-    pub state: String,                       // data_class: INTERNAL_ONLY
-    pub owning_bc_id: String,                // data_class: INTERNAL_ONLY
-    pub cedar_fragments: Vec<String>,        // data_class: INTERNAL_ONLY
-    pub openapi_contract: Option<String>,    // data_class: INTERNAL_ONLY
+    pub id: String,                           // data_class: INTERNAL_ONLY
+    pub canonical_route: String,              // data_class: INTERNAL_ONLY
+    pub visibility_tier: String,              // data_class: INTERNAL_ONLY
+    pub state: String,                        // data_class: INTERNAL_ONLY
+    pub owning_bc_id: String,                 // data_class: INTERNAL_ONLY
+    pub cedar_fragments: Vec<String>,         // data_class: INTERNAL_ONLY
+    pub openapi_contract: Option<String>,     // data_class: INTERNAL_ONLY
     pub retired_redirects_to: Option<String>, // data_class: INTERNAL_ONLY
 }
 
@@ -80,7 +80,7 @@ impl WireSurfaceListResponse {
 /// Wire shape mirroring `#/components/schemas/HealthResponse`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WireHealthResponse {
-    pub status: String,             // healthy | degraded | unhealthy
+    pub status: String, // healthy | degraded | unhealthy
     pub surface_count: usize,
     pub version: String,
     pub cell_id: Option<String>,

@@ -95,8 +95,7 @@ pub(crate) fn validate_cedar_fragment_coverage_gate(
     let cedar_files_on_disk = head_tracked_paths
         .iter()
         .filter(|path| {
-            path.starts_with(&format!("{}/", args.cedar_dir.display()))
-                && path.ends_with(".cedar")
+            path.starts_with(&format!("{}/", args.cedar_dir.display())) && path.ends_with(".cedar")
         })
         .cloned()
         .collect();
@@ -128,8 +127,12 @@ pub(crate) fn validate_cedar_fragment_coverage_gate(
 }
 
 fn read_fragment_registry(path: &Path) -> Result<Vec<FragmentRow>, String> {
-    let text = fs::read_to_string(path)
-        .map_err(|error| format!("cedar-fragments registry unreadable {}: {error}", path.display()))?;
+    let text = fs::read_to_string(path).map_err(|error| {
+        format!(
+            "cedar-fragments registry unreadable {}: {error}",
+            path.display()
+        )
+    })?;
     let fragments_array = extract_json_array_for_key(&text, "fragments").ok_or_else(|| {
         format!(
             "cedar-fragments registry missing top-level `fragments` array in {}",
@@ -157,9 +160,7 @@ fn read_fragment_registry(path: &Path) -> Result<Vec<FragmentRow>, String> {
         let status = match status_str.as_str() {
             "operational" => FragmentStatus::Operational,
             "planned" => FragmentStatus::Planned,
-            "blocked-by-foundation-prerequisite" => {
-                FragmentStatus::BlockedByFoundationPrerequisite
-            }
+            "blocked-by-foundation-prerequisite" => FragmentStatus::BlockedByFoundationPrerequisite,
             other => {
                 return Err(format!(
                     "cedar-fragments row fragment_id={fragment_id} has unknown status `{other}`"
@@ -242,10 +243,7 @@ fn scan_yaml_cedar_fragments(text: &str, out: &mut BTreeSet<String>) {
     let mut lines = text.lines().peekable();
     while let Some(line) = lines.next() {
         let trimmed = line.trim_start();
-        let Some(rest) = PREFIXES
-            .iter()
-            .find_map(|p| trimmed.strip_prefix(p))
-        else {
+        let Some(rest) = PREFIXES.iter().find_map(|p| trimmed.strip_prefix(p)) else {
             continue;
         };
         let rest_trimmed = rest.trim();
@@ -317,7 +315,11 @@ fn write_evidence_bundle(
         })?;
     }
     let report = &wrapped.report;
-    let outcome = if report.is_clean() { "success" } else { "failure" };
+    let outcome = if report.is_clean() {
+        "success"
+    } else {
+        "failure"
+    };
     let body = format!(
         "{{\n  \"$schema_ref\": \".omc/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"cedar-fragment-coverage-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate cedar-fragment-coverage\", \"registry_path\": \"{}\" }},\n  \"outcome\": \"{}\",\n  \"rows_seen\": {},\n  \"openapi_references_seen\": {},\n  \"bc_references_seen\": {},\n  \"cedar_files_seen\": {},\n  \"violation_count\": {},\n  \"validation_duration_ms\": {}\n}}\n",
         escape_json(&registry_path.display().to_string()),
@@ -354,9 +356,9 @@ fn format_violations(violations: &[Violation]) -> String {
                 "C03: fragment `{fragment_id}` has .cedar file on disk but status={}",
                 actual_status.name()
             ),
-            Violation::C04OperationalPathMissing { fragment_id, path } => format!(
-                "C04: fragment `{fragment_id}` status=operational but path missing: {path}"
-            ),
+            Violation::C04OperationalPathMissing { fragment_id, path } => {
+                format!("C04: fragment `{fragment_id}` status=operational but path missing: {path}")
+            }
             Violation::C04NonOperationalPathExists {
                 fragment_id,
                 path,
@@ -417,10 +419,7 @@ mod tests {
             normalize_fragment_reference("ops-tenant-private.cedar (Wave 5)"),
             "ops-tenant-private"
         );
-        assert_eq!(
-            normalize_fragment_reference("ops-bare-id"),
-            "ops-bare-id"
-        );
+        assert_eq!(normalize_fragment_reference("ops-bare-id"), "ops-bare-id");
     }
 
     #[test]
@@ -461,6 +460,9 @@ mod tests {
         let yaml = "schemas:\n  Surface:\n    cedar_fragments:\n      type: array\n      items: { type: string }\n";
         let mut out = BTreeSet::new();
         scan_yaml_cedar_fragments(yaml, &mut out);
-        assert!(out.is_empty(), "schema declaration should not be parsed as data: {out:?}");
+        assert!(
+            out.is_empty(),
+            "schema declaration should not be parsed as data: {out:?}"
+        );
     }
 }
