@@ -3,10 +3,10 @@
   "_artifact_id": "active-artifact-contract-lane-run",
   "_meta": { "emitter": "oya-dev-cli gate validate active-artifact-contract", "registry_path": ".omc/registries/artifact-capabilities-registry.json" },
   "outcome": "success",
-  "rows_seen": 28,
-  "head_tracked_count": 1964,
+  "rows_seen": 31,
+  "head_tracked_count": 1970,
   "untracked_paths": [],
   "duplicate_ids": [],
-  "validation_duration_ms": 9,
-  "graph_edge_count": 28
+  "validation_duration_ms": 8,
+  "graph_edge_count": 31
 }
