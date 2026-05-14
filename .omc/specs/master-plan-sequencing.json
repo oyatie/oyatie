@@ -1,0 +1,117 @@
+{
+  "_schema": {
+    "version": "1.0.0",
+    "description": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
+    "owner_team": "council-architecture + axis-foundry",
+    "validation_check": "json-valid + referenced-paths-exist + no-git-gh-primitives",
+    "authority_note": "Execution overlay only; docs/CONSTITUTION.md, docs/MASTERPLAN.md, ADRs, and checklist templates remain authoritative."
+  },
+  "_metadata": {
+    "sidecar_id": "EXE-MASTER-SEQUENCING",
+    "status": "draft-sidecar",
+    "created_for": "4000-character launcher prompt sidecars",
+    "canonical_sources": [
+      "docs/AGENTS.md",
+      "docs/CONSTITUTION.md",
+      "docs/DOC-CATALOG.md",
+      "docs/MASTERPLAN.md",
+      "docs/decisions/ADR-0015-architectural-flattening-target.md",
+      "docs/standards/clean-architecture.md",
+      "docs/standards/hyperscaler-best-practices.md",
+      ".omc/templates/checklists/done-definition-checklist.md",
+      ".omc/templates/checklists/per-implementation-plan-checklist.md",
+      ".omc/templates/checklists/per-phase-completion-checklist.md",
+      ".omc/templates/evidence-bundle-template.json"
+    ],
+    "deduplicates_existing": [
+      ".omc/goals/implement-masterplan.md",
+      ".omc/plans/consensus-masterplan-2026-05-13.md",
+      ".omc/plans/M01-M03-parallelization-manifest.md",
+      ".omc/templates/checklists/agent-kickoff-checklist.md",
+      ".omc/templates/checklists/per-implementation-plan-checklist.md",
+      ".omc/templates/checklists/per-phase-completion-checklist.md"
+    ]
+  },
+  "master_plan_discovery_order": [
+    "docs/MASTERPLAN.md",
+    ".omc/goals/implement-masterplan.md",
+    ".omc/plans/consensus-masterplan-2026-05-13.md",
+    ".omc/plans/M01-M03-parallelization-manifest.md",
+    ".omc/plans/milestones/*/README.md",
+    ".omc/plans/milestones/*/INDEX.md",
+    ".omc/plans/milestones/*/phases/*/INDEX.md",
+    ".omc/plans/milestones/*/phases/*/phase-spec.md",
+    ".omc/plans/milestones/*/phases/*/impl-plan.md",
+    ".omc/plans/milestones/*/phases/*/IP-*.md"
+  ],
+  "planning_hierarchy": {
+    "milestone": "multi-quarter outcome; M<NN>-slug; owns phase index and exit gate",
+    "phase": "1-6 week deliverable; P<NN>-slug; owns entry/exit gates",
+    "implementation_plan": "executable phase-local slice; owns grit symbols, code shape, tests, and handoff"
+  },
+  "forbidden_primitives": [
+    "git",
+    "gh",
+    "manual-branch",
+    "manual-rebase",
+    "manual-merge",
+    "manual-push"
+  ],
+  "repo_state_protocol": [
+    {
+      "step": "claim",
+      "primitive": "grit claim --agent <id> --intent <slice> <symbols>",
+      "fallback": "icm store -t scaffold-locks-oyatie when symbols are absent"
+    },
+    {
+      "step": "work",
+      "primitive": "edit only within claimed scope",
+      "fallback": "stop and narrow claim on shared-file conflict"
+    },
+    {
+      "step": "verify",
+      "primitive": "run targeted then risk-scaled gates",
+      "fallback": "record blocked check and next-best evidence"
+    },
+    {
+      "step": "done",
+      "primitive": "grit done --agent <id>",
+      "fallback": "do not manually merge; report blocked closeout"
+    }
+  ],
+  "sequence": [
+    "read_authority_contracts",
+    "recall_icm_context",
+    "locate_canonical_master_plan",
+    "load_sidecars_and_existing_checklists",
+    "build_completion_ledger",
+    "topologically_sort_by_gates_on_and_dependencies",
+    "select_next_ready_item",
+    "claim_with_grit_or_scaffold_lock",
+    "inspect_current_state",
+    "implement_smallest_correct_slice",
+    "update_tests_contracts_docs_catalog_adrs",
+    "run_targeted_verification",
+    "run_required_hyperscaler_gates",
+    "run_linus_style_critic_pass",
+    "fix_and_reverify",
+    "record_evidence_bundle",
+    "close_claim_with_grit_done",
+    "repeat_until_ledger_complete",
+    "full_plan_adversarial_audit",
+    "store_icm_completion_summary",
+    "emit_final_report"
+  ],
+  "ledger_required_fields": [
+    "item_id",
+    "source_path",
+    "source_section",
+    "milestone",
+    "phase",
+    "acceptance_criteria",
+    "dependencies",
+    "status",
+    "evidence_refs",
+    "blocked_reason"
+  ]
+}

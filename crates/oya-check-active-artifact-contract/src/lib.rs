@@ -11,6 +11,74 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Closed enum of artifact profiles per `.omc/specs/artifact-profile-defaults.json`.
+/// Each profile bundles default capability declarations; registry rows declare
+/// `artifact_profile` + sparse `capability_overrides` rather than full 9-cap boilerplate.
+/// Closes architect r17 finding #8.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum ArtifactProfile {
+    Schema,
+    Registry,
+    Template,
+    PlanAttestation,
+    Ledger,
+    ClaimMatrix,
+    EvidenceBundle,
+}
+
+impl ArtifactProfile {
+    pub fn all() -> [ArtifactProfile; 7] {
+        [
+            ArtifactProfile::Schema,
+            ArtifactProfile::Registry,
+            ArtifactProfile::Template,
+            ArtifactProfile::PlanAttestation,
+            ArtifactProfile::Ledger,
+            ArtifactProfile::ClaimMatrix,
+            ArtifactProfile::EvidenceBundle,
+        ]
+    }
+
+    pub fn parse(s: &str) -> Option<ArtifactProfile> {
+        match s {
+            "schema" => Some(ArtifactProfile::Schema),
+            "registry" => Some(ArtifactProfile::Registry),
+            "template" => Some(ArtifactProfile::Template),
+            "plan-attestation" => Some(ArtifactProfile::PlanAttestation),
+            "ledger" => Some(ArtifactProfile::Ledger),
+            "claim-matrix" => Some(ArtifactProfile::ClaimMatrix),
+            "evidence-bundle" => Some(ArtifactProfile::EvidenceBundle),
+            _ => None,
+        }
+    }
+
+    pub fn name(self) -> &'static str {
+        match self {
+            ArtifactProfile::Schema => "schema",
+            ArtifactProfile::Registry => "registry",
+            ArtifactProfile::Template => "template",
+            ArtifactProfile::PlanAttestation => "plan-attestation",
+            ArtifactProfile::Ledger => "ledger",
+            ArtifactProfile::ClaimMatrix => "claim-matrix",
+            ArtifactProfile::EvidenceBundle => "evidence-bundle",
+        }
+    }
+
+    /// Profile defaults baked into the kernel for testability. The canonical
+    /// authority is `.omc/specs/artifact-profile-defaults.json`; runtimes
+    /// that load the JSON should use that file and MAY use this baseline only
+    /// as a sanity-check fallback. The default for every capability in every
+    /// profile is `Planned`; runtime is responsible for richer defaults.
+    pub fn default_capabilities(self) -> BTreeMap<CapabilityKind, CapabilityStatus> {
+        let _ = self; // every profile defaults all 9 capabilities to Planned
+        let mut map = BTreeMap::new();
+        for kind in CapabilityKind::ALL {
+            map.insert(kind, CapabilityStatus::Planned);
+        }
+        map
+    }
+}
+
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum CapabilityStatus {
     Operational,
@@ -429,6 +497,33 @@ mod tests {
             .count();
         assert_eq!(r07, 9);
         assert_eq!(report.error_count(), 0); // R07 is Warn, not Error
+    }
+
+    #[test]
+    fn artifact_profile_parses_all_known_names() {
+        let names = ["schema", "registry", "template", "plan-attestation", "ledger", "claim-matrix", "evidence-bundle"];
+        for n in names {
+            assert!(ArtifactProfile::parse(n).is_some(), "should parse: {n}");
+        }
+        assert!(ArtifactProfile::parse("not-a-profile").is_none());
+    }
+
+    #[test]
+    fn artifact_profile_round_trips() {
+        for p in ArtifactProfile::all() {
+            assert_eq!(ArtifactProfile::parse(p.name()), Some(p));
+        }
+    }
+
+    #[test]
+    fn artifact_profile_default_capabilities_covers_all_9() {
+        for p in ArtifactProfile::all() {
+            let defaults = p.default_capabilities();
+            assert_eq!(defaults.len(), 9, "profile {} missing capabilities", p.name());
+            for kind in CapabilityKind::ALL {
+                assert!(defaults.contains_key(&kind), "profile {} missing {}", p.name(), kind.name());
+            }
+        }
     }
 
     #[test]

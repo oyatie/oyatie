@@ -479,7 +479,7 @@ lanes:
     status: planned
     severity: blocker
     owner_team: council-architecture
-    purpose: every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract (per ADR-0069); blocks PRs with unregistered artifacts, duplicate ids, operational-without-evidence, planned-without-prerequisite, blocked-without-foundation-prerequisite, or HEAD-untracked artifact_path
+    purpose: every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract (per ADR-0069); WILL block PRs with unregistered artifacts, duplicate ids, operational-without-evidence, planned-without-prerequisite, blocked-without-foundation-prerequisite, or HEAD-untracked artifact_path AFTER status flips to active (current=planned; prerequisite_for_active=oya-dev-cli `gate validate active-artifact-contract` subcommand wired to crates/oya-check-active-artifact-contract::validate + .github/workflows/ci-fitness-lanes.yml job tracked in HEAD)
     source: ADR-0069
     runtime_budget_seconds: 60
     check_command: cargo run -p oya-dev-cli -- gate validate active-artifact-contract
