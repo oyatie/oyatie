@@ -624,6 +624,44 @@
           "last_modified_at": "2026-05-13T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "ops-workspace-shell-openapi-contract",
+      "artifact_path": "contracts/ops-workspace-shell.openapi.yaml",
+      "artifact_format": "openapi-yaml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "OpenAPI 3.2 contract for ops workspace shell BC. Consumes oya-ops-workspace-shell-kernel types (SurfaceCatalogPort + SurfaceState + VisibilityTier). Cedar-gated; ADR-0067 perf authority.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-13T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "ops-docs-openapi-contract",
+      "artifact_path": "contracts/ops-docs.openapi.yaml",
+      "artifact_format": "openapi-yaml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 \u22642s.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya gate validate active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-13T00:00:00Z"
+        }
+      }
     }
   ]
 }
