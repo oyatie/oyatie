@@ -779,10 +779,10 @@ pub fn is_subject_hard_denied(purpose: Purpose, subject_class: SubjectClass) -> 
 #[cfg(test)]
 mod tests {
     use super::{
-        evaluate_data_use, evaluate_data_use_classification, evaluate_legacy_data_use, AgeBand,
-        Classified, DataClass, DataClassification, DataUseAttributes,
+        AgeBand, Classified, DataClass, DataClassification, DataUseAttributes,
         DataUseClassificationAttributes, DataUseDenialReason, LegacyDataUseAttributes,
         OperationalDataClass, PrivacyDataClass, Purpose, SubjectClass, SubjectDataMarker,
+        evaluate_data_use, evaluate_data_use_classification, evaluate_legacy_data_use,
     };
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
@@ -1073,10 +1073,12 @@ mod tests {
                     Err(DataUseDenialReason::HardDeniedDataClass)
                 );
             }
-            assert!(scope
-                .clone()
-                .try_allow_legacy_data_class(purpose, DataClass::Audit)
-                .is_err());
+            assert!(
+                scope
+                    .clone()
+                    .try_allow_legacy_data_class(purpose, DataClass::Audit)
+                    .is_err()
+            );
             assert!(!scope.allows_legacy_data_class(purpose, DataClass::Audit));
         }
 
@@ -1158,10 +1160,12 @@ mod tests {
         let scope = super::ConsentScope::default()
             .allow(Purpose::Analytics, privacy(DataClass::InternalOnly));
 
-        assert!(scope
-            .clone()
-            .try_allow_legacy_data_class(Purpose::Analytics, DataClass::Audit)
-            .is_err());
+        assert!(
+            scope
+                .clone()
+                .try_allow_legacy_data_class(Purpose::Analytics, DataClass::Audit)
+                .is_err()
+        );
 
         assert!(scope.allows_classification(
             Purpose::Analytics,
@@ -1187,10 +1191,12 @@ mod tests {
             scope.allows_legacy_data_class(Purpose::CapabilityInvocation, DataClass::InternalOnly)
         );
         for data_class in [DataClass::Audit, DataClass::Secret, DataClass::Children] {
-            assert!(scope
-                .clone()
-                .try_allow_legacy_data_class(Purpose::CapabilityInvocation, data_class)
-                .is_err());
+            assert!(
+                scope
+                    .clone()
+                    .try_allow_legacy_data_class(Purpose::CapabilityInvocation, data_class)
+                    .is_err()
+            );
             assert!(!scope.allows_legacy_data_class(Purpose::CapabilityInvocation, data_class));
         }
     }
