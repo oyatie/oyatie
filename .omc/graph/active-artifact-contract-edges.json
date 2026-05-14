@@ -30,6 +30,9 @@
     { "source": "oya-foundry-architecture-map-kernel-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-check-openapi-rest-route-parity-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-foundry-architecture-map-app-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "architecture-map-graph-artifact", "target": "registry", "edge_type": "declares" }
+    { "source": "architecture-map-graph-artifact", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-http-router-kernel-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-http-middleware-kernel-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "oya-http-sse-domain-manifest", "target": "registry", "edge_type": "declares" }
   ]
 }
