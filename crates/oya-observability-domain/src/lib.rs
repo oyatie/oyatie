@@ -374,7 +374,7 @@ mod tests {
                 DataClass::FinancialKrCredit,
                 DataClass::SensitivePipaArticle23,
             ]),
-            "PII_QUASI_IDENTIFIER,FINANCIAL_KR_신용정보,SENSITIVE_PIPA_ART23"
+            "PII_QUASI_IDENTIFIER,FINANCIAL_KR,SENSITIVE_PIPA_ART23"
         );
         #[allow(deprecated)]
         {
