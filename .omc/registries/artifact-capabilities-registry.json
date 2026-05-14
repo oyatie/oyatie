@@ -1,0 +1,367 @@
+{
+  "_schema_ref": ".omc/specs/active-machine-readable-artifact-contract.json#v3.0.0",
+  "_registry_id": "REG-ARTIFACT-CAPABILITIES",
+  "_meta": {
+    "doc_class": "Registry",
+    "purpose": "Control plane for the 9-capability contract. One row per machine-readable artifact in the repo. Single audit point. Per ADR-0015 registry pattern + AWS-Config / GCP-Asset-Inventory / K8s-CRD precedent.",
+    "owner_team": "council-architecture + axis-foundry",
+    "version": "1.0.0",
+    "created_at": "2026-05-13T00:00:00Z",
+    "baseline_audit_scope": "First-batch rows: (a) the contract schema itself, (b) 5 existing canonical .omc/specs/*, (c) evidence-bundle-template, (d) 3 ops-portal artifacts just authored. Remaining repo artifacts to be added incrementally per migration policy registry. Self-update lane scans applicable_paths_glob nightly + adds rows for new artifacts."
+  },
+  "_self_row": {
+    "artifact_id": "artifact-capabilities-registry",
+    "artifact_path": ".omc/registries/artifact-capabilities-registry.json",
+    "artifact_format": "json",
+    "contract_version": "v3.0.0",
+    "owner_team": "council-architecture + axis-foundry",
+    "purpose_short": "Control plane of artifact capability state across repo. Single audit point.",
+    "capabilities": {
+      "enforcement": {
+        "status": "planned",
+        "lane_id": "lean-a-active-artifact-contract",
+        "timing": "pr_time",
+        "action": "block",
+        "blocks_on": [
+          "row-references-nonexistent-artifact-path",
+          "operational-status-without-resolvable-evidence",
+          "duplicate-artifact-id",
+          "missing-capability-from-required-9"
+        ],
+        "prerequisite_for_operational": [
+          "crates/oya-check-active-artifact-contract authored + compiles",
+          "registry/quality/lanes.yaml entry status=active",
+          ".github/workflows/ci-fitness-lanes.yml job wired in HEAD (foundation prerequisite)"
+        ]
+      },
+      "verification": {
+        "status": "planned",
+        "checker_crate": "crates/oya-check-active-artifact-contract",
+        "command": "oya check active-artifact-contract --workspace",
+        "verifies": [
+          "schema-valid against .omc/specs/active-machine-readable-artifact-contract.json",
+          "every artifact_path resolves to a file",
+          "every operational status has resolvable evidence",
+          "every planned status has populated prerequisite_for_operational",
+          "every metric_id matches OTel cardinality budget",
+          "no duplicate artifact_id"
+        ],
+        "prerequisite_for_operational": [
+          "validator crate authored",
+          "Cargo workspace member added"
+        ]
+      },
+      "validation": {
+        "status": "planned",
+        "trigger": "pre-commit-hook",
+        "validator": "scripts/hooks/pre-commit/validate-artifact-capabilities-registry.sh (planned)",
+        "validates": [
+          "syntactic JSON validity",
+          "schema conformance",
+          "no row removed without corresponding archive policy emission"
+        ]
+      },
+      "autogen": {
+        "status": "planned",
+        "generator": "crates/oya-gen-artifact-capabilities-registry (planned)",
+        "inputs": [
+          ".omc/specs/active-machine-readable-artifact-contract.json:_meta.applicable_paths_glob (forward-port to v3.0.0 shape)",
+          "discovered repo artifacts via fs walk",
+          "existing rows (preserves manual edits via merge strategy)"
+        ],
+        "idempotency_class": "deterministic",
+        "regeneration_frequency": "nightly"
+      },
+      "selfheal": {
+        "status": "planned",
+        "healer": "crates/oya-heal-artifact-capabilities-registry (planned)",
+        "heals_what": [
+          "missing artifact under applicable_paths_glob → add scaffold row with all-planned status",
+          "broken artifact_path (file moved/deleted) → emit alert + flag row as orphaned",
+          "stale prerequisite_for_operational after dependency landed → re-evaluate status",
+          "missing _self_row → reinsert from schema definitions"
+        ],
+        "safe_unattended": [
+          "add-scaffold-row-for-new-artifact",
+          "stamp-missing-provenance-last_modified_at"
+        ],
+        "requires_human_approval_for": [
+          "delete-row-due-to-artifact-removal",
+          "downgrade-status-operational-to-planned (signals regression)",
+          "modify-_schema_ref-pointer"
+        ],
+        "recovery_path_for_destructive_heals": "All destructive heals emit audit-bundle to .omc/audits/artifact-capabilities-heal-${YYYY-MM-DD}.json; recovery via git-revert-equivalent restoration of prior registry state from audit bundle."
+      },
+      "selfupdate": {
+        "status": "planned",
+        "triggers": [
+          "new artifact added under applicable_paths_glob",
+          "ADR Accepted referencing artifact_format enum",
+          "crate authored that satisfies a prerequisite_for_operational entry",
+          "registry/quality/lanes.yaml entry flips status=planned→active"
+        ],
+        "update_mechanism": "post-grit-done-hook",
+        "incremental_vs_full": "incremental-diff"
+      },
+      "selfmaintain": {
+        "status": "planned",
+        "policies": [
+          {
+            "name": "monthly-orphan-row-sweep",
+            "action": "alert",
+            "trigger": "monthly",
+            "destination": ".omc/audits/artifact-capabilities-orphan-sweep-${YYYY-MM}.json",
+            "audit_emission_required": true
+          },
+          {
+            "name": "archive-removed-artifact-rows",
+            "action": "archive",
+            "trigger": "on-artifact-file-deletion",
+            "destination": ".omc/registries/archived/artifact-capabilities/",
+            "audit_emission_required": true,
+            "recovery_path": "Move row JSON from archived/ back to active registry; re-run verification."
+          }
+        ]
+      },
+      "telemetry": {
+        "status": "planned",
+        "observability_standard": "opentelemetry",
+        "metrics": [
+          {
+            "id": "oya_artifact_registry_row_count",
+            "kind": "gauge",
+            "unit": "1",
+            "labels": [ "artifact_format", "contract_version", "owner_team" ],
+            "cardinality_budget": 1000
+          },
+          {
+            "id": "oya_artifact_capability_status_count",
+            "kind": "gauge",
+            "unit": "1",
+            "labels": [ "capability", "status" ],
+            "cardinality_budget": 36
+          },
+          {
+            "id": "oya_artifact_verification_failure_total",
+            "kind": "counter",
+            "unit": "1",
+            "labels": [ "artifact_id", "violated_invariant" ],
+            "cardinality_budget": 5000
+          },
+          {
+            "id": "oya_artifact_selfheal_invocation_total",
+            "kind": "counter",
+            "unit": "1",
+            "labels": [ "artifact_id", "heal_class", "outcome" ],
+            "cardinality_budget": 3000
+          }
+        ],
+        "exporter": "crates/oya-check-active-artifact-contract::metrics (planned)",
+        "dashboard": "docs/dashboards/artifact-capabilities-registry.json (planned)"
+      },
+      "provenance": {
+        "status": "planned",
+        "fields_required": [ "author", "reviewed_by", "autogenerated_by", "last_modified_at", "supersedes_history" ],
+        "current_author": "claude-opus-4-7 + jason931225",
+        "current_reviewed_by": "pending architect r17 + critic r8 codex Torvalds-lens consensus",
+        "autogenerated_by": null,
+        "last_modified_at": "2026-05-13T00:00:00Z",
+        "supersedes_history": [],
+        "slsa_level_target": "L3",
+        "grit_done_seal_event_id": null
+      }
+    }
+  },
+  "rows": [
+    {
+      "artifact_id": "active-machine-readable-artifact-contract",
+      "artifact_path": ".omc/specs/active-machine-readable-artifact-contract.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "Format-agnostic 9-capability contract schema for all machine-readable artifacts in repo.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-active-artifact-contract", "timing": "pr_time", "action": "block", "blocks_on": [ "self-schema-violation" ], "prerequisite_for_operational": [ "validator crate", "lane wired in workflow file in HEAD" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-active-artifact-contract", "command": "oya check active-artifact-contract", "verifies": [ "valid against JSON Schema 2020-12", "no required field missing", "definitions resolvable" ], "prerequisite_for_operational": [ "validator crate" ] },
+        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validator": "scripts/hooks/pre-commit/validate-artifact-contract.sh (planned)", "validates": [ "JSON syntax", "schema self-consistency" ] },
+        "autogen": { "status": "not-applicable", "generator": "", "inputs": [], "idempotency_class": "deterministic" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-active-artifact-contract", "heals_what": [ "broken cross-refs to artifact-format-bindings.json" ], "safe_unattended": [ "fix-typo-in-related-link" ], "requires_human_approval_for": [ "version bump", "definitions removal" ], "recovery_path_for_destructive_heals": "git-revert via audit bundle in .omc/audits/" },
+        "selfupdate": { "status": "planned", "triggers": [ "new artifact_format added", "new capability mandated by user directive" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "deprecate-superseded-version", "action": "archive", "trigger": "on-new-version-Accepted", "destination": ".omc/specs/archived/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_artifact_contract_version_active", "kind": "gauge", "unit": "1", "labels": [ "version" ], "cardinality_budget": 10 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "reviewed_by", "last_modified_at" ], "current_author": "claude-opus-4-7 + jason931225", "current_reviewed_by": "pending architect r17 + critic r8", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [ "v1.0.0 (root-type rejected)", "v2.0.0 (per-artifact embed rejected)" ], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "master-plan-sequencing",
+      "artifact_path": ".omc/specs/master-plan-sequencing.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0-retroactive",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "Execution sequencing overlay for autonomous master-plan completion. Forbidden-primitive list + grit protocol + ledger field requirements.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-master-plan-sequencing", "timing": "pr_time", "action": "block", "blocks_on": [ "forbidden-primitive-invocation-detected", "ledger-row-missing-required-field" ], "prerequisite_for_operational": [ "validator + git-pre-commit hook detecting git/gh invocation" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-master-plan-sequencing", "command": "oya check master-plan-sequencing", "verifies": [ "json-valid", "referenced-paths-exist", "no-git-gh-primitives in tracked tooling" ] },
+        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validator": "scripts/hooks/pre-commit/validate-master-plan-sequencing.sh (planned)", "validates": [ "schema-valid", "canonical_sources resolve" ] },
+        "autogen": { "status": "not-applicable", "generator": "", "inputs": [], "idempotency_class": "deterministic" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-master-plan-sequencing", "heals_what": [ "stale canonical_sources path (file moved/renamed)" ], "safe_unattended": [], "requires_human_approval_for": [ "modify sequence array" ], "recovery_path_for_destructive_heals": "audit-bundle restore" },
+        "selfupdate": { "status": "planned", "triggers": [ "new ADR Accepted that revises authority chain" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "quarterly-sequence-review", "action": "alert", "trigger": "quarterly", "destination": ".omc/audits/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_forbidden_primitive_invocation_total", "kind": "counter", "unit": "1", "labels": [ "primitive_name" ], "cardinality_budget": 10 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "current_author": "council-architecture + axis-foundry", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "hyperscaler-gates",
+      "artifact_path": ".omc/specs/hyperscaler-gates.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0-retroactive",
+      "owner_team": "council-architecture + ops-sre-reliability + ops-security",
+      "purpose_short": "10-gate registry (HG-ARCH, HG-CONTRACT, HG-SECURITY, HG-RELIABILITY, HG-OBS, HG-TEST, HG-SUPPLY, HG-OPS, HG-DOCS, HG-GRIT). Claim_matrix enforcement.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-hyperscaler-gates", "timing": "pr_time", "action": "block", "blocks_on": [ "claim-without-evidence", "gate-evidence-stale" ], "prerequisite_for_operational": [ "validator crate", "gate-coverage report generator" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-hyperscaler-gates", "command": "oya check hyperscaler-gates", "verifies": [ "every gate has evidence_classes populated", "every claim cited has evidence_ref" ] },
+        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validator": "scripts/hooks/pre-commit/validate-hyperscaler-gates.sh", "validates": [ "schema-valid", "claim_matrix_required is array length 3" ] },
+        "autogen": { "status": "not-applicable", "generator": "", "inputs": [], "idempotency_class": "deterministic" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-hyperscaler-gates", "heals_what": [ "missing claim_matrix in artifact citing this spec" ], "safe_unattended": [ "stamp-claim-matrix-scaffold" ], "requires_human_approval_for": [ "add/remove gate", "modify evidence_classes" ] },
+        "selfupdate": { "status": "planned", "triggers": [ "new ADR introducing a quality bar" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "annual-gate-bar-review", "action": "alert", "trigger": "yearly", "destination": ".omc/audits/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_hg_gate_coverage_ratio", "kind": "gauge", "unit": "1", "labels": [ "gate_id" ], "cardinality_budget": 10 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "current_author": "council-architecture + ops-sre-reliability + ops-security", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "evidence-taxonomy",
+      "artifact_path": ".omc/specs/evidence-taxonomy.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0-retroactive",
+      "owner_team": "ops-compliance + axis-foundry",
+      "purpose_short": "8 evidence classes + freshness rule + minimum_completion_set for ledger rows.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-evidence-taxonomy", "timing": "pr_time", "action": "block", "blocks_on": [ "evidence-record-missing-required-field", "freshness-rule-violation" ], "prerequisite_for_operational": [ "validator crate" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-evidence-taxonomy", "command": "oya check evidence-taxonomy", "verifies": [ "every evidence record has required fields", "freshness within current claim window", "class in allowed enum" ] },
+        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validator": "scripts/hooks/pre-commit/validate-evidence-record.sh", "validates": [ "evidence record shape", "secret-redaction policy" ] },
+        "autogen": { "status": "not-applicable", "generator": "", "inputs": [], "idempotency_class": "deterministic" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-evidence-taxonomy", "heals_what": [ "stale freshness → flag for re-evidence" ], "safe_unattended": [ "stamp-freshness-from-current-time" ], "requires_human_approval_for": [ "downgrade evidence class" ] },
+        "selfupdate": { "status": "planned", "triggers": [ "new data class added to evidence-bundle-template.json" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "stale-evidence-sweep", "action": "alert", "trigger": "weekly", "destination": ".omc/audits/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_evidence_record_freshness_seconds", "kind": "histogram", "unit": "s", "labels": [ "evidence_class" ], "cardinality_budget": 8 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "current_author": "ops-compliance + axis-foundry", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "stop-conditions",
+      "artifact_path": ".omc/specs/stop-conditions.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0-retroactive",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "SC-01..SC-09 stop conditions for autonomous master-plan loop + must-continue-when list + blocked-exit policy.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-stop-conditions", "timing": "release_only", "action": "block", "blocks_on": [ "claim-complete-with-unresolved-must-continue-when" ], "prerequisite_for_operational": [ "validator crate" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-stop-conditions", "command": "oya check stop-conditions", "verifies": [ "every may-stop condition has evidence_class set", "every must-continue trigger has remediation path" ] },
+        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validator": "scripts/hooks/pre-commit/validate-stop-conditions.sh", "validates": [ "SC-NN id uniqueness", "evidence_class in allowed enum" ] },
+        "autogen": { "status": "not-applicable", "generator": "", "inputs": [], "idempotency_class": "deterministic" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-stop-conditions", "heals_what": [], "safe_unattended": [], "requires_human_approval_for": [ "add/remove SC", "modify must-continue list" ] },
+        "selfupdate": { "status": "planned", "triggers": [ "new master-plan completion-loop event class" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "annual-stop-condition-review", "action": "alert", "trigger": "yearly", "destination": ".omc/audits/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_master_plan_stop_attempt_total", "kind": "counter", "unit": "1", "labels": [ "sc_id", "outcome" ], "cardinality_budget": 50 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "current_author": "council-architecture + axis-foundry", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "final-report-schema",
+      "artifact_path": ".omc/specs/final-report-schema.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0-retroactive",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "JSON Schema 2020-12 for MPR-... final reports. Strict; enforces claim-can-cannot matrix + critic_summary + closeout.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-final-report-schema", "timing": "release_only", "action": "block", "blocks_on": [ "MPR report not conforming to schema" ], "prerequisite_for_operational": [ "validator + emission pipeline" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-final-report-schema", "command": "oya check final-report-schema <path>", "verifies": [ "valid against JSON Schema 2020-12", "MPR-ULID pattern", "claim-can-cannot matrix populated" ] },
+        "validation": { "status": "planned", "trigger": "write-side-API-guard", "validator": "crates/oya-final-report-emitter (planned)", "validates": [ "all required fields", "icm_completion_memory_id resolvable" ] },
+        "autogen": { "status": "planned", "generator": "crates/oya-final-report-emitter", "inputs": [ "ledger rows", "evidence bundles", "critic outputs" ], "idempotency_class": "content-addressed-sha256", "regeneration_frequency": "on-demand" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-final-report-schema", "heals_what": [ "missing required field → re-emit from canonical sources" ], "safe_unattended": [ "re-stamp generated_at" ], "requires_human_approval_for": [ "change MPR id" ] },
+        "selfupdate": { "status": "planned", "triggers": [ "new evidence class added", "claim-matrix shape extended" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "archive-shipped-MPR-reports", "action": "archive", "trigger": "on-shipped", "destination": ".omc/audits/final-reports/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_mpr_report_emission_total", "kind": "counter", "unit": "1", "labels": [ "status" ], "cardinality_budget": 5 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "current_author": "council-architecture + axis-foundry", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "evidence-bundle-template",
+      "artifact_path": ".omc/templates/evidence-bundle-template.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0-retroactive",
+      "owner_team": "ops-compliance + axis-foundry",
+      "purpose_short": "Canonical EvidenceBundle schema. Lifts Phase-00 evidence shape. Enforced via oya-foundry-fitness-audit-emission.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "oya-foundry-fitness-audit-emission", "timing": "pr_time", "action": "block", "blocks_on": [ "bundle missing required field", "cosign_signature missing on shipped bundle" ], "prerequisite_for_operational": [ "cosign + rekor wiring (FOUNDATION PREREQUISITE — parallel session)" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-foundry-fitness-audit-emission (planned)", "command": "oya gate validate evidence-bundle <path>", "verifies": [ "valid against EvidenceBundle schema", "no raw PII in extensions", "cosign_signature valid", "rekor_log_index resolves" ] },
+        "validation": { "status": "planned", "trigger": "write-side-API-guard", "validator": "audit-chain emitter (M01/M02 prerequisite)", "validates": [ "bundle_id ULID pattern", "tenant_id_hash never raw PII" ] },
+        "autogen": { "status": "blocked-by-foundation", "generator": "audit-chain emitter (M01/M02)", "inputs": [ "capability invocation", "runbook execution", "IP merge event" ], "idempotency_class": "content-addressed-sha256" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-foundry-fitness-audit-emission::heal", "heals_what": [ "re-emit if cosign verification fails post-emit" ], "safe_unattended": [], "requires_human_approval_for": [ "tampering investigation" ] },
+        "selfupdate": { "status": "planned", "triggers": [ "new data_class added", "new regulator added to regulatory_notifications" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "retention-per-data-class", "action": "archive", "trigger": "per-data-class-policy", "destination": "tenant-cold-storage", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_evidence_bundle_emission_total", "kind": "counter", "unit": "1", "labels": [ "topic", "outcome" ], "cardinality_budget": 1000 } ] },
+        "provenance": { "status": "blocked-by-foundation", "fields_required": [ "author", "cosign_signature", "rekor_log_index" ], "current_author": "ops-compliance + axis-foundry", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "ops-portal-ledger",
+      "artifact_path": ".omc/ledger/ops-portal-ledger.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Ops portal plan-suite completion ledger; 11 rows (parent + waves 1-7 + 5.5/5.6/5.7). Conforms to master-plan-sequencing.json ledger_required_fields.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-ops-portal-ledger", "timing": "pr_time", "action": "block", "blocks_on": [ "row references plan path that doesn't exist", "status flip without evidence_ref bump" ], "prerequisite_for_operational": [ "crates/oya-check-ops-portal-ledger" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-ops-portal-ledger", "command": "oya check ops-portal-ledger", "verifies": [ "every row has required fields", "every evidence_ref resolves", "phase pinning matches plan §6(c)" ] },
+        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validator": "scripts/hooks/pre-commit/validate-ops-portal-ledger.sh", "validates": [ "JSON syntax", "schema conformance" ] },
+        "autogen": { "status": "planned", "generator": "crates/oya-gen-ops-portal-ledger", "inputs": [ "ralplan-ops-*.md frontmatter", "git log", "consensus loop outputs" ], "idempotency_class": "deterministic", "regeneration_frequency": "post-grit-done" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-ops-portal-ledger", "heals_what": [ "stale evidence_ref after plan version bump", "missing row for new Wave when sub-plan Accepted" ], "safe_unattended": [ "add-row-from-new-Accepted-Wave-plan" ], "requires_human_approval_for": [ "row removal", "status downgrade" ] },
+        "selfupdate": { "status": "planned", "triggers": [ "wave plan version bump", "Wave Accepted event", "IP dispatch event" ], "update_mechanism": "post-grit-done-hook", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "archive-completed-waves", "action": "archive", "trigger": "on-wave-operationally-closed", "destination": ".omc/ledger/archived/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_ops_portal_wave_status_count", "kind": "gauge", "unit": "1", "labels": [ "wave_id", "status" ], "cardinality_budget": 50 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "current_author": "claude-opus-4-7 + jason931225", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "ops-portal-claim-matrix",
+      "artifact_path": ".omc/claim-matrix/ops-portal.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Hyperscaler claim matrix for ops.oyatie.com plan suite per hyperscaler-gates.json:claim_matrix_required. Honest separation of can-claim vs cannot-yet-claim.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-ops-portal-claim-matrix", "timing": "pr_time", "action": "block", "blocks_on": [ "operational claim without evidence", "claim citing unresolvable path" ], "prerequisite_for_operational": [ "crates/oya-check-ops-portal-claim-matrix" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-ops-portal-claim-matrix", "command": "oya check ops-portal-claim-matrix", "verifies": [ "claims_we_can_make / cannot_make_yet / evidence_required all populated", "gate_coverage_today HG-* rows match hyperscaler-gates.json" ] },
+        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validator": "scripts/hooks/pre-commit/validate-ops-portal-claim-matrix.sh", "validates": [ "schema conformance", "no operational without evidence" ] },
+        "autogen": { "status": "planned", "generator": "crates/oya-gen-ops-portal-claim-matrix", "inputs": [ "ralplan-ops-wave-5-* §11 + §14 + §12.9", "hyperscaler-gates.json" ], "idempotency_class": "deterministic", "regeneration_frequency": "post-grit-done" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-ops-portal-claim-matrix", "heals_what": [ "promote claim when prerequisite evidence lands" ], "safe_unattended": [ "promote-claim-on-evidence" ], "requires_human_approval_for": [ "demote-claim", "remove-claim" ] },
+        "selfupdate": { "status": "planned", "triggers": [ "evidence bundle emission for HG-* gate", "lane status flip" ], "update_mechanism": "post-grit-done-hook", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "monthly-claim-audit", "action": "alert", "trigger": "monthly", "destination": ".omc/audits/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_claim_matrix_claim_count", "kind": "gauge", "unit": "1", "labels": [ "category" ], "cardinality_budget": 3 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "current_author": "claude-opus-4-7 + jason931225", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    },
+    {
+      "artifact_id": "ops-portal-plan-suite-accepted-attestation",
+      "artifact_path": ".omc/evidence/ops-portal-plan-suite-accepted-2026-05-13.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Plan-acceptance attestation for ops.oyatie.com Wave 5 v18 consensus close. Records honest-gap-acknowledgement for missing cosign/rekor/audit-chain.",
+      "capabilities": {
+        "enforcement": { "status": "planned", "lane_id": "lean-a-attestation-format", "timing": "pr_time", "action": "block", "blocks_on": [ "attestation missing required evidence_records field" ], "prerequisite_for_operational": [ "crates/oya-check-plan-acceptance-attestation" ] },
+        "verification": { "status": "planned", "checker_crate": "crates/oya-check-plan-acceptance-attestation", "command": "oya check plan-acceptance-attestation", "verifies": [ "evidence_records each have required fields per evidence-taxonomy.json", "honest_gap_acknowledgement populated", "icm_completion_memory_id resolves in icm db" ] },
+        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validator": "scripts/hooks/pre-commit/validate-attestation.sh", "validates": [ "schema conformance" ] },
+        "autogen": { "status": "planned", "generator": "crates/oya-gen-plan-acceptance-attestation", "inputs": [ "consensus loop outputs", "git commit SHA", "ICM store events" ], "idempotency_class": "content-addressed-sha256", "regeneration_frequency": "on-demand" },
+        "selfheal": { "status": "planned", "healer": "crates/oya-heal-plan-acceptance-attestation", "heals_what": [ "stamp missing evidence_record after consensus event" ], "safe_unattended": [ "stamp-evidence-from-consensus-output" ], "requires_human_approval_for": [ "modify outcome field" ] },
+        "selfupdate": { "status": "planned", "triggers": [ "new consensus round completed" ], "update_mechanism": "post-grit-done-hook", "incremental_vs_full": "incremental-diff" },
+        "selfmaintain": { "status": "planned", "policies": [ { "name": "archive-superseded-attestations", "action": "archive", "trigger": "on-supersession", "destination": ".omc/evidence/archived/", "audit_emission_required": true } ] },
+        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_plan_attestation_emission_total", "kind": "counter", "unit": "1", "labels": [ "plan_id", "outcome" ], "cardinality_budget": 100 } ] },
+        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "current_author": "claude-opus-4-7 + jason931225", "current_reviewed_by": "pending audit", "autogenerated_by": null, "last_modified_at": "2026-05-13T00:00:00Z", "supersedes_history": [], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+      }
+    }
+  ]
+}

@@ -1,0 +1,507 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/knowledge-graph.schema.json",
+  "title": "OyatieKnowledgeGraphSchema",
+  "description": "Canonical knowledge-graph substrate for the entire Oyatie project. Every relationship, capability, feature, schema, crate, BC, microservice, ADR, plan, lane, hook, generator, healer, owner, block — modeled as nodes + typed edges. Registries are VIEWS into this graph filtered by node_type. Single validator (oya check knowledge-graph) traverses for DRY violations, orphans, cycles, broken refs, supersession chains, ownership coverage. Hyperscaler precedent: AWS Resource Explorer + Resource Graph; GCP Asset Inventory + Cloud Asset Graph; Azure Resource Graph + Service Map; K8s API discovery + OwnerReferences; Linkerd Service Mesh topology. Per user directive 2026-05-13: 'every relationship, every capability, every feature, every schema, everything mapped graphed and tracked for automation is ideal' + 'DRY enforcement is key'.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Schema",
+    "schema_id": "EXE-KNOWLEDGE-GRAPH",
+    "version": "1.0.0",
+    "status": "draft-sidecar",
+    "owner_team": "council-architecture + axis-foundry",
+    "user_directives_2026_05_13": [
+      "ideally every relationship, every capability, every feature, every schema, everything mapped graphed and tracked for automation is ideal.",
+      "DRY enforcement is key."
+    ],
+    "design_rationale": "Per Torvalds-lens self-critique: registries with overlapping concerns (capabilities-registry, building-blocks-registry, lane-registry, catalog-registry) are redundant if they all model the same project state. The correct shape is ONE graph; registries are filter-views. Per AWS Resource Explorer / GCP Asset Inventory precedent at hyperscaler scale. Per CONSTITUTION Decision principle 5 (single canonical tree).",
+    "non_canonical_storage_layout_rationale": "We don't ship one giant graph.json (would not scale past ~10k nodes). Instead: per-domain contributing registries each declare _contributes_node_types + _contributes_edge_types. Validator merges them at runtime. Backed by future graph-storage adapter (Neo4j, Memgraph, or Postgres with recursive CTE) when scale warrants.",
+    "related": [
+      ".omc/specs/active-machine-readable-artifact-contract.json",
+      ".omc/registries/artifact-capabilities-registry.json",
+      ".omc/registries/reusable-building-blocks-registry.json",
+      ".omc/specs/master-plan-sequencing.json",
+      ".omc/specs/hyperscaler-gates.json",
+      "docs/CONSTITUTION.md",
+      "docs/decisions/ADR-0015-architectural-flattening-target.md"
+    ],
+    "enforcing_fitness_lane": "lean-a-knowledge-graph-integrity",
+    "validator_crate": "crates/oya-check-knowledge-graph (planned)"
+  },
+  "type": "object",
+  "required": [
+    "node_types",
+    "edge_types",
+    "invariants",
+    "contributing_registry_protocol"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "node_types": {
+      "type": "object",
+      "description": "Closed enum of allowed node types. Each contributing registry declares which it contributes.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [ "purpose", "id_pattern", "examples" ],
+        "additionalProperties": false,
+        "properties": {
+          "purpose": { "type": "string" },
+          "id_pattern": { "type": "string", "description": "regex for node id" },
+          "examples": { "type": "array", "items": { "type": "string" } },
+          "contributing_registries": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "edge_types": {
+      "type": "object",
+      "description": "Closed enum of allowed edge types. Each edge is directional and typed.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [ "direction", "source_node_types", "target_node_types", "cardinality" ],
+        "additionalProperties": false,
+        "properties": {
+          "direction": { "enum": [ "directed" ] },
+          "source_node_types": { "type": "array", "items": { "type": "string" } },
+          "target_node_types": { "type": "array", "items": { "type": "string" } },
+          "cardinality": { "enum": [ "one-to-one", "one-to-many", "many-to-many" ] },
+          "semantics": { "type": "string" }
+        }
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "description": "Graph-level invariants the validator enforces. JSON Schema 2020-12 cannot express these alone; Rust validator implements.",
+      "items": {
+        "type": "object",
+        "required": [ "id", "rule", "severity" ],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "rule": { "type": "string" },
+          "severity": { "enum": [ "error", "warn", "info" ] },
+          "remediation_hint": { "type": "string" }
+        }
+      }
+    },
+    "contributing_registry_protocol": {
+      "type": "object",
+      "description": "How a registry contributes to the graph. Every registry that wants to participate adds these declarations at top level.",
+      "required": [ "_contributes_node_types", "_contributes_edge_types" ],
+      "additionalProperties": false,
+      "properties": {
+        "_contributes_node_types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Node types this registry's rows materialize."
+        },
+        "_contributes_edge_types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Edge types this registry's rows materialize."
+        },
+        "node_extraction_path": {
+          "type": "string",
+          "description": "JSON pointer or simple path expression (e.g., 'rows[*]') indicating where nodes are extracted from."
+        },
+        "edge_extraction_paths": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [ "edge_type", "source_field", "target_field" ],
+            "properties": {
+              "edge_type": { "type": "string" },
+              "source_field": { "type": "string" },
+              "target_field": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "_canonical_node_types": {
+    "Artifact": {
+      "purpose": "Any machine-readable file in repo conforming to active-machine-readable-artifact-contract",
+      "id_pattern": "^[a-z][a-z0-9-]*$",
+      "examples": [ "ops-portal-ledger", "hyperscaler-gates", "evidence-bundle-template" ],
+      "contributing_registries": [ ".omc/registries/artifact-capabilities-registry.json" ]
+    },
+    "Capability": {
+      "purpose": "One of the 9 capabilities (enforcement/verification/validation/autogen/selfheal/selfupdate/selfmaintain/telemetry/provenance)",
+      "id_pattern": "^cap:[a-z]+$",
+      "examples": [ "cap:enforcement", "cap:verification" ],
+      "contributing_registries": [ ".omc/specs/active-machine-readable-artifact-contract.json" ]
+    },
+    "Block": {
+      "purpose": "Reusable building block (Rust crate kernel, Cedar fragment, JSON Schema defs, OpenAPI component, GitHub Actions composite, template, etc.)",
+      "id_pattern": "^[a-z][a-z0-9-]*$",
+      "examples": [ "active-artifact-9-capability-contract", "secret-reference-openbao-pattern" ],
+      "contributing_registries": [ ".omc/registries/reusable-building-blocks-registry.json" ]
+    },
+    "Microservice": {
+      "purpose": "Top-level µservice per Oyatie taxonomy (foundry, connect, application, cloud-*, ops, etc.)",
+      "id_pattern": "^[a-z][a-z0-9-]*$",
+      "examples": [ "foundry", "connect", "ops" ],
+      "contributing_registries": [ "docs/microservices/*.md (read frontmatter)", "registry/catalog/*.yaml" ]
+    },
+    "BoundedContext": {
+      "purpose": "BC within a µservice per ADR-0015",
+      "id_pattern": "^[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$",
+      "examples": [ "ops/docs-portal", "foundry/engine-substrate", "connect/messenger" ],
+      "contributing_registries": [ "docs/bounded-contexts/*.md (read frontmatter)", "registry/catalog/*.yaml" ]
+    },
+    "Crate": {
+      "purpose": "Rust workspace member crate per ADR-0015 + ADR-0056 BNF v4.1",
+      "id_pattern": "^oya-[a-z0-9-]+$",
+      "examples": [ "oya-foundry-evidence-domain", "oya-application-product-enablement-kernel" ],
+      "contributing_registries": [ "Cargo.toml [workspace.members]", "registry/catalog/<crate>.yaml" ]
+    },
+    "Lane": {
+      "purpose": "CI fitness/quality lane in registry/quality/lanes.yaml",
+      "id_pattern": "^(lean-a-[a-z0-9-]+|oya-[a-z-]+-fitness-[a-z-]+)$",
+      "examples": [ "lean-a10-regression", "lean-a-active-artifact-contract" ],
+      "contributing_registries": [ "registry/quality/lanes.yaml" ]
+    },
+    "ADR": {
+      "purpose": "Architecture decision record",
+      "id_pattern": "^ADR-[0-9]{4}$",
+      "examples": [ "ADR-0015", "ADR-0067", "ADR-0088" ],
+      "contributing_registries": [ "docs/decisions/ADR-*.md", "docs/decisions/index.json" ]
+    },
+    "Plan": {
+      "purpose": "Implementation plan (ralplan sidecar or canonical milestone/phase/IP)",
+      "id_pattern": "^plan:[a-z0-9-]+$",
+      "examples": [ "plan:ralplan-ops-wave-5", "plan:M03-P04-impl-plan" ],
+      "contributing_registries": [ ".omc/plans/**/*" ]
+    },
+    "Phase": {
+      "purpose": "Milestone phase",
+      "id_pattern": "^M[0-9]{2}-P[0-9]{2}(-[a-z0-9-]+)?$",
+      "examples": [ "M03-P04", "M03-P08-cross-axis-contracts" ],
+      "contributing_registries": [ ".omc/plans/milestones/*/phases/*/INDEX.md" ]
+    },
+    "Wave": {
+      "purpose": "Sub-plan wave within a parent plan",
+      "id_pattern": "^wave:[a-z0-9-]+:(parent|[0-9]+(\\.[0-9]+)?)$",
+      "examples": [ "wave:ops-portal:parent", "wave:ops-portal:5", "wave:ops-portal:5.5" ],
+      "contributing_registries": [ ".omc/ledger/ops-portal-ledger.json" ]
+    },
+    "ImplementationPlan": {
+      "purpose": "IP within a phase",
+      "id_pattern": "^IP-X?[0-9]+(-[a-z0-9-]+)?$",
+      "examples": [ "IP-X10-ops-tenant-mgmt-bc", "IP-X1" ],
+      "contributing_registries": [ ".omc/plans/milestones/*/phases/*/IP-*.md" ]
+    },
+    "Hook": {
+      "purpose": "Git/grit/pre-commit/post-commit hook",
+      "id_pattern": "^hook:[a-z0-9-]+$",
+      "examples": [ "hook:pre-commit-validate-artifact", "hook:grit-claim-state-on-stop" ],
+      "contributing_registries": [ "scripts/hooks/**", "agents/settings/claude.settings.json" ]
+    },
+    "Generator": {
+      "purpose": "Code/artifact generator (autogen capability target)",
+      "id_pattern": "^gen:[a-z0-9-]+$",
+      "examples": [ "gen:ops-portal-ledger", "gen:plan-acceptance-attestation" ],
+      "contributing_registries": [ "crates/oya-gen-*", ".omc/registries/reusable-building-blocks-registry.json" ]
+    },
+    "Healer": {
+      "purpose": "Self-healing module (selfheal capability target)",
+      "id_pattern": "^heal:[a-z0-9-]+$",
+      "examples": [ "heal:ops-portal-ledger", "heal:artifact-capabilities-registry" ],
+      "contributing_registries": [ "crates/oya-heal-*" ]
+    },
+    "OwnerTeam": {
+      "purpose": "Team accountable for an artifact/lane/crate/BC/µservice",
+      "id_pattern": "^team:[a-z][a-z0-9-]*(\\+[a-z][a-z0-9-]*)*$",
+      "examples": [ "team:council-architecture", "team:council-foundry", "team:ops-sre-reliability" ],
+      "contributing_registries": [ "docs/RACI-OWNERSHIP.md", "all registries (owner_team field)" ]
+    },
+    "Feature": {
+      "purpose": "Product feature exposed by a BC/Crate (Wave 5 deployments-rollback action, multi-party-approval, etc.)",
+      "id_pattern": "^feat:[a-z0-9-]+$",
+      "examples": [ "feat:rollback-action", "feat:multi-party-approval", "feat:docs-portal-manifest-endpoint" ],
+      "contributing_registries": [ ".omc/plans/**/*.md §6 (parsed from plan)", "docs/prds/*.md" ]
+    },
+    "Schema": {
+      "purpose": "JSON Schema / OpenAPI schema / TOML schema / YAML schema declaring data shape",
+      "id_pattern": "^schema:[a-z0-9-]+$",
+      "examples": [ "schema:active-artifact-contract", "schema:evidence-bundle" ],
+      "contributing_registries": [ ".omc/specs/*.json", "contracts/*.yaml" ]
+    },
+    "Metric": {
+      "purpose": "OpenTelemetry-aligned metric per cap_telemetry",
+      "id_pattern": "^oya_[a-z][a-z0-9_]*$",
+      "examples": [ "oya_artifact_registry_row_count", "oya_forbidden_primitive_invocation_total" ],
+      "contributing_registries": [ ".omc/registries/artifact-capabilities-registry.json (rows[*].capabilities.telemetry.metrics)" ]
+    },
+    "EvidenceBundle": {
+      "purpose": "Capability invocation / runbook execution / IP merge evidence bundle",
+      "id_pattern": "^EVB-[0-9A-HJKMNP-TV-Z]{26}$",
+      "examples": [],
+      "contributing_registries": [ "audit-chain runtime (M01/M02 prerequisite)" ]
+    },
+    "Claim": {
+      "purpose": "Hyperscaler claim per claim-matrix",
+      "id_pattern": "^claim:[a-z0-9-]+$",
+      "examples": [ "claim:OPS-OPERATIONAL-DELIVERED", "claim:OPS-PERF-MEASURED" ],
+      "contributing_registries": [ ".omc/claim-matrix/*.json" ]
+    },
+    "Migration": {
+      "purpose": "Atlas SQL migration or other schema-evolution unit",
+      "id_pattern": "^migration:[a-z0-9-]+$",
+      "examples": [ "migration:2026XX_oya_shared_write_action_port_init" ],
+      "contributing_registries": [ "crates/*/migrations/*.sql" ]
+    },
+    "CedarPolicy": {
+      "purpose": "Cedar 4.x policy file fragment",
+      "id_pattern": "^cedar:[a-z0-9-]+$",
+      "examples": [ "cedar:ops-multi-party-approval", "cedar:ops-tenant-private" ],
+      "contributing_registries": [ "cedar-policies/**/*.cedar (planned)" ]
+    },
+    "OpenAPIContract": {
+      "purpose": "OpenAPI YAML contract",
+      "id_pattern": "^openapi:[a-z0-9-]+$",
+      "examples": [ "openapi:ops-workspace-shell", "openapi:workflow" ],
+      "contributing_registries": [ "contracts/*.yaml (planned in HEAD)" ]
+    }
+  },
+  "_canonical_edge_types": {
+    "consumes": {
+      "direction": "directed",
+      "source_node_types": [ "Crate", "BoundedContext", "Microservice", "Plan", "Wave", "Artifact" ],
+      "target_node_types": [ "Block", "Schema", "Crate", "Artifact", "ADR" ],
+      "cardinality": "many-to-many",
+      "semantics": "source uses target as input or dependency. DRY invariant: if N consumers reach same target, target IS reusable."
+    },
+    "supersedes": {
+      "direction": "directed",
+      "source_node_types": [ "ADR", "Artifact", "Plan", "Schema", "Block" ],
+      "target_node_types": [ "ADR", "Artifact", "Plan", "Schema", "Block" ],
+      "cardinality": "many-to-many",
+      "semantics": "source replaces target. Supersession chain must terminate (no cycles)."
+    },
+    "depends_on": {
+      "direction": "directed",
+      "source_node_types": [ "Crate", "Plan", "Wave", "Phase", "ImplementationPlan", "ADR", "Lane" ],
+      "target_node_types": [ "Crate", "Plan", "Wave", "Phase", "ImplementationPlan", "ADR", "Lane", "Block", "Schema" ],
+      "cardinality": "many-to-many",
+      "semantics": "source needs target to be operational. Dep graph must be DAG."
+    },
+    "owned_by": {
+      "direction": "directed",
+      "source_node_types": [ "Artifact", "Crate", "BoundedContext", "Microservice", "Lane", "ADR", "Plan", "Block", "Generator", "Healer" ],
+      "target_node_types": [ "OwnerTeam" ],
+      "cardinality": "many-to-many",
+      "semantics": "team accountable for source. RACI mapping."
+    },
+    "validates": {
+      "direction": "directed",
+      "source_node_types": [ "Lane", "Hook", "Crate" ],
+      "target_node_types": [ "Artifact", "Schema", "Block" ],
+      "cardinality": "many-to-many",
+      "semantics": "source enforces or verifies target."
+    },
+    "generates": {
+      "direction": "directed",
+      "source_node_types": [ "Generator" ],
+      "target_node_types": [ "Artifact", "Schema" ],
+      "cardinality": "many-to-many",
+      "semantics": "autogen capability link."
+    },
+    "heals": {
+      "direction": "directed",
+      "source_node_types": [ "Healer" ],
+      "target_node_types": [ "Artifact" ],
+      "cardinality": "many-to-many",
+      "semantics": "selfheal capability link."
+    },
+    "references": {
+      "direction": "directed",
+      "source_node_types": [ "Artifact", "Plan", "ADR", "Crate" ],
+      "target_node_types": [ "Artifact", "Plan", "ADR", "Schema", "Block" ],
+      "cardinality": "many-to-many",
+      "semantics": "non-binding pointer (citation, see-also)."
+    },
+    "located_at": {
+      "direction": "directed",
+      "source_node_types": [ "Crate" ],
+      "target_node_types": [ "BoundedContext", "Microservice" ],
+      "cardinality": "many-to-one",
+      "semantics": "crate's BC/µservice membership per ADR-0015 BNF v4.1."
+    },
+    "conforms_to": {
+      "direction": "directed",
+      "source_node_types": [ "Artifact", "EvidenceBundle", "Claim" ],
+      "target_node_types": [ "Schema" ],
+      "cardinality": "many-to-many",
+      "semantics": "source data shape conforms to target schema. Validator asserts."
+    },
+    "enforces": {
+      "direction": "directed",
+      "source_node_types": [ "Lane" ],
+      "target_node_types": [ "Schema", "Artifact", "Block" ],
+      "cardinality": "many-to-many",
+      "semantics": "CI lane enforces target conformance/state."
+    },
+    "satisfies": {
+      "direction": "directed",
+      "source_node_types": [ "Artifact", "Crate", "Plan", "Wave" ],
+      "target_node_types": [ "Capability", "Claim" ],
+      "cardinality": "many-to-many",
+      "semantics": "source provides evidence for target capability/claim being operational."
+    },
+    "blocks_on": {
+      "direction": "directed",
+      "source_node_types": [ "Artifact", "Plan", "Wave", "Phase", "ImplementationPlan", "Capability" ],
+      "target_node_types": [ "Artifact", "Plan", "Wave", "Phase", "ImplementationPlan", "Capability", "Lane", "Crate" ],
+      "cardinality": "many-to-many",
+      "semantics": "source cannot promote/complete until target landed."
+    },
+    "prerequisite_for": {
+      "direction": "directed",
+      "source_node_types": [ "Capability", "Crate", "ADR" ],
+      "target_node_types": [ "Capability", "Plan", "Wave" ],
+      "cardinality": "many-to-many",
+      "semantics": "inverse of blocks_on; source must land for target to progress."
+    },
+    "deprecates": {
+      "direction": "directed",
+      "source_node_types": [ "ADR", "Block", "Crate" ],
+      "target_node_types": [ "Block", "Crate", "Lane" ],
+      "cardinality": "many-to-many",
+      "semantics": "source declares target deprecated. Target must have replacement_block_id."
+    },
+    "replaces": {
+      "direction": "directed",
+      "source_node_types": [ "Block", "Crate" ],
+      "target_node_types": [ "Block", "Crate" ],
+      "cardinality": "many-to-many",
+      "semantics": "source is the replacement for target. Used to terminate deprecation chain."
+    },
+    "exposes": {
+      "direction": "directed",
+      "source_node_types": [ "BoundedContext", "Crate" ],
+      "target_node_types": [ "Feature", "OpenAPIContract" ],
+      "cardinality": "many-to-many",
+      "semantics": "source provides target as public-facing surface."
+    },
+    "audit_trail": {
+      "direction": "directed",
+      "source_node_types": [ "Artifact", "Crate", "Capability" ],
+      "target_node_types": [ "EvidenceBundle" ],
+      "cardinality": "many-to-many",
+      "semantics": "source's state change produced target audit bundle. Required for HG-OBS."
+    }
+  },
+  "_canonical_invariants": [
+    {
+      "id": "I01-DRY-no-duplicate-blocks",
+      "rule": "Two Block nodes with identical canonical_path OR identical (block_kind + structural-hash) are a DRY violation; consumers must reference the canonical Block, not duplicate.",
+      "severity": "error",
+      "remediation_hint": "Mark one as deprecated + name replacement_block_id; migrate consumers."
+    },
+    {
+      "id": "I02-DAG-no-dependency-cycles",
+      "rule": "depends_on edges form a DAG (no cycles). Includes Crate→Crate, Plan→Plan, Wave→Wave, Phase→Phase, ADR→ADR (no mutual supersession).",
+      "severity": "error",
+      "remediation_hint": "Break cycle by introducing a shared dependency or splitting one node."
+    },
+    {
+      "id": "I03-supersession-terminates",
+      "rule": "supersedes chains terminate (no cycles, finite depth).",
+      "severity": "error",
+      "remediation_hint": "Audit supersedes chain via `oya check supersession-chain <node_id>`."
+    },
+    {
+      "id": "I04-every-artifact-owned",
+      "rule": "Every Artifact, Crate, Lane, Block, ADR, Plan node has at least one owned_by edge to an OwnerTeam.",
+      "severity": "error",
+      "remediation_hint": "Add owner_team field; reference docs/RACI-OWNERSHIP.md."
+    },
+    {
+      "id": "I05-broken-ref-detection",
+      "rule": "No edge target is a node that doesn't exist in the graph.",
+      "severity": "error",
+      "remediation_hint": "Either add the missing node OR remove the edge."
+    },
+    {
+      "id": "I06-orphan-block-detection",
+      "rule": "Every Block node has at least one inbound consumes edge OR is marked _consumer_count_actual_today: 0 with rationale (e.g., 'new block, consumers pending').",
+      "severity": "warn",
+      "remediation_hint": "Unused blocks should be deleted or rationalized."
+    },
+    {
+      "id": "I07-operational-capability-has-evidence",
+      "rule": "Every Capability node with status=operational has at least one inbound satisfies edge with non-null artifact_ref proving evidence.",
+      "severity": "error",
+      "remediation_hint": "Either downgrade status to planned OR add satisfies edge with crate path + lane id + run URL."
+    },
+    {
+      "id": "I08-planned-capability-has-prerequisites",
+      "rule": "Every Capability node with status=planned has populated prerequisite_for_operational (non-empty array).",
+      "severity": "error",
+      "remediation_hint": "Add prerequisites OR mark not-applicable with rationale."
+    },
+    {
+      "id": "I09-blocked-cap-has-foundation-link",
+      "rule": "Every Capability node with status=blocked-by-foundation has at least one blocks_on edge to a Capability/Crate/Phase node representing the foundation work.",
+      "severity": "error",
+      "remediation_hint": "Specify which foundation node blocks; if no foundation tracker exists, create one."
+    },
+    {
+      "id": "I10-canonical-path-uniqueness",
+      "rule": "Every node id maps to exactly one canonical path; conversely, no two nodes claim the same canonical_path.",
+      "severity": "error",
+      "remediation_hint": "Collapse duplicates OR rename."
+    },
+    {
+      "id": "I11-grit-claim-coverage",
+      "rule": "Every state-transition event (consumes/heals/generates) MUST be sealed by a grit_done_seal_event_id OR explicitly logged as protocol-violation in audit.",
+      "severity": "warn",
+      "remediation_hint": "Use grit claim/work/done; commit 5880ce0 is a known historical violation per HG-GRIT row."
+    },
+    {
+      "id": "I12-metric-cardinality-budget",
+      "rule": "Every Metric node has cardinality_budget set; sum of cardinalities per label must not exceed budget.",
+      "severity": "warn",
+      "remediation_hint": "Either raise budget with rationale OR drop high-cardinality labels."
+    },
+    {
+      "id": "I13-feature-has-exposing-bc",
+      "rule": "Every Feature node has at least one inbound exposes edge from a BoundedContext OR Crate.",
+      "severity": "error",
+      "remediation_hint": "Features without owning BC are orphan; assign or delete."
+    },
+    {
+      "id": "I14-claim-has-evidence-required-link",
+      "rule": "Every Claim node in claims_we_cannot_make_yet category has at least one prerequisite_for edge.",
+      "severity": "error",
+      "remediation_hint": "Specify what evidence is required."
+    }
+  ],
+  "_dry_query_examples": [
+    {
+      "name": "find_duplicate_block_definitions",
+      "description": "Returns Block pairs with identical canonical_path or identical structural-hash. Surfaces DRY violations.",
+      "query_sketch": "SELECT b1.id, b2.id FROM blocks b1, blocks b2 WHERE b1.id < b2.id AND (b1.canonical_path = b2.canonical_path OR b1.structural_hash = b2.structural_hash)"
+    },
+    {
+      "name": "rank_blocks_by_reuse",
+      "description": "Returns Block nodes ranked by inbound-consumes-edge count. Surfaces core primitives.",
+      "query_sketch": "SELECT block.id, COUNT(*) AS reuse FROM consumes_edges JOIN blocks ON consumes.target = block.id GROUP BY block.id ORDER BY reuse DESC"
+    },
+    {
+      "name": "find_orphan_capabilities",
+      "description": "Returns Capability nodes with status=operational but zero satisfies-edges.",
+      "query_sketch": "SELECT cap.id FROM capabilities cap LEFT JOIN satisfies_edges ON satisfies.target = cap.id WHERE cap.status = 'operational' AND satisfies.id IS NULL"
+    },
+    {
+      "name": "find_unreachable_features",
+      "description": "Returns Feature nodes with no exposing BC.",
+      "query_sketch": "SELECT feat.id FROM features feat LEFT JOIN exposes_edges ON exposes.target = feat.id WHERE exposes.id IS NULL"
+    },
+    {
+      "name": "supersession_chain",
+      "description": "Recursive traversal of supersedes chain from a given node; verifies termination.",
+      "query_sketch": "WITH RECURSIVE chain AS (SELECT source, target FROM supersedes_edges WHERE source = :start_id UNION SELECT s.source, s.target FROM supersedes_edges s JOIN chain c ON s.source = c.target) SELECT * FROM chain"
+    }
+  ]
+}
