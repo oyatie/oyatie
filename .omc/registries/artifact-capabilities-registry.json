@@ -586,6 +586,25 @@
           "last_modified_at": "2026-05-13T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "oya-ops-workspace-shell-kernel-manifest",
+      "artifact_path": "crates/oya-ops-workspace-shell-kernel/Cargo.toml",
+      "artifact_format": "cargo-toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-foundry",
+      "purpose_short": "Cargo manifest for first ops Wave 1 kernel crate (SurfaceCatalogPort + InMemorySurfaceCatalog + types). std-only kernel layer per ADR-0015.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "verification": {
+          "checker_crate": "crates/oya-check-active-artifact-contract",
+          "command": "oya check active-artifact-contract"
+        },
+        "provenance": {
+          "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-13T00:00:00Z"
+        }
+      }
     }
   ]
 }
