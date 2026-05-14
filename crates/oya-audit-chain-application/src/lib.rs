@@ -243,6 +243,8 @@ impl AuditEventEmitAppError {
             | Self::AuthorizationDenied { .. }
             | Self::EnvelopePayloadTenantMismatch { .. } => AuditEventEmitAppStatus::Forbidden,
             Self::IdempotencyKeyReused { .. }
+            | Self::Eventing(EventingError::DuplicateTopic)
+            | Self::Eventing(EventingError::TopicNotFound)
             | Self::Eventing(EventingError::OutboxRecordNotFound)
             | Self::Eventing(EventingError::InvalidOutboxHistory) => {
                 AuditEventEmitAppStatus::UnprocessableEntity
@@ -268,6 +270,9 @@ impl AuditEventEmitAppError {
             | Self::EmptyDecision
             | Self::InvalidEmittedAt
             | Self::Eventing(EventingError::EmptyTopic)
+            | Self::Eventing(EventingError::EmptyTopicAxis)
+            | Self::Eventing(EventingError::EmptyTopicDescription)
+            | Self::Eventing(EventingError::InvalidTopicName)
             | Self::Eventing(EventingError::EmptyIdempotencyKey)
             | Self::Eventing(EventingError::EmptyPayloadRef) => AuditEventEmitAppStatus::BadRequest,
         }
