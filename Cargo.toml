@@ -375,6 +375,7 @@ members = [
   "crates/oya-check-authority-cohesion",
   "crates/oya-check-active-artifact-contract",
   "crates/oya-ops-workspace-shell-kernel",
+  "crates/oya-ops-docs-portal-kernel",
   "crates/oya-check-adr-citation",
   "crates/oya-check-adr-index",
   "crates/oya-foundry-adapter-domain",
