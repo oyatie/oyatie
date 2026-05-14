@@ -6,11 +6,11 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_audit_chain_kernel::{AuditChain, AuditEvent, Plane};
-use oya_platform_data_boundary_kernel::{
-    parse_data_class_label, parse_purpose_pascal_label, DataClassification, Purpose,
+use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
+use oya_data_boundary_kernel::{
+    DataClassification, Purpose, parse_data_class_label, parse_purpose_pascal_label,
 };
-use oya_platform_eventing_kernel::{EventingError, Outbox, OutboxRecord};
+use oya_eventing_domain::{EventingError, Outbox, OutboxRecord};
 
 pub const AUDIT_EVENT_EMIT_SURFACE: &str = "audit.event.emit";
 pub const AUDIT_EVENT_TOPIC: &str = "oya.platform.audit";

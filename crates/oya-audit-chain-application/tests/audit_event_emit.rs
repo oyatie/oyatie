@@ -1,12 +1,12 @@
-use oya_platform_audit_chain_app::{
-    emit_audit_event_from_app, AuditEventEmitAppError, AuditEventEmitAppRequest,
-    AuditEventEmitAppStatus, AuditEventEmitAuthorization, AuditEventEmitEnvelopeContext,
-    AuditEventEmitIdempotencyLedger, AuditEventEmitPayload, AUDIT_EVENT_ASYNCAPI_CONTRACT,
-    AUDIT_EVENT_EMIT_SCHEMA, AUDIT_EVENT_EMIT_SOURCE, AUDIT_EVENT_EMIT_SURFACE,
-    AUDIT_EVENT_PROTO_CONTRACT, AUDIT_EVENT_TOPIC,
+use oya_audit_chain_application::{
+    AUDIT_EVENT_ASYNCAPI_CONTRACT, AUDIT_EVENT_EMIT_SCHEMA, AUDIT_EVENT_EMIT_SOURCE,
+    AUDIT_EVENT_EMIT_SURFACE, AUDIT_EVENT_PROTO_CONTRACT, AUDIT_EVENT_TOPIC,
+    AuditEventEmitAppError, AuditEventEmitAppRequest, AuditEventEmitAppStatus,
+    AuditEventEmitAuthorization, AuditEventEmitEnvelopeContext, AuditEventEmitIdempotencyLedger,
+    AuditEventEmitPayload, emit_audit_event_from_app,
 };
-use oya_platform_audit_chain_kernel::AuditChain;
-use oya_platform_eventing_kernel::Outbox;
+use oya_audit_chain_domain::AuditChain;
+use oya_eventing_domain::Outbox;
 
 const EVENT_ID: &str = "audit_evt_cloud_vm_001";
 const IDEMPOTENCY_KEY: &str = "idem_audit_emit_cloud_vm_001";

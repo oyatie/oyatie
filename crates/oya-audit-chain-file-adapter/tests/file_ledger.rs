@@ -2,9 +2,9 @@ use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_platform_audit_chain_adapter_file::{FileAuditLedger, FileAuditLedgerError};
-use oya_platform_audit_chain_kernel::{AuditChain, Plane};
-use oya_platform_data_boundary_kernel::{DataClass, Purpose};
+use oya_audit_chain_domain::{AuditChain, Plane};
+use oya_audit_chain_file_adapter::{FileAuditLedger, FileAuditLedgerError};
+use oya_data_boundary_kernel::{DataClass, Purpose};
 
 #[test]
 fn file_audit_ledger_replays_events_and_appends_only_new_suffix() {

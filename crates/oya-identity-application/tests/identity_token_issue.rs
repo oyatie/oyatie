@@ -1,8 +1,8 @@
-use oya_platform_identity_app::{
-    issue_identity_token_from_app, IdentityApiAuthorization, IdentityApiBoundaryContext,
-    IdentityApiPrincipal, IdentityScopeRef, IdentityTokenIssueApiError,
+use oya_identity_application::{
+    IDENTITY_TOKEN_ISSUE_OPENAPI_CONTRACT, IDENTITY_TOKEN_ISSUE_SURFACE, IdentityApiAuthorization,
+    IdentityApiBoundaryContext, IdentityApiPrincipal, IdentityScopeRef, IdentityTokenIssueApiError,
     IdentityTokenIssueApiRequest, IdentityTokenIssueApiStatus, IdentityTokenIssueIdempotencyLedger,
-    IdentityTokenIssueRequest, IDENTITY_TOKEN_ISSUE_OPENAPI_CONTRACT, IDENTITY_TOKEN_ISSUE_SURFACE,
+    IdentityTokenIssueRequest, issue_identity_token_from_app,
 };
 
 const REQUEST_ID: &str = "req_identity_token_001";

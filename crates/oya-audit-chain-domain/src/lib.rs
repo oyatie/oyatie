@@ -1,6 +1,6 @@
 //! Audit-chain kernel: append-only tamper-evident event chain.
 
-use oya_platform_data_boundary_kernel::{DataClass, DataClassification, Purpose};
+use oya_data_boundary_kernel::{DataClass, DataClassification, Purpose};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Plane {
@@ -142,7 +142,7 @@ fn event_hash(event: &AuditEvent) -> String {
 
 #[cfg(test)]
 mod tests {
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     use super::*;
 

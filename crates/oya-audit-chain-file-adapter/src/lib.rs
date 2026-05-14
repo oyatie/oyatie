@@ -7,9 +7,9 @@ use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
 
-use oya_platform_audit_chain_kernel::{AuditChain, AuditEvent, Plane};
-use oya_platform_data_boundary_kernel::{
-    parse_data_class_pascal_label, parse_purpose_pascal_label, DataClass, Purpose,
+use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
+use oya_data_boundary_kernel::{
+    DataClass, Purpose, parse_data_class_pascal_label, parse_purpose_pascal_label,
 };
 
 #[derive(Clone, Debug, Eq, PartialEq)]

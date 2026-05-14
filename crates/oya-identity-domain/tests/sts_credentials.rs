@@ -1,6 +1,6 @@
-use oya_platform_data_boundary_kernel::{DataClass, DataClassification, Purpose};
-use oya_platform_identity_kernel::{
-    issue_credential, CredentialRequest, CredentialRequestKind, IdentityError, Principal,
+use oya_data_boundary_kernel::{DataClass, DataClassification, Purpose};
+use oya_identity_domain::{
+    CredentialRequest, CredentialRequestKind, IdentityError, Principal, issue_credential,
 };
 
 #[test]

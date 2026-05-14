@@ -7,9 +7,9 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{parse_purpose_pascal_label, Purpose};
-use oya_platform_identity_kernel::{
-    issue_credential, CredentialRequest, CredentialRequestKind, IdentityError, Principal,
+use oya_data_boundary_kernel::{Purpose, parse_purpose_pascal_label};
+use oya_identity_domain::{
+    CredentialRequest, CredentialRequestKind, IdentityError, Principal, issue_credential,
 };
 
 pub const IDENTITY_TOKEN_ISSUE_SURFACE: &str = "identity.token.issue";
@@ -799,7 +799,7 @@ fn identity_token_issue_fingerprint_for(
 
 fn token_record(
     body: IdentityTokenIssueRequest,
-    credential: oya_platform_identity_kernel::StsCredential,
+    credential: oya_identity_domain::StsCredential,
 ) -> IdentityTokenRecord {
     IdentityTokenRecord {
         tenant_id: body.tenant_id,

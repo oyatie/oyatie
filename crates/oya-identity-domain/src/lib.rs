@@ -2,7 +2,7 @@
 
 use std::fmt;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, Purpose};
+use oya_data_boundary_kernel::{Classified, DataClass, Purpose};
 
 pub const MAX_TOKEN_TTL_SECONDS: u64 = 60 * 60;
 

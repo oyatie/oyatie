@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass};
+use oya_data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OutboxRecord {
