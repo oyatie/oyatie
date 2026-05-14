@@ -145,13 +145,13 @@ where
     for document in documents {
         documents_checked += 1;
         let prose = markdown_prose(&document.contents);
-        if !document.forensic_allowed {
-            if let Some(token) = first_forbidden_token(&prose) {
-                return Err(GlossaryVocabularyError::ForbiddenToken {
-                    path: document.path,
-                    token,
-                });
-            }
+        if !document.forensic_allowed
+            && let Some(token) = first_forbidden_token(&prose)
+        {
+            return Err(GlossaryVocabularyError::ForbiddenToken {
+                path: document.path,
+                token,
+            });
         }
         for casing_variant in casing_warning_variants(&prose) {
             casing_warnings += 1;
@@ -432,6 +432,8 @@ fn is_acronym_candidate(value: &str) -> bool {
 fn markdown_prose(contents: &str) -> String {
     let mut prose = String::new();
     let mut in_fence = false;
+    let mut in_html_comment = false;
+    let mut in_marker_block = false;
     for line in contents.lines() {
         let trimmed = line.trim_start();
         if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
@@ -441,10 +443,47 @@ fn markdown_prose(contents: &str) -> String {
         if in_fence {
             continue;
         }
-        prose.push_str(&strip_inline_code(line));
+        if in_marker_block {
+            if trimmed.starts_with("<!--") && trimmed.contains(":end -->") {
+                in_marker_block = false;
+            }
+            continue;
+        }
+        if trimmed.starts_with("<!--") && trimmed.contains(":start -->") {
+            in_marker_block = true;
+            continue;
+        }
+        let line = strip_html_comments(line, &mut in_html_comment);
+        prose.push_str(&strip_inline_code(&line));
         prose.push('\n');
     }
     prose
+}
+
+fn strip_html_comments(line: &str, in_html_comment: &mut bool) -> String {
+    let mut output = String::new();
+    let mut remaining = line;
+    loop {
+        if *in_html_comment {
+            let Some(end) = remaining.find("-->") else {
+                return output;
+            };
+            remaining = &remaining[end + "-->".len()..];
+            *in_html_comment = false;
+            continue;
+        }
+        let Some(start) = remaining.find("<!--") else {
+            output.push_str(remaining);
+            return output;
+        };
+        output.push_str(&remaining[..start]);
+        remaining = &remaining[start + "<!--".len()..];
+        let Some(end) = remaining.find("-->") else {
+            *in_html_comment = true;
+            return output;
+        };
+        remaining = &remaining[end + "-->".len()..];
+    }
 }
 
 fn strip_inline_code(line: &str) -> String {
@@ -493,6 +532,30 @@ mod tests {
                     "docs/ADR.md",
                     "Legacy path `apps/oyatie-admin` only.",
                     false
+                )],
+                ["ADR"],
+            ),
+            Ok(GlossaryVocabularyReport {
+                documents_checked: 1,
+                casing_warnings: 0,
+                uncited_acronym_warnings: 0,
+                warnings: vec![],
+                warning_sources: vec![],
+            })
+        );
+    }
+
+    #[test]
+    fn ignores_forbidden_tokens_in_html_comment_blocks() {
+        assert_eq!(
+            validate_glossary_vocabulary_hygiene(
+                [doc(
+                    "docs/PRD.md",
+                    "<!-- marker:start -->\n\
+                     target_path: bominal/agents/ultragoal/oyatie-product-delivery.md\n\
+                     <!-- marker:end -->\n\
+                     Active prose stays clean.",
+                    false,
                 )],
                 ["ADR"],
             ),

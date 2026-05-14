@@ -7,7 +7,7 @@
 //! access-control seams used by Docs, Sheets, Slides, Sites, and Notes without
 //! owning WebSocket, Redis, object-storage, or Yrs adapter code.
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const COLLAB_RUNTIME_SCHEMA_VERSION: u32 = 1;
 const SUPPORTED_CRDT_FORMAT_VERSION: u32 = 1;
@@ -530,7 +530,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn snapshot() -> CollabSnapshotRef {
         CollabSnapshotRef::new(
@@ -681,18 +681,20 @@ mod tests {
         assert_eq!(invalid_awareness, Err(CollabError::InvalidAwarenessExpiry));
 
         let mut runtime = runtime_input();
-        runtime.active_awareness = vec![AwarenessState::new(AwarenessStateCreate {
-            document_id: "other-doc".into(),
-            tenant_id: "tenant-1".into(),
-            actor_ref: "user:writer@example.com".into(),
-            replica_id: "replica-1".into(),
-            session_id: "session-1".into(),
-            status: AwarenessStatus::Viewing,
-            cursor_anchor: None,
-            observed_at_epoch_millis: 1_700_000_000_000,
-            expires_at_epoch_millis: 1_700_000_030_000,
-        })
-        .unwrap()];
+        runtime.active_awareness = vec![
+            AwarenessState::new(AwarenessStateCreate {
+                document_id: "other-doc".into(),
+                tenant_id: "tenant-1".into(),
+                actor_ref: "user:writer@example.com".into(),
+                replica_id: "replica-1".into(),
+                session_id: "session-1".into(),
+                status: AwarenessStatus::Viewing,
+                cursor_anchor: None,
+                observed_at_epoch_millis: 1_700_000_000_000,
+                expires_at_epoch_millis: 1_700_000_030_000,
+            })
+            .unwrap(),
+        ];
         assert_eq!(
             CollabRuntime::new(runtime),
             Err(CollabError::AwarenessDocumentMismatch)

@@ -1,6 +1,6 @@
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationRequest, CapabilityRegistration,
     CostBudgetRegistration, DataClass, EvidenceKind, Foundation, FoundationError,
     IdentityRegistration, Purpose, RunDisposition, RunState, SubjectClass, TenantCapabilityGrant,
@@ -111,11 +111,11 @@ fn capability_invocation_emits_autonomy_decision_for_allow_and_deny() {
             .map(String::as_str),
         Some("DENY")
     );
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| { event.surface == "foundry.autonomy.decision" && event.decision == "DENY" }));
+    assert!(
+        foundation.audit_chain().events().iter().any(|event| {
+            event.surface == "foundry.autonomy.decision" && event.decision == "DENY"
+        })
+    );
     assert_eq!(
         allow_surface_count(&foundation, "foundry.run.complete"),
         run_complete_allow_after_allow
@@ -151,7 +151,7 @@ fn register_capability(foundation: &mut Foundation, capability_id: &str, tier: A
             namespace: "demo".into(),
             action: CapabilityAction::Other,
             required_tier: tier,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),

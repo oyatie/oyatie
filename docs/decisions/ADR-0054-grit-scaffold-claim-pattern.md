@@ -26,7 +26,7 @@ Accepted — 2026-05-12. The icm-coordination-lock fallback is the **canonical**
 
 ## Context
 
-`grit claim` requires a real indexed code symbol in the form `<file>::<Identifier>`. A *new* crate (e.g., `tools/oya-agent-read/`) has no source files yet, hence no indexed symbols, hence cannot be locked via `grit claim` before scaffolding begins. The cutover plan creates new crates — this is a concrete gap in the spec.
+`grit claim` requires a real indexed code symbol in the form `<file>::<Identifier>`. A *new* crate (e.g., `tools/oya-tooling-agent-read/`) has no source files yet, hence no indexed symbols, hence cannot be locked via `grit claim` before scaffolding begins. The cutover plan creates new crates — this is a concrete gap in the spec.
 
 The proposed resolution is a **scaffold-claim pattern**: lock a workspace-level coordination point (`Cargo.toml::workspace_members`) for the duration of crate creation, then re-index so normal symbol-level claims can proceed. However, Lane 3 of the deep-dive trace (run 2026-05-12) confirmed via `grit symbols` that `Cargo.toml::workspace_members` returns **zero matches** — the field is not indexed by grit at v0.3.0. File-level path locks are also not supported in grit v0.3.0. The primary scaffold-claim path is therefore unavailable today.
 
@@ -112,7 +112,7 @@ The icm fallback is the only mechanism that is both (a) available today and (b) 
 
 ---
 
-## Worked Example — Scaffolding `tools/oya-agent-read`
+## Worked Example — Scaffolding `tools/oya-tooling-agent-read`
 
 The following is a complete scaffold-claim sequence. The `icm store` calls are mandatory; omitting them violates the fitness lane.
 
@@ -121,7 +121,7 @@ The following is a complete scaffold-claim sequence. The `icm store` calls are m
 ```
 icm store \
   -t scaffold-locks-oyatie \
-  -c "agent=dd-executor path=tools/oya-agent-read window=open intent='scaffold new oya-agent-read crate'" \
+  -c "agent=dd-executor path=tools/oya-tooling-agent-read window=open intent='scaffold new oya-tooling-agent-read crate'" \
   -i critical
 ```
 
@@ -129,9 +129,9 @@ icm store \
 |---|---|
 | topic | `scaffold-locks-oyatie` |
 | agent | `dd-executor` |
-| path | `tools/oya-agent-read` |
+| path | `tools/oya-tooling-agent-read` |
 | window | `open` |
-| intent | `scaffold new oya-agent-read crate` |
+| intent | `scaffold new oya-tooling-agent-read crate` |
 | importance | `critical` |
 
 **7-step scaffold-claim sequence:**
@@ -161,7 +161,7 @@ icm store \
 ```
 icm store \
   -t scaffold-locks-oyatie \
-  -c "agent=dd-executor path=tools/oya-agent-read window=closed" \
+  -c "agent=dd-executor path=tools/oya-tooling-agent-read window=closed" \
   -i high
 ```
 
@@ -169,11 +169,11 @@ icm store \
 |---|---|
 | topic | `scaffold-locks-oyatie` |
 | agent | `dd-executor` |
-| path | `tools/oya-agent-read` |
+| path | `tools/oya-tooling-agent-read` |
 | window | `closed` |
 | importance | `high` |
 
-After step 7, subsequent agents may claim symbols inside `tools/oya-agent-read/` via standard `grit claim --agent <id> --intent "..." "tools/oya-agent-read/src/lib.rs::<Symbol>"`.
+After step 7, subsequent agents may claim symbols inside `tools/oya-tooling-agent-read/` via standard `grit claim --agent <id> --intent "..." "tools/oya-tooling-agent-read/src/lib.rs::<Symbol>"`.
 
 ---
 

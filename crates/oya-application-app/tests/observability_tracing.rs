@@ -4,13 +4,13 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::{Arc, Mutex};
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationRequest, CapabilityRegistration,
     CostBudgetRegistration, DataClass, Foundation, FoundationError, IdentityRegistration, Purpose,
     SubjectClass, TenantCapabilityGrant, TenantRegistration,
 };
-use oya_platform_observability_adapter_tracing::TracingCapabilityInvocationObserver;
-use oya_platform_observability_kernel::fields;
+use oya_observability_domain::fields;
+use oya_observability_tracing_adapter::TracingCapabilityInvocationObserver;
 use tracing::field::{Field, Visit};
 use tracing::span::{Attributes, Record};
 use tracing::{Event, Id, Subscriber};
@@ -164,7 +164,7 @@ fn capability_invocation_emits_safe_observability_span_fields() {
             namespace: "observability".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
                 DataClass::BehavioralTenantProduct,
             ])
@@ -355,7 +355,7 @@ fn capability_invocation_redacts_forbidden_data_class_labels_from_spans() {
             namespace: "observability".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
                 DataClass::Phi,
             ])

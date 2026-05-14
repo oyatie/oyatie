@@ -38,7 +38,7 @@ Emit the IP's `§Icm-store-payload` **verbatim** (do not paraphrase):
 ```
 icm store \
   -t context-<project> \
-  -c "IP-NNN-<slug> merged at <git-sha>; grit symbols released: <list>; acceptance lanes green: <list>; next IP: <pointer>" \
+  -c "IP-NNN-<slug> merged at <changebundle-id>; grit symbols released: <list>; acceptance lanes green: <list>; next IP: <pointer>" \
   -i high \
   -k "M0N,P0N,IP-NNN,<axis>"
 ```

@@ -6,6 +6,29 @@
 > **Catalog reference:** `registry/catalog/oya-foundry-*.yaml`, `registry/catalog/oya-tooling-cli-dev-runtime.yaml`
 > **Last updated:** 2026-05-09 by Architecture Council
 
+> **Phase 00 specification:** [PHASE-00-SPEC.md](PHASE-00-SPEC.md) is the canonical account-auth bootstrap contract surface for provider account/auth/session/usage/secret-reference gates.
+>
+> **Foundry corpus cross-cite (A1/P3.5):** The upstream Bominal Foundry corpus remains KEEP-classified and cited, not copied wholesale. The canonical Phase 00 contract is now tracked in this repo.
+>
+<!-- foundry-corpus-citation:start -->
+- role: FoundryCorpusSource
+  target_path: bominal/agents/ultragoal/2026-05-12-foundry-ultragoal-mega-plan.md
+  target_repo: bominal
+  target_prd: agents/ultragoal/2026-05-12-foundry-ultragoal-mega-plan.md
+<!-- foundry-corpus-citation:end -->
+<!-- foundry-corpus-citation:start -->
+- role: FoundryCorpusSource
+  target_path: bominal/agents/ultragoal/foundry-agentic-substrate-master.md
+  target_repo: bominal
+  target_prd: agents/ultragoal/foundry-agentic-substrate-master.md
+<!-- foundry-corpus-citation:end -->
+<!-- foundry-corpus-citation:start -->
+- role: FoundryCorpusSource
+  target_path: bominal/agents/ultragoal/product-delivery-implementation-plan.md
+  target_repo: bominal
+  target_prd: agents/ultragoal/product-delivery-implementation-plan.md
+<!-- foundry-corpus-citation:end -->
+
 ---
 
 ## 1. North star (required)
@@ -55,7 +78,7 @@ This PRD is intentionally the **deepest of the five axis PRDs (~25-40 pages of c
 - Training foundation LLMs from scratch. Foundry consumes provider models (Codex / Claude / Gemini / regional packs); fine-tuning is in scope only for narrow vertical models (e.g., per-pack KR legal corpus per ADR-0033).
 - Bypassing autonomy-ceiling for "internal-only" runs. The autonomy ceiling is the same surface for internal Oyatie agents and external customer agents. No bypass under any circumstance.
 - Bypassing evidence emission for "performance" reasons. Evidence emission is on the hot path; if evidence cannot emit, the capability cannot execute.
-- Building a CI / CD platform that competes with GitHub Actions / Buildkite / CircleCI as a product. The Foundry engineering platform surfaces are *internal + customer-facing-Oyatie-tenant* tooling; not a generic CI product sold standalone.
+- Building a CI / CD platform that competes with GitHub Actions / Buildkite / CircleCI as a product. The Foundry engineering platform surfaces are *internal + customer-facing tenant* tooling; not a generic CI product sold standalone.
 - Multi-cloud LLM-provider routing where the *data* leaves residency. Provider routing is per-pack and respects `Tenant.residency`; a strict-KR tenant cannot have its data sent to a US-only LLM provider regardless of cost.
 - "Agent-internet" / autonomous agents acting outside Oyatie capability registry. Every agent run must originate from a registered capability with a registered autonomy ceiling.
 - Forking the canonical eventing backbone. Foundry uses Outbox + Kafka per ADR-0046.
@@ -98,7 +121,7 @@ runtime   — composition root (binary; the daemon)
 | `oya-foundry-evidence-kernel` | kernel | Evidence primitive (per-step + per-run audit-chain emission) |
 | `oya-foundry-evidence-app` | app | Evidence builder; ties to `oya-platform-audit-chain-kernel` |
 | `oya-foundry-eval-kernel` | kernel | Eval set and run invariants per ADR-0024 |
-| `oya-foundry-eval-app` | app | Inbound `foundry.eval.run` API boundary over the eval gate with idempotency and cohort evidence |
+| `oya-foundry-eval-application` | application | Inbound `foundry.eval.run` API boundary over the eval gate with idempotency and cohort evidence |
 | `oya-foundry-provider-kernel` | kernel | `Provider`, `ProviderAdapter` trait, `ProviderAuth` enum, `ProviderRoute` |
 | `oya-foundry-provider-domain` | domain | Provider routing (per tenant × per capability × per region pack) |
 | `oya-foundry-provider-app` | app | Provider failover, retry, circuit-break |
@@ -156,7 +179,7 @@ runtime   — composition root (binary; the daemon)
 | `Foundry Provider Adapter Surface` | `oya-foundry-provider-kernel` (Rust trait) + per-adapter REST | data | per-provider SLO (depends on upstream provider) |
 | `OG Agent Gateway (OG-AG)` | `contracts/og-agent-gateway.openapi.yaml` (ADR-0021) | data + audit | p99 ≤ 100 ms |
 | `MCP Server / Client` | `contracts/foundry-mcp.openapi.yaml` (ADR-0001) | data + audit | per-MCP-binding SLO |
-| `Engineering Agent Console` (ADR-0025) | `apps/oyatie-eac/` (Leptos, ADR-0033) | control | p95 ≤ 1 000 ms; 99.9% |
+| `Engineering Agent Console` (ADR-0025) | `apps/oya-eac/` (Leptos, ADR-0033) | control | p95 ≤ 1 000 ms; 99.9% |
 | `repoctl` CLI | `crates/oya-tooling-cli-dev-runtime/` (current compatibility binary; persona split planned under `crates/oya-tooling-cli-*`) | control | (CLI; no SLO) |
 | `Catalog API` | `contracts/builder-catalog-v1.openapi.yaml` | control | p99 ≤ 100 ms; 99.99% |
 | `Capability Marketplace` | shared with `oya-saas-marketplace-kernel` | control | per-marketplace SLO |
@@ -170,7 +193,7 @@ runtime   — composition root (binary; the daemon)
 | Capability invocation | `Capability::invoke(...)` in `oya-foundry-capability-kernel` | All axes (every `*.tune` / `*.optimize` / `*.recommend` / `*.execute` capability) |
 | Autonomy ceiling | `AutonomyCeiling::permit(capability, context)` in `oya-foundry-policy-kernel`; inbound policy publish via `publish_foundry_policy_autonomy_ceiling_from_api(...)` in `oya-foundry-policy-api` | All axes (gate before any regulated capability call) |
 | Evidence emission | `Evidence::emit(record)` in `oya-foundry-evidence-kernel` | All axes (every regulated capability emits; ties to `oya-platform-audit-chain-kernel`) |
-| Eval run gate | `run_foundry_eval_from_api(...)` in `oya-foundry-eval-app` over `EvalGate` | Capability publishing, nightly eval, A/B routing, and replay gates |
+| Eval run gate | `run_foundry_eval_from_api(...)` in `oya-foundry-eval-application` over `EvalGate` | Capability publishing, nightly eval, A/B routing, and replay gates |
 | Provider adapter | `ProviderAdapter` trait + `ProviderAuth` enum in `oya-foundry-provider-kernel` | Foundry-internal (not directly consumed by other axes; routed through capability invocation) |
 | RAG endpoint | `Rag::retrieve(query, namespace, k)` in `oya-foundry-rag-kernel`; inbound retrieval via `retrieve_foundry_rag_from_api(...)` in `oya-foundry-rag-api` | All axes that ground LLM responses in tenant/public corpus |
 | Registry projection | `Registry::resolve(capability_id)` in `oya-foundry-registry-kernel`; inbound publish via `publish_foundry_capability_from_api(...)` in `oya-foundry-registry-api` | All axes (capability discovery); Foundry engineering platform catalog (source-of-truth) |

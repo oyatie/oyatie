@@ -13,7 +13,7 @@
 
 ## 2. Pre-release verification
 
-Per `/oya-release-verify` (formerly `/oyatie-release-verify`):
+Per `/oya-release-verify` (formerly `/oya-release-verify`):
 
 1. ☐ All CI lanes green on the release tag SHA per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md)
 2. ☐ SBOM generated + Cosign-signed + Rekor-anchored per ADR-0039

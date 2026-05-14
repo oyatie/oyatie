@@ -34,7 +34,7 @@ content="BLOCKED_ON_HUMAN_ORCHESTRATOR: <case-id>: <one-line>"
 keywords=halt,<area>
 ```
 
-Surface in operator UI / Slack `#oyatie-orchestrator-alerts` / pager (Sev escalation only on `HALT-02` shared-ref destruction). Each halt row carries the agent id; pull the agent's full context with `icm recall -t context-oyatie -k "<agent-id>"`.
+Surface in operator UI / Slack `#oya-orchestrator-alerts` / pager (Sev escalation only on `HALT-02` shared-ref destruction). Each halt row carries the agent id; pull the agent's full context with `icm recall -t context-oyatie -k "<agent-id>"`.
 
 ## Per-case actions
 

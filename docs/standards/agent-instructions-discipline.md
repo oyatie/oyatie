@@ -217,4 +217,4 @@ The following block is a complete, conformant directive:
 - [`docs/AGENTS.md`](../AGENTS.md) §PR shape, §Per-agent appendices.
 - [`docs/standards/doc-style.md`](doc-style.md) §3 (dual-audience rule).
 - [`docs/standards/git-workflow.md`](git-workflow.md) §4 (revised lane).
-- `ralplan-oyatie-sst-consolidation.md` §P4 (fence shape origin).
+- `SST consolidation ralplan` §P4 (fence shape origin).

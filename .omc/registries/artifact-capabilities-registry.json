@@ -555,7 +555,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
-      "purpose_short": "Machine-readable \u00b5service registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
+      "purpose_short": "Machine-readable µservice registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -627,7 +627,7 @@
     },
     {
       "artifact_id": "ops-workspace-shell-openapi-contract",
-      "artifact_path": "contracts/ops-workspace-shell.openapi.yaml",
+      "artifact_path": "contracts/ops-workspace-shell-v1.openapi.yaml",
       "artifact_format": "openapi-yaml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -646,11 +646,11 @@
     },
     {
       "artifact_id": "ops-docs-openapi-contract",
-      "artifact_path": "contracts/ops-docs.openapi.yaml",
+      "artifact_path": "contracts/ops-docs-v1.openapi.yaml",
       "artifact_format": "openapi-yaml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 \u22642s.",
+      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 ≤2s.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
@@ -710,7 +710,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Cargo manifest for ops Wave 1 workspace-shell adapter (std-only). Projects kernel Surface types onto OpenAPI 3.2 wire schema in contracts/ops-workspace-shell.openapi.yaml.",
+      "purpose_short": "Cargo manifest for ops Wave 1 workspace-shell adapter (std-only). Projects kernel Surface types onto OpenAPI 3.2 wire schema in contracts/ops-workspace-shell-v1.openapi.yaml.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -729,7 +729,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Cargo manifest for ops Wave 1 docs-portal adapter (std-only). Projects kernel ManifestSnapshot + LiveFeedEvent + ExtractorRecord onto OpenAPI 3.2 wire schema in contracts/ops-docs.openapi.yaml.",
+      "purpose_short": "Cargo manifest for ops Wave 1 docs-portal adapter (std-only). Projects kernel ManifestSnapshot + LiveFeedEvent + ExtractorRecord onto OpenAPI 3.2 wire schema in contracts/ops-docs-v1.openapi.yaml.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -786,7 +786,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Cargo manifest for ops Wave 1 workspace-shell rest crate (std-only; framework-free). REST boundary types + handler functions; routes 1:1 with contracts/ops-workspace-shell.openapi.yaml. Axum binding deferred to runtime composition root per LTS-dependency-enforcement directive.",
+      "purpose_short": "Cargo manifest for ops Wave 1 workspace-shell rest crate (std-only; framework-free). REST boundary types + handler functions; routes 1:1 with contracts/ops-workspace-shell-v1.openapi.yaml. Axum binding deferred to runtime composition root per LTS-dependency-enforcement directive.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -824,7 +824,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane \u00d7 contains|exposes|governs|depends-on|enforces.",
+      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane × contains|exposes|governs|depends-on|enforces.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -957,7 +957,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Hyper foundation Layer 5: THE ONLY crate importing hyper directly per ADR-0090. Bridges Router + MiddlewareChain \u2192 hyper::service::Service. Deps: hyper 1, hyper-util 0.1, tokio 1, http-body-util 0.1, bytes 1.",
+      "purpose_short": "Hyper foundation Layer 5: THE ONLY crate importing hyper directly per ADR-0090. Bridges Router + MiddlewareChain → hyper::service::Service. Deps: hyper 1, hyper-util 0.1, tokio 1, http-body-util 0.1, bytes 1.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -995,7 +995,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Layer 6 composition root for the ops/workspace BC. Hyper binary `oya-ops-workspace-shell` listens on 127.0.0.1:OYATIE_OPS_WORKSPACE_PORT (default 8080). Wires kernel \u2192 application \u2192 rest \u2192 router-kernel \u2192 middleware-kernel \u2192 runtime-hyper-adapter into a single tokio::main. Per ADR-0090.",
+      "purpose_short": "Layer 6 composition root for the ops/workspace BC. Hyper binary `oya-ops-workspace-shell` listens on 127.0.0.1:OYATIE_OPS_WORKSPACE_PORT (default 8080). Wires kernel → application → rest → router-kernel → middleware-kernel → runtime-hyper-adapter into a single tokio::main. Per ADR-0090.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -1014,7 +1014,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; \u2264128 chars); deny-on-missing/invalid with 400.",
+      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; ≤128 chars); deny-on-missing/invalid with 400.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -1061,6 +1061,319 @@
         },
         "provenance": {
           "current_author": "claude-opus-4-7 + jason931225",
+          "last_modified_at": "2026-05-14T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "implement-masterplan-goal-prompt",
+      "artifact_path": ".omc/goals/implement-masterplan-goal-prompt.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "Detailed goal prompt artifact for autonomous implementation of the Oyatie master plan, with RALPLAN-style review metadata.",
+      "artifact_profile": "template",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-active-artifact-contract"
+        },
+        "verification": {
+          "checker_crate": "jq + future oya-check-active-artifact-contract",
+          "command": "jq empty .omc/goals/implement-masterplan-goal-prompt.json"
+        },
+        "validation": {
+          "validator": "jq empty + future prompt-artifact schema validator"
+        },
+        "autogen": {
+          "generator": ""
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until prompt-artifact schema exists"
+        },
+        "telemetry": {
+          "metrics": []
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "ralplan-style planner/architect/critic review in .omc/goals/implement-masterplan-goal-prompt.json",
+          "last_modified_at": "2026-05-14T06:36:10Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "masterplan",
+      "artifact_path": ".omc/specs/masterplan.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture",
+      "purpose_short": "Machine-readable masterplan seed with M-CC-P00 GitOps-capable VCS replacement priority; target replacement for docs/MASTERPLAN.md after PHASE-5 Markdown retirement.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-masterplan-json"
+        },
+        "verification": {
+          "checker_crate": "jq + future crates/oya-check-masterplan",
+          "command": "jq empty .omc/specs/masterplan.json"
+        },
+        "validation": {
+          "validator": "jq empty + future masterplan.schema.json validator"
+        },
+        "autogen": {
+          "generator": "crates/oya-gen-masterplan-json (planned)"
+        },
+        "selfheal": {
+          "healer": "crates/oya-heal-masterplan-json (planned)"
+        },
+        "telemetry": {
+          "metrics": []
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending council-architecture review",
+          "last_modified_at": "2026-05-14T07:16:07Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "gitops-vcs-replacement",
+      "artifact_path": ".omc/specs/gitops-vcs-replacement.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry + ops-sre-reliability + council-architecture",
+      "purpose_short": "Early M-CC-P00 polyglot VCS replacement contract: AST/semantic conflict avoidance, enforced unit/integration/e2e standards, review/fix, rebase, merge queue, and GitOps CI/CD promotion.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-gitops-vcs-replacement"
+        },
+        "verification": {
+          "checker_crate": "jq + future crates/oya-check-gitops-vcs-replacement",
+          "command": "jq empty .omc/specs/gitops-vcs-replacement.json"
+        },
+        "validation": {
+          "validator": "jq empty + future gitops-vcs-replacement.schema.json validator"
+        },
+        "autogen": {
+          "generator": ""
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until validator exists"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_vcs_merge_conflict_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "phase"
+              ],
+              "cardinality_budget": 50
+            },
+            {
+              "id": "oya_vcs_work_discarded_ratio",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "phase"
+              ],
+              "cardinality_budget": 50
+            },
+            {
+              "id": "oya_vcs_promotion_latency_seconds",
+              "kind": "histogram",
+              "unit": "s",
+              "labels": [
+                "target",
+                "outcome"
+              ],
+              "cardinality_budget": 100
+            },
+            {
+              "id": "oya_vcs_review_fix_iterations_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "outcome"
+              ],
+              "cardinality_budget": 20
+            },
+            {
+              "id": "oya_vcs_controller_rebase_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "outcome"
+              ],
+              "cardinality_budget": 20
+            },
+            {
+              "id": "oya_vcs_merge_queue_wait_seconds",
+              "kind": "histogram",
+              "unit": "s",
+              "labels": [
+                "outcome"
+              ],
+              "cardinality_budget": 20
+            },
+            {
+              "id": "oya_vcs_polyglot_claim_coverage_ratio",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "language_or_artifact_kind"
+              ],
+              "cardinality_budget": 100
+            },
+            {
+              "id": "oya_vcs_required_test_tier_coverage_ratio",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "tier",
+                "language_or_surface"
+              ],
+              "cardinality_budget": 150
+            },
+            {
+              "id": "oya_vcs_ast_symbol_index_freshness_seconds",
+              "kind": "histogram",
+              "unit": "s",
+              "labels": [
+                "language_or_surface"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending council-architecture + axis-foundry review",
+          "last_modified_at": "2026-05-14T07:20:28Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "test-standard",
+      "artifact_path": ".omc/specs/test-standard.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry + ops-quality",
+      "purpose_short": "Machine-readable unit/integration/e2e/property/fuzz test standard for GitOps VCS admission enforcement.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-test-standard"
+        },
+        "verification": {
+          "checker_crate": "jq + future crates/oya-check-test-standard",
+          "command": "jq empty .omc/specs/test-standard.json"
+        },
+        "validation": {
+          "validator": "jq empty + future test-standard validator"
+        },
+        "autogen": {
+          "generator": ""
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until validator exists"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_test_standard_required_tier_coverage_ratio",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "tier"
+              ],
+              "cardinality_budget": 20
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending ops-quality review",
+          "last_modified_at": "2026-05-14T07:22:20Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "test-suite-registry",
+      "artifact_path": ".omc/registries/test-suite-registry.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry + ops-quality",
+      "purpose_short": "Polyglot test-suite registry mapping surfaces to unit/integration/e2e commands and evidence outputs.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-test-suite-registry"
+        },
+        "verification": {
+          "checker_crate": "jq + future crates/oya-check-test-suite-registry",
+          "command": "jq empty .omc/registries/test-suite-registry.json"
+        },
+        "validation": {
+          "validator": "jq empty + future test-suite-registry validator"
+        },
+        "autogen": {
+          "generator": ""
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until validator exists"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_test_suite_registry_row_count",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "language_or_surface"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending ops-quality review",
+          "last_modified_at": "2026-05-14T07:22:20Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "codeview-read-surface",
+      "artifact_path": ".omc/specs/codeview-read-surface.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "council-architecture + axis-foundry",
+      "purpose_short": "Machine-readable contract for sanctioned read-only codeview commands, compatibility binaries, provider env vars, and rejected direct VCS tokens.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-codeview-read-surface"
+        },
+        "verification": {
+          "checker_crate": "crates/oya-dev-cli",
+          "command": "oya gate validate codeview-read-surface --spec .omc/specs/codeview-read-surface.json"
+        },
+        "validation": {
+          "validator": "crates/oya-dev-cli::codeview_read_surface_gates"
+        },
+        "autogen": {
+          "generator": "manual until codeview registry generator lands"
+        },
+        "selfheal": {
+          "healer": "manual scaffold-lock fallback per ADR-0054"
+        },
+        "telemetry": {
+          "metrics": []
+        },
+        "provenance": {
+          "current_author": "codex",
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }

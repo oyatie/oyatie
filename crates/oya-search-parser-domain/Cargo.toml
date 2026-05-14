@@ -1,0 +1,15 @@
+[package]
+name = "oya-search-parser-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-search-crawler-domain = { path = "../oya-search-crawler-domain" }
+
+[lib]
+name = "oya_search_parser_domain"
+path = "src/lib.rs"
+doctest = false

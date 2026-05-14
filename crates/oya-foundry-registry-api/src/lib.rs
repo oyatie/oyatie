@@ -7,14 +7,14 @@
 
 use std::collections::BTreeMap;
 
-use oya_foundry_capability_kernel::{
+use oya_data_boundary_kernel::{PrivacyDataClass, parse_data_class_label};
+use oya_foundry_capability_domain::{
     AutonomyTier, Capability, CapabilityCostProfile, CapabilityError, CapabilityMcpContract,
     CapabilityRegistry,
 };
-use oya_foundry_eval_kernel::{
+use oya_foundry_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalError, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
 };
-use oya_platform_data_boundary_kernel::{parse_data_class_label, PrivacyDataClass};
 
 const FOUNDRY_CAPABILITY_PUBLISH_SCHEMA_VERSION: u32 = 1;
 
@@ -613,7 +613,10 @@ impl FoundryCapabilityPublishApiError {
                 format!("unsupported autonomy tier {autonomy_tier}"),
             )],
             Self::InvalidEvalMetric { metric } => {
-                vec![detail("body.eval_metric", format!("unsupported metric {metric}"))]
+                vec![detail(
+                    "body.eval_metric",
+                    format!("unsupported metric {metric}"),
+                )]
             }
             Self::InvalidAdversarialKind { adversarial_kind } => vec![detail(
                 "body.eval_cases[].adversarial_kind",
@@ -639,7 +642,9 @@ impl FoundryCapabilityPublishApiError {
             Self::EmptyRequestId => vec![detail("X-Request-Id", "must not be empty")],
             Self::EmptyTenantHeader => vec![detail("X-Tenant-Id", "must not be empty")],
             Self::EmptyIdempotencyKey => vec![detail("Idempotency-Key", "must not be empty")],
-            Self::EmptyPrincipalTenantId => vec![detail("principal.tenant_id", "must not be empty")],
+            Self::EmptyPrincipalTenantId => {
+                vec![detail("principal.tenant_id", "must not be empty")]
+            }
             Self::EmptyPrincipalId => vec![detail("principal.principal_id", "must not be empty")],
             Self::EmptyAuthorizationDecisionId => {
                 vec![detail("authorization.decision_id", "must not be empty")]
@@ -647,20 +652,41 @@ impl FoundryCapabilityPublishApiError {
             Self::InvalidCapabilityId => vec![detail("body.capability_id", "must start with cap.")],
             Self::EmptyVersion => vec![detail("body.version", "must not be empty")],
             Self::EmptyOwnerTeam => vec![detail("body.owner_team", "must not be empty")],
-            Self::EmptyCatalogRecordPath => vec![detail("body.catalog_record_path", "must not be empty")],
+            Self::EmptyCatalogRecordPath => {
+                vec![detail("body.catalog_record_path", "must not be empty")]
+            }
             Self::EmptyDocsPath => vec![detail("body.docs_path", "must not be empty")],
             Self::EmptyNamespace => vec![detail("body.namespace", "must not be empty")],
-            Self::EmptyEvidenceTopic => vec![detail("body.evidence_emission_topic", "must not be empty")],
-            Self::MissingDataClasses => vec![detail("body.data_classes_touched", "must not be empty")],
-            Self::InvalidCostProfile => vec![detail("body.cost_profile", "invalid budget ceilings")],
-            Self::MissingProviderPreference => vec![detail("body.provider.preferred", "must not be empty")],
-            Self::InvalidProviderPreference => vec![detail("body.provider", "provider ids must be unique lowercase ids")],
-            Self::InvalidMcpContract => vec![detail("body.input_schema_json/body.output_schema_json", "schemas must be JSON objects")],
+            Self::EmptyEvidenceTopic => {
+                vec![detail("body.evidence_emission_topic", "must not be empty")]
+            }
+            Self::MissingDataClasses => {
+                vec![detail("body.data_classes_touched", "must not be empty")]
+            }
+            Self::InvalidCostProfile => {
+                vec![detail("body.cost_profile", "invalid budget ceilings")]
+            }
+            Self::MissingProviderPreference => {
+                vec![detail("body.provider.preferred", "must not be empty")]
+            }
+            Self::InvalidProviderPreference => vec![detail(
+                "body.provider",
+                "provider ids must be unique lowercase ids",
+            )],
+            Self::InvalidMcpContract => vec![detail(
+                "body.input_schema_json/body.output_schema_json",
+                "schemas must be JSON objects",
+            )],
             Self::EmptyEvalSetVersion => vec![detail("body.eval_set_version", "must not be empty")],
             Self::EmptyEvalCaseId => vec![detail("body.eval_cases[].case_id", "must not be empty")],
             Self::EmptyEvalLocale => vec![detail("body.eval_cases[].locale", "must not be empty")],
-            Self::EmptyEvalInputRef => vec![detail("body.eval_cases[].input_ref", "must not be empty")],
-            Self::EmptyEvalExpectedRef => vec![detail("body.eval_cases[].expected_ref", "must not be empty")],
+            Self::EmptyEvalInputRef => {
+                vec![detail("body.eval_cases[].input_ref", "must not be empty")]
+            }
+            Self::EmptyEvalExpectedRef => vec![detail(
+                "body.eval_cases[].expected_ref",
+                "must not be empty",
+            )],
             Self::InvalidEvalThreshold => vec![detail(
                 "body.min_pass_rate_percent/body.min_p95_score_percent",
                 "must be 1..=100",
@@ -677,7 +703,9 @@ impl FoundryCapabilityPublishApiError {
                 "body.eval_pass_rate_percent/body.eval_p95_score_percent",
                 "run scores or cohorts did not meet thresholds",
             )],
-            Self::MissingPassingEvalRun => vec![detail("body.capability_id", "no passing run recorded")],
+            Self::MissingPassingEvalRun => {
+                vec![detail("body.capability_id", "no passing run recorded")]
+            }
         }
     }
 }

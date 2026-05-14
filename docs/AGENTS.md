@@ -4,8 +4,12 @@ shape: ~
 length_cap: 360
 authority_tier: 2
 excludes:
-  - path: docs/CONSTITUTION.md
-    reason: Mission, decision rights, prohibitions; the constitutional frame is upstream of this contract.
+  - path: .omc/specs/root-hub-pointers.json
+    reason: Machine-readable entry-point registry; this contract is discovered through it.
+  - path: .omc/specs/master-plan-sequencing.json
+    reason: Forbidden primitives, grit protocol, and ChangeSet sequencing; cited and not duplicated fully.
+  - path: .omc/specs/markdown-retirement-policy.json
+    reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated fully.
   - path: docs/DOC-CATALOG.md
     reason: Per-doc lifecycle protocol and trigger taxonomy.
   - path: docs/templates/pull-request-template.md
@@ -17,39 +21,41 @@ excludes:
   - path: docs/SPEC.md
     reason: Surface enumeration; this contract operates on surfaces, does not enumerate them.
   - path: docs/standards/
-    reason: Cross-cutting authoring norms (code style, testing, security review, etc.); this contract names them, does not inline them.
+    reason: Cross-cutting authoring norms; this contract names them, does not inline them.
   - path: docs/MISTAKES-LEDGER.md
     reason: Failure-mode catalog; this contract operates the doctrine, does not catalog it.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md
-    > rest of docs/
-    > catalog records (registry/catalog/, contracts/, machine-readable/)
+  system / developer / user instructions
+    > .omc/specs/root-hub-pointers.json
+    > docs/AGENTS.md (until .omc/specs/agent-operating-contract.json PHASE-5 promotion)
+    > machine-readable specs and registries under .omc/
+    > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
 ---
-
 # Oyatie Agent Operating Contract
 
-## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
-
+## Machine-readable authority — [root hub pointers](../.omc/specs/root-hub-pointers.json); retired [CONSTITUTION.md](CONSTITUTION.md)
 
 This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
 
-If you read only one file before changing this repo, read this one. If you read two, read this one and [`CONSTITUTION.md`](CONSTITUTION.md).
+Before changing this repo, read `.omc/specs/root-hub-pointers.json` first, then this contract. The retired Constitution concept is redistributed through the root hub, master-plan specs, RACI ownership, and sanctioned-primitive specs.
 
 ## Authority precedence
 
 The higher source wins on conflict.
 
 ```
-docs/CONSTITUTION.md
-  > rest of docs/
-  > catalog records (registry/catalog/, contracts/, machine-readable/)
+system / developer / user instructions
+  > .omc/specs/root-hub-pointers.json
+  > docs/AGENTS.md (until .omc/specs/agent-operating-contract.json PHASE-5 promotion)
+  > machine-readable specs and registries under .omc/
+  > docs/ authority files during markdown-retirement compatibility
   > repo-root Redirect-class files (non-authoritative; lane-thin)
   > working drafts (never authoritative)
 ```
 
-The chain appears verbatim in [`CONSTITUTION.md`](CONSTITUTION.md), in this file, and in [`README.md`](README.md). The `oya-foundry-fitness-authority-cohesion` lane validates the three declarations are character-identical.
+The chain is mirrored from `.omc/specs/root-hub-pointers.json` and the markdown-retirement policy. The `oya-foundry-fitness-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
 
 ## RFC-2119 normative-language statement
 
@@ -63,7 +69,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 
 | Question | Authority |
 |---|---|
-| Project mission, decision rights, prohibitions, amendments | [`CONSTITUTION.md`](CONSTITUTION.md) |
+| Project mission, decision rights, prohibited primitives, amendments | [`MASTERPLAN.md`](MASTERPLAN.md), [`.omc/specs/master-plan-sequencing.json`](../.omc/specs/master-plan-sequencing.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
 | Bootstrap routing for the canonical tree | [`README.md`](README.md) |
 | Architecture, planes, cross-axis contracts, cohesion thesis | [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> |
 | Surfaces (capabilities, APIs, events, indexes, ad slots, cloud resources) | [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 --> |
@@ -128,6 +134,34 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
+## Sanctioned primitives
+
+Agent-callable coordination and state-transition primitives are a closed set: `grit`, `icm`, and `oya-tooling-agent-read`. `grit` owns claims and completion, `icm` owns durable recall plus audit memory, and `oya-tooling-agent-read` owns read-only VCS / forge inspection. ADR-0053 defines the steady-state rule; ADR-0054 defines the scaffold-lock fallback for paths that cannot yet be claimed as indexed symbols.
+
+Persistent memory is mandatory: recall before repo work; store resolved errors, architecture decisions, discovered user preferences, significant completions, and long-running progress checkpoints. Never store secrets, credentials, raw private logs, or bulky file contents.
+
+The fenced block below is the machine-readable agent surface for the banned-primitives lane. Human-facing terminal examples may live outside fences; fenced instructions use only the sanctioned primitive names.
+
+<!-- agent-instructions:start -->
+sanctioned_primitives:
+  - grit
+  - icm
+  - oya-tooling-agent-read
+required_sequence:
+  - icm recall-context "<task>" --limit 5
+  - grit claim --agent <id> --intent "<slice>" <file::Identifier>
+  - oya-tooling-agent-read log --range <range> --paths <path>
+  - grit done --agent <id>
+mandatory_icm_store_triggers:
+  - errors-resolved
+  - decisions-oyatie
+  - preferences
+  - context-oyatie
+  - progress-checkpoint
+scaffold_fallback:
+  topic: scaffold-locks-oyatie
+  adr: docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
+<!-- agent-instructions:end -->
 
 ## PR shape
 
@@ -220,7 +254,7 @@ The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENT
 
 Build / test commands: `cargo build`, `cargo test`, `cargo nextest run --workspace --all-features --no-fail-fast`, `cargo clippy --all-features --all-targets -- -D warnings`, `pnpm build`, `pnpm test` (Node 20). Lint: `cargo clippy`, `pnpm lint`.
 
-Active integration: `.codex/skills/` holds project skills; `.codex/worktree_init.sh` initializes per-issue workspaces.
+Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 
 Cancellation: terminate the Codex run; the orchestrator records the partial state for replay.
 
@@ -248,7 +282,7 @@ State: OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json
 
 This contract does not cover:
 
-- **Constitutional frame** — see [`CONSTITUTION.md`](CONSTITUTION.md).
+- **Machine-readable authority registry** — see [`.omc/specs/root-hub-pointers.json`](../.omc/specs/root-hub-pointers.json).
 - **Per-doc lifecycle protocol** — see [`DOC-CATALOG.md`](DOC-CATALOG.md).
 - **PR template body** — see [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->.
 - **Architectural rationale per decision** — see [`decisions/`](decisions/) <!-- forward-reference: wave-1 --> indexed at [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 -->.

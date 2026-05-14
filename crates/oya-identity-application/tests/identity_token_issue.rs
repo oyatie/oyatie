@@ -2,7 +2,8 @@ use oya_identity_application::{
     IDENTITY_TOKEN_ISSUE_OPENAPI_CONTRACT, IDENTITY_TOKEN_ISSUE_SURFACE, IdentityApiAuthorization,
     IdentityApiBoundaryContext, IdentityApiPrincipal, IdentityScopeRef, IdentityTokenIssueApiError,
     IdentityTokenIssueApiRequest, IdentityTokenIssueApiStatus, IdentityTokenIssueIdempotencyLedger,
-    IdentityTokenIssueRequest, issue_identity_token_from_app,
+    IdentityTokenIssueRequest, IdentityTokenRotationRequest, issue_identity_token_from_app,
+    rotate_identity_token_from_app,
 };
 
 const REQUEST_ID: &str = "req_identity_token_001";
@@ -124,7 +125,7 @@ fn identity_token_issue_rejects_non_sts_invalid_purpose_ttl_and_unscoped_request
     long_lived.body.credential_kind = "long_lived_api_key".to_string();
     assert!(matches!(
         issue_identity_token_from_app(&mut idempotency, long_lived),
-        Err(IdentityTokenIssueApiError::Identity(_))
+        Err(IdentityTokenIssueApiError::InvalidCredentialKind { .. })
     ));
 
     let mut invalid_purpose = token_request(
@@ -153,6 +154,127 @@ fn identity_token_issue_rejects_non_sts_invalid_purpose_ttl_and_unscoped_request
         Err(IdentityTokenIssueApiError::Identity(_))
     ));
     assert!(idempotency.is_empty());
+}
+
+#[test]
+fn identity_token_rotation_reissues_same_purpose_scope_before_expiry() {
+    let mut idempotency = IdentityTokenIssueIdempotencyLedger::default();
+    let original = issue_identity_token_from_app(
+        &mut idempotency,
+        token_request(
+            "req_identity_token_original",
+            "idem_identity_token_original",
+        ),
+    )
+    .expect("original STS issue succeeds");
+    let mut replacement = token_request("req_identity_token_rotate", "idem_identity_token_rotate");
+    replacement.body.issued_at_epoch_seconds = original.data.issued_at_epoch_seconds + 600;
+
+    let rotated = rotate_identity_token_from_app(
+        &mut idempotency,
+        IdentityTokenRotationRequest {
+            previous: original.data.clone(),
+            replacement,
+        },
+    )
+    .expect("active STS token can rotate");
+
+    assert_eq!(rotated.data.tenant_id, original.data.tenant_id);
+    assert_eq!(rotated.data.subject_id, original.data.subject_id);
+    assert_eq!(rotated.data.purpose, original.data.purpose);
+    assert_eq!(rotated.data.scopes, original.data.scopes);
+    assert_eq!(rotated.data.issued_at_epoch_seconds, 1_700_000_600);
+    assert_eq!(rotated.data.expires_at_epoch_seconds, 1_700_001_500);
+    assert_ne!(
+        rotated.data.token_fingerprint,
+        original.data.token_fingerprint
+    );
+}
+
+#[test]
+fn identity_token_rotation_rejects_expired_or_rebound_tokens() {
+    let mut idempotency = IdentityTokenIssueIdempotencyLedger::default();
+    let original = issue_identity_token_from_app(
+        &mut idempotency,
+        token_request(
+            "req_identity_token_rotation_original",
+            "idem_identity_token_rotation_original",
+        ),
+    )
+    .expect("original STS issue succeeds");
+
+    let mut expired_replacement = token_request(
+        "req_identity_token_rotation_expired",
+        "idem_identity_token_rotation_expired",
+    );
+    expired_replacement.body.issued_at_epoch_seconds = original.data.expires_at_epoch_seconds;
+    assert!(matches!(
+        rotate_identity_token_from_app(
+            &mut idempotency,
+            IdentityTokenRotationRequest {
+                previous: original.data.clone(),
+                replacement: expired_replacement,
+            },
+        ),
+        Err(IdentityTokenIssueApiError::PreviousTokenExpired { .. })
+    ));
+
+    let mut future_previous = original.data.clone();
+    future_previous.issued_at_epoch_seconds = original.data.issued_at_epoch_seconds + 700;
+    future_previous.expires_at_epoch_seconds = original.data.expires_at_epoch_seconds + 700;
+    let mut not_yet_active_replacement = token_request(
+        "req_identity_token_rotation_not_yet_active",
+        "idem_identity_token_rotation_not_yet_active",
+    );
+    not_yet_active_replacement.body.issued_at_epoch_seconds =
+        original.data.issued_at_epoch_seconds + 600;
+    assert!(matches!(
+        rotate_identity_token_from_app(
+            &mut idempotency,
+            IdentityTokenRotationRequest {
+                previous: future_previous,
+                replacement: not_yet_active_replacement,
+            },
+        ),
+        Err(IdentityTokenIssueApiError::PreviousTokenNotYetActive { .. })
+    ));
+
+    let mut rebound_replacement = token_request(
+        "req_identity_token_rotation_rebound",
+        "idem_identity_token_rotation_rebound",
+    );
+    rebound_replacement.body.issued_at_epoch_seconds = original.data.issued_at_epoch_seconds + 1;
+    rebound_replacement.body.scopes.push(IdentityScopeRef {
+        value: "cloud.iam.read".to_string(),
+    });
+    assert_eq!(
+        rotate_identity_token_from_app(
+            &mut idempotency,
+            IdentityTokenRotationRequest {
+                previous: original.data.clone(),
+                replacement: rebound_replacement,
+            },
+        ),
+        Err(IdentityTokenIssueApiError::RotationPurposeScopeMismatch)
+    );
+
+    let mut subject_drift = token_request(
+        "req_identity_token_rotation_subject",
+        "idem_identity_token_rotation_subject",
+    );
+    subject_drift.body.issued_at_epoch_seconds = original.data.issued_at_epoch_seconds + 1;
+    subject_drift.body.subject_id = "usr_other".to_string();
+    assert!(matches!(
+        rotate_identity_token_from_app(
+            &mut idempotency,
+            IdentityTokenRotationRequest {
+                previous: original.data,
+                replacement: subject_drift,
+            },
+        ),
+        Err(IdentityTokenIssueApiError::PrincipalMismatch { .. })
+            | Err(IdentityTokenIssueApiError::RotationBindingMismatch { .. })
+    ));
 }
 
 #[test]

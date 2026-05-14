@@ -7,6 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
+ed25519-dalek = "2"
+sha2 = "0.10"
 oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 
 [lib]

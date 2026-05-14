@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P07
 title: Regional Pack Onboarding (KR + one of JP/US/EU)
-status: stub
+status: complete
 purpose: Onboard ≥ 2 regional packs per W-Cloud-Preview gate; KR-Seoul mandatory, second pack council-elected (JP-Tokyo / US-Northern-Virginia / EU-Frankfurt).
 ---
 
@@ -19,8 +19,8 @@ Per [`../../../../../docs/ROADMAP.md`](../../../../../docs/ROADMAP.md) §2.3 and
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | KR pack onboarding (PIPA / CSAP / K-ISMS-P / KCMVP seam) | stub | [`IP-001-kr-pack.md`](IP-001-kr-pack.md) |
-| IP-002 | Second pack onboarding (JP/US/EU — council-elected) | stub | [`IP-002-second-pack.md`](IP-002-second-pack.md) |
+| IP-001 | KR pack onboarding (PIPA / CSAP / K-ISMS-P / KCMVP seam) | complete | [`IP-001-kr-pack.md`](IP-001-kr-pack.md) |
+| IP-002 | Second pack onboarding (JP/US/EU — council-elected) | complete | [`IP-002-second-pack.md`](IP-002-second-pack.md) |
 
 ## Estimated parallelism
 2 agents; one per pack.

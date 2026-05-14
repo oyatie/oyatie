@@ -7,13 +7,13 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_kms_kernel::KmsPurpose;
-use oya_cloud_resource_kernel::ResourceId;
-use oya_cloud_storage_kernel::{
+use oya_cloud_kms_domain::KmsPurpose;
+use oya_cloud_resource_domain::ResourceId;
+use oya_cloud_storage_domain::{
     CloudStorageCatalog, CloudStorageError, ObjectCreate, ObjectEncryptionBindingCreate, ObjectKey,
     StorageRepo, StoredObject,
 };
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
 
 pub const CLOUD_STORAGE_OBJECT_PUT_SURFACE: &str = "cloud.storage.object.put";
 pub const CLOUD_STORAGE_OBJECT_GET_SURFACE: &str = "cloud.storage.object.get";

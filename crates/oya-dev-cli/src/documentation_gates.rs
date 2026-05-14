@@ -1,12 +1,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_doc_catalog_kernel::{validate_doc_catalog, DocCatalogRecord};
-use oya_foundry_documentation_system_kernel::{
-    validate_documentation_system, DocumentationPipelineRecord, DocumentationPipelineState,
-    DocumentationSystemEvidence,
+use oya_check_doc_catalog::{DocCatalogRecord, validate_doc_catalog};
+use oya_check_documentation_system::{
+    DocumentationPipelineRecord, DocumentationPipelineState, DocumentationSystemEvidence,
+    validate_documentation_system,
 };
-use oya_foundry_readme_doc_coverage_kernel::validate_readme_doc_coverage;
+use oya_check_readme_coverage::validate_readme_doc_coverage;
 
 use crate::{
     extract_first_backticked_value, extract_json_object_entries, extract_json_object_for_key,
@@ -176,7 +176,7 @@ pub(crate) fn parse_documentation_system_validate_args(
 
 pub(crate) fn validate_documentation_system_gate(
     args: DocumentationSystemValidateArgs,
-) -> Result<oya_foundry_documentation_system_kernel::DocumentationSystemReport, String> {
+) -> Result<oya_check_documentation_system::DocumentationSystemReport, String> {
     let documentation = fs::read_to_string(&args.documentation_path).map_err(|error| {
         format!(
             "documentation system doc unreadable {}: {error}",

@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P03-IP-001
 title: Phase 00 evidence validator
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship scripts/validate_foundry_phase00_evidence.mjs covering crates/tests/adapters/smoke/credentials/clean-arch.

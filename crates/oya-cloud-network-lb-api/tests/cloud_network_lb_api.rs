@@ -1,4 +1,4 @@
-use oya_cloud_network_kernel::{
+use oya_cloud_network_domain::{
     CloudNetworkCatalog, CloudNetworkError, IpProtocol, NetworkRepo, RouteCreate, RouteNextHopKind,
     RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule, SubnetCreate, SubnetState,
     VpcCreate, VpcState,
@@ -12,8 +12,8 @@ use oya_cloud_network_lb_api::{
     CloudNetworkLbSubnetRef, CloudNetworkLbTargetGroupCreateRequest,
     CLOUD_NETWORK_LB_CREATE_SURFACE,
 };
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
+use oya_residency_domain::ResidencyClass;
 
 const VPC_ID: &str = "oya:cloud:kr-seoul:ten_kr:vpc:prod";
 const SUBNET_ID: &str = "oya:cloud:kr-seoul:ten_kr:subnet:prod-a";
@@ -108,7 +108,7 @@ fn seed_vpc(catalog: &mut CloudNetworkCatalog) {
                     direction: RuleDirection::Ingress,
                     protocol: IpProtocol::Tcp,
                     port_range: Some((443, 443)),
-                    cidr: oya_cloud_network_kernel::RouteDestination::new("10.42.0.0/16")
+                    cidr: oya_cloud_network_domain::RouteDestination::new("10.42.0.0/16")
                         .expect("valid CIDR"),
                     description: "tenant https ingress".to_string(),
                 }],

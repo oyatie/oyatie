@@ -59,7 +59,7 @@ fn audit_event_emit_appends_chain_and_outbox_once_and_replays_idempotently() {
     assert_eq!(first.data.data_classes, vec!["INTERNAL_ONLY", "PUBLIC"]);
     assert_eq!(first.data.decision, DECISION);
     assert_eq!(first.data.previous_hash, "GENESIS");
-    assert!(first.data.hash.starts_with("fnv1a64:"));
+    assert!(first.data.hash.starts_with("sha256:"));
     assert_eq!(first.data.outbox_topic, AUDIT_EVENT_TOPIC);
     assert_eq!(
         first.data.outbox_payload_ref,

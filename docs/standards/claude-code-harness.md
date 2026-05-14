@@ -39,7 +39,7 @@ configuration, and OMC magic-keyword routing.
 ## 1. Sanctioned-primitive contract
 
 Per [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) Directive 12 and
-the agentic-pipeline cutover (`ralplan-oyatie-sst-consolidation.md`), the
+the agentic-pipeline cutover (`SST consolidation ralplan`), the
 default sanctioned tool surface inside an `<!-- agent-instructions -->`
 fence is the **triad**:
 

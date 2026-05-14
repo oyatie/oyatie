@@ -172,14 +172,16 @@ mod tests {
 
     #[test]
     fn accepts_pnpm_workspace_with_required_test_script() {
-        assert!(validate_typescript_workspace(
-            workspace([
-                script("typecheck", "tsc --noEmit"),
-                script("test", "vitest run")
-            ]),
-            TypescriptWorkspaceLane::Test,
-        )
-        .is_ok());
+        assert!(
+            validate_typescript_workspace(
+                workspace([
+                    script("typecheck", "tsc --noEmit"),
+                    script("test", "vitest run")
+                ]),
+                TypescriptWorkspaceLane::Test,
+            )
+            .is_ok()
+        );
     }
 
     #[test]

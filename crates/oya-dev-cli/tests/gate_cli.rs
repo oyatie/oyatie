@@ -32,8 +32,10 @@ fn foundation_bypass_gate_allows_empty_or_fresh_ledgers() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("foundation gate exception ledger validation passed: 1 records, 1 open"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("foundation gate exception ledger validation passed: 1 records, 1 open")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -62,8 +64,10 @@ fn foundation_bypass_gate_rejects_zero_window_and_expired_records() {
         .expect("gate command runs");
 
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr)
-        .contains("foundation gate exception ledger validation failed"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("foundation gate exception ledger validation failed")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -87,8 +91,10 @@ fn foundation_bypass_gate_requires_an_explicit_ledger_directory() {
         .expect("gate command runs");
 
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr)
-        .contains("foundation gate exception ledger validation failed"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("foundation gate exception ledger validation failed")
+    );
     assert!(String::from_utf8_lossy(&output.stderr).contains("directory unreadable"));
 
     fs::remove_dir_all(temp).ok();
@@ -210,8 +216,10 @@ fn foundation_bypass_gate_validates_autonomy_break_glass_records_in_same_ledger(
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("foundation gate exception ledger validation passed: 1 records, 1 open"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("foundation gate exception ledger validation passed: 1 records, 1 open")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -306,8 +314,10 @@ fn plane_class_gate_accepts_stable_catalog_planes() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("plane class validation passed: 1 records, 0 reviewed changes"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("plane class validation passed: 1 records, 0 reviewed changes")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -357,8 +367,10 @@ fn plane_class_gate_rejects_unreviewed_plane_changes() {
         String::from_utf8_lossy(&reviewed.stdout),
         String::from_utf8_lossy(&reviewed.stderr)
     );
-    assert!(String::from_utf8_lossy(&reviewed.stdout)
-        .contains("plane class validation passed: 1 records, 1 reviewed changes"));
+    assert!(
+        String::from_utf8_lossy(&reviewed.stdout)
+            .contains("plane class validation passed: 1 records, 1 reviewed changes")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -401,7 +413,7 @@ members = ["crates/oya-foundry-capability-kernel"]
         crate_dir.join("Cargo.toml"),
         r#"[package]
 name = "oya-foundry-capability-kernel"
-edition = "2021"
+edition = "2024"
 version = "0.1.0"
 license = "GPL-3.0"
 "#,
@@ -590,8 +602,10 @@ fn typescript_workspace_gate_accepts_absent_workspace_for_active_pnpm_lanes() {
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
         );
-        assert!(String::from_utf8_lossy(&output.stdout)
-            .contains(&format!("lane={lane}, workspace_present=false")));
+        assert!(
+            String::from_utf8_lossy(&output.stdout)
+                .contains(&format!("lane={lane}, workspace_present=false"))
+        );
     }
 
     fs::remove_dir_all(temp).ok();
@@ -643,8 +657,10 @@ fn typescript_workspace_gate_accepts_pnpm_workspace_scripts() {
             String::from_utf8_lossy(&output.stdout),
             String::from_utf8_lossy(&output.stderr)
         );
-        assert!(String::from_utf8_lossy(&output.stdout)
-            .contains(&format!("lane={lane}, workspace_present=true")));
+        assert!(
+            String::from_utf8_lossy(&output.stdout)
+                .contains(&format!("lane={lane}, workspace_present=true"))
+        );
     }
 
     fs::remove_dir_all(temp).ok();
@@ -754,8 +770,10 @@ fn adr_citation_gate_accepts_new_pack_refs_and_forensic_mapping_refs() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("ADR citation validation passed: 4 documents, 3 citations, 2 pack ADRs"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("ADR citation validation passed: 4 documents, 3 citations, 2 allowed ADRs")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -828,8 +846,10 @@ fn brand_residue_gate_accepts_canonical_brand_and_real_transitions() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("brand residue validation passed: 1 files, 1 transition patterns"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("brand residue validation passed: 1 files, 1 transition patterns")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -897,8 +917,10 @@ fn api_semver_gate_accepts_bootstrap_without_contracts() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("API semver validation passed: 0 contracts, 0 metadata records"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("API semver validation passed: 0 contracts, 0 metadata records")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -928,8 +950,10 @@ fn api_semver_gate_accepts_contract_with_metadata() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("API semver validation passed: 1 contracts, 1 metadata records"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("API semver validation passed: 1 contracts, 1 metadata records")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1009,8 +1033,11 @@ fn supply_chain_gate_accepts_source_only_bootstrap() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("supply chain validation passed: 1 catalog records, 1 source-only attestations"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains(
+            "supply chain validation passed: 1 catalog records, 1 source-only attestations"
+        )
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1105,8 +1132,10 @@ fn release_supply_chain_gate_accepts_complete_release_attestation_evidence() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("release supply chain validation passed: 1 artifacts, 1 evidence records"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("release supply chain validation passed: 1 artifacts, 1 evidence records")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1352,7 +1381,9 @@ fn supply_chain_gate_accepts_full_adr0039_static_wiring() {
         &temp,
         "source-only",
         "cargo audit\ncargo deny check\n",
-        Some("name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n"),
+        Some(
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n",
+        ),
         true,
     );
     write_supply_chain_adr0039_script(&temp);
@@ -1370,8 +1401,11 @@ fn supply_chain_gate_accepts_full_adr0039_static_wiring() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("supply chain validation passed: 1 catalog records, 1 source-only attestations"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains(
+            "supply chain validation passed: 1 catalog records, 1 source-only attestations"
+        )
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1383,7 +1417,9 @@ fn supply_chain_gate_accepts_full_adr0039_static_wiring_with_pre_release_empty_s
         &temp,
         "source-only",
         "cargo audit\ncargo deny check\n",
-        Some("name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n"),
+        Some(
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n",
+        ),
         false,
     );
     write_pre_release_contract_image_manifest(&temp);
@@ -1413,7 +1449,9 @@ fn supply_chain_gate_rejects_full_adr0039_without_signed_commit_policy() {
         &temp,
         "source-only",
         "cargo audit\ncargo deny check\n",
-        Some("name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n"),
+        Some(
+            "name: supply-chain\njobs:\n  adr0039:\n    steps:\n      - run: scripts/supply-chain-adr0039.sh\n",
+        ),
         true,
     );
     write_supply_chain_adr0039_script(&temp);
@@ -1454,8 +1492,10 @@ fn cargo_prefix_gate_accepts_oya_workspace_members() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("cargo prefix validation passed: 1 workspace members"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("cargo prefix validation passed: 1 workspace members")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1562,8 +1602,10 @@ fn constitution_cite_gate_rejects_tier_one_doc_without_heading_citation() {
         .expect("constitution cite gate command runs");
 
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr)
-        .contains("constitution cite coverage validation failed"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("constitution cite coverage validation failed")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1744,8 +1786,10 @@ fn slo_coverage_gate_accepts_catalog_records_with_slo() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("slo coverage validation passed: 1 records"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("slo coverage validation passed: 1 records")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1822,8 +1866,10 @@ fn cohesion_gate_accepts_implemented_contract_source_with_catalog() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("cohesion validation passed: 1 contracts, 1 implemented sources"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("cohesion validation passed: 1 contracts, 1 implemented sources")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1849,7 +1895,9 @@ fn codeowners_mirror_gate_rejects_unknown_team_owner() {
         .expect("codeowners mirror gate command runs");
 
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr).contains("codeowners mirror validation failed"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("codeowners mirror validation failed")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -1990,8 +2038,10 @@ fn codeowners_mirror_gate_accepts_chartered_team_owners() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("codeowners mirror validation passed: 5 entries, 5 owners"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("codeowners mirror validation passed: 5 entries, 5 owners")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2048,8 +2098,10 @@ fn raci_team_coverage_gate_accepts_raci_and_codeowners_covered_teams() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("raci team coverage validation passed: 2 teams"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("raci team coverage validation passed: 2 teams")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2129,8 +2181,10 @@ fn readme_doc_coverage_gate_accepts_root_docs_with_catalog_and_links() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("readme doc coverage validation passed: 2 documents"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("readme doc coverage validation passed: 2 documents")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2146,8 +2200,10 @@ fn glossary_cross_doc_gate_rejects_machine_term_missing_glossary_markdown() {
         .expect("glossary coverage gate command runs");
 
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr)
-        .contains("glossary cross-doc coverage validation failed"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("glossary cross-doc coverage validation failed")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2168,8 +2224,10 @@ fn glossary_cross_doc_gate_rejects_active_term_missing_cross_doc_coverage() {
         .expect("glossary coverage gate command runs");
 
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr)
-        .contains("glossary cross-doc coverage validation failed"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("glossary cross-doc coverage validation failed")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2195,8 +2253,10 @@ fn glossary_cross_doc_gate_accepts_active_and_retired_term_policy() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("glossary cross-doc coverage validation passed: 2 terms, 1 cross-doc terms"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("glossary cross-doc coverage validation passed: 2 terms, 1 cross-doc terms")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2601,8 +2661,10 @@ fn doc_catalog_gate_accepts_root_docs_with_machine_and_markdown_rows() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("doc catalog validation passed: 3 documents"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("doc catalog validation passed: 3 documents")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2641,8 +2703,10 @@ fn doc_catalog_gate_accepts_owner_team_arrays_from_machine_catalog() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("doc catalog validation passed: 2 documents"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("doc catalog validation passed: 2 documents")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2767,8 +2831,10 @@ fn doc_catalog_gate_accepts_path_glob_adr_and_codeowners_dependencies() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("doc catalog validation passed: 2 documents"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("doc catalog validation passed: 2 documents")
+    );
 
     fs::remove_dir_all(temp).ok();
 }
@@ -2827,7 +2893,7 @@ fn documentation_system_gate_rejects_unwired_pipeline_guard() {
     write_documentation_system_fixture(&temp);
     fs::write(
         temp.join("scripts/check.sh"),
-        "cargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system\n",
+        "cargo run -p oya-dev-cli -- gate validate documentation-system\n",
     )
     .expect("check script rewritten");
 
@@ -2865,7 +2931,7 @@ fn write_documentation_system_fixture(root: &Path) {
     .expect("quickref written");
     fs::write(
         root.join("scripts/check.sh"),
-        "cargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system\ncargo run -p oya-tooling-cli-dev-runtime -- gate validate api-semver\ncargo run -p oya-tooling-cli-dev-runtime -- gate validate adr-citation\ncargo run -p oya-tooling-cli-dev-runtime -- catalog validate\ncargo run -p oya-tooling-cli-dev-runtime -- gate validate doc-catalog\n",
+        "cargo run -p oya-dev-cli -- gate validate documentation-system\ncargo run -p oya-dev-cli -- gate validate api-semver\ncargo run -p oya-dev-cli -- gate validate adr-citation\ncargo run -p oya-dev-cli -- catalog validate\ncargo run -p oya-dev-cli -- gate validate doc-catalog\n",
     )
     .expect("check script written");
     fs::write(
@@ -2876,7 +2942,7 @@ fn write_documentation_system_fixture(root: &Path) {
 }
 
 fn documentation_pipeline_tsv() -> &'static str {
-    "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\nrustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\nopenapi\toya doc openapi\tadoption-guard\tcargo run -p oya-tooling-cli-dev-runtime -- gate validate api-semver\tcontracts\tcontracts are absent; api-semver guards first contract adoption\nmdbook\toya doc mdbook\tadoption-guard\tcargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\nadr-index\toya doc adr-index\tadoption-guard\tcargo run -p oya-tooling-cli-dev-runtime -- gate validate adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\ncatalog\toya doc catalog\tactive\tcargo run -p oya-tooling-cli-dev-runtime -- catalog validate\tregistry/catalog\t\nlint\toya doc lint\tactive\tcargo run -p oya-tooling-cli-dev-runtime -- gate validate doc-catalog\tdocs\t\n"
+    "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\nrustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\nopenapi\toya doc openapi\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate api-semver\tcontracts\tcontracts are absent; api-semver guards first contract adoption\nmdbook\toya doc mdbook\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\nadr-index\toya doc adr-index\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\ncatalog\toya doc catalog\tactive\tcargo run -p oya-dev-cli -- catalog validate\tregistry/catalog\t\nlint\toya doc lint\tactive\tcargo run -p oya-dev-cli -- gate validate doc-catalog\tdocs\t\n"
 }
 
 fn documentation_system_args(root: &Path) -> Vec<String> {
@@ -2958,7 +3024,7 @@ fn write_package_manifest(crate_dir: &Path, package_name: &str) {
     fs::write(
         crate_dir.join("Cargo.toml"),
         format!(
-            "[package]\nname = \"{package_name}\"\nedition = \"2021\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n"
+            "[package]\nname = \"{package_name}\"\nedition = \"2024\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n"
         ),
     )
     .expect("crate manifest written");
@@ -3453,7 +3519,7 @@ fn write_release_supply_chain_fixture(
     signed: &str,
 ) {
     let digest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    let artifact_ref = format!("ghcr.io/oyatie/oya-tooling-cli-dev-runtime@{digest}");
+    let artifact_ref = format!("ghcr.io/oyatie/oya-dev-cli@{digest}");
     fs::create_dir_all(root.join("registry/release/supply-chain"))
         .expect("release supply-chain evidence dir created");
     fs::write(
@@ -3462,14 +3528,14 @@ fn write_release_supply_chain_fixture(
     )
     .expect("release image manifest written");
     fs::write(
-        root.join("registry/release/supply-chain/oya-tooling-cli-dev-runtime.yaml"),
+        root.join("registry/release/supply-chain/oya-dev-cli.yaml"),
         format!(
             r#"artifact_ref: {artifact_ref}
 artifact_digest: {digest}
 release_version: 0.1.0
 source_revision: 0123456789abcdef0123456789abcdef01234567
-sbom_spdx_ref: artifact://release/0.1.0/oya-tooling-cli-dev-runtime.spdx.json
-sbom_cyclonedx_ref: artifact://release/0.1.0/oya-tooling-cli-dev-runtime.cyclonedx.json
+sbom_spdx_ref: artifact://release/0.1.0/oya-dev-cli.spdx.json
+sbom_cyclonedx_ref: artifact://release/0.1.0/oya-dev-cli.cyclonedx.json
 cosign_signature_ref: rekor://log/{rekor_log_index}/signature
 cosign_certificate_ref: rekor://log/{rekor_log_index}/certificate
 rekor_log_index: {rekor_log_index}
@@ -3631,7 +3697,7 @@ fn write_cargo_prefix_workspace(root: &Path, member_path: &str, package_name: &s
     fs::write(
         crate_dir.join("Cargo.toml"),
         format!(
-            "[package]\nname = \"{package_name}\"\nedition = \"2021\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n"
+            "[package]\nname = \"{package_name}\"\nedition = \"2024\"\nversion = \"0.1.0\"\nlicense = \"Apache-2.0\"\n"
         ),
     )
     .expect("cargo prefix package manifest written");

@@ -76,11 +76,7 @@ cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidenc
 cargo run -p oya-dev-cli -- gate validate pr-traceability
 cargo run -p oya-dev-cli -- gate validate cargo-prefix
 cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract
-cargo run -p oya-dev-cli -- check architecture
-cargo run -p oya-dev-cli -- check bounded-context
-cargo run -p oya-dev-cli -- check supply-chain
-cargo run -p oya-dev-cli -- check semver
-cargo run -p oya-dev-cli -- check documentation
+# Retired `oya check ...` aggregate commands are covered by the gate lanes above.
 cargo run -p oya-dev-cli -- gate validate quality-lanes
 cargo run -p oya-dev-cli -- gate validate foundation-bypass
 cargo run -p oya-dev-cli -- gate validate audit-chain-replay

@@ -7,13 +7,13 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_compute_kernel::{
+use oya_cloud_compute_domain::{
     CloudComputeCatalog, CloudComputeError, ComputeFlavorSpec, ComputeQuotaEnvelope, ComputeRepo,
     KubernetesCluster, KubernetesClusterCreate, KubernetesClusterState, KubernetesNodePoolCreate,
 };
-use oya_cloud_resource_kernel::{InstanceFlavor, K8sFlavor, ResourceId};
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_platform_residency_kernel::{parse_residency_class_label, ResidencyClass};
+use oya_cloud_resource_domain::{InstanceFlavor, K8sFlavor, ResourceId};
+use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_residency_domain::{parse_residency_class_label, ResidencyClass};
 
 pub const CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE: &str = "cloud.compute.k8s.cluster.create";
 

@@ -1,4 +1,4 @@
-use oya_foundry_eval_kernel::{
+use oya_foundry_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalError, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
 };
 

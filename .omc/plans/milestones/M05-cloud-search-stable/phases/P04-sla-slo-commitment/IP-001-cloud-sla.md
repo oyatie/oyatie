@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M05-P04-IP-001
 title: Cloud SLA public commitment + uphold-or-credit policy
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Publish 99.99% Cloud SLA with uphold-or-credit policy.

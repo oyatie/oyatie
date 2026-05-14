@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "slice_id": "M-CC-P00-IP-007",
+  "artifact": "ip-007-review-mergequeue",
+  "status": "implemented-targeted-verified",
+  "generated_at": "2026-05-14T00:00:00-04:00",
+  "write_scope": [
+    "crates/oya-foundry-vcs-review-mergequeue/**",
+    ".omc/evidence/gitops-vcs/ip-007-review-mergequeue.json"
+  ],
+  "commands": [
+    {
+      "command": "rustfmt --edition 2021 --check crates/oya-foundry-vcs-review-mergequeue/src/lib.rs",
+      "result": "pass",
+      "summary": "Rust source is formatted."
+    },
+    {
+      "command": "rustc --edition 2021 --crate-type lib --crate-name oya_foundry_vcs_kernel crates/oya-foundry-vcs-kernel/src/lib.rs -D warnings -o $TMPDIR/liboya_foundry_vcs_kernel.rlib",
+      "result": "pass",
+      "summary": "Path dependency oya-foundry-vcs-kernel compiled manually as a temporary rlib with warnings denied."
+    },
+    {
+      "command": "rustc --edition 2021 --crate-type lib --crate-name oya_foundry_vcs_review_mergequeue crates/oya-foundry-vcs-review-mergequeue/src/lib.rs -D warnings --extern oya_foundry_vcs_kernel=$TMPDIR/liboya_foundry_vcs_kernel.rlib -L dependency=$TMPDIR -o $TMPDIR/liboya_foundry_vcs_review_mergequeue.rlib",
+      "result": "pass",
+      "summary": "IP-007 library compiled with warnings denied using manually compiled path dependency."
+    },
+    {
+      "command": "rustc --edition 2021 --test --crate-name oya_foundry_vcs_review_mergequeue_tests crates/oya-foundry-vcs-review-mergequeue/src/lib.rs -D warnings --extern oya_foundry_vcs_kernel=$TMPDIR/liboya_foundry_vcs_kernel.rlib -L dependency=$TMPDIR -o $TMPDIR/ip007_tests && $TMPDIR/ip007_tests --nocapture",
+      "result": "pass",
+      "summary": "6 tests passed: terminal reducer, FixupTask ownership/boundedness, fake review/CI/merge queue failure injection, rejected-review fix requeue, independent bypass, lock-release/rebase/stale-digest negatives."
+    },
+    {
+      "command": "cargo test -p oya-foundry-vcs-review-mergequeue --lib",
+      "result": "blocked-pre-existing",
+      "summary": "Workspace cargo cannot load missing member crates/oya-tenancy-kernel/Cargo.toml; this is outside IP-007 write scope and was not fixed."
+    },
+    {
+      "command": "oya check test-standard --registry .omc/registries/test-suite-registry.json",
+      "result": "blocked-pre-existing",
+      "summary": "Local shell has no oya executable on PATH (zsh: command not found: oya); targeted rustc tests were used for executable evidence."
+    }
+  ],
+  "known_external_blockers": [
+    {
+      "surface": "workspace cargo",
+      "status": "blocked-pre-existing",
+      "detail": "Cargo.toml references /Users/jasonlee/oyatie/crates/oya-tenancy-kernel/Cargo.toml, which is missing."
+    },
+    {
+      "surface": "workspace test-standard gate",
+      "status": "not-run-due-to-workspace-cargo-blocker",
+      "detail": "The repo-level cargo/test-standard path is blocked before package resolution by the missing workspace member; targeted rustc tests were used as requested."
+    },
+    {
+      "surface": "oya test-standard CLI",
+      "status": "blocked-pre-existing",
+      "detail": "oya check test-standard could not run because the oya command is unavailable in this environment."
+    }
+  ],
+  "behavior_covered": [
+    "typed FixupTask records tied to ChangeSet IDs and lock refs for review comments, CI failures, security findings, rebase conflicts, and merge-queue failures",
+    "terminal-state reducer rejects lock release before terminal state and blocks queue/merge while fixups are open",
+    "agent-owned rebase is rejected; rebase conflicts are controller-owned typed events",
+    "fake review provider, fake CI provider, and fake merge queue adapter support deterministic failure injection",
+    "accepted fixes allow the ChangeSet to re-enter the queue",
+    "independent non-conflicting ChangeSets can bypass a failed item safely",
+    "stale issue digest blocks promotion after SLA"
+  ],
+  "review_cycle_1_fixups": {
+    "timestamp": "2026-05-14T10:41:24.743682Z",
+    "issue": "Terminal states were not absorbing before lock release.",
+    "fix": "reduce_terminal_state now rejects non-ReleaseLock events after terminal_state is set with TerminalStateTransitionRejected; regression added for rejected/merged states.",
+    "verification": "rustfmt pass; targeted rustc -D warnings IP-007 tests pass: 7 passed; 0 failed"
+  }
+}

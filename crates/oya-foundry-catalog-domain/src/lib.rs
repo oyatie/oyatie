@@ -5,10 +5,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{
+use oya_data_boundary_kernel::{
+    Classified, DataClass, OperationalDataClass, PrivacyDataClass,
     data_classes_from_privacy_data_classes, parse_data_class_label,
-    parse_operational_data_class_label, Classified, DataClass, OperationalDataClass,
-    PrivacyDataClass,
+    parse_operational_data_class_label,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -276,8 +276,8 @@ fn parse_role(role: &str) -> Result<CatalogRole, CatalogError> {
     match role {
         "kernel" => Ok(CatalogRole::Kernel),
         "domain" => Ok(CatalogRole::Domain),
-        "app" => Ok(CatalogRole::App),
-        "api" => Ok(CatalogRole::Api),
+        "app" | "application" => Ok(CatalogRole::App),
+        "api" | "rest" => Ok(CatalogRole::Api),
         "worker" => Ok(CatalogRole::Worker),
         "adapter" => Ok(CatalogRole::Adapter),
         "runtime" => Ok(CatalogRole::Runtime),

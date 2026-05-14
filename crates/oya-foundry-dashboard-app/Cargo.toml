@@ -1,0 +1,16 @@
+[package]
+name = "oya-foundry-dashboard-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_foundry_dashboard_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
+oya-foundry-dashboard-kernel = { path = "../oya-foundry-dashboard-kernel" }

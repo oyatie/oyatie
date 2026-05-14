@@ -1,4 +1,4 @@
-use oya_foundation_app::{
+use oya_application_app::{
     AdversarialKind, DataClass, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput, Foundation,
     FoundationError, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion, PrivacyDataClass,
 };
@@ -102,10 +102,12 @@ mod tests {
         assert_eq!(eval_set.capability_id, "cap.demo.readiness");
         assert_eq!(eval_set.cases.len(), 7);
         assert!(eval_set.cases.iter().any(|case| case.locale == "ko-KR"));
-        assert!(eval_set
-            .cases
-            .iter()
-            .any(|case| { case.adversarial_kind == Some(AdversarialKind::PromptInjection) }));
+        assert!(
+            eval_set
+                .cases
+                .iter()
+                .any(|case| { case.adversarial_kind == Some(AdversarialKind::PromptInjection) })
+        );
         assert!(eval_set.signed);
     }
 }

@@ -1,4 +1,5 @@
 pub(crate) mod catalog;
+pub(crate) mod check;
 pub(crate) mod demo;
 pub(crate) mod dev;
 pub(crate) mod doc;

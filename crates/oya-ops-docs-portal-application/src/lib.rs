@@ -1,13 +1,21 @@
-//! Ops docs-portal application — orchestration layer wrapping kernel ports
-//! into wire-DTO-returning use cases. Pure std-only; no I/O.
+//! Ops docs-portal application — use-case orchestration layer.
+//!
+//! Per ADR-0056 this crate depends only inward on the kernel. REST/OpenAPI
+//! wire projection stays in the presentation/adapter boundary, not here.
 
-use oya_ops_docs_portal_adapter::{
-    WireLiveFeedEvent, WireManifestSnapshot, WireRefreshExtractorResponse,
-};
 use oya_ops_docs_portal_kernel::{
     ExtractorClass, ExtractorId, ExtractorRecord, LiveFeedError, LiveFeedEvent, LiveFeedEventKind,
-    LiveFeedPort, ManifestError, ManifestPort, TenantScope,
+    LiveFeedPort, ManifestError, ManifestPort, ManifestQuery, ManifestSnapshot, TenantScope,
 };
+
+/// Application response for extractor refresh before wire projection.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RefreshExtractorResult {
+    pub extractor_id: ExtractorId,   // data_class: INTERNAL_ONLY
+    pub refreshed: bool,             // data_class: INTERNAL_ONLY
+    pub last_refreshed_unix_ms: u64, // data_class: INTERNAL_ONLY
+    pub record_count: u64,           // data_class: INTERNAL_ONLY
+}
 
 /// GET /workspace/docs/manifest.
 pub struct GetManifestUseCase<P: ManifestPort> {
@@ -25,12 +33,13 @@ impl<P: ManifestPort> GetManifestUseCase<P> {
         extractor_filter: Option<ExtractorClass>,
         include_stale: bool,
         now_unix_ms: u64,
-    ) -> WireManifestSnapshot {
-        WireManifestSnapshot::from_port(
-            &self.port,
-            tenant_scope,
-            extractor_filter,
-            include_stale,
+    ) -> ManifestSnapshot {
+        self.port.query(
+            &ManifestQuery {
+                tenant_scope,
+                extractor_filter,
+                include_stale,
+            },
             now_unix_ms,
         )
     }
@@ -79,7 +88,7 @@ impl<M: ManifestPort, F: LiveFeedPort> RefreshExtractorUseCase<M, F> {
         unix_ms: u64,
         tenant_scope: TenantScope,
         payload_hash: String,
-    ) -> Result<WireRefreshExtractorResponse, RefreshExtractorError> {
+    ) -> Result<RefreshExtractorResult, RefreshExtractorError> {
         self.manifest.refresh_extractor(id, record_count, unix_ms)?;
         self.live_feed.emit(LiveFeedEvent {
             kind: LiveFeedEventKind::ExtractorRefreshed,
@@ -88,9 +97,8 @@ impl<M: ManifestPort, F: LiveFeedPort> RefreshExtractorUseCase<M, F> {
             emitted_at_unix_ms: unix_ms,
             payload_hash,
         })?;
-        // Synthesize the response shape; record_count was just written.
-        Ok(WireRefreshExtractorResponse {
-            extractor_id: id.0.clone(),
+        Ok(RefreshExtractorResult {
+            extractor_id: id.clone(),
             refreshed: true,
             last_refreshed_unix_ms: unix_ms,
             record_count,
@@ -127,11 +135,11 @@ impl<P: LiveFeedPort> SubscribeLiveFeedUseCase<P> {
         Self { port }
     }
 
-    pub fn execute(&self, since_unix_ms: u64, limit: usize) -> Vec<WireLiveFeedEvent> {
+    pub fn execute(&self, since_unix_ms: u64, limit: usize) -> Vec<LiveFeedEvent> {
         self.port
             .recent(since_unix_ms, limit)
             .into_iter()
-            .map(WireLiveFeedEvent::from_kernel)
+            .cloned()
             .collect()
     }
 }
@@ -172,7 +180,7 @@ mod tests {
         let use_case = GetManifestUseCase::new(populated_manifest());
         let response = use_case.execute(TenantScope(None), Some(ExtractorClass::Hot), true, 200);
         assert_eq!(response.records.len(), 1);
-        assert_eq!(response.records[0].class, "hot");
+        assert_eq!(response.records[0].class, ExtractorClass::Hot);
     }
 
     #[test]
@@ -189,9 +197,9 @@ mod tests {
             )
             .unwrap();
         assert!(response.refreshed);
+        assert_eq!(response.extractor_id, ExtractorId("a".into()));
         assert_eq!(response.record_count, 42);
         assert_eq!(response.last_refreshed_unix_ms, 200);
-        // The composite use case must emit a LiveFeed event on every successful refresh.
         assert_eq!(use_case.live_feed.count(), 1);
     }
 
@@ -218,7 +226,6 @@ mod tests {
     fn refresh_stale_timestamp_errors() {
         let mut use_case =
             RefreshExtractorUseCase::new(populated_manifest(), InMemoryLiveFeed::new());
-        // Existing fresh timestamp is 100; attempting 50 (older) should fail.
         let result = use_case.execute(
             &ExtractorId("a".into()),
             0,
@@ -243,7 +250,7 @@ mod tests {
             use_case
                 .inner_mut()
                 .query(
-                    &oya_ops_docs_portal_kernel::ManifestQuery {
+                    &ManifestQuery {
                         tenant_scope: TenantScope(None),
                         extractor_filter: None,
                         include_stale: true

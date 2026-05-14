@@ -1,6 +1,6 @@
 use std::collections::BTreeSet;
 
-use oya_cloud_billing_kernel::Money;
+use oya_cloud_billing_domain::Money;
 use oya_cloud_finops_api::{
     generate_cloud_finops_report_from_api, CloudFinopsApiAuthorization,
     CloudFinopsApiBoundaryContext, CloudFinopsApiPrincipal, CloudFinopsAxisRef,
@@ -9,12 +9,12 @@ use oya_cloud_finops_api::{
     CloudFinopsReportGenerateIdempotencyLedger, CloudFinopsReportGenerateRequest,
     CLOUD_FINOPS_REPORT_SURFACE,
 };
-use oya_cloud_finops_kernel::{
+use oya_cloud_finops_domain::{
     AxisBudgetCreate, CloudFinopsLedger, CostAllocationCreate, FinopsPeriod, RateCardLineCreate,
     UnitRate, STABLE_GROSS_MARGIN_TARGET_BPS,
 };
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_metering_kernel::{
+use oya_data_boundary_kernel::DataClass;
+use oya_metering_domain::{
     AxisId, MeterEvent, MeterEventCreate, MeterUnit, MeterUnitKind, PlaneTag,
 };
 
@@ -414,7 +414,7 @@ fn finops_report_api_maps_kernel_duplicate_report_and_no_data_errors() {
     .expect_err("well-formed report with no allocations is unprocessable");
     assert_eq!(
         no_data,
-        CloudFinopsReportApiError::Finops(oya_cloud_finops_kernel::CloudFinopsError::NoReportData)
+        CloudFinopsReportApiError::Finops(oya_cloud_finops_domain::CloudFinopsError::NoReportData)
     );
     assert_eq!(no_data.finops_report_status_code(), 422);
 }

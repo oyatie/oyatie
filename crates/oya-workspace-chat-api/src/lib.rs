@@ -8,8 +8,8 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::parse_data_class_label;
-use oya_workspace_chat_kernel::{
+use oya_data_boundary_kernel::parse_data_class_label;
+use oya_connect_messenger_domain::{
     workspace_chat_data_class_from_legacy, AttachmentRef, ChatChannel, ChatChannelCreate,
     ChatChannelKind, ChatError, ChatMessage, ChatMessageCreate, ChatParticipant,
     ChatParticipantRole, ChatSenderKind,
@@ -916,7 +916,7 @@ fn attachment_from_request(
 
 fn parse_privacy_data_class_label(
     data_class: &str,
-) -> Result<oya_platform_data_boundary_kernel::PrivacyDataClass, WorkspaceChatApiError> {
+) -> Result<oya_data_boundary_kernel::PrivacyDataClass, WorkspaceChatApiError> {
     let parsed = parse_data_class_label(data_class).ok_or_else(|| {
         WorkspaceChatApiError::InvalidDataClassLabel {
             data_class: data_class.to_string(),

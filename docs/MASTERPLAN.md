@@ -25,7 +25,7 @@ foundation_adrs:
 
 # Oyatie — MASTERPLAN
 
-## §Authority-anchor
+## §Authority-anchor — [CONSTITUTION.md](CONSTITUTION.md)
 
 This is the canonical Master Plan for oyatie. All milestone INDEXes / phase INDEXes / Implementation Plans under `.omc/plans/milestones/M*/` derive their authority chain from this document and ultimately from `docs/CONSTITUTION.md`.
 
@@ -48,7 +48,7 @@ Oyatie is one cohesive **ecosystem-as-a-service**, expressed as a **flat catalog
 
 **Markets:** Korea-first + US parallel; EU after; jurisdiction-pluggable via regional pack seams.
 
-**Operating posture:** No legacy protocols; own payment rails (M04+); complete-product-not-MVP; modular SME→enterprise; Bominal Proof Ladder L0..L7 + 9 architecture planes green at every milestone gate.
+**Operating posture:** No legacy protocols; own payment rails (M04+); complete-product-not-prototype; modular SME→enterprise; Bominal Proof Ladder L0..L7 + 9 architecture planes green at every milestone gate.
 
 ---
 
@@ -60,7 +60,8 @@ There are no Product Groups, no Verticals, no Arms. Every µservice is independe
 
 ```
 Foundry (internal-only engine)
-  grit + icm + oya-tooling-agent-read + LEAN check binaries
+  Polyglot GitOps-capable VCS replacement (AST/semantic locks + tests + review/fix + merge queue controller)
+  + icm + oya-tooling-agent-read + LEAN check binaries
   + Cedar + Wasmtime + Proof Ladder + 9 planes + Wave integration framework
 
 Application (B2B unified shell — µservice)
@@ -201,13 +202,13 @@ Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR
 
 **Scope:** Foundry engine + Cloud-Tenancy substrate + Ontology µservice + Workflow µservice + Application B2B shell + all substrate µservices (tenancy, identity, audit-chain, eventing, secrets, observability, kms, policy, search, vector, data-boundary, finance-library, capability-registry, records, ads, analytics).
 
-**Exit criteria:** Sibling team scaffolds + ships any µservice via `grit claim/work/done` with zero build-team help; 9 architecture planes green at L4-L5; all `--report-only` lanes flipped to BLOCKER; Application deployable.
+**Exit criteria:** Sibling team scaffolds + ships any µservice via the polyglot GitOps-capable, grit-compatible `claim/work/done/promote` path with review/fix, controller-owned rebase, and merge-queue handling with zero build-team help; 9 architecture planes green at L4-L5; all `--report-only` lanes flipped to BLOCKER; Application deployable.
 
 **Phases:** See §7 Implementation-Plan Index for full phase + IP breakdown.
 
 ### M03 — First-paying-tenant GA
 
-**Scope** (= Bominal M3, per ADR-0210): Enterprise µservices (HR + Payroll + Accounting + broader Corporate per user scope — not merely payroll/HR SaaS) + Connect Professional (Mail + Messenger with legal hold + eDiscovery per Bominal ADR-0215) + Cloud-Tenancy substrate.
+**Scope** (= Bominal phase-three, per ADR-0210): Enterprise µservices (HR + Payroll + Accounting + broader Corporate per user scope — not merely payroll/HR SaaS) + Connect Professional (Mail + Messenger with legal hold + eDiscovery per Bominal ADR-0215) + Cloud-Tenancy substrate.
 
 **Exit criteria:** 1 KR group paying tenant live; 4대보험 EDI; 연말정산; audit chain Merkle/Ed25519 segmented per (tenant_id, period); Connect Pro Mail with legal-hold/eDiscovery; Application enabling product subset.
 
@@ -333,11 +334,21 @@ All compliance traits pluggable per Bominal ADR-0140 regional-pack pattern; oyat
 | 9 architecture planes | Bominal ADR-0224..ADR-0231 |
 | Wave integration framework | Bominal ADR-0232 |
 | Sanctioned primitives | oyatie ADR-0053 (grit/icm/oya-tooling-agent-read) |
+| Agent VCS replacement + GitOps promotion | `.omc/specs/gitops-vcs-replacement.json` + M-CC-P00 |
 | Naming justification CI | feedback-naming-justification |
 | Milestone > Phase > Impl-plan hierarchy | feedback-milestone-phase-hierarchy |
+| ImplementationPlan-as-ChangeSet rule | `.omc/specs/master-plan-sequencing.json#implementation_plan_changeset_contract` |
 | 4 LEAN check binaries | oya-check-architecture-cli (pending Shard 1) |
 
-**Compound principles:** Final-shape from day one (no MVP → rewrite); provider-agnostic by default (adapter crates only for provider-specific code); distroless + smallest-image containers; hyperscaler-bar engineering (Working Backwards / Design Doc / Postmortem / 1ES / Eng-Excellence); auto-doc + agentic-dev-optimized.
+**Compound principles:** Final-shape from day one (no prototype → rewrite); provider-agnostic by default (adapter crates only for provider-specific code); distroless + smallest-image containers; hyperscaler-bar engineering (Working Backwards / Design Doc / Postmortem / 1ES / Eng-Excellence); auto-doc + agentic-dev-optimized.
+
+**ImplementationPlan-as-ChangeSet rule:** Every Implementation Plan under `.omc/plans/milestones/*/phases/*/IP-*.md` is a ChangeSet-sized execution unit: claimable, independently verifiable, bundleable, promotable, and small enough to avoid locking an entire tree without graph-proven rationale. Milestones own outcomes; phases own delivery gates; IPs own the actual atomic work slice that Oyatie VCS can schedule, validate, bundle, and promote. Any IP that cannot meet this shape must be split before execution.
+
+**GitOps-capable VCS replacement (moved earlier per 2026-05-14 directive):** M-CC-P00 is now the first cross-cutting prerequisite before broad agent fan-out. It preserves grit's good parts — AST/semantic locks, isolated workspaces, `claim → work → done`, queues, watch events — but is not Rust-only: Rust AST claims are first-class, and Swift, Kotlin, C#, C++/WinUI/XAML, TypeScript, schemas, contracts, and config all get language/artifact-specific AST/parser-backed semantic indexers. It also establishes, documents, machine-encodes, and enforces unit/integration/e2e testing standards as CI/CD admission gates. It upgrades `done` from local merge serialization to a GitOps promotion request: signed change bundle, policy/CI admission, typed review/fix loop, controller-owned rebase, merge-queue enrollment, environment reconciliation, and audited release of locks only after the promotion reaches an accepted terminal state. Agents still do not call `git` or `gh`; they call the grit-compatible interface until the successor binary is ready, then the successor interface. Canonical machine-readable contract: `.omc/specs/gitops-vcs-replacement.json`.
+
+**RALPLAN v5 fold-in (2026-05-14):** The approved object chain is `OyaWorkItem → IssuePlan → ChangeSet → VirtualHead / QueueAwareLease / FixupTask → ChangeBundle → Promotion / ReleaseTrain`. Grit remains the authoritative repo-transition and lock primitive during cutover; Oyatie VCS consumes/projects grit state through ports and owns scheduling, affected-build closure, evidence bundles, promotion, issue digestion, package/deploy lineage, and `ops.oyatie.com` explainability. The master-plan packet home is `.omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/`; execution starts with IP-001 + IP-009 before queue/controller fan-out.
+
+**Dependency seam + phase-out discipline (round-5 folded):** release-critical products may ship on Hyper/Tokio/Serde-family dependencies first, but every such dependency is conscious debt: layer-contained behind Oyatie wrapper/newtypes, registered in `.omc/registries/tech-debt-ledger.json`, owned by DRI, tied to trigger-based replacement criteria, and guarded by `oya-check-dependency-seam-discipline`. Public APIs expose Oyatie types only; `hyper::*`, `tokio::*`, `bytes::*`, and `http_body::*` do not leak outside adapter-owned boundaries. Phase-out is triggered by ontology stability, parity evidence, p99 budget history, CVE acceleration, and dependent-wave state — not calendar wish-casting. Canonical implementation home: M-CC → P06 → `IP-002-lts-dependency-lane.md`; machine-readable masterplan seed: `.omc/specs/masterplan.json`.
 
 ---
 
@@ -356,7 +367,7 @@ All compliance traits pluggable per Bominal ADR-0140 regional-pack pattern; oyat
 
 ### 8.1 Quality — Industry Leaders
 
-Oyatie's quality bar is set by industry leaders (competitive-benchmarked) and hyperscalers (100M+ user scale). Horizontal scalability is mandatory from day one. No single-instance-only designs. No MVP-quality first releases — feature-complete or not shipped.
+Oyatie's quality bar is set by industry leaders (competitive-benchmarked) and hyperscalers (100M+ user scale). Horizontal scalability is mandatory from day one. No single-instance-only designs. No prototype-quality first releases — feature-complete or not shipped.
 
 | Dimension | Reference standard |
 |---|---|
@@ -472,6 +483,15 @@ This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EX
 
 | Phase | Phase path | Impl Plan | Status |
 |---|---|---|---|
+| **P00 gitops-vcs-replacement** | `.omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/` | IP-001-symbol-lock-domain.md | **[EXISTS — ChangeSet planned]** |
+| P00 | | IP-002-remote-lock-store-events.md | **[EXISTS — ChangeSet planned]** |
+| P00 | | IP-003-change-bundle-attestation.md | **[EXISTS — ChangeSet planned]** |
+| P00 | | IP-004-gitops-promotion-controller.md | **[EXISTS — ChangeSet planned]** |
+| P00 | | IP-005-grit-compat-cli-and-migration-ratchet.md | **[EXISTS — ChangeSet planned]** |
+| P00 | | IP-006-polyglot-indexers.md | **[EXISTS — ChangeSet planned]** |
+| P00 | | IP-007-review-fix-rebase-merge-queue-loop.md | **[EXISTS — ChangeSet planned]** |
+| P00 | | IP-008-test-standard-enforcement.md | **[EXISTS — ChangeSet planned]** |
+| P00 | | IP-009-ast-index-contract.md | **[EXISTS — ChangeSet planned]** |
 | P01 agentic-pipeline-cutover | `.omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/` | IP-001-adr-0054-scaffold-claim.md | **[EXISTS]** |
 | P01 | | IP-002-inventory-adr-0052.md | **[EXISTS]** |
 | P01 | | IP-003-oya-tooling-agent-read.md | **[EXISTS]** |
@@ -495,7 +515,7 @@ This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EX
 | P05 | | IP-002-cloud-multi-provider-audit.md | **[EXISTS]** |
 | P05 | | IP-003-adapter-substitution-harness.md | **[EXISTS]** |
 | P06 distroless-lts-image | `.omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/` | IP-001-distroless-image-lane.md | **[EXISTS]** |
-| P06 | | IP-002-lts-dependency-lane.md | **[EXISTS]** |
+| P06 | | IP-002-lts-dependency-lane.md (dependency-seam discipline + tech-debt ledger + LTS roster) | **[EXISTS]** |
 | P06 | | IP-003-static-musl-build.md | **[EXISTS]** |
 | P07 hyperscaler-practices | `.omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/` | IP-001-prfaq-designdoc-postmortem.md | **[EXISTS]** |
 | P07 | | IP-002-1es-ci-templates.md | **[EXISTS]** |
@@ -798,4 +818,4 @@ A phase that registers a new µservice (or new BC) is **not Complete** until the
 ## 15. Status footer
 
 Status: **Accepted** (canonical at `docs/MASTERPLAN.md`).
-Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-documentation-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.
+Iteration: 10 — enforced ImplementationPlan-as-ChangeSet semantics for all IPs and materialized M-CC-P00 Oyatie VCS phase/IP packet files from approved ralplan v5. Iteration: 9 — added documented/enforced unit/integration/e2e test standard plus explicit AST handling to M-CC-P00. Iteration: 8 — expanded M-CC-P00 to cover polyglot semantic indexing plus CI/CD review-fix loop, controller-owned rebase, and merge queue handling. Iteration: 7 — moved the grit-compatible VCS replacement ahead of other cross-cutting work as M-CC-P00 and upgraded its target from local merge serialization to GitOps promotion/reconciliation per 2026-05-14 user directive. Iteration: 6 — folded dependency-seam phaseout round-5 into §6/§8/M-CC hierarchy and seeded `.omc/specs/masterplan.json` per Markdown-retirement target. Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-documentation-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.

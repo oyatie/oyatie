@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M04-P04-IP-003
 title: Regulator audit-pack generator
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Audit-pack regenerator ≤4h from request.

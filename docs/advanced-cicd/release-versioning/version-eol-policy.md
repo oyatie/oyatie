@@ -42,8 +42,8 @@ One row per major version. The file is append-only; rows are never deleted.
 ```markdown
 | Major | Tag | Released   | Active until | Maintenance until | Pre-EOL warning | EOL date    | Status        |
 |-------|-----|------------|--------------|-------------------|-----------------|-------------|---------------|
-| 3.0   | oyatie-v3.0.0 | 2026-01-15 | 2026-07-15   | 2026-10-15        | 2026-10-15      | 2027-01-15  | Active        |
-| 2.0   | oyatie-v2.0.0 | 2025-05-01 | 2025-11-01   | 2026-02-01        | 2026-02-01      | 2026-05-01  | EOL'd 2026-05-01 |
+| 3.0   | oya-v3.0.0 | 2026-01-15 | 2026-07-15   | 2026-10-15        | 2026-10-15      | 2027-01-15  | Active        |
+| 2.0   | oya-v2.0.0 | 2025-05-01 | 2025-11-01   | 2026-02-01        | 2026-02-01      | 2026-05-01  | EOL'd 2026-05-01 |
 ```
 
 The ledger is the source of truth read by the fitness lane and by the
@@ -65,7 +65,7 @@ The ledger is the source of truth read by the fitness lane and by the
 On the EOL date:
 
 1. `release/X.Y` branch protection switches to read-only.
-2. Final patch tag is minted with the marker: `oyatie-vX.Y.<final>-eol`.
+2. Final patch tag is minted with the marker: `oya-vX.Y.<final>-eol`.
 3. `EOL-LEDGER.md` row status flips to `EOL'd YYYY-MM-DD`.
 4. `release-cherry-pick` agent refuses all further cherry-picks targeting `X.Y`.
 5. Service operators see `oya-api-deprecation: <today>` and a 410 Gone trap
@@ -79,7 +79,7 @@ the standard cherry-pick path. Outside the window:
 
 - Extended-support contract holders MAY request a backport via the
   break-glass ADR.
-- The agent will mint `oyatie-vX.Y.<final+1>-security` ONLY with an approved
+- The agent will mint `oya-vX.Y.<final+1>-security` ONLY with an approved
   ADR + signed-off operator.
 - All extended-support patches are logged in `docs/release/EXTENDED-SUPPORT.md`.
 

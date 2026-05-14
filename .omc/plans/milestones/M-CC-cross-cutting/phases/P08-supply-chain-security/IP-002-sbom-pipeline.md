@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-002
 title: SBOM generation per build (CycloneDX / SPDX)
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship SBOM generation per build at releases/<tag>/sbom.json.
@@ -49,4 +52,7 @@ icm store -t context-oyatie -c 'M-CC-P08-IP-002 SBOM generation per build (Cyclo
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- Both CycloneDX and SPDX emitted from the same job — no "which one did this build use" ambiguity; downstream tooling can pick either format.
+- Empty-SBOM detection via `jq -e '.components // .packages // empty'` — a broken generator producing `{}` cannot pass as a valid SBOM.
+- Outputs land at deterministic `releases/<tag>/sbom.{cdx,spdx}.json` paths — the supply-chain kernel doesn't need to discover artifacts at verify time.

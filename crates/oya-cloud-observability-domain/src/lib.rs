@@ -702,7 +702,7 @@ impl DigestRef {
 
     fn audit_hash(value: impl Into<String>) -> Result<Self, CloudObservabilityError> {
         let value = value.into();
-        if value == "GENESIS" || valid_fnv_hash_ref(&value) {
+        if value == "GENESIS" || valid_fnv_hash_ref(&value) || valid_sha256_ref(&value) {
             Ok(Self { value })
         } else {
             Err(CloudObservabilityError::InvalidAuditHash)

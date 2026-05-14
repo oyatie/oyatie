@@ -8,8 +8,8 @@
 
 use std::collections::BTreeSet;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_workspace_meet_kernel::{RecordingAccessMode, RecordingRef, RecordingStatus};
+use oya_connect_meet_domain::{RecordingAccessMode, RecordingRef, RecordingStatus};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const RECORDING_ARCHIVE_SCHEMA_VERSION: u32 = 1;
 const RETENTION_POLICY_SCHEMA_VERSION: u32 = 1;
@@ -315,10 +315,10 @@ fn validate_archive_time(
     archived_at_epoch_seconds: u64,
     recording: &RecordingRef,
 ) -> Result<(), RecordingArchiveError> {
-    if let Some(ended_at) = recording.ended_at_epoch_seconds.value {
-        if archived_at_epoch_seconds < ended_at {
-            return Err(RecordingArchiveError::InvalidTimeOrder);
-        }
+    if let Some(ended_at) = recording.ended_at_epoch_seconds.value
+        && archived_at_epoch_seconds < ended_at
+    {
+        return Err(RecordingArchiveError::InvalidTimeOrder);
     }
     Ok(())
 }
@@ -381,8 +381,8 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_workspace_meet_kernel::{RecordingRefCreate, RecordingStatus};
+    use oya_connect_meet_domain::{RecordingRefCreate, RecordingStatus};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn recording(status: RecordingStatus) -> RecordingRef {
         RecordingRef::new(RecordingRefCreate {
@@ -541,5 +541,50 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.recordings STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct RecordingsSurfaceStaging {
+    pub recording_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,    // data_class: INTERNAL_ONLY
+    pub kms_shred_ref: Classified<String>, // data_class: INTERNAL_ONLY
+}
+
+impl RecordingsSurfaceStaging {
+    pub fn new(recording_id: String, tenant_id: String, kms_shred_ref: String) -> Self {
+        Self {
+            recording_id: Classified::new(recording_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            kms_shred_ref: Classified::new(kms_shred_ref, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> RecordingsSurfaceStaging {
+        RecordingsSurfaceStaging::new(
+            "recordings-1".into(),
+            "recordings-1".into(),
+            "recordings-1".into(),
+        )
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.recording_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

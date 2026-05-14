@@ -1,0 +1,15 @@
+[package]
+name = "oya-foundry-capability-registry-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_foundry_capability_registry_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-capability-registry-kernel = { path = "../oya-foundry-capability-registry-kernel" }

@@ -269,6 +269,7 @@ impl MeteringEventIngestAppError {
             | Self::AuthorizationDenied { .. }
             | Self::EnvelopePayloadTenantMismatch { .. } => MeteringEventIngestAppStatus::Forbidden,
             Self::IdempotencyKeyReused { .. }
+            | Self::Eventing(EventingError::IdempotencyReplayMismatch)
             | Self::Eventing(EventingError::OutboxRecordNotFound)
             | Self::Eventing(EventingError::InvalidOutboxHistory) => {
                 MeteringEventIngestAppStatus::UnprocessableEntity

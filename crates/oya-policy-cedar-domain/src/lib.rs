@@ -81,6 +81,10 @@ pub enum PolicyError {
     EmptyRules,
     EmptyRuleField,
     VersionAlreadyExists,
+    SupersedesSelf,
+    SupersedesMissing,
+    SupersedesScopeMismatch,
+    SupersedesNotOlder,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -90,14 +94,30 @@ pub struct PolicySet {
 
 impl PolicySet {
     pub fn publish(&mut self, version: PolicyVersion) -> Result<PublishedPolicy, PolicyError> {
+        validate_policy_id(&version.policy_id)?;
+        let parsed_version = parse_semver(&version.version)?;
         let key = (version.policy_id.clone(), version.version.clone());
         if self.policies.contains_key(&key) {
             return Err(PolicyError::VersionAlreadyExists);
         }
-        validate_policy_id(&version.policy_id)?;
-        validate_semver(&version.version)?;
         if version.rules.is_empty() {
             return Err(PolicyError::EmptyRules);
+        }
+        if let Some(superseded_version) = version.supersedes.as_ref() {
+            let parsed_superseded_version = parse_semver(superseded_version)?;
+            if superseded_version == &version.version {
+                return Err(PolicyError::SupersedesSelf);
+            }
+            if parsed_superseded_version >= parsed_version {
+                return Err(PolicyError::SupersedesNotOlder);
+            }
+            let superseded_policy = self
+                .policies
+                .get(&(version.policy_id.clone(), superseded_version.clone()))
+                .ok_or(PolicyError::SupersedesMissing)?;
+            if superseded_policy.scope != version.scope {
+                return Err(PolicyError::SupersedesScopeMismatch);
+            }
         }
         let rules = version
             .rules
@@ -115,10 +135,45 @@ impl PolicySet {
         Ok(published)
     }
 
+    pub fn get(&self, policy_id: &str, version: &str) -> Option<&PublishedPolicy> {
+        self.policies
+            .get(&(policy_id.to_string(), version.to_string()))
+    }
+
+    pub fn supersession_chain(
+        &self,
+        policy_id: &str,
+        version: &str,
+    ) -> Option<Vec<PublishedPolicy>> {
+        let mut chain = Vec::new();
+        let mut next_version = Some(version.to_string());
+        while let Some(current_version) = next_version {
+            let policy = self.get(policy_id, &current_version)?;
+            next_version = policy.supersedes.clone();
+            chain.push(policy.clone());
+        }
+        Some(chain)
+    }
+
     pub fn authorize(&self, query: &AuthorizationQuery) -> AuthorizationDecision {
+        let superseded_keys = self
+            .policies
+            .values()
+            .filter_map(|policy| {
+                policy
+                    .supersedes
+                    .as_ref()
+                    .map(|version| (policy.policy_id.clone(), version.clone()))
+            })
+            .collect::<Vec<_>>();
         let mut scoped_policies = self
             .policies
             .values()
+            .filter(|policy| {
+                !superseded_keys
+                    .iter()
+                    .any(|key| key == &(policy.policy_id.clone(), policy.version.clone()))
+            })
             .filter(|policy| match &policy.scope {
                 PolicyScope::Global => true,
                 PolicyScope::Tenant(tenant_id) => tenant_id == &query.subject.tenant_id,
@@ -205,11 +260,207 @@ fn validate_policy_id(policy_id: &str) -> Result<(), PolicyError> {
     }
 }
 
-fn validate_semver(version: &str) -> Result<(), PolicyError> {
+fn parse_semver(version: &str) -> Result<[u64; 3], PolicyError> {
     let parts = version.split('.').collect::<Vec<_>>();
-    if parts.len() == 3 && parts.iter().all(|part| part.parse::<u64>().is_ok()) {
-        Ok(())
-    } else {
-        Err(PolicyError::InvalidSemver)
+    if parts.len() != 3 {
+        return Err(PolicyError::InvalidSemver);
+    }
+    let mut parsed = [0_u64; 3];
+    for (index, part) in parts.iter().enumerate() {
+        if part.is_empty()
+            || !part.bytes().all(|byte| byte.is_ascii_digit())
+            || (part.len() > 1 && part.starts_with('0'))
+        {
+            return Err(PolicyError::InvalidSemver);
+        }
+        parsed[index] = part
+            .parse::<u64>()
+            .map_err(|_| PolicyError::InvalidSemver)?;
+    }
+    Ok(parsed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const POLICY_ID: &str = "pol_tenant_admin";
+
+    #[test]
+    fn publish_accepts_global_and_tenant_scoped_semver_policy_versions() {
+        let mut policies = PolicySet::default();
+
+        let global = policies
+            .publish(policy_version(
+                "pol_global_reader",
+                "1.0.0",
+                PolicyScope::Global,
+                None,
+            ))
+            .expect("global policy publishes");
+        let tenant = policies
+            .publish(policy_version(
+                POLICY_ID,
+                "1.0.0",
+                PolicyScope::Tenant("ten_kr".to_string()),
+                None,
+            ))
+            .expect("tenant policy publishes");
+
+        assert_eq!(global.scope, PolicyScope::Global);
+        assert_eq!(tenant.scope, PolicyScope::Tenant("ten_kr".to_string()));
+    }
+
+    #[test]
+    fn publish_rejects_non_semver_and_duplicate_policy_versions() {
+        let mut policies = PolicySet::default();
+
+        assert_eq!(
+            policies.publish(policy_version(POLICY_ID, "01.0.0", tenant_scope(), None)),
+            Err(PolicyError::InvalidSemver)
+        );
+
+        policies
+            .publish(policy_version(POLICY_ID, "1.0.0", tenant_scope(), None))
+            .expect("initial policy publishes");
+        assert_eq!(
+            policies.publish(policy_version(POLICY_ID, "1.0.0", tenant_scope(), None)),
+            Err(PolicyError::VersionAlreadyExists)
+        );
+    }
+
+    #[test]
+    fn publish_enforces_supersession_chain_integrity() {
+        let mut policies = PolicySet::default();
+        policies
+            .publish(policy_version(POLICY_ID, "1.0.0", tenant_scope(), None))
+            .expect("initial policy publishes");
+        policies
+            .publish(policy_version(
+                POLICY_ID,
+                "1.1.0",
+                tenant_scope(),
+                Some("1.0.0"),
+            ))
+            .expect("newer policy can supersede older same-scope policy");
+
+        let chain = policies
+            .supersession_chain(POLICY_ID, "1.1.0")
+            .expect("chain resolves");
+        assert_eq!(
+            chain
+                .iter()
+                .map(|policy| policy.version.as_str())
+                .collect::<Vec<_>>(),
+            vec!["1.1.0", "1.0.0"]
+        );
+
+        assert_eq!(
+            policies.publish(policy_version(
+                POLICY_ID,
+                "1.2.0",
+                PolicyScope::Global,
+                Some("1.1.0")
+            )),
+            Err(PolicyError::SupersedesScopeMismatch)
+        );
+        assert_eq!(
+            policies.publish(policy_version(
+                POLICY_ID,
+                "1.2.0",
+                tenant_scope(),
+                Some("2.0.0")
+            )),
+            Err(PolicyError::SupersedesNotOlder)
+        );
+        assert_eq!(
+            policies.publish(policy_version(
+                POLICY_ID,
+                "1.2.0",
+                tenant_scope(),
+                Some("1.2.0")
+            )),
+            Err(PolicyError::SupersedesSelf)
+        );
+        assert_eq!(
+            policies.publish(policy_version(
+                POLICY_ID,
+                "1.2.0",
+                tenant_scope(),
+                Some("1.0.1")
+            )),
+            Err(PolicyError::SupersedesMissing)
+        );
+    }
+
+    #[test]
+    fn authorization_uses_only_active_unsuperseded_policy_versions() {
+        let mut policies = PolicySet::default();
+        policies
+            .publish(policy_version_with_effect(
+                POLICY_ID,
+                "1.0.0",
+                tenant_scope(),
+                None,
+                PolicyEffect::Allow,
+            ))
+            .expect("initial allow policy publishes");
+        policies
+            .publish(policy_version_with_effect(
+                POLICY_ID,
+                "1.1.0",
+                tenant_scope(),
+                Some("1.0.0"),
+                PolicyEffect::Deny,
+            ))
+            .expect("new deny policy supersedes old allow policy");
+
+        let decision = policies.authorize(&AuthorizationQuery {
+            subject: AuthorizationSubject {
+                tenant_id: "ten_kr".to_string(),
+                roles: vec!["tenant-admin".to_string()],
+            },
+            action: "tenant.settings.update".to_string(),
+            resource: "tenant:ten_kr:settings".to_string(),
+            attributes: BTreeMap::new(),
+        });
+
+        assert!(!decision.allowed);
+        assert_eq!(decision.matched_policy.as_deref(), Some(POLICY_ID));
+    }
+
+    fn tenant_scope() -> PolicyScope {
+        PolicyScope::Tenant("ten_kr".to_string())
+    }
+
+    fn policy_version(
+        policy_id: &str,
+        version: &str,
+        scope: PolicyScope,
+        supersedes: Option<&str>,
+    ) -> PolicyVersion {
+        policy_version_with_effect(policy_id, version, scope, supersedes, PolicyEffect::Allow)
+    }
+
+    fn policy_version_with_effect(
+        policy_id: &str,
+        version: &str,
+        scope: PolicyScope,
+        supersedes: Option<&str>,
+        effect: PolicyEffect,
+    ) -> PolicyVersion {
+        PolicyVersion {
+            policy_id: policy_id.to_string(),
+            version: version.to_string(),
+            scope,
+            supersedes: supersedes.map(str::to_string),
+            rules: vec![PolicyRuleInput {
+                effect,
+                principal_role: "tenant-admin".to_string(),
+                action: "tenant.settings.update".to_string(),
+                resource_prefix: "tenant:".to_string(),
+                required_attribute: None,
+            }],
+        }
     }
 }

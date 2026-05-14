@@ -1,18 +1,16 @@
-use oya_foundry_adapter_kernel::{
-    invoke_provider_route, resolve_route, AdapterError, CostCeiling, InvocationPolicy,
-    PromptEnvelope, ProviderAdapter, ProviderAuth, ProviderCallReceipt, ProviderEvent,
-    ProviderFailureKind, ProviderId, ProviderInvocation, ProviderInvocationRequest, ProviderMode,
-    ProviderProfile, ProviderRoute, ProviderRoutePreference, ProviderRouteRequest,
-    ProviderStreamEndReason, SubscriptionBindingRegistry, ToolSchemaSet,
+use oya_check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope};
+use oya_data_boundary_kernel::{
+    Classified, DataClass, PrivacyDataClass, privacy_data_classes_from,
 };
-use oya_foundry_capability_kernel::{AutonomyTier, Capability, CapabilityError};
-use oya_foundry_cost_budget_kernel::{
-    BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope,
+use oya_foundry_adapter_domain::{
+    AdapterError, CostCeiling, InvocationPolicy, PromptEnvelope, ProviderAdapter, ProviderAuth,
+    ProviderCallReceipt, ProviderEvent, ProviderFailureKind, ProviderId, ProviderInvocation,
+    ProviderInvocationRequest, ProviderMode, ProviderProfile, ProviderRoute,
+    ProviderRoutePreference, ProviderRouteRequest, ProviderStreamEndReason,
+    SubscriptionBindingRegistry, ToolSchemaSet, invoke_provider_route, resolve_route,
 };
-use oya_platform_data_boundary_kernel::{
-    privacy_data_classes_from, Classified, DataClass, PrivacyDataClass,
-};
-use oya_platform_secrets_kernel::SecretRef;
+use oya_foundry_capability_domain::{AutonomyTier, Capability, CapabilityError};
+use oya_secrets_domain::SecretRef;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {
@@ -506,10 +504,9 @@ fn route_resolution_rejects_missing_failover_and_policy_violations() {
                 },
                 10_000,
             ),
-            preference: ProviderRoutePreference::ordered(vec![ProviderId::new(
-                "openai-api".into()
-            )
-            .unwrap()])
+            preference: ProviderRoutePreference::ordered(vec![
+                ProviderId::new("openai-api".into()).unwrap()
+            ])
             .unwrap(),
             profiles: std::slice::from_ref(&profile),
             subscription_bindings: &SubscriptionBindingRegistry::default(),
@@ -529,10 +526,9 @@ fn route_resolution_rejects_missing_failover_and_policy_violations() {
                 },
                 10_000,
             ),
-            preference: ProviderRoutePreference::ordered(vec![ProviderId::new(
-                "missing-api".into()
-            )
-            .unwrap()])
+            preference: ProviderRoutePreference::ordered(vec![
+                ProviderId::new("missing-api".into()).unwrap()
+            ])
             .unwrap(),
             profiles: &[profile],
             subscription_bindings: &SubscriptionBindingRegistry::default(),
@@ -651,10 +647,9 @@ fn route_resolution_rejects_profiles_outside_required_region() {
                 },
                 10_000,
             ),
-            preference: ProviderRoutePreference::ordered(vec![ProviderId::new(
-                "us-only-api".into()
-            )
-            .unwrap()])
+            preference: ProviderRoutePreference::ordered(vec![
+                ProviderId::new("us-only-api".into()).unwrap()
+            ])
             .unwrap(),
             profiles: &[profile],
             subscription_bindings: &SubscriptionBindingRegistry::default(),
@@ -793,7 +788,7 @@ fn provider_call_receipt_records_selected_route_without_secret_material() {
             1_000,
         ),
         preference: ProviderRoutePreference::ordered(vec![
-            ProviderId::new("openai-api".into()).unwrap()
+            ProviderId::new("openai-api".into()).unwrap(),
         ])
         .unwrap(),
         profiles: std::slice::from_ref(&profile),
@@ -854,20 +849,22 @@ fn provider_call_receipt_rejects_empty_route_and_unattributed_fields() {
     )
     .expect("capability is valid");
     let route = ProviderRoute {
-        providers: vec![ProviderProfile::new(
-            ProviderId::new("openai-api".into()).unwrap(),
-            ProviderMode::Api,
-            ProviderAuth::Api {
-                secret_ref: SecretRef::new("ten_alpha".into(), capability.id, "api-key".into())
-                    .unwrap(),
-                billing_account: "bill_alpha".into(),
-            },
-            privacy_data_classes(vec![DataClass::InternalOnly]),
-            vec!["kr-seoul".into()],
-            42,
-            900,
-        )
-        .unwrap()],
+        providers: vec![
+            ProviderProfile::new(
+                ProviderId::new("openai-api".into()).unwrap(),
+                ProviderMode::Api,
+                ProviderAuth::Api {
+                    secret_ref: SecretRef::new("ten_alpha".into(), capability.id, "api-key".into())
+                        .unwrap(),
+                    billing_account: "bill_alpha".into(),
+                },
+                privacy_data_classes(vec![DataClass::InternalOnly]),
+                vec!["kr-seoul".into()],
+                42,
+                900,
+            )
+            .unwrap(),
+        ],
         selected_region: Classified::new("kr-seoul".into(), DataClass::InternalOnly),
     };
 
@@ -949,10 +946,9 @@ fn provider_call_receipt_rejects_region_that_does_not_match_resolved_route() {
             },
             1_000,
         ),
-        preference: ProviderRoutePreference::ordered(vec![ProviderId::new(
-            "multi-region-api".into(),
-        )
-        .unwrap()])
+        preference: ProviderRoutePreference::ordered(vec![
+            ProviderId::new("multi-region-api".into()).unwrap(),
+        ])
         .unwrap(),
         profiles: std::slice::from_ref(&profile),
         subscription_bindings: &SubscriptionBindingRegistry::default(),

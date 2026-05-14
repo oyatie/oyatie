@@ -81,12 +81,12 @@ where
                     record_id: key.id(),
                     expected: record.occurrences,
                     actual: *actual,
-                })
+                });
             }
             None => {
                 return Err(PlaceholderDebtError::NewPlaceholderOutsideRegistry {
                     record_id: key.id(),
-                })
+                });
             }
         }
     }

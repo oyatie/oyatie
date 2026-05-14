@@ -26,7 +26,7 @@ fn t1_f1_dependencies_bare_string() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 oya-platform-tenant-kernel = "0.1.0"
@@ -47,7 +47,7 @@ fn t1_f2_dependencies_inline_table_path() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 oya-platform-tenant-kernel = { path = "../oya-platform-tenant-kernel" }
@@ -68,7 +68,7 @@ fn t1_f3_dependencies_inline_table_workspace() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 oya-platform-tenant-kernel = { workspace = true }
@@ -89,7 +89,7 @@ fn t1_f4_dependencies_inline_table_package() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 tenant = { package = "oya-platform-tenant-kernel", version = "0.1.0" }
@@ -110,7 +110,7 @@ fn t1_f5_dependencies_inline_table_optional() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 oya-platform-tenant-kernel = { version = "0.1.0", optional = true }
@@ -131,7 +131,7 @@ fn t2_f1_dev_dependencies_bare_string() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dev-dependencies]
 oya-platform-tenant-kernel = "0.1.0"
@@ -152,7 +152,7 @@ fn t2_f2_dev_dependencies_inline_table_path() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dev-dependencies]
 oya-platform-tenant-kernel = { path = "../oya-platform-tenant-kernel" }
@@ -173,7 +173,7 @@ fn t2_f3_dev_dependencies_workspace() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dev-dependencies]
 oya-platform-tenant-kernel = { workspace = true }
@@ -194,7 +194,7 @@ fn t2_f4_dev_dependencies_package() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dev-dependencies]
 tenant = { package = "oya-platform-tenant-kernel", version = "0.1.0" }
@@ -215,7 +215,7 @@ fn t2_f5_dev_dependencies_optional() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dev-dependencies]
 oya-platform-tenant-kernel = { version = "0.1.0", optional = true }
@@ -236,7 +236,7 @@ fn t3_f1_build_dependencies_bare_string() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [build-dependencies]
 oya-platform-tenant-kernel = "0.1.0"
@@ -257,7 +257,7 @@ fn t3_f2_build_dependencies_inline_table_path() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [build-dependencies]
 oya-platform-tenant-kernel = { path = "../oya-platform-tenant-kernel" }
@@ -278,7 +278,7 @@ fn t3_f3_build_dependencies_workspace() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [build-dependencies]
 oya-platform-tenant-kernel = { workspace = true }
@@ -299,7 +299,7 @@ fn t3_f4_build_dependencies_package() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [build-dependencies]
 tenant = { package = "oya-platform-tenant-kernel", version = "0.1.0" }
@@ -320,7 +320,7 @@ fn t3_f5_build_dependencies_optional() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [build-dependencies]
 oya-platform-tenant-kernel = { version = "0.1.0", optional = true }
@@ -341,7 +341,7 @@ fn t4_f1_target_cfg_dependencies_bare_string() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [target.'cfg(unix)'.dependencies]
 oya-platform-tenant-kernel = "0.1.0"
@@ -362,16 +362,15 @@ fn t4_f2_target_cfg_dependencies_inline_table_path() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [target.'cfg(unix)'.dependencies]
 oya-platform-tenant-kernel = { path = "../oya-platform-tenant-kernel" }
 "#;
     let doc: DocumentMut = input.parse().expect("parses");
-    let path =
-        doc["target"]["cfg(unix)"]["dependencies"]["oya-platform-tenant-kernel"]["path"]
-            .as_str()
-            .expect("path");
+    let path = doc["target"]["cfg(unix)"]["dependencies"]["oya-platform-tenant-kernel"]["path"]
+        .as_str()
+        .expect("path");
     assert_eq!(path, "../oya-platform-tenant-kernel");
 }
 
@@ -384,16 +383,15 @@ fn t4_f3_target_cfg_dependencies_workspace() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [target.'cfg(unix)'.dependencies]
 oya-platform-tenant-kernel = { workspace = true }
 "#;
     let doc: DocumentMut = input.parse().expect("parses");
-    let ws =
-        doc["target"]["cfg(unix)"]["dependencies"]["oya-platform-tenant-kernel"]["workspace"]
-            .as_bool()
-            .expect("workspace");
+    let ws = doc["target"]["cfg(unix)"]["dependencies"]["oya-platform-tenant-kernel"]["workspace"]
+        .as_bool()
+        .expect("workspace");
     assert!(ws);
 }
 
@@ -406,16 +404,15 @@ fn t4_f4_target_cfg_dependencies_package() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [target.'cfg(unix)'.dependencies]
 tenant = { package = "oya-platform-tenant-kernel", version = "0.1.0" }
 "#;
     let doc: DocumentMut = input.parse().expect("parses");
-    let pkg =
-        doc["target"]["cfg(unix)"]["dependencies"]["tenant"]["package"]
-            .as_str()
-            .expect("package");
+    let pkg = doc["target"]["cfg(unix)"]["dependencies"]["tenant"]["package"]
+        .as_str()
+        .expect("package");
     assert_eq!(pkg, "oya-platform-tenant-kernel");
 }
 
@@ -428,15 +425,14 @@ fn t4_f5_target_cfg_dependencies_optional() {
 [package]
 name = "consumer"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [target.'cfg(unix)'.dependencies]
 oya-platform-tenant-kernel = { version = "0.1.0", optional = true }
 "#;
     let doc: DocumentMut = input.parse().expect("parses");
-    let opt =
-        doc["target"]["cfg(unix)"]["dependencies"]["oya-platform-tenant-kernel"]["optional"]
-            .as_bool()
-            .expect("optional");
+    let opt = doc["target"]["cfg(unix)"]["dependencies"]["oya-platform-tenant-kernel"]["optional"]
+        .as_bool()
+        .expect("optional");
     assert!(opt);
 }

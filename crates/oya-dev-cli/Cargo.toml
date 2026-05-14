@@ -27,7 +27,6 @@ oya-check-constitution-cite = { path = "../oya-check-constitution-cite" }
 oya-check-data-class = { path = "../oya-check-data-class" }
 oya-check-doc-catalog = { path = "../oya-check-doc-catalog" }
 oya-check-documentation-system = { path = "../oya-check-documentation-system" }
-oya-check-benchmark = { path = "../oya-check-benchmark" }
 oya-foundry-evidence-file-adapter = { path = "../oya-foundry-evidence-file-adapter" }
 oya-check-glossary-coverage = { path = "../oya-check-glossary-coverage" }
 oya-check-glossary-vocabulary = { path = "../oya-check-glossary-vocabulary" }
@@ -39,17 +38,14 @@ oya-check-placeholder-debt = { path = "../oya-check-placeholder-debt" }
 oya-check-pre-push = { path = "../oya-check-pre-push" }
 oya-check-pr-traceability = { path = "../oya-check-pr-traceability" }
 oya-check-quality-lane = { path = "../oya-check-quality-lane" }
-oya-check-perf-budget = { path = "../oya-check-perf-budget" }
 oya-check-raci-coverage = { path = "../oya-check-raci-coverage" }
 oya-check-readme-coverage = { path = "../oya-check-readme-coverage" }
 oya-check-release-pack = { path = "../oya-check-release-pack" }
 oya-foundry-run-file-adapter = { path = "../oya-foundry-run-file-adapter" }
 oya-check-runbook-freshness = { path = "../oya-check-runbook-freshness" }
 oya-check-runbook-index = { path = "../oya-check-runbook-index" }
-oya-check-shardability = { path = "../oya-check-shardability" }
 oya-foundry-run-domain = { path = "../oya-foundry-run-domain" }
 oya-check-slo-coverage = { path = "../oya-check-slo-coverage" }
-oya-check-statelessness = { path = "../oya-check-statelessness" }
 oya-check-supply-chain = { path = "../oya-check-supply-chain" }
 oya-check-typescript-workspace = { path = "../oya-check-typescript-workspace" }
 oya-check-vendor-recency = { path = "../oya-check-vendor-recency" }
@@ -60,9 +56,7 @@ oya-eventing-file-adapter = { path = "../oya-eventing-file-adapter" }
 oya-eventing-domain = { path = "../oya-eventing-domain" }
 oya-secrets-file-adapter = { path = "../oya-secrets-file-adapter" }
 oya-secrets-domain = { path = "../oya-secrets-domain" }
-serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-toml = "0.8"
 
 [[bin]]
 name = "oya"

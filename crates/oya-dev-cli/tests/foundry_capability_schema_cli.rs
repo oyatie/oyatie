@@ -34,8 +34,10 @@ fn foundry_capability_schema_gate_rejects_missing_agent_description() {
     let output = run_gate(&temp);
 
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr)
-        .contains("missing required field description.agent_readable"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("missing required field description.agent_readable")
+    );
 
     fs::remove_dir_all(temp).ok();
 }

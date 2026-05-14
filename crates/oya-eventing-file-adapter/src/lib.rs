@@ -23,6 +23,15 @@ pub enum FileOutboxStoreError {
     InvalidOutboxHistory,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum FileOutboxLedgerEvent {
+    Record(OutboxRecord),
+    Published {
+        tenant_id: String, // data_class: INTERNAL_ONLY
+        sequence: u64,     // data_class: INTERNAL_ONLY
+    },
+}
+
 impl FileOutboxStore {
     pub fn new(path: PathBuf) -> Self {
         Self { path }
@@ -33,11 +42,12 @@ impl FileOutboxStore {
             return Ok(Outbox::default());
         }
         let contents = fs::read_to_string(&self.path).map_err(map_io_error)?;
-        let records = contents
+        let events = contents
             .lines()
             .filter(|line| !line.trim().is_empty())
-            .map(decode_record)
+            .map(decode_event)
             .collect::<Result<Vec<_>, _>>()?;
+        let records = replay_events(events)?;
         Outbox::from_records(records).map_err(map_eventing_error)
     }
 
@@ -46,11 +56,34 @@ impl FileOutboxStore {
         let persisted_records = persisted.records();
         let requested_records = outbox.records();
         if persisted_records.len() > requested_records.len()
-            || persisted_records != &requested_records[..persisted_records.len()]
+            || !records_share_append_only_prefix(
+                persisted_records,
+                &requested_records[..persisted_records.len()],
+            )
         {
             return Err(FileOutboxStoreError::OutboxDiverged);
         }
-        if requested_records.len() == persisted_records.len() {
+
+        let mut events_to_append = Vec::new();
+        for (persisted, requested) in persisted_records.iter().zip(requested_records) {
+            if persisted.published && !requested.published {
+                return Err(FileOutboxStoreError::OutboxDiverged);
+            }
+            if !persisted.published && requested.published {
+                events_to_append.push(encode_published_event(requested));
+            }
+        }
+
+        for record in &requested_records[persisted_records.len()..] {
+            let mut record_event = record.clone();
+            record_event.published = false;
+            events_to_append.push(encode_record(&record_event));
+            if record.published {
+                events_to_append.push(encode_published_event(record));
+            }
+        }
+
+        if events_to_append.is_empty() {
             return Ok(0);
         }
 
@@ -59,10 +92,10 @@ impl FileOutboxStore {
             .append(true)
             .open(&self.path)
             .map_err(map_io_error)?;
-        for record in &requested_records[persisted_records.len()..] {
-            writeln!(file, "{}", encode_record(record)).map_err(map_io_error)?;
+        for event in &events_to_append {
+            writeln!(file, "{event}").map_err(map_io_error)?;
         }
-        Ok(requested_records.len() - persisted_records.len())
+        Ok(events_to_append.len())
     }
 }
 
@@ -76,6 +109,21 @@ fn encode_record(record: &OutboxRecord) -> String {
         encode_str(&record.payload_ref.value),
         if record.published { "1" } else { "0" }
     )
+}
+
+fn encode_published_event(record: &OutboxRecord) -> String {
+    format!(
+        "v1-published|{}|{}",
+        record.sequence,
+        encode_str(&record.tenant_id)
+    )
+}
+
+fn decode_event(line: &str) -> Result<FileOutboxLedgerEvent, FileOutboxStoreError> {
+    if line.starts_with("v1|") {
+        return decode_record(line).map(FileOutboxLedgerEvent::Record);
+    }
+    decode_published_event(line)
 }
 
 fn decode_record(line: &str) -> Result<OutboxRecord, FileOutboxStoreError> {
@@ -109,6 +157,74 @@ fn decode_record(line: &str) -> Result<OutboxRecord, FileOutboxStoreError> {
     })
 }
 
+fn decode_published_event(line: &str) -> Result<FileOutboxLedgerEvent, FileOutboxStoreError> {
+    let mut input = line;
+    input = input
+        .strip_prefix("v1-published|")
+        .ok_or(FileOutboxStoreError::MalformedRecord)?;
+    let sequence = take_until_separator(&mut input)?
+        .parse::<u64>()
+        .map_err(|_| FileOutboxStoreError::MalformedRecord)?;
+    let tenant_id = take_len_prefixed(&mut input)?;
+    if !input.is_empty() {
+        return Err(FileOutboxStoreError::MalformedRecord);
+    }
+    Ok(FileOutboxLedgerEvent::Published {
+        tenant_id,
+        sequence,
+    })
+}
+
+fn replay_events(
+    events: Vec<FileOutboxLedgerEvent>,
+) -> Result<Vec<OutboxRecord>, FileOutboxStoreError> {
+    let mut records = Vec::new();
+    for event in events {
+        match event {
+            FileOutboxLedgerEvent::Record(record) => {
+                if record.sequence != records.len() as u64 {
+                    return Err(FileOutboxStoreError::InvalidOutboxHistory);
+                }
+                records.push(record);
+            }
+            FileOutboxLedgerEvent::Published {
+                tenant_id,
+                sequence,
+            } => {
+                let index = usize::try_from(sequence)
+                    .map_err(|_| FileOutboxStoreError::InvalidOutboxHistory)?;
+                let record = records
+                    .get_mut(index)
+                    .filter(|record| record.sequence == sequence && record.tenant_id == tenant_id)
+                    .ok_or(FileOutboxStoreError::InvalidOutboxHistory)?;
+                if record.published {
+                    return Err(FileOutboxStoreError::InvalidOutboxHistory);
+                }
+                record.published = true;
+            }
+        }
+    }
+    Ok(records)
+}
+
+fn records_share_append_only_prefix(
+    persisted_records: &[OutboxRecord],
+    requested_records: &[OutboxRecord],
+) -> bool {
+    persisted_records
+        .iter()
+        .zip(requested_records)
+        .all(|(persisted, requested)| same_record_identity(persisted, requested))
+}
+
+fn same_record_identity(persisted: &OutboxRecord, requested: &OutboxRecord) -> bool {
+    persisted.sequence == requested.sequence
+        && persisted.tenant_id == requested.tenant_id
+        && persisted.topic == requested.topic
+        && persisted.idempotency_key == requested.idempotency_key
+        && persisted.payload_ref == requested.payload_ref
+}
+
 fn encode_str(value: &str) -> String {
     format!("{}:{value}", value.len())
 }
@@ -123,7 +239,12 @@ fn take_len_prefixed(input: &mut &str) -> Result<String, FileOutboxStoreError> {
     if rest.len() < len {
         return Err(FileOutboxStoreError::MalformedRecord);
     }
-    let (value, remainder) = rest.split_at(len);
+    let Some(value) = rest.get(..len) else {
+        return Err(FileOutboxStoreError::MalformedRecord);
+    };
+    let Some(remainder) = rest.get(len..) else {
+        return Err(FileOutboxStoreError::MalformedRecord);
+    };
     *input = remainder;
     Ok(value.to_string())
 }
@@ -156,6 +277,7 @@ fn map_eventing_error(error: EventingError) -> FileOutboxStoreError {
         | EventingError::TopicNotFound
         | EventingError::EmptyIdempotencyKey
         | EventingError::EmptyPayloadRef
+        | EventingError::IdempotencyReplayMismatch
         | EventingError::OutboxRecordNotFound => FileOutboxStoreError::MalformedRecord,
     }
 }

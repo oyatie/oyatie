@@ -19,8 +19,10 @@ fn pr_traceability_gate_accepts_author_pr_shape() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("PR traceability validation passed: 5 required sections"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("PR traceability validation passed: 5 required sections")
+    );
 
     fs::remove_dir_all(temp).ok();
 }

@@ -1,0 +1,15 @@
+[package]
+name = "oya-foundry-account-adapter-openbao"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_foundry_account_adapter_openbao"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }

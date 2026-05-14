@@ -5,7 +5,7 @@
 //! backbone (user-issued 2026-05-14). Owns OpenAPI-aligned request /
 //! response shapes + handler functions today.
 //!
-//! Routes here MUST stay 1:1 with paths in `contracts/ops-docs.openapi.yaml`.
+//! Routes here MUST stay 1:1 with paths in `contracts/ops-docs-v1.openapi.yaml`.
 
 use oya_ops_docs_portal_adapter::{
     WireLiveFeedEvent, WireManifestSnapshot, WireRefreshExtractorResponse,
@@ -56,12 +56,13 @@ pub struct RefreshExtractorRequest {
 
 /// REST handler: GET /workspace/docs/manifest.
 pub fn get_manifest<P: ManifestPort>(port: P, request: GetManifestRequest) -> WireManifestSnapshot {
-    GetManifestUseCase::new(port).execute(
+    let snapshot = GetManifestUseCase::new(port).execute(
         request.tenant_scope,
         request.class,
         request.include_stale,
         request.now_unix_ms,
-    )
+    );
+    WireManifestSnapshot::from_kernel(&snapshot)
 }
 
 /// REST handler: GET /workspace/docs/live.
@@ -69,7 +70,11 @@ pub fn subscribe_live_feed<P: LiveFeedPort>(
     port: P,
     request: SubscribeLiveFeedRequest,
 ) -> Vec<WireLiveFeedEvent> {
-    SubscribeLiveFeedUseCase::new(port).execute(request.since_unix_ms, request.limit)
+    SubscribeLiveFeedUseCase::new(port)
+        .execute(request.since_unix_ms, request.limit)
+        .iter()
+        .map(WireLiveFeedEvent::from_kernel)
+        .collect()
 }
 
 /// REST handler: POST /workspace/docs/api/v1/extractors/{id}/refresh.
@@ -78,13 +83,19 @@ pub fn refresh_extractor<M: ManifestPort, F: LiveFeedPort>(
     live_feed: F,
     request: RefreshExtractorRequest,
 ) -> Result<WireRefreshExtractorResponse, RefreshExtractorError> {
-    RefreshExtractorUseCase::new(manifest, live_feed).execute(
+    let result = RefreshExtractorUseCase::new(manifest, live_feed).execute(
         &request.extractor_id,
         request.record_count,
         request.unix_ms,
         request.tenant_scope,
         request.payload_hash,
-    )
+    )?;
+    Ok(WireRefreshExtractorResponse {
+        extractor_id: result.extractor_id.0,
+        refreshed: result.refreshed,
+        last_refreshed_unix_ms: result.last_refreshed_unix_ms,
+        record_count: result.record_count,
+    })
 }
 
 #[cfg(test)]

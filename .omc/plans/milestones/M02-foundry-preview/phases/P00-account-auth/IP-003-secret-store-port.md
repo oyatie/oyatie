@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P00-IP-003
 title: SecretStorePort + OpenBao adapter (provider-agnostic)
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship SecretStorePort + local OpenBao default adapter; integration + fake-in-memory + redaction tests.
@@ -52,4 +55,8 @@ icm store -t context-oyatie -c 'M02-P00-IP-003 SecretStorePort + OpenBao adapter
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- One `SecretReference` newtype with `sref://` scheme replaces ad-hoc `(manager, path, version)` tuples — no per-adapter parsing.
+- `SecretMaterial` (not `Clone`, redacted `Debug`) is the single carrier for raw bytes — provider adapters cannot accidentally clone or format payloads.
+- `SecretStoreError` is provider-agnostic (`NotFound`/`Backend`/`InvalidReference`) — caller branches don't widen per backend.
+- Empty material is rejected at the boundary, so a half-written secret can never enter the store unnoticed.

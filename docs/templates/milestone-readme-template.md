@@ -44,7 +44,7 @@ owner_team: <team-id>
 bominal_adrs_inherited:
   - ADR-NNNN  # list Bominal ADRs this milestone inherits 1:1 (translated)
 oyatie_adrs_cited:
-  - ADR-XXXX  # oyatie-specific ADRs governing this milestone
+  - ADR-XXXX  # Oyatie-specific ADRs governing this milestone
 ---
 ```
 

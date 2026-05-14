@@ -8,7 +8,6 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-ops-workspace-shell-kernel = { path = "../oya-ops-workspace-shell-kernel" }
-oya-ops-workspace-shell-adapter = { path = "../oya-ops-workspace-shell-adapter" }
 
 
 [lib]

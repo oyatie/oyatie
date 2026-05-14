@@ -1,12 +1,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_authority_cohesion_kernel::{validate_authority_cohesion, AuthorityDocument};
-use oya_foundry_catalog_kernel::CatalogIndex;
-use oya_foundry_claim_ceiling_kernel::FoundationClaimCeiling;
-use oya_foundry_constitution_cite_kernel::{
-    validate_constitution_cite_coverage, ConstitutionCitationDocument,
+use oya_check_authority_cohesion::{AuthorityDocument, validate_authority_cohesion};
+use oya_check_claim_ceiling::FoundationClaimCeiling;
+use oya_check_constitution_cite::{
+    ConstitutionCitationDocument, validate_constitution_cite_coverage,
 };
+use oya_foundry_catalog_domain::CatalogIndex;
 
 use crate::{read_catalog_records, usage};
 

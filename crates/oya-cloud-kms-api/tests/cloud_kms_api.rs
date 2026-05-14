@@ -5,12 +5,12 @@ use oya_cloud_kms_api::{
     CloudKmsDecryptRequest, CloudKmsEncryptApiRequest, CloudKmsEncryptRequest,
     CLOUD_KMS_DECRYPT_SURFACE, CLOUD_KMS_ENCRYPT_SURFACE,
 };
-use oya_cloud_kms_kernel::{
+use oya_cloud_kms_domain::{
     CloudKmsDirectory, CloudKmsError, HsmValidation, KmsKeyCreate, KmsKeyOrigin, KmsKeyState,
     KmsKeyUsage, KmsRepo,
 };
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
+use oya_residency_domain::ResidencyClass;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudKmsApiBoundaryContext {
     CloudKmsApiBoundaryContext {

@@ -25,10 +25,10 @@ pub(crate) fn extract_json_objects(array: &str) -> Vec<&str> {
             }
             '}' => {
                 depth -= 1;
-                if depth == 0 {
-                    if let Some(start) = start.take() {
-                        objects.push(&array[start..=index]);
-                    }
+                if depth == 0
+                    && let Some(start) = start.take()
+                {
+                    objects.push(&array[start..=index]);
                 }
             }
             _ => {}

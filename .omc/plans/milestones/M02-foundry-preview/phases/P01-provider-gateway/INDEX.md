@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M02-P01
 title: Provider Gateway + Multi-Provider Adapter
-status: stub
+status: complete
 purpose: Ship Claude / OpenAI / Gemini provider adapters in subscription + API auth modes — the canonical provider-agnostic adapter pattern.
 ---
 
@@ -22,10 +22,10 @@ Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §3.0 multi
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Anthropic Claude adapter (API + subscription) | stub | [`IP-001-anthropic-adapter.md`](IP-001-anthropic-adapter.md) |
-| IP-002 | OpenAI adapter (API + subscription) | stub | [`IP-002-openai-adapter.md`](IP-002-openai-adapter.md) |
-| IP-003 | Google Gemini adapter (API + subscription) | stub | [`IP-003-gemini-adapter.md`](IP-003-gemini-adapter.md) |
-| IP-004 | Usage-window kernel + account-route policy | stub | [`IP-004-usage-window-route-policy.md`](IP-004-usage-window-route-policy.md) |
+| IP-001 | Anthropic Claude adapter (API + subscription) | complete | [`IP-001-anthropic-adapter.md`](IP-001-anthropic-adapter.md) |
+| IP-002 | OpenAI adapter (API + subscription) | complete | [`IP-002-openai-adapter.md`](IP-002-openai-adapter.md) |
+| IP-003 | Google Gemini adapter (API + subscription) | complete | [`IP-003-gemini-adapter.md`](IP-003-gemini-adapter.md) |
+| IP-004 | Usage-window kernel + account-route policy | complete | [`IP-004-usage-window-route-policy.md`](IP-004-usage-window-route-policy.md) |
 
 ## Estimated parallelism
 3 agents in parallel (one per provider); IP-004 follows on usage-window kernel completion.

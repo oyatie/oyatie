@@ -39,6 +39,12 @@
     { "source": "oya-ops-workspace-shell-runtime-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-http-tenant-middleware-domain-manifest", "target": "registry", "edge_type": "declares" },
     { "source": "oya-http-deadline-middleware-domain-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-http-telemetry-middleware-domain-manifest", "target": "registry", "edge_type": "declares" }
+    { "source": "oya-http-telemetry-middleware-domain-manifest", "target": "registry", "edge_type": "declares" },
+    { "source": "implement-masterplan-goal-prompt", "target": "template", "edge_type": "declares" },
+    { "source": "masterplan", "target": "schema", "edge_type": "declares" },
+    { "source": "gitops-vcs-replacement", "target": "schema", "edge_type": "declares" },
+    { "source": "test-standard", "target": "schema", "edge_type": "declares" },
+    { "source": "test-suite-registry", "target": "registry", "edge_type": "declares" },
+    { "source": "codeview-read-surface", "target": "schema", "edge_type": "declares" }
   ]
 }

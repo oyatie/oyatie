@@ -8,8 +8,8 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{parse_data_class_label, PrivacyDataClass};
-use oya_platform_object_graph_kernel::{
+use oya_data_boundary_kernel::{parse_data_class_label, PrivacyDataClass};
+use oya_ontology_domain::{
     ObjectEntity, ObjectGraphError, ObjectProperty, PropertyTier,
 };
 

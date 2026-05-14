@@ -7,7 +7,7 @@ use oya_cloud_compute_k8s_api::{
     CloudComputeK8sQuotaEnvelope, CloudComputeK8sSecurityGroupRef,
     CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
 };
-use oya_cloud_compute_kernel::{CloudComputeCatalog, CloudComputeError};
+use oya_cloud_compute_domain::{CloudComputeCatalog, CloudComputeError};
 
 const CLUSTER_ID: &str = "oya:cloud:kr-seoul:ten_kr:k8s:prod";
 

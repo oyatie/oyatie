@@ -10,8 +10,7 @@
 //! middleware composes cleanly into the chain.
 
 use bytes::Bytes;
-use oya_http_middleware_kernel::{Middleware, Next};
-use oya_http_runtime_hyper_adapter::{HyperRequest, HyperResponse};
+use oya_http_middleware_kernel::{HyperRequest, HyperResponse, Middleware, Next};
 
 /// Tenant id, validated. Internally a 64-char SHA-256-style string up to
 /// `MAX_TENANT_ID_LEN` (configurable per cell). Stored as String so callers
@@ -219,9 +218,11 @@ mod tests {
     fn tenant_error_messages() {
         assert!(TenantError::Missing.message().contains("missing"));
         assert!(TenantError::Empty.message().contains("empty"));
-        assert!(TenantError::TooLong { actual: 200 }
-            .message()
-            .contains("128"));
+        assert!(
+            TenantError::TooLong { actual: 200 }
+                .message()
+                .contains("128")
+        );
         assert!(TenantError::InvalidChar.message().contains("character"));
     }
 }

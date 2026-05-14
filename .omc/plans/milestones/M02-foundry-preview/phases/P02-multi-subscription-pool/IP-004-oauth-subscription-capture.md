@@ -6,6 +6,9 @@ parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
 status: pending approval
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
   Extend `oya-foundry-agent-runtime::foundry::auth` with a Claude.ai-subscription-specific
   OAuth capture path (and an OpenAI parallel where applicable). Operator launches the flow

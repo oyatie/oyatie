@@ -74,7 +74,7 @@ Per surface:
 
 ## 6. Pre-release verification (per ADR-0040 9-item readiness)
 
-Per release-candidate, run `/oya-release-verify` (formerly `/oyatie-release-verify`):
+Per release-candidate, run `/oya-release-verify` (formerly `/oya-release-verify`):
 1. All CI lanes green on the release tag SHA
 2. SBOM generated + Cosign-signed + Rekor-anchored
 3. Per-region SLO budget ≥ 50%

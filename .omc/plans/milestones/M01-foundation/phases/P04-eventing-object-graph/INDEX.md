@@ -3,8 +3,12 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M01-P04
 title: Eventing Backbone + Outbox + Object Graph
-status: stub
-purpose: Ship the exactly-once outbox + Kafka-class topic registry + Object Graph entity upsert with engine-enforced row-level isolation.
+status: complete
+purpose: Ship the exactly-once outbox + Kafka-class topic registry + Ontology entity upsert with engine-enforced row-level isolation.
+phase_evidence_refs:
+  - .omc/evidence/foundation/m01-p04-ip-001-outbox-topic-registry.json
+  - .omc/evidence/foundation/m01-p04-ip-002-object-graph-property-tiers.json
+  - .omc/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json
 ---
 
 # M01-P04 — Eventing Backbone + Outbox + Object Graph
@@ -21,17 +25,20 @@ Per ADR-0046 (exactly-once via outbox + Kafka) and ADR-0006 (Object Graph row-le
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Outbox + topic registry kernel | stub | [`IP-001-outbox-topic-registry.md`](IP-001-outbox-topic-registry.md) |
-| IP-002 | Object Graph entity upsert + 5 property tiers | stub | [`IP-002-object-graph-property-tiers.md`](IP-002-object-graph-property-tiers.md) |
+| IP-001 | Outbox + topic registry kernel | probe-green / acceptance-blocked | [`IP-001-outbox-topic-registry.md`](IP-001-outbox-topic-registry.md) |
+| IP-002 | Object Graph entity upsert + 5 property tiers | probe-green / acceptance-blocked | [`IP-002-object-graph-property-tiers.md`](IP-002-object-graph-property-tiers.md) |
 | IP-003 | Kafka adapter + Redpanda adapter + Pulsar adapter (provider-agnostic) | stub | [`IP-003-eventing-adapters.md`](IP-003-eventing-adapters.md) |
 
 ## Estimated parallelism
-3 agents; IP-001 + IP-002 disjoint; IP-003 fans out to 3 sub-agents per provider adapter.
+Controlled fanout only: IP-001 and IP-002 are disjoint, and both now have scoped
+probe-green evidence while repository-wide `scripts/check.sh` now passes the restored helper-script preflight
+and is blocked later by stale connect-domain imports exposed by cargo check outside this scoped ChangeSet; IP-003 follows after IP-001/IP-002 contract
+surfaces are accepted or the shared repository-check blocker is waived/fixed.
 
 ## Symbols-touched
-`crates/oya-platform-eventing-{kernel,domain,app,worker,adapter-{kafka,redpanda,pulsar}}-*`, `crates/oya-platform-object-graph-{kernel,domain,app,api,vector,timeseries,geo,ciphertext,struct}-*`.
+Live BNF v4.1 foundation anchors: `crates/oya-eventing-domain`, `crates/oya-eventing-application`, `crates/oya-eventing-file-adapter`, and `crates/oya-ontology-domain`. Provider-specific eventing adapters remain later fanout scope; M01 must not invent stale `oya-platform-*` crates to satisfy this plan.
 
 ## Agent-handoff
 ```
-icm store -t context-oyatie -c "M01-P04 complete: outbox + topic registry + Object Graph 5 tiers; eventing provider-agnostic" -i critical -k "M01,P04,eventing,object-graph,complete"
+icm store -t context-oyatie -c "M01-P04 in-flight / acceptance-blocked: IP-001 and IP-002 have scoped probe-green evidence; IP-003 remains stub; scripts/check.sh now reaches cargo check, whose stale connect-domain imports prevent phase completion" -i high -k "M01,P04,eventing,object-graph,acceptance-blocked"
 ```

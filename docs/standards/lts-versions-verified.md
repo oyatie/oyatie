@@ -66,7 +66,7 @@ Methodology: live web search against canonical upstream sources (project website
 | BoringSSL | rolling main (snapshot from boringssl.googlesource.com/+/master) | continuous | https://boringssl.googlesource.com/boringssl/+/master | **No LTS** — Google explicitly publishes no stable branch. Track `chromium-stable` ref if a pinned snapshot is needed. |
 | Cosign | v3.0.6 | 2026-04-06 | https://github.com/sigstore/cosign/releases | v3 is the current major; `--bundle` is now required (breaking from v2). |
 | Trivy | v0.70.0 | 2026-04-17 | https://github.com/aquasecurity/trivy/releases | **Avoid v0.69.4** — compromised supply-chain incident 2026-03-19. 0.69.3 (immutable) and 0.70.0 are safe. |
-| cargo-deny | 0.19.5 | 2026-05-09 | https://github.com/EmbarkStudios/cargo-deny/blob/main/CHANGELOG.md | MSRV 1.85.0, edition 2024. Adds SARIF output. **Workspace MSRV gap relevant**. |
+| cargo-deny | 0.19.5 | 2026-05-09 | https://github.com/EmbarkStudios/cargo-deny/blob/main/CHANGELOG.md | MSRV 1.85.0, edition 2024. Adds SARIF output; compatible with workspace Rust 1.95.0. |
 
 ## Provider SDKs
 
@@ -95,12 +95,12 @@ Methodology: live web search against canonical upstream sources (project website
 
 ## Currently-pinned in oyatie (cross-reference)
 
-Sources read: `/Users/jasonlee/oyatie/Cargo.toml` (workspace `rust-version = "1.78"`, edition 2021); `/Users/jasonlee/oyatie/docs/AGENTS.md` (Codex appendix references Node 20 for `pnpm build` / `pnpm test`); `/Users/jasonlee/oyatie/deny.toml` (license allow-list: 0BSD, Apache-2.0, BSD-2/3, ISC, MIT, MPL-2.0, Unicode-3.0).
+Sources read: `/Users/jasonlee/oyatie/rust-toolchain.toml` (`channel = "1.95.0"`); `/Users/jasonlee/oyatie/Cargo.toml` (workspace `rust-version = "1.95.0"`, edition 2024); `/Users/jasonlee/oyatie/rustfmt.toml` (`edition = "2024"`, `style_edition = "2024"`); `/Users/jasonlee/oyatie/docs/AGENTS.md` (Codex appendix references Node 20 for `pnpm build` / `pnpm test`); `/Users/jasonlee/oyatie/deny.toml` (license allow-list: 0BSD, Apache-2.0, BSD-2/3, ISC, MIT, MPL-2.0, Unicode-3.0).
 
 | Component | Oyatie pinned | Current LTS / stable | Behind? | Severity |
 |---|---|---|---|---|
-| Rust toolchain | 1.78 (workspace `rust-version`) | 1.95.0 (stable) | **17 minor versions behind** | **HIGH** — cargo-deny 0.19 requires MSRV 1.85; current pin blocks the supply-chain linter. |
-| Rust edition | 2021 | 2024 available | One edition behind | MED — adoption optional; 2024 unlocks `async fn in traits` cleanups. |
+| Rust toolchain | 1.95.0 (`rust-toolchain.toml`; workspace `rust-version`) | 1.95.0 (stable) | No | OK — cargo-deny 0.19 MSRV 1.85 is below the workspace pin. |
+| Rust edition | 2024 (`workspace.package.edition`; rustfmt `edition`/`style_edition`) | 2024 available | No | OK — workspace crates and formatter policy are on the 2024 line. |
 | Node.js | 20 (per docs/AGENTS.md Codex appendix) | 24 Active LTS (22 Maintenance) | One major behind LTS line | MED — Node 20 enters Maintenance Oct 2025; move to 22 or 24. |
 | Python | not pinned in repo | 3.14.5 / 3.13.13 maintained | n/a | LOW (no Python product code in workspace currently). |
 | Go | not pinned in repo | 1.26.3 | n/a | LOW (no Go service in workspace). |
@@ -115,7 +115,7 @@ Sources read: `/Users/jasonlee/oyatie/Cargo.toml` (workspace `rust-version = "1.
 | OpenSSL | not pinned (likely via rustls or system) | 3.5 LTS / 4.0 | n/a | LOW — but document choice (rustls vs OpenSSL) per ADR. |
 | Cosign | not yet integrated (D5 mentions signing) | v3.0.6 | n/a | **HIGH** (blocking) — `D5` Done-Definition cites Cosign signing for capability publish; pin missing. |
 | Trivy | not pinned | v0.70.0 | n/a | MED — `D11` (`cargo deny check`) covers Rust but no container-image scan gate yet. |
-| cargo-deny | invoked via `cargo deny check` (D11); version not pinned | 0.19.5 | n/a | **HIGH** — MSRV gap: 0.19 needs Rust ≥ 1.85; workspace pin is 1.78 → linter literally cannot run on current pin. |
+| cargo-deny | invoked via `cargo deny check` (D11); version not pinned | 0.19.5 | n/a | MED — MSRV is compatible with Rust 1.95.0, but the tool version still needs a durable pin. |
 | Anthropic / OpenAI / Gemini SDKs | not declared in any kernel Cargo.toml (RAG kernel exists but no provider crate) | see Provider SDKs table | n/a | MED — multi-provider adapter design must pick HTTP-direct vs community crate. |
 | icm | used per repo CLAUDE.md mandate | v0.10.39 | n/a | LOW. |
 | grit | referenced via `.grit/` dir | v0.3.0 | n/a | LOW. |
@@ -127,8 +127,8 @@ Sources read: `/Users/jasonlee/oyatie/Cargo.toml` (workspace `rust-version = "1.
 
 The worst gaps, in priority order:
 
-1. **Rust `rust-version = 1.78` is 17 minor versions behind stable 1.95.0** (~14 months stale). This is the single most material drift; it blocks `cargo-deny 0.19` (requires 1.85 MSRV), prevents edition-2024 adoption, and silently widens the soundness-fix gap because clippy / borrow-checker upgrades from 1.79–1.95 are unavailable.
-2. **cargo-deny is unpinned, and the current 0.19.5 release cannot run against the workspace MSRV.** Done-Definition D11 mandates `cargo deny check`; in practice the team is running an older cargo-deny that does not exercise the 2026 advisory-db parsing path (PR#838).
+1. **Rust drift is closed for this snapshot.** The workspace now pins `rust-toolchain.toml` `channel = "1.95.0"`, `rust-version = "1.95.0"`, `edition = "2024"`, and repo-root rustfmt `edition = "2024"` / `style_edition = "2024"`; cargo-deny 0.19.5 MSRV 1.85 is below the workspace pin.
+2. **cargo-deny is still unpinned.** Done-Definition D11 mandates `cargo deny check`; pinning the tool version is now the remaining supply-chain reproducibility gap after the Rust MSRV/edition bump.
 3. **Cosign signing is required by D5 (capability publish) but no version is pinned anywhere.** v3.0.6 introduced a breaking change (`--bundle` is now mandatory); CI scripts assuming v2 will fail silently.
 4. **Container base-image directive (distroless) is implied but not authoritatively pinned.** debian12 → debian13 transition is in flight upstream (debian12 distroless EOL Sep 2026); without an ADR the org will drift.
 5. **Provider-SDK choice is undecided for Rust.** Anthropic and Gemini publish **no official Rust SDK**; OpenAI's `async-openai` is community. The multi-provider Foundry adapter needs an ADR before any kernel pulls in a provider crate (license + supply-chain implications).
@@ -139,7 +139,7 @@ The worst gaps, in priority order:
 
 > **LTS dependency enforcement.** Every direct runtime, framework, base image, and supply-chain tool that oyatie depends on MUST be pinned to an upstream LTS or designated stable channel, with a verified-as-of date recorded in `docs/standards/lts-versions-verified.md`. The pin set is reviewed quarterly and on any major upstream LTS announcement.
 >
-> The workspace `rust-version` MUST equal the current Rust stable channel rounded down to the latest minor that has been live for ≥30 days (currently **1.95.0** → pin `rust-version = "1.95"`). `cargo-deny` MUST be pinned to a version whose MSRV is ≤ the workspace `rust-version` (currently **0.19.5**, MSRV 1.85, compatible once the workspace bump lands).
+> The workspace `rust-version` MUST equal the current Rust stable channel rounded down to the latest minor that has been live for ≥30 days (currently **1.95.0** → pin `rust-version = "1.95.0"`). The workspace edition and rustfmt parsing/style editions MUST be **2024**. `cargo-deny` MUST be pinned to a version whose MSRV is ≤ the workspace `rust-version` (currently **0.19.5**, MSRV 1.85, compatible with the current workspace pin).
 >
 > Container base images MUST be `gcr.io/distroless/static-debian13` for static-linked artifacts and `gcr.io/distroless/cc-debian13` for glibc-linked artifacts, with no `latest` tags; digest pinning is REQUIRED at release-pack time.
 >
@@ -159,7 +159,7 @@ The worst gaps, in priority order:
 
 ## Executive summary (250 words)
 
-As of 2026-05-12, oyatie's most material LTS drift is the **Rust workspace `rust-version = "1.78"` pin**, which is 17 minor versions behind the current stable 1.95.0 (released 2026-04-16). That single pin cascades: cargo-deny 0.19.5 (current, 2026-05-09) requires Rust 1.85 MSRV, so the supply-chain linter mandated by Done-Definition D11 cannot run against the workspace as pinned. Bumping `rust-version` to 1.95 is the highest-leverage fix.
+As of this update, oyatie's Rust LTS drift is closed for the current 1.95.0 stable snapshot: the workspace pins `rust-toolchain.toml` `channel = "1.95.0"`, Cargo `rust-version = "1.95.0"`, all Cargo workspace members report edition 2024, and repo-root `rustfmt.toml` pins both `edition = "2024"` and `style_edition = "2024"`. cargo-deny 0.19.5 (current, 2026-05-09) requires Rust 1.85 MSRV, so it is compatible with the current workspace pin. The remaining supply-chain task is to pin the cargo-deny tool version durably.
 
 Second, **Cosign is required by D5 (capability publish) but unpinned**. The current Cosign v3.0.6 (2026-04-06) introduced a breaking change — `--bundle` is now mandatory — and any CI written for v2 will fail. A pin and a contract update are required before the next signed capability ships.
 

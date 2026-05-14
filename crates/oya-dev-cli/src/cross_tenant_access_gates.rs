@@ -1,9 +1,8 @@
-use oya_foundation_app::{
-    scope_for_tool_name, AutonomyTier, CapabilityAction, CapabilityInvocationPrincipal,
-    CapabilityInvocationRequest, CapabilityRegistration, CostBudgetRegistration, Foundation,
-    FoundationError, IdentityRegistration, McpAccessTokenClaims, McpDiscoveryRequest,
-    McpToolCallRequest, Purpose, SubjectClass, TenantCapabilityGrant, TenantRegistration,
-    DISCOVER_SCOPE,
+use oya_application_app::{
+    AutonomyTier, CapabilityAction, CapabilityInvocationPrincipal, CapabilityInvocationRequest,
+    CapabilityRegistration, CostBudgetRegistration, DISCOVER_SCOPE, Foundation, FoundationError,
+    IdentityRegistration, McpAccessTokenClaims, McpDiscoveryRequest, McpToolCallRequest, Purpose,
+    SubjectClass, TenantCapabilityGrant, TenantRegistration, scope_for_tool_name,
 };
 
 use crate::{foundation_fixture, usage};

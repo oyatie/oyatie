@@ -34,6 +34,7 @@ companion_docs:
 # ADR-0056: Rust Clean Architecture BNF v4.1 — Flat Microservice Grammar + 12-Layer Enum
 
 > **Status:** Accepted — 2026-05-13 (v4.1 amendment 2026-05-13)
+> **Date:** 2026-05-13
 > **Owner:** `council-architecture`
 > **Supersedes:** The v3 crate-naming BNF in `docs/standards/crate-naming-convention.md`
 > and the v4.0 `shared|vertical` slot2 enum (retired per session decision 2026-05-13).

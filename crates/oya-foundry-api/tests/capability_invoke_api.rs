@@ -1,4 +1,4 @@
-use oya_foundation_app::{
+use oya_application_app::{
     AdversarialKind, AutonomyTier, CapabilityAction, CapabilityRegistration,
     CostBudgetRegistration, DataClass, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput,
     FoundationError, IdentityRegistration, PolicyEffect, PolicyRuleInput, PolicyScope,
@@ -282,7 +282,7 @@ fn capability_invoke_api_success_path_preserves_request_id_metadata() {
             namespace: "workflow".to_string(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -516,7 +516,7 @@ fn capability_invoke_api_surfaces_foundation_data_use_denial_for_underdeclared_a
             namespace: "ads".to_string(),
             action: CapabilityAction::AdsBid,
             required_tier: AutonomyTier::T1ViewOnly,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -769,7 +769,7 @@ fn configured_foundation_for_api_capability(capability_id: &str) -> (Foundation,
             namespace: "workflow".to_string(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),

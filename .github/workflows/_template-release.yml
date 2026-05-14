@@ -1,0 +1,87 @@
+# Reusable release template (M-CC-P07-IP-002).
+#
+# Cuts a release tarball under `releases/<tag>/<artifact>`, then defers
+# to the cosign + sbom + slsa workflows (M-CC-P08) for signing,
+# SBOMs, and provenance. Callers supply the binary list and the
+# target triple matrix.
+#
+# Caller example:
+#
+#   jobs:
+#     release:
+#       uses: ./.github/workflows/_template-release.yml
+#       with:
+#         binaries: |
+#           oya-foundry-runtime
+#           oya-foundry-cli
+#         targets: |
+#           x86_64-unknown-linux-musl
+#           aarch64-unknown-linux-musl
+
+name: _template-release
+
+on:
+  workflow_call:
+    inputs:
+      binaries:
+        description: "Newline-separated cargo binary names to package."
+        required: true
+        type: string
+      targets:
+        description: "Newline-separated target triples to cross-compile."
+        required: true
+        type: string
+      rust-toolchain:
+        description: "rustup toolchain pin."
+        required: false
+        type: string
+        default: "stable"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: ${{ inputs.rust-toolchain }}
+          targets: x86_64-unknown-linux-musl,aarch64-unknown-linux-musl
+
+      - name: Install cross
+        uses: taiki-e/install-action@9185c192a96ba09167ad8663015b3f5366e1bb1f
+        with:
+          tool: cross
+
+      - name: Build binaries per target
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          out="releases/${tag}"
+          mkdir -p "${out}"
+          while IFS= read -r target; do
+            [ -n "${target}" ] || continue
+            while IFS= read -r bin; do
+              [ -n "${bin}" ] || continue
+              cross build --release --target "${target}" --bin "${bin}"
+              cp "target/${target}/release/${bin}" "${out}/${bin}-${target}"
+              ( cd "${out}" && tar -czf "${bin}-${target}.tar.gz" "${bin}-${target}" )
+              rm "${out}/${bin}-${target}"
+            done <<< "${{ inputs.binaries }}"
+          done <<< "${{ inputs.targets }}"
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ github.ref_name }}
+          path: releases/**/*.tar.gz

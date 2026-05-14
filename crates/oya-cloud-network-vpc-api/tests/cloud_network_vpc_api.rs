@@ -1,4 +1,4 @@
-use oya_cloud_network_kernel::{CloudNetworkCatalog, CloudNetworkError};
+use oya_cloud_network_domain::{CloudNetworkCatalog, CloudNetworkError};
 use oya_cloud_network_vpc_api::{
     create_cloud_network_vpc_from_api, CloudNetworkVpcApiAuthorization,
     CloudNetworkVpcApiBoundaryContext, CloudNetworkVpcApiError, CloudNetworkVpcApiPrincipal,

@@ -23,6 +23,7 @@ adrs_cited:
 
 ## Structural
 
+- [ ] **IP0** IP declares `execution_unit: ChangeSet` and its scope is claimable, independently verifiable, bundleable, promotable, and not over-broad. Split before execution if unrelated lock scopes, packages, or deployables are present. *Lane:* `oya-foundry-fitness-plan-hierarchy`.
 - [ ] **IP1** All `grit_claim_symbols` from frontmatter were claimed and have `grit done` events (ADR-0053). *Command:* `oya-tooling-agent-read grit-status --ip IP-NNN-<slug>`.
 - [ ] **IP2** IP frontmatter `final_shape_compliance: true` honored — no `TODO` / `FIXME` / `unimplemented!()` / `todo!()` introduced (outside `flaky/` or ADR-tracked carve-outs). *Lane:* `oya-foundry-fitness-no-placeholder`.
 - [ ] **IP3** All `agent_prerequisites` from frontmatter were read (verifiable via `icm recall-context` cache for the IP slug). *(advisory)*

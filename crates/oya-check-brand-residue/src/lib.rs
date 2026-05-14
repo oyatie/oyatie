@@ -235,11 +235,7 @@ fn leading_brand_word(value: &str) -> Option<String> {
         .chars()
         .take_while(|character| character.is_alphanumeric() || matches!(character, '-' | '*'))
         .collect::<String>();
-    if word.is_empty() {
-        None
-    } else {
-        Some(word)
-    }
+    if word.is_empty() { None } else { Some(word) }
 }
 
 fn same_brand_term(left: &str, right: &str) -> bool {

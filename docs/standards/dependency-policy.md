@@ -57,7 +57,7 @@ Per the verified-LTS spec:
 | Component | Pin (≥) | Component | Pin (≥) |
 |---|---|---|---|
 | Rust toolchain | 1.95.0 stable | Debian / distroless base | trixie / static-debian13 |
-| Rust edition | 2024 new / 2021 legacy | OpenSSL | 3.5 LTS or 4.0 |
+| Rust edition / rustfmt style | 2024 | OpenSSL | 3.5 LTS or 4.0 |
 | Node.js | 24 Active LTS (or 22) | Prometheus | 3.11+ (3.5 EOS 2026-07-31) |
 | Python | 3.14 (or 3.13 maint.) | Cosign | v3.0.6 |
 | Go | 1.26 | Trivy | v0.70.0 (NOT v0.69.4) |
@@ -108,7 +108,7 @@ Pinning rules:
 
 - `cargo-deny` MUST be at a version with MSRV ≤ workspace
   `rust-version`. Current target: cargo-deny **0.19.5** (MSRV 1.85),
-  conditional on the Rust toolchain bump to 1.95 (per §1.1).
+  compatible with the current Rust 1.95.0 workspace pin (per §1.1).
 - `cargo-vet` audits live under `supply-chain/audits.toml`; share-points
   imported from AWS and Mozilla published audits.
 

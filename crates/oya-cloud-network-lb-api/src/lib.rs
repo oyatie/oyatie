@@ -6,11 +6,11 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_network_kernel::{
+use oya_cloud_network_domain::{
     CloudNetworkCatalog, CloudNetworkError, LbKind, LbState, ListenerCreate, LoadBalancer,
     LoadBalancerCreate, MtlsClientPolicy, MtlsConfigCreate, NetworkRepo, TargetGroupCreate,
 };
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
 
 pub const CLOUD_NETWORK_LB_CREATE_SURFACE: &str = "cloud.network.lb.create";
 

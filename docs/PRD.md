@@ -10,6 +10,16 @@
 >
 > **2026-05-09 consolidation:** Two changes happened the same day. (a) The former Builder-OS / engineering-platform axis was folded into Foundry per ADR-0025; Foundry is now the unified "AI agent runtime + control plane + engineering platform" axis with multi-provider support (Anthropic Claude / OpenAI / Gemini, both subscription auth and API auth). (b) Workspace / Productivity Suite was added as Axis 2 (Mail / Docs / Sheets / Slides / Drive / Calendar / Meet / Chat / Forms / Sites / Tasks / Notes / Translate / Recordings — Google Workspace / Naver Works / Microsoft 365 / AWS Productivity class). **Net result: axis count is 7.** See [DESIGN.md §1](DESIGN.md) for the canonical 7-axis table and [DESIGN.md §3](DESIGN.md) for the consolidated Foundry surface.
 
+> **Portfolio-parent citation (A1):** Bominal's consolidated PRD is the portfolio-parent strategy surface for this product-family lineage; this Oyatie PRD is the canonical implementation PRD for the `oyatie/` repo.
+>
+<!-- portfolio-citation:start -->
+- role: PortfolioParent
+  target_path: bominal/docs/consolidated/PRD.md
+  target_repo: bominal
+  target_prd: docs/consolidated/PRD.md
+  anchor: product-requirements-document
+<!-- portfolio-citation:end -->
+
 ---
 
 ## 1. North Star

@@ -8,8 +8,8 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::parse_data_class_label;
-use oya_workspace_forms_kernel::{
+use oya_data_boundary_kernel::parse_data_class_label;
+use oya_connect_forms_domain::{
     workspace_form_data_class_from_legacy, Form, FormAnswer, FormAnswerCreate, FormCreate,
     FormError, FormField, FormFieldCreate, FormFieldKind, FormSubmission, FormSubmissionCreate,
 };
@@ -882,7 +882,7 @@ fn answer_from_request(
 
 fn parse_privacy_data_class_label(
     data_class: &str,
-) -> Result<oya_platform_data_boundary_kernel::PrivacyDataClass, WorkspaceFormsApiError> {
+) -> Result<oya_data_boundary_kernel::PrivacyDataClass, WorkspaceFormsApiError> {
     let parsed = parse_data_class_label(data_class).ok_or_else(|| {
         WorkspaceFormsApiError::InvalidDataClassLabel {
             data_class: data_class.to_string(),

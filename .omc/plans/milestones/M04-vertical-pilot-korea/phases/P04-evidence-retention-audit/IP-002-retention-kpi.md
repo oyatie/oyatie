@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M04-P04-IP-002
 title: Retention measurement + KPI dashboard
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: 8-week retention measurement + KPI dashboard for ≥50K runs/wk ≥99.5%.

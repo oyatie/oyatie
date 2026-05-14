@@ -81,7 +81,7 @@ Two-tier precedence for all architectural decisions in oyatie:
 | ADR-0140 | Multi-jurisdiction policy (per-jurisdiction Cedar overlays) |
 | ADR-0208 | Connect dual-context (Personal + Professional) |
 | ADR-0209 | Client architecture (Leptos web + 5 native + SvelteKit prototype lane) |
-| ADR-0210 | M3 KR group payroll + mail launch (= oyatie M03 first-paying-tenant target) |
+| ADR-0210 | M03 KR group payroll + mail launch (= oyatie M03 first-paying-tenant target) |
 | ADR-0215 | Connect retention / legal hold / dual-context boundary |
 | ADR-0223 | Proof Ladder L0..L7 |
 | ADR-0224..ADR-0231 | 9 architecture planes |

@@ -59,17 +59,17 @@ impl SurfaceState {
 /// Stable surface identifier (e.g., `docs-portal`, `tenant-mgmt`,
 /// `deployments`). Distinct from `route` because routes can be aliased.
 #[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct SurfaceId(pub String);  // data_class: INTERNAL_ONLY
+pub struct SurfaceId(pub String); // data_class: INTERNAL_ONLY
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Surface {
-    pub id: SurfaceId,                          // data_class: INTERNAL_ONLY
-    pub canonical_route: String,                // data_class: INTERNAL_ONLY (e.g., "/workspace/docs")
-    pub visibility_tier: VisibilityTier,        // data_class: INTERNAL_ONLY
-    pub state: SurfaceState,                    // data_class: INTERNAL_ONLY
-    pub owning_bc_id: String,                   // data_class: INTERNAL_ONLY (e.g., "ops/docs-portal")
-    pub cedar_fragments: Vec<String>,           // data_class: INTERNAL_ONLY
-    pub openapi_contract: Option<String>,       // data_class: INTERNAL_ONLY
+    pub id: SurfaceId,                           // data_class: INTERNAL_ONLY
+    pub canonical_route: String, // data_class: INTERNAL_ONLY (e.g., "/workspace/docs")
+    pub visibility_tier: VisibilityTier, // data_class: INTERNAL_ONLY
+    pub state: SurfaceState,     // data_class: INTERNAL_ONLY
+    pub owning_bc_id: String,    // data_class: INTERNAL_ONLY (e.g., "ops/docs-portal")
+    pub cedar_fragments: Vec<String>, // data_class: INTERNAL_ONLY
+    pub openapi_contract: Option<String>, // data_class: INTERNAL_ONLY
     pub retired_redirects_to: Option<SurfaceId>, // data_class: INTERNAL_ONLY
 }
 
@@ -79,7 +79,11 @@ pub trait SurfaceCatalogPort {
     fn register_surface(&mut self, surface: Surface) -> Result<(), SurfaceCatalogError>;
     fn get_surface(&self, id: &SurfaceId) -> Option<&Surface>;
     fn list_surfaces(&self) -> Vec<&Surface>;
-    fn flip_state(&mut self, id: &SurfaceId, new_state: SurfaceState) -> Result<(), SurfaceCatalogError>;
+    fn flip_state(
+        &mut self,
+        id: &SurfaceId,
+        new_state: SurfaceState,
+    ) -> Result<(), SurfaceCatalogError>;
     fn count(&self) -> usize;
 }
 
@@ -126,10 +130,12 @@ impl SurfaceCatalogPort for InMemorySurfaceCatalog {
                 route: surface.canonical_route.clone(),
             });
         }
-        if matches!(surface.state, SurfaceState::Retired) && surface.retired_redirects_to.is_none() {
+        if matches!(surface.state, SurfaceState::Retired) && surface.retired_redirects_to.is_none()
+        {
             return Err(SurfaceCatalogError::RetiredWithoutRedirect(surface.id));
         }
-        self.by_route.insert(surface.canonical_route.clone(), surface.id.clone());
+        self.by_route
+            .insert(surface.canonical_route.clone(), surface.id.clone());
         self.by_id.insert(surface.id.clone(), surface);
         Ok(())
     }
@@ -142,7 +148,11 @@ impl SurfaceCatalogPort for InMemorySurfaceCatalog {
         self.by_id.values().collect()
     }
 
-    fn flip_state(&mut self, id: &SurfaceId, new_state: SurfaceState) -> Result<(), SurfaceCatalogError> {
+    fn flip_state(
+        &mut self,
+        id: &SurfaceId,
+        new_state: SurfaceState,
+    ) -> Result<(), SurfaceCatalogError> {
         let surface = self
             .by_id
             .get_mut(id)
@@ -195,19 +205,34 @@ mod tests {
     #[test]
     fn register_and_retrieve() {
         let mut catalog = InMemorySurfaceCatalog::new();
-        let s = surface("docs-portal", "/workspace/docs", SurfaceState::ReservedComingSoon);
+        let s = surface(
+            "docs-portal",
+            "/workspace/docs",
+            SurfaceState::ReservedComingSoon,
+        );
         catalog.register_surface(s.clone()).unwrap();
         assert_eq!(catalog.count(), 1);
-        assert_eq!(catalog.get_surface(&SurfaceId("docs-portal".into())), Some(&s));
+        assert_eq!(
+            catalog.get_surface(&SurfaceId("docs-portal".into())),
+            Some(&s)
+        );
     }
 
     #[test]
     fn duplicate_id_errors() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
-            .register_surface(surface("a", "/workspace/a", SurfaceState::ReservedComingSoon))
+            .register_surface(surface(
+                "a",
+                "/workspace/a",
+                SurfaceState::ReservedComingSoon,
+            ))
             .unwrap();
-        let result = catalog.register_surface(surface("a", "/workspace/b", SurfaceState::ReservedComingSoon));
+        let result = catalog.register_surface(surface(
+            "a",
+            "/workspace/b",
+            SurfaceState::ReservedComingSoon,
+        ));
         assert!(matches!(result, Err(SurfaceCatalogError::DuplicateId(_))));
     }
 
@@ -215,62 +240,101 @@ mod tests {
     fn route_collision_errors() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
-            .register_surface(surface("a", "/workspace/x", SurfaceState::ReservedComingSoon))
+            .register_surface(surface(
+                "a",
+                "/workspace/x",
+                SurfaceState::ReservedComingSoon,
+            ))
             .unwrap();
-        let result = catalog.register_surface(surface("b", "/workspace/x", SurfaceState::ReservedComingSoon));
-        assert!(matches!(result, Err(SurfaceCatalogError::RouteCollision { .. })));
+        let result = catalog.register_surface(surface(
+            "b",
+            "/workspace/x",
+            SurfaceState::ReservedComingSoon,
+        ));
+        assert!(matches!(
+            result,
+            Err(SurfaceCatalogError::RouteCollision { .. })
+        ));
     }
 
     #[test]
     fn retired_without_redirect_errors_on_register() {
         let mut catalog = InMemorySurfaceCatalog::new();
         let result = catalog.register_surface(surface("a", "/workspace/a", SurfaceState::Retired));
-        assert!(matches!(result, Err(SurfaceCatalogError::RetiredWithoutRedirect(_))));
+        assert!(matches!(
+            result,
+            Err(SurfaceCatalogError::RetiredWithoutRedirect(_))
+        ));
     }
 
     #[test]
     fn flip_state_reserved_to_live_ok() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
-            .register_surface(surface("a", "/workspace/a", SurfaceState::ReservedComingSoon))
+            .register_surface(surface(
+                "a",
+                "/workspace/a",
+                SurfaceState::ReservedComingSoon,
+            ))
             .unwrap();
         catalog
             .flip_state(&SurfaceId("a".into()), SurfaceState::Live)
             .unwrap();
-        assert_eq!(catalog.get_surface(&SurfaceId("a".into())).unwrap().state, SurfaceState::Live);
+        assert_eq!(
+            catalog.get_surface(&SurfaceId("a".into())).unwrap().state,
+            SurfaceState::Live
+        );
     }
 
     #[test]
     fn flip_state_live_to_reserved_errors() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
-            .register_surface(surface("a", "/workspace/a", SurfaceState::ReservedComingSoon))
+            .register_surface(surface(
+                "a",
+                "/workspace/a",
+                SurfaceState::ReservedComingSoon,
+            ))
             .unwrap();
         catalog
             .flip_state(&SurfaceId("a".into()), SurfaceState::Live)
             .unwrap();
         let result = catalog.flip_state(&SurfaceId("a".into()), SurfaceState::ReservedComingSoon);
-        assert!(matches!(result, Err(SurfaceCatalogError::InvalidStateTransition { .. })));
+        assert!(matches!(
+            result,
+            Err(SurfaceCatalogError::InvalidStateTransition { .. })
+        ));
     }
 
     #[test]
     fn flip_state_live_to_retired_requires_redirect() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
-            .register_surface(surface("a", "/workspace/a", SurfaceState::ReservedComingSoon))
+            .register_surface(surface(
+                "a",
+                "/workspace/a",
+                SurfaceState::ReservedComingSoon,
+            ))
             .unwrap();
         catalog
             .flip_state(&SurfaceId("a".into()), SurfaceState::Live)
             .unwrap();
         let result = catalog.flip_state(&SurfaceId("a".into()), SurfaceState::Retired);
-        assert!(matches!(result, Err(SurfaceCatalogError::RetiredWithoutRedirect(_))));
+        assert!(matches!(
+            result,
+            Err(SurfaceCatalogError::RetiredWithoutRedirect(_))
+        ));
     }
 
     #[test]
     fn flip_state_idempotent() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
-            .register_surface(surface("a", "/workspace/a", SurfaceState::ReservedComingSoon))
+            .register_surface(surface(
+                "a",
+                "/workspace/a",
+                SurfaceState::ReservedComingSoon,
+            ))
             .unwrap();
         catalog
             .flip_state(&SurfaceId("a".into()), SurfaceState::ReservedComingSoon)
@@ -281,7 +345,11 @@ mod tests {
     fn list_surfaces_returns_all() {
         let mut catalog = InMemorySurfaceCatalog::new();
         catalog
-            .register_surface(surface("a", "/workspace/a", SurfaceState::ReservedComingSoon))
+            .register_surface(surface(
+                "a",
+                "/workspace/a",
+                SurfaceState::ReservedComingSoon,
+            ))
             .unwrap();
         catalog
             .register_surface(surface("b", "/workspace/b", SurfaceState::Live))

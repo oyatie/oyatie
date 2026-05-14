@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P02-IP-002
 title: Doc-freshness CI lane
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Block PRs that change source-of-truth without regenerating dependent docs.
@@ -49,4 +52,8 @@ icm store -t context-oyatie -c 'M-CC-P02-IP-002 Doc-freshness CI lane shipped; a
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- One `SourceDependency { source, dependent }` row models the rule — adding a new source-of-truth → doc mapping is one append, not a scattered `match`.
+- Self-dependencies are an explicit `Err`, not silently dropped — a misconfigured rule fails the build instead of hiding.
+- `sources_changed` count is a `BTreeSet` so duplicate rules over the same source don't inflate the metric.
+- Stale-doc output is sorted — diff-stable across runs.

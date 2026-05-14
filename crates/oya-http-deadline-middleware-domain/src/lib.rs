@@ -16,8 +16,7 @@
 use std::time::Instant;
 
 use bytes::Bytes;
-use oya_http_middleware_kernel::{Middleware, Next};
-use oya_http_runtime_hyper_adapter::{HyperRequest, HyperResponse};
+use oya_http_middleware_kernel::{HyperRequest, HyperResponse, Middleware, Next};
 
 #[derive(Clone, Debug)]
 pub struct DeadlineMiddleware {
@@ -111,10 +110,12 @@ mod tests {
                 .map(String::as_str)
                 == Some("1")
         );
-        assert!(response
-            .body
-            .windows(DEADLINE_EXCEEDED_BODY_PREFIX.len())
-            .any(|w| w == DEADLINE_EXCEEDED_BODY_PREFIX.as_bytes()));
+        assert!(
+            response
+                .body
+                .windows(DEADLINE_EXCEEDED_BODY_PREFIX.len())
+                .any(|w| w == DEADLINE_EXCEEDED_BODY_PREFIX.as_bytes())
+        );
     }
 
     #[test]

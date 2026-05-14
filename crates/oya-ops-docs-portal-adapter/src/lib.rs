@@ -1,5 +1,5 @@
 //! Ops docs-portal adapter — projects kernel types onto the OpenAPI 3.2 wire
-//! schema declared in `contracts/ops-docs.openapi.yaml`.
+//! schema declared in `contracts/ops-docs-v1.openapi.yaml`.
 //!
 //! Pure std-only adapter per ADR-0015. Mirrors `#/components/schemas/*` 1:1
 //! so contract drift breaks the build.

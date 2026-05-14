@@ -47,4 +47,4 @@ components:
       payload:
         schemaFormat: application/vnd.google.protobuf;version=3
         schema:
-          $ref: '../proto/platform/eventing/v1/eventing-outbox-v1.proto#/platform.eventing.v1.EventingOutboxPublish'
+          $ref: '../../proto/platform/eventing/v1/eventing-outbox-v1.proto#/platform.eventing.v1.EventingOutboxPublish'

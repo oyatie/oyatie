@@ -4,7 +4,7 @@ use std::fmt;
 
 pub const CANONICAL_PRE_PUSH_COMMAND: &str = "repoctl pre-push";
 pub const PRE_PUSH_CONTRACT_CHECK_COMMAND: &str =
-    "cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push --verify-contract";
+    "cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract";
 pub const REPOCTL_BIN_NAME_DECLARATION: &str = "name = \"repoctl\"";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -185,7 +185,7 @@ mod tests {
     fn rejects_recursive_full_pre_push_from_check_script() {
         let check_script = format!(
             "{PRE_PUSH_CONTRACT_CHECK_COMMAND}\n\
-             cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push\n"
+             cargo run -p oya-dev-cli --bin repoctl -- pre-push\n"
         );
         let evidence = PrePushContractEvidence {
             check_script: &check_script,
@@ -214,8 +214,7 @@ mod tests {
             done_definition_doc: "- [ ] D12 `repoctl pre-push` passes.",
             check_script: PRE_PUSH_CONTRACT_CHECK_COMMAND,
             cli_manifest: "[[bin]]\nname = \"repoctl\"\npath = \"src/main.rs\"\n",
-            hook_script:
-                "cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push \"$@\"\n",
+            hook_script: "cargo run -p oya-dev-cli --bin repoctl -- pre-push \"$@\"\n",
         }
     }
 }

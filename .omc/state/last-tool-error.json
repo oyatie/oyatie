@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cat > /Users/jasonlee/oyatie/.omc/audits/existing-docs-staleness-drift-2026-05-12.md << 'EOF'\\n# Existing Oyatie Docs — Staleness + Drift Audit (2026-05-12)\\n\\n## Executive summary\\n\\n**To...",
-  "error": "Exit code 1\n(eval):1: no such file or directory: /Users/jasonlee/oyatie/.omc/audits/existing-docs-staleness-drift-2026-05-12.md\ncat: /Users/jasonlee/oyatie/.omc/audits/existing-docs-staleness-drift-2026-05-12.md: No such file or directory",
-  "timestamp": "2026-05-13T01:01:22.392Z",
+  "tool_input_preview": "{\"command\":\"rtk ls /Users/jasonlee/oyatie/crates/oya-cell-domain/src/ && echo \\\"---\\\" && rtk find /Users/jasonlee/oyatie/crates/oya-cell-domain -name \\\"*.yml\\\" -o -name \\\"*.yaml\\\"\",\"description\":\"Chec...",
+  "error": "Exit code 1\nlib.rs  7.5K\n---\nrtk: rtk find does not support compound predicates or actions (e.g. -not, -exec). Use `find` directly.",
+  "timestamp": "2026-05-14T21:44:21.860Z",
   "retry_count": 1
 }

@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P08
 title: Cross-Axis Contract Registry + Fitness Lanes
-status: stub
+status: complete
 purpose: Author every DESIGN §10 cross-axis contract row as a tracked OpenAPI / Proto / AsyncAPI artifact bound to a fitness lane.
 ---
 
@@ -19,10 +19,10 @@ Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §10. Cohes
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | SaaS↔Cloud + SaaS↔Search + SaaS↔Agent-runtime contract authoring | stub | [`IP-001-saas-pairs.md`](IP-001-saas-pairs.md) |
-| IP-002 | Cloud↔Agent-runtime + Cloud↔Search + Cloud↔Ads contract authoring | stub | [`IP-002-cloud-pairs.md`](IP-002-cloud-pairs.md) |
-| IP-003 | Search↔Ads + Search↔Agent-runtime + Ads↔Agent-runtime contract authoring | stub | [`IP-003-search-ads-pairs.md`](IP-003-search-ads-pairs.md) |
-| IP-004 | Vertical↔others + Workspace↔others contract authoring | stub | [`IP-004-vertical-workspace-pairs.md`](IP-004-vertical-workspace-pairs.md) |
+| IP-001 | SaaS↔Cloud + SaaS↔Search + SaaS↔Agent-runtime contract authoring | complete | [`IP-001-saas-pairs.md`](IP-001-saas-pairs.md) |
+| IP-002 | Cloud↔Agent-runtime + Cloud↔Search + Cloud↔Ads contract authoring | complete | [`IP-002-cloud-pairs.md`](IP-002-cloud-pairs.md) |
+| IP-003 | Search↔Ads + Search↔Agent-runtime + Ads↔Agent-runtime contract authoring | complete | [`IP-003-search-ads-pairs.md`](IP-003-search-ads-pairs.md) |
+| IP-004 | Vertical↔others + Workspace↔others contract authoring | complete | [`IP-004-vertical-workspace-pairs.md`](IP-004-vertical-workspace-pairs.md) |
 
 ## Estimated parallelism
 4 agents; one per row-cluster.

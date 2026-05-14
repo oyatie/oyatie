@@ -5,9 +5,7 @@
 //! calendar aggregate and scheduling seam; protocol adapters such as CalDAV stay
 //! outside the kernel per ADR-0015.
 
-use oya_platform_data_boundary_kernel::{
-    Classified, DataClass, DataClassification, PrivacyDataClass,
-};
+use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};
 
 const CALENDAR_SCHEMA_VERSION: u32 = 1;
 const EVENT_SCHEMA_VERSION: u32 = 1;
@@ -283,10 +281,39 @@ fn internal<T>(value: T) -> Classified<T> {
     Classified::new(value, DataClass::InternalOnly)
 }
 
+// ---------------------------------------------------------------------------
+// M03-P06-IP-001 — workspace.calendar.caldav STAGING surface (RFC 4791).
+// ---------------------------------------------------------------------------
+
+const CALDAV_RFC: u32 = 4791;
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct CalendarSurfaceStaging {
+    pub calendar_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,   // data_class: INTERNAL_ONLY
+    pub caldav_rfc_number: Classified<u32>, // data_class: INTERNAL_ONLY
+    pub per_tenant_isolated: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: INTERNAL_ONLY
+}
+
+impl CalendarSurfaceStaging {
+    pub fn new(calendar_id: String, tenant_id: String) -> Result<Self, CalendarError> {
+        validate_non_empty(&calendar_id, CalendarError::InvalidCalendarId)?;
+        validate_non_empty(&tenant_id, CalendarError::InvalidTenantId)?;
+        Ok(Self {
+            calendar_id: internal(calendar_id),
+            tenant_id: internal(tenant_id),
+            caldav_rfc_number: internal(CALDAV_RFC),
+            per_tenant_isolated: internal(true),
+            schema_version: internal(1),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::OperationalDataClass;
+    use oya_data_boundary_kernel::OperationalDataClass;
 
     fn attendee() -> Attendee {
         Attendee::new("user@example.com".into(), "required".into()).unwrap()
@@ -366,6 +393,25 @@ mod tests {
         assert_eq!(
             Attendee::new("not-an-email".into(), "required".into()),
             Err(CalendarError::InvalidAttendeeEmail)
+        );
+    }
+
+    #[test]
+    fn surface_staging_pins_caldav_rfc_4791_and_per_tenant_isolation() {
+        let staging = CalendarSurfaceStaging::new("cal-1".into(), "tenant-1".into()).unwrap();
+        assert_eq!(staging.caldav_rfc_number.value, 4791);
+        assert!(staging.per_tenant_isolated.value);
+    }
+
+    #[test]
+    fn surface_staging_rejects_empty_identifiers() {
+        assert_eq!(
+            CalendarSurfaceStaging::new("".into(), "t".into()),
+            Err(CalendarError::InvalidCalendarId)
+        );
+        assert_eq!(
+            CalendarSurfaceStaging::new("c".into(), "".into()),
+            Err(CalendarError::InvalidTenantId)
         );
     }
 

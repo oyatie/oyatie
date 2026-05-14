@@ -7,8 +7,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_workspace_collab_runtime_kernel::{CollabRuntime, CollabSurface};
+use oya_connect_collab_runtime_domain::{CollabRuntime, CollabSurface};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const NOTE_STORE_SCHEMA_VERSION: u32 = 1;
 const NOTE_SCHEMA_VERSION: u32 = 1;
@@ -492,10 +492,10 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_workspace_collab_runtime_kernel::{
+    use oya_connect_collab_runtime_domain::{
         CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef,
     };
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn runtime(surface: CollabSurface) -> CollabRuntime {
         CollabRuntime::new(CollabRuntimeCreate {
@@ -673,5 +673,46 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.notes STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NotesSurfaceStaging {
+    pub note_id: Classified<String>,   // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub char_count: Classified<u64>,   // data_class: INTERNAL_ONLY
+}
+
+impl NotesSurfaceStaging {
+    pub fn new(note_id: String, tenant_id: String, char_count: u64) -> Self {
+        Self {
+            note_id: Classified::new(note_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            char_count: Classified::new(char_count, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> NotesSurfaceStaging {
+        NotesSurfaceStaging::new("notes-1".into(), "notes-1".into(), 0u64)
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.note_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

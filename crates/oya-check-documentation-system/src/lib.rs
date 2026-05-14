@@ -269,8 +269,7 @@ mod tests {
             validate_documentation_system(evidence(records)),
             Err(DocumentationSystemError::UnwiredPipelineCommand {
                 step_id: "openapi".into(),
-                command: "cargo run -p oya-tooling-cli-dev-runtime -- gate validate api-semver"
-                    .into(),
+                command: "cargo run -p oya-dev-cli -- gate validate api-semver".into(),
             })
         );
     }
@@ -312,7 +311,7 @@ mod tests {
             record(
                 "openapi",
                 DocumentationPipelineState::AdoptionGuard,
-                Some("cargo run -p oya-tooling-cli-dev-runtime -- gate validate api-semver"),
+                Some("cargo run -p oya-dev-cli -- gate validate api-semver"),
                 true,
                 "contracts",
                 false,
@@ -321,7 +320,7 @@ mod tests {
             record(
                 "mdbook",
                 DocumentationPipelineState::AdoptionGuard,
-                Some("cargo run -p oya-tooling-cli-dev-runtime -- gate validate documentation-system"),
+                Some("cargo run -p oya-dev-cli -- gate validate documentation-system"),
                 true,
                 "docs/site",
                 false,
@@ -330,7 +329,7 @@ mod tests {
             record(
                 "adr-index",
                 DocumentationPipelineState::AdoptionGuard,
-                Some("cargo run -p oya-tooling-cli-dev-runtime -- gate validate adr-citation"),
+                Some("cargo run -p oya-dev-cli -- gate validate adr-citation"),
                 true,
                 "docs/decisions",
                 true,
@@ -339,7 +338,7 @@ mod tests {
             record(
                 "catalog",
                 DocumentationPipelineState::Active,
-                Some("cargo run -p oya-tooling-cli-dev-runtime -- catalog validate"),
+                Some("cargo run -p oya-dev-cli -- catalog validate"),
                 true,
                 "registry/catalog",
                 true,
@@ -348,7 +347,7 @@ mod tests {
             record(
                 "lint",
                 DocumentationPipelineState::Active,
-                Some("cargo run -p oya-tooling-cli-dev-runtime -- gate validate doc-catalog"),
+                Some("cargo run -p oya-dev-cli -- gate validate doc-catalog"),
                 true,
                 "docs",
                 true,

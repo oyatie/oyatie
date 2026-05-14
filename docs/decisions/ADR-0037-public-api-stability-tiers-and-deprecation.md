@@ -88,7 +88,7 @@ Per language, an SDK is auto-generated from contracts:
 | Go | `oya-sdk-go` | `oapi-codegen` + `protoc-gen-go-grpc` |
 | Java | `oya-sdk-java` | `openapi-generator-cli` + `protoc` (J2 GA tier only) |
 
-SDK release cadence matches contract release cadence. SDKs at preview tier are published to a separate channel (e.g. npm `@oyatie-preview` scope).
+SDK release cadence matches contract release cadence. SDKs at preview tier are published to a separate channel (e.g. npm `@oya-preview` scope).
 
 ### Per-deprecation event emission
 

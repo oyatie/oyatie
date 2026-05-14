@@ -2,76 +2,74 @@
 
 use std::{collections::BTreeMap, fmt, sync::Arc};
 
-use oya_foundry_adapter_kernel::{
-    resolve_route, AdapterError, CostCeiling, InvocationPolicy, ProviderAuth, ProviderCallReceipt,
-    ProviderId, ProviderMode, ProviderProfile, ProviderRoute, ProviderRoutePreference,
-    ProviderRouteRequest, SubscriptionBindingRegistry,
+pub use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
+use oya_cell_domain::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
+use oya_check_cost_budget::{
+    BudgetCeiling, BudgetError, BudgetLedger, BudgetScope, BudgetSnapshot, BudgetWarning,
 };
-pub use oya_foundry_bypass_kernel::{AutonomyBreakGlass, AutonomyBreakGlassInput};
-use oya_foundry_bypass_kernel::{BypassError, BypassLedger, BypassLedgerRecord};
-use oya_foundry_capability_kernel::CapabilityError;
-pub use oya_foundry_capability_kernel::{
+pub use oya_data_boundary_kernel::{
+    AgeBand, ConsentScope, DataClass, PrivacyDataClass, Purpose, SubjectClass,
+    privacy_data_classes_from,
+};
+use oya_data_boundary_kernel::{
+    Classified, DataClassification, DataUseAttributes, DataUseDenialReason, OperationalDataClass,
+    evaluate_data_use,
+};
+use oya_eventing_domain::{EventingError, Outbox, OutboxRecord};
+use oya_foundry_adapter_domain::{
+    AdapterError, CostCeiling, InvocationPolicy, ProviderAuth, ProviderCallReceipt, ProviderId,
+    ProviderMode, ProviderProfile, ProviderRoute, ProviderRoutePreference, ProviderRouteRequest,
+    SubscriptionBindingRegistry, resolve_route,
+};
+pub use oya_foundry_bypass_domain::{AutonomyBreakGlass, AutonomyBreakGlassInput};
+use oya_foundry_bypass_domain::{BypassError, BypassLedger, BypassLedgerRecord};
+use oya_foundry_capability_domain::CapabilityError;
+pub use oya_foundry_capability_domain::{
     AutonomyTier, Capability, CapabilityAction, CapabilityCostProfile, CapabilityMcpContract,
     CapabilityRegistry,
 };
-use oya_foundry_cost_budget_kernel::{
-    BudgetCeiling, BudgetError, BudgetLedger, BudgetScope, BudgetSnapshot, BudgetWarning,
-};
-use oya_foundry_eval_kernel::EvalError;
-pub use oya_foundry_eval_kernel::{
+use oya_foundry_eval_domain::EvalError;
+pub use oya_foundry_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
 };
-use oya_foundry_evidence_kernel::EvidenceError;
-pub use oya_foundry_evidence_kernel::{EvidenceChain, EvidenceKind, EvidenceRecord};
-use oya_foundry_mcp_gateway_kernel::{
-    authorize_tool_call, project_capability_tool, validate_access_token, McpGatewayError,
-    McpPrincipal, McpRateLimiter, McpTenantEndpoint,
+use oya_foundry_evidence_domain::EvidenceError;
+pub use oya_foundry_evidence_domain::{EvidenceChain, EvidenceKind, EvidenceRecord};
+pub use oya_foundry_mcp_gateway_domain::{
+    DISCOVER_SCOPE, McpAccessTokenClaims, McpGatewayDescriptor, McpPrompt, McpRateLimitPolicy,
+    McpTool, scope_for_tool_name,
 };
-pub use oya_foundry_mcp_gateway_kernel::{
-    scope_for_tool_name, McpAccessTokenClaims, McpGatewayDescriptor, McpPrompt, McpRateLimitPolicy,
-    McpTool, DISCOVER_SCOPE,
+use oya_foundry_mcp_gateway_domain::{
+    McpGatewayError, McpPrincipal, McpRateLimiter, McpTenantEndpoint, authorize_tool_call,
+    project_capability_tool, validate_access_token,
 };
-use oya_foundry_policy_kernel::{
+use oya_foundry_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
 };
-pub use oya_foundry_run_kernel::{Run, RunDisposition, RunState};
-use oya_foundry_run_kernel::{RunError, RunLedger, RunStart};
-pub use oya_foundry_step_kernel::{Step, StepDisposition, StepKind, StepState};
-use oya_foundry_step_kernel::{StepError, StepLedger, StepStart};
-pub use oya_platform_audit_chain_kernel::{AuditChain, AuditEvent, Plane};
-use oya_platform_cell_kernel::{CellBinding, CellBindingCreate, CellError, CellRouter, CellTier};
-use oya_platform_data_boundary_kernel::{
-    evaluate_data_use, Classified, DataClassification, DataUseAttributes, DataUseDenialReason,
-    OperationalDataClass,
+pub use oya_foundry_run_domain::{Run, RunDisposition, RunState};
+use oya_foundry_run_domain::{RunError, RunLedger, RunStart};
+pub use oya_foundry_step_domain::{Step, StepDisposition, StepKind, StepState};
+use oya_foundry_step_domain::{StepError, StepLedger, StepStart};
+use oya_identity_domain::{IdentityError, IdpBinding, Token, User, issue_token};
+use oya_observability_domain::{
+    CAPABILITY_INVOCATION_OPERATION_NAME, CapabilityInvocationTraceContext,
+    CapabilityInvocationTraceObserver, CapabilityInvocationTraceSpan, FOUNDRY_PROVIDER_NAME,
+    InvocationTraceResult, NoopCapabilityInvocationTraceObserver,
+    telemetry_data_classifications_label,
 };
-pub use oya_platform_data_boundary_kernel::{
-    privacy_data_classes_from, AgeBand, ConsentScope, DataClass, PrivacyDataClass, Purpose,
-    SubjectClass,
-};
-use oya_platform_eventing_kernel::{EventingError, Outbox, OutboxRecord};
-use oya_platform_identity_kernel::{issue_token, IdentityError, Token, User};
-pub use oya_platform_object_graph_kernel::PropertyTier;
-use oya_platform_object_graph_kernel::{ObjectEntity, ObjectGraphError, ObjectProperty};
-use oya_platform_observability_kernel::{
-    telemetry_data_classifications_label, CapabilityInvocationTraceContext,
-    CapabilityInvocationTraceObserver, CapabilityInvocationTraceSpan, InvocationTraceResult,
-    NoopCapabilityInvocationTraceObserver, CAPABILITY_INVOCATION_OPERATION_NAME,
-    FOUNDRY_PROVIDER_NAME,
-};
-pub use oya_platform_policy_cedar_kernel::{
+pub use oya_ontology_domain::PropertyTier;
+use oya_ontology_domain::{ObjectEntity, ObjectGraphError, ObjectProperty};
+pub use oya_policy_cedar_domain::{
     AuthorizationDecision, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion,
 };
-use oya_platform_policy_cedar_kernel::{
-    AuthorizationQuery, AuthorizationSubject, PolicyError, PolicySet,
+use oya_policy_cedar_domain::{AuthorizationQuery, AuthorizationSubject, PolicyError, PolicySet};
+use oya_regional_pack_domain::{RegionalPack, RegionalPackError};
+pub use oya_residency_domain::ResidencyClass;
+use oya_residency_domain::{
+    RegionRef, RegionRefCreate, infer_region_jurisdiction_label, parse_residency_class_label,
 };
-use oya_platform_regional_pack_kernel::{RegionalPack, RegionalPackError};
-pub use oya_platform_residency_kernel::ResidencyClass;
-use oya_platform_residency_kernel::{
-    infer_region_jurisdiction_label, parse_residency_class_label, RegionRef, RegionRefCreate,
-};
-use oya_platform_secrets_kernel::SecretRef;
-pub use oya_platform_tenant_kernel::Tenant;
-use oya_platform_tenant_kernel::TenantError;
+use oya_secrets_domain::SecretRef;
+pub use oya_tenancy_domain::Tenant;
+use oya_tenancy_domain::TenantError;
 
 const FOUNDATION_LOCAL_PROVIDER_ID: &str = "foundation-local";
 const FOUNDATION_LOCAL_MODEL_REF: &str = "foundation-app";
@@ -419,7 +417,7 @@ impl fmt::Debug for FoundationObservability {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Foundation {
     tenants: BTreeMap<String, Tenant>,
     tenant_policies: BTreeMap<String, TenantPolicy>,
@@ -440,6 +438,32 @@ pub struct Foundation {
     cells: CellRouter,
     audit_chain: AuditChain,
     observability: FoundationObservability,
+}
+
+impl Default for Foundation {
+    fn default() -> Self {
+        Self {
+            tenants: BTreeMap::new(),
+            tenant_policies: BTreeMap::new(),
+            users: BTreeMap::new(),
+            capabilities: CapabilityRegistry::default(),
+            regional_packs: BTreeMap::new(),
+            object_entities: BTreeMap::new(),
+            outbox: Outbox::default(),
+            consent_scopes: BTreeMap::new(),
+            policies: PolicySet::default(),
+            eval_gate: EvalGate::default(),
+            cost_budgets: BudgetLedger::default(),
+            foundation_bypass_ledger: BypassLedger::default(),
+            foundry_runs: RunLedger::default(),
+            foundry_steps: StepLedger::default(),
+            foundry_evidence: EvidenceChain::default(),
+            mcp_rate_limiter: McpRateLimiter::default(),
+            cells: CellRouter::default(),
+            audit_chain: AuditChain::multi_tenant_shards(),
+            observability: FoundationObservability::default(),
+        }
+    }
 }
 
 impl Foundation {
@@ -578,17 +602,45 @@ impl Foundation {
         &mut self,
         registration: IdentityRegistration,
     ) -> Result<User, FoundationError> {
-        self.require_tenant(&registration.tenant_id)?;
+        let tenant = self.require_tenant(&registration.tenant_id)?;
+        let region_pack = tenant
+            .regulatory_packs
+            .value
+            .iter()
+            .find(|pack| pack.starts_with("oya-pack-"))
+            .cloned()
+            .unwrap_or_else(|| {
+                format!(
+                    "oya-pack-{}",
+                    tenant
+                        .residency_class
+                        .value
+                        .label()
+                        .unwrap_or("global")
+                        .replace('_', "-")
+                )
+            });
+        let idp_binding = IdpBinding::new(
+            region_pack,
+            "idp_foundation_local".to_string(),
+            registration.primary_identifier.clone(),
+            0,
+        )
+        .map_err(map_identity_error)?;
         let user = User::new(
             registration.tenant_id.clone(),
             registration.user_id,
             registration.primary_identifier,
             registration.display_name,
             registration.roles,
+            idp_binding,
         )
         .map_err(map_identity_error)?;
         self.users.insert(
-            (registration.tenant_id.clone(), user.id.clone()),
+            (
+                registration.tenant_id.clone(),
+                user.user_id().as_str().to_string(),
+            ),
             user.clone(),
         );
         self.audit_chain.append_classifications(
@@ -689,7 +741,7 @@ impl Foundation {
     pub fn publish_policy(
         &mut self,
         version: PolicyVersion,
-    ) -> Result<oya_platform_policy_cedar_kernel::PublishedPolicy, FoundationError> {
+    ) -> Result<oya_policy_cedar_domain::PublishedPolicy, FoundationError> {
         let scope_tenant_id = match &version.scope {
             PolicyScope::Global => None,
             PolicyScope::Tenant(tenant_id) => Some(tenant_id.clone()),
@@ -2624,9 +2676,12 @@ fn map_identity_error(error: IdentityError) -> FoundationError {
         IdentityError::TokenTtlTooLong => FoundationError::TokenTtlTooLong,
         IdentityError::InvalidTenantId
         | IdentityError::InvalidUserId
+        | IdentityError::InvalidRegionPack
+        | IdentityError::InvalidIdentityProviderId
         | IdentityError::InvalidServicePrincipalId
         | IdentityError::InvalidCapabilityId
         | IdentityError::EmptyPrimaryIdentifier
+        | IdentityError::EmptyExternalSubject
         | IdentityError::TokenTtlZero
         | IdentityError::MissingCredentialScope
         | IdentityError::LongLivedCredentialForbidden => FoundationError::InvalidInput,
@@ -2809,8 +2864,14 @@ fn map_object_graph_error(error: ObjectGraphError) -> FoundationError {
 fn map_eventing_error(error: EventingError) -> FoundationError {
     match error {
         EventingError::EmptyTopic
+        | EventingError::EmptyTopicAxis
+        | EventingError::EmptyTopicDescription
+        | EventingError::InvalidTopicName
+        | EventingError::DuplicateTopic
+        | EventingError::TopicNotFound
         | EventingError::EmptyIdempotencyKey
         | EventingError::EmptyPayloadRef
+        | EventingError::IdempotencyReplayMismatch
         | EventingError::InvalidOutboxHistory => FoundationError::InvalidInput,
         EventingError::OutboxRecordNotFound => FoundationError::OutboxRecordNotFound,
     }
@@ -3243,7 +3304,11 @@ fn map_policy_error(error: PolicyError) -> FoundationError {
         PolicyError::InvalidPolicyId
         | PolicyError::InvalidSemver
         | PolicyError::EmptyRules
-        | PolicyError::EmptyRuleField => FoundationError::InvalidInput,
+        | PolicyError::EmptyRuleField
+        | PolicyError::SupersedesSelf
+        | PolicyError::SupersedesMissing
+        | PolicyError::SupersedesScopeMismatch
+        | PolicyError::SupersedesNotOlder => FoundationError::InvalidInput,
     }
 }
 
@@ -3438,11 +3503,11 @@ mod tests {
         );
 
         assert_eq!(error, FoundationError::CostBudgetExceeded);
-        assert!(foundation
-            .audit_chain()
-            .events()
-            .iter()
-            .any(|event| { event.surface == "foundry.run.complete" && event.decision == "DENY" }));
+        assert!(
+            foundation.audit_chain().events().iter().any(|event| {
+                event.surface == "foundry.run.complete" && event.decision == "DENY"
+            })
+        );
         let evidence = foundation
             .foundry_evidence_chain()
             .records()

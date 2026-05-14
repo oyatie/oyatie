@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use crate::command_output::{json_escape, OutputFormat};
+use crate::command_output::{OutputFormat, json_escape};
 use crate::command_process::{
     process_status_label, replay_process_output, run_check_script_process,
 };

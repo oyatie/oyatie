@@ -5,7 +5,7 @@ use oya_cloud_storage_block_api::{
     CloudStorageBlockVolumeCreateApiRequest, CloudStorageBlockVolumeCreateRequest,
     CloudStorageBlockVolumePerformance, CLOUD_STORAGE_BLOCK_CREATE_SURFACE,
 };
-use oya_cloud_storage_kernel::{CloudStorageCatalog, CloudStorageError};
+use oya_cloud_storage_domain::{CloudStorageCatalog, CloudStorageError};
 
 const VOLUME_ID: &str = "oya:cloud:kr-seoul:ten_kr:volume:db-primary";
 

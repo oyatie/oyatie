@@ -394,7 +394,7 @@ lanes:
     purpose: layer-correctness — no dep-direction violations per ADR-0056 §2.2
     source: ADR-0056
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- check architecture
+    check_command: scripts/check-architecture-boundaries.sh
   - id: lean-a2-bounded-contexts
     stage: per-pr
     status: active
@@ -403,7 +403,7 @@ lanes:
     purpose: microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override)
     source: ADR-0056
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- check bounded-context
+    check_command: cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage
   - id: lean-a3-supply-chain
     stage: per-pr
     status: active
@@ -412,7 +412,7 @@ lanes:
     purpose: supply-chain integrity — Trivy + RustSec + deny per ADR-0039
     source: ADR-0039
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-dev-cli -- check supply-chain
+    check_command: cargo run -p oya-dev-cli -- gate validate supply-chain
   - id: lean-a4-semver
     stage: per-pr
     status: active
@@ -421,7 +421,7 @@ lanes:
     purpose: API semver stability tier per ADR-0037
     source: ADR-0037
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- check semver
+    check_command: cargo run -p oya-dev-cli -- gate validate api-semver
   - id: lean-a5-documentation
     stage: per-pr
     # crate oya-shared-documentation-check-cli is report-only until M02-P22.
@@ -431,7 +431,7 @@ lanes:
     purpose: documentation suite coverage — every µservice has full canonical + per-pack suite per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22
     source: ADR-0063
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-dev-cli -- check documentation
+    check_command: cargo run -p oya-dev-cli -- gate validate documentation-system
   - id: lean-a10-regression
     stage: per-pr
     # crate oya-check-regression is planned in M02-P21 IP-005.

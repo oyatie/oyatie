@@ -8,8 +8,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_workspace_collab_runtime_kernel::{CollabRuntime, CollabSurface};
+use oya_connect_collab_runtime_domain::{CollabRuntime, CollabSurface};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const SHEET_SCHEMA_VERSION: u32 = 1;
 const CELL_GRAPH_SCHEMA_VERSION: u32 = 1;
@@ -491,10 +491,10 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_workspace_collab_runtime_kernel::{
+    use oya_connect_collab_runtime_domain::{
         CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef,
     };
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn runtime() -> CollabRuntime {
         CollabRuntime::new(CollabRuntimeCreate {
@@ -692,5 +692,46 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.sheets STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SheetsSurfaceStaging {
+    pub sheet_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub yrs_state_vector: Classified<Vec<u8>>, // data_class: INTERNAL_ONLY
+}
+
+impl SheetsSurfaceStaging {
+    pub fn new(sheet_id: String, tenant_id: String, yrs_state_vector: Vec<u8>) -> Self {
+        Self {
+            sheet_id: Classified::new(sheet_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            yrs_state_vector: Classified::new(yrs_state_vector, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> SheetsSurfaceStaging {
+        SheetsSurfaceStaging::new("sheets-1".into(), "sheets-1".into(), vec![])
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.sheet_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

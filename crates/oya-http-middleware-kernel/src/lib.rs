@@ -1,8 +1,11 @@
-//! HTTP middleware kernel — pure std-only middleware-chain abstraction.
+//! HTTP middleware kernel — middleware-chain abstraction plus the
+//! transport-neutral request/response structs used by Hyper-backed runtime
+//! adapters.
 //!
 //! Layer 2 of the hyper foundation. Generic over `Req` + `Resp` so consuming
-//! crates can plug in any concrete request/response type (the hyper-runtime
-//! adapter wires `hyper::Request<Body>` / `Response<Body>`).
+//! crates can plug in any concrete request/response type. The default
+//! `HyperRequest` / `HyperResponse` shapes stay here so middleware crates
+//! depend inward on kernels instead of sideways on the Hyper adapter.
 //!
 //! Chain semantics: each `Middleware::handle(&self, req, next)` may either
 //!   - call `next.run(req)` to continue down the chain (returning that result
@@ -13,6 +16,60 @@
 //! will wrap this in async via a thin spawn-blocking-ish helper, or build a
 //! sibling async chain. Keeping the kernel sync means it stays std-only and
 //! testable without an async runtime.
+
+use std::collections::BTreeMap;
+
+use bytes::Bytes;
+use oya_http_router_kernel::HttpMethod;
+
+/// HTTP request as seen by middlewares + handlers.
+///
+/// This is transport-neutral: the Hyper runtime adapter converts concrete
+/// `hyper::Request` values into this shape at the outer boundary.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HyperRequest {
+    pub method: HttpMethod,                      // data_class: INTERNAL_ONLY
+    pub path: String,                            // data_class: INTERNAL_ONLY
+    pub headers: BTreeMap<String, String>,       // data_class: INTERNAL_ONLY
+    pub body: Bytes,                             // data_class: INTERNAL_ONLY
+    pub path_captures: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
+}
+
+/// HTTP response shape materialized as bytes for non-streaming routes.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HyperResponse {
+    pub status: u16,                       // data_class: INTERNAL_ONLY
+    pub headers: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
+    pub body: Bytes,                       // data_class: INTERNAL_ONLY
+}
+
+impl HyperResponse {
+    pub fn new(status: u16) -> Self {
+        Self {
+            status,
+            headers: BTreeMap::new(),
+            body: Bytes::new(),
+        }
+    }
+
+    pub fn with_header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.headers.insert(key.into(), value.into());
+        self
+    }
+
+    pub fn with_body(mut self, body: impl Into<Bytes>) -> Self {
+        self.body = body.into();
+        self
+    }
+
+    pub fn not_found() -> Self {
+        Self::new(404).with_body(Bytes::from_static(b"not found"))
+    }
+
+    pub fn method_not_allowed() -> Self {
+        Self::new(405).with_body(Bytes::from_static(b"method not allowed"))
+    }
+}
 
 /// A chain handler that can be called by middleware to continue down the stack.
 pub struct Next<'a, Req, Resp> {
@@ -85,8 +142,8 @@ impl<Req, Resp> MiddlewareChain<Req, Resp> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
 
     struct Counter(Arc<AtomicUsize>);
     impl<Req, Resp> Middleware<Req, Resp> for Counter

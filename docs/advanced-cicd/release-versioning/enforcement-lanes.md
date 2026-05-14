@@ -103,7 +103,7 @@ Invoked at branch-cut time by the `release-cherry-pick` agent or operator.
 Checks:
 1. All BLOCKER lanes green on the prod SHA being cut.
 2. No breaking-change PRs pending sunset on this major.
-3. Tag `oyatie-vX.Y.0` does not already exist.
+3. Tag `oya-vX.Y.0` does not already exist.
 4. Branch `release/X.Y` does not already exist.
 5. Workspace `Cargo.toml` version stamped to `X.Y.0` on the cut commit.
 6. Branch-protection policy applied immediately on creation.
@@ -119,7 +119,7 @@ Checks:
 1. Every commit on `release/X.Y` (except the cut commit) has a matching
    commit on `origin/prod` (by content hash or `git cherry`).
 2. Every cherry-pick has a corresponding icm `release-cherry-picks` record.
-3. Every patch tag (`oyatie-vX.Y.Z`, Z ≥ 1) has a `gh release` record.
+3. Every patch tag (`oya-vX.Y.Z`, Z ≥ 1) has a `gh release` record.
 4. No commit on `release/X.Y` lacks a Cosign keyless OIDC signature from the
    `release-cherry-pick` agent identity.
 

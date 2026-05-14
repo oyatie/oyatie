@@ -1,22 +1,22 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationPrincipal, CapabilityInvocationRequest,
-    CapabilityRegistration, CostBudgetRegistration, Foundation, IdentityRegistration,
-    McpAccessTokenClaims, McpDiscoveryRequest, OutboxPublish, Purpose, SubjectClass,
-    TenantCapabilityGrant, TenantRegistration, TokenRequest, DISCOVER_SCOPE,
+    CapabilityRegistration, CostBudgetRegistration, DISCOVER_SCOPE, Foundation,
+    IdentityRegistration, McpAccessTokenClaims, McpDiscoveryRequest, OutboxPublish, Purpose,
+    SubjectClass, TenantCapabilityGrant, TenantRegistration, TokenRequest,
 };
-use oya_foundry_evidence_adapter_file::FileEvidenceChainStore;
-use oya_foundry_run_adapter_file::FileRunLedgerStore;
-use oya_foundry_run_kernel::RunLedger;
-use oya_foundry_step_adapter_file::FileStepLedgerStore;
-use oya_foundry_step_kernel::StepLedger;
-use oya_platform_audit_chain_adapter_file::FileAuditLedger;
-use oya_platform_eventing_adapter_file::FileOutboxStore;
-use oya_platform_eventing_kernel::Outbox;
-use oya_platform_secrets_adapter_file::FileSecretStore;
-use oya_platform_secrets_kernel::{SecretMaterial, SecretRef, SecretVault};
+use oya_audit_chain_file_adapter::FileAuditLedger;
+use oya_eventing_domain::Outbox;
+use oya_eventing_file_adapter::FileOutboxStore;
+use oya_foundry_evidence_file_adapter::FileEvidenceChainStore;
+use oya_foundry_run_domain::RunLedger;
+use oya_foundry_run_file_adapter::FileRunLedgerStore;
+use oya_foundry_step_domain::StepLedger;
+use oya_foundry_step_file_adapter::FileStepLedgerStore;
+use oya_secrets_domain::{SecretMaterial, SecretRef, SecretVault};
+use oya_secrets_file_adapter::FileSecretStore;
 
 use crate::foundation_fixture::{
     internal_privacy_data_class, internal_privacy_data_classes,
@@ -58,12 +58,13 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             roles: vec!["tenant-admin".into()],
         })
         .expect("demo identity is valid");
+    let user_id = user.user_id().as_str().to_string();
     publish_capability_invocation_policy(&mut foundation, &tenant.id, "tenant-admin")
         .expect("demo capability invocation policy is valid");
     let token = foundation
         .issue_token(TokenRequest {
             tenant_id: tenant.id.clone(),
-            user_id: user.id.clone(),
+            user_id: user_id.clone(),
             purpose: Purpose::CapabilityInvocation,
             ttl_seconds: 3_600,
             issued_at_epoch_seconds: 0,
@@ -109,7 +110,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             tenant_id: tenant.id.clone(),
             access_token: McpAccessTokenClaims {
                 tenant_id: tenant.id.clone(),
-                subject_id: user.id.clone(),
+                subject_id: user_id.clone(),
                 issuer: "https://auth.oyatie.test/tenants/ten_demo".into(),
                 audience: "https://mcp.foundry.kr-seoul.oyatie.test/tenants/ten_demo".into(),
                 expires_at_epoch_seconds: 3_600,
@@ -124,12 +125,12 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         .invoke_capability_as_principal(
             CapabilityInvocationPrincipal {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user_id.clone(),
                 autonomy_ceiling: AutonomyTier::T2Advisory,
             },
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user_id.clone(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::CapabilityInvocation,
                 subject_class: SubjectClass::Adult,
@@ -294,7 +295,7 @@ fn persist_audit_ledger(path: PathBuf, foundation: &Foundation) -> Result<bool, 
         .append_chain(foundation.audit_chain())
         .map_err(|error| format!("audit ledger persist failed: {error:?}"))?;
     let replayed = ledger
-        .load()
+        .load_multi_tenant_shards()
         .map_err(|error| format!("audit ledger replay failed: {error:?}"))?;
     if replayed.events() == foundation.audit_chain().events() && replayed.verify() {
         Ok(true)

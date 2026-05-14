@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_data_class_fitness_kernel::{
-    validate_data_class_fitness, FieldIdentity, KernelField, LegacyUnannotatedField,
+use oya_check_data_class::{
+    FieldIdentity, KernelField, LegacyUnannotatedField, validate_data_class_fitness,
 };
 
 use crate::{read_workspace_member_paths, usage};

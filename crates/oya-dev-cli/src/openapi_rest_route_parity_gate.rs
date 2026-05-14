@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use oya_check_openapi_rest_route_parity::{
-    validate, RouteParityInputs, ValidationReport, Violation,
+    RouteParityInputs, ValidationReport, Violation, validate,
 };
 
 use crate::usage;

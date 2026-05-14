@@ -6,12 +6,12 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_storage_kernel::{
+use oya_cloud_storage_domain::{
     BlockVolume, CloudStorageCatalog, CloudStorageError, EncryptionMode, StorageRepo, VolumeCreate,
     VolumePerformance, VolumeState, VolumeTier,
 };
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_platform_residency_kernel::{parse_residency_class_label, ResidencyClass};
+use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_residency_domain::{parse_residency_class_label, ResidencyClass};
 
 pub const CLOUD_STORAGE_BLOCK_CREATE_SURFACE: &str = "cloud.storage.block.create";
 

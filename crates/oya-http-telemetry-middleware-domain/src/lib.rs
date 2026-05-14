@@ -13,8 +13,7 @@ use std::collections::BTreeMap;
 use std::sync::Mutex;
 use std::time::Instant;
 
-use oya_http_middleware_kernel::{Middleware, Next};
-use oya_http_runtime_hyper_adapter::{HyperRequest, HyperResponse};
+use oya_http_middleware_kernel::{HyperRequest, HyperResponse, Middleware, Next};
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct TelemetrySample {

@@ -7,7 +7,7 @@
     "owner_team": "council-architecture + axis-foundry",
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
-    "consumer_drift_anchor": "contracts/ops-workspace-shell.openapi.yaml + contracts/ops-docs.openapi.yaml (Surface.cedar_fragments[] + CedarDenyResponse.cedar_fragment_denied_by)",
+    "consumer_drift_anchor": "contracts/ops-workspace-shell-v1.openapi.yaml + contracts/ops-docs-v1.openapi.yaml (Surface.cedar_fragments[] + CedarDenyResponse.cedar_fragment_denied_by)",
     "linus_critique_anchor": "Honest: 0 of 7 fragments on disk today. Status fields declare WHY each is not-yet-authored (blocked-by-foundation-prerequisite vs planned-wave-5). Drift validator must compare planned vs HEAD-tracked Cedar files and either green-light or fail loudly — never silently allow OpenAPI to reference fragments that nobody will ever write."
   },
   "fragments": [
@@ -21,8 +21,8 @@
       "blocking_reason": "M02-P20 substrate not yet landed in HEAD (parallel session); ops cannot author this fragment standalone — must consume Foundry's canonical version to avoid divergent policy.",
       "expected_landing_wave": "M02-P20",
       "consumed_by_openapi": [
-        "contracts/ops-workspace-shell.openapi.yaml",
-        "contracts/ops-docs.openapi.yaml"
+        "contracts/ops-workspace-shell-v1.openapi.yaml",
+        "contracts/ops-docs-v1.openapi.yaml"
       ]
     },
     {
@@ -34,7 +34,7 @@
       "status": "planned",
       "expected_landing_wave": "wave_5",
       "consumed_by_openapi": [
-        "contracts/ops-workspace-shell.openapi.yaml"
+        "contracts/ops-workspace-shell-v1.openapi.yaml"
       ]
     },
     {
@@ -46,8 +46,8 @@
       "status": "planned",
       "expected_landing_wave": "wave_5",
       "consumed_by_openapi": [
-        "contracts/ops-workspace-shell.openapi.yaml",
-        "contracts/ops-docs.openapi.yaml"
+        "contracts/ops-workspace-shell-v1.openapi.yaml",
+        "contracts/ops-docs-v1.openapi.yaml"
       ]
     },
     {
@@ -59,7 +59,7 @@
       "status": "planned",
       "expected_landing_wave": "wave_5",
       "consumed_by_openapi": [
-        "contracts/ops-workspace-shell.openapi.yaml"
+        "contracts/ops-workspace-shell-v1.openapi.yaml"
       ]
     },
     {
@@ -71,7 +71,7 @@
       "status": "planned",
       "expected_landing_wave": "wave_5",
       "consumed_by_openapi": [
-        "contracts/ops-docs.openapi.yaml"
+        "contracts/ops-docs-v1.openapi.yaml"
       ]
     },
     {
@@ -83,7 +83,7 @@
       "status": "planned",
       "expected_landing_wave": "wave_5",
       "consumed_by_openapi": [
-        "contracts/ops-docs.openapi.yaml"
+        "contracts/ops-docs-v1.openapi.yaml"
       ]
     },
     {
@@ -95,7 +95,7 @@
       "status": "planned",
       "expected_landing_wave": "wave_5",
       "consumed_by_openapi": [
-        "contracts/ops-docs.openapi.yaml"
+        "contracts/ops-docs-v1.openapi.yaml"
       ]
     }
   ],

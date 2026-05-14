@@ -5,7 +5,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 #[test]
 fn shared_cli_entrypoint_remains_public_library_api() {
-    let _entrypoint: fn() -> std::process::ExitCode = oya_tooling_cli_dev_runtime::run_cli_from_env;
+    let _entrypoint: fn() -> std::process::ExitCode = oya_dev_cli::run_cli_from_env;
 }
 
 #[test]
@@ -146,7 +146,7 @@ fn repoctl_pre_push_contract_accepts_wired_fixture() {
     let check_script = write_file(
         &temp,
         "check.sh",
-        "cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push --verify-contract\n",
+        "cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract\n",
     );
     let manifest = write_file(
         &temp,
@@ -156,7 +156,7 @@ fn repoctl_pre_push_contract_accepts_wired_fixture() {
     let hook = write_file(
         &temp,
         "pre-push.sh",
-        "cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push \"$@\"\n",
+        "cargo run -p oya-dev-cli --bin repoctl -- pre-push \"$@\"\n",
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_repoctl"))

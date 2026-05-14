@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M03-P01-IP-005
 title: Cloud region + AZ + cell taxonomy
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Stable cloud.region.list + cloud.az.list with cell-isolation evidence per cell.

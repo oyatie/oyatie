@@ -6,6 +6,9 @@ parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
 status: pending approval
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
   Ship `oya-foundry-adapter-openai-compat-api`: an Axum service that exposes the upstream
   OpenAI Chat-Completions / Embeddings / Models shape and translates incoming requests

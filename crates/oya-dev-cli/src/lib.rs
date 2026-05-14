@@ -2,24 +2,24 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_check_adr_citation::{validate_adr_citations, AdrCitationDocument};
-use oya_check_brand_residue::{validate_brand_residue, BrandResidueDocument};
+use oya_check_adr_citation::{AdrCitationDocument, validate_adr_citations};
+use oya_check_brand_residue::{BrandResidueDocument, validate_brand_residue};
 use oya_check_glossary_vocabulary::{
+    GlossaryVocabularyWarning, GlossaryVocabularyWarningKind, GlossaryVocabularyWarningSource,
+    IgnoredUppercaseWord, VocabularyDocument,
     validate_glossary_vocabulary_hygiene_with_baseline_and_ignored_words,
-    validate_glossary_vocabulary_hygiene_with_ignored_words, GlossaryVocabularyWarning,
-    GlossaryVocabularyWarningKind, GlossaryVocabularyWarningSource, IgnoredUppercaseWord,
-    VocabularyDocument,
+    validate_glossary_vocabulary_hygiene_with_ignored_words,
 };
 use oya_check_license_policy::LicensePolicy;
 use oya_check_mobile_native::{
-    validate_mobile_native, MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
-    MobileNativeProductRecord,
+    MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
+    MobileNativeProductRecord, validate_mobile_native,
 };
 use oya_check_vendor_recency::{
-    validate_vendor_contract_recency, VendorContractRecencyPolicy, VendorContractRecord,
+    VendorContractRecencyPolicy, VendorContractRecord, validate_vendor_contract_recency,
 };
 use oya_foundry_api_semver_domain::validate_api_semver;
-use oya_foundry_cargo_prefix_domain::{validate_cargo_prefix, CargoPrefixMember};
+use oya_foundry_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
 
 mod active_artifact_contract_gate;
 mod api_contract_registry;
@@ -130,8 +130,8 @@ pub(crate) use runbook_gates::{
     validate_runbook_freshness_gate, validate_runbook_index_gate,
 };
 pub(crate) use scalar_parse::{
-    clean_scalar_value, insert_scalar_field, parse_bool_field, parse_u32_field, parse_u64_field,
-    parse_u8_percent, required_field, required_scalar, scalar_value,
+    clean_scalar_value, insert_scalar_field, parse_bool_field, parse_u8_percent, parse_u32_field,
+    parse_u64_field, required_field, required_scalar, scalar_value,
 };
 pub(crate) use supply_chain_gates::{
     parse_release_evidence_pack_validate_args, parse_release_supply_chain_validate_args,

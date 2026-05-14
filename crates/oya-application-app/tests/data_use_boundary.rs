@@ -1,6 +1,6 @@
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationRequest, CapabilityRegistration,
     CostBudgetRegistration, DataClass, Foundation, FoundationError, IdentityRegistration, Purpose,
     RunDisposition, RunState, SubjectClass, TenantCapabilityGrant, TenantRegistration,
@@ -76,7 +76,7 @@ fn capability_invocation_requires_purpose_bound_data_class_grant() {
             namespace: "search".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::PiiIdentifying,
             ])
             .unwrap(),
@@ -93,10 +93,14 @@ fn capability_invocation_requires_purpose_bound_data_class_grant() {
 
     let denied = foundation
         .invoke_capability_as_principal(
-            support::principal(&tenant.id, &user.id, AutonomyTier::T3ExecuteWithApproval),
+            support::principal(
+                &tenant.id,
+                user.id.value.as_str(),
+                AutonomyTier::T3ExecuteWithApproval,
+            ),
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user.id.value.as_str().to_string(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::SearchIndex,
                 subject_class: SubjectClass::Adult,
@@ -151,10 +155,14 @@ fn capability_invocation_requires_purpose_bound_data_class_grant() {
 
     let receipt = foundation
         .invoke_capability_as_principal(
-            support::principal(&tenant.id, &user.id, AutonomyTier::T3ExecuteWithApproval),
+            support::principal(
+                &tenant.id,
+                user.id.value.as_str(),
+                AutonomyTier::T3ExecuteWithApproval,
+            ),
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user.id.value.as_str().to_string(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::SearchIndex,
                 subject_class: SubjectClass::Adult,
@@ -166,11 +174,13 @@ fn capability_invocation_requires_purpose_bound_data_class_grant() {
         .expect("grant allows purpose-bound search indexing");
     assert_eq!(receipt.capability_id, capability.id);
     assert!(foundation.audit_chain().verify());
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| event.surface == "privacy.data-use.grant" && event.decision == "ALLOW"));
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| event.surface == "privacy.data-use.grant" && event.decision == "ALLOW")
+    );
 }
 
 #[test]
@@ -203,7 +213,7 @@ fn minor_subject_ads_are_denied_by_composite_data_use_boundary() {
             namespace: "ads".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T1ViewOnly,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -230,14 +240,14 @@ fn minor_subject_ads_are_denied_by_composite_data_use_boundary() {
 
     let denied = foundation
         .invoke_capability_as_principal(
-            support::principal(&tenant.id, &user.id, AutonomyTier::T2Advisory),
+            support::principal(&tenant.id, user.id.value.as_str(), AutonomyTier::T2Advisory),
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user.id.value.as_str().to_string(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::AdsTargeting,
                 subject_class: SubjectClass::Minor {
-                    age_band: oya_foundation_app::AgeBand::Under13,
+                    age_band: oya_application_app::AgeBand::Under13,
                 },
                 budget_window_id: "2026-05".into(),
                 projected_cost_micros: 10,
@@ -301,7 +311,7 @@ fn ads_action_cannot_underdeclare_effective_data_use_purpose() {
             namespace: "ads".into(),
             action: CapabilityAction::AdsBid,
             required_tier: AutonomyTier::T1ViewOnly,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -328,10 +338,10 @@ fn ads_action_cannot_underdeclare_effective_data_use_purpose() {
 
     let denied = foundation
         .invoke_capability_as_principal(
-            support::principal(&tenant.id, &user.id, AutonomyTier::T2Advisory),
+            support::principal(&tenant.id, user.id.value.as_str(), AutonomyTier::T2Advisory),
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user.id.value.as_str().to_string(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::CapabilityInvocation,
                 subject_class: SubjectClass::Adult,
@@ -344,11 +354,13 @@ fn ads_action_cannot_underdeclare_effective_data_use_purpose() {
 
     assert_eq!(denied, FoundationError::DataUseNotAllowed);
     assert_eq!(foundation.foundry_steps().len(), 0);
-    assert!(!foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| event.surface == "foundry.cost-budget.reserve"));
+    assert!(
+        !foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| event.surface == "foundry.cost-budget.reserve")
+    );
     assert!(foundation.audit_chain().events().iter().any(|event| {
         event.surface == "privacy.data-use.evaluate"
             && event.purpose == Purpose::AdsTargeting
@@ -391,10 +403,12 @@ fn ads_action_cannot_underdeclare_effective_data_use_purpose() {
             .map(String::as_str),
         Some("AdsTargeting")
     );
-    assert!(denied_evidence
-        .fields
-        .value
-        .contains_key("data_use_audit_event_hash"));
+    assert!(
+        denied_evidence
+            .fields
+            .value
+            .contains_key("data_use_audit_event_hash")
+    );
     assert_eq!(
         denied_evidence
             .fields
@@ -443,7 +457,7 @@ fn ads_targeting_pii_is_denied_even_with_recorded_grant() {
             namespace: "ads".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T1ViewOnly,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::PiiIdentifying,
             ])
             .unwrap(),
@@ -477,10 +491,10 @@ fn ads_targeting_pii_is_denied_even_with_recorded_grant() {
 
     let denied = foundation
         .invoke_capability_as_principal(
-            support::principal(&tenant.id, &user.id, AutonomyTier::T2Advisory),
+            support::principal(&tenant.id, user.id.value.as_str(), AutonomyTier::T2Advisory),
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user.id.value.as_str().to_string(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::AdsTargeting,
                 subject_class: SubjectClass::Adult,
@@ -543,7 +557,7 @@ fn analytics_pci_invocation_is_denied_even_with_recorded_grant() {
             namespace: "analytics".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T1ViewOnly,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::Pci,
             ])
             .unwrap(),
@@ -577,10 +591,10 @@ fn analytics_pci_invocation_is_denied_even_with_recorded_grant() {
 
     let denied = foundation
         .invoke_capability_as_principal(
-            support::principal(&tenant.id, &user.id, AutonomyTier::T2Advisory),
+            support::principal(&tenant.id, user.id.value.as_str(), AutonomyTier::T2Advisory),
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user.id.value.as_str().to_string(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::Analytics,
                 subject_class: SubjectClass::Adult,
@@ -602,11 +616,13 @@ fn analytics_pci_invocation_is_denied_even_with_recorded_grant() {
         Some(RunDisposition::FailureClass)
     );
     assert_eq!(foundation.foundry_steps().len(), 0);
-    assert!(!foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| event.surface == "foundry.cost-budget.reserve"));
+    assert!(
+        !foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| event.surface == "foundry.cost-budget.reserve")
+    );
     assert!(foundation.audit_chain().events().iter().any(|event| {
         event.surface == "privacy.data-use.evaluate"
             && event.purpose == Purpose::Analytics
@@ -697,7 +713,7 @@ fn hard_denied_data_classes_cannot_be_enabled_by_recorded_grants() {
                         action: CapabilityAction::Other,
                         required_tier: AutonomyTier::T2Advisory,
                         touched_privacy_data_classes:
-                            oya_foundation_app::privacy_data_classes_from(&[data_class]).unwrap(),
+                            oya_application_app::privacy_data_classes_from(&[data_class]).unwrap(),
                         evidence_topic: "oya.foundry.capability.invoked".into(),
                     })
                     .expect("capability is valid");
@@ -714,13 +730,17 @@ fn hard_denied_data_classes_cannot_be_enabled_by_recorded_grants() {
 
             let denied = foundation
                 .invoke_capability_as_principal(
-                    support::principal(&tenant.id, &user.id, AutonomyTier::T3ExecuteWithApproval),
+                    support::principal(
+                        &tenant.id,
+                        user.id.value.as_str(),
+                        AutonomyTier::T3ExecuteWithApproval,
+                    ),
                     CapabilityInvocationRequest {
                         tenant_id: tenant.id.clone(),
-                        user_id: user.id.clone(),
+                        user_id: user.id.value.as_str().to_string(),
                         capability_id: capability.id.clone(),
                         purpose,
-                        subject_class: oya_foundation_app::SubjectClass::Adult,
+                        subject_class: oya_application_app::SubjectClass::Adult,
                         budget_window_id: "2026-05".into(),
                         projected_cost_micros: 10,
                         started_at_epoch_seconds: 1_000,
@@ -741,9 +761,11 @@ fn hard_denied_data_classes_cannot_be_enabled_by_recorded_grants() {
     }
 
     assert!(foundation.audit_chain().verify());
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| event.surface == "foundry.capability.invoke" && event.decision == "DENY"));
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| event.surface == "foundry.capability.invoke" && event.decision == "DENY")
+    );
 }

@@ -1,3 +1,66 @@
+## 2026-05-14 — P01 foundation full-check closeout
+
+- Promoted the P01 closeout evidence from standalone-gate green to full `./scripts/check.sh` green under Rust 1.95.0 / edition 2024 / rustfmt 2024.
+- Resolved the final shared gate blockers exposed during closeout: glossary cross-doc/vocabulary drift, quality-lane markdown mirror drift, repoctl pre-push manifest wiring, active-artifact/ADR-index drift, and architecture-boundary dependency direction.
+- Recorded IP-009, IP-010, and IP-012 as complete in the P01 index while preserving the P00 acceptance/waiver gate before broad master-plan fan-out.
+
+## 2026-05-14 — scripts/check helper-script blocker resolved
+
+- Restored the four helper scripts invoked at the start of `scripts/check.sh`: Stage 0 Application-shell prereq self-test, M02 exit-checklist renderer, master-plan ledger renderer, and master-plan completion honesty audit.
+- Verified all four helpers with Python compile checks and their check/self-test modes; `scripts/check.sh` now advances past the missing-script blocker and cargo fmt, then reaches the next real shared blocker: `cargo check --workspace --all-targets --all-features` stale connect-domain imports.
+
+## 2026-05-14 — M01-P04-IP-002 object graph property tiers probe
+
+- Added the ontology-domain `ObjectEntity::upsert_property` seam with explicit insert/update outcomes and no-mutation validation failure behavior.
+- Added a true `ObjectGraph::upsert_entity` seam keyed by tenant id + entity id so the stable entity-upsert contract is backed by create/update semantics rather than only property replacement.
+- Exposed the five Object Graph property tiers (`vector`, `timeseries`, `geo`, `ciphertext`, `struct`) as a stable domain set while retaining scalar compatibility for existing property paths.
+- Promoted the machine-readable `object-graph.entity.upsert` mirror to stable and recorded scoped ontology tests, clippy, nextest, metadata, cargo-deny, and content assertions; `scripts/check.sh` remains the shared acceptance blocker.
+
+## 2026-05-14 — M01-P04-IP-001 eventing review fixup
+
+- Made topic registration invariant-safe by keeping `Topic` fields private and revalidating axis/name/description rules inside `TopicRegistry::register`.
+- Added an append-only `v1-published` file-ledger event so published-state transitions for already-persisted outbox records can be durably replayed without rewriting the record prefix.
+- Added regressions for invalid topic revalidation and persist-mark-published-reload behavior; scoped eventing tests, clippy, nextest, cargo-deny, metadata, and content assertions are green while `scripts/check.sh` remains blocked at cargo-check stale connect-domain imports.
+
+## 2026-05-14 — M01-P04-IP-001 eventing outbox/topic registry probe
+
+- Strengthened the eventing outbox kernel so replaying the same tenant/topic/idempotency key with a different payload reference fails instead of silently returning the earlier record.
+- Added `data_class` annotations to eventing kernel struct fields and hardened the file outbox decoder against malformed UTF-8-boundary length prefixes.
+- Corrected the eventing AsyncAPI Proto `$ref` and promoted the machine-readable `eventing.outbox.publish` contract mirror to stable.
+- Scoped eventing tests, clippy, nextest, cargo-deny, metadata, and content assertions are green; repository-wide `scripts/check.sh` now reaches `cargo check --workspace --all-targets --all-features` and is blocked by stale connect-domain imports, so the IP is probe-green / acceptance-blocked rather than complete.
+
+## 2026-05-14 — M01-P03 audit-chain evidence complete
+
+- Promoted the cross-axis audit-chain integrity failure runbook from stub to active Sev-1 procedure with exact one-cycle tamper drill commands.
+- Verified the domain tamper drill and file-ledger divergent/tampered-history drill against the live audit-chain verification surfaces.
+- Marked M01-P03 complete after Merkle + Ed25519 kernel, stable AsyncAPI/Proto contract, and Sev-1 tamper-evidence drill all carried fresh evidence.
+
+## 2026-05-14 — M01-P03-IP-002 audit event AsyncAPI + Proto contract
+
+- Published the stable `audit.event.emit.v1` AsyncAPI/Protobuf source contract with an existing Proto `$ref` target.
+- Promoted the Proto payload to `platform.audit.v1.AuditEvent` and included tenant shard, sequence, SHA-256 hash-chain fields, Merkle root, and Ed25519 signature proof material.
+- Added no-dependency Node contract lint commands for the IP acceptance gate and aligned SPEC plus machine-readable contract stability to stable.
+
+## 2026-05-14 — M01-P03-IP-001 audit-chain Merkle + Ed25519 kernel
+
+- Added SHA-256 Merkle prefix roots and Ed25519 signature types/sign/verify support to `oya-audit-chain-domain` under the Rust 1.95.0 / edition 2024 / rustfmt 2024 stance.
+- Enforced per-tenant-shard append semantics and added regressions for hash-chain tamper, Merkle-root tamper, signature tamper, and missing-signature verification.
+- Updated the file ledger to persist v2 audit records carrying tenant shard, SHA-256 Merkle root, and optional Ed25519 signature fields, with malformed UTF-8 length prefixes rejected as parse errors.
+- Recorded `ed25519-dalek` 2.x stable and `sha2` 0.10.x as the new direct dependencies for the real Ed25519 + SHA-256 kernel; ed25519-dalek 3.x remains prerelease.
+
+## 2026-05-14 — M01-P02 foundation complete
+
+- Completed the identity/Cedar phase: identity user upsert, STS issue/rotation, and Cedar policy publish all have current crate/runtime evidence.
+- Added `oya-platform-policy-cedar-api` to the Rust 1.95.0 / edition 2024 workspace and aligned it to the current `oya-policy-cedar-domain` crate.
+- Strengthened Cedar policy versions with strict semver, tenant/global scope, same-scope older-version supersession, chain lookup, idempotent publish, and active-only authorization.
+- Recorded M01-P02 evidence for IP-001, IP-002, and IP-003; `scripts/check.sh` remains blocked by the pre-existing missing stage0 prereq script.
+
+## 2026-05-14 — M01-P02-IP-002 STS rotation
+
+- Added `rotate_identity_token_from_app` and `PurposeScope` so STS rotation preserves tenant, subject, credential kind, purpose, and scope while requiring the previous STS record to still be active.
+- Kept `identity.token.issue` idempotent and ≤1h, and rejected `long_lived_api_key` at the application parser before typed credential issuance.
+- Added rotation regressions for active re-issue, expired previous tokens, scope escalation, and subject drift under Rust 1.95.0 / edition 2024 / rustfmt 2024.
+
 ## 2026-05-14 — M01-P02-IP-001 identity kernel
 
 - Promoted the identity user kernel to current flat-crate surfaces: `oya-identity-domain` now owns `User`, `UserId`, and required per-region `IdpBinding`.
@@ -20,7 +83,7 @@
 
 ## 2026-05-14 — M01-P01-IP-001 Data Use Boundary ADR accepted
 
-- Promoted ADR-0008 Data Use Boundary from Proposed to Accepted and regenerated the ADR index/machine-readable mirror from all 67 `docs/decisions/ADR-*.md` files (31 Accepted / 36 Proposed, next ADR-0091).
+- Promoted ADR-0008 Data Use Boundary from Proposed to Accepted and regenerated the ADR index/machine-readable mirror from all 67 `docs/decisions/ADR-*.md` files (31 Accepted / 36 Proposed, next ADR number 0091).
 - Published the §2.2.2 consent-tier UI mapping in `docs/PRIVACY-PROGRAM.md`, preserving purpose-permission rows as the authoritative grant model.
 - Recorded the M01-P01-IP-001 scaffold-claim fallback after grit returned the known new/doc-symbol FK failure.
 - Added repo-root `rustfmt.toml` to pin both Rust parsing edition and rustfmt style edition to 2024 under the Rust 1.95.0 stance.

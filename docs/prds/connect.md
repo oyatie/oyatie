@@ -10,7 +10,7 @@ milestone_first_ship: M03-first-paying-tenant
 bominal_source:
   - ADR-0208  # Connect dual-context (Personal + Professional)
   - ADR-0215  # Connect retention / legal hold / dual-context boundary
-  - ADR-0210  # M3 KR group mail launch
+  - ADR-0210  # M03 KR group mail launch
   - ADR-0132  # data ownership pillars (person-pillar for Personal context)
   - ADR-0123  # cross-product auth cookie + redirect contract
 ---
@@ -303,7 +303,7 @@ mail is high-consequence domain per `feedback_quality_performance_scalability_ba
 |---|---|---|
 | Bominal ADR-0208 | Connect dual-context (Personal + Professional) | inherited |
 | Bominal ADR-0215 | Connect retention / legal hold / dual-context boundary | inherited |
-| Bominal ADR-0210 | M3 KR group mail launch | inherited — M03 scope |
+| Bominal ADR-0210 | M03 KR group mail launch | inherited — M03 scope |
 | Bominal ADR-0132 | Data ownership pillars | inherited — person-pillar for Personal |
 | Bominal ADR-0123 | Cross-product auth cookie + redirect contract | inherited |
 | ADR-0056 | BNF v4.1 | naming authority |

@@ -1,13 +1,34 @@
-//! Ops workspace-shell application — orchestration layer per Clean
-//! Architecture: kernel ← domain ← app ← {api, worker, adapter}.
+//! Ops workspace-shell application — use-case orchestration layer.
 //!
-//! Use cases wrap a kernel `SurfaceCatalogPort` impl + project results
-//! through the adapter wire DTOs. Pure std-only; no I/O, no framework deps.
+//! Per ADR-0056 this crate depends only inward on the kernel. REST/OpenAPI
+//! wire projection stays in the presentation/adapter boundary, not here.
 
-use oya_ops_workspace_shell_adapter::{WireHealthResponse, WireSurfaceListResponse};
 use oya_ops_workspace_shell_kernel::{
     Surface, SurfaceCatalogError, SurfaceCatalogPort, SurfaceId, SurfaceState, VisibilityTier,
 };
+
+/// Application response for surface-list use cases before wire projection.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SurfaceList {
+    pub surfaces: Vec<Surface>, // data_class: INTERNAL_ONLY
+    pub count: usize,           // data_class: INTERNAL_ONLY
+}
+
+impl SurfaceList {
+    fn new(surfaces: Vec<Surface>) -> Self {
+        let count = surfaces.len();
+        Self { surfaces, count }
+    }
+}
+
+/// Application health response before wire projection.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ShellHealth {
+    pub status: String,          // data_class: INTERNAL_ONLY
+    pub surface_count: usize,    // data_class: INTERNAL_ONLY
+    pub version: String,         // data_class: INTERNAL_ONLY
+    pub cell_id: Option<String>, // data_class: INTERNAL_ONLY
+}
 
 /// GET /workspace — Live + principal-tier-scoped surfaces.
 pub struct ListLiveSurfacesUseCase<P: SurfaceCatalogPort> {
@@ -19,8 +40,16 @@ impl<P: SurfaceCatalogPort> ListLiveSurfacesUseCase<P> {
         Self { catalog }
     }
 
-    pub fn execute(&self, principal_tier: VisibilityTier) -> WireSurfaceListResponse {
-        WireSurfaceListResponse::live_visible(&self.catalog, principal_tier)
+    pub fn execute(&self, principal_tier: VisibilityTier) -> SurfaceList {
+        let surfaces = self
+            .catalog
+            .list_surfaces()
+            .into_iter()
+            .filter(|s| matches!(s.state, SurfaceState::Live))
+            .filter(|s| tier_allows(principal_tier, s.visibility_tier))
+            .cloned()
+            .collect();
+        SurfaceList::new(surfaces)
     }
 
     pub fn into_inner(self) -> P {
@@ -42,17 +71,16 @@ impl<P: SurfaceCatalogPort> ListAllSurfacesUseCase<P> {
         &self,
         state_filter: Option<SurfaceState>,
         tier_filter: Option<VisibilityTier>,
-    ) -> WireSurfaceListResponse {
-        let surfaces: Vec<oya_ops_workspace_shell_adapter::WireSurface> = self
+    ) -> SurfaceList {
+        let surfaces = self
             .catalog
             .list_surfaces()
             .into_iter()
             .filter(|s| state_filter.map(|st| s.state == st).unwrap_or(true))
             .filter(|s| tier_filter.map(|t| s.visibility_tier == t).unwrap_or(true))
-            .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
+            .cloned()
             .collect();
-        let count = surfaces.len();
-        WireSurfaceListResponse { surfaces, count }
+        SurfaceList::new(surfaces)
     }
 }
 
@@ -110,9 +138,31 @@ impl<P: SurfaceCatalogPort> ShellHealthUseCase<P> {
         }
     }
 
-    pub fn execute(&self) -> WireHealthResponse {
-        WireHealthResponse::from_catalog(&self.catalog, &*self.version, self.cell_id.clone())
+    pub fn execute(&self) -> ShellHealth {
+        ShellHealth {
+            status: "healthy".to_string(),
+            surface_count: self.catalog.count(),
+            version: self.version.clone(),
+            cell_id: self.cell_id.clone(),
+        }
     }
+}
+
+/// Principal-tier visibility ordering: principal sees their tier and every
+/// tier strictly less restrictive than theirs.
+fn tier_rank(tier: VisibilityTier) -> u8 {
+    match tier {
+        VisibilityTier::Public => 0,
+        VisibilityTier::TenantPublic => 1,
+        VisibilityTier::TenantPrivate => 2,
+        VisibilityTier::InternalPublic => 3,
+        VisibilityTier::InternalPrivate => 4,
+        VisibilityTier::SystemOnly => 5,
+    }
+}
+
+fn tier_allows(principal: VisibilityTier, resource: VisibilityTier) -> bool {
+    tier_rank(principal) >= tier_rank(resource)
 }
 
 #[cfg(test)]
@@ -166,16 +216,14 @@ mod tests {
     fn list_live_filters_by_state_and_tier() {
         let use_case = ListLiveSurfacesUseCase::new(populated_catalog());
         let response = use_case.execute(VisibilityTier::Public);
-        // Public principal: only the live-pub surface (Live + Public tier).
         assert_eq!(response.count, 1);
-        assert_eq!(response.surfaces[0].id, "live-pub");
+        assert_eq!(response.surfaces[0].id, SurfaceId("live-pub".into()));
     }
 
     #[test]
     fn list_live_internal_principal_sees_more() {
         let use_case = ListLiveSurfacesUseCase::new(populated_catalog());
         let response = use_case.execute(VisibilityTier::InternalPublic);
-        // Internal-public principal: live-pub + live-internal (both Live).
         assert_eq!(response.count, 2);
     }
 

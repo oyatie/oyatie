@@ -26,6 +26,7 @@ companion_docs:
 # ADR-0057: Cutover Mechanics — Rename Plan v4 (Hybrid C)
 
 > **Status:** Accepted — 2026-05-13
+> **Date:** 2026-05-13
 > **Owner:** `council-architecture`
 > **Supersedes:** ADR-0055 (v3-era rename plan ADR; fitness/freeze/expedite primitives dropped)
 

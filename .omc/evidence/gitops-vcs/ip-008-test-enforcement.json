@@ -1,0 +1,70 @@
+{
+  "$schema": "https://docs.oyatie.dev/schemas/evidence-bundle.schema.json",
+  "evidence_id": "EVT-M-CC-P00-IP-008-TEST-STANDARD-ENFORCEMENT",
+  "work_item": "M-CC-P00-IP-008",
+  "scope": {
+    "owned_paths": [
+      "crates/oya-foundry-vcs-test-standard-gate/**",
+      ".omc/evidence/gitops-vcs/ip-008-test-enforcement.json"
+    ],
+    "external_workspace_blocker": "Workspace cargo is pre-existing broken because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml; no attempt was made to fix it."
+  },
+  "behavior": {
+    "crate": "oya-foundry-vcs-test-standard-gate",
+    "implemented": [
+      "machine-readable unit/integration/contract/e2e/property/fuzz tier definitions",
+      "semantic diff to required tier resolver",
+      "test-suite-registry selection by language, surface, and package",
+      "freshness policy using controller rebase generation and max evidence age",
+      "required evidence vs advisory evidence admission behavior",
+      "generated client and provider/consumer contract accounting",
+      "blocking FixupTask emission for missing, failing, stale, advisory-only, unregistered, and unaccounted cases",
+      "CI/CD-style AdmissionDecision with accepted flag, required tiers, selected suites, advisory evidence, and fixup tasks"
+    ]
+  },
+  "commands": [
+    {
+      "command": "rustfmt --check crates/oya-foundry-vcs-test-standard-gate/src/lib.rs crates/oya-foundry-vcs-test-standard-gate/tests/gitops_vcs_ip_008.rs",
+      "result": "pass",
+      "notes": "Passed after formatting the owned Rust files."
+    },
+    {
+      "command": "rustc --edition=2021 --crate-type lib --crate-name oya_foundry_vcs_kernel crates/oya-foundry-vcs-kernel/src/lib.rs --out-dir /tmp/oyatie-ip008-rustc",
+      "result": "pass",
+      "notes": "Manual dependency build for targeted rustc validation; no workspace cargo used."
+    },
+    {
+      "command": "rustc --edition=2021 --crate-type lib --crate-name oya_foundry_vcs_test_standard_gate crates/oya-foundry-vcs-test-standard-gate/src/lib.rs --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip008-rustc --out-dir /tmp/oyatie-ip008-rustc -D warnings",
+      "result": "pass",
+      "notes": "Targeted library compile with -D warnings."
+    },
+    {
+      "command": "rustc --edition=2021 --test --crate-name oya_foundry_vcs_test_standard_gate crates/oya-foundry-vcs-test-standard-gate/src/lib.rs --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/oyatie-ip008-rustc -D warnings -o /tmp/oyatie-ip008-rustc/oya_foundry_vcs_test_standard_gate_lib_tests && /tmp/oyatie-ip008-rustc/oya_foundry_vcs_test_standard_gate_lib_tests --nocapture",
+      "result": "pass",
+      "summary": "7 passed; 0 failed",
+      "notes": "Unit tests cover tier resolution, freshness, registry selection, blocking required integration/e2e, stale evidence, advisory-only evidence, generated client and contract accounting, and accepted accounting path."
+    },
+    {
+      "command": "rustc --edition=2021 --test crates/oya-foundry-vcs-test-standard-gate/tests/gitops_vcs_ip_008.rs --extern oya_foundry_vcs_kernel=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_kernel.rlib --extern oya_foundry_vcs_test_standard_gate=/tmp/oyatie-ip008-rustc/liboya_foundry_vcs_test_standard_gate.rlib -L dependency=/tmp/oyatie-ip008-rustc -D warnings -o /tmp/oyatie-ip008-rustc/gitops_vcs_ip_008_tests && /tmp/oyatie-ip008-rustc/gitops_vcs_ip_008_tests --nocapture",
+      "result": "pass",
+      "summary": "5 passed; 0 failed",
+      "notes": "Integration-style tests cover deploy edge tier resolution, missing e2e fixup, post-rebase stale evidence, advisory-required blocking, and generated-client accounting."
+    },
+    {
+      "command": "set -o pipefail; cargo test -p oya-foundry-vcs-test-standard-gate --lib 2>&1 | sed -n '1,80p'",
+      "result": "blocked_pre_existing",
+      "exit_code": 101,
+      "stderr_excerpt": "error: failed to load manifest for workspace member `/Users/jasonlee/oyatie/crates/oya-tenancy-kernel` referenced by workspace at `/Users/jasonlee/oyatie/Cargo.toml`; failed to read `/Users/jasonlee/oyatie/crates/oya-tenancy-kernel/Cargo.toml`; No such file or directory (os error 2)",
+      "notes": "Known external cargo workspace blocker disclosed per task instructions."
+    }
+  ],
+  "known_gaps": [
+    "Workspace cargo/nextest evidence remains blocked by missing crates/oya-tenancy-kernel/Cargo.toml outside this slice's write scope."
+  ],
+  "review_cycle_2_fixups": {
+    "timestamp": "2026-05-14T10:19:17.163882Z",
+    "issue": "IP-008 accounting admission accepted records by id/kind without binding source/target artifacts to the changed artifact.",
+    "fix": "Generated-client accounting now requires target_artifact == changed artifact; contract accounting now requires source_artifact or target_artifact == changed artifact.",
+    "verification": "rustfmt check pass; targeted rustc -D warnings IP-008 tests pass: 8 unit + 6 integration, 14 total."
+  }
+}

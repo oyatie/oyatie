@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P00-IP-002
 title: Domain types + state machine + 40+ unit tests (P00-02)
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship ProviderAccount, AuthSession, UsageWindow, SecretReference, ProviderFamily allowlist with state-machine Draft→Verified→Active→Degraded→Disabled→Revoked.
@@ -54,4 +57,9 @@ icm store -t context-oyatie -c 'M02-P00-IP-002 Domain types + state machine + 40
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- One `transition` method on each state owner replaces N×N per-edge guard checks — forbidden edges return a single `InvalidTransition { from, to }` carrying both ends.
+- `Revoked` is modeled as terminal in the type itself (`is_terminal`), not by scattered "if state == Revoked" checks across the codebase.
+- `Degraded { reason }` and `Disabled { reason }` carry their reason in the variant — callers can't lose the cause across boundaries.
+- `check_silent_switch` is the single chokepoint for the silent-account-switch invariant — any new caller is forced through one audit point.
+- `ProviderFamily::try_from` rejects unknown families with the original string in the error, so misconfigured registry entries surface their bad value.

@@ -16,8 +16,10 @@ fn foundry_eval_gate_accepts_signed_passing_eval_artifacts() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("foundry eval validation passed: 1 capabilities, 7 cases, 1 passing runs"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("foundry eval validation passed: 1 capabilities, 7 cases, 1 passing runs")
+    );
 
     fs::remove_dir_all(temp).ok();
 }

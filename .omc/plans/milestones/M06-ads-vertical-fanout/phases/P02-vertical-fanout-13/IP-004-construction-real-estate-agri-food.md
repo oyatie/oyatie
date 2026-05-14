@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M06-P02-IP-004
 title: Construction + Real-Estate + Agriculture + Food verticals (4 packs)
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Author 4 vertical packs in parallel.

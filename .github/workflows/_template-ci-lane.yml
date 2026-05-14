@@ -1,0 +1,77 @@
+# Reusable CI lane template (M-CC-P07-IP-002).
+#
+# Microsoft 1ES-style: every lane is a thin caller of this reusable
+# workflow so toolchain/sccache/cache config lives in exactly one place.
+# A new lane only declares its package glob + acceptance commands.
+#
+# Caller example:
+#
+#   jobs:
+#     image-discipline:
+#       uses: ./.github/workflows/_template-ci-lane.yml
+#       with:
+#         lane-name: image-discipline
+#         package-glob: oya-foundry-fitness-image-discipline-kernel
+#         acceptance-commands: |
+#           cargo nextest run -p oya-foundry-fitness-image-discipline-kernel
+#
+name: _template-ci-lane
+
+on:
+  workflow_call:
+    inputs:
+      lane-name:
+        description: "Human-readable lane name (used in job display)."
+        required: true
+        type: string
+      package-glob:
+        description: "Cargo package selector (one or more `-p NAME` targets)."
+        required: true
+        type: string
+      acceptance-commands:
+        description: "Multi-line shell script run after build."
+        required: true
+        type: string
+      rust-toolchain:
+        description: "rustup toolchain pin."
+        required: false
+        type: string
+        default: "stable"
+
+permissions:
+  contents: read
+
+jobs:
+  lane:
+    name: ${{ inputs.lane-name }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CARGO_TERM_COLOR: always
+      CARGO_INCREMENTAL: "0"
+      RUSTFLAGS: "-D warnings"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain (${{ inputs.rust-toolchain }})
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: ${{ inputs.rust-toolchain }}
+          components: clippy, rustfmt
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@9185c192a96ba09167ad8663015b3f5366e1bb1f
+        with:
+          tool: cargo-nextest
+
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: ${{ inputs.lane-name }}
+
+      - name: Build (${{ inputs.package-glob }})
+        run: cargo build ${{ inputs.package-glob }}
+
+      - name: Acceptance
+        run: ${{ inputs.acceptance-commands }}

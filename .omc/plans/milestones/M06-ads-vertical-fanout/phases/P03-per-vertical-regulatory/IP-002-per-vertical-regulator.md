@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M06-P03-IP-002
 title: Per-vertical regulator binding evidence
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Per-vertical regulator binding evidence collected.

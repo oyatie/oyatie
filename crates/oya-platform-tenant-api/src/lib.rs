@@ -7,8 +7,8 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_residency_kernel::parse_residency_class_label;
-use oya_platform_tenant_kernel::{Tenant, TenantError};
+use oya_residency_domain::parse_residency_class_label;
+use oya_tenancy_domain::{Tenant, TenantError};
 
 pub const TENANT_CREATE_SURFACE: &str = "tenant.create";
 pub const TENANT_CREATE_OPENAPI_CONTRACT: &str =
@@ -579,7 +579,7 @@ fn tenant_from_request(body: &TenantCreateRequest) -> Result<Tenant, TenantCreat
 
 fn parse_api_residency_class(
     label: &str,
-) -> Result<oya_platform_residency_kernel::ResidencyClass, TenantCreateApiError> {
+) -> Result<oya_residency_domain::ResidencyClass, TenantCreateApiError> {
     parse_residency_class_label(label).ok_or(TenantCreateApiError::InvalidResidencyClass {
         residency_class: label.to_string(),
     })

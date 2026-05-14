@@ -5,13 +5,13 @@ use oya_cloud_compute_functions_api::{
     CloudComputeFunctionsInvokeApiStatus, CloudComputeFunctionsInvokeIdempotencyLedger,
     CloudComputeFunctionsInvokeRequest, CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE,
 };
-use oya_cloud_compute_kernel::{
+use oya_cloud_compute_domain::{
     CloudComputeCatalog, CloudComputeError, ComputeRepo, FunctionDeploymentCreate,
     FunctionDeploymentState,
 };
-use oya_cloud_resource_kernel::FunctionRuntime;
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_cloud_resource_domain::FunctionRuntime;
+use oya_data_boundary_kernel::DataClass;
+use oya_residency_domain::ResidencyClass;
 
 const FUNCTION_ID: &str = "oya:cloud:kr-seoul:ten_kr:function:image-resize";
 const DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";

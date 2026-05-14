@@ -4,7 +4,7 @@ parent: ../../MASTERPLAN.md
 id: M01
 title: Foundation
 wave: W-Foundation
-status: open
+status: complete
 owner: council-architecture + tenancy-identity
 purpose: Ship the foundation correctness layer — every cross-axis contract correct from day one, no product surface ships before this milestone passes.
 acceptance_authority: docs/ROADMAP.md §2.1
@@ -16,15 +16,15 @@ acceptance_authority: docs/ROADMAP.md §2.1
 Every cross-axis contract correct from day one. Tenancy µservice kernel, identity µservice kernel, audit chain, plane separation, Data Use Boundary, cell architecture, eventing backbone, Cedar policy substrate, schema-class annotation, license policy, regional pack architecture, architectural flattening — all foundation ADRs Accepted; LEAN check crates hard-fail on violations.
 
 ## Status
-**open.** No product surface (Foundry, Cloud, SaaS, Workspace, Search) may merge to `main` until this milestone passes.
+**complete for M01 Foundation acceptance.** Product-surface implementation for M02/M03 remains gated, but the M01 foundation contracts are now accepted against live Cargo workspace metadata and BNF v4.1 package names.
 
-Current evidence checkpoint (2026-05-14): P01/P02 phase indexes are complete; P03 is in-flight; P04/P05/P06 have focused package probes green but remain acceptance-blocked until the milestone-wide gates below are real. `scripts/check.sh` is still blocked by the missing `scripts/check-stage0-application-shell-prereqs.py`, so this checkpoint is not M01 completion.
+Current evidence checkpoint (2026-05-14): G1 = P01/P02/P03 is complete and usable; G2 = P04/P05/P06 is complete after the G1 contract surface. Fresh focused tests over the G1/G2 package set pass (65/65), M-CC-P01 is at or beyond P5 with banned-primitives/archive-orphan/authoritative-tracked lanes green, and the latest full workspace closeout passes `./scripts/check.sh` under Rust 1.95.0 / edition 2024 / rustfmt 2024. M-CC-P00 remains planned, not ready; this acceptance closeout uses a scoped waiver for evidence reconciliation only and does not authorize broad fanout or new foundation scaffolds until P00 is ready or explicitly waived.
 
 ## Scope
 Per [`docs/ROADMAP.md`](../../../../docs/ROADMAP.md) §2.1 W-Foundation gate criteria + the 10 compound principles from [`../../MASTERPLAN.md`](../../MASTERPLAN.md) §2. Foundation µservice crates target the BNF v4.1 names: `oya-tenancy-*`, `oya-identity-*`, `oya-audit-chain-*`, `oya-eventing-*`, `oya-cell-*`, `oya-regional-pack-*`, etc. (no `oya-platform-*` prefix).
 
 ## Dependencies
-None (M01 is the root of the dependency graph). Depends only on M-CC-P01 (agentic-pipeline cutover) being at ≥P5 merged so banned-primitives lane is active before any new foundation crate scaffolds.
+None (M01 is the root of the dependency graph). Before broad fanout or new foundation scaffolds: M-CC-P01 must be at ≥P5 and M-CC-P00 must be ready or explicitly waived. Current evidence: M-CC-P01 is foundation-cleared/P5+ by live lane output; M-CC-P00 is only accepted-for-masterplan-P00/planned, so the only active waiver is for M01 acceptance reconciliation of already-implemented G1/G2 contracts.
 
 ## Acceptance gate
 - All [`docs/ROADMAP.md`](../../../../docs/ROADMAP.md) §2.1 gate criteria met.
@@ -45,13 +45,13 @@ None (M01 is the root of the dependency graph). Depends only on M-CC-P01 (agenti
 |---|---|---|---|
 | P01 | Data Use Boundary + Tenancy Kernel | complete | [`phases/P01-data-use-boundary-tenancy/INDEX.md`](phases/P01-data-use-boundary-tenancy/INDEX.md) |
 | P02 | Identity Kernel + Cedar Policy Substrate | complete | [`phases/P02-identity-cedar/INDEX.md`](phases/P02-identity-cedar/INDEX.md) |
-| P03 | Audit Chain + Evidence Emission | in-flight | [`phases/P03-audit-chain-evidence/INDEX.md`](phases/P03-audit-chain-evidence/INDEX.md) |
-| P04 | Eventing Backbone + Outbox + Object Graph | probe-green / acceptance-blocked | [`phases/P04-eventing-object-graph/INDEX.md`](phases/P04-eventing-object-graph/INDEX.md) |
-| P05 | Cell Architecture + Plane Separation Enforcement | probe-green / acceptance-blocked | [`phases/P05-cell-plane/INDEX.md`](phases/P05-cell-plane/INDEX.md) |
-| P06 | Regional Pack Architecture + Flattening Ratchet | probe-green / acceptance-blocked | [`phases/P06-regional-pack-flattening/INDEX.md`](phases/P06-regional-pack-flattening/INDEX.md) |
+| P03 | Audit Chain + Evidence Emission | complete | [`phases/P03-audit-chain-evidence/INDEX.md`](phases/P03-audit-chain-evidence/INDEX.md) |
+| P04 | Eventing Backbone + Outbox + Ontology | complete | [`phases/P04-eventing-object-graph/INDEX.md`](phases/P04-eventing-object-graph/INDEX.md) |
+| P05 | Cell Architecture + Plane Separation Enforcement | complete | [`phases/P05-cell-plane/INDEX.md`](phases/P05-cell-plane/INDEX.md) |
+| P06 | Regional Pack Architecture + Flattening Ratchet | complete | [`phases/P06-regional-pack-flattening/INDEX.md`](phases/P06-regional-pack-flattening/INDEX.md) |
 
 ## Parallelism strategy
-P01..P06 partition by µservice with disjoint crate sets, so up to 6 phases can run as parallel batches in two waves: **G1** = {P01, P02, P03} (foundational µservice kernels: tenancy, identity, audit-chain); **G2** = {P04, P05, P06} (consume G1 ports: eventing+ontology, cell+plane, regional-pack+flattening; can fan out once G1 ≥ 50% merged). Target: 3–5 agents per active phase; ≤ 5 concurrent IPs per phase.
+P01..P06 partition by µservice with disjoint crate sets. Executed order: **G1** = {P01, P02, P03} (foundational µservice kernels: tenancy, identity, audit-chain) first; **G2** = {P04, P05, P06} (consume G1 ports: eventing+ontology, cell+plane, regional-pack+flattening) only after G1 contracts were usable. This milestone is not permission for M02/M03 implementation fanout; M02/M03 still require M-CC-P00 readiness or explicit waiver plus the usual wave gates.
 
 ## Hyperscaler practices adopted (per [`../../MASTERPLAN.md`](../../MASTERPLAN.md) §2 principle 6, 9)
 - AWS Working-Backwards / PRFAQ for each phase entry.

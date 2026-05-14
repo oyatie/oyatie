@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M02-P04
 title: Transport Parity + Write-Gate Foundations
-status: stub
+status: complete
 purpose: Same use-case ports across REST / GraphQL / SSE / WebSocket (Phase 00); foundations for gRPC / Webhook / Kafka write-gates (Phase 05).
 ---
 
@@ -21,9 +21,9 @@ Per [`../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md`](.
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | REST + GraphQL API transports | stub | [`IP-001-rest-graphql-transports.md`](IP-001-rest-graphql-transports.md) |
-| IP-002 | SSE + WebSocket subscription transports | stub | [`IP-002-sse-websocket-transports.md`](IP-002-sse-websocket-transports.md) |
-| IP-003 | Write-gate foundations ADR + state machine | stub | [`IP-003-write-gate-foundations.md`](IP-003-write-gate-foundations.md) |
+| IP-001 | REST + GraphQL API transports | complete | [`IP-001-rest-graphql-transports.md`](IP-001-rest-graphql-transports.md) |
+| IP-002 | SSE + WebSocket subscription transports | complete | [`IP-002-sse-websocket-transports.md`](IP-002-sse-websocket-transports.md) |
+| IP-003 | Write-gate foundations ADR + state machine | complete | [`IP-003-write-gate-foundations.md`](IP-003-write-gate-foundations.md) |
 
 ## Estimated parallelism
 3 agents; transports disjoint per crate.

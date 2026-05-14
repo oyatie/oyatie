@@ -2,9 +2,9 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_quality_lane_kernel::{
-    validate_quality_lanes, QualityLaneDocRow, QualityLaneRecord, QualityLaneStage,
-    QualityLaneStatus,
+use oya_check_quality_lane::{
+    QualityLaneDocRow, QualityLaneRecord, QualityLaneStage, QualityLaneStatus,
+    validate_quality_lanes,
 };
 
 use crate::{clean_yaml_value, list_team_ids, usage};

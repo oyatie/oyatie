@@ -62,6 +62,7 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 
 | id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |
 |---|---|---|---|---|---|---|---|
+| `doc.masterplan` | `MASTERPLAN.md` | `council-architecture` | master-plan authority or sequencing change | per change + quarterly | PRD.md, DESIGN.md, ROADMAP.md, RACI-OWNERSHIP.md, RISK-REGISTER.md | `master-plan-completion`, `doc-catalog-self-coverage` | NO |
 | `doc.constitution` | `CONSTITUTION.md` | `council-architecture` | authority / constitutional contract change | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
 | `doc.agents` | `AGENTS.md` | `axis-foundry` + `council-architecture` | agent operating-contract change | quarterly | CONSTITUTION.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
 | `doc.prd` | `PRD.md` | `council-architecture` | EVT-AXIS-SCOPE-CHANGE, EVT-PRICING-CHANGE, EVT-VERTICAL-ADDED | quarterly | DESIGN.md, ROADMAP.md, GTM-PLAN.md, products/*/PRD.md | `prd-internal-consistency`, `prd-axis-coverage`, `prd-glossary-alignment` | NO — council-only |
@@ -109,6 +110,8 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.doc_catalog` | `DOC-CATALOG.md` (this doc) | `council-architecture` | canonical doc added/removed | per change + monthly | (all canonical docs) | `doc-catalog-self-coverage` | NO |
 | `doc.doc_update_protocol` | `DOC-UPDATE-PROTOCOL.md` | `council-architecture` | protocol change | quarterly | (all canonical docs) | `doc-catalog-self-coverage` | NO |
 | `doc.documentation` | `DOCUMENTATION.md` | `council-architecture` | documentation-system contract change | quarterly | DOC-CATALOG.md, README.md | `doc-catalog-self-coverage`, `documentation-system` | NO |
+| `doc.doc_coverage` | `DOC-COVERAGE.md` | `axis-foundry` + `council-architecture` | documentation-suite coverage snapshot regeneration | per change | DOCUMENTATION.md, DOC-CATALOG.md | `documentation-system`, `doc-catalog-self-coverage` | YES — auto-emitted by documentation coverage tooling |
+| `doc.agent_instruction_sources` | `AGENT-INSTRUCTION-SOURCES.md` | `axis-foundry` + `council-architecture` | agent-instruction source inventory changes | per change | AGENTS.md, DOC-CATALOG.md | `banned-primitives`, `doc-catalog-self-coverage` | YES — agent may re-emit inventory after source audit |
 | `doc.standards_and_templates` | `STANDARDS-AND-TEMPLATES.md` | `axis-foundry` + `council-architecture` | standard or template change | quarterly | DOC-CATALOG.md, TOOLCHAIN.md | `doc-catalog-self-coverage` | NO |
 | `doc.toolchain` | `TOOLCHAIN.md` | `axis-foundry` | toolchain or CI contract change | quarterly | RELEASE-MANAGEMENT.md, STANDARDS-AND-TEMPLATES.md | `release-lane-coverage` | NO |
 | `doc.mistakes_ledger` | `MISTAKES-LEDGER.md` | `council-architecture` | mistake discovered, remediated, or escalated | monthly | CONTRADICTION-LEDGER.md, RUNBOOKS-INDEX.md | `runbook-orphan-check` | NO |

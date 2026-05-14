@@ -1,6 +1,6 @@
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AgeBand, AutonomyTier, CapabilityAction, CapabilityInvocationRequest, CapabilityRegistration,
     CostBudgetRegistration, DataClass, EvidenceKind, Foundation, FoundationError,
     IdentityRegistration, Purpose, RunDisposition, RunState, SubjectClass, TenantCapabilityGrant,
@@ -299,7 +299,7 @@ fn register_capability_with_action(
             namespace: namespace.into(),
             action,
             required_tier,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(
                 &touched_data_classes,
             )
             .unwrap(),
@@ -381,11 +381,11 @@ fn assert_autonomy_denial(foundation: &Foundation, expected_source: &str, expect
             .map(String::as_str),
         Some(expected_reason)
     );
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| { event.surface == "foundry.autonomy.decision" && event.decision == "DENY" }));
+    assert!(
+        foundation.audit_chain().events().iter().any(|event| {
+            event.surface == "foundry.autonomy.decision" && event.decision == "DENY"
+        })
+    );
 }
 
 fn assert_evidence_field(foundation: &Foundation, field: &str, expected: &str) {

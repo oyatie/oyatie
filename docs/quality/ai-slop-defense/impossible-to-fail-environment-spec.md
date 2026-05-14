@@ -57,7 +57,7 @@ shed multiple lanes — but it must be at least one-to-one.
 | MFL-0001 ADR citation drift | `oya-foundry-fitness-adr-citation` | shipped |
 | MFL-0002 brand alias residue | `oya-foundry-fitness-brand-residue` | shipped |
 | MFL-0003 retired-vocab leak | `oya-foundry-fitness-glossary` | target |
-| MFL-0004 CUG terminology drift | `oya-foundry-fitness-glossary` | target |
+| MFL-0004 Team terminology drift | `oya-foundry-fitness-glossary` | target |
 | MFL-0005 cross-axis contract drift | `oya-foundry-fitness-blast-radius` | target |
 | MFL-0006 external dep without ledger | `oya-foundry-fitness-build-vs-buy` + `oya-foundry-fitness-dep-allowlist` (new) | target |
 | MFL-0007 AGPL/GPL leak | `oya-foundry-fitness-license` | target |
@@ -193,7 +193,7 @@ prevented) to the impossible-to-fail steady state:
 ## 10. Why this is "final shape"
 
 Per [MASTERPLAN Directive 3 (final shape)](../../plans/MASTERPLAN.md),
-there is no MVP path. The architecture above is the end state.
+there is no prototype-shortcut path. The architecture above is the end state.
 Iteration happens only within each layer (lane authoring per new
 failure mode); the **layering itself** does not iterate. The number of
 layers is fixed at 9 because the failure-mode classes saturate against

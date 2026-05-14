@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_identity_kernel::{IdentityError, User};
+use oya_identity_domain::{IdentityError, IdpBinding, User};
 
 pub const IDENTITY_USER_UPSERT_SURFACE: &str = "identity.user.upsert";
 pub const IDENTITY_USER_UPSERT_OPENAPI_CONTRACT: &str =
@@ -598,15 +598,15 @@ pub fn upsert_identity_user_from_api(
     let user_key = directory_key_for(&request.body.tenant_id, &request.body.user_id);
     let primary_key =
         primary_identifier_key_for(&request.body.tenant_id, &request.body.primary_identifier);
-    if let Some(existing_user_id) = directory.primary_identifiers.get(&primary_key) {
-        if existing_user_id != &request.body.user_id {
-            return Err(IdentityUserUpsertApiError::PrimaryIdentifierConflict {
-                tenant_id: request.body.tenant_id,
-                primary_identifier: request.body.primary_identifier,
-                existing_user_id: existing_user_id.clone(),
-                requested_user_id: request.body.user_id,
-            });
-        }
+    if let Some(existing_user_id) = directory.primary_identifiers.get(&primary_key)
+        && existing_user_id != &request.body.user_id
+    {
+        return Err(IdentityUserUpsertApiError::PrimaryIdentifierConflict {
+            tenant_id: request.body.tenant_id,
+            primary_identifier: request.body.primary_identifier,
+            existing_user_id: existing_user_id.clone(),
+            requested_user_id: request.body.user_id,
+        });
     }
 
     let result = if directory.users.contains_key(&user_key) {
@@ -765,12 +765,21 @@ fn validate_tenant_id_shape(tenant_id: &str) -> Result<(), IdentityUserUpsertApi
 }
 
 fn user_from_request(body: &IdentityUserUpsertRequest) -> Result<User, IdentityUserUpsertApiError> {
+    let idp_binding = IdpBinding::new(
+        body.region_pack.clone(),
+        body.identity_provider_id.clone(),
+        body.external_subject.clone(),
+        0,
+    )
+    .map_err(IdentityUserUpsertApiError::Identity)?;
+
     User::new(
         body.tenant_id.clone(),
         body.user_id.clone(),
         body.primary_identifier.clone(),
         body.display_name.clone(),
         body.roles.iter().map(|role| role.value.clone()).collect(),
+        idp_binding,
     )
     .map_err(IdentityUserUpsertApiError::Identity)
 }
@@ -857,8 +866,8 @@ fn identity_user_upsert_fingerprint_for(
 
 fn user_record(entry: &IdentityUserDirectoryEntry) -> IdentityUserRecord {
     IdentityUserRecord {
-        tenant_id: entry.user.tenant_id.clone(),
-        user_id: entry.user.id.clone(),
+        tenant_id: entry.user.tenant_id.value.clone(),
+        user_id: entry.user.id.value.as_str().to_string(),
         primary_identifier: entry.user.primary_identifier.value.clone(),
         display_name: entry.user.display_name.value.clone(),
         roles: entry
@@ -881,6 +890,10 @@ fn identity_error_code(error: &IdentityError) -> IdentityUserUpsertApiErrorCode 
     match error {
         IdentityError::InvalidTenantId => IdentityUserUpsertApiErrorCode::IdentityInvalidTenant,
         IdentityError::InvalidUserId => IdentityUserUpsertApiErrorCode::IdentityInvalidUser,
+        IdentityError::InvalidRegionPack => IdentityUserUpsertApiErrorCode::RegionPackInvalid,
+        IdentityError::InvalidIdentityProviderId => {
+            IdentityUserUpsertApiErrorCode::IdentityProviderInvalid
+        }
         IdentityError::InvalidServicePrincipalId => {
             IdentityUserUpsertApiErrorCode::IdentityInvalidServicePrincipal
         }
@@ -890,6 +903,7 @@ fn identity_error_code(error: &IdentityError) -> IdentityUserUpsertApiErrorCode 
         IdentityError::EmptyPrimaryIdentifier => {
             IdentityUserUpsertApiErrorCode::IdentityPrimaryIdentifierEmpty
         }
+        IdentityError::EmptyExternalSubject => IdentityUserUpsertApiErrorCode::ExternalSubjectEmpty,
         IdentityError::TokenTtlTooLong => IdentityUserUpsertApiErrorCode::IdentityTokenTtlTooLong,
         IdentityError::TokenTtlZero => IdentityUserUpsertApiErrorCode::IdentityTokenTtlZero,
         IdentityError::MissingCredentialScope => {
@@ -905,11 +919,16 @@ fn identity_error_message(error: &IdentityError) -> &'static str {
     match error {
         IdentityError::InvalidTenantId => "Tenant id must be a ten_ identifier",
         IdentityError::InvalidUserId => "User id must be a usr_ identifier",
+        IdentityError::InvalidRegionPack => "Region pack must be an oya-pack-* identifier",
+        IdentityError::InvalidIdentityProviderId => {
+            "Identity provider id must be an idp_* identifier"
+        }
         IdentityError::InvalidServicePrincipalId => {
             "Service principal id must be an sp_ identifier"
         }
         IdentityError::InvalidCapabilityId => "Capability id must be a cap.* identifier",
         IdentityError::EmptyPrimaryIdentifier => "Primary identifier is required",
+        IdentityError::EmptyExternalSubject => "External IdP subject is required",
         IdentityError::TokenTtlTooLong => "Token ttl exceeds maximum",
         IdentityError::TokenTtlZero => "Token ttl must be positive",
         IdentityError::MissingCredentialScope => "At least one credential scope is required",
@@ -921,9 +940,12 @@ fn identity_error_issue(error: &IdentityError) -> &'static str {
     match error {
         IdentityError::InvalidTenantId => "tenant_id must start with ten_",
         IdentityError::InvalidUserId => "user_id must start with usr_",
+        IdentityError::InvalidRegionPack => "region_pack must start with oya-pack-",
+        IdentityError::InvalidIdentityProviderId => "identity_provider_id must start with idp_",
         IdentityError::InvalidServicePrincipalId => "service_principal_id must start with sp_",
         IdentityError::InvalidCapabilityId => "owning_capability_id must start with cap.",
         IdentityError::EmptyPrimaryIdentifier => "primary_identifier must be non-empty",
+        IdentityError::EmptyExternalSubject => "external_subject must be non-empty",
         IdentityError::TokenTtlTooLong => "ttl_seconds must be at most one hour",
         IdentityError::TokenTtlZero => "ttl_seconds must be greater than zero",
         IdentityError::MissingCredentialScope => "scopes must be non-empty",

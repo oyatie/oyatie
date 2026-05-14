@@ -1,4 +1,4 @@
-use oya_cloud_storage_kernel::{
+use oya_cloud_storage_domain::{
     BucketCreate, BucketState, BucketTier, CloudStorageCatalog, CloudStorageError, EncryptionMode,
     ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,
 };
@@ -12,8 +12,8 @@ use oya_cloud_storage_object_api::{
     CloudStorageObjectReadBoundaryContext, CLOUD_STORAGE_OBJECT_GET_SURFACE,
     CLOUD_STORAGE_OBJECT_PUT_SURFACE,
 };
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
+use oya_residency_domain::ResidencyClass;
 
 const BUCKET_ID: &str = "oya:cloud:kr-seoul:ten_kr:bucket:tenant-assets";
 const OBJECT_KEY: &str = "workspace/report.pdf";

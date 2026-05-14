@@ -288,10 +288,10 @@ fn parse_bc_pairs(text: &str) -> Vec<(String, String)> {
             current_bc = Some(v);
             continue;
         }
-        if let Some(v) = json_field(trimmed, "microservice_id") {
-            if let Some(bc) = current_bc.take() {
-                out.push((bc, v));
-            }
+        if let Some(v) = json_field(trimmed, "microservice_id")
+            && let Some(bc) = current_bc.take()
+        {
+            out.push((bc, v));
         }
     }
     out
@@ -322,10 +322,10 @@ fn parse_fragment_consumed_pairs(text: &str) -> Vec<(String, Vec<String>)> {
                 continue;
             }
             let inner = trimmed.trim_end_matches(',');
-            if let Some(stripped) = inner.strip_prefix('"') {
-                if let Some(value) = stripped.strip_suffix('"') {
-                    current_consumed.push(value.to_string());
-                }
+            if let Some(stripped) = inner.strip_prefix('"')
+                && let Some(value) = stripped.strip_suffix('"')
+            {
+                current_consumed.push(value.to_string());
             }
         }
     }
@@ -420,14 +420,14 @@ serde = "1"
     {
       "fragment_id": "ops-internal-public",
       "consumed_by_openapi": [
-        "contracts/ops-workspace-shell.openapi.yaml",
-        "contracts/ops-docs.openapi.yaml"
+        "contracts/ops-workspace-shell-v1.openapi.yaml",
+        "contracts/ops-docs-v1.openapi.yaml"
       ]
     },
     {
       "fragment_id": "ops-tenant-private",
       "consumed_by_openapi": [
-        "contracts/ops-workspace-shell.openapi.yaml"
+        "contracts/ops-workspace-shell-v1.openapi.yaml"
       ]
     }
   ]

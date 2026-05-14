@@ -11,11 +11,13 @@ LEGACY_IMPLEMENTATION_DIRS = ("modules", "services", "platform")
 ALLOWED_DEPENDENCY_ROLES = {
     "kernel": {"kernel"},
     "domain": {"kernel", "domain"},
-    "app": {"kernel", "domain", "adapter"},
+    "application": {"kernel", "domain"},
+    "app": {"kernel", "domain", "application", "adapter"},
     "api": {"kernel", "domain", "app"},
     "worker": {"kernel", "domain", "app"},
     "adapter": {"kernel", "domain"},
-    "runtime": {"kernel", "domain", "app", "api", "worker", "adapter", "runtime"},
+    "rest": {"kernel", "domain", "application", "adapter"},
+    "runtime": {"kernel", "domain", "app", "application", "api", "worker", "adapter", "rest", "runtime"},
 }
 
 
@@ -86,10 +88,11 @@ def validate_architecture(metadata, catalog_records, root, legacy_dirs_present=N
         manifest_parent = pathlib.Path(package["manifest_path"]).parent
         relative_manifest_parent = relative_path(manifest_parent, root)
         expected_parent = pathlib.Path("crates") / name
-        if relative_manifest_parent != expected_parent:
+        tool_parent = pathlib.Path("tools") / name
+        if relative_manifest_parent not in {expected_parent, tool_parent}:
             actual = str(relative_manifest_parent) if relative_manifest_parent else str(manifest_parent)
             errors.append(
-                f"workspace package {name} must live at {expected_parent}, found {actual}"
+                f"workspace package {name} must live at {expected_parent} or {tool_parent}, found {actual}"
             )
 
         if name not in catalog_records:

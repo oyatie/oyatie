@@ -1,6 +1,6 @@
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationPrincipal, CapabilityInvocationRequest,
     CapabilityRegistration, CostBudgetRegistration, DataClass, Foundation, FoundationError,
     IdentityRegistration, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion, Purpose,
@@ -166,7 +166,7 @@ fn cedar_policy_can_deny_on_agentic_ads_cap_context() {
             namespace: "ads".into(),
             action: CapabilityAction::AdsBid,
             required_tier: AutonomyTier::T1ViewOnly,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -242,7 +242,7 @@ fn foundation_with_capability() -> Foundation {
             namespace: "demo".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),

@@ -243,6 +243,7 @@ impl AuditEventEmitAppError {
             | Self::AuthorizationDenied { .. }
             | Self::EnvelopePayloadTenantMismatch { .. } => AuditEventEmitAppStatus::Forbidden,
             Self::IdempotencyKeyReused { .. }
+            | Self::Eventing(EventingError::IdempotencyReplayMismatch)
             | Self::Eventing(EventingError::DuplicateTopic)
             | Self::Eventing(EventingError::TopicNotFound)
             | Self::Eventing(EventingError::OutboxRecordNotFound)

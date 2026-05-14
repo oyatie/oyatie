@@ -1,6 +1,6 @@
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityRegistration, DataClass, Foundation, FoundationError,
 };
 
@@ -12,7 +12,7 @@ fn foundation_capability_publish_requires_passing_eval_gate() {
         namespace: "demo".into(),
         action: CapabilityAction::Other,
         required_tier: AutonomyTier::T1ViewOnly,
-        touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+        touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
             DataClass::InternalOnly,
         ])
         .unwrap(),

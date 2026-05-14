@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use oya_foundation_app::{
+use oya_application_app::{
     AdversarialKind, AutonomyTier, CapabilityInvocationPrincipal, DataClass, EvalCaseInput,
     EvalMetric, EvalRunInput, EvalSetInput, Foundation, PolicyEffect, PolicyRuleInput, PolicyScope,
     PolicyVersion, PrivacyDataClass,

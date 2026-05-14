@@ -41,7 +41,7 @@ Each is a BC inside `ops` µservice. All share the same Leptos SSR + SPA islands
 | `schema` | Ontology Object Type / Link Type / Action Type / Function Type browser; BC registry; entity-graph viewer | Ontology µservice (`oya-ontology-*`) + workspace metadata + `[package.metadata.oya]` per crate |
 | `tech-stack` | Live cargo dep graph at crate level; per-crate versions; per-crate license; per-crate supply-chain attestation | cargo_metadata + cargo-deny + Cosign attestations |
 | `architecture` | Product-graph (M01-M12+); 9 architecture planes (per Bominal ADR-0224..0231 inheritance); LEAN check lane state | product-graph extractor + 14 LEAN lane results |
-| `health` | SLO / SLI / error-budget dashboards per µservice per cell; alert state; on-call schedule | OTel + VictoriaMetrics + PagerDuty-equivalent (oyatie-native or external adapter) |
+| `health` | SLO / SLI / error-budget dashboards per µservice per cell; alert state; on-call schedule | OTel + VictoriaMetrics + PagerDuty-equivalent (Oyatie-native or external adapter) |
 | `tenant-mgmt` | Active-tenant inventory; per-tenant µservice enablement; cell-binding; billing state; data-residency posture | Tenancy µservice + cloud-billing µservice + Application B2B shell |
 | `user-mgmt` | Org users; roles (Cedar); passkey state; SSO config; session inventory | Identity µservice + Policy µservice |
 | `observability` | Trace / log / metric / event explorers (Foundry-grade); cross-µservice trace stitching | OTel + VictoriaMetrics + audit-chain segment viewer |
@@ -166,7 +166,7 @@ The four primary protected contracts on `ops.oyatie.com` itself:
 | **Docs portal only, expand later** | User's "everything ops will live here" directive is explicit; deferring ops surfaces just means tenants and internal team rely on external tools (Datadog, PagerDuty, etc.) longer. Rejected. |
 | **Use Application B2B shell as the ops portal directly (no separate µservice)** | Application is the product-enablement console (per ADR-0061); its scope is "which products is this tenant subscribed to." Ops portal scope is "what's the state of everything." Different abstraction; rejected. |
 | **Per-µservice admin UIs** (e.g., each µservice ships its own admin surface) | Hidden ops state per-µservice; no cross-µservice view; agents can't query a single manifest endpoint. Rejected per ADR-0066 single-pane requirement. |
-| **External tools (Datadog, Grafana, PagerDuty)** | oyatie quality bar is industry-leader parity, not "pay the industry leaders for the surface" (per `feedback_quality_performance_scalability_bar`). External tools also can't enforce Cedar policy on oyatie's per-tenant scope, can't surface oyatie-specific audit-chain or ICM/grit state. Rejected for primary ops; may integrate as data sources via adapters. |
+| **External tools (Datadog, Grafana, PagerDuty)** | oyatie quality bar is industry-leader parity, not "pay the industry leaders for the surface" (per `feedback_quality_performance_scalability_bar`). External tools also can't enforce Cedar policy on oyatie's per-tenant scope, can't surface Oyatie-specific audit-chain or ICM/grit state. Rejected for primary ops; may integrate as data sources via adapters. |
 
 ---
 

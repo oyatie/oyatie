@@ -38,7 +38,7 @@ Twilio / Rust / Java).
 | Axis | Scheme | Example | Source of truth | Hyperscaler precedent |
 |---|---|---|---|---|
 | **Crate / SDK / library** | SemVer 2.0.0 | `oya-foundry-control-kernel v3.4.1` | `Cargo.toml` workspace | AWS SDK for Rust, Google libraries, Azure SDK, OCI SDK |
-| **Product / platform** | SemVer-derived | `oyatie-v3.4.0` | `release/X.Y` tag | Kubernetes (`v1.30.0`), .NET (`net10`), Java (`21 LTS`) |
+| **Product / platform** | SemVer-derived | `oya-v3.4.0` | `release/X.Y` tag | Kubernetes (`v1.30.0`), .NET (`net10`), Java (`21 LTS`) |
 | **External API** | Hybrid stability+date | `/foundry/v1/...?api-version=2026-05-12` | OpenAPI 3.1 spec | Google AIP-180 + Microsoft Azure + AWS + Stripe |
 
 These axes evolve independently. A crate may publish `4.0.0` for an internal
@@ -62,7 +62,7 @@ Detail: [`crate-versioning-spec.md`](crate-versioning-spec.md).
 
 ## 4. Product / platform versioning
 
-- **Format**: `oyatie-vX.Y.Z` (SemVer-derived; `Z` is patch-only).
+- **Format**: `oya-vX.Y.Z` (SemVer-derived; `Z` is patch-only).
 - **Bump rules**:
   - Major (X) on any breaking external-API change OR any cross-axis contract
     break. Reviewed via the breaking-change ADR template.
@@ -95,11 +95,11 @@ Detail: [`api-versioning-spec.md`](api-versioning-spec.md).
 ## 6. Release branches
 
 - **Naming**: `release/X.Y` (e.g. `release/3.4`). Cut from prod at the
-  `oyatie-vX.Y.0` tag. Compatible with Git Flow-style release-branch convention
+  `oya-vX.Y.0` tag. Compatible with Git Flow-style release-branch convention
   and matches Kubernetes' `release-X.Y` semantics.
 - **Read-only**: only the `release-cherry-pick` agent may add commits (see
   [`release-cherry-pick-agent-spec.md`](release-cherry-pick-agent-spec.md)).
-- **Tag pattern**: `oyatie-vX.Y.Z` SemVer. Patches `Z ≥ 1` accumulate on the
+- **Tag pattern**: `oya-vX.Y.Z` SemVer. Patches `Z ≥ 1` accumulate on the
   release branch; never on prod.
 - Detail: [`release-branch-cut-spec.md`](release-branch-cut-spec.md).
 

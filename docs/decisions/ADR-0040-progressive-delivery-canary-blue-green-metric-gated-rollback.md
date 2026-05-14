@@ -113,7 +113,7 @@ If 1h burn-rate ≥ 14.4× during a rollout:
 
 ### Pre-release verification gate
 
-A release-candidate cut requires (per `/oyatie-release-verify`):
+A release-candidate cut requires (per `/oya-release-verify`):
 
 - `oya-foundry-fitness-cohesion` PASS (per ADR-0001).
 - `oya-foundry-fitness-supply-chain` PASS (per ADR-0039).

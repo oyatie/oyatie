@@ -1,5 +1,5 @@
-use oya_foundry_constitution_cite_kernel::{
-    validate_constitution_cite_coverage, ConstitutionCitationDocument, ConstitutionCitationError,
+use oya_check_constitution_cite::{
+    ConstitutionCitationDocument, ConstitutionCitationError, validate_constitution_cite_coverage,
 };
 
 #[test]

@@ -1,6 +1,6 @@
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationRequest, CapabilityRegistration,
     CostBudgetRegistration, DataClass, EvidenceKind, Foundation, IdentityRegistration, Purpose,
     RunDisposition, RunState, StepDisposition, StepKind, StepState, SubjectClass,
@@ -37,7 +37,7 @@ fn successful_capability_invocation_records_foundry_run_lifecycle() {
             namespace: "demo".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -295,16 +295,20 @@ fn successful_capability_invocation_records_foundry_run_lifecycle() {
         run_complete_index < evidence_emit_index,
         "success evidence emission must wait for run finalization"
     );
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| { event.surface == "foundry.step.emit" && event.decision == "ALLOW" }));
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| { event.surface == "foundry.evidence.emit" && event.decision == "ALLOW" }));
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| { event.surface == "foundry.step.emit" && event.decision == "ALLOW" })
+    );
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| { event.surface == "foundry.evidence.emit" && event.decision == "ALLOW" })
+    );
     assert_eq!(foundation.outbox_records().len(), 2);
     let capability_outbox = foundation.outbox_records().last().unwrap();
     assert_eq!(

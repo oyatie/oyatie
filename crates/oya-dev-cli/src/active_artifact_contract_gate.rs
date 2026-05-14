@@ -19,8 +19,8 @@ use crate::usage;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ActiveArtifactContractValidateArgs {
-    registry_path: PathBuf,            // data_class: INTERNAL_ONLY
-    emit_evidence_path: Option<PathBuf>, // data_class: INTERNAL_ONLY
+    registry_path: PathBuf,                 // data_class: INTERNAL_ONLY
+    emit_evidence_path: Option<PathBuf>,    // data_class: INTERNAL_ONLY
     emit_graph_edges_path: Option<PathBuf>, // data_class: INTERNAL_ONLY
 }
 
@@ -61,11 +61,11 @@ pub(crate) fn parse_active_artifact_contract_validate_args(
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ActiveArtifactContractReport {
-    pub rows_seen: usize,                          // data_class: INTERNAL_ONLY
-    pub head_tracked_count: usize,                 // data_class: INTERNAL_ONLY
-    pub untracked_paths: Vec<String>,              // data_class: INTERNAL_ONLY
-    pub duplicate_ids: Vec<String>,                // data_class: INTERNAL_ONLY
-    pub validation_duration_ms: u64,               // data_class: INTERNAL_ONLY
+    pub rows_seen: usize,                           // data_class: INTERNAL_ONLY
+    pub head_tracked_count: usize,                  // data_class: INTERNAL_ONLY
+    pub untracked_paths: Vec<String>,               // data_class: INTERNAL_ONLY
+    pub duplicate_ids: Vec<String>,                 // data_class: INTERNAL_ONLY
+    pub validation_duration_ms: u64,                // data_class: INTERNAL_ONLY
     pub graph_edges: Vec<(String, String, String)>, // data_class: INTERNAL_ONLY (artifact_id, artifact_profile, edge_type)
 }
 
@@ -87,10 +87,12 @@ pub(crate) fn validate_active_artifact_contract_gate(
 
     let row_objects: Vec<&str> = match rows_section {
         Some(section) => extract_json_objects(section),
-        None => return Err(format!(
-            "active-artifact-contract registry missing top-level `rows` array in {}",
-            args.registry_path.display()
-        )),
+        None => {
+            return Err(format!(
+                "active-artifact-contract registry missing top-level `rows` array in {}",
+                args.registry_path.display()
+            ));
+        }
     };
 
     let mut rows_seen = 0usize;
@@ -135,7 +137,7 @@ pub(crate) fn validate_active_artifact_contract_gate(
     let head_tracked = git_ls_files()?;
 
     let mut untracked_paths: Vec<String> = Vec::new();
-    for (path, _artifact_id) in &paths_seen {
+    for path in paths_seen.keys() {
         if !head_tracked.contains(path) {
             untracked_paths.push(path.clone());
         }
@@ -224,7 +226,10 @@ fn write_evidence_bundle(
 ) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
-            format!("evidence bundle dir unwriteable {}: {error}", parent.display())
+            format!(
+                "evidence bundle dir unwriteable {}: {error}",
+                parent.display()
+            )
         })?;
     }
 
@@ -256,16 +261,12 @@ fn write_evidence_bundle(
         report.validation_duration_ms,
         report.graph_edges.len()
     );
-    fs::write(path, body).map_err(|error| {
-        format!("evidence bundle write failed {}: {error}", path.display())
-    })?;
+    fs::write(path, body)
+        .map_err(|error| format!("evidence bundle write failed {}: {error}", path.display()))?;
     Ok(())
 }
 
-fn write_graph_edges(
-    path: &Path,
-    edges: &[(String, String, String)],
-) -> Result<(), String> {
+fn write_graph_edges(path: &Path, edges: &[(String, String, String)]) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
             format!("graph edges dir unwriteable {}: {error}", parent.display())
@@ -287,9 +288,8 @@ fn write_graph_edges(
         "{{\n  \"$schema_ref\": \".omc/specs/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
         edges_json
     );
-    fs::write(path, body).map_err(|error| {
-        format!("graph edges write failed {}: {error}", path.display())
-    })?;
+    fs::write(path, body)
+        .map_err(|error| format!("graph edges write failed {}: {error}", path.display()))?;
     Ok(())
 }
 
@@ -328,9 +328,18 @@ mod tests {
             "/tmp/edges.json".into(),
         ])
         .unwrap();
-        assert_eq!(args.registry_path.display().to_string(), "tests/fixtures/missing-row-registry.json");
-        assert_eq!(args.emit_evidence_path.unwrap().display().to_string(), "/tmp/evidence.json");
-        assert_eq!(args.emit_graph_edges_path.unwrap().display().to_string(), "/tmp/edges.json");
+        assert_eq!(
+            args.registry_path.display().to_string(),
+            "tests/fixtures/missing-row-registry.json"
+        );
+        assert_eq!(
+            args.emit_evidence_path.unwrap().display().to_string(),
+            "/tmp/evidence.json"
+        );
+        assert_eq!(
+            args.emit_graph_edges_path.unwrap().display().to_string(),
+            "/tmp/edges.json"
+        );
     }
 
     #[test]

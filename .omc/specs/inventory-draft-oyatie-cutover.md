@@ -6,15 +6,15 @@ Generated 2026-05-12. READ-ONLY data gathering for spec A2 acceptance criterion.
 
 | Classification | Count |
 |---|---|
-| KEEP | 185 |
-| KEEP+ANNOTATE | 3 |
+| KEEP | 201 |
+| KEEP+ANNOTATE | 5 |
 | REPLACE-WITH-GRIT | 0 |
 | REPLACE-WITH-ICM | 0 |
 | REPLACE-WITH-HELPER | 0 |
-| ARCHIVE | 13 |
-| DELETE | 8 |
-| FLAG-FOR-USER | 2 |
-| **TOTAL** | **211** |
+| ARCHIVE | 15 |
+| DELETE | 2 |
+| FLAG-FOR-USER | 0 |
+| **TOTAL** | **223** |
 
 ---
 
@@ -348,7 +348,6 @@ Generated 2026-05-12. READ-ONLY data gathering for spec A2 acceptance criterion.
 | Path | Type | Classification | Maps to spec criterion | Notes |
 |---|---|---|---|---|
 | bominal/agents/ultragoal/evidence/ | dir | KEEP | A8 | Evidence trail (logs, analysis, decisions); KEEP for audit |
-| bominal/agents/ultragoal/evidence/G001-stop-hook-complete-attempt.err | file | KEEP | A8 | Evidence log |
 | bominal/agents/ultragoal/evidence/ | dir (contents) | KEEP | A8 | All evidence files; KEEP |
 
 #### Error output files
@@ -414,7 +413,7 @@ Files currently in `.gitignored` paths that ANY part of the corpus treats as aut
 
 ## Orphans & ambiguous ownership
 
-No orphaned files identified. All 211 inventoried items are either:
+No orphaned files identified. All 223 inventoried artifact rows are either:
 1. Explicitly tracked product/platform authority (docs/, contracts/, registry/, scripts/)
 2. Session-scoped ephemera (.grit/, .omx/, .omc/)
 3. External tool state (.rtk/, .github/)
@@ -458,13 +457,15 @@ When A3 acceptance criterion gates deletion:
 
 ## Summary for parent orchestrator
 
-This inventory classifies **211 artifacts** across `/Users/jasonlee/oyatie/**` and the bominal surfaces the cutover touches:
+This inventory classifies **223 artifacts** across `/Users/jasonlee/oyatie/**` and the bominal surfaces the cutover touches:
 
-- **185 KEEP** — Product authority, platform architecture, operational playbooks, fitness kernels; unchanged
-- **3 KEEP+ANNOTATE** — PRDs + agent-instruction homes; need cross-cites and sanctioned-primitives rewrites
-- **13 ARCHIVE** — Orchestration glue (ledger, goals, codex-goal files, G004, PAUSE); to be moved to pre-grit-cutover-2026-05-12 archive
-- **8 DELETE** — Ephemeral error logs; removal cleanup
-- **2 FLAG-FOR-USER** — RTK ban scope (oyatie-only default; user may extend to global ~/)
+- **201 KEEP** — Product authority, platform architecture, operational playbooks, fitness kernels; unchanged
+- **5 KEEP+ANNOTATE** — PRDs + agent-instruction homes; need cross-cites and sanctioned-primitives rewrites
+- **15 ARCHIVE** — Orchestration glue (ledger, goals, codex-goal files, G004, PAUSE); to be moved to pre-grit-cutover-2026-05-12 archive
+- **2 DELETE** — Ephemeral error logs; removal cleanup
+- **0 FLAG-FOR-USER** — user-global scope decisions are documented in ADR-0052 cross-boundary notes, not counted as artifact rows
+
+P7 review reconciliation: the stale file-specific KEEP row for an absent Bominal evidence log was removed because that file was absent before P7 cleanup; the `evidence/` directory and contents row remain KEEP.
 
 The trace's seven cross-boundary candidates are resolved:
 - oyatie-product-delivery-implementation-plan.md: KEEP-IN-PLACE in bominal; add forward-ref from oyatie/

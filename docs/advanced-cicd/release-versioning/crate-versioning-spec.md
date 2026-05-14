@@ -129,7 +129,7 @@ This is the same shape Kubernetes uses for version skew across kube components
 
 ## 9. Publishing flow
 
-`origin/prod` tag `oyatie-vX.Y.0` → `release-cherry-pick` agent cuts
+`origin/prod` tag `oya-vX.Y.0` → `release-cherry-pick` agent cuts
 `release/X.Y` → crate `Cargo.toml` set to `X.Y.0` → `cargo publish` per crate.
 
 `crates.io` (or internal registry) publish requires the lane to be green AND

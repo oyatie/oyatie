@@ -8,7 +8,6 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-http-middleware-kernel = { path = "../oya-http-middleware-kernel" }
-oya-http-runtime-hyper-adapter = { path = "../oya-http-runtime-hyper-adapter" }
 bytes.workspace = true
 
 [dev-dependencies]

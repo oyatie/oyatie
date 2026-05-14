@@ -1,6 +1,6 @@
-use oya_foundry_capability_kernel::AutonomyTier;
-use oya_foundry_run_kernel::{RunDisposition, RunError, RunLedger, RunStart, RunState};
-use oya_platform_data_boundary_kernel::{privacy_data_classes_from, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
+use oya_foundry_capability_domain::AutonomyTier;
+use oya_foundry_run_domain::{RunDisposition, RunError, RunLedger, RunStart, RunState};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {
     privacy_data_classes_from(&data_classes).expect("test fixture uses privacy data classes")

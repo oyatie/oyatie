@@ -243,6 +243,7 @@ impl EventingOutboxPublishAppError {
                 EventingOutboxPublishAppStatus::Forbidden
             }
             Self::IdempotencyKeyReused { .. }
+            | Self::Eventing(EventingError::IdempotencyReplayMismatch)
             | Self::Eventing(EventingError::OutboxRecordNotFound)
             | Self::Eventing(EventingError::InvalidOutboxHistory) => {
                 EventingOutboxPublishAppStatus::UnprocessableEntity

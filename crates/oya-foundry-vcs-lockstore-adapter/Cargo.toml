@@ -1,0 +1,15 @@
+[package]
+name = "oya-foundry-vcs-lockstore-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-foundry-vcs-kernel = { path = "../oya-foundry-vcs-kernel" }
+
+[lib]
+name = "oya_foundry_vcs_lockstore_adapter"
+path = "src/lib.rs"
+doctest = false

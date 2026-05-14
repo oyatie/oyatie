@@ -1,4 +1,4 @@
-use oya_foundry_runbook_index_kernel::{validate_runbook_index_resolves, RunbookIndexError};
+use oya_check_runbook_index::{RunbookIndexError, validate_runbook_index_resolves};
 
 #[test]
 fn runbook_index_resolves_when_every_indexed_path_exists() {

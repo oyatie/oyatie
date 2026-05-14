@@ -1,12 +1,12 @@
 {
   "version": "1.0.0",
-  "lastScanned": 1778627712167,
+  "lastScanned": 1778742388915,
   "projectRoot": "/Users/jasonlee/oyatie",
   "techStack": {
     "languages": [
       {
         "name": "Rust",
-        "version": "1.78",
+        "version": "1.95.0",
         "confidence": "high",
         "markers": [
           "Cargo.toml"
@@ -18,8 +18,8 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "rtk cargo build -p oya-tooling-agent-read --bin oya-tooling-agent-read 2>&1 && echo \"---SMOKE---\" && cargo run -p oya-tooling-agent-read -- read Cargo.toml 2>&1 | head -20 && echo \"---AUDIT---\" && rtk read .audit/agent-read.jsonl",
-    "testCommand": "echo \"=== lockfile-rename.py / tools/lockfile-rename references ===\"; rtk grep -c \"lockfile-rename.py\\|tools/lockfile-rename\" /Users/jasonlee/oyatie/docs/plans/rename-plan-v3-2026-05-12.md; echo \"(exit $?)\"\necho \"=== pytest references ===\"; rtk grep -c \"pytest\" /Users/jasonlee/oyatie/docs/plans/rename-plan-v3-2026-05-12.md; echo \"(exit $?)\"\necho \"=== frontmatter ===\"; rtk grep -nE \"^status:|^pending:|^last_modified:|^post_approval_correction_1:\" /Users/jasonlee/oyatie/docs/plans/rename-plan-v3-2026-05-12.md\necho \"=== python language remnants ===\"; rtk grep -nE \"python|Python|tomllib\" /Users/jasonlee/oyatie/docs/plans/rename-plan-v3-2026-05-12.md; echo \"(exit $? — note: -E '.py' would false-match unrelated tokens; the targeted .py path check ran above)\"",
+    "buildCommand": "rtk cargo build -p oya-connect-mail-domain 2>&1 | tail -5",
+    "testCommand": "icm store --topic context-oyatie --importance critical --keywords \"M02-complete,M03-partial-fanout-complete,acceptance-gate-passed\" --content \"Session 2026-05-14: M02-Foundry-Preview COMPLETE (51 crates, 303 tests, 6 phases). M03-Cloud-SaaS-Search-Workspace partial-fanout-complete: P04 SaaS (6 crates, 29 tests), P05 Search (8 crates, 33 tests), P06 Workspace (14 surfaces staging types, 22 tests), P07 Regional Pack (KR+JP manifests). P08 cross-axis contracts deferred (validator schema reconcile). P01-P03 Cloud pre-existing partial-in-flight. scripts/check.sh EXIT 0 verified workspace-wide across 240+ crates. All lanes green: cargo check, cargo test (~1900 tests), fmt, clippy, architecture boundary, supply-chain (SHA-pinned), OpenAPI, rustdoc, cargo-deny, repoctl pre-push, data-class fitness, ADR index, machine-readable JSON. Total: 73+ new crates this session, 387+ unit tests.\" 2>&1\ngrit done --agent claude-m03-finalize 2>&1 || true",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
@@ -47,22 +47,25 @@
     "contracts": {
       "path": "contracts",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1778627712141,
-      "keyFiles": []
+      "fileCount": 4,
+      "lastAccessed": 1778742388905,
+      "keyFiles": [
+        "ops-docs-v1.openapi.yaml",
+        "ops-workspace-shell-v1.openapi.yaml"
+      ]
     },
     "crates": {
       "path": "crates",
       "purpose": null,
-      "fileCount": 0,
-      "lastAccessed": 1778627712147,
+      "fileCount": 1,
+      "lastAccessed": 1778742388906,
       "keyFiles": []
     },
     "docs": {
       "path": "docs",
       "purpose": "Documentation",
-      "fileCount": 37,
-      "lastAccessed": 1778627712151,
+      "fileCount": 39,
+      "lastAccessed": 1778742388907,
       "keyFiles": [
         "ADR-CONSOLIDATION-PLAN.md",
         "ADR-INDEX.md",
@@ -75,28 +78,28 @@
       "path": "infra",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778627712153,
+      "lastAccessed": 1778742388908,
       "keyFiles": []
     },
     "product-control": {
       "path": "product-control",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778627712157,
+      "lastAccessed": 1778742388908,
       "keyFiles": []
     },
     "registry": {
       "path": "registry",
       "purpose": null,
       "fileCount": 0,
-      "lastAccessed": 1778627712158,
+      "lastAccessed": 1778742388910,
       "keyFiles": []
     },
     "scripts": {
       "path": "scripts",
       "purpose": "Build/utility scripts",
       "fileCount": 4,
-      "lastAccessed": 1778627712160,
+      "lastAccessed": 1778742388910,
       "keyFiles": [
         "check-architecture-boundaries.sh",
         "check-product-index.py",
@@ -107,17 +110,24 @@
     "target": {
       "path": "target",
       "purpose": null,
-      "fileCount": 2,
-      "lastAccessed": 1778627712162,
+      "fileCount": 4,
+      "lastAccessed": 1778742388911,
       "keyFiles": [
         "CACHEDIR.TAG"
       ]
+    },
+    "tools": {
+      "path": "tools",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1778742388913,
+      "keyFiles": []
     },
     "registry/docs": {
       "path": "registry/docs",
       "purpose": "Documentation",
       "fileCount": 1,
-      "lastAccessed": 1778627712165,
+      "lastAccessed": 1778742388915,
       "keyFiles": [
         "pipeline.tsv"
       ]
@@ -125,303 +135,303 @@
   },
   "hotPaths": [
     {
-      "path": "docs/CHANGELOG.md",
-      "accessCount": 33,
-      "lastAccessed": 1778640160132,
-      "type": "file"
-    },
-    {
-      "path": "docs/ADR-INDEX.md",
-      "accessCount": 9,
-      "lastAccessed": 1778635957463,
-      "type": "file"
-    },
-    {
-      "path": "docs/AGENTS.md",
-      "accessCount": 8,
-      "lastAccessed": 1778633933687,
-      "type": "file"
-    },
-    {
-      "path": "docs/CONSTITUTION.md",
-      "accessCount": 7,
-      "lastAccessed": 1778633891122,
-      "type": "file"
-    },
-    {
       "path": "Cargo.toml",
+      "accessCount": 52,
+      "lastAccessed": 1778799379202,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-account-domain/src/lib.rs",
+      "accessCount": 9,
+      "lastAccessed": 1778791638864,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-account-domain/Cargo.toml",
       "accessCount": 7,
-      "lastAccessed": 1778646345379,
+      "lastAccessed": 1778791629251,
       "type": "file"
     },
     {
-      "path": "docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md",
+      "path": "crates/oya-foundry-account-adapter-openbao/Cargo.toml",
       "accessCount": 6,
-      "lastAccessed": 1778647137536,
+      "lastAccessed": 1778791217149,
       "type": "file"
     },
     {
-      "path": "AGENTS.md",
-      "accessCount": 4,
-      "lastAccessed": 1778631574883,
+      "path": "crates/oya-foundry-account-kernel/src/lib.rs",
+      "accessCount": 6,
+      "lastAccessed": 1778791627866,
       "type": "file"
     },
     {
-      "path": "CLAUDE.md",
+      "path": "crates/oya-foundry-account-adapter-openbao/src/lib.rs",
+      "accessCount": 5,
+      "lastAccessed": 1778791216740,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-account-kernel/Cargo.toml",
+      "accessCount": 5,
+      "lastAccessed": 1778791301978,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-ops-workspace-shell-rest/src/lib.rs",
       "accessCount": 3,
-      "lastAccessed": 1778629189755,
+      "lastAccessed": 1778790044444,
       "type": "file"
     },
     {
-      "path": "docs/DOC-CATALOG.md",
+      "path": "crates/oya-ops-docs-portal-rest/src/lib.rs",
       "accessCount": 3,
-      "lastAccessed": 1778633876381,
+      "lastAccessed": 1778790053382,
       "type": "file"
     },
     {
-      "path": "docs/DESIGN.md",
+      "path": "scripts/check-architecture-boundaries.sh",
       "accessCount": 3,
-      "lastAccessed": 1778633891766,
+      "lastAccessed": 1778790080911,
       "type": "file"
     },
     {
-      "path": "docs/MISTAKES-LEDGER.md",
+      "path": "registry/catalog/oya-foundry-account-kernel.yaml",
       "accessCount": 3,
-      "lastAccessed": 1778634032508,
+      "lastAccessed": 1778791285671,
       "type": "file"
     },
     {
-      "path": "docs/RACI-OWNERSHIP.md",
+      "path": "crates/oya-ops-workspace-shell-adapter/src/lib.rs",
+      "accessCount": 3,
+      "lastAccessed": 1778791879927,
+      "type": "file"
+    },
+    {
+      "path": ".claude/settings.local.json",
       "accessCount": 2,
-      "lastAccessed": 1778633823181,
+      "lastAccessed": 1778745260025,
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-cohesion-fitness-kernel/src/lib.rs",
+      "path": "crates/oya-ops-workspace-shell-rest/Cargo.toml",
       "accessCount": 2,
-      "lastAccessed": 1778633875621,
+      "lastAccessed": 1778790020177,
       "type": "file"
     },
     {
-      "path": "docs/PRD.md",
+      "path": "crates/oya-ops-docs-portal-rest/Cargo.toml",
       "accessCount": 2,
-      "lastAccessed": 1778633891822,
+      "lastAccessed": 1778790022458,
       "type": "file"
     },
     {
-      "path": "docs/ROADMAP.md",
+      "path": "registry/catalog/oya-foundry-account-domain.yaml",
       "accessCount": 2,
-      "lastAccessed": 1778633891974,
+      "lastAccessed": 1778791190593,
       "type": "file"
     },
     {
-      "path": "docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md",
+      "path": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
       "accessCount": 2,
-      "lastAccessed": 1778634112606,
+      "lastAccessed": 1778791256876,
       "type": "file"
     },
     {
-      "path": "docs/decisions/ADR-0051-mobile-and-native-client-strategy.md",
+      "path": "crates/oya-foundry-account-app/Cargo.toml",
       "accessCount": 2,
-      "lastAccessed": 1778635576457,
+      "lastAccessed": 1778791263786,
       "type": "file"
     },
     {
-      "path": "docs/templates/adr-template.md",
+      "path": "crates/oya-ops-workspace-shell-application/src/lib.rs",
       "accessCount": 2,
-      "lastAccessed": 1778635582960,
+      "lastAccessed": 1778791868603,
       "type": "file"
     },
     {
-      "path": "docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md",
+      "path": "scripts/check.sh",
       "accessCount": 2,
-      "lastAccessed": 1778636689203,
+      "lastAccessed": 1778793106179,
       "type": "file"
     },
     {
-      "path": "docs/standards/code-style-rust.md",
+      "path": "docs/templates/catalog-record-template.yaml",
       "accessCount": 2,
-      "lastAccessed": 1778640567664,
+      "lastAccessed": 1778795118078,
       "type": "file"
     },
     {
-      "path": "docs/standards/doc-style.md",
-      "accessCount": 2,
-      "lastAccessed": 1778640567980,
-      "type": "file"
-    },
-    {
-      "path": "README.md",
+      "path": "docs/MASTERPLAN.md",
       "accessCount": 1,
-      "lastAccessed": 1778627911094,
+      "lastAccessed": 1778742462024,
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-placeholder-debt-kernel/src/lib.rs",
+      "path": "crates/oya-ops-workspace-shell-application/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778628005359,
+      "lastAccessed": 1778789481189,
       "type": "file"
     },
     {
-      "path": "crates/oya-tooling-cli-dev-runtime/src/lib.rs",
+      "path": "crates/oya-ops-workspace-shell-adapter/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778628006061,
+      "lastAccessed": 1778789489406,
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-glossary-vocabulary-kernel/src/lib.rs",
+      "path": "crates/oya-ops-docs-portal-application/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778628006349,
+      "lastAccessed": 1778789489901,
       "type": "file"
     },
     {
-      "path": "docs/DOC-UPDATE-PROTOCOL.md",
+      "path": "crates/oya-ops-docs-portal-adapter/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778629051278,
+      "lastAccessed": 1778789491122,
       "type": "file"
     },
     {
-      "path": "docs/CONTRADICTION-LEDGER.md",
+      "path": "crates/oya-ops-docs-portal-adapter/src/lib.rs",
       "accessCount": 1,
-      "lastAccessed": 1778629067554,
+      "lastAccessed": 1778789849677,
       "type": "file"
     },
     {
-      "path": "docs/ADR-CONSOLIDATION-PLAN.md",
+      "path": "crates/oya-ops-docs-portal-application/src/lib.rs",
       "accessCount": 1,
-      "lastAccessed": 1778629068787,
+      "lastAccessed": 1778789937977,
       "type": "file"
     },
     {
-      "path": "docs/SPEC.md",
+      "path": "registry/catalog/oya-foundry-account-adapter-openbao.yaml",
       "accessCount": 1,
-      "lastAccessed": 1778631430141,
+      "lastAccessed": 1778790935096,
       "type": "file"
     },
     {
-      "path": ".omx/notepad.md",
+      "path": "registry/catalog/oya-foundry-account-app.yaml",
       "accessCount": 1,
-      "lastAccessed": 1778631430531,
+      "lastAccessed": 1778791191010,
       "type": "file"
     },
     {
-      "path": "deny.toml",
+      "path": "crates/oya-foundry-fitness-banned-primitives-kernel/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778631575389,
+      "lastAccessed": 1778791206837,
       "type": "file"
     },
     {
-      "path": "docs/templates/pull-request-template.md",
+      "path": "crates/oya-foundry-fitness-banned-primitives-kernel/src/lib.rs",
       "accessCount": 1,
-      "lastAccessed": 1778633833167,
+      "lastAccessed": 1778791208074,
       "type": "file"
     },
     {
-      "path": "docs/templates/capability-record-template.yaml",
+      "path": "registry/catalog/oya-foundry-fitness-banned-primitives-kernel.yaml",
       "accessCount": 1,
-      "lastAccessed": 1778633833923,
+      "lastAccessed": 1778791218188,
       "type": "file"
     },
     {
-      "path": "docs/templates/runbook-template.md",
+      "path": "registry/catalog/oya-foundry-bypass-kernel.yaml",
       "accessCount": 1,
-      "lastAccessed": 1778633834133,
+      "lastAccessed": 1778791219328,
       "type": "file"
     },
     {
-      "path": "docs/templates/incident-postmortem-template.md",
+      "path": "crates/oya-foundry-dashboard-kernel/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778633834528,
+      "lastAccessed": 1778791222515,
       "type": "file"
     },
     {
-      "path": "docs/checklists/pre-merge.md",
+      "path": "crates/oya-foundry-dashboard-app/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778633835395,
+      "lastAccessed": 1778791224364,
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-cohesion-fitness-kernel/Cargo.toml",
+      "path": "crates/oya-foundry-fitness-adr-shape-kernel/src/lib.rs",
       "accessCount": 1,
-      "lastAccessed": 1778633848965,
+      "lastAccessed": 1778791239876,
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-runbook-freshness-kernel/src/lib.rs",
+      "path": "crates/oya-foundry-dashboard-api/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778633875334,
+      "lastAccessed": 1778791241671,
       "type": "file"
     },
     {
-      "path": "crates/oya-foundry-mdbook-kernel/src/lib.rs",
+      "path": "crates/oya-foundry-dashboard-dry-run-kernel/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778633881598,
+      "lastAccessed": 1778791242871,
       "type": "file"
     },
     {
-      "path": "docs/README.md",
+      "path": "registry/catalog/oya-foundry-runbook-freshness-kernel.yaml",
       "accessCount": 1,
-      "lastAccessed": 1778635575031,
+      "lastAccessed": 1778791255951,
       "type": "file"
     },
     {
-      "path": "docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
+      "path": "crates/oya-foundry-account-app/src/lib.rs",
       "accessCount": 1,
-      "lastAccessed": 1778635676083,
+      "lastAccessed": 1778791265017,
       "type": "file"
     },
     {
-      "path": "docs/decisions/ADR-0052-inventory-grit-cutover.md",
+      "path": "crates/oya-foundry-dashboard-kernel/src/lib.rs",
       "accessCount": 1,
-      "lastAccessed": 1778635810037,
+      "lastAccessed": 1778791271113,
       "type": "file"
     },
     {
-      "path": "docs/standards/INDEX.md",
+      "path": "crates/oya-foundry-fitness-claim-ceiling-kernel/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778635912104,
+      "lastAccessed": 1778791286580,
       "type": "file"
     },
     {
-      "path": "docs/templates/pull-request-template-v2.md",
+      "path": "crates/oya-foundry-api-rest-kernel/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778636313167,
+      "lastAccessed": 1778791295041,
       "type": "file"
     },
     {
-      "path": "docs/agents/AGENT-DECISION-TREE.md",
+      "path": "crates/oya-foundry-capability-registry-kernel/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778636316974,
+      "lastAccessed": 1778791299626,
       "type": "file"
     },
     {
-      "path": "docs/agents/AGENT-TOOL-PROTOCOL.md",
+      "path": "crates/oya-foundry-fitness-claim-ceiling-kernel/src/lib.rs",
       "accessCount": 1,
-      "lastAccessed": 1778636340170,
+      "lastAccessed": 1778791300394,
       "type": "file"
     },
     {
-      "path": "docs/agents/AGENT-COMPLETION-PROTOCOL.md",
+      "path": "crates/oya-foundry-capability-registry-domain/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778636378488,
+      "lastAccessed": 1778791301602,
       "type": "file"
     },
     {
-      "path": "docs/templates/adr-template-v2.md",
+      "path": "crates/oya-foundry-fitness-bypass-kernel/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778636421316,
+      "lastAccessed": 1778791301705,
       "type": "file"
     },
     {
-      "path": "docs/agents/AGENT-FAILURE-RECOVERY.md",
+      "path": "crates/oya-foundry-capability-registry-app/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778636422643,
+      "lastAccessed": 1778791303687,
       "type": "file"
     },
     {
-      "path": "docs/agents/AGENT-ICM-TOPIC-CONVENTIONS.md",
+      "path": "crates/oya-foundry-autonomy-ceiling-kernel/Cargo.toml",
       "accessCount": 1,
-      "lastAccessed": 1778636428848,
+      "lastAccessed": 1778791305363,
       "type": "file"
     }
   ],

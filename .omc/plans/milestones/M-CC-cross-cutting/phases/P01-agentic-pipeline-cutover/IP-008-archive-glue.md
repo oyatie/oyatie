@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-008
 title: Archive orchestration glue + archive-orphan lane (P6)
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Archive orchestration glue under bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/; ship archive-orphan lane.

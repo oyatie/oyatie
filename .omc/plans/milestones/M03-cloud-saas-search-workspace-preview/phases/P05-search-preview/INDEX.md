@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P05
 title: Search Preview (pgroonga + Morphology + pgvector + RAG)
-status: stub
+status: complete
 purpose: Stand up search foundations — pgroonga day-1, KR/JP/EN morphology, vector index, tenant-private indexes, RAG endpoint to Foundry.
 ---
 
@@ -22,9 +22,9 @@ Per [`../../../../../docs/ROADMAP.md`](../../../../../docs/ROADMAP.md) §2.5. Se
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | pgroonga inverted index + KR/JP/EN morphology | stub | [`IP-001-pgroonga-morphology.md`](IP-001-pgroonga-morphology.md) |
-| IP-002 | pgvector vector index + tenant-private indexes | stub | [`IP-002-pgvector-tenant-private.md`](IP-002-pgvector-tenant-private.md) |
-| IP-003 | RAG endpoint to Foundry + data boundary enforcement | stub | [`IP-003-rag-endpoint-data-boundary.md`](IP-003-rag-endpoint-data-boundary.md) |
+| IP-001 | pgroonga inverted index + KR/JP/EN morphology | complete | [`IP-001-pgroonga-morphology.md`](IP-001-pgroonga-morphology.md) |
+| IP-002 | pgvector vector index + tenant-private indexes | complete | [`IP-002-pgvector-tenant-private.md`](IP-002-pgvector-tenant-private.md) |
+| IP-003 | RAG endpoint to Foundry + data boundary enforcement | complete | [`IP-003-rag-endpoint-data-boundary.md`](IP-003-rag-endpoint-data-boundary.md) |
 
 ## Estimated parallelism
 3 agents in parallel.

@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-002
 title: Orphan-detection lane kernel
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Lane CI-blocks orphan artifacts (no inbound reference; not in known-orphan allowlist).
@@ -49,4 +52,9 @@ icm store -t context-oyatie -c 'M-CC-P03-IP-002 Orphan-detection lane kernel shi
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- A single BFS from declared roots replaces N separate "is this node reachable" checks — cycles, diamonds, multi-roots all flow through one loop.
+- Dangling references are surfaced as `Err`, not silently dropped — a broken pointer cannot create false-negative orphans.
+- Duplicate-node detection happens at insert time — a stale `find` walker generating dup paths cannot mask a real orphan.
+- No-roots case is explicit `Err`, not "everything is an orphan" — runners cannot lose their root config and get a green report.
+- Orphan output is sorted — diff-stable across runs, no flaky CI failures from ordering.

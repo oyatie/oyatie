@@ -1,11 +1,11 @@
 use oya_platform_policy_cedar_api::{
-    publish_cedar_policy_from_api, CedarPolicyApiAuthorization, CedarPolicyApiBoundaryContext,
-    CedarPolicyApiPrincipal, CedarPolicyPublishApiError, CedarPolicyPublishApiRequest,
-    CedarPolicyPublishApiStatus, CedarPolicyPublishIdempotencyLedger, CedarPolicyPublishRequest,
-    CedarPolicyRequiredAttribute, CedarPolicyRuleRef, CedarPolicyScopeRef,
     CEDAR_POLICY_PUBLISH_OPENAPI_CONTRACT, CEDAR_POLICY_PUBLISH_SURFACE,
+    CedarPolicyApiAuthorization, CedarPolicyApiBoundaryContext, CedarPolicyApiPrincipal,
+    CedarPolicyPublishApiError, CedarPolicyPublishApiRequest, CedarPolicyPublishApiStatus,
+    CedarPolicyPublishIdempotencyLedger, CedarPolicyPublishRequest, CedarPolicyRequiredAttribute,
+    CedarPolicyRuleRef, CedarPolicyScopeRef, publish_cedar_policy_from_api,
 };
-use oya_platform_policy_cedar_kernel::{AuthorizationQuery, AuthorizationSubject, PolicySet};
+use oya_policy_cedar_domain::{AuthorizationQuery, AuthorizationSubject, PolicySet};
 use std::collections::BTreeMap;
 
 const REQUEST_ID: &str = "req_cedar_policy_001";
@@ -91,6 +91,39 @@ fn cedar_policy_publish_supports_supersedes_chain_for_new_semver_versions() {
     assert_eq!(response.data.version, "1.1.0");
     assert_eq!(response.data.supersedes.as_deref(), Some(VERSION));
     assert_eq!(idempotency.len(), 2);
+}
+
+#[test]
+fn cedar_policy_publish_supports_global_scope_without_tenant_binding() {
+    let mut policies = PolicySet::default();
+    let mut idempotency = CedarPolicyPublishIdempotencyLedger::default();
+    let mut request = policy_request(
+        "req_cedar_policy_global",
+        "idem_cedar_policy_global",
+        "pol_global_reader",
+        VERSION,
+    );
+    request.body.scope = CedarPolicyScopeRef {
+        kind: "global".to_string(),
+        tenant_id: None,
+    };
+
+    let response = publish_cedar_policy_from_api(&mut policies, &mut idempotency, request)
+        .expect("global policy publish succeeds");
+
+    assert_eq!(response.data.scope.kind, "global");
+    assert_eq!(response.data.scope.tenant_id, None);
+
+    let decision = policies.authorize(&AuthorizationQuery {
+        subject: AuthorizationSubject {
+            tenant_id: "ten_any".to_string(),
+            roles: vec!["tenant-admin".to_string()],
+        },
+        action: "tenant.settings.update".to_string(),
+        resource: "tenant:ten_any:settings".to_string(),
+        attributes: BTreeMap::from([("region".to_string(), "kr-seoul".to_string())]),
+    });
+    assert!(decision.allowed);
 }
 
 #[test]

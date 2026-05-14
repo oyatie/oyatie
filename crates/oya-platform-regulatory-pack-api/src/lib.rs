@@ -8,8 +8,8 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_regional_pack_kernel::{RegionalPack, RegionalPackError};
-use oya_platform_residency_kernel::{
+use oya_regional_pack_domain::{RegionalPack, RegionalPackError};
+use oya_residency_domain::{
     infer_region_jurisdiction_label, parse_residency_class_label, RegionRef, RegionRefCreate,
     ResidencyClass, ResidencyError, TenantResidencyBindingCreate, TenantResidencyRegistry,
 };

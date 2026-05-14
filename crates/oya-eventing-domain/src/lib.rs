@@ -6,19 +6,19 @@ use oya_data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OutboxRecord {
-    pub sequence: u64,
-    pub tenant_id: String,
-    pub topic: Classified<String>,
-    pub idempotency_key: Classified<String>,
-    pub payload_ref: Classified<String>,
-    pub published: bool,
+    pub sequence: u64,                       // data_class: INTERNAL_ONLY
+    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub topic: Classified<String>,           // data_class: INTERNAL_ONLY
+    pub idempotency_key: Classified<String>, // data_class: INTERNAL_ONLY
+    pub payload_ref: Classified<String>,     // data_class: INTERNAL_ONLY
+    pub published: bool,                     // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Topic {
-    pub axis: Classified<String>,
-    pub name: Classified<String>,
-    pub description: Classified<String>,
+    axis: Classified<String>,        // data_class: INTERNAL_ONLY
+    name: Classified<String>,        // data_class: INTERNAL_ONLY
+    description: Classified<String>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -31,19 +31,20 @@ pub enum EventingError {
     TopicNotFound,
     EmptyIdempotencyKey,
     EmptyPayloadRef,
+    IdempotencyReplayMismatch,
     OutboxRecordNotFound,
     InvalidOutboxHistory,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct TopicRegistry {
-    by_name: BTreeMap<String, Topic>,
+    by_name: BTreeMap<String, Topic>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Outbox {
-    records: Vec<OutboxRecord>,
-    by_idempotency: BTreeMap<(String, String, String), usize>,
+    records: Vec<OutboxRecord>, // data_class: INTERNAL_ONLY
+    by_idempotency: BTreeMap<(String, String, String), usize>, // data_class: INTERNAL_ONLY
 }
 
 impl Topic {
@@ -80,11 +81,52 @@ impl Topic {
             description: Classified::new(description_trimmed.to_string(), DataClass::InternalOnly),
         })
     }
+
+    pub fn axis(&self) -> &str {
+        &self.axis.value
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name.value
+    }
+
+    pub fn description(&self) -> &str {
+        &self.description.value
+    }
+
+    fn validate(&self) -> Result<(), EventingError> {
+        let axis = self.axis();
+        let name = self.name();
+        let description = self.description();
+        let axis_trimmed = axis.trim();
+        let name_trimmed = name.trim();
+        let description_trimmed = description.trim();
+
+        if axis_trimmed.is_empty() {
+            return Err(EventingError::EmptyTopicAxis);
+        }
+        if name_trimmed.is_empty() {
+            return Err(EventingError::EmptyTopic);
+        }
+        if description_trimmed.is_empty() {
+            return Err(EventingError::EmptyTopicDescription);
+        }
+
+        let expected_prefix = format!("oya.{axis_trimmed}.");
+        if axis_trimmed != axis
+            || name_trimmed != name
+            || !name_trimmed.starts_with(&expected_prefix)
+        {
+            return Err(EventingError::InvalidTopicName);
+        }
+        Ok(())
+    }
 }
 
 impl TopicRegistry {
     pub fn register(&mut self, topic: Topic) -> Result<Topic, EventingError> {
-        let name = topic.name.value.clone();
+        topic.validate()?;
+        let name = topic.name().to_string();
         if self.by_name.contains_key(&name) {
             return Err(EventingError::DuplicateTopic);
         }
@@ -148,6 +190,9 @@ impl Outbox {
         }
         let key = (tenant_id.clone(), topic.clone(), idempotency_key.clone());
         if let Some(index) = self.by_idempotency.get(&key) {
+            if self.records[*index].payload_ref.value != payload_ref {
+                return Err(EventingError::IdempotencyReplayMismatch);
+            }
             return Ok(self.records[*index].clone());
         }
         let record = OutboxRecord {
@@ -185,7 +230,7 @@ impl Outbox {
 
 #[cfg(test)]
 mod tests {
-    use super::{EventingError, Outbox, Topic, TopicRegistry};
+    use super::{Classified, DataClass, EventingError, Outbox, Topic, TopicRegistry};
 
     #[test]
     fn topic_registry_enforces_axis_prefixed_names() {
@@ -212,6 +257,25 @@ mod tests {
             Topic::new("", "oya.foundation.eventing", "missing axis"),
             Err(EventingError::EmptyTopicAxis)
         );
+    }
+
+    #[test]
+    fn topic_registry_revalidates_topic_invariants_at_registration() {
+        let invalid = Topic {
+            axis: Classified::new("foundation".to_string(), DataClass::InternalOnly),
+            name: Classified::new("oya.cloud.eventing".to_string(), DataClass::InternalOnly),
+            description: Classified::new(
+                "Foundation eventing backbone topic".to_string(),
+                DataClass::InternalOnly,
+            ),
+        };
+
+        let mut registry = TopicRegistry::default();
+        assert_eq!(
+            registry.register(invalid),
+            Err(EventingError::InvalidTopicName)
+        );
+        assert!(registry.topics().is_empty());
     }
 
     #[test]
@@ -242,5 +306,29 @@ mod tests {
             .expect("record can be marked published");
         assert!(published.published);
         assert!(outbox.records()[0].published);
+    }
+
+    #[test]
+    fn outbox_rejects_same_idempotency_key_with_different_payload_ref() {
+        let mut outbox = Outbox::default();
+        outbox
+            .publish(
+                "tenant-a".to_string(),
+                "oya.foundation.eventing".to_string(),
+                "idem-1".to_string(),
+                "payloads/1".to_string(),
+            )
+            .expect("first publish succeeds");
+
+        assert_eq!(
+            outbox.publish(
+                "tenant-a".to_string(),
+                "oya.foundation.eventing".to_string(),
+                "idem-1".to_string(),
+                "payloads/2".to_string(),
+            ),
+            Err(EventingError::IdempotencyReplayMismatch)
+        );
+        assert_eq!(outbox.records().len(), 1);
     }
 }

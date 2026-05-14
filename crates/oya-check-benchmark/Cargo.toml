@@ -2,6 +2,7 @@
 name = "oya-check-benchmark"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 

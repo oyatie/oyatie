@@ -1,0 +1,20 @@
+[package]
+name = "oya-foundry-api-sse-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_foundry_api_sse_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-api-rest-kernel = { path = "../oya-foundry-api-rest-kernel" }
+
+oya-foundry-api-sse-kernel = { path = "../oya-foundry-api-sse-kernel" }
+
+[dev-dependencies]
+

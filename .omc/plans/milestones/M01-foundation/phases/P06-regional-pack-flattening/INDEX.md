@@ -3,8 +3,10 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M01-P06
 title: Regional Pack Architecture + Flattening Ratchet
-status: stub
+status: complete
 purpose: Ship the regional-pack contract (canonical seams + per-pack plug-in) and the architectural-flattening-target ratchet per ADR-0015.
+phase_evidence_refs:
+  - .omc/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json
 ---
 
 # M01-P06 — Regional Pack Architecture + Flattening Ratchet
@@ -13,7 +15,7 @@ purpose: Ship the regional-pack contract (canonical seams + per-pack plug-in) an
 Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §12 (regional packs) and ADR-0015 (flat-crates target). Every regulated surface declares its `regulatory_packs:` set; a regional pack supplies the per-jurisdiction implementation.
 
 ## Acceptance
-- Regional pack ADR Accepted; `crates/oya-platform-regional-pack-kernel` shipped.
+- Regional pack ADR Accepted; `crates/oya-regional-pack-domain` shipped.
 - Initial pack roster (per DESIGN §12.4): KR + JP + US + EU + IN + BR + KSA + UAE + ANZ + SG seam contracts published.
 - `oya-foundry-fitness-flat-crates-guard` lane green: every workspace crate under `crates/oya-*`, every workspace crate has `registry/catalog/<crate>.yaml`, retired top-level roots stay absent, role-boundary graph validates.
 
@@ -27,7 +29,7 @@ Per [`../../../../../docs/DESIGN.md`](../../../../../docs/DESIGN.md) §12 (regio
 2 agents in parallel; disjoint surface.
 
 ## Symbols-touched
-`crates/oya-platform-regional-pack-kernel`, `crates/oya-foundry-fitness-flat-crates-guard-kernel`.
+`docs/decisions/ADR-0010-regional-pack-architecture.md`, `crates/oya-regional-pack-domain`, `crates/oya-foundry-cargo-prefix-domain`, and architecture/cargo-prefix gates surfaced through `crates/oya-dev-cli`.
 
 ## Agent-handoff
 ```

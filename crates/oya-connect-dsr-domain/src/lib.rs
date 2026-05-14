@@ -8,12 +8,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_workspace_retention_kernel::{
+use oya_connect_retention_domain::{
     EraseMethod, RetentionDecision, RetentionDecisionOutcome, RetentionDisposition,
     RetentionHorizon, RetentionLawfulBasis, RetentionPolicy, RetentionPolicyCreate,
     RetentionRequestKind, WorkspaceRetentionSurface,
 };
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DSR_REQUEST_SCHEMA_VERSION: u32 = 1;
 const DSR_STORE_REF_SCHEMA_VERSION: u32 = 1;
@@ -754,10 +754,10 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_workspace_retention_kernel::{
+    use oya_connect_retention_domain::{
         RetentionDecisionCreate, RetentionRecordRef, RetentionRecordRefCreate,
     };
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).unwrap()
@@ -956,12 +956,14 @@ mod tests {
             DsrCascadePlan::new(
                 DsrCascadePlanCreate {
                     plan_id: "plan-3".into(),
-                    capabilities: vec![DsrSurfaceCapability::new(DsrSurfaceCapabilityCreate {
-                        capability_id: "workspace-mail-dsr".into(),
-                        surface: WorkspaceRetentionSurface::Mail,
-                        supported_actions: vec![DsrAction::Export],
-                    })
-                    .unwrap()],
+                    capabilities: vec![
+                        DsrSurfaceCapability::new(DsrSurfaceCapabilityCreate {
+                            capability_id: "workspace-mail-dsr".into(),
+                            surface: WorkspaceRetentionSurface::Mail,
+                            supported_actions: vec![DsrAction::Export],
+                        })
+                        .unwrap()
+                    ],
                     items: vec![impact("message-1")],
                     planned_at_epoch_seconds: 1_700_000_010,
                 },

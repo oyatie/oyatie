@@ -6,8 +6,8 @@
 //!   - oya-http-middleware-kernel::MiddlewareChain<HyperRequest, HyperResponse>
 //!   - hyper::service::Service over hyper 1.x
 //!
-//! Concrete request / response types declared in THIS crate so consumers
-//! never have to import hyper themselves.
+//! Request / response structs are re-exported from the middleware kernel so
+//! middleware crates depend inward while consumers still avoid importing hyper.
 
 use std::collections::BTreeMap;
 use std::convert::Infallible;
@@ -24,54 +24,8 @@ use hyper_util::server::conn::auto::Builder as ConnBuilder;
 use tokio::net::TcpListener;
 
 use oya_http_middleware_kernel::MiddlewareChain;
+pub use oya_http_middleware_kernel::{HyperRequest, HyperResponse};
 use oya_http_router_kernel::{HttpMethod, Router};
-
-/// HTTP request as seen by Layer 4 middlewares + handlers.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct HyperRequest {
-    pub method: HttpMethod,
-    pub path: String,
-    pub headers: BTreeMap<String, String>,
-    pub body: Bytes,
-    pub path_captures: BTreeMap<String, String>,
-}
-
-/// HTTP response shape. `body` is materialized as bytes here; SSE streams
-/// are emitted by separate streaming handlers (future Layer 5 enhancement).
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct HyperResponse {
-    pub status: u16,
-    pub headers: BTreeMap<String, String>,
-    pub body: Bytes,
-}
-
-impl HyperResponse {
-    pub fn new(status: u16) -> Self {
-        Self {
-            status,
-            headers: BTreeMap::new(),
-            body: Bytes::new(),
-        }
-    }
-
-    pub fn with_header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
-        self.headers.insert(key.into(), value.into());
-        self
-    }
-
-    pub fn with_body(mut self, body: impl Into<Bytes>) -> Self {
-        self.body = body.into();
-        self
-    }
-
-    pub fn not_found() -> Self {
-        Self::new(404).with_body(Bytes::from_static(b"not found"))
-    }
-
-    pub fn method_not_allowed() -> Self {
-        Self::new(405).with_body(Bytes::from_static(b"method not allowed"))
-    }
-}
 
 /// Synchronous handler signature wrapped by the router. Handlers are pure
 /// `Fn` — they own / borrow their state via captured Arcs. The runtime calls

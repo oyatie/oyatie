@@ -6,11 +6,11 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_network_kernel::{
+use oya_cloud_network_domain::{
     CloudNetworkCatalog, CloudNetworkError, DnsZone, DnsZoneCreate, DnsZoneKind, DnsZoneState,
     NetworkRepo,
 };
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
 
 pub const CLOUD_NETWORK_DNS_ZONE_CREATE_SURFACE: &str = "cloud.network.dns.zone.create";
 

@@ -25,6 +25,8 @@ parent: ../INDEX.md            # phase INDEX (relative path)
 milestone: M0N                 # M01..M06 or M-CC
 phase: P0N-<slug>
 status: pending approval | open | in-progress | merged | blocked
+execution_unit: ChangeSet      # every IP is a ChangeSet-sized execution unit
+changeset_contract: claimable-verifiable-bundleable-promotable
 purpose: |
   One paragraph stating what this IP delivers and why it sits at this position in the phase. Inherits Master Plan principles 1-12 by reference.
 grit_claim_symbols:            # MUST be real file::Identifier; pre-scaffolded if new (ADR-0054-grit-scaffold-claim-pattern)
@@ -48,6 +50,11 @@ authority_chain_declaration: |
 ## Purpose
 
 One paragraph. What this IP delivers. Why now (its position in the phase dependency graph). Inherits which Master Plan principles (1-12) explicitly. **MUST** state the durable outcome in the present tense (e.g., "Ships `oya-tooling-agent-read pr-view` with audit-chain emission on every invocation.") — not "will ship."
+
+
+## ChangeSet boundary
+
+State why this IP is one cohesive ChangeSet: exact issue-level scope, affected symbols/artifact pointers, affected crates/packages/deployables, required tests, evidence bundle, and promotion boundary. If the work cannot be claimed, verified, bundled, and promoted independently, split it before execution. Whole-tree locks or full-workspace cold builds require explicit graph-proven rationale.
 
 ## Symbols to grit-claim
 

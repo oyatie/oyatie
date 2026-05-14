@@ -62,4 +62,4 @@ companion_docs:
 
 ## 5. Authority + governance
 
-Every spec carries `status: Accepted`, `date:`, `purpose:`, `enforced_by:`. No MVP variants. Specs ≤150 lines; visualization specs ≤200. Cite existing oyatie crates by exact name when extending. Hyperscaler bar: Mermaid native + D2 richer renders + Graphviz where SVG fidelity matters. Governing ADRs: ADR-0052 (artifact inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim pattern).
+Every spec carries `status: Accepted`, `date:`, `purpose:`, `enforced_by:`. No prototype variants. Specs ≤150 lines; visualization specs ≤200. Cite existing oyatie crates by exact name when extending. Hyperscaler bar: Mermaid native + D2 richer renders + Graphviz where SVG fidelity matters. Governing ADRs: ADR-0052 (artifact inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim pattern).

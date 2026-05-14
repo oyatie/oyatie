@@ -9,11 +9,11 @@
 
 ## Context
 
-Oyatie ships a complete product, not an MVP. The quality bar is set by industry leaders (competitive-benchmarked) and hyperscalers (100M+ user scale). Horizontal scalability is mandatory from day one. No single-instance-only designs. No "MVP-quality" first releases — feature-complete or not shipped.
+Oyatie ships a complete product, not a prototype. The quality bar is set by industry leaders (competitive-benchmarked) and hyperscalers (100M+ user scale). Horizontal scalability is mandatory from day one. No single-instance-only designs. No "prototype-quality" first releases — feature-complete or not shipped.
 
 User instruction 2026-05-13: "Our quality bar is industry leaders (with existing research benchmarked against competitors) and hyperscalers. Our quality and performance bar is high and must be horizontally scalable."
 
-This aligns with Bominal master-plan: "Complete product, not MVP", "Modern architecture", "100M+ users from day one."
+This aligns with Bominal master-plan: "Complete product, not prototype", "Modern architecture", "100M+ users from day one."
 
 **Naming justification:** "Quality/Performance/Scalability" are the three orthogonal dimensions of the bar. Each has concrete targets and CI enforcement per this ADR.
 

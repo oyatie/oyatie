@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P09-IP-004
 title: oya-foundry-fitness-architecture-map-freshness lane
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Lane blocks PRs that change source-of-truth without regenerating visualizations.
@@ -49,4 +52,8 @@ icm store -t context-oyatie -c 'M-CC-P09-IP-004 oya-foundry-fitness-architecture
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- Two complementary checks (digest equality AND source-changed-without-snapshot-touched) catch both "I forgot to regenerate" and "I edited the snapshot by hand and it now disagrees with the workspace".
+- `FreshnessInput<'a>` is a borrowed record, not owned — runners can pass slices without cloning megabyte-scale changed-file lists.
+- Empty digests / non-hex digests are `Err`, not "treated as mismatch" — a broken hasher cannot silently pass as a digest miss.
+- `path_under_root` uses prefix-with-`/` so `registries-old` doesn't match the root `registries`.

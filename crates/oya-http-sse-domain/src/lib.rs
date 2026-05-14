@@ -55,19 +55,19 @@ impl SseEvent {
     /// Serialize this event to its on-wire string form (terminator included).
     pub fn render(&self) -> String {
         let mut out = String::new();
-        if let Some(id) = &self.id {
-            if !id.is_empty() {
-                out.push_str("id: ");
-                out.push_str(id);
-                out.push('\n');
-            }
+        if let Some(id) = &self.id
+            && !id.is_empty()
+        {
+            out.push_str("id: ");
+            out.push_str(id);
+            out.push('\n');
         }
-        if let Some(event) = &self.event {
-            if !event.is_empty() {
-                out.push_str("event: ");
-                out.push_str(event);
-                out.push('\n');
-            }
+        if let Some(event) = &self.event
+            && !event.is_empty()
+        {
+            out.push_str("event: ");
+            out.push_str(event);
+            out.push('\n');
         }
         if let Some(retry_ms) = self.retry_ms {
             out.push_str("retry: ");

@@ -1,0 +1,14 @@
+[package]
+name = "oya-foundry-autonomy-ceiling-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_foundry_autonomy_ceiling_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]

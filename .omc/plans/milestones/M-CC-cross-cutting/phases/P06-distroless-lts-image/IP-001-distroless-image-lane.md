@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P06-IP-001
 title: Distroless base + image-discipline lane
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Block non-distroless bases + shells/package-managers + oversized images.
@@ -49,4 +52,9 @@ icm store -t context-oyatie -c 'M-CC-P06-IP-001 Distroless base + image-discipli
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- `DISTROLESS_PREFIXES` is a single `const` array — adding a new sanctioned base (e.g., another Chainguard root) is a one-line change.
+- `base_ref` strips `:tag` and `@digest` once at the top, so the prefix-match loop never has to think about tag variations.
+- Missing budget is a violation (`MissingBudget`), not a silent skip — a forgotten size budget cannot let an image pass unnoticed.
+- Forbidden final-layer paths use exact-match (not substring) — a future `/opt/legitimate/apt-config` won't false-positive as `apt`.
+- Duplicate budgets are `Err`, not last-write-wins — a stale or conflicting policy cannot quietly raise the ceiling.

@@ -3,21 +3,24 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-009
 title: Delete archived glue from active path (P7)
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
-purpose: git rm archived glue from active path after three concrete gates green.
+purpose: Remove DELETE-class active-path ephemera after three concrete P7 gates are green.
 ---
 
 # M-CC-P01-IP-009 — Delete archived glue from active path (P7)
 
 ## Purpose
-git rm archived glue from active path after three concrete gates green.
+Remove DELETE-class active-path ephemera after three concrete P7 gates are green.
 
 ## Symbols-to-grit-claim
 ```
-bominal/agents/ultragoal/ledger.jsonl::delete
-bominal/agents/ultragoal/goals.json::delete
+bominal/agents/ultragoal/G001-stop-hook-complete-attempt.err::delete
+bominal/agents/ultragoal/G001-stop-hook-complete-attempt.out::delete
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -50,4 +53,4 @@ icm store -t context-oyatie -c 'M-CC-P01-IP-009 Delete archived glue from active
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP: P7 deletes only the two ADR-0052 DELETE-class ephemera files after the P6 archive gates are green; archived runtime state stays in the archive directory and no active-path shim is introduced.

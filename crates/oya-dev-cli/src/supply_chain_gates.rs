@@ -2,13 +2,13 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_release_evidence_pack_kernel::{
-    validate_release_evidence_packs, ComplianceRegulatorRef, ReleaseEvidencePackManifest,
-    ReleaseEvidencePackPolicy, ReleaseEvidencePackRecord,
+use oya_check_release_pack::{
+    ComplianceRegulatorRef, ReleaseEvidencePackManifest, ReleaseEvidencePackPolicy,
+    ReleaseEvidencePackRecord, validate_release_evidence_packs,
 };
-use oya_foundry_supply_chain_kernel::{
-    validate_pre_release_supply_chain, validate_release_supply_chain, validate_supply_chain,
+use oya_check_supply_chain::{
     ReleaseArtifact, ReleaseSupplyChainEvidence, SupplyChainEvidence, SupplyChainRecord,
+    validate_pre_release_supply_chain, validate_release_supply_chain, validate_supply_chain,
 };
 
 use crate::{
@@ -535,13 +535,13 @@ fn read_supply_chain_records(registry_dir: &Path) -> Result<Vec<SupplyChainRecor
 }
 
 fn supply_chain_attestation_id(
-    attestation: oya_foundry_catalog_kernel::SupplyChainAttestation,
+    attestation: oya_foundry_catalog_domain::SupplyChainAttestation,
 ) -> String {
     match attestation {
-        oya_foundry_catalog_kernel::SupplyChainAttestation::SourceOnly => "source-only",
-        oya_foundry_catalog_kernel::SupplyChainAttestation::LicenseChecked => "license-checked",
-        oya_foundry_catalog_kernel::SupplyChainAttestation::Sbom => "sbom",
-        oya_foundry_catalog_kernel::SupplyChainAttestation::SignedProvenance => "signed-provenance",
+        oya_foundry_catalog_domain::SupplyChainAttestation::SourceOnly => "source-only",
+        oya_foundry_catalog_domain::SupplyChainAttestation::LicenseChecked => "license-checked",
+        oya_foundry_catalog_domain::SupplyChainAttestation::Sbom => "sbom",
+        oya_foundry_catalog_domain::SupplyChainAttestation::SignedProvenance => "signed-provenance",
     }
     .into()
 }

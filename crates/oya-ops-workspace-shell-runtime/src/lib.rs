@@ -38,9 +38,17 @@ pub fn build_router(catalog: SharedCatalog) -> Router<SyncHandler> {
             LIST_LIVE_SURFACES_ROUTE,
             Arc::new(move |_req: HyperRequest| -> HyperResponse {
                 let snapshot = cat_live.read().expect("catalog poisoned").clone();
-                let response = ListLiveSurfacesUseCase::new(snapshot)
-                    .execute(VisibilityTier::InternalPublic);
-                json_response(&surface_list_json(&response))
+                let response =
+                    ListLiveSurfacesUseCase::new(snapshot).execute(VisibilityTier::InternalPublic);
+                let surfaces: Vec<oya_ops_workspace_shell_adapter::WireSurface> = response
+                    .surfaces
+                    .iter()
+                    .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
+                    .collect();
+                let count = surfaces.len();
+                let wire =
+                    oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
+                json_response(&surface_list_json(&wire))
             }),
         )
         .expect("LIST_LIVE_SURFACES_ROUTE register failed");
@@ -54,7 +62,15 @@ pub fn build_router(catalog: SharedCatalog) -> Router<SyncHandler> {
             Arc::new(move |_req: HyperRequest| -> HyperResponse {
                 let snapshot = cat_all.read().expect("catalog poisoned").clone();
                 let response = ListAllSurfacesUseCase::new(snapshot).execute(None, None);
-                json_response(&surface_list_json(&response))
+                let surfaces: Vec<oya_ops_workspace_shell_adapter::WireSurface> = response
+                    .surfaces
+                    .iter()
+                    .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
+                    .collect();
+                let count = surfaces.len();
+                let wire =
+                    oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
+                json_response(&surface_list_json(&wire))
             }),
         )
         .expect("LIST_ALL_SURFACES_ROUTE register failed");
@@ -67,8 +83,8 @@ pub fn build_router(catalog: SharedCatalog) -> Router<SyncHandler> {
             SHELL_HEALTH_ROUTE,
             Arc::new(move |_req: HyperRequest| -> HyperResponse {
                 let snapshot = cat_health.read().expect("catalog poisoned").clone();
-                let response = ShellHealthUseCase::new(snapshot, env!("CARGO_PKG_VERSION"), None)
-                    .execute();
+                let response =
+                    ShellHealthUseCase::new(snapshot, env!("CARGO_PKG_VERSION"), None).execute();
                 json_response(&format!(
                     "{{\"status\":\"{}\",\"surface_count\":{},\"version\":\"{}\"}}",
                     response.status, response.surface_count, response.version
@@ -97,7 +113,7 @@ pub fn build_dev_catalog() -> SharedCatalog {
         state: SurfaceState::ReservedComingSoon,
         owning_bc_id: "ops/docs-portal".into(),
         cedar_fragments: vec!["ops-internal-public".into()],
-        openapi_contract: Some("contracts/ops-docs.openapi.yaml".into()),
+        openapi_contract: Some("contracts/ops-docs-v1.openapi.yaml".into()),
         retired_redirects_to: None,
     });
     Arc::new(RwLock::new(catalog))
@@ -218,11 +234,7 @@ mod tests {
         let catalog = build_dev_catalog();
         let router = build_router(catalog);
         let chain = build_chain();
-        let response = dispatch(
-            mock_request(HttpMethod::Get, "/nope"),
-            &router,
-            &chain,
-        );
+        let response = dispatch(mock_request(HttpMethod::Get, "/nope"), &router, &chain);
         assert_eq!(response.status, 404);
     }
 
@@ -256,4 +268,3 @@ mod tests {
         assert!(body_text.contains("tenant-mgmt"));
     }
 }
-

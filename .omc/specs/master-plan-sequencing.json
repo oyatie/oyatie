@@ -21,7 +21,8 @@
       ".omc/templates/checklists/done-definition-checklist.md",
       ".omc/templates/checklists/per-implementation-plan-checklist.md",
       ".omc/templates/checklists/per-phase-completion-checklist.md",
-      ".omc/templates/evidence-bundle-template.json"
+      ".omc/templates/evidence-bundle-template.json",
+      ".omc/specs/gitops-vcs-replacement.json"
     ],
     "deduplicates_existing": [
       ".omc/goals/implement-masterplan.md",
@@ -34,6 +35,7 @@
   },
   "master_plan_discovery_order": [
     "docs/MASTERPLAN.md",
+    ".omc/specs/gitops-vcs-replacement.json",
     ".omc/goals/implement-masterplan.md",
     ".omc/plans/consensus-masterplan-2026-05-13.md",
     ".omc/plans/M01-M03-parallelization-manifest.md",
@@ -46,8 +48,8 @@
   ],
   "planning_hierarchy": {
     "milestone": "multi-quarter outcome; M<NN>-slug; owns phase index and exit gate",
-    "phase": "1-6 week deliverable; P<NN>-slug; owns entry/exit gates",
-    "implementation_plan": "executable phase-local slice; owns grit symbols, code shape, tests, and handoff"
+    "phase": "1-6 week deliverable; P<NN>-slug; owns entry/exit gates and dependency ordering",
+    "implementation_plan": "ChangeSet-sized executable phase-local slice; owns grit symbols, issue-level scope, code shape, tests, evidence, handoff, and promotion eligibility"
   },
   "forbidden_primitives": [
     "git",
@@ -60,23 +62,28 @@
   "repo_state_protocol": [
     {
       "step": "claim",
-      "primitive": "grit claim --agent <id> --intent <slice> <symbols>",
-      "fallback": "icm store -t scaffold-locks-oyatie when symbols are absent"
+      "primitive": "grit-compatible claim --agent <id> --intent <slice> <symbols>",
+      "fallback": "icm store -t scaffold-locks-oyatie only until P00 file/artifact claims are implemented"
     },
     {
       "step": "work",
-      "primitive": "edit only within claimed scope",
-      "fallback": "stop and narrow claim on shared-file conflict"
+      "primitive": "edit only inside isolated claimed workspace",
+      "fallback": "stop and narrow claim on shared-symbol conflict"
     },
     {
       "step": "verify",
-      "primitive": "run targeted then risk-scaled gates",
+      "primitive": "run targeted then risk-scaled gates; package evidence into ChangeBundle",
       "fallback": "record blocked check and next-best evidence"
     },
     {
       "step": "done",
-      "primitive": "grit done --agent <id>",
-      "fallback": "do not manually merge; report blocked closeout"
+      "primitive": "done emits signed ChangeBundle and GitOps promotion request; local merge is compatibility-only",
+      "fallback": "do not manually merge; report blocked promotion"
+    },
+    {
+      "step": "promote",
+      "primitive": "GitOps controller owns remote ref/PR-equivalent publication, CI/CD admission, environment reconciliation, and lock release",
+      "fallback": "keep/release locks according to terminal policy; never agent-run git/gh"
     }
   ],
   "sequence": [
@@ -96,7 +103,8 @@
     "run_linus_style_critic_pass",
     "fix_and_reverify",
     "record_evidence_bundle",
-    "close_claim_with_grit_done",
+    "close_claim_with_done_bundle",
+    "gitops_promote_or_record_blocker",
     "repeat_until_ledger_complete",
     "full_plan_adversarial_audit",
     "store_icm_completion_summary",
@@ -113,5 +121,43 @@
     "status",
     "evidence_refs",
     "blocked_reason"
-  ]
+  ],
+  "early_prerequisites": [
+    {
+      "id": "M-CC-P00-gitops-vcs-replacement",
+      "source_path": ".omc/specs/gitops-vcs-replacement.json",
+      "must_complete_before": [
+        "M-CC-P01",
+        "broad M01/M02/M03 parallel fan-out"
+      ],
+      "compatibility_window": "Existing local grit may be used only until P00 reaches accepted GitOps promotion path."
+    }
+  ],
+  "implementation_plan_changeset_contract": {
+    "applies_to_globs": [
+      ".omc/plans/milestones/*/phases/*/IP-*.md"
+    ],
+    "definition": "Every ImplementationPlan is a ChangeSet-sized execution unit. It must be claimable, independently verifiable, bundleable, promotable, and small enough to avoid locking an entire tree without graph-proven rationale.",
+    "must_have": [
+      "milestone_parent",
+      "phase_parent",
+      "ip_id",
+      "change_boundary",
+      "grit_claim_or_scaffold_lock_scope",
+      "affected_symbols_or_artifact_pointers",
+      "affected_crates_packages_deployables",
+      "required_test_evidence",
+      "rollback_or_compatibility_path",
+      "icm_completion_payload"
+    ],
+    "split_when": [
+      "unrelated lock scopes",
+      "multiple independently deployable packages without shared invariant",
+      "whole-tree rebuild without declared full-gate reason",
+      "mixed provider adapter and kernel work without explicit contract boundary",
+      "review/fix task independent from original ChangeSet"
+    ],
+    "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
+    "validation_lane": "oya-foundry-fitness-plan-hierarchy + Oya VCS admission once M-CC-P00 is accepted"
+  }
 }

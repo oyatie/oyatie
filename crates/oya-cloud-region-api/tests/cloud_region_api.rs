@@ -4,10 +4,10 @@ use oya_cloud_region_api::{
     CloudRegionApiPrincipal, CloudRegionListApiRequest, CloudRegionListApiStatus,
     CLOUD_AZ_LIST_SURFACE, CLOUD_REGION_LIST_SURFACE,
 };
-use oya_cloud_region_kernel::{
+use oya_cloud_region_domain::{
     AzState, CloudAzCreate, CloudRegionCatalog, CloudRegionCreate, RegionState,
 };
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_residency_domain::ResidencyClass;
 
 #[test]
 fn openapi_runtime_binding_contracts_are_covered() {

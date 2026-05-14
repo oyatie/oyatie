@@ -48,7 +48,7 @@ The agent MAY invoke these tools directly, with documented rationale via
 | Tool | Justification template |
 |---|---|
 | `git cherry-pick <sha>` | "Move fix `<sha>` from prod to release/X.Y per frontmatter / operator request." |
-| `git tag -a oyatie-vX.Y.<Z+1>` | "Mint patch tag after release-branch CI green." |
+| `git tag -a oya-vX.Y.<Z+1>` | "Mint patch tag after release-branch CI green." |
 | `git push origin <branch>` | "Publish cherry-pick / tag (push restricted to this agent's signing key)." |
 | `gh release create` | "Cut GitHub release record for the patch tag with release notes." |
 
@@ -63,7 +63,7 @@ topic: release-cherry-picks
 content: |
   prod_sha: <sha>
   release_branch: release/X.Y
-  patch_tag: oyatie-vX.Y.<Z+1>
+  patch_tag: oya-vX.Y.<Z+1>
   cherry_pick_status: clean | conflict-resolved | refused
   rationale: <one line>
   approving_reviewers: [<list>]
@@ -83,7 +83,7 @@ keywords: [cherry-pick, release, X.Y, <axis>]
    - API-stability check (refuse if it touches `contracts/openapi/`).
 5. `git cherry-pick <prod-sha>` on `release/X.Y`.
 6. Push → trigger release-branch CI.
-7. On CI green: increment patch in `Cargo.toml`, tag `oyatie-vX.Y.<Z+1>`,
+7. On CI green: increment patch in `Cargo.toml`, tag `oya-vX.Y.<Z+1>`,
    push tag.
 8. `gh release create` with the release notes (auto-generated from commit msgs).
 9. Store icm record.

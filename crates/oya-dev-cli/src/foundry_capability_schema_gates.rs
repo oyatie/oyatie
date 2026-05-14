@@ -2,9 +2,9 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundation_app::{
-    privacy_data_classes_from, AutonomyTier, Capability, CapabilityCostProfile,
-    CapabilityMcpContract, DataClass,
+use oya_application_app::{
+    AutonomyTier, Capability, CapabilityCostProfile, CapabilityMcpContract, DataClass,
+    privacy_data_classes_from,
 };
 
 use crate::{
@@ -255,10 +255,10 @@ fn parse_usd_micros(path: &Path, field: &str, value: &str) -> Result<u64, String
 }
 
 fn schema_section_to_json(path: &Path, contents: &str, section: &str) -> Result<String, String> {
-    if let Some(inline) = optional_top_level_scalar(contents, section)? {
-        if !inline.trim().is_empty() {
-            return Ok(inline);
-        }
+    if let Some(inline) = optional_top_level_scalar(contents, section)?
+        && !inline.trim().is_empty()
+    {
+        return Ok(inline);
     }
     let lines = required_section_lines(path, contents, section)?;
     if !lines
@@ -347,12 +347,12 @@ fn schema_property_names(lines: &[String]) -> Vec<String> {
 }
 
 fn required_string_list(path: &Path, contents: &str, key: &str) -> Result<Vec<String>, String> {
-    if let Some(inline) = optional_top_level_scalar(contents, key)? {
-        if !inline.trim().is_empty() {
-            let values = parse_yaml_inline_values(&inline);
-            if !values.is_empty() {
-                return Ok(values);
-            }
+    if let Some(inline) = optional_top_level_scalar(contents, key)?
+        && !inline.trim().is_empty()
+    {
+        let values = parse_yaml_inline_values(&inline);
+        if !values.is_empty() {
+            return Ok(values);
         }
     }
     let values = section_list_values(path, contents, key)?;
@@ -469,16 +469,16 @@ fn optional_section_lines(contents: &str, section: &str) -> Result<Option<Vec<St
             if in_section {
                 break;
             }
-            if let Some((actual_key, value)) = line.split_once(':') {
-                if actual_key.trim() == section {
-                    if found {
-                        return Err(format!("duplicate section {section}"));
-                    }
-                    found = true;
-                    in_section = true;
-                    if !clean_scalar_value(value).is_empty() {
-                        lines.push(format!("  __inline__: {}", clean_scalar_value(value)));
-                    }
+            if let Some((actual_key, value)) = line.split_once(':')
+                && actual_key.trim() == section
+            {
+                if found {
+                    return Err(format!("duplicate section {section}"));
+                }
+                found = true;
+                in_section = true;
+                if !clean_scalar_value(value).is_empty() {
+                    lines.push(format!("  __inline__: {}", clean_scalar_value(value)));
                 }
             }
             continue;

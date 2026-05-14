@@ -6,14 +6,14 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_billing_kernel::Money;
-use oya_cloud_finops_kernel::{
+use oya_cloud_billing_domain::Money;
+use oya_cloud_finops_domain::{
     AnomalyPolicy, AxisCostBreakdown, CloudFinopsError, CloudFinopsLedger, CostAnomaly,
     CostAnomalyKind, FinopsPeriod, FinopsRecommendation, FinopsReport, FinopsReportRequest,
     RecommendationKind, ResourceCostBreakdown,
 };
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_platform_metering_kernel::AxisId;
+use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_metering_domain::AxisId;
 
 pub const CLOUD_FINOPS_REPORT_SURFACE: &str = "cloud.finops.report";
 

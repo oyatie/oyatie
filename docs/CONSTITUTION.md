@@ -17,9 +17,11 @@ excludes:
   - path: docs/standards/prevention-doctrine.md
     reason: Mechanical-prevention authoring guide — Constitution names the doctrine; the standard authors the prevention.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md
-    > rest of docs/
-    > catalog records (registry/catalog/, contracts/, machine-readable/)
+  system / developer / user instructions
+    > .omc/specs/root-hub-pointers.json
+    > docs/AGENTS.md (until .omc/specs/agent-operating-contract.json PHASE-5 promotion)
+    > machine-readable specs and registries under .omc/
+    > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
 ---

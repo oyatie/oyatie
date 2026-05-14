@@ -1,9 +1,9 @@
 use oya_platform_identity_api::{
-    upsert_identity_user_from_api, IdentityUserApiAuthorization, IdentityUserApiBoundaryContext,
-    IdentityUserApiPrincipal, IdentityUserDirectory, IdentityUserRoleRef,
-    IdentityUserUpsertApiError, IdentityUserUpsertApiRequest, IdentityUserUpsertApiStatus,
-    IdentityUserUpsertIdempotencyLedger, IdentityUserUpsertRequest,
     IDENTITY_USER_UPSERT_OPENAPI_CONTRACT, IDENTITY_USER_UPSERT_SURFACE,
+    IdentityUserApiAuthorization, IdentityUserApiBoundaryContext, IdentityUserApiPrincipal,
+    IdentityUserDirectory, IdentityUserRoleRef, IdentityUserUpsertApiError,
+    IdentityUserUpsertApiRequest, IdentityUserUpsertApiStatus, IdentityUserUpsertIdempotencyLedger,
+    IdentityUserUpsertRequest, upsert_identity_user_from_api,
 };
 
 const REQUEST_ID: &str = "req_identity_user_001";

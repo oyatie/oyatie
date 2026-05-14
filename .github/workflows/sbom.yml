@@ -1,0 +1,69 @@
+# SBOM generation per release (M-CC-P08-IP-002).
+#
+# Produces CycloneDX + SPDX SBOMs at releases/<tag>/sbom.{cdx,spdx}.json
+# for each release tag. Verification gate downstream consumes
+# `sbom_present` via
+# `oya-foundry-fitness-supply-chain-kernel::check_signed`.
+
+name: sbom
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  generate-sbom:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+
+      - name: Install cargo-cyclonedx (CycloneDX SBOM)
+        run: cargo install --locked cargo-cyclonedx
+
+      - name: Install syft (SPDX SBOM)
+        uses: anchore/sbom-action/download-syft@d94f46e13c6c62f59525ac9a1e147a99dc0b9bf5
+
+      - name: Generate CycloneDX SBOM
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          out="releases/${tag}"
+          mkdir -p "${out}"
+          cargo cyclonedx --format json --output-pattern bom \
+            --override-filename "${out}/sbom.cdx" \
+            --all
+          test -s "${out}/sbom.cdx.json"
+
+      - name: Generate SPDX SBOM
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          out="releases/${tag}"
+          syft . -o spdx-json="${out}/sbom.spdx.json"
+          test -s "${out}/sbom.spdx.json"
+
+      - name: Verify SBOM non-empty
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          for f in releases/${tag}/sbom.cdx.json releases/${tag}/sbom.spdx.json; do
+            jq -e '.components // .packages // empty' "${f}" >/dev/null \
+              || { echo "SBOM ${f} has no components/packages"; exit 1; }
+          done
+
+      - name: Upload SBOMs
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.ref_name }}
+          path: |
+            releases/**/sbom.cdx.json
+            releases/**/sbom.spdx.json

@@ -647,8 +647,8 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::validate_data_class_gate(args) {
                     Ok((fields_checked, annotated_fields, legacy_unannotated_fields)) => {
                         println!(
-                        "data class fitness validation passed: {fields_checked} fields checked, {annotated_fields} annotated, {legacy_unannotated_fields} legacy unannotated"
-                    );
+                            "data class fitness validation passed: {fields_checked} fields checked, {annotated_fields} annotated, {legacy_unannotated_fields} legacy unannotated"
+                        );
                         ExitCode::SUCCESS
                     }
                     Err(message) => {

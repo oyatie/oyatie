@@ -8,11 +8,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_dsr_kernel::{
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_dsr_domain::{
     DsrAction, DsrAxis, DsrCompletionRecord, DsrRequest, DsrSlaStatus, DsrStoreKind, ErasureProof,
 };
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_residency_domain::ResidencyClass;
 
 const TRUST_PORTAL_SECTION_SCHEMA_VERSION: u32 = 1;
 const TRUST_PORTAL_LINEAGE_SCHEMA_VERSION: u32 = 1;
@@ -1206,7 +1206,7 @@ fn internal_data_class() -> PrivacyDataClass {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_dsr_kernel::{
+    use oya_dsr_domain::{
         DsrAckStatus, DsrCascadeAck, DsrCascadeAckCreate, DsrCompletionRecordCreate, DsrDispatch,
         DsrDispatchCreate, DsrProofMethod, DsrRequestCreate, DsrSlaTier, DsrStoreRef,
         DsrStoreRefCreate, ErasureProofCreate,

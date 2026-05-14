@@ -2,6 +2,8 @@
 name = "oya-codeview-cli"
 version.workspace = true
 edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
 
 [[bin]]
 name = "oya-codeview-cli"

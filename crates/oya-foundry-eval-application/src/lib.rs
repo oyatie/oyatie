@@ -1,12 +1,12 @@
 //! Foundry eval app/API boundary.
 //!
-//! This crate projects the pure `oya-foundry-eval-kernel` gate into the stable
+//! This crate projects the pure `oya-foundry-eval-domain` gate into the stable
 //! `foundry.eval.run` REST surface: transport binding validation,
 //! tenant/principal/authZ checks, idempotency, and response/error DTOs.
 
 use std::collections::BTreeMap;
 
-use oya_foundry_eval_kernel::{
+use oya_foundry_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalError, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
 };
 
@@ -476,7 +476,9 @@ impl FoundryEvalRunApiError {
             Self::EmptyRequestId => vec![detail("X-Request-Id", "must not be empty")],
             Self::EmptyTenantHeader => vec![detail("X-Tenant-Id", "must not be empty")],
             Self::EmptyIdempotencyKey => vec![detail("Idempotency-Key", "must not be empty")],
-            Self::EmptyPrincipalTenantId => vec![detail("principal.tenant_id", "must not be empty")],
+            Self::EmptyPrincipalTenantId => {
+                vec![detail("principal.tenant_id", "must not be empty")]
+            }
             Self::EmptyPrincipalId => vec![detail("principal.principal_id", "must not be empty")],
             Self::EmptyAuthorizationDecisionId => {
                 vec![detail("authorization.decision_id", "must not be empty")]
@@ -494,7 +496,10 @@ impl FoundryEvalRunApiError {
                 "must be 1..=100",
             )],
             Self::InvalidEvalMetric { metric } => {
-                vec![detail("body.metric", format!("unsupported metric {metric}"))]
+                vec![detail(
+                    "body.metric",
+                    format!("unsupported metric {metric}"),
+                )]
             }
             Self::InvalidAdversarialKind { adversarial_kind } => vec![detail(
                 "body.cases[].adversarial_kind",
@@ -512,7 +517,9 @@ impl FoundryEvalRunApiError {
                 "body.pass_rate_percent/body.p95_score_percent",
                 "run scores or cohorts did not meet thresholds",
             )],
-            Self::MissingPassingEvalRun => vec![detail("body.capability_id", "no passing run recorded")],
+            Self::MissingPassingEvalRun => {
+                vec![detail("body.capability_id", "no passing run recorded")]
+            }
         }
     }
 }

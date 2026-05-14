@@ -29,7 +29,7 @@ rfc_2119_active: true
 
 <!-- agent-instructions:start -->
 **Agent path** (read this fork if you are a Claude/Codex/Gemini/Foundry agent):
-- Authoring a PR **MUST** use only sanctioned primitives `{grit, icm, oya-tooling-agent-read}` per `.omc/specs/adr-draft-grit-icm-sanctioned-primitives.md`. Direct `git`/`gh` invocation requires the documented carve-out **AND** `icm store -t direct-tool-invocations -c "<rationale>" -i high -k "git|gh,<context>"` BEFORE execution.
+- Authoring a PR **MUST** use only sanctioned primitives `{grit, icm, oya-tooling-agent-read}` per `.omc/specs/adr-draft-grit-icm-sanctioned-primitives.md`. Direct VCS/forge invocation requires the documented carve-out **AND** `icm store -t direct-tool-invocations -c "<rationale>" -i high -k "direct-tool,<context>"` BEFORE execution.
 - The `## Verification` block **MUST** paste actual tool output, not a hand-wave. Use `oya-tooling-agent-read run-evidence <cmd>` and paste the captured stdout/stderr.
 - The `## Code Review` H2 **MUST NOT** be added by the worker agent; only the lead reviewer agent (per change-class table in `docs/AGENTS.md §Per-change-class reviewer agents`) signs it at merge time. Adding it as a worker is a `guard-pr-merge-review.mjs` violation.
 <!-- agent-instructions:end -->

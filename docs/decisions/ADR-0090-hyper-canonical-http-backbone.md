@@ -1,4 +1,13 @@
-# ADR-0090 — Hyper canonical HTTP backbone (LTS-exception for hyper 1.x)
+# ADR-0090: Hyper canonical HTTP backbone (LTS-exception for hyper 1.x)
+
+> **Status:** Accepted
+> **Date:** 2026-05-14
+> **Owner:** `council-architecture`
+> **Supersedes:** —
+> **Superseded-by:** —
+> **Related:** ADR-0064
+
+---
 
 ## Status
 

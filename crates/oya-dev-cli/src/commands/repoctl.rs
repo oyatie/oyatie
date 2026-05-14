@@ -2,9 +2,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_foundry_pre_push_kernel::{validate_pre_push_contract, PrePushContractEvidence};
+use oya_check_pre_push::{PrePushContractEvidence, validate_pre_push_contract};
 
-use crate::command_output::{json_escape, OutputFormat};
+use crate::command_output::{OutputFormat, json_escape};
 use crate::command_process::{
     process_status_label, run_check_script_process, run_check_script_status_streaming,
 };
@@ -40,7 +40,7 @@ fn parse_pre_push_args(args: Vec<String>, usage: &str) -> Result<PrePushArgs, St
     let mut parsed = PrePushArgs {
         check_script_path: PathBuf::from("scripts/check.sh"),
         agents_doc_path: PathBuf::from("docs/AGENTS.md"),
-        cli_manifest_path: PathBuf::from("crates/oya-tooling-cli-dev-runtime/Cargo.toml"),
+        cli_manifest_path: PathBuf::from("crates/oya-dev-cli/Cargo.toml"),
         hook_script_path: PathBuf::from("scripts/hooks/pre-push-repoctl.sh"),
         output_format: OutputFormat::Text,
         verify_contract: false,
@@ -189,7 +189,7 @@ fn run_pre_push_contract_check(args: PrePushArgs) -> ExitCode {
 
 fn validate_pre_push_contract_files(
     args: &PrePushArgs,
-) -> Result<oya_foundry_pre_push_kernel::PrePushContractReport, String> {
+) -> Result<oya_check_pre_push::PrePushContractReport, String> {
     let done_definition_doc = read_file_for_contract("AGENTS doc", &args.agents_doc_path)?;
     let check_script = read_file_for_contract("check script", &args.check_script_path)?;
     let cli_manifest = read_file_for_contract("CLI manifest", &args.cli_manifest_path)?;

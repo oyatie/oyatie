@@ -1,4 +1,4 @@
-use oya_cloud_compute_kernel::{CloudComputeCatalog, CloudComputeError};
+use oya_cloud_compute_domain::{CloudComputeCatalog, CloudComputeError};
 use oya_cloud_compute_vm_api::{
     create_cloud_compute_vm_from_api, CloudComputeVmApiAuthorization,
     CloudComputeVmApiBoundaryContext, CloudComputeVmApiError, CloudComputeVmApiPrincipal,

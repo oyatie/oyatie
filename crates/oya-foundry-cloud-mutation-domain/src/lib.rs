@@ -7,12 +7,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_foundry_capability_kernel::{AutonomyTier, Capability};
-use oya_foundry_policy_kernel::{AutonomyDecision, AutonomyVerdict};
-use oya_platform_audit_chain_kernel::{AuditChain, AuditEvent, Plane};
-use oya_platform_data_boundary_kernel::{
+use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
+use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
+use oya_foundry_capability_domain::{AutonomyTier, Capability};
+use oya_foundry_policy_domain::{AutonomyDecision, AutonomyVerdict};
 
 const MUTATION_SCHEMA_VERSION: u32 = 1;
 const MUTATION_ID_PREFIX: &str = "fcm_";
@@ -464,10 +464,10 @@ impl FoundryCloudMutationControl {
         if mutation.state.value != CloudMutationState::Approved {
             return Err(FoundryCloudMutationError::NotApproved);
         }
-        if let Some(break_glass) = &mutation.break_glass.value {
-            if now_epoch_seconds > break_glass.expires_at_epoch_seconds.value {
-                return Err(FoundryCloudMutationError::EmergencyWindowExpired);
-            }
+        if let Some(break_glass) = &mutation.break_glass.value
+            && now_epoch_seconds > break_glass.expires_at_epoch_seconds.value
+        {
+            return Err(FoundryCloudMutationError::EmergencyWindowExpired);
         }
         let approval_count = self.approval_count(&mutation_id);
         let audit_hash = self
@@ -761,8 +761,8 @@ fn audit<T>(value: T) -> Classified<T> {
 
 #[cfg(test)]
 mod tests {
-    use oya_foundry_policy_kernel::{evaluate_autonomy_inputs, AutonomyCeilingInputs};
-    use oya_platform_data_boundary_kernel::SubjectClass;
+    use oya_data_boundary_kernel::SubjectClass;
+    use oya_foundry_policy_domain::{AutonomyCeilingInputs, evaluate_autonomy_inputs};
 
     use super::*;
 
@@ -1070,7 +1070,7 @@ mod tests {
                 data_class: DataClass::InternalOnly,
             })
             .expect("rollback");
-        assert!(receipt.audit_hash.value.starts_with("fnv1a64:"));
+        assert!(receipt.audit_hash.value.starts_with("sha256:"));
         let mutation_id = CloudMutationId::new("fcm_capacity_rebalance_001").expect("id");
         assert_eq!(
             control

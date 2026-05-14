@@ -8,8 +8,8 @@
     { "id": "contracts/application-v1.openapi.yaml", "kind": "openapi-contract", "label": "application-v1.openapi.yaml" },
     { "id": "contracts/capability_registry-v1.openapi.yaml", "kind": "openapi-contract", "label": "capability_registry-v1.openapi.yaml" },
     { "id": "contracts/cloud-v1.openapi.yaml", "kind": "openapi-contract", "label": "cloud-v1.openapi.yaml" },
-    { "id": "contracts/ops-docs.openapi.yaml", "kind": "openapi-contract", "label": "ops-docs.openapi.yaml" },
-    { "id": "contracts/ops-workspace-shell.openapi.yaml", "kind": "openapi-contract", "label": "ops-workspace-shell.openapi.yaml" },
+    { "id": "contracts/ops-docs-v1.openapi.yaml", "kind": "openapi-contract", "label": "ops-docs-v1.openapi.yaml" },
+    { "id": "contracts/ops-workspace-shell-v1.openapi.yaml", "kind": "openapi-contract", "label": "ops-workspace-shell-v1.openapi.yaml" },
     { "id": "contracts/records-v1.openapi.yaml", "kind": "openapi-contract", "label": "records-v1.openapi.yaml" },
     { "id": "contracts/tenancy-v1.openapi.yaml", "kind": "openapi-contract", "label": "tenancy-v1.openapi.yaml" },
     { "id": "contracts/workflow-v1.openapi.yaml", "kind": "openapi-contract", "label": "workflow-v1.openapi.yaml" },
@@ -459,14 +459,14 @@
   "edges": [
     { "source": "ops", "target": "ops/docs-portal", "kind": "contains" },
     { "source": "ops", "target": "ops/workspace", "kind": "contains" },
-    { "source": "ops-internal-public", "target": "contracts/ops-workspace-shell.openapi.yaml", "kind": "governs" },
-    { "source": "ops-internal-public", "target": "contracts/ops-docs.openapi.yaml", "kind": "governs" },
-    { "source": "ops-tenant-private", "target": "contracts/ops-workspace-shell.openapi.yaml", "kind": "governs" },
-    { "source": "ops-internal-sre", "target": "contracts/ops-workspace-shell.openapi.yaml", "kind": "governs" },
-    { "source": "ops-internal-sre", "target": "contracts/ops-docs.openapi.yaml", "kind": "governs" },
-    { "source": "ops-internal-admin", "target": "contracts/ops-workspace-shell.openapi.yaml", "kind": "governs" },
-    { "source": "ops-tenant-public", "target": "contracts/ops-docs.openapi.yaml", "kind": "governs" },
-    { "source": "ops-manifest-tenant-filter", "target": "contracts/ops-docs.openapi.yaml", "kind": "governs" },
-    { "source": "ops-live-feed-scope", "target": "contracts/ops-docs.openapi.yaml", "kind": "governs" }
+    { "source": "ops-internal-public", "target": "contracts/ops-workspace-shell-v1.openapi.yaml", "kind": "governs" },
+    { "source": "ops-internal-public", "target": "contracts/ops-docs-v1.openapi.yaml", "kind": "governs" },
+    { "source": "ops-tenant-private", "target": "contracts/ops-workspace-shell-v1.openapi.yaml", "kind": "governs" },
+    { "source": "ops-internal-sre", "target": "contracts/ops-workspace-shell-v1.openapi.yaml", "kind": "governs" },
+    { "source": "ops-internal-sre", "target": "contracts/ops-docs-v1.openapi.yaml", "kind": "governs" },
+    { "source": "ops-internal-admin", "target": "contracts/ops-workspace-shell-v1.openapi.yaml", "kind": "governs" },
+    { "source": "ops-tenant-public", "target": "contracts/ops-docs-v1.openapi.yaml", "kind": "governs" },
+    { "source": "ops-manifest-tenant-filter", "target": "contracts/ops-docs-v1.openapi.yaml", "kind": "governs" },
+    { "source": "ops-live-feed-scope", "target": "contracts/ops-docs-v1.openapi.yaml", "kind": "governs" }
   ]
 }

@@ -1,4 +1,4 @@
-use oya_foundry_cost_budget_kernel::{
+use oya_check_cost_budget::{
     BudgetCeiling, BudgetError, BudgetLedger, BudgetScope, BudgetWarning, ReservationStatus,
 };
 

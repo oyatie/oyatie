@@ -1,5 +1,5 @@
-use oya_foundry_authority_cohesion_kernel::{
-    validate_authority_cohesion, AuthorityCohesionError, AuthorityDocument,
+use oya_check_authority_cohesion::{
+    AuthorityCohesionError, AuthorityDocument, validate_authority_cohesion,
 };
 
 #[test]

@@ -1,0 +1,18 @@
+[package]
+name = "oya-search-index-vector-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-search-parser-domain = { path = "../oya-search-parser-domain" }
+
+[dev-dependencies]
+oya-search-crawler-domain = { path = "../oya-search-crawler-domain" }
+
+[lib]
+name = "oya_search_index_vector_domain"
+path = "src/lib.rs"
+doctest = false

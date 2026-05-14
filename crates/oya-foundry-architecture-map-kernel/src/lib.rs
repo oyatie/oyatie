@@ -17,6 +17,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+pub mod emit;
+pub mod walk;
+
 /// Node kind taxonomy. Each variant maps to one row class in the
 /// underlying registries:
 ///   Microservice ↔ .omc/registries/microservices.json
@@ -88,9 +91,9 @@ pub struct Node {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Edge {
-    pub source: NodeId,
-    pub target: NodeId,
-    pub kind: EdgeKind,
+    pub source: NodeId, // data_class: INTERNAL_ONLY
+    pub target: NodeId, // data_class: INTERNAL_ONLY
+    pub kind: EdgeKind, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -273,7 +276,7 @@ mod tests {
         map.add_node(node("ops/workspace", NodeKind::BoundedContext))
             .unwrap();
         map.add_node(node(
-            "contracts/ops-docs.openapi.yaml",
+            "contracts/ops-docs-v1.openapi.yaml",
             NodeKind::OpenApiContract,
         ))
         .unwrap();
@@ -293,13 +296,13 @@ mod tests {
         .unwrap();
         map.add_edge(Edge {
             source: NodeId("ops/docs-portal".into()),
-            target: NodeId("contracts/ops-docs.openapi.yaml".into()),
+            target: NodeId("contracts/ops-docs-v1.openapi.yaml".into()),
             kind: EdgeKind::Exposes,
         })
         .unwrap();
         map.add_edge(Edge {
             source: NodeId("ops-internal-public".into()),
-            target: NodeId("contracts/ops-docs.openapi.yaml".into()),
+            target: NodeId("contracts/ops-docs-v1.openapi.yaml".into()),
             kind: EdgeKind::Governs,
         })
         .unwrap();
@@ -318,7 +321,7 @@ mod tests {
     #[test]
     fn incoming_to_openapi_contract() {
         let map = populated();
-        let contract = NodeId("contracts/ops-docs.openapi.yaml".into());
+        let contract = NodeId("contracts/ops-docs-v1.openapi.yaml".into());
         let edges: Vec<&Edge> = map.incoming(&contract).collect();
         assert_eq!(edges.len(), 2);
         let kinds: BTreeSet<_> = edges.iter().map(|e| e.kind).collect();

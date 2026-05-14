@@ -70,7 +70,7 @@ adrs_cited:
 
 - [ ] **RR27** Release notes drafted (customer-facing).
 - [ ] **RR28** Trust-portal page prepared (for surfaces with regulatory disclosure).
-- [ ] **RR29** Internal Slack `#oyatie-masterplan-status` notified.
+- [ ] **RR29** Internal Slack `#oya-masterplan-status` notified.
 - [ ] **RR30** Founder + Council-Architecture sign-off recorded.
 
 ## Post-gate

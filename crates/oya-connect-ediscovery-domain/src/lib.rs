@@ -8,12 +8,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_workspace_retention_kernel::{
+use oya_connect_retention_domain::{
     RetentionDecision, RetentionDecisionOutcome, RetentionDisposition, RetentionHorizon,
     RetentionLawfulBasis, RetentionPolicy, RetentionPolicyCreate, RetentionRequestKind,
     WorkspaceRetentionSurface,
 };
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const EDISCOVERY_REQUEST_SCHEMA_VERSION: u32 = 1;
 const EDISCOVERY_ITEM_SCHEMA_VERSION: u32 = 1;
@@ -731,10 +731,10 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_workspace_retention_kernel::{
+    use oya_connect_retention_domain::{
         RetentionDecisionCreate, RetentionRecordRef, RetentionRecordRefCreate,
     };
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).unwrap()

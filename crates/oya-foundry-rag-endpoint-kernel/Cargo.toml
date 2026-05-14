@@ -1,0 +1,15 @@
+[package]
+name = "oya-foundry-rag-endpoint-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_foundry_rag_endpoint_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-capability-registry-kernel = { path = "../oya-foundry-capability-registry-kernel" }

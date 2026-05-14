@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_policy_cedar_kernel::{
+use oya_policy_cedar_domain::{
     PolicyEffect, PolicyError, PolicyRuleInput, PolicyScope, PolicySet, PolicyVersion,
     PublishedPolicy,
 };
@@ -67,6 +67,10 @@ pub enum CedarPolicyPublishApiErrorCode {
     PolicyEmptyRules,
     PolicyEmptyRuleField,
     PolicyVersionAlreadyExists,
+    PolicySupersedesSelf,
+    PolicySupersedesMissing,
+    PolicySupersedesScopeMismatch,
+    PolicySupersedesNotOlder,
 }
 
 impl CedarPolicyPublishApiErrorCode {
@@ -98,6 +102,10 @@ impl CedarPolicyPublishApiErrorCode {
             Self::PolicyEmptyRules => "CEDAR_POLICY_KERNEL_EMPTY_RULES",
             Self::PolicyEmptyRuleField => "CEDAR_POLICY_KERNEL_EMPTY_RULE_FIELD",
             Self::PolicyVersionAlreadyExists => "CEDAR_POLICY_KERNEL_VERSION_ALREADY_EXISTS",
+            Self::PolicySupersedesSelf => "CEDAR_POLICY_KERNEL_SUPERSEDES_SELF",
+            Self::PolicySupersedesMissing => "CEDAR_POLICY_KERNEL_SUPERSEDES_MISSING",
+            Self::PolicySupersedesScopeMismatch => "CEDAR_POLICY_KERNEL_SUPERSEDES_SCOPE_MISMATCH",
+            Self::PolicySupersedesNotOlder => "CEDAR_POLICY_KERNEL_SUPERSEDES_NOT_OLDER",
         }
     }
 }
@@ -716,12 +724,12 @@ fn parse_policy_scope(
 }
 
 fn validate_supersedes(supersedes: &Option<String>) -> Result<(), CedarPolicyPublishApiError> {
-    if let Some(version) = supersedes.as_ref() {
-        if !is_semver(version) {
-            return Err(CedarPolicyPublishApiError::InvalidSupersedes {
-                supersedes: version.clone(),
-            });
-        }
+    if let Some(version) = supersedes.as_ref()
+        && !is_semver(version)
+    {
+        return Err(CedarPolicyPublishApiError::InvalidSupersedes {
+            supersedes: version.clone(),
+        });
     }
     Ok(())
 }
@@ -914,6 +922,12 @@ fn policy_error_code(error: &PolicyError) -> CedarPolicyPublishApiErrorCode {
         PolicyError::VersionAlreadyExists => {
             CedarPolicyPublishApiErrorCode::PolicyVersionAlreadyExists
         }
+        PolicyError::SupersedesSelf => CedarPolicyPublishApiErrorCode::PolicySupersedesSelf,
+        PolicyError::SupersedesMissing => CedarPolicyPublishApiErrorCode::PolicySupersedesMissing,
+        PolicyError::SupersedesScopeMismatch => {
+            CedarPolicyPublishApiErrorCode::PolicySupersedesScopeMismatch
+        }
+        PolicyError::SupersedesNotOlder => CedarPolicyPublishApiErrorCode::PolicySupersedesNotOlder,
     }
 }
 
@@ -924,6 +938,12 @@ fn policy_error_message(error: &PolicyError) -> &'static str {
         PolicyError::EmptyRules => "Policy must contain at least one rule",
         PolicyError::EmptyRuleField => "Policy rules require role, action, and resource prefix",
         PolicyError::VersionAlreadyExists => "Policy version already exists",
+        PolicyError::SupersedesSelf => "Policy version cannot supersede itself",
+        PolicyError::SupersedesMissing => "Superseded policy version does not exist",
+        PolicyError::SupersedesScopeMismatch => {
+            "Superseded policy version must have matching scope"
+        }
+        PolicyError::SupersedesNotOlder => "Superseded policy version must be older",
     }
 }
 
@@ -934,6 +954,12 @@ fn policy_error_issue(error: &PolicyError) -> &'static str {
         PolicyError::EmptyRules => "rules must be non-empty",
         PolicyError::EmptyRuleField => "rule fields must be non-empty",
         PolicyError::VersionAlreadyExists => "policy_id/version pair must be immutable",
+        PolicyError::SupersedesSelf => "supersedes must not equal version",
+        PolicyError::SupersedesMissing => "supersedes must reference an existing policy_id/version",
+        PolicyError::SupersedesScopeMismatch => {
+            "supersedes must reference a policy version with the same scope"
+        }
+        PolicyError::SupersedesNotOlder => "supersedes must reference an older version",
     }
 }
 

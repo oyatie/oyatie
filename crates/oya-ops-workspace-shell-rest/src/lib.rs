@@ -8,10 +8,10 @@
 //! and bind hyper services in the runtime crate.
 //!
 //! Route constants here MUST stay 1:1 with paths in
-//! `contracts/ops-workspace-shell.openapi.yaml`. Future lane
+//! `contracts/ops-workspace-shell-v1.openapi.yaml`. Future lane
 //! `lean-a-openapi-rest-route-parity` will enforce this.
 
-use oya_ops_workspace_shell_adapter::{WireHealthResponse, WireSurfaceListResponse};
+use oya_ops_workspace_shell_adapter::{WireHealthResponse, WireSurface, WireSurfaceListResponse};
 use oya_ops_workspace_shell_application::{
     FlipSurfaceStateUseCase, ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
@@ -50,7 +50,14 @@ pub fn list_live_surfaces<P: SurfaceCatalogPort>(
     catalog: P,
     request: ListLiveSurfacesRequest,
 ) -> WireSurfaceListResponse {
-    ListLiveSurfacesUseCase::new(catalog).execute(request.principal_tier)
+    let result = ListLiveSurfacesUseCase::new(catalog).execute(request.principal_tier);
+    let surfaces: Vec<WireSurface> = result
+        .surfaces
+        .iter()
+        .map(WireSurface::from_kernel)
+        .collect();
+    let count = surfaces.len();
+    WireSurfaceListResponse { surfaces, count }
 }
 
 /// REST handler: GET /workspace/api/v1/surfaces (admin-only).
@@ -58,7 +65,15 @@ pub fn list_all_surfaces<P: SurfaceCatalogPort>(
     catalog: P,
     request: ListAllSurfacesRequest,
 ) -> WireSurfaceListResponse {
-    ListAllSurfacesUseCase::new(catalog).execute(request.state, request.visibility_tier)
+    let result =
+        ListAllSurfacesUseCase::new(catalog).execute(request.state, request.visibility_tier);
+    let surfaces: Vec<WireSurface> = result
+        .surfaces
+        .iter()
+        .map(WireSurface::from_kernel)
+        .collect();
+    let count = surfaces.len();
+    WireSurfaceListResponse { surfaces, count }
 }
 
 /// REST handler: GET /workspace/api/v1/health.
@@ -68,7 +83,13 @@ pub fn shell_health<P: SurfaceCatalogPort>(
     version: impl Into<String>,
     cell_id: Option<String>,
 ) -> WireHealthResponse {
-    ShellHealthUseCase::new(catalog, version, cell_id).execute()
+    let result = ShellHealthUseCase::new(catalog, version, cell_id).execute();
+    WireHealthResponse {
+        status: result.status,
+        surface_count: result.surface_count,
+        version: result.version,
+        cell_id: result.cell_id,
+    }
 }
 
 /// Surface state transition (mutating; internal-sre+).
@@ -130,7 +151,7 @@ mod tests {
 
     #[test]
     fn routes_match_openapi_paths() {
-        // These must stay 1:1 with `contracts/ops-workspace-shell.openapi.yaml`.
+        // These must stay 1:1 with `contracts/ops-workspace-shell-v1.openapi.yaml`.
         assert_eq!(LIST_LIVE_SURFACES_ROUTE, "/workspace");
         assert_eq!(LIST_ALL_SURFACES_ROUTE, "/workspace/api/v1/surfaces");
         assert_eq!(SHELL_HEALTH_ROUTE, "/workspace/api/v1/health");

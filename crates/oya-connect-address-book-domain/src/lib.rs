@@ -8,7 +8,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const ADDRESS_BOOK_SCHEMA_VERSION: u32 = 1;
 const CONTACT_CARD_SCHEMA_VERSION: u32 = 1;
@@ -497,7 +497,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn book(scope: AddressBookScope) -> AddressBook {
         AddressBook::new(AddressBookCreate {
@@ -648,5 +648,50 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.address-book STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct AddressBookSurfaceStaging {
+    pub entry_id: Classified<String>,      // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,     // data_class: INTERNAL_ONLY
+    pub vcard_version: Classified<String>, // data_class: INTERNAL_ONLY
+}
+
+impl AddressBookSurfaceStaging {
+    pub fn new(entry_id: String, tenant_id: String, vcard_version: String) -> Self {
+        Self {
+            entry_id: Classified::new(entry_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            vcard_version: Classified::new(vcard_version, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> AddressBookSurfaceStaging {
+        AddressBookSurfaceStaging::new(
+            "address-book-1".into(),
+            "address-book-1".into(),
+            "address-book-1".into(),
+        )
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.entry_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

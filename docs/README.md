@@ -17,9 +17,11 @@ excludes:
   - path: docs/regional-packs/
     reason: Per-region authority.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md
-    > rest of docs/
-    > catalog records (registry/catalog/, contracts/, machine-readable/)
+  system / developer / user instructions
+    > .omc/specs/root-hub-pointers.json
+    > docs/AGENTS.md (until .omc/specs/agent-operating-contract.json PHASE-5 promotion)
+    > machine-readable specs and registries under .omc/
+    > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
 ---
@@ -74,6 +76,7 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 | `doc.masterplan` | [`MASTERPLAN.md`](MASTERPLAN.md) | `0` | `council-architecture` |
 | `doc.constitution` | [`CONSTITUTION.md`](CONSTITUTION.md) | `1` | `council-architecture` |
 | `doc.agents` | [`AGENTS.md`](AGENTS.md) | `1` | `axis-foundry, council-architecture` |
+| `doc.agent_instruction_sources` | [`AGENT-INSTRUCTION-SOURCES.md`](AGENT-INSTRUCTION-SOURCES.md) | `cross-cutting` | `axis-foundry, council-architecture` |
 | `doc.prd` | [`PRD.md`](PRD.md) | `1` | `council-architecture` |
 | `doc.design` | [`DESIGN.md`](DESIGN.md) | `1` | `council-architecture` |
 | `doc.spec` | [`SPEC.md`](SPEC.md) | `1` | `platform-api-sdk` |
@@ -104,6 +107,7 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 | `doc.doc_catalog` | [`DOC-CATALOG.md`](DOC-CATALOG.md) | `cross-cutting` | `council-architecture` |
 | `doc.doc_update_protocol` | [`DOC-UPDATE-PROTOCOL.md`](DOC-UPDATE-PROTOCOL.md) | `cross-cutting` | `council-architecture` |
 | `doc.documentation` | [`DOCUMENTATION.md`](DOCUMENTATION.md) | `cross-cutting` | `council-architecture` |
+| `doc.doc_coverage` | [`DOC-COVERAGE.md`](DOC-COVERAGE.md) | `cross-cutting` | `axis-foundry, council-architecture` |
 | `doc.standards_and_templates` | [`STANDARDS-AND-TEMPLATES.md`](STANDARDS-AND-TEMPLATES.md) | `cross-cutting` | `axis-foundry, council-architecture` |
 | `doc.toolchain` | [`TOOLCHAIN.md`](TOOLCHAIN.md) | `cross-cutting` | `axis-foundry` |
 | `doc.mistakes_ledger` | [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) | `cross-cutting` | `council-architecture` |

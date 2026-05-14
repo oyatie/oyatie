@@ -1,6 +1,6 @@
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, DataClass, Foundation, FoundationError, ObjectEntityUpsert, ObjectPropertyInput,
     OutboxPublish, PrivacyDataClass, PropertyTier, RegionalPackRegistration, TenantRegistration,
 };
@@ -68,11 +68,13 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
             property_input.legacy_data_class()
         );
     }
-    assert!(entity.properties.values().all(|property| property
-        .value
-        .data_class
-        .compatibility_data_class()
-        != DataClass::Public));
+    assert!(
+        entity.properties.values().all(|property| property
+            .value
+            .data_class
+            .compatibility_data_class()
+            != DataClass::Public)
+    );
 
     let first = foundation
         .publish_outbox(OutboxPublish {
@@ -107,11 +109,13 @@ fn foundation_publishes_regional_pack_object_graph_and_idempotent_outbox_contrac
     );
     assert_eq!(foundation.outbox_records().len(), 1);
     assert!(foundation.audit_chain().verify());
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| event.surface == "eventing.outbox.publish" && event.decision == "ALLOW"));
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| event.surface == "eventing.outbox.publish" && event.decision == "ALLOW")
+    );
 }
 
 #[test]

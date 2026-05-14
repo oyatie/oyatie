@@ -10,7 +10,7 @@ use std::process::{Command, Stdio};
 use std::time::Instant;
 
 use oya_check_cedar_fragment_coverage::{
-    validate, CoverageInputs, FragmentRow, FragmentStatus, ValidationReport, Violation,
+    CoverageInputs, FragmentRow, FragmentStatus, ValidationReport, Violation, validate,
 };
 
 use crate::json_scan::{
@@ -164,7 +164,7 @@ fn read_fragment_registry(path: &Path) -> Result<Vec<FragmentRow>, String> {
             other => {
                 return Err(format!(
                     "cedar-fragments row fragment_id={fragment_id} has unknown status `{other}`"
-                ))
+                ));
             }
         };
         rows.push(FragmentRow {

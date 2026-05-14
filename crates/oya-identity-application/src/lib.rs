@@ -56,6 +56,11 @@ pub enum IdentityTokenIssueApiErrorCode {
     CredentialKindEmpty,
     CredentialKindInvalid,
     PurposeInvalid,
+    PreviousTokenFingerprintEmpty,
+    PreviousTokenNotYetActive,
+    PreviousTokenExpired,
+    RotationBindingMismatch,
+    RotationPurposeScopeMismatch,
     IdempotencyKeyReused,
     IdentityInvalidTenant,
     IdentityInvalidUser,
@@ -89,6 +94,11 @@ impl IdentityTokenIssueApiErrorCode {
             Self::CredentialKindEmpty => "IDENTITY_TOKEN_CREDENTIAL_KIND_EMPTY",
             Self::CredentialKindInvalid => "IDENTITY_TOKEN_CREDENTIAL_KIND_INVALID",
             Self::PurposeInvalid => "IDENTITY_TOKEN_PURPOSE_INVALID",
+            Self::PreviousTokenFingerprintEmpty => "IDENTITY_TOKEN_PREVIOUS_FINGERPRINT_EMPTY",
+            Self::PreviousTokenNotYetActive => "IDENTITY_TOKEN_PREVIOUS_TOKEN_NOT_YET_ACTIVE",
+            Self::PreviousTokenExpired => "IDENTITY_TOKEN_PREVIOUS_TOKEN_EXPIRED",
+            Self::RotationBindingMismatch => "IDENTITY_TOKEN_ROTATION_BINDING_MISMATCH",
+            Self::RotationPurposeScopeMismatch => "IDENTITY_TOKEN_ROTATION_PURPOSE_SCOPE_MISMATCH",
             Self::IdempotencyKeyReused => "IDENTITY_TOKEN_IDEMPOTENCY_KEY_REUSED",
             Self::IdentityInvalidTenant => "IDENTITY_TOKEN_IDENTITY_INVALID_TENANT",
             Self::IdentityInvalidUser => "IDENTITY_TOKEN_IDENTITY_INVALID_USER",
@@ -133,6 +143,12 @@ pub struct IdentityScopeRef {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct PurposeScope {
+    pub purpose: String,               // data_class: INTERNAL_ONLY
+    pub scopes: Vec<IdentityScopeRef>, // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct IdentityTokenIssueRequest {
     pub tenant_id: String,                    // data_class: INTERNAL_ONLY
     pub subject_id: String,                   // data_class: INTERNAL_ONLY
@@ -151,6 +167,12 @@ pub struct IdentityTokenIssueApiRequest {
     pub principal: IdentityApiPrincipal,      // data_class: INTERNAL_ONLY
     pub authorization: IdentityApiAuthorization, // data_class: INTERNAL_ONLY
     pub body: IdentityTokenIssueRequest,      // data_class: INTERNAL_ONLY
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IdentityTokenRotationRequest {
+    pub previous: IdentityTokenRecord, // data_class: INTERNAL_ONLY
+    pub replacement: IdentityTokenIssueApiRequest, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -292,6 +314,20 @@ pub enum IdentityTokenIssueApiError {
     InvalidPurpose {
         purpose: String,
     },
+    EmptyPreviousTokenFingerprint,
+    PreviousTokenNotYetActive {
+        previous_issued_at_epoch_seconds: u64,
+        rotate_at_epoch_seconds: u64,
+    },
+    PreviousTokenExpired {
+        previous_expires_at_epoch_seconds: u64,
+        rotate_at_epoch_seconds: u64,
+    },
+    RotationBindingMismatch {
+        previous_subject_id: String,
+        replacement_subject_id: String,
+    },
+    RotationPurposeScopeMismatch,
     IdempotencyKeyReused {
         idempotency_key: String,
     },
@@ -345,6 +381,21 @@ impl IdentityTokenIssueApiError {
                 IdentityTokenIssueApiErrorCode::CredentialKindInvalid
             }
             Self::InvalidPurpose { .. } => IdentityTokenIssueApiErrorCode::PurposeInvalid,
+            Self::EmptyPreviousTokenFingerprint => {
+                IdentityTokenIssueApiErrorCode::PreviousTokenFingerprintEmpty
+            }
+            Self::PreviousTokenNotYetActive { .. } => {
+                IdentityTokenIssueApiErrorCode::PreviousTokenNotYetActive
+            }
+            Self::PreviousTokenExpired { .. } => {
+                IdentityTokenIssueApiErrorCode::PreviousTokenExpired
+            }
+            Self::RotationBindingMismatch { .. } => {
+                IdentityTokenIssueApiErrorCode::RotationBindingMismatch
+            }
+            Self::RotationPurposeScopeMismatch => {
+                IdentityTokenIssueApiErrorCode::RotationPurposeScopeMismatch
+            }
             Self::IdempotencyKeyReused { .. } => {
                 IdentityTokenIssueApiErrorCode::IdempotencyKeyReused
             }
@@ -377,6 +428,8 @@ impl IdentityTokenIssueApiError {
             | Self::AuthorizationTenantMismatch { .. }
             | Self::AuthorizationPrincipalMismatch { .. }
             | Self::AuthorizationDenied { .. } => IdentityTokenIssueApiStatusKind::Forbidden,
+            Self::PreviousTokenNotYetActive { .. } => IdentityTokenIssueApiStatusKind::Forbidden,
+            Self::PreviousTokenExpired { .. } => IdentityTokenIssueApiStatusKind::Forbidden,
             Self::IdempotencyKeyReused { .. } => {
                 IdentityTokenIssueApiStatusKind::UnprocessableEntity
             }
@@ -390,6 +443,9 @@ impl IdentityTokenIssueApiError {
             | Self::EmptyCredentialKind
             | Self::InvalidCredentialKind { .. }
             | Self::InvalidPurpose { .. }
+            | Self::EmptyPreviousTokenFingerprint
+            | Self::RotationBindingMismatch { .. }
+            | Self::RotationPurposeScopeMismatch
             | Self::Identity(_) => IdentityTokenIssueApiStatusKind::BadRequest,
         }
     }
@@ -425,6 +481,21 @@ impl IdentityTokenIssueApiError {
             Self::EmptyCredentialKind => "Request credential_kind is required",
             Self::InvalidCredentialKind { .. } => "Request credential_kind must be sts",
             Self::InvalidPurpose { .. } => "Request purpose must be a supported PascalCase purpose",
+            Self::EmptyPreviousTokenFingerprint => {
+                "Previous STS token fingerprint is required for rotation"
+            }
+            Self::PreviousTokenNotYetActive { .. } => {
+                "Previous STS token must already be active at rotation time"
+            }
+            Self::PreviousTokenExpired { .. } => {
+                "Previous STS token must still be active at rotation time"
+            }
+            Self::RotationBindingMismatch { .. } => {
+                "Replacement STS token must keep the same tenant, subject, and credential binding"
+            }
+            Self::RotationPurposeScopeMismatch => {
+                "Replacement STS token must keep the same purpose and scopes"
+            }
             Self::IdempotencyKeyReused { .. } => {
                 "Idempotency key was already used with a different request"
             }
@@ -483,6 +554,26 @@ impl IdentityTokenIssueApiError {
             Self::InvalidPurpose { .. } => vec![detail(
                 "body.purpose",
                 "must match a supported PascalCase purpose label",
+            )],
+            Self::EmptyPreviousTokenFingerprint => vec![detail(
+                "previous.token_fingerprint",
+                "must be a non-empty STS fingerprint",
+            )],
+            Self::PreviousTokenNotYetActive { .. } => vec![detail(
+                "previous.issued_at_epoch_seconds",
+                "must be less than or equal to replacement.body.issued_at_epoch_seconds",
+            )],
+            Self::PreviousTokenExpired { .. } => vec![detail(
+                "previous.expires_at_epoch_seconds",
+                "must be greater than replacement.body.issued_at_epoch_seconds",
+            )],
+            Self::RotationBindingMismatch { .. } => vec![detail(
+                "replacement.body.subject_id",
+                "must match previous tenant, subject, subject kind, credential kind, and owner",
+            )],
+            Self::RotationPurposeScopeMismatch => vec![detail(
+                "replacement.body.scopes",
+                "must match previous purpose and scope set exactly",
             )],
             Self::IdempotencyKeyReused { .. } => vec![detail(
                 "header.Idempotency-Key",
@@ -557,6 +648,69 @@ pub fn issue_identity_token_from_app(
         },
     );
     Ok(success)
+}
+
+pub fn rotate_identity_token_from_app(
+    idempotency_ledger: &mut IdentityTokenIssueIdempotencyLedger,
+    request: IdentityTokenRotationRequest,
+) -> Result<IdentityTokenIssueSuccessResponse, IdentityTokenIssueApiError> {
+    validate_identity_token_rotation_request(&request)?;
+    issue_identity_token_from_app(idempotency_ledger, request.replacement)
+}
+
+pub fn validate_identity_token_rotation_request(
+    request: &IdentityTokenRotationRequest,
+) -> Result<(), IdentityTokenIssueApiError> {
+    validate_identity_token_issue_request(&request.replacement)?;
+    if request.previous.token_fingerprint.trim().is_empty() {
+        return Err(IdentityTokenIssueApiError::EmptyPreviousTokenFingerprint);
+    }
+    let rotate_at_epoch_seconds = request.replacement.body.issued_at_epoch_seconds;
+    if request.previous.issued_at_epoch_seconds > rotate_at_epoch_seconds {
+        return Err(IdentityTokenIssueApiError::PreviousTokenNotYetActive {
+            previous_issued_at_epoch_seconds: request.previous.issued_at_epoch_seconds,
+            rotate_at_epoch_seconds,
+        });
+    }
+    if request.previous.expires_at_epoch_seconds <= rotate_at_epoch_seconds {
+        return Err(IdentityTokenIssueApiError::PreviousTokenExpired {
+            previous_expires_at_epoch_seconds: request.previous.expires_at_epoch_seconds,
+            rotate_at_epoch_seconds,
+        });
+    }
+    if request.previous.tenant_id != request.replacement.body.tenant_id
+        || request.previous.subject_id != request.replacement.body.subject_id
+        || request.previous.subject_kind != request.replacement.body.subject_kind
+        || request.previous.owning_capability_id != request.replacement.body.owning_capability_id
+        || request.previous.credential_kind != request.replacement.body.credential_kind
+    {
+        return Err(IdentityTokenIssueApiError::RotationBindingMismatch {
+            previous_subject_id: request.previous.subject_id.clone(),
+            replacement_subject_id: request.replacement.body.subject_id.clone(),
+        });
+    }
+    if PurposeScope::from(&request.previous) != PurposeScope::from(&request.replacement.body) {
+        return Err(IdentityTokenIssueApiError::RotationPurposeScopeMismatch);
+    }
+    Ok(())
+}
+
+impl From<&IdentityTokenRecord> for PurposeScope {
+    fn from(record: &IdentityTokenRecord) -> Self {
+        Self {
+            purpose: record.purpose.clone(),
+            scopes: record.scopes.clone(),
+        }
+    }
+}
+
+impl From<&IdentityTokenIssueRequest> for PurposeScope {
+    fn from(request: &IdentityTokenIssueRequest) -> Self {
+        Self {
+            purpose: request.purpose.clone(),
+            scopes: request.scopes.clone(),
+        }
+    }
 }
 
 fn validate_boundary(
@@ -710,7 +864,6 @@ fn parse_credential_kind(label: &str) -> Result<CredentialRequestKind, IdentityT
     }
     match label {
         "sts" => Ok(CredentialRequestKind::Sts),
-        "long_lived_api_key" => Ok(CredentialRequestKind::LongLivedApiKey),
         _ => Err(IdentityTokenIssueApiError::InvalidCredentialKind {
             credential_kind: label.to_string(),
         }),
@@ -825,6 +978,11 @@ fn identity_error_code(error: &IdentityError) -> IdentityTokenIssueApiErrorCode 
     match error {
         IdentityError::InvalidTenantId => IdentityTokenIssueApiErrorCode::IdentityInvalidTenant,
         IdentityError::InvalidUserId => IdentityTokenIssueApiErrorCode::IdentityInvalidUser,
+        IdentityError::InvalidRegionPack
+        | IdentityError::InvalidIdentityProviderId
+        | IdentityError::EmptyExternalSubject => {
+            IdentityTokenIssueApiErrorCode::IdentityInvalidUser
+        }
         IdentityError::InvalidServicePrincipalId => {
             IdentityTokenIssueApiErrorCode::IdentityInvalidServicePrincipal
         }
@@ -849,6 +1007,11 @@ fn identity_error_message(error: &IdentityError) -> &'static str {
     match error {
         IdentityError::InvalidTenantId => "Identity kernel rejected the tenant id",
         IdentityError::InvalidUserId => "Identity kernel rejected the user id",
+        IdentityError::InvalidRegionPack => "Identity kernel rejected the region pack",
+        IdentityError::InvalidIdentityProviderId => {
+            "Identity kernel rejected the identity provider id"
+        }
+        IdentityError::EmptyExternalSubject => "Identity kernel rejected the external subject",
         IdentityError::InvalidServicePrincipalId => {
             "Identity kernel rejected the service principal id"
         }
@@ -869,6 +1032,9 @@ fn identity_error_issue(error: &IdentityError) -> &'static str {
     match error {
         IdentityError::InvalidTenantId => "tenant id must use the ten_ prefix",
         IdentityError::InvalidUserId => "human subject id must use the usr_ prefix",
+        IdentityError::InvalidRegionPack => "region pack must use the oya-pack- prefix",
+        IdentityError::InvalidIdentityProviderId => "identity provider id must use the idp_ prefix",
+        IdentityError::EmptyExternalSubject => "external subject must be non-empty",
         IdentityError::InvalidServicePrincipalId => "service subject id must use the sp_ prefix",
         IdentityError::InvalidCapabilityId => "owning capability id must use the cap. prefix",
         IdentityError::EmptyPrimaryIdentifier => "primary identifier must be non-empty",

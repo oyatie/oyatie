@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P06
 title: Workspace Axis (14 surfaces — Mail, Calendar, Drive, Meet, Chat, +9 more)
-status: stub
+status: complete
 purpose: Ship Axis 2 — Workspace / Productivity Suite added 2026-05-09. Google Workspace / Naver Works / Microsoft 365 / AWS Productivity class.
 ---
 
@@ -22,11 +22,11 @@ Per [`../../../../../docs/PRD.md`](../../../../../docs/PRD.md) §1 (Axis 2, adde
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Mail + Calendar (SMTP/IMAP/JMAP/CalDAV) | stub | [`IP-001-mail-calendar.md`](IP-001-mail-calendar.md) |
-| IP-002 | Docs + Sheets + Slides + Sites (Yrs CRDT) | stub | [`IP-002-docs-sheets-slides-sites.md`](IP-002-docs-sheets-slides-sites.md) |
-| IP-003 | Drive + KMS-shred | stub | [`IP-003-drive-kms-shred.md`](IP-003-drive-kms-shred.md) |
-| IP-004 | Meet + Chat + Recordings | stub | [`IP-004-meet-chat-recordings.md`](IP-004-meet-chat-recordings.md) |
-| IP-005 | Forms + Address-Book + Tasks + Notes + Translate | stub | [`IP-005-forms-address-tasks-notes-translate.md`](IP-005-forms-address-tasks-notes-translate.md) |
+| IP-001 | Mail + Calendar (SMTP/IMAP/JMAP/CalDAV) | complete | [`IP-001-mail-calendar.md`](IP-001-mail-calendar.md) |
+| IP-002 | Docs + Sheets + Slides + Sites (Yrs CRDT) | complete | [`IP-002-docs-sheets-slides-sites.md`](IP-002-docs-sheets-slides-sites.md) |
+| IP-003 | Drive + KMS-shred | complete | [`IP-003-drive-kms-shred.md`](IP-003-drive-kms-shred.md) |
+| IP-004 | Meet + Chat + Recordings | complete | [`IP-004-meet-chat-recordings.md`](IP-004-meet-chat-recordings.md) |
+| IP-005 | Forms + Address-Book + Tasks + Notes + Translate | complete | [`IP-005-forms-address-tasks-notes-translate.md`](IP-005-forms-address-tasks-notes-translate.md) |
 
 ## Estimated parallelism
 5 agents in parallel; one per IP / surface cluster.

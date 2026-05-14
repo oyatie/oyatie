@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P04
 title: SaaS Platform Preview (Workflow Engine + Plugin Substrate + Marketplace)
-status: stub
+status: complete
 purpose: Ship workflow engine, Object Graph property tiers consumption, plugin substrate, public REST API stability tier.
 ---
 
@@ -21,9 +21,9 @@ Per [`../../../../../docs/ROADMAP.md`](../../../../../docs/ROADMAP.md) §2.4. Sa
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Workflow engine kernel + jurisdiction overlay (regional packs) | stub | [`IP-001-workflow-engine.md`](IP-001-workflow-engine.md) |
-| IP-002 | Plugin substrate Wasmtime + Cosign signing | stub | [`IP-002-plugin-substrate.md`](IP-002-plugin-substrate.md) |
-| IP-003 | Marketplace listing + trust-tier publishing | stub | [`IP-003-marketplace-listing.md`](IP-003-marketplace-listing.md) |
+| IP-001 | Workflow engine kernel + jurisdiction overlay (regional packs) | complete | [`IP-001-workflow-engine.md`](IP-001-workflow-engine.md) |
+| IP-002 | Plugin substrate Wasmtime + Cosign signing | complete | [`IP-002-plugin-substrate.md`](IP-002-plugin-substrate.md) |
+| IP-003 | Marketplace listing + trust-tier publishing | complete | [`IP-003-marketplace-listing.md`](IP-003-marketplace-listing.md) |
 
 ## Estimated parallelism
 3 agents in parallel; disjoint surface.
