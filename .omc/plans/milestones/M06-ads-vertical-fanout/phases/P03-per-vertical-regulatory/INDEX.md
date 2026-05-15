@@ -1,8 +1,4 @@
 ---
-purpose: Bind each of the 13 verticals to its KR regulatory pack subset + DPIA.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M06-P03

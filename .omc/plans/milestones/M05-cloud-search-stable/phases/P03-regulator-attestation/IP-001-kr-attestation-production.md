@@ -1,8 +1,4 @@
 ---
-purpose: Achieve full KR regulator attestation in production.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P03-IP-001

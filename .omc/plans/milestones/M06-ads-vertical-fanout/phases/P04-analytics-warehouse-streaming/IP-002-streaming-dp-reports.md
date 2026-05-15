@@ -1,8 +1,4 @@
 ---
-purpose: Ship analytics.streaming.subscribe + analytics.report.dp-bounded.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P04-IP-002

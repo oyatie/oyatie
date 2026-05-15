@@ -1,8 +1,4 @@
 ---
-purpose: "Publish 99.99% Cloud SLA with uphold-or-credit policy."
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P04-IP-001

@@ -1,8 +1,4 @@
 ---
-purpose: Author ≥5 tenant-specific workflows; verify end-to-end invocation per business day.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P03-IP-002

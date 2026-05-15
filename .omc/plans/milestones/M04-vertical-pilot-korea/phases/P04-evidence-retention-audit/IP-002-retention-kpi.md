@@ -1,8 +1,4 @@
 ---
-purpose: "8-week retention measurement + KPI dashboard for ≥50K runs/wk ≥99.5%."
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P04-IP-002

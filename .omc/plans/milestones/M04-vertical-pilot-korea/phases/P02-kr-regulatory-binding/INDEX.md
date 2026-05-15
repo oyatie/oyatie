@@ -1,8 +1,4 @@
 ---
-purpose: Bind KR regional pack to the elected vertical's capability pack with full control evidence.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M04-P02

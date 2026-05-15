@@ -1,8 +1,4 @@
 ---
-purpose: Continuous evidence collection from audit chain into evidence pack store.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P04-IP-001

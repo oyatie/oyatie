@@ -1,8 +1,4 @@
 ---
-purpose: Operationalize K-ISMS-P controls + KCMVP HSM for production.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P02-IP-002

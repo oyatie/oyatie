@@ -1,8 +1,4 @@
 ---
-purpose: Ship the elected vertical's capability pack kernel + entities + workflows.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P01-IP-002

@@ -1,8 +1,4 @@
 ---
-purpose: Ship analytics.event.ingest + analytics.warehouse.query.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P04-IP-001

@@ -1,8 +1,4 @@
 ---
-purpose: Author PIPA + CSAP control evidence pack for elected vertical.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P02-IP-001

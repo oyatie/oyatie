@@ -1,14 +1,10 @@
 ---
-purpose: Run one vertical end-to-end on M01-M03 stack as a design-partner pilot with a KR Group tenant.
----
-
----
 doc_class: MilestoneIndex
 parent: ../../MASTERPLAN.md
 id: M04
 title: Vertical-Pilot (Korea-first design-partner pack)
 wave: W-Vertical-Pilot
-status: gated on M03
+status: in-progress
 owner: vertical-corporate (or council-elected) + tactical-first-vertical-pilot + gtm-customer-success
 purpose: Run one vertical end-to-end on M01-M03 stack as a design-partner pilot with a KR Group tenant.
 acceptance_authority: docs/ROADMAP.md §2.6

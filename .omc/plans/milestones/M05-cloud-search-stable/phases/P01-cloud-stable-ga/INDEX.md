@@ -1,8 +1,4 @@
 ---
-purpose: "Take Cloud axis to public GA — marketplace open, ISV onboarding, multi-AZ failover automation, FinOps surfaces, 99.99% SLA commitment."
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M05-P01

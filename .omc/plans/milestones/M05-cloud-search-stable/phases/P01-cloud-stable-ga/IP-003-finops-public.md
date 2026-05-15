@@ -1,8 +1,4 @@
 ---
-purpose: Expose FinOps surface to public-GA tenants.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P01-IP-003

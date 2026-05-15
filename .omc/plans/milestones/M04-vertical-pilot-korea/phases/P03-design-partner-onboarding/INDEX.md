@@ -1,8 +1,4 @@
 ---
-purpose: Onboard the first KR Group design-partner tenant; author tenant-specific workflows; activate Foundry agents on tenant data.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M04-P03

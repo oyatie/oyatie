@@ -1,8 +1,4 @@
 ---
-purpose: Author 3 vertical packs in parallel.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P02-IP-003

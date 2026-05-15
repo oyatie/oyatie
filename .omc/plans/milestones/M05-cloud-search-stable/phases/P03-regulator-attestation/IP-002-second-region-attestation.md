@@ -1,8 +1,4 @@
 ---
-purpose: Achieve second-region regulator attestation.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P03-IP-002

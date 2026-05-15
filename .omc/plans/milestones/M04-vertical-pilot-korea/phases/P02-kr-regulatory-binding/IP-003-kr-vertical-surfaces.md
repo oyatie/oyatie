@@ -1,8 +1,4 @@
 ---
-purpose: Wire KR vertical surfaces into vertical-corporate (or elected) workflows.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P02-IP-003

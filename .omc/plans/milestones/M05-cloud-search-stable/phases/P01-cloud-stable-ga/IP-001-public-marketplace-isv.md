@@ -1,8 +1,4 @@
 ---
-purpose: Promote marketplace to public + onboard ≥10 ISV listings.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P01-IP-001

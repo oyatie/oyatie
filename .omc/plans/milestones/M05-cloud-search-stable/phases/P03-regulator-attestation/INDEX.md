@@ -1,8 +1,4 @@
 ---
-purpose: Achieve regulator-equivalent attestation per region in scope (KR CSAP + K-ISMS-P + KCMVP production; JP ISMAP; US FedRAMP; EU GAIA-X; etc.).
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M05-P03

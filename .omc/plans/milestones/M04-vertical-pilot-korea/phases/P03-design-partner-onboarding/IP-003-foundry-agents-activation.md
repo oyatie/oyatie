@@ -1,8 +1,4 @@
 ---
-purpose: Activate Foundry capabilities for tenant under T1-T3 autonomy ceiling.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P03-IP-003

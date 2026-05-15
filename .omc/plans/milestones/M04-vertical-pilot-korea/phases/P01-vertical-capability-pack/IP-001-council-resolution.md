@@ -1,8 +1,4 @@
 ---
-purpose: Surface vertical-choice open question to council; log resolution in open-questions.md.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P01-IP-001

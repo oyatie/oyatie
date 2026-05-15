@@ -1,8 +1,4 @@
 ---
-purpose: Open the ads auction internally (tenant-facing only) with privacy-isolated ML loops.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M06-P01

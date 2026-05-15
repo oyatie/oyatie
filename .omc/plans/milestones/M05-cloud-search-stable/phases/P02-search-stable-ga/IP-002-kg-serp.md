@@ -1,8 +1,4 @@
 ---
-purpose: Knowledge graph + SERP rendering for public search.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P02-IP-002

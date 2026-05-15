@@ -1,8 +1,4 @@
 ---
-purpose: "Ship the analytics axis substrate: event ingestion, warehouse, streaming, DP-bounded reports."
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M06-P04

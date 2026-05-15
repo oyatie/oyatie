@@ -1,8 +1,4 @@
 ---
-purpose: Onboard first KR Group design-partner tenant via tenant.create + KR pack binding.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P03-IP-001

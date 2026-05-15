@@ -1,8 +1,4 @@
 ---
-purpose: Auction ML loops train without cross-tenant data leakage; DP-bounded.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P01-IP-003

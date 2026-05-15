@@ -1,8 +1,4 @@
 ---
-purpose: "Publish public SLA (Cloud 99.99%) and SLO (Search per catalog) commitments backed by measured evidence."
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M05-P04

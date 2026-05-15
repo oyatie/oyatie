@@ -1,8 +1,4 @@
 ---
-purpose: Tenant-internal advertiser console.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P01-IP-002

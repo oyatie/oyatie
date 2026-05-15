@@ -1,8 +1,4 @@
 ---
-purpose: "Author DPIA per vertical at regional-packs/kr/dpia/<vertical>.md."
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P03-IP-001

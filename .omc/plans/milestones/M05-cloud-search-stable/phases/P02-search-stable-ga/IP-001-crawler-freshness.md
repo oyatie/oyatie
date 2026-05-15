@@ -1,8 +1,4 @@
 ---
-purpose: Public web search crawler + freshness pipeline.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P02-IP-001

@@ -1,8 +1,4 @@
 ---
-purpose: Council elects pilot vertical; Foundry-authored capability pack ships for that vertical.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M04-P01

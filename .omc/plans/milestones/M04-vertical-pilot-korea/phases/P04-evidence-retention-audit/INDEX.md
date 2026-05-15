@@ -1,8 +1,4 @@
 ---
-purpose: Continuous evidence collection during pilot operation; retention measurement over 8 weeks; regulator audit pack on first request.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M04-P04

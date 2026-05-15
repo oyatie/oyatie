@@ -1,8 +1,4 @@
 ---
-purpose: Audit-pack regenerator ≤4h from request.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P04-IP-003

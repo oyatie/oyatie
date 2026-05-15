@@ -1,14 +1,10 @@
 ---
-purpose: Open the ad-serving auction (internal-tenant first) and fan out remaining verticals in parallel.
----
-
----
 doc_class: MilestoneIndex
 parent: ../../MASTERPLAN.md
 id: M06
 title: Ads-Preview + Vertical-Fan-Out
 wave: W-Ads-Preview + W-Vertical-Fan-Out
-status: gated on M05
+status: in-progress
 owner: axis-ads-analytics + per-vertical leads + council-privacy
 purpose: Open the ad-serving auction (internal-tenant first) and fan out remaining verticals in parallel.
 acceptance_authority: docs/ROADMAP.md §2.7, §2.9

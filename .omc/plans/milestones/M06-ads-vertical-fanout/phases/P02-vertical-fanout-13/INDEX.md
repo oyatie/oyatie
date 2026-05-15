@@ -1,8 +1,4 @@
 ---
-purpose: Build out the remaining 13 verticals using the M04-proven blueprint, in parallel.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M06-P02

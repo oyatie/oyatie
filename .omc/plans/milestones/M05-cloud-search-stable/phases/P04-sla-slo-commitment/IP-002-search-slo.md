@@ -1,8 +1,4 @@
 ---
-purpose: Publish Search SLO commitment.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P04-IP-002

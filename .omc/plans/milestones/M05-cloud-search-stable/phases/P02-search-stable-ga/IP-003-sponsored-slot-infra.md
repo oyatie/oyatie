@@ -1,8 +1,4 @@
 ---
-purpose: Sponsored-slot infrastructure ready; serving deferred until M06.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P02-IP-003

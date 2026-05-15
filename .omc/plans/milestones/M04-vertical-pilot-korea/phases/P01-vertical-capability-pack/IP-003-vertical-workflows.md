@@ -1,8 +1,4 @@
 ---
-purpose: Author the vertical-specific workflows (e.g., payroll.close, kyc.onboard, fhir.read).
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P01-IP-003

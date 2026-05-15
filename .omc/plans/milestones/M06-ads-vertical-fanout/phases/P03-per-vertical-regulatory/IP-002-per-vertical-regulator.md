@@ -1,8 +1,4 @@
 ---
-purpose: Per-vertical regulator binding evidence collected.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P03-IP-002

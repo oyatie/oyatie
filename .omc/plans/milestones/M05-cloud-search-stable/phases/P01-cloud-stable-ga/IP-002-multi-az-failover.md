@@ -1,8 +1,4 @@
 ---
-purpose: Multi-AZ failover automation with quarterly drill runbook.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P01-IP-002
