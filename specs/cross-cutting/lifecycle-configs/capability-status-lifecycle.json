@@ -1,0 +1,30 @@
+{
+  "name": "capability-status",
+  "version": 1,
+  "stages": [
+    { "id": "proposed", "terminal": false, "requires_supersession_edge": false },
+    { "id": "granted", "terminal": false, "requires_supersession_edge": false },
+    { "id": "revoked", "terminal": true, "requires_supersession_edge": false },
+    { "id": "expired", "terminal": true, "requires_supersession_edge": false }
+  ],
+  "transitions": [
+    { "from": "proposed", "to": "granted" },
+    { "from": "proposed", "to": "revoked" },
+    { "from": "granted", "to": "revoked" },
+    { "from": "granted", "to": "expired" }
+  ],
+  "sources": [
+    {
+      "kind": "yaml_front_matter",
+      "glob": "specs/**/*.capability.json",
+      "stage_field": "status",
+      "supersession_field": null,
+      "deadline_field": "expires_at",
+      "milestone_field": null
+    }
+  ],
+  "defaults": {
+    "wave": "A",
+    "case_insensitive_stage_match": true
+  }
+}
