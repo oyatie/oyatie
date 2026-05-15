@@ -31,10 +31,18 @@
 //! `runtime`, `test`, `api`, `worker`) that are NOT all in the canonical
 //! 13-value layer enum at
 //! `crates/oya-foundry-fitness-predictable-naming-kernel::ALLOWED_ROLES`.
-//! The catalog still carries records with those roles, so the matrix
-//! stays as-is for behavioural parity; reconciliation belongs to a
-//! follow-up ADR (tracked under M-CC-P10 lifecycle work). Until that
-//! lands, this gate is the source of truth for inter-crate edges.
+//! Reconciliation is staged per ADR-0105 §"Amendment 2026-05-15 —
+//! `ALLOWED_DEPENDENCY_ROLES` reconciliation": migrate the 22 catalog
+//! `application` records → `usecase` (ADR-0106), 6 `runtime` → `app`
+//! (ADR-0056), and remove 4 `test` records (cfg(test) is the canonical
+//! exemption). The catalog still carries records with those roles as of
+//! 2026-05-15, so the matrix stays as-is here for behavioural parity;
+//! once the three follow-ups land, this table drops `application`/
+//! `runtime`/`test` and adds `cli`/`grpc`/`graphql`/`sdk`/`usecase`.
+//! Until that lands, this gate is the source of truth for inter-crate
+//! edges. Audit row B-2 in
+//! `evidence/audits/shell-python-replacement-audit-2026-05-15.md` tracks
+//! the migration sequence.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};

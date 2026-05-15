@@ -134,6 +134,46 @@ The fourth "Alternatives Considered" entry below (the original "Tools/-implicit-
 - ADD a `DOCTRINAL_CARVE_OUTS` allowlist limited to `oya-tooling-agent-read` (citation: ADR-0053 + CLAUDE.md sanctioned primitives).
 - Require canonical suffix for every other `tools/` crate.
 
+## Amendment 2026-05-15 — `ALLOWED_DEPENDENCY_ROLES` reconciliation with the 13-value canonical enum
+
+### Context
+
+The architecture-boundaries gate ports `scripts/check-architecture-boundaries.sh`'s Python `ALLOWED_DEPENDENCY_ROLES` table verbatim into `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs::allowed_dependency_roles()` (Wave 2 of the shell/python replacement program; audit row B-2 in `evidence/audits/shell-python-replacement-audit-2026-05-15.md`). The ported table contains 11 role keys:
+
+```
+kernel, domain, application, app, api, worker, adapter, rest, infrastructure, test, runtime
+```
+
+These pre-date the 13-value canonical enum defined in this ADR and amended by ADR-0106. The gap is:
+
+| Legacy role (in `ALLOWED_DEPENDENCY_ROLES`) | Canonical 13-value equivalent | Notes |
+|---|---|---|
+| `application` | `usecase` (ADR-0106 rename) | 22 catalog records still use `application` as of 2026-05-15 |
+| `runtime` | `app` (ADR-0105 §"Concrete migration" / ADR-0056) | 6 catalog records still use `runtime` |
+| `test` | (no canonical value; `cfg(test)` is the canonical exemption per `oya-foundry-fitness-predictable-naming-kernel`) | 4 catalog records still use `test` |
+| `kernel`, `domain`, `app`, `adapter`, `rest`, `infrastructure`, `worker`, `api` | Same | Already canonical |
+| Missing from legacy: `cli`, `grpc`, `graphql`, `sdk`, `usecase` | — | No catalog records use these yet (zero edges to validate); adding requires the catalog migration below |
+
+### Decision (Choice (a) — keep legacy + plan migration)
+
+The architecture-boundaries gate keeps the legacy `ALLOWED_DEPENDENCY_ROLES` table verbatim in this slice. Migrating NOW to the canonical 13-value enum would break edge validation for 32 catalog records (22 `application` + 6 `runtime` + 4 `test`); migrating the gate without also migrating the 32 catalog records produces a falsely-failing build.
+
+The reconciliation is staged in three follow-up changes:
+
+1. **Migrate 22 `application` catalog records → `usecase`** (paired with the 6 workspace-crate renames in ADR-0106). Update `registry/catalog/<name>.yaml` `role:` lines in lockstep with each crate rename.
+2. **Migrate 6 `runtime` catalog records → `app`** (paired with the rename plan in ADR-0056 §"Concrete migration"). Each `*-runtime` crate renames to `*-app`; the catalog record's `role:` flips at the same time.
+3. **Remove 4 `test` catalog records** OR retain the `test` row in the dependency matrix as a cfg(test) exemption marker. The honest path is removal — test-only crates take canonical layer suffixes (per the Crate-naming-kernel update above); the `test` role is not in the canonical enum and was never meant to be.
+
+After the three follow-ups land, `ALLOWED_DEPENDENCY_ROLES` is updated to drop `application`, `runtime`, `test` and add `cli`, `grpc`, `graphql`, `sdk`, `usecase` — fully aligning the gate with the canonical 13-value enum. The Rust source-of-truth lives at `crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs::allowed_dependency_roles()` and is reviewed under the same ADR-0107 / canonical-app-layer surface.
+
+### Until then
+
+The architecture-boundaries gate is the source of truth for inter-crate edges; the legacy role names in its matrix are **transitional**, not canonical. New catalog records MUST use canonical names (`usecase`, `app`, plus a canonical-suffix crate-rename) from ADR-0106 onward. The predictable-naming kernel (lib.rs `ALLOWED_ROLES`) already rejects `application`/`runtime`/`test` for new crates; existing 32 records are grandfathered via the legacy dependency-roles table.
+
+### Traceability
+
+Tracked as a follow-up entry in `evidence/audits/shell-python-replacement-audit-2026-05-15.md` so the migration sequence sits next to the rest of the Wave 2 work.
+
 ## References
 
 - ADR-0056 §"12-Value Layer Enum (closed)" — the enum this ADR amends

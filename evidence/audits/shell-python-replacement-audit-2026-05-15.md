@@ -136,6 +136,20 @@ None. No third-party `.sh`/`.py` shipped under in-scope paths. (The 8 `.grit/wor
 
 ---
 
+## Follow-up — `ALLOWED_DEPENDENCY_ROLES` reconciliation (Wave 2 row B-2 amendment 2026-05-15)
+
+The architecture-boundaries gate (`crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs::allowed_dependency_roles()`) ports the legacy Python `ALLOWED_DEPENDENCY_ROLES` table verbatim. The table contains 11 role keys that pre-date the 13-value canonical enum (ADR-0105 + ADR-0106). The migration is staged in three follow-ups (cited in ADR-0105 §"Amendment 2026-05-15 — `ALLOWED_DEPENDENCY_ROLES` reconciliation"):
+
+1. **Migrate 22 `application` catalog records → `usecase`** (paired with the 6 workspace-crate renames in ADR-0106). Touches `registry/catalog/*.yaml` in lockstep with each crate rename.
+2. **Migrate 6 `runtime` catalog records → `app`** (paired with ADR-0056 §"Concrete migration"). Each `*-runtime` crate renames to `*-app`; catalog record's `role:` flips at the same time.
+3. **Remove 4 `test` catalog records** — test-only crates take canonical layer suffixes per the predictable-naming kernel; the `test` role is not in the canonical 13-value enum.
+
+After all three follow-ups land, `ALLOWED_DEPENDENCY_ROLES` is updated to drop `application`/`runtime`/`test` and add `cli`/`grpc`/`graphql`/`sdk`/`usecase`. Tracking row B-2 supersedes itself once this is complete.
+
+Source-of-truth catalog tally (2026-05-15): 22 `application`, 6 `runtime`, 4 `test` records remain in `registry/catalog/*.yaml`.
+
+---
+
 ## Open questions for user
 
 1. **Sunset-coupled hook (`.omc/hooks/grit-claim-intent-gate.sh`)** — port to Rust now, or let it die with `grit` retirement? Recommendation: skip.
