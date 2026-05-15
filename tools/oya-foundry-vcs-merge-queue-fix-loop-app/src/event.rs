@@ -40,6 +40,13 @@ pub struct AdmissionEvent {
     pub head_sha: String,
     pub base_sha: String,
     pub emitted_at_epoch: u64,
+    /// IP-009 admission-gate field. When IP-004's dispatcher emits an
+    /// APPROVE event whose `subagent_runtime_pending=true`, IP-006
+    /// REFUSES admission — the convergence guarantee that a PR never
+    /// merges without real per-facet subagent findings. Defaults to
+    /// `false` for backward compat (older admission entries that
+    /// predate the IP-009 wiring are assumed runtime-complete).
+    pub subagent_runtime_pending: bool,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -106,6 +113,9 @@ fn parse_one(slice: &str) -> Result<AdmissionEvent, EventParseError> {
     let head_sha = scan_string(slice, "head_sha")?;
     let base_sha = scan_string(slice, "base_sha")?;
     let emitted_at_epoch = scan_u64(slice, "emitted_at_epoch")?;
+    // Optional field per IP-009 admission-gate. Defaults to false
+    // when absent (older entries predate IP-009 wiring).
+    let subagent_runtime_pending = scan_bool_optional(slice, "subagent_runtime_pending");
     Ok(AdmissionEvent {
         kind,
         pr_number,
@@ -113,7 +123,20 @@ fn parse_one(slice: &str) -> Result<AdmissionEvent, EventParseError> {
         head_sha,
         base_sha,
         emitted_at_epoch,
+        subagent_runtime_pending,
     })
+}
+
+/// Scan a boolean field. Returns `false` if the key is absent or
+/// unparseable — admission events that predate the IP-009 wiring are
+/// assumed runtime-complete (backward-compat).
+fn scan_bool_optional(slice: &str, key: &str) -> bool {
+    let needle = format!("\"{key}\":");
+    let Some(idx) = slice.find(&needle) else {
+        return false;
+    };
+    let after = slice[idx + needle.len()..].trim_start();
+    after.starts_with("true")
 }
 
 fn scan_u64(slice: &str, key: &str) -> Result<u64, EventParseError> {

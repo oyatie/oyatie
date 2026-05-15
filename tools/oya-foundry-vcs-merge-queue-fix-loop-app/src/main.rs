@@ -111,6 +111,17 @@ pub fn run(args: &[String], fs_io: &dyn FilesystemIo) -> Result<String, String> 
     let now_epoch = opts.now_epoch;
     let mut summary = SchedulerSummary::default();
     for event in events {
+        // IP-009 admission-gate: refuse APPROVE events that still
+        // carry `subagent_runtime_pending=true`. The flag is set by
+        // IP-004's dispatcher when no real per-facet subagent panel
+        // has produced findings — admitting under that condition
+        // would let a PR merge without real review. We count
+        // refusals separately and emit them in the run summary so an
+        // external observer can verify convergence.
+        if event.subagent_runtime_pending {
+            summary.refused_for_pending_runtime += 1;
+            continue;
+        }
         match event.kind {
             AdmissionEventKind::PrReviewApproved => {
                 scheduler
@@ -190,13 +201,24 @@ pub fn run(args: &[String], fs_io: &dyn FilesystemIo) -> Result<String, String> 
             .map_err(|e| format!("write {}: {e}", path.display()))?;
     }
 
+    // IP-009 admission-gate: the integration layer now refuses
+    // pending-flagged APPROVEs, so its own `subagent_runtime_pending`
+    // flag in the success message reflects the COMPLETED state of
+    // the queue: false iff at least one event was processed AND zero
+    // events were refused for pending runtime, OR no events arrived
+    // at all (idle pipeline). When refusals occurred, the marker
+    // stays true so downstream observers know the queue isn't yet
+    // accepting all upstream APPROVE traffic.
+    let integration_pending = summary.refused_for_pending_runtime > 0;
     Ok(format!(
-        "merge-queue: admitted={a} parked={p} ticks={t} queue_depth={qd} parked_count={pc} subagent_runtime_pending=true",
+        "merge-queue: admitted={a} parked={p} refused_for_pending_runtime={r} ticks={t} queue_depth={qd} parked_count={pc} subagent_runtime_pending={pending}",
         a = summary.admitted,
         p = summary.parked,
+        r = summary.refused_for_pending_runtime,
         t = tick_actions,
         qd = scheduler.queue_depth(),
         pc = scheduler.parked_count(),
+        pending = integration_pending,
     ))
 }
 
@@ -204,6 +226,9 @@ pub fn run(args: &[String], fs_io: &dyn FilesystemIo) -> Result<String, String> 
 struct SchedulerSummary {
     admitted: u32,
     parked: u32,
+    /// IP-009 admission-gate: count of APPROVE events refused
+    /// because they still carried `subagent_runtime_pending=true`.
+    refused_for_pending_runtime: u32,
 }
 
 fn usage() -> String {
@@ -288,11 +313,18 @@ mod tests {
     }
 
     fn admission_json(events: &[(&str, u64, &str)]) -> String {
+        admission_json_with_pending(events, false)
+    }
+
+    /// Same as `admission_json` but stamps every entry with the given
+    /// `subagent_runtime_pending` flag. Used by the IP-009 admission-
+    /// gate refusal test.
+    fn admission_json_with_pending(events: &[(&str, u64, &str)], pending: bool) -> String {
         let body = events
             .iter()
             .map(|(kind, pr, cs)| {
                 format!(
-                    r#"{{"base_sha":"{base}","changeset_id":"{cs}","emitted_at_epoch":1,"head_sha":"{head}","kind":"{kind}","pr_number":{pr}}}"#,
+                    r#"{{"base_sha":"{base}","changeset_id":"{cs}","emitted_at_epoch":1,"head_sha":"{head}","kind":"{kind}","pr_number":{pr},"subagent_runtime_pending":{pending}}}"#,
                     base = "2".repeat(40),
                     head = "1".repeat(40),
                 )
@@ -310,11 +342,51 @@ mod tests {
         let args = base_args();
         let msg = run(&args, &fs).unwrap();
         assert!(msg.contains("admitted=1"));
-        assert!(msg.contains("subagent_runtime_pending=true"));
+        // IP-009 wiring: with no pending-flagged events, the
+        // integration layer's own `subagent_runtime_pending` reports
+        // false — the queue is admitting and no upstream pending
+        // events were refused.
+        assert!(msg.contains("subagent_runtime_pending=false"));
+        assert!(msg.contains("refused_for_pending_runtime=0"));
         let tick_log_path = PathBuf::from("/repo").join(TICK_LOG_PATH);
         let tick_log = fs.get(&tick_log_path).expect("tick log written");
         assert!(tick_log.contains("\"kind\":\"merge\""));
         assert!(tick_log.contains("\"pr_number\":42"));
+    }
+
+    #[test]
+    fn admission_gate_refuses_pending_approve_events() {
+        // IP-009 admission-gate convergence guarantee: when IP-004's
+        // dispatcher emits an APPROVE event but the runtime hasn't
+        // produced findings (pending=true), IP-006 MUST refuse to
+        // admit. Otherwise the PR would merge without real review.
+        let fs = FakeFs::new();
+        let log = PathBuf::from("/repo").join(ADMISSION_LOG_PATH);
+        fs.seed(
+            log,
+            admission_json_with_pending(&[("pr-review-approved", 42, "cs_a")], true),
+        );
+        let args = base_args();
+        let msg = run(&args, &fs).unwrap();
+        assert!(msg.contains("admitted=0"));
+        assert!(msg.contains("refused_for_pending_runtime=1"));
+        assert!(msg.contains("subagent_runtime_pending=true"));
+    }
+
+    #[test]
+    fn admission_gate_passes_through_complete_runtime_events() {
+        // The complement of the previous test: with pending=false
+        // explicitly set, the event flows through into Scheduler::admit.
+        let fs = FakeFs::new();
+        let log = PathBuf::from("/repo").join(ADMISSION_LOG_PATH);
+        fs.seed(
+            log,
+            admission_json_with_pending(&[("pr-review-approved", 42, "cs_a")], false),
+        );
+        let args = base_args();
+        let msg = run(&args, &fs).unwrap();
+        assert!(msg.contains("admitted=1"));
+        assert!(msg.contains("refused_for_pending_runtime=0"));
     }
 
     #[test]
