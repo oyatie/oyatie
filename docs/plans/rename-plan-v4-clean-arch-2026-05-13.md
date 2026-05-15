@@ -2287,7 +2287,7 @@ window.
 
 **CI / scripts** (carried forward from v3 §12):
 - `.github/workflows/release-evidence-pack.yml` (1 site)
-- `.github/workflows/supply-chain.yml` (2 sites)
+- `.github/workflows/oya-foundry-fitness-supply-chain.yml` (2 sites)
 - `scripts/check.sh` (~29 sites)
 - `scripts/hooks/pre-push-repoctl.sh` (1 site)
 - `scripts/check-architecture-boundaries.sh` (3 sites + 1 new for

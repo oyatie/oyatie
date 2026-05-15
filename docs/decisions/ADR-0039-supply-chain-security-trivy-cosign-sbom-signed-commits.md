@@ -30,7 +30,7 @@ We adopt **Trivy 4-layer scanning** (filesystem + container + IaC + dep) on ever
 ### Trivy 4-layer scan
 
 ```yaml
-# .github/workflows/supply-chain.yml (canonical CI lane)
+# .github/workflows/oya-foundry-fitness-supply-chain.yml (canonical CI lane)
 - name: Trivy filesystem scan
   run: trivy fs --severity HIGH,CRITICAL --exit-code 1 .
 
