@@ -83,7 +83,7 @@ spec:
 - Default: **STRICT** PeerAuthentication for every namespace.
 - Per-cell CA issued from per-cell HSM partition (per ADR-0043); rotated quarterly per ADR-0043 drill.
 - Identity is SPIFFE SVID; per-workload identity tied to KSA (Kubernetes Service Account) which is tied to per-microservice Cedar policy.
-- Plain text traffic permitted only via documented ADR + per-traffic-type exception (e.g. internal observability collector if ext-authz cost is prohibitive).
+- Plain-text traffic permitted only when a documented ADR records a per-traffic-type ADR-tracked extension to the mTLS-everywhere base (e.g., internal observability collector when ext-authz cost is prohibitive). The extension is canonical, not an exception; every plain-text edge is enumerated in the ADR ledger.
 
 ### Per-cell namespace as isolation unit
 
