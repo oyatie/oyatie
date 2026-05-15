@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for release-management.md
+purpose: Cross-cutting release-management standard. Codifies trunk-based development with short-lived branches, feature-flag + canary progressive delivery, the SLO-burn-rate auto-rollback rail, and the Sigstore-signed-release pipeline.
 ---
 
 ---

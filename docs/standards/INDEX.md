@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: "Catalog of cross-cutting authoring standards under `docs/standards/`."
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for multispectrum-review.md
+purpose: "Thin human gateway for the multispectrum review bar. The canonical spec is `/specs/cross-cutting/multispectrum-review.json` v2.1.0. The doctrine principles are `/specs/cross-cutting/oyatie-doctrine.json` P0..P9."
 ---
 
 ---

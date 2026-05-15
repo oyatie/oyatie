@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for code-review.md
+purpose: Oyatie — Code Review Standard
 ---
 
 # Oyatie — Code Review Standard

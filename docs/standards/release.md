@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for release.md
+purpose: Oyatie — Release Standard
 ---
 
 # Oyatie — Release Standard

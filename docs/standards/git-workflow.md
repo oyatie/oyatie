@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for git-workflow.md
+purpose: Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first default, when direct git / gh is justified, the icm rationale-logging contract, the cutover-bootstrap-window exception window.
 ---
 
 ---

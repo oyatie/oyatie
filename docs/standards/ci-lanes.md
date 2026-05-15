@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for ci-lanes.md
+purpose: Oyatie — CI Lanes Catalog
 ---
 
 # Oyatie — CI Lanes Catalog

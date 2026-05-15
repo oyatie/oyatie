@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for migration-playbook.md
+purpose: Oyatie — Tenant Migration Playbook (from competitor stacks)
 ---
 
 # Oyatie — Tenant Migration Playbook (from competitor stacks)

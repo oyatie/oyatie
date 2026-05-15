@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for fintech-compliance.md
+purpose: Oyatie — Fintech Compliance Deep-Dive
 ---
 
 # Oyatie — Fintech Compliance Deep-Dive

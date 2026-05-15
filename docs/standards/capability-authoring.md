@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for capability-authoring.md
+purpose: Oyatie — Foundry Capability Authoring Standard
 ---
 
 # Oyatie — Foundry Capability Authoring Standard

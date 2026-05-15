@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for clean-architecture.md
+purpose: "Canonical layered-architecture standard for every `oya-*` crate."
 ---
 
 ---

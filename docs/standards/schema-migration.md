@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for schema-migration.md
+purpose: Oyatie — Schema Migration Standard
 ---
 
 # Oyatie — Schema Migration Standard

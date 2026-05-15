@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for api-design.md
+purpose: Oyatie — API Design Standard
 ---
 
 # Oyatie — API Design Standard

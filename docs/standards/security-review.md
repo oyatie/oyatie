@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for security-review.md
+purpose: "Cross-cutting security-review standard. Names the OWASP control surfaces oyatie inherits, the supply-chain triad (`cargo-deny` + `cargo-audit` + `cargo-vet`), Sigstore signing + SBOM emission."
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for prfaq-template.md
+purpose: Working-backwards PR/FAQ template (Amazon-style) for launching new capabilities; force-clarifies customer value before any engineering investment.
 ---
 
 ---

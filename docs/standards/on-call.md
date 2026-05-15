@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for on-call.md
+purpose: Canonical on-call standard. Defines rotation cadence, runbook discipline, escalation paths, blameless-postmortem trigger, and SLO-burn-rate alerting thresholds.
 ---
 
 ---

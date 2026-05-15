@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for incident-severity.md
+purpose: Sev 1-4 taxonomy declared per service
 ---
 
 # Oyatie — Incident Severity Standard

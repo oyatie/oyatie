@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for autonomy-ceiling.md
+purpose: Cross-cutting autonomy-ceiling standard. Defines the T1 / T2 / T3 / T4 capability tiers, the Cedar-policy binding per capability, the per-capability autonomy record, and the explicit prohibition of config-flag uplift.
 ---
 
 ---

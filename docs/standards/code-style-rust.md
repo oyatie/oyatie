@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for code-style-rust.md
+purpose: "Canonical Rust code style for the oyatie workspace. Defines clippy-pedantic with cherry-picked allow-list, `#![deny(unsafe_code)]` policy, the `[workspace.lints]` inheritance table."
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for prevention-doctrine.md
+purpose: Oyatie — Prevention Doctrine
 ---
 
 # Oyatie — Prevention Doctrine

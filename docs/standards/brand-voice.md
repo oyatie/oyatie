@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for brand-voice.md
+purpose: Oyatie / oYa brand voice for KR + global
 ---
 
 # Oyatie — Brand Voice Standard

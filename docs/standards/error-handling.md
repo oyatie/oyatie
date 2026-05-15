@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for error-handling.md
+purpose: Canonical error-handling discipline for the oyatie Rust workspace.
 ---
 
 ---

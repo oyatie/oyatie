@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for agent-instructions-discipline.md
+purpose: "Cross-cutting discipline for `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` fences in IPs, runbooks, ADRs, and standards."
 ---
 
 ---

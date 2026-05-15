@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for code-style.md
+purpose: Oyatie — Code Style Standard
 ---
 
 # Oyatie — Code Style Standard

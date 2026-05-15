@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for crate-naming-convention.md
+purpose: "Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and every `[package.metadata.oya]` block in the oyatie workspace."
 ---
 
 ---

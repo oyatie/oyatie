@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for hyperscaler-best-practices.md
+purpose: "<!-- status: Accepted date: 2026-05-12 related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055 -->"
 ---
 
 # Hyperscaler Best Practices — Research + oyatie Adoption Recommendation (2026-05-12)

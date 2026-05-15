@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for plugin-authoring.md
+purpose: Oyatie — Plugin Authoring Standard
 ---
 
 # Oyatie — Plugin Authoring Standard

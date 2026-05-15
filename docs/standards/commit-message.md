@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for commit-message.md
+purpose: Oyatie — Commit Message Standard
 ---
 
 # Oyatie — Commit Message Standard

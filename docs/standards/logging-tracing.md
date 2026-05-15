@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for logging-tracing.md
+purpose: Oyatie — Logging + Tracing Standard
 ---
 
 # Oyatie — Logging + Tracing Standard

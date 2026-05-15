@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for privacy-review.md
+purpose: Oyatie — Privacy Review Standard
 ---
 
 # Oyatie — Privacy Review Standard

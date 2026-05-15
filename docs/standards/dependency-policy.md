@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for dependency-policy.md
+purpose: "Cross-cutting dependency policy. Defines LTS pinning (per the verified roster), license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code), `cargo-vet` + `cargo-deny` enforcement, the Renovate configuration baseline."
 ---
 
 ---

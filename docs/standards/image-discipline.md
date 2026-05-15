@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for image-discipline.md
+purpose: "Container-image discipline standard. Mandates `gcr.io/distroless/static-debian13` (or `cc-debian13` for FFI), `musl` static linking where feasible, per-binary CI image-size budgets, Cosign keyless OIDC signing, Syft-generated SBOM."
 ---
 
 ---
