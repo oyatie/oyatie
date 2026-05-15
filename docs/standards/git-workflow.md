@@ -14,7 +14,7 @@ purpose: |
   default, when direct git / gh is justified, the icm rationale-logging contract,
   the cutover-bootstrap-window exception window, and the revised
   banned-primitives lane semantics (catch *undocumented* invocations only).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
 companion_docs:
   - docs/AGENTS.md
@@ -28,7 +28,7 @@ related_adrs:
 
 # Git Workflow
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 This standard codifies [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md)
 **Directive 12 — Pragmatic git/gh**: direct `git` / `gh` invocation is
@@ -101,7 +101,7 @@ sections, **not all invocations**.
 | `git <cmd>` inside fence during cutover-bootstrap window with session-level store | **PASS** |
 | `git <cmd>` outside any fence (plain prose, human-facing) | **PASS** (advisory only) |
 | `gh <cmd>` — same rules as `git` | as above |
-| `git --no-verify <cmd>` | **FAIL** unconditionally (per CONSTITUTION §Avoid Item 2) |
+| `git --no-verify <cmd>` | **FAIL** unconditionally (per forbidden-operations.json FO-02) |
 | `gh pr merge` without `## Code Review` section | **FAIL** (per `guard-pr-merge-review.mjs` hook) |
 
 ## 5. Migration-candidate flow
@@ -141,9 +141,9 @@ These are **never** permitted, regardless of rationale:
 
 | Operation | Why forbidden |
 |---|---|
-| `git push --force` to `main` | CONSTITUTION §Avoid Item 3 |
-| `git reset --hard` on someone else's work | CONSTITUTION §Avoid Item 3 |
-| `git --no-verify` (skip hooks) | CONSTITUTION §Avoid Item 2 |
+| `git push --force` to `main` | forbidden-operations.json FO-03 |
+| `git reset --hard` on someone else's work | forbidden-operations.json FO-03 |
+| `git --no-verify` (skip hooks) | forbidden-operations.json FO-02 |
 | `gh pr merge` without `## Code Review` | merge-gate hook |
 | `git config user.email` mutation | CLAUDE.md / AGENTS.md user-machine guard |
 | Editing `~/.claude/` or `~/.codex/` from a project session | user-machine boundary |
@@ -195,7 +195,7 @@ scoped to the action.
 ## 11. Sources scanned
 
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Decision principles + §Prohibitions.
+- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json).
 - [`docs/AGENTS.md`](../AGENTS.md) §Boundaries + §PR shape.
 - [`docs/standards/claude-code-harness.md`](claude-code-harness.md).
 - [rtk-ai/grit](https://github.com/rtk-ai/grit), [rtk-ai/icm](https://github.com/rtk-ai/icm).

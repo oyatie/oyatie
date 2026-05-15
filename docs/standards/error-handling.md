@@ -17,7 +17,7 @@ purpose: |
   per the `silent-failure-hunter` reviewer-agent role. Resolves the
   `standards/error-handling.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-error-boundary
 companion_docs:
   - docs/standards/code-style-rust.md
@@ -33,9 +33,9 @@ related_adrs:
 
 # Error Handling
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 4 ("No untyped
+Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-04 ("No untyped
 values at API boundaries") and [`AGENTS.md`](../AGENTS.md) §During-change
 discipline, every Rust API boundary in `oya-*` crates MUST use typed errors.
 This standard names the libraries, the boundary rule, and the silent-failure

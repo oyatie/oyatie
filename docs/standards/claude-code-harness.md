@@ -17,7 +17,7 @@ purpose: |
   PostToolUse / Stop / SessionStart hooks ordering. Resolves the
   `standards/claude-code-harness.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Claude Code).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
 companion_docs:
   - docs/AGENTS.md
@@ -32,7 +32,7 @@ related_adrs:
 
 # Claude Code Harness
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 This standard governs the Claude Code harness (the long-lived agent runtime
 documented at <https://docs.anthropic.com/en/docs/claude-code/>). Per
@@ -154,7 +154,7 @@ hooks MUST be configured for every project session:
 | `Stop` | `scripts/hooks/icm-progress-flush.mjs` | write a progress summary to icm if >20 tool calls since last store | 2 |
 
 Ordering is **stable** — earlier hooks gate later hooks. A hook failure is
-a signal: fix the underlying issue, do not skip (per CONSTITUTION §Do Item
+a signal: fix the underlying issue, do not skip (per decision-principles.json DP-0
 2, §Avoid Item 2).
 
 ## 6. OMC magic-keyword routing
@@ -238,5 +238,5 @@ the loop complete or records the structural block.
 - [rtk-ai/grit](https://github.com/rtk-ai/grit), [rtk-ai/icm](https://github.com/rtk-ai/icm).
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
 - [`docs/AGENTS.md`](../AGENTS.md) §Per-agent appendices (Claude Code).
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 2 (no
+- [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-02 (no
   hook bypass).

@@ -15,7 +15,7 @@ purpose: |
   Sigstore signing + SBOM emission, the per-change-class threat-modeling
   obligation, the data-class boundary enforcement (per `data-class.md`), and the
   autonomy-ceiling guardrails (per `autonomy-ceiling.md`).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-supply-chain
 companion_docs:
   - docs/SECURITY-PROGRAM.md
@@ -31,7 +31,7 @@ related_adrs:
 
 # Security Review
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 This standard governs every PR that touches an auth, secret, payment,
 privacy, capability, or supply-chain surface. The change-class reviewer
@@ -87,7 +87,7 @@ Rules:
 1. All three (cargo-audit + cargo-deny + cargo-vet) MUST pass on every PR.
 2. The `deny.toml` allow-list is the authoritative license posture; the
    forbidden tiers (AGPL / GPL / SSPL / BUSL / RSAL) are enumerated per
-   [`CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 9.
+   [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-09.
 3. `cargo-vet` audits live under `supply-chain/audits.toml`; share-points
    for AWS / Mozilla-published audits are configured.
 4. New crate dependencies require a `cargo-vet` certification row OR an
