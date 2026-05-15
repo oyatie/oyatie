@@ -16,7 +16,7 @@ purpose: |
   boundaries), the testing posture per layer, and the cross-reference to
   `crate-naming-convention.md` (a crate's `[package.metadata.oya].role`
   MUST match its actual layer behavior).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-architecture-conventions
 companion_docs:
   - docs/standards/crate-naming-convention.md
@@ -42,7 +42,7 @@ authority_chain_declaration: |
 
 # Clean Architecture
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 This standard operates within the [`CONSTITUTION.md`](../CONSTITUTION.md)
 frame (§Architecture; ADR-0015 flat crates) and is the **peer** of

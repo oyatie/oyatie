@@ -14,7 +14,7 @@ purpose: |
   every `[package.metadata.oya]` block in the oyatie workspace. Resolves the
   forward-reference left by `docs/standards/code-style-rust.md` §5 (naming
   conventions) and binds the `oya-foundry-fitness-naming-convention` lane.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-naming-convention
 companion_docs:
   - docs/standards/code-style-rust.md
@@ -35,7 +35,7 @@ authority_chain_declaration: |
 
 # Crate Naming Convention
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 This standard operates within the [`CONSTITUTION.md`](../CONSTITUTION.md)
 frame (§Architecture, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and

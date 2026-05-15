@@ -13,10 +13,10 @@ purpose: |
   Cross-cutting data-class standard. Mandates `oyatie.data_class` annotations on
   every kernel struct field, codifies the cross-pillar flow rules (which classes
   may cross which axis boundaries), and binds DSR (data subject request) cascade
-  hooks to each class. Implements `CONSTITUTION.md` §Avoid Item 5
+  hooks to each class. Implements `forbidden-operations.json` Item 5
   ("No new struct fields in kernel crates without `data_class`") and §Do Item 8
   (audit-chain emission on every cross-axis flow).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-data-class
 companion_docs:
   - docs/PRIVACY-PROGRAM.md
@@ -31,7 +31,7 @@ related_adrs:
 
 # Data Class
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 Every kernel struct field MUST carry a `data_class` annotation. The
 annotation gates cross-pillar flow, audit-chain emission, DSR cascade

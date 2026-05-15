@@ -16,7 +16,7 @@ purpose: |
   inside fences unless the documented-rationale flow per Directive 12 is
   followed), and the dual-audience requirement (every fenced block has adjacent
   plain-English prose). Implements MASTERPLAN §7 dual-audience contract.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-agent-instructions-fence
 companion_docs:
   - docs/standards/doc-style.md
@@ -31,7 +31,7 @@ related_adrs:
 
 # Agent Instructions Discipline
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Do Item 4 (dual-audience for
 instructions) and MASTERPLAN §7, every artifact that contains agent-

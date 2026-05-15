@@ -15,7 +15,7 @@ purpose: |
   in `docs/AGENTS.md`, `docs/README.md`, and `docs/CONSTITUTION.md` that points at
   `standards/<file>.md`. Each row names the file, its enforcement lane, and its
   authority position.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 companion_docs:
   - docs/AGENTS.md
   - docs/DOC-CATALOG.md

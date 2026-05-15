@@ -15,7 +15,7 @@ purpose: |
   SLO-burn-rate auto-rollback rail, and the Sigstore-signed-release pipeline.
   Operates downstream of `docs/RELEASE-MANAGEMENT.md` (program-level mechanics)
   and supplies the per-PR / per-release authoring rules.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-flag-debt
 companion_docs:
   - docs/RELEASE-MANAGEMENT.md
@@ -32,7 +32,7 @@ related_adrs:
 
 # Release Management
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 The program-level lifecycle (CI gates, lanes, rollout strategies) lives in
 [`docs/RELEASE-MANAGEMENT.md`](../RELEASE-MANAGEMENT.md). This standard

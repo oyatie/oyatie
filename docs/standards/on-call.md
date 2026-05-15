@@ -15,7 +15,7 @@ purpose: |
   thresholds. Inspired by the Google SRE postmortem culture and SRE Workbook
   error-budget-policy chapter. Resolves the `standards/on-call.md`
   forward-reference sentinel in `docs/AGENTS.md` canonical doc map.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-runbook-index-resolves
 companion_docs:
   - docs/INCIDENT-MANAGEMENT.md
@@ -31,7 +31,7 @@ related_adrs:
 
 # On-Call
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 [`docs/INCIDENT-MANAGEMENT.md`](../INCIDENT-MANAGEMENT.md) defines the per-incident
 playbook (severity, IM/CM roles, comms). This standard defines the steady-state

@@ -16,7 +16,7 @@ purpose: |
   Honeycomb-style exemplars on traces/metrics correlation, and sets retention
   defaults. Operates within `docs/CONSTITUTION.md` §Do Item 8 (audit-chain
   emission on every cross-axis flow).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-otel-emit
 companion_docs:
   - docs/standards/error-handling.md
@@ -32,7 +32,7 @@ related_adrs:
 
 # Observability
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Do Item 8 — "Audit-chain
 emission on every cross-axis flow" — observability is **not** an optional

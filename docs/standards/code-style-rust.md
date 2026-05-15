@@ -17,7 +17,7 @@ purpose: |
   v4 `oya-<shared|vertical>-<bc>-<layer>` conventions),
   and the 12-value canonical layer enum (kernel, domain, application, app, adapter,
   infrastructure, cli, rest, grpc, graphql, worker, sdk) per ADR-0056.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-clippy-pedantic
 companion_docs:
   - docs/standards/error-handling.md
@@ -32,7 +32,7 @@ related_adrs:
 
 # Code Style — Rust
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 The workspace ships in Rust. This standard governs every `oya-*` crate.
 [`error-handling.md`](error-handling.md) governs error types;
