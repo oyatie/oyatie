@@ -17,3 +17,6 @@ serde_json = { workspace = true }
 walkdir = { workspace = true }
 regex = { workspace = true }
 chrono = { version = "0.4", features = ["serde"] }
+
+[lints]
+workspace = true

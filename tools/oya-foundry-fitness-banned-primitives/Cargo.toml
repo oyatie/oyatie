@@ -12,3 +12,6 @@ path = "src/main.rs"
 
 [dependencies]
 oya-foundry-fitness-banned-primitives-kernel = { path = "../../crates/oya-foundry-fitness-banned-primitives-kernel" }
+
+[lints]
+workspace = true

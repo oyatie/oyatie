@@ -23,3 +23,6 @@ libc = "0.2.186"
 oya-foundry-account-domain = { version = "0.1.0", path = "../oya-foundry-account-domain" }
 oya-foundry-account-kernel = { version = "0.1.0", path = "../oya-foundry-account-kernel" }
 oya-foundry-settings-template-kernel = { path = "../oya-foundry-settings-template-kernel" }
+
+[lints]
+workspace = true

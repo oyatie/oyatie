@@ -11,3 +11,6 @@ oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 
 [dev-dependencies]
 oya-residency-domain = { path = "../oya-residency-domain" }
+
+[lints]
+workspace = true

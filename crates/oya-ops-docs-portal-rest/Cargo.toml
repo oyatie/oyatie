@@ -16,3 +16,6 @@ oya-ops-docs-portal-kernel = { path = "../oya-ops-docs-portal-kernel" }
 name = "oya_ops_docs_portal_rest"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

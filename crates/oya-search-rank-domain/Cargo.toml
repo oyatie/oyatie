@@ -13,3 +13,6 @@ oya-search-query-domain = { path = "../oya-search-query-domain" }
 name = "oya_search_rank_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

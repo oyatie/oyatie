@@ -15,3 +15,6 @@ oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 name = "oya_foundry_registry_api"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

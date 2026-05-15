@@ -13,3 +13,6 @@ oya-foundry-autonomy-ceiling-kernel = { path = "../oya-foundry-autonomy-ceiling-
 oya-foundry-capability-registry-kernel = { path = "../oya-foundry-capability-registry-kernel" }
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
 oya-foundry-account-adapter-inmemory = { path = "../oya-foundry-account-adapter-inmemory" }
+
+[lints]
+workspace = true

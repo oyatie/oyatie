@@ -15,3 +15,6 @@ oya-foundry-vcs-test-standard-gate = { path = "../oya-foundry-vcs-test-standard-
 name = "oya_foundry_vcs_promotion_controller"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

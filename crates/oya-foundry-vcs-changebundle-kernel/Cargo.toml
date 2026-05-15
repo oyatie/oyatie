@@ -13,3 +13,6 @@ oya-foundry-vcs-kernel = { path = "../oya-foundry-vcs-kernel" }
 name = "oya_foundry_vcs_changebundle_kernel"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

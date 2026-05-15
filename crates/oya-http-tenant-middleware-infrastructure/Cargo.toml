@@ -22,3 +22,6 @@ oya-http-router-kernel = { path = "../oya-http-router-kernel" }
 name = "oya_http_tenant_middleware_infrastructure"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

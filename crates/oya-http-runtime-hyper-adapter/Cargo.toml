@@ -20,3 +20,6 @@ bytes.workspace = true
 name = "oya_http_runtime_hyper_adapter"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

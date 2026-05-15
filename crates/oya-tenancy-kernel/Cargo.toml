@@ -10,3 +10,6 @@ license = "Apache-2.0"
 name = "oya_tenancy_kernel"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

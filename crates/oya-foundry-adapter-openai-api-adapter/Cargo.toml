@@ -14,3 +14,6 @@ doctest = false
 [dependencies]
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
 oya-foundry-adapter-openai-api-kernel = { path = "../oya-foundry-adapter-openai-api-kernel" }
+
+[lints]
+workspace = true

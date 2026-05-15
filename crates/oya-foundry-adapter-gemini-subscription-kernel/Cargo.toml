@@ -13,3 +13,6 @@ doctest = false
 
 [dependencies]
 oya-foundry-account-kernel = { path = "../oya-foundry-account-kernel" }
+
+[lints]
+workspace = true

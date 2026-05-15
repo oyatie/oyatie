@@ -13,3 +13,6 @@ doctest = false
 
 [dependencies]
 oya-foundry-capability-registry-kernel = { path = "../oya-foundry-capability-registry-kernel" }
+
+[lints]
+workspace = true

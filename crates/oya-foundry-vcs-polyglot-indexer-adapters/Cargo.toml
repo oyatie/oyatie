@@ -14,3 +14,6 @@ oya-foundry-vcs-ast-index-kernel = { path = "../oya-foundry-vcs-ast-index-kernel
 name = "oya_foundry_vcs_polyglot_indexer_adapters"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

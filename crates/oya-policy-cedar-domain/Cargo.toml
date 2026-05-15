@@ -10,3 +10,6 @@ license = "Apache-2.0"
 name = "oya_policy_cedar_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

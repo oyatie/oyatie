@@ -17,3 +17,6 @@ oya-search-rank-domain = { path = "../oya-search-rank-domain" }
 name = "oya_search_rag_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

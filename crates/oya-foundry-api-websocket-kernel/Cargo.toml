@@ -13,3 +13,6 @@ doctest = false
 
 [dependencies]
 oya-foundry-api-rest-kernel = { path = "../oya-foundry-api-rest-kernel" }
+
+[lints]
+workspace = true

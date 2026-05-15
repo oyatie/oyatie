@@ -20,3 +20,6 @@ doctest = false
 # Branch Y: zero new external deps; internal workspace crates only.
 oya-foundry-account-kernel = { path = "../oya-foundry-account-kernel" }
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
+
+[lints]
+workspace = true

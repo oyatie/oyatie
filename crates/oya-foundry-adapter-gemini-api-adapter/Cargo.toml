@@ -14,3 +14,6 @@ doctest = false
 [dependencies]
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
 oya-foundry-adapter-gemini-api-kernel = { path = "../oya-foundry-adapter-gemini-api-kernel" }
+
+[lints]
+workspace = true

@@ -14,3 +14,6 @@ oya-identity-domain = { path = "../oya-identity-domain" }
 name = "oya_identity_application"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

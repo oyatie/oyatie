@@ -10,3 +10,6 @@ name = "oya-tooling-agent-read"
 path = "src/main.rs"
 
 [dependencies]
+
+[lints]
+workspace = true

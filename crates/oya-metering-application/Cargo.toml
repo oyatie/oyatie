@@ -15,3 +15,6 @@ oya-metering-domain = { path = "../oya-metering-domain" }
 name = "oya_metering_application"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

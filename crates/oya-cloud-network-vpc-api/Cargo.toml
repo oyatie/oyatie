@@ -15,3 +15,6 @@ oya-residency-domain = { path = "../oya-residency-domain" }
 name = "oya_cloud_network_vpc_api"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

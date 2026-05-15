@@ -13,3 +13,6 @@ oya-search-crawler-domain = { path = "../oya-search-crawler-domain" }
 name = "oya_search_parser_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

@@ -17,3 +17,6 @@ oya-metering-domain = { path = "../oya-metering-domain" }
 name = "oya_cloud_finops_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

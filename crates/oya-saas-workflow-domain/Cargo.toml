@@ -13,3 +13,6 @@ oya-saas-workflow-kernel = { path = "../oya-saas-workflow-kernel" }
 name = "oya_saas_workflow_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

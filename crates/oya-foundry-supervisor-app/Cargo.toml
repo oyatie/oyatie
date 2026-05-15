@@ -41,3 +41,6 @@ oya-foundry-settings-template-adapter = { version = "0.1.0", path = "../oya-foun
 oya-foundry-autonomy-ceiling-domain = { version = "0.1.0", path = "../oya-foundry-autonomy-ceiling-domain" }
 oya-foundry-supervisor-security-adapter = { version = "0.1.0", path = "../oya-foundry-supervisor-security-adapter" }
 oya-foundry-account-adapter-inmemory = { version = "0.1.0", path = "../oya-foundry-account-adapter-inmemory" }
+
+[lints]
+workspace = true

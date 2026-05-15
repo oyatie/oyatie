@@ -8,3 +8,6 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-foundry-fitness-adr-shape-kernel = { path = "../../crates/oya-foundry-fitness-adr-shape-kernel" }
+
+[lints]
+workspace = true

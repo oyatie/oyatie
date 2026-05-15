@@ -15,3 +15,6 @@ doctest = false
 oya-foundry-rag-endpoint-kernel = { path = "../oya-foundry-rag-endpoint-kernel" }
 oya-foundry-rag-endpoint-domain = { path = "../oya-foundry-rag-endpoint-domain" }
 oya-foundry-capability-registry-kernel = { path = "../oya-foundry-capability-registry-kernel" }
+
+[lints]
+workspace = true

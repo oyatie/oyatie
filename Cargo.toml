@@ -484,6 +484,23 @@ serde_yaml = "0.9"
 toml = "0.8"
 regex = "1"
 
+# Workspace lints added 2026-05-15. WARN level, not DENY — driving the
+# baseline-warning surface (128 warnings across 110 source locations at
+# wire-up time: 127 panic + 120 expect_used + 7 unwrap_used; some lines
+# trigger multiple lints) to zero is the cleanup arc; promote to DENY in
+# a follow-up commit per Phase E1. Each workspace member opts in via
+# `[lints] workspace = true` in its own Cargo.toml.
+#
+# Tests use `.unwrap()` and `.expect()` legitimately; the WARN level
+# doesn't fail the build. The eventual DENY promotion will exempt test
+# code via `#[cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used,
+# clippy::panic))]` at the test-module level, OR per-crate carve-outs in
+# `[lints.clippy]` overrides.
+[workspace.lints.clippy]
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+
 # Release-profile hardening per 2026-05-15 audit + hyperscaler-grade
 # performance/scalability bar (specs/cross-cutting/oyatie-doctrine.json P8,
 # docs/standards/hyperscaler-best-practices.md).

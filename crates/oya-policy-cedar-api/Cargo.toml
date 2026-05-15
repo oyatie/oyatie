@@ -13,3 +13,6 @@ oya-policy-cedar-domain = { path = "../oya-policy-cedar-domain" }
 name = "oya_policy_cedar_api"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

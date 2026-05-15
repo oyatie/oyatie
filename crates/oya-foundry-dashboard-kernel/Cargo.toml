@@ -13,3 +13,6 @@ doctest = false
 
 [dependencies]
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
+
+[lints]
+workspace = true

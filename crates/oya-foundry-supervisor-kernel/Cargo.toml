@@ -18,3 +18,6 @@ doctest = false
 [dependencies]
 oya-foundry-autonomy-ceiling-kernel = { path = "../oya-foundry-autonomy-ceiling-kernel" }
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
+
+[lints]
+workspace = true

@@ -21,3 +21,6 @@ oya-foundry-supervisor-kernel = { path = "../oya-foundry-supervisor-kernel" }
 
 [dev-dependencies]
 tempfile = { workspace = true }
+
+[lints]
+workspace = true

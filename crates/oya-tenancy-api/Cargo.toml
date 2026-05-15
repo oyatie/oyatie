@@ -14,3 +14,6 @@ oya-tenancy-domain = { path = "../oya-tenancy-domain" }
 name = "oya_tenancy_api"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

@@ -14,3 +14,6 @@ oya-dsr-domain = { path = "../oya-dsr-domain" }
 name = "oya_dsr_application"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

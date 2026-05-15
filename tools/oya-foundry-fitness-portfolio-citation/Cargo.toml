@@ -12,3 +12,6 @@ path = "src/main.rs"
 
 [dependencies]
 oya-foundry-fitness-portfolio-citation-kernel = { path = "../../crates/oya-foundry-fitness-portfolio-citation-kernel" }
+
+[lints]
+workspace = true

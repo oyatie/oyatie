@@ -10,3 +10,6 @@ license = "Apache-2.0"
 name = "oya_check_slo_coverage"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

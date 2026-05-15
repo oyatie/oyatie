@@ -13,3 +13,6 @@ oya-foundry-vcs-kernel = { path = "../oya-foundry-vcs-kernel" }
 name = "oya_foundry_vcs_lockstore_adapter"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

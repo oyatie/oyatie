@@ -13,3 +13,6 @@ oya-saas-plugin-marketplace = { path = "../oya-saas-plugin-marketplace" }
 name = "oya_saas_plugin_runtime"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

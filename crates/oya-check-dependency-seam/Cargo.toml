@@ -34,3 +34,6 @@ doctest = false
 [[bin]]
 name = "oya-check-dependency-seam"
 path = "src/main.rs"
+
+[lints]
+workspace = true

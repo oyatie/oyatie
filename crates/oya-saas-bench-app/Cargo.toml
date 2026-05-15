@@ -17,3 +17,6 @@ oya-saas-plugin-runtime = { path = "../oya-saas-plugin-runtime" }
 name = "oya_saas_bench_app"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

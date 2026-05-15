@@ -13,3 +13,6 @@ oya-foundry-eval-domain = { path = "../oya-foundry-eval-domain" }
 name = "oya_foundry_eval_application"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

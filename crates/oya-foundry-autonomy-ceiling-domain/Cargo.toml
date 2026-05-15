@@ -13,3 +13,6 @@ doctest = false
 
 [dependencies]
 oya-foundry-autonomy-ceiling-kernel = { path = "../oya-foundry-autonomy-ceiling-kernel" }
+
+[lints]
+workspace = true

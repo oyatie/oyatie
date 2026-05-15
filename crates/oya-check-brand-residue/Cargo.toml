@@ -10,3 +10,6 @@ license = "Apache-2.0"
 name = "oya_check_brand_residue"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true
