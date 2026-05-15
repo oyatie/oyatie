@@ -197,7 +197,7 @@ When a finding cannot be fixed in the PR:
 4. **Skipping SBOM emission for a "one-off" binary** — every artifact
    has provenance.
 5. **Skipping `cargo-vet` certification for a new crate** — file the row
-   or an ADR exemption.
+   or an ADR-tracked extension.
 
 ## 11. Sources scanned
 
