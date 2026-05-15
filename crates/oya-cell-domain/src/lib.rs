@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, PrivacyDataClass};
 use oya_residency_domain::{RegionRef, ResidencyClass, residency_class_allows_home_region_label};
 
 const CELL_BINDING_SCHEMA_VERSION: u32 = 1;
@@ -130,8 +130,10 @@ fn internal<T>(value: T) -> Classified<T> {
 }
 
 fn internal_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::InternalOnly)
-        .expect("INTERNAL_ONLY is a privacy-program data class")
+    // ADR-0083 Tier 1: use the infallible kernel constructor; the previous
+    // `.expect()` proved a statically known invariant that the kernel now
+    // encodes at the type level.
+    PrivacyDataClass::internal_only()
 }
 
 #[cfg(test)]

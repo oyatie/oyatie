@@ -754,8 +754,10 @@ fn internal<T>(value: T) -> Classified<T> {
 }
 
 fn internal_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::InternalOnly)
-        .expect("INTERNAL_ONLY is a privacy-program data class")
+    // ADR-0083 Tier 1: use the infallible kernel constructor; the previous
+    // `.expect()` proved a statically known invariant that the kernel now
+    // encodes at the type level.
+    PrivacyDataClass::internal_only()
 }
 
 #[cfg(test)]

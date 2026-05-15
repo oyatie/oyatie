@@ -1151,7 +1151,12 @@ fn rust_code_without_comments_and_literals(source: &str) -> String {
         }
         index += 1;
     }
-    String::from_utf8(output).expect("source was valid UTF-8 before masking ASCII bytes")
+    // ADR-0083 Tier 1: `mask_non_code_bytes` overwrites individual bytes
+    // inside comment/literal byte ranges, which can split multi-byte UTF-8
+    // sequences. Use `from_utf8_lossy` to keep the helper infallible
+    // without an `.expect()` and without panicking on inputs that contain
+    // non-ASCII characters inside literals or comments.
+    String::from_utf8_lossy(&output).into_owned()
 }
 
 fn mask_non_code_bytes(output: &mut [u8], start: usize, end: usize) {

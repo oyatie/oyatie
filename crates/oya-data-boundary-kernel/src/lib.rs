@@ -260,6 +260,30 @@ impl PrivacyDataClass {
         }
     }
 
+    /// Infallible constructor for the `INTERNAL_ONLY` privacy-program data
+    /// class.
+    ///
+    /// `INTERNAL_ONLY` is a statically known privacy-program member (see
+    /// [`PRIVACY_PROGRAM_DATA_CLASS_LABELS`]), so this constructor returns
+    /// [`Self`] directly without going through the fallible
+    /// [`PrivacyDataClass::new`] path. Use this at every site that previously
+    /// wrote `PrivacyDataClass::new(DataClass::InternalOnly).expect(...)` to
+    /// satisfy the ADR-0083 Tier 1 ban on `.expect()` / `.unwrap()` in
+    /// production code without `#[allow]` shortcuts.
+    ///
+    /// Naming justification (v4 BNF + 12-layer-enum):
+    /// `oya-data-boundary-kernel` is the canonical `kernel` layer that owns
+    /// the `PrivacyDataClass` value type; an infallible constructor belongs
+    /// here (not in a `domain` or `usecase` layer) because every caller in
+    /// `*-domain` crates depends on the kernel for the type itself. The
+    /// `internal_only` suffix matches the existing taxonomy label
+    /// (`INTERNAL_ONLY`) and the 12-layer-enum `kernel` slot.
+    pub const fn internal_only() -> Self {
+        Self {
+            data_class: DataClass::InternalOnly,
+        }
+    }
+
     pub const fn data_class(self) -> DataClass {
         self.data_class
     }

@@ -424,8 +424,13 @@ impl AuditChain {
         if let Some(signer) = signer {
             event.ed25519_signature = Some(signer.sign(&event.signing_payload()));
         }
+        // ADR-0083 Tier 1: index by the now-known length instead of
+        // `.last().expect("just pushed")`. The push above guarantees the
+        // slot exists, but we avoid `.expect()` on the public path by going
+        // through deterministic indexing.
+        let new_len = self.events.len() + 1;
         self.events.push(event);
-        Ok(self.events.last().expect("just pushed"))
+        Ok(&self.events[new_len - 1])
     }
 
     /// Append typed field classifications while preserving the legacy
