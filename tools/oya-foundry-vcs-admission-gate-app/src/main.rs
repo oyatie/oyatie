@@ -24,9 +24,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
 
-use oya_foundry_vcs_admission_gate_kernel::{
-    AdmissionInputs, AdmissionReport, validate_admission,
-};
+use oya_foundry_vcs_admission_gate_kernel::{AdmissionInputs, AdmissionReport, validate_admission};
 use serde_json::Value;
 
 const ROOT_HUB_POINTERS: &str = "specs/cross-cutting/root-hub-pointers.json";
@@ -144,16 +142,15 @@ fn run() -> Result<(), GateError> {
     // validation happens inside that crate.
     run_command(
         &root,
-        Command::new("cargo")
-            .args([
-                "run",
-                "-q",
-                "-p",
-                "oya-foundry-vcs-provider-execution-gate-app",
-                "--",
-                "--mode",
-                "check",
-            ]),
+        Command::new("cargo").args([
+            "run",
+            "-q",
+            "-p",
+            "oya-foundry-vcs-provider-execution-gate-app",
+            "--",
+            "--mode",
+            "check",
+        ]),
         "provider-execution-gate (--mode check)",
     )?;
 
@@ -180,35 +177,58 @@ fn run() -> Result<(), GateError> {
     smoke_vcs_command(
         &root,
         &[
-            "vcs", "--format", "json", "claim", "--agent", "admission-gate",
-            "--intent", "Oya VCS admission CLI smoke",
+            "vcs",
+            "--format",
+            "json",
+            "claim",
+            "--agent",
+            "admission-gate",
+            "--intent",
+            "Oya VCS admission CLI smoke",
             "specs/cross-cutting/gitops-vcs-replacement.json::foundry_agentic_pipeline_integration_plan",
         ],
     )?;
     smoke_vcs_command(
         &root,
         &[
-            "vcs", "--format", "json", "verify",
-            "--agent", "admission-gate",
-            "--evidence", VCS_ADMISSION_EVIDENCE,
+            "vcs",
+            "--format",
+            "json",
+            "verify",
+            "--agent",
+            "admission-gate",
+            "--evidence",
+            VCS_ADMISSION_EVIDENCE,
         ],
     )?;
     smoke_vcs_command(
         &root,
         &[
-            "vcs", "--format", "json", "done",
-            "--agent", "admission-gate",
-            "--evidence", VCS_ADMISSION_EVIDENCE,
+            "vcs",
+            "--format",
+            "json",
+            "done",
+            "--agent",
+            "admission-gate",
+            "--evidence",
+            VCS_ADMISSION_EVIDENCE,
         ],
     )?;
     smoke_vcs_command(
         &root,
         &[
-            "vcs", "--format", "json", "promote",
-            "--agent", "admission-gate",
-            "--bundle", "bundle_oya_vcs_admission_cutover",
-            "--environment", "ci-preview",
-            "--evidence", VCS_ADMISSION_EVIDENCE,
+            "vcs",
+            "--format",
+            "json",
+            "promote",
+            "--agent",
+            "admission-gate",
+            "--bundle",
+            "bundle_oya_vcs_admission_cutover",
+            "--environment",
+            "ci-preview",
+            "--evidence",
+            VCS_ADMISSION_EVIDENCE,
         ],
     )?;
 

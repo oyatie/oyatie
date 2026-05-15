@@ -143,7 +143,7 @@ mod tests {
         // order; PR A fails CI; PRs B and C are NOT blocked behind A and
         // continue processing."
         let queue = vec![
-            entry(101, 0, AdmissionState::Parked), // A
+            entry(101, 0, AdmissionState::Parked),     // A
             entry(102, 1, AdmissionState::Admissible), // B
             entry(103, 2, AdmissionState::Admissible), // C
         ];

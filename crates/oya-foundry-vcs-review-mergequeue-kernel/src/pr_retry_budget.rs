@@ -76,7 +76,9 @@ impl PrBudget {
             return Err(PrBudgetError::InvalidPrNumber);
         }
         if let Some(&used) = self.evicted.get(&pr_number) {
-            return Ok(BudgetVerdict::AlreadyEvicted { attempts_used: used });
+            return Ok(BudgetVerdict::AlreadyEvicted {
+                attempts_used: used,
+            });
         }
         let counter = self.entries.entry(pr_number).or_insert(0);
         *counter += 1;

@@ -81,17 +81,14 @@ fn execute(args: MasterPlanLedgerArgs) -> ExitCode {
         Some(path) => path,
         None => PathBuf::from("."),
     };
-    let rendered = match render_master_plan_ledger(
-        &master_plan_text,
-        &repo_root,
-        &args.master_plan_path,
-    ) {
-        Ok(text) => text,
-        Err(message) => {
-            eprintln!("render-master-plan-ledger: {message}");
-            return ExitCode::FAILURE;
-        }
-    };
+    let rendered =
+        match render_master_plan_ledger(&master_plan_text, &repo_root, &args.master_plan_path) {
+            Ok(text) => text,
+            Err(message) => {
+                eprintln!("render-master-plan-ledger: {message}");
+                return ExitCode::FAILURE;
+            }
+        };
     if args.write {
         if let Some(parent) = args.output.parent()
             && let Err(error) = std::fs::create_dir_all(parent)
@@ -194,9 +191,7 @@ fn validate_index(index: &serde_json::Value, repo_root: &Path) -> Vec<String> {
                 continue;
             }
             if !repo_root.join(rel).exists() {
-                errors.push(format!(
-                    "{kind} {item_id} references missing {key}: {rel}"
-                ));
+                errors.push(format!("{kind} {item_id} references missing {key}: {rel}"));
             }
         }
         if kind == "ip" {
@@ -226,22 +221,15 @@ fn validate_index(index: &serde_json::Value, repo_root: &Path) -> Vec<String> {
     errors
 }
 
-fn iter_items(
-    index: &serde_json::Value,
-) -> Vec<(&'static str, &serde_json::Value)> {
+fn iter_items(index: &serde_json::Value) -> Vec<(&'static str, &serde_json::Value)> {
     let mut items: Vec<(&'static str, &serde_json::Value)> = Vec::new();
-    let milestones = index
-        .get("milestones")
-        .and_then(|value| value.as_array());
+    let milestones = index.get("milestones").and_then(|value| value.as_array());
     let Some(milestones) = milestones else {
         return items;
     };
     for milestone in milestones {
         items.push(("milestone", milestone));
-        let Some(phases) = milestone
-            .get("phases")
-            .and_then(|value| value.as_array())
-        else {
+        let Some(phases) = milestone.get("phases").and_then(|value| value.as_array()) else {
             continue;
         };
         for phase in phases {
@@ -260,11 +248,7 @@ fn iter_items(
     items
 }
 
-fn render_index(
-    index: &serde_json::Value,
-    master_plan_path: &Path,
-    repo_root: &Path,
-) -> String {
+fn render_index(index: &serde_json::Value, master_plan_path: &Path, repo_root: &Path) -> String {
     let mut counts: BTreeMap<(String, String), usize> = BTreeMap::new();
     for (kind, item) in iter_items(index) {
         let status = item

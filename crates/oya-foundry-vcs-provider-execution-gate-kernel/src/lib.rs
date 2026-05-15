@@ -315,7 +315,10 @@ mod tests {
         let evidence = build_provider_execution_evidence(&context);
         assert_eq!(evidence["mode"], "ci");
         assert_eq!(evidence["workspace_ref"], "oya-m02-m03-fanout");
-        assert_eq!(evidence["provider_slots"][1]["execution_mode"], "live-runner");
+        assert_eq!(
+            evidence["provider_slots"][1]["execution_mode"],
+            "live-runner"
+        );
         assert_eq!(
             evidence["provider_slots"][2]["evidence_digest"],
             "sha256:trivy"

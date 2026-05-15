@@ -114,12 +114,10 @@ fn run() -> Result<(), GateError> {
     )?;
 
     let sarif_path = root.join(TRIVY_SARIF);
-    let sarif_str = sarif_path
-        .to_str()
-        .ok_or_else(|| GateError::Io {
-            detail: format!("non-utf8 sarif path: {}", sarif_path.display()),
-            exit: 1,
-        })?;
+    let sarif_str = sarif_path.to_str().ok_or_else(|| GateError::Io {
+        detail: format!("non-utf8 sarif path: {}", sarif_path.display()),
+        exit: 1,
+    })?;
     let mut sarif_args: Vec<&str> = vec![
         "fs",
         "--scanners",
@@ -138,10 +136,7 @@ fn run() -> Result<(), GateError> {
         .unwrap_or(true)
     {
         return Err(GateError::Io {
-            detail: format!(
-                "trivy sarif missing or empty: {}",
-                sarif_path.display()
-            ),
+            detail: format!("trivy sarif missing or empty: {}", sarif_path.display()),
             exit: 1,
         });
     }
@@ -160,19 +155,13 @@ fn run() -> Result<(), GateError> {
     if !argo_violations.is_empty() {
         return Err(GateError::Argo(argo_violations));
     }
-    println!(
-        "argo gitops desired-state validation passed: {ARGO_MANIFEST}"
-    );
+    println!("argo gitops desired-state validation passed: {ARGO_MANIFEST}");
 
     if let Some(target) = &options.emit_evidence {
-        let trivy_digest = digest_file(&sarif_path).map_err(|detail| GateError::Io {
-            detail,
-            exit: 1,
-        })?;
-        let manifest_digest = digest_file(&manifest_path).map_err(|detail| GateError::Io {
-            detail,
-            exit: 1,
-        })?;
+        let trivy_digest =
+            digest_file(&sarif_path).map_err(|detail| GateError::Io { detail, exit: 1 })?;
+        let manifest_digest =
+            digest_file(&manifest_path).map_err(|detail| GateError::Io { detail, exit: 1 })?;
         let created_at = iso_utc_now().map_err(|detail| GateError::Io { detail, exit: 1 })?;
         let context = EvidenceContext {
             workspace_ref: &workspace_ref,
@@ -320,8 +309,8 @@ fn git_output(root: &Path, args: &[&str]) -> Option<String> {
 
 fn detect_runner_context(root: &Path) -> (String, String) {
     if env::var("GITHUB_ACTIONS").as_deref() == Ok("true") {
-        let workflow_name = env::var("GITHUB_WORKFLOW")
-            .unwrap_or_else(|_| "github-actions".to_string());
+        let workflow_name =
+            env::var("GITHUB_WORKFLOW").unwrap_or_else(|_| "github-actions".to_string());
         let server =
             env::var("GITHUB_SERVER_URL").unwrap_or_else(|_| "https://github.com".to_string());
         let repository =
@@ -361,12 +350,7 @@ fn pr_view_url(root: &Path) -> Option<String> {
     }
 }
 
-fn run_command(
-    root: &Path,
-    program: &str,
-    args: &[&str],
-    label: &str,
-) -> Result<(), GateError> {
+fn run_command(root: &Path, program: &str, args: &[&str], label: &str) -> Result<(), GateError> {
     let status = Command::new(program)
         .args(args)
         .current_dir(root)
@@ -459,7 +443,8 @@ const SHA256_K: [u32; 64] = [
 
 fn sha256(message: &[u8]) -> [u8; 32] {
     let mut h: [u32; 8] = [
-        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+        0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
+        0x5be0cd19,
     ];
 
     let bit_len = (message.len() as u64).wrapping_mul(8);
@@ -545,9 +530,9 @@ impl GateError {
         let code: u8 = match self {
             GateError::Usage { .. } => 64,
             GateError::MissingTool { .. } => 127,
-            GateError::CommandFailed { status, .. } => status
-                .and_then(|c| u8::try_from(c).ok())
-                .unwrap_or(1),
+            GateError::CommandFailed { status, .. } => {
+                status.and_then(|c| u8::try_from(c).ok()).unwrap_or(1)
+            }
             GateError::Io { exit, .. } => u8::try_from(*exit).unwrap_or(1),
             GateError::Argo(_) => 1,
         };
@@ -604,9 +589,7 @@ mod tests {
 
     #[test]
     fn sha256_two_block_vector_matches() {
-        let digest = hex_sha256(
-            b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
-        );
+        let digest = hex_sha256(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq");
         assert_eq!(
             digest,
             "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
@@ -630,7 +613,12 @@ mod tests {
 
     #[test]
     fn options_parse_mode_ci_and_evidence() {
-        let args: Vec<OsString> = vec!["--mode".into(), "ci".into(), "--emit-evidence".into(), "x.json".into()];
+        let args: Vec<OsString> = vec![
+            "--mode".into(),
+            "ci".into(),
+            "--emit-evidence".into(),
+            "x.json".into(),
+        ];
         let opts = Options::parse(args).unwrap();
         assert_eq!(opts.mode, Mode::Ci);
         assert_eq!(opts.emit_evidence, Some(PathBuf::from("x.json")));

@@ -149,23 +149,55 @@ mod tests {
     #[test]
     fn parked_pr_constructor_rejects_invalid_inputs() {
         assert_eq!(
-            ParkedPr::new(0, "cs_x", 0, "1".repeat(40), "2".repeat(40), ParkedReason::CiFailure, 1)
-                .unwrap_err(),
+            ParkedPr::new(
+                0,
+                "cs_x",
+                0,
+                "1".repeat(40),
+                "2".repeat(40),
+                ParkedReason::CiFailure,
+                1
+            )
+            .unwrap_err(),
             ParkedStateError::InvalidPrNumber
         );
         assert_eq!(
-            ParkedPr::new(1, "bad", 0, "1".repeat(40), "2".repeat(40), ParkedReason::CiFailure, 1)
-                .unwrap_err(),
+            ParkedPr::new(
+                1,
+                "bad",
+                0,
+                "1".repeat(40),
+                "2".repeat(40),
+                ParkedReason::CiFailure,
+                1
+            )
+            .unwrap_err(),
             ParkedStateError::InvalidChangesetId
         );
         assert_eq!(
-            ParkedPr::new(1, "cs_x", 0, "short", "2".repeat(40), ParkedReason::CiFailure, 1)
-                .unwrap_err(),
+            ParkedPr::new(
+                1,
+                "cs_x",
+                0,
+                "short",
+                "2".repeat(40),
+                ParkedReason::CiFailure,
+                1
+            )
+            .unwrap_err(),
             ParkedStateError::InvalidSha
         );
         assert_eq!(
-            ParkedPr::new(1, "cs_x", 0, "1".repeat(40), "2".repeat(40), ParkedReason::CiFailure, 0)
-                .unwrap_err(),
+            ParkedPr::new(
+                1,
+                "cs_x",
+                0,
+                "1".repeat(40),
+                "2".repeat(40),
+                ParkedReason::CiFailure,
+                0
+            )
+            .unwrap_err(),
             ParkedStateError::EpochZero
         );
     }
@@ -181,7 +213,10 @@ mod tests {
     #[test]
     fn parked_reason_wire_strings_are_stable() {
         assert_eq!(ParkedReason::CiFailure.as_wire(), "ci-failure");
-        assert_eq!(ParkedReason::ReviewChangesRequested.as_wire(), "review-changes-requested");
+        assert_eq!(
+            ParkedReason::ReviewChangesRequested.as_wire(),
+            "review-changes-requested"
+        );
         assert_eq!(
             ParkedReason::SpeculativeRebaseConflict.as_wire(),
             "speculative-rebase-conflict"

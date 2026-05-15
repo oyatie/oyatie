@@ -167,7 +167,11 @@ fn check_master_plan_sequencing(value: &Value, violations: &mut Vec<AdmissionVio
     let sequence: Vec<String> = value
         .get("sequence")
         .and_then(Value::as_array)
-        .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
         .unwrap_or_default();
     let sequence_set: BTreeSet<&str> = sequence.iter().map(String::as_str).collect();
 
@@ -194,9 +198,7 @@ fn check_master_plan_sequencing(value: &Value, violations: &mut Vec<AdmissionVio
         push(
             violations,
             "MASTER_PLAN_SEQUENCE_RETAINS_LEGACY",
-            format!(
-                "master-plan sequence still contains legacy authority steps: {leaking:?}"
-            ),
+            format!("master-plan sequence still contains legacy authority steps: {leaking:?}"),
         );
     }
 
@@ -204,7 +206,11 @@ fn check_master_plan_sequencing(value: &Value, violations: &mut Vec<AdmissionVio
         .get("implementation_plan_changeset_contract")
         .and_then(|c| c.get("must_have"))
         .and_then(Value::as_array)
-        .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
         .unwrap_or_default();
     if !must_have.contains("oya_vcs_claim_scope") || !must_have.contains("vcs_completion_payload") {
         push(
@@ -313,13 +319,16 @@ fn check_gitops_vcs_replacement(value: &Value, violations: &mut Vec<AdmissionVio
     let provider_required: BTreeSet<String> = current_lane
         .and_then(|c| c.get("provider_evidence_required"))
         .and_then(Value::as_array)
-        .map(|arr| arr.iter().filter_map(|v| v.as_str().map(String::from)).collect())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
         .unwrap_or_default();
-    let expected_providers: BTreeSet<String> =
-        ["ci", "github-actions", "trivy", "argo-gitops"]
-            .into_iter()
-            .map(String::from)
-            .collect();
+    let expected_providers: BTreeSet<String> = ["ci", "github-actions", "trivy", "argo-gitops"]
+        .into_iter()
+        .map(String::from)
+        .collect();
     if provider_required != expected_providers {
         let mut sorted: Vec<&String> = expected_providers.iter().collect();
         sorted.sort();
@@ -358,9 +367,9 @@ fn check_provider_evidence(
     };
     let expected = ["ci", "github-actions", "trivy", "argo-gitops"];
     for required in expected {
-        let slot = slot_array.iter().find(|s| {
-            s.get("id").and_then(Value::as_str) == Some(required)
-        });
+        let slot = slot_array
+            .iter()
+            .find(|s| s.get("id").and_then(Value::as_str) == Some(required));
         let Some(slot) = slot else {
             push(
                 violations,
@@ -385,10 +394,7 @@ fn check_provider_evidence(
                 format!("provider evidence slot {required} must be available/passed"),
             );
         }
-        let proof_kind = slot
-            .get("proof_kind")
-            .and_then(Value::as_str)
-            .unwrap_or("");
+        let proof_kind = slot.get("proof_kind").and_then(Value::as_str).unwrap_or("");
         let evidence_ref = slot
             .get("evidence_ref")
             .and_then(Value::as_str)
@@ -401,9 +407,7 @@ fn check_provider_evidence(
             push(
                 violations,
                 "PROVIDER_EVIDENCE_REF_OR_KIND_EMPTY",
-                format!(
-                    "provider evidence slot {required} must name evidence_ref and proof_kind"
-                ),
+                format!("provider evidence slot {required} must name evidence_ref and proof_kind"),
             );
         }
         if (required == "trivy" || required == "argo-gitops")
@@ -421,9 +425,7 @@ fn check_provider_evidence(
             push(
                 violations,
                 "PROVIDER_EVIDENCE_REMOTE_RUN_NOT_REQUIRED",
-                format!(
-                    "provider evidence slot {required} still says remote-run-not-required"
-                ),
+                format!("provider evidence slot {required} still says remote-run-not-required"),
             );
         }
     }
@@ -453,9 +455,9 @@ fn check_provider_execution_proof(
     };
     let expected = ["ci", "github-actions", "trivy", "argo-gitops"];
     for required in expected {
-        let slot = slot_array.iter().find(|s| {
-            s.get("id").and_then(Value::as_str) == Some(required)
-        });
+        let slot = slot_array
+            .iter()
+            .find(|s| s.get("id").and_then(Value::as_str) == Some(required));
         let Some(slot) = slot else {
             push(
                 violations,
@@ -500,9 +502,7 @@ fn check_provider_execution_proof(
             push(
                 violations,
                 "PROVIDER_EXECUTION_EVIDENCE_DIGEST_MISSING",
-                format!(
-                    "provider execution proof slot {required} must carry evidence_digest"
-                ),
+                format!("provider execution proof slot {required} must carry evidence_digest"),
             );
         }
     }
@@ -526,9 +526,7 @@ fn check_branch_protection(text: &str, violations: &mut Vec<AdmissionViolation>)
 }
 
 fn check_pr_tests_workflow(text: &str, violations: &mut Vec<AdmissionViolation>) {
-    if !text.contains("oya-vcs-admission")
-        || !text.contains("oya-foundry-vcs-admission-gate-app")
-    {
+    if !text.contains("oya-vcs-admission") || !text.contains("oya-foundry-vcs-admission-gate-app") {
         push(
             violations,
             "PR_TESTS_WORKFLOW_MISSING_ADMISSION_JOB",
@@ -815,10 +813,12 @@ mod tests {
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, "", &ms,
         );
         let report = validate_admission(&inputs);
-        assert!(report
-            .violations
-            .iter()
-            .any(|v| v.code == "ROOT_QUICK_START_MISSING_OYA_VCS"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "ROOT_QUICK_START_MISSING_OYA_VCS")
+        );
     }
 
     #[test]
@@ -845,10 +845,12 @@ mod tests {
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, "", &ms,
         );
         let report = validate_admission(&inputs);
-        assert!(report
-            .violations
-            .iter()
-            .any(|v| v.code == "MASTER_PLAN_SEQUENCE_RETAINS_LEGACY"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "MASTER_PLAN_SEQUENCE_RETAINS_LEGACY")
+        );
     }
 
     #[test]
@@ -869,10 +871,12 @@ mod tests {
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, "", &ms,
         );
         let report = validate_admission(&inputs);
-        assert!(report
-            .violations
-            .iter()
-            .any(|v| v.code == "PROVIDER_EVIDENCE_REGRESSED_TO_FIXTURE"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "PROVIDER_EVIDENCE_REGRESSED_TO_FIXTURE")
+        );
     }
 
     #[test]
@@ -892,10 +896,12 @@ mod tests {
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, "", &ms,
         );
         let report = validate_admission(&inputs);
-        assert!(report
-            .violations
-            .iter()
-            .any(|v| v.code == "WORKSPACE_MISSING_OYA_VCS_PACKAGES"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "WORKSPACE_MISSING_OYA_VCS_PACKAGES")
+        );
     }
 
     #[test]
@@ -919,9 +925,11 @@ mod tests {
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, &chain, &ms,
         );
         let report = validate_admission(&inputs);
-        assert!(report
-            .violations
-            .iter()
-            .any(|v| v.code == "AUDIT_CHAIN_MISSING_CHANGE_ID"));
+        assert!(
+            report
+                .violations
+                .iter()
+                .any(|v| v.code == "AUDIT_CHAIN_MISSING_CHANGE_ID")
+        );
     }
 }

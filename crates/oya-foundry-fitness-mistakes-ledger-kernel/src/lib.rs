@@ -65,19 +65,19 @@ use std::collections::BTreeSet;
 /// the kernel consumes.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LedgerRow {
-    pub id: String,                          // data_class: INTERNAL_ONLY
-    pub primitive: String,                   // data_class: INTERNAL_ONLY
-    pub failure_mode: String,                // data_class: INTERNAL_ONLY
-    pub first_seen: String,                  // data_class: INTERNAL_ONLY
-    pub second_seen: String,                 // data_class: INTERNAL_ONLY
-    pub occurrences: u32,                    // data_class: INTERNAL_ONLY
-    pub first_occurrence_evidence: String,   // data_class: INTERNAL_ONLY
-    pub second_occurrence_evidence: String,  // data_class: INTERNAL_ONLY
-    pub control_landed_at: String,           // data_class: INTERNAL_ONLY
-    pub preflight_hint: String,              // data_class: INTERNAL_ONLY
-    pub icm_keyword: String,                 // data_class: INTERNAL_ONLY
-    pub citation_probe_lane: String,         // data_class: INTERNAL_ONLY
-    pub controls: Vec<String>,               // data_class: INTERNAL_ONLY
+    pub id: String,                         // data_class: INTERNAL_ONLY
+    pub primitive: String,                  // data_class: INTERNAL_ONLY
+    pub failure_mode: String,               // data_class: INTERNAL_ONLY
+    pub first_seen: String,                 // data_class: INTERNAL_ONLY
+    pub second_seen: String,                // data_class: INTERNAL_ONLY
+    pub occurrences: u32,                   // data_class: INTERNAL_ONLY
+    pub first_occurrence_evidence: String,  // data_class: INTERNAL_ONLY
+    pub second_occurrence_evidence: String, // data_class: INTERNAL_ONLY
+    pub control_landed_at: String,          // data_class: INTERNAL_ONLY
+    pub preflight_hint: String,             // data_class: INTERNAL_ONLY
+    pub icm_keyword: String,                // data_class: INTERNAL_ONLY
+    pub citation_probe_lane: String,        // data_class: INTERNAL_ONLY
+    pub controls: Vec<String>,              // data_class: INTERNAL_ONLY
 }
 
 /// The set of `(primitive, failure_mode)` pairs that appear as canonical
@@ -137,17 +137,17 @@ impl ViolationKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Violation {
-    pub row_id: String,        // data_class: INTERNAL_ONLY
-    pub kind: ViolationKind,   // data_class: INTERNAL_ONLY
-    pub detail: String,        // data_class: INTERNAL_ONLY
-    pub hint: String,          // data_class: INTERNAL_ONLY
+    pub row_id: String,      // data_class: INTERNAL_ONLY
+    pub kind: ViolationKind, // data_class: INTERNAL_ONLY
+    pub detail: String,      // data_class: INTERNAL_ONLY
+    pub hint: String,        // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LedgerReport {
-    pub rows_checked: usize,        // data_class: INTERNAL_ONLY
+    pub rows_checked: usize,           // data_class: INTERNAL_ONLY
     pub preflight_rows_indexed: usize, // data_class: INTERNAL_ONLY
-    pub violations: Vec<Violation>, // data_class: INTERNAL_ONLY
+    pub violations: Vec<Violation>,    // data_class: INTERNAL_ONLY
 }
 
 impl LedgerReport {
@@ -170,10 +170,16 @@ impl core::fmt::Display for LedgerInputError {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             LedgerInputError::DuplicateRowId(id) => {
-                write!(formatter, "duplicate ledger row id `{id}` — every MFL-NNNN must be unique")
+                write!(
+                    formatter,
+                    "duplicate ledger row id `{id}` — every MFL-NNNN must be unique"
+                )
             }
             LedgerInputError::EmptyRowId => {
-                write!(formatter, "empty ledger row id — every row must declare an MFL-NNNN id")
+                write!(
+                    formatter,
+                    "empty ledger row id — every row must declare an MFL-NNNN id"
+                )
             }
         }
     }
@@ -185,18 +191,16 @@ impl std::error::Error for LedgerInputError {}
 /// list in its `controls` array. Order is irrelevant; presence is what
 /// the kernel checks. Matches the 5-control stack in
 /// `feedback_repeat_mistake_prevention.md`.
-pub const REQUIRED_CONTROL_IDS: [&str; 5] = [
-    "preflight",
-    "ledger-row",
-    "fitness-lane",
-    "icm",
-    "citation",
-];
+pub const REQUIRED_CONTROL_IDS: [&str; 5] =
+    ["preflight", "ledger-row", "fitness-lane", "icm", "citation"];
 
 /// Validate the typed ledger rows against the preflight index. The
 /// runner-supplied rows MUST have unique ids; that invariant is asserted
 /// here via [`LedgerInputError`] before the per-row checks run.
-pub fn check(rows: &[LedgerRow], preflight: &PreflightIndex) -> Result<LedgerReport, LedgerInputError> {
+pub fn check(
+    rows: &[LedgerRow],
+    preflight: &PreflightIndex,
+) -> Result<LedgerReport, LedgerInputError> {
     let mut seen_ids: BTreeSet<&str> = BTreeSet::new();
     for row in rows {
         if row.id.is_empty() {
@@ -335,7 +339,10 @@ mod tests {
             preflight_hint: "run the probe".into(),
             icm_keyword: format!("error-class,{primitive},{failure_mode}"),
             citation_probe_lane: "oya-foundry-fitness-mistakes-ledger-kernel".into(),
-            controls: REQUIRED_CONTROL_IDS.iter().map(|c| (*c).to_string()).collect(),
+            controls: REQUIRED_CONTROL_IDS
+                .iter()
+                .map(|c| (*c).to_string())
+                .collect(),
         }
     }
 

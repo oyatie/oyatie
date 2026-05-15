@@ -20,9 +20,7 @@ use std::fmt;
 use crate::fairness::{AdmissionState, NextPick, QueueEntry, pick_next_pr};
 use crate::parked_state::{ParkedPr, ParkedReason};
 use crate::pr_retry_budget::{BudgetVerdict, PrBudget};
-use crate::speculative_rebase::{
-    RebaseDecision, RebaseError, RebaseRequest, rebase_against_head,
-};
+use crate::speculative_rebase::{RebaseDecision, RebaseError, RebaseRequest, rebase_against_head};
 
 pub const SCHEDULER_SCHEMA_VERSION: u32 = 1;
 
@@ -276,9 +274,9 @@ impl Scheduler {
         if now_epoch == 0 {
             return Err(SchedulerError::EpochZero);
         }
-        let action = match pick_next_pr(&self.queue).map_err(|_| {
-            SchedulerError::DuplicateQueuePosition(self.queue.len() as u32)
-        })? {
+        let action = match pick_next_pr(&self.queue)
+            .map_err(|_| SchedulerError::DuplicateQueuePosition(self.queue.len() as u32))?
+        {
             NextPick::Pick(entry) => {
                 let pr_number = entry.pr_number;
                 let cs = entry.changeset_id.clone();
