@@ -21,6 +21,8 @@ purpose: Keep the provider-adapter matrix explicit while M01 proves the provider
 ## Purpose
 Keep the provider-adapter matrix explicit while M01 proves the provider-neutral eventing boundary through the live file adapter.
 
+> Sunset note (2026-05-15 audit #6 follow-up): `oya-eventing-application` stub orphan deleted per ADR-0106 §Consequences. Forward-looking references below are kept for plan-integrity continuity; on IP execution, scaffold the canonical replacement as `oya-eventing-app` per the ADR-0106 `application → usecase` rename + ADR-0107 `-app` binding.
+
 ## Symbols-to-grit-claim
 ```
 crates/oya-eventing-file-adapter/src/lib.rs::FileOutboxStore

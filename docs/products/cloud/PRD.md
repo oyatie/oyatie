@@ -77,7 +77,7 @@ runtime   — composition root (binary)
 | `oya-cloud-region-kernel` | kernel | Region / AZ / Cell taxonomy; residency class binding |
 | `oya-cloud-region-domain` | domain | Region register / decommission, AZ failover, cell-rebalance |
 | `oya-cloud-region-api` | api | Region / AZ listing REST API |
-| `oya-cloud-cell-application` | application | Tenant cell-binding REST surface |
+| `oya-cloud-cell-application` | application | (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M02-P18) Tenant cell-binding REST surface |
 | `oya-cloud-iam-kernel` | kernel | IAM principal, role, policy (Cedar-based), STS session, federation |
 | `oya-cloud-iam-domain` | domain | Identity federation, role assumption, key issuance |
 | `oya-cloud-iam-adapter` | adapter | OIDC, SAML, OAuth, regional-pack IdP impls (Login.gov, eIDAS, Aadhaar, etc.) |
@@ -110,7 +110,7 @@ runtime   — composition root (binary)
 | `oya-cloud-billing-adapter` | adapter | Postgres + ClickHouse billing aggregation; per-pack tax formatter |
 | `oya-cloud-billing-api` | api | Billing REST API + invoice surfaces |
 | `oya-cloud-billing-app` | app | Cloud billing event ingest CloudEvents/Protobuf surface + outbox publication |
-| `oya-cloud-billing-tax-application` | application | Regional tax invoice generation REST surface |
+| `oya-cloud-billing-tax-application` | application | (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M03 cloud-billing) Regional tax invoice generation REST surface |
 | `oya-cloud-observability-kernel` | kernel | Metric, LogStream, Trace, Alert, Dashboard |
 | `oya-cloud-observability-adapter` | adapter | VictoriaMetrics → Mimir (ADR-0045, ADR-0042); Loki; Tempo; OTel collector |
 | `oya-cloud-observability-api` | api | Observability REST API |

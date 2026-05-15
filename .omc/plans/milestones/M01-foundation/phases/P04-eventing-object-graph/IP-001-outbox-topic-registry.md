@@ -21,6 +21,8 @@ purpose: Ship exactly-once outbox + per-axis topic registry per ADR-0046.
 ## Purpose
 Ship exactly-once outbox + per-axis topic registry per ADR-0046.
 
+> Sunset note (2026-05-15 audit #6 follow-up): `oya-eventing-application` stub orphan deleted per ADR-0106 §Consequences. Forward-looking references below are kept for plan-integrity continuity; on IP execution, scaffold the canonical replacement as `oya-eventing-app` per the ADR-0106 `application → usecase` rename + ADR-0107 `-app` binding (this IP authorizes the scaffold-claim).
+
 ## Symbols-to-grit-claim
 ```
 crates/oya-eventing-domain/src/lib.rs::Outbox

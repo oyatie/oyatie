@@ -195,7 +195,7 @@
       "consumer_axes": [
         "all"
       ],
-      "location": "crates/oya-eventing-domain + crates/oya-eventing-application + crates/oya-eventing-file-adapter",
+      "location": "crates/oya-eventing-domain + crates/oya-eventing-file-adapter (note: `oya-eventing-application` stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M01-P04)",
       "change_review": "cross-axis on topic shape"
     },
     {
@@ -364,7 +364,7 @@
       "contract_path": "contracts/asyncapi/platform/eventing-outbox-v1.yaml",
       "message_id": "eventing.outbox.publish.v1",
       "payload_schema": "contracts/proto/platform/eventing/v1/eventing-outbox-v1.proto",
-      "runtime_crate": "oya-eventing-application"
+      "runtime_crate": "oya-eventing-domain (superseded: oya-eventing-application stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical -app scaffold pending M01-P04)"
     },
     {
       "id": "metering.event.ingest",

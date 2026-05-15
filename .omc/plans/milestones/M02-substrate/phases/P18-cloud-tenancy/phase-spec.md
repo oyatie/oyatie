@@ -90,7 +90,7 @@ without rearchitecting per ADR-0117 §1.
 | `cloud` | `billing` | `crates/oya-cloud-billing-kernel/` | `oya-cloud-billing-kernel` |
 | `cloud` | `billing` | `crates/oya-cloud-billing-adapter/` | `oya-cloud-billing-adapter` |
 | `cloud` | `cell` | `crates/oya-cloud-cell-kernel/` | `oya-cloud-cell-kernel` |
-| `cloud` | `cell` | `crates/oya-cloud-cell-application/` | `oya-cloud-cell-application` |
+| `cloud` | `cell` | `crates/oya-cloud-cell-application/` | `oya-cloud-cell-application` (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; on IP execution, scaffold canonical `oya-cloud-cell-app` per ADR-0106 + ADR-0107) |
 | `cloud` | `cell` | `crates/oya-cloud-cell-adapter/` | `oya-cloud-cell-adapter` |
 | `cloud` | all | `crates/oya-cloud-app/` | `oya-cloud-app` |
 | `cloud` | all | `contracts/cloud.openapi.yaml` | — |

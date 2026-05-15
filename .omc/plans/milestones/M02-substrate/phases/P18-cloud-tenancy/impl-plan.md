@@ -81,9 +81,9 @@ merges, the full cloud infrastructure substrate is ready for per-tenant provisio
 | `crates/oya-cloud-billing-adapter/src/lib.rs` | create | PgUsageMeterAdapter: records usage events to cloud.usage_events |
 | `crates/oya-cloud-cell-kernel/Cargo.toml` | create | CellLifecycleStore + CellHealthPort ports |
 | `crates/oya-cloud-cell-kernel/src/lib.rs` | create | Cell + CellState + CellSpec types; CellState enum: Creating/Active/Draining/Decommissioned |
-| `crates/oya-cloud-cell-application/Cargo.toml` | create | Depends on cell-kernel |
-| `crates/oya-cloud-cell-application/src/lib.rs` | create | CreateCellUseCase, DrainCellUseCase, DecommissionCellUseCase, CellHealthCheckUseCase |
-| `crates/oya-cloud-cell-adapter/Cargo.toml` | create | Depends on cell-application + kernel + oci-sdk + sqlx |
+| `crates/oya-cloud-cell-app/Cargo.toml` | create | Depends on cell-kernel. SUPERSEDED original target `oya-cloud-cell-application`: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical replacement is `-app` per ADR-0106 + ADR-0107. |
+| `crates/oya-cloud-cell-app/src/lib.rs` | create | CreateCellUseCase, DrainCellUseCase, DecommissionCellUseCase, CellHealthCheckUseCase. SUPERSEDED original target `oya-cloud-cell-application` per audit #6 follow-up. |
+| `crates/oya-cloud-cell-adapter/Cargo.toml` | create | Depends on cell-app + kernel + oci-sdk + sqlx |
 | `crates/oya-cloud-cell-adapter/src/lib.rs` | create | PgCellLifecycleStore + OciCellHealthAdapter |
 | `crates/oya-cloud-app/Cargo.toml` | create | Composition root; depends on all cloud layers |
 | `crates/oya-cloud-app/src/main.rs` | create | DI assembly for all 8 BCs |

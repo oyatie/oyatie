@@ -40,7 +40,7 @@ and is blocked later by stale connect-domain imports exposed by cargo check outs
 surfaces are accepted or the shared repository-check blocker is waived/fixed.
 
 ## Symbols-touched
-Live BNF v4.1 foundation anchors: `crates/oya-eventing-domain`, `crates/oya-eventing-application`, `crates/oya-eventing-file-adapter`, and `crates/oya-ontology-domain`. Provider-specific eventing adapters remain later fanout scope; M01 must not invent stale `oya-platform-*` crates to satisfy this plan.
+Live BNF v4.1 foundation anchors: `crates/oya-eventing-domain`, `crates/oya-eventing-application` (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6 — canonical `-app` scaffold pending; reference retained for plan-integrity continuity), `crates/oya-eventing-file-adapter`, and `crates/oya-ontology-domain`. Provider-specific eventing adapters remain later fanout scope; M01 must not invent stale `oya-platform-*` crates to satisfy this plan.
 
 ## Agent-handoff
 ```
