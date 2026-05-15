@@ -12,7 +12,7 @@
 //! `lean-a-openapi-rest-route-parity` will enforce this.
 
 use oya_ops_workspace_shell_adapter::{WireHealthResponse, WireSurface, WireSurfaceListResponse};
-use oya_ops_workspace_shell_application::{
+use oya_ops_workspace_shell_usecase::{
     FlipSurfaceStateUseCase, ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
 use oya_ops_workspace_shell_kernel::{

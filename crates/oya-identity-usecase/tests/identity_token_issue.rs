@@ -1,4 +1,4 @@
-use oya_identity_application::{
+use oya_identity_usecase::{
     IDENTITY_TOKEN_ISSUE_OPENAPI_CONTRACT, IDENTITY_TOKEN_ISSUE_SURFACE, IdentityApiAuthorization,
     IdentityApiBoundaryContext, IdentityApiPrincipal, IdentityScopeRef, IdentityTokenIssueApiError,
     IdentityTokenIssueApiRequest, IdentityTokenIssueApiStatus, IdentityTokenIssueIdempotencyLedger,

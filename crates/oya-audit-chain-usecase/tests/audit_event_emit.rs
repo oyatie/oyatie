@@ -1,4 +1,4 @@
-use oya_audit_chain_application::{
+use oya_audit_chain_usecase::{
     AUDIT_EVENT_ASYNCAPI_CONTRACT, AUDIT_EVENT_EMIT_SCHEMA, AUDIT_EVENT_EMIT_SOURCE,
     AUDIT_EVENT_EMIT_SURFACE, AUDIT_EVENT_PROTO_CONTRACT, AUDIT_EVENT_TOPIC,
     AuditEventEmitAppError, AuditEventEmitAppRequest, AuditEventEmitAppStatus,

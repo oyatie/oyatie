@@ -16,7 +16,7 @@ use std::sync::{Arc, RwLock};
 use oya_http_middleware_kernel::MiddlewareChain;
 use oya_http_router_kernel::{HttpMethod, Router};
 use oya_http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
-use oya_ops_workspace_shell_application::{
+use oya_ops_workspace_shell_usecase::{
     ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
 use oya_ops_workspace_shell_kernel::{

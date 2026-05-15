@@ -1,4 +1,4 @@
-use oya_dsr_application::{
+use oya_dsr_usecase::{
     PLATFORM_DSR_CASCADE_EXECUTE_SURFACE, PLATFORM_DSR_OPENAPI_CONTRACT,
     PlatformDsrApiAuthorization, PlatformDsrApiError, PlatformDsrApiPrincipal,
     PlatformDsrCascadeBoundaryContext, PlatformDsrCascadeDirectory,

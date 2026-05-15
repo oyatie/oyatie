@@ -1,5 +1,5 @@
 [package]
-name = "oya-ops-workspace-shell-application"
+name = "oya-ops-docs-portal-usecase"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,11 +7,11 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-ops-workspace-shell-kernel = { path = "../oya-ops-workspace-shell-kernel" }
+oya-ops-docs-portal-kernel = { path = "../oya-ops-docs-portal-kernel" }
 
 
 [lib]
-name = "oya_ops_workspace_shell_application"
+name = "oya_ops_docs_portal_usecase"
 path = "src/lib.rs"
 doctest = false
 

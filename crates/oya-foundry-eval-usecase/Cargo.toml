@@ -1,5 +1,5 @@
 [package]
-name = "oya-dsr-application"
+name = "oya-foundry-eval-usecase"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -7,11 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
-oya-dsr-domain = { path = "../oya-dsr-domain" }
+oya-foundry-eval-domain = { path = "../oya-foundry-eval-domain" }
 
 [lib]
-name = "oya_dsr_application"
+name = "oya_foundry_eval_usecase"
 path = "src/lib.rs"
 doctest = false
 

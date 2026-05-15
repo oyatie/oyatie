@@ -10,7 +10,7 @@
 use oya_ops_docs_portal_adapter::{
     WireLiveFeedEvent, WireManifestSnapshot, WireRefreshExtractorResponse,
 };
-use oya_ops_docs_portal_application::{
+use oya_ops_docs_portal_usecase::{
     GetManifestUseCase, RefreshExtractorError, RefreshExtractorUseCase, SubscribeLiveFeedUseCase,
 };
 use oya_ops_docs_portal_kernel::{

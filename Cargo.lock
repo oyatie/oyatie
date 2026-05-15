@@ -773,15 +773,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-audit-chain-application"
-version = "0.1.0"
-dependencies = [
- "oya-audit-chain-domain",
- "oya-data-boundary-kernel",
- "oya-eventing-domain",
-]
-
-[[package]]
 name = "oya-audit-chain-domain"
 version = "0.1.0"
 dependencies = [
@@ -796,6 +787,15 @@ version = "0.1.0"
 dependencies = [
  "oya-audit-chain-domain",
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-audit-chain-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-audit-chain-domain",
+ "oya-data-boundary-kernel",
+ "oya-eventing-domain",
 ]
 
 [[package]]
@@ -1451,18 +1451,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-dsr-application"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-dsr-domain",
-]
-
-[[package]]
 name = "oya-dsr-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-dsr-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-dsr-domain",
 ]
 
 [[package]]
@@ -1820,17 +1820,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-eval-application"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-eval-domain",
-]
-
-[[package]]
 name = "oya-foundry-eval-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-foundry-eval-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-eval-domain",
 ]
 
 [[package]]
@@ -2326,18 +2326,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-identity-application"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-identity-domain",
-]
-
-[[package]]
 name = "oya-identity-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-identity-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+ "oya-identity-domain",
 ]
 
 [[package]]
@@ -2390,13 +2390,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ops-docs-portal-application"
-version = "0.1.0"
-dependencies = [
- "oya-ops-docs-portal-kernel",
-]
-
-[[package]]
 name = "oya-ops-docs-portal-kernel"
 version = "0.1.0"
 
@@ -2405,19 +2398,19 @@ name = "oya-ops-docs-portal-rest"
 version = "0.1.0"
 dependencies = [
  "oya-ops-docs-portal-adapter",
- "oya-ops-docs-portal-application",
+ "oya-ops-docs-portal-kernel",
+ "oya-ops-docs-portal-usecase",
+]
+
+[[package]]
+name = "oya-ops-docs-portal-usecase"
+version = "0.1.0"
+dependencies = [
  "oya-ops-docs-portal-kernel",
 ]
 
 [[package]]
 name = "oya-ops-workspace-shell-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-ops-workspace-shell-kernel",
-]
-
-[[package]]
-name = "oya-ops-workspace-shell-application"
 version = "0.1.0"
 dependencies = [
  "oya-ops-workspace-shell-kernel",
@@ -2432,8 +2425,8 @@ name = "oya-ops-workspace-shell-rest"
 version = "0.1.0"
 dependencies = [
  "oya-ops-workspace-shell-adapter",
- "oya-ops-workspace-shell-application",
  "oya-ops-workspace-shell-kernel",
+ "oya-ops-workspace-shell-usecase",
 ]
 
 [[package]]
@@ -2444,10 +2437,17 @@ dependencies = [
  "oya-http-router-kernel",
  "oya-http-runtime-hyper-adapter",
  "oya-ops-workspace-shell-adapter",
- "oya-ops-workspace-shell-application",
  "oya-ops-workspace-shell-kernel",
  "oya-ops-workspace-shell-rest",
+ "oya-ops-workspace-shell-usecase",
  "tokio",
+]
+
+[[package]]
+name = "oya-ops-workspace-shell-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-ops-workspace-shell-kernel",
 ]
 
 [[package]]

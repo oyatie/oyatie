@@ -1,4 +1,4 @@
-use oya_foundry_eval_application::{
+use oya_foundry_eval_usecase::{
     FOUNDRY_EVAL_RUN_OPENAPI_CONTRACT, FOUNDRY_EVAL_RUN_SURFACE, FoundryEvalApiAuthorization,
     FoundryEvalApiBoundaryContext, FoundryEvalApiPrincipal, FoundryEvalCaseRequest,
     FoundryEvalRunApiError, FoundryEvalRunApiErrorBody, FoundryEvalRunApiErrorCode,
