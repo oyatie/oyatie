@@ -1250,7 +1250,7 @@
         "id": "security-scan-failure",
         "detect": "SecurityScanPort policy blocks Trivy/in-house normalized findings",
         "automated_fix": "create SecurityFixupTask with package/image/IaC pointer; rerun targeted scan",
-        "escalate_when": "policy exception or vulnerability acceptance required"
+        "escalate_when": "policy-extension proposal or vulnerability acceptance required"
       },
       {
         "id": "gitops-drift-or-sync-failure",
