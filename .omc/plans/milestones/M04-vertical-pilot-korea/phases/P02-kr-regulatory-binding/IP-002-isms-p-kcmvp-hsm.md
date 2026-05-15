@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-isms-p-kcmvp-hsm.md
+purpose: Operationalize K-ISMS-P controls + KCMVP HSM for production.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-tenant-onboarding.md
+purpose: Onboard first KR Group design-partner tenant via tenant.create + KR pack binding.
 ---
 
 ---

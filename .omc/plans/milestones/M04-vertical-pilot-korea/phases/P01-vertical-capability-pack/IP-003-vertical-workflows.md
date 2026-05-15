@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-vertical-workflows.md
+purpose: Author the vertical-specific workflows (e.g., payroll.close, kyc.onboard, fhir.read).
 ---
 
 ---

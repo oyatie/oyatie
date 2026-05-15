@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Bind KR regional pack to the elected vertical's capability pack with full control evidence.
 ---
 
 ---

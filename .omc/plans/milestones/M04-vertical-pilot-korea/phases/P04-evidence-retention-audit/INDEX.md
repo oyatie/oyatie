@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Continuous evidence collection during pilot operation; retention measurement over 8 weeks; regulator audit pack on first request.
 ---
 
 ---

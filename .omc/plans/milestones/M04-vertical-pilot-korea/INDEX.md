@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Run one vertical end-to-end on M01-M03 stack as a design-partner pilot with a KR Group tenant.
 ---
 
 ---

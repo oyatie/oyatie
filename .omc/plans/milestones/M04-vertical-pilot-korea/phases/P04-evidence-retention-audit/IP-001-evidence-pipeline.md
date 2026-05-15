@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-evidence-pipeline.md
+purpose: Continuous evidence collection from audit chain into evidence pack store.
 ---
 
 ---

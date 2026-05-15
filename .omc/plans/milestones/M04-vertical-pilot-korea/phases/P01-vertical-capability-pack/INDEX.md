@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Council elects pilot vertical; Foundry-authored capability pack ships for that vertical.
 ---
 
 ---

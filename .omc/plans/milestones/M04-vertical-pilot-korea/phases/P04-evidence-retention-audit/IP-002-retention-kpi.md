@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-retention-kpi.md
+purpose: "8-week retention measurement + KPI dashboard for ≥50K runs/wk ≥99.5%."
 ---
 
 ---

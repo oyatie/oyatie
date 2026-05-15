@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-audit-pack-generator.md
+purpose: Audit-pack regenerator ≤4h from request.
 ---
 
 ---

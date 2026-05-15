@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-pipa-csap-evidence.md
+purpose: Author PIPA + CSAP control evidence pack for elected vertical.
 ---
 
 ---

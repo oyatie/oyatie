@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Onboard the first KR Group design-partner tenant; author tenant-specific workflows; activate Foundry agents on tenant data.
 ---
 
 ---

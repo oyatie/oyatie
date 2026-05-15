@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-kr-vertical-surfaces.md
+purpose: Wire KR vertical surfaces into vertical-corporate (or elected) workflows.
 ---
 
 ---

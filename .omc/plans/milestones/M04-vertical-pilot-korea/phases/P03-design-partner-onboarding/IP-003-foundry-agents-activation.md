@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-foundry-agents-activation.md
+purpose: Activate Foundry capabilities for tenant under T1-T3 autonomy ceiling.
 ---
 
 ---

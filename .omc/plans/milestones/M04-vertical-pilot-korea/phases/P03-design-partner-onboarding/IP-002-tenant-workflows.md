@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-tenant-workflows.md
+purpose: Author ≥5 tenant-specific workflows; verify end-to-end invocation per business day.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-capability-pack-kernel.md
+purpose: Ship the elected vertical's capability pack kernel + entities + workflows.
 ---
 
 ---

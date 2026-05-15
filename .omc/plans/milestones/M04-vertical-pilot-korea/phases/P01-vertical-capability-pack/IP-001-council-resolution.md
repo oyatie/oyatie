@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-council-resolution.md
+purpose: Surface vertical-choice open question to council; log resolution in open-questions.md.
 ---
 
 ---
