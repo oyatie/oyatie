@@ -19,6 +19,13 @@ license = "Apache-2.0"
 # no external transitives.
 oya-json-kernel = { path = "../oya-json-kernel" }
 
+[build-dependencies]
+# CONV-8 codegen: build.rs derives CHANGE_CLASSES_FROM_SPEC +
+# ALL_FACETS_FROM_SPEC from specs/cross-cutting/multispectrum-review.json
+# at build time, eliminating the n-source-of-truth-without-generator
+# anti-pattern flagged by F1 + F2 in TG2 11-facet debate.
+oya-json-kernel = { path = "../oya-json-kernel" }
+
 [lib]
 name = "oya_check_dependency_seam"
 path = "src/lib.rs"

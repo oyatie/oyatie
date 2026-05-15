@@ -23,7 +23,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use oya_check_dependency_seam::{
     check_consensus_debate_evidence, check_naming_convention, check_rust_default_language,
     check_scorecard_render, parse_top_level_object, render_audit_chain_rows, run_composite,
-    JsonValueKind, SubCheckStatus, WorkspaceContext,
+    JsonValueKind, SubCheckStatus, WorkspaceContext, ALL_FACETS_FROM_SPEC, CHANGE_CLASSES,
+    CHANGE_CLASSES_FROM_SPEC, EVIDENCE_REQUIRED_FACETS,
 };
 
 static TEST_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -218,6 +219,48 @@ fn consensus_debate_happy_path_meta_triggered_with_matching_synthesis() {
 }
 
 // =============== JSON parser (CONV-1) ===============
+
+// =============== spec/code parity drift detection (CONV-8) ===============
+
+#[test]
+fn change_classes_matches_spec_no_drift() {
+    use std::collections::BTreeSet;
+    let hand: BTreeSet<&str> = CHANGE_CLASSES.iter().copied().collect();
+    let spec: BTreeSet<&str> = CHANGE_CLASSES_FROM_SPEC.iter().copied().collect();
+    assert_eq!(
+        hand, spec,
+        "CHANGE_CLASSES drift between hand-rolled lane constant and \
+         specs/cross-cutting/multispectrum-review.json#change_classes. \
+         Hand-only: {:?} | Spec-only: {:?}",
+        hand.difference(&spec).collect::<Vec<_>>(),
+        spec.difference(&hand).collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn evidence_required_facets_is_subset_of_spec() {
+    use std::collections::BTreeSet;
+    let hand: BTreeSet<&str> = EVIDENCE_REQUIRED_FACETS.iter().copied().collect();
+    let spec: BTreeSet<&str> = ALL_FACETS_FROM_SPEC.iter().copied().collect();
+    let extras: Vec<&&str> = hand.difference(&spec).collect();
+    assert!(
+        extras.is_empty(),
+        "EVIDENCE_REQUIRED_FACETS contains keys not present in spec's facets object: {:?}",
+        extras
+    );
+}
+
+#[test]
+fn spec_constants_from_spec_non_empty() {
+    assert!(
+        !CHANGE_CLASSES_FROM_SPEC.is_empty(),
+        "build.rs did not populate CHANGE_CLASSES_FROM_SPEC; spec read may have failed"
+    );
+    assert!(
+        !ALL_FACETS_FROM_SPEC.is_empty(),
+        "build.rs did not populate ALL_FACETS_FROM_SPEC"
+    );
+}
 
 // =============== perf-budget regression gate (CONV-7) ===============
 

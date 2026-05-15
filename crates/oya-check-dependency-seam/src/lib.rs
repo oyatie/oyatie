@@ -27,6 +27,11 @@ use std::path::PathBuf;
 // per user directive 2026-05-15.
 pub use oya_json_kernel::{parse_top_level_object, JsonValueKind};
 
+// CONV-8 codegen: build.rs derives CHANGE_CLASSES_FROM_SPEC +
+// ALL_FACETS_FROM_SPEC from the canonical spec at build time. Unit tests
+// in tests/per_subcheck_unit_tests.rs enforce spec/code parity.
+include!(concat!(env!("OUT_DIR"), "/spec_constants.rs"));
+
 /// One sub-check's result.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubCheckResult {
