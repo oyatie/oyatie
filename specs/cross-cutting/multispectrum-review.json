@@ -6,8 +6,8 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-MULTISPECTRUM-REVIEW",
-    "version": "2.2.0",
-    "supersedes_version": "1.0.0 + 2.0.0 + 2.1.0",
+    "version": "2.3.0",
+    "supersedes_version": "1.0.0 + 2.0.0 + 2.1.0 + 2.2.0",
     "primary_consumer": "agentic_flow (autonomous masterplan execution per ADR-0054 grit + ADR-0069 active-artifact-contract). Human dev_flow is secondary. Agents are the canonical reader of this spec.",
     "machine_optimization_policy": "Schema-strict (closed enums, typed required fields, indexed by id). Narrative belongs in docs/standards/multispectrum-review.md, NOT in this file. Long _description / rendering_examples / lane_implementation_note blocks are non-canonical pointers; FixupTask F-SPEC-PROSE-SLIM trims them. Files are read once per agent turn; minimize parser cost.",
     "status": "Accepted",
@@ -17,6 +17,7 @@
     "human_companion": "docs/standards/multispectrum-review.md",
     "v2_directive": "User directive 2026-05-14: 'additional spectrums that we should enforce into every single thing we do. including foundry. foundry's agentic flow + our current dev flow. should be enforced.' v2.0.0 adds F8 performance, F9 compliance as REQUIRED facets, and M1 challenge_assumption + M2 zoomed_out_fit as OPTIONAL meta-facets (required when meta_review_triggered).",
     "v2_1_directive": "User directive 2026-05-14: 'Make sure we add deterministic layer to it where it makes sense to do so.' v2.1.0 adds F10 reversibility/blast-radius, F11 observability, F13 migration/backwards-compat as REQUIRED facets when applicable + a `deterministic_layer_principle` declaring per-facet auto_checks vs human_judgment split. Lane enforces auto_checks mechanically; judgment layer fills the rest.",
+    "v2_3_directive": "User directive 2026-05-15 across two consecutive messages: 'additional lens for our own policy adherence like naming, documentation, structure, architecture, dependency, etc' + 'schema, algorithm, as well'. v2.3.0 adds a new family of POLICY-ADHERENCE facets (A-prefix: A1..A7) distinct from F-family critique lenses and M-family meta lenses. A-facets mechanically enforce drift between code-as-built and doctrine-as-declared. Closed enum cap relaxed for A-family — adherence facets grow as policy domains do.",
     "enforced_by": [
       "oya-check-dependency-seam (sub-check: multispectrum-evidence-attached)",
       "PR review CODEOWNERS (manual sign-off)",
@@ -613,6 +614,179 @@
     }
   },
 
+  "adherence_facets": {
+    "_description": "A-family — POLICY-ADHERENCE facets (v2.3.0). Distinct from F-family critique lenses (Linus, hyperscaler, adversarial, etc.) and M-family meta lenses (challenge_assumption, zoomed_out_fit). Each A-facet enforces drift between code-as-built and a SPECIFIC own-policy domain (doctrine principle / ADR / standard). Per consensus_debate_protocol.executor_topology + feedback_consensus_debate_spectrum_lens_subagents — each A-facet runs in its own subagent context with one policy lens, never combined with other A- or F-facets.",
+    "_directive_source": "User directive 2026-05-15: 'additional lens for our own policy adherence like naming, documentation, structure, architecture, dependency, etc' + 'schema, algorithm, as well'",
+    "_required_when": "Any change touching the domain of a given A-facet REQUIRES that facet's subagent review. Triggers are mechanical per the file-set predicates below.",
+    "_cap_relaxation": "evolution_policy.facet_addition's 'max 12 closed enum cap' applies to F-family only. A-family cap is OPEN — grows as policy domains do; new A-facets land via 1-ADR action per the user's 'etc' room.",
+
+    "A1_naming_adherence": {
+      "id": "A1",
+      "name": "Naming adherence",
+      "scope": "P10 + P14 BNF kebab-case + version-suffix + filename rules per .omc/specs/oyatie-doctrine.json#P14_file_naming_layout",
+      "doctrine_principles_cited": ["P10_concrete_naming", "P14_file_naming_layout"],
+      "external_authorities_cited": ["docs/standards/crate-naming-convention.md", "ADR-0056"],
+      "triggers_when": "any new file added to /specs/, /registries/, /evidence/, /templates/, docs/decisions/, crates/, tools/ OR any rename touching these paths",
+      "trigger_questions": [
+        "Does the filename follow kebab-case (ASCII lowercase + digit + hyphen + dot)?",
+        "If the artifact is versioned, does the filename carry -vMAJOR.MINOR.PATCH suffix?",
+        "Does the path match <kind>/<scope>/<concept>-v<semver>.<ext> BNF for cross-cutting durables?",
+        "Does $id (if present) match the filesystem path?",
+        "Does the crate name match ADR-0056 BNF v4.1: oya-<microservice>-(<bc-tokens>-)?<layer>?"
+      ],
+      "anti_patterns": ["non-kebab-case-filename", "missing-version-suffix-on-versioned-spec", "id-path-mismatch", "snake-case-leak", "uppercase-filename"],
+      "evidence_required": {
+        "files_added_or_renamed": "array of paths",
+        "bnf_compliance_per_path": "array of {path, compliant: bool, violation_class?}",
+        "violations_total": "integer"
+      },
+      "executor_topology_subagent_type": "oh-my-claudecode:code-reviewer (or a future oh-my-claudecode:naming-reviewer specialized agent)",
+      "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A1-NAMING (extend oya-check-dependency-seam check_naming_convention to enforce v2.3.0 trigger set)"
+    },
+
+    "A2_documentation_adherence": {
+      "id": "A2",
+      "name": "Documentation adherence",
+      "scope": "P9 no-sprawl + DOC-CATALOG + doc class shape + thin-gateway pattern; cites docs/DOC-CATALOG.md + docs/standards/doc-style.md",
+      "doctrine_principles_cited": ["P9_no_sprawl", "P16_optimize_storage_size"],
+      "external_authorities_cited": ["docs/DOC-CATALOG.md", "docs/standards/doc-style.md"],
+      "triggers_when": "any docs/*.md added/edited OR any standards/ADR/PRD created/updated OR any spec _meta.doc_class declaration changed",
+      "trigger_questions": [
+        "Does the doc declare doc_class + length_cap + authority_tier in frontmatter?",
+        "Is the doc registered in DOC-CATALOG.md with class + owner + length cap + 'Does NOT cover' clause?",
+        "Does the markdown restate content from a JSON/ADR partner (P9 sprawl)? If yes, slim to thin-pointer-gateway.",
+        "Is the doc length within its declared length_cap?",
+        "Are cross-references resolvable (no broken links to retired files)?"
+      ],
+      "anti_patterns": ["restate-instead-of-cite", "missing-doc-catalog-row", "broken-cross-reference", "length-cap-exceeded", "duplicate-canonical-home"],
+      "evidence_required": {
+        "docs_touched": "array of paths",
+        "doc_catalog_rows_updated": "bool",
+        "sprawl_audit_per_doc": "array of {path, sprawl_class: complementary|partial-restatement|clear-sprawl, recommended_action?}"
+      },
+      "executor_topology_subagent_type": "oh-my-claudecode:writer (or oh-my-claudecode:doc-updater)",
+      "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A2-DOCUMENTATION"
+    },
+
+    "A3_structure_adherence": {
+      "id": "A3",
+      "name": "Structure adherence",
+      "scope": "P11 + P14 directory layout + repo topology + kind/scope/concept BNF placement per .omc/specs/oyatie-doctrine.json#repository_layout",
+      "doctrine_principles_cited": ["P11_durables_outside_omc", "P14_file_naming_layout"],
+      "triggers_when": "any new file or directory added; any move/rename touching first-class durable homes",
+      "trigger_questions": [
+        "Is the file placed in its canonical durable home (/specs/, /registries/, /evidence/, /templates/, docs/decisions/, docs/standards/)?",
+        "Does any new durable land in .omc/ (forbidden post-2026-05-14 migration)?",
+        "Does the placement match the artifact's <kind> per BNF (registries → /registries/, evidence → /evidence/, etc.)?",
+        "Is the <scope> token correct (cross-cutting vs registered-microservice-name)?"
+      ],
+      "anti_patterns": ["durable-in-omc", "kind-scope-mismatch", "new-top-level-dir-without-adr", "ephemeral-state-in-durable-home"],
+      "evidence_required": {
+        "files_added": "array of paths",
+        "placement_compliance_per_path": "array of {path, canonical_home_match: bool}",
+        "doctrine_p11_violations": "integer"
+      },
+      "executor_topology_subagent_type": "feature-dev:code-architect",
+      "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A3-STRUCTURE"
+    },
+
+    "A4_architecture_adherence": {
+      "id": "A4",
+      "name": "Architecture adherence",
+      "scope": "ADR-0056 12-layer enum + clean architecture inward-flow + kernel ◀── domain ◀── app ◀── { api, worker, adapter } ◀── runtime; cites docs/standards/clean-architecture.md",
+      "doctrine_principles_cited": ["P13_industry_best_practices"],
+      "external_authorities_cited": ["ADR-0056", "docs/standards/clean-architecture.md"],
+      "triggers_when": "any new crate added; any cross-layer dependency edited in Cargo.toml; any port trait moved across layers",
+      "trigger_questions": [
+        "Does the new crate's name match BNF v4.1 oya-<microservice>-(<bc-tokens>-)?<layer>?",
+        "Does the crate's <layer> token match its actual dependency direction (kernel has no deps on domain; adapter may depend inward but not outward)?",
+        "Are port traits declared in kernel and impls in adapter (no impl-in-kernel violations)?",
+        "Does any crate cross-import another product's kernel directly (must go through Workflow + Ontology adapter layer per feedback_workflow_objectgraph_adapter_layer)?",
+        "Does the dep graph respect the 12-layer enum order?"
+      ],
+      "anti_patterns": ["layer-violation", "cross-product-direct-import", "framework-logic-in-kernel", "impl-in-kernel-instead-of-adapter", "outward-pointing-dep"],
+      "evidence_required": {
+        "crates_added_or_edited": "array of crate names",
+        "layer_compliance_per_crate": "array of {crate, declared_layer, dep_layers_observed, compliant: bool}",
+        "cross_product_imports": "array of {from, to, route_through_workflow_ontology: bool}"
+      },
+      "executor_topology_subagent_type": "feature-dev:code-architect (or oh-my-claudecode:architect)",
+      "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A4-ARCHITECTURE"
+    },
+
+    "A5_dependency_adherence": {
+      "id": "A5",
+      "name": "Dependency adherence",
+      "scope": "ADR-0092 seam policy + dependency-rationales.json + cargo-deny + LTS pinning; cites docs/standards/dependency-policy.md",
+      "doctrine_principles_cited": ["P6_no_silent_regression", "P13_industry_best_practices"],
+      "external_authorities_cited": ["ADR-0092", "docs/standards/dependency-policy.md", "/registries/cross-cutting/dependency-rationales.json"],
+      "triggers_when": "any change to Cargo.toml workspace.dependencies; any new direct dep; any version bump",
+      "trigger_questions": [
+        "Does every new direct dep have a registry row in /registries/cross-cutting/dependency-rationales.json with rationale + owner + layer_seam + replacement_strategy?",
+        "Does cargo-deny check pass (license posture: no AGPL/GPL/SSPL/BUSL/RSAL in product code)?",
+        "Is the dep pinned to its LTS major.minor per the LTS roster?",
+        "Is the dep's isolated_in_crate respected (no seam violations per ADR-0092)?",
+        "Does the dep duplicate functionality already in workspace (cargo / cargo-audit / cargo-deny / cargo-public-api)?"
+      ],
+      "anti_patterns": ["new-dep-without-rationale-row", "license-violation", "seam-violation", "duplicate-tooling", "unpinned-version"],
+      "evidence_required": {
+        "deps_added_or_bumped": "array of {name, version, isolated_in_crate, license}",
+        "rationale_rows_present": "bool",
+        "cargo_deny_exit_code": "integer",
+        "seam_violations": "integer"
+      },
+      "executor_topology_subagent_type": "oh-my-claudecode:security-reviewer (or oh-my-claudecode:verifier)",
+      "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A5-DEPENDENCY"
+    },
+
+    "A6_schema_adherence": {
+      "id": "A6",
+      "name": "Schema adherence",
+      "scope": "P1 machine-optimized + JSON Schema $schema/$id/_meta + closed enums + required fields per active-machine-readable-artifact-contract",
+      "doctrine_principles_cited": ["P1_machine_optimized", "P3_deterministic_where_it_matters"],
+      "external_authorities_cited": ["/specs/cross-cutting/active-machine-readable-artifact-contract.json", "ADR-0069"],
+      "triggers_when": "any new JSON spec/registry added; any $defs or required[] change; any schema version bump",
+      "trigger_questions": [
+        "Does the JSON declare $schema (Draft 2020-12) + $id matching its filesystem path + _meta with required ADR-0069 9-capability fields?",
+        "Are enum values closed (no open string slot where domain is bounded)?",
+        "Are required fields explicit at every object level?",
+        "Does the schema validate (jsonschema-validator pass)?",
+        "If schema breaking-change: is version bumped + sunset_at_date present + ADR cited?"
+      ],
+      "anti_patterns": ["missing-schema-id", "open-string-where-enum-feasible", "no-required-fields", "id-path-mismatch", "silent-breaking-schema-change"],
+      "evidence_required": {
+        "json_artifacts_touched": "array of paths",
+        "schema_compliance_per_artifact": "array of {path, $schema_present, $id_matches_path, _meta_complete, required_fields_explicit}",
+        "schema_breaking_changes": "array of {path, version_bump, adr_cite}"
+      },
+      "executor_topology_subagent_type": "oh-my-claudecode:verifier",
+      "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A6-SCHEMA"
+    },
+
+    "A7_algorithm_adherence": {
+      "id": "A7",
+      "name": "Algorithm adherence",
+      "scope": "P3 deterministic-where-it-matters + approximate-vs-exact + complexity classes + algorithm choice rationale",
+      "doctrine_principles_cited": ["P3_deterministic_where_it_matters", "P8_canonical_base_plus_localization"],
+      "triggers_when": "any new algorithm/heuristic in code; any complexity-class change; any approximate-where-exact-feasible substitution",
+      "trigger_questions": [
+        "What's the algorithm's complexity class (O(N), O(N log N), O(N^2))? Is it documented?",
+        "Where exact is feasible, is the algorithm exact (vs approximate)? If approximate: is the precision-tradeoff documented?",
+        "On determinism-critical paths (correctness/security/audit/contract-stability per P3 matters_for list): is the output bit-reproducible?",
+        "Is there a benchmark proving the algorithm meets perf budget at 10x/100x load?",
+        "Did the author consider at least one Linus-style (simple/exact) and one hyperscaler-style (sharded/parallel) alternative?"
+      ],
+      "anti_patterns": ["approximate-when-exact-feasible", "undocumented-complexity-class", "non-deterministic-on-deterministic-path", "no-benchmark-for-perf-claim", "first-algorithm-wins"],
+      "evidence_required": {
+        "algorithms_introduced_or_changed": "array of {fn_name, complexity_class, deterministic: bool, benchmark_path?}",
+        "approximate_vs_exact_per_algorithm": "array of {fn_name, choice, rationale}",
+        "p3_matters_for_paths_touched": "array of strings (subset of F3-adversarial/F5-quality/F7-security/F8-performance/F9-compliance/F13-migration/consensus_debate)"
+      },
+      "executor_topology_subagent_type": "oh-my-claudecode:scientist (or oh-my-claudecode:debugger for perf-critical algorithms)",
+      "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A7-ALGORITHM"
+    }
+  },
+
   "change_classes": {
     "CC-1_kernel_public_api": {
       "id": "CC-1",
@@ -880,7 +1054,8 @@
   },
 
   "evolution_policy": {
-    "facet_addition": "1-ADR action; max 12 facets total (closed enum cap to prevent dilution).",
+    "facet_addition_f_family": "1-ADR action; max 12 F-family critique facets total (closed enum cap to prevent dilution).",
+    "facet_addition_a_family": "1-ADR action; OPEN — A-family adherence facets grow as policy domains do (per v2.3.0 user directive). No closed cap; cap rule relaxed because each A-facet corresponds to a distinct doctrine principle / standard / ADR that already governs its domain.",
     "facet_removal": "Forbidden without superseded_by ADR + 90-day deprecation window.",
     "rigor_matrix_amendment": "0-ADR action; tracked in decision_log header of this JSON.",
     "change_class_addition": "1-ADR action.",
