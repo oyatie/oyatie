@@ -1,6 +1,9 @@
-//! Foundry supervisor security adapter — Cedar + OpenBao integration.
+//! Foundry supervisor security adapter — Cedar autonomy ceiling + in-memory
+//! secret-store integration. The secret-store adapter is the in-memory
+//! `InMemorySecretStoreAdapter` (renamed from `InMemorySecretStoreAdapter` 2026-05-15);
+//! production OpenBao backend is deferred per ADR-0043 + M02-P06.
 
-use oya_foundry_account_adapter_openbao::OpenBaoAdapter;
+use oya_foundry_account_adapter_inmemory::InMemorySecretStoreAdapter;
 use oya_foundry_account_domain::{SecretMaterial, SecretReference, SecretStorePort};
 use oya_foundry_autonomy_ceiling_app as ceiling_app;
 use oya_foundry_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
@@ -59,12 +62,12 @@ impl AutonomyCeilingPort for CedarAutonomyCeilingAdapter {
     }
 }
 
-pub struct OpenBaoSecretResolver {
-    inner: OpenBaoAdapter,
+pub struct InMemorySecretResolver {
+    inner: InMemorySecretStoreAdapter,
 }
 
-impl OpenBaoSecretResolver {
-    pub fn new(inner: OpenBaoAdapter) -> Self {
+impl InMemorySecretResolver {
+    pub fn new(inner: InMemorySecretStoreAdapter) -> Self {
         Self { inner }
     }
 

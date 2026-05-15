@@ -53,8 +53,12 @@ impl TryFrom<&str> for ProviderFamily {
 }
 
 /// Reference to a secret in some external store. Carries no raw
-/// bytes — `Debug` redacts, no `Display` impl.
-#[derive(Clone, Eq, PartialEq)]
+/// bytes — `Debug` redacts, no `Display` impl. `Hash` is derived so
+/// `SecretReference` can be used directly as a map key by the same-value
+/// invariant: two refs hash equal iff the underlying `sref://` strings are
+/// equal. The inner string is NOT exposed by `Hash` (the trait derives over
+/// the field but produces only a hash code, not the value).
+#[derive(Clone, Eq, PartialEq, Hash)]
 pub struct SecretReference(String);
 
 #[derive(Clone, Debug, Eq, PartialEq)]

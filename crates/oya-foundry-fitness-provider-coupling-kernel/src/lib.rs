@@ -293,7 +293,7 @@ mod tests {
     #[test]
     fn is_adapter_crate_recognizes_pattern() {
         assert!(is_adapter_crate("oya-foundry-adapter-anthropic-api-kernel"));
-        assert!(is_adapter_crate("oya-foundry-account-adapter-openbao"));
+        assert!(is_adapter_crate("oya-foundry-account-adapter-inmemory"));
         assert!(!is_adapter_crate("oya-foundry-account-domain"));
         assert!(!is_adapter_crate("oya-foundry-account-kernel"));
     }

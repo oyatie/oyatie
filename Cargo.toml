@@ -76,7 +76,7 @@ members = [
   "crates/oya-foundry-codex-account-adapter",
   "crates/oya-foundry-claude-account-adapter",
   "crates/oya-foundry-gemini-account-adapter",
-  "crates/oya-foundry-account-adapter-openbao",
+  "crates/oya-foundry-account-adapter-inmemory",
   "crates/oya-foundry-account-runtime",
   "crates/oya-foundry-adapter-anthropic-api-kernel",
   "crates/oya-foundry-adapter-anthropic-api-adapter",

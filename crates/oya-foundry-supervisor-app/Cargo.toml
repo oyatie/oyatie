@@ -40,4 +40,4 @@ oya-foundry-settings-template-kernel = { version = "0.1.0", path = "../oya-found
 oya-foundry-settings-template-adapter = { version = "0.1.0", path = "../oya-foundry-settings-template-adapter" }
 oya-foundry-autonomy-ceiling-domain = { version = "0.1.0", path = "../oya-foundry-autonomy-ceiling-domain" }
 oya-foundry-supervisor-security-adapter = { version = "0.1.0", path = "../oya-foundry-supervisor-security-adapter" }
-oya-foundry-account-adapter-openbao = { version = "0.1.0", path = "../oya-foundry-account-adapter-openbao" }
+oya-foundry-account-adapter-inmemory = { version = "0.1.0", path = "../oya-foundry-account-adapter-inmemory" }

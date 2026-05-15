@@ -12,4 +12,4 @@ oya-foundry-autonomy-ceiling-domain = { path = "../oya-foundry-autonomy-ceiling-
 oya-foundry-autonomy-ceiling-kernel = { path = "../oya-foundry-autonomy-ceiling-kernel" }
 oya-foundry-capability-registry-kernel = { path = "../oya-foundry-capability-registry-kernel" }
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
-oya-foundry-account-adapter-openbao = { path = "../oya-foundry-account-adapter-openbao" }
+oya-foundry-account-adapter-inmemory = { path = "../oya-foundry-account-adapter-inmemory" }

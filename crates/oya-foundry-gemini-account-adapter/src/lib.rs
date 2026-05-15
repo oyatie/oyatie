@@ -6,18 +6,18 @@
 use std::process::Stdio;
 use tokio::process::Command;
 
-use oya_foundry_account_adapter_openbao::OpenBaoAdapter;
+use oya_foundry_account_adapter_inmemory::InMemorySecretStoreAdapter;
 use oya_foundry_account_domain::SecretStorePort;
 use oya_foundry_supervisor_kernel::{
     DriverHealth, ProviderFamily, SessionDriver, SessionTicket, SpawnedSession, SupervisorError,
 };
 
 pub struct GeminiDriver {
-    secrets: OpenBaoAdapter,
+    secrets: InMemorySecretStoreAdapter,
 }
 
 impl GeminiDriver {
-    pub fn new(secrets: OpenBaoAdapter) -> Self {
+    pub fn new(secrets: InMemorySecretStoreAdapter) -> Self {
         Self { secrets }
     }
 }

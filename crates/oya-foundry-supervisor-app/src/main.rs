@@ -3,7 +3,7 @@
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_foundry_account_adapter_openbao::OpenBaoAdapter;
+use oya_foundry_account_adapter_inmemory::InMemorySecretStoreAdapter;
 use oya_foundry_autonomy_ceiling_domain::CeilingPolicy;
 use oya_foundry_claude_account_adapter::ClaudeDriver;
 use oya_foundry_codex_account_adapter::CodexDriver;
@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // 3. Setup security
-    let secrets_adapter = OpenBaoAdapter::new();
+    let secrets_adapter = InMemorySecretStoreAdapter::new();
     let ceiling_policy = CeilingPolicy::new();
     let ceiling = CedarAutonomyCeilingAdapter::new(ceiling_policy);
     let audit = LogAuditPort;
