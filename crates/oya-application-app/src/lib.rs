@@ -1040,13 +1040,15 @@ impl Foundation {
             return Err(FoundationError::McpAccessDenied);
         }
 
-        let visible_capability = self
+        let visible_capability_opt = self
             .capabilities
             .discover_for_tenant(&endpoint.tenant_id.value, principal.autonomy_ceiling)
             .map_err(map_capability_error)?
             .into_iter()
-            .find(|capability| capability.id == request.tool_name)
-            .ok_or_else(|| {
+            .find(|capability| capability.id == request.tool_name);
+        let visible_capability = match visible_capability_opt {
+            Some(capability) => capability,
+            None => {
                 self.audit_chain.append_classifications(
                     tenant.id.clone(),
                     "foundry.mcp.tool.call",
@@ -1055,8 +1057,9 @@ impl Foundation {
                     vec![DataClass::InternalOnly],
                     "DENY",
                 )?;
-                FoundationError::McpAccessDenied
-            })?;
+                return Err(FoundationError::McpAccessDenied);
+            }
+        };
         let tool = project_capability_tool(&visible_capability).map_err(map_mcp_error)?;
         if let Err(error) = authorize_tool_call(&endpoint, &principal, &tool) {
             self.audit_chain.append_classifications(
@@ -1398,19 +1401,22 @@ impl Foundation {
             )?
             .hash
             .clone();
-        let break_glass_invoke_audit_hash = autonomy_break_glass.as_ref().map(|break_glass| {
-            self.audit_chain
-                .append_classifications(
-                    break_glass.tenant_id.value.clone(),
-                    "foundry.autonomy.break_glass.invoke",
-                    Plane::Control,
-                    request.purpose,
-                    internal_audit_classifications(),
-                    "ALLOW",
-                )?
-                .hash
-                .clone()
-        });
+        let break_glass_invoke_audit_hash = match autonomy_break_glass.as_ref() {
+            Some(break_glass) => Some(
+                self.audit_chain
+                    .append_classifications(
+                        break_glass.tenant_id.value.clone(),
+                        "foundry.autonomy.break_glass.invoke",
+                        Plane::Control,
+                        request.purpose,
+                        internal_audit_classifications(),
+                        "ALLOW",
+                    )?
+                    .hash
+                    .clone(),
+            ),
+            None => None,
+        };
         if !autonomy_decision.allowed() {
             let (capability_invoke_audit_hash, topic_audit_hash) =
                 self.append_invocation_denial_audits(&request, &capability)?;
@@ -1777,7 +1783,7 @@ impl Foundation {
             },
             break_glass_invoke_audit_hash.as_deref(),
         );
-        autonomy_evidence_fields.insert("run_id".to_string(), run.run_id.value.clone()?);
+        autonomy_evidence_fields.insert("run_id".to_string(), run.run_id.value.clone());
         autonomy_evidence_fields.insert(
             "evidence_topic".to_string(),
             capability.evidence_topic.value.clone(),
@@ -1992,7 +1998,7 @@ impl Foundation {
             .hash
             .clone();
         let mut evidence_fields = BTreeMap::new();
-        evidence_fields.insert("audit_event_hash".to_string(), evidence_event_hash.clone()?);
+        evidence_fields.insert("audit_event_hash".to_string(), evidence_event_hash.clone());
         evidence_fields.insert(
             "capability_invoke_audit_event_hash".to_string(),
             capability_invoke_event_hash,
@@ -2275,7 +2281,7 @@ impl Foundation {
             .hash
             .clone();
         let Some(run_id) = run_id else {
-            return Ok(()?);
+            return Ok(());
         };
         let Some(capability) = self.capabilities.get(&request.capability_id).cloned() else {
             self.audit_chain.append_classifications(

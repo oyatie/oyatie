@@ -72,12 +72,13 @@ pub fn validate_pr_traceability(
         let Some(index) = section_index(&sections, required) else {
             return Err(PrTraceabilityError::MissingSection { section: required });
         };
-        if let Some(previous_index) = previous_index
+        if let (Some(previous_index), Some(previous_section_id)) =
+            (previous_index, previous_section)
             && index <= previous_index
         {
             return Err(PrTraceabilityError::SectionOutOfOrder {
                 section: required,
-                previous_section: previous_section.expect("previous section set"),
+                previous_section: previous_section_id,
             });
         }
         if section_body(&document.body, &sections, required)

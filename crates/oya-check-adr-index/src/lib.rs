@@ -46,19 +46,12 @@ where
     I: IntoIterator<Item = AdrDecisionRecord>,
 {
     let records = normalized_records(records)?;
-    if records.is_empty() {
+    let Some(last_record) = records.last() else {
         return Err(AdrIndexError::NoRecords);
-    }
+    };
     let status_counts = status_counts(&records);
     let gaps = adr_number_gaps(&records);
-    let next_adr = format!(
-        "ADR-{:04}",
-        records
-            .last()
-            .expect("records non-empty after empty check")
-            .number
-            + 1
-    );
+    let next_adr = format!("ADR-{:04}", last_record.number + 1);
     let report = AdrIndexReport {
         records: records.len(),
         next_adr: next_adr.clone(),
@@ -154,8 +147,9 @@ fn status_counts(records: &[AdrDecisionRecord]) -> BTreeMap<String, usize> {
 }
 
 fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> String {
-    let first = records.first().expect("records non-empty");
-    let last = records.last().expect("records non-empty");
+    let (Some(first), Some(last)) = (records.first(), records.last()) else {
+        return String::new();
+    };
     let mut out = String::new();
     out.push_str("# Oyatie — ADR Index\n\n");
     out.push_str("> **Generated:** from [`decisions/`](decisions/) by `oya doc adr-index`. Do not hand-edit generated rows.\n");
@@ -228,8 +222,9 @@ fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> St
 }
 
 fn render_json(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> String {
-    let first = records.first().expect("records non-empty");
-    let last = records.last().expect("records non-empty");
+    let (Some(first), Some(last)) = (records.first(), records.last()) else {
+        return String::new();
+    };
     let mut out = String::new();
     out.push_str("{\n");
     out.push_str("  \"_schema\": {\n");
@@ -398,10 +393,11 @@ fn code_span_forbidden_glossary_tokens(value: &str) -> String {
             output.push_str(&value[index..end]);
             output.push('`');
             index = end;
-        } else {
-            let character = value[index..].chars().next().expect("index in bounds");
+        } else if let Some(character) = value[index..].chars().next() {
             output.push(character);
             index += character.len_utf8();
+        } else {
+            break;
         }
     }
     output
