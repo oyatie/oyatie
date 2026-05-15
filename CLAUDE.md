@@ -1,8 +1,8 @@
 # Oyatie Claude guidance
 
-Redirect-class root hub. Read `.omc/specs/root-hub-pointers.json` first; `docs/AGENTS.md` is the operating contract until PHASE-5 promotes `.omc/specs/agent-operating-contract.json`.
+Redirect-class root hub. Read `/specs/cross-cutting/root-hub-pointers.json` first; `docs/AGENTS.md` is the operating contract until PHASE-5 promotes `/specs/cross-cutting/agent-operating-contract.json`.
 
-Pointers: `.omc/specs/master-plan-sequencing.json`; `.omc/specs/markdown-retirement-policy.json`; `docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md`.
+Pointers: `/specs/cross-cutting/master-plan-sequencing.json`; `/specs/cross-cutting/markdown-retirement-policy.json`; `docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md`.
 
 Agent-executable instructions are fenced for the banned-primitives lane. Human terminal shortcuts belong outside this fenced agent surface.
 

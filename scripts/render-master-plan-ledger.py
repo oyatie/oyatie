@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render/check a compact ledger from .omc/specs/masterplan.json."""
+"""Render/check a compact ledger from /specs/cross-cutting/masterplan.json."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ import pathlib
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-MASTERPLAN = ROOT / ".omc/specs/masterplan.json"
-DEFAULT_OUTPUT = ROOT / ".omc/evidence/master-plan-ledger.md"
+MASTERPLAN = ROOT / "/specs/cross-cutting/masterplan.json"
+DEFAULT_OUTPUT = ROOT / "/evidence/master-plan-ledger.md"
 
 
 def fail(message: str) -> int:
