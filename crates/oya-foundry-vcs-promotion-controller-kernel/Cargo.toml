@@ -1,5 +1,5 @@
 [package]
-name = "oya-foundry-vcs-promotion-controller"
+name = "oya-foundry-vcs-promotion-controller-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -12,7 +12,7 @@ oya-foundry-vcs-changebundle-kernel = { path = "../oya-foundry-vcs-changebundle-
 oya-foundry-vcs-test-standard-gate-kernel = { path = "../oya-foundry-vcs-test-standard-gate-kernel" }
 
 [lib]
-name = "oya_foundry_vcs_promotion_controller"
+name = "oya_foundry_vcs_promotion_controller_kernel"
 path = "src/lib.rs"
 doctest = false
 
