@@ -197,7 +197,7 @@ rename plan for the recommended path per row.
 | 9 | `oya-foundry-cloud-mutation-kernel` | compound feature `cloud-mutation` not registered | NEW-COMPOUND |
 | 10 | `oya-foundry-codeowners-mirror-kernel` | compound feature `codeowners-mirror` not registered | NEW-COMPOUND |
 | 11 | `oya-foundry-cohesion-fitness-kernel` | compound feature `cohesion-fitness` not registered | NEW-COMPOUND |
-| 12 | `oya-foundry-constitution-cite-kernel` | compound feature `constitution-cite` not registered | NEW-COMPOUND |
+| 12 | `oya-foundry-constitution-cite-kernel` | compound feature `constitution-cite` not registered | ~~NEW-COMPOUND~~ SUNSET 2026-05-15 — crate deleted in commit `526e4bf` (strike: retire docs/CONSTITUTION.md and its enforcement crate); row preserved for historical audit integrity |
 | 13 | `oya-foundry-cost-budget-kernel` | compound feature `cost-budget` not registered | NEW-COMPOUND |
 | 14 | `oya-foundry-data-class-fitness-kernel` | 3-token feature exceeds cap | LONG-FEATURE |
 | 15 | `oya-foundry-doc-catalog-kernel` | compound feature `doc-catalog` not registered | NEW-COMPOUND |

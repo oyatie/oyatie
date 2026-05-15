@@ -1,7 +1,8 @@
 ---
 id: ADR-0107
-title: `tools/` directory is implicit `app` layer (amends ADR-0056 / ADR-0105)
-status: Accepted
+title: `tools/` directory canonical-suffix binding (was: implicit `app` layer — SUPERSEDED by self)
+status: Superseded
+superseded_by: ADR-0107 §"Amendment 2026-05-15 — no-exception canonical naming"
 owner: council-architecture
 date: 2026-05-15
 amends:
@@ -12,10 +13,46 @@ relates_to:
   - ADR-0106-rename-application-to-usecase.md
 ---
 
-# ADR-0107: `tools/` directory is implicit `app` layer (amends ADR-0056 / ADR-0105)
+# ADR-0107: `tools/` directory canonical-suffix binding (was: implicit `app` layer — superseded)
 
 ## Status
-Accepted
+Superseded by self via 2026-05-15 amendment (see §"Amendment 2026-05-15" below). The original "implicit-app" exception is REMOVED. Every crate under `tools/` MUST carry a canonical layer suffix from ADR-0105's 13-value enum. No exceptions.
+
+## Amendment 2026-05-15 — no-exception canonical naming
+
+User directive (2026-05-15): *"for 9 dont allow exceptions. fix our adr and other documents that declare exceptions. stick with canonical and if you need addition to canonical make the edit. it is paramount that everything is in predictable shape for maintainability."*
+
+### Revised decision
+
+1. **The "implicit-app" exception is REMOVED.** Crates under `tools/` are NOT implicitly `app` by directory location. The directory is an organizational hint, not a naming declaration.
+2. **Every `tools/` crate MUST end in a canonical layer suffix** drawn from ADR-0105's 13-value enum (`kernel | domain | usecase | app | adapter | infrastructure | cli | rest | grpc | graphql | worker | sdk | api`), or match a documented Adopted Pattern (`oya-check-<feature>` self-layering or `*-adapter-<backend>` backend-qualifier).
+3. **Binary tool crates under `tools/` SHALL use the `-app` suffix** as the canonical declaration of composition-root layer. This is the documented binding of `app` to the `[[bin]]` shape per ADR-0056 §"Layer semantics > app".
+4. **`oya-tooling-agent-read` retains its name** ONLY because CLAUDE.md declares it a sanctioned coordination primitive whose name is doctrinally fixed by the agent-operating contract. This is a doctrinal lock at the agent-contract layer, NOT a naming-canonical exception. The crate-naming kernel records it as a documented doctrinal carve-out tied to ADR-0053 (sanctioned primitives), distinct from the layer-enum canonical surface.
+
+### Effect on the 9 crates originally enumerated
+
+| Crate | Resolution | Rationale |
+|---|---|---|
+| `tools/oya-foundry-fitness-portfolio-citation` | RENAME → `*-app` | Binary tool; canonical `-app` suffix per layer enum. |
+| `tools/oya-foundry-fitness-predictable-naming` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-foundry-fitness-archive-orphan` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-foundry-fitness-banned-primitives` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-foundry-fitness-adr-shape` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-foundry-fitness-authoritative-tracked` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-foundry-fitness-purpose-audit` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-adapter-substitution-test` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-tooling-agent-read` | KEEP (doctrinal lock, not naming exception) | CLAUDE.md sanctioned primitive; name fixed at agent-operating-contract layer. Recorded as a doctrinal carve-out under ADR-0053, NOT a layer-enum exception. |
+
+All 8 renames execute as C1-shaped atomic commits per ADR-0054 §grit-scaffold-claim-pattern.
+
+## Original (superseded) decision — for history
+
+(Original §"Decision" content preserved below for traceability. Do NOT cite.)
+
+~~**Any crate under `tools/` is implicitly the `app` layer.**~~ Superseded by 2026-05-15 amendment — implicit-by-location is no longer a sanctioned naming surface. The 9 crates enumerated above are resolved either by explicit rename to canonical layer suffix or by recorded doctrinal carve-out (only `oya-tooling-agent-read`).
+
+## Pre-amendment Status (historical)
+Originally `Accepted` on 2026-05-15. Superseded the same day by user directive prioritizing predictable canonical naming over directory-implicit conventions.
 
 ## Context
 
@@ -41,9 +78,11 @@ Two issues with the per-crate rename:
 
 ADR-0105 §Adopted Patterns already formalized `oya-check-<feature>` as a self-layering convention (the µservice IS the layer). The same pattern applies to `tools/`: the directory IS the layer.
 
-## Decision
+## Decision (SUPERSEDED — historical, see §Amendment above)
 
-**Any crate under `tools/` is implicitly the `app` layer.** No explicit `*-app` suffix is required. The directory location is the layer declaration.
+~~**Any crate under `tools/` is implicitly the `app` layer.**~~ Superseded 2026-05-15. The canonical rule is: every `tools/` crate ends in a canonical layer suffix; binaries use `-app`. The original text is preserved below for traceability only.
+
+~~Any crate under `tools/` is implicitly the `app` layer.~~ No explicit `*-app` suffix is required. The directory location is the layer declaration.
 
 Constraints on tools/ crates:
 - MUST be a binary (i.e., `[[bin]]` in Cargo.toml).

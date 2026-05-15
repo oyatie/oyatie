@@ -262,14 +262,17 @@ rust-version = "1.95.0"
 
 [workspace.metadata.oya]
 # v4.1 BNF registry: oya-<microservice>[-<bc>]-<layer> (flat catalog; no shared|vertical binary)
-# Layer enum (13 canonical values per ADR-0056 amended by ADR-0105):
-#   kernel|domain|application|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk|api
-# Adopted patterns (ADR-0105 + ADR-0107):
+# Layer enum (13 canonical values per ADR-0056 amended by ADR-0105 + ADR-0106):
+#   kernel|domain|usecase|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk|api
+# Adopted patterns (ADR-0105 §Adopted Patterns):
 #   oya-check-<feature>  — self-layering check family (the µservice IS the layer).
 #   *-adapter-<backend>  — backend-qualifier sub-suffix where backend ∈
 #                          {fake,inmemory,aws,oci,gcp,azure,postgres,redis,sqlite,...}.
-#   tools/*              — implicit `app` layer; any crate directly under tools/
-#                          is a binary, no `-app` suffix required (ADR-0107).
+# tools/ binding (ADR-0107 amended 2026-05-15 — NO implicit-app exception):
+#   Every crate under tools/ MUST carry a canonical layer suffix from the enum.
+#   Binary tools SHALL use `-app`. There is no directory-implicit naming.
+#   Sole doctrinal carve-out: `oya-tooling-agent-read` is locked by CLAUDE.md
+#   sanctioned-primitive contract (ADR-0053), not by a layer-enum exception.
 # Microservice registry (open set; registered microservice names)
 [workspace.metadata.oya.microservices.cloud]
 owner = "council-cloud"
@@ -493,22 +496,23 @@ serde_yaml = "0.9"
 toml = "0.8"
 regex = "1"
 
-# Workspace lints added 2026-05-15. WARN level, not DENY — driving the
-# baseline-warning surface (128 warnings across 110 source locations at
-# wire-up time: 127 panic + 120 expect_used + 7 unwrap_used; some lines
-# trigger multiple lints) to zero is the cleanup arc; promote to DENY in
-# a follow-up commit per Phase E1. Each workspace member opts in via
-# `[lints] workspace = true` in its own Cargo.toml.
+# Workspace lints — DENY since 2026-05-15. Cleanup arc landed the baseline
+# warning surface (128 warnings across 110 source locations at wire-up
+# time: 127 panic + 120 expect_used + 7 unwrap_used; some lines trigger
+# multiple lints) to zero, so DENY promotion per Phase E1 is now safe.
+# Each workspace member opts in via `[lints] workspace = true` in its own
+# Cargo.toml.
 #
-# Tests use `.unwrap()` and `.expect()` legitimately; the WARN level
-# doesn't fail the build. The eventual DENY promotion will exempt test
-# code via `#[cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used,
-# clippy::panic))]` at the test-module level, OR per-crate carve-outs in
-# `[lints.clippy]` overrides.
+# Tests legitimately use `.unwrap()`, `.expect()`, and `panic!`. Exemption
+# pattern: each crate's lib.rs / main.rs carries
+#   #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+# so DENY applies to production code and ALLOW applies under `cfg(test)`.
+# Integration tests under `tests/` are separate crates that need their
+# own per-file `#![allow(...)]` header.
 [workspace.lints.clippy]
-unwrap_used = "warn"
-expect_used = "warn"
-panic = "warn"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
 
 # Release-profile hardening per 2026-05-15 audit + hyperscaler-grade
 # performance/scalability bar (specs/cross-cutting/oyatie-doctrine.json P8,

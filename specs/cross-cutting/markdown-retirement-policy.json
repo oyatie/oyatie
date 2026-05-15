@@ -80,7 +80,7 @@
       "prerequisite_for_operational": [
         "ADR JSON Schema",
         "ADR-content JSON Schema",
-        "Update oya-check-adr-index + oya-check-adr-citation + oya-check-constitution-cite check crates to read JSON instead of markdown",
+        "Update oya-check-adr-index + oya-check-adr-citation check crates to read JSON instead of markdown (oya-check-constitution-cite removed in commit 526e4bf — strike: retire docs/CONSTITUTION.md and its enforcement crate, sunset 2026-05-15)",
         "Update all crate-side ADR citation comments (e.g., 'per ADR-NNNN') to point at JSON"
       ]
     },
@@ -94,8 +94,7 @@
         "constitution.json schema",
         "doc-catalog.json schema (extends existing partial)",
         "masterplan.json schema",
-        "agent-operating-contract.json schema",
-        "Update CONSTITUTION-cite check crate"
+        "agent-operating-contract.json schema"
       ]
     },
     {
@@ -118,10 +117,10 @@
     },
     {
       "phase_id": "PHASE-8-CHECK-CRATE-REWRITES",
-      "scope": "Rewrite ~12 check crates that grep markdown to consume JSON: oya-check-adr-citation, oya-check-adr-index, oya-check-authority-cohesion, oya-check-codeowners-mirror, oya-check-constitution-cite, oya-check-doc-catalog, oya-check-documentation-system, oya-check-glossary-coverage, oya-check-glossary-vocabulary, oya-check-raci-coverage, oya-check-readme-coverage, oya-check-runbook-freshness",
+      "scope": "Rewrite ~11 check crates that grep markdown to consume JSON: oya-check-adr-citation, oya-check-adr-index, oya-check-authority-cohesion, oya-check-codeowners-mirror, oya-check-doc-catalog, oya-check-documentation-system, oya-check-glossary-coverage, oya-check-glossary-vocabulary, oya-check-raci-coverage, oya-check-readme-coverage, oya-check-runbook-freshness (oya-check-constitution-cite deleted in commit 526e4bf — strike: retire docs/CONSTITUTION.md and its enforcement crate, sunset 2026-05-15; no rewrite needed)",
       "deadline": "2026-08-31",
       "status": "planned",
-      "files_count_estimated": 12,
+      "files_count_estimated": 11,
       "prerequisite_for_operational": [
         "All preceding phases complete; each crate has a tested JSON-consuming refactor"
       ]
