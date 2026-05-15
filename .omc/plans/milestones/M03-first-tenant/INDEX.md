@@ -1,8 +1,4 @@
 ---
-purpose: Generated hierarchy index for existing phase/IP tree so masterplan.json can address this milestone explicitly.
----
-
----
 doc_class: MilestoneIndex
 parent: ../../MASTERPLAN.md
 id: M03-first-tenant

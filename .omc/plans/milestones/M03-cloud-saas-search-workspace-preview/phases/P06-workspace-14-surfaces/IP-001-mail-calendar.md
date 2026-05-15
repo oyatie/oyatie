@@ -1,8 +1,4 @@
 ---
-purpose: Ship workspace.mail.{smtp,imap,jmap} + workspace.calendar.caldav per RFCs.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-001

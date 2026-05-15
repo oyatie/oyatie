@@ -1,8 +1,4 @@
 ---
-purpose: Author tracked contracts + fitness lanes for Vertical and Workspace cross-axis seams.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P08-IP-004

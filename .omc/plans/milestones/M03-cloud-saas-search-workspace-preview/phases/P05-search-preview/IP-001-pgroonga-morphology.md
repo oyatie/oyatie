@@ -1,8 +1,4 @@
 ---
-purpose: pgroonga day-1 with mecab-ko / khaiii / JP / EN tokenizer pipelines.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P05-IP-001

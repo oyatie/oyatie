@@ -1,8 +1,4 @@
 ---
-purpose: Vector index per-tenant; per-class data-boundary enforcement at index level.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P05-IP-002

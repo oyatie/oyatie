@@ -1,8 +1,4 @@
 ---
-purpose: Bring cloud.compute.k8s.cluster.create + cloud.compute.functions.invoke to stable.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P02-IP-002

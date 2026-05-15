@@ -1,8 +1,4 @@
 ---
-purpose: Search RAG endpoint exposed to Foundry capabilities under Data Use Boundary.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P05-IP-003

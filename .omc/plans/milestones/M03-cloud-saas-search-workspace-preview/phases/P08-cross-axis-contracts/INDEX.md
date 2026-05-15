@@ -1,8 +1,4 @@
 ---
-purpose: Author every DESIGN §10 cross-axis contract row as a tracked OpenAPI / Proto / AsyncAPI artifact bound to a fitness lane.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P08

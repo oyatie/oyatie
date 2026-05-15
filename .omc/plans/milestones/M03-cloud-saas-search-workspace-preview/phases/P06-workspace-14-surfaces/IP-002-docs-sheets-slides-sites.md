@@ -1,8 +1,4 @@
 ---
-purpose: Ship CRDT-backed collaborative editing surfaces.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-002

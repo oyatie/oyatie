@@ -1,8 +1,4 @@
 ---
-purpose: Onboard one of JP-Tokyo / US-NoVa / EU-Frankfurt; council elects.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P07-IP-002

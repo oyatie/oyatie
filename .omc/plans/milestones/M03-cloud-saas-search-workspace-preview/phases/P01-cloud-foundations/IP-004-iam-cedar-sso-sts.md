@@ -1,8 +1,4 @@
 ---
-purpose: "Bring cloud.iam.* to stable with Cedar policy substrate + SSO + STS."
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-004

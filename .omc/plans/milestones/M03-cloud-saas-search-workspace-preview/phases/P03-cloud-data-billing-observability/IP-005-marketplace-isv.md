@@ -1,8 +1,4 @@
 ---
-purpose: Seller application → verification → listing → settlement state machine.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P03-IP-005

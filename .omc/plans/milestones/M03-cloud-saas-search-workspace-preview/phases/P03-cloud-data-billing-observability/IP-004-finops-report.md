@@ -1,8 +1,4 @@
 ---
-purpose: Per-tenant per-axis cost allocation + anomaly detection.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P03-IP-004

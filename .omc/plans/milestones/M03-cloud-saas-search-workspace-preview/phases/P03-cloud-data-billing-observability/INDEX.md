@@ -1,13 +1,9 @@
 ---
-purpose: Bring data services, billing/tax, observability, FinOps, and marketplace to W-Cloud-Preview readiness.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P03
 title: Cloud Data + Billing + Observability + FinOps + Marketplace
-status: partial (in-flight)
+status: in-progress
 purpose: Bring data services, billing/tax, observability, FinOps, and marketplace to W-Cloud-Preview readiness.
 ---
 

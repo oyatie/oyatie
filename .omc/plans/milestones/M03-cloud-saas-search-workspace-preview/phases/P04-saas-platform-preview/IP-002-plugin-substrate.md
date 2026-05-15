@@ -1,8 +1,4 @@
 ---
-purpose: Ship plugin.manifest.register + plugin.invocation under Wasmtime sandbox + Cosign signing.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P04-IP-002

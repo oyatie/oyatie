@@ -1,8 +1,4 @@
 ---
-purpose: Stand up four axis previews in parallel on the M01 foundation + M02 Foundry substrate so vertical pilots can run.
----
-
----
 doc_class: MilestoneIndex
 parent: ../../MASTERPLAN.md
 id: M03

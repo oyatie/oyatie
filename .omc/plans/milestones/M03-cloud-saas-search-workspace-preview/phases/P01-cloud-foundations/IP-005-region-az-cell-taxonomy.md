@@ -1,8 +1,4 @@
 ---
-purpose: Stable cloud.region.list + cloud.az.list with cell-isolation evidence per cell.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-005

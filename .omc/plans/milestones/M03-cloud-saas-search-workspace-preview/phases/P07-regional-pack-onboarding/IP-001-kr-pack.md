@@ -1,8 +1,4 @@
 ---
-purpose: Ship the KR regional-pack contract bindings + residency seams.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P07-IP-001

@@ -1,8 +1,4 @@
 ---
-purpose: workspace.meet.{session,recording} + workspace.chat.message + recordings archival with KMS-shred.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-004

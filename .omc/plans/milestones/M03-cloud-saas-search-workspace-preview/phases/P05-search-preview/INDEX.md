@@ -1,8 +1,4 @@
 ---
-purpose: Stand up search foundations — pgroonga day-1, KR/JP/EN morphology, vector index, tenant-private indexes, RAG endpoint to Foundry.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P05

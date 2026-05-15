@@ -1,8 +1,4 @@
 ---
-purpose: Round out the remaining 5 Workspace surfaces.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-005

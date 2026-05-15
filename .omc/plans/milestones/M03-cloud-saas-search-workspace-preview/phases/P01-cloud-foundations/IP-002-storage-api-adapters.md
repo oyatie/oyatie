@@ -1,8 +1,4 @@
 ---
-purpose: "Bring cloud.storage.{object,block}.* to stable; ship ≥2 provider adapters (S3/GCS/Azure-Blob/OCI-Object)."
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-002

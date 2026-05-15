@@ -1,8 +1,4 @@
 ---
-purpose: marketplace.listing.publish per-vertical / per-region filterable; trust-tier per ADR-0036.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P04-IP-003

@@ -1,8 +1,4 @@
 ---
-purpose: Ship workflow.definition.publish + workflow.run.start + per-step audit emission.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P04-IP-001

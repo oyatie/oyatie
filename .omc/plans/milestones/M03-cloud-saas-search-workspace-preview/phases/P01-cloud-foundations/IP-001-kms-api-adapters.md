@@ -1,8 +1,4 @@
 ---
-purpose: Bring cloud.kms.{encrypt,decrypt} to stable; ship ≥2 provider adapters (OpenBao/AWS-KMS/GCP-KMS/Azure-KeyVault).
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-001

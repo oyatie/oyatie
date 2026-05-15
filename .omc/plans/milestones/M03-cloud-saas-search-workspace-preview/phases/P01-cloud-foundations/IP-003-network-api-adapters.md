@@ -1,8 +1,4 @@
 ---
-purpose: "Bring cloud.network.* surfaces to stable; ≥2 provider adapters per surface."
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-003

@@ -1,8 +1,4 @@
 ---
-purpose: workspace.drive.{put,get} with per-object KMS-shred + per-permission ACL.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-003

@@ -1,8 +1,4 @@
 ---
-purpose: Onboard ≥ 2 regional packs per W-Cloud-Preview gate; KR-Seoul mandatory, second pack council-elected (JP-Tokyo / US-Northern-Virginia / EU-Frankfurt).
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P07

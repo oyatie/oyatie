@@ -1,8 +1,4 @@
 ---
-purpose: Ship managed Postgres/Citus/pgvector/Redis/Kafka/ClickHouse via provider-agnostic data kernel.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P03-IP-001

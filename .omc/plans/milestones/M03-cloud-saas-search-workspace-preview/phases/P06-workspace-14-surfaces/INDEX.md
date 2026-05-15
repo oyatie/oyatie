@@ -1,8 +1,4 @@
 ---
-purpose: Ship Axis 2 — Workspace / Productivity Suite added 2026-05-09. Google Workspace / Naver Works / Microsoft 365 / AWS Productivity class.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P06

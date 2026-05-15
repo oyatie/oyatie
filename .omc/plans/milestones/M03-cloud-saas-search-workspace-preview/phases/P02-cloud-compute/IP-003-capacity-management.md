@@ -1,8 +1,4 @@
 ---
-purpose: Bring reserved + committed-use + spot capacity management to stable.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P02-IP-003

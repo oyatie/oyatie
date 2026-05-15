@@ -1,8 +1,4 @@
 ---
-purpose: Ship workflow engine, Object Graph property tiers consumption, plugin substrate, public REST API stability tier.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P04

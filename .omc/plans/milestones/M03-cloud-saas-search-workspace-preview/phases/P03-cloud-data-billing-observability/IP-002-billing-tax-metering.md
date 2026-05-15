@@ -1,8 +1,4 @@
 ---
-purpose: Per-region tax-invoice format via regional pack; per-resource metering via outbox.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P03-IP-002

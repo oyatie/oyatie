@@ -1,8 +1,4 @@
 ---
-purpose: Bring cloud.compute.vm.create to stable; ≥2 provider adapters.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P02-IP-001

@@ -1,5 +1,6 @@
 ---
 purpose: Per ADR-0063 §3 every milestone has an acceptance-evidence directory.
+status: in-progress
 ---
 
 # M03-first-tenant acceptance evidence
