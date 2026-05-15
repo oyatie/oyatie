@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-per-vertical-regulator.md
+purpose: Per-vertical regulator binding evidence collected.
 ---
 
 ---

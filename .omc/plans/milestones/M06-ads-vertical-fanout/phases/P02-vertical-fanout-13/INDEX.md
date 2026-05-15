@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Build out the remaining 13 verticals using the M04-proven blueprint, in parallel.
 ---
 
 ---

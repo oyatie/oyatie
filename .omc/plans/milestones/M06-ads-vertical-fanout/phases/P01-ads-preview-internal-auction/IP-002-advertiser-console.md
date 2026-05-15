@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-advertiser-console.md
+purpose: Tenant-internal advertiser console.
 ---
 
 ---

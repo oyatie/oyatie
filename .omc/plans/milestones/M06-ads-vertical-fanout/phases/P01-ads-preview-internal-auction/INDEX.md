@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Open the ads auction internally (tenant-facing only) with privacy-isolated ML loops.
 ---
 
 ---

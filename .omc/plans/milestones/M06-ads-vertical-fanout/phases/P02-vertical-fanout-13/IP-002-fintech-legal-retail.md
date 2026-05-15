@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-fintech-legal-retail.md
+purpose: Author 3 vertical packs in parallel.
 ---
 
 ---

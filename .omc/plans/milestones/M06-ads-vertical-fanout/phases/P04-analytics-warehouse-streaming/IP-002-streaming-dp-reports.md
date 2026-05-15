@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-streaming-dp-reports.md
+purpose: Ship analytics.streaming.subscribe + analytics.report.dp-bounded.
 ---
 
 ---

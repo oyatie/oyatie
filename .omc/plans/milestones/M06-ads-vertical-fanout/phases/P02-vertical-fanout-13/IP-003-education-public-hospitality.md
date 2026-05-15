@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-education-public-hospitality.md
+purpose: Author 3 vertical packs in parallel.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Open the ad-serving auction (internal-tenant first) and fan out remaining verticals in parallel.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-auction-bidding.md
+purpose: Ads auction kernel + bidding engine internal-tenant only.
 ---
 
 ---

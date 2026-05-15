@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-event-warehouse.md
+purpose: Ship analytics.event.ingest + analytics.warehouse.query.
 ---
 
 ---

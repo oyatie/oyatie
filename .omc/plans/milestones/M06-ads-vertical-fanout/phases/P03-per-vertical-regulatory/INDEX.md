@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Bind each of the 13 verticals to its KR regulatory pack subset + DPIA.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: "Ship the analytics axis substrate: event ingestion, warehouse, streaming, DP-bounded reports."
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-dpia-per-vertical.md
+purpose: "Author DPIA per vertical at regional-packs/kr/dpia/<vertical>.md."
 ---
 
 ---

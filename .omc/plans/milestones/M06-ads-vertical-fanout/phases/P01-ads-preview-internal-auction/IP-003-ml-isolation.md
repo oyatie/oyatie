@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-ml-isolation.md
+purpose: Auction ML loops train without cross-tenant data leakage; DP-bounded.
 ---
 
 ---

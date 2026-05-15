@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-construction-real-estate-agri-food.md
+purpose: Author 4 vertical packs in parallel.
 ---
 
 ---
