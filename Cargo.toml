@@ -39,10 +39,6 @@ members = [
   "crates/oya-foundry-catalog-domain",
   "crates/oya-check-claim-ceiling",
   "crates/oya-check-cohesion",
-  "crates/oya-check-statelessness",
-  "crates/oya-check-shardability",
-  "crates/oya-check-perf-budget",
-  "crates/oya-check-benchmark",
   "crates/oya-check-license-policy",
   "crates/oya-foundry-evidence-domain",
   "crates/oya-foundry-evidence-file-adapter",
@@ -72,12 +68,10 @@ members = [
   "crates/oya-foundry-vcs-cli-ratchet",
   "crates/oya-foundry-account-kernel",
   "crates/oya-foundry-account-domain",
-  "crates/oya-foundry-account-app",
   "crates/oya-foundry-codex-account-adapter",
   "crates/oya-foundry-claude-account-adapter",
   "crates/oya-foundry-gemini-account-adapter",
   "crates/oya-foundry-account-adapter-inmemory",
-  "crates/oya-foundry-account-runtime",
   "crates/oya-foundry-adapter-anthropic-api-kernel",
   "crates/oya-foundry-adapter-anthropic-api-adapter",
   "crates/oya-foundry-adapter-anthropic-subscription-kernel",
@@ -251,7 +245,7 @@ members = [
   "crates/oya-foundry-oauth-subscription-kernel",
   "crates/oya-foundry-fitness-upstream-api-drift-kernel",
   "crates/oya-foundry-fitness-tos-policy-kernel",
-  "crates/oya-json-kernel", "crates/oya-cloud-billing-adapter-fake", "crates/oya-cloud-billing-adapter-aws", "crates/oya-cloud-marketplace-adapter-fake", "crates/oya-cloud-marketplace-adapter-oci", "crates/oya-cloud-capacity-adapter-fake", "crates/oya-cloud-capacity-adapter-aws", "crates/oya-cloud-data-adapter-fake", "crates/oya-cloud-data-adapter-oci", "crates/oya-cloud-finops-adapter-fake", "crates/oya-cloud-finops-adapter-aws", "crates/oya-cloud-observability-adapter-fake", "crates/oya-cloud-observability-adapter-oci",
+  "crates/oya-json-kernel",
 ]
 resolver = "2"
 

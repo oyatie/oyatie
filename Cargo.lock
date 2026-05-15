@@ -823,10 +823,6 @@ name = "oya-check-authority-cohesion"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-benchmark"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-brand-residue"
 version = "0.1.0"
 
@@ -896,10 +892,6 @@ name = "oya-check-openapi-rest-route-parity"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-perf-budget"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-placeholder-debt"
 version = "0.1.0"
 
@@ -936,15 +928,7 @@ name = "oya-check-runbook-index"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-shardability"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-slo-coverage"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-statelessness"
 version = "0.1.0"
 
 [[package]]
@@ -960,14 +944,6 @@ name = "oya-check-vendor-recency"
 version = "0.1.0"
 
 [[package]]
-name = "oya-cloud-billing-adapter-aws"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-billing-adapter-fake"
-version = "0.1.0"
-
-[[package]]
 name = "oya-cloud-billing-domain"
 version = "0.1.0"
 dependencies = [
@@ -979,14 +955,6 @@ dependencies = [
 
 [[package]]
 name = "oya-cloud-billing-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-capacity-adapter-aws"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-capacity-adapter-fake"
 version = "0.1.0"
 
 [[package]]
@@ -1036,23 +1004,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-data-adapter-fake"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-data-adapter-oci"
-version = "0.1.0"
-
-[[package]]
 name = "oya-cloud-data-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-finops-adapter-aws"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-finops-adapter-fake"
 version = "0.1.0"
 
 [[package]]
@@ -1117,14 +1069,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-marketplace-adapter-fake"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-marketplace-adapter-oci"
-version = "0.1.0"
-
-[[package]]
 name = "oya-cloud-marketplace-kernel"
 version = "0.1.0"
 
@@ -1164,14 +1108,6 @@ dependencies = [
  "oya-data-boundary-kernel",
  "oya-residency-domain",
 ]
-
-[[package]]
-name = "oya-cloud-observability-adapter-fake"
-version = "0.1.0"
-
-[[package]]
-name = "oya-cloud-observability-adapter-oci"
-version = "0.1.0"
 
 [[package]]
 name = "oya-cloud-observability-api"
@@ -1532,10 +1468,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-account-app"
-version = "0.1.0"
-
-[[package]]
 name = "oya-foundry-account-domain"
 version = "0.1.0"
 dependencies = [
@@ -1544,10 +1476,6 @@ dependencies = [
 
 [[package]]
 name = "oya-foundry-account-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-foundry-account-runtime"
 version = "0.1.0"
 
 [[package]]
