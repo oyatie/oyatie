@@ -1,5 +1,5 @@
 ---
-purpose: Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first default, when direct git / gh is justified, the icm rationale-logging contract, the cutover-bootstrap-window exception window.
+purpose: Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first default, when direct git / gh is justified, the icm rationale-logging contract, the cutover-bootstrap window (time-bounded canonical extension with named sunset).
 ---
 
 ---
@@ -12,8 +12,9 @@ date: 2026-05-12
 purpose: |
   Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first
   default, when direct git / gh is justified, the icm rationale-logging contract,
-  the cutover-bootstrap-window exception window, and the revised
-  banned-primitives lane semantics (catch *undocumented* invocations only).
+  the cutover-bootstrap window (time-bounded canonical extension with named
+  sunset at M-CC-P01 sign-off), and the revised banned-primitives lane
+  semantics (catch *undocumented* invocations only).
 canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
 companion_docs:
@@ -68,7 +69,7 @@ Direct invocation is **permitted** by any operator (agent or human) when
 If any of (1), (2), (3) fails, the invocation is **not** permitted and
 the lane refuses.
 
-## 3. Cutover-bootstrap-window exception
+## 3. Cutover-bootstrap window (time-bounded canonical extension)
 
 During the grit/icm agentic-pipeline cutover (M-CC-P01 per MASTERPLAN
 §8), there is a documented **bootstrap window** during which raw git /
@@ -83,10 +84,13 @@ rationale:
   icm store -t direct-tool-invocations \
     -c "M-CC-P01 cutover bootstrap session" -i critical -k "cutover,bootstrap"
   ```
-- After M-CC-P01 sign-off, the exception expires and the per-invocation
-  rule (§2) applies.
+- After M-CC-P01 sign-off, the bootstrap window sunsets and the
+  per-invocation rule (§2) applies uniformly. No exception clause survives
+  the sunset; the bootstrap window is canonical because it is closed-form
+  (named milestone sunset + audit-emit on every session).
 
-The cutover window is the *only* multi-invocation exemption.
+The cutover bootstrap window is the only multi-invocation extension; it
+is canonical because of the sunset clause, not despite it.
 
 ## 4. Revised lane semantics
 
@@ -190,7 +194,8 @@ scoped to the action.
 4. **Cargo-culting `git push --force-with-lease`** to dodge the lane.
    Both `--force` and `--force-with-lease` are caught.
 5. **Bypassing the merge-gate hook** via `gh pr merge --admin` or web UI.
-   Admin merges require an ADR-tracked exemption.
+   Admin merges require an ADR-tracked extension (named principal +
+   audit-emit on every invocation).
 
 ## 11. Sources scanned
 
