@@ -1,8 +1,4 @@
 ---
-purpose: Implement the audit-chain domain Merkle root and Ed25519 signing/verification kernel.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P03-IP-001

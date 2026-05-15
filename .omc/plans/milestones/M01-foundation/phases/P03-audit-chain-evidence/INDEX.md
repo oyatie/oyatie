@@ -1,8 +1,4 @@
 ---
-purpose: Implement ADR-0003 Merkle-sealed audit chain (Ed25519 signed) and the evidence emission contract every regulated capability invocation must satisfy.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M01-P03

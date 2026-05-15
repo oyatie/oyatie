@@ -1,8 +1,4 @@
 ---
-purpose: Ship the per-tenant user upsert kernel with per-region IdP binding.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P02-IP-001

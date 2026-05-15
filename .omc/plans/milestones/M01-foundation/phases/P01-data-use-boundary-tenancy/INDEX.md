@@ -1,8 +1,4 @@
 ---
-purpose: Land the Data Use Boundary ADR (P0 prereq) and the tenant kernel that every other axis depends on.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M01-P01

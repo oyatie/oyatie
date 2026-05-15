@@ -1,8 +1,4 @@
 ---
-purpose: Ship the fitness lane that validates every catalog record declares plane.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P05-IP-002

@@ -1,8 +1,4 @@
 ---
-purpose: Ship cell-routing primitive per ADR-0009 cell architecture.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P05-IP-001

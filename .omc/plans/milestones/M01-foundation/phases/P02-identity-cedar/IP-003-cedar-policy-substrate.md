@@ -1,8 +1,4 @@
 ---
-purpose: Ship the Cedar RBAC/ABAC substrate that every capability invocation enforces against.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P02-IP-003

@@ -1,8 +1,4 @@
 ---
-purpose: Author and ratify ADR-0008 (Data Use Boundary) — the P0 prereq per PRD §6 constraint 8.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P01-IP-001

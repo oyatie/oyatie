@@ -1,8 +1,4 @@
 ---
-purpose: Ship the foundation correctness layer — every cross-axis contract correct from day one, no product surface ships before this milestone passes.
----
-
----
 doc_class: MilestoneIndex
 parent: ../../MASTERPLAN.md
 id: M01

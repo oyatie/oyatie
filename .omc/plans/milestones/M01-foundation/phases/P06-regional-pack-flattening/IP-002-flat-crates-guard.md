@@ -1,8 +1,4 @@
 ---
-purpose: Ship the flat-crates guard per ADR-0015.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P06-IP-002

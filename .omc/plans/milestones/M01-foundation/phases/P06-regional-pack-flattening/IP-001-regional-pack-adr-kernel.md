@@ -1,8 +1,4 @@
 ---
-purpose: Author the regional-pack ADR + ship the kernel that pack contracts plug into.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P06-IP-001

@@ -1,8 +1,4 @@
 ---
-purpose: Ship the DSR cascade engine that satisfies SPEC §2 DSR rows with proof-of-erasure per affected store.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P01-IP-003

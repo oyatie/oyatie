@@ -1,8 +1,4 @@
 ---
-purpose: Ship the exactly-once outbox + Kafka-class topic registry + Ontology entity upsert with engine-enforced row-level isolation.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M01-P04

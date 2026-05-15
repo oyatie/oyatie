@@ -1,8 +1,4 @@
 ---
-purpose: Bind the Sev-1 tamper-evidence drill to the live audit-chain verification surfaces.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P03-IP-003

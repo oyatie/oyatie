@@ -1,8 +1,4 @@
 ---
-purpose: Ship exactly-once outbox + per-axis topic registry per ADR-0046.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P04-IP-001

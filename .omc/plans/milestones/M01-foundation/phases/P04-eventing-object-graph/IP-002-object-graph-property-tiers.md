@@ -1,8 +1,4 @@
 ---
-purpose: Ship object-graph.entity.upsert + 5 property tiers (vector/timeseries/geo/ciphertext/struct) per ADR-0006.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P04-IP-002

@@ -1,8 +1,4 @@
 ---
-purpose: Ship STS issuance bound to ≤1h purpose-bound credentials; no long-lived API keys.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P02-IP-002

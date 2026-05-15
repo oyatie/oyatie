@@ -1,8 +1,4 @@
 ---
-purpose: Publish AsyncAPI + Proto source contracts for audit events.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P03-IP-002

@@ -1,8 +1,4 @@
 ---
-purpose: Ship the cell-routing primitive and the plane-separation enforcement that every catalog record declares.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M01-P05

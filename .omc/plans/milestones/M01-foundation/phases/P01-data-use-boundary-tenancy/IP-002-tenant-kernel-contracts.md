@@ -1,8 +1,4 @@
 ---
-purpose: Ship the tenancy kernel with immutable region binding and engine-enforced row-level isolation contracts per ADR-0002, ADR-0006, ADR-0049, and PRD-tenancy.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P01-IP-002

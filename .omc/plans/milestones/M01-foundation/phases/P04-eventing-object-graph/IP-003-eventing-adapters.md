@@ -1,8 +1,4 @@
 ---
-purpose: Keep the provider-adapter matrix explicit while M01 proves the provider-neutral eventing boundary through the live file adapter.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P04-IP-003

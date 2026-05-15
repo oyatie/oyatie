@@ -1,8 +1,4 @@
 ---
-purpose: "Ship `oya-identity-*`, `oya-platform-identity-api`, and the Cedar RBAC/ABAC substrate that every capability invocation enforces against."
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M01-P02
