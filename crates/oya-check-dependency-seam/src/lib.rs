@@ -726,6 +726,200 @@ pub fn extract_string_field(raw: &str, field: &str) -> Option<String> {
     Some(tail[..qe].to_string())
 }
 
+/// Classifier for top-level JSON value kinds. Std-only; minimal; no float
+/// math; replaces brittle `raw.contains("\"key\"")` substring matching
+/// flagged by 6 facet lenses in TG2 11-facet debate synthesis CONV-1
+/// (substring approach false-positives on nested string contents AND
+/// false-negatives on whitespace variants).
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum JsonValueKind {
+    BoolTrue,
+    BoolFalse,
+    Null,
+    Number,
+    String,
+    Object,
+    Array,
+}
+
+/// Parse a JSON document and return its top-level keys mapped to value-kind
+/// classifications. Skips nested object/array contents correctly. Returns
+/// an empty map if `raw` is not a valid top-level JSON object or parsing
+/// fails. Std-only kernel; replaces substring-grep approach per CONV-1.
+pub fn parse_top_level_object(
+    raw: &str,
+) -> std::collections::BTreeMap<String, JsonValueKind> {
+    use std::collections::BTreeMap;
+    let mut out: BTreeMap<String, JsonValueKind> = BTreeMap::new();
+    let bytes = raw.as_bytes();
+    let mut i = 0usize;
+    // Skip leading whitespace.
+    while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+        i += 1;
+    }
+    if i >= bytes.len() || bytes[i] != b'{' {
+        return out;
+    }
+    i += 1;
+    loop {
+        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        if i >= bytes.len() {
+            return out;
+        }
+        if bytes[i] == b'}' {
+            return out;
+        }
+        if bytes[i] == b',' {
+            i += 1;
+            continue;
+        }
+        if bytes[i] != b'"' {
+            return out;
+        }
+        let key_start = i + 1;
+        i += 1;
+        while i < bytes.len() && bytes[i] != b'"' {
+            if bytes[i] == b'\\' && i + 1 < bytes.len() {
+                i += 2;
+                continue;
+            }
+            i += 1;
+        }
+        if i >= bytes.len() {
+            return out;
+        }
+        let key = String::from_utf8_lossy(&bytes[key_start..i]).to_string();
+        i += 1; // past close-quote of key
+        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        if i >= bytes.len() || bytes[i] != b':' {
+            return out;
+        }
+        i += 1;
+        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+            i += 1;
+        }
+        if i >= bytes.len() {
+            return out;
+        }
+        let kind = match bytes[i] {
+            b't' => {
+                if i + 4 <= bytes.len() && &bytes[i..i + 4] == b"true" {
+                    i += 4;
+                    JsonValueKind::BoolTrue
+                } else {
+                    return out;
+                }
+            }
+            b'f' => {
+                if i + 5 <= bytes.len() && &bytes[i..i + 5] == b"false" {
+                    i += 5;
+                    JsonValueKind::BoolFalse
+                } else {
+                    return out;
+                }
+            }
+            b'n' => {
+                if i + 4 <= bytes.len() && &bytes[i..i + 4] == b"null" {
+                    i += 4;
+                    JsonValueKind::Null
+                } else {
+                    return out;
+                }
+            }
+            b'"' => {
+                i += 1;
+                while i < bytes.len() && bytes[i] != b'"' {
+                    if bytes[i] == b'\\' && i + 1 < bytes.len() {
+                        i += 2;
+                        continue;
+                    }
+                    i += 1;
+                }
+                if i < bytes.len() {
+                    i += 1;
+                }
+                JsonValueKind::String
+            }
+            b'{' => {
+                let mut depth = 1usize;
+                i += 1;
+                while i < bytes.len() && depth > 0 {
+                    match bytes[i] {
+                        b'"' => {
+                            i += 1;
+                            while i < bytes.len() && bytes[i] != b'"' {
+                                if bytes[i] == b'\\' && i + 1 < bytes.len() {
+                                    i += 2;
+                                    continue;
+                                }
+                                i += 1;
+                            }
+                            if i < bytes.len() {
+                                i += 1;
+                            }
+                        }
+                        b'{' => {
+                            depth += 1;
+                            i += 1;
+                        }
+                        b'}' => {
+                            depth -= 1;
+                            i += 1;
+                        }
+                        _ => i += 1,
+                    }
+                }
+                JsonValueKind::Object
+            }
+            b'[' => {
+                let mut depth = 1usize;
+                i += 1;
+                while i < bytes.len() && depth > 0 {
+                    match bytes[i] {
+                        b'"' => {
+                            i += 1;
+                            while i < bytes.len() && bytes[i] != b'"' {
+                                if bytes[i] == b'\\' && i + 1 < bytes.len() {
+                                    i += 2;
+                                    continue;
+                                }
+                                i += 1;
+                            }
+                            if i < bytes.len() {
+                                i += 1;
+                            }
+                        }
+                        b'[' => {
+                            depth += 1;
+                            i += 1;
+                        }
+                        b']' => {
+                            depth -= 1;
+                            i += 1;
+                        }
+                        _ => i += 1,
+                    }
+                }
+                JsonValueKind::Array
+            }
+            b'-' | b'0'..=b'9' => {
+                while i < bytes.len()
+                    && !matches!(bytes[i], b',' | b'}' | b' ' | b'\t' | b'\n' | b'\r')
+                {
+                    i += 1;
+                }
+                JsonValueKind::Number
+            }
+            _ => return out,
+        };
+        out.insert(key, kind);
+    }
+}
+
 /// `rust-default-language`: scan `scripts/` for non-Rust files per P15.
 /// Day-1 report-only stub: counts existing .sh/.py/.mjs/.rb/.pl files (all
 /// grandfathered per audit evidence/audits/doc-antipattern-audit-1778808000.json).
@@ -898,8 +1092,11 @@ pub fn check_scorecard_render(ctx: &WorkspaceContext) -> SubCheckResult {
                             scanned += 1;
                             match std::fs::read_to_string(&p) {
                                 Ok(raw) => {
-                                    if raw.contains("\"change_class_id\"")
-                                        && raw.contains("\"facets\"")
+                                    // CONV-1 (TG2 11-facet debate): parsed JSON
+                                    // structural check replaces substring grep.
+                                    let parsed = parse_top_level_object(&raw);
+                                    if parsed.contains_key("change_class_id")
+                                        && parsed.contains_key("facets")
                                     {
                                         renderable += 1;
                                     }
@@ -967,9 +1164,15 @@ pub fn check_consensus_debate_evidence(ctx: &WorkspaceContext) -> SubCheckResult
                             }
                             match std::fs::read_to_string(&p) {
                                 Ok(raw) => {
-                                    if raw.contains("\"meta_review_triggered\": true")
-                                        || raw.contains("\"meta_review_triggered\":true")
-                                    {
+                                    // CONV-1 (TG2 11-facet debate): parsed JSON
+                                    // structural check replaces substring grep.
+                                    // Whitespace-tolerant; false-positives from
+                                    // embedded strings eliminated.
+                                    let parsed = parse_top_level_object(&raw);
+                                    if matches!(
+                                        parsed.get("meta_review_triggered"),
+                                        Some(JsonValueKind::BoolTrue)
+                                    ) {
                                         meta_triggered += 1;
                                     }
                                 }

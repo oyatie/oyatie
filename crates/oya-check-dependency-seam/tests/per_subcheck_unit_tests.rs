@@ -22,7 +22,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use oya_check_dependency_seam::{
     check_consensus_debate_evidence, check_naming_convention, check_rust_default_language,
-    check_scorecard_render, SubCheckStatus, WorkspaceContext,
+    check_scorecard_render, parse_top_level_object, JsonValueKind, SubCheckStatus,
+    WorkspaceContext,
 };
 
 static TEST_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -214,6 +215,75 @@ fn consensus_debate_happy_path_meta_triggered_with_matching_synthesis() {
         result.findings
     );
     cleanup(&ws);
+}
+
+// =============== JSON parser (CONV-1) ===============
+
+#[test]
+fn parse_top_level_object_classifies_kinds() {
+    let raw = r#"{"a": true, "b": false, "c": null, "d": 42, "e": "str", "f": {}, "g": [1,2]}"#;
+    let m = parse_top_level_object(raw);
+    assert_eq!(m.get("a"), Some(&JsonValueKind::BoolTrue));
+    assert_eq!(m.get("b"), Some(&JsonValueKind::BoolFalse));
+    assert_eq!(m.get("c"), Some(&JsonValueKind::Null));
+    assert_eq!(m.get("d"), Some(&JsonValueKind::Number));
+    assert_eq!(m.get("e"), Some(&JsonValueKind::String));
+    assert_eq!(m.get("f"), Some(&JsonValueKind::Object));
+    assert_eq!(m.get("g"), Some(&JsonValueKind::Array));
+}
+
+#[test]
+fn parse_top_level_object_tolerates_whitespace_variants() {
+    // F7 finding: substring grep failed on `"meta_review_triggered" :  true`
+    // (extra whitespace before colon + multi-space after) — parser must handle.
+    let raw1 = r#"{"meta_review_triggered" :  true}"#;
+    let raw2 = r#"{"meta_review_triggered":true}"#;
+    let raw3 = "{\n  \"meta_review_triggered\":\n    true\n}";
+    for raw in [raw1, raw2, raw3] {
+        let m = parse_top_level_object(raw);
+        assert_eq!(
+            m.get("meta_review_triggered"),
+            Some(&JsonValueKind::BoolTrue),
+            "parser failed on whitespace variant: {:?}",
+            raw
+        );
+    }
+}
+
+#[test]
+fn parse_top_level_object_rejects_substring_bypass() {
+    // F7 finding: substring grep false-positives when literal appears inside
+    // nested string value. Parser must NOT confuse this for top-level key.
+    let raw = r#"{
+      "note": "we discussed meta_review_triggered: true in round 1",
+      "change_id": "CC-X"
+    }"#;
+    let m = parse_top_level_object(raw);
+    assert_eq!(m.get("meta_review_triggered"), None,
+        "embedded string occurrence MUST NOT be classified as top-level key");
+    assert_eq!(m.get("note"), Some(&JsonValueKind::String));
+    assert_eq!(m.get("change_id"), Some(&JsonValueKind::String));
+}
+
+#[test]
+fn parse_top_level_object_skips_nested_object_contents_correctly() {
+    let raw = r#"{
+      "facets": {"F1_linus": {"considered": true}, "F2": {"considered": false}},
+      "change_class_id": "CC-7"
+    }"#;
+    let m = parse_top_level_object(raw);
+    assert_eq!(m.get("facets"), Some(&JsonValueKind::Object));
+    assert_eq!(m.get("change_class_id"), Some(&JsonValueKind::String));
+    // Nested keys must NOT leak to top-level map.
+    assert_eq!(m.get("F1_linus"), None);
+    assert_eq!(m.get("considered"), None);
+}
+
+#[test]
+fn parse_top_level_object_returns_empty_on_malformed_input() {
+    assert!(parse_top_level_object("not json").is_empty());
+    assert!(parse_top_level_object("").is_empty());
+    assert!(parse_top_level_object("[1, 2, 3]").is_empty()); // array, not object
 }
 
 #[test]
