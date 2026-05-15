@@ -2010,6 +2010,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-foundry-fitness-mistakes-ledger-kernel"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
 name = "oya-foundry-fitness-orphan-detection-kernel"
 version = "0.1.0"
 
@@ -2161,6 +2168,13 @@ version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
  "oya-foundry-capability-domain",
+]
+
+[[package]]
+name = "oya-foundry-pr-review-dispatcher-app"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
 ]
 
 [[package]]

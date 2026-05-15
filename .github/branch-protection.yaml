@@ -23,3 +23,13 @@ branches:
       - oya-foundry-fitness-supply-chain
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver
+      # M-CC-P10-IP-004: multispectrum reviewer-agent auto-dispatch.
+      # Posted by .github/workflows/pr-review.yml job-id `oya-pr-review`
+      # after pr-tests + oya-foundry-fitness-supply-chain converge green.
+      # Until the per-facet subagent runtime lands (TODO captured in
+      # evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json
+      # audit_trail.subagent_runtime_followup), the dispatcher emits
+      # APPROVE with subagent_runtime_pending=true; the merge-queue
+      # admission consumer (IP-006) refuses to trust that until the
+      # runtime ships.
+      - oya-pr-review
