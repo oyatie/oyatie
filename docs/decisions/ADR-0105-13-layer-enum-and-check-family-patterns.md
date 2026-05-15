@@ -106,6 +106,33 @@ Constraints:
 3. Per-crate rename for the 18 remaining non-compliant entries (3 runtime + 7 fitness-tool + 8 one-offs). Each is its own C1-shaped atomic commit.
 4. Update `Cargo.toml [workspace.metadata.oya]` comment block (line 266) which references the "Layer enum (12 canonical values)" — bump to 13.
 
+## Amendment 2026-05-15 — `tools/` canonical-suffix binding (paired with ADR-0107 supersede)
+
+User directive (2026-05-15): *"for 9 dont allow exceptions. fix our adr and other documents that declare exceptions. stick with canonical and if you need addition to canonical make the edit."*
+
+### Binding
+
+Every crate under `tools/` MUST end in a canonical layer suffix from the 13-value enum above (or match a documented Adopted Pattern: `oya-check-<feature>` or `*-adapter-<backend>`). The `tools/` directory is an organizational hint; the layer suffix is the naming declaration.
+
+For binary-shape (`[[bin]]`) tools, the canonical layer suffix is **`-app`** (composition-root binary per ADR-0056 §"Layer semantics > app"). This is the documented binding of `app` to the `[[bin]]` shape; no enum extension is required because the existing `app` value already covers binary tools.
+
+For lib+bin dual-shape tools, the suffix follows the lib intent: dual-purpose check µservices use `oya-check-<feature>` (Adopted Pattern); other dual-shape tools take the suffix of the dominant surface.
+
+### Effect on Alternatives Considered
+
+The fourth "Alternatives Considered" entry below (the original "Tools/-implicit-app convention" deferral) is REJECTED retroactively. ADR-0107's implicit-app exception is superseded; tools/ crates take explicit canonical suffixes.
+
+### Doctrinal carve-out (NOT a naming exception)
+
+`oya-tooling-agent-read` retains its name because CLAUDE.md declares it a sanctioned coordination primitive (ADR-0053). The carve-out is at the agent-operating-contract layer, not the layer-enum surface. The predictable-naming fitness kernel records this as a doctrinal-lock entry tied to ADR-0053, distinct from layer-enum compliance.
+
+### Crate-naming kernel update
+
+`oya-foundry-fitness-predictable-naming-kernel` is updated in the same commit series to:
+- REMOVE the tools/-implicit-app shortcut (no `declared_role = None` pass for tools/ crates).
+- ADD a `DOCTRINAL_CARVE_OUTS` allowlist limited to `oya-tooling-agent-read` (citation: ADR-0053 + CLAUDE.md sanctioned primitives).
+- Require canonical suffix for every other `tools/` crate.
+
 ## References
 
 - ADR-0056 §"12-Value Layer Enum (closed)" — the enum this ADR amends
