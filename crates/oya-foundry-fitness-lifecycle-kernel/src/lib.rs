@@ -328,6 +328,618 @@ pub fn evaluate(
     }
 }
 
+// ===========================================================================
+// Optional I/O ring (dev-CLI helpers) — opt-in via `discovery` module.
+//
+// The framework kernel is I/O-free at its core (`evaluate`, `Stage`,
+// `Transition`, `LifecycleConfig`, `LifecycledArtifact`). The thin helpers
+// below sit BESIDE the kernel rather than inside it: they are used by the
+// per-lifecycle dev-CLIs so each `tools/*-lifecycle-app/` stays under 50
+// lines. They depend on `std::fs` only — no third-party crates — and are
+// gated behind the `discovery` module so kernel consumers that want pure
+// in-memory checks (e.g. WASM, test harnesses) can ignore them entirely.
+// ===========================================================================
+
+pub mod discovery {
+    //! Minimal JSON config loader + YAML-front-matter scalar reader +
+    //! `<dir>/<glob>.<ext>` walker. Zero third-party deps.
+    use super::{
+        Defaults, LifecycleConfig, LifecycledArtifact, NaiveDate, SourceSpec, Stage, Transition,
+    };
+    use std::fs;
+    use std::path::{Path, PathBuf};
+
+    pub fn load_config(path: &Path) -> Result<LifecycleConfig, String> {
+        let raw = fs::read_to_string(path)
+            .map_err(|e| format!("could not read config {}: {e}", path.display()))?;
+        parse_config_json(&raw)
+    }
+
+    pub fn discover(
+        config: &LifecycleConfig,
+        observed_at: NaiveDate,
+    ) -> Result<Vec<LifecycledArtifact>, String> {
+        let mut out = Vec::new();
+        for source in &config.sources {
+            let entries = expand_glob(&source.glob)?;
+            for path in entries {
+                let raw = fs::read_to_string(&path)
+                    .map_err(|e| format!("could not read {}: {e}", path.display()))?;
+                let stage = frontmatter_scalar(&raw, &source.stage_field);
+                let supersession = source
+                    .supersession_field
+                    .as_deref()
+                    .and_then(|f| frontmatter_scalar(&raw, f));
+                let deadline = source
+                    .deadline_field
+                    .as_deref()
+                    .and_then(|f| frontmatter_scalar(&raw, f))
+                    .and_then(|s| parse_date(&s));
+                let milestone = source
+                    .milestone_field
+                    .as_deref()
+                    .and_then(|f| frontmatter_scalar(&raw, f));
+                out.push(LifecycledArtifact {
+                    location: path.to_string_lossy().into_owned(),
+                    kind: config.name.clone(),
+                    current_stage: stage,
+                    observed_at,
+                    deadline_at: deadline,
+                    history: vec![],
+                    supersession_target: supersession,
+                    milestone_anchor: milestone,
+                });
+            }
+        }
+        Ok(out)
+    }
+
+    pub fn parse_date(s: &str) -> Option<NaiveDate> {
+        let parts: Vec<&str> = s.splitn(3, '-').collect();
+        if parts.len() != 3 {
+            return None;
+        }
+        let y: i32 = parts[0].parse().ok()?;
+        let m: u8 = parts[1].parse().ok()?;
+        let d: u8 = parts[2].parse().ok()?;
+        Some(NaiveDate::ymd(y, m, d))
+    }
+
+    pub fn frontmatter_scalar(raw: &str, field: &str) -> Option<String> {
+        let mut in_fm = false;
+        let mut started = false;
+        for line in raw.lines() {
+            if line.trim() == "---" {
+                if !started {
+                    started = true;
+                    in_fm = true;
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            if !in_fm {
+                continue;
+            }
+            let trimmed = line.trim_start();
+            if let Some(rest) = trimmed.strip_prefix(field)
+                && let Some(rest) = rest.strip_prefix(':')
+            {
+                let value = rest.trim().trim_matches('"').trim_matches('\'').trim();
+                if value.is_empty() {
+                    return None;
+                }
+                return Some(value.to_string());
+            }
+        }
+        None
+    }
+
+    pub fn expand_glob(glob: &str) -> Result<Vec<PathBuf>, String> {
+        let glob = glob.trim();
+        if let Some((head, _tail)) = glob.split_once("/**/") {
+            return recursive(Path::new(head), &glob[head.len() + 4..]);
+        }
+        if let Some((dir, rest)) = glob.rsplit_once('/') {
+            return shallow_glob(Path::new(dir), rest);
+        }
+        Err(format!("unsupported glob pattern: {glob}"))
+    }
+
+    fn shallow_glob(dir: &Path, pattern: &str) -> Result<Vec<PathBuf>, String> {
+        let mut out = Vec::new();
+        if !dir.exists() {
+            return Ok(out);
+        }
+        let entries = fs::read_dir(dir).map_err(|e| format!("read_dir {}: {e}", dir.display()))?;
+        for entry in entries.flatten() {
+            if !entry.file_type().map(|t| t.is_file()).unwrap_or(false) {
+                continue;
+            }
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if matches_glob(&name, pattern) {
+                out.push(entry.path());
+            }
+        }
+        out.sort();
+        Ok(out)
+    }
+
+    fn recursive(root: &Path, pattern: &str) -> Result<Vec<PathBuf>, String> {
+        let mut out = Vec::new();
+        if !root.exists() {
+            return Ok(out);
+        }
+        let mut stack = vec![root.to_path_buf()];
+        while let Some(dir) = stack.pop() {
+            let entries = match fs::read_dir(&dir) {
+                Ok(e) => e,
+                Err(_) => continue,
+            };
+            for entry in entries.flatten() {
+                let path = entry.path();
+                let Ok(ft) = entry.file_type() else {
+                    continue;
+                };
+                if ft.is_dir() {
+                    stack.push(path);
+                } else if ft.is_file() {
+                    let name = entry.file_name().to_string_lossy().into_owned();
+                    if matches_glob(&name, pattern) {
+                        out.push(path);
+                    }
+                }
+            }
+        }
+        out.sort();
+        Ok(out)
+    }
+
+    pub fn matches_glob(name: &str, pattern: &str) -> bool {
+        if let Some((prefix, suffix)) = pattern.split_once('*') {
+            return name.starts_with(prefix)
+                && name.ends_with(suffix)
+                && name.len() >= prefix.len() + suffix.len();
+        }
+        name == pattern
+    }
+
+    pub fn parse_config_json(raw: &str) -> Result<LifecycleConfig, String> {
+        let v = json_mini::parse(raw)?;
+        let name = v.field_str("name")?.to_string();
+        let version = v.field_u32("version").unwrap_or(1);
+        let stages = v
+            .field_arr("stages")?
+            .iter()
+            .map(|s| {
+                Ok::<_, String>(Stage {
+                    id: s.field_str("id")?.to_string(),
+                    terminal: s.field_bool("terminal").unwrap_or(false),
+                    requires_supersession_edge: s
+                        .field_bool("requires_supersession_edge")
+                        .unwrap_or(false),
+                    gated_by_milestone: s.field_str("gated_by_milestone").ok().map(String::from),
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let transitions = v
+            .field_arr("transitions")?
+            .iter()
+            .map(|t| {
+                Ok::<_, String>(Transition {
+                    from: t.field_str("from")?.to_string(),
+                    to: t.field_str("to")?.to_string(),
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let sources = v
+            .field_arr("sources")?
+            .iter()
+            .map(|s| {
+                Ok::<_, String>(SourceSpec {
+                    kind: s.field_str("kind")?.to_string(),
+                    glob: s.field_str("glob")?.to_string(),
+                    stage_field: s.field_str("stage_field")?.to_string(),
+                    supersession_field: s.field_str("supersession_field").ok().map(String::from),
+                    deadline_field: s.field_str("deadline_field").ok().map(String::from),
+                    milestone_field: s.field_str("milestone_field").ok().map(String::from),
+                })
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        let defaults = v
+            .field_obj("defaults")
+            .map(|d| Defaults {
+                wave: d.field_str("wave").ok().map(String::from),
+                case_insensitive_stage_match: d
+                    .field_bool("case_insensitive_stage_match")
+                    .unwrap_or(false),
+            })
+            .unwrap_or_default();
+        Ok(LifecycleConfig {
+            name,
+            version,
+            stages,
+            transitions,
+            sources,
+            defaults,
+        })
+    }
+
+    mod json_mini {
+        use std::collections::HashMap;
+        pub fn parse(input: &str) -> Result<Value, String> {
+            let mut p = Parser {
+                src: input.as_bytes(),
+                pos: 0,
+            };
+            p.skip_ws();
+            let v = p.parse_value()?;
+            p.skip_ws();
+            if p.pos != p.src.len() {
+                return Err(format!("trailing input at byte {}", p.pos));
+            }
+            Ok(v)
+        }
+        pub enum Value {
+            Null,
+            Bool(bool),
+            Number(f64),
+            Str(String),
+            Array(Vec<Value>),
+            Object(HashMap<String, Value>),
+        }
+        impl Value {
+            pub fn field_str(&self, name: &str) -> Result<&str, String> {
+                match self {
+                    Value::Object(m) => match m.get(name) {
+                        Some(Value::Str(s)) => Ok(s.as_str()),
+                        Some(Value::Null) => Err(format!("field `{name}` is null")),
+                        Some(_) => Err(format!("field `{name}` is not a string")),
+                        None => Err(format!("field `{name}` missing")),
+                    },
+                    _ => Err("expected object".into()),
+                }
+            }
+            pub fn field_bool(&self, name: &str) -> Result<bool, String> {
+                match self {
+                    Value::Object(m) => match m.get(name) {
+                        Some(Value::Bool(b)) => Ok(*b),
+                        Some(_) => Err(format!("field `{name}` is not a bool")),
+                        None => Err(format!("field `{name}` missing")),
+                    },
+                    _ => Err("expected object".into()),
+                }
+            }
+            pub fn field_u32(&self, name: &str) -> Result<u32, String> {
+                match self {
+                    Value::Object(m) => match m.get(name) {
+                        Some(Value::Number(n)) => Ok(*n as u32),
+                        Some(_) => Err(format!("field `{name}` is not a number")),
+                        None => Err(format!("field `{name}` missing")),
+                    },
+                    _ => Err("expected object".into()),
+                }
+            }
+            pub fn field_arr(&self, name: &str) -> Result<&Vec<Value>, String> {
+                match self {
+                    Value::Object(m) => match m.get(name) {
+                        Some(Value::Array(a)) => Ok(a),
+                        Some(_) => Err(format!("field `{name}` is not an array")),
+                        None => Err(format!("field `{name}` missing")),
+                    },
+                    _ => Err("expected object".into()),
+                }
+            }
+            pub fn field_obj(&self, name: &str) -> Option<&Value> {
+                match self {
+                    Value::Object(m) => match m.get(name) {
+                        Some(v @ Value::Object(_)) => Some(v),
+                        _ => None,
+                    },
+                    _ => None,
+                }
+            }
+        }
+        struct Parser<'a> {
+            src: &'a [u8],
+            pos: usize,
+        }
+        impl<'a> Parser<'a> {
+            fn skip_ws(&mut self) {
+                while self.pos < self.src.len() && (self.src[self.pos] as char).is_whitespace() {
+                    self.pos += 1;
+                }
+            }
+            fn peek(&self) -> Option<u8> {
+                self.src.get(self.pos).copied()
+            }
+            fn parse_value(&mut self) -> Result<Value, String> {
+                self.skip_ws();
+                match self.peek() {
+                    Some(b'{') => self.parse_object(),
+                    Some(b'[') => self.parse_array(),
+                    Some(b'"') => Ok(Value::Str(self.parse_string()?)),
+                    Some(b't') | Some(b'f') => self.parse_bool(),
+                    Some(b'n') => self.parse_null(),
+                    Some(c) if c == b'-' || c.is_ascii_digit() => self.parse_number(),
+                    Some(c) => Err(format!("unexpected byte {c} at pos {}", self.pos)),
+                    None => Err("unexpected EOF".into()),
+                }
+            }
+            fn parse_object(&mut self) -> Result<Value, String> {
+                self.pos += 1;
+                self.skip_ws();
+                let mut map: HashMap<String, Value> = HashMap::new();
+                if self.peek() == Some(b'}') {
+                    self.pos += 1;
+                    return Ok(Value::Object(map));
+                }
+                loop {
+                    self.skip_ws();
+                    let key = self.parse_string()?;
+                    self.skip_ws();
+                    if self.peek() != Some(b':') {
+                        return Err("expected ':' in object".into());
+                    }
+                    self.pos += 1;
+                    let val = self.parse_value()?;
+                    map.insert(key, val);
+                    self.skip_ws();
+                    match self.peek() {
+                        Some(b',') => self.pos += 1,
+                        Some(b'}') => {
+                            self.pos += 1;
+                            break;
+                        }
+                        other => return Err(format!("expected ',' or '}}' got {other:?}")),
+                    }
+                }
+                Ok(Value::Object(map))
+            }
+            fn parse_array(&mut self) -> Result<Value, String> {
+                self.pos += 1;
+                self.skip_ws();
+                let mut items = Vec::new();
+                if self.peek() == Some(b']') {
+                    self.pos += 1;
+                    return Ok(Value::Array(items));
+                }
+                loop {
+                    items.push(self.parse_value()?);
+                    self.skip_ws();
+                    match self.peek() {
+                        Some(b',') => self.pos += 1,
+                        Some(b']') => {
+                            self.pos += 1;
+                            break;
+                        }
+                        other => return Err(format!("expected ',' or ']' got {other:?}")),
+                    }
+                }
+                Ok(Value::Array(items))
+            }
+            fn parse_string(&mut self) -> Result<String, String> {
+                if self.peek() != Some(b'"') {
+                    return Err("expected '\"'".into());
+                }
+                self.pos += 1;
+                let start = self.pos;
+                while let Some(c) = self.peek() {
+                    if c == b'\\' {
+                        self.pos += 2;
+                        continue;
+                    }
+                    if c == b'"' {
+                        let s = std::str::from_utf8(&self.src[start..self.pos])
+                            .map_err(|e| format!("utf8: {e}"))?
+                            .to_string();
+                        self.pos += 1;
+                        let out = s
+                            .replace("\\\\", "\u{0001}")
+                            .replace("\\\"", "\"")
+                            .replace("\\n", "\n")
+                            .replace("\\t", "\t")
+                            .replace('\u{0001}', "\\");
+                        return Ok(out);
+                    }
+                    self.pos += 1;
+                }
+                Err("unterminated string".into())
+            }
+            fn parse_bool(&mut self) -> Result<Value, String> {
+                if self.src[self.pos..].starts_with(b"true") {
+                    self.pos += 4;
+                    Ok(Value::Bool(true))
+                } else if self.src[self.pos..].starts_with(b"false") {
+                    self.pos += 5;
+                    Ok(Value::Bool(false))
+                } else {
+                    Err("expected bool".into())
+                }
+            }
+            fn parse_null(&mut self) -> Result<Value, String> {
+                if self.src[self.pos..].starts_with(b"null") {
+                    self.pos += 4;
+                    Ok(Value::Null)
+                } else {
+                    Err("expected null".into())
+                }
+            }
+            fn parse_number(&mut self) -> Result<Value, String> {
+                let start = self.pos;
+                if self.peek() == Some(b'-') {
+                    self.pos += 1;
+                }
+                while let Some(c) = self.peek() {
+                    if c.is_ascii_digit()
+                        || c == b'.'
+                        || c == b'e'
+                        || c == b'E'
+                        || c == b'-'
+                        || c == b'+'
+                    {
+                        self.pos += 1;
+                    } else {
+                        break;
+                    }
+                }
+                let text = std::str::from_utf8(&self.src[start..self.pos])
+                    .map_err(|e| format!("utf8: {e}"))?;
+                text.parse::<f64>()
+                    .map(Value::Number)
+                    .map_err(|e| format!("number: {e}"))
+            }
+        }
+    }
+}
+
+pub mod cli {
+    //! Reusable dev-CLI runner. Each per-lifecycle binary calls
+    //! [`run_default`] with its lane name + default config path.
+    use super::{LifecycleReport, NaiveDate, ViolationKind, evaluate};
+    use super::discovery;
+    use std::env;
+    use std::path::PathBuf;
+    use std::process::ExitCode;
+
+    pub fn run_default(lane_name: &'static str, default_config: &'static str) -> ExitCode {
+        let args: Vec<String> = env::args().skip(1).collect();
+        let opts = match Options::parse(args, default_config) {
+            Ok(o) => o,
+            Err(msg) => {
+                eprintln!("{lane_name} error: {msg}");
+                return ExitCode::FAILURE;
+            }
+        };
+        let config = match discovery::load_config(&opts.config) {
+            Ok(c) => c,
+            Err(msg) => {
+                eprintln!("{lane_name} config error: {msg}");
+                return ExitCode::FAILURE;
+            }
+        };
+        let now = today();
+        let artifacts = match discovery::discover(&config, now) {
+            Ok(a) => a,
+            Err(msg) => {
+                eprintln!("{lane_name} discovery error: {msg}");
+                return ExitCode::FAILURE;
+            }
+        };
+        let report = evaluate(&config, &artifacts, now, &opts.reached_milestones);
+        emit(lane_name, &report, opts.wave_warn_only)
+    }
+
+    fn emit(lane_name: &str, report: &LifecycleReport, warn_only: bool) -> ExitCode {
+        if report.is_clean() {
+            println!(
+                "{lane_name} ok: artifacts_observed={} stage_counts={:?} violations=0",
+                report.artifacts_observed, report.stage_counts
+            );
+            return ExitCode::SUCCESS;
+        }
+        let prefix = if warn_only { "WARN (wave A)" } else { "FAIL" };
+        let mut breakdown: std::collections::BTreeMap<&'static str, usize> =
+            std::collections::BTreeMap::new();
+        for v in &report.violations {
+            *breakdown.entry(v.kind.as_str()).or_insert(0) += 1;
+        }
+        let _ = ViolationKind::StageNotDeclared; // type pin
+        let target = if warn_only {
+            println!(
+                "{lane_name} {prefix}: artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
+                report.artifacts_observed,
+                report.stage_counts,
+                report.violations.len(),
+                breakdown
+            );
+            for v in &report.violations {
+                println!(
+                    "  - [{}] {} stage={:?} hint={}",
+                    v.kind.as_str(),
+                    v.location,
+                    v.stage,
+                    v.hint
+                );
+            }
+            ExitCode::SUCCESS
+        } else {
+            eprintln!(
+                "{lane_name} {prefix}: artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
+                report.artifacts_observed,
+                report.stage_counts,
+                report.violations.len(),
+                breakdown
+            );
+            for v in &report.violations {
+                eprintln!(
+                    "  - [{}] {} stage={:?} hint={}",
+                    v.kind.as_str(),
+                    v.location,
+                    v.stage,
+                    v.hint
+                );
+            }
+            ExitCode::FAILURE
+        };
+        target
+    }
+
+    struct Options {
+        config: PathBuf,
+        reached_milestones: Vec<String>,
+        wave_warn_only: bool,
+    }
+
+    impl Options {
+        fn parse(args: Vec<String>, default_config: &str) -> Result<Self, String> {
+            let mut config = PathBuf::from(default_config);
+            let mut reached_milestones: Vec<String> = Vec::new();
+            let mut wave_warn_only = true;
+            let mut i = 0usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "--config" => {
+                        i += 1;
+                        config = PathBuf::from(
+                            args.get(i).ok_or("--config needs a path")?.clone(),
+                        );
+                    }
+                    "--milestone" => {
+                        i += 1;
+                        reached_milestones.push(
+                            args.get(i).ok_or("--milestone needs an id")?.to_string(),
+                        );
+                    }
+                    "--block" => wave_warn_only = false,
+                    "--warn-only" => wave_warn_only = true,
+                    "--help" | "-h" => return Err(usage()),
+                    other => return Err(format!("unexpected argument '{other}'\n{}", usage())),
+                }
+                i += 1;
+            }
+            Ok(Self {
+                config,
+                reached_milestones,
+                wave_warn_only,
+            })
+        }
+    }
+
+    fn usage() -> String {
+        "options: [--config PATH] [--milestone ID]... [--block|--warn-only]".into()
+    }
+
+    fn today() -> NaiveDate {
+        if let Ok(s) = env::var("OYA_LIFECYCLE_NOW")
+            && let Some(d) = discovery::parse_date(&s)
+        {
+            return d;
+        }
+        NaiveDate::ymd(2026, 5, 15)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
