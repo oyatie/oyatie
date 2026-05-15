@@ -1,0 +1,55 @@
+[package]
+# Naming justification (per feedback_naming_justification):
+#   - BNF v4.1:  oya - foundry - vcs-merge-queue-fix-loop - app
+#   - slot-2 µservice: `foundry` (registered; internal engineering platform).
+#   - bc-tokens: `vcs-merge-queue-fix-loop` (kebab tokens; bounded context is
+#                the merge-queue integration layer that wires the kernel
+#                scheduler to the actual GitHub admission events emitted by
+#                IP-004 (pr-review-approved) and IP-005 (pr-review-fix-
+#                requested + workflow_run convergence).
+#   - layer (slot-N): `app` — bin tool that orchestrates the kernel; matches
+#                ADR-0107 amended 2026-05-15 "tools/ binding: binary tools
+#                SHALL use -app".
+#
+# IP plan symbol-claims (M-CC-P10-IP-006 §"Symbols to grit-claim") listed
+# `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/...`. Per the
+# no-exceptions-canonical directive [[feedback_no_exceptions_canonical]] we
+# do NOT create a parallel kernel; instead we extend the existing
+# `oya-foundry-vcs-review-mergequeue-kernel` (where ReviewState +
+# QueueState + FixupTask already live) with new modules
+# (parked_state, pr_retry_budget, speculative_rebase, fairness, scheduler).
+# This integration crate is the binary surface that wires the kernel into
+# GitHub events.
+name = "oya-foundry-vcs-merge-queue-fix-loop-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "oya-foundry-vcs-merge-queue-fix-loop-app"
+path = "src/main.rs"
+
+[lib]
+name = "oya_foundry_vcs_merge_queue_fix_loop_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-vcs-review-mergequeue-kernel = { path = "../../crates/oya-foundry-vcs-review-mergequeue-kernel" }
+
+[lints]
+workspace = true
+
+[package.metadata.oya]
+context     = "foundry"
+role        = "app"
+feature     = "vcs-merge-queue-fix-loop"
+capability  = ""
+layer       = "app"
+audit_chain = true
+
+[package.metadata.oya.lifecycle]
+stage = "scaffolded"
+introducing_ip = "M-CC-P10-IP-006"

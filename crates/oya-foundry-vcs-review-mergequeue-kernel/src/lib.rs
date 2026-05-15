@@ -3,6 +3,29 @@
 //! This crate is pure and provider-free. It models controller-owned review,
 //! rebase, and merge-queue events and returns bounded agent fixup work without
 //! letting agents own direct rebase/merge operations.
+//!
+//! ## M-CC-P10-IP-006 extension (2026-05-15)
+//!
+//! Per IP-006 §"Scope" this kernel additionally provides the merge-queue
+//! scheduler that ties together parked-PR semantics, per-PR retry budget,
+//! speculative rebase against current queue head, and fairness picking.
+//! The state machine extends the existing `ReviewLoopState` reducer:
+//!
+//! ```text
+//!   ReviewApproved ─▶ Enqueued ─▶ tick ─▶ Merged (head advances)
+//!                           │       │
+//!                           │       └─▶ Park (CI/review fail) ──▶ revalidate ──▶ back to Enqueued
+//!                           │                                                       │
+//!                           │                                                       └─▶ Evict (budget exhausted)
+//!                           └─▶ ParkPr called externally on the same PR id
+//! ```
+//!
+//! See:
+//! - [`parked_state::ParkedPr`] — queue-position-preserving park state.
+//! - [`pr_retry_budget::PrBudget`] — N=5/PR cap (mirrors IP-005's shared pool).
+//! - [`speculative_rebase::rebase_against_head`] — re-rebase against current head.
+//! - [`fairness::pick_next_pr`] — FIFO picker that skips parked / evicted.
+//! - [`scheduler::Scheduler`] — top-level state machine + tick log.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -11,6 +34,13 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt;
 
 use oya_foundry_vcs_kernel::{ChangeSet, CiState, QueueState, ReviewState, SymbolId};
+
+// M-CC-P10-IP-006 extension modules.
+pub mod fairness;
+pub mod parked_state;
+pub mod pr_retry_budget;
+pub mod scheduler;
+pub mod speculative_rebase;
 
 pub const REVIEW_MERGEQUEUE_SCHEMA_VERSION: u32 = 1;
 pub const DEFAULT_ISSUE_DIGEST_SLA_SECONDS: u64 = 86_400;

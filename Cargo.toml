@@ -230,6 +230,7 @@ members = [
   "tools/oya-foundry-fitness-banned-primitives-app",
   "tools/oya-foundry-pr-review-dispatcher-app",
   "tools/oya-foundry-vcs-ci-fix-loop-dispatcher-app",
+  "tools/oya-foundry-vcs-merge-queue-fix-loop-app",
   "tools/oya-foundry-fitness-archive-orphan-app",
   "tools/oya-foundry-fitness-adapter-with-no-importer-app",
 "tools/oya-foundry-vcs-admission-gate-app",
