@@ -507,7 +507,7 @@ mod tests {
         };
         let now = d(2026, 5, 15);
         // Milestone NOT reached -> healthy.
-        let v1 = evaluate(&[clause.clone()], now, &[]);
+        let v1 = evaluate(std::slice::from_ref(&clause), now, &[]);
         assert!(v1.is_empty(), "milestone-not-reached: {v1:?}");
         // Milestone reached -> SunsetReached. days_overdue is None
         // because no date anchor exists to measure against (milestone-

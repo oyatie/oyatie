@@ -1,15 +1,15 @@
 // ADR-0083 Tier 3: integration tests use .unwrap() / .expect() / panic! to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-/// ICM JSON round-trip contract test.
-///
-/// Per Condition 3 of iter-3 final fold: mint a synthetic token via `icm store`,
-/// recall via `icm recall -f json`, parse the JSON array, and assert equality
-/// of the stored content field.
-///
-/// This test is gated by the presence of the `icm` binary. If `icm` is not on
-/// PATH, the test is skipped (not failed) — this allows CI without icm installed
-/// to still pass the xtask fixture matrix gates.
+// ICM JSON round-trip contract test.
+//
+// Per Condition 3 of iter-3 final fold: mint a synthetic token via `icm store`,
+// recall via `icm recall -f json`, parse the JSON array, and assert equality
+// of the stored content field.
+//
+// This test is gated by the presence of the `icm` binary. If `icm` is not on
+// PATH, the test is skipped (not failed) — this allows CI without icm installed
+// to still pass the xtask fixture matrix gates.
 
 use std::process::Command;
 

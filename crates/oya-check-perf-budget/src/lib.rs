@@ -73,10 +73,10 @@ impl std::error::Error for Error {}
 const SECTION_HEADING: &str = "## Load test";
 
 fn extract_section_body<'a>(content: &'a str, heading: &str) -> Option<&'a str> {
-    let mut iter = content.split('\n');
+    let iter = content.split('\n');
     let mut start: Option<usize> = None;
     let mut consumed = 0usize;
-    while let Some(line) = iter.next() {
+    for line in iter {
         if line.trim_end() == heading {
             start = Some(consumed + line.len() + 1);
             break;
