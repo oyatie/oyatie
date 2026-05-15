@@ -55,8 +55,8 @@ jobs:
             cosign verify-blob \
               --certificate "${sig%.sig}.crt" \
               --signature "${sig}" \
-              --certificate-identity-regexp '.*' \
-              --certificate-oidc-issuer-regexp '.*' \
+              --certificate-identity-regexp '^https://github\.com/jason931225/oyatie/\.github/workflows/cosign\.yml@refs/' \
+              --certificate-oidc-issuer-regexp '^https://token\.actions\.githubusercontent\.com$' \
               "${sig%.sig}"
           done
 
