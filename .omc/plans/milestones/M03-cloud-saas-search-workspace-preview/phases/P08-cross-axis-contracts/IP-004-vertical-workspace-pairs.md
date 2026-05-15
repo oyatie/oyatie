@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-vertical-workspace-pairs.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P08-IP-004

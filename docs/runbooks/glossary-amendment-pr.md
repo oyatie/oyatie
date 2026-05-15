@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for glossary-amendment-pr.md
+---
+
 # Oyatie Runbook — Glossary Amendment Pr
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

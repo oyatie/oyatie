@@ -1,9 +1,13 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P08
 title: Supply-Chain Security (Cosign + Rekor + SLSA + SBOM)
-status: stub
+status: complete
 purpose: Every artifact Cosign-signed + Rekor-anchored; SBOM per build; SLSA level published.
 ---
 
@@ -21,10 +25,10 @@ Per MASTERPLAN §2 Directives 3 (final-shape from day one — supply-chain rigor
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Cosign + Rekor signing pipeline | stub | [`IP-001-cosign-rekor.md`](IP-001-cosign-rekor.md) |
-| IP-002 | SBOM generation per build (CycloneDX / SPDX) | stub | [`IP-002-sbom-pipeline.md`](IP-002-sbom-pipeline.md) |
-| IP-003 | License-policy lane (AGPL/GPL/SSPL/BUSL/RSAL hard-deny) | stub | [`IP-003-license-policy-lane.md`](IP-003-license-policy-lane.md) |
-| IP-004 | SLSA level ≥3 attestation publishing | stub | [`IP-004-slsa-attestation.md`](IP-004-slsa-attestation.md) |
+| IP-001 | Cosign + Rekor signing pipeline | complete | [`IP-001-cosign-rekor.md`](IP-001-cosign-rekor.md) |
+| IP-002 | SBOM generation per build (CycloneDX / SPDX) | complete | [`IP-002-sbom-pipeline.md`](IP-002-sbom-pipeline.md) |
+| IP-003 | License-policy lane (AGPL/GPL/SSPL/BUSL/RSAL hard-deny) | complete | [`IP-003-license-policy-lane.md`](IP-003-license-policy-lane.md) |
+| IP-004 | SLSA level ≥3 attestation publishing | complete | [`IP-004-slsa-attestation.md`](IP-004-slsa-attestation.md) |
 
 ## Estimated parallelism
 4 agents.

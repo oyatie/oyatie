@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-multi-az-failover.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P01-IP-002

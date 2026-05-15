@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cross-axis-contradiction-audit.md
+---
+
 # Oyatie Runbook — Cross Axis Contradiction Audit
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

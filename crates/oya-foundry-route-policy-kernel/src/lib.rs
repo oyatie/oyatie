@@ -44,6 +44,10 @@ pub enum RouteError {
     PrivacyBoundaryUnmet,
     ResidencyUnmet,
     UnsupportedProvider,
+    /// Returned when settings drift exclusion drops the eligible count.
+    DriftExcluded {
+        excluded_count: usize,
+    },
 }
 
 pub struct RoutePolicy;

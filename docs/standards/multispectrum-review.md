@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for multispectrum-review.md
+---
+
+---
 doc_class: Standard
 status: Accepted
 date: 2026-05-14

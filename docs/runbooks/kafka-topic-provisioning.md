@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for kafka-topic-provisioning.md
+---
+
 # Oyatie Runbook — Kafka Topic Provisioning
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

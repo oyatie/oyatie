@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for license-tier-3-review.md
+---
+
 # Oyatie Runbook — License Tier 3 Review
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for ccproxy-api-parity-matrix.md
+---
+
+---
 doc_class: ParityMatrix
 parent: ./INDEX.md
 milestone: M02

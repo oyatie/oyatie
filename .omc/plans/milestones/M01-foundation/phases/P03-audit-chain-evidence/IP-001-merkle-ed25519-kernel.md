@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-merkle-ed25519-kernel.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P03-IP-001

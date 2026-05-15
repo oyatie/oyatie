@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-architecture-map-walkers.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P09-IP-001

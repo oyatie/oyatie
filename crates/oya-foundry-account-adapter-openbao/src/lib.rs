@@ -8,7 +8,7 @@ use oya_foundry_account_domain::{
     SecretMaterial, SecretReference, SecretStoreError, SecretStorePort,
 };
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct OpenBaoAdapter {
     store: HashMap<String, SecretMaterial>,
 }

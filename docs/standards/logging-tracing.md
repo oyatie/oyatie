@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for logging-tracing.md
+---
+
 # Oyatie — Logging + Tracing Standard
 
 > **Owner:** `ops-sre-reliability`.

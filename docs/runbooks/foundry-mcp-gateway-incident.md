@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-mcp-gateway-incident.md
+---
+
 # Oyatie Runbook — Foundry Mcp Gateway Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

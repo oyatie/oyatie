@@ -28,7 +28,9 @@ pub(crate) fn parse_active_artifact_contract_validate_args(
     args: Vec<String>,
 ) -> Result<ActiveArtifactContractValidateArgs, String> {
     let mut parsed = ActiveArtifactContractValidateArgs {
-        registry_path: PathBuf::from("registries/cross-cutting/artifact-capabilities-registry.json"),
+        registry_path: PathBuf::from(
+            "registries/cross-cutting/artifact-capabilities-registry.json",
+        ),
         emit_evidence_path: None,
         emit_graph_edges_path: None,
     };

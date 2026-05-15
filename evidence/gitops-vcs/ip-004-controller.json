@@ -42,5 +42,6 @@
     "issue": "ProviderEvidenceSet slots did not enforce CI/GHA/Trivy/Argo provider-kind alignment.",
     "fix": "ProviderEvidenceSet::validate_slot_kinds rejects slot/provider mismatches with ProviderSlotMismatch; swapped-provider regression added.",
     "verification": "rustfmt pass; targeted rustc -D warnings IP-004 tests pass: 7 passed; 0 failed"
-  }
+  },
+  "purpose": "Auto-backfilled purpose for ip-004-controller.json"
 }

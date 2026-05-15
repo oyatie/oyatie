@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for gl-reconciliation.md
+---
+
 # Oyatie Runbook — Gl Reconciliation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -3,28 +3,29 @@
   "round": 1,
   "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
   "facet": "F1_linus",
-  "lens": "Linus critique — code shape, data structures, special cases",
-  "answer": "Four near-identical read_dir+filter+substring-grep loops were copy-pasted into four pub fns instead of being expressed as data. The accidental complexity is the function boundary itself: every check re-implements the same scanning primitive with different literal extensions, different literal substrings, and different status mapping. A single `scan_dir(roots, predicate) -> Count` helper plus a table of `(id, roots, predicate, status_mapper)` rows would delete ~100 lines and erase the four special-case shapes. Substring-matching JSON via `raw.contains(\"\\\"facets\\\"\")` is the textbook 'special case that should be deleted by reshaping the data' — parse once, branch on the parsed value.",
+  "lens": "Linus critique \u2014 code shape, data structures, special cases",
+  "answer": "Four near-identical read_dir+filter+substring-grep loops were copy-pasted into four pub fns instead of being expressed as data. The accidental complexity is the function boundary itself: every check re-implements the same scanning primitive with different literal extensions, different literal substrings, and different status mapping. A single `scan_dir(roots, predicate) -> Count` helper plus a table of `(id, roots, predicate, status_mapper)` rows would delete ~100 lines and erase the four special-case shapes. Substring-matching JSON via `raw.contains(\"\\\"facets\\\"\")` is the textbook 'special case that should be deleted by reshaping the data' \u2014 parse once, branch on the parsed value.",
   "key_claims": [
-    "check_rust_default_language, check_naming_convention, check_scorecard_render, check_consensus_debate_evidence all share the identical skeleton: build path(s), read_dir, filter_map(Result::ok), inspect each entry, accumulate a usize counter, push a findings string, return SubCheckResult — only the predicate and the counter labels differ",
+    "check_rust_default_language, check_naming_convention, check_scorecard_render, check_consensus_debate_evidence all share the identical skeleton: build path(s), read_dir, filter_map(Result::ok), inspect each entry, accumulate a usize counter, push a findings string, return SubCheckResult \u2014 only the predicate and the counter labels differ",
     "The hard-coded extension list `[\"sh\",\"py\",\"mjs\",\"rb\",\"pl\"]` in check_rust_default_language and the hard-coded canonical homes `[\"specs/cross-cutting\",\"registries/cross-cutting\",\"evidence\",\"templates\"]` in check_naming_convention are data masquerading as code; they belong in a const table, not inside function bodies",
-    "Substring-matching raw JSON text (`raw.contains(\"\\\"change_class_id\\\"\")`, `raw.contains(\"\\\"meta_review_triggered\\\": true\") || raw.contains(\"\\\"meta_review_triggered\\\":true\")`) is a special case caused by refusing to parse JSON — the `||` for whitespace variants is the smell that proves the data shape is wrong",
+    "Substring-matching raw JSON text (`raw.contains(\"\\\"change_class_id\\\"\")`, `raw.contains(\"\\\"meta_review_triggered\\\": true\") || raw.contains(\"\\\"meta_review_triggered\\\":true\")`) is a special case caused by refusing to parse JSON \u2014 the `||` for whitespace variants is the smell that proves the data shape is wrong",
     "The `if violations.len() < 10` truncation inside check_naming_convention is a hidden special case (silent cap) that no caller can observe; either cap honestly via a Vec::truncate after collection or don't cap",
-    "Two of the four sub-checks iterate the exact same pair `[evidence_dir, per_change_dir]` (scorecard-render and consensus-debate-evidence) — that pair is a workspace concept, not a per-check decision, and should be one named iterator on WorkspaceContext",
+    "Two of the four sub-checks iterate the exact same pair `[evidence_dir, per_change_dir]` (scorecard-render and consensus-debate-evidence) \u2014 that pair is a workspace concept, not a per-check decision, and should be one named iterator on WorkspaceContext",
     "Status mapping is inconsistent without reason: naming-convention maps violations->Fail, but rust-default-language and scorecard-render hard-code NotYetArmed regardless of counts; this divergence is invisible policy buried in three different function bodies",
-    "render_report_json hand-rolls JSON via push_str (lines 920+) which is the same anti-pattern in reverse — emitting JSON by string concatenation while consuming it by substring match means both ends of the pipe are stringly-typed"
+    "render_report_json hand-rolls JSON via push_str (lines 920+) which is the same anti-pattern in reverse \u2014 emitting JSON by string concatenation while consuming it by substring match means both ends of the pipe are stringly-typed"
   ],
   "uncertainty_areas": [
-    "Whether the 'std-only kernel' constraint is a hard rule (would forbid serde_json) or a soft preference — if hard, the reshape target is a tiny hand-written JSON tokenizer used by both ends, not serde",
+    "Whether the 'std-only kernel' constraint is a hard rule (would forbid serde_json) or a soft preference \u2014 if hard, the reshape target is a tiny hand-written JSON tokenizer used by both ends, not serde",
     "Whether NotYetArmed vs Pass/Fail divergence across the four checks is intentional gating policy or accidental drift from copy-paste",
-    "Whether the four FixupTask IDs (F-LANE-RUST-DEFAULT-ENFORCE, F-NAMING-CONVENTION-ENFORCE, F-LANE-SCORECARD-RENDER, F-LANE-DEBATE-SUBCHECK) will collapse into one when armed, or stay four — this determines whether the table-driven reshape is premature",
+    "Whether the four FixupTask IDs (F-LANE-RUST-DEFAULT-ENFORCE, F-NAMING-CONVENTION-ENFORCE, F-LANE-SCORECARD-RENDER, F-LANE-DEBATE-SUBCHECK) will collapse into one when armed, or stay four \u2014 this determines whether the table-driven reshape is premature",
     "Whether `evidence/multispectrum` + `evidence/per-change` is the canonical pair or whether more roots are coming (would change the helper signature)"
   ],
   "anti_patterns_detected": [
     "special-case-bugs",
     "double-bookkeeping-across-artifacts"
   ],
-  "would_delete": "The four separate function bodies. Keep four pub entry points (binary-compatible) but route each through one `fn scan(roots: &[&str], pred: &dyn Fn(&Path, Option<&str>) -> bool) -> usize` helper. Also delete the `if violations.len() < 10` silent truncation and the dual `meta_review_triggered: true` / `meta_review_triggered:true` substring variants — both are symptoms, not features.",
+  "would_delete": "The four separate function bodies. Keep four pub entry points (binary-compatible) but route each through one `fn scan(roots: &[&str], pred: &dyn Fn(&Path, Option<&str>) -> bool) -> usize` helper. Also delete the `if violations.len() < 10` silent truncation and the dual `meta_review_triggered: true` / `meta_review_triggered:true` substring variants \u2014 both are symptoms, not features.",
   "would_reshape": "Replace the four hand-written functions with a `const SUB_CHECKS: &[SubCheckSpec]` table where SubCheckSpec = { id: &'static str, roots: &'static [&'static str], predicate: Predicate, status_policy: StatusPolicy }. Predicate is an enum: `ExtensionIn(&[&str])`, `NameNotKebab`, `JsonHasKeys(&[&str])`, `JsonFieldTrue(&str)`. run_composite iterates the table. Replace `raw.contains(\"\\\"key\\\"\")` substring grep with a minimal parsed-JSON view (parse once per file, reuse across predicates) so the whitespace-variant `||` disappears.",
-  "spectrum_lens_directive_compliance": "single-facet-only-reviewed"
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "Auto-backfilled purpose for TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-F1_linus-r1.json"
 }

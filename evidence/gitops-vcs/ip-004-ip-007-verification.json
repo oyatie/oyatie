@@ -62,5 +62,6 @@
     ],
     "updated_total_targeted_tests": "14 across IP-004/IP-007 after review fixups"
   },
-  "latest_full_verification": "rustfmt check pass; targeted rustc -D warnings IP-004/IP-007 verification pass after review fixups: 14 tests; 0 failed"
+  "latest_full_verification": "rustfmt check pass; targeted rustc -D warnings IP-004/IP-007 verification pass after review fixups: 14 tests; 0 failed",
+  "purpose": "Auto-backfilled purpose for ip-004-ip-007-verification.json"
 }

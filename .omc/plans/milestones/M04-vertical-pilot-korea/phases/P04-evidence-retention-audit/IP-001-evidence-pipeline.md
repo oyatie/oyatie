@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-evidence-pipeline.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P04-IP-001

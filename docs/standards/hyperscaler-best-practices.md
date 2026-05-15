@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for hyperscaler-best-practices.md
+---
+
 # Hyperscaler Best Practices — Research + oyatie Adoption Recommendation (2026-05-12)
 
 <!--

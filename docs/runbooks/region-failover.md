@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for region-failover.md
+---
+
 # Oyatie Runbook — Region Failover
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

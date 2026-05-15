@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-openai-compat-adapter.md
+---
+
+---
 doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-003-openai-compat-adapter

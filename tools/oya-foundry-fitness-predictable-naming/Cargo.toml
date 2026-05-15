@@ -1,0 +1,14 @@
+[package]
+name = "oya-foundry-fitness-predictable-naming"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "oya-foundry-fitness-predictable-naming"
+path = "src/main.rs"
+
+[dependencies]
+oya-foundry-fitness-predictable-naming-kernel = { path = "../../crates/oya-foundry-fitness-predictable-naming-kernel" }

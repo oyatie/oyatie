@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-agent-daemon.md
+---
+
 # Oyatie Runbook — Foundry Agent Daemon
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

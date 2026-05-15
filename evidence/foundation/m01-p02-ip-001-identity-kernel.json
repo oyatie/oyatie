@@ -148,5 +148,6 @@
     "clean": true,
     "reviewer": "codex native code-reviewer 019e272c-792b-7942-af62-b31ec40edff9",
     "summary": "Final ChangeSet review found no blockers; contract/doc/evidence parity and Rust 1.95/edition 2024/rustfmt 2024 stance are aligned."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for m01-p02-ip-001-identity-kernel.json"
 }

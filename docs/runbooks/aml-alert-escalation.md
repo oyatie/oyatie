@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for aml-alert-escalation.md
+---
+
 # Oyatie Runbook — Aml Alert Escalation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

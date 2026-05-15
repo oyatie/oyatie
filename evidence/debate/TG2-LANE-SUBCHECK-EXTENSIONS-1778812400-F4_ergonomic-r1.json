@@ -4,13 +4,13 @@
   "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
   "facet": "F4_ergonomic",
   "lens": "Contributor ergonomics: how many minutes to add a 5th sub-check correctly by copying the pattern; failure modes for partial fills; error message quality; memorization burden; docstring boundary clarity.",
-  "answer": "The pattern is low-friction for the happy path but has two silent-failure traps that will burn contributors: (1) adding a pub fn check_* without wiring it into run_composite produces no compiler error and no test failure until the canonical-IDs test is run, but that test asserts an exact count AND an exact ordered list, so the failure message will say 'assert_eq failed: got 10, expected 11' — which does point at the right test, but the error does not tell the contributor *which* entry is missing or where in the vec to insert it. (2) The canonical-IDs test at line 991 hard-codes both the count (10) and the ordered slice in a single assert_eq, meaning a contributor who adds their fn in the wrong position in run_composite will get a confusing element-mismatch rather than a 'wrong order' hint. Aside from those two traps, the pattern is genuinely copy-paste-safe: SubCheckResult has four fields, all required by the struct literal, so the compiler enforces completeness of the return value. The docstring day-1 vs full-impl boundary is clearly marked in every new fn (FixupTask token + 'NOT YET ARMED' in findings). Memorization burden is low: the contributor must remember (a) define pub fn check_<id>, (b) push it into run_composite vec, (c) update the test count and IDs slice. That is exactly 3 things — on the boundary of acceptable. The new_contributor_minutes estimate is 12: 5 min to read one existing fn and copy it, 4 min to wire into run_composite and update the test, 3 min to debug the ordered-slice assertion if position is wrong.",
+  "answer": "The pattern is low-friction for the happy path but has two silent-failure traps that will burn contributors: (1) adding a pub fn check_* without wiring it into run_composite produces no compiler error and no test failure until the canonical-IDs test is run, but that test asserts an exact count AND an exact ordered list, so the failure message will say 'assert_eq failed: got 10, expected 11' \u2014 which does point at the right test, but the error does not tell the contributor *which* entry is missing or where in the vec to insert it. (2) The canonical-IDs test at line 991 hard-codes both the count (10) and the ordered slice in a single assert_eq, meaning a contributor who adds their fn in the wrong position in run_composite will get a confusing element-mismatch rather than a 'wrong order' hint. Aside from those two traps, the pattern is genuinely copy-paste-safe: SubCheckResult has four fields, all required by the struct literal, so the compiler enforces completeness of the return value. The docstring day-1 vs full-impl boundary is clearly marked in every new fn (FixupTask token + 'NOT YET ARMED' in findings). Memorization burden is low: the contributor must remember (a) define pub fn check_<id>, (b) push it into run_composite vec, (c) update the test count and IDs slice. That is exactly 3 things \u2014 on the boundary of acceptable. The new_contributor_minutes estimate is 12: 5 min to read one existing fn and copy it, 4 min to wire into run_composite and update the test, 3 min to debug the ordered-slice assertion if position is wrong.",
   "key_claims": [
     "Happy-path copy cost is low: four-field SubCheckResult is compiler-enforced; nothing is implicit about the return shape.",
     "The run_composite vec is the single mandatory registration point; forgetting it causes the canonical-IDs test to fail with an unhelpful count-mismatch message rather than a named-entry-missing message.",
     "The canonical-IDs test asserts both length and ordered slice in one assert_eq; a wrong-position insertion produces a confusing diff rather than a 'wrong order' diagnostic.",
-    "Docstrings consistently carry the day-1 boundary signal ('NOT YET ARMED', FixupTask token, severity_day_1: ReportOnly) — this is the clearest part of the pattern.",
-    "Memorization burden is exactly 3 steps (define fn, wire vec, update test) — acceptable per <=3 threshold but no slack for a 4th implicit rule."
+    "Docstrings consistently carry the day-1 boundary signal ('NOT YET ARMED', FixupTask token, severity_day_1: ReportOnly) \u2014 this is the clearest part of the pattern.",
+    "Memorization burden is exactly 3 steps (define fn, wire vec, update test) \u2014 acceptable per <=3 threshold but no slack for a 4th implicit rule."
   ],
   "uncertainty_areas": [
     "It is unclear whether CI runs the canonical-IDs test on every PR or only on the seam-check lane specifically; if skipped, the silent-mismatch window widens.",
@@ -22,9 +22,10 @@
   ],
   "new_contributor_minutes_estimate": 12,
   "copy_paste_hazards": [
-    "Copying an existing fn and forgetting to add it to run_composite vec — no compiler error, test fails only with a count number, not a name.",
-    "Inserting into run_composite at the wrong position — the ordered assert_eq diff shows IDs shifted but does not say 'expected X at index N'; requires manual diff-reading.",
-    "Copying the status field as SubCheckStatus::Pass instead of SubCheckStatus::NotYetArmed for a stub — compiles and passes the test, but emits incorrect status in the JSON report; no guard catches this."
+    "Copying an existing fn and forgetting to add it to run_composite vec \u2014 no compiler error, test fails only with a count number, not a name.",
+    "Inserting into run_composite at the wrong position \u2014 the ordered assert_eq diff shows IDs shifted but does not say 'expected X at index N'; requires manual diff-reading.",
+    "Copying the status field as SubCheckStatus::Pass instead of SubCheckStatus::NotYetArmed for a stub \u2014 compiles and passes the test, but emits incorrect status in the JSON report; no guard catches this."
   ],
-  "spectrum_lens_directive_compliance": "single-facet-only-reviewed"
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "Auto-backfilled purpose for TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-F4_ergonomic-r1.json"
 }

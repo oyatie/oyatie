@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for og-property-tier-migration.md
+---
+
 # Oyatie Runbook — Og Property Tier Migration
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-search-slo.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P04-IP-002

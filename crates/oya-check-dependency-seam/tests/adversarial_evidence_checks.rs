@@ -3,11 +3,11 @@
 //! files in tempdir; assert the lane catches the violation classes.
 
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use oya_check_dependency_seam::{
-    check_change_class_declared, check_multispectrum_evidence_attached, extract_string_field,
-    SubCheckStatus, WorkspaceContext,
+    SubCheckStatus, WorkspaceContext, check_change_class_declared,
+    check_multispectrum_evidence_attached, extract_string_field,
 };
 
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -25,7 +25,7 @@ fn make_tmp_workspace() -> PathBuf {
     base
 }
 
-fn write_evidence(root: &PathBuf, name: &str, body: &str) {
+fn write_evidence(root: &Path, name: &str, body: &str) {
     fs::write(
         root.join("evidence/multispectrum")
             .join(format!("{}.json", name)),
@@ -76,7 +76,11 @@ fn change_class_declared_fails_when_field_missing() {
 #[test]
 fn change_class_declared_reports_each_violation() {
     let root = make_tmp_workspace();
-    write_evidence(&root, "a-ok", r#"{ "change_class_id": "CC-2_adapter_or_infrastructure" }"#);
+    write_evidence(
+        &root,
+        "a-ok",
+        r#"{ "change_class_id": "CC-2_adapter_or_infrastructure" }"#,
+    );
     write_evidence(&root, "b-bad", r#"{ "change_class_id": "CC-bogus" }"#);
     write_evidence(&root, "c-missing", r#"{ }"#);
     let result = check_change_class_declared(&WorkspaceContext::new(&root));
@@ -191,7 +195,10 @@ fn evidence_attached_not_yet_armed_when_dir_empty() {
 #[test]
 fn extract_string_field_returns_first_occurrence_value() {
     let raw = r#"{ "other": "x", "target": "found", "second": "ignored" }"#;
-    assert_eq!(extract_string_field(raw, "target").as_deref(), Some("found"));
+    assert_eq!(
+        extract_string_field(raw, "target").as_deref(),
+        Some("found")
+    );
 }
 
 #[test]

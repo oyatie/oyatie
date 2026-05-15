@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-finops-report.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P03-IP-004

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for INTERNATIONALIZATION.md
+---
+
 # Oyatie — Internationalization (i18n)
 
 > **Status:** Draft v0.1 — 2026-05-09.

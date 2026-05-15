@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-council-resolution.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P01-IP-001

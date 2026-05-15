@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for breach-notification.md
+---
+
 # Oyatie Runbook — Breach Notification
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: P03-shard-1-5-protocol-unknown-deferred

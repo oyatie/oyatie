@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for data-class-transition-approval.md
+---
+
 # Oyatie Runbook — Data Class Transition Approval
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

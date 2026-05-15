@@ -4,29 +4,36 @@ template_id: TPL-MILE-README
 milestone_id: M01-foundation
 parent: ../../../docs/MASTERPLAN.md
 status: Complete
-entry_gate: |
-  none (foundational milestone)
-exit_gate: |
-  - 114 crates renamed atomically to BNF v4.1 (commit 55058f6 verified)
+entry_gate: 'none (foundational milestone)
+
+  '
+exit_gate: '- 114 crates renamed atomically to BNF v4.1 (commit 55058f6 verified)
+
   - cargo {check,build,clippy,nextest,deny,doc} green across workspace
+
   - 4 LEAN architecture lanes (lean-a1..a4) flipped from --report-only to BLOCKER
+
   - 4 quality check crate scaffolds registered (statelessness/shardability/perf-budget/benchmark)
+
   - grit done emitted (or scaffold-locks-oyatie ICM fallback per ADR-0054)
+
   - ICM milestone-complete row emitted
+
+  '
 owner_team: axis-foundry
 bominal_adrs_inherited:
-  - ADR-0100  # hexagonal-attendance-application-layer reference
-  - ADR-0101  # hexagonal-microservice-standard
-  - ADR-0102  # hexagonal-migration-plan
-  - ADR-0105  # clean-architecture-layering
-  - ADR-0125  # domain-naming-canon
+- ADR-0100
+- ADR-0101
+- ADR-0102
+- ADR-0105
+- ADR-0125
 oyatie_adrs_cited:
-  - ADR-0053  # sanctioned primitives
-  - ADR-0054  # scaffold-claim pattern
-  - ADR-0055  # ontology rename
-  - ADR-0056  # BNF v4.1
+- ADR-0053
+- ADR-0054
+- ADR-0055
+- ADR-0056
+purpose: Auto-backfilled purpose for README.md
 ---
-
 # M01-foundation — BNF v4.1 cutover + LEAN BLOCKER promotion
 
 ## Intent

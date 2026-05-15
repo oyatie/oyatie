@@ -17,138 +17,252 @@
     "human_companion": "docs/standards/multispectrum-review.md",
     "v2_directive": "User directive 2026-05-14: 'additional spectrums that we should enforce into every single thing we do. including foundry. foundry's agentic flow + our current dev flow. should be enforced.' v2.0.0 adds F8 performance, F9 compliance as REQUIRED facets, and M1 challenge_assumption + M2 zoomed_out_fit as OPTIONAL meta-facets (required when meta_review_triggered).",
     "v2_1_directive": "User directive 2026-05-14: 'Make sure we add deterministic layer to it where it makes sense to do so.' v2.1.0 adds F10 reversibility/blast-radius, F11 observability, F13 migration/backwards-compat as REQUIRED facets when applicable + a `deterministic_layer_principle` declaring per-facet auto_checks vs human_judgment split. Lane enforces auto_checks mechanically; judgment layer fills the rest.",
-    "v2_3_directive": "User directive 2026-05-15 across two consecutive messages: 'additional lens for our own policy adherence like naming, documentation, structure, architecture, dependency, etc' + 'schema, algorithm, as well'. v2.3.0 adds a new family of POLICY-ADHERENCE facets (A-prefix: A1..A7) distinct from F-family critique lenses and M-family meta lenses. A-facets mechanically enforce drift between code-as-built and doctrine-as-declared. Closed enum cap relaxed for A-family — adherence facets grow as policy domains do.",
+    "v2_3_directive": "User directive 2026-05-15 across two consecutive messages: 'additional lens for our own policy adherence like naming, documentation, structure, architecture, dependency, etc' + 'schema, algorithm, as well'. v2.3.0 adds a new family of POLICY-ADHERENCE facets (A-prefix: A1..A7) distinct from F-family critique lenses and M-family meta lenses. A-facets mechanically enforce drift between code-as-built and doctrine-as-declared. Closed enum cap relaxed for A-family \u2014 adherence facets grow as policy domains do.",
     "enforced_by": [
       "oya-check-dependency-seam (sub-check: multispectrum-evidence-attached)",
       "PR review CODEOWNERS (manual sign-off)",
       "active-artifact-contract evidence bundle (ADR-0069)",
-      "foundry agentic-flow (claim → work → verify → grit done) per rtk-ai/grit protocol",
+      "foundry agentic-flow (claim \u2192 work \u2192 verify \u2192 grit done) per rtk-ai/grit protocol",
       "SessionStart hook in agents/settings/claude.settings.json"
     ],
-    "related_adrs": ["ADR-0054", "ADR-0056", "ADR-0062", "ADR-0069", "ADR-0092"],
-    "session_start_directive": "Every session — agentic OR human-dev — reads this spec before any code change. Quality bar is durable across sessions AND across agents."
+    "related_adrs": [
+      "ADR-0054",
+      "ADR-0056",
+      "ADR-0062",
+      "ADR-0069",
+      "ADR-0092"
+    ],
+    "session_start_directive": "Every session \u2014 agentic OR human-dev \u2014 reads this spec before any code change. Quality bar is durable across sessions AND across agents.",
+    "purpose": "Auto-backfilled purpose for multispectrum-review.json"
   },
-
   "enforcement_scopes": {
     "agentic_flow": {
       "description": "Multi-agent autonomous masterplan execution per Oya VCS / ADR-0054 grit protocol / ADR-0069 active-artifact-contract.",
       "trigger_points": [
-        "grit claim — agent declares intent and slice; multispectrum spec MUST be read",
-        "work iteration — every iterative-fix-loop cycle re-evaluates facets",
-        "verify — evidence file emitted to /evidence/multispectrum/ before grit done",
-        "grit done — promotion only after lane sub-check `multispectrum-evidence-attached` passes for the changeset",
-        "review-fix loop — reviewer comments or CI failures become FixupTasks tagged to the violating facet"
+        "grit claim \u2014 agent declares intent and slice; multispectrum spec MUST be read",
+        "work iteration \u2014 every iterative-fix-loop cycle re-evaluates facets",
+        "verify \u2014 evidence file emitted to /evidence/multispectrum/ before grit done",
+        "grit done \u2014 promotion only after lane sub-check `multispectrum-evidence-attached` passes for the changeset",
+        "review-fix loop \u2014 reviewer comments or CI failures become FixupTasks tagged to the violating facet"
       ],
       "mechanical_enforcement": "oya-check-dependency-seam composite lane sub-checks (multispectrum-evidence-attached + fixture-pair-coverage + change-class-declared) refuse promotion when evidence is absent / non-canonical / incomplete."
     },
     "dev_flow": {
       "description": "Human-authored PR / code-review path AND mixed human-agent flows.",
       "trigger_points": [
-        "PR open — pre-PR checklist (/templates/checklists/pre-pr-multispectrum.json) filled by author or assigned agent",
-        "code review — reviewer maps comments to facet ids (F1..F9 / M1..M2)",
-        "merge gate — same lane as agentic_flow; no separate path",
-        "release tag — additional F8 performance + F9 compliance rigor; meta-facets M1/M2 re-evaluated against major-version changes"
+        "PR open \u2014 pre-PR checklist (/templates/checklists/pre-pr-multispectrum.json) filled by author or assigned agent",
+        "code review \u2014 reviewer maps comments to facet ids (F1..F9 / M1..M2)",
+        "merge gate \u2014 same lane as agentic_flow; no separate path",
+        "release tag \u2014 additional F8 performance + F9 compliance rigor; meta-facets M1/M2 re-evaluated against major-version changes"
       ],
       "mechanical_enforcement": "Same lane as agentic_flow plus CODEOWNERS check that reviewer signature is accompanied by facet-mapped comment (F-MULTI-CODEOWNERS-FACET-CITE)."
     },
     "applies_to": "every changeset across every layer: kernel, domain, application, app, adapter, infrastructure, cli, rest, grpc, graphql, worker, sdk, AND check-namespace lanes. No exemptions without an ADR-tracked carve-out.",
     "non_negotiable_floor": "F1..F9 always required (rigor per change_class). M1/M2 required when meta_review_triggered (CC-1 kernel public API + CC-5 doc-only adding new ADR/standard/spec)."
   },
-
   "principles_reference": {
     "_note": "Doctrine principles P0..P9 are canonical at /specs/cross-cutting/oyatie-doctrine.json#principles. This spec inherits and applies them; it does NOT redeclare. Per oyatie-doctrine.json#consolidation_policy.",
-    "inherits": ["P0_agentic_primary", "P1_machine_optimized", "P2_programmatic_where_it_can_be", "P3_deterministic_where_it_matters", "P4_enforce_in_every_thing", "P5_iterate_until_consensus", "P9_no_sprawl"],
+    "inherits": [
+      "P0_agentic_primary",
+      "P1_machine_optimized",
+      "P2_programmatic_where_it_can_be",
+      "P3_deterministic_where_it_matters",
+      "P4_enforce_in_every_thing",
+      "P5_iterate_until_consensus",
+      "P9_no_sprawl"
+    ],
     "applies_to_this_spec": "Multispectrum review IS the lane-mechanical enforcement vehicle for these principles on every changeset."
   },
-
   "deterministic_layer_principle": {
-    "_description": "Per user directive 2026-05-14: every facet has TWO tiers — Tier 1 deterministic (mechanical checks the lane runs automatically) and Tier 2 judgment (human / agent findings + rationale). The lane REFUSES the changeset when Tier 1 auto_checks fail; Tier 2 judgment fills the rest. This prevents the multispectrum bar from being pure ceremony: every facet has a machine-enforceable floor.",
+    "_description": "Per user directive 2026-05-14: every facet has TWO tiers \u2014 Tier 1 deterministic (mechanical checks the lane runs automatically) and Tier 2 judgment (human / agent findings + rationale). The lane REFUSES the changeset when Tier 1 auto_checks fail; Tier 2 judgment fills the rest. This prevents the multispectrum bar from being pure ceremony: every facet has a machine-enforceable floor.",
     "added_in_version": "2.1.0",
     "principle": "where_it_makes_sense_to_be_deterministic_be_deterministic",
     "tier_1_examples": [
-      "F2 hyperscaler — `cargo deny check` exit 0 + no duplicate transitive versions",
-      "F3 adversarial — failing-fixture file present in expected path + `cargo test <fixture>` panics with expected diagnostic",
-      "F5 quality — `cargo clippy --all-targets -- -D warnings` exit 0 + no `.unwrap()` or `.expect(\"...\")` in non-test code per a configured allowlist",
-      "F6 alternatives — `alternatives_named.length >= 1` in evidence JSON",
-      "F7 security — `cargo audit` exit 0 + no RUSTSEC advisories + secret-scan over evidence files clean",
-      "F8 performance — benchmark file present at declared `benchmark_id` path + regression_baseline measurement attached",
-      "F9 compliance — `data_class_touched` array non-empty (even 'none' explicit) + audit_chain_emission flags coherent (required ↔ present)",
-      "F10 reversibility — feature_flag_id present OR migration_rollback_script_path present OR change_class ∈ {CC-4, CC-5, CC-7}",
-      "F11 observability — for each new public surface: structured-log-event-name registered in observability registry OR span_name declared",
-      "F13 migration — for breaking changes: ADR cite + version bump + sunset_at_date — all three present",
-      "consensus_debate — when required_when fires: synthesis file present at expected path with termination_reason ∈ allow-list"
+      "F2 hyperscaler \u2014 `cargo deny check` exit 0 + no duplicate transitive versions",
+      "F3 adversarial \u2014 failing-fixture file present in expected path + `cargo test <fixture>` panics with expected diagnostic",
+      "F5 quality \u2014 `cargo clippy --all-targets -- -D warnings` exit 0 + no `.unwrap()` or `.expect(\"...\")` in non-test code per a configured allowlist",
+      "F6 alternatives \u2014 `alternatives_named.length >= 1` in evidence JSON",
+      "F7 security \u2014 `cargo audit` exit 0 + no RUSTSEC advisories + secret-scan over evidence files clean",
+      "F8 performance \u2014 benchmark file present at declared `benchmark_id` path + regression_baseline measurement attached",
+      "F9 compliance \u2014 `data_class_touched` array non-empty (even 'none' explicit) + audit_chain_emission flags coherent (required \u2194 present)",
+      "F10 reversibility \u2014 feature_flag_id present OR migration_rollback_script_path present OR change_class \u2208 {CC-4, CC-5, CC-7}",
+      "F11 observability \u2014 for each new public surface: structured-log-event-name registered in observability registry OR span_name declared",
+      "F13 migration \u2014 for breaking changes: ADR cite + version bump + sunset_at_date \u2014 all three present",
+      "consensus_debate \u2014 when required_when fires: synthesis file present at expected path with termination_reason \u2208 allow-list"
     ],
     "tier_2_examples": [
-      "F1 Linus — judgment: are the data structures essential?",
-      "F2 hyperscaler — judgment: does this duplicate Cargo / cargo-audit / cargo-deny / cargo-public-api?",
-      "F6 alternatives — judgment: which alternative is selected and why?",
-      "F8 performance — judgment: what's the perf-budget regression-test that would catch a future degradation?",
-      "M1 challenge_assumption — judgment: is the premise still true?",
-      "M2 zoomed_out_fit — judgment: does this fit the system as architected?"
+      "F1 Linus \u2014 judgment: are the data structures essential?",
+      "F2 hyperscaler \u2014 judgment: does this duplicate Cargo / cargo-audit / cargo-deny / cargo-public-api?",
+      "F6 alternatives \u2014 judgment: which alternative is selected and why?",
+      "F8 performance \u2014 judgment: what's the perf-budget regression-test that would catch a future degradation?",
+      "M1 challenge_assumption \u2014 judgment: is the premise still true?",
+      "M2 zoomed_out_fit \u2014 judgment: does this fit the system as architected?"
     ],
-    "lane_implementation_note": "Each facet's `evidence_required` block names the auto_checks the lane runs. When auto_check fails, lane refuses the changeset (severity = ramp-controlled per ADR-0092 D14). When judgment is missing/insufficient, lane reports-only — judgment is reviewer-enforced via CODEOWNERS + facet-mapped comment cite."
+    "lane_implementation_note": "Each facet's `evidence_required` block names the auto_checks the lane runs. When auto_check fails, lane refuses the changeset (severity = ramp-controlled per ADR-0092 D14). When judgment is missing/insufficient, lane reports-only \u2014 judgment is reviewer-enforced via CODEOWNERS + facet-mapped comment cite."
   },
-
   "scorecard_schema": {
     "_description": "Derived view of evidence_schema rendered as a one-row-per-facet table. Per user directive 2026-05-14: 'Like a scorecard.' Replaces the wall-of-JSON view for at-a-glance review. Mechanically rendered by the seam lane from any evidence_schema instance + the rigor matrix for the declared change_class.",
     "added_in_version": "2.1.0",
     "shape": {
       "type": "object",
-      "required": ["change_id", "change_class_id", "rendered_at_unix", "rows", "aggregate"],
+      "required": [
+        "change_id",
+        "change_class_id",
+        "rendered_at_unix",
+        "rows",
+        "aggregate"
+      ],
       "properties": {
-        "change_id": { "type": "string" },
-        "change_class_id": { "type": "string", "description": "CC-1..CC-7" },
-        "rendered_at_unix": { "type": "integer" },
-        "spec_version": { "type": "string", "description": "multispectrum spec version this scorecard targets (e.g., 2.1.0)" },
+        "change_id": {
+          "type": "string"
+        },
+        "change_class_id": {
+          "type": "string",
+          "description": "CC-1..CC-7"
+        },
+        "rendered_at_unix": {
+          "type": "integer"
+        },
+        "spec_version": {
+          "type": "string",
+          "description": "multispectrum spec version this scorecard targets (e.g., 2.1.0)"
+        },
         "rows": {
           "type": "array",
           "description": "one row per applicable facet (F1..F13 plus M1/M2 when meta_review_triggered)",
           "items": {
             "type": "object",
-            "required": ["facet_id", "facet_name", "rigor_required", "auto_checks", "judgment", "headline"],
+            "required": [
+              "facet_id",
+              "facet_name",
+              "rigor_required",
+              "auto_checks",
+              "judgment",
+              "headline"
+            ],
             "properties": {
-              "facet_id": { "type": "string", "description": "F1..F13 or M1/M2" },
-              "facet_name": { "type": "string" },
-              "rigor_required": { "enum": ["deep", "scan", "skip", "n/a"] },
-              "auto_checks": { "enum": ["pass", "fail", "n/a", "not-yet-armed"] },
-              "auto_check_details": { "type": "array", "items": { "type": "string" }, "description": "one entry per deterministic_check executed" },
-              "judgment": { "enum": ["ok", "needs-work", "skipped", "n/a"] },
-              "headline": { "type": "string", "description": "one-line summary of the most important finding for this facet" },
-              "findings_count": { "type": "integer" },
-              "fixuptasks_count": { "type": "integer" },
-              "fixuptask_ids": { "type": "array", "items": { "type": "string" } }
+              "facet_id": {
+                "type": "string",
+                "description": "F1..F13 or M1/M2"
+              },
+              "facet_name": {
+                "type": "string"
+              },
+              "rigor_required": {
+                "enum": [
+                  "deep",
+                  "scan",
+                  "skip",
+                  "n/a"
+                ]
+              },
+              "auto_checks": {
+                "enum": [
+                  "pass",
+                  "fail",
+                  "n/a",
+                  "not-yet-armed"
+                ]
+              },
+              "auto_check_details": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "one entry per deterministic_check executed"
+              },
+              "judgment": {
+                "enum": [
+                  "ok",
+                  "needs-work",
+                  "skipped",
+                  "n/a"
+                ]
+              },
+              "headline": {
+                "type": "string",
+                "description": "one-line summary of the most important finding for this facet"
+              },
+              "findings_count": {
+                "type": "integer"
+              },
+              "fixuptasks_count": {
+                "type": "integer"
+              },
+              "fixuptask_ids": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
             }
           }
         },
         "aggregate": {
           "type": "object",
-          "required": ["overall", "auto_pass_count", "auto_fail_count", "judgment_ok_count", "judgment_needs_work_count", "consensus_debate_required", "consensus_debate_status"],
+          "required": [
+            "overall",
+            "auto_pass_count",
+            "auto_fail_count",
+            "judgment_ok_count",
+            "judgment_needs_work_count",
+            "consensus_debate_required",
+            "consensus_debate_status"
+          ],
           "properties": {
-            "overall": { "enum": ["GREEN", "YELLOW", "RED"] },
-            "auto_pass_count": { "type": "integer" },
-            "auto_fail_count": { "type": "integer" },
-            "auto_not_yet_armed_count": { "type": "integer" },
-            "judgment_ok_count": { "type": "integer" },
-            "judgment_needs_work_count": { "type": "integer" },
-            "consensus_debate_required": { "type": "boolean" },
-            "consensus_debate_status": { "enum": ["not-applicable", "pending", "in-progress", "consensus-reached", "escalated"] },
-            "summary_line": { "type": "string", "description": "one-line human-readable summary, e.g., 'GREEN — 11/11 auto pass, 11/11 judgment ok, consensus n/a'" }
+            "overall": {
+              "enum": [
+                "GREEN",
+                "YELLOW",
+                "RED"
+              ]
+            },
+            "auto_pass_count": {
+              "type": "integer"
+            },
+            "auto_fail_count": {
+              "type": "integer"
+            },
+            "auto_not_yet_armed_count": {
+              "type": "integer"
+            },
+            "judgment_ok_count": {
+              "type": "integer"
+            },
+            "judgment_needs_work_count": {
+              "type": "integer"
+            },
+            "consensus_debate_required": {
+              "type": "boolean"
+            },
+            "consensus_debate_status": {
+              "enum": [
+                "not-applicable",
+                "pending",
+                "in-progress",
+                "consensus-reached",
+                "escalated"
+              ]
+            },
+            "summary_line": {
+              "type": "string",
+              "description": "one-line human-readable summary, e.g., 'GREEN \u2014 11/11 auto pass, 11/11 judgment ok, consensus n/a'"
+            }
           }
         }
       }
     },
     "aggregate_rules": {
-      "GREEN": "every required facet: auto_checks ∈ {pass, n/a, not-yet-armed (report-only)} AND judgment ∈ {ok, n/a} AND consensus_debate_status ∈ {not-applicable, consensus-reached}",
-      "YELLOW": "any required facet has judgment = needs-work OR consensus_debate_status ∈ {pending, in-progress}, AND no required facet has auto_checks = fail",
+      "GREEN": "every required facet: auto_checks \u2208 {pass, n/a, not-yet-armed (report-only)} AND judgment \u2208 {ok, n/a} AND consensus_debate_status \u2208 {not-applicable, consensus-reached}",
+      "YELLOW": "any required facet has judgment = needs-work OR consensus_debate_status \u2208 {pending, in-progress}, AND no required facet has auto_checks = fail",
       "RED": "any required facet has auto_checks = fail OR consensus_debate_status = escalated OR mandatory artifact for the change_class is missing"
     },
     "rendering_examples": {
-      "tabular_human_one_line_per_facet": "F1 Linus            | deep | ✓ pass | ✓ ok          | no special cases introduced\nF2 Hyperscaler      | deep | ✓ pass | ✓ ok          | seam audit 6→1 crate\nF3 Adversarial      | deep | ✓ pass | ✓ ok          | 78 F3 fixtures (passing+failing pairs)\n...",
+      "tabular_human_one_line_per_facet": "F1 Linus            | deep | \u2713 pass | \u2713 ok          | no special cases introduced\nF2 Hyperscaler      | deep | \u2713 pass | \u2713 ok          | seam audit 6\u21921 crate\nF3 Adversarial      | deep | \u2713 pass | \u2713 ok          | 78 F3 fixtures (passing+failing pairs)\n...",
       "json_dashboard": "consumed by per-repo PR-rollup dashboards; aggregate.overall feeds the merge-gate badge"
     },
     "lane_implementation": "FixupTask F-LANE-SCORECARD-RENDER: extend oya-check-dependency-seam with `render_evidence_scorecard(evidence_path) -> Scorecard` reading an evidence_schema instance + the per-CC rigor matrix from this spec, emitting both JSON + tabular human form. Day-1 schema only; render fn lands in F-LANE-SCORECARD-RENDER."
   },
-
   "consensus_debate_protocol": {
     "_description": "Multi-LLM (or multi-reviewer) debate-and-synthesize loop. Per user directive 2026-05-14: 'Round 1: All providers answer the question normally; Round 2: each provider sees others' responses and provides rebuttals; Synthesis: incorporates debate insights, consensus shifts, and unresolved tensions; iterate until consensus is reached.'",
     "added_in_version": "2.0.0",
@@ -156,17 +270,38 @@
       "round_1_independent": {
         "purpose": "Each reviewer answers independently, without seeing others' answers. Prevents anchoring bias.",
         "evidence_emit_path": "/evidence/debate/<change_id>-<reviewer>-r1.json",
-        "required_keys": ["reviewer_id", "round", "change_id", "answer", "key_claims", "uncertainty_areas"]
+        "required_keys": [
+          "reviewer_id",
+          "round",
+          "change_id",
+          "answer",
+          "key_claims",
+          "uncertainty_areas"
+        ]
       },
       "round_2_rebuttals": {
         "purpose": "Each reviewer sees other Round 1 answers + writes a rebuttal: which points they agree/disagree with, why.",
         "evidence_emit_path": "/evidence/debate/<change_id>-<reviewer>-r2.json",
-        "required_keys": ["reviewer_id", "round", "change_id", "agreements", "disagreements", "shifted_position", "new_evidence"]
+        "required_keys": [
+          "reviewer_id",
+          "round",
+          "change_id",
+          "agreements",
+          "disagreements",
+          "shifted_position",
+          "new_evidence"
+        ]
       },
       "synthesis": {
         "purpose": "Synthesis owner (human reviewer OR designated LLM) consolidates consensus + disputes + unresolved tensions.",
         "evidence_emit_path": "/evidence/debate/<change_id>-synthesis.json",
-        "required_keys": ["consensus_points", "consensus_shifts_from_round_1_to_round_2", "unresolved_tensions", "final_recommendation", "termination_reason"]
+        "required_keys": [
+          "consensus_points",
+          "consensus_shifts_from_round_1_to_round_2",
+          "unresolved_tensions",
+          "final_recommendation",
+          "termination_reason"
+        ]
       },
       "iterate": {
         "termination_conditions": [
@@ -180,7 +315,7 @@
     "required_when": [
       "M1_challenge_assumption fired (premise of change being questioned)",
       "M2_zoomed_out_fit fired (whether it belongs in the system)",
-      "F7_security severity ∈ {high, critical}",
+      "F7_security severity \u2208 {high, critical}",
       "any reviewer flags consensus_blocking == true",
       "CC-1 kernel public API change touching cross-microservice contract",
       "new spec/standard/ADR that competes with existing primitives"
@@ -194,7 +329,7 @@
     "executor_topology": {
       "_directive_source": "User directive 2026-05-14 (across two messages): 'consensus debate should be done by separate subagents or separate teammate sessions' + 'with each spectrum as their lens'.",
       "added_in_version": "2.2.0",
-      "rule": "Each applicable facet (F1..F13 + M1/M2 as required) MUST be reviewed by its own separate subagent or separate teammate session, with that one spectrum/facet as the lens. A single reviewer_id MUST NOT appear across multiple facets within a single debate change_id — this would indicate bias-collapsed single-agent multi-facet execution and the lane MUST refuse.",
+      "rule": "Each applicable facet (F1..F13 + M1/M2 as required) MUST be reviewed by its own separate subagent or separate teammate session, with that one spectrum/facet as the lens. A single reviewer_id MUST NOT appear across multiple facets within a single debate change_id \u2014 this would indicate bias-collapsed single-agent multi-facet execution and the lane MUST refuse.",
       "rationale": "A single agent reviewing all facets sequentially anchors its Round-2 rebuttals on its own Round-1 answers (bias collapse). Separate per-facet subagent execution produces true independence; synthesis sees real disagreement instead of self-rationalization.",
       "dispatch_mechanisms": [
         "Claude Agent tool with subagent_type chosen per facet (e.g., code-reviewer for F5, security-reviewer for F7, oh-my-claudecode:critic for M1)",
@@ -203,12 +338,11 @@
         "Cross-tool: claude facet + codex facet + gemini facet via /ask in distinct invocations"
       ],
       "per_facet_reviewer_id_format": "<tool>-<facet_id>-<change_id> (e.g., claude-F1_linus-CC-1-kernel-public-api-2026-05-14)",
-      "lane_validation_addition": "F-LANE-DEBATE-SUBCHECK MUST validate (a) per-facet r1+r2 files present from distinct reviewer_ids, (b) NO reviewer_id appears across multiple facets, (c) synthesis termination_reason ∈ {consensus_reached, escalation_resolved}."
+      "lane_validation_addition": "F-LANE-DEBATE-SUBCHECK MUST validate (a) per-facet r1+r2 files present from distinct reviewer_ids, (b) NO reviewer_id appears across multiple facets, (c) synthesis termination_reason \u2208 {consensus_reached, escalation_resolved}."
     },
-    "lane_enforcement": "When required_when triggers fire, oya-check-dependency-seam refuses the changeset unless /evidence/debate/<change_id>-synthesis.json exists AND its termination_reason ∈ {consensus_reached, escalation_resolved} AND per-facet r1/r2 files exist from distinct reviewer_ids (no single reviewer across multiple facets) per executor_topology rule.",
-    "fixuptask_for_full_impl": "F-LANE-DEBATE-SUBCHECK — extend the seam lane with a `consensus-debate-evidence` sub-check that scans /evidence/debate/ + verifies the synthesis file shape AND enforces the executor_topology rule (distinct reviewer_id per facet)."
+    "lane_enforcement": "When required_when triggers fire, oya-check-dependency-seam refuses the changeset unless /evidence/debate/<change_id>-synthesis.json exists AND its termination_reason \u2208 {consensus_reached, escalation_resolved} AND per-facet r1/r2 files exist from distinct reviewer_ids (no single reviewer across multiple facets) per executor_topology rule.",
+    "fixuptask_for_full_impl": "F-LANE-DEBATE-SUBCHECK \u2014 extend the seam lane with a `consensus-debate-evidence` sub-check that scans /evidence/debate/ + verifies the synthesis file shape AND enforces the executor_topology rule (distinct reviewer_id per facet)."
   },
-
   "alias_map": {
     "_description": "User vocabulary 2026-05-14 directive maps to canonical facet ids. Reviewers may name any synonym; lane normalizes to the canonical id when validating evidence.",
     "security": "F7_security",
@@ -226,7 +360,6 @@
     "adversarial": "F3_adversarial",
     "better_alternative": "F6_alternatives"
   },
-
   "facets": {
     "F1_linus": {
       "id": "F1",
@@ -250,7 +383,6 @@
         "fixuptasks": "array of bounded-fixuptask ids (may be empty)"
       }
     },
-
     "F2_hyperscaler": {
       "id": "F2",
       "name": "Hyperscaler critique",
@@ -272,7 +404,6 @@
         "fixuptasks": "array of bounded-fixuptask ids (may be empty)"
       }
     },
-
     "F3_adversarial": {
       "id": "F3",
       "name": "Adversarial critique",
@@ -290,13 +421,12 @@
         "lane-without-violation-fixture"
       ],
       "evidence_required": {
-        "failing_fixture_added": "bool — required true for new lane sub-checks AND new kernel public-API",
-        "passing_fixture_id": "string — points to the canonical passing fixture",
-        "failing_fixture_id": "string — points to the canonical failing fixture",
-        "diagnostic_asserted": "string — the specific error/diagnostic the failing fixture asserts"
+        "failing_fixture_added": "bool \u2014 required true for new lane sub-checks AND new kernel public-API",
+        "passing_fixture_id": "string \u2014 points to the canonical passing fixture",
+        "failing_fixture_id": "string \u2014 points to the canonical failing fixture",
+        "diagnostic_asserted": "string \u2014 the specific error/diagnostic the failing fixture asserts"
       }
     },
-
     "F4_ergonomic": {
       "id": "F4",
       "name": "Ergonomic critique",
@@ -317,7 +447,6 @@
         "findings": "array of strings (may be empty)"
       }
     },
-
     "F5_quality": {
       "id": "F5",
       "name": "Quality critique",
@@ -341,11 +470,10 @@
         "fixuptasks": "array of bounded-fixuptask ids (may be empty)"
       }
     },
-
     "F6_alternatives": {
       "id": "F6",
       "name": "Better-alternative critique",
-      "scope": "what's the better way — named, rejected, or deferred with reason",
+      "scope": "what's the better way \u2014 named, rejected, or deferred with reason",
       "trigger_questions": [
         "What's the better way to do this?",
         "Why not that way?",
@@ -363,7 +491,6 @@
         "rejected_reasons": "array of strings (one per non-selected alternative)"
       }
     },
-
     "F7_security": {
       "id": "F7",
       "name": "Security review",
@@ -387,22 +514,21 @@
         "missing-audit-chain-emission"
       ],
       "evidence_required": {
-        "owasp_class_review": "string — enum of {dos|injection|broken_access|sensitive_data|crypto|xxe|deserialization|configuration|component_vuln|logging|none_applicable}",
+        "owasp_class_review": "string \u2014 enum of {dos|injection|broken_access|sensitive_data|crypto|xxe|deserialization|configuration|component_vuln|logging|none_applicable}",
         "findings": "array of {severity, summary, recommended_action, fixuptask_id?}",
-        "severity_max": "string — enum of {none|low|medium|high|critical}",
+        "severity_max": "string \u2014 enum of {none|low|medium|high|critical}",
         "secrets_touched": "bool",
         "tenant_data_touched": "bool",
         "audit_chain_emission_required": "bool"
       }
     },
-
     "F8_performance": {
       "id": "F8",
       "name": "Performance / perf-budget review",
       "scope": "allocations, hot paths, latency budgets, throughput ceilings, copy semantics",
       "added_in_version": "2.0.0",
       "trigger_questions": [
-        "Does this allocate on a hot path? At 10× current load, what breaks?",
+        "Does this allocate on a hot path? At 10\u00d7 current load, what breaks?",
         "Does a benchmark exist to prove the perf claim, or are we relying on intuition?",
         "What's the perf-budget regression test that would catch a future degradation here?",
         "Are zero-copy paths preserved, or did we introduce a copy that wasn't there before?",
@@ -417,26 +543,25 @@
         "perf-claim-without-benchmark"
       ],
       "evidence_required": {
-        "perf_budget_class": "string — enum of {hot-path|warm-path|cold-path|not-applicable}",
+        "perf_budget_class": "string \u2014 enum of {hot-path|warm-path|cold-path|not-applicable}",
         "benchmark_attached": "bool",
-        "benchmark_id": "string — path or symbol of the bench",
-        "regression_baseline": "string — prior measurement reference if applicable",
+        "benchmark_id": "string \u2014 path or symbol of the bench",
+        "regression_baseline": "string \u2014 prior measurement reference if applicable",
         "findings": "array of {summary, allocation_count?, latency_p99_ms?, fixuptask_id?}"
       }
     },
-
     "F9_compliance": {
       "id": "F9",
       "name": "Compliance / auditability / data-class review",
       "scope": "regulatory class, auditability, data-class declaration, audit-chain emission, secret handling",
       "added_in_version": "2.0.0",
       "trigger_questions": [
-        "What data class does this touch? (Public, INTERNAL_ONLY, TENANT_SCOPED, PHI, PCI, …)",
+        "What data class does this touch? (Public, INTERNAL_ONLY, TENANT_SCOPED, PHI, PCI, \u2026)",
         "Does this need to emit to the audit-chain (ADR-0069)? If yes, is the emission wired?",
         "Are secrets handled via SecretReference (no raw secrets in repo / chat / evidence)?",
         "Does this touch RLS / tenant-scoping boundaries? Is the boundary still intact?",
         "Does this change require a regulatory pack update (KR, EU, US, etc.)?",
-        "Are the changes auditable — can a compliance team answer 'who, when, what, why' from the evidence trail?"
+        "Are the changes auditable \u2014 can a compliance team answer 'who, when, what, why' from the evidence trail?"
       ],
       "anti_patterns": [
         "raw-secret-in-evidence-or-log",
@@ -447,27 +572,26 @@
         "non-auditable-state-mutation"
       ],
       "evidence_required": {
-        "data_class_touched": "array of strings — enum subset of {public|internal_only|tenant_scoped|tenant_payload|phi|pci|pipa|children|none}",
+        "data_class_touched": "array of strings \u2014 enum subset of {public|internal_only|tenant_scoped|tenant_payload|phi|pci|pipa|children|none}",
         "audit_chain_emission_required": "bool",
         "audit_chain_emission_present": "bool",
-        "secret_handling_path": "string — enum of {secret-reference|n/a|adr-bypass} with ADR cite if bypass",
-        "regulatory_packs_impacted": "array of strings — pack ids (e.g., oya-pack-kr)",
+        "secret_handling_path": "string \u2014 enum of {secret-reference|n/a|adr-bypass} with ADR cite if bypass",
+        "regulatory_packs_impacted": "array of strings \u2014 pack ids (e.g., oya-pack-kr)",
         "findings": "array of strings"
       }
     },
-
     "M1_challenge_assumption": {
       "id": "M1",
       "name": "Challenge underlying assumption (meta)",
-      "scope": "premise of the change — is this the right problem to solve, or are we solving the wrong thing?",
+      "scope": "premise of the change \u2014 is this the right problem to solve, or are we solving the wrong thing?",
       "added_in_version": "2.0.0",
-      "required_when": "meta_review_triggered — CC-1 kernel public API change OR new ADR/standard/spec OR breaking-API change OR new microservice",
+      "required_when": "meta_review_triggered \u2014 CC-1 kernel public API change OR new ADR/standard/spec OR breaking-API change OR new microservice",
       "trigger_questions": [
         "What's the PREMISE this change is built on? Is the premise still true?",
         "Could the entire need for this change be eliminated by changing something upstream?",
         "Is there a hidden assumption (e.g., 'this is a problem at our scale') that may not hold?",
         "Who decided this was the right problem to solve, and on what evidence?",
-        "If we did nothing here, what actually breaks — and is that breakage real?"
+        "If we did nothing here, what actually breaks \u2014 and is that breakage real?"
       ],
       "anti_patterns": [
         "solving-for-imagined-future-scale",
@@ -476,14 +600,13 @@
         "consensus-by-momentum-not-evidence"
       ],
       "evidence_required": {
-        "premise_stated": "string — what assumption underlies this change",
-        "premise_evidence_ref": "string — pointer to data / measurement / ADR establishing the premise",
-        "do_nothing_consequence": "string — what breaks if this change is deferred",
+        "premise_stated": "string \u2014 what assumption underlies this change",
+        "premise_evidence_ref": "string \u2014 pointer to data / measurement / ADR establishing the premise",
+        "do_nothing_consequence": "string \u2014 what breaks if this change is deferred",
         "upstream_fix_considered": "bool",
         "upstream_fix_rejection_reason": "string"
       }
     },
-
     "F10_reversibility": {
       "id": "F10",
       "name": "Reversibility / blast-radius review",
@@ -494,7 +617,7 @@
         "If this lands and is wrong in production, what does rollback cost?",
         "Is the change behind a feature flag, or is it ON for all tenants the moment it merges?",
         "Are there forward-only steps (migrations, contract version bumps) that prevent rollback? Is the rollback path documented?",
-        "What's the blast radius — single cell, single tenant, single region, or workspace-wide?"
+        "What's the blast radius \u2014 single cell, single tenant, single region, or workspace-wide?"
       ],
       "anti_patterns": [
         "forward-only-migration-without-rollback",
@@ -503,26 +626,25 @@
         "global-config-mutation-without-canary"
       ],
       "deterministic_checks": [
-        "feature_flag_id grep in code OR migration_rollback_script_path file exists OR change_class ∈ {CC-4 refactor pure, CC-5 doc only, CC-7 test} (rollback-trivial)",
+        "feature_flag_id grep in code OR migration_rollback_script_path file exists OR change_class \u2208 {CC-4 refactor pure, CC-5 doc only, CC-7 test} (rollback-trivial)",
         "if database-migration touched: forward+backward migration files both exist"
       ],
       "evidence_required": {
-        "rollback_cost_class": "string — enum of {trivial|per-cell|per-tenant|workspace-wide|forward-only}",
-        "feature_flag_id": "string — flag name OR null",
-        "migration_rollback_script_path": "string — path OR null",
-        "blast_radius": "string — enum of {dev|stage|single-cell|single-tenant|single-region|workspace-wide}",
+        "rollback_cost_class": "string \u2014 enum of {trivial|per-cell|per-tenant|workspace-wide|forward-only}",
+        "feature_flag_id": "string \u2014 flag name OR null",
+        "migration_rollback_script_path": "string \u2014 path OR null",
+        "blast_radius": "string \u2014 enum of {dev|stage|single-cell|single-tenant|single-region|workspace-wide}",
         "findings": "array of strings"
       }
     },
-
     "F11_observability": {
       "id": "F11",
       "name": "Observability review",
-      "scope": "structured logs, metrics, traces — can production failures be diagnosed from the evidence alone?",
+      "scope": "structured logs, metrics, traces \u2014 can production failures be diagnosed from the evidence alone?",
       "added_in_version": "2.1.0",
       "required_when": "CC-1 kernel public API OR CC-2 adapter/infrastructure adding I/O surface OR any new HTTP route OR any new state machine OR any new background worker",
       "trigger_questions": [
-        "If this breaks at 3am in production, can the on-call diagnose it from logs + metrics + traces alone — or do they need to attach a debugger?",
+        "If this breaks at 3am in production, can the on-call diagnose it from logs + metrics + traces alone \u2014 or do they need to attach a debugger?",
         "Are the log events structured (named keys, not freeform strings)? Are the metric names + label sets low-cardinality?",
         "Is every new error path emitted at the correct severity?",
         "For long-running operations: is there a span instrumented around the operation boundary?",
@@ -544,11 +666,10 @@
         "log_events_added": "array of {event_name, severity, label_keys}",
         "metrics_added": "array of {metric_name, type (counter|gauge|histogram), label_set, cardinality_ceiling}",
         "spans_added": "array of {span_name, instruments}",
-        "diagnosability_walkthrough": "string — short narrative: 'a failure here looks like X in logs, Y in metrics, Z in traces'",
+        "diagnosability_walkthrough": "string \u2014 short narrative: 'a failure here looks like X in logs, Y in metrics, Z in traces'",
         "findings": "array of strings"
       }
     },
-
     "F13_migration": {
       "id": "F13",
       "name": "Migration / backwards-compatibility review",
@@ -575,22 +696,21 @@
       ],
       "evidence_required": {
         "is_breaking": "bool",
-        "version_bump": "string — enum of {none|patch|minor|major} (per semver / ADR-0037)",
-        "adr_cite_for_break": "string — ADR id if breaking",
-        "sunset_at_date": "string — ISO 8601 date for old surface retirement, OR null",
-        "forward_migration_path": "string — path to migration script, OR null",
-        "backward_migration_path": "string — path to rollback script, OR null",
-        "cutover_plan_doc_ref": "string — path to doc",
+        "version_bump": "string \u2014 enum of {none|patch|minor|major} (per semver / ADR-0037)",
+        "adr_cite_for_break": "string \u2014 ADR id if breaking",
+        "sunset_at_date": "string \u2014 ISO 8601 date for old surface retirement, OR null",
+        "forward_migration_path": "string \u2014 path to migration script, OR null",
+        "backward_migration_path": "string \u2014 path to rollback script, OR null",
+        "cutover_plan_doc_ref": "string \u2014 path to doc",
         "findings": "array of strings"
       }
     },
-
     "M2_zoomed_out_fit": {
       "id": "M2",
       "name": "Zoomed-out fit (meta)",
-      "scope": "does this change belong in the system as architected — or is it parallel infrastructure that should be unified?",
+      "scope": "does this change belong in the system as architected \u2014 or is it parallel infrastructure that should be unified?",
       "added_in_version": "2.0.0",
-      "required_when": "meta_review_triggered — CC-1 kernel public API change OR new ADR/standard/spec OR new microservice OR new lane/protocol",
+      "required_when": "meta_review_triggered \u2014 CC-1 kernel public API change OR new ADR/standard/spec OR new microservice OR new lane/protocol",
       "trigger_questions": [
         "Does this duplicate an existing artifact in the repo (spec, standard, lane, registry)? If yes, why not extend the existing one?",
         "Is there an industry-standard primitive (AWS COE / Google Design Doc / Microsoft 1ES / Oracle EngExc) we should adopt instead?",
@@ -606,26 +726,30 @@
         "new-microservice-when-bc-fits"
       ],
       "evidence_required": {
-        "existing_primitives_surveyed": "array of strings — repo artifacts considered for extension instead",
-        "industry_primitives_surveyed": "array of strings — external frameworks considered (AWS COE, Google Design Doc, etc.)",
-        "fit_judgment": "string — enum of {extends-existing|new-but-justified|parallel-and-temporary|risk-of-drift}",
+        "existing_primitives_surveyed": "array of strings \u2014 repo artifacts considered for extension instead",
+        "industry_primitives_surveyed": "array of strings \u2014 external frameworks considered (AWS COE, Google Design Doc, etc.)",
+        "fit_judgment": "string \u2014 enum of {extends-existing|new-but-justified|parallel-and-temporary|risk-of-drift}",
         "fit_rationale": "string"
       }
     }
   },
-
   "adherence_facets": {
-    "_description": "A-family — POLICY-ADHERENCE facets (v2.3.0). Distinct from F-family critique lenses (Linus, hyperscaler, adversarial, etc.) and M-family meta lenses (challenge_assumption, zoomed_out_fit). Each A-facet enforces drift between code-as-built and a SPECIFIC own-policy domain (doctrine principle / ADR / standard). Per consensus_debate_protocol.executor_topology + feedback_consensus_debate_spectrum_lens_subagents — each A-facet runs in its own subagent context with one policy lens, never combined with other A- or F-facets.",
+    "_description": "A-family \u2014 POLICY-ADHERENCE facets (v2.3.0). Distinct from F-family critique lenses (Linus, hyperscaler, adversarial, etc.) and M-family meta lenses (challenge_assumption, zoomed_out_fit). Each A-facet enforces drift between code-as-built and a SPECIFIC own-policy domain (doctrine principle / ADR / standard). Per consensus_debate_protocol.executor_topology + feedback_consensus_debate_spectrum_lens_subagents \u2014 each A-facet runs in its own subagent context with one policy lens, never combined with other A- or F-facets.",
     "_directive_source": "User directive 2026-05-15: 'additional lens for our own policy adherence like naming, documentation, structure, architecture, dependency, etc' + 'schema, algorithm, as well'",
     "_required_when": "Any change touching the domain of a given A-facet REQUIRES that facet's subagent review. Triggers are mechanical per the file-set predicates below.",
-    "_cap_relaxation": "evolution_policy.facet_addition's 'max 12 closed enum cap' applies to F-family only. A-family cap is OPEN — grows as policy domains do; new A-facets land via 1-ADR action per the user's 'etc' room.",
-
+    "_cap_relaxation": "evolution_policy.facet_addition's 'max 12 closed enum cap' applies to F-family only. A-family cap is OPEN \u2014 grows as policy domains do; new A-facets land via 1-ADR action per the user's 'etc' room.",
     "A1_naming_adherence": {
       "id": "A1",
       "name": "Naming adherence",
       "scope": "P10 + P14 BNF kebab-case + version-suffix + filename rules per .omc/specs/oyatie-doctrine.json#P14_file_naming_layout",
-      "doctrine_principles_cited": ["P10_concrete_naming", "P14_file_naming_layout"],
-      "external_authorities_cited": ["docs/standards/crate-naming-convention.md", "ADR-0056"],
+      "doctrine_principles_cited": [
+        "P10_concrete_naming",
+        "P14_file_naming_layout"
+      ],
+      "external_authorities_cited": [
+        "docs/standards/crate-naming-convention.md",
+        "ADR-0056"
+      ],
       "triggers_when": "any new file added to /specs/, /registries/, /evidence/, /templates/, docs/decisions/, crates/, tools/ OR any rename touching these paths",
       "trigger_questions": [
         "Does the filename follow kebab-case (ASCII lowercase + digit + hyphen + dot)?",
@@ -634,7 +758,13 @@
         "Does $id (if present) match the filesystem path?",
         "Does the crate name match ADR-0056 BNF v4.1: oya-<microservice>-(<bc-tokens>-)?<layer>?"
       ],
-      "anti_patterns": ["non-kebab-case-filename", "missing-version-suffix-on-versioned-spec", "id-path-mismatch", "snake-case-leak", "uppercase-filename"],
+      "anti_patterns": [
+        "non-kebab-case-filename",
+        "missing-version-suffix-on-versioned-spec",
+        "id-path-mismatch",
+        "snake-case-leak",
+        "uppercase-filename"
+      ],
       "evidence_required": {
         "files_added_or_renamed": "array of paths",
         "bnf_compliance_per_path": "array of {path, compliant: bool, violation_class?}",
@@ -643,13 +773,18 @@
       "executor_topology_subagent_type": "oh-my-claudecode:code-reviewer (or a future oh-my-claudecode:naming-reviewer specialized agent)",
       "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A1-NAMING (extend oya-check-dependency-seam check_naming_convention to enforce v2.3.0 trigger set)"
     },
-
     "A2_documentation_adherence": {
       "id": "A2",
       "name": "Documentation adherence",
       "scope": "P9 no-sprawl + DOC-CATALOG + doc class shape + thin-gateway pattern; cites docs/DOC-CATALOG.md + docs/standards/doc-style.md",
-      "doctrine_principles_cited": ["P9_no_sprawl", "P16_optimize_storage_size"],
-      "external_authorities_cited": ["docs/DOC-CATALOG.md", "docs/standards/doc-style.md"],
+      "doctrine_principles_cited": [
+        "P9_no_sprawl",
+        "P16_optimize_storage_size"
+      ],
+      "external_authorities_cited": [
+        "docs/DOC-CATALOG.md",
+        "docs/standards/doc-style.md"
+      ],
       "triggers_when": "any docs/*.md added/edited OR any standards/ADR/PRD created/updated OR any spec _meta.doc_class declaration changed",
       "trigger_questions": [
         "Does the doc declare doc_class + length_cap + authority_tier in frontmatter?",
@@ -658,7 +793,13 @@
         "Is the doc length within its declared length_cap?",
         "Are cross-references resolvable (no broken links to retired files)?"
       ],
-      "anti_patterns": ["restate-instead-of-cite", "missing-doc-catalog-row", "broken-cross-reference", "length-cap-exceeded", "duplicate-canonical-home"],
+      "anti_patterns": [
+        "restate-instead-of-cite",
+        "missing-doc-catalog-row",
+        "broken-cross-reference",
+        "length-cap-exceeded",
+        "duplicate-canonical-home"
+      ],
       "evidence_required": {
         "docs_touched": "array of paths",
         "doc_catalog_rows_updated": "bool",
@@ -667,20 +808,27 @@
       "executor_topology_subagent_type": "oh-my-claudecode:writer (or oh-my-claudecode:doc-updater)",
       "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A2-DOCUMENTATION"
     },
-
     "A3_structure_adherence": {
       "id": "A3",
       "name": "Structure adherence",
       "scope": "P11 + P14 directory layout + repo topology + kind/scope/concept BNF placement per .omc/specs/oyatie-doctrine.json#repository_layout",
-      "doctrine_principles_cited": ["P11_durables_outside_omc", "P14_file_naming_layout"],
+      "doctrine_principles_cited": [
+        "P11_durables_outside_omc",
+        "P14_file_naming_layout"
+      ],
       "triggers_when": "any new file or directory added; any move/rename touching first-class durable homes",
       "trigger_questions": [
         "Is the file placed in its canonical durable home (/specs/, /registries/, /evidence/, /templates/, docs/decisions/, docs/standards/)?",
         "Does any new durable land in .omc/ (forbidden post-2026-05-14 migration)?",
-        "Does the placement match the artifact's <kind> per BNF (registries → /registries/, evidence → /evidence/, etc.)?",
+        "Does the placement match the artifact's <kind> per BNF (registries \u2192 /registries/, evidence \u2192 /evidence/, etc.)?",
         "Is the <scope> token correct (cross-cutting vs registered-microservice-name)?"
       ],
-      "anti_patterns": ["durable-in-omc", "kind-scope-mismatch", "new-top-level-dir-without-adr", "ephemeral-state-in-durable-home"],
+      "anti_patterns": [
+        "durable-in-omc",
+        "kind-scope-mismatch",
+        "new-top-level-dir-without-adr",
+        "ephemeral-state-in-durable-home"
+      ],
       "evidence_required": {
         "files_added": "array of paths",
         "placement_compliance_per_path": "array of {path, canonical_home_match: bool}",
@@ -689,13 +837,17 @@
       "executor_topology_subagent_type": "feature-dev:code-architect",
       "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A3-STRUCTURE"
     },
-
     "A4_architecture_adherence": {
       "id": "A4",
       "name": "Architecture adherence",
-      "scope": "ADR-0056 12-layer enum + clean architecture inward-flow + kernel ◀── domain ◀── app ◀── { api, worker, adapter } ◀── runtime; cites docs/standards/clean-architecture.md",
-      "doctrine_principles_cited": ["P13_industry_best_practices"],
-      "external_authorities_cited": ["ADR-0056", "docs/standards/clean-architecture.md"],
+      "scope": "ADR-0056 12-layer enum + clean architecture inward-flow + kernel \u25c0\u2500\u2500 domain \u25c0\u2500\u2500 app \u25c0\u2500\u2500 { api, worker, adapter } \u25c0\u2500\u2500 runtime; cites docs/standards/clean-architecture.md",
+      "doctrine_principles_cited": [
+        "P13_industry_best_practices"
+      ],
+      "external_authorities_cited": [
+        "ADR-0056",
+        "docs/standards/clean-architecture.md"
+      ],
       "triggers_when": "any new crate added; any cross-layer dependency edited in Cargo.toml; any port trait moved across layers",
       "trigger_questions": [
         "Does the new crate's name match BNF v4.1 oya-<microservice>-(<bc-tokens>-)?<layer>?",
@@ -704,7 +856,13 @@
         "Does any crate cross-import another product's kernel directly (must go through Workflow + Ontology adapter layer per feedback_workflow_objectgraph_adapter_layer)?",
         "Does the dep graph respect the 12-layer enum order?"
       ],
-      "anti_patterns": ["layer-violation", "cross-product-direct-import", "framework-logic-in-kernel", "impl-in-kernel-instead-of-adapter", "outward-pointing-dep"],
+      "anti_patterns": [
+        "layer-violation",
+        "cross-product-direct-import",
+        "framework-logic-in-kernel",
+        "impl-in-kernel-instead-of-adapter",
+        "outward-pointing-dep"
+      ],
       "evidence_required": {
         "crates_added_or_edited": "array of crate names",
         "layer_compliance_per_crate": "array of {crate, declared_layer, dep_layers_observed, compliant: bool}",
@@ -713,13 +871,19 @@
       "executor_topology_subagent_type": "feature-dev:code-architect (or oh-my-claudecode:architect)",
       "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A4-ARCHITECTURE"
     },
-
     "A5_dependency_adherence": {
       "id": "A5",
       "name": "Dependency adherence",
       "scope": "ADR-0092 seam policy + dependency-rationales.json + cargo-deny + LTS pinning; cites docs/standards/dependency-policy.md",
-      "doctrine_principles_cited": ["P6_no_silent_regression", "P13_industry_best_practices"],
-      "external_authorities_cited": ["ADR-0092", "docs/standards/dependency-policy.md", "/registries/cross-cutting/dependency-rationales.json"],
+      "doctrine_principles_cited": [
+        "P6_no_silent_regression",
+        "P13_industry_best_practices"
+      ],
+      "external_authorities_cited": [
+        "ADR-0092",
+        "docs/standards/dependency-policy.md",
+        "/registries/cross-cutting/dependency-rationales.json"
+      ],
       "triggers_when": "any change to Cargo.toml workspace.dependencies; any new direct dep; any version bump",
       "trigger_questions": [
         "Does every new direct dep have a registry row in /registries/cross-cutting/dependency-rationales.json with rationale + owner + layer_seam + replacement_strategy?",
@@ -728,7 +892,13 @@
         "Is the dep's isolated_in_crate respected (no seam violations per ADR-0092)?",
         "Does the dep duplicate functionality already in workspace (cargo / cargo-audit / cargo-deny / cargo-public-api)?"
       ],
-      "anti_patterns": ["new-dep-without-rationale-row", "license-violation", "seam-violation", "duplicate-tooling", "unpinned-version"],
+      "anti_patterns": [
+        "new-dep-without-rationale-row",
+        "license-violation",
+        "seam-violation",
+        "duplicate-tooling",
+        "unpinned-version"
+      ],
       "evidence_required": {
         "deps_added_or_bumped": "array of {name, version, isolated_in_crate, license}",
         "rationale_rows_present": "bool",
@@ -738,13 +908,18 @@
       "executor_topology_subagent_type": "oh-my-claudecode:security-reviewer (or oh-my-claudecode:verifier)",
       "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A5-DEPENDENCY"
     },
-
     "A6_schema_adherence": {
       "id": "A6",
       "name": "Schema adherence",
       "scope": "P1 machine-optimized + JSON Schema $schema/$id/_meta + closed enums + required fields per active-machine-readable-artifact-contract",
-      "doctrine_principles_cited": ["P1_machine_optimized", "P3_deterministic_where_it_matters"],
-      "external_authorities_cited": ["/specs/cross-cutting/active-machine-readable-artifact-contract.json", "ADR-0069"],
+      "doctrine_principles_cited": [
+        "P1_machine_optimized",
+        "P3_deterministic_where_it_matters"
+      ],
+      "external_authorities_cited": [
+        "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
+        "ADR-0069"
+      ],
       "triggers_when": "any new JSON spec/registry added; any $defs or required[] change; any schema version bump",
       "trigger_questions": [
         "Does the JSON declare $schema (Draft 2020-12) + $id matching its filesystem path + _meta with required ADR-0069 9-capability fields?",
@@ -753,7 +928,13 @@
         "Does the schema validate (jsonschema-validator pass)?",
         "If schema breaking-change: is version bumped + sunset_at_date present + ADR cited?"
       ],
-      "anti_patterns": ["missing-schema-id", "open-string-where-enum-feasible", "no-required-fields", "id-path-mismatch", "silent-breaking-schema-change"],
+      "anti_patterns": [
+        "missing-schema-id",
+        "open-string-where-enum-feasible",
+        "no-required-fields",
+        "id-path-mismatch",
+        "silent-breaking-schema-change"
+      ],
       "evidence_required": {
         "json_artifacts_touched": "array of paths",
         "schema_compliance_per_artifact": "array of {path, $schema_present, $id_matches_path, _meta_complete, required_fields_explicit}",
@@ -762,12 +943,14 @@
       "executor_topology_subagent_type": "oh-my-claudecode:verifier",
       "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A6-SCHEMA"
     },
-
     "A7_algorithm_adherence": {
       "id": "A7",
       "name": "Algorithm adherence",
       "scope": "P3 deterministic-where-it-matters + approximate-vs-exact + complexity classes + algorithm choice rationale",
-      "doctrine_principles_cited": ["P3_deterministic_where_it_matters", "P8_canonical_base_plus_localization"],
+      "doctrine_principles_cited": [
+        "P3_deterministic_where_it_matters",
+        "P8_canonical_base_plus_localization"
+      ],
       "triggers_when": "any new algorithm/heuristic in code; any complexity-class change; any approximate-where-exact-feasible substitution",
       "trigger_questions": [
         "What's the algorithm's complexity class (O(N), O(N log N), O(N^2))? Is it documented?",
@@ -776,7 +959,13 @@
         "Is there a benchmark proving the algorithm meets perf budget at 10x/100x load?",
         "Did the author consider at least one Linus-style (simple/exact) and one hyperscaler-style (sharded/parallel) alternative?"
       ],
-      "anti_patterns": ["approximate-when-exact-feasible", "undocumented-complexity-class", "non-deterministic-on-deterministic-path", "no-benchmark-for-perf-claim", "first-algorithm-wins"],
+      "anti_patterns": [
+        "approximate-when-exact-feasible",
+        "undocumented-complexity-class",
+        "non-deterministic-on-deterministic-path",
+        "no-benchmark-for-perf-claim",
+        "first-algorithm-wins"
+      ],
       "evidence_required": {
         "algorithms_introduced_or_changed": "array of {fn_name, complexity_class, deterministic: bool, benchmark_path?}",
         "approximate_vs_exact_per_algorithm": "array of {fn_name, choice, rationale}",
@@ -786,7 +975,6 @@
       "fixuptask_for_full_impl": "F-LANE-ADHERENCE-A7-ALGORITHM"
     }
   },
-
   "change_classes": {
     "CC-1_kernel_public_api": {
       "id": "CC-1",
@@ -811,7 +999,6 @@
         "consensus-debate synthesis at /evidence/debate/<change_id>-synthesis.json"
       ]
     },
-
     "CC-2_adapter_or_infrastructure": {
       "id": "CC-2",
       "description": "Adapter or infrastructure-layer crate (provider binding, framework glue)",
@@ -829,7 +1016,6 @@
         "timeout policy declaration (if I/O boundary)"
       ]
     },
-
     "CC-3_application_or_domain": {
       "id": "CC-3",
       "description": "Application-layer use-case orchestrator or domain-layer business logic",
@@ -844,7 +1030,6 @@
       },
       "mandatory_artifacts": []
     },
-
     "CC-4_refactor_pure": {
       "id": "CC-4",
       "description": "Pure refactor with no semantic change (rename, move, reorganize)",
@@ -861,7 +1046,6 @@
         "before/after symbol-set parity check (cargo metadata or grep)"
       ]
     },
-
     "CC-5_doc_only": {
       "id": "CC-5",
       "description": "Documentation, ADR, standard, or non-code artifact",
@@ -876,7 +1060,6 @@
       },
       "mandatory_artifacts": []
     },
-
     "CC-6_generated_or_vendored": {
       "id": "CC-6",
       "description": "Generated code or vendored upstream",
@@ -894,7 +1077,6 @@
         "supply-chain scan result attached"
       ]
     },
-
     "CC-7_test_or_fixture": {
       "id": "CC-7",
       "description": "Test, benchmark, or fixture-only change",
@@ -912,7 +1094,6 @@
       ]
     }
   },
-
   "depth_levels": {
     "deep": {
       "id": "deep",
@@ -930,103 +1111,223 @@
       "evidence_minimum": "considered == false AND not_applicable_reason set"
     }
   },
-
   "evidence_schema": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "type": "object",
-    "required": ["change_class_id", "git_sha", "freshness_unix", "facets"],
+    "required": [
+      "change_class_id",
+      "git_sha",
+      "freshness_unix",
+      "facets"
+    ],
     "properties": {
-      "change_class_id": { "enum": ["CC-1","CC-2","CC-3","CC-4","CC-5","CC-6","CC-7"] },
-      "git_sha": { "type": "string", "pattern": "^[0-9a-f]{7,40}$" },
-      "freshness_unix": { "type": "integer", "minimum": 1700000000 },
+      "change_class_id": {
+        "enum": [
+          "CC-1",
+          "CC-2",
+          "CC-3",
+          "CC-4",
+          "CC-5",
+          "CC-6",
+          "CC-7"
+        ]
+      },
+      "git_sha": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{7,40}$"
+      },
+      "freshness_unix": {
+        "type": "integer",
+        "minimum": 1700000000
+      },
       "facets": {
         "type": "object",
-        "required": ["F1_linus","F2_hyperscaler","F3_adversarial","F4_ergonomic","F5_quality","F6_alternatives","F7_security"],
+        "required": [
+          "F1_linus",
+          "F2_hyperscaler",
+          "F3_adversarial",
+          "F4_ergonomic",
+          "F5_quality",
+          "F6_alternatives",
+          "F7_security"
+        ],
         "properties": {
-          "F1_linus":       { "$ref": "#/definitions/facet_evidence" },
-          "F2_hyperscaler": { "$ref": "#/definitions/facet_evidence" },
-          "F3_adversarial": { "$ref": "#/definitions/facet_evidence_adversarial" },
-          "F4_ergonomic":   { "$ref": "#/definitions/facet_evidence_ergonomic" },
-          "F5_quality":     { "$ref": "#/definitions/facet_evidence" },
-          "F6_alternatives":{ "$ref": "#/definitions/facet_evidence_alternatives" },
-          "F7_security":    { "$ref": "#/definitions/facet_evidence_security" }
+          "F1_linus": {
+            "$ref": "#/definitions/facet_evidence"
+          },
+          "F2_hyperscaler": {
+            "$ref": "#/definitions/facet_evidence"
+          },
+          "F3_adversarial": {
+            "$ref": "#/definitions/facet_evidence_adversarial"
+          },
+          "F4_ergonomic": {
+            "$ref": "#/definitions/facet_evidence_ergonomic"
+          },
+          "F5_quality": {
+            "$ref": "#/definitions/facet_evidence"
+          },
+          "F6_alternatives": {
+            "$ref": "#/definitions/facet_evidence_alternatives"
+          },
+          "F7_security": {
+            "$ref": "#/definitions/facet_evidence_security"
+          }
         }
       }
     },
     "definitions": {
       "facet_evidence": {
         "type": "object",
-        "required": ["considered"],
+        "required": [
+          "considered"
+        ],
         "properties": {
-          "considered": { "type": "boolean" },
-          "not_applicable_reason": { "type": "string" },
-          "findings": { "type": "array", "items": { "type": "string" } },
-          "fixuptasks": { "type": "array", "items": { "type": "string", "pattern": "^F-[A-Z0-9-]+-\\d+$" } },
-          "null_finding_reason": { "type": "string" }
+          "considered": {
+            "type": "boolean"
+          },
+          "not_applicable_reason": {
+            "type": "string"
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fixuptasks": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^F-[A-Z0-9-]+-\\d+$"
+            }
+          },
+          "null_finding_reason": {
+            "type": "string"
+          }
         }
       },
       "facet_evidence_adversarial": {
         "allOf": [
-          { "$ref": "#/definitions/facet_evidence" },
+          {
+            "$ref": "#/definitions/facet_evidence"
+          },
           {
             "properties": {
-              "failing_fixture_added": { "type": "boolean" },
-              "passing_fixture_id": { "type": "string" },
-              "failing_fixture_id": { "type": "string" },
-              "diagnostic_asserted": { "type": "string" }
+              "failing_fixture_added": {
+                "type": "boolean"
+              },
+              "passing_fixture_id": {
+                "type": "string"
+              },
+              "failing_fixture_id": {
+                "type": "string"
+              },
+              "diagnostic_asserted": {
+                "type": "string"
+              }
             }
           }
         ]
       },
       "facet_evidence_ergonomic": {
         "allOf": [
-          { "$ref": "#/definitions/facet_evidence" },
+          {
+            "$ref": "#/definitions/facet_evidence"
+          },
           {
             "properties": {
-              "new_contributor_minutes_estimate": { "type": "integer", "minimum": 0, "maximum": 60 }
+              "new_contributor_minutes_estimate": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 60
+              }
             }
           }
         ]
       },
       "facet_evidence_alternatives": {
         "allOf": [
-          { "$ref": "#/definitions/facet_evidence" },
+          {
+            "$ref": "#/definitions/facet_evidence"
+          },
           {
             "properties": {
-              "alternatives_named": { "type": "array", "minItems": 1, "items": { "type": "string" } },
-              "selected_rationale": { "type": "string" },
-              "rejected_reasons": { "type": "array", "items": { "type": "string" } }
+              "alternatives_named": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              },
+              "selected_rationale": {
+                "type": "string"
+              },
+              "rejected_reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
             }
           }
         ]
       },
       "facet_evidence_security": {
         "allOf": [
-          { "$ref": "#/definitions/facet_evidence" },
+          {
+            "$ref": "#/definitions/facet_evidence"
+          },
           {
             "properties": {
-              "owasp_class_review": { "enum": ["dos","injection","broken_access","sensitive_data","crypto","xxe","deserialization","configuration","component_vuln","logging","none_applicable"] },
-              "severity_max": { "enum": ["none","low","medium","high","critical"] },
-              "secrets_touched": { "type": "boolean" },
-              "tenant_data_touched": { "type": "boolean" },
-              "audit_chain_emission_required": { "type": "boolean" }
+              "owasp_class_review": {
+                "enum": [
+                  "dos",
+                  "injection",
+                  "broken_access",
+                  "sensitive_data",
+                  "crypto",
+                  "xxe",
+                  "deserialization",
+                  "configuration",
+                  "component_vuln",
+                  "logging",
+                  "none_applicable"
+                ]
+              },
+              "severity_max": {
+                "enum": [
+                  "none",
+                  "low",
+                  "medium",
+                  "high",
+                  "critical"
+                ]
+              },
+              "secrets_touched": {
+                "type": "boolean"
+              },
+              "tenant_data_touched": {
+                "type": "boolean"
+              },
+              "audit_chain_emission_required": {
+                "type": "boolean"
+              }
             }
           }
         ]
       }
     }
   },
-
   "fixture_pair_layout_convention": {
     "purpose": "Every lane sub-check ships with a passing fixture + a failing fixture so F3 (adversarial) is structurally enforceable.",
     "convention": {
       "lane_crate": "crates/<lane-crate>/tests/fixtures/<sub-check>/passing/",
       "violation_crate": "crates/<lane-crate>/tests/fixtures/<sub-check>/failing/",
-      "meta_test": "crates/<lane-crate>/tests/fixture_pair.rs — asserts for every sub-check that the failing fixture triggers the documented diagnostic AND the passing fixture does not."
+      "meta_test": "crates/<lane-crate>/tests/fixture_pair.rs \u2014 asserts for every sub-check that the failing fixture triggers the documented diagnostic AND the passing fixture does not."
     },
     "enforced_by": "oya-check-dependency-seam sub-check fixture-pair-coverage"
   },
-
   "mandatory_subchecks_in_seam_lane": {
     "multispectrum-evidence-attached": {
       "description": "Lane reads the changeset's evidence bundle; refuses if multispectrum_review block absent, any facet missing considered, or rigor-matrix violated.",
@@ -1045,23 +1346,20 @@
       "severity_day_8": "error"
     }
   },
-
   "session_start_hook_contract": {
     "description": "Every session reads docs/standards/multispectrum-review.md + this JSON at start so the bar is durable across sessions, not session-scoped to a particular agent's memory.",
     "hook_event": "SessionStart",
-    "implementation_path": "agents/settings/claude.settings.json — hook 'multispectrum-bar-on-session-start' injects a one-line reminder citing this spec.",
+    "implementation_path": "agents/settings/claude.settings.json \u2014 hook 'multispectrum-bar-on-session-start' injects a one-line reminder citing this spec.",
     "fallback": "If SessionStart hook missing or stale, root-hub-pointers.json carries the multispectrum_review pointer so any agent discovers it on the authority-first read."
   },
-
   "evolution_policy": {
     "facet_addition_f_family": "1-ADR action; max 12 F-family critique facets total (closed enum cap to prevent dilution).",
-    "facet_addition_a_family": "1-ADR action; OPEN — A-family adherence facets grow as policy domains do (per v2.3.0 user directive). No closed cap; cap rule relaxed because each A-facet corresponds to a distinct doctrine principle / standard / ADR that already governs its domain.",
+    "facet_addition_a_family": "1-ADR action; OPEN \u2014 A-family adherence facets grow as policy domains do (per v2.3.0 user directive). No closed cap; cap rule relaxed because each A-facet corresponds to a distinct doctrine principle / standard / ADR that already governs its domain.",
     "facet_removal": "Forbidden without superseded_by ADR + 90-day deprecation window.",
     "rigor_matrix_amendment": "0-ADR action; tracked in decision_log header of this JSON.",
     "change_class_addition": "1-ADR action.",
     "evidence_schema_breaking_change": "1-ADR action; version bump."
   },
-
   "decision_log": [
     {
       "when": "2026-05-14",

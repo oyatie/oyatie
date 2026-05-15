@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for crawler-politeness-incident.md
+---
+
 # Oyatie Runbook — Crawler Politeness Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

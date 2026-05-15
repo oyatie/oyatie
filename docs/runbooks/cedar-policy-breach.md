@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cedar-policy-breach.md
+---
+
 # Oyatie Runbook — Cedar Policy Breach
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

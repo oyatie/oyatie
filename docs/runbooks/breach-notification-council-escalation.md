@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for breach-notification-council-escalation.md
+---
+
 # Oyatie Runbook — Breach Notification Council Escalation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -15,7 +15,11 @@
       "scope": "personal-information-residency",
       "residency_required": true,
       "cross_border_transfer": "consent-or-adequacy-or-equivalent-protection",
-      "data_classes": ["personal", "sensitive-personal", "individual-number-my-number"]
+      "data_classes": [
+        "personal",
+        "sensitive-personal",
+        "individual-number-my-number"
+      ]
     },
     {
       "framework": "ISMAP",
@@ -36,5 +40,6 @@
     "lean-a5-doc-coverage",
     "lean-a10-no-silent-regression",
     "canonical-base-neutrality"
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for manifest.json"
 }

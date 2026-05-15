@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cedar-policy-rollback.md
+---
+
 # Oyatie Runbook — Cedar Policy Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

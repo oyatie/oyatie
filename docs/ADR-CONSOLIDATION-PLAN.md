@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for ADR-CONSOLIDATION-PLAN.md
+---
+
 # Oyatie — ADR Consolidation Plan
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored per user directive: existing ADRs may be removed; the consolidated docs should point to NEW ADRs and consolidate old ones. This doc is the cleanup plan + the policy for how existing ADR-NNNN refs in the consolidated docs should be treated.

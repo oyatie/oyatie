@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-orphan-detection-lane.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-002

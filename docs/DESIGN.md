@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for DESIGN.md
+---
+
 # Oyatie — Architecture & Design Document (DESIGN)
 
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)

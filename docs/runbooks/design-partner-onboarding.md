@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for design-partner-onboarding.md
+---
+
 # Oyatie Runbook — Design Partner Onboarding
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

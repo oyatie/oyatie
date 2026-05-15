@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for industrial-ot-write-emergency-stop.md
+---
+
 # Oyatie Runbook — Industrial Ot Write Emergency Stop
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

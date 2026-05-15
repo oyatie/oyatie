@@ -7,24 +7,22 @@
   "freshness_unix": 1778801869,
   "session_id": "claude-mcc-p06-ip-002",
   "multispectrum_spec_version": "1.0.0",
-  "schema_v2_backfill_note": "v2.0.0 added F8_performance + F9_compliance as required facets and M1 + M2 as optional meta-facets. This evidence file was authored against v1.0.0 (7 facets). Back-filled F8 + F9 + M1 + M2 below per the v1→v2 migration policy.",
-
+  "schema_v2_backfill_note": "v2.0.0 added F8_performance + F9_compliance as required facets and M1 + M2 as optional meta-facets. This evidence file was authored against v1.0.0 (7 facets). Back-filled F8 + F9 + M1 + M2 below per the v1\u2192v2 migration policy.",
   "scope_amendment": {
     "original_ip": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
     "amended_via": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
-    "user_directive": "2026-05-14: 'go with C — Full quality bar' + 'begin the multiday work now' + 'multispectrum quality bar, test, and review is durable and enforced by every session'",
+    "user_directive": "2026-05-14: 'go with C \u2014 Full quality bar' + 'begin the multiday work now' + 'multispectrum quality bar, test, and review is durable and enforced by every session'",
     "amendments": [
       "Layer enum reverted from IP's {kernel,runtime,adapter,api,app} to canonical 12-value enum per ADR-0056 v4.1.",
       "Middleware target layer corrected from -runtime (non-canonical) to -infrastructure.",
       "Tech-debt ledger with state machine + trigger DSL collapsed to flat rationales overlay (11 rows, 5 fields each).",
       "oya-foundry-trigger-dsl-{kernel,runtime} crates dropped as speculative complexity (multispectrum F1+F2+F6).",
-      "dri.json + role-roster.json dropped; owner_team belongs in package.metadata.oya per ADR-0056 §7.",
+      "dri.json + role-roster.json dropped; owner_team belongs in package.metadata.oya per ADR-0056 \u00a77.",
       "Step 0 mass Cargo.toml metadata insertion across 269 crates canceled; lane derives layer from name suffix.",
       "Step 7 30-day soak moved to cron, not session-bound work.",
       "ADR numbering shifted from 0091-0094 to 0092-0095 (0091 was already taken by foundry-write-gate-foundations)."
     ]
   },
-
   "phases_delivered": [
     {
       "phase": 0,
@@ -39,7 +37,7 @@
     },
     {
       "phase": 1,
-      "name": "oya-http-sse-domain → oya-http-sse-kernel",
+      "name": "oya-http-sse-domain \u2192 oya-http-sse-kernel",
       "tests_passing": "all (verified per phase + final 12-suite sweep)"
     },
     {
@@ -50,7 +48,7 @@
     },
     {
       "phase": 3,
-      "name": "middleware-domain → middleware-infrastructure (3 crates renamed)",
+      "name": "middleware-domain \u2192 middleware-infrastructure (3 crates renamed)",
       "tests_passing": "22 on renamed crates"
     },
     {
@@ -61,7 +59,7 @@
     },
     {
       "phase": 5,
-      "name": "DeadlineMiddleware → LatencyBudgetReporter + crate renamed (Q3 + ADR-0093)",
+      "name": "DeadlineMiddleware \u2192 LatencyBudgetReporter + crate renamed (Q3 + ADR-0093)",
       "tests_passing": "7 on renamed crate"
     },
     {
@@ -80,41 +78,55 @@
       "name": "S3 body size limit + S4 connection timeouts (security-critical)",
       "tests_passing": "18 in adapter incl. body-limit boundary tests",
       "adversarial_fixtures_added": 7,
-      "security_findings_closed": ["S3 OOM-from-unbounded-body"],
-      "security_findings_partial": ["S4 slowloris — builder config tested; full integration test = F-SEC-S4-INTEGRATION"]
+      "security_findings_closed": [
+        "S3 OOM-from-unbounded-body"
+      ],
+      "security_findings_partial": [
+        "S4 slowloris \u2014 builder config tested; full integration test = F-SEC-S4-INTEGRATION"
+      ]
     },
     {
       "phase": 9,
       "name": "S5 path traversal + S7/S8 SSE injection (security-high)",
       "tests_passing": "23 sse-kernel + 5 new router dot-segment fixtures",
       "adversarial_fixtures_added": 21,
-      "security_findings_closed": ["S5 router dot-segment", "S7 SSE event injection", "S8 SSE heartbeat injection"]
+      "security_findings_closed": [
+        "S5 router dot-segment",
+        "S7 SSE event injection",
+        "S8 SSE heartbeat injection"
+      ]
     },
     {
       "phase": 10,
       "name": "S1 header case + S2 non-UTF8 + S10 CRLF (security-medium)",
       "tests_passing": "43 on middleware-kernel + adapter combined",
       "adversarial_fixtures_added": 8,
-      "security_findings_closed": ["S1 header case-sensitivity", "S2 non-UTF8 silent drop", "S10 CRLF in header values"]
+      "security_findings_closed": [
+        "S1 header case-sensitivity",
+        "S2 non-UTF8 silent drop",
+        "S10 CRLF in header values"
+      ]
     }
   ],
-
   "mechanical_proof_final": {
     "total_tests_passing": 189,
     "test_suites": 12,
     "seam_audit_command": "for d in crates/*/Cargo.toml; do if grep -E '^(hyper|hyper-util|http-body-util|bytes)( |\\.workspace|\\s*=)' \"$d\" >/dev/null; then echo \"$d\"; fi; done",
     "seam_audit_result_before_work": [
-      "oya-http-middleware-kernel (bytes — KERNEL LEAK)",
-      "oya-http-deadline-middleware-domain (bytes — symptom)",
-      "oya-http-telemetry-middleware-domain (bytes — symptom)",
-      "oya-http-tenant-middleware-domain (bytes — symptom)",
-      "oya-http-runtime-hyper-adapter (hyper + hyper-util + http-body-util + bytes — CORRECT)",
-      "oya-ops-workspace-shell-runtime (bytes — Layer 6 leak)"
+      "oya-http-middleware-kernel (bytes \u2014 KERNEL LEAK)",
+      "oya-http-deadline-middleware-domain (bytes \u2014 symptom)",
+      "oya-http-telemetry-middleware-domain (bytes \u2014 symptom)",
+      "oya-http-tenant-middleware-domain (bytes \u2014 symptom)",
+      "oya-http-runtime-hyper-adapter (hyper + hyper-util + http-body-util + bytes \u2014 CORRECT)",
+      "oya-ops-workspace-shell-runtime (bytes \u2014 Layer 6 leak)"
     ],
-    "seam_audit_result_after_work": ["oya-http-runtime-hyper-adapter — the only hyper-family declaring crate"],
-    "rs_import_audit_after": ["crates/oya-http-runtime-hyper-adapter/src/lib.rs — the only .rs importing hyper-family"]
+    "seam_audit_result_after_work": [
+      "oya-http-runtime-hyper-adapter \u2014 the only hyper-family declaring crate"
+    ],
+    "rs_import_audit_after": [
+      "crates/oya-http-runtime-hyper-adapter/src/lib.rs \u2014 the only .rs importing hyper-family"
+    ]
   },
-
   "facets": {
     "F1_linus": {
       "considered": true,
@@ -127,16 +139,22 @@
         "Eliminated double-bookkeeping: layer derived from crate name (ADR-0056 BNF), not declared in metadata too.",
         "Eliminated dri.json + role-roster.json duplicating Cargo metadata owner_team."
       ],
-      "fixuptasks": ["F-LANE-SEAM-IMPL", "F-LANE-DISTROLESS"]
+      "fixuptasks": [
+        "F-LANE-SEAM-IMPL",
+        "F-LANE-DISTROLESS"
+      ]
     },
     "F2_hyperscaler": {
       "considered": true,
       "findings": [
         "Cargo build graph shrinks for 5 crates that no longer transitively pull bytes.",
         "Dependency rationales overlay is data + cargo metadata generator, not hand-authored ledger duplicating Cargo state.",
-        "Server config (max_body_bytes + timeouts) declared with safe defaults — scales horizontally without per-cell tuning."
+        "Server config (max_body_bytes + timeouts) declared with safe defaults \u2014 scales horizontally without per-cell tuning."
       ],
-      "fixuptasks": ["F-MULTI-Q2 (telemetry hot-lock)", "F-PERF-BODY-COPY-1"]
+      "fixuptasks": [
+        "F-MULTI-Q2 (telemetry hot-lock)",
+        "F-PERF-BODY-COPY-1"
+      ]
     },
     "F3_adversarial": {
       "considered": true,
@@ -148,7 +166,7 @@
         "Final total: 189 tests pass across 12 suites; adversarial fixtures added in every phase."
       ],
       "passing_fixture_id": "oya_http_runtime_hyper_adapter::tests::boundary_conversion_round_trip_identity + 188 others",
-      "failing_fixture_id": "INTERNAL — see per-phase evidence files",
+      "failing_fixture_id": "INTERNAL \u2014 see per-phase evidence files",
       "diagnostic_asserted": "Per-fixture; e.g., byte-equality on 256-byte payload + length + sentinel byte assertions"
     },
     "F4_ergonomic": {
@@ -157,7 +175,7 @@
       "findings": [
         "Adding a workspace dep: one row in dependency-rationales.json (5 fields).",
         "Constructing HttpRequest in a test: 6 fields incl. matched_template: None (was 5).",
-        "Using HttpResponse::with_header: keys lowercased + values CRLF-stripped automatically — caller doesn't have to remember.",
+        "Using HttpResponse::with_header: keys lowercased + values CRLF-stripped automatically \u2014 caller doesn't have to remember.",
         "Implementing a Handler: trait + From<MyError> for HttpResponse impl; closures still work via SyncHandler."
       ]
     },
@@ -167,23 +185,25 @@
         "5 quality issues identified at start of session; 4 fixed in scope (Q1, Q3, Q4, Q5); 1 documented as FixupTask (Q2 telemetry hot-lock).",
         "Iterative-fix-loop applied at least twice to catch my own quality slips during execution."
       ],
-      "fixuptasks": ["F-MULTI-Q2"]
+      "fixuptasks": [
+        "F-MULTI-Q2"
+      ]
     },
     "F6_alternatives": {
       "considered": true,
       "alternatives_named": [
-        "Option A — IP-002 as written (cosmetic rename only): rejected; leaves root-cause leak and quality issues.",
-        "Option B — Slimmed slice (type rename + body Vec<u8> + crate renames; defer quality + security): rejected; leaves S3-S10 security gaps.",
-        "Option C (selected) — Full quality bar: 10 phases including Q1-Q5 fixes + S1-S10 fixes + multispectrum enforcement.",
-        "For kernel body type: Option α (generic over body type with default) vs Option β (concrete Vec<u8>) vs Option γ (enum body): Option β selected for current scale; F-MULTI-Q-BODY-GENERIC if streaming routes need it.",
-        "For Handler trait: blanket impl on closures vs explicit handler_to_sync helper — chose explicit (coherence rules)."
+        "Option A \u2014 IP-002 as written (cosmetic rename only): rejected; leaves root-cause leak and quality issues.",
+        "Option B \u2014 Slimmed slice (type rename + body Vec<u8> + crate renames; defer quality + security): rejected; leaves S3-S10 security gaps.",
+        "Option C (selected) \u2014 Full quality bar: 10 phases including Q1-Q5 fixes + S1-S10 fixes + multispectrum enforcement.",
+        "For kernel body type: Option \u03b1 (generic over body type with default) vs Option \u03b2 (concrete Vec<u8>) vs Option \u03b3 (enum body): Option \u03b2 selected for current scale; F-MULTI-Q-BODY-GENERIC if streaming routes need it.",
+        "For Handler trait: blanket impl on closures vs explicit handler_to_sync helper \u2014 chose explicit (coherence rules)."
       ],
       "selected_rationale": "User authorized Option C 2026-05-14; multispectrum bar requires all 7 facets satisfied before claiming complete.",
       "rejected_reasons": [
         "A (cosmetic only): symptom not root cause",
         "B (slimmed): defers security gaps to indefinite future",
-        "α (generic body): premature trait-bound noise",
-        "γ (enum body): speculative design freeze"
+        "\u03b1 (generic body): premature trait-bound noise",
+        "\u03b3 (enum body): speculative design freeze"
       ]
     },
     "F8_performance": {
@@ -195,22 +215,33 @@
         "Sanitize-at-render (SSE Phase 9) iterates payload bytes on every event emission. For LLM-streaming workloads emitting 1000+ events/sec this is non-trivial per-event overhead. Could be construction-time once if profiled hot.",
         "Telemetry Mutex<BTreeMap> contends on every metric write. F-MULTI-Q2 deferred."
       ],
-      "fixuptasks": ["F-PERF-BODY-COPY-1", "F-MULTI-Q2 (telemetry hot-lock)", "F-PERF-SSE-RENDER-CACHING"]
+      "fixuptasks": [
+        "F-PERF-BODY-COPY-1",
+        "F-MULTI-Q2 (telemetry hot-lock)",
+        "F-PERF-SSE-RENDER-CACHING"
+      ]
     },
     "F9_compliance": {
       "considered": true,
-      "data_class_touched": ["internal_only", "tenant_scoped (TenantSlug + tenant_data via tenant middleware)"],
+      "data_class_touched": [
+        "internal_only",
+        "tenant_scoped (TenantSlug + tenant_data via tenant middleware)"
+      ],
       "audit_chain_emission_required": false,
       "audit_chain_emission_present": false,
       "secret_handling_path": "n/a (no secrets in scope this session)",
       "regulatory_packs_impacted": [],
       "findings": [
-        "TenantSlug centralization (Phase 7) tightens defense-in-depth for tenant identity validation — compliance-aligned.",
-        "Evidence files emitted to filesystem only; NOT wired to ADR-0069 audit-chain. For regulated workloads this is insufficient — F-EVIDENCE-AUDIT-CHAIN-WIRE.",
+        "TenantSlug centralization (Phase 7) tightens defense-in-depth for tenant identity validation \u2014 compliance-aligned.",
+        "Evidence files emitted to filesystem only; NOT wired to ADR-0069 audit-chain. For regulated workloads this is insufficient \u2014 F-EVIDENCE-AUDIT-CHAIN-WIRE.",
         "Lane is report-only on day 1. SOC2/FedRAMP audits would call this a documented partial control. Soak-to-error transition is F-SOAK-FLIP-CRON.",
         "No secret-scan over evidence file contents. F-EVIDENCE-SECRET-SCAN."
       ],
-      "fixuptasks": ["F-EVIDENCE-AUDIT-CHAIN-WIRE", "F-EVIDENCE-SECRET-SCAN", "F-SOAK-FLIP-CRON"]
+      "fixuptasks": [
+        "F-EVIDENCE-AUDIT-CHAIN-WIRE",
+        "F-EVIDENCE-SECRET-SCAN",
+        "F-SOAK-FLIP-CRON"
+      ]
     },
     "M1_challenge_assumption": {
       "considered": true,
@@ -245,19 +276,64 @@
       "tenant_data_touched": true,
       "audit_chain_emission_required": false,
       "findings": [
-        { "severity": "critical", "summary": "S3 — adapter read full request body without size limit (OOM DoS)", "recommended_action": "Limited<B> + ServerConfig.max_body_bytes (1 MiB default); over-cap renders 413", "status_after_phase_8": "CLOSED with fixture" },
-        { "severity": "critical", "summary": "S4 — no connection/idle timeouts (slowloris)", "recommended_action": "hyper-util ConnBuilder http1.header_read_timeout + http2 keepalive", "status_after_phase_8": "PARTIAL — config set; integration test = F-SEC-S4-INTEGRATION", "fixuptask_id": "F-SEC-S4-INTEGRATION" },
-        { "severity": "high", "summary": "S5 — router accepted '.'/'..' as captures (path traversal)", "recommended_action": "match_path rejects dot-segments in captures", "status_after_phase_9": "CLOSED with 6 fixtures" },
-        { "severity": "high", "summary": "S6 — telemetry leaked captured values into metric labels", "recommended_action": "router stores matched_template; telemetry uses static template only", "status_after_phase_4": "CLOSED with sensitive_capture_value_excluded_from_label" },
-        { "severity": "high", "summary": "S7 — SSE event injection via CR/NUL in data/event/id", "recommended_action": "render() sanitizes; try_data/try_with_id/try_with_event for fail-fast", "status_after_phase_9": "CLOSED with defense_in_depth_render_never_emits_injected_field + 15 others" },
-        { "severity": "high", "summary": "S8 — SSE heartbeat comment injection via \\n", "recommended_action": "render_heartbeat sanitizes; try_render_heartbeat for fail-fast", "status_after_phase_9": "CLOSED" },
-        { "severity": "medium", "summary": "S1 — case-sensitive header lookup", "recommended_action": "adapter lowercases on intake; with_header lowercases on set", "status_after_phase_10": "CLOSED" },
-        { "severity": "medium", "summary": "S2 — non-UTF8 header silently dropped", "recommended_action": "return HyperRuntimeError::NonUtf8HeaderValue (400)", "status_after_phase_10": "CLOSED" },
-        { "severity": "medium", "summary": "S10 — CR/LF in header values (response splitting)", "recommended_action": "with_header strips CR/LF/NUL", "status_after_phase_10": "CLOSED with combined_attack_neutralized fixture" }
+        {
+          "severity": "critical",
+          "summary": "S3 \u2014 adapter read full request body without size limit (OOM DoS)",
+          "recommended_action": "Limited<B> + ServerConfig.max_body_bytes (1 MiB default); over-cap renders 413",
+          "status_after_phase_8": "CLOSED with fixture"
+        },
+        {
+          "severity": "critical",
+          "summary": "S4 \u2014 no connection/idle timeouts (slowloris)",
+          "recommended_action": "hyper-util ConnBuilder http1.header_read_timeout + http2 keepalive",
+          "status_after_phase_8": "PARTIAL \u2014 config set; integration test = F-SEC-S4-INTEGRATION",
+          "fixuptask_id": "F-SEC-S4-INTEGRATION"
+        },
+        {
+          "severity": "high",
+          "summary": "S5 \u2014 router accepted '.'/'..' as captures (path traversal)",
+          "recommended_action": "match_path rejects dot-segments in captures",
+          "status_after_phase_9": "CLOSED with 6 fixtures"
+        },
+        {
+          "severity": "high",
+          "summary": "S6 \u2014 telemetry leaked captured values into metric labels",
+          "recommended_action": "router stores matched_template; telemetry uses static template only",
+          "status_after_phase_4": "CLOSED with sensitive_capture_value_excluded_from_label"
+        },
+        {
+          "severity": "high",
+          "summary": "S7 \u2014 SSE event injection via CR/NUL in data/event/id",
+          "recommended_action": "render() sanitizes; try_data/try_with_id/try_with_event for fail-fast",
+          "status_after_phase_9": "CLOSED with defense_in_depth_render_never_emits_injected_field + 15 others"
+        },
+        {
+          "severity": "high",
+          "summary": "S8 \u2014 SSE heartbeat comment injection via \\n",
+          "recommended_action": "render_heartbeat sanitizes; try_render_heartbeat for fail-fast",
+          "status_after_phase_9": "CLOSED"
+        },
+        {
+          "severity": "medium",
+          "summary": "S1 \u2014 case-sensitive header lookup",
+          "recommended_action": "adapter lowercases on intake; with_header lowercases on set",
+          "status_after_phase_10": "CLOSED"
+        },
+        {
+          "severity": "medium",
+          "summary": "S2 \u2014 non-UTF8 header silently dropped",
+          "recommended_action": "return HyperRuntimeError::NonUtf8HeaderValue (400)",
+          "status_after_phase_10": "CLOSED"
+        },
+        {
+          "severity": "medium",
+          "summary": "S10 \u2014 CR/LF in header values (response splitting)",
+          "recommended_action": "with_header strips CR/LF/NUL",
+          "status_after_phase_10": "CLOSED with combined_attack_neutralized fixture"
+        }
       ]
     }
   },
-
   "iterative_fix_loop_evidence": {
     "iteration_count": 2,
     "states_visited": [
@@ -267,7 +343,7 @@
       "re-running-verification (cargo test green)",
       "re-evaluating-facet",
       "facet-red (F3 fixture: buggy assertion in Phase 9 render_heartbeat test)",
-      "applying-fix (corrected the assertion semantics — check for smuggled LINE not smuggled bytes)",
+      "applying-fix (corrected the assertion semantics \u2014 check for smuggled LINE not smuggled bytes)",
       "re-running-verification (cargo test green)",
       "re-evaluating-facet",
       "all-facets-green"
@@ -276,33 +352,75 @@
     "fixtures_added_total": 78,
     "duration_seconds": null
   },
-
   "mandatory_artifacts_per_change_class": {
     "CC-1_kernel_public_api": {
       "adr_cite": "ADR-0092 + ADR-0093 + ADR-0094 + ADR-0095",
       "failing_fixture": "188 F3 fixtures across the 12 test suites"
     }
   },
-
   "fixuptasks_emitted": [
-    { "id": "F-LANE-SEAM-IMPL", "title": "Ship oya-check-dependency-seam crate (3+3 sub-checks per ADR-0092 D13)", "priority": "high", "blocker_for": "M-CC P06 exit" },
-    { "id": "F-LANE-DISTROLESS", "title": "Distroless smoke + cold-start harness + lane (original Step 5)", "priority": "medium" },
-    { "id": "F-STEP8-READYZ", "title": "/readyz endpoint + ReadinessGate tests when an endpoint lands", "priority": "medium" },
-    { "id": "F-MULTI-Q2", "title": "Telemetry Mutex<BTreeMap> → sharded AtomicU64 when load tests show contention", "priority": "low" },
-    { "id": "F-ASYNCCHAIN-1", "title": "Async middleware chain (enables real cancellation; ADR-0094 sibling)", "priority": "medium" },
-    { "id": "F-HANDLER-ASYNC", "title": "AsyncHandler trait variant once F-ASYNCCHAIN-1 lands", "priority": "low" },
-    { "id": "F-TENANTID-FORMAL", "title": "Formalize TenantId vs TenantSlug mapping in PRD-tenancy + auth/identity slice", "priority": "medium" },
-    { "id": "F-SEC-S4-INTEGRATION", "title": "Real slowloris integration test (hyper client harness)", "priority": "high" },
-    { "id": "F-DRI-CODEOWNERS", "title": "Generate CODEOWNERS from [package.metadata.oya.owner_team]", "priority": "medium" },
-    { "id": "F-PERF-BODY-COPY-1", "title": "Re-evaluate Bytes→Vec<u8> inbound copy under load", "priority": "low" },
-    { "id": "F-SOAK-FLIP-CRON", "title": "Cron to flip seam lane severity report-only → error after 7-day green window", "priority": "medium" }
+    {
+      "id": "F-LANE-SEAM-IMPL",
+      "title": "Ship oya-check-dependency-seam crate (3+3 sub-checks per ADR-0092 D13)",
+      "priority": "high",
+      "blocker_for": "M-CC P06 exit"
+    },
+    {
+      "id": "F-LANE-DISTROLESS",
+      "title": "Distroless smoke + cold-start harness + lane (original Step 5)",
+      "priority": "medium"
+    },
+    {
+      "id": "F-STEP8-READYZ",
+      "title": "/readyz endpoint + ReadinessGate tests when an endpoint lands",
+      "priority": "medium"
+    },
+    {
+      "id": "F-MULTI-Q2",
+      "title": "Telemetry Mutex<BTreeMap> \u2192 sharded AtomicU64 when load tests show contention",
+      "priority": "low"
+    },
+    {
+      "id": "F-ASYNCCHAIN-1",
+      "title": "Async middleware chain (enables real cancellation; ADR-0094 sibling)",
+      "priority": "medium"
+    },
+    {
+      "id": "F-HANDLER-ASYNC",
+      "title": "AsyncHandler trait variant once F-ASYNCCHAIN-1 lands",
+      "priority": "low"
+    },
+    {
+      "id": "F-TENANTID-FORMAL",
+      "title": "Formalize TenantId vs TenantSlug mapping in PRD-tenancy + auth/identity slice",
+      "priority": "medium"
+    },
+    {
+      "id": "F-SEC-S4-INTEGRATION",
+      "title": "Real slowloris integration test (hyper client harness)",
+      "priority": "high"
+    },
+    {
+      "id": "F-DRI-CODEOWNERS",
+      "title": "Generate CODEOWNERS from [package.metadata.oya.owner_team]",
+      "priority": "medium"
+    },
+    {
+      "id": "F-PERF-BODY-COPY-1",
+      "title": "Re-evaluate Bytes\u2192Vec<u8> inbound copy under load",
+      "priority": "low"
+    },
+    {
+      "id": "F-SOAK-FLIP-CRON",
+      "title": "Cron to flip seam lane severity report-only \u2192 error after 7-day green window",
+      "priority": "medium"
+    }
   ],
-
   "stop_condition_evaluation": {
     "original_stop_condition": "All 14 acceptance criteria checklist items met; M-CC-P06-IP-002 status flipped to complete with concrete evidence file at /evidence/m-cc-p06-ip-002-final.json",
-    "amended_stop_condition_per_ADR_0092": "10 phases delivered; 189 tests pass across 12 suites; seam audit 6→1 crate; multispectrum bar codified + applied; bounded FixupTasks emitted for the 4 items intentionally out of scope (F-LANE-SEAM-IMPL, F-LANE-DISTROLESS, F-STEP8-READYZ, F-SOAK-FLIP-CRON)",
+    "amended_stop_condition_per_ADR_0092": "10 phases delivered; 189 tests pass across 12 suites; seam audit 6\u21921 crate; multispectrum bar codified + applied; bounded FixupTasks emitted for the 4 items intentionally out of scope (F-LANE-SEAM-IMPL, F-LANE-DISTROLESS, F-STEP8-READYZ, F-SOAK-FLIP-CRON)",
     "met": true
   },
-
-  "decision_log_row": "M-CC-P06-IP-002 closed under amended scope per ADR-0092 + multispectrum review bar. 10 phases of code work + 4 ADRs + 1 registry + 1 standard + 1 spec + 1 checklist + 1 loop protocol. 9 of 9 named security findings closed (or partial with FixupTask). 4 of 5 named quality findings closed; the 5th is a bounded FixupTask. Linus good-taste row in the IP markdown enumerates rejected antipatterns."
+  "decision_log_row": "M-CC-P06-IP-002 closed under amended scope per ADR-0092 + multispectrum review bar. 10 phases of code work + 4 ADRs + 1 registry + 1 standard + 1 spec + 1 checklist + 1 loop protocol. 9 of 9 named security findings closed (or partial with FixupTask). 4 of 5 named quality findings closed; the 5th is a bounded FixupTask. Linus good-taste row in the IP markdown enumerates rejected antipatterns.",
+  "purpose": "Auto-backfilled purpose for m-cc-p06-ip-002-final-1778801869.json"
 }

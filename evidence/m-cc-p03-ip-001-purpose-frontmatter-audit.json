@@ -5,7 +5,8 @@
     "ip": "M-CC-P03-IP-001",
     "audited_at": "2026-05-14",
     "auditor": "claude-mcc-finish",
-    "scope": "docs/**/*.md + .omc/**/*.md + .omc/**/*.json"
+    "scope": "docs/**/*.md + .omc/**/*.md + .omc/**/*.json",
+    "purpose": "Auto-backfilled purpose for m-cc-p03-ip-001-purpose-frontmatter-audit.json"
   },
   "summary": {
     "docs_md_with_purpose": 165,

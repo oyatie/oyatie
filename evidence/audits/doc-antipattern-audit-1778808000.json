@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/evidence/audits/doc-antipattern-audit-1778808000.json",
   "title": "DocAntipatternAudit",
-  "description": "Workspace-wide audit for doctrine violations. Per user directive 2026-05-14: 'audit existing docs as well for antipatterns'. Authored at /evidence/audits/ — canonical durable home per P11 (NOT under .omc/).",
+  "description": "Workspace-wide audit for doctrine violations. Per user directive 2026-05-14: 'audit existing docs as well for antipatterns'. Authored at /evidence/audits/ \u2014 canonical durable home per P11 (NOT under .omc/).",
   "_meta": {
     "doc_class": "Evidence",
     "audit_id": "DOC-ANTIPATTERN-AUDIT-2026-05-14",
@@ -13,9 +13,15 @@
     "freshness_unix": 1778808000,
     "audit_scope": "all .omc/ + docs/ + scripts/ + .grit/worktrees/ + .omx/ paths",
     "doctrine_version_audited_against": "1.0.0 (P0..P15 + format_selection_rules + repository_layout)",
-    "related_principles": ["P9_no_sprawl", "P10_concrete_structure_and_naming", "P11_durables_outside_omc", "P14_file_naming_layout_standard", "P15_rust_default_language"]
+    "related_principles": [
+      "P9_no_sprawl",
+      "P10_concrete_structure_and_naming",
+      "P11_durables_outside_omc",
+      "P14_file_naming_layout_standard",
+      "P15_rust_default_language"
+    ],
+    "purpose": "Auto-backfilled purpose for doc-antipattern-audit-1778808000.json"
   },
-
   "findings": {
     "P11_durables_in_omc": {
       "principle": "P11_durables_outside_omc",
@@ -27,17 +33,16 @@
         "evidence_files": 50,
         "templates": "uncounted (small)"
       },
-      "remediation": "F-MIGRATE-DURABLES-OUT-OF-OMC (already in fixuptasks.jsonl). Atomic migration: specs → /specs/, registries → /registries/, evidence → /evidence/, templates → /templates/. Cross-references rewritten via lane validator.",
+      "remediation": "F-MIGRATE-DURABLES-OUT-OF-OMC (already in fixuptasks.jsonl). Atomic migration: specs \u2192 /specs/, registries \u2192 /registries/, evidence \u2192 /evidence/, templates \u2192 /templates/. Cross-references rewritten via lane validator.",
       "samples": [
-        "/specs/cross-cutting/multispectrum-review.json (→ /specs/cross-cutting/multispectrum-review-v2.1.0.json)",
-        "/specs/cross-cutting/oyatie-doctrine.json (→ /specs/cross-cutting/oyatie-doctrine-v1.0.0.json)",
-        "/registries/cross-cutting/fixuptasks.jsonl (→ /registries/cross-cutting/fixuptasks.jsonl)",
-        "/registries/cross-cutting/test-suite-registry.json (→ /registries/cross-cutting/test-suite-registry-v1.0.0.json)",
-        "/registries/cross-cutting/knowledge-graph-{semantic,kinetic,dynamic}.json (→ /registries/cross-cutting/)",
-        "/evidence/m-cc-p06-ip-002-final-1778801869.json (→ /evidence/per-change/)"
+        "/specs/cross-cutting/multispectrum-review.json (\u2192 /specs/cross-cutting/multispectrum-review-v2.1.0.json)",
+        "/specs/cross-cutting/oyatie-doctrine.json (\u2192 /specs/cross-cutting/oyatie-doctrine-v1.0.0.json)",
+        "/registries/cross-cutting/fixuptasks.jsonl (\u2192 /registries/cross-cutting/fixuptasks.jsonl)",
+        "/registries/cross-cutting/test-suite-registry.json (\u2192 /registries/cross-cutting/test-suite-registry-v1.0.0.json)",
+        "/registries/cross-cutting/knowledge-graph-{semantic,kinetic,dynamic}.json (\u2192 /registries/cross-cutting/)",
+        "/evidence/m-cc-p06-ip-002-final-1778801869.json (\u2192 /evidence/per-change/)"
       ]
     },
-
     "P14_filename_versioning_violations": {
       "principle": "P14_file_naming_layout_standard",
       "severity": "medium",
@@ -57,9 +62,8 @@
         "multispectrum-review.json (this session's spec)",
         "oyatie-doctrine.json (this session's spec)"
       ],
-      "remediation": "F-NAMING-CONVENTION-ENFORCE — rename to <concept>-v<MAJOR>.<MINOR>.<PATCH>.json during the P11 migration cutover"
+      "remediation": "F-NAMING-CONVENTION-ENFORCE \u2014 rename to <concept>-v<MAJOR>.<MINOR>.<PATCH>.json during the P11 migration cutover"
     },
-
     "P15_language_default_violations": {
       "principle": "P15_rust_default_language",
       "severity": "high (new) / grandfathered (existing)",
@@ -86,7 +90,7 @@
         "docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.sh"
       ],
       "grit_worktree_duplicates_excluded": "scripts/* duplicated under .grit/worktrees/*; same files; not counted",
-      "remediation": "F-LANE-RUST-DEFAULT-ENFORCE — emit a per-file ADR-or-FixupTask requirement. Existing scripts grandfathered with explicit Rust port FixupTask: F-PORT-SCRIPTS-TO-RUST (each script gets its own bounded port task).",
+      "remediation": "F-LANE-RUST-DEFAULT-ENFORCE \u2014 emit a per-file ADR-or-FixupTask requirement. Existing scripts grandfathered with explicit Rust port FixupTask: F-PORT-SCRIPTS-TO-RUST (each script gets its own bounded port task).",
       "tickets_named": [
         "F-PORT-SUPPLY-CHAIN-ADR0039-TO-RUST",
         "F-PORT-CHECK-ARCHITECTURE-BOUNDARIES-TO-RUST",
@@ -97,34 +101,31 @@
         "F-PORT-RUNBOOK-DEMOS-TO-RUST (or convert to Rust-binary demos)"
       ]
     },
-
     "P9_sprawl_candidates": {
       "principle": "P9_no_sprawl",
       "severity": "medium",
-      "description": "Files where markdown and JSON cover the same concept; potential drift. The multispectrum pair was slimmed THIS session — others need audit.",
+      "description": "Files where markdown and JSON cover the same concept; potential drift. The multispectrum pair was slimmed THIS session \u2014 others need audit.",
       "confirmed_already_slimmed": [
-        "docs/standards/multispectrum-review.md ↔ /specs/cross-cutting/multispectrum-review.json (this session)"
+        "docs/standards/multispectrum-review.md \u2194 /specs/cross-cutting/multispectrum-review.json (this session)"
       ],
       "candidates_needing_audit": [
-        "docs/standards/clean-architecture.md ↔ ADR-0056 (12-layer enum) — clean-architecture.md may restate ADR-0056 BNF content",
-        "docs/standards/ci-lanes.md ↔ /specs/cross-cutting/hyperscaler-gates.json — overlap likely",
-        "docs/standards/api-design.md ↔ ADR-0037 (API stability) — check restatement",
-        "docs/standards/agent-instructions-discipline.md ↔ docs/AGENTS.md — likely heavy overlap",
-        "docs/standards/data-class.md ↔ Data Boundary engine specs",
-        "docs/standards/dependency-policy.md ↔ /registries/cross-cutting/dependency-rationales.json (this session) — overlap",
-        "docs/standards/error-handling.md ↔ ADR(s) — check"
+        "docs/standards/clean-architecture.md \u2194 ADR-0056 (12-layer enum) \u2014 clean-architecture.md may restate ADR-0056 BNF content",
+        "docs/standards/ci-lanes.md \u2194 /specs/cross-cutting/hyperscaler-gates.json \u2014 overlap likely",
+        "docs/standards/api-design.md \u2194 ADR-0037 (API stability) \u2014 check restatement",
+        "docs/standards/agent-instructions-discipline.md \u2194 docs/AGENTS.md \u2014 likely heavy overlap",
+        "docs/standards/data-class.md \u2194 Data Boundary engine specs",
+        "docs/standards/dependency-policy.md \u2194 /registries/cross-cutting/dependency-rationales.json (this session) \u2014 overlap",
+        "docs/standards/error-handling.md \u2194 ADR(s) \u2014 check"
       ],
-      "remediation": "F-AUDIT-STANDARDS-SPRAWL — per-pair audit + slim to thin-pointer-gateway shape OR consolidate. Bounded follow-up."
+      "remediation": "F-AUDIT-STANDARDS-SPRAWL \u2014 per-pair audit + slim to thin-pointer-gateway shape OR consolidate. Bounded follow-up."
     },
-
     "P10_naming_inconsistency_inside_existing_artifacts": {
       "principle": "P10_concrete_structure_and_naming",
       "severity": "low",
-      "description": "Some existing artifacts use snake_case (oya_http_*), some kebab-case (oya-http-*), some mixed. ADR-0056 BNF v4.1 mandates kebab-case package names + snake_case lib names — fine. Filenames OUTSIDE crates also mix conventions in docs/.",
+      "description": "Some existing artifacts use snake_case (oya_http_*), some kebab-case (oya-http-*), some mixed. ADR-0056 BNF v4.1 mandates kebab-case package names + snake_case lib names \u2014 fine. Filenames OUTSIDE crates also mix conventions in docs/.",
       "remediation": "F-NAMING-CONVENTION-ENFORCE (already named)"
     }
   },
-
   "summary": {
     "total_files_audited": "approximately 800+ (workspace tree minus target/.git/node_modules/.grit)",
     "findings_count": 5,
@@ -132,9 +133,8 @@
     "medium_severity": 2,
     "low_severity": 1,
     "fixuptasks_emitted_total": 8,
-    "doctrine_compliance_overall": "RED — significant migration required; existing artifacts grandfathered with bounded remediation tasks; new artifacts MUST comply going forward"
+    "doctrine_compliance_overall": "RED \u2014 significant migration required; existing artifacts grandfathered with bounded remediation tasks; new artifacts MUST comply going forward"
   },
-
   "decision_log": [
     {
       "when": "2026-05-14",

@@ -17,7 +17,10 @@
       "id": "M03-P01-IP-001",
       "title": "Cloud KMS provider-agnostic API + adapter set",
       "decision": "open",
-      "crates_audited": ["oya-cloud-kms-api", "oya-cloud-kms-domain"],
+      "crates_audited": [
+        "oya-cloud-kms-api",
+        "oya-cloud-kms-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -38,7 +41,11 @@
       "id": "M03-P01-IP-002",
       "title": "Cloud Storage object + block API + adapter set",
       "decision": "open",
-      "crates_audited": ["oya-cloud-storage-object-api", "oya-cloud-storage-block-api", "oya-cloud-storage-domain"],
+      "crates_audited": [
+        "oya-cloud-storage-object-api",
+        "oya-cloud-storage-block-api",
+        "oya-cloud-storage-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -56,7 +63,12 @@
       "id": "M03-P01-IP-003",
       "title": "Cloud Network VPC + LB + DNS + CDN + interconnect API",
       "decision": "open",
-      "crates_audited": ["oya-cloud-network-vpc-api", "oya-cloud-network-lb-api", "oya-cloud-network-dns-api", "oya-cloud-network-domain"],
+      "crates_audited": [
+        "oya-cloud-network-vpc-api",
+        "oya-cloud-network-lb-api",
+        "oya-cloud-network-dns-api",
+        "oya-cloud-network-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -75,7 +87,10 @@
       "id": "M03-P01-IP-004",
       "title": "Cloud IAM Cedar + SSO + STS API",
       "decision": "open",
-      "crates_audited": ["oya-cloud-iam-api", "oya-cloud-iam-domain"],
+      "crates_audited": [
+        "oya-cloud-iam-api",
+        "oya-cloud-iam-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -92,7 +107,10 @@
       "id": "M03-P01-IP-005",
       "title": "Cloud region + AZ + cell taxonomy",
       "decision": "open",
-      "crates_audited": ["oya-cloud-region-api", "oya-cloud-region-domain"],
+      "crates_audited": [
+        "oya-cloud-region-api",
+        "oya-cloud-region-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -108,5 +126,6 @@
   "commands_executed": [
     "cargo test -p oya-cloud-kms-api -p oya-cloud-kms-domain -p oya-cloud-storage-object-api -p oya-cloud-storage-block-api -p oya-cloud-network-vpc-api -p oya-cloud-network-lb-api -p oya-cloud-network-dns-api -p oya-cloud-iam-api -p oya-cloud-region-api  =>  exit 0 (92 tests passed across 17 suites)",
     "cargo clippy -p <same set> --all-targets -- -D warnings  =>  exit 0 (no issues)"
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for m03-p01-audit-2026-05-14.json"
 }

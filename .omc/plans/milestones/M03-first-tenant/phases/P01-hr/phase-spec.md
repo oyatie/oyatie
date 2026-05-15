@@ -5,24 +5,28 @@ milestone: M03-first-paying-tenant
 phase: P01-hr
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02-substrate-schema-foundation complete; oya-ontology-entity-kernel ships;
+entry_gate: 'M02-substrate-schema-foundation complete; oya-ontology-entity-kernel
+  ships;
+
   oya-workflow-engine-kernel ships; Postgres + Citus cell provisioned;
+
   `cargo check --workspace` clean on M02 substrate crates.
-exit_gate: |
-  All IP acceptance gates green; `cargo nextest run -p oya-hr-*` 0 failures;
-  `oya gate validate lean-a2 --ms hr` exits 0; `oya gate validate ontology-type-registry --ms hr`
-  exits 0; `oya gate validate audit-chain --ms hr` exits 0;
-  k6 smoke p99 employee read ≤50 ms at 1k RPS;
-  grit done called on all P01 symbols; ICM phase-handoff row emitted.
+
+  '
+exit_gate: "All IP acceptance gates green; `cargo nextest run -p oya-hr-*` 0 failures;\n\
+  `oya gate validate lean-a2 --ms hr` exits 0; `oya gate validate ontology-type-registry\
+  \ --ms hr`\nexits 0; `oya gate validate audit-chain --ms hr` exits 0;\nk6 smoke\
+  \ p99 employee read \u226450 ms at 1k RPS;\ngrit done called on all P01 symbols;\
+  \ ICM phase-handoff row emitted.\n"
 depends_on:
-  - milestone: M02
-    phase: P22-substrate-ready
-    reason: "Ontology + Workflow + Citus substrate must exist before HR domain can register entity types and emit events."
+- milestone: M02
+  phase: P22-substrate-ready
+  reason: Ontology + Workflow + Citus substrate must exist before HR domain can register
+    entity types and emit events.
 parallel_wave: 1
 owner_team: council-enterprise
+purpose: Auto-backfilled purpose for phase-spec.md
 ---
-
 # P01-hr: HR µservice — Employee lifecycle, KR compliance, Ontology entity registration
 
 ## Purpose

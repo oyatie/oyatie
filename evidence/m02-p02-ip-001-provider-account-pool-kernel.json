@@ -7,7 +7,8 @@
     "phase": "P02-multi-subscription-pool",
     "produced_at": "2026-05-14",
     "auditor": "claude-a1-m02p02",
-    "scope": "crates/oya-foundry-provider-pool-kernel"
+    "scope": "crates/oya-foundry-provider-pool-kernel",
+    "purpose": "Auto-backfilled purpose for m02-p02-ip-001-provider-account-pool-kernel.json"
   },
   "ip_id": "IP-001-provider-account-pool-kernel",
   "role": "kernel",
@@ -15,9 +16,9 @@
     {
       "name": "oya-foundry-provider-pool-kernel",
       "role": "kernel",
-      "bnf_justification": "oya-<microservice:foundry>-<bc:provider-pool>-<layer:kernel>; v4.1 conformant; provider-pool is a bounded context within the foundry µservice; layer=kernel because the crate ships pure value types + the deterministic pick_account decision function with zero I/O and zero async.",
+      "bnf_justification": "oya-<microservice:foundry>-<bc:provider-pool>-<layer:kernel>; v4.1 conformant; provider-pool is a bounded context within the foundry \u00b5service; layer=kernel because the crate ships pure value types + the deterministic pick_account decision function with zero I/O and zero async.",
       "purpose": "ProviderAccountPool pure value-type kernel coordinating rotation across multiple ProviderAccount records (P00). Rust counterpart to ccproxy-api credential_balancer/manager.py.",
-      "linus_good_taste": "Eliminated the special-case branch 'single-account == no pool' by representing single-account as a pool of size 1 with RoundRobin. pick_account has no `if members.len() == 1` branch — the data shape removes it."
+      "linus_good_taste": "Eliminated the special-case branch 'single-account == no pool' by representing single-account as a pool of size 1 with RoundRobin. pick_account has no `if members.len() == 1` branch \u2014 the data shape removes it."
     }
   ],
   "symbols_shipped": [
@@ -52,7 +53,7 @@
   },
   "grit_claim": {
     "agent": "claude-a1-m02p02",
-    "intent": "M02-P02-IP-001 — ProviderAccountPool kernel scaffold",
+    "intent": "M02-P02-IP-001 \u2014 ProviderAccountPool kernel scaffold",
     "fallback_mechanism": "ADR-0054 scaffold-lock (icm store scaffold-locks-oyatie)",
     "icm_lock_ulid": "01KRMC0V5BQ59WZVPJKF3CDGYV"
   },

@@ -4,19 +4,19 @@ mode: deliberate
 iteration: 2
 supersedes: ralplan-foundry-supervisor-simple-2026-05-14.md
 prerequisite_adrs:
-  - ADR-RENAME-foundry-account-adapter-{claude,codex,gemini} (separate, prerequisite)
-  - ADR-supervisor-dep-policy-Y (this plan's chosen branch — zero net-new deps)
-  - ADR-api-rest-adapter-mountpoint-or-transport (chosen: (ii) direct hyper via oya-http-runtime-hyper-adapter)
-  - ADR-jsonl-best-effort-durability (consequence of Branch Y)
-  - ADR-supervisor-public-contract-lean-a10 (every new public fn declared here)
-  - ADR-cedar-policy-bootstrap (consequence: no .cedar files exist in repo yet)
+- ADR-RENAME-foundry-account-adapter-{claude,codex,gemini} (separate, prerequisite)
+- "ADR-supervisor-dep-policy-Y (this plan's chosen branch \u2014 zero net-new deps)"
+- ADR-api-rest-adapter-mountpoint-or-transport (chosen: (ii) direct hyper via oya-http-runtime-hyper-adapter)
+- ADR-jsonl-best-effort-durability (consequence of Branch Y)
+- ADR-supervisor-public-contract-lean-a10 (every new public fn declared here)
+- ADR-cedar-policy-bootstrap (consequence: no .cedar files exist in repo yet)
 owner_phase: M02-P01-provider-gateway
 fans_into:
-  - M02-P01-provider-gateway (owner)
-  - M02-P02-multi-subscription-pool (cross-cut: AccountId × ProviderFamily fanout)
-  - M02-P05-capability-registry-autonomy (cross-cut: T-tier classification per driver)
+- M02-P01-provider-gateway (owner)
+- M02-P02-multi-subscription-pool (cross-cut: "AccountId \xD7 ProviderFamily fanout)"
+- M02-P05-capability-registry-autonomy (cross-cut: T-tier classification per driver)
+purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v2-2026-05-14.md
 ---
-
 # RALPLAN — Foundry Supervisor (Simple) — Iteration 2
 
 **User intent (verbatim, not regrown):**

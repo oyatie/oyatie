@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for plugin-sandbox-escape.md
+---
+
 # Oyatie Runbook — Plugin Sandbox Escape
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for partner-contract-renewal.md
+---
+
 # Oyatie Runbook — Partner Contract Renewal
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

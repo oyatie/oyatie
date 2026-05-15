@@ -16,7 +16,8 @@
       "the only thing that we should maintain is a README.md",
       "CLAUDE.md and AGENTS.md",
       "that should utilize machine readable pointers to relevent files"
-    ]
+    ],
+    "purpose": "Auto-backfilled purpose for markdown-retirement-policy.json"
   },
   "retention_rules": {
     "survive_at_root_as_pointer_hubs": [
@@ -28,28 +29,28 @@
       "/evidence/audits/consensus/**/*.md (historical consensus outputs; immutable; logged as audit-archive profile)"
     ],
     "retire_via_json_migration": [
-      "docs/CONSTITUTION.md → RETIRED (per user 2026-05-13 'i dont think constitution is necessary'; content redistributed: mission→masterplan; principles→agent-operating-contract; prohibitions→forbidden-operations.json; decision rights→RACI-OWNERSHIP)",
-      "docs/AGENTS.md → /specs/cross-cutting/agent-operating-contract.json",
-      "docs/DOC-CATALOG.md → /registries/cross-cutting/doc-catalog.json",
-      "docs/MASTERPLAN.md → /specs/cross-cutting/masterplan.json",
-      "docs/decisions/ADR-*.md → /registries/cross-cutting/adrs.json + per-ADR content under /registries/cross-cutting/adr-content/*.json",
-      "docs/microservices/*.md → /registries/cross-cutting/microservices.json",
-      "docs/bounded-contexts/*.md → /registries/cross-cutting/bounded-contexts.json",
-      "docs/standards/*.md → /registries/cross-cutting/standards.json",
-      "docs/runbooks/*.md → /registries/cross-cutting/runbooks.json",
-      "docs/prds/*.md → /registries/cross-cutting/prds.json",
-      "docs/templates/*.md → /templates/*.json or *.yaml",
-      "docs/checklists/*.md → /specs/cross-cutting/checklists.json",
-      ".omc/plans/ralplan-*.md → .omc/plans/ralplan-*.json (instances of plan-schema.json)",
-      "/specs/cross-cutting/*.md → /specs/cross-cutting/*.json",
-      "/evidence/goals/*.md → /registries/cross-cutting/goals.json",
-      "/templates/checklists/*.md → /templates/checklists/*.json"
+      "docs/CONSTITUTION.md \u2192 RETIRED (per user 2026-05-13 'i dont think constitution is necessary'; content redistributed: mission\u2192masterplan; principles\u2192agent-operating-contract; prohibitions\u2192forbidden-operations.json; decision rights\u2192RACI-OWNERSHIP)",
+      "docs/AGENTS.md \u2192 /specs/cross-cutting/agent-operating-contract.json",
+      "docs/DOC-CATALOG.md \u2192 /registries/cross-cutting/doc-catalog.json",
+      "docs/MASTERPLAN.md \u2192 /specs/cross-cutting/masterplan.json",
+      "docs/decisions/ADR-*.md \u2192 /registries/cross-cutting/adrs.json + per-ADR content under /registries/cross-cutting/adr-content/*.json",
+      "docs/microservices/*.md \u2192 /registries/cross-cutting/microservices.json",
+      "docs/bounded-contexts/*.md \u2192 /registries/cross-cutting/bounded-contexts.json",
+      "docs/standards/*.md \u2192 /registries/cross-cutting/standards.json",
+      "docs/runbooks/*.md \u2192 /registries/cross-cutting/runbooks.json",
+      "docs/prds/*.md \u2192 /registries/cross-cutting/prds.json",
+      "docs/templates/*.md \u2192 /templates/*.json or *.yaml",
+      "docs/checklists/*.md \u2192 /specs/cross-cutting/checklists.json",
+      ".omc/plans/ralplan-*.md \u2192 .omc/plans/ralplan-*.json (instances of plan-schema.json)",
+      "/specs/cross-cutting/*.md \u2192 /specs/cross-cutting/*.json",
+      "/evidence/goals/*.md \u2192 /registries/cross-cutting/goals.json",
+      "/templates/checklists/*.md \u2192 /templates/checklists/*.json"
     ]
   },
   "migration_phases": [
     {
       "phase_id": "PHASE-1-PATTERN-PROVE",
-      "scope": "Wave 6 ralplan .md → .json + 3-root-hub update + retirement ledger seed + capability-registry rows",
+      "scope": "Wave 6 ralplan .md \u2192 .json + 3-root-hub update + retirement ledger seed + capability-registry rows",
       "deadline": "2026-05-13",
       "status": "in-progress"
     },
@@ -61,7 +62,7 @@
     },
     {
       "phase_id": "PHASE-3-WAVE-PLANS",
-      "scope": "Wave 7 v1.0.0 + Wave 5 v18 + Wave 1/2/3/4 ralplan-*.md → .json",
+      "scope": "Wave 7 v1.0.0 + Wave 5 v18 + Wave 1/2/3/4 ralplan-*.md \u2192 .json",
       "deadline": "2026-05-20",
       "status": "planned",
       "files_count_estimated": 6,
@@ -72,7 +73,7 @@
     },
     {
       "phase_id": "PHASE-4-ADRS",
-      "scope": "88 ADRs at docs/decisions/ADR-*.md → consolidated /registries/cross-cutting/adrs.json + per-ADR-content JSON files",
+      "scope": "88 ADRs at docs/decisions/ADR-*.md \u2192 consolidated /registries/cross-cutting/adrs.json + per-ADR-content JSON files",
       "deadline": "2026-06-12",
       "status": "planned",
       "files_count_estimated": 88,
@@ -85,7 +86,7 @@
     },
     {
       "phase_id": "PHASE-5-CORE-DOCS",
-      "scope": "CONSTITUTION + DOC-CATALOG + MASTERPLAN + AGENTS docs/* → JSON",
+      "scope": "CONSTITUTION + DOC-CATALOG + MASTERPLAN + AGENTS docs/* \u2192 JSON",
       "deadline": "2026-06-30",
       "status": "planned",
       "files_count_estimated": 4,
@@ -99,7 +100,7 @@
     },
     {
       "phase_id": "PHASE-6-MICROSERVICE-BC-STANDARDS-RUNBOOKS-PRDS",
-      "scope": "16 microservices + 30 BCs + 25 standards + 12 runbooks + 16 PRDs → consolidated registries",
+      "scope": "16 microservices + 30 BCs + 25 standards + 12 runbooks + 16 PRDs \u2192 consolidated registries",
       "deadline": "2026-07-31",
       "status": "planned",
       "files_count_estimated": 99,
@@ -110,7 +111,7 @@
     },
     {
       "phase_id": "PHASE-7-TEMPLATES-CHECKLISTS-GOALS",
-      "scope": "10 templates + 6 checklists + 3 goals + 5 omc-templates → JSON/YAML",
+      "scope": "10 templates + 6 checklists + 3 goals + 5 omc-templates \u2192 JSON/YAML",
       "deadline": "2026-08-15",
       "status": "planned",
       "files_count_estimated": 24

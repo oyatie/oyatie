@@ -1,5 +1,5 @@
 context: foundry
-role: cli
+role: test
 capability: adapter-substitution-test
 plane: control
 slo: preview-control-plane

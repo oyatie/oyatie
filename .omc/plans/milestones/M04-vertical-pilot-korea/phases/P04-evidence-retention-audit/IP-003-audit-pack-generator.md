@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-audit-pack-generator.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P04-IP-003

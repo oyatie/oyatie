@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for plane-class-correction.md
+---
+
 # Oyatie Runbook — Plane Class Correction
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for RUNBOOKS-INDEX.md
+---
+
 # Oyatie — Runbooks Index
 
 > **Status:** Draft v0.1 — 2026-05-09.

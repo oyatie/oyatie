@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for code-style.md
+---
+
 # Oyatie — Code Style Standard
 
 > **Owner:** `axis-foundry` (engineering platform).

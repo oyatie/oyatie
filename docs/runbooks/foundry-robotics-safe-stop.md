@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-robotics-safe-stop.md
+---
+
 # Oyatie Runbook — Foundry Robotics Safe Stop
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

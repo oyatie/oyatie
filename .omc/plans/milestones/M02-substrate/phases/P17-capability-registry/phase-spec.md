@@ -5,23 +5,35 @@ milestone: M02-substrate
 phase: P17-capability-registry
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02/P14-policy complete; oya-policy-engine-kernel ships with PolicyEvaluator port;
-  Cedar engine live; cargo check clean; grit done on all P14 symbols; ICM phase-handoff
-  emitted.
-exit_gate: |
-  All P17 impl-plan acceptance gates green; per-tenant MCP endpoint registered and
-  discoverable; LLM tool-call discovery API live; Cedar authorization gate on every
-  capability invocation; 2 BCs registered (capability-registry, capability-bindings);
-  all crates pass cargo check/build/clippy/nextest/deny; oya gate validate
-  lean-a1/a2/a3/a4 exit 0; grit done on all P17 symbols; ICM phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P14-policy
-    reason: "Every capability invocation is authorized through PolicyEvaluator before execution; per-tenant capability access policies stored as Cedar rule packs in policy.tenant_rule_packs."
-owner_team: council-foundry
----
+entry_gate: 'M02/P14-policy complete; oya-policy-engine-kernel ships with PolicyEvaluator
+  port;
 
+  Cedar engine live; cargo check clean; grit done on all P14 symbols; ICM phase-handoff
+
+  emitted.
+
+  '
+exit_gate: 'All P17 impl-plan acceptance gates green; per-tenant MCP endpoint registered
+  and
+
+  discoverable; LLM tool-call discovery API live; Cedar authorization gate on every
+
+  capability invocation; 2 BCs registered (capability-registry, capability-bindings);
+
+  all crates pass cargo check/build/clippy/nextest/deny; oya gate validate
+
+  lean-a1/a2/a3/a4 exit 0; grit done on all P17 symbols; ICM phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P14-policy
+  reason: Every capability invocation is authorized through PolicyEvaluator before
+    execution; per-tenant capability access policies stored as Cedar rule packs in
+    policy.tenant_rule_packs.
+owner_team: council-foundry
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P17-capability-registry: Capability Registry — MCP Gateway + Per-Tenant Endpoint + LLM Tool-Call Discovery
 
 ## Purpose

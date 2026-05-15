@@ -10,8 +10,8 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
+purpose: Auto-backfilled purpose for IP-005-grit-compat-cli-and-migration-ratchet.md
 ---
-
 # M-CC-P00-IP-005 — Grit-compatible CLI + migration ratchet
 
 ## Purpose

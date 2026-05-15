@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for release.md
+---
+
 # Oyatie — Release Standard
 
 > **Owner:** `ops-sre-reliability` + `axis-foundry`.

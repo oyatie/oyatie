@@ -44,5 +44,6 @@
     "crates/oya-tenancy-kernel/Cargo.toml missing blocks cargo workspace package tests",
     "scripts/check-stage0-application-shell-prereqs.py missing blocks scripts/check.sh"
   ],
-  "done_criteria_note": "IP-002 inventory-specific assertions pass; repository-wide acceptance commands remain blocked by pre-existing workspace/script issues disclosed here."
+  "done_criteria_note": "IP-002 inventory-specific assertions pass; repository-wide acceptance commands remain blocked by pre-existing workspace/script issues disclosed here.",
+  "purpose": "Auto-backfilled purpose for ip-002-inventory-adr-0052.json"
 }

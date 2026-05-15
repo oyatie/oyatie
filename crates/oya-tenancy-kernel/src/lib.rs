@@ -17,7 +17,9 @@ pub enum TenantKernelError {
     InvalidTenantId,
     InvalidTenantSlug,
     TenantSlugEmpty,
-    TenantSlugTooLong { actual: usize },
+    TenantSlugTooLong {
+        actual: usize,
+    },
     TenantSlugInvalidChar,
     InvalidRegionCode,
     InvalidEvidenceRef,

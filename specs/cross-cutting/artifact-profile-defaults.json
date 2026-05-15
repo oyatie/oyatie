@@ -11,121 +11,730 @@
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-13T00:00:00Z",
     "user_directive_2026_05_13": "don't defer anything",
-    "linus_critique_anchor": "architect r17 finding #8 — collapse 35KB/10-row boilerplate to profile + overrides; hyperscaler precedent K8s CRD + admission controllers + AWS Config managed-rules defaults",
+    "linus_critique_anchor": "architect r17 finding #8 \u2014 collapse 35KB/10-row boilerplate to profile + overrides; hyperscaler precedent K8s CRD + admission controllers + AWS Config managed-rules defaults",
     "merge_semantics": "Validator walks profiles[<row.artifact_profile>].capabilities then applies row.capability_overrides as a per-capability partial override. Override resolution rules: (a) capability.status override REPLACES profile default; (b) string fields (evidence_ref, validator path, generator path) override REPLACE profile default; (c) array fields (prerequisite_for_operational, blocks_on, verifies, validates) APPEND row-overrides to profile defaults unless override declares replace_mode=true.",
-    "validator_crate": "crates/oya-check-active-artifact-contract"
+    "validator_crate": "crates/oya-check-active-artifact-contract",
+    "purpose": "Auto-backfilled purpose for artifact-profile-defaults.json"
   },
   "profiles": {
     "schema": {
       "purpose": "JSON Schema or other schema-defining artifact. Source of truth for downstream data; no autogen.",
-      "applicable_formats": [ "json", "yaml" ],
-      "examples": [ "/specs/cross-cutting/active-machine-readable-artifact-contract.json", "/specs/cross-cutting/hyperscaler-gates.json", "/specs/cross-cutting/evidence-taxonomy.json" ],
+      "applicable_formats": [
+        "json",
+        "yaml"
+      ],
+      "examples": [
+        "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
+        "/specs/cross-cutting/hyperscaler-gates.json",
+        "/specs/cross-cutting/evidence-taxonomy.json"
+      ],
       "default_capabilities": {
-        "enforcement": { "status": "planned", "timing": "pr_time", "action": "block", "blocks_on": [ "schema-self-violation" ], "prerequisite_for_operational": [ "validator crate" ] },
-        "verification": { "status": "planned", "verifies": [ "JSON Schema 2020-12 valid", "all required fields", "definitions resolvable" ], "prerequisite_for_operational": [ "validator crate" ] },
-        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validates": [ "JSON syntax", "schema self-consistency" ] },
-        "autogen": { "status": "not-applicable", "generator": "", "inputs": [], "idempotency_class": "deterministic" },
-        "selfheal": { "status": "planned", "heals_what": [ "broken cross-refs to related schemas" ], "safe_unattended": [ "fix-typo-in-related-link" ], "requires_human_approval_for": [ "version bump", "definitions removal" ] },
-        "selfupdate": { "status": "planned", "triggers": [ "new ADR mandates schema extension" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
-        "selfmaintain": { "status": "planned", "policies": [ { "name": "deprecate-superseded-version", "action": "archive", "trigger": "on-new-version-Accepted", "destination": "/specs/cross-cutting/archived/", "audit_emission_required": true } ] },
-        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [] },
-        "provenance": { "status": "planned", "fields_required": [ "author", "reviewed_by", "last_modified_at" ], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+        "enforcement": {
+          "status": "planned",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "schema-self-violation"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "verifies": [
+            "JSON Schema 2020-12 valid",
+            "all required fields",
+            "definitions resolvable"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "trigger": "pre-commit-hook",
+          "validates": [
+            "JSON syntax",
+            "schema self-consistency"
+          ]
+        },
+        "autogen": {
+          "status": "not-applicable",
+          "generator": "",
+          "inputs": [],
+          "idempotency_class": "deterministic"
+        },
+        "selfheal": {
+          "status": "planned",
+          "heals_what": [
+            "broken cross-refs to related schemas"
+          ],
+          "safe_unattended": [
+            "fix-typo-in-related-link"
+          ],
+          "requires_human_approval_for": [
+            "version bump",
+            "definitions removal"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "triggers": [
+            "new ADR mandates schema extension"
+          ],
+          "update_mechanism": "manual-with-suggestion",
+          "incremental_vs_full": "incremental-diff"
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "policies": [
+            {
+              "name": "deprecate-superseded-version",
+              "action": "archive",
+              "trigger": "on-new-version-Accepted",
+              "destination": "/specs/cross-cutting/archived/",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "observability_standard": "opentelemetry",
+          "metrics": []
+        },
+        "provenance": {
+          "status": "planned",
+          "fields_required": [
+            "author",
+            "reviewed_by",
+            "last_modified_at"
+          ],
+          "slsa_level_target": "L3",
+          "grit_done_seal_event_id": null
+        }
       }
     },
     "registry": {
       "purpose": "Control-plane registry: rows referencing data plane (artifact-capabilities, building-blocks, knowledge-graph catalog, migration policy).",
-      "applicable_formats": [ "json", "yaml" ],
-      "examples": [ "/registries/cross-cutting/artifact-capabilities-registry.json", "/registries/cross-cutting/reusable-building-blocks-registry.json", "/registries/cross-cutting/knowledge-graph-catalog.json" ],
+      "applicable_formats": [
+        "json",
+        "yaml"
+      ],
+      "examples": [
+        "/registries/cross-cutting/artifact-capabilities-registry.json",
+        "/registries/cross-cutting/reusable-building-blocks-registry.json",
+        "/registries/cross-cutting/knowledge-graph-catalog.json"
+      ],
       "default_capabilities": {
-        "enforcement": { "status": "planned", "timing": "pr_time", "action": "block", "blocks_on": [ "row-references-nonexistent-artifact-path", "duplicate-row-id" ], "prerequisite_for_operational": [ "validator crate", "lane status=active", "workflow file in HEAD" ] },
-        "verification": { "status": "planned", "verifies": [ "every row has required fields", "every reference resolves", "no duplicate ids" ], "prerequisite_for_operational": [ "validator crate" ] },
-        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validates": [ "schema conformance", "row uniqueness" ] },
-        "autogen": { "status": "planned", "generator": "scaffolded-from-discovery", "inputs": [ "discovered repo artifacts via fs walk" ], "idempotency_class": "deterministic", "regeneration_frequency": "nightly" },
-        "selfheal": { "status": "planned", "heals_what": [ "missing row for new artifact", "broken artifact_path (file moved)" ], "safe_unattended": [ "add-scaffold-row-for-new-artifact" ], "requires_human_approval_for": [ "delete-row" ], "recovery_path_for_destructive_heals": "audit-bundle restore" },
-        "selfupdate": { "status": "planned", "triggers": [ "new artifact added under applicable_paths_glob" ], "update_mechanism": "post-grit-done-hook", "incremental_vs_full": "incremental-diff" },
-        "selfmaintain": { "status": "planned", "policies": [ { "name": "monthly-orphan-row-sweep", "action": "alert", "trigger": "monthly", "destination": "/evidence/audits/", "audit_emission_required": true } ] },
-        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_registry_row_count", "kind": "gauge", "unit": "1", "labels": [ "registry_id" ], "cardinality_budget": 50 } ] },
-        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+        "enforcement": {
+          "status": "planned",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "row-references-nonexistent-artifact-path",
+            "duplicate-row-id"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate",
+            "lane status=active",
+            "workflow file in HEAD"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "verifies": [
+            "every row has required fields",
+            "every reference resolves",
+            "no duplicate ids"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "trigger": "pre-commit-hook",
+          "validates": [
+            "schema conformance",
+            "row uniqueness"
+          ]
+        },
+        "autogen": {
+          "status": "planned",
+          "generator": "scaffolded-from-discovery",
+          "inputs": [
+            "discovered repo artifacts via fs walk"
+          ],
+          "idempotency_class": "deterministic",
+          "regeneration_frequency": "nightly"
+        },
+        "selfheal": {
+          "status": "planned",
+          "heals_what": [
+            "missing row for new artifact",
+            "broken artifact_path (file moved)"
+          ],
+          "safe_unattended": [
+            "add-scaffold-row-for-new-artifact"
+          ],
+          "requires_human_approval_for": [
+            "delete-row"
+          ],
+          "recovery_path_for_destructive_heals": "audit-bundle restore"
+        },
+        "selfupdate": {
+          "status": "planned",
+          "triggers": [
+            "new artifact added under applicable_paths_glob"
+          ],
+          "update_mechanism": "post-grit-done-hook",
+          "incremental_vs_full": "incremental-diff"
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "policies": [
+            {
+              "name": "monthly-orphan-row-sweep",
+              "action": "alert",
+              "trigger": "monthly",
+              "destination": "/evidence/audits/",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "observability_standard": "opentelemetry",
+          "metrics": [
+            {
+              "id": "oya_registry_row_count",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "registry_id"
+              ],
+              "cardinality_budget": 50
+            }
+          ]
+        },
+        "provenance": {
+          "status": "planned",
+          "fields_required": [
+            "author",
+            "last_modified_at"
+          ],
+          "slsa_level_target": "L3",
+          "grit_done_seal_event_id": null
+        }
       }
     },
     "template": {
       "purpose": "Authoring template (evidence bundle template, ADR template, runbook template).",
-      "applicable_formats": [ "json", "yaml", "markdown" ],
-      "examples": [ "/templates/evidence-bundle-template.json", "docs/templates/adr-template-v2.md" ],
+      "applicable_formats": [
+        "json",
+        "yaml",
+        "markdown"
+      ],
+      "examples": [
+        "/templates/evidence-bundle-template.json",
+        "docs/templates/adr-template-v2.md"
+      ],
       "default_capabilities": {
-        "enforcement": { "status": "planned", "timing": "pr_time", "action": "block", "blocks_on": [ "instance not conforming to template" ], "prerequisite_for_operational": [ "consumer-side validator" ] },
-        "verification": { "status": "planned", "verifies": [ "template instances valid" ] },
-        "validation": { "status": "planned", "trigger": "write-side-API-guard", "validates": [ "template field shape" ] },
-        "autogen": { "status": "not-applicable", "generator": "", "inputs": [], "idempotency_class": "deterministic" },
-        "selfheal": { "status": "planned", "heals_what": [ "stamp missing field from current time" ], "safe_unattended": [], "requires_human_approval_for": [ "alter template structure" ] },
-        "selfupdate": { "status": "planned", "triggers": [ "new field added by upstream schema" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
-        "selfmaintain": { "status": "planned", "policies": [ { "name": "version-bump-on-shape-change", "action": "alert", "trigger": "on-shape-change", "destination": "/evidence/audits/", "audit_emission_required": true } ] },
-        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [] },
-        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+        "enforcement": {
+          "status": "planned",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "instance not conforming to template"
+          ],
+          "prerequisite_for_operational": [
+            "consumer-side validator"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "verifies": [
+            "template instances valid"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "trigger": "write-side-API-guard",
+          "validates": [
+            "template field shape"
+          ]
+        },
+        "autogen": {
+          "status": "not-applicable",
+          "generator": "",
+          "inputs": [],
+          "idempotency_class": "deterministic"
+        },
+        "selfheal": {
+          "status": "planned",
+          "heals_what": [
+            "stamp missing field from current time"
+          ],
+          "safe_unattended": [],
+          "requires_human_approval_for": [
+            "alter template structure"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "triggers": [
+            "new field added by upstream schema"
+          ],
+          "update_mechanism": "manual-with-suggestion",
+          "incremental_vs_full": "incremental-diff"
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "policies": [
+            {
+              "name": "version-bump-on-shape-change",
+              "action": "alert",
+              "trigger": "on-shape-change",
+              "destination": "/evidence/audits/",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "observability_standard": "opentelemetry",
+          "metrics": []
+        },
+        "provenance": {
+          "status": "planned",
+          "fields_required": [
+            "author",
+            "last_modified_at"
+          ],
+          "slsa_level_target": "L3",
+          "grit_done_seal_event_id": null
+        }
       }
     },
     "plan-attestation": {
       "purpose": "Plan-acceptance attestation (records consensus close event with evidence_records + honest_gap_acknowledgement).",
-      "applicable_formats": [ "json" ],
-      "examples": [ "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json" ],
+      "applicable_formats": [
+        "json"
+      ],
+      "examples": [
+        "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json"
+      ],
       "default_capabilities": {
-        "enforcement": { "status": "planned", "timing": "pr_time", "action": "block", "blocks_on": [ "missing required evidence_records field", "stale freshness" ], "prerequisite_for_operational": [ "validator crate" ] },
-        "verification": { "status": "planned", "verifies": [ "evidence_records valid per evidence-taxonomy.json", "honest_gap_acknowledgement populated when applicable", "icm_completion_memory_id resolves" ] },
-        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validates": [ "schema conformance" ] },
-        "autogen": { "status": "planned", "generator": "crates/oya-gen-plan-acceptance-attestation (planned)", "inputs": [ "consensus loop outputs", "git commit SHA", "ICM store events" ], "idempotency_class": "content-addressed-sha256", "regeneration_frequency": "on-demand" },
-        "selfheal": { "status": "planned", "heals_what": [ "stamp missing evidence_record after consensus event" ], "safe_unattended": [ "stamp-evidence-from-consensus-output" ], "requires_human_approval_for": [ "modify outcome field" ] },
-        "selfupdate": { "status": "planned", "triggers": [ "new consensus round completed" ], "update_mechanism": "post-grit-done-hook", "incremental_vs_full": "incremental-diff" },
-        "selfmaintain": { "status": "planned", "policies": [ { "name": "archive-superseded-attestations", "action": "archive", "trigger": "on-supersession", "destination": "/evidence/archived/", "audit_emission_required": true } ] },
-        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_plan_attestation_emission_total", "kind": "counter", "unit": "1", "labels": [ "plan_id", "outcome" ], "cardinality_budget": 100 } ] },
-        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+        "enforcement": {
+          "status": "planned",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "missing required evidence_records field",
+            "stale freshness"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "verifies": [
+            "evidence_records valid per evidence-taxonomy.json",
+            "honest_gap_acknowledgement populated when applicable",
+            "icm_completion_memory_id resolves"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "trigger": "pre-commit-hook",
+          "validates": [
+            "schema conformance"
+          ]
+        },
+        "autogen": {
+          "status": "planned",
+          "generator": "crates/oya-gen-plan-acceptance-attestation (planned)",
+          "inputs": [
+            "consensus loop outputs",
+            "git commit SHA",
+            "ICM store events"
+          ],
+          "idempotency_class": "content-addressed-sha256",
+          "regeneration_frequency": "on-demand"
+        },
+        "selfheal": {
+          "status": "planned",
+          "heals_what": [
+            "stamp missing evidence_record after consensus event"
+          ],
+          "safe_unattended": [
+            "stamp-evidence-from-consensus-output"
+          ],
+          "requires_human_approval_for": [
+            "modify outcome field"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "triggers": [
+            "new consensus round completed"
+          ],
+          "update_mechanism": "post-grit-done-hook",
+          "incremental_vs_full": "incremental-diff"
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "policies": [
+            {
+              "name": "archive-superseded-attestations",
+              "action": "archive",
+              "trigger": "on-supersession",
+              "destination": "/evidence/archived/",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "observability_standard": "opentelemetry",
+          "metrics": [
+            {
+              "id": "oya_plan_attestation_emission_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "plan_id",
+                "outcome"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "status": "planned",
+          "fields_required": [
+            "author",
+            "last_modified_at"
+          ],
+          "slsa_level_target": "L3",
+          "grit_done_seal_event_id": null
+        }
       }
     },
     "ledger": {
       "purpose": "Completion ledger (master-plan ledger, per-wave ledger). Conforms to master-plan-sequencing.json:ledger_required_fields.",
-      "applicable_formats": [ "json" ],
-      "examples": [ "/evidence/ledger/ops-portal-ledger.json" ],
+      "applicable_formats": [
+        "json"
+      ],
+      "examples": [
+        "/evidence/ledger/ops-portal-ledger.json"
+      ],
       "default_capabilities": {
-        "enforcement": { "status": "planned", "timing": "pr_time", "action": "block", "blocks_on": [ "row references plan path that doesn't exist", "status flip without evidence_ref bump" ], "prerequisite_for_operational": [ "validator crate" ] },
-        "verification": { "status": "planned", "verifies": [ "every row has required fields", "every evidence_ref resolves" ] },
-        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validates": [ "JSON syntax", "schema conformance" ] },
-        "autogen": { "status": "planned", "generator": "from plan frontmatter + git log", "inputs": [ "plan version + status", "git log" ], "idempotency_class": "deterministic", "regeneration_frequency": "post-grit-done" },
-        "selfheal": { "status": "planned", "heals_what": [ "stale evidence_ref after plan version bump" ], "safe_unattended": [ "update-evidence-ref-on-version-bump" ], "requires_human_approval_for": [ "row removal", "status downgrade" ] },
-        "selfupdate": { "status": "planned", "triggers": [ "plan version bump", "wave acceptance" ], "update_mechanism": "post-grit-done-hook", "incremental_vs_full": "incremental-diff" },
-        "selfmaintain": { "status": "planned", "policies": [ { "name": "archive-closed-rows", "action": "archive", "trigger": "on-operational-close", "destination": "/evidence/ledger/archived/", "audit_emission_required": true } ] },
-        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_ledger_row_status_count", "kind": "gauge", "unit": "1", "labels": [ "ledger_id", "status" ], "cardinality_budget": 100 } ] },
-        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+        "enforcement": {
+          "status": "planned",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "row references plan path that doesn't exist",
+            "status flip without evidence_ref bump"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "verifies": [
+            "every row has required fields",
+            "every evidence_ref resolves"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "trigger": "pre-commit-hook",
+          "validates": [
+            "JSON syntax",
+            "schema conformance"
+          ]
+        },
+        "autogen": {
+          "status": "planned",
+          "generator": "from plan frontmatter + git log",
+          "inputs": [
+            "plan version + status",
+            "git log"
+          ],
+          "idempotency_class": "deterministic",
+          "regeneration_frequency": "post-grit-done"
+        },
+        "selfheal": {
+          "status": "planned",
+          "heals_what": [
+            "stale evidence_ref after plan version bump"
+          ],
+          "safe_unattended": [
+            "update-evidence-ref-on-version-bump"
+          ],
+          "requires_human_approval_for": [
+            "row removal",
+            "status downgrade"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "triggers": [
+            "plan version bump",
+            "wave acceptance"
+          ],
+          "update_mechanism": "post-grit-done-hook",
+          "incremental_vs_full": "incremental-diff"
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "policies": [
+            {
+              "name": "archive-closed-rows",
+              "action": "archive",
+              "trigger": "on-operational-close",
+              "destination": "/evidence/ledger/archived/",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "observability_standard": "opentelemetry",
+          "metrics": [
+            {
+              "id": "oya_ledger_row_status_count",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "ledger_id",
+                "status"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "status": "planned",
+          "fields_required": [
+            "author",
+            "last_modified_at"
+          ],
+          "slsa_level_target": "L3",
+          "grit_done_seal_event_id": null
+        }
       }
     },
     "claim-matrix": {
       "purpose": "Hyperscaler claim matrix (per hyperscaler-gates.json:claim_matrix_required). Honest can/cannot/required separation.",
-      "applicable_formats": [ "json" ],
-      "examples": [ "/registries/cross-cutting/claim-matrix/ops-portal.json" ],
+      "applicable_formats": [
+        "json"
+      ],
+      "examples": [
+        "/registries/cross-cutting/claim-matrix/ops-portal.json"
+      ],
       "default_capabilities": {
-        "enforcement": { "status": "planned", "timing": "pr_time", "action": "block", "blocks_on": [ "operational claim without evidence", "claim citing unresolvable path" ], "prerequisite_for_operational": [ "validator crate" ] },
-        "verification": { "status": "planned", "verifies": [ "claims_we_can_make / cannot_yet / evidence_required all populated", "gate_coverage rows match hyperscaler-gates.json" ] },
-        "validation": { "status": "planned", "trigger": "pre-commit-hook", "validates": [ "schema conformance", "no operational without evidence" ] },
-        "autogen": { "status": "planned", "generator": "from §11 + §14 + §12.9 of consumed plans + hyperscaler-gates.json", "inputs": [ "consumed plans", "hyperscaler-gates.json" ], "idempotency_class": "deterministic", "regeneration_frequency": "post-grit-done" },
-        "selfheal": { "status": "planned", "heals_what": [ "promote claim when prerequisite evidence lands" ], "safe_unattended": [ "promote-claim-on-evidence" ], "requires_human_approval_for": [ "demote-claim" ] },
-        "selfupdate": { "status": "planned", "triggers": [ "evidence bundle emission", "lane status flip" ], "update_mechanism": "post-grit-done-hook", "incremental_vs_full": "incremental-diff" },
-        "selfmaintain": { "status": "planned", "policies": [ { "name": "monthly-claim-audit", "action": "alert", "trigger": "monthly", "destination": "/evidence/audits/", "audit_emission_required": true } ] },
-        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_claim_matrix_count", "kind": "gauge", "unit": "1", "labels": [ "category" ], "cardinality_budget": 3 } ] },
-        "provenance": { "status": "planned", "fields_required": [ "author", "last_modified_at" ], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+        "enforcement": {
+          "status": "planned",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "operational claim without evidence",
+            "claim citing unresolvable path"
+          ],
+          "prerequisite_for_operational": [
+            "validator crate"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "verifies": [
+            "claims_we_can_make / cannot_yet / evidence_required all populated",
+            "gate_coverage rows match hyperscaler-gates.json"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "trigger": "pre-commit-hook",
+          "validates": [
+            "schema conformance",
+            "no operational without evidence"
+          ]
+        },
+        "autogen": {
+          "status": "planned",
+          "generator": "from \u00a711 + \u00a714 + \u00a712.9 of consumed plans + hyperscaler-gates.json",
+          "inputs": [
+            "consumed plans",
+            "hyperscaler-gates.json"
+          ],
+          "idempotency_class": "deterministic",
+          "regeneration_frequency": "post-grit-done"
+        },
+        "selfheal": {
+          "status": "planned",
+          "heals_what": [
+            "promote claim when prerequisite evidence lands"
+          ],
+          "safe_unattended": [
+            "promote-claim-on-evidence"
+          ],
+          "requires_human_approval_for": [
+            "demote-claim"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "triggers": [
+            "evidence bundle emission",
+            "lane status flip"
+          ],
+          "update_mechanism": "post-grit-done-hook",
+          "incremental_vs_full": "incremental-diff"
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "policies": [
+            {
+              "name": "monthly-claim-audit",
+              "action": "alert",
+              "trigger": "monthly",
+              "destination": "/evidence/audits/",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "observability_standard": "opentelemetry",
+          "metrics": [
+            {
+              "id": "oya_claim_matrix_count",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "category"
+              ],
+              "cardinality_budget": 3
+            }
+          ]
+        },
+        "provenance": {
+          "status": "planned",
+          "fields_required": [
+            "author",
+            "last_modified_at"
+          ],
+          "slsa_level_target": "L3",
+          "grit_done_seal_event_id": null
+        }
       }
     },
     "evidence-bundle": {
       "purpose": "Capability invocation / runbook execution / IP merge evidence bundle per evidence-bundle-template.json. Cosign + rekor + audit-chain integrated (foundation-prerequisite-blocked).",
-      "applicable_formats": [ "json" ],
-      "examples": [ "future audit-chain emissions" ],
+      "applicable_formats": [
+        "json"
+      ],
+      "examples": [
+        "future audit-chain emissions"
+      ],
       "default_capabilities": {
-        "enforcement": { "status": "blocked-by-foundation", "timing": "pr_time", "action": "block", "blocks_on": [ "missing cosign signature on shipped bundle" ], "prerequisite_for_operational": [ "cosign + rekor wiring (foundation parallel session)" ] },
-        "verification": { "status": "planned", "verifies": [ "valid against EvidenceBundle schema", "no raw PII", "cosign_signature valid", "rekor_log_index resolves" ] },
-        "validation": { "status": "planned", "trigger": "write-side-API-guard", "validates": [ "bundle_id ULID pattern", "tenant_id_hash never raw" ] },
-        "autogen": { "status": "blocked-by-foundation", "generator": "audit-chain emitter (M01/M02)", "inputs": [], "idempotency_class": "content-addressed-sha256" },
-        "selfheal": { "status": "planned", "heals_what": [ "re-emit if cosign verification fails post-emit" ], "safe_unattended": [], "requires_human_approval_for": [ "tampering investigation" ] },
-        "selfupdate": { "status": "planned", "triggers": [ "new data_class", "new regulator" ], "update_mechanism": "manual-with-suggestion", "incremental_vs_full": "incremental-diff" },
-        "selfmaintain": { "status": "planned", "policies": [ { "name": "retention-per-data-class", "action": "archive", "trigger": "per-data-class-policy", "destination": "tenant-cold-storage", "audit_emission_required": true } ] },
-        "telemetry": { "status": "planned", "observability_standard": "opentelemetry", "metrics": [ { "id": "oya_evidence_bundle_emission_total", "kind": "counter", "unit": "1", "labels": [ "topic", "outcome" ], "cardinality_budget": 1000 } ] },
-        "provenance": { "status": "blocked-by-foundation", "fields_required": [ "author", "cosign_signature", "rekor_log_index" ], "slsa_level_target": "L3", "grit_done_seal_event_id": null }
+        "enforcement": {
+          "status": "blocked-by-foundation",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "missing cosign signature on shipped bundle"
+          ],
+          "prerequisite_for_operational": [
+            "cosign + rekor wiring (foundation parallel session)"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "verifies": [
+            "valid against EvidenceBundle schema",
+            "no raw PII",
+            "cosign_signature valid",
+            "rekor_log_index resolves"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "trigger": "write-side-API-guard",
+          "validates": [
+            "bundle_id ULID pattern",
+            "tenant_id_hash never raw"
+          ]
+        },
+        "autogen": {
+          "status": "blocked-by-foundation",
+          "generator": "audit-chain emitter (M01/M02)",
+          "inputs": [],
+          "idempotency_class": "content-addressed-sha256"
+        },
+        "selfheal": {
+          "status": "planned",
+          "heals_what": [
+            "re-emit if cosign verification fails post-emit"
+          ],
+          "safe_unattended": [],
+          "requires_human_approval_for": [
+            "tampering investigation"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "triggers": [
+            "new data_class",
+            "new regulator"
+          ],
+          "update_mechanism": "manual-with-suggestion",
+          "incremental_vs_full": "incremental-diff"
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "policies": [
+            {
+              "name": "retention-per-data-class",
+              "action": "archive",
+              "trigger": "per-data-class-policy",
+              "destination": "tenant-cold-storage",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "observability_standard": "opentelemetry",
+          "metrics": [
+            {
+              "id": "oya_evidence_bundle_emission_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "topic",
+                "outcome"
+              ],
+              "cardinality_budget": 1000
+            }
+          ]
+        },
+        "provenance": {
+          "status": "blocked-by-foundation",
+          "fields_required": [
+            "author",
+            "cosign_signature",
+            "rekor_log_index"
+          ],
+          "slsa_level_target": "L3",
+          "grit_done_seal_event_id": null
+        }
       }
     }
   }

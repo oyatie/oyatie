@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cell-provision.md
+---
+
 # Oyatie Runbook — Cell Provision
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

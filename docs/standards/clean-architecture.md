@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for clean-architecture.md
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 500

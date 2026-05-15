@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for sev1-incident-response.md
+---
+
 # Oyatie Runbook — Sev1 Incident Response
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

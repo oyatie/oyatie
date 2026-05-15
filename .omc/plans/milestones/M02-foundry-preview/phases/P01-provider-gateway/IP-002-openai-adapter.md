@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-openai-adapter.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P01-IP-002

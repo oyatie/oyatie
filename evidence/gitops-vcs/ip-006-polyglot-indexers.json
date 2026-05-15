@@ -81,5 +81,6 @@
       "scope": "external-to-ip-006",
       "description": "Workspace cargo and registry-driven test-standard gates cannot run until the pre-existing missing crates/oya-tenancy-kernel/Cargo.toml workspace member is restored or removed by its owner. This slice used targeted rustfmt/rustc evidence as requested and did not edit root Cargo.toml."
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for ip-006-polyglot-indexers.json"
 }

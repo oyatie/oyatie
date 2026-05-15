@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-readonly-api-kernel.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P02-IP-001

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for STANDARDS-AND-TEMPLATES.md
+---
+
 # Oyatie — Standards, Templates, Hooks, Skills, Tools, Checklists
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored per user directive: every contributor (human or agent) reaches into this doc for the canonical template / checklist / hook / skill / tool when starting common work. The goal: zero bespoke artifact authoring; everyone copies from a templated, standardized source.

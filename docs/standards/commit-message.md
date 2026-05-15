@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for commit-message.md
+---
+
 # Oyatie — Commit Message Standard
 
 > **Owner:** `council-architecture`. Validator: `oya dev check` pre-push hook + per-PR CI lane.

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-kg-serp.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P02-IP-002

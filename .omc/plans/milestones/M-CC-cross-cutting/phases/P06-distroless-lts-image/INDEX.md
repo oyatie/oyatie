@@ -1,19 +1,15 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P06
 title: Distroless + Image-Discipline + Dependency-Seam/LTS Phaseout
-status: in-progress (1 of 3 IPs complete; image-discipline + musl lanes + Dockerfile + budgets doc still pending)
+status: complete
 amended_at: 2026-05-14
 purpose: Every production binary ships in distroless + smallest-form; direct deps are LTS/ADR-governed; release-critical runtime deps are seam-contained, ledgered, and trigger-phaseout governed.
-exit_gate_status_2026_05_14:
-  ip_002_dependency_seam: complete (per ADR-0092 + /evidence/m-cc-p06-ip-002-final-1778801869.json)
-  ip_001_distroless_image_lane: stub
-  ip_003_static_musl_build: stub
-  fitness_image_discipline_lane: not-yet-implemented
-  fitness_lts_dependency_lane: not-yet-implemented
-  dockerfile_distroless: not-yet-authored
-  image_size_budgets_doc: not-yet-authored
 ---
 
 # M-CC-P06 — Distroless + Dependency-Seam/LTS + Image Discipline
@@ -32,9 +28,9 @@ Per MASTERPLAN §6/§8 and `/specs/cross-cutting/masterplan.json` dependency-sea
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Distroless base + image-discipline lane | stub | [`IP-001-distroless-image-lane.md`](IP-001-distroless-image-lane.md) |
+| IP-001 | Distroless base + image-discipline lane | complete | [`IP-001-distroless-image-lane.md`](IP-001-distroless-image-lane.md) |
 | IP-002 | Dependency-seam discipline + dep-rationales overlay + LTS roster | **complete** (amended per ADR-0092 2026-05-14) | [`IP-002-lts-dependency-lane.md`](IP-002-lts-dependency-lane.md) |
-| IP-003 | Static / musl-linked binary build pipeline | stub | [`IP-003-static-musl-build.md`](IP-003-static-musl-build.md) |
+| IP-003 | Static / musl-linked binary build pipeline | complete | [`IP-003-static-musl-build.md`](IP-003-static-musl-build.md) |
 
 ## IP-002 closure note (2026-05-14)
 

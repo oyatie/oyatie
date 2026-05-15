@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-billing-tax-metering.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P03-IP-002

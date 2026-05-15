@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for DOCUMENTATION.md
+---
+
 # Oyatie — Documentation System
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored to answer "where does each kind of doc live, who owns it, when does it update, how is it generated?" The system is **Diátaxis-aligned** (tutorials / how-to guides / reference / explanation) with explicit per-audience surfaces.

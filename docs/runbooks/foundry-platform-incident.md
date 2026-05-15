@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-platform-incident.md
+---
+
 # Oyatie Runbook — Foundry Platform Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

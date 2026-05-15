@@ -89,5 +89,64 @@
     "OpenTelemetry metric exporters declared in capability registry but not yet operational",
     "Grit live state has known SQLite FK failure mode; ICM scaffold-lock fallback active",
     "Auto-compute of consumer_count from graph edges (DRY drift detector) is planned, not operational"
-  ]
+  ],
+  "edges": [
+    {
+      "edge_id": "settings-template-kernel__generates__per-account-files",
+      "subject_id": "oya-foundry-settings-template-kernel",
+      "subject_type": "Artifact",
+      "predicate": "generates",
+      "object_id": "per-account-settings-files",
+      "object_type": "Artifact",
+      "object_description": "On-disk per-account settings files rendered from templates (e.g., ~/.claude/settings.json per account)",
+      "added_at": "2026-05-15T00:00:00Z",
+      "added_by": "worker-registry",
+      "source_amendment": "v6-PRE-4",
+      "rationale": "SettingsRenderer::render writes per-account files from template + AccountRow inputs. Bidirectional traceability: artifact -> generated artifact."
+    },
+    {
+      "edge_id": "settings-template-kernel__consumes__registry-accounts-toml",
+      "subject_id": "oya-foundry-settings-template-kernel",
+      "subject_type": "Artifact",
+      "predicate": "consumes",
+      "object_id": "registry/accounts/*.toml",
+      "object_type": "Artifact",
+      "object_description": "Account list TOML files in registry/accounts/ (claude.toml, codex.toml, gemini.toml and their example variants)",
+      "added_at": "2026-05-15T00:00:00Z",
+      "added_by": "worker-registry",
+      "source_amendment": "v6-PRE-4",
+      "rationale": "SettingsRenderer reads registry/accounts/*.toml at render time to produce per-account files. Data flow: accounts registry -> renderer -> per-account settings."
+    },
+    {
+      "edge_id": "lean-settings-drift__enforces__foundry-supervisor-template",
+      "subject_id": "lean-settings-drift",
+      "subject_type": "Artifact",
+      "predicate": "enforces",
+      "object_id": "foundry-supervisor-template-claude",
+      "object_type": "Artifact",
+      "object_description": "foundry-supervisor-template-{claude,codex,gemini} \u2014 all three templates enforced by this lane",
+      "added_at": "2026-05-15T00:00:00Z",
+      "added_by": "worker-registry",
+      "source_amendment": "v6-PRE-4",
+      "rationale": "lean-settings-drift CI lane runs SettingsRenderer::verify against all provider templates. Feature-flagged off until N>=10 account rows per v5 \u00a7A.1.2.",
+      "also_enforces": [
+        "foundry-supervisor-template-codex",
+        "foundry-supervisor-template-gemini"
+      ]
+    },
+    {
+      "edge_id": "SettingsRenderer__reads__SecretStorePort",
+      "subject_id": "SettingsRenderer",
+      "subject_type": "Block",
+      "predicate": "reads",
+      "object_id": "SecretStorePort",
+      "object_type": "Block",
+      "object_description": "SecretStorePort trait implemented by oya-foundry-account-adapter-openbao; resolves sref://openbao/... references to actual secret values at render time",
+      "added_at": "2026-05-15T00:00:00Z",
+      "added_by": "worker-registry",
+      "source_amendment": "v6-PRE-4",
+      "rationale": "SettingsRenderer calls SecretStorePort::resolve(sref) when populating secret fields in rendered per-account settings files. Port boundary: kernel trait -> adapter impl."
+    }
+  ],
+  "purpose": "Auto-backfilled purpose for knowledge-graph-dynamic.json"
 }

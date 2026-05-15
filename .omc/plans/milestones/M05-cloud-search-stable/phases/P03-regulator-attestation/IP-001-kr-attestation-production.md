@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-kr-attestation-production.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P03-IP-001

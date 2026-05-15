@@ -5,31 +5,36 @@ milestone: M01-foundation
 phase: P05-post-cutover-hardening
 status: Complete
 acceptance_lanes: []
-entry_gate: |
-  P02-shard-1-atomic-rename complete (all 6 acceptance gates exit 0);
-  P03-shard-1-5-protocol-unknown-deferred complete (zero *-api crates remain);
-  P04-iter-4-src-inspection complete (zero STUB-pending cells in §3 audit body).
-  All three prior phases merged to main.
-exit_gate: |
-  4 LEAN check crates flipped from `--report-only` to BLOCKER in CI config;
-  4 new quality lanes scaffolded and registered: oya-check-statelessness,
-  oya-check-shardability, oya-check-perf-budget, oya-check-benchmark;
-  registry/quality/lanes.yaml updated with all 8 active lanes (4 flipped +
-  4 new); `cargo check --workspace exits 0`; ICM context-oyatie row emitted;
-  M01 exit gate declared.
-depends_on:
-  - milestone: M01
-    phase: P02-shard-1-atomic-rename
-    reason: "LEAN check crates must be at v4.1 names before flip to BLOCKER"
-  - milestone: M01
-    phase: P03-shard-1-5-protocol-unknown-deferred
-    reason: "All protocol layers must be final before architecture lane goes BLOCKER"
-  - milestone: M01
-    phase: P04-iter-4-src-inspection
-    reason: "layer-correctness subcommand requires evidence-confirmed layer assignments"
-owner_team: council-architecture
----
+entry_gate: "P02-shard-1-atomic-rename complete (all 6 acceptance gates exit 0);\n\
+  P03-shard-1-5-protocol-unknown-deferred complete (zero *-api crates remain);\nP04-iter-4-src-inspection\
+  \ complete (zero STUB-pending cells in \xA73 audit body).\nAll three prior phases\
+  \ merged to main.\n"
+exit_gate: '4 LEAN check crates flipped from `--report-only` to BLOCKER in CI config;
 
+  4 new quality lanes scaffolded and registered: oya-check-statelessness,
+
+  oya-check-shardability, oya-check-perf-budget, oya-check-benchmark;
+
+  registry/quality/lanes.yaml updated with all 8 active lanes (4 flipped +
+
+  4 new); `cargo check --workspace exits 0`; ICM context-oyatie row emitted;
+
+  M01 exit gate declared.
+
+  '
+depends_on:
+- milestone: M01
+  phase: P02-shard-1-atomic-rename
+  reason: LEAN check crates must be at v4.1 names before flip to BLOCKER
+- milestone: M01
+  phase: P03-shard-1-5-protocol-unknown-deferred
+  reason: All protocol layers must be final before architecture lane goes BLOCKER
+- milestone: M01
+  phase: P04-iter-4-src-inspection
+  reason: layer-correctness subcommand requires evidence-confirmed layer assignments
+owner_team: council-architecture
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P05-post-cutover-hardening: Flip 4 LEAN checks to BLOCKER + scaffold 4 quality lanes
 
 ## Purpose

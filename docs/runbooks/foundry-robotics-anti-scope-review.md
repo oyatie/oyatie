@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-robotics-anti-scope-review.md
+---
+
 # Oyatie Runbook — Foundry Robotics Anti Scope Review
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

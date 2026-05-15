@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for design-partner-feedback-session.md
+---
+
 # Oyatie Runbook — Design Partner Feedback Session
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

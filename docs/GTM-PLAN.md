@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for GTM-PLAN.md
+---
+
 # Oyatie — Go-to-Market Plan
 
 > **Status:** Draft v0.1 — 2026-05-09.

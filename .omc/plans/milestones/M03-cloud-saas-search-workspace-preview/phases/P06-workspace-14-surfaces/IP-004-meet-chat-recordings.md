@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-meet-chat-recordings.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-004

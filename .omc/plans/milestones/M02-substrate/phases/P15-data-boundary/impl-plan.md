@@ -7,20 +7,21 @@ impl_plan_id: IP-001-data-boundary-kernel-scaffold
 status: pending
 owner: council-architecture
 blocked_by:
-  - impl_plan: P14-policy/IP-001
-    reason: "CedarDubEvaluator calls PolicyEvaluator port from oya-policy-engine-kernel for HARD_DENY cedar evaluation"
+- impl_plan: P14-policy/IP-001
+  reason: CedarDubEvaluator calls PolicyEvaluator port from oya-policy-engine-kernel
+    for HARD_DENY cedar evaluation
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-data-boundary-kernel-scaffold: Scaffold DUB Engine + Classification Kernel/Domain/Application/Adapter/gRPC/App — 12 DataClass + HARD_DENY DDL + Cedar Fragment
 
 ## Intent

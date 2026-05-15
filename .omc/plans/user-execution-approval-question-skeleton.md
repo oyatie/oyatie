@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for user-execution-approval-question-skeleton.md
+---
+
 # User execution-approval question skeleton
 
 Used when Critic iter-N returns APPROVE on `.omc/plans/ralplan-oyatie-sst-consolidation.md`. Fires the structured AskUserQuestion that captures execution approval before any cutover phase runs.

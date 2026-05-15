@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-tamper-evidence-drill.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P03-IP-003

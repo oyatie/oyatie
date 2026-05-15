@@ -219,5 +219,6 @@
   "known_limits": [
     "M-CC-P00 is not claimed ready; waiver is scoped to M01 acceptance reconciliation only.",
     "M02/M03 implementation remains gated; M02 wave-integration is structurally green, but broad fanout is blocked until M-CC-P00 readiness or explicit waiver."
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for m01-foundation-acceptance-audit-2026-05-14.json"
 }

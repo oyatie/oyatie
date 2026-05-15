@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-predictable-naming.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P04-IP-002

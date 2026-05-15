@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-adr-0054-scaffold-claim.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-001

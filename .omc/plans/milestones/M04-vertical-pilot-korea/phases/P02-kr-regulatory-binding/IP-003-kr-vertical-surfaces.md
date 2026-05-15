@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-kr-vertical-surfaces.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P02-IP-003

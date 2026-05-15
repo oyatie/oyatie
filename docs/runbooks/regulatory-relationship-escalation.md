@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for regulatory-relationship-escalation.md
+---
+
 # Oyatie Runbook — Regulatory Relationship Escalation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

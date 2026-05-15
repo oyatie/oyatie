@@ -124,5 +124,6 @@
       "finding": "FileOutboxStore could not persist false-to-true published transitions for already-persisted records.",
       "fix": "FileOutboxStore now appends v1-published status events, replays them into Outbox state, rejects true-to-false/divergent prefixes, and has a persist-mark-published-reload regression."
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for m01-p04-ip-001-outbox-topic-registry.json"
 }

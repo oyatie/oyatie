@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-doc-style-lane.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P02-IP-003

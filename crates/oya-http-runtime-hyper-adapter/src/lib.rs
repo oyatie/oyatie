@@ -9,8 +9,9 @@
 //! Conversion-at-the-boundary discipline (ADR-0092 root-cause seam fix):
 //!   * Inbound: hyper `Bytes` body → kernel `Vec<u8>` via `.to_vec()`.
 //!   * Outbound: kernel `Vec<u8>` body → hyper `Full<Bytes>` via `Bytes::from`.
+//!
 //! The kernel types stay std-only; every hyper-family dep (`hyper`,
-//! `hyper-util`, `http-body-util`, `bytes`) is concentrated in THIS crate.
+//!     `hyper-util`, `http-body-util`, `bytes`) is concentrated in THIS crate.
 //!
 //! Request / response structs are re-exported from the middleware kernel so
 //! middleware crates depend inward while consumers still avoid importing hyper.
@@ -638,7 +639,9 @@ mod tests {
         impl From<SvcErr> for HttpResponse {
             fn from(e: SvcErr) -> Self {
                 match e {
-                    SvcErr::Missing => HttpResponse::new(404).with_body(b"missing-from-svc".to_vec()),
+                    SvcErr::Missing => {
+                        HttpResponse::new(404).with_body(b"missing-from-svc".to_vec())
+                    }
                 }
             }
         }

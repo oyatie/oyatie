@@ -133,5 +133,6 @@
     "scripts_check": "passed",
     "parallel_claim_demo": "passed",
     "evidence": "./scripts/check.sh passed after stage0 helpers, cargo check/clippy, cargo-nextest 1327/1327, repoctl, quality-lanes, glossary, architecture boundary 165 crates, cargo deny, and machine-readable JSON parse checks."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for ip-010-parallel-claim-demo.json"
 }

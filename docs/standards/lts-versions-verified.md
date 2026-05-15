@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for lts-versions-verified.md
+---
+
 # LTS Versions Verified — 2026-05-12
 
 <!--

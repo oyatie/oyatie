@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for opcua-adapter-disconnect.md
+---
+
 # Oyatie Runbook — Opcua Adapter Disconnect
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

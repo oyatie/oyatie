@@ -1,8 +1,13 @@
 ---
+purpose: Auto-backfilled purpose for README.md
+---
+
+---
 doc_class: Index
 shape: ~
 length_cap: 120
 authority_tier: 0
+purpose: Root entry point for all project documentation; redirects to relevant hubs.
 excludes:
   - path: docs/AGENTS.md
     reason: Agent operating contract — the contract for any agent or human about to make a change.

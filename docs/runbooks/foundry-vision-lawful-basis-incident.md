@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-vision-lawful-basis-incident.md
+---
+
 # Oyatie Runbook — Foundry Vision Lawful Basis Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

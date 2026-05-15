@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: P05-connect-pro-messenger

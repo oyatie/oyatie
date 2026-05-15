@@ -20,7 +20,8 @@
       "docs/templates/evidence-bundle-template.json",
       "docs/templates/postmortem-template.md",
       "docs/templates/mistakes-ledger-row-template.md"
-    ]
+    ],
+    "purpose": "Auto-backfilled purpose for final-report-schema.json"
   },
   "type": "object",
   "additionalProperties": false,

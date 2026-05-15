@@ -172,5 +172,6 @@
     "claims_we_can_make",
     "claims_we_cannot_make_yet",
     "evidence_required_to_make_remaining_claims"
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for hyperscaler-gates.json"
 }

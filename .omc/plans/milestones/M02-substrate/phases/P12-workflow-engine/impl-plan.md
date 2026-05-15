@@ -8,17 +8,17 @@ status: pending
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-workflow-engine-kernel-scaffold: Scaffold Workflow Engine Kernel, Domain, Application, Adapter, Worker, gRPC, REST, App — Full DDL + Port Traits + Migrations
 
 ## Intent

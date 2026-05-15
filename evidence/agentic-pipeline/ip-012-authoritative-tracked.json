@@ -193,5 +193,6 @@
       "cargo deny check passed and machine-readable JSON parse check passed"
     ],
     "grit_status": "No active locks after grit gc cleaned 8 expired lock records"
-  }
+  },
+  "purpose": "Auto-backfilled purpose for ip-012-authoritative-tracked.json"
 }

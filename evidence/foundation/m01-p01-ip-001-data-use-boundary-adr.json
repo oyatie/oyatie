@@ -129,5 +129,6 @@
     "architectural_status": "CLEAR",
     "clean": true,
     "summary": "Initial REQUEST_CHANGES on ADR mirror/index/privacy token drift resolved; re-review approved with no remaining scoped blockers."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for m01-p01-ip-001-data-use-boundary-adr.json"
 }

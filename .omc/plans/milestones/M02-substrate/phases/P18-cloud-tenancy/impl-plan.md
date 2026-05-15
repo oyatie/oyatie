@@ -7,24 +7,26 @@ impl_plan_id: IP-001-cloud-tenancy-kernel-scaffold
 status: pending
 owner: council-cloud
 blocked_by:
-  - impl_plan: P13-tenancy/IP-001
-    reason: "CloudTenantAdapter reads TenantCellPlacer output; cloud.cells FK references tenancy.tenants"
-  - impl_plan: P08-kms/IP-001
-    reason: "CloudKmsAdapter wraps oya-kms-kernel KmsMasterKeyStore for per-cell DEK envelope"
-  - impl_plan: P06-secrets/IP-001
-    reason: "OCI Vault credentials stored via oya-secrets-kernel SecretReference port"
+- impl_plan: P13-tenancy/IP-001
+  reason: CloudTenantAdapter reads TenantCellPlacer output; cloud.cells FK references
+    tenancy.tenants
+- impl_plan: P08-kms/IP-001
+  reason: CloudKmsAdapter wraps oya-kms-kernel KmsMasterKeyStore for per-cell DEK
+    envelope
+- impl_plan: P06-secrets/IP-001
+  reason: OCI Vault credentials stored via oya-secrets-kernel SecretReference port
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-cloud-tenancy-kernel-scaffold: Scaffold All 21 Cloud Crates — 8 BC Kernels + DDL + OCI ARM64 Manifests + Cell Lifecycle
 
 ## Intent

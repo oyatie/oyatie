@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for PRD.md
+---
+
 # Oyatie — Product Requirements Document (PRD)
 
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)

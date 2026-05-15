@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for privacy-review.md
+---
+
 # Oyatie — Privacy Review Standard
 
 > **Owner:** `council-privacy`.

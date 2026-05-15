@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: PhaseIndex
 template_id: TPL-PHASE
 phase_id: P02-multi-subscription-pool

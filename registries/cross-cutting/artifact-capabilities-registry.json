@@ -555,7 +555,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
-      "purpose_short": "Machine-readable µservice registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
+      "purpose_short": "Machine-readable \u00b5service registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -650,7 +650,7 @@
       "artifact_format": "openapi-yaml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 ≤2s.",
+      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 \u22642s.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
@@ -824,7 +824,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane × contains|exposes|governs|depends-on|enforces.",
+      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane \u00d7 contains|exposes|governs|depends-on|enforces.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -957,7 +957,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Hyper foundation Layer 5: THE ONLY crate importing hyper directly per ADR-0090. Bridges Router + MiddlewareChain → hyper::service::Service. Deps: hyper 1, hyper-util 0.1, tokio 1, http-body-util 0.1, bytes 1.",
+      "purpose_short": "Hyper foundation Layer 5: THE ONLY crate importing hyper directly per ADR-0090. Bridges Router + MiddlewareChain \u2192 hyper::service::Service. Deps: hyper 1, hyper-util 0.1, tokio 1, http-body-util 0.1, bytes 1.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -995,7 +995,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Layer 6 composition root for the ops/workspace BC. Hyper binary `oya-ops-workspace-shell` listens on 127.0.0.1:OYATIE_OPS_WORKSPACE_PORT (default 8080). Wires kernel → application → rest → router-kernel → middleware-kernel → runtime-hyper-adapter into a single tokio::main. Per ADR-0090.",
+      "purpose_short": "Layer 6 composition root for the ops/workspace BC. Hyper binary `oya-ops-workspace-shell` listens on 127.0.0.1:OYATIE_OPS_WORKSPACE_PORT (default 8080). Wires kernel \u2192 application \u2192 rest \u2192 router-kernel \u2192 middleware-kernel \u2192 runtime-hyper-adapter into a single tokio::main. Per ADR-0090.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -1014,7 +1014,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; ≤128 chars); deny-on-missing/invalid with 400.",
+      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; \u2264128 chars); deny-on-missing/invalid with 400.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -1377,6 +1377,588 @@
           "last_modified_at": "2026-05-14T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "foundry-supervisor-template-claude",
+      "artifact_path": "templates/foundry-supervisor/claude.toml",
+      "artifact_format": "toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Settings template for Claude (Anthropic) driver accounts. Rendered per-account by SettingsRenderer; blake3-hashed for drift detection.",
+      "artifact_profile": "template",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-settings-drift",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "settings-file-not-matching-template",
+            "unknown-provider-family"
+          ]
+        },
+        "verification": {
+          "checker_crate": "crates/oya-foundry-settings-template-kernel",
+          "command": "oya check settings-drift --template templates/foundry-supervisor/claude.toml --accounts registry/accounts/claude*.toml",
+          "verifies": [
+            "template instances valid per schema.json",
+            "blake3 hash stable"
+          ]
+        },
+        "validation": {
+          "validator": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::verify",
+          "trigger": "pre-commit-hook"
+        },
+        "autogen": {
+          "generator": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::render",
+          "inputs": [
+            "registry/accounts/claude*.toml",
+            "templates/foundry-supervisor/claude.toml"
+          ],
+          "idempotency_class": "content-addressed-blake3"
+        },
+        "selfheal": {
+          "healer": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::reconcile",
+          "heals_what": [
+            "drift between template and rendered per-account files"
+          ],
+          "safe_unattended": [
+            "re-render on blake3-mismatch"
+          ]
+        },
+        "selfupdate": {
+          "triggers": [
+            "new field added to schema.json"
+          ],
+          "update_mechanism": "manual-with-suggestion"
+        },
+        "selfmaintain": {
+          "policies": [
+            {
+              "name": "version-bump-on-shape-change",
+              "action": "alert",
+              "trigger": "on-shape-change",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_settings_drift_detected_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "provider_family",
+                "account_id"
+              ],
+              "cardinality_budget": 500
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "worker-registry",
+          "last_modified_at": "2026-05-15T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "foundry-supervisor-template-codex",
+      "artifact_path": "templates/foundry-supervisor/codex.toml",
+      "artifact_format": "toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Settings template for Codex (OpenAI) driver accounts. Rendered per-account by SettingsRenderer; blake3-hashed for drift detection.",
+      "artifact_profile": "template",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-settings-drift",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "settings-file-not-matching-template",
+            "unknown-provider-family"
+          ]
+        },
+        "verification": {
+          "checker_crate": "crates/oya-foundry-settings-template-kernel",
+          "command": "oya check settings-drift --template templates/foundry-supervisor/codex.toml --accounts registry/accounts/codex*.toml",
+          "verifies": [
+            "template instances valid per schema.json",
+            "blake3 hash stable"
+          ]
+        },
+        "validation": {
+          "validator": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::verify",
+          "trigger": "pre-commit-hook"
+        },
+        "autogen": {
+          "generator": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::render",
+          "inputs": [
+            "registry/accounts/codex*.toml",
+            "templates/foundry-supervisor/codex.toml"
+          ],
+          "idempotency_class": "content-addressed-blake3"
+        },
+        "selfheal": {
+          "healer": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::reconcile",
+          "heals_what": [
+            "drift between template and rendered per-account files"
+          ],
+          "safe_unattended": [
+            "re-render on blake3-mismatch"
+          ]
+        },
+        "selfupdate": {
+          "triggers": [
+            "new field added to schema.json"
+          ],
+          "update_mechanism": "manual-with-suggestion"
+        },
+        "selfmaintain": {
+          "policies": [
+            {
+              "name": "version-bump-on-shape-change",
+              "action": "alert",
+              "trigger": "on-shape-change",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_settings_drift_detected_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "provider_family",
+                "account_id"
+              ],
+              "cardinality_budget": 500
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "worker-registry",
+          "last_modified_at": "2026-05-15T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "foundry-supervisor-template-gemini",
+      "artifact_path": "templates/foundry-supervisor/gemini.toml",
+      "artifact_format": "toml",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Settings template for Gemini (Google) driver accounts. Rendered per-account by SettingsRenderer; blake3-hashed for drift detection.",
+      "artifact_profile": "template",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-settings-drift",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "settings-file-not-matching-template",
+            "unknown-provider-family"
+          ]
+        },
+        "verification": {
+          "checker_crate": "crates/oya-foundry-settings-template-kernel",
+          "command": "oya check settings-drift --template templates/foundry-supervisor/gemini.toml --accounts registry/accounts/gemini*.toml",
+          "verifies": [
+            "template instances valid per schema.json",
+            "blake3 hash stable"
+          ]
+        },
+        "validation": {
+          "validator": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::verify",
+          "trigger": "pre-commit-hook"
+        },
+        "autogen": {
+          "generator": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::render",
+          "inputs": [
+            "registry/accounts/gemini*.toml",
+            "templates/foundry-supervisor/gemini.toml"
+          ],
+          "idempotency_class": "content-addressed-blake3"
+        },
+        "selfheal": {
+          "healer": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::reconcile",
+          "heals_what": [
+            "drift between template and rendered per-account files"
+          ],
+          "safe_unattended": [
+            "re-render on blake3-mismatch"
+          ]
+        },
+        "selfupdate": {
+          "triggers": [
+            "new field added to schema.json"
+          ],
+          "update_mechanism": "manual-with-suggestion"
+        },
+        "selfmaintain": {
+          "policies": [
+            {
+              "name": "version-bump-on-shape-change",
+              "action": "alert",
+              "trigger": "on-shape-change",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_settings_drift_detected_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "provider_family",
+                "account_id"
+              ],
+              "cardinality_budget": 500
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "worker-registry",
+          "last_modified_at": "2026-05-15T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "foundry-supervisor-kernel",
+      "artifact_path": "crates/oya-foundry-supervisor-kernel",
+      "artifact_format": "rust-crate",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Kernel crate for foundry supervisor: port traits (SessionDriver, InboxStore, OutboxSink, UsageEnforcement, RoutePolicy, SecretStorePort), domain types (SessionTicket, SpendRecord, MessageId, RequestId), dead_letter contract.",
+      "artifact_profile": "kernel-crate",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-kernel-crate-boundary",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "kernel-imports-non-kernel-crate",
+            "kernel-contains-impl-logic"
+          ]
+        },
+        "verification": {
+          "checker_crate": "crates/oya-check-dependency-seam",
+          "command": "cargo check -p oya-foundry-supervisor-kernel",
+          "verifies": [
+            "zero external non-std dependencies in kernel",
+            "all port traits sealed",
+            "dead_letter atomicity contract holds"
+          ]
+        },
+        "validation": {
+          "validator": "crates/oya-check-dependency-seam::kernel_boundary_gate",
+          "trigger": "pre-commit-hook"
+        },
+        "autogen": {
+          "generator": "not-applicable",
+          "inputs": [],
+          "idempotency_class": "deterministic"
+        },
+        "selfheal": {
+          "healer": "manual \u2014 kernel boundary violations require human architectural review",
+          "safe_unattended": [],
+          "requires_human_approval_for": [
+            "any new external dep in kernel",
+            "trait removal"
+          ]
+        },
+        "selfupdate": {
+          "triggers": [
+            "new port trait mandated by ADR"
+          ],
+          "update_mechanism": "manual-with-suggestion"
+        },
+        "selfmaintain": {
+          "policies": [
+            {
+              "name": "archive-superseded-kernel-version",
+              "action": "archive",
+              "trigger": "on-new-version-Accepted",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_supervisor_tick_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "outcome",
+                "account_id"
+              ],
+              "cardinality_budget": 5000
+            },
+            {
+              "id": "oya_supervisor_tick_duration_ms",
+              "kind": "histogram",
+              "unit": "ms",
+              "labels": [
+                "outcome"
+              ],
+              "cardinality_budget": 10
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "worker-registry",
+          "last_modified_at": "2026-05-15T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "foundry-settings-template-kernel",
+      "artifact_path": "crates/oya-foundry-settings-template-kernel",
+      "artifact_format": "rust-crate",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Kernel crate for settings template rendering: SettingsTemplate trait, SettingsRenderer (blake3 hash + drift detect), HookEvent, McpServerRef port types. Reusable across M03+ Workflow Studio.",
+      "artifact_profile": "kernel-crate",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-kernel-crate-boundary",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "kernel-imports-non-kernel-crate"
+          ]
+        },
+        "verification": {
+          "checker_crate": "crates/oya-check-dependency-seam",
+          "command": "cargo check -p oya-foundry-settings-template-kernel",
+          "verifies": [
+            "zero external non-std dependencies in kernel",
+            "SettingsRenderer::verify idempotent",
+            "blake3 hash deterministic"
+          ]
+        },
+        "validation": {
+          "validator": "crates/oya-check-dependency-seam::kernel_boundary_gate",
+          "trigger": "pre-commit-hook"
+        },
+        "autogen": {
+          "generator": "not-applicable",
+          "inputs": [],
+          "idempotency_class": "deterministic"
+        },
+        "selfheal": {
+          "healer": "manual \u2014 kernel boundary violations require architectural review",
+          "safe_unattended": [],
+          "requires_human_approval_for": [
+            "any new external dep in kernel"
+          ]
+        },
+        "selfupdate": {
+          "triggers": [
+            "new field required by schema.json"
+          ],
+          "update_mechanism": "manual-with-suggestion"
+        },
+        "selfmaintain": {
+          "policies": [
+            {
+              "name": "version-bump-on-trait-change",
+              "action": "alert",
+              "trigger": "on-trait-shape-change",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_settings_render_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "provider_family",
+                "outcome"
+              ],
+              "cardinality_budget": 100
+            },
+            {
+              "id": "oya_settings_verify_duration_ms",
+              "kind": "histogram",
+              "unit": "ms",
+              "labels": [
+                "provider_family"
+              ],
+              "cardinality_budget": 10
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "worker-registry",
+          "last_modified_at": "2026-05-15T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "lean-settings-drift",
+      "artifact_path": "registry/quality/lanes/lean-settings-drift.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "CI lane enforcing settings-template drift detection. Feature-flagged off until N>=10 account rows. Before threshold runs against fixture files only (vacuous pass). Per v5 \u00a7A.1.2.",
+      "artifact_profile": "ci-lane",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-settings-drift",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "settings-drift-detected-above-n-threshold"
+          ]
+        },
+        "verification": {
+          "checker_crate": "crates/oya-foundry-settings-template-kernel",
+          "command": "oya check settings-drift --workspace",
+          "verifies": [
+            "all rendered per-account files match their template blake3",
+            "N-threshold gate respected"
+          ]
+        },
+        "validation": {
+          "validator": "N-threshold gate: wc -l registry/accounts/*.toml | tail -1 | awk '{print $1}' >= 10",
+          "trigger": "lane-start"
+        },
+        "autogen": {
+          "generator": "not-applicable",
+          "inputs": [],
+          "idempotency_class": "deterministic"
+        },
+        "selfheal": {
+          "healer": "crates/oya-foundry-settings-template-kernel::SettingsRenderer::reconcile (VerifyOnly mode)",
+          "safe_unattended": [
+            "re-render drifted files"
+          ],
+          "requires_human_approval_for": [
+            "template shape change"
+          ]
+        },
+        "selfupdate": {
+          "triggers": [
+            "new provider_family added to schema.json enum"
+          ],
+          "update_mechanism": "manual-with-suggestion"
+        },
+        "selfmaintain": {
+          "policies": [
+            {
+              "name": "disable-when-below-threshold",
+              "action": "skip-lane",
+              "trigger": "N<10",
+              "audit_emission_required": false
+            }
+          ]
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_settings_drift_lane_run_total",
+              "kind": "counter",
+              "unit": "1",
+              "labels": [
+                "outcome",
+                "threshold_met"
+              ],
+              "cardinality_budget": 20
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "worker-registry",
+          "last_modified_at": "2026-05-15T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "oya-dev-cli-settings-drift",
+      "artifact_path": "crates/oya-dev-cli/src/commands/settings_drift.rs",
+      "artifact_format": "rust-source",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "CLI verifier subcommand: `oya check settings-drift`. Invokes SettingsRenderer::verify across all provider accounts; reports drift + exits non-zero on mismatch. Consumed by lean-settings-drift CI lane.",
+      "artifact_profile": "verifier",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-settings-drift",
+          "timing": "pr_time",
+          "action": "block",
+          "blocks_on": [
+            "verifier-exit-nonzero-on-drift"
+          ]
+        },
+        "verification": {
+          "checker_crate": "crates/oya-dev-cli",
+          "command": "cargo test -p oya-dev-cli -- settings_drift",
+          "verifies": [
+            "exit 0 on no-drift fixture",
+            "exit 1 on drift fixture",
+            "N-threshold gate skips when N<10"
+          ]
+        },
+        "validation": {
+          "validator": "cargo clippy -p oya-dev-cli",
+          "trigger": "pre-commit-hook"
+        },
+        "autogen": {
+          "generator": "not-applicable",
+          "inputs": [],
+          "idempotency_class": "deterministic"
+        },
+        "selfheal": {
+          "healer": "not-applicable \u2014 verifier is read-only; drift remediation delegated to SettingsRenderer::reconcile",
+          "safe_unattended": [],
+          "requires_human_approval_for": [
+            "any behavioural change in exit code contract"
+          ]
+        },
+        "selfupdate": {
+          "triggers": [
+            "new provider_family requires new verification path"
+          ],
+          "update_mechanism": "manual-with-suggestion"
+        },
+        "selfmaintain": {
+          "policies": [
+            {
+              "name": "keep-verifier-read-only",
+              "action": "alert",
+              "trigger": "on-write-side-mutation-detected",
+              "audit_emission_required": true
+            }
+          ]
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_settings_drift_check_duration_ms",
+              "kind": "histogram",
+              "unit": "ms",
+              "labels": [
+                "provider_family"
+              ],
+              "cardinality_budget": 10
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "worker-registry",
+          "last_modified_at": "2026-05-15T00:00:00Z"
+        }
+      }
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"
 }

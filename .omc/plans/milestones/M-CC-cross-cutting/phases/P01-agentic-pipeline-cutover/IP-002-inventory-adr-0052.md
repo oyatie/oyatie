@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-inventory-adr-0052.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-002

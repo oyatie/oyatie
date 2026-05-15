@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for FINOPS-PLAN.md
+---
+
 # Oyatie — FinOps Plan
 
 > **Status:** Draft v0.1 skeleton — 2026-05-09.

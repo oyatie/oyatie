@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-autonomy-break-glass.md
+---
+
 # Oyatie Runbook — Foundry Autonomy Break Glass
 
 > **Status:** Active W-Foundation ledger procedure; runtime override execution remains gated by ADR-0022 follow-up implementation

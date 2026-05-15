@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for MISTAKES-LEDGER.md
+---
+
 # Oyatie — Mistakes-and-Fixes Ledger
 
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)

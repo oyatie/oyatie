@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for schema-migration.md
+---
+
 # Oyatie — Schema Migration Standard
 
 > **Owner:** `platform-eventing-og` + `axis-cloud` (per-store).

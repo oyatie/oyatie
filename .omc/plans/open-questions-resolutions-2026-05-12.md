@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for open-questions-resolutions-2026-05-12.md
+---
+
 # Open-questions resolutions — ralplan-oyatie-sst-consolidation
 
 Resolved during Architect run, between Planner and Critic phases. The Critic SHOULD read this alongside the plan and open-questions.md.

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for ralplan-ops-wave-4-2026-05-13.md
+---
+
+---
 doc_class: RalplanConsensusPlan
 shape: anchor
 status: Accepted

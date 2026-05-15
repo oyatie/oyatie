@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for HIRING-CAPACITY-PLAN.md
+---
+
 # Oyatie — Hiring + Capacity Plan
 
 > **Status:** Draft v0.1 skeleton — 2026-05-09. Founder + future COO/CFO finalize.

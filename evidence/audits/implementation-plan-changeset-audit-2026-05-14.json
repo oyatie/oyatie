@@ -170,5 +170,6 @@
     "missing_changeset_contract": 0,
     "missing_phase_index": 0,
     "missing_milestone_index": 0
-  }
+  },
+  "purpose": "Auto-backfilled purpose for implementation-plan-changeset-audit-2026-05-14.json"
 }

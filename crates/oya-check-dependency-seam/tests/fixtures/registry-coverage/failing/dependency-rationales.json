@@ -1,8 +1,9 @@
 {
   "title": "FailingFixture",
-  "description": "F3 adversarial-fixture pair (failing case): a malformed dependency-rationales.json missing the canonical `entries` object. The extract_registry_entry_names extractor must return an empty list — the lane treats this as a registry-shape violation upstream.",
+  "description": "F3 adversarial-fixture pair (failing case): a malformed dependency-rationales.json missing the canonical `entries` object. The extract_registry_entry_names extractor must return an empty list \u2014 the lane treats this as a registry-shape violation upstream.",
   "_meta": {
-    "fixture_kind": "failing"
+    "fixture_kind": "failing",
+    "purpose": "Auto-backfilled purpose for dependency-rationales.json"
   },
   "NOTE_no_entries_object_here": "the absence of `entries` is the violation"
 }

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for healthcare-break-glass.md
+---
+
 # Oyatie Runbook — Healthcare Break Glass
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

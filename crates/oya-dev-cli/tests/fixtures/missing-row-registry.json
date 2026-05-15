@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "purpose": "Failing-fixture registry for the active-artifact-contract gate per consensus-v3 §5 step 2. Contains one row whose artifact_path is NOT HEAD-tracked and a duplicate artifact_id — the validator MUST exit non-zero on this fixture."
+    "purpose": "Failing-fixture registry for the active-artifact-contract gate per consensus-v3 \u00a75 step 2. Contains one row whose artifact_path is NOT HEAD-tracked and a duplicate artifact_id \u2014 the validator MUST exit non-zero on this fixture."
   },
   "rows": [
     {
@@ -18,5 +18,6 @@
       "artifact_path": "/specs/cross-cutting/plan-schema.json",
       "artifact_profile": "schema"
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for missing-row-registry.json"
 }

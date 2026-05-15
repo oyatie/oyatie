@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for ADR-LEGACY-REGRESSION-MAPPING.md
+---
+
 # Legacy ADR → New Pack Regression Mapping
 
 > **Status:** auto-generated 2026-05-09 by regression-check agent

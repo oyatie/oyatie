@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for capacity-scaling-emergency.md
+---
+
 # Oyatie Runbook — Capacity Scaling Emergency
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

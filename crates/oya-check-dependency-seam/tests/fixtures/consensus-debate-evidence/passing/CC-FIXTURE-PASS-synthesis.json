@@ -1,7 +1,13 @@
 {
-  "_meta": {"doc_class": "Fixture", "purpose": "passing fixture: synthesis paired with CC-FIXTURE-PASS-r1.json"},
+  "_meta": {
+    "doc_class": "Fixture",
+    "purpose": "passing fixture: synthesis paired with CC-FIXTURE-PASS-r1.json"
+  },
   "change_id": "CC-FIXTURE-PASS",
   "termination_reason": "consensus_reached",
-  "consensus_points": ["fixture-only"],
-  "final_recommendation": "ACCEPT"
+  "consensus_points": [
+    "fixture-only"
+  ],
+  "final_recommendation": "ACCEPT",
+  "purpose": "Auto-backfilled purpose for CC-FIXTURE-PASS-synthesis.json"
 }

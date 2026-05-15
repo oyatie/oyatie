@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-bypass-expiry-monitor.md
+---
+
 # Oyatie Runbook — Foundry Bypass Expiry Monitor
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

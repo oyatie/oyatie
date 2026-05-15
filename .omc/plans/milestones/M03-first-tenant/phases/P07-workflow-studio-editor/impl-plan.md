@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for impl-plan.md
+---
+
 # P07 — Workflow Studio Visual Editor: Implementation Plan
 
 ## Metadata

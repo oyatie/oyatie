@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-storage-api-adapters.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-002

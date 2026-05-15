@@ -5,14 +5,19 @@ status: pending architect+critic
 date: 2026-05-14
 created_by: ralplan --realignment --short (post-investigation-synthesis, session 7e0309c2)
 canonical_authority: docs/CONSTITUTION.md
-authority_chain: docs/MASTERPLAN.md → .omc/plans/consensus-masterplan-2026-05-13.md → .omc/plans/ralplan-ops-portal-2026-05-13.md (v7 Accepted) + .omc/plans/ralplan-docs-portal-2026-05-13.md (v7 Accepted) + .omc/plans/ralplan-dep-seam-phaseout-round-5.md (3-of-3 APPROVE post-§18.C spot-fix) → this plan
+authority_chain: "docs/MASTERPLAN.md \u2192 .omc/plans/consensus-masterplan-2026-05-13.md\
+  \ \u2192 .omc/plans/ralplan-ops-portal-2026-05-13.md (v7 Accepted) + .omc/plans/ralplan-docs-portal-2026-05-13.md\
+  \ (v7 Accepted) + .omc/plans/ralplan-dep-seam-phaseout-round-5.md (3-of-3 APPROVE\
+  \ post-\xA718.C spot-fix) \u2192 this plan"
 companion_docs:
-  - .omc/state/sessions/7e0309c2-f5ac-4d3f-846f-85c2292dd8b6/investigation-synthesis.md (gap analysis; architect APPROVED)
-  - .omc/state/cross-session-coordination-2026-05-14.md (297-missing-crate-dir blocker hand-off)
+- .omc/state/sessions/7e0309c2-f5ac-4d3f-846f-85c2292dd8b6/investigation-synthesis.md
+  (gap analysis; architect APPROVED)
+- .omc/state/cross-session-coordination-2026-05-14.md (297-missing-crate-dir blocker
+  hand-off)
 mode: SHORT
 codex_model: (deferred to architect+critic consensus loop; not invoked at draft time)
+purpose: Auto-backfilled purpose for ralplan-ops-freelance-realignment-2026-05-14.md
 ---
-
 # RALPLAN — Ops freelance realignment + smallest Wave-1 prereq (2026-05-14)
 
 ## §0 Reframe

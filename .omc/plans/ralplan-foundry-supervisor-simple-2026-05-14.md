@@ -6,13 +6,19 @@ status: pending approval
 authored_by: planner
 authored_at: 2026-05-14
 milestone: M02-foundry-preview
-phases_touched: [P01-provider-gateway, P02-visibility-operator-plane, P05-capability-registry-autonomy]
-title: Foundry Supervisor — minimal hook + inbox/outbox driver, multi-account × multi-provider
-reviewers: [architect, critic]
+phases_touched:
+- P01-provider-gateway
+- P02-visibility-operator-plane
+- P05-capability-registry-autonomy
+title: "Foundry Supervisor \u2014 minimal hook + inbox/outbox driver, multi-account\
+  \ \xD7 multi-provider"
+reviewers:
+- architect
+- critic
 supersedes: ralplan-foundry-subscription-autonomy-supervisor-2026-05-14.md
 length_cap: 220
+purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-2026-05-14.md
 ---
-
 # RALPLAN — Foundry Supervisor (simple hook + inbox/outbox)
 
 > **Premise.** M02 already shipped the kernels we used to plan around: account FSM, OpenBao secret port, 3 CLI adapters, 6 provider cells, route-policy, usage-window, provider-pool, capability-registry, autonomy-ceiling, evidence/run/step, dashboard, hyper transports. The supervisor is therefore a **driver**, not a new heavy subsystem. We add **three small crates** and **two surface expansions** — nothing else. Multi-account fan-out and multi-provider failover come from the *existing* kernels, not from new policy code in the supervisor.

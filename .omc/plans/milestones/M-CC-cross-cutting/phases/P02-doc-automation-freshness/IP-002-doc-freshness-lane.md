@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-doc-freshness-lane.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P02-IP-002

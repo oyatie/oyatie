@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cell-isolation-evidence-quarterly.md
+---
+
 # Oyatie Runbook — Cell Isolation Evidence Quarterly
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

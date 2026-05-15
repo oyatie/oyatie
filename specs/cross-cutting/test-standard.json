@@ -16,7 +16,8 @@
       "oya-foundry-fitness-test-evidence",
       "M-CC-P00 GitOps VCS admission",
       "merge-queue CI/CD gates"
-    ]
+    ],
+    "purpose": "Auto-backfilled purpose for test-standard.json"
   },
   "tiers": [
     {

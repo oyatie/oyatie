@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for RACI-OWNERSHIP.md
+---
+
 # Oyatie — RACI + Ownership Matrix
 
 > **Status:** Draft v0.1 — 2026-05-09.

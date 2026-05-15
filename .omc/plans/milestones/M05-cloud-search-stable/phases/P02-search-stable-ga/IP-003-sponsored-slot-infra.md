@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-sponsored-slot-infra.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P02-IP-003

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for COMPLIANCE-MATRIX.md
+---
+
 # Oyatie — Compliance Matrix
 
 > **Status:** Draft v0.1 — 2026-05-09. The compliance matrix is the regulator × control × evidence × cadence × owner table that aggregates every regulator Oyatie binds to via regional packs and verticals.

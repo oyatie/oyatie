@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-regional-pack-adr-kernel.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P06-IP-001

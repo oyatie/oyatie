@@ -42,7 +42,7 @@ pub struct HttpRequest {
     pub headers: BTreeMap<String, String>,       // data_class: INTERNAL_ONLY
     pub body: Vec<u8>,                           // data_class: INTERNAL_ONLY
     pub path_captures: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
-    pub matched_template: Option<String>,        // data_class: INTERNAL_ONLY (static template, not raw path)
+    pub matched_template: Option<String>, // data_class: INTERNAL_ONLY (static template, not raw path)
 }
 
 /// HTTP response shape materialized as bytes for non-streaming routes.
@@ -464,13 +464,15 @@ mod tests {
     #[test]
     fn with_header_strips_cr_in_value() {
         let resp = HttpResponse::new(200).with_header("x-test", "value\rinjected");
-        assert_eq!(resp.headers.get("x-test").map(String::as_str), Some("valueinjected"));
+        assert_eq!(
+            resp.headers.get("x-test").map(String::as_str),
+            Some("valueinjected")
+        );
     }
 
     #[test]
     fn with_header_strips_lf_in_value() {
-        let resp =
-            HttpResponse::new(200).with_header("x-test", "value\nset-cookie: pwned=yes");
+        let resp = HttpResponse::new(200).with_header("x-test", "value\nset-cookie: pwned=yes");
         // After LF strip, the smuggled header collapses into the value:
         assert_eq!(
             resp.headers.get("x-test").map(String::as_str),
@@ -496,7 +498,10 @@ mod tests {
         let resp = HttpResponse::new(200)
             .with_header("X-Custom-Header", "value")
             .with_header("Content-Type", "application/json");
-        assert_eq!(resp.headers.get("x-custom-header").map(String::as_str), Some("value"));
+        assert_eq!(
+            resp.headers.get("x-custom-header").map(String::as_str),
+            Some("value")
+        );
         assert_eq!(
             resp.headers.get("content-type").map(String::as_str),
             Some("application/json")
@@ -513,9 +518,7 @@ mod tests {
         let resp = HttpResponse::new(200)
             .with_header("X-Forwarded-For", "1.2.3.4\r\nAuthorization: Bearer attack");
         assert_eq!(
-            resp.headers
-                .get("x-forwarded-for")
-                .map(String::as_str),
+            resp.headers.get("x-forwarded-for").map(String::as_str),
             Some("1.2.3.4Authorization: Bearer attack")
         );
         assert!(!resp.headers.contains_key("authorization"));
@@ -528,7 +531,10 @@ mod tests {
             &AlwaysFails(TestErr::BadInput("nope".into())),
             build_request(Vec::new()),
         );
-        let ib = call_into_response(&AlwaysFails(TestErr::InternalBoom), build_request(Vec::new()));
+        let ib = call_into_response(
+            &AlwaysFails(TestErr::InternalBoom),
+            build_request(Vec::new()),
+        );
         assert_ne!(nf.status, bi.status);
         assert_ne!(bi.status, ib.status);
         assert_ne!(nf.body, ib.body);

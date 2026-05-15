@@ -17,7 +17,10 @@
       "id": "M03-P03-IP-001",
       "title": "Cloud Data services kernel + adapters (provider-agnostic)",
       "decision": "complete",
-      "crates_audited": ["oya-cloud-data-kernel", "oya-cloud-data-domain"],
+      "crates_audited": [
+        "oya-cloud-data-kernel",
+        "oya-cloud-data-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -34,7 +37,12 @@
       "id": "M03-P03-IP-002",
       "title": "Cloud Billing tax-invoice + metering",
       "decision": "complete",
-      "crates_audited": ["oya-cloud-billing-kernel", "oya-cloud-billing-domain", "oya-cloud-billing-application", "oya-cloud-billing-tax-application"],
+      "crates_audited": [
+        "oya-cloud-billing-kernel",
+        "oya-cloud-billing-domain",
+        "oya-cloud-billing-application",
+        "oya-cloud-billing-tax-application"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -49,7 +57,11 @@
       "id": "M03-P03-IP-003",
       "title": "Cloud Observability audit-read + OpenTelemetry",
       "decision": "complete",
-      "crates_audited": ["oya-cloud-observability-kernel", "oya-cloud-observability-domain", "oya-cloud-observability-api"],
+      "crates_audited": [
+        "oya-cloud-observability-kernel",
+        "oya-cloud-observability-domain",
+        "oya-cloud-observability-api"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -63,7 +75,11 @@
       "id": "M03-P03-IP-004",
       "title": "Cloud FinOps report + anomaly detection",
       "decision": "complete",
-      "crates_audited": ["oya-cloud-finops-kernel", "oya-cloud-finops-domain", "oya-cloud-finops-api"],
+      "crates_audited": [
+        "oya-cloud-finops-kernel",
+        "oya-cloud-finops-domain",
+        "oya-cloud-finops-api"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -80,7 +96,10 @@
       "id": "M03-P03-IP-005",
       "title": "Cloud Marketplace ISV onboarding",
       "decision": "complete",
-      "crates_audited": ["oya-cloud-marketplace-kernel", "oya-cloud-marketplace-domain"],
+      "crates_audited": [
+        "oya-cloud-marketplace-kernel",
+        "oya-cloud-marketplace-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -96,5 +115,6 @@
   "commands_executed": [
     "cargo test -p oya-cloud-data-kernel -p oya-cloud-billing-kernel -p oya-cloud-observability-kernel -p oya-cloud-finops-kernel -p oya-cloud-marketplace-kernel  =>  exit 0 (43 tests passed across 5 suites)",
     "cargo clippy -p <same set> --all-targets -- -D warnings  =>  exit 0 (no issues)"
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for m03-p03-audit-2026-05-14.json"
 }

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for open-questions.md
+---
+
 # Open Questions
 
 ## ralplan-foundry-supervisor-simple — 2026-05-14

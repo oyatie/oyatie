@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-1es-ci-templates.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-002

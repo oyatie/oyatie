@@ -9,8 +9,8 @@ import pathlib
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-MASTERPLAN = ROOT / "/specs/cross-cutting/masterplan.json"
-EVIDENCE_DIRS = [ROOT / "/evidence/foundation", ROOT / "/evidence/gitops-vcs", ROOT / "/evidence/agentic-pipeline"]
+MASTERPLAN = ROOT / "specs/cross-cutting/masterplan.json"
+EVIDENCE_DIRS = [ROOT / "evidence/foundation", ROOT / "evidence/gitops-vcs", ROOT / "evidence/agentic-pipeline"]
 COMPLETE_STATUSES = {"complete", "accepted", "foundation-cleared", "foundation cleared"}
 INCOMPLETE_MARKERS = ("stub", "planned", "pending", "blocked", "in-flight", "probe-green")
 

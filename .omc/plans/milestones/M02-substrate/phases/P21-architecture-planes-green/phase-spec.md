@@ -5,24 +5,32 @@ milestone: M02-substrate
 phase: P21-architecture-planes-green
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  All Wave-A (P01–P11) and Wave-B (P12–P16) and Wave-C (P17–P19) phases complete;
-  P20-ci-lanes-operational complete (all 14 fitness lane binaries operational in
-  --report-only mode); cargo check clean across full workspace; grit done on all
-  preceding phase symbols; ICM phase-handoff rows emitted for all phases.
-exit_gate: |
-  All 9 architecture planes (Bominal ADR-0224..ADR-0231) verified at L4-L5 on the
-  Proof Ladder (Bominal ADR-0223); Wave integration framework (Bominal ADR-0232)
-  verified; all 14 CI lanes exit 0 in --report-only mode against full workspace;
-  oya gate validate planes --all exit 0; grit done on all P21 symbols; ICM
-  phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P20-ci-lanes-operational
-    reason: "Architecture plane verification requires all 14 fitness lanes operational; planes are assessed using the same lean-a1/a2/a3/a4 + statelessness + shardability checks."
-owner_team: council-architecture
----
+entry_gate: "All Wave-A (P01\u2013P11) and Wave-B (P12\u2013P16) and Wave-C (P17\u2013\
+  P19) phases complete;\nP20-ci-lanes-operational complete (all 14 fitness lane binaries\
+  \ operational in\n--report-only mode); cargo check clean across full workspace;\
+  \ grit done on all\npreceding phase symbols; ICM phase-handoff rows emitted for\
+  \ all phases.\n"
+exit_gate: 'All 9 architecture planes (Bominal ADR-0224..ADR-0231) verified at L4-L5
+  on the
 
+  Proof Ladder (Bominal ADR-0223); Wave integration framework (Bominal ADR-0232)
+
+  verified; all 14 CI lanes exit 0 in --report-only mode against full workspace;
+
+  oya gate validate planes --all exit 0; grit done on all P21 symbols; ICM
+
+  phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P20-ci-lanes-operational
+  reason: Architecture plane verification requires all 14 fitness lanes operational;
+    planes are assessed using the same lean-a1/a2/a3/a4 + statelessness + shardability
+    checks.
+owner_team: council-architecture
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P21-architecture-planes-green: 9 Architecture Planes L4-L5 + Wave Integration Framework Verified
 
 ## Purpose

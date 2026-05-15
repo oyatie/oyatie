@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cold-chain-breach-alert.md
+---
+
 # Oyatie Runbook — Cold Chain Breach Alert
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -15,7 +15,11 @@
       "scope": "personal-information-residency",
       "residency_required": true,
       "cross_border_transfer": "consent-or-adequacy",
-      "data_classes": ["personal", "sensitive-personal", "resident-registration-number"]
+      "data_classes": [
+        "personal",
+        "sensitive-personal",
+        "resident-registration-number"
+      ]
     },
     {
       "framework": "KISA",
@@ -31,7 +35,11 @@
       "authority": "MFDS",
       "scope": "healthcare-data-residency",
       "residency_required": true,
-      "data_classes": ["clinical", "pharma", "medical-device-records"]
+      "data_classes": [
+        "clinical",
+        "pharma",
+        "medical-device-records"
+      ]
     },
     {
       "framework": "FSC",
@@ -39,7 +47,11 @@
       "authority": "FSC",
       "scope": "financial-data-residency",
       "residency_required": true,
-      "data_classes": ["financial-account", "transaction", "credit"]
+      "data_classes": [
+        "financial-account",
+        "transaction",
+        "credit"
+      ]
     },
     {
       "framework": "KCC",
@@ -81,7 +93,13 @@
       "scope": "cryptographic-module-validation",
       "residency_required": true,
       "binding": "approved-algorithms-only",
-      "approved_algorithms": ["ARIA", "SEED", "LEA", "HIGHT", "HAS-160"]
+      "approved_algorithms": [
+        "ARIA",
+        "SEED",
+        "LEA",
+        "HIGHT",
+        "HAS-160"
+      ]
     }
   ],
   "adapter_layer": {
@@ -92,5 +110,6 @@
     "lean-a5-doc-coverage",
     "lean-a10-no-silent-regression",
     "canonical-base-neutrality"
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for manifest.json"
 }

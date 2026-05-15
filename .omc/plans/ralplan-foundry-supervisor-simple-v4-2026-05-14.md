@@ -8,14 +8,17 @@ diffs_applied:
   v3_round: 14
   v4_round: 7
   cumulative: 21
+purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v4-2026-05-14.md
 ---
-
 # RALPLAN — Foundry Supervisor (Simple) — Iteration 4
 
 **User intent (verbatim, unchanged from v1/v2/v3):**
 > "simple hook + inbox outbox setup. make it so that this works with multiple accounts. and across multiple providers. this will allow us to simplify our setup. still should be able to intelligently manage usage. all the features still have to come."
 
 **Reference shape:** `Siigari/claude-heartbeat` — Node supervisor + stop-hook + JSONL inbox/outbox + restart-per-message + idle heartbeat tick.
+
+### A.0.1 Build-vs-adopt (PRE-6)
+**Build-vs-adopt analysis for Siigari/claude-heartbeat** (cited as 'Reference shape' above): Per ADR-0096-supervisor-language-rust-not-node, the upstream Node implementation was considered as a sibling sidecar (Rust crates speak JSONL to Node inbox/outbox). Rejected because: (a) workspace-language-purity is an ADR-tracked principle — `oya-*` crates are Rust-native; (b) supervisor's deep composition with `RoutePolicy::select`, `UsageEnforcement::check_limit`, `validate_usage`, `finalize_line`, `check_silent_switch`, `enforce_for_tenant` requires sharing kernel types, which a Node sidecar cannot do without an IPC bridge; (c) autonomy_ceiling Cedar enforcement and audit-chain emission must execute in the same process as the supervisor for crash atomicity. Trade-off accepted: 4 new Rust crates (49+14 grit units) vs. adopting an upstream that doesn't compose with foundry kernels.
 
 **v4 mandate:** apply 7 narrow patches from Architect+Critic v3 review. No scope regrowth. Edit-in-place; cumulative 21 diffs across v3+v4. See §E.v3 + §E.v4 for change logs.
 

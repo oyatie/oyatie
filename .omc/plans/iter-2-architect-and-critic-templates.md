@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for iter-2-architect-and-critic-templates.md
+---
+
 # Iter-2 Architect & Critic dispatch templates
 
 Pre-staged 2026-05-12 while iter-2 Planner runs. Used to dispatch the next two loop stages when Planner iter-2 returns.

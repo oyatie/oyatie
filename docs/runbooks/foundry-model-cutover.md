@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-model-cutover.md
+---
+
 # Oyatie Runbook — Foundry Model Cutover
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

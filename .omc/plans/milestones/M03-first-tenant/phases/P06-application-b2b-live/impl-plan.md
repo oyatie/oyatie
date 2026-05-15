@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for impl-plan.md
+---
+
 # P06 — Application B2B Shell Live: Implementation Plan
 
 ## Metadata

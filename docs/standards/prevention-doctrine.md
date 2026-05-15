@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for prevention-doctrine.md
+---
+
 # Oyatie — Prevention Doctrine
 
 > **Owner:** `council-architecture`. The doctrine for how Oyatie responds to mistakes: fix the SYSTEM, not the symptom.

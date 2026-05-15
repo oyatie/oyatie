@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for SPEC.md
+---
+
 # Oyatie — System Specification (SPEC)
 
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)

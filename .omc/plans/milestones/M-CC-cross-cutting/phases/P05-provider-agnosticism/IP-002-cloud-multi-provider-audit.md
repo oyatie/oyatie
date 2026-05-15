@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-cloud-multi-provider-audit.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P05-IP-002

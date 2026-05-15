@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for wave-gate-evaluation.md
+---
+
 # Oyatie Runbook — Wave Gate Evaluation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

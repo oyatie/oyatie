@@ -60,5 +60,6 @@
     ],
     "verification": "rustfmt pass; targeted rustc -D warnings IP-005 tests pass: 15 passed; 0 failed"
   },
-  "latest_full_verification": "rustfmt check pass; targeted rustc -D warnings IP-005 verification after review fixups: 15 tests; 0 failed"
+  "latest_full_verification": "rustfmt check pass; targeted rustc -D warnings IP-005 verification after review fixups: 15 tests; 0 failed",
+  "purpose": "Auto-backfilled purpose for ip-005-cli-ratchet.json"
 }

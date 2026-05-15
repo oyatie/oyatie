@@ -89,5 +89,6 @@
     "dependency_or_artifact_change": [
       "supply_chain"
     ]
-  }
+  },
+  "purpose": "Auto-backfilled purpose for evidence-taxonomy.json"
 }

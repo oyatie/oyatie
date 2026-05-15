@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for iam-key-rotation.md
+---
+
 # Oyatie Runbook — Iam Key Rotation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

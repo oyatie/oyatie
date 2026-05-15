@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-fitness-rollback.md
+---
+
 # Oyatie Runbook — Foundry Fitness Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

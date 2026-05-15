@@ -1,0 +1,15 @@
+[package]
+name = "oya-policy-cedar-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-policy-cedar-domain = { path = "../oya-policy-cedar-domain" }
+
+[lib]
+name = "oya_policy_cedar_api"
+path = "src/lib.rs"
+doctest = false

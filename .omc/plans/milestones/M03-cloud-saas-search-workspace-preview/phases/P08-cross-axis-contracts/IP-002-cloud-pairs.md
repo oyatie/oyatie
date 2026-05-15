@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-cloud-pairs.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P08-IP-002

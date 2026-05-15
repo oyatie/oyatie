@@ -5,10 +5,12 @@ status: pending architect+critic
 date: 2026-05-14
 created_by: ralplan --prevention --short (post-realignment, session 7e0309c2)
 canonical_authority: docs/CONSTITUTION.md
-authority_chain: docs/MASTERPLAN.md → .omc/plans/consensus-masterplan-2026-05-13.md → .omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md → this plan
+authority_chain: "docs/MASTERPLAN.md \u2192 .omc/plans/consensus-masterplan-2026-05-13.md\
+  \ \u2192 .omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md \u2192 this\
+  \ plan"
 mode: SHORT
+purpose: Auto-backfilled purpose for ralplan-freelance-prevention-controls-2026-05-14.md
 ---
-
 # RALPLAN — Freelance-misalignment prevention controls (2026-05-14)
 
 ## §0 Reframe

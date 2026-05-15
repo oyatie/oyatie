@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-drive-kms-shred.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-003

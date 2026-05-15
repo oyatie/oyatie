@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-write-gate-foundations.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P04-IP-003

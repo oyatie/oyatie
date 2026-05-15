@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for flat-crates-move-pr.md
+---
+
 # Oyatie Runbook — Flat Crates Move PR
 
 > **Status:** Active

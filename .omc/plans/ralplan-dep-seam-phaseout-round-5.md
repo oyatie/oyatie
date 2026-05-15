@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for ralplan-dep-seam-phaseout-round-5.md
+---
+
 # RALPLAN — Dependency Seam Discipline + Tech-Debt Ledger + Phase-Out Trajectory (Round 5, FINAL)
 
 > **Status:** `pending review (round 5; FINAL)`

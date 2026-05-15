@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for LEGAL-IP-LEDGER.md
+---
+
 # Oyatie — Legal + IP Ledger
 
 > **Status:** Draft v0.1 skeleton — 2026-05-09.

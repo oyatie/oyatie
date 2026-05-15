@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-006-tos-policy-audit-chain.md
+---
+
+---
 doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-006-tos-policy-audit-chain

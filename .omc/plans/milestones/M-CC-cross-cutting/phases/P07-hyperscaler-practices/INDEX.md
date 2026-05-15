@@ -1,9 +1,13 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P07
 title: Hyperscaler-Practice Adoption (Working Backwards / Design Doc / Postmortem / 1ES / Eng-Excellence)
-status: stub
+status: complete
 purpose: Adopt named practices from AWS, Google, Microsoft, Oracle; thread through every milestone.
 ---
 
@@ -23,10 +27,10 @@ Per MASTERPLAN §2 Directives 6 and 9. Hyperscaler-research output (pending) lan
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | PRFAQ + Design-Doc + Postmortem templates | stub | [`IP-001-prfaq-designdoc-postmortem.md`](IP-001-prfaq-designdoc-postmortem.md) |
-| IP-002 | 1ES-templated CI pipelines | stub | [`IP-002-1es-ci-templates.md`](IP-002-1es-ci-templates.md) |
-| IP-003 | Engineering Excellence Council merge gate | stub | [`IP-003-eng-excellence-merge-gate.md`](IP-003-eng-excellence-merge-gate.md) |
-| IP-004 | Rust toolchain hyperscaler-gate set (cargo-deny / audit / nextest / semver-checks / sccache / llvm-cov) | stub | [`IP-004-rust-toolchain-gates.md`](IP-004-rust-toolchain-gates.md) |
+| IP-001 | PRFAQ + Design-Doc + Postmortem templates | complete | [`IP-001-prfaq-designdoc-postmortem.md`](IP-001-prfaq-designdoc-postmortem.md) |
+| IP-002 | 1ES-templated CI pipelines | complete | [`IP-002-1es-ci-templates.md`](IP-002-1es-ci-templates.md) |
+| IP-003 | Engineering Excellence Council merge gate | complete | [`IP-003-eng-excellence-merge-gate.md`](IP-003-eng-excellence-merge-gate.md) |
+| IP-004 | Rust toolchain hyperscaler-gate set (cargo-deny / audit / nextest / semver-checks / sccache / llvm-cov) | complete | [`IP-004-rust-toolchain-gates.md`](IP-004-rust-toolchain-gates.md) |
 
 ## Estimated parallelism
 4 agents.

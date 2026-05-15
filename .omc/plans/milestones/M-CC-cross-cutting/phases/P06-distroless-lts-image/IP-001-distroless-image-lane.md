@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-distroless-image-lane.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P06-IP-001

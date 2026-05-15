@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-workflow-engine.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P04-IP-001

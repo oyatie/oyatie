@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for ADR-INDEX.md
+---
+
 # Oyatie — ADR Index
 
 > **Generated:** from [`decisions/`](decisions/) by `oya doc adr-index`. Do not hand-edit generated rows.
@@ -84,6 +88,13 @@
 | ADR-0069 | Accepted | Active machine-readable artifact contract — 9-capability declaration, knowledge-graph substrate, registry-pattern control plane | council-architecture + axis-foundry | [`ADR-0069-active-machine-readable-artifact-contract.md`](decisions/ADR-0069-active-machine-readable-artifact-contract.md) |
 | ADR-0090 | Accepted | Hyper canonical HTTP backbone (LTS-exception for hyper 1.x) | council-architecture | [`ADR-0090-hyper-canonical-http-backbone.md`](decisions/ADR-0090-hyper-canonical-http-backbone.md) |
 | ADR-0091 | Accepted | Foundry write-gate foundations (Phase 05 contract) | council-foundry | [`ADR-0091-foundry-write-gate-foundations.md`](decisions/ADR-0091-foundry-write-gate-foundations.md) |
+| ADR-0096 | Accepted | Supervisor language: Rust, not Node (build-vs-adopt Siigari/claude-heartbeat; M02-P06) | council-foundry | [`ADR-0096-supervisor-language-rust-not-node.md`](decisions/ADR-0096-supervisor-language-rust-not-node.md) |
+| ADR-0097 | Accepted | Rename oya-foundry-account-adapter-{claude-code,codex-cli,gemini-cli} → oya-foundry-{claude,codex,gemini}-account-adapter (layer token must be last per BNF v4.1) | council-foundry | [`ADR-0097-foundry-account-adapter-rename-target-slot-last.md`](decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md) |
+| ADR-0098 | Accepted | Supervisor dep-policy Branch Y — zero net-new external Cargo deps + sync SessionDriver on tokio blocking pool + best-effort durability (no fsync parent_dir) | council-foundry | [`ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md`](decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md) |
+| ADR-0099 | Accepted | Cedar policy extension — foundry supervisor capabilities (inject_message, idle_tick, restart_session, dead_letter, read) at T1–T4 in docs/policies/foundry-supervisor.cedar | council-foundry | [`ADR-0099-cedar-policy-extend-supervisor-capabilities.md`](decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md) |
+| ADR-0100 | Accepted | Foundry Supervisor public contract (Lean-a10) — zero net-new public APIs on existing kernels | council-foundry | [`ADR-0100-supervisor-public-contract-lean-a10.md`](decisions/ADR-0100-supervisor-public-contract-lean-a10.md) |
+| ADR-0101 | Accepted | Foundry Supervisor mountpoint (Direct Hyper) — mount webhook directly via oya-http-runtime-hyper-adapter | council-foundry | [`ADR-0101-supervisor-mountpoint-direct-hyper.md`](decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md) |
+| ADR-0102 | Accepted | Foundry Settings Template canonical rendering — atomic-tempfile rendering + per-provider SettingsRenderer | council-foundry | [`ADR-0102-foundry-settings-template-canonical-rendering.md`](decisions/ADR-0102-foundry-settings-template-canonical-rendering.md) |
 
 ## Update protocol
 

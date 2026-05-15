@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-ml-isolation.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P01-IP-003

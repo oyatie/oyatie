@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-crawler-freshness.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P02-IP-001

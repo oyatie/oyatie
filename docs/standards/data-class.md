@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for data-class.md
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250

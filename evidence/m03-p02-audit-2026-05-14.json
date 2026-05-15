@@ -17,7 +17,10 @@
       "id": "M03-P02-IP-001",
       "title": "Cloud Compute VM API + provider-agnostic adapters",
       "decision": "open",
-      "crates_audited": ["oya-cloud-compute-vm-api", "oya-cloud-compute-domain"],
+      "crates_audited": [
+        "oya-cloud-compute-vm-api",
+        "oya-cloud-compute-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -34,7 +37,10 @@
       "id": "M03-P02-IP-002",
       "title": "Cloud Compute K8s + Functions API",
       "decision": "complete",
-      "crates_audited": ["oya-cloud-compute-k8s-api", "oya-cloud-compute-functions-api"],
+      "crates_audited": [
+        "oya-cloud-compute-k8s-api",
+        "oya-cloud-compute-functions-api"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -47,7 +53,10 @@
       "id": "M03-P02-IP-003",
       "title": "Capacity management (reserved / committed-use / spot)",
       "decision": "complete",
-      "crates_audited": ["oya-cloud-capacity-kernel", "oya-cloud-capacity-domain"],
+      "crates_audited": [
+        "oya-cloud-capacity-kernel",
+        "oya-cloud-capacity-domain"
+      ],
       "test_exit": 0,
       "clippy_exit": 0,
       "implemented_symbols": [
@@ -63,5 +72,6 @@
   "commands_executed": [
     "cargo test -p oya-cloud-compute-vm-api -p oya-cloud-compute-k8s-api -p oya-cloud-compute-functions-api -p oya-cloud-capacity-kernel  =>  exit 0 (41 tests passed across 7 suites)",
     "cargo clippy -p <same set> --all-targets -- -D warnings  =>  exit 0 (no issues)"
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for m03-p02-audit-2026-05-14.json"
 }

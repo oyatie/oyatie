@@ -5,30 +5,36 @@ milestone: M03-first-paying-tenant
 phase: P04-connect-pro-mail
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02-substrate-schema-foundation complete (oya-ontology-entity-kernel + oya-workflow-engine-kernel ship);
+entry_gate: 'M02-substrate-schema-foundation complete (oya-ontology-entity-kernel
+  + oya-workflow-engine-kernel ship);
+
   oya-kms-kernel ships (tenant DEK envelope encryption per ADR-0111);
+
   EmployeeHired Workflow event registered (from M03/P01-hr);
+
   Cedar policy engine bootstrapped.
-exit_gate: |
-  All IP acceptance gates green; mail send/receive round-trip test green; DKIM signature valid;
-  dual-context boundary test passes (Professional unreachable from Personal);
-  legal hold blocks deletion; eDiscovery export ≤5 min for 100k messages;
-  `oya gate validate lean-a2 --ms connect` exits 0;
-  `oya gate validate audit-chain --ms connect` exits 0;
-  k6 smoke mail send p99 ≤2s; messenger p99 ≤200ms;
-  grit done on all P04 symbols; ICM phase-handoff row emitted.
+
+  '
+exit_gate: "All IP acceptance gates green; mail send/receive round-trip test green;\
+  \ DKIM signature valid;\ndual-context boundary test passes (Professional unreachable\
+  \ from Personal);\nlegal hold blocks deletion; eDiscovery export \u22645 min for\
+  \ 100k messages;\n`oya gate validate lean-a2 --ms connect` exits 0;\n`oya gate validate\
+  \ audit-chain --ms connect` exits 0;\nk6 smoke mail send p99 \u22642s; messenger\
+  \ p99 \u2264200ms;\ngrit done on all P04 symbols; ICM phase-handoff row emitted.\n"
 depends_on:
-  - milestone: M02
-    phase: P22-substrate-ready
-    reason: "KMS µservice (tenant DEK), Ontology entity types, Cedar policy engine, Workflow event bus all required before Connect can store encrypted mail or enforce dual-context boundary."
-  - milestone: M03
-    phase: P01-hr
-    reason: "EmployeeHired Workflow event triggers Connect account provisioning; requires HR to ship first."
+- milestone: M02
+  phase: P22-substrate-ready
+  reason: "KMS \xB5service (tenant DEK), Ontology entity types, Cedar policy engine,\
+    \ Workflow event bus all required before Connect can store encrypted mail or enforce\
+    \ dual-context boundary."
+- milestone: M03
+  phase: P01-hr
+  reason: EmployeeHired Workflow event triggers Connect account provisioning; requires
+    HR to ship first.
 parallel_wave: 2
 owner_team: council-connect
+purpose: Auto-backfilled purpose for phase-spec.md
 ---
-
 # P04-connect-pro-mail: Connect Professional Mail — SMTP/IMAP, tenant DEK encryption, legal hold, eDiscovery, retention
 
 ## Purpose

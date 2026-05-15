@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-adr-template-bypass-ledger.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P03-IP-003

@@ -1,9 +1,13 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P04
 title: Agentic-Dev Optimization (Navigability Lanes)
-status: stub
+status: complete
 purpose: Predictable naming + machine-readable directory indexes + real grit-claim symbols in every IP.
 ---
 
@@ -19,8 +23,8 @@ Per MASTERPLAN §2 Directive 10. Fresh agent should navigate the tree without or
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Agentic-navigability lane kernel + parent-pointer validator | stub | [`IP-001-navigability-lane.md`](IP-001-navigability-lane.md) |
-| IP-002 | Predictable-naming convention enforcement | stub | [`IP-002-predictable-naming.md`](IP-002-predictable-naming.md) |
+| IP-001 | Agentic-navigability lane kernel + parent-pointer validator | complete | [`IP-001-navigability-lane.md`](IP-001-navigability-lane.md) |
+| IP-002 | Predictable-naming convention enforcement | complete | [`IP-002-predictable-naming.md`](IP-002-predictable-naming.md) |
 
 ## Estimated parallelism
 2 agents.

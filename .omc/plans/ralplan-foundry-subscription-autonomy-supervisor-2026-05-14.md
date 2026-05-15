@@ -6,12 +6,18 @@ status: pending approval
 authored_by: planner
 authored_at: 2026-05-14
 milestone: M02-foundry-preview
-phases_touched: [P01-provider-gateway, P02-visibility-operator-plane, P05-capability-registry-autonomy]
-title: Foundry Subscription-Autonomy Supervisor (Codex + Claude Code + Gemini parity for claude-heartbeat)
-reviewers: [architect, critic]
+phases_touched:
+- P01-provider-gateway
+- P02-visibility-operator-plane
+- P05-capability-registry-autonomy
+title: Foundry Subscription-Autonomy Supervisor (Codex + Claude Code + Gemini parity
+  for claude-heartbeat)
+reviewers:
+- architect
+- critic
 length_cap: 220
+purpose: Auto-backfilled purpose for ralplan-foundry-subscription-autonomy-supervisor-2026-05-14.md
 ---
-
 # RALPLAN — Foundry Subscription-Autonomy Supervisor
 
 > Rust-native re-implementation of `Siigari/claude-heartbeat` for **Codex CLI, Claude Code, and Gemini CLI** as a Foundry primitive. Subscription-credit autonomy, restart-per-message statelessness, JSONL inbox/outbox, hyper-only webhook surface. **No axum, no new external crates** (justified exceptions need explicit ADR + benchmark).

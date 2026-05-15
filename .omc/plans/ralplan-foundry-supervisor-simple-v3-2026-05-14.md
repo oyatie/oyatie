@@ -5,15 +5,15 @@ iteration: 3
 supersedes: ralplan-foundry-supervisor-simple-v2-2026-05-14.md
 owner_phase: M02-P06
 prerequisite_adrs:
-  - ADR-RENAME-foundry-account-adapter-{claude,codex,gemini}
-  - ADR-supervisor-dep-policy-Y-zero-deps-best-effort-durability
-  - ADR-cedar-policy-extend-supervisor-capabilities
+- ADR-RENAME-foundry-account-adapter-{claude,codex,gemini}
+- ADR-supervisor-dep-policy-Y-zero-deps-best-effort-durability
+- ADR-cedar-policy-extend-supervisor-capabilities
 diffs_applied:
   architect: 7
   critic: 7
   total: 14
+purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v3-2026-05-14.md
 ---
-
 # RALPLAN — Foundry Supervisor (Simple) — Iteration 3
 
 **User intent (verbatim, unchanged from v1/v2):**

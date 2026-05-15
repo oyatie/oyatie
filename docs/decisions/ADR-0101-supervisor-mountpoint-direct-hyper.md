@@ -1,0 +1,18 @@
+# ADR-0101: Foundry Supervisor Mountpoint (Direct Hyper)
+
+## Status
+Accepted
+
+## Context
+The Foundry Supervisor requires a webhook surface for inbox ingestion and health checks. `oya-foundry-api-rest-adapter` is currently a stub.
+
+## Decision
+The Foundry Supervisor will mount its webhook surface directly via `oya-http-runtime-hyper-adapter` (Hyper/Tokio) instead of going through the `api-rest-adapter`.
+
+## Drivers
+- **Implementation Speed:** Avoid unblocking the `api-rest-adapter` stub which is part of a different phase.
+- **Performance:** Direct Hyper mounting is lower overhead for high-cadence supervisor ticks.
+
+## Consequences
+- The supervisor bypasses the project's standard REST adapter temporarily.
+- Once M02-P04 lands a real router in `api-rest-adapter`, the supervisor may be migrated.

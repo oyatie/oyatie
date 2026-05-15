@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for multi-agent-tool-map.md
+---
+
+---
 doc_class: Standard
 shape: reference
 length_cap: 250

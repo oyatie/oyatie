@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for impl-plan.md
+---
+
 # P08 — KR Acceptance Evidence: Implementation Plan
 
 ## Metadata

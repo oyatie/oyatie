@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cross-plane-call-introduction.md
+---
+
 # Oyatie Runbook — Cross Plane Call Introduction
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

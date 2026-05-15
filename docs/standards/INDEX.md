@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: StandardsIndex
 shape: index
 length_cap: 250

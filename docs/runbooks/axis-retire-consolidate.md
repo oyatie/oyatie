@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for axis-retire-consolidate.md
+---
+
 # Oyatie Runbook — Axis Retire Consolidate
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

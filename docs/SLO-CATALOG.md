@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for SLO-CATALOG.md
+---
+
 # Oyatie — SLO Catalog
 
 > **Status:** Draft v0.1 — 2026-05-09. Per-surface SLOs across all 7 axes with error-budget policy and burn-rate gates per Google SRE workbook.

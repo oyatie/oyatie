@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-plane-separation-lane.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P05-IP-002

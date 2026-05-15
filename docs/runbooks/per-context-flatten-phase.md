@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for per-context-flatten-phase.md
+---
+
 # Oyatie Runbook — Per-Context Flatten Phase
 
 > **Status:** Active

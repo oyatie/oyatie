@@ -1,1 +1,4 @@
-{"_meta":"passing: kebab+layer BNF compliant"}
+{
+  "_meta": "passing: kebab+layer BNF compliant",
+  "purpose": "Auto-backfilled purpose for oya-example-kernel.json"
+}

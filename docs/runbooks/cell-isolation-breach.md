@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cell-isolation-breach.md
+---
+
 # Oyatie Runbook — Cell Isolation Breach
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -23,7 +23,8 @@
       "data",
       "billing",
       "observability"
-    ]
+    ],
+    "purpose": "Auto-backfilled purpose for m-cc-p05-ip-002-cloud-multi-provider-audit.json"
   },
   "total_cloud_crates_on_disk": 37,
   "adapter_coverage_matrix": {

@@ -53,5 +53,6 @@
     "issue": "Late heartbeat after TTL could revive stale lease without evidence.",
     "fix": "heartbeat now rejects now >= expires_at with HeartbeatAfterLeaseExpired; regression proves queued agent still requires evidence-gated stale recovery.",
     "verification": "rustfmt check pass; targeted rustc -D warnings IP-002 tests pass: 8 passed; 0 failed"
-  }
+  },
+  "purpose": "Auto-backfilled purpose for ip-002-lockstore.json"
 }

@@ -3,12 +3,12 @@
   "round": 1,
   "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
   "facet": "F8_performance",
-  "lens": "Performance — allocation on hot paths, zero-copy preservation, blocking I/O at scale, benchmark coverage, perf-budget regression gates",
-  "answer": "The four new pub fn sub-checks (check_rust_default_language, check_naming_convention, check_scorecard_render, check_consensus_debate_evidence) all execute blocking filesystem I/O — std::fs::read_dir and std::fs::read_to_string — without any benchmark, no async/parallel dispatch, and with eager format!() string allocation for every finding, including unconditional findings that are always emitted regardless of result. At today's file counts (1 multispectrum file, 8 per-change files) the cost is immaterial, but the code shape scales as O(N) blocking syscalls per sub-check invocation with no upper-bound cap on either I/O or allocation. Two sub-checks (check_scorecard_render, check_consensus_debate_evidence) read full file contents into heap-allocated Strings via read_to_string just to call str::contains twice; a stat-only or header-read approach would eliminate the copy entirely. check_naming_convention allocates a String per directory entry unconditionally via to_string_lossy().to_string() even for entries that are immediately skipped. No benchmark exists; all four functions are cold-path today but would become warm-path if the lane runs in a pre-push hook or CI inner loop at 10x file volume (80+ per-change files). There is no perf-budget regression test that would catch a future degradation.",
+  "lens": "Performance \u2014 allocation on hot paths, zero-copy preservation, blocking I/O at scale, benchmark coverage, perf-budget regression gates",
+  "answer": "The four new pub fn sub-checks (check_rust_default_language, check_naming_convention, check_scorecard_render, check_consensus_debate_evidence) all execute blocking filesystem I/O \u2014 std::fs::read_dir and std::fs::read_to_string \u2014 without any benchmark, no async/parallel dispatch, and with eager format!() string allocation for every finding, including unconditional findings that are always emitted regardless of result. At today's file counts (1 multispectrum file, 8 per-change files) the cost is immaterial, but the code shape scales as O(N) blocking syscalls per sub-check invocation with no upper-bound cap on either I/O or allocation. Two sub-checks (check_scorecard_render, check_consensus_debate_evidence) read full file contents into heap-allocated Strings via read_to_string just to call str::contains twice; a stat-only or header-read approach would eliminate the copy entirely. check_naming_convention allocates a String per directory entry unconditionally via to_string_lossy().to_string() even for entries that are immediately skipped. No benchmark exists; all four functions are cold-path today but would become warm-path if the lane runs in a pre-push hook or CI inner loop at 10x file volume (80+ per-change files). There is no perf-budget regression test that would catch a future degradation.",
   "key_claims": [
     "check_scorecard_render and check_consensus_debate_evidence call std::fs::read_to_string on every .json file in two directories; at 10x file volume (80 per-change files) this is 80+ blocking heap-allocating reads per invocation with no async dispatch.",
-    "check_naming_convention calls to_string_lossy().to_string() on every directory entry unconditionally — this allocates an owned String even for dotfiles that are immediately skipped via the starts_with('.') guard.",
-    "All four functions use format!() to construct finding strings eagerly, including strings that are always emitted (e.g., the 'NOT YET ARMED' lines) regardless of whether any violation was found — these could be &'static str literals at zero cost.",
+    "check_naming_convention calls to_string_lossy().to_string() on every directory entry unconditionally \u2014 this allocates an owned String even for dotfiles that are immediately skipped via the starts_with('.') guard.",
+    "All four functions use format!() to construct finding strings eagerly, including strings that are always emitted (e.g., the 'NOT YET ARMED' lines) regardless of whether any violation was found \u2014 these could be &'static str literals at zero cost.",
     "No benchmark (criterion or otherwise) exists for any of the four sub-checks; the perf claim is implicit ('it's a check crate, it runs once') without evidence.",
     "No regression baseline exists; a future O(N^2) regression (e.g., nested read_dir) would pass CI silently.",
     "check_scorecard_render reads full file bytes to call contains() on two fixed key strings; a BufReader line-scan or mmap-based search would preserve zero-copy semantics that the current code abandons."
@@ -31,28 +31,29 @@
     {
       "sub_check": "check_rust_default_language",
       "location": "lib.rs:734-763",
-      "finding": "std::fs::read_dir on scripts/ — stat-only, no file reads. Acceptable. Two format!() strings always allocated unconditionally; both could be &'static str. Minor.",
+      "finding": "std::fs::read_dir on scripts/ \u2014 stat-only, no file reads. Acceptable. Two format!() strings always allocated unconditionally; both could be &'static str. Minor.",
       "severity": "minor"
     },
     {
       "sub_check": "check_naming_convention",
       "location": "lib.rs:769-822",
-      "finding": "to_string_lossy().to_string() at lib.rs:783 allocates an owned String for every directory entry including those immediately skipped by starts_with('.'). Should be: let s = name.to_string_lossy(); (Cow<str>, no alloc on valid UTF-8). Violations Vec capped at 10 — correct. format!() strings in findings allocated unconditionally.",
-      "severity": "moderate — allocation per entry including skipped entries"
+      "finding": "to_string_lossy().to_string() at lib.rs:783 allocates an owned String for every directory entry including those immediately skipped by starts_with('.'). Should be: let s = name.to_string_lossy(); (Cow<str>, no alloc on valid UTF-8). Violations Vec capped at 10 \u2014 correct. format!() strings in findings allocated unconditionally.",
+      "severity": "moderate \u2014 allocation per entry including skipped entries"
     },
     {
       "sub_check": "check_scorecard_render",
       "location": "lib.rs:829-863",
       "finding": "std::fs::read_to_string at lib.rs:842 loads every .json file fully into a heap String to call .contains() twice. At 10x volume (80 files) this is 80 full-file heap allocations. A BufReader line-scan exiting early on first match of both keys would avoid full-file reads. Zero-copy path (mmap or read-with-limit) entirely absent.",
-      "severity": "high — copy introduced where streaming/early-exit was feasible; scales O(N * avg_file_size)"
+      "severity": "high \u2014 copy introduced where streaming/early-exit was feasible; scales O(N * avg_file_size)"
     },
     {
       "sub_check": "check_consensus_debate_evidence",
       "location": "lib.rs:871-916",
       "finding": "Same pattern as check_scorecard_render: read_to_string at lib.rs:883 for every .json file in two dirs to call .contains() for two string variants of 'meta_review_triggered'. Same O(N * file_size) allocation concern. Additionally, the debate_dir scan at lib.rs:894 allocates a String via to_string_lossy() for every entry just to call ends_with(); could use OsStr::to_str() with a borrow.",
-      "severity": "high — copy introduced where zero-copy or early-exit was feasible"
+      "severity": "high \u2014 copy introduced where zero-copy or early-exit was feasible"
     }
   ],
   "perf_budget_recommendation": "Add a criterion benchmark group 'sub-check-suite' covering all four functions against a fixture workspace with 100 per-change files and 10 multispectrum files. Gate CI on < 200ms wall-time for the full suite. Replace read_to_string+contains with BufReader line-scan with early exit in check_scorecard_render and check_consensus_debate_evidence. Replace to_string_lossy().to_string() with to_string_lossy() (Cow) where the String is only used for comparison or starts_with.",
-  "spectrum_lens_directive_compliance": "single-facet-only-reviewed"
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "Auto-backfilled purpose for TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-F8_performance-r1.json"
 }

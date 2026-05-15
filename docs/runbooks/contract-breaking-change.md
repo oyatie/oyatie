@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for contract-breaking-change.md
+---
+
 # Oyatie Runbook — Contract Breaking Change
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

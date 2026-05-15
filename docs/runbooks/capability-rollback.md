@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for capability-rollback.md
+---
+
 # Oyatie Runbook — Capability Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

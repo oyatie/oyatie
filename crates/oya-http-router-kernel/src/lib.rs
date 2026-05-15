@@ -438,7 +438,11 @@ mod tests {
     fn matched_template_is_registered_template_not_raw_path() {
         let mut router: Router<&'static str> = Router::new();
         router
-            .route(HttpMethod::Get, "/users/{user_id}/posts/{post_id}", "uid_pid")
+            .route(
+                HttpMethod::Get,
+                "/users/{user_id}/posts/{post_id}",
+                "uid_pid",
+            )
             .unwrap();
         // Captured user_id = "5"; literal "5" never appears as a segment so
         // both numerical captures stay isolated. The returned template must be

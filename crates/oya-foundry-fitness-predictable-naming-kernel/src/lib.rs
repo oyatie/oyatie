@@ -9,7 +9,7 @@
 //! typed [`CrateNaming`] records into [`check`].
 
 pub const REQUIRED_PREFIX: &str = "oya-";
-pub const ALLOWED_ROLES: [&str; 13] = [
+pub const ALLOWED_ROLES: [&str; 14] = [
     "kernel",
     "domain",
     "application",
@@ -23,6 +23,7 @@ pub const ALLOWED_ROLES: [&str; 13] = [
     "worker",
     "sdk",
     "runtime",
+    "test",
 ];
 
 #[derive(Clone, Debug, Eq, PartialEq)]

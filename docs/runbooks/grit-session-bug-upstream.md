@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for grit-session-bug-upstream.md
+---
+
+---
 doc_class: Runbook
 purpose: Field guide for the upstream grit session bug — recognize the FK constraint failure on grit claim, apply the ADR-0054 ICM scaffold-claim fallback, and surface the upstream issue.
 runbook_id: RB-GRIT-SESSION-BUG-UPSTREAM

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for autonomy-tier-uplift.md
+---
+
 # Oyatie Runbook — Autonomy Tier Uplift
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

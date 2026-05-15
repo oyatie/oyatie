@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for autonomy-ceiling-breach-response.md
+---
+
 # Oyatie Runbook — Autonomy Ceiling Breach Response
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

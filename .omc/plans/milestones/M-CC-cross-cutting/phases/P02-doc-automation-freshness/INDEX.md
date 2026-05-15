@@ -1,9 +1,13 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P02
 title: Doc Auto-Generation + Freshness
-status: stub
+status: complete
 purpose: Generate docs from machine-readable truth (rustdoc, OpenAPI, ADR-INDEX, fitness reports); CI lane catches drift.
 ---
 
@@ -20,9 +24,9 @@ Per MASTERPLAN §2 Directive 10. Hand-written docs are reserved for narrative; e
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | mdbook publishing pipeline kernel + source walkers | stub | [`IP-001-mdbook-pipeline.md`](IP-001-mdbook-pipeline.md) |
-| IP-002 | Doc-freshness CI lane | stub | [`IP-002-doc-freshness-lane.md`](IP-002-doc-freshness-lane.md) |
-| IP-003 | Doc-style enforcement lane + auto-format | stub | [`IP-003-doc-style-lane.md`](IP-003-doc-style-lane.md) |
+| IP-001 | mdbook publishing pipeline kernel + source walkers | complete | [`IP-001-mdbook-pipeline.md`](IP-001-mdbook-pipeline.md) |
+| IP-002 | Doc-freshness CI lane | complete | [`IP-002-doc-freshness-lane.md`](IP-002-doc-freshness-lane.md) |
+| IP-003 | Doc-style enforcement lane + auto-format | complete | [`IP-003-doc-style-lane.md`](IP-003-doc-style-lane.md) |
 
 ## Estimated parallelism
 3 agents.

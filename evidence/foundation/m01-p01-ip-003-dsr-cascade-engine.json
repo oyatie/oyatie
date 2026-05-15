@@ -109,5 +109,6 @@
     "clean": true,
     "reviewer": "codex native code-reviewer 019e2718-42cf-7750-bcfc-a88f6948ee77",
     "summary": "Final blocker-focused re-review approved clean after rustfmt.toml tracking, evidence changed_files parity, and stale pending-review metadata were resolved."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for m01-p01-ip-003-dsr-cascade-engine.json"
 }

@@ -1,4 +1,12 @@
 {
-  "_meta": {"doc_class": "Fixture", "purpose": "FAILING fixture: has facets but MISSING change_class_id — not scorecard-renderable"},
-  "facets": {"F1_linus": {"considered": true}}
+  "_meta": {
+    "doc_class": "Fixture",
+    "purpose": "FAILING fixture: has facets but MISSING change_class_id \u2014 not scorecard-renderable"
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true
+    }
+  },
+  "purpose": "Auto-backfilled purpose for evidence-missing-change-class.json"
 }

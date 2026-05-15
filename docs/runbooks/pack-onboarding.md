@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for pack-onboarding.md
+---
+
 # Oyatie Runbook — Pack Onboarding
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for postmortem-template.md
+---
+
+---
 doc_class: Template
 purpose: Blameless postmortem template (Google SRE-style) for any incident or near-miss; forces causal analysis and actionable follow-up over individual blame.
 ---

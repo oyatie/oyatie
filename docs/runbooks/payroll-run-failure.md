@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for payroll-run-failure.md
+---
+
 # Oyatie Runbook — Payroll Run Failure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

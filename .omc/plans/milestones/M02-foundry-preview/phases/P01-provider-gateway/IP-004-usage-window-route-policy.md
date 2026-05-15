@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-usage-window-route-policy.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P01-IP-004

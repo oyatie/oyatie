@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-eventing-adapters.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P04-IP-003

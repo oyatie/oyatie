@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for term-deprecation-protocol.md
+---
+
 # Oyatie Runbook — Term Deprecation Protocol
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-foundry-agents-activation.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P03-IP-003

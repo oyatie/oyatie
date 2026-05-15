@@ -69,5 +69,6 @@
       "finding": "Evidence and changelog named a stale scripts/check.sh blocker after a fresh run reached cargo check.",
       "fix": "Updated helper evidence/changelog to the current first failing gate: cargo check unresolved stale imports in connect-domain crates."
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for check-helper-scripts.json"
 }

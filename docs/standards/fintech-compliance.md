@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for fintech-compliance.md
+---
+
 # Oyatie — Fintech Compliance Deep-Dive
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored per user directive: depth on PCI-DSS scope and per-jurisdiction regulatory regimes for Oyatie fintech operations modeled on Toss / KakaoBank / KakaoPay / NaverPay / PayPal / Stripe / Adyen / Wise / Robinhood / Coinbase-class.

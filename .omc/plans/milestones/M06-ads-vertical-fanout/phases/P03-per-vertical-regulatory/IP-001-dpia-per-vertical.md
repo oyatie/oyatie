@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-dpia-per-vertical.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P03-IP-001

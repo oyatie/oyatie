@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for orchestrator-existence-findings-2026-05-12.md
+---
+
 # Orchestrator existence findings — ralplan iter-1 → iter-2 transition
 
 Captured 2026-05-12 between Architect ITERATE verdict and Critic dispatch. The Critic SHOULD read this; iter-2 Planner MUST incorporate.

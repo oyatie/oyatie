@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for forbidden-license-rollback.md
+---
+
 # Oyatie Runbook — Forbidden License Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

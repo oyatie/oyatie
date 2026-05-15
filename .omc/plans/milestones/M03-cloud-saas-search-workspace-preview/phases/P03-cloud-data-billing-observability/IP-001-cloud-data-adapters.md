@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-cloud-data-adapters.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P03-IP-001

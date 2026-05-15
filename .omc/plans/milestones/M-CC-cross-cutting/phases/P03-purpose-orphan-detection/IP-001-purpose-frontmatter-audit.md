@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-purpose-frontmatter-audit.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-001

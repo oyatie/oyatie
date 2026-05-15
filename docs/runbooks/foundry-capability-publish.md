@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-capability-publish.md
+---
+
 # Oyatie Runbook — Foundry Capability Publish
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

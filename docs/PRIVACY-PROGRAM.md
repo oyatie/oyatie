@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for PRIVACY-PROGRAM.md
+---
+
 # Oyatie — Privacy Program
 
 > **Status:** Accepted boundary text — ADR-0008 ratified 2026-05-14; operating model remains monthly-maintained.

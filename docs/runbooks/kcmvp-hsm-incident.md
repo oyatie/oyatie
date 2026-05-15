@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for kcmvp-hsm-incident.md
+---
+
 # Oyatie Runbook — Kcmvp Hsm Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for dep-replacement-execution.md
+---
+
 # Oyatie Runbook — Dep Replacement Execution
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

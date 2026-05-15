@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for VENDOR-PARTNER-LEDGER.md
+---
+
 # Oyatie — Vendor + Partner Ledger
 
 > **Status:** Draft v0.1 skeleton — 2026-05-09. Concrete entries populate as deps are adopted.

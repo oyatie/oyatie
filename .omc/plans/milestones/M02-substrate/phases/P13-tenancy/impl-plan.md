@@ -7,20 +7,21 @@ impl_plan_id: IP-001-tenancy-kernel-scaffold
 status: pending
 owner: council-architecture
 blocked_by:
-  - impl_plan: P03-identity/IP-001
-    reason: "TenantStore.create() accepts UserId from oya-identity-kernel; tenant_admins table FKs to identity.users"
+- impl_plan: P03-identity/IP-001
+  reason: TenantStore.create() accepts UserId from oya-identity-kernel; tenant_admins
+    table FKs to identity.users
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-tenancy-kernel-scaffold: Scaffold Tenancy Kernel, Domain, Application, Adapter, REST, gRPC, App — Full DDL + RLS Bootstrap
 
 ## Intent

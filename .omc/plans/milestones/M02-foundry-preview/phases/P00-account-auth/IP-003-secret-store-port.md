@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-secret-store-port.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P00-IP-003

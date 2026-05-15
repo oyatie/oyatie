@@ -82,5 +82,6 @@
       "exit_code": 1,
       "status": "blocked"
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for ip-006-agent-facing-memory.json"
 }

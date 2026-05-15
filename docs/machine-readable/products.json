@@ -285,5 +285,6 @@
       "status": "skeleton (planned)",
       "wave_first_onboarding": "W-Region-Fan-Out wave 2"
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for products.json"
 }

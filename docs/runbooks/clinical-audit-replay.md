@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for clinical-audit-replay.md
+---
+
 # Oyatie Runbook — Clinical Audit Replay
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

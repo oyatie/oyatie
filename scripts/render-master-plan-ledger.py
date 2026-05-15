@@ -10,8 +10,8 @@ import pathlib
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-MASTERPLAN = ROOT / "/specs/cross-cutting/masterplan.json"
-DEFAULT_OUTPUT = ROOT / "/evidence/master-plan-ledger.md"
+MASTERPLAN = ROOT / "specs/cross-cutting/masterplan.json"
+DEFAULT_OUTPUT = ROOT / "evidence/master-plan-ledger.md"
 
 
 def fail(message: str) -> int:

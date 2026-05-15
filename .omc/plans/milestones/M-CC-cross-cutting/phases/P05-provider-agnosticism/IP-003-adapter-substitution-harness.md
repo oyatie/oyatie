@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-adapter-substitution-harness.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P05-IP-003

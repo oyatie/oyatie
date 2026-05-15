@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-capacity-management.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P02-IP-003

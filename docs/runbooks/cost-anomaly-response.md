@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cost-anomaly-response.md
+---
+
 # Oyatie Runbook — Cost Anomaly Response
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

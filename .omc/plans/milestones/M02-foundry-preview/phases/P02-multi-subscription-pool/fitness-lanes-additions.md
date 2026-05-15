@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for fitness-lanes-additions.md
+---
+
+---
 doc_class: FitnessLaneDelta
 parent: ./INDEX.md
 milestone: M02

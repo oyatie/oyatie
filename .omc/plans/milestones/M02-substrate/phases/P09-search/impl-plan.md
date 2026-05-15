@@ -5,8 +5,8 @@ milestone: M02-substrate
 phase: P09-search
 status: Proposed
 depends_on_phase_spec: phase-spec.md
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # P09-search Implementation Plan
 
 ## 0. Grit Claim

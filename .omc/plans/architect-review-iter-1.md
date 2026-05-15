@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for architect-review-iter-1.md
+---
+
 # Architect Review — ralplan-oyatie-sst-consolidation (Iteration 1)
 
 Captured 2026-05-12. Reviewer: oh-my-claudecode:architect. Verdict: **ITERATE**.

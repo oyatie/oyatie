@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for vertical-pilot-wave-gate-readiness.md
+---
+
 # Oyatie Runbook — Vertical Pilot Wave Gate Readiness
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

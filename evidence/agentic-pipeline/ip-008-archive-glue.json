@@ -185,5 +185,6 @@
       "evidence": "scripts/check.sh line 36 cannot find scripts/check-stage0-application-shell-prereqs.py",
       "status": "blocked_pre_existing"
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for ip-008-archive-glue.json"
 }

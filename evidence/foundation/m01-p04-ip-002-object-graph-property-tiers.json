@@ -122,5 +122,6 @@
       "finding": "scripts/check.sh blocker text was stale before helper/rustfmt FixupTasks moved the current failure to cargo check stale imports.",
       "fix": "Updated IP plan/index/evidence blocker wording to current helper-preflight-pass / cargo-fmt-drift failure mode."
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for m01-p04-ip-002-object-graph-property-tiers.json"
 }

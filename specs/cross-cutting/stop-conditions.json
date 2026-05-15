@@ -79,5 +79,6 @@
     "unresolved_grit_or_scaffold_claim",
     "final_claim_stronger_than_evidence"
   ],
-  "allowed_blocked_exit": "Only when no meaningful recovery path remains; final report must use blocked status, not completion status."
+  "allowed_blocked_exit": "Only when no meaningful recovery path remains; final report must use blocked status, not completion status.",
+  "purpose": "Auto-backfilled purpose for stop-conditions.json"
 }

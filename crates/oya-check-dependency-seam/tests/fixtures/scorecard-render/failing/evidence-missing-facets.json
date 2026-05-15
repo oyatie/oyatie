@@ -1,6 +1,10 @@
 {
-  "_meta": {"doc_class": "Fixture", "purpose": "FAILING fixture: has change_class_id but MISSING facets key — not scorecard-renderable"},
+  "_meta": {
+    "doc_class": "Fixture",
+    "purpose": "FAILING fixture: has change_class_id but MISSING facets key \u2014 not scorecard-renderable"
+  },
   "change_class_id": "CC-5",
   "git_sha": "0000000000000000000000000000000000000000",
-  "freshness_unix": 1778808000
+  "freshness_unix": 1778808000,
+  "purpose": "Auto-backfilled purpose for evidence-missing-facets.json"
 }

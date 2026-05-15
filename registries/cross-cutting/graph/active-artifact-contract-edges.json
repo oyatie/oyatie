@@ -1,50 +1,226 @@
 {
   "$schema_ref": "/specs/cross-cutting/knowledge-graph-schema.json",
   "_artifact_id": "active-artifact-contract-edges",
-  "_meta": { "emitter": "oya-dev-cli gate validate active-artifact-contract", "layer": "semantic" },
+  "_meta": {
+    "emitter": "oya-dev-cli gate validate active-artifact-contract",
+    "layer": "semantic",
+    "purpose": "Auto-backfilled purpose for active-artifact-contract-edges.json"
+  },
   "edges": [
-    { "source": "active-machine-readable-artifact-contract", "target": "schema", "edge_type": "declares" },
-    { "source": "master-plan-sequencing", "target": "schema", "edge_type": "declares" },
-    { "source": "hyperscaler-gates", "target": "schema", "edge_type": "declares" },
-    { "source": "evidence-taxonomy", "target": "schema", "edge_type": "declares" },
-    { "source": "stop-conditions", "target": "schema", "edge_type": "declares" },
-    { "source": "final-report-schema", "target": "schema", "edge_type": "declares" },
-    { "source": "evidence-bundle-template", "target": "template", "edge_type": "declares" },
-    { "source": "ops-portal-ledger", "target": "ledger", "edge_type": "declares" },
-    { "source": "ops-portal-claim-matrix", "target": "claim-matrix", "edge_type": "declares" },
-    { "source": "ops-portal-plan-suite-accepted-attestation", "target": "plan-attestation", "edge_type": "declares" },
-    { "source": "microservices-registry", "target": "registry", "edge_type": "declares" },
-    { "source": "bounded-contexts-registry", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-workspace-shell-kernel-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-docs-portal-kernel-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "ops-workspace-shell-openapi-contract", "target": "schema", "edge_type": "declares" },
-    { "source": "ops-docs-openapi-contract", "target": "schema", "edge_type": "declares" },
-    { "source": "cedar-fragments-registry", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-check-cedar-fragment-coverage-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-workspace-shell-adapter-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-docs-portal-adapter-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-workspace-shell-application-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-docs-portal-application-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-workspace-shell-rest-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-docs-portal-rest-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-foundry-architecture-map-kernel-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-check-openapi-rest-route-parity-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-foundry-architecture-map-app-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "architecture-map-graph-artifact", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-http-router-kernel-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-http-middleware-kernel-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-http-sse-domain-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-http-runtime-hyper-adapter-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "adr-0090-hyper-canonical-http-backbone", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-ops-workspace-shell-runtime-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-http-tenant-middleware-domain-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-http-deadline-middleware-domain-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "oya-http-telemetry-middleware-domain-manifest", "target": "registry", "edge_type": "declares" },
-    { "source": "implement-masterplan-goal-prompt", "target": "template", "edge_type": "declares" },
-    { "source": "masterplan", "target": "schema", "edge_type": "declares" },
-    { "source": "gitops-vcs-replacement", "target": "schema", "edge_type": "declares" },
-    { "source": "test-standard", "target": "schema", "edge_type": "declares" },
-    { "source": "test-suite-registry", "target": "registry", "edge_type": "declares" },
-    { "source": "codeview-read-surface", "target": "schema", "edge_type": "declares" }
+    {
+      "source": "active-machine-readable-artifact-contract",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "master-plan-sequencing",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "hyperscaler-gates",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "evidence-taxonomy",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "stop-conditions",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "final-report-schema",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "evidence-bundle-template",
+      "target": "template",
+      "edge_type": "declares"
+    },
+    {
+      "source": "ops-portal-ledger",
+      "target": "ledger",
+      "edge_type": "declares"
+    },
+    {
+      "source": "ops-portal-claim-matrix",
+      "target": "claim-matrix",
+      "edge_type": "declares"
+    },
+    {
+      "source": "ops-portal-plan-suite-accepted-attestation",
+      "target": "plan-attestation",
+      "edge_type": "declares"
+    },
+    {
+      "source": "microservices-registry",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "bounded-contexts-registry",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-workspace-shell-kernel-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-docs-portal-kernel-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "ops-workspace-shell-openapi-contract",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "ops-docs-openapi-contract",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "cedar-fragments-registry",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-check-cedar-fragment-coverage-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-workspace-shell-adapter-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-docs-portal-adapter-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-workspace-shell-application-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-docs-portal-application-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-workspace-shell-rest-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-docs-portal-rest-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-foundry-architecture-map-kernel-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-check-openapi-rest-route-parity-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-foundry-architecture-map-app-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "architecture-map-graph-artifact",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-http-router-kernel-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-http-middleware-kernel-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-http-sse-domain-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-http-runtime-hyper-adapter-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "adr-0090-hyper-canonical-http-backbone",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-ops-workspace-shell-runtime-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-http-tenant-middleware-domain-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-http-deadline-middleware-domain-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "oya-http-telemetry-middleware-domain-manifest",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "implement-masterplan-goal-prompt",
+      "target": "template",
+      "edge_type": "declares"
+    },
+    {
+      "source": "masterplan",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "gitops-vcs-replacement",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "test-standard",
+      "target": "schema",
+      "edge_type": "declares"
+    },
+    {
+      "source": "test-suite-registry",
+      "target": "registry",
+      "edge_type": "declares"
+    },
+    {
+      "source": "codeview-read-surface",
+      "target": "schema",
+      "edge_type": "declares"
+    }
   ]
 }

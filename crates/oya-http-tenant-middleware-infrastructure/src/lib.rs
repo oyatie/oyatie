@@ -59,8 +59,8 @@ impl TenantMiddleware {
             None if self.required => Err(TenantHeaderError::Missing),
             None => Ok(None),
             Some(value) => {
-                let slug = TenantSlug::try_new(value.as_str())
-                    .map_err(TenantHeaderError::InvalidSlug)?;
+                let slug =
+                    TenantSlug::try_new(value.as_str()).map_err(TenantHeaderError::InvalidSlug)?;
                 Ok(Some(slug))
             }
         }

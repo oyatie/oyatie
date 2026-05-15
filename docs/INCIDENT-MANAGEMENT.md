@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for INCIDENT-MANAGEMENT.md
+---
+
 # Oyatie — Incident Management
 
 > **Status:** Draft v0.1 — 2026-05-09.

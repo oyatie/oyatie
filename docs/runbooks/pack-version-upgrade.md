@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for pack-version-upgrade.md
+---
+
 # Oyatie Runbook — Pack Version Upgrade
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -10,8 +10,8 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
+purpose: Auto-backfilled purpose for IP-007-review-fix-rebase-merge-queue-loop.md
 ---
-
 # M-CC-P00-IP-007 — Review/fix, rebase, and merge-queue loop
 
 ## Purpose

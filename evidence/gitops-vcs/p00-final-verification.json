@@ -104,5 +104,6 @@
     "rustfmt_check": "pass",
     "workspace_cargo_gate": "blocked-pre-existing: missing crates/oya-tenancy-kernel/Cargo.toml",
     "test_standard_gate": "blocked-environment: oya command not installed; cargo-run fallback blocked by workspace metadata"
-  }
+  },
+  "purpose": "Auto-backfilled purpose for p00-final-verification.json"
 }

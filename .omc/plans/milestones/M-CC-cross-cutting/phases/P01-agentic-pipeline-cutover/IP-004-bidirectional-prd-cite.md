@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-bidirectional-prd-cite.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-004

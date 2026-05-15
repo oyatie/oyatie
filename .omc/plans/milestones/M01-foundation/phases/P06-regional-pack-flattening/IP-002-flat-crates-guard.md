@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-flat-crates-guard.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P06-IP-002

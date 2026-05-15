@@ -8,14 +8,14 @@ status: merged
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - cargo-doc
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- cargo-doc
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-shard-1-atomic-rename: Execute Shard 1 atomic 114-row rename
 
 ## Intent

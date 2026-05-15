@@ -40,7 +40,7 @@
     "review_cycle_1_findings_resolved": [
       "Removed public unguarded TenantScopedRecord payload/into_payload accessors; payload access now requires TenantContext via payload_for.",
       "Added data_class annotations to new tenancy kernel newtype and struct fields.",
-      "Made DataClass::Financial public label emit FINANCIAL_KR and retained FINANCIAL_KR_신용정보 as legacy parse alias."
+      "Made DataClass::Financial public label emit FINANCIAL_KR and retained FINANCIAL_KR_\uc2e0\uc6a9\uc815\ubcf4 as legacy parse alias."
     ]
   },
   "validation": [
@@ -115,12 +115,13 @@
     "scripts/check.sh remains blocked by pre-existing missing scripts/check-stage0-application-shell-prereqs.py.",
     "Broader cloud billing test path is blocked before execution by pre-existing stale imports in oya-cloud-resource-domain; not introduced by this IP."
   ],
-  "next_ready_ip": "M01-P01-IP-003 tenant.dsr.cascade ≤30d cascade engine",
+  "next_ready_ip": "M01-P01-IP-003 tenant.dsr.cascade \u226430d cascade engine",
   "code_review": {
     "status": "APPROVE",
     "architectural_status": "CLEAR",
     "clean": true,
     "reviewer": "codex native code-reviewer 019e26fa-78af-76c3-9f5a-1c50fa699fa1",
     "summary": "REQUEST_CHANGES fixes re-reviewed clean: guarded payload access only, data_class annotations present, FINANCIAL_KR public label aligned."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for m01-p01-ip-002-tenant-kernel-contracts.json"
 }

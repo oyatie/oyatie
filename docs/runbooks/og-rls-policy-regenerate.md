@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for og-rls-policy-regenerate.md
+---
+
 # Oyatie Runbook — Og Rls Policy Regenerate
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-sandbox-warm-pool.md
+---
+
 # Oyatie Runbook — Foundry Sandbox Warm Pool
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

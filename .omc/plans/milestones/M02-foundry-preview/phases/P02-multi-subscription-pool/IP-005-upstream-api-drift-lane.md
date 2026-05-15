@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-005-upstream-api-drift-lane.md
+---
+
+---
 doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-005-upstream-api-drift-lane

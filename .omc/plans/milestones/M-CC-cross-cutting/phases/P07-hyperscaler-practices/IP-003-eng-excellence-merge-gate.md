@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-eng-excellence-merge-gate.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-003

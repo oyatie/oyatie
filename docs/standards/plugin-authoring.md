@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for plugin-authoring.md
+---
+
 # Oyatie — Plugin Authoring Standard
 
 > **Owner:** `axis-saas` (marketplace) + `axis-foundry` (sandbox + signing) + `ops-security`.

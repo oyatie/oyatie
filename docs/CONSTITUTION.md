@@ -1,31 +1,32 @@
 ---
 doc_class: Constitution
-shape: ~
+shape: null
 length_cap: 300
 authority_tier: 1
 excludes:
-  - path: docs/AGENTS.md
-    reason: Agent operating contract — Constitution sets the frame within which it operates.
-  - path: docs/DOC-CATALOG.md
-    reason: Per-doc lifecycle protocol — Constitution names that the protocol exists; DOC-CATALOG is the protocol.
-  - path: docs/decisions/
-    reason: Architectural decisions — ADRs operate within the constitutional frame.
-  - path: docs/RACI-OWNERSHIP.md
-    reason: Per-team RACI — Constitution names decision rights at the class level.
-  - path: docs/INCIDENT-MANAGEMENT.md
-    reason: Per-incident playbook — Constitution names the mistakes doctrine, not the lifecycle.
-  - path: docs/standards/prevention-doctrine.md
-    reason: Mechanical-prevention authoring guide — Constitution names the doctrine; the standard authors the prevention.
-authority_chain_declaration: |
-  system / developer / user instructions
-    > /specs/cross-cutting/root-hub-pointers.json
-    > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
-    > machine-readable specs and registries under .omc/
-    > docs/ authority files during markdown-retirement compatibility
-    > repo-root Redirect-class files (non-authoritative; lane-thin)
-    > working drafts (never authoritative)
+- path: docs/AGENTS.md
+  reason: "Agent operating contract \u2014 Constitution sets the frame within which\
+    \ it operates."
+- path: docs/DOC-CATALOG.md
+  reason: "Per-doc lifecycle protocol \u2014 Constitution names that the protocol\
+    \ exists; DOC-CATALOG is the protocol."
+- path: docs/decisions/
+  reason: "Architectural decisions \u2014 ADRs operate within the constitutional frame."
+- path: docs/RACI-OWNERSHIP.md
+  reason: "Per-team RACI \u2014 Constitution names decision rights at the class level."
+- path: docs/INCIDENT-MANAGEMENT.md
+  reason: "Per-incident playbook \u2014 Constitution names the mistakes doctrine,\
+    \ not the lifecycle."
+- path: docs/standards/prevention-doctrine.md
+  reason: "Mechanical-prevention authoring guide \u2014 Constitution names the doctrine;\
+    \ the standard authors the prevention."
+authority_chain_declaration: "system / developer / user instructions\n  > /specs/cross-cutting/root-hub-pointers.json\n\
+  \  > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5\
+  \ promotion)\n  > machine-readable specs and registries under .omc/\n  > docs/ authority\
+  \ files during markdown-retirement compatibility\n  > repo-root Redirect-class files\
+  \ (non-authoritative; lane-thin)\n  > working drafts (never authoritative)\n"
+purpose: Auto-backfilled purpose for CONSTITUTION.md
 ---
-
 # Oyatie Constitution
 
 This is the project's constitutional frame — the level above architecture, the level above operating contracts, the level above standards. Architecture, contracts, and standards operate within this frame; this frame does not operate within them.

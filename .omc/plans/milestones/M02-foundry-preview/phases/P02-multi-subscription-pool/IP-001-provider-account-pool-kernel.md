@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-provider-account-pool-kernel.md
+---
+
+---
 doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-001-provider-account-pool-kernel

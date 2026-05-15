@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for ROADMAP.md
+---
+
 # Oyatie — Roadmap
 
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for security-incident-response.md
+---
+
 # Oyatie Runbook — Security Incident Response
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

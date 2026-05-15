@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-docs-sheets-slides-sites.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-002

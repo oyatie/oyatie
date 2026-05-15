@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for privacy-council-data-class-review.md
+---
+
 # Oyatie Runbook — Privacy Council Data Class Review
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

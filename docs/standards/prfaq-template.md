@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for prfaq-template.md
+---
+
+---
 doc_class: Template
 purpose: Working-backwards PR/FAQ template (Amazon-style) for launching new capabilities; force-clarifies customer value before any engineering investment.
 ---

@@ -5,25 +5,38 @@ milestone: M01-foundation
 phase: P02-shard-1-atomic-rename
 status: Complete
 acceptance_lanes: []
-entry_gate: |
-  P01-bnf-v4-adrs-finalized complete; ADR-0056 v4.1 accepted; rename plan v4.1
-  user-approved; /tmp/rename-map-v4.1.tsv contains exactly 114 rows; grit
-  branch grit/shard-1-atomic-rename-2026-05-13 checked out.
-exit_gate: |
-  All 114 v3 crate dirs renamed on disk; zero `oya-platform-*`, `oya-workspace-*`,
-  `oya-foundation-*`, `oya-tooling-*` directories exist under crates/; all 4 LEAN
-  check crates present at new names; cargo check --workspace --all-features exits 0;
-  cargo build exits 0; cargo clippy exits 0; cargo deny check exits 0; cargo doc
-  exits 0; cargo nextest run exits 0; Cargo.lock rewritten; root Cargo.toml
-  workspace members updated to v4.1 names; ICM context-oyatie row emitted;
-  grit done OR fallback git merge to main with ICM rationale row.
-depends_on:
-  - milestone: M01
-    phase: P01-bnf-v4-adrs-finalized
-    reason: "BNF v4.1 ADRs must be accepted before rename is executed to prevent naming drift"
-owner_team: council-architecture
----
+entry_gate: 'P01-bnf-v4-adrs-finalized complete; ADR-0056 v4.1 accepted; rename plan
+  v4.1
 
+  user-approved; /tmp/rename-map-v4.1.tsv contains exactly 114 rows; grit
+
+  branch grit/shard-1-atomic-rename-2026-05-13 checked out.
+
+  '
+exit_gate: 'All 114 v3 crate dirs renamed on disk; zero `oya-platform-*`, `oya-workspace-*`,
+
+  `oya-foundation-*`, `oya-tooling-*` directories exist under crates/; all 4 LEAN
+
+  check crates present at new names; cargo check --workspace --all-features exits
+  0;
+
+  cargo build exits 0; cargo clippy exits 0; cargo deny check exits 0; cargo doc
+
+  exits 0; cargo nextest run exits 0; Cargo.lock rewritten; root Cargo.toml
+
+  workspace members updated to v4.1 names; ICM context-oyatie row emitted;
+
+  grit done OR fallback git merge to main with ICM rationale row.
+
+  '
+depends_on:
+- milestone: M01
+  phase: P01-bnf-v4-adrs-finalized
+  reason: BNF v4.1 ADRs must be accepted before rename is executed to prevent naming
+    drift
+owner_team: council-architecture
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P02-shard-1-atomic-rename: Shard 1 atomic 114-row rename to BNF v4.1
 
 ## Purpose

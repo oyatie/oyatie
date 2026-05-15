@@ -132,5 +132,6 @@
     "clean": true,
     "reviewer": "codex native code-reviewer 019e276c-bec0-70d0-b9e1-1d7b5f0ba106",
     "summary": "Review approved: AsyncAPI/Proto parity, stable SPEC/contracts mirrors, plan/evidence/masterplan parity, and Rust 1.95/edition 2024/rustfmt 2024 stance are clear. Watch-only notes are the pre-existing scripts/check.sh missing-stage0 blocker and intentionally narrow no-dependency structural validators."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for m01-p03-ip-002-audit-contracts.json"
 }

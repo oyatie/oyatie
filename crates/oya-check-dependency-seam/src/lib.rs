@@ -25,7 +25,7 @@ use std::path::PathBuf;
 // the local symbol names (`JsonValueKind`, `parse_top_level_object`) per the
 // CONV-1 refactor. Originated as inline code; extracted to reusable kernel
 // per user directive 2026-05-15.
-pub use oya_json_kernel::{parse_top_level_object, JsonValueKind};
+pub use oya_json_kernel::{JsonValueKind, parse_top_level_object};
 
 // CONV-8 codegen: build.rs derives CHANGE_CLASSES_FROM_SPEC +
 // ALL_FACETS_FROM_SPEC from the canonical spec at build time. Unit tests
@@ -140,10 +140,7 @@ pub fn check_registry_coverage(ctx: &WorkspaceContext) -> SubCheckResult {
         return SubCheckResult {
             id: "registry-coverage",
             status: SubCheckStatus::Fail,
-            findings: vec![format!(
-                "missing registry: {}",
-                registry_path.display()
-            )],
+            findings: vec![format!("missing registry: {}", registry_path.display())],
             severity_day_1: Severity::ReportOnly,
         };
     }
@@ -204,8 +201,9 @@ pub fn extract_registry_entry_names(raw: &str) -> Vec<String> {
                     j += 1;
                 }
                 if j < bytes.len() {
-                    let name =
-                        std::str::from_utf8(&bytes[key_start..j]).unwrap_or("").to_string();
+                    let name = std::str::from_utf8(&bytes[key_start..j])
+                        .unwrap_or("")
+                        .to_string();
                     if !name.is_empty() {
                         names.push(name);
                     }
@@ -385,7 +383,9 @@ pub fn read_allowed_isolation(
             continue;
         };
         let after = &raw[pos..];
-        let Some(open) = after.find('{') else { continue };
+        let Some(open) = after.find('{') else {
+            continue;
+        };
         let body_start = open + 1;
         // Find matching close brace.
         let body = &after[body_start..];
@@ -425,7 +425,7 @@ pub fn read_allowed_isolation(
 /// Parse the free-form `isolated_in_crate` value into crate-name tokens.
 pub fn parse_isolated_in_crate(value: &str) -> Vec<String> {
     value
-        .split(|c: char| c == ';' || c == '+' || c == ',')
+        .split([';', '+', ','])
         .filter_map(|tok| {
             let cleaned = match tok.find('(') {
                 Some(i) => &tok[..i],
@@ -498,12 +498,8 @@ pub fn check_cargo_audit_shell(ctx: &WorkspaceContext) -> SubCheckResult {
 
 /// Required top-level keys for any evidence file per
 /// specs/cross-cutting/multispectrum-review.json#evidence_schema.
-pub const EVIDENCE_REQUIRED_TOP_LEVEL_KEYS: &[&str] = &[
-    "change_class_id",
-    "git_sha",
-    "freshness_unix",
-    "facets",
-];
+pub const EVIDENCE_REQUIRED_TOP_LEVEL_KEYS: &[&str] =
+    &["change_class_id", "git_sha", "freshness_unix", "facets"];
 
 /// Required facet keys per multispectrum-review.json. v2.0.0 (2026-05-14)
 /// added F8 performance + F9 compliance as REQUIRED facets and M1 + M2 as
@@ -625,10 +621,8 @@ pub fn check_fixture_pair_coverage(ctx: &WorkspaceContext) -> SubCheckResult {
         passing.is_dir(),
         failing.is_dir()
     ));
-    findings.push(
-        "discovery across other oya-check-* crates: NOT YET ARMED — F-LANE-SEAM-IMPL"
-            .into(),
-    );
+    findings
+        .push("discovery across other oya-check-* crates: NOT YET ARMED — F-LANE-SEAM-IMPL".into());
     SubCheckResult {
         id: "fixture-pair-coverage",
         status: if passing.is_dir() && failing.is_dir() {
@@ -699,7 +693,10 @@ pub fn check_change_class_declared(ctx: &WorkspaceContext) -> SubCheckResult {
             }
             Some(value) => {
                 count_declared += 1;
-                violations.push((path_repr, format!("non-canonical change_class_id: `{}`", value)));
+                violations.push((
+                    path_repr,
+                    format!("non-canonical change_class_id: `{}`", value),
+                ));
             }
             None => {
                 violations.push((path_repr, "change_class_id missing".into()));
@@ -743,7 +740,6 @@ pub fn extract_string_field(raw: &str, field: &str) -> Option<String> {
     let qe = tail.find('"')?;
     Some(tail[..qe].to_string())
 }
-
 
 /// `a6-schema-adherence`: walk JSON files in canonical durable homes
 /// (/specs/, /registries/, /evidence/, /templates/) and verify each declares
@@ -796,9 +792,7 @@ pub fn check_a6_schema_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
                         if !has_meta {
                             missing.push("_meta");
                         }
-                        let rel = path
-                            .strip_prefix(&ctx.workspace_root)
-                            .unwrap_or(&path);
+                        let rel = path.strip_prefix(&ctx.workspace_root).unwrap_or(&path);
                         violations_displayed.push(format!(
                             "{}: missing {}",
                             rel.display(),
@@ -806,11 +800,9 @@ pub fn check_a6_schema_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
                         ));
                     }
                 }
-                Err(e) => inner_errors.push(format!(
-                    "read_to_string({}) failed: {}",
-                    path.display(),
-                    e
-                )),
+                Err(e) => {
+                    inner_errors.push(format!("read_to_string({}) failed: {}", path.display(), e))
+                }
             }
         });
     }
@@ -846,8 +838,8 @@ pub fn check_a6_schema_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
 /// `a1-naming-adherence`: extended naming-governance scan beyond canonical
 /// durable homes — covers docs/decisions/ (ADR-NNNN-<kebab>.md) + crates/
 /// + tools/ (oya-<microservice>-<layer> BNF per ADR-0056). Day-1 stub:
-/// count + report non-compliant filenames. Full BNF enforcement is
-/// F-LANE-ADHERENCE-A1-NAMING.
+///   count + report non-compliant filenames. Full BNF enforcement is
+///   F-LANE-ADHERENCE-A1-NAMING.
 pub fn check_a1_naming_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
     let homes = ["docs/decisions", "crates", "tools"];
     let mut scanned = 0usize;
@@ -951,11 +943,9 @@ pub fn check_a2_documentation_adherence(ctx: &WorkspaceContext) -> SubCheckResul
                         ));
                     }
                 }
-                Err(e) => inner_errors.push(format!(
-                    "read_to_string({}) failed: {}",
-                    path.display(),
-                    e
-                )),
+                Err(e) => {
+                    inner_errors.push(format!("read_to_string({}) failed: {}", path.display(), e))
+                }
             }
         });
     }
@@ -1184,10 +1174,10 @@ pub fn check_a7_algorithm_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
                 return;
             }
             scanned_rust_files += 1;
-            if let Ok(raw) = std::fs::read_to_string(&p) {
-                if markers.iter().any(|m| raw.contains(m)) {
-                    heuristic_marker_files += 1;
-                }
+            if let Ok(raw) = std::fs::read_to_string(&p)
+                && markers.iter().any(|m| raw.contains(m))
+            {
+                heuristic_marker_files += 1;
             }
         });
     });
@@ -1214,7 +1204,7 @@ pub fn check_a7_algorithm_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
 /// `errors` accumulator. Std-only.
 ///
 /// Resolves TEN-2 (TG2 11-facet debate interim position): F1 wanted
-/// table-driven scan; F4 wanted per-fn testability; compromise — keep 4
+/// table-driven_scan; F4 wanted per-fn testability; compromise — keep 4
 /// pub fn entry points (binary-compatible) but route each through this 1
 /// shared scan helper. Eliminates the duplicate `match read_dir { Ok =>
 /// for entry { match entry...}, Err => push }` block that appeared in
@@ -1258,10 +1248,10 @@ pub fn check_rust_default_language(ctx: &WorkspaceContext) -> SubCheckResult {
     // TEN-2 + CONV-2: shared scan_dir helper surfaces I/O errors uniformly.
     scan_dir(&scripts_dir, &mut findings, |entry| {
         let p = entry.path();
-        if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
-            if exts.contains(&ext) {
-                total_non_rust += 1;
-            }
+        if let Some(ext) = p.extension().and_then(|s| s.to_str())
+            && exts.contains(&ext)
+        {
+            total_non_rust += 1;
         }
     });
     findings.push(format!(
@@ -1384,11 +1374,9 @@ pub fn check_scorecard_render(ctx: &WorkspaceContext) -> SubCheckResult {
                         renderable += 1;
                     }
                 }
-                Err(e) => inner_errors.push(format!(
-                    "read_to_string({}) failed: {}",
-                    p.display(),
-                    e
-                )),
+                Err(e) => {
+                    inner_errors.push(format!("read_to_string({}) failed: {}", p.display(), e))
+                }
             }
         });
     }
@@ -1441,11 +1429,9 @@ pub fn check_consensus_debate_evidence(ctx: &WorkspaceContext) -> SubCheckResult
                         meta_triggered += 1;
                     }
                 }
-                Err(e) => inner_errors.push(format!(
-                    "read_to_string({}) failed: {}",
-                    p.display(),
-                    e
-                )),
+                Err(e) => {
+                    inner_errors.push(format!("read_to_string({}) failed: {}", p.display(), e))
+                }
             }
         });
     }
@@ -1577,7 +1563,7 @@ pub fn render_audit_chain_rows(
         let mut findings_preview = String::from("[");
         for (idx, f) in r.findings.iter().take(first_n).enumerate() {
             if idx > 0 {
-                findings_preview.push_str(",");
+                findings_preview.push(',');
             }
             findings_preview.push('"');
             findings_preview.push_str(&escape(f));
@@ -1714,7 +1700,8 @@ mod tests {
 
     #[test]
     fn extract_registry_entry_names_handles_real_registry() {
-        let real = workspace_root_from_test().join("registries/cross-cutting/dependency-rationales.json");
+        let real =
+            workspace_root_from_test().join("registries/cross-cutting/dependency-rationales.json");
         if real.exists() {
             let raw = std::fs::read_to_string(&real).unwrap();
             let names = extract_registry_entry_names(&raw);

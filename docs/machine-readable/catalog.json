@@ -551,7 +551,7 @@
       "tier": 3,
       "update_trigger": [
         "EVT-PRICING-CHANGE",
-        "capacity-cost ≥ 10% drift"
+        "capacity-cost \u2265 10% drift"
       ],
       "update_cadence": "monthly",
       "dependent_docs": [
@@ -1017,5 +1017,6 @@
     }
   },
   "validation_lane": "oya-foundry-fitness-doc-catalog",
-  "validation_runs_on": "every PR touching docs/**"
+  "validation_runs_on": "every PR touching docs/**",
+  "purpose": "Auto-backfilled purpose for catalog.json"
 }

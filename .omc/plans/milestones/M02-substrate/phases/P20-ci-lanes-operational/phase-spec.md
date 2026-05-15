@@ -5,28 +5,27 @@ milestone: M02-substrate
 phase: P20-ci-lanes-operational
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  Wave-A phases P01–P11 all complete; at least Wave-B phases P12–P14 complete (enough
-  substrate exists to run meaningful statelessness + shardability checks); oya-check-*
-  namespace reserved in [workspace.metadata.oya.microservices]; cargo check clean;
-  ICM phase-handoff rows emitted for all prerequisite phases.
-exit_gate: |
-  All 5 new CI fitness lane binaries operational: oya-check-statelessness,
-  oya-check-shardability, oya-check-perf-budget, oya-check-benchmark,
-  oya-check-documentation (LEAN-A5, per ADR-0063); all 9 architecture-check
-  sub-commands ship in oya-check-architecture (renamed from
-  oya-shared-architecture-check-cli per BNF v4.1) — including the 7 base
-  sub-commands plus canonical-base-neutrality and cross-pack-refusal (per
-  ADR-0064 §7 §8); all 14+ CI lanes run on every PR in --report-only mode (flip
-  to BLOCKER at P22 exit gate); all crates pass cargo check/build/clippy/nextest/deny;
-  grit done on all P20 symbols; ICM phase-complete row emitted.
+entry_gate: "Wave-A phases P01\u2013P11 all complete; at least Wave-B phases P12\u2013\
+  P14 complete (enough\nsubstrate exists to run meaningful statelessness + shardability\
+  \ checks); oya-check-*\nnamespace reserved in [workspace.metadata.oya.microservices];\
+  \ cargo check clean;\nICM phase-handoff rows emitted for all prerequisite phases.\n"
+exit_gate: "All 5 new CI fitness lane binaries operational: oya-check-statelessness,\n\
+  oya-check-shardability, oya-check-perf-budget, oya-check-benchmark,\noya-check-documentation\
+  \ (LEAN-A5, per ADR-0063); all 9 architecture-check\nsub-commands ship in oya-check-architecture\
+  \ (renamed from\noya-shared-architecture-check-cli per BNF v4.1) \u2014 including\
+  \ the 7 base\nsub-commands plus canonical-base-neutrality and cross-pack-refusal\
+  \ (per\nADR-0064 \xA77 \xA78); all 14+ CI lanes run on every PR in --report-only\
+  \ mode (flip\nto BLOCKER at P22 exit gate); all crates pass cargo check/build/clippy/nextest/deny;\n\
+  grit done on all P20 symbols; ICM phase-complete row emitted.\n"
 depends_on:
-  - milestone: M02
-    phase: P01-foundry-engine-consolidation
-    reason: "CI lane binaries are Foundry internal-engine tooling; P01 Foundry engine consolidation must complete first to establish the oya-foundry-* crate namespace and xtask-metadata-augment binary that the fitness lanes call."
+- milestone: M02
+  phase: P01-foundry-engine-consolidation
+  reason: CI lane binaries are Foundry internal-engine tooling; P01 Foundry engine
+    consolidation must complete first to establish the oya-foundry-* crate namespace
+    and xtask-metadata-augment binary that the fitness lanes call.
 owner_team: council-foundry
+purpose: Auto-backfilled purpose for phase-spec.md
 ---
-
 # P20-ci-lanes-operational: New CI Fitness Lanes — Statelessness + Shardability + Perf-Budget + Benchmark + 7 Architecture-Check Sub-Commands
 
 ## Purpose

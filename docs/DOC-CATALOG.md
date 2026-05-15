@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for DOC-CATALOG.md
+---
+
 # Doc Catalog & Update Protocol
 
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
@@ -63,6 +67,11 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |
 |---|---|---|---|---|---|---|---|
 | `doc.masterplan` | `MASTERPLAN.md` | `council-architecture` | master-plan authority or sequencing change | per change + quarterly | PRD.md, DESIGN.md, ROADMAP.md, RACI-OWNERSHIP.md, RISK-REGISTER.md | `master-plan-completion`, `doc-catalog-self-coverage` | NO |
+| `doc.foundry_supervisor_readme` | `docs/foundry/supervisor/README.md` | `axis-foundry` | architecture change | quarterly | RACI-OWNERSHIP.md | `doc-catalog-self-coverage` | YES |
+| `doc.foundry_supervisor_arch` | `docs/foundry/supervisor/architecture.md` | `axis-foundry` | 4-crate boundary change | quarterly | DESIGN.md | `doc-catalog-self-coverage` | NO |
+| `doc.foundry_supervisor_ops` | `docs/foundry/supervisor/operations.md` | `axis-foundry` | signal/lifecycle change | quarterly | - | `doc-catalog-self-coverage` | YES |
+| `doc.foundry_supervisor_security` | `docs/foundry/supervisor/security.md` | `axis-foundry` | secret-ref or tier change | quarterly | SECURITY-PLAN.md | `doc-catalog-self-coverage` | NO |
+| `doc.foundry_supervisor_samples` | `docs/foundry/supervisor/sample-payloads.md` | `axis-foundry` | contract/schema change | quarterly | contracts/ | `doc-catalog-self-coverage` | YES |
 | `doc.constitution` | `CONSTITUTION.md` | `council-architecture` | authority / constitutional contract change | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
 | `doc.agents` | `AGENTS.md` | `axis-foundry` + `council-architecture` | agent operating-contract change | quarterly | CONSTITUTION.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
 | `doc.prd` | `PRD.md` | `council-architecture` | EVT-AXIS-SCOPE-CHANGE, EVT-PRICING-CHANGE, EVT-VERTICAL-ADDED | quarterly | DESIGN.md, ROADMAP.md, GTM-PLAN.md, products/*/PRD.md | `prd-internal-consistency`, `prd-axis-coverage`, `prd-glossary-alignment` | NO — council-only |
@@ -70,6 +79,10 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.spec` | `SPEC.md` | `platform-api-sdk` | EVT-CONTRACT-AUTHORED, EVT-CAPABILITY-AUTHORED, EVT-AXIS-CONTRACT-CHANGE | weekly | DESIGN.md, products/*/PRD.md, machine-readable/contracts.json | `spec-contract-mirror`, `spec-capability-coverage` | YES — agent may auto-PR for additions only; deletions need human review |
 | `doc.roadmap` | `ROADMAP.md` | `tactical-m3-launch` (until [wave name per PRD §3.1]); thereafter rolling | EVT-WAVE-GATE-PASSED, EVT-FOUNDRY-CAPABILITY-PROMOTED, EVT-AUDIT-FINDING (P0/P1) | bi-weekly | PRD.md, batches.json, RISK-REGISTER.md | `roadmap-band-totals`, `roadmap-foundry-batch-shape` | YES — agent may rebalance bands; band-promotion requires human |
 | `doc.adr_index` | `ADR-INDEX.md` | `crew-adr-promotion` | EVT-ADR-AUTHORED, EVT-ADR-PROMOTED | per event | DESIGN.md, machine-readable/decisions.json | `adr-index-completeness`, `adr-supersession-graph` | YES — agent re-emits index from `decisions/` directory |
+| `doc.adr_0096` | `decisions/ADR-0096-supervisor-language-rust-not-node.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0097` | `decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0098` | `decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0099` | `decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_consolidation_plan` | `ADR-CONSOLIDATION-PLAN.md` | `crew-adr-promotion` | ADR consolidation strategy change | per event | ADR-INDEX.md, DESIGN.md | `adr-index-completeness` | NO |
 | `doc.adr_legacy_regression_mapping` | `ADR-LEGACY-REGRESSION-MAPPING.md` | `crew-adr-promotion` | legacy ADR regression discovered or retired | per event | ADR-INDEX.md, DESIGN.md | `adr-index-completeness` | NO |
 | `doc.risk_register` | `RISK-REGISTER.md` | `council-architecture` | EVT-RISK-MATERIALIZED, EVT-INCIDENT-CLOSED, EVT-AUDIT-FINDING | weekly | ROADMAP.md, machine-readable/risks.json | `risk-register-coverage` | YES for low/med; NO for catastrophic |
@@ -136,6 +149,39 @@ Each `products/<product-id>/PRD.md` follows the same pattern with the per-produc
 | `vertical-fintech` | `vertical-fintech` | FSC / KYC standard / NACHA / RTP | monthly | `doc.compliance_matrix` (FSC + PCI), ADR-0027 |
 | `vertical-legal` | `vertical-legal` | corpus update, contract template | quarterly | ADR-0033 |
 | (others) | per-team | scope/regulatory | quarterly | per-team |
+
+### 2.5b Per-product technical documentation (Supervisor Lane)
+
+Foundry supervisor lane documentation: 26 files (5 crates × 5 docs each + 1 overview).
+
+| id | path | owner_team | update_trigger | update_cadence | dependent_docs | validation_check | agent_authoring_allowed |
+|---|---|---|---|---|---|---|---|
+| `doc.supervisor_overview` | `products/foundry/supervisor/README.md` | `axis-foundry` | supervisor architecture change, new crate, new adapter | monthly | all supervisor-* docs | `doc-catalog-self-coverage` | YES |
+| `doc.supervisor_kernel_readme` | `products/foundry/supervisor/supervisor-kernel/README.md` | `axis-foundry` | kernel API change, port trait signature change | monthly | ARCHITECTURE.md, OPERATIONS.md, SECURITY.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
+| `doc.supervisor_kernel_architecture` | `products/foundry/supervisor/supervisor-kernel/ARCHITECTURE.md` | `axis-foundry` | 12-layer placement change, adapter composition change | monthly | README.md, kernel source | `doc-catalog-self-coverage` | YES |
+| `doc.supervisor_kernel_operations` | `products/foundry/supervisor/supervisor-kernel/OPERATIONS.md` | `axis-foundry` | port trait API change, debugging guidance update | quarterly | README.md, ARCHITECTURE.md | `doc-catalog-self-coverage` | YES |
+| `doc.supervisor_kernel_security` | `products/foundry/supervisor/supervisor-kernel/SECURITY.md` | `axis-foundry` | secret handling policy change, Cedar enforcement update | quarterly | README.md, SECURITY-PROGRAM.md | `doc-catalog-self-coverage` | NO |
+| `doc.supervisor_kernel_benchmarks` | `products/foundry/supervisor/supervisor-kernel/BENCHMARKS.md` | `axis-foundry` | perf budget change, benchmark harness update | monthly | README.md, performance regression | `doc-catalog-self-coverage` | YES |
+| `doc.supervisor_app_readme` | `products/foundry/supervisor/supervisor-app/README.md` | `axis-foundry` | daemon API change, config schema change | monthly | ARCHITECTURE.md, OPERATIONS.md, SECURITY.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
+| `doc.supervisor_app_architecture` | `products/foundry/supervisor/supervisor-app/ARCHITECTURE.md` | `axis-foundry` | call chain change, signal handling change, composition change | monthly | README.md, app source | `doc-catalog-self-coverage` | YES |
+| `doc.supervisor_app_operations` | `products/foundry/supervisor/supervisor-app/OPERATIONS.md` | `axis-foundry` | daemon startup procedure change, watchdog tuning guidance update | monthly | README.md, ARCHITECTURE.md | `doc-catalog-self-coverage` | YES |
+| `doc.supervisor_app_security` | `products/foundry/supervisor/supervisor-app/SECURITY.md` | `axis-foundry` | signal safety change, audit conformance change | quarterly | README.md, SECURITY-PROGRAM.md, ADR-0003 | `doc-catalog-self-coverage` | NO |
+| `doc.supervisor_app_benchmarks` | `products/foundry/supervisor/supervisor-app/BENCHMARKS.md` | `axis-foundry` | perf budget change, heartbeat harness update | monthly | README.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
+| `doc.jsonl_adapter_readme` | `products/foundry/supervisor/jsonl-supervisor-adapter/README.md` | `axis-foundry` | adapter API change, file layout change | monthly | ARCHITECTURE.md, OPERATIONS.md, SECURITY.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
+| `doc.jsonl_adapter_architecture` | `products/foundry/supervisor/jsonl-supervisor-adapter/ARCHITECTURE.md` | `axis-foundry` | atomicity model change, fsync placement change | monthly | README.md, adapter source | `doc-catalog-self-coverage` | YES |
+| `doc.jsonl_adapter_operations` | `products/foundry/supervisor/jsonl-supervisor-adapter/OPERATIONS.md` | `axis-foundry` | cleanup procedure change, recovery workflow change | quarterly | README.md, ARCHITECTURE.md | `doc-catalog-self-coverage` | YES |
+| `doc.jsonl_adapter_security` | `products/foundry/supervisor/jsonl-supervisor-adapter/SECURITY.md` | `axis-foundry` | file permissions policy change, race condition mitigation | quarterly | README.md, SECURITY-PROGRAM.md | `doc-catalog-self-coverage` | NO |
+| `doc.jsonl_adapter_benchmarks` | `products/foundry/supervisor/jsonl-supervisor-adapter/BENCHMARKS.md` | `axis-foundry` | I/O latency budget change, fsync cost update | monthly | README.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
+| `doc.settings_template_kernel_readme` | `products/foundry/supervisor/settings-template-kernel/README.md` | `axis-foundry` | SettingsTemplate API change, RendererMode change | monthly | ARCHITECTURE.md, OPERATIONS.md, SECURITY.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
+| `doc.settings_template_kernel_architecture` | `products/foundry/supervisor/settings-template-kernel/ARCHITECTURE.md` | `axis-foundry` | 12-layer placement change, adapter composition change | monthly | README.md, kernel source | `doc-catalog-self-coverage` | YES |
+| `doc.settings_template_kernel_operations` | `products/foundry/supervisor/settings-template-kernel/OPERATIONS.md` | `axis-foundry` | template validation change, drift detection workflow change | quarterly | README.md, ARCHITECTURE.md | `doc-catalog-self-coverage` | YES |
+| `doc.settings_template_kernel_security` | `products/foundry/supervisor/settings-template-kernel/SECURITY.md` | `axis-foundry` | sref:// secret handling policy change, data class change | quarterly | README.md, SECURITY-PROGRAM.md, ADR-0008 | `doc-catalog-self-coverage` | NO |
+| `doc.settings_template_kernel_benchmarks` | `products/foundry/supervisor/settings-template-kernel/BENCHMARKS.md` | `axis-foundry` | template serialization budget change, memoization update | monthly | README.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
+| `doc.settings_template_adapter_readme` | `products/foundry/supervisor/settings-template-adapter/README.md` | `axis-foundry` | renderer API change, atomic write pattern change | monthly | ARCHITECTURE.md, OPERATIONS.md, SECURITY.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
+| `doc.settings_template_adapter_architecture` | `products/foundry/supervisor/settings-template-adapter/ARCHITECTURE.md` | `axis-foundry` | per-provider renderer change, format dialect change, HookEvent mapping | monthly | README.md, adapter source | `doc-catalog-self-coverage` | YES |
+| `doc.settings_template_adapter_operations` | `products/foundry/supervisor/settings-template-adapter/OPERATIONS.md` | `axis-foundry` | render/verify workflow change, reconciliation procedure change | monthly | README.md, ARCHITECTURE.md | `doc-catalog-self-coverage` | YES |
+| `doc.settings_template_adapter_security` | `products/foundry/supervisor/settings-template-adapter/SECURITY.md` | `axis-foundry` | symlink defense change, file permissions change | quarterly | README.md, SECURITY-PROGRAM.md | `doc-catalog-self-coverage` | NO |
+| `doc.settings_template_adapter_benchmarks` | `products/foundry/supervisor/settings-template-adapter/BENCHMARKS.md` | `axis-foundry` | render latency budget change, verify latency budget change | monthly | README.md, BENCHMARKS.md | `doc-catalog-self-coverage` | YES |
 
 ### 2.6 Per-team charters (Layer 4)
 

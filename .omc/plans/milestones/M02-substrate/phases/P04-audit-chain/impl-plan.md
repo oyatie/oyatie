@@ -8,17 +8,17 @@ status: pending
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-P04-audit-chain-substrate: Scaffold 16 audit-chain crates with Merkle/Ed25519 sealer, append-only DDL, KMS bridge
 
 ## Intent

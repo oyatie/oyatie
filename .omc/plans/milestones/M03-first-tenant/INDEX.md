@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for INDEX.md
+---
+
+---
 doc_class: MilestoneIndex
 parent: ../../MASTERPLAN.md
 id: M03-first-tenant

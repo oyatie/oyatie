@@ -7,20 +7,20 @@ impl_plan_id: IP-P08-kms-substrate
 status: pending
 owner: council-architecture
 blocked_by:
-  - impl_plan: IP-P06-secrets-substrate
-    reason: "KMS stores key references in OpenBao via Secrets substrate"
+- impl_plan: IP-P06-secrets-substrate
+  reason: KMS stores key references in OpenBao via Secrets substrate
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-P08-kms-substrate: Scaffold 16 KMS crates with envelope encryption, ML-DSA-87, per-tenant DEK, OCI Vault adapter
 
 ## Intent

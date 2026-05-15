@@ -31,20 +31,21 @@
       "01KRJMZ2KY3V7PRDRYMH9BS9KZ",
       "01KRJN9MX6W8BD8TE87NC5GA37"
     ],
-    "oya_vcs_directive_2026_05_14": "Oya VCS is the provider-neutral, agent-native successor to grit with first-class but replaceable GitHub/GitHub Actions/Trivy/Argo CD adapters, native queue feature parity, semantic ChangeSets, virtual merge stack, queue-aware locks, review/CI fix loops, dev/staging/prod promotion, and Rust compile-latency scheduling."
+    "oya_vcs_directive_2026_05_14": "Oya VCS is the provider-neutral, agent-native successor to grit with first-class but replaceable GitHub/GitHub Actions/Trivy/Argo CD adapters, native queue feature parity, semantic ChangeSets, virtual merge stack, queue-aware locks, review/CI fix loops, dev/staging/prod promotion, and Rust compile-latency scheduling.",
+    "purpose": "Auto-backfilled purpose for masterplan.json"
   },
   "vision": {
-    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent µservices integrated through Workflow and Ontology.",
-    "current_markdown_section": "docs/MASTERPLAN.md §1"
+    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent \u00b5services integrated through Workflow and Ontology.",
+    "current_markdown_section": "docs/MASTERPLAN.md \u00a71"
   },
   "architecture_invariants": [
     {
       "id": "workflow-ontology-adapter-layer",
-      "summary": "All inter-µservice integration flows through Workflow or Ontology; direct cross-µservice calls are refused."
+      "summary": "All inter-\u00b5service integration flows through Workflow or Ontology; direct cross-\u00b5service calls are refused."
     },
     {
       "id": "flat-microservice-catalog",
-      "summary": "No Product Groups, Verticals, or Arms in architecture; every µservice is independently enable-able."
+      "summary": "No Product Groups, Verticals, or Arms in architecture; every \u00b5service is independently enable-able."
     },
     {
       "id": "dependency-seam-discipline",
@@ -318,7 +319,7 @@
     "status": "first-prerequisite-planned-from-approved-ralplan-v5",
     "milestone": "M-CC-cross-cutting",
     "phase": "P00-gitops-vcs-replacement",
-    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev→staging→production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
+    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev\u2192staging\u2192production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
     "must_precede": [
       "M-CC-P01-agentic-pipeline-cutover",
       "broad M01/M02/M03 parallel fan-out"
@@ -1222,7 +1223,7 @@
               {
                 "id": "M-CC-P08-IP-004",
                 "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
-                "title": "SLSA level ≥3 attestation publishing",
+                "title": "SLSA level \u22653 attestation publishing",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -1371,7 +1372,7 @@
               {
                 "id": "M01-P01-IP-003",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-003-dsr-cascade-engine.md",
-                "title": "dsr.cascade.execute ≤30d cascade engine",
+                "title": "dsr.cascade.execute \u226430d cascade engine",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2000,7 +2001,7 @@
               {
                 "id": "M02-P03-IP-002",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/IP-002-foundry-fitness-lane-ratchet.md",
-                "title": "Foundry-fitness lane ratchet (7 lanes WARN→BLOCK)",
+                "title": "Foundry-fitness lane ratchet (7 lanes WARN\u2192BLOCK)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2736,7 +2737,7 @@
             "slug": "P06-workspace-14-surfaces",
             "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces",
             "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/INDEX.md",
-            "title": "Workspace Axis (14 surfaces — Mail, Calendar, Drive, Meet, Chat, +9 more)",
+            "title": "Workspace Axis (14 surfaces \u2014 Mail, Calendar, Drive, Meet, Chat, +9 more)",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 5,
@@ -2840,7 +2841,7 @@
               {
                 "id": "M03-P07-IP-002",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/IP-002-second-pack.md",
-                "title": "Second pack onboarding (JP/US/EU — council-elected)",
+                "title": "Second pack onboarding (JP/US/EU \u2014 council-elected)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2866,7 +2867,7 @@
               {
                 "id": "M03-P08-IP-001",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-001-saas-pairs.md",
-                "title": "SaaS↔Cloud + SaaS↔Search + SaaS↔Agent-runtime contracts",
+                "title": "SaaS\u2194Cloud + SaaS\u2194Search + SaaS\u2194Agent-runtime contracts",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2880,7 +2881,7 @@
               {
                 "id": "M03-P08-IP-002",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-002-cloud-pairs.md",
-                "title": "Cloud↔Agent-runtime + Cloud↔Search + Cloud↔Ads contracts",
+                "title": "Cloud\u2194Agent-runtime + Cloud\u2194Search + Cloud\u2194Ads contracts",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2894,7 +2895,7 @@
               {
                 "id": "M03-P08-IP-003",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-003-search-ads-pairs.md",
-                "title": "Search↔Ads + Search↔Agent-runtime + Ads↔Agent-runtime contracts",
+                "title": "Search\u2194Ads + Search\u2194Agent-runtime + Ads\u2194Agent-runtime contracts",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2908,7 +2909,7 @@
               {
                 "id": "M03-P08-IP-004",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-004-vertical-workspace-pairs.md",
-                "title": "Vertical↔others + Workspace↔others contracts",
+                "title": "Vertical\u2194others + Workspace\u2194others contracts",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3132,7 +3133,7 @@
               {
                 "id": "M04-P02-IP-003",
                 "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/IP-003-kr-vertical-surfaces.md",
-                "title": "KR vertical-specific surfaces (전자세금계산서 / 휴일·야간 근로 / 실명인증 / 사업자등록)",
+                "title": "KR vertical-specific surfaces (\uc804\uc790\uc138\uae08\uacc4\uc0b0\uc11c / \ud734\uc77c\u00b7\uc57c\uac04 \uadfc\ub85c / \uc2e4\uba85\uc778\uc99d / \uc0ac\uc5c5\uc790\ub4f1\ub85d)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",

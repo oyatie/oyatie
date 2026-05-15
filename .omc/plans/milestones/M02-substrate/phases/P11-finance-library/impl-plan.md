@@ -5,8 +5,8 @@ milestone: M02-substrate
 phase: P11-finance-library
 status: Proposed
 depends_on_phase_spec: phase-spec.md
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # P11-finance-library Implementation Plan
 
 ## 0. Grit Claim

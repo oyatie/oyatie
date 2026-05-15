@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for incident-severity.md
+---
+
 # Oyatie — Incident Severity Standard
 
 > **Owner:** TBD per RACI

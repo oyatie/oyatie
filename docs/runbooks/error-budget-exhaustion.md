@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for error-budget-exhaustion.md
+---
+
 # Oyatie Runbook — Error Budget Exhaustion
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

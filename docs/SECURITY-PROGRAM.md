@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for SECURITY-PROGRAM.md
+---
+
 # Oyatie — Security Program
 
 > **Status:** Draft v0.1 — 2026-05-09. Authoritative-deep.

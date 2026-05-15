@@ -6,8 +6,8 @@ title: Oya VCS approved ralplan v5 fold-in
 status: approved-folded
 source_plan: ../../../../ralplan-gitops-vcs-replacement-20260514.md
 source_spec: ../../../../../specs/gitops-vcs-replacement.json
+purpose: Auto-backfilled purpose for plan.md
 ---
-
 # Oya VCS phase charter
 
 ## Mission

@@ -4,22 +4,22 @@
   "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
   "facet": "F3_adversarial",
   "lens": "How would I break this? Did a test actually walk the breaking path? Is there a failing fixture proving the lane catches the violation? Do all branches have at least one test, or only the happy path?",
-  "answer": "The four new pub fn sub-checks (check_rust_default_language, check_naming_convention, check_scorecard_render, check_consensus_debate_evidence) have ZERO adversarial test coverage. All four fixture pairs (rust-default-language, naming-convention, scorecard-render, consensus-debate-evidence) contain only README placeholder files — no actual fixture data, no test that exercises the functions, and no test that asserts a violation is detected. Two of the four functions (rust-default-language, scorecard-render, consensus-debate-evidence) always return SubCheckStatus::NotYetArmed regardless of input, making any future test against them vacuously pass without proving detection. Only check_naming_convention has a live Fail branch, yet no adversarial test exercises it with a known-bad input to confirm the kebab-case violation is caught. The existing adversarial test files (adversarial_evidence_checks.rs, adversarial_seam_imports.rs) cover entirely different sub-checks and do not reference any of the four new functions. Breaking paths are trivially available: (1) drop a file named 'BadCase.json' into specs/cross-cutting and naming-convention silently passes if the live workspace has no such file; (2) add a non-Rust script to scripts/ and rust-default-language reports NotYetArmed regardless, never blocking; (3) evidence/multispectrum/ with meta_review_triggered:true and no matching synthesis is counted but never flagged as Fail; (4) scorecard-render never transitions from NotYetArmed to Fail under any input.",
+  "answer": "The four new pub fn sub-checks (check_rust_default_language, check_naming_convention, check_scorecard_render, check_consensus_debate_evidence) have ZERO adversarial test coverage. All four fixture pairs (rust-default-language, naming-convention, scorecard-render, consensus-debate-evidence) contain only README placeholder files \u2014 no actual fixture data, no test that exercises the functions, and no test that asserts a violation is detected. Two of the four functions (rust-default-language, scorecard-render, consensus-debate-evidence) always return SubCheckStatus::NotYetArmed regardless of input, making any future test against them vacuously pass without proving detection. Only check_naming_convention has a live Fail branch, yet no adversarial test exercises it with a known-bad input to confirm the kebab-case violation is caught. The existing adversarial test files (adversarial_evidence_checks.rs, adversarial_seam_imports.rs) cover entirely different sub-checks and do not reference any of the four new functions. Breaking paths are trivially available: (1) drop a file named 'BadCase.json' into specs/cross-cutting and naming-convention silently passes if the live workspace has no such file; (2) add a non-Rust script to scripts/ and rust-default-language reports NotYetArmed regardless, never blocking; (3) evidence/multispectrum/ with meta_review_triggered:true and no matching synthesis is counted but never flagged as Fail; (4) scorecard-render never transitions from NotYetArmed to Fail under any input.",
   "key_claims": [
-    "All four new pub fn sub-checks have no test coverage of any kind — neither happy-path nor adversarial.",
+    "All four new pub fn sub-checks have no test coverage of any kind \u2014 neither happy-path nor adversarial.",
     "All four fixture/passing and fixture/failing directories contain only README stub files, not actual fixture content.",
-    "check_rust_default_language always returns NotYetArmed — no input can cause it to fail; the lane cannot catch any violation today.",
-    "check_scorecard_render always returns NotYetArmed — same structural problem.",
-    "check_consensus_debate_evidence always returns NotYetArmed — it counts meta_review_triggered files and synthesis files but never compares them and never sets Fail.",
+    "check_rust_default_language always returns NotYetArmed \u2014 no input can cause it to fail; the lane cannot catch any violation today.",
+    "check_scorecard_render always returns NotYetArmed \u2014 same structural problem.",
+    "check_consensus_debate_evidence always returns NotYetArmed \u2014 it counts meta_review_triggered files and synthesis files but never compares them and never sets Fail.",
     "check_naming_convention has a reachable Fail branch (violations non-empty) but no adversarial test exercises it with a synthetic workspace containing a known-bad filename.",
-    "The naming-convention check only scans one level deep (std::fs::read_dir, no recursion), so a violation nested one directory deeper is silently missed — no test probes this boundary.",
-    "The meta_review_triggered string match is whitespace-sensitive: 'meta_review_triggered: true' (space after colon) is matched but 'meta_review_triggered :true' (space before colon) is not — no test probes this edge.",
+    "The naming-convention check only scans one level deep (std::fs::read_dir, no recursion), so a violation nested one directory deeper is silently missed \u2014 no test probes this boundary.",
+    "The meta_review_triggered string match is whitespace-sensitive: 'meta_review_triggered: true' (space after colon) is matched but 'meta_review_triggered :true' (space before colon) is not \u2014 no test probes this edge.",
     "The existing adversarial test files cover check_seam_imports and check_change_class_declared only; the four new functions are entirely absent from both files."
   ],
   "uncertainty_areas": [
-    "Whether the fixture-pair-coverage sub-check itself asserts that passing/ and failing/ contain real fixture data (vs. just that the directories exist) — if it only checks directory presence, README stubs satisfy it and the gap is silent.",
-    "Whether FixupTask F-LANE-RUST-DEFAULT-ENFORCE is scheduled to run before any CI gate that would block merges — if enforcement is post-merge, the NotYetArmed status provides no protection in the interim.",
-    "Whether check_naming_convention's single-level scan is intentional (top-level only per doc comment) or an oversight — the doc says 'canonical durable homes' which may imply top-level only, but the risk of deep violations exists."
+    "Whether the fixture-pair-coverage sub-check itself asserts that passing/ and failing/ contain real fixture data (vs. just that the directories exist) \u2014 if it only checks directory presence, README stubs satisfy it and the gap is silent.",
+    "Whether FixupTask F-LANE-RUST-DEFAULT-ENFORCE is scheduled to run before any CI gate that would block merges \u2014 if enforcement is post-merge, the NotYetArmed status provides no protection in the interim.",
+    "Whether check_naming_convention's single-level scan is intentional (top-level only per doc comment) or an oversight \u2014 the doc says 'canonical durable homes' which may imply top-level only, but the risk of deep violations exists."
   ],
   "anti_patterns_detected": [
     "happy-path-only-tests",
@@ -28,14 +28,15 @@
   "failing_fixture_added": false,
   "passing_fixture_id": null,
   "failing_fixture_id": null,
-  "diagnostic_asserted": "All four new sub-checks lack any test — adversarial or otherwise. Three of four (rust-default-language, scorecard-render, consensus-debate-evidence) are structurally untestable for failure because they always return NotYetArmed. Only check_naming_convention has a live Fail branch, but no test exercises it.",
+  "diagnostic_asserted": "All four new sub-checks lack any test \u2014 adversarial or otherwise. Three of four (rust-default-language, scorecard-render, consensus-debate-evidence) are structurally untestable for failure because they always return NotYetArmed. Only check_naming_convention has a live Fail branch, but no test exercises it.",
   "breaking_paths_walked": [
     "check_rust_default_language: add scripts/setup.py to a synthetic workspace -> function returns NotYetArmed regardless, violation is not surfaced as Fail; lane is inert.",
     "check_naming_convention: add a file named 'BadCase.json' to specs/cross-cutting in a synthetic workspace -> function correctly returns Fail, but NO test proves this; the branch is reachable but untested.",
-    "check_naming_convention: depth-1 scan only — add 'BadCase.json' inside specs/cross-cutting/subdir/ -> silently passes; boundary never tested.",
+    "check_naming_convention: depth-1 scan only \u2014 add 'BadCase.json' inside specs/cross-cutting/subdir/ -> silently passes; boundary never tested.",
     "check_scorecard_render: add a JSON file to evidence/multispectrum lacking 'change_class_id' key -> function returns NotYetArmed regardless, not Fail; lane never blocks.",
     "check_consensus_debate_evidence: add evidence file with meta_review_triggered:true and no matching synthesis -> function counts the imbalance but returns NotYetArmed, not Fail; the intended enforcement gate does not fire.",
     "check_consensus_debate_evidence: meta_review_triggered string with non-standard whitespace (e.g., 'meta_review_triggered : true') -> missed by the two-variant string-contains check; boundary never tested."
   ],
-  "spectrum_lens_directive_compliance": "single-facet-only-reviewed"
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "Auto-backfilled purpose for TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-F3_adversarial-r1.json"
 }

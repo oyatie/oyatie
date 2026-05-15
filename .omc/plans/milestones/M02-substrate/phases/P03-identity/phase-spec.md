@@ -5,21 +5,22 @@ milestone: M02-substrate
 phase: P03-identity
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; oya-tenancy-kernel ships (TenantId type available);
-  Postgres 16 with pgcrypto available; cargo check --workspace exits 0.
-exit_gate: |
-  All identity crates compile; migrations/V001__identity_init.sql applied;
-  RLS policies verified on all 6 tenant-scoped tables; auth flows (OIDC +
-  passkey + MFA) compile; Cedar policy lints; Protobuf compiles; k6 smoke
-  p99≤200ms on session creation; grit done on all symbols; ICM row emitted.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "TenantId type + workspace scaffold prerequisite"
-owner_team: council-architecture
----
+entry_gate: 'M01-P05 complete; oya-tenancy-kernel ships (TenantId type available);
 
+  Postgres 16 with pgcrypto available; cargo check --workspace exits 0.
+
+  '
+exit_gate: "All identity crates compile; migrations/V001__identity_init.sql applied;\n\
+  RLS policies verified on all 6 tenant-scoped tables; auth flows (OIDC +\npasskey\
+  \ + MFA) compile; Cedar policy lints; Protobuf compiles; k6 smoke\np99\u2264200ms\
+  \ on session creation; grit done on all symbols; ICM row emitted.\n"
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: TenantId type + workspace scaffold prerequisite
+owner_team: council-architecture
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P03-identity: Full Identity substrate — users, persons, organizations, employees, employments, sessions, mfa, passkeys
 
 ## Purpose

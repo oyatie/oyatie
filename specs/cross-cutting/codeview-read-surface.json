@@ -71,5 +71,6 @@
       "token": "manual-rebase",
       "reason": "Rebase/merge/done state must be owned by grit done or GitOps promotion."
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for codeview-read-surface.json"
 }

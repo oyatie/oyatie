@@ -5,21 +5,28 @@ milestone: M02-substrate
 phase: P07-observability
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; oya-tenancy-kernel ships; OpenTelemetry SDK available
-  as workspace dependency; VictoriaMetrics reachable in dev; cargo check exits 0.
-exit_gate: |
-  All observability crates compile; OTel trace exporter wired; structured JSON
-  logs emit tenant_id + trace_id on every request; p50/p99/p999 histogram
-  metrics exported; Grafana dashboard JSON committed; per-tenant partitioning
-  verified; grit done; ICM row emitted.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "workspace scaffold prerequisite"
-owner_team: council-architecture
----
+entry_gate: 'M01-P05 complete; oya-tenancy-kernel ships; OpenTelemetry SDK available
 
+  as workspace dependency; VictoriaMetrics reachable in dev; cargo check exits 0.
+
+  '
+exit_gate: 'All observability crates compile; OTel trace exporter wired; structured
+  JSON
+
+  logs emit tenant_id + trace_id on every request; p50/p99/p999 histogram
+
+  metrics exported; Grafana dashboard JSON committed; per-tenant partitioning
+
+  verified; grit done; ICM row emitted.
+
+  '
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: workspace scaffold prerequisite
+owner_team: council-architecture
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P07-observability: Observability substrate — OpenTelemetry SDK, VictoriaMetrics, structured JSON logs, Prometheus→Grafana, per-tenant partitioning
 
 ## Purpose

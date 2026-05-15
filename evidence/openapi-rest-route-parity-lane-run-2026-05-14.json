@@ -1,7 +1,10 @@
 {
   "$schema_ref": "/templates/evidence-bundle-template.json",
   "_artifact_id": "openapi-rest-route-parity-lane-run",
-  "_meta": { "emitter": "oya-dev-cli gate validate openapi-rest-route-parity" },
+  "_meta": {
+    "emitter": "oya-dev-cli gate validate openapi-rest-route-parity",
+    "purpose": "Auto-backfilled purpose for openapi-rest-route-parity-lane-run-2026-05-14.json"
+  },
   "outcome": "success",
   "rest_route_count": 6,
   "openapi_path_count": 6,

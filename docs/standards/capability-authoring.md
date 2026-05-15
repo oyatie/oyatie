@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for capability-authoring.md
+---
+
 # Oyatie — Foundry Capability Authoring Standard
 
 > **Owner:** `axis-foundry`.

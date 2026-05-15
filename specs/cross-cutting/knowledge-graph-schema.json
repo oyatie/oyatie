@@ -25,7 +25,8 @@
       "docs/decisions/ADR-0015-architectural-flattening-target.md"
     ],
     "enforcing_fitness_lane": "lean-a-knowledge-graph-integrity",
-    "validator_crate": "crates/oya-check-knowledge-graph (planned)"
+    "validator_crate": "crates/oya-check-knowledge-graph (planned)",
+    "purpose": "Auto-backfilled purpose for knowledge-graph-schema.json"
   },
   "type": "object",
   "required": [

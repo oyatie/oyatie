@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-streaming-dp-reports.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P04-IP-002

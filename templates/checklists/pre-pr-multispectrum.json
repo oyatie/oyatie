@@ -17,9 +17,9 @@
       "change_classes_registry": "/specs/cross-cutting/multispectrum-review.json#change_classes",
       "rigor_matrix": "/specs/cross-cutting/multispectrum-review.json#change_classes.*.rigor_per_facet",
       "iterative_fix_loop": "/specs/cross-cutting/iterative-fix-loop.json"
-    }
+    },
+    "purpose": "Auto-backfilled purpose for pre-pr-multispectrum.json"
   },
-
   "instructions_for_agent": {
     "step_1_declare_change_class": "Set fields.change_class_id to ONE of CC-1..CC-7. Lane refuses if absent or non-canonical.",
     "step_2_capture_context": "Fill git_sha (40-char HEAD SHA), freshness_unix (current epoch seconds), session_id, multispectrum_spec_version.",
@@ -29,22 +29,20 @@
     "step_6_submit": "Write filled instance to /evidence/multispectrum/<change_id>-<unix_ts>.json. Run `cargo run -p oya-check-dependency-seam -- --mode=composite --offline`. Lane must exit 0.",
     "step_7_close_claim": "Only after lane exit 0: `grit done --agent <id>` (closes claim; promotion path per ADR-0054)."
   },
-
   "template_instance": {
-    "change_id": "<REQUIRED — e.g., M-CC-P06-IP-002-PHASE-N>",
-    "change_summary": "<REQUIRED — one paragraph: what changed and why>",
-    "change_class_id": "<REQUIRED — one of CC-1_kernel_public_api | CC-2_adapter_or_infrastructure | CC-3_application_or_domain | CC-4_refactor_pure | CC-5_doc_only | CC-6_generated_or_vendored | CC-7_test_or_fixture>",
-    "git_sha": "<REQUIRED — 40-char SHA of HEAD at evidence emit time>",
-    "freshness_unix": "<REQUIRED — integer epoch seconds>",
-    "session_id": "<REQUIRED — session UUID or agent id>",
+    "change_id": "<REQUIRED \u2014 e.g., M-CC-P06-IP-002-PHASE-N>",
+    "change_summary": "<REQUIRED \u2014 one paragraph: what changed and why>",
+    "change_class_id": "<REQUIRED \u2014 one of CC-1_kernel_public_api | CC-2_adapter_or_infrastructure | CC-3_application_or_domain | CC-4_refactor_pure | CC-5_doc_only | CC-6_generated_or_vendored | CC-7_test_or_fixture>",
+    "git_sha": "<REQUIRED \u2014 40-char SHA of HEAD at evidence emit time>",
+    "freshness_unix": "<REQUIRED \u2014 integer epoch seconds>",
+    "session_id": "<REQUIRED \u2014 session UUID or agent id>",
     "multispectrum_spec_version": "1.0.0",
-
     "facets": {
       "F1_linus": {
-        "considered": "<bool — true | false>",
+        "considered": "<bool \u2014 true | false>",
         "not_applicable_reason": "<required if considered=false>",
         "findings": [
-          "<string — each finding for special cases / data structure essentialness / redundant state>"
+          "<string \u2014 each finding for special cases / data structure essentialness / redundant state>"
         ],
         "fixuptasks": [
           "<F-<SHORT>-<n> bounded id; cited in IP markdown or follow-up registry>"
@@ -59,14 +57,14 @@
       },
       "F3_adversarial": {
         "considered": "<bool>",
-        "failing_fixture_added": "<bool — required true for CC-1 and CC-7 lane sub-checks>",
-        "passing_fixture_id": "<string — e.g., crate::tests::passing_case>",
-        "failing_fixture_id": "<string — e.g., crate::tests::violation_case OR fixture directory path>",
-        "diagnostic_asserted": "<string — the specific error/panic/diagnostic the failing fixture asserts>"
+        "failing_fixture_added": "<bool \u2014 required true for CC-1 and CC-7 lane sub-checks>",
+        "passing_fixture_id": "<string \u2014 e.g., crate::tests::passing_case>",
+        "failing_fixture_id": "<string \u2014 e.g., crate::tests::violation_case OR fixture directory path>",
+        "diagnostic_asserted": "<string \u2014 the specific error/panic/diagnostic the failing fixture asserts>"
       },
       "F4_ergonomic": {
         "considered": "<bool>",
-        "new_contributor_minutes_estimate": "<integer — <=15 for CC-1, <=30 for CC-2>",
+        "new_contributor_minutes_estimate": "<integer \u2014 <=15 for CC-1, <=30 for CC-2>",
         "findings": []
       },
       "F5_quality": {
@@ -77,17 +75,17 @@
       "F6_alternatives": {
         "considered": "<bool>",
         "alternatives_named": [
-          "<string — at least 1 required; each describes a real alternative considered>"
+          "<string \u2014 at least 1 required; each describes a real alternative considered>"
         ],
-        "selected_rationale": "<string — why the chosen path>",
+        "selected_rationale": "<string \u2014 why the chosen path>",
         "rejected_reasons": [
-          "<string — one per non-selected alternative>"
+          "<string \u2014 one per non-selected alternative>"
         ]
       },
       "F7_security": {
         "considered": "<bool>",
-        "owasp_class_review": "<enum — dos | injection | broken_access | sensitive_data | crypto | xxe | deserialization | configuration | component_vuln | logging | none_applicable>",
-        "severity_max": "<enum — none | low | medium | high | critical>",
+        "owasp_class_review": "<enum \u2014 dos | injection | broken_access | sensitive_data | crypto | xxe | deserialization | configuration | component_vuln | logging | none_applicable>",
+        "severity_max": "<enum \u2014 none | low | medium | high | critical>",
         "secrets_touched": "<bool>",
         "tenant_data_touched": "<bool>",
         "audit_chain_emission_required": "<bool>",
@@ -101,10 +99,12 @@
         ]
       }
     },
-
     "iterative_fix_loop_evidence": {
       "iteration_count": "<integer 0..20>",
-      "states_visited": ["initial-review", "..."],
+      "states_visited": [
+        "initial-review",
+        "..."
+      ],
       "final_state": "<all-facets-green | human-escalation-required>",
       "fixtures_added": [
         {
@@ -117,7 +117,6 @@
       "escalation_reason": "<required when final_state == human-escalation-required>",
       "duration_seconds": "<integer or null>"
     },
-
     "mandatory_artifacts": {
       "_describes": "Populate the subset matching the declared change_class per /specs/cross-cutting/multispectrum-review.json#change_classes.*.mandatory_artifacts",
       "adr_cite": "<docs/decisions/ADR-<NNNN>-<slug>.md>",
@@ -132,25 +131,22 @@
       "supply_chain_scan_result": "<path for CC-6>",
       "fixture_pair_path": "<path/to/passing/+ path/to/failing for CC-7>"
     },
-
     "decision_log_row": "<one-line Linus-style: special cases eliminated, rejected antipatterns, why this changeset chose what it chose>"
   },
-
   "lane_validation_rules": {
     "syntactic": "Instance MUST validate against /specs/cross-cutting/multispectrum-review.json#evidence_schema. Missing required fields = REJECT.",
     "rigor_matrix": "For each facet, depth = /specs/cross-cutting/multispectrum-review.json#change_classes[change_class_id].rigor_per_facet[facet_id]. 'deep' requires findings.length >= 1 OR null_finding_reason set. 'scan' requires considered = true. 'skip' requires considered = false AND not_applicable_reason set.",
-    "adversarial_fixture_requirement": "If change_class_id ∈ {CC-1, CC-7}, F3.failing_fixture_added MUST be true.",
+    "adversarial_fixture_requirement": "If change_class_id \u2208 {CC-1, CC-7}, F3.failing_fixture_added MUST be true.",
     "alternative_minimum": "F6.alternatives_named.length MUST be >= 1.",
     "freshness": "freshness_unix MUST be within 24 hours of lane invocation time (prevents stale evidence reuse).",
     "git_sha_match": "git_sha MUST match HEAD at lane invocation (prevents evidence pre-baking before actual change)."
   },
-
   "decision_log": [
     {
       "when": "2026-05-14",
       "who": "claude-mcc-p06-ip-002",
       "what_changed": "Pre-PR checklist converted from human markdown to machine-readable JSON template",
-      "why": "User directive 2026-05-14: 'we are prioritizing machine readable / machine optimized files. minimize markdowns when it makes sense.' Pre-PR checklist is a fillable form consumed by the seam lane — JSON is the correct shape. The markdown version at /templates/checklists/pre-pr-multispectrum.md is RETIRED for tool consumption (kept temporarily as human onboarding gateway; remove when authors are familiar)."
+      "why": "User directive 2026-05-14: 'we are prioritizing machine readable / machine optimized files. minimize markdowns when it makes sense.' Pre-PR checklist is a fillable form consumed by the seam lane \u2014 JSON is the correct shape. The markdown version at /templates/checklists/pre-pr-multispectrum.md is RETIRED for tool consumption (kept temporarily as human onboarding gateway; remove when authors are familiar)."
     }
   ]
 }

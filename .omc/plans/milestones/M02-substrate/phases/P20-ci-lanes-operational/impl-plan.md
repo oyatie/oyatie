@@ -8,13 +8,13 @@ status: pending
 owner: council-foundry
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-ci-lanes-statelessness-shardability: Implement oya-check-statelessness + oya-check-shardability CLI Binaries
 
 ## Intent

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for QA-TEST-STRATEGY.md
+---
+
 # Oyatie — QA + Test Strategy
 
 > **Status:** Draft v0.1 — 2026-05-09.

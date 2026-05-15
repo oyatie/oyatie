@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-auction-bidding.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P01-IP-001

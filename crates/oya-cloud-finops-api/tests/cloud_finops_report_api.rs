@@ -250,7 +250,7 @@ fn finops_report_api_generates_report_once_and_replays_same_idempotent_result() 
     assert_eq!(first.data.axis_costs.len(), 2);
     assert_eq!(first.data.resource_costs.len(), 2);
     assert_eq!(first.data.recommendations.len(), first.data.anomalies.len());
-    assert_eq!(first.data.data_class, "FINANCIAL_KR_신용정보");
+    assert_eq!(first.data.data_class, "FINANCIAL_KR");
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(
         first

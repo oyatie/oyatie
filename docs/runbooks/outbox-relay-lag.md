@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for outbox-relay-lag.md
+---
+
 # Oyatie Runbook — Outbox Relay Lag
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-pgroonga-morphology.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P05-IP-001

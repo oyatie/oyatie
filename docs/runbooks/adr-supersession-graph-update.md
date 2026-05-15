@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for adr-supersession-graph-update.md
+---
+
 # Oyatie Runbook — Adr Supersession Graph Update
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

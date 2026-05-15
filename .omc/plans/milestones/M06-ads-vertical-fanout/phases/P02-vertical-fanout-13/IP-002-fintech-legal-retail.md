@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-fintech-legal-retail.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P02-IP-002

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for code-review.md
+---
+
 # Oyatie — Code Review Standard
 
 > **Status:** Draft v0.1 — 2026-05-09.

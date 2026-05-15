@@ -18,8 +18,8 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "rtk cargo build -p oya-connect-mail-domain 2>&1 | tail -5",
-    "testCommand": "rtk cargo test -p oya-foundry-vcs-kernel --quiet 2>&1 | tail -5",
+    "buildCommand": "rtk cargo build -p oya-foundry-settings-template-kernel 2>&1",
+    "testCommand": "rtk cargo test -p oya-foundry-supervisor-kernel && rtk cargo test -p oya-foundry-settings-template-kernel 2>&1",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
@@ -136,26 +136,26 @@
   "hotPaths": [
     {
       "path": "Cargo.toml",
-      "accessCount": 60,
-      "lastAccessed": 1778810823817,
+      "accessCount": 74,
+      "lastAccessed": 1778825146430,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-account-kernel/src/lib.rs",
+      "accessCount": 12,
+      "lastAccessed": 1778818099551,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-account-adapter-openbao/src/lib.rs",
+      "accessCount": 12,
+      "lastAccessed": 1778825231314,
       "type": "file"
     },
     {
       "path": "crates/oya-foundry-account-domain/src/lib.rs",
       "accessCount": 10,
       "lastAccessed": 1778810820739,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-foundry-account-kernel/src/lib.rs",
-      "accessCount": 8,
-      "lastAccessed": 1778810820319,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-foundry-account-adapter-openbao/src/lib.rs",
-      "accessCount": 8,
-      "lastAccessed": 1778813023280,
       "type": "file"
     },
     {
@@ -172,8 +172,14 @@
     },
     {
       "path": "crates/oya-foundry-account-kernel/Cargo.toml",
-      "accessCount": 5,
-      "lastAccessed": 1778791301978,
+      "accessCount": 6,
+      "lastAccessed": 1778817567039,
+      "type": "file"
+    },
+    {
+      "path": ".claude/settings.local.json",
+      "accessCount": 4,
+      "lastAccessed": 1778825366074,
       "type": "file"
     },
     {
@@ -210,12 +216,6 @@
       "path": "scripts/check.sh",
       "accessCount": 3,
       "lastAccessed": 1778801638375,
-      "type": "file"
-    },
-    {
-      "path": ".claude/settings.local.json",
-      "accessCount": 2,
-      "lastAccessed": 1778745260025,
       "type": "file"
     },
     {
@@ -258,6 +258,18 @@
       "path": "docs/templates/catalog-record-template.yaml",
       "accessCount": 2,
       "lastAccessed": 1778795118078,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-dashboard-kernel/src/lib.rs",
+      "accessCount": 2,
+      "lastAccessed": 1778815678035,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-account-app/src/lib.rs",
+      "accessCount": 2,
+      "lastAccessed": 1778825477004,
       "type": "file"
     },
     {
@@ -372,18 +384,6 @@
       "path": "registry/catalog/oya-foundry-runbook-freshness-kernel.yaml",
       "accessCount": 1,
       "lastAccessed": 1778791255951,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-foundry-account-app/src/lib.rs",
-      "accessCount": 1,
-      "lastAccessed": 1778791265017,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-foundry-dashboard-kernel/src/lib.rs",
-      "accessCount": 1,
-      "lastAccessed": 1778791271113,
       "type": "file"
     },
     {

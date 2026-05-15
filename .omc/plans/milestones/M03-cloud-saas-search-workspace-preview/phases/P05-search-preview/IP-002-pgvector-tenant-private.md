@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-pgvector-tenant-private.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P05-IP-002

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for foundry-model-lora-adapter-rollback.md
+---
+
 # Oyatie Runbook — Foundry Model Lora Adapter Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

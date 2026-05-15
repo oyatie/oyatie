@@ -1,3 +1,16 @@
+---
+purpose: Auto-backfilled purpose for CHANGELOG.md
+---
+
+## 2026-05-15 — M02-P06 Foundry Supervisor implementation complete
+
+- Implemented the Foundry Supervisor daemon with hyperscaler-grade safety: atomic configuration writes (tempfile + fchmod 0600 + rename), symlink defense (O_NOFOLLOW), and automatic timestamped backups.
+- Delivered the 4-crate core decomposition (supervisor-kernel, supervisor-app, jsonl-supervisor-adapter, supervisor-conformance) and the 2-crate settings-template expansion (settings-template-kernel, settings-template-adapter).
+- Hardened the supervisor orchestration loop with ADR-0003 audit paths, data_class annotations, zero-unwrap error handling, and a 17-step tick_once cycle including saturation checks and silent-switch guards.
+- Integrated real CLI drivers for Claude, Codex, and Gemini with template-driven settings drift detection and a minimum-eligible-account "blackhole" defense.
+- Established the full documentation suite (README, Architecture, Operations, Security, Sample Payloads) and a lifecycle management runbook (RB-SUPERVISOR-001).
+- Updated ADR-INDEX and DOC-CATALOG with 7 new ADRs (0096-0102) and 5 new doc surfaces; 2400/2400 workspace tests pass.
+
 ## 2026-05-14 — P01 foundation full-check closeout
 
 - Promoted the P01 closeout evidence from standalone-gate green to full `./scripts/check.sh` green under Rust 1.95.0 / edition 2024 / rustfmt 2024.

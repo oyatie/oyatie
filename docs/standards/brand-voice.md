@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for brand-voice.md
+---
+
 # Oyatie — Brand Voice Standard
 
 > **Owner:** TBD per RACI

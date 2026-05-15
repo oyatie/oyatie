@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for regulator-evidence-pack-regen.md
+---
+
 # Oyatie Runbook — Regulator Evidence Pack Regen
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

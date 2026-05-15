@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for on-call-handover.md
+---
+
 # Oyatie Runbook — On Call Handover
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

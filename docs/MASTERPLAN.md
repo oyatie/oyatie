@@ -5,24 +5,27 @@ length_cap: 800
 authority_tier: 0
 status: Accepted
 date: 2026-05-13
-owners: ["council-architecture"]
+owners:
+- council-architecture
 canonical_authority: docs/CONSTITUTION.md
 companion_docs:
-  - docs/PRD.md
-  - docs/DESIGN.md
-  - docs/ROADMAP.md
-  - docs/RACI-OWNERSHIP.md
-  - docs/RISK-REGISTER.md
-  - docs/CHANGELOG.md
-authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class files > working drafts
-foundation_adrs:
-  - ADR-0052
-  - ADR-0053
-  - ADR-0054
-  - ADR-0056
----
+- docs/PRD.md
+- docs/DESIGN.md
+- docs/ROADMAP.md
+- docs/RACI-OWNERSHIP.md
+- docs/RISK-REGISTER.md
+- docs/CHANGELOG.md
+authority_chain_declaration: 'docs/CONSTITUTION.md > rest of docs/ > catalog records
+  > Redirect-class files > working drafts
 
+  '
+foundation_adrs:
+- ADR-0052
+- ADR-0053
+- ADR-0054
+- ADR-0056
+purpose: Auto-backfilled purpose for MASTERPLAN.md
+---
 # Oyatie — MASTERPLAN
 
 ## §Authority-anchor — [CONSTITUTION.md](CONSTITUTION.md)

@@ -88,5 +88,6 @@
     "clean": true,
     "reviewer": "codex native code-reviewer 019e273b-43b9-7502-b03a-8f25ea72509c",
     "summary": "Final review approved; Cedar semver, tenant/global scope, supersession chain, active-only authorization, API/domain architecture, and evidence parity are clear."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for m01-p02-ip-003-cedar-policy-substrate.json"
 }

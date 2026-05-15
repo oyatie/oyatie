@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for GLOSSARY.md
+---
+
 # Oyatie — Glossary, Vocabulary, Conventions
 
 > **Status:** Draft v0.1 — 2026-05-09. Single source of truth for terminology across all consolidated docs, per-product PRDs, ADRs, code comments, PR descriptions, and customer-facing material.

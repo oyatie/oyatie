@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for machine-readable-mirror-regenerate.md
+---
+
 # Oyatie Runbook — Machine Readable Mirror Regenerate
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

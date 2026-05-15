@@ -103,30 +103,21 @@ pub fn parse_top_level_object(raw: &str) -> BTreeMap<String, JsonValueKind> {
             return out;
         }
         let kind = match bytes[i] {
-            b't' => {
-                if i + 4 <= bytes.len() && &bytes[i..i + 4] == b"true" {
-                    i += 4;
-                    JsonValueKind::BoolTrue
-                } else {
-                    return out;
-                }
+            b't' if i + 4 <= bytes.len() && &bytes[i..i + 4] == b"true" => {
+                i += 4;
+                JsonValueKind::BoolTrue
             }
-            b'f' => {
-                if i + 5 <= bytes.len() && &bytes[i..i + 5] == b"false" {
-                    i += 5;
-                    JsonValueKind::BoolFalse
-                } else {
-                    return out;
-                }
+            b't' => return out,
+            b'f' if i + 5 <= bytes.len() && &bytes[i..i + 5] == b"false" => {
+                i += 5;
+                JsonValueKind::BoolFalse
             }
-            b'n' => {
-                if i + 4 <= bytes.len() && &bytes[i..i + 4] == b"null" {
-                    i += 4;
-                    JsonValueKind::Null
-                } else {
-                    return out;
-                }
+            b'f' => return out,
+            b'n' if i + 4 <= bytes.len() && &bytes[i..i + 4] == b"null" => {
+                i += 4;
+                JsonValueKind::Null
             }
+            b'n' => return out,
             b'"' => {
                 i += 1;
                 while i < bytes.len() && bytes[i] != b'"' {
@@ -422,19 +413,10 @@ pub fn extract_string_array(raw: &str, parent_key: &str) -> Vec<String> {
                 match bytes[i] {
                     b',' | b']' if depth_obj == 0 && depth_arr == 0 => break,
                     b'{' => depth_obj += 1,
-                    b'}' => {
-                        if depth_obj > 0 {
-                            depth_obj -= 1
-                        }
-                    }
+                    b'}' => depth_obj = depth_obj.saturating_sub(1),
                     b'[' => depth_arr += 1,
-                    b']' => {
-                        if depth_arr > 0 {
-                            depth_arr -= 1
-                        } else {
-                            break;
-                        }
-                    }
+                    b']' if depth_arr > 0 => depth_arr -= 1,
+                    b']' => break,
                     b'"' => {
                         // skip nested string
                         i += 1;
@@ -496,7 +478,12 @@ mod tests {
             "{ \t\"meta_review_triggered\" \t: \t true \t}",
         ] {
             let m = parse_top_level_object(raw);
-            assert_eq!(m.get("meta_review_triggered"), Some(&JsonValueKind::BoolTrue), "raw: {:?}", raw);
+            assert_eq!(
+                m.get("meta_review_triggered"),
+                Some(&JsonValueKind::BoolTrue),
+                "raw: {:?}",
+                raw
+            );
         }
     }
 
@@ -566,7 +553,10 @@ mod tests {
         let raw = r#"{"facets":{"F1_linus":{"id":"F1"},"F2_hyperscaler":{"id":"F2"}}}"#;
         let mut keys = extract_object_keys(raw, "facets");
         keys.sort();
-        assert_eq!(keys, vec!["F1_linus".to_string(), "F2_hyperscaler".to_string()]);
+        assert_eq!(
+            keys,
+            vec!["F1_linus".to_string(), "F2_hyperscaler".to_string()]
+        );
     }
 
     #[test]

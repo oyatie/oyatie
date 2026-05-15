@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-slsa-attestation.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-004

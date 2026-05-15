@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-per-vertical-regulator.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P03-IP-002

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for break-glass-with-evidence.md
+---
+
 # Oyatie Runbook — Break Glass With Evidence
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

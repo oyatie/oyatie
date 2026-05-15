@@ -71,5 +71,6 @@
     "issue": "Terminal states were not absorbing before lock release.",
     "fix": "reduce_terminal_state now rejects non-ReleaseLock events after terminal_state is set with TerminalStateTransitionRejected; regression added for rejected/merged states.",
     "verification": "rustfmt pass; targeted rustc -D warnings IP-007 tests pass: 7 passed; 0 failed"
-  }
+  },
+  "purpose": "Auto-backfilled purpose for ip-007-review-mergequeue.json"
 }

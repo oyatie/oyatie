@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for per-cell-hsm-rotation.md
+---
+
 # Oyatie Runbook — Per Cell Hsm Rotation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -78,5 +78,6 @@
       "icm_id": "01KRKKZKEJ4HHGD505NNSMD15F",
       "summary": "Closed code-review blocker by rejecting rotation from a not-yet-active previous STS record."
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for m01-p02-ip-002-sts-rotation.json"
 }

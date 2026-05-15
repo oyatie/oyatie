@@ -3,25 +3,25 @@
   "round": 1,
   "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
   "facet": "F5_quality",
-  "lens": "Quality critique — code-shape issues in touched files independent of stated goal",
+  "lens": "Quality critique \u2014 code-shape issues in touched files independent of stated goal",
   "answer": "The four new sub-checks are uniform in shape and avoid panics, but they exhibit a recurring quality smell: silent error drops via `if let Ok(...)` on every filesystem call, with no distinction between 'directory absent' (legitimate) and 'I/O error' (should surface). They also use substring matching on raw JSON text as a proxy for semantic checks, which is an approximate algorithm where exact parsing is feasible and where the docstrings imply exactness. `check_naming_convention` silently caps reported violations at 10 without signalling truncation, and `check_rust_default_language` non-recursively scans only the top of `scripts/` despite the doc saying 'scan scripts/'. Status semantics are also inconsistent: `check_naming_convention` returns Pass/Fail while the other three siblings always return NotYetArmed, contradicting their shared 'Day-1 report-only stub' docstrings.",
   "key_claims": [
-    "All four functions silently swallow std::fs errors via `if let Ok(entries) = read_dir(...)`; a permission error or transient I/O failure is indistinguishable from an empty/missing directory and the sub-check still reports Pass/NotYetArmed — this is a silent-data-drop pattern in a check lane whose job is to surface conditions.",
+    "All four functions silently swallow std::fs errors via `if let Ok(entries) = read_dir(...)`; a permission error or transient I/O failure is indistinguishable from an empty/missing directory and the sub-check still reports Pass/NotYetArmed \u2014 this is a silent-data-drop pattern in a check lane whose job is to surface conditions.",
     "`check_scorecard_render` (843) and `check_consensus_debate_evidence` (884-885) use `raw.contains(\"\\\"change_class_id\\\"\")` and similar substring probes on JSON text; this is an approximate algorithm where exact parsing is feasible (serde_json is available in the workspace) and is also a false-positive vector (a string value containing the literal `\"change_class_id\"` would match).",
     "`check_consensus_debate_evidence` hardcodes two whitespace variants (`\"meta_review_triggered\": true` and `\"meta_review_triggered\":true`) but misses tabs, newlines between colon and value, and `True`/`TRUE`; this is approximate-when-exact-feasible and contradicts the docstring's precise `meta_review_triggered: true` semantic.",
-    "Status field semantics diverge: `check_rust_default_language`, `check_scorecard_render`, and `check_consensus_debate_evidence` always return `NotYetArmed` regardless of findings, but `check_naming_convention` returns `Pass`/`Fail` based on `violations.is_empty()` — yet its docstring also says 'Day-1: kebab only … full BNF validation … FixupTask F-NAMING-CONVENTION-ENFORCE', i.e. it is equally not-yet-armed. The status enum is being used inconsistently across siblings of identical maturity.",
-    "`check_naming_convention` caps violations at 10 (line 792) silently — the count in the summary line is the true count, but only 10 paths are listed and there is no `… N more truncated` finding. This is a silent-data-drop on the user-visible side of the report.",
-    "`check_rust_default_language` uses `std::fs::read_dir(&scripts_dir)` non-recursively (line 739) but its docstring says 'scan `scripts/` for non-Rust files'. Subdirectory scripts are silently missed — docstring/behavior mismatch (type-misnomer-of-scope).",
+    "Status field semantics diverge: `check_rust_default_language`, `check_scorecard_render`, and `check_consensus_debate_evidence` always return `NotYetArmed` regardless of findings, but `check_naming_convention` returns `Pass`/`Fail` based on `violations.is_empty()` \u2014 yet its docstring also says 'Day-1: kebab only \u2026 full BNF validation \u2026 FixupTask F-NAMING-CONVENTION-ENFORCE', i.e. it is equally not-yet-armed. The status enum is being used inconsistently across siblings of identical maturity.",
+    "`check_naming_convention` caps violations at 10 (line 792) silently \u2014 the count in the summary line is the true count, but only 10 paths are listed and there is no `\u2026 N more truncated` finding. This is a silent-data-drop on the user-visible side of the report.",
+    "`check_rust_default_language` uses `std::fs::read_dir(&scripts_dir)` non-recursively (line 739) but its docstring says 'scan `scripts/` for non-Rust files'. Subdirectory scripts are silently missed \u2014 docstring/behavior mismatch (type-misnomer-of-scope).",
     "`check_naming_convention` allows `.` in the character set (line 790) but the docstring says 'kebab-case + no-uppercase per P14 BNF'. Filenames like `foo.bar.baz` pass the check even though they are not strictly kebab-case; the allowance is undocumented and likely intentional for extensions but should be split into stem-vs-extension validation to match the doc.",
-    "All four functions allocate `format!` strings eagerly for findings even when the value is constant (e.g. lines 749-752, 799-804, 851-855, 903-906). Findings strings are pushed into a Vec<String> regardless of whether the report will be rendered — eager allocation where lazy/borrowed formatting is feasible (the SubCheckResult could hold `Cow<'static, str>` or a lazy formatter).",
+    "All four functions allocate `format!` strings eagerly for findings even when the value is constant (e.g. lines 749-752, 799-804, 851-855, 903-906). Findings strings are pushed into a Vec<String> regardless of whether the report will be rendered \u2014 eager allocation where lazy/borrowed formatting is feasible (the SubCheckResult could hold `Cow<'static, str>` or a lazy formatter).",
     "`extract_string_field` (717-727) is FIRST-occurrence-only and uses ad-hoc scanning; this is acknowledged in its doc as deferred, but is the same approximate-when-exact-feasible pattern that the new sub-checks inherit by leaning on substring contains() instead of fixing the JSON layer.",
-    "No unwrap()/expect()/panic! found in the new code — that quality dimension is clean."
+    "No unwrap()/expect()/panic! found in the new code \u2014 that quality dimension is clean."
   ],
   "uncertainty_areas": [
     "Whether `SubCheckStatus::NotYetArmed` is intended to mean 'logic not implemented, do not gate' (in which case `check_naming_convention` returning Pass/Fail is wrong) or 'enforcement not yet wired but findings are real' (in which case the other three are wrong to suppress Fail). The enum's own definition was not in the reviewed window.",
-    "Whether serde_json is actually permitted in this crate — the file comments earlier reference 'kernel std-only' (line 919), which would justify the substring-probe approach. If std-only is a hard constraint, the approximate-when-exact finding downgrades to 'document the precision limit in the docstring' rather than 'use serde_json'.",
+    "Whether serde_json is actually permitted in this crate \u2014 the file comments earlier reference 'kernel std-only' (line 919), which would justify the substring-probe approach. If std-only is a hard constraint, the approximate-when-exact finding downgrades to 'document the precision limit in the docstring' rather than 'use serde_json'.",
     "Whether the 10-violation cap in `check_naming_convention` is a deliberate output-size budget (in which case it needs a truncation finding) or an oversight.",
-    "Whether `scripts/` is by policy flat (no subdirs) — if so, the non-recursive scan is correct and only the docstring needs to say 'top-level of scripts/'."
+    "Whether `scripts/` is by policy flat (no subdirs) \u2014 if so, the non-recursive scan is correct and only the docstring needs to say 'top-level of scripts/'."
   ],
   "anti_patterns_detected": [
     "silent-data-drop",
@@ -37,7 +37,7 @@
     {
       "line_range": "769-822",
       "issue": "`check_naming_convention` silently caps violation list at 10 (line 792), allows '.' in kebab check without documenting it (line 790), and returns Pass/Fail while sibling stubs return NotYetArmed despite the same 'Day-1 stub' maturity per docstring (line 766-768).",
-      "fix": "Push a `'… {N} additional violations omitted'` finding when violations.len() > 10. Split filename into stem vs extension and validate stem strictly kebab. Align status with siblings — return NotYetArmed (status is gating-intent, not result), or document why this one check is armed."
+      "fix": "Push a `'\u2026 {N} additional violations omitted'` finding when violations.len() > 10. Split filename into stem vs extension and validate stem strictly kebab. Align status with siblings \u2014 return NotYetArmed (status is gating-intent, not result), or document why this one check is armed."
     },
     {
       "line_range": "829-863",
@@ -46,7 +46,7 @@
     },
     {
       "line_range": "871-916",
-      "issue": "`check_consensus_debate_evidence` matches `meta_review_triggered` via two hardcoded substring variants (884-885), missing tab/newline whitespace and case variants; this contradicts the docstring's exact `meta_review_triggered: true` semantic. Synthesis match is filename-suffix only with no change_id correlation — but the docstring already concedes that as deferred.",
+      "issue": "`check_consensus_debate_evidence` matches `meta_review_triggered` via two hardcoded substring variants (884-885), missing tab/newline whitespace and case variants; this contradicts the docstring's exact `meta_review_triggered: true` semantic. Synthesis match is filename-suffix only with no change_id correlation \u2014 but the docstring already concedes that as deferred.",
       "fix": "Use a regex (`meta_review_triggered\\s*:\\s*true`) or serde_json parse; if std-only, normalize whitespace before contains(). Add a finding explaining the precision limit until F-LANE-DEBATE-SUBCHECK lands."
     },
     {
@@ -60,5 +60,6 @@
       "fix": "Consider `Cow<'static, str>` for SubCheckResult.findings, or a `&'static str` + optional dynamic tail split, so constant strings avoid allocation. Low priority but consistent with the file's std-only / hand-rolled-JSON discipline."
     }
   ],
-  "spectrum_lens_directive_compliance": "single-facet-only-reviewed"
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "Auto-backfilled purpose for TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-F5_quality-r1.json"
 }

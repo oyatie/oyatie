@@ -116,5 +116,6 @@
       "exit_code": 1,
       "status": "blocked"
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for ip-005-foundry-corpus-cross-cite.json"
 }

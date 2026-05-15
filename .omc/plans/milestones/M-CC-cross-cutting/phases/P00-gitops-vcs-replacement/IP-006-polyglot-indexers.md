@@ -10,8 +10,8 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
+purpose: Auto-backfilled purpose for IP-006-polyglot-indexers.md
 ---
-
 # M-CC-P00-IP-006 — Polyglot AST/indexer adapters
 
 ## Purpose

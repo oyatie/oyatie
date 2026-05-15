@@ -244,5 +244,6 @@
         "EmitEvidenceBundle (audit)"
       ]
     }
-  }
+  },
+  "purpose": "Auto-backfilled purpose for knowledge-graph-kinetic.json"
 }

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for employee-dsr-cascade.md
+---
+
 # Oyatie Runbook — Employee Dsr Cascade
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

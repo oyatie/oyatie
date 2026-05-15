@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-kr-pack.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P07-IP-001

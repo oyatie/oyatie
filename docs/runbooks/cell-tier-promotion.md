@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cell-tier-promotion.md
+---
+
 # Oyatie Runbook — Cell Tier Promotion
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

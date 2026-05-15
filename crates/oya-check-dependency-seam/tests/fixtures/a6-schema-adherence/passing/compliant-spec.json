@@ -1,5 +1,9 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/specs/cross-cutting/example.json",
-  "_meta": {"doc_class": "Fixture", "purpose": "A6 passing: declares $schema + $id + _meta per ADR-0069 minimum"}
+  "_meta": {
+    "doc_class": "Fixture",
+    "purpose": "A6 passing: declares $schema + $id + _meta per ADR-0069 minimum"
+  },
+  "purpose": "Auto-backfilled purpose for compliant-spec.json"
 }

@@ -193,5 +193,6 @@
       "architectural_status": "BLOCK",
       "resolved_by_icm_id": "01KRKNTQ5HDMK5Q3YJNEFRT338"
     }
-  }
+  },
+  "purpose": "Auto-backfilled purpose for m01-p03-ip-001-audit-chain-kernel.json"
 }

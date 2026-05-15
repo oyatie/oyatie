@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for og-ciphertext-key-shred.md
+---
+
 # Oyatie Runbook — Og Ciphertext Key Shred
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

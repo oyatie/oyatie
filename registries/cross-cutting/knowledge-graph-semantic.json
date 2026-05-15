@@ -692,5 +692,6 @@
       "description": "Recursive traversal of supersedes chain from a given node; verifies termination.",
       "query_sketch": "WITH RECURSIVE chain AS (SELECT source, target FROM supersedes_edges WHERE source = :start_id UNION SELECT s.source, s.target FROM supersedes_edges s JOIN chain c ON s.source = c.target) SELECT * FROM chain"
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for knowledge-graph-semantic.json"
 }

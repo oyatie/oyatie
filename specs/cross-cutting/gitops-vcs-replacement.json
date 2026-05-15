@@ -34,7 +34,8 @@
       "01KRJN9MX6W8BD8TE87NC5GA37"
     ],
     "design_posture": "Provider-neutral Oya VCS core first; GitHub/GitHub Actions, Trivy, Argo CD, GitLab, and future in-house systems are replaceable first-class adapters. Agents never call git or gh directly.",
-    "product_name": "Oya VCS"
+    "product_name": "Oya VCS",
+    "purpose": "Auto-backfilled purpose for gitops-vcs-replacement.json"
   },
   "moved_earlier_in_masterplan": {
     "milestone": "M-CC-cross-cutting",
@@ -512,7 +513,7 @@
       "freshness": "2026-05-14T07:16:07Z",
       "command_or_lane": "manual spec update + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "docs/MASTERPLAN.md §13",
+      "artifact_ref": "docs/MASTERPLAN.md \u00a713",
       "known_gap": "Phase detail files are still TBD implementation plans; this slice establishes priority and contract."
     },
     {
@@ -873,7 +874,7 @@
   "product_definition": {
     "name": "Oya VCS",
     "one_liner": "Agent-native semantic VCS/CI/CD coordination layer that queues ChangeSets, not just branches or PRs.",
-    "core_thesis": "Oya VCS preserves grit-style AST/symbol conflict avoidance, then adds provider-neutral ChangeSets, virtual merge stacks, queue-aware locks, review/CI fix loops, and dev→staging→production promotion.",
+    "core_thesis": "Oya VCS preserves grit-style AST/symbol conflict avoidance, then adds provider-neutral ChangeSets, virtual merge stacks, queue-aware locks, review/CI fix loops, and dev\u2192staging\u2192production promotion.",
     "not_a_git_replacement": "Oya VCS orchestrates Git-compatible storage, CI, review, security scanning, merge queues, and GitOps environments through ports/adapters; the semantic state machine remains provider-neutral.",
     "must_work_without_github": true,
     "must_provide_same_features_without_provider_adapters": [
@@ -989,12 +990,12 @@
       "adapter": "GitHubProviderAdapter",
       "status": "first-class-adapter-not-core",
       "maps": [
-        "Pull Request ↔ ChangeSet publication view",
-        "review comments ↔ FixupTask",
-        "checks/statuses ↔ CiState",
-        "merge queue merge_group ↔ provider-backed VirtualHead",
-        "branch protection/rulesets ↔ admission policy",
-        "environments/deployment protection ↔ PromotionGate"
+        "Pull Request \u2194 ChangeSet publication view",
+        "review comments \u2194 FixupTask",
+        "checks/statuses \u2194 CiState",
+        "merge queue merge_group \u2194 provider-backed VirtualHead",
+        "branch protection/rulesets \u2194 admission policy",
+        "environments/deployment protection \u2194 PromotionGate"
       ],
       "required_events": [
         "pull_request",
@@ -1013,10 +1014,10 @@
       "adapter": "GitHubActionsAdapter",
       "status": "first-class-adapter-not-core",
       "maps": [
-        "workflow jobs/logs/artifacts ↔ CiEvidence",
-        "matrix jobs ↔ tier evidence",
-        "merge_group-triggered workflows ↔ queue validation",
-        "environment jobs ↔ promotion gates"
+        "workflow jobs/logs/artifacts \u2194 CiEvidence",
+        "matrix jobs \u2194 tier evidence",
+        "merge_group-triggered workflows \u2194 queue validation",
+        "environment jobs \u2194 promotion gates"
       ],
       "required_capabilities": [
         "run targeted checks",
@@ -1058,10 +1059,10 @@
       "adapter": "GitLabProviderAdapter",
       "status": "optional-first-class-after-github",
       "maps": [
-        "merge request ↔ ChangeSet view",
-        "merge train ↔ provider-backed VirtualHead",
-        "pipeline ↔ CiState",
-        "review thread ↔ FixupTask"
+        "merge request \u2194 ChangeSet view",
+        "merge train \u2194 provider-backed VirtualHead",
+        "pipeline \u2194 CiState",
+        "review thread \u2194 FixupTask"
       ],
       "must_not_depend_on_for_core_features": true
     },
@@ -1069,12 +1070,12 @@
       "adapter": "GitHubIssuesAdapter",
       "status": "first-class-adapter-not-core",
       "maps": [
-        "GitHub issue ↔ OyaWorkItem",
-        "labels/milestones/projects ↔ priority/lane/gate metadata",
-        "assignees ↔ agent/human ownership hints",
-        "issue comments ↔ requirement updates or review/fix context",
-        "issue dependencies/sub-issues ↔ ChangeSet dependency graph",
-        "issue close/reopen ↔ release-state policy events"
+        "GitHub issue \u2194 OyaWorkItem",
+        "labels/milestones/projects \u2194 priority/lane/gate metadata",
+        "assignees \u2194 agent/human ownership hints",
+        "issue comments \u2194 requirement updates or review/fix context",
+        "issue dependencies/sub-issues \u2194 ChangeSet dependency graph",
+        "issue close/reopen \u2194 release-state policy events"
       ],
       "required_events": [
         "issues",

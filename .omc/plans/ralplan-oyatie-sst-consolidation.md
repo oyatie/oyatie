@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for ralplan-oyatie-sst-consolidation.md
+---
+
 # RALPLAN — oyatie Single Source of Truth + grit/icm Cutover
 
 Phase-0 input: `/Users/jasonlee/oyatie/.omc/scratch/deep-dive-oyatie-sst-consolidation.md`

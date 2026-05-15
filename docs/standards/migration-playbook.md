@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for migration-playbook.md
+---
+
 # Oyatie — Tenant Migration Playbook (from competitor stacks)
 
 > **Owner:** `gtm-customer-success` + per-vertical team.

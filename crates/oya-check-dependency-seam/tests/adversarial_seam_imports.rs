@@ -10,11 +10,11 @@
 //! Phase 2 worked, not that the lane works).
 
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use oya_check_dependency_seam::{
-    cargo_toml_declares_dep, check_seam_imports, extract_package_name,
-    parse_isolated_in_crate, read_allowed_isolation, SubCheckStatus, WorkspaceContext,
+    SubCheckStatus, WorkspaceContext, cargo_toml_declares_dep, check_seam_imports,
+    extract_package_name, parse_isolated_in_crate, read_allowed_isolation,
 };
 
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -33,7 +33,7 @@ fn make_tmp_workspace() -> PathBuf {
     base
 }
 
-fn write_crate(root: &PathBuf, name: &str, deps: &[&str]) {
+fn write_crate(root: &Path, name: &str, deps: &[&str]) {
     let dir = root.join("crates").join(name);
     fs::create_dir_all(&dir).unwrap();
     let mut cargo = String::new();
@@ -46,7 +46,7 @@ fn write_crate(root: &PathBuf, name: &str, deps: &[&str]) {
     fs::write(dir.join("Cargo.toml"), cargo).unwrap();
 }
 
-fn write_registry(root: &PathBuf, isolated_in_crate: &str) {
+fn write_registry(root: &Path, isolated_in_crate: &str) {
     let body = format!(
         r#"{{
   "entries": {{
@@ -150,7 +150,8 @@ fn dotted_syntax_dep_form_detected() {
 // F3: extract_package_name returns the value inside [package].
 #[test]
 fn extract_package_name_finds_name() {
-    let raw = "[package]\nname = \"oya-foo-bar\"\nversion = \"0.1\"\n[lib]\nname = \"oya_foo_bar\"\n";
+    let raw =
+        "[package]\nname = \"oya-foo-bar\"\nversion = \"0.1\"\n[lib]\nname = \"oya_foo_bar\"\n";
     assert_eq!(extract_package_name(raw).as_deref(), Some("oya-foo-bar"));
 }
 
@@ -166,7 +167,10 @@ fn extract_package_name_ignores_lib_name_field() {
 #[test]
 fn parse_isolated_in_crate_handles_realistic_shapes() {
     let v = "oya-http-runtime-hyper-adapter";
-    assert_eq!(parse_isolated_in_crate(v), vec!["oya-http-runtime-hyper-adapter"]);
+    assert_eq!(
+        parse_isolated_in_crate(v),
+        vec!["oya-http-runtime-hyper-adapter"]
+    );
 
     let v = "oya-http-runtime-hyper-adapter (primary); cell-runtime main.rs entry";
     let parsed = parse_isolated_in_crate(v);
@@ -188,7 +192,7 @@ fn read_allowed_isolation_keys_each_tracked_dep() {
     assert!(map.contains_key("bytes"));
     assert!(map.contains_key("hyper-util"));
     assert!(map.contains_key("http-body-util"));
-    for (_, v) in &map {
+    for v in map.values() {
         assert_eq!(v, &vec!["oya-http-runtime-hyper-adapter".to_string()]);
     }
 }

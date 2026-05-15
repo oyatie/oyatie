@@ -7,25 +7,26 @@ impl_plan_id: IP-P04-connect-pro-mail-full-scaffold
 status: pending
 owner: council-connect
 blocked_by:
-  - impl_plan: IP-P01-hr-full-scaffold
-    reason: "EmployeeHired Workflow event required for Connect provisioning-application to wire ConnectAccount creation."
+- impl_plan: IP-P01-hr-full-scaffold
+  reason: EmployeeHired Workflow event required for Connect provisioning-application
+    to wire ConnectAccount creation.
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
-  - ontology-type-registry
-  - workflow-event-registry
-  - audit-chain
-  - cedar-policy
-  - k6-smoke
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+- ontology-type-registry
+- workflow-event-registry
+- audit-chain
+- cedar-policy
+- k6-smoke
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-P04-connect-pro-mail-full-scaffold: Connect Professional Mail — SMTP/IMAP/JMAP, tenant DEK encryption, legal hold, eDiscovery, retention, dual-context Cedar policies
 
 ## Intent

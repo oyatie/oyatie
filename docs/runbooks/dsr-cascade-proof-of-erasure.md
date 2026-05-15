@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for dsr-cascade-proof-of-erasure.md
+---
+
 # Oyatie Runbook — Dsr Cascade Proof Of Erasure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

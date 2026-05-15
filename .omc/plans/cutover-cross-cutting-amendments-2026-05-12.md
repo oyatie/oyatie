@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cutover-cross-cutting-amendments-2026-05-12.md
+---
+
 # Cutover cross-cutting amendments — 2026-05-12
 
 Captured 2026-05-12 by the orchestrator. **Status**: pending user execution approval (deferred until masterplan + hyperscaler research finish).

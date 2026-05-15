@@ -159,5 +159,6 @@
     ],
     "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
     "validation_lane": "oya-foundry-fitness-plan-hierarchy + Oya VCS admission once M-CC-P00 is accepted"
-  }
+  },
+  "purpose": "Auto-backfilled purpose for master-plan-sequencing.json"
 }

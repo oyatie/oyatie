@@ -7,16 +7,17 @@ impl_plan_id: IP-001-flip-lanes-to-blocker
 status: pending
 owner: council-foundry
 blocked_by:
-  - impl_plan: P21-architecture-planes-green/IP-001
-    reason: "All 9 planes must be verified at L4+ before flipping lanes to BLOCKER; a BLOCKER violation with unresolved plane issues would permanently block merges."
-  - impl_plan: P21-architecture-planes-green/IP-002
-    reason: "Wave integration DAG must be confirmed acyclic before M02 is declared complete."
+- impl_plan: P21-architecture-planes-green/IP-001
+  reason: All 9 planes must be verified at L4+ before flipping lanes to BLOCKER; a
+    BLOCKER violation with unresolved plane issues would permanently block merges.
+- impl_plan: P21-architecture-planes-green/IP-002
+  reason: Wave integration DAG must be confirmed acyclic before M02 is declared complete.
 acceptance_lanes:
-  - cargo-check
-  - cargo-nextest
-  - cargo-deny
+- cargo-check
+- cargo-nextest
+- cargo-deny
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-flip-lanes-to-blocker: Flip All 14 CI Fitness Lanes from --report-only to BLOCKER
 
 ## Intent

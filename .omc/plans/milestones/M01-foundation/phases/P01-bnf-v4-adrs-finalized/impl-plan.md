@@ -8,9 +8,9 @@ status: merged
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
+- cargo-check
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-bnf-v4-adrs: Author BNF v4.1 ADRs + rename plan approval
 
 ## Intent

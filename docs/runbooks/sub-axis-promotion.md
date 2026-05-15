@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for sub-axis-promotion.md
+---
+
 # Oyatie Runbook — Sub Axis Promotion
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

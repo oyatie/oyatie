@@ -1,21 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-pin_rust_toolchain() {
-  local rustc_path
-  local toolchain_bin
-
-  if command -v rustup >/dev/null 2>&1; then
-    rustc_path="$(rustup which rustc)"
-  else
-    rustc_path="$(command -v rustc)"
-  fi
-
-  toolchain_bin="$(dirname "${rustc_path}")"
-  export PATH="${toolchain_bin}:${PATH}"
-}
-
-pin_rust_toolchain
+# Hyperscaler hermetic toolchain: prioritize rustup from Homebrew if present.
+if [[ -d "/opt/homebrew/opt/rustup/bin" ]]; then
+  export PATH="/opt/homebrew/opt/rustup/bin:${PATH}"
+fi
 
 run_with_heartbeat() {
   local label="$1"
@@ -38,6 +27,7 @@ scripts/render-m02-exit-checklist.py --check
 scripts/render-master-plan-ledger.py --check
 scripts/audit-master-plan-completion.py --check
 cargo run -q -p oya-dev-cli -- gate validate codeview-read-surface
+cargo run -q -p oya-foundry-fitness-purpose-audit -- "docs/*.md" "docs/standards/*.md" "docs/runbooks/*.md" ".omc/plans/**/*.md" "registries/**/*.json" "specs/**/*.json" "contracts/**/*.json" ".omc/**/*.json"
 cargo fmt --all -- --check
 cargo check --workspace --all-targets --all-features
 cargo clippy --workspace --all-targets --all-features -- -D warnings

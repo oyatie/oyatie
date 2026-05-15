@@ -20,6 +20,10 @@ pub enum CatalogRole {
     Worker,
     Adapter,
     Runtime,
+    Cli,
+    Test,
+    Infrastructure,
+    Bindings,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -219,8 +223,11 @@ impl CatalogIndex {
         S: AsRef<str>,
     {
         for crate_id in crate_ids {
-            if !self.records.value.contains_key(crate_id.as_ref()) {
-                return Err(CatalogError::MissingCrateRecord);
+            let s = crate_id.as_ref();
+            if !self.records.value.contains_key(s) {
+                return Err(CatalogError::MissingCrateRecord {
+                    crate_id: s.to_string(),
+                });
             }
         }
         Ok(())
@@ -277,10 +284,14 @@ fn parse_role(role: &str) -> Result<CatalogRole, CatalogError> {
         "kernel" => Ok(CatalogRole::Kernel),
         "domain" => Ok(CatalogRole::Domain),
         "app" | "application" => Ok(CatalogRole::App),
-        "api" | "rest" => Ok(CatalogRole::Api),
+        "api" | "rest" | "grpc" | "graphql" => Ok(CatalogRole::Api),
         "worker" => Ok(CatalogRole::Worker),
         "adapter" => Ok(CatalogRole::Adapter),
         "runtime" => Ok(CatalogRole::Runtime),
+        "cli" => Ok(CatalogRole::Cli),
+        "test" => Ok(CatalogRole::Test),
+        "infrastructure" => Ok(CatalogRole::Infrastructure),
+        "bindings" => Ok(CatalogRole::Bindings),
         _ => Err(CatalogError::InvalidRole),
     }
 }

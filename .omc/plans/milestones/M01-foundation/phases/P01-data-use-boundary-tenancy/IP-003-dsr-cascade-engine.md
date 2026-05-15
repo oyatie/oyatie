@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-dsr-cascade-engine.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P01-IP-003

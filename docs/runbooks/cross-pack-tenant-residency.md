@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for cross-pack-tenant-residency.md
+---
+
 # Oyatie Runbook — Cross Pack Tenant Residency
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

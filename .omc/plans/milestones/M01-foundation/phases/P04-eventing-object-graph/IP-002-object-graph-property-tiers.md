@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-object-graph-property-tiers.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P04-IP-002

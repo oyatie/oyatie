@@ -8,22 +8,22 @@ status: pending
 owner: council-enterprise
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
-  - ontology-type-registry
-  - workflow-event-registry
-  - audit-chain
-  - jurisdiction-overlay
-  - k6-smoke
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+- ontology-type-registry
+- workflow-event-registry
+- audit-chain
+- jurisdiction-overlay
+- k6-smoke
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-P01-hr-full-scaffold: HR µservice — DDL, domain entities, port traits, adapters, REST API, Cedar policies, Workflow events, Ontology types, load tests
 
 ## Intent

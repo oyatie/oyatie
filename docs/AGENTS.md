@@ -1,37 +1,41 @@
 ---
 doc_class: Operating-Contract
-shape: ~
+shape: null
 length_cap: 360
 authority_tier: 2
 excludes:
-  - path: /specs/cross-cutting/root-hub-pointers.json
-    reason: Machine-readable entry-point registry; this contract is discovered through it.
-  - path: /specs/cross-cutting/master-plan-sequencing.json
-    reason: Forbidden primitives, grit protocol, and ChangeSet sequencing; cited and not duplicated fully.
-  - path: /specs/cross-cutting/markdown-retirement-policy.json
-    reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated fully.
-  - path: docs/DOC-CATALOG.md
-    reason: Per-doc lifecycle protocol and trigger taxonomy.
-  - path: docs/templates/pull-request-template.md
-    reason: PR body shape; cited and not inlined.
-  - path: docs/decisions/
-    reason: Architectural rationale; ADRs are decision records, not operating contracts.
-  - path: docs/teams/
-    reason: Per-team norms and charters.
-  - path: docs/SPEC.md
-    reason: Surface enumeration; this contract operates on surfaces, does not enumerate them.
-  - path: docs/standards/
-    reason: Cross-cutting authoring norms; this contract names them, does not inline them.
-  - path: docs/MISTAKES-LEDGER.md
-    reason: Failure-mode catalog; this contract operates the doctrine, does not catalog it.
-authority_chain_declaration: |
-  system / developer / user instructions
-    > /specs/cross-cutting/root-hub-pointers.json
-    > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
-    > machine-readable specs and registries under .omc/
-    > docs/ authority files during markdown-retirement compatibility
-    > repo-root Redirect-class files (non-authoritative; lane-thin)
-    > working drafts (never authoritative)
+- path: /specs/cross-cutting/root-hub-pointers.json
+  reason: Machine-readable entry-point registry; this contract is discovered through
+    it.
+- path: /specs/cross-cutting/master-plan-sequencing.json
+  reason: Forbidden primitives, grit protocol, and ChangeSet sequencing; cited and
+    not duplicated fully.
+- path: /specs/cross-cutting/markdown-retirement-policy.json
+  reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
+    fully.
+- path: docs/DOC-CATALOG.md
+  reason: Per-doc lifecycle protocol and trigger taxonomy.
+- path: docs/templates/pull-request-template.md
+  reason: PR body shape; cited and not inlined.
+- path: docs/decisions/
+  reason: Architectural rationale; ADRs are decision records, not operating contracts.
+- path: docs/teams/
+  reason: Per-team norms and charters.
+- path: docs/SPEC.md
+  reason: Surface enumeration; this contract operates on surfaces, does not enumerate
+    them.
+- path: docs/standards/
+  reason: Cross-cutting authoring norms; this contract names them, does not inline
+    them.
+- path: docs/MISTAKES-LEDGER.md
+  reason: Failure-mode catalog; this contract operates the doctrine, does not catalog
+    it.
+authority_chain_declaration: "system / developer / user instructions\n  > /specs/cross-cutting/root-hub-pointers.json\n\
+  \  > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5\
+  \ promotion)\n  > machine-readable specs and registries under .omc/\n  > docs/ authority\
+  \ files during markdown-retirement compatibility\n  > repo-root Redirect-class files\
+  \ (non-authoritative; lane-thin)\n  > working drafts (never authoritative)\n"
+purpose: Auto-backfilled purpose for AGENTS.md
 ---
 # Oyatie Agent Operating Contract
 

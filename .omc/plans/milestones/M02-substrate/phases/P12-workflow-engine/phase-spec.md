@@ -5,22 +5,32 @@ milestone: M02-substrate
 phase: P12-workflow-engine
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02/P02-ontology complete; oya-ontology-kernel ships with ObjectStore +
-  LinkStore + ActionStore + OntologyFunction port traits; cargo check clean
-  on workspace; grit done called on all P02 symbols; ICM phase-handoff row emitted.
-exit_gate: |
-  All P12 impl-plan acceptance gates green; 9 BCs registered in
-  docs/standards/bounded-contexts.md; all crates pass cargo check/build/clippy/
-  nextest/deny; oya gate validate lean-a1/lean-a2/lean-a3/lean-a4 exit 0;
-  grit done called on all P12 symbols; ICM phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P02-ontology
-    reason: "Workflow engine adapter/glue layer calls through Ontology ports for all cross-product data mutations (action steps call ObjectStore/ActionStore); WorkflowBridgePort trait uses OntologyFunction for entity reads."
-owner_team: council-architecture
----
+entry_gate: 'M02/P02-ontology complete; oya-ontology-kernel ships with ObjectStore
+  +
 
+  LinkStore + ActionStore + OntologyFunction port traits; cargo check clean
+
+  on workspace; grit done called on all P02 symbols; ICM phase-handoff row emitted.
+
+  '
+exit_gate: 'All P12 impl-plan acceptance gates green; 9 BCs registered in
+
+  docs/standards/bounded-contexts.md; all crates pass cargo check/build/clippy/
+
+  nextest/deny; oya gate validate lean-a1/lean-a2/lean-a3/lean-a4 exit 0;
+
+  grit done called on all P12 symbols; ICM phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P02-ontology
+  reason: Workflow engine adapter/glue layer calls through Ontology ports for all
+    cross-product data mutations (action steps call ObjectStore/ActionStore); WorkflowBridgePort
+    trait uses OntologyFunction for entity reads.
+owner_team: council-architecture
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P12-workflow-engine: Workflow Engine Substrate — State-Machine + DAG Adapter/Glue Layer
 
 ## Purpose

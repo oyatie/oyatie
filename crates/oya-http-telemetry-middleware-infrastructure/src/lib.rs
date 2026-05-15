@@ -6,7 +6,7 @@
 //!
 //! Counter labels (low-cardinality only per OTel conventions):
 //!   - route  (the matched_template from the router — STATIC, NEVER the raw
-//!             path; this closes the S6 metric-label-injection class)
+//!     path; this closes the S6 metric-label-injection class)
 //!   - method (GET / POST / ...)
 //!   - status_class (2xx / 3xx / 4xx / 5xx)
 //!

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for TOOLCHAIN.md
+---
+
 # Oyatie — Internal Tooling & Toolchain
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored agnostic of what exists today; choices are made best-for-task. The fact that the current repo is mostly Rust is not the input — Rust wins by analysis here for ~70% of surfaces because the cohesion thesis rewards a single dominant stack, but other stacks are chosen where they're decisively better.

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for external-dep-onboarding.md
+---
+
 # Oyatie Runbook — External Dep Onboarding
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

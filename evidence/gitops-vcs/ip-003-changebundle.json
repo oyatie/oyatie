@@ -73,5 +73,6 @@
     "issue": "Requested/rejected promotion evidence could mark bundle Published.",
     "fix": "publish_promotion_evidence now records non-published promotion evidence but returns NonPublishedPromotion without changing bundle status; only PromotionStatus::Published can publish.",
     "verification": "rustfmt check pass; targeted rustc -D warnings IP-003 tests pass: 10 passed; 0 failed"
-  }
+  },
+  "purpose": "Auto-backfilled purpose for ip-003-changebundle.json"
 }

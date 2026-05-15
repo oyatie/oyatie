@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for ci-lanes.md
+---
+
 # Oyatie — CI Lanes Catalog
 
 > **Owner:** `axis-foundry` + `ops-sre-reliability`.

@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-capability-registry.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P05-IP-001

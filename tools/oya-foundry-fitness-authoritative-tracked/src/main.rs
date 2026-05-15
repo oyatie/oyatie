@@ -256,15 +256,16 @@ mod tests {
 ## Pre-flight checklist
 "#;
 
-        let paths =
+        let mut paths =
             parse_authoritative_paths(contents, Path::new("docs/AGENTS.md")).expect("paths parse");
+        paths.sort();
 
         assert_eq!(
             paths,
             vec![
-                "specs/cross-cutting/masterplan.json".to_string(),
                 "docs/RACI-OWNERSHIP.md".to_string(),
                 "docs/products".to_string(),
+                "specs/cross-cutting/masterplan.json".to_string(),
             ]
         );
     }

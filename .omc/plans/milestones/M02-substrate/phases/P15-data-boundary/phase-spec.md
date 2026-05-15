@@ -5,28 +5,42 @@ milestone: M02-substrate
 phase: P15-data-boundary
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02/P03-identity complete; oya-identity-kernel ships; cargo check clean; grit done
-  on all P03 symbols. P14-policy SHOULD be complete (Cedar engine available) but P15
-  may begin scaffolding in parallel; Cedar integration for DUB enforcement completes
-  after P14 exits.
-exit_gate: |
-  All P15 impl-plan acceptance gates green; 12 data classes declared in kernel; HARD_DENY
-  enforced at runtime for PHI/PCI/PIPA/children (verified by integration tests); DUB
-  Cedar policy fragment deployed; 2 BCs registered (data-boundary-engine,
-  data-boundary-classification); all crates pass cargo check/build/clippy/nextest/deny;
-  oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on all P15 symbols; ICM
-  phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P03-identity
-    reason: "DataUseRequest carries principal_id from identity kernel; Person-pillar objects require identity.Person type to determine data class applicability."
-  - milestone: M02
-    phase: P14-policy
-    reason: "DUB enforcement uses Cedar PolicyEvaluator for HARD_DENY decisions; DUB Cedar policy fragment loaded into policy.tenant_rule_packs by this phase."
-owner_team: council-architecture
----
+entry_gate: 'M02/P03-identity complete; oya-identity-kernel ships; cargo check clean;
+  grit done
 
+  on all P03 symbols. P14-policy SHOULD be complete (Cedar engine available) but P15
+
+  may begin scaffolding in parallel; Cedar integration for DUB enforcement completes
+
+  after P14 exits.
+
+  '
+exit_gate: 'All P15 impl-plan acceptance gates green; 12 data classes declared in
+  kernel; HARD_DENY
+
+  enforced at runtime for PHI/PCI/PIPA/children (verified by integration tests); DUB
+
+  Cedar policy fragment deployed; 2 BCs registered (data-boundary-engine,
+
+  data-boundary-classification); all crates pass cargo check/build/clippy/nextest/deny;
+
+  oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on all P15 symbols; ICM
+
+  phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P03-identity
+  reason: DataUseRequest carries principal_id from identity kernel; Person-pillar
+    objects require identity.Person type to determine data class applicability.
+- milestone: M02
+  phase: P14-policy
+  reason: DUB enforcement uses Cedar PolicyEvaluator for HARD_DENY decisions; DUB
+    Cedar policy fragment loaded into policy.tenant_rule_packs by this phase.
+owner_team: council-architecture
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P15-data-boundary: Data-Use-Boundary Substrate — 12 Data Classes + HARD_DENY Runtime + Cedar DUB Policy
 
 ## Purpose

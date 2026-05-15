@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-009-delete-active-path.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-009

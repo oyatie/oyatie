@@ -103,5 +103,6 @@
     "clean": true,
     "reviewer": "codex native code-reviewer 019e2774-0e53-7610-b824-981dbffa77ce",
     "summary": "Review approved: active Sev-1 runbook binds recovery verification to one-cycle verify_chain/file-ledger replay; acceptance tests target live tamper paths; IP/index/masterplan/evidence parity is complete. Known scripts/check.sh and optional dev-cli smoke blockers are pre-existing/outside IP acceptance."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for m01-p03-ip-003-tamper-drill.json"
 }

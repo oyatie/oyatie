@@ -557,5 +557,6 @@
     "stub": 58,
     "in_progress": 0,
     "other": 8
-  }
+  },
+  "purpose": "Auto-backfilled purpose for masterplan-prompt-to-artifact-ledger.json"
 }

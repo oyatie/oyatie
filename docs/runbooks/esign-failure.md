@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for esign-failure.md
+---
+
 # Oyatie Runbook — Esign Failure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

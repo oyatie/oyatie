@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for regulator-publication-feed-health.md
+---
+
 # Oyatie Runbook — Regulator Publication Feed Health
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

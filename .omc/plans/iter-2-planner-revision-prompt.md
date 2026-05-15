@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for iter-2-planner-revision-prompt.md
+---
+
 # Iteration-2 Planner revision prompt — ralplan-oyatie-sst-consolidation
 
 Pre-drafted 2026-05-12 while Critic runs. Used when Critic returns ITERATE and the Planner must revise. Skip if Critic returns APPROVE.

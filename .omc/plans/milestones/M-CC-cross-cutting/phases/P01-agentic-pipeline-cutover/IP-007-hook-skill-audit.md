@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-007-hook-skill-audit.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-007

@@ -3,11 +3,11 @@
   "_artifact_id": "microservices-registry",
   "_meta": {
     "doc_class": "Registry",
-    "purpose": "Machine-readable registry of all µservices in the Oyatie ecosystem per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Replaces docs/microservices/*.md per markdown-retirement-policy PHASE-6. Each row declares µservice id + owned BCs + canonical-base-only flag + product family. Consumers: workspace shell catalog-prelude (Wave 1 IP-X1), capability-registry coupling (HG-DOCS), DRY enforcement (block_id='microservice-catalog-row').",
+    "purpose": "Machine-readable registry of all \u00b5services in the Oyatie ecosystem per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Replaces docs/microservices/*.md per markdown-retirement-policy PHASE-6. Each row declares \u00b5service id + owned BCs + canonical-base-only flag + product family. Consumers: workspace shell catalog-prelude (Wave 1 IP-X1), capability-registry coupling (HG-DOCS), DRY enforcement (block_id='microservice-catalog-row').",
     "owner_team": "council-architecture + axis-foundry",
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
-    "linus_critique_anchor": "Wave 1 IP-X1 catalog-prelude per ralplan-docs-portal v7 line 247 + M02-P19 + masterplan §2.1 ops block",
+    "linus_critique_anchor": "Wave 1 IP-X1 catalog-prelude per ralplan-docs-portal v7 line 247 + M02-P19 + masterplan \u00a72.1 ops block",
     "supersedes_markdown": [
       "docs/microservices/ops.md (existing or planned; this row is canonical going forward)",
       "docs/microservices/foundry.md (PHASE-6 migration target)",
@@ -36,7 +36,7 @@
       "canonical_base_only": false,
       "owner_team": "council-foundry",
       "consumer_facing_surface": "ops.oyatie.com (Leptos SSR per ADR-0065)",
-      "perf_authority": "ADR-0067 §5 (SSR p99 ≤500ms, SSE p99 ≤2s, 10k concurrent SSE)",
+      "perf_authority": "ADR-0067 \u00a75 (SSR p99 \u2264500ms, SSE p99 \u22642s, 10k concurrent SSE)",
       "cedar_visibility_tiers": [
         "public",
         "tenant-public",
@@ -64,7 +64,9 @@
       "owner_team": "council-foundry",
       "consumer_facing_surface": "internal-only via `oya check <name>` CLI",
       "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=foundry)",
-      "plan_refs": ["docs/decisions/ADR-0088-microservice-foundry.md"]
+      "plan_refs": [
+        "docs/decisions/ADR-0088-microservice-foundry.md"
+      ]
     },
     {
       "microservice_id": "connect",
@@ -74,7 +76,9 @@
       "owner_team": "council-connect",
       "consumer_facing_surface": "Connect Professional shell + Connect Personal (post-M03)",
       "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=connect)",
-      "plan_refs": ["docs/decisions/ADR-0087-microservice-connect.md"]
+      "plan_refs": [
+        "docs/decisions/ADR-0087-microservice-connect.md"
+      ]
     },
     {
       "microservice_id": "application",
@@ -84,7 +88,9 @@
       "owner_team": "council-architecture",
       "consumer_facing_surface": "tenant-private workspace shell",
       "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=application)",
-      "plan_refs": ["docs/decisions/ADR-0086-microservice-application-scaffold.md"]
+      "plan_refs": [
+        "docs/decisions/ADR-0086-microservice-application-scaffold.md"
+      ]
     }
   ],
   "planned_backlog_microservices": [
@@ -114,7 +120,8 @@
   ],
   "honest_gaps": [
     "Only 4 of ~27 microservices populated this slice (ops + foundry + connect + application). Remaining ~23 follow PHASE-6 migration when docs/microservices/<name>.md retire.",
-    "owned_bounded_contexts_ref is a SELECTOR (filter by microservice_id) — bounded-contexts.json registry must be queryable at validator runtime; today this is informational only.",
+    "owned_bounded_contexts_ref is a SELECTOR (filter by microservice_id) \u2014 bounded-contexts.json registry must be queryable at validator runtime; today this is informational only.",
     "Markdown retirement: docs/microservices/foundry.md / connect.md / application.md / others still exist in HEAD; PHASE-6 batches their migration with paired oya-check-doc-coverage check-crate refactor."
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for microservices.json"
 }

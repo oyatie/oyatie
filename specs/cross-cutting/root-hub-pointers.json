@@ -15,11 +15,12 @@
       "CLAUDE.md and AGENTS.md",
       "that should utilize machine readable pointers to relevant files",
       "Heavy diet. Make sure everything has a purpose."
-    ]
+    ],
+    "purpose": "Auto-backfilled purpose for root-hub-pointers.json"
   },
   "entry_points": {
     "_retired_constitutional_authority": {
-      "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution concept retired. Content redistributed: mission → masterplan; decision principles → agent-operating-contract; prohibitions → forbidden-operations.json (extends master-plan-sequencing forbidden_primitives); decision rights → RACI-OWNERSHIP. Source docs/CONSTITUTION.md marked for retirement (no migration to constitution.json)."
+      "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution concept retired. Content redistributed: mission \u2192 masterplan; decision principles \u2192 agent-operating-contract; prohibitions \u2192 forbidden-operations.json (extends master-plan-sequencing forbidden_primitives); decision rights \u2192 RACI-OWNERSHIP. Source docs/CONSTITUTION.md marked for retirement (no migration to constitution.json)."
     },
     "agent_operating_contract": {
       "kind": "spec",
@@ -181,12 +182,12 @@
       "current_version": "2.1.0",
       "human_companion_path": "docs/standards/multispectrum-review.md",
       "migration_phase": "complete",
-      "purpose": "Multispectrum review bar — 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
+      "purpose": "Multispectrum review bar \u2014 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
     },
     "pre_pr_multispectrum_checklist": {
       "kind": "template",
       "current_path": "/templates/checklists/pre-pr-multispectrum.json",
-      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template is the canonical form; markdown was duplicative human gateway)",
+      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 \u2014 JSON template is the canonical form; markdown was duplicative human gateway)",
       "migration_phase": "complete",
       "purpose": "Machine-readable pre-PR gate template. Every changeset copies + fills evidence per facet; the seam lane refuses missing/incomplete sections. Iterative fix-and-review loop in /specs/cross-cutting/iterative-fix-loop.json."
     },
@@ -194,7 +195,7 @@
       "kind": "spec",
       "current_path": "/specs/cross-cutting/iterative-fix-loop.json",
       "migration_phase": "complete",
-      "purpose": "Loop state machine for find→fix→re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
+      "purpose": "Loop state machine for find\u2192fix\u2192re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
     },
     "fixuptask_registry": {
       "kind": "registry",
@@ -219,7 +220,7 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.constitutional_authority + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy",
     "step_2_recall_icm": "icm recall-context 'oyatie master plan hyperscaler grit native agentic vcs hooks ci zero markdown machine-readable' --limit 5",
-    "step_3_grit_state_transition": "Every agent→repo state transition uses grit claim → work → grit done. Fallback: scaffold-locks-oyatie ICM topic per ADR-0054 when grit FK error.",
+    "step_3_grit_state_transition": "Every agent\u2192repo state transition uses grit claim \u2192 work \u2192 grit done. Fallback: scaffold-locks-oyatie ICM topic per ADR-0054 when grit FK error.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
     "step_5_gitops_vcs_replacement": "Before broad multi-agent fan-out, honor /specs/cross-cutting/gitops-vcs-replacement.json: preserve grit-style symbol claims, but route closeout through GitOps promotion when available."
   }

@@ -72,5 +72,6 @@
     "issue": "IP-008 accounting admission accepted records by id/kind without binding source/target artifacts to the changed artifact.",
     "fix": "Generated-client accounting now requires target_artifact == changed artifact; contract accounting now requires source_artifact or target_artifact == changed artifact.",
     "verification": "rustfmt check pass; targeted rustc -D warnings IP-008 tests pass: 8 unit + 6 integration, 14 total."
-  }
+  },
+  "purpose": "Auto-backfilled purpose for ip-002-003-006-008-antichain-verification.json"
 }

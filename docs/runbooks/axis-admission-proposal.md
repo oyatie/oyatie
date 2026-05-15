@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for axis-admission-proposal.md
+---
+
 # Oyatie Runbook — Axis Admission Proposal
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

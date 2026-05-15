@@ -1,1 +1,6 @@
-{"_meta": {"purpose": "FAILING fixture: snake_case filename violates P14 BNF (kebab-case required)"}}
+{
+  "_meta": {
+    "purpose": "FAILING fixture: snake_case filename violates P14 BNF (kebab-case required)"
+  },
+  "purpose": "Auto-backfilled purpose for snake_case_registry.json"
+}

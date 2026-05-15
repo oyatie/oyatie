@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-rust-toolchain-gates.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-004

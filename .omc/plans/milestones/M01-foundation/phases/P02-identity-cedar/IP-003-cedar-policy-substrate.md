@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-003-cedar-policy-substrate.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P02-IP-003

@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for ad-auction-latency-incident.md
+---
+
 # Oyatie Runbook — Ad Auction Latency Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

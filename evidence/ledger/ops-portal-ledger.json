@@ -22,8 +22,8 @@
     "foundation_prerequisite_gaps": [
       "docker/podman not yet installed in foundation (parallel session)",
       "kubectl not yet installed in foundation (parallel session)",
-      "cosign signing not yet wired (foundation prerequisite — blocks evidence-bundle-template.json conformance)",
-      "trivy scanning not yet wired (foundation prerequisite — blocks supply_chain evidence class for image artifacts)",
+      "cosign signing not yet wired (foundation prerequisite \u2014 blocks evidence-bundle-template.json conformance)",
+      "trivy scanning not yet wired (foundation prerequisite \u2014 blocks supply_chain evidence class for image artifacts)",
       "audit-chain runtime not yet operational (blocks audit_chain_ref event_id emission)"
     ]
   },
@@ -108,7 +108,7 @@
       "source_section": "v4 Accepted; observability + health BCs",
       "milestone": "M03-cloud-saas-search-workspace",
       "phase": "P12-TBD-IP (canonical pinning pending; sidecar plan references M03-P08 consolidation in line with Wave 2/3)",
-      "acceptance_criteria": "2 BCs operational; ADR-0067 §5 perf gate carrier (SSR p99 ≤500ms / SSE p99 ≤2s / 10k concurrent SSE)",
+      "acceptance_criteria": "2 BCs operational; ADR-0067 \u00a75 perf gate carrier (SSR p99 \u2264500ms / SSE p99 \u22642s / 10k concurrent SSE)",
       "dependencies": [
         "OPS-PORTAL-WAVE-3"
       ],
@@ -124,8 +124,8 @@
       "source_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md",
       "source_section": "v18 Accepted; tenant-mgmt + user-mgmt + deployments BCs + 12 Cedar fragments + hyperscaler-ops parity",
       "milestone": "M03-cloud-saas-search-workspace",
-      "phase": "P08-cross-axis-contracts IP-X10 + IP-X11 + IP-X12 (per v18 §6(c))",
-      "acceptance_criteria": "3 BCs + 5 shared port crates + 12 Cedar fragments + 7 fitness lanes + 4 WorkflowBridgePort method extensions + ADR-0068 Accepted + M02-P12 owner sign-off + parent §6(d) amendment 15→16; consensus via architect r16 + critic r7 APPROVE",
+      "phase": "P08-cross-axis-contracts IP-X10 + IP-X11 + IP-X12 (per v18 \u00a76(c))",
+      "acceptance_criteria": "3 BCs + 5 shared port crates + 12 Cedar fragments + 7 fitness lanes + 4 WorkflowBridgePort method extensions + ADR-0068 Accepted + M02-P12 owner sign-off + parent \u00a76(d) amendment 15\u219216; consensus via architect r16 + critic r7 APPROVE",
       "dependencies": [
         "OPS-PORTAL-WAVE-4",
         "M02-P12-workflow-engine-owner-signoff",
@@ -144,35 +144,35 @@
     {
       "item_id": "OPS-PORTAL-WAVE-6",
       "source_path": ".omc/plans/ralplan-ops-portal-2026-05-13.md",
-      "source_section": "§6(c) Wave 6; capacity + finops + on-call + incident BCs",
+      "source_section": "\u00a76(c) Wave 6; capacity + finops + on-call + incident BCs",
       "milestone": "M04",
       "phase": "P06",
-      "acceptance_criteria": "4 BCs + ~40 artifacts (expanded from ~25 per Wave 5 §12.9 successor commitment)",
+      "acceptance_criteria": "4 BCs + ~40 artifacts (expanded from ~25 per Wave 5 \u00a712.9 successor commitment)",
       "dependencies": [
         "OPS-PORTAL-WAVE-5"
       ],
       "status": "plan_pending",
       "evidence_refs": [],
-      "blocked_reason": "Wave 6 sub-plan not yet drafted; parent §8 follow-up #15 commits to authoring within 30 days of Wave 5 Accepted (deadline 2026-09-12 per Wave 5 §12.9)"
+      "blocked_reason": "Wave 6 sub-plan not yet drafted; parent \u00a78 follow-up #15 commits to authoring within 30 days of Wave 5 Accepted (deadline 2026-09-12 per Wave 5 \u00a712.9)"
     },
     {
       "item_id": "OPS-PORTAL-WAVE-7",
       "source_path": ".omc/plans/ralplan-ops-portal-2026-05-13.md",
-      "source_section": "§6(c) Wave 7; audit-view + icm-browser + grit-status + ci-runs BCs",
+      "source_section": "\u00a76(c) Wave 7; audit-view + icm-browser + grit-status + ci-runs BCs",
       "milestone": "M04",
       "phase": "P07",
-      "acceptance_criteria": "4 BCs + ~40 artifacts (expanded from ~20 per Wave 5 §12.9 successor commitment)",
+      "acceptance_criteria": "4 BCs + ~40 artifacts (expanded from ~20 per Wave 5 \u00a712.9 successor commitment)",
       "dependencies": [
         "OPS-PORTAL-WAVE-6"
       ],
       "status": "plan_pending",
       "evidence_refs": [],
-      "blocked_reason": "Wave 7 sub-plan not yet drafted; parent §8 follow-up #15 commits to authoring (deadline 2026-10-12 per Wave 5 §12.9)"
+      "blocked_reason": "Wave 7 sub-plan not yet drafted; parent \u00a78 follow-up #15 commits to authoring (deadline 2026-10-12 per Wave 5 \u00a712.9)"
     },
     {
       "item_id": "OPS-PORTAL-WAVE-5.5",
       "source_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md",
-      "source_section": "§12.9 successor Wave 5.5 commitment",
+      "source_section": "\u00a712.9 successor Wave 5.5 commitment",
       "milestone": "M03-cloud-saas-search-workspace",
       "phase": "P10-NEW (identity-mgmt expansion)",
       "acceptance_criteria": "oya-ops-service-account-* + oya-ops-api-key-* + oya-ops-sso-idp-* BCs; ADR-0070 service-account-credential-rotation; ~25 artifacts",
@@ -181,12 +181,12 @@
       ],
       "status": "plan_pending",
       "evidence_refs": [],
-      "blocked_reason": "Wave 5.5 sub-plan not yet drafted; deadline 2026-06-12 per Wave 5 §12.9"
+      "blocked_reason": "Wave 5.5 sub-plan not yet drafted; deadline 2026-06-12 per Wave 5 \u00a712.9"
     },
     {
       "item_id": "OPS-PORTAL-WAVE-5.6",
       "source_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md",
-      "source_section": "§12.9 successor Wave 5.6 commitment",
+      "source_section": "\u00a712.9 successor Wave 5.6 commitment",
       "milestone": "M03-cloud-saas-search-workspace",
       "phase": "P11-NEW (deployments expansion)",
       "acceptance_criteria": "execute_canary_promote + pause_rollout + resume_rollout + execute_blue_green_cutover WBP methods; Cedar ops-canary-promote.cedar; Argo viewer; ~20 artifacts",
@@ -195,12 +195,12 @@
       ],
       "status": "plan_pending",
       "evidence_refs": [],
-      "blocked_reason": "Wave 5.6 sub-plan not yet drafted; deadline 2026-07-12 per Wave 5 §12.9"
+      "blocked_reason": "Wave 5.6 sub-plan not yet drafted; deadline 2026-07-12 per Wave 5 \u00a712.9"
     },
     {
       "item_id": "OPS-PORTAL-WAVE-5.7",
       "source_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md",
-      "source_section": "§12.9 successor Wave 5.7 commitment",
+      "source_section": "\u00a712.9 successor Wave 5.7 commitment",
       "milestone": "M04",
       "phase": "P05-NEW (multi-region + DR)",
       "acceptance_criteria": "oya-ops-multi-region-orchestrator BC + execute_multi_cell_rollback/region_failover/cell_evacuation WBP methods + ADR-0071 RPO/RTO budgets + chaos-engineering lane; ~30 artifacts",
@@ -209,7 +209,8 @@
       ],
       "status": "plan_pending",
       "evidence_refs": [],
-      "blocked_reason": "Wave 5.7 sub-plan not yet drafted; deadline 2026-08-12 per Wave 5 §12.9"
+      "blocked_reason": "Wave 5.7 sub-plan not yet drafted; deadline 2026-08-12 per Wave 5 \u00a712.9"
     }
-  ]
+  ],
+  "purpose": "Auto-backfilled purpose for ops-portal-ledger.json"
 }

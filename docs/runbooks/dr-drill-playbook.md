@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for dr-drill-playbook.md
+---
+
 # Oyatie Runbook — Dr Drill Playbook
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

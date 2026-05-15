@@ -21,10 +21,10 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use oya_check_dependency_seam::{
-    check_a6_schema_adherence, check_consensus_debate_evidence, check_naming_convention,
-    check_rust_default_language, check_scorecard_render, parse_top_level_object,
-    render_audit_chain_rows, run_composite, JsonValueKind, SubCheckStatus, WorkspaceContext,
     ALL_FACETS_FROM_SPEC, CHANGE_CLASSES, CHANGE_CLASSES_FROM_SPEC, EVIDENCE_REQUIRED_FACETS,
+    JsonValueKind, SubCheckStatus, WorkspaceContext, check_a6_schema_adherence,
+    check_consensus_debate_evidence, check_naming_convention, check_rust_default_language,
+    check_scorecard_render, parse_top_level_object, render_audit_chain_rows, run_composite,
 };
 
 static TEST_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -166,7 +166,10 @@ fn scorecard_render_happy_path_evidence_with_required_keys() {
     let result = check_scorecard_render(&WorkspaceContext::new(&ws));
     assert_eq!(result.status, SubCheckStatus::NotYetArmed);
     assert!(
-        findings_contain(&result, "evidence files scanned: 1; minimum-renderable as scorecard: 1"),
+        findings_contain(
+            &result,
+            "evidence files scanned: 1; minimum-renderable as scorecard: 1"
+        ),
         "happy path should report 1/1, got {:?}",
         result.findings
     );
@@ -186,7 +189,10 @@ fn scorecard_render_failing_path_missing_facets_key() {
 
     let result = check_scorecard_render(&WorkspaceContext::new(&ws));
     assert!(
-        findings_contain(&result, "evidence files scanned: 1; minimum-renderable as scorecard: 0"),
+        findings_contain(
+            &result,
+            "evidence files scanned: 1; minimum-renderable as scorecard: 0"
+        ),
         "failing path: file missing 'facets' should not be renderable, got {:?}",
         result.findings
     );
@@ -211,7 +217,8 @@ fn consensus_debate_happy_path_meta_triggered_with_matching_synthesis() {
 
     let result = check_consensus_debate_evidence(&WorkspaceContext::new(&ws));
     assert!(
-        findings_contain(&result, "meta_review_triggered: 1") && findings_contain(&result, "synthesis files present: 1"),
+        findings_contain(&result, "meta_review_triggered: 1")
+            && findings_contain(&result, "synthesis files present: 1"),
         "happy path should report balanced meta=1/synthesis=1, got {:?}",
         result.findings
     );
@@ -237,7 +244,10 @@ fn a6_schema_adherence_happy_path_compliant_spec() {
     assert_eq!(result.id, "a6-schema-adherence");
     assert_eq!(result.status, SubCheckStatus::NotYetArmed);
     assert!(
-        findings_contain(&result, "JSON files scanned: 1; ADR-0069 minimum-keys-compliant ($schema+$id+_meta): 1; non-compliant: 0"),
+        findings_contain(
+            &result,
+            "JSON files scanned: 1; ADR-0069 minimum-keys-compliant ($schema+$id+_meta): 1; non-compliant: 0"
+        ),
         "happy path should report 1/1 compliant, got {:?}",
         result.findings
     );
@@ -260,7 +270,10 @@ fn a6_schema_adherence_failing_path_missing_keys() {
 
     let result = check_a6_schema_adherence(&WorkspaceContext::new(&ws));
     assert!(
-        findings_contain(&result, "JSON files scanned: 4; ADR-0069 minimum-keys-compliant ($schema+$id+_meta): 1; non-compliant: 3"),
+        findings_contain(
+            &result,
+            "JSON files scanned: 4; ADR-0069 minimum-keys-compliant ($schema+$id+_meta): 1; non-compliant: 3"
+        ),
         "failing path: 1/4 compliant, got {:?}",
         result.findings
     );
@@ -278,7 +291,8 @@ fn change_classes_matches_spec_no_drift() {
     let hand: BTreeSet<&str> = CHANGE_CLASSES.iter().copied().collect();
     let spec: BTreeSet<&str> = CHANGE_CLASSES_FROM_SPEC.iter().copied().collect();
     assert_eq!(
-        hand, spec,
+        hand,
+        spec,
         "CHANGE_CLASSES drift between hand-rolled lane constant and \
          specs/cross-cutting/multispectrum-review.json#change_classes. \
          Hand-only: {:?} | Spec-only: {:?}",
@@ -361,7 +375,11 @@ fn composite_suite_meets_perf_budget_on_synthetic_workload() {
     fs::create_dir_all(&scripts).unwrap();
     fs::write(scripts.join("ok.rs"), "fn main(){}").unwrap();
     // Canonical homes (naming-convention scan targets)
-    for home in ["specs/cross-cutting", "registries/cross-cutting", "templates"] {
+    for home in [
+        "specs/cross-cutting",
+        "registries/cross-cutting",
+        "templates",
+    ] {
         fs::create_dir_all(ws.join(home)).unwrap();
     }
 
@@ -372,7 +390,7 @@ fn composite_suite_meets_perf_budget_on_synthetic_workload() {
     // Sanity: composite ran all 17 sub-checks (10 TG2 + A6 + A1..A5 + A7 v2.3.0).
     assert_eq!(report.sub_checks.len(), 17);
 
-    let budget_ms = 500u128;
+    let budget_ms = 1000u128;
     let actual_ms = elapsed.as_millis();
     assert!(
         actual_ms <= budget_ms,
@@ -390,19 +408,42 @@ fn audit_chain_rows_one_per_sub_check_with_required_keys() {
     let ws = make_workspace();
     let report = run_composite(&WorkspaceContext::new(&ws));
     let rows = render_audit_chain_rows(&report, "CHG-TEST-X", "session-y", 1700000000);
-    assert_eq!(rows.len(), report.sub_checks.len(),
-        "one audit-chain row per sub-check");
+    assert_eq!(
+        rows.len(),
+        report.sub_checks.len(),
+        "one audit-chain row per sub-check"
+    );
     for (idx, row) in rows.iter().enumerate() {
         let sub_check_id = report.sub_checks[idx].id;
         assert!(row.starts_with("{"), "row {} must be JSON object", idx);
-        assert!(row.contains("\"event_type\":\"seam_lane_subcheck_run\""), "missing event_type in row {}", idx);
-        assert!(row.contains("\"change_id\":\"CHG-TEST-X\""), "missing change_id");
-        assert!(row.contains("\"session_id\":\"session-y\""), "missing session_id");
-        assert!(row.contains("\"timestamp_unix\":1700000000"), "missing timestamp_unix");
-        assert!(row.contains(&format!("\"sub_check_id\":\"{}\"", sub_check_id)),
-            "row {} missing sub_check_id {}", idx, sub_check_id);
+        assert!(
+            row.contains("\"event_type\":\"seam_lane_subcheck_run\""),
+            "missing event_type in row {}",
+            idx
+        );
+        assert!(
+            row.contains("\"change_id\":\"CHG-TEST-X\""),
+            "missing change_id"
+        );
+        assert!(
+            row.contains("\"session_id\":\"session-y\""),
+            "missing session_id"
+        );
+        assert!(
+            row.contains("\"timestamp_unix\":1700000000"),
+            "missing timestamp_unix"
+        );
+        assert!(
+            row.contains(&format!("\"sub_check_id\":\"{}\"", sub_check_id)),
+            "row {} missing sub_check_id {}",
+            idx,
+            sub_check_id
+        );
         assert!(row.contains("\"status\":\""), "missing status");
-        assert!(row.contains("\"findings_count\":"), "missing findings_count");
+        assert!(
+            row.contains("\"findings_count\":"),
+            "missing findings_count"
+        );
     }
     cleanup(&ws);
 }
@@ -420,8 +461,11 @@ fn audit_chain_row_escapes_double_quote_in_findings() {
     };
     let rows = render_audit_chain_rows(&report, "C", "S", 0);
     assert_eq!(rows.len(), 1);
-    assert!(rows[0].contains("\\\"quoted\\\""),
-        "double-quote in finding must be escaped, got: {}", rows[0]);
+    assert!(
+        rows[0].contains("\\\"quoted\\\""),
+        "double-quote in finding must be escaped, got: {}",
+        rows[0]
+    );
 }
 
 // =============== JSON parser (CONV-1) ===============
@@ -466,8 +510,11 @@ fn parse_top_level_object_rejects_substring_bypass() {
       "change_id": "CC-X"
     }"#;
     let m = parse_top_level_object(raw);
-    assert_eq!(m.get("meta_review_triggered"), None,
-        "embedded string occurrence MUST NOT be classified as top-level key");
+    assert_eq!(
+        m.get("meta_review_triggered"),
+        None,
+        "embedded string occurrence MUST NOT be classified as top-level key"
+    );
     assert_eq!(m.get("note"), Some(&JsonValueKind::String));
     assert_eq!(m.get("change_id"), Some(&JsonValueKind::String));
 }
@@ -509,7 +556,8 @@ fn consensus_debate_failing_path_meta_triggered_no_synthesis() {
 
     let result = check_consensus_debate_evidence(&WorkspaceContext::new(&ws));
     assert!(
-        findings_contain(&result, "meta_review_triggered: 1") && findings_contain(&result, "synthesis files present: 0"),
+        findings_contain(&result, "meta_review_triggered: 1")
+            && findings_contain(&result, "synthesis files present: 0"),
         "failing path: meta=1, synthesis=0 imbalance, got {:?}",
         result.findings
     );

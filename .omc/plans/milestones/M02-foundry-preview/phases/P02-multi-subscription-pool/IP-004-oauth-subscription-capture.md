@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-oauth-subscription-capture.md
+---
+
+---
 doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-004-oauth-subscription-capture

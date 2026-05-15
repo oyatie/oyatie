@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-second-region-attestation.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P03-IP-002

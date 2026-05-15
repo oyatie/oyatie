@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for finops-monthly-close.md
+---
+
 # Oyatie Runbook — Finops Monthly Close
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

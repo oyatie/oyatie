@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-002-domain-types-state-machine.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P00-IP-002

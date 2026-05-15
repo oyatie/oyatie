@@ -7,25 +7,26 @@ impl_plan_id: IP-P02-payroll-full-scaffold
 status: pending
 owner: council-enterprise
 blocked_by:
-  - impl_plan: IP-P01-hr-full-scaffold
-    reason: "Employee/Employment Ontology Object Types must exist before payroll adapter can read them."
+- impl_plan: IP-P01-hr-full-scaffold
+  reason: Employee/Employment Ontology Object Types must exist before payroll adapter
+    can read them.
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
-  - ontology-type-registry
-  - workflow-event-registry
-  - audit-chain
-  - jurisdiction-overlay
-  - k6-smoke
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+- ontology-type-registry
+- workflow-event-registry
+- audit-chain
+- jurisdiction-overlay
+- k6-smoke
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-P02-payroll-full-scaffold: Payroll µservice — DDL, gross-to-net engine, 4대보험 EDI, 연말정산, Typst payslips, bank disbursement, Workflow events, load tests
 
 ## Intent

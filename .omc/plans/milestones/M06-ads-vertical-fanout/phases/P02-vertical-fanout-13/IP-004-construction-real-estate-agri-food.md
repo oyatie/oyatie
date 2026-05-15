@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-004-construction-real-estate-agri-food.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M06-P02-IP-004

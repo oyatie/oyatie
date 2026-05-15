@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for og-schema-rollback.md
+---
+
 # Oyatie Runbook — Og Schema Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

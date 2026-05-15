@@ -7,14 +7,15 @@ impl_plan_id: IP-001-plane-verification
 status: pending
 owner: council-architecture
 blocked_by:
-  - impl_plan: P20-ci-lanes-operational/IP-004
-    reason: "All 14 CI lanes must be wired in GitHub Actions before plane verification can run CI-backed evidence"
+- impl_plan: P20-ci-lanes-operational/IP-004
+  reason: All 14 CI lanes must be wired in GitHub Actions before plane verification
+    can run CI-backed evidence
 acceptance_lanes:
-  - cargo-check
-  - cargo-nextest
-  - cargo-deny
+- cargo-check
+- cargo-nextest
+- cargo-deny
+purpose: Auto-backfilled purpose for impl-plan.md
 ---
-
 # IP-001-plane-verification: Verify All 9 Architecture Planes L4-L5 + Produce Evidence Artifact
 
 ## Intent

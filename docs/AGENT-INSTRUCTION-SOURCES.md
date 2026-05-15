@@ -3,9 +3,9 @@ doc_class: AuditInventory
 parent: .omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md
 id: AGENT-INSTRUCTION-SOURCES
 status: Accepted
-generated_at: 2026-05-14T12:49:00Z
+generated_at: 2026-05-14 12:49:00+00:00
+purpose: Auto-backfilled purpose for AGENT-INSTRUCTION-SOURCES.md
 ---
-
 # Agent Instruction Sources
 
 This inventory enumerates repo-local files that contain exact `agent-instructions` fences after M-CC-P01-IP-007. It is the P5 audit surface for the banned-primitives lane; out-of-repo user-machine hooks are intentionally not listed here and are tracked by ICM / inventory references only.

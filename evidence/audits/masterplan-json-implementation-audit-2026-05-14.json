@@ -54,5 +54,6 @@
   "not_complete_for_full_product_execution": "Executing every product ChangeSet in the master plan is intentionally not claimed complete; this audit covers implementation of the masterplan JSON control surface and current plan hierarchy indexing.",
   "updated_at": "2026-05-14T09:12:00Z",
   "status": "complete-for-masterplan-json-control-surface",
-  "paths": []
+  "paths": [],
+  "purpose": "Auto-backfilled purpose for masterplan-json-implementation-audit-2026-05-14.json"
 }

@@ -7,7 +7,8 @@
     "phase": "P02-multi-subscription-pool",
     "produced_at": "2026-05-14",
     "auditor": "claude-a1-m02p02",
-    "scope": "crates/oya-foundry-oauth-subscription-kernel"
+    "scope": "crates/oya-foundry-oauth-subscription-kernel",
+    "purpose": "Auto-backfilled purpose for m02-p02-ip-004-oauth-subscription-capture.json"
   },
   "ip_id": "IP-004-oauth-subscription-capture",
   "role": "kernel",
@@ -15,8 +16,8 @@
     {
       "name": "oya-foundry-oauth-subscription-kernel",
       "role": "kernel",
-      "bnf_justification": "oya-<microservice:foundry>-<bc:oauth-subscription>-<layer:kernel>; v4.1 conformant; oauth-subscription is a discrete bounded context (PKCE + flow state) separable from oya-foundry-account-runtime; layer=kernel — pure value types + deterministic PKCE handshake + SHA-256, NO I/O (loopback server lives in adapter layer). Departs from the IP-001 plan (`oya-foundry-agent-runtime::foundry::auth.rs`) per ICM scaffold-lock 01KRMC1RRT3KKBPFWST64Q33TZ since no `oya-foundry-agent-runtime` crate exists today; new kernel is a final-shape replacement and avoids a placeholder agent-runtime crate.",
-      "purpose": "PKCE-pinned OAuth subscription-token capture flow. Pure-Rust SHA-256 + base64url-no-pad for kernel layer (avoids dep on sha2/0.10 in kernel — adapter layer can substitute). Tokens never enter the kernel — `record_capture` accepts only a pre-minted `SecretReference` from the secrets-store adapter.",
+      "bnf_justification": "oya-<microservice:foundry>-<bc:oauth-subscription>-<layer:kernel>; v4.1 conformant; oauth-subscription is a discrete bounded context (PKCE + flow state) separable from oya-foundry-account-runtime; layer=kernel \u2014 pure value types + deterministic PKCE handshake + SHA-256, NO I/O (loopback server lives in adapter layer). Departs from the IP-001 plan (`oya-foundry-agent-runtime::foundry::auth.rs`) per ICM scaffold-lock 01KRMC1RRT3KKBPFWST64Q33TZ since no `oya-foundry-agent-runtime` crate exists today; new kernel is a final-shape replacement and avoids a placeholder agent-runtime crate.",
+      "purpose": "PKCE-pinned OAuth subscription-token capture flow. Pure-Rust SHA-256 + base64url-no-pad for kernel layer (avoids dep on sha2/0.10 in kernel \u2014 adapter layer can substitute). Tokens never enter the kernel \u2014 `record_capture` accepts only a pre-minted `SecretReference` from the secrets-store adapter.",
       "linus_good_taste": "Eliminated parallel `import_api_key` helper by collapsing API-key import into a `FlowKind::ApiKeyImport` variant of the same entry point; one surface, one decision tree."
     }
   ],
@@ -47,7 +48,7 @@
   },
   "grit_claim": {
     "agent": "claude-a1-m02p02",
-    "intent": "M02-P02-IP-004 — OAuth subscription kernel scaffold",
+    "intent": "M02-P02-IP-004 \u2014 OAuth subscription kernel scaffold",
     "fallback_mechanism": "ADR-0054 scaffold-lock",
     "icm_lock_ulid": "01KRMC1RRT3KKBPFWST64Q33TZ"
   },
@@ -59,7 +60,7 @@
     "plugins/oauth_codex stub via FlowKind::OpenAiOAuth"
   ],
   "open_items": [
-    "Loopback HTTP server (the listener that receives the OAuth `code`) lives in adapter layer — not in this kernel. The kernel exposes the descriptor; the adapter binds the port.",
+    "Loopback HTTP server (the listener that receives the OAuth `code`) lives in adapter layer \u2014 not in this kernel. The kernel exposes the descriptor; the adapter binds the port.",
     "Browser-open hand-off (operator-console UX) lives in app layer."
   ],
   "next_ip": "IP-005-upstream-api-drift-lane"

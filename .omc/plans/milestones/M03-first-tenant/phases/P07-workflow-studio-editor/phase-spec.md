@@ -5,27 +5,31 @@ milestone: M03-first-paying-tenant
 phase: P07-workflow-studio-editor
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02-substrate-schema-foundation complete; oya-workflow-engine-kernel + oya-workflow-engine-domain ship (M02/P12);
-  oya-workflow-approvals-kernel ships; oya-workflow-sla-domain ships;
-  Leptos canvas component library decision resolved (M02/P01 open question #2).
-exit_gate: |
-  All IP acceptance gates green; deterministic replay test 100% pass rate;
-  durable execution restart test green (engine killed mid-run; resumes from last step);
-  four-eyes approval test green; SLA escalation timing test green;
-  agentic node routing test green;
-  all 10 M03 domain templates loadable in Studio; node-drop → edge-connect ≤16ms (Playwright);
-  10k concurrent active runs p99 step execution ≤200ms (k6);
-  `oya gate validate lean-a2 --ms workflow` exits 0;
-  grit done on all P07 symbols; ICM phase-handoff row emitted.
-depends_on:
-  - milestone: M02
-    phase: P12-workflow-engine
-    reason: "Workflow Studio visual editor wraps the M02 engine; the engine domain + state-store + Kafka KRaft event bus must exist before Studio can render runs and wire triggers."
-parallel_wave: 2  # Runs in parallel with P01-P05; only consumes M02 engine, not M03 product µservices
-owner_team: council-architecture
----
+entry_gate: 'M02-substrate-schema-foundation complete; oya-workflow-engine-kernel
+  + oya-workflow-engine-domain ship (M02/P12);
 
+  oya-workflow-approvals-kernel ships; oya-workflow-sla-domain ships;
+
+  Leptos canvas component library decision resolved (M02/P01 open question #2).
+
+  '
+exit_gate: "All IP acceptance gates green; deterministic replay test 100% pass rate;\n\
+  durable execution restart test green (engine killed mid-run; resumes from last step);\n\
+  four-eyes approval test green; SLA escalation timing test green;\nagentic node routing\
+  \ test green;\nall 10 M03 domain templates loadable in Studio; node-drop \u2192\
+  \ edge-connect \u226416ms (Playwright);\n10k concurrent active runs p99 step execution\
+  \ \u2264200ms (k6);\n`oya gate validate lean-a2 --ms workflow` exits 0;\ngrit done\
+  \ on all P07 symbols; ICM phase-handoff row emitted.\n"
+depends_on:
+- milestone: M02
+  phase: P12-workflow-engine
+  reason: Workflow Studio visual editor wraps the M02 engine; the engine domain +
+    state-store + Kafka KRaft event bus must exist before Studio can render runs and
+    wire triggers.
+parallel_wave: 2
+owner_team: council-architecture
+purpose: Auto-backfilled purpose for phase-spec.md
+---
 # P07-workflow-studio-editor: Workflow Studio visual editor — Leptos canvas, 10 domain templates, agentic nodes, durable execution, approval chains
 
 ## Purpose

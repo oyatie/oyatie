@@ -5,10 +5,11 @@ status: pending approval
 date: 2026-05-13
 created_by: ralplan --consensus --architect codex --critic codex --deliberate
 canonical_authority: docs/CONSTITUTION.md
-authority_chain: docs/MASTERPLAN.md → ADR-0061 + ADR-0063 + ADR-0064 + ADR-0065 + ADR-0066 → this plan
+authority_chain: "docs/MASTERPLAN.md \u2192 ADR-0061 + ADR-0063 + ADR-0064 + ADR-0065\
+  \ + ADR-0066 \u2192 this plan"
 codex_model: gpt-5.5 / xhigh
+purpose: Auto-backfilled purpose for ralplan-docs-portal-2026-05-13.md
 ---
-
 # Implementation Plan: Live-Introspection Docs Portal (Leptos SSR)
 
 ## §1 Principles (RALPLAN-DR; v3 — internally consistent with §6 and §8)

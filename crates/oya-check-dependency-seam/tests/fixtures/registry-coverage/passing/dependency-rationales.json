@@ -2,7 +2,8 @@
   "title": "PassingFixture",
   "description": "F3 adversarial-fixture pair (passing case): a well-formed dependency-rationales.json with the canonical `entries` object containing at least one workspace dep. The extract_registry_entry_names extractor must return the entry names.",
   "_meta": {
-    "fixture_kind": "passing"
+    "fixture_kind": "passing",
+    "purpose": "Auto-backfilled purpose for dependency-rationales.json"
   },
   "entries": {
     "hyper": {

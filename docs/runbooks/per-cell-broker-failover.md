@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for per-cell-broker-failover.md
+---
+
 # Oyatie Runbook — Per Cell Broker Failover
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

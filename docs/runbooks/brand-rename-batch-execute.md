@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for brand-rename-batch-execute.md
+---
+
 # Oyatie Runbook — Brand Rename Batch Execute
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

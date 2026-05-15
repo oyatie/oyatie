@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for IP-001-tenant-onboarding.md
+---
+
+---
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M04-P03-IP-001

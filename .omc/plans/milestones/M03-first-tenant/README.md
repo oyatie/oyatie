@@ -4,45 +4,46 @@ template_id: TPL-MILE-README
 milestone_id: M03-first-tenant
 parent: ../../../docs/MASTERPLAN.md
 status: Proposed
-entry_gate: |
-  M02-substrate Complete; all 22 M02 phases green; all 14+ CI lanes BLOCKER;
+entry_gate: 'M02-substrate Complete; all 22 M02 phases green; all 14+ CI lanes BLOCKER;
+
   Application B2B shell deployed to OCI ARM64 Stage 0 cell.
+
   KR localization pack manifest signed; corpus.lock signed.
-exit_gate: |
-  - ADR-0210 35-checkbox M3 closure evidence bundle signed
-    (PAYING + EDI + YEAR-END + LEGAL-HOLD + SLO + CORPUS + AUDIT + RESTORE + ONBOARD)
-  - 1 KR group paying tenant live on oyatie HR + Payroll + Accounting +
-    Connect Professional Mail + Connect Professional Messenger
-  - 4대보험 EDI submissions green (NPS / NHIS / 고용 / 산재)
-  - 연말정산 21-category cycle sealed (audit chain Ed25519-segmented per tenant + period)
-  - Connect Pro legal hold + eDiscovery evidence verified (four-eyes release)
-  - 7-day SLO held (p99 read ≤50ms, write ≤200ms, 10k+ RPS per cell)
-  - Workflow Studio hero product live with ≥10 M3 launch templates
-  - oya-check-doc-coverage --blocker exits 0 for every M03 µservice
-  - git tag m3-tenant-live emitted
-  - ICM milestone-complete row emitted
+
+  '
+exit_gate: "- ADR-0210 35-checkbox M3 closure evidence bundle signed\n  (PAYING +\
+  \ EDI + YEAR-END + LEGAL-HOLD + SLO + CORPUS + AUDIT + RESTORE + ONBOARD)\n- 1 KR\
+  \ group paying tenant live on oyatie HR + Payroll + Accounting +\n  Connect Professional\
+  \ Mail + Connect Professional Messenger\n- 4\uB300\uBCF4\uD5D8 EDI submissions green\
+  \ (NPS / NHIS / \uACE0\uC6A9 / \uC0B0\uC7AC)\n- \uC5F0\uB9D0\uC815\uC0B0 21-category\
+  \ cycle sealed (audit chain Ed25519-segmented per tenant + period)\n- Connect Pro\
+  \ legal hold + eDiscovery evidence verified (four-eyes release)\n- 7-day SLO held\
+  \ (p99 read \u226450ms, write \u2264200ms, 10k+ RPS per cell)\n- Workflow Studio\
+  \ hero product live with \u226510 M3 launch templates\n- oya-check-doc-coverage\
+  \ --blocker exits 0 for every M03 \xB5service\n- git tag m3-tenant-live emitted\n\
+  - ICM milestone-complete row emitted\n"
 owner_team: axis-enterprise + axis-connect + gtm-customer-success-kr
 bominal_adrs_inherited:
-  - ADR-0019  # active-active compatibility
-  - ADR-0028  # audit chain
-  - ADR-0035  # workflow engine
-  - ADR-0049  # cross-region replication
-  - ADR-0111  # tenant DEK
-  - ADR-0118  # tenant onboarding ≤5min
-  - ADR-0123  # OIDC + passkey
-  - ADR-0125  # domain naming canon
-  - ADR-0126  # 8-class employment classification
-  - ADR-0190  # versioned regulatory corpus.lock
-  - ADR-0208  # connect dual-context unified channel hub
-  - ADR-0210  # M3 KR group payroll + mail production launch
-  - ADR-0215  # connect retention legal-hold dual-context
+- ADR-0019
+- ADR-0028
+- ADR-0035
+- ADR-0049
+- ADR-0111
+- ADR-0118
+- ADR-0123
+- ADR-0125
+- ADR-0126
+- ADR-0190
+- ADR-0208
+- ADR-0210
+- ADR-0215
 oyatie_adrs_cited:
-  - ADR-0056  # BNF v4.1
-  - ADR-0061  # Application B2B unified shell
-  - ADR-0063  # documentation suite coverage
-  - ADR-0064  # canonical base + KR localization pack #1
+- ADR-0056
+- ADR-0061
+- ADR-0063
+- ADR-0064
+purpose: Auto-backfilled purpose for README.md
 ---
-
 # M03-first-tenant — 1 KR paying tenant live (HR + Payroll + Accounting + Connect Pro Mail/Messenger + Workflow Studio)
 
 ## Intent
