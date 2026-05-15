@@ -10,6 +10,7 @@ use oya_check_supply_chain::{
     ReleaseArtifact, ReleaseSupplyChainEvidence, SupplyChainEvidence, SupplyChainRecord,
     validate_pre_release_supply_chain, validate_release_supply_chain, validate_supply_chain,
 };
+use oya_foundry_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{
     clean_scalar_value, extract_json_array_for_key, extract_json_object_for_key,
@@ -22,7 +23,13 @@ use crate::{
 pub(crate) struct SupplyChainValidateArgs {
     registry_dir: PathBuf,
     deny_config_path: PathBuf,
-    check_script_path: PathBuf,
+    /// Optional test-only override for the wired-commands corpus. When
+    /// `None` (production default) the kernel sources its wired-commands
+    /// catalog from `oya-foundry-gate-catalog-domain` per the .sh-removal
+    /// chain IP-C. When `Some(path)`, the CLI reads the path verbatim —
+    /// used by the integration-test fixtures in
+    /// `tests/gate_cli.rs` to exercise rejection paths.
+    check_script_path: Option<PathBuf>,
     adr0039_script_path: PathBuf,
     workflows_dir: PathBuf,
     release_images_path: PathBuf,
@@ -37,7 +44,7 @@ pub(crate) fn parse_supply_chain_validate_args(
     let mut parsed = SupplyChainValidateArgs {
         registry_dir: PathBuf::from("registry/catalog"),
         deny_config_path: PathBuf::from("deny.toml"),
-        check_script_path: PathBuf::from("scripts/check.sh"),
+        check_script_path: None,
         adr0039_script_path: PathBuf::from("scripts/supply-chain-adr0039.sh"),
         workflows_dir: PathBuf::from(".github/workflows"),
         release_images_path: PathBuf::from("registry/release/images.yaml"),
@@ -51,7 +58,9 @@ pub(crate) fn parse_supply_chain_validate_args(
             "--require-adr0039-evidence" => parsed.require_adr0039_evidence = true,
             "--registry" => parsed.registry_dir = PathBuf::from(next_arg(&mut iter)?),
             "--deny" => parsed.deny_config_path = PathBuf::from(next_arg(&mut iter)?),
-            "--check-script" => parsed.check_script_path = PathBuf::from(next_arg(&mut iter)?),
+            "--check-script" => {
+                parsed.check_script_path = Some(PathBuf::from(next_arg(&mut iter)?))
+            }
             "--adr0039-script" => parsed.adr0039_script_path = PathBuf::from(next_arg(&mut iter)?),
             "--workflows-dir" => parsed.workflows_dir = PathBuf::from(next_arg(&mut iter)?),
             "--release-images" => parsed.release_images_path = PathBuf::from(next_arg(&mut iter)?),
@@ -71,21 +80,32 @@ pub(crate) fn validate_supply_chain_gate(
     args: SupplyChainValidateArgs,
 ) -> Result<(usize, usize), String> {
     let records = read_supply_chain_records(&args.registry_dir)?;
-    let check_script = fs::read_to_string(&args.check_script_path).map_err(|error| {
-        format!(
-            "supply chain check script unreadable {}: {error}",
-            args.check_script_path.display()
-        )
-    })?;
+    // Canonical catalog replaces the legacy `scripts/check.sh` file read
+    // (audit `evidence/audits/shell-python-replacement-audit-2026-05-15.md`
+    // row B-1, .sh-removal chain IP-C). The catalog substring-matches the
+    // `cargo deny check` / `cargo audit` tokens the supply-chain kernel
+    // historically required to find inside the script body.
+    // Test-only override: `--check-script <path>` swaps the canonical
+    // catalog for the file body, so integration-test fixtures can
+    // exercise rejection paths against synthetic wired-command surfaces.
+    let wired_commands = match args.check_script_path.as_ref() {
+        Some(path) => fs::read_to_string(path).map_err(|error| {
+            format!(
+                "supply chain check script unreadable {}: {error}",
+                path.display()
+            )
+        })?,
+        None => all_canonical_commands_rendered(),
+    };
     let workflow_text = read_workflow_text(&args.workflows_dir)?;
     let adr0039_script = read_optional_text(&args.adr0039_script_path)?;
-    let supply_chain_text = format!("{check_script}\n{workflow_text}\n{adr0039_script}");
+    let supply_chain_text = format!("{wired_commands}\n{workflow_text}\n{adr0039_script}");
     let sbom_spdx_wired = sbom_spdx_wired(&supply_chain_text);
     let sbom_cyclonedx_wired = sbom_cyclonedx_wired(&supply_chain_text);
     let evidence = SupplyChainEvidence {
         deny_config_present: args.deny_config_path.is_file(),
-        cargo_deny_check_wired: check_script.contains("cargo deny check"),
-        cargo_audit_check_wired: check_script.contains("cargo audit"),
+        cargo_deny_check_wired: wired_commands.contains("cargo deny check"),
+        cargo_audit_check_wired: wired_commands.contains("cargo audit"),
         third_party_actions_pinned: third_party_actions_are_pinned(&args.workflows_dir)?,
         require_adr0039_evidence: args.require_adr0039_evidence,
         release_manifest_present: args.release_images_path.is_file(),

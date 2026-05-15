@@ -7,6 +7,7 @@ use oya_check_documentation_system::{
     validate_documentation_system,
 };
 use oya_check_readme_coverage::validate_readme_doc_coverage;
+use oya_foundry_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{
     extract_first_backticked_value, extract_json_object_entries, extract_json_object_for_key,
@@ -144,7 +145,13 @@ pub(crate) fn validate_doc_catalog_gate(args: DocCatalogValidateArgs) -> Result<
 pub(crate) struct DocumentationSystemValidateArgs {
     documentation_path: PathBuf,
     pipeline_path: PathBuf,
-    check_script_path: PathBuf,
+    /// Optional test-only override for the wired-commands corpus. When
+    /// `None` (production default) the kernel sources its wired-commands
+    /// catalog from `oya-foundry-gate-catalog-domain` per the .sh-removal
+    /// chain IP-C. When `Some(path)`, the CLI reads the path verbatim —
+    /// used by the integration-test fixtures in `tests/gate_cli.rs` to
+    /// exercise rejection paths.
+    check_script_path: Option<PathBuf>,
     wiki_quickref_path: PathBuf,
     repo_root: PathBuf,
 }
@@ -155,7 +162,7 @@ pub(crate) fn parse_documentation_system_validate_args(
     let mut parsed = DocumentationSystemValidateArgs {
         documentation_path: PathBuf::from("docs/DOCUMENTATION.md"),
         pipeline_path: PathBuf::from("registry/docs/pipeline.tsv"),
-        check_script_path: PathBuf::from("scripts/check.sh"),
+        check_script_path: None,
         wiki_quickref_path: PathBuf::from("docs/wiki/quickref/README.md"),
         repo_root: PathBuf::from("."),
     };
@@ -165,7 +172,7 @@ pub(crate) fn parse_documentation_system_validate_args(
         match flag.as_str() {
             "--documentation" => parsed.documentation_path = PathBuf::from(path),
             "--pipeline" => parsed.pipeline_path = PathBuf::from(path),
-            "--check-script" => parsed.check_script_path = PathBuf::from(path),
+            "--check-script" => parsed.check_script_path = Some(PathBuf::from(path)),
             "--wiki-quickref" => parsed.wiki_quickref_path = PathBuf::from(path),
             "--repo-root" => parsed.repo_root = PathBuf::from(path),
             _ => return Err(usage()),
@@ -183,14 +190,25 @@ pub(crate) fn validate_documentation_system_gate(
             args.documentation_path.display()
         )
     })?;
-    let check_script = fs::read_to_string(&args.check_script_path).map_err(|error| {
-        format!(
-            "documentation system check script unreadable {}: {error}",
-            args.check_script_path.display()
-        )
-    })?;
+    // Canonical catalog replaces the legacy `scripts/check.sh` file read
+    // (audit `evidence/audits/shell-python-replacement-audit-2026-05-15.md`
+    // row B-1, .sh-removal chain IP-C). The catalog substring-matches the
+    // same `cargo run -p oya-dev-cli -- doc <step>` / `catalog validate`
+    // patterns the script body historically supplied.
+    // Test-only override: `--check-script <path>` swaps the canonical
+    // catalog for the file body, so integration-test fixtures can
+    // exercise rejection paths.
+    let wired_commands = match args.check_script_path.as_ref() {
+        Some(path) => fs::read_to_string(path).map_err(|error| {
+            format!(
+                "documentation system check script unreadable {}: {error}",
+                path.display()
+            )
+        })?,
+        None => all_canonical_commands_rendered(),
+    };
     let records =
-        read_documentation_pipeline_records(&args.pipeline_path, &args.repo_root, &check_script)?;
+        read_documentation_pipeline_records(&args.pipeline_path, &args.repo_root, &wired_commands)?;
     let evidence = DocumentationSystemEvidence {
         documentation_lane_declared: documentation.contains("oya-foundry-fitness-docs"),
         wiki_quickref_referenced: documentation.contains("docs/wiki/quickref"),
@@ -204,7 +222,7 @@ pub(crate) fn validate_documentation_system_gate(
 fn read_documentation_pipeline_records(
     path: &Path,
     repo_root: &Path,
-    check_script: &str,
+    wired_commands: &str,
 ) -> Result<Vec<DocumentationPipelineRecord>, String> {
     let contents = fs::read_to_string(path).map_err(|error| {
         format!(
@@ -236,7 +254,7 @@ fn read_documentation_pipeline_records(
             line_index + 1,
             row,
             repo_root,
-            check_script,
+            wired_commands,
         )?);
     }
     if !seen_header {
@@ -253,7 +271,7 @@ fn parse_documentation_pipeline_record(
     line_number: usize,
     row: &str,
     repo_root: &Path,
-    check_script: &str,
+    wired_commands: &str,
 ) -> Result<DocumentationPipelineRecord, String> {
     let cells = row
         .split('\t')
@@ -284,7 +302,7 @@ fn parse_documentation_pipeline_record(
         state,
         check_command_wired: check_command
             .as_deref()
-            .is_some_and(|command| check_script.contains(command)),
+            .is_some_and(|command| wired_commands.contains(command)),
         check_command,
         scope_present: repo_root.join(&cells[4]).exists(),
         scope_path: cells[4].clone(),

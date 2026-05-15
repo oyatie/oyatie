@@ -6,6 +6,7 @@ use oya_check_quality_lane::{
     QualityLaneDocRow, QualityLaneRecord, QualityLaneStage, QualityLaneStatus,
     validate_quality_lanes,
 };
+use oya_foundry_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{clean_yaml_value, list_team_ids, usage};
 
@@ -13,7 +14,13 @@ use crate::{clean_yaml_value, list_team_ids, usage};
 pub(crate) struct QualityLanesValidateArgs {
     registry_path: PathBuf,
     ci_lanes_path: PathBuf,
-    check_script_path: PathBuf,
+    /// Optional test-only override for the wired-commands corpus. When
+    /// `None` (production default) the kernel sources its wired-commands
+    /// catalog from `oya-foundry-gate-catalog-domain` per the .sh-removal
+    /// chain IP-C. When `Some(path)`, the CLI reads the path verbatim —
+    /// used by the integration-test fixtures in `tests/gate_cli.rs` to
+    /// exercise rejection paths.
+    check_script_path: Option<PathBuf>,
     teams_dir: PathBuf,
 }
 
@@ -23,7 +30,7 @@ pub(crate) fn parse_quality_lanes_validate_args(
     let mut parsed = QualityLanesValidateArgs {
         registry_path: PathBuf::from("registry/quality/lanes.yaml"),
         ci_lanes_path: PathBuf::from("docs/standards/ci-lanes.md"),
-        check_script_path: PathBuf::from("scripts/check.sh"),
+        check_script_path: None,
         teams_dir: PathBuf::from("docs/teams"),
     };
     let mut iter = args.into_iter();
@@ -34,7 +41,7 @@ pub(crate) fn parse_quality_lanes_validate_args(
         match flag.as_str() {
             "--registry" => parsed.registry_path = PathBuf::from(path),
             "--ci-lanes" => parsed.ci_lanes_path = PathBuf::from(path),
-            "--check-script" => parsed.check_script_path = PathBuf::from(path),
+            "--check-script" => parsed.check_script_path = Some(PathBuf::from(path)),
             "--teams-dir" => parsed.teams_dir = PathBuf::from(path),
             _ => return Err(usage()),
         }
@@ -48,14 +55,22 @@ pub(crate) fn validate_quality_lanes_gate(
     let records = read_quality_lane_registry(&args.registry_path)?;
     let markdown_rows = read_quality_lane_markdown_rows(&args.ci_lanes_path)?;
     let owner_teams = list_team_ids(&args.teams_dir)?;
-    let check_script_contents = fs::read_to_string(&args.check_script_path).map_err(|error| {
-        format!(
-            "quality lane check script unreadable {}: {error}",
-            args.check_script_path.display()
-        )
-    })?;
+    // Canonical catalog replaces the legacy `scripts/check.sh` file read
+    // (audit `evidence/audits/shell-python-replacement-audit-2026-05-15.md`
+    // row B-1, .sh-removal chain IP-C). Test-only override:
+    // `--check-script <path>` swaps the canonical catalog for the file
+    // body so integration-test fixtures can exercise rejection paths.
+    let wired_commands = match args.check_script_path.as_ref() {
+        Some(path) => fs::read_to_string(path).map_err(|error| {
+            format!(
+                "quality lane check script unreadable {}: {error}",
+                path.display()
+            )
+        })?,
+        None => all_canonical_commands_rendered(),
+    };
     let report =
-        validate_quality_lanes(records, markdown_rows, owner_teams, &check_script_contents)
+        validate_quality_lanes(records, markdown_rows, owner_teams, &wired_commands)
             .map_err(|error| format!("quality lanes invalid: {error:?}"))?;
     Ok((
         report.registry_records,

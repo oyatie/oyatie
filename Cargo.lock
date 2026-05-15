@@ -1447,6 +1447,7 @@ dependencies = [
  "oya-foundry-cargo-prefix-domain",
  "oya-foundry-catalog-domain",
  "oya-foundry-evidence-file-adapter",
+ "oya-foundry-gate-catalog-domain",
  "oya-foundry-mdbook-domain",
  "oya-foundry-openapi-domain",
  "oya-foundry-run-domain",
@@ -2116,6 +2117,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-foundry-gate-catalog-domain"
+version = "0.1.0"
+
+[[package]]
 name = "oya-foundry-gemini-account-adapter"
 version = "0.1.0"
 dependencies = [
@@ -2263,6 +2268,22 @@ version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
  "oya-foundry-step-domain",
+]
+
+[[package]]
+name = "oya-foundry-subagent-runtime-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-account-kernel",
+ "oya-foundry-subagent-runtime-kernel",
+ "tempfile",
+]
+
+[[package]]
+name = "oya-foundry-subagent-runtime-kernel"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-account-kernel",
 ]
 
 [[package]]

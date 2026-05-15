@@ -26,55 +26,9 @@
 
 use std::process::ExitCode;
 
-use super::run as gate_dispatch;
+use oya_foundry_gate_catalog_domain::AGGREGATED_VALIDATE_LANES;
 
-/// Catalog of gate-validate subcommand names invoked by the aggregator.
-/// Each name is invoked with NO extra arguments (defaults). Mirrors the
-/// ~50-line block in the legacy `scripts/check.sh`.
-///
-/// Order is preserved from the script so that human diff against the
-/// shell version stays readable.
-const AGGREGATED_VALIDATE_LANES: &[&str] = &[
-    "codeview-read-surface",
-    "active-artifact-contract",
-    "authority-cohesion",
-    "cedar-fragment-coverage",
-    "openapi-rest-route-parity",
-    "claim-ceiling",
-    "codeowners-mirror",
-    "cohesion",
-    "data-class",
-    "doc-catalog",
-    "documentation-system",
-    "adr-citation",
-    "brand-residue",
-    "api-semver",
-    "supply-chain",
-    "pr-traceability",
-    "cargo-prefix",
-    "quality-lanes",
-    "foundation-bypass",
-    "audit-chain-replay",
-    "foundry-capability-schema",
-    "foundry-eval",
-    "cross-tenant-access-fuzz",
-    "vendor-contract-recency",
-    "mobile-native",
-    "glossary-cross-doc-coverage",
-    "glossary-vocabulary",
-    "placeholder-debt",
-    "license-policy",
-    "plane-class",
-    "raci-team-coverage",
-    "readme-doc-coverage",
-    "runbook-index-resolves",
-    "runbook-freshness",
-    "release-evidence-pack",
-    "slo-coverage",
-    "architecture-boundaries",
-    "product-index",
-    "stage0-prereqs",
-];
+use super::run as gate_dispatch;
 
 /// Gates that the legacy `scripts/check.sh` ran but which the Rust
 /// aggregator deliberately defers (parameterized invocation,

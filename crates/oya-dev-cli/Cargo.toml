@@ -20,6 +20,7 @@ oya-check-brand-residue = { path = "../oya-check-brand-residue" }
 oya-foundry-bypass-domain = { path = "../oya-foundry-bypass-domain" }
 oya-foundry-cargo-prefix-domain = { path = "../oya-foundry-cargo-prefix-domain" }
 oya-foundry-catalog-domain = { path = "../oya-foundry-catalog-domain" }
+oya-foundry-gate-catalog-domain = { path = "../oya-foundry-gate-catalog-domain" }
 oya-check-claim-ceiling = { path = "../oya-check-claim-ceiling" }
 oya-check-codeowners-mirror = { path = "../oya-check-codeowners-mirror" }
 oya-check-cohesion = { path = "../oya-check-cohesion" }
