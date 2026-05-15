@@ -1,8 +1,4 @@
 ---
-purpose: Every artifact declares purpose; orphans are deletion targets.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P03

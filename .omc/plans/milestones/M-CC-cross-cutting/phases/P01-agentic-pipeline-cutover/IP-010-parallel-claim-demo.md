@@ -1,8 +1,4 @@
 ---
-purpose: Reproducible parallel-claim demo on pinned symbols.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-010

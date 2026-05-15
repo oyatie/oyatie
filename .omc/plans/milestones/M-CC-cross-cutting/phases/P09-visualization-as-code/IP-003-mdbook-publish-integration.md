@@ -1,8 +1,4 @@
 ---
-purpose: Wire architecture-map output into mdbook publishing pipeline.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P09-IP-003

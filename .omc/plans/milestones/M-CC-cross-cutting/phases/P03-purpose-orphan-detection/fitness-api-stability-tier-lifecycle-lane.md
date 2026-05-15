@@ -1,8 +1,4 @@
 ---
-purpose: Lifecycle-automation lane for API stability tier (experimental → stable → deprecated → removed) per ADR-0037 via ADR-0109 framework.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-FITNESS-API-STABILITY-TIER-LIFECYCLE

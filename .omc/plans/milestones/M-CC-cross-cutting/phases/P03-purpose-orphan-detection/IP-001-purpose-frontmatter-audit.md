@@ -1,8 +1,4 @@
 ---
-purpose: Audit every existing doc/JSON for purpose declaration; backfill where missing.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-001

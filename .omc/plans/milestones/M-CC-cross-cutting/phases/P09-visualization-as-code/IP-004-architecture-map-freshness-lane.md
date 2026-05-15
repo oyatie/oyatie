@@ -1,8 +1,4 @@
 ---
-purpose: Lane blocks PRs that change source-of-truth without regenerating visualizations.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P09-IP-004

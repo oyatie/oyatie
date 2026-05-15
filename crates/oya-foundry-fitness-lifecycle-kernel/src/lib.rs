@@ -88,6 +88,38 @@ pub struct SourceSpec {
     pub supersession_field: Option<String>,
     pub deadline_field: Option<String>,
     pub milestone_field: Option<String>,
+    /// Optional in-scope predicate. When present, a discovered file is
+    /// only treated as a `LifecycledArtifact` if it matches the filter.
+    /// Files outside the filter are silently skipped (NOT reported as
+    /// `StageNotDeclared`). This narrows a lane's scope from "every file
+    /// matching `glob`" to "every file matching `glob` AND declaring
+    /// `kind: <name>` in front-matter OR carrying one of
+    /// `filename_contains_any` substrings in its path".
+    ///
+    /// Canonical sub-rule per ADR-0109: lifecycles whose population is a
+    /// PROPER SUBSET of their glob (e.g. migration-status applies to
+    /// migration/cutover plans only, not every plan under
+    /// `.omc/plans/**`) MUST declare that subset via `filter`. This is a
+    /// canonical extension, not an exception (per
+    /// `feedback_no_exceptions_canonical.md`).
+    pub filter: Option<SourceFilter>,
+}
+
+/// In-scope predicate for a `SourceSpec`. The predicate is OR-composed
+/// across its fields: a file is in scope iff ANY one of the declared
+/// conditions matches. Empty `filename_contains_any` AND missing
+/// `kind_field_value` means "no filter" (caller should set
+/// `SourceSpec.filter = None` in that case).
+#[derive(Clone, Debug, Eq, PartialEq, Default)]
+pub struct SourceFilter {
+    /// When `Some((field, value))`, the file is in scope if its
+    /// front-matter declares `<field>: <value>` (case-insensitive value
+    /// match). Typical use: `("kind", "migration")`.
+    pub kind_field_value: Option<(String, String)>,
+    /// When non-empty, the file is in scope if its path or filename
+    /// contains any of these substrings (case-insensitive). Typical
+    /// use: `["migration", "cutover", "rename", "rewrite"]`.
+    pub filename_contains_any: Vec<String>,
 }
 
 /// Defaults applied when fields are absent in artifact metadata.
@@ -344,10 +376,35 @@ pub mod discovery {
     //! Minimal JSON config loader + YAML-front-matter scalar reader +
     //! `<dir>/<glob>.<ext>` walker. Zero third-party deps.
     use super::{
-        Defaults, LifecycleConfig, LifecycledArtifact, NaiveDate, SourceSpec, Stage, Transition,
+        Defaults, LifecycleConfig, LifecycledArtifact, NaiveDate, SourceFilter, SourceSpec, Stage,
+        Transition,
     };
     use std::fs;
     use std::path::{Path, PathBuf};
+
+    /// Apply a `SourceFilter` to a discovered file. The filter is
+    /// OR-composed: any matching condition admits the file. With NO
+    /// declared conditions (default-constructed filter), nothing
+    /// matches — callers should set `SourceSpec.filter = None` in that
+    /// case rather than passing an empty filter.
+    pub fn path_passes_filter(path: &Path, raw: &str, filter: &SourceFilter) -> bool {
+        if let Some((field, want)) = &filter.kind_field_value
+            && let Some(got) = frontmatter_scalar(raw, field)
+            && got.eq_ignore_ascii_case(want)
+        {
+            return true;
+        }
+        if !filter.filename_contains_any.is_empty() {
+            let hay = path.to_string_lossy().to_ascii_lowercase();
+            for needle in &filter.filename_contains_any {
+                let needle = needle.to_ascii_lowercase();
+                if hay.contains(&needle) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 
     pub fn load_config(path: &Path) -> Result<LifecycleConfig, String> {
         let raw = fs::read_to_string(path)
@@ -365,6 +422,11 @@ pub mod discovery {
             for path in entries {
                 let raw = fs::read_to_string(&path)
                     .map_err(|e| format!("could not read {}: {e}", path.display()))?;
+                if let Some(filter) = &source.filter
+                    && !path_passes_filter(&path, &raw, filter)
+                {
+                    continue;
+                }
                 let stage = frontmatter_scalar(&raw, &source.stage_field);
                 let supersession = source
                     .supersession_field
@@ -536,6 +598,32 @@ pub mod discovery {
             .field_arr("sources")?
             .iter()
             .map(|s| {
+                let filter = s.field_obj("filter").and_then(|f| {
+                    let kind_field_value = match (
+                        f.field_str("kind_field").ok().map(String::from),
+                        f.field_str("kind_value").ok().map(String::from),
+                    ) {
+                        (Some(field), Some(value)) => Some((field, value)),
+                        _ => None,
+                    };
+                    let filename_contains_any = f
+                        .field_arr("filename_contains_any")
+                        .map(|arr| {
+                            arr.iter()
+                                .filter_map(|item| item.as_str_value())
+                                .map(String::from)
+                                .collect::<Vec<String>>()
+                        })
+                        .unwrap_or_default();
+                    if kind_field_value.is_none() && filename_contains_any.is_empty() {
+                        None
+                    } else {
+                        Some(SourceFilter {
+                            kind_field_value,
+                            filename_contains_any,
+                        })
+                    }
+                });
                 Ok::<_, String>(SourceSpec {
                     kind: s.field_str("kind")?.to_string(),
                     glob: s.field_str("glob")?.to_string(),
@@ -543,6 +631,7 @@ pub mod discovery {
                     supersession_field: s.field_str("supersession_field").ok().map(String::from),
                     deadline_field: s.field_str("deadline_field").ok().map(String::from),
                     milestone_field: s.field_str("milestone_field").ok().map(String::from),
+                    filter,
                 })
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -628,6 +717,12 @@ pub mod discovery {
                         None => Err(format!("field `{name}` missing")),
                     },
                     _ => Err("expected object".into()),
+                }
+            }
+            pub fn as_str_value(&self) -> Option<&str> {
+                match self {
+                    Value::Str(s) => Some(s.as_str()),
+                    _ => None,
                 }
             }
             pub fn field_obj(&self, name: &str) -> Option<&Value> {

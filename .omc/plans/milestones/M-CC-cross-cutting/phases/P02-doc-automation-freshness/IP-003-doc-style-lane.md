@@ -1,8 +1,4 @@
 ---
-purpose: Enforce docs/standards/doc-style.md; auto-format on commit.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P02-IP-003

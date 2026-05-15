@@ -1,8 +1,4 @@
 ---
-purpose: Block provider-specific imports outside adapter crates.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P05-IP-001

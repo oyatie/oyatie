@@ -1,8 +1,4 @@
 ---
-purpose: Remove DELETE-class active-path ephemera after three concrete P7 gates are green.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-009

@@ -1,8 +1,4 @@
 ---
-purpose: Land ADR-0054 + RACI human-orchestrator row.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-001

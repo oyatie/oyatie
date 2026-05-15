@@ -1,8 +1,4 @@
 ---
-purpose: Lane CI-blocks filename patterns that violate canonical pattern.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P04-IP-002

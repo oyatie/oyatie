@@ -1,8 +1,4 @@
 ---
-purpose: Generate docs from machine-readable truth (rustdoc, OpenAPI, ADR-INDEX, fitness reports); CI lane catches drift.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P02

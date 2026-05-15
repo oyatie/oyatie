@@ -1,8 +1,4 @@
 ---
-purpose: Audit hooks and skills; activate banned-primitives lane (revised per Directive 12).
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-007

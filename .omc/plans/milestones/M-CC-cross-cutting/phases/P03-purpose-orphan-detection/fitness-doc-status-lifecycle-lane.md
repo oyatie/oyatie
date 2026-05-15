@@ -1,8 +1,4 @@
 ---
-purpose: Lifecycle-automation lane for doc status (drafted → published → stale → archived/superseded) via ADR-0109 framework.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-FITNESS-DOC-STATUS-LIFECYCLE

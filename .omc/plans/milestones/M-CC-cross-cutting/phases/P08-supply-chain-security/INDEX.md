@@ -1,8 +1,4 @@
 ---
-purpose: Every artifact Cosign-signed + Rekor-anchored; SBOM per build; SLSA level published.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P08

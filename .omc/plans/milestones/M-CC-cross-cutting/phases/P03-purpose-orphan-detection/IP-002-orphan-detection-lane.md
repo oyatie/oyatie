@@ -1,8 +1,4 @@
 ---
-purpose: Lane CI-blocks orphan artifacts (no inbound reference; not in known-orphan allowlist).
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-002

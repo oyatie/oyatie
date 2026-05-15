@@ -1,8 +1,4 @@
 ---
-purpose: Block PRs that change source-of-truth without regenerating dependent docs.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P02-IP-002

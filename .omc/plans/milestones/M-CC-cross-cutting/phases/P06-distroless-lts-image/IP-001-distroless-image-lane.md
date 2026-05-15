@@ -1,8 +1,4 @@
 ---
-purpose: Block non-distroless bases + shells/package-managers + oversized images.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P06-IP-001

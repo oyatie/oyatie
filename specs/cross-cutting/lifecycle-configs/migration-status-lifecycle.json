@@ -19,7 +19,18 @@
       "stage_field": "migration_status",
       "supersession_field": null,
       "deadline_field": "migration_deadline",
-      "milestone_field": "migration_milestone_anchor"
+      "milestone_field": "migration_milestone_anchor",
+      "filter": {
+        "_doc": "In-scope predicate per ADR-0109 canonical sub-rule: migration-status applies ONLY to plan files that are themselves migrations (kind: migration in front-matter OR filename/path containing migration|cutover|rename|rewrite). Per feedback_no_exceptions_canonical: this is a canonical extension narrowing scope, not an exception clause exempting items.",
+        "kind_field": "kind",
+        "kind_value": "migration",
+        "filename_contains_any": [
+          "migration",
+          "cutover",
+          "rename",
+          "rewrite"
+        ]
+      }
     }
   ],
   "defaults": {

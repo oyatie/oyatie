@@ -1,8 +1,4 @@
 ---
-purpose: Every production binary ships in distroless + smallest-form; direct deps are LTS/ADR-governed; release-critical runtime deps are.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P06

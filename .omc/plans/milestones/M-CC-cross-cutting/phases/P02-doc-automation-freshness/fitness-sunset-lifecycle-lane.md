@@ -1,8 +1,4 @@
 ---
-purpose: Mechanical-prevention lane operationalizing ADR-0108 sunset → deprecation → removal lifecycle automation; closes the gap between sunset-prose intent and CI-observable state.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P02-IP-FITNESS-SUNSET-LIFECYCLE

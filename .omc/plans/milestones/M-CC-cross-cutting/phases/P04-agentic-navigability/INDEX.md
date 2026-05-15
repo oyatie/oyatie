@@ -1,8 +1,4 @@
 ---
-purpose: Predictable naming + machine-readable directory indexes + real grit-claim symbols in every IP.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P04

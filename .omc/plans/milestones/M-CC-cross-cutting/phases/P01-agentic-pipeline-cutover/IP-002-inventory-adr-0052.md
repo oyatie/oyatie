@@ -1,8 +1,4 @@
 ---
-purpose: Land inventory ADR-0052 with archived_at column per row.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-002

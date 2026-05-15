@@ -1,8 +1,4 @@
 ---
-purpose: Lift `ralplan-oyatie-sst-consolidation.md` 12-phase plan into the milestone tree; foundational for every other agent operation.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P01

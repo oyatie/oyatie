@@ -1,8 +1,4 @@
 ---
-purpose: Harness runs kernel integration tests against ≥2 adapters and verifies contract identity.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P05-IP-003

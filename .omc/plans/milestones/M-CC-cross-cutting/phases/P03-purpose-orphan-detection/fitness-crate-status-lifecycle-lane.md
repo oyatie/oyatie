@@ -1,8 +1,4 @@
 ---
-purpose: Lifecycle-automation lane for crate status (scaffolded → live → quiescent → archived) via ADR-0109 framework.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-FITNESS-CRATE-STATUS-LIFECYCLE

@@ -1,8 +1,4 @@
 ---
-purpose: Author local artifact + file upstream rtk-ai/grit issue with documented genuine need.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-011

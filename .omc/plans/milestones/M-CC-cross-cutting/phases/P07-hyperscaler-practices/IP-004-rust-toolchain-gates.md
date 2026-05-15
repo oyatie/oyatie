@@ -1,8 +1,4 @@
 ---
-purpose: Integrate cargo-deny / audit / nextest / semver-checks / sccache / llvm-cov into scripts/check.sh.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-004

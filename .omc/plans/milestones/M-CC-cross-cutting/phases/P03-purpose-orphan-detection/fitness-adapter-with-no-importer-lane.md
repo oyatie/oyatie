@@ -1,8 +1,4 @@
 ---
-purpose: Mechanical-prevention lane catching the ADR-0104 audit-#7 anti-pattern — adapter crates with no importer consumer.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-FITNESS-ADAPTER-WITH-NO-IMPORTER

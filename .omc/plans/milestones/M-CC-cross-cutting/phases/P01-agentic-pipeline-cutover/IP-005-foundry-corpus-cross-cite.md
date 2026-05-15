@@ -1,8 +1,4 @@
 ---
-purpose: Land PHASE-00-SPEC and cross-cite the bominal foundry corpus.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-005

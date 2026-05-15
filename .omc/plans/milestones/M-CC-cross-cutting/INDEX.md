@@ -1,8 +1,4 @@
 ---
-purpose: Thread cross-cutting principles through every milestone via CI lanes and recurring discipline.
----
-
----
 doc_class: MilestoneIndex
 parent: ../../MASTERPLAN.md
 id: M-CC

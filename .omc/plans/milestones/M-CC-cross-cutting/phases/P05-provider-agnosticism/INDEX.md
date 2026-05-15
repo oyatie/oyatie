@@ -1,13 +1,9 @@
 ---
-purpose: Provider-specific code lives in `oya-<context>-adapter-<provider>-*` crates only; kernels stay provider-neutral.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P05
 title: Provider-Agnosticism + Adapter Discipline
-status: in-progress (IP-002 split-required)
+status: in-progress
 purpose: Provider-specific code lives in `oya-<context>-adapter-<provider>-*` crates only; kernels stay provider-neutral.
 ---
 

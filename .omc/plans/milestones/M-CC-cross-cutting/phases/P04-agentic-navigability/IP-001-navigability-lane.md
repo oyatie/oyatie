@@ -1,8 +1,4 @@
 ---
-purpose: Lane CI-blocks missing INDEX.md / missing parent-pointer / undeclared symbols / undeclared purpose.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P04-IP-001

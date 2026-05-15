@@ -1,8 +1,4 @@
 ---
-purpose: Adopt Microsoft 1ES-style templated CI pipelines.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-002

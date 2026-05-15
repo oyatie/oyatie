@@ -1,8 +1,4 @@
 ---
-purpose: Emit diagrams in Mermaid + D2 + Graphviz formats.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P09-IP-002

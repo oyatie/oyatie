@@ -1,8 +1,4 @@
 ---
-purpose: Ship static / musl-linked release build pipeline.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P06-IP-003

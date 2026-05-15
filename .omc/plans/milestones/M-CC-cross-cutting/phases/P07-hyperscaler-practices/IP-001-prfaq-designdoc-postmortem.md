@@ -1,8 +1,4 @@
 ---
-purpose: Land standard templates per AWS / Google / SRE.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-001

@@ -1,8 +1,4 @@
 ---
-purpose: Lifecycle-automation lane for ADR status (proposed → accepted → superseded → archived) — first config-driven instance of the ADR-0109 framework.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-FITNESS-ADR-STATUS-LIFECYCLE

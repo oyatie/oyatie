@@ -1,8 +1,4 @@
 ---
-purpose: Lifecycle-automation lane for dependency status (added → in-use → deprecated → removed) via ADR-0109 framework.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-FITNESS-DEPENDENCY-STATUS-LIFECYCLE

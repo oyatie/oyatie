@@ -1,13 +1,9 @@
 ---
-purpose: LTS roster plus dependency-seam discipline (AMENDED scope per ADR-0092) for release-critical product paths.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P06-IP-002
 title: Dependency-seam discipline + tech-debt ledger + LTS roster
-status: complete (amended scope per ADR-0092)
+status: in-progress
 amended_at: 2026-05-14
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable

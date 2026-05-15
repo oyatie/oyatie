@@ -1,8 +1,4 @@
 ---
-purpose: Adopt named practices from AWS, Google, Microsoft, Oracle; thread through every milestone.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P07

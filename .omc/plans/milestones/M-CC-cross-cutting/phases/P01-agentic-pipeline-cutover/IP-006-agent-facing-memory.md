@@ -1,8 +1,4 @@
 ---
-purpose: Rewrite CLAUDE.md / AGENTS.md / docs/AGENTS.md agent-instruction sections.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-006

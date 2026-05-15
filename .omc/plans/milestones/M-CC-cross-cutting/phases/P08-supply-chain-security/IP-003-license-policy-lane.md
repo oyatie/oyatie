@@ -1,8 +1,4 @@
 ---
-purpose: Lane hard-denies AGPL/GPL/SSPL/BUSL/RSAL in product code.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-003

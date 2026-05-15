@@ -1,8 +1,4 @@
 ---
-purpose: Publish SLSA-3 attestation per release tag.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-004

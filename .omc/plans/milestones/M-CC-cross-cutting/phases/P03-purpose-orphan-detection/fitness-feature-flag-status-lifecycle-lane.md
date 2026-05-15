@@ -1,8 +1,4 @@
 ---
-purpose: Lifecycle-automation lane for feature-flag status (proposed → live → ramped → deprecated → removed) via ADR-0109 framework.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-FITNESS-FEATURE-FLAG-STATUS-LIFECYCLE

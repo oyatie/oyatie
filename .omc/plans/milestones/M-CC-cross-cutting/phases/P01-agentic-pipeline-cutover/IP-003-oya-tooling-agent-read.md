@@ -1,8 +1,4 @@
 ---
-purpose: Ship the sanctioned read-only helper CLI.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-003

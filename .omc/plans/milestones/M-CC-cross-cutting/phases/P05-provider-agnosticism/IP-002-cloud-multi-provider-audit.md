@@ -1,8 +1,4 @@
 ---
-purpose: Audit Cloud kernels; ensure ≥2 adapters per kernel.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P05-IP-002

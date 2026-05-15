@@ -1,8 +1,4 @@
 ---
-purpose: Ship SBOM generation per build at releases/<tag>/sbom.json.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-002

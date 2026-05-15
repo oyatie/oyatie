@@ -1,8 +1,4 @@
 ---
-purpose: Ship Cosign signing + Rekor anchoring for every artifact.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-001

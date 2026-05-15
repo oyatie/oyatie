@@ -1,8 +1,4 @@
 ---
-purpose: Auto-generate architecture, product, service, tech-stack, roadmap, dependency-graph diagrams from canonical sources; publish via mdbook.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P09

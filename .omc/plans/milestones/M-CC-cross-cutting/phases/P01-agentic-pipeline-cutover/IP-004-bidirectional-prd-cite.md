@@ -1,8 +1,4 @@
 ---
-purpose: Cross-cite oyatie/docs/PRD.md and bominal/docs/consolidated/PRD.md; ship portfolio-citation lane.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-004

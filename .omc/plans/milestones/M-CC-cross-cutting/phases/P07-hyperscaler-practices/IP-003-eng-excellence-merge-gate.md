@@ -1,8 +1,4 @@
 ---
-purpose: Council-Architecture signs every cross-axis-contract PR; merge-gate enforces signature.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-003
