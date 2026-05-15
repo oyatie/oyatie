@@ -3,6 +3,9 @@
 //! The kernel is I/O-free. Runners parse the inventory ledger, check filesystem
 //! presence, collect references from living files, and pass typed records into
 //! [`check`].
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub const DEFAULT_ARCHIVE_ROOT: &str =
     "bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12";

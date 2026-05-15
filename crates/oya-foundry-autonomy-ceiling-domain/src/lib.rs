@@ -2,6 +2,9 @@
 //!
 //! Holds the per-tenant `AutonomyTier` ceiling. New tenants get
 //! `default_ceiling()` (T3PropAct) — T4 must be enabled explicitly.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::HashMap;
 use std::fmt;

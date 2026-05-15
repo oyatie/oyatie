@@ -17,7 +17,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let addr: SocketAddr = ([127, 0, 0, 1], port).into();
 
     let catalog = build_dev_catalog();
-    let router = Arc::new(build_router(catalog));
+    let router = Arc::new(
+        build_router(catalog).map_err(|error| format!("router build failed: {error:?}"))?,
+    );
     let chain = Arc::new(build_chain());
 
     eprintln!(

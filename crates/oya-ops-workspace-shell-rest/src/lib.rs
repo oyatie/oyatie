@@ -10,6 +10,9 @@
 //! Route constants here MUST stay 1:1 with paths in
 //! `contracts/ops-workspace-shell-v1.openapi.yaml`. Future lane
 //! `lean-a-openapi-rest-route-parity` will enforce this.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_ops_workspace_shell_adapter::{WireHealthResponse, WireSurface, WireSurfaceListResponse};
 use oya_ops_workspace_shell_usecase::{

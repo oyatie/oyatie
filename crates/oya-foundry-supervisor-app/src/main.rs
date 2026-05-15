@@ -156,14 +156,27 @@ impl AccountSnapshotProvider for FileAccountSnapshotProvider {
                         _ => ProviderFamily::Claude,
                     };
 
+                    // ADR-0083 Tier 1: SecretReference::new returns Result; on
+                    // malformed input, skip the entry rather than `.unwrap()`-
+                    // panicking the entire snapshot. Logged to stderr so the
+                    // entry visibly drops out of the snapshot.
+                    let secret_ref = match oya_foundry_account_domain::SecretReference::new(
+                        sref_str.to_string(),
+                    ) {
+                        Ok(secret_ref) => secret_ref,
+                        Err(error) => {
+                            eprintln!(
+                                "supervisor snapshot: skipping account {id} — secret_ref invalid: {error:?}"
+                            );
+                            continue;
+                        }
+                    };
+
                     accounts.push(SupervisorAccount {
                         id: AccountId(id.to_string()),
                         provider_family: family,
                         state: oya_foundry_account_domain::AccountState::Active,
-                        secret_ref: oya_foundry_account_domain::SecretReference::new(
-                            sref_str.to_string(),
-                        )
-                        .unwrap(),
+                        secret_ref,
                     });
                 }
             }

@@ -18,6 +18,9 @@
 //! pool" by representing single-account as a pool of size 1 with `RoundRobin`.
 //! The `pick_account` function has no `if members.len() == 1` branch — the
 //! data shape removes it.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
@@ -332,45 +335,50 @@ fn least_used(
     healthy: &[ProviderAccountId],
     usage: &UsageSnapshotMap,
 ) -> (ProviderAccountId, PoolRoutingReason) {
-    let mut best: Option<&ProviderAccountId> = None;
-    let mut best_used = u64::MAX;
+    // ADR-0083 Tier 1: replace `Option<&T>` + `.expect("healthy not empty")` with
+    // first-element seeding. Caller (`route`) guarantees `healthy.is_empty()`
+    // returns `Err(PoolError::NoHealthyMembers)` before this fn runs, so seeding
+    // from `healthy[0]` is the canonical non-panicking encoding of that
+    // invariant.
+    let mut best: &ProviderAccountId = &healthy[0];
+    let mut best_used = usage
+        .get(best)
+        .map(|s| s.requests_in_window)
+        .unwrap_or(0);
     let mut tied = false;
-    for m in healthy {
+    for m in healthy.iter().skip(1) {
         let u = usage.get(m).map(|s| s.requests_in_window).unwrap_or(0);
         if u < best_used {
             best_used = u;
-            best = Some(m);
+            best = m;
             tied = false;
         } else if u == best_used {
             tied = true;
         }
     }
-    let chosen = best.expect("healthy not empty").clone();
     let reason = if tied {
         PoolRoutingReason::LeastUsedTieBreak
     } else {
         PoolRoutingReason::Healthy
     };
-    (chosen, reason)
+    (best.clone(), reason)
 }
 
 fn least_latency(
     healthy: &[ProviderAccountId],
     usage: &UsageSnapshotMap,
 ) -> (ProviderAccountId, PoolRoutingReason) {
-    let mut best: Option<&ProviderAccountId> = None;
-    let mut best_p99 = u32::MAX;
-    for m in healthy {
+    // ADR-0083 Tier 1: first-element seeding (caller-enforced non-empty).
+    let mut best: &ProviderAccountId = &healthy[0];
+    let mut best_p99 = usage.get(best).map(|s| s.p99_latency_ms).unwrap_or(u32::MAX);
+    for m in healthy.iter().skip(1) {
         let p = usage.get(m).map(|s| s.p99_latency_ms).unwrap_or(u32::MAX);
         if p < best_p99 {
             best_p99 = p;
-            best = Some(m);
+            best = m;
         }
     }
-    (
-        best.expect("healthy not empty").clone(),
-        PoolRoutingReason::Healthy,
-    )
+    (best.clone(), PoolRoutingReason::Healthy)
 }
 
 fn least_remaining(

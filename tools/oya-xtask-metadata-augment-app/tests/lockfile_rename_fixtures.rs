@@ -1,3 +1,6 @@
+// ADR-0083 Tier 3: integration tests use .unwrap() / .expect() / panic! to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 /// 8-row lockfile rename fixture matrix per §7.1.1 spec.
 ///
 /// Tests are integration-level: they call rewrite_lockfile() directly

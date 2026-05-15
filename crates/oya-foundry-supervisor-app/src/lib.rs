@@ -178,7 +178,18 @@ where
             })?;
 
         // Step 6: silent-switch guard
-        let domain_acc = domain_accounts.iter().find(|a| a.id == acc.id).unwrap();
+        // ADR-0083 Tier 1: `domain_accounts` is built from `accounts.iter().map(...)`
+        // above, so this `find` always succeeds for any `acc` originating from
+        // `accounts`. Propagate via `ok_or` rather than `.unwrap()` to keep the
+        // failure path matchable (`NoEligibleAccount` is the closest canonical
+        // variant — the chosen account vanished between the build and lookup).
+        let domain_acc = domain_accounts
+            .iter()
+            .find(|a| a.id == acc.id)
+            .ok_or_else(|| SupervisorError::NoEligibleAccount {
+                chosen: acc.id.clone(),
+                snapshot_ids: domain_accounts.iter().map(|a| a.id.clone()).collect(),
+            })?;
         let others: Vec<&oya_foundry_account_domain::ProviderAccount> =
             domain_accounts.iter().filter(|a| a.id != acc.id).collect();
         if let Err(e) = check_silent_switch(&others, domain_acc) {

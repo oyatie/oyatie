@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_foundry_vcs_cli_ratchet_kernel::{
     CliRatchetError, CloseoutMode, ControllerAction, EvidenceCommand, ForbiddenPrimitive,
     OyaVcsCommandKind, RatchetPolicy, detect_forbidden_primitives, evaluate_command, parse_command,

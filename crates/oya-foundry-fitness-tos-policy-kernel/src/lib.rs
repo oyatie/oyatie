@@ -10,6 +10,9 @@
 //!
 //! Audit-chain emission of `EVT-PROVIDER-POOL-ROUTING` is produced as a
 //! deterministic record value that the audit-chain adapter consumes.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_account_kernel::ProviderFamily;
 use oya_foundry_provider_pool_kernel::{

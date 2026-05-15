@@ -3,6 +3,9 @@
 //! Pure I/O-free model for usage records, billable line items, tax
 //! treatment, and the admission rule that line items cannot be
 //! finalized without their declared tax jurisdiction.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum UsageUnit {

@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
 use oya_foundry_step_domain::{
     StepDisposition, StepError, StepKind, StepLedger, StepStart, StepState,

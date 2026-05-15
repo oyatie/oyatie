@@ -5,6 +5,9 @@
 //! Default-deny: a fresh `WriteGate` starts in `Proposed` and refuses to
 //! transition into `Executed` without passing through Reviewed and Approved.
 //! Reviewer, Approver, and Executor are separated principals (ADR-0091).
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 

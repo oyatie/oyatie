@@ -5,6 +5,9 @@
 //! `docs/SPEC.md`, and `docs/machine-readable/contracts.json`. This kernel owns
 //! typed invariants only; platform apps own orchestration, audit-chain append,
 //! queueing, and trust portal publication.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -530,13 +533,12 @@ impl DsrCompletionRecord {
 }
 
 pub fn subject_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    // ADR-0083 Tier 1: use kernel's infallible `pii_identifying()` constructor.
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn default_platform_dsr_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn platform_dsr_data_class_from_legacy(

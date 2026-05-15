@@ -3,7 +3,7 @@
 use std::fs;
 use std::os::unix::fs::OpenOptionsExt;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use oya_foundry_account_domain::ProviderAccount;
 use oya_foundry_account_kernel::ProviderFamily;
@@ -39,9 +39,12 @@ fn atomic_write_safe(target: &Path, content: &[u8]) -> Result<RenderedFile, Sett
 
     // 2. Backup existing file
     if target.exists() {
+        // ADR-0083 Tier 1: SystemTime::now() before UNIX_EPOCH is only possible
+        // on a backward-misconfigured clock; treat as 0 seconds (out-of-band
+        // time-skew lane catches the anomaly).
         let epoch = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or(Duration::ZERO)
             .as_secs();
         let backup_path = target.with_extension(format!("omc-settings-bak.{}", epoch));
         fs::copy(target, backup_path).map_err(|e| SettingsRendererError::Io(e.to_string()))?;

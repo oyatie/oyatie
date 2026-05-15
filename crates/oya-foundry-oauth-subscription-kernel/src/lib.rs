@@ -18,6 +18,9 @@
 //! Per ADR-0043: tokens are NEVER persisted in raw form — only the resulting
 //! `SecretReference` (sref://…) is. The kernel does not handle raw tokens
 //! itself; it only provides the PKCE handshake primitives.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_account_kernel::{ProviderFamily, SecretReference};
 use std::fmt;

@@ -15,6 +15,9 @@
 //!
 //! Request / response structs are re-exported from the middleware kernel so
 //! middleware crates depend inward while consumers still avoid importing hyper.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 use std::convert::Infallible;
@@ -193,10 +196,14 @@ pub fn to_hyper_response(resp: HttpResponse) -> Response<Full<Bytes>> {
     builder
         .body(Full::new(Bytes::from(resp.body)))
         .unwrap_or_else(|_| {
-            Response::builder()
-                .status(500)
-                .body(Full::new(Bytes::from_static(b"response build failed")))
-                .expect("infallible default response")
+            // ADR-0083 Tier 1: avoid `.expect()` on the fallback Response::builder.
+            // Construct directly via `Response::new(body)` (infallible), then set
+            // the status code on the parts. This path is hit only if the outer
+            // builder rejected the header set; the fallback intentionally drops
+            // user headers and serves a fixed 500 body.
+            let mut response = Response::new(Full::new(Bytes::from_static(b"response build failed")));
+            *response.status_mut() = hyper::StatusCode::INTERNAL_SERVER_ERROR;
+            response
         })
 }
 

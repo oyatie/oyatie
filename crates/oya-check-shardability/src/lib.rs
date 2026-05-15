@@ -10,6 +10,9 @@
 //! pre-harvested by a runner. Detection is a lightweight regex-free text
 //! scan: find `CREATE TABLE` statements, look for `tenant_id` column or
 //! global opt-out marker, flag the rest.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 use std::fmt;

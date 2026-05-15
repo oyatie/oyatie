@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 //! Per-sub-check unit tests for the 4 TG2 sub-checks.
 //! Resolves CONV-6 from TG2 11-facet debate synthesis (F3 adversarial + F4
 //! ergonomic convergence: prior to this file, the canonical-IDs test asserted

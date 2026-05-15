@@ -6,6 +6,9 @@
 //! docs/reference/api.md") plus the set of files changed in the PR.
 //! The kernel returns the set of dependent docs that should have been
 //! re-generated but weren't touched.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 /// Declared "if A changes, B must be regenerated" rule.
 #[derive(Clone, Debug, Eq, PartialEq)]

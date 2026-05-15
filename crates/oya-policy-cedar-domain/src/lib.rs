@@ -2,6 +2,9 @@
 //!
 //! This is deliberately pure: it stores versioned policy records and evaluates
 //! role + attribute predicates without network, storage, or runtime side effects.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 

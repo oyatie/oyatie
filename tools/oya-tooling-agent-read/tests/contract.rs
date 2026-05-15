@@ -1,3 +1,6 @@
+// ADR-0083 Tier 3: integration tests use .unwrap() / .expect() / panic! to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_tooling_agent_read as lib;
 
 use lib::audit::MemoryAuditor;

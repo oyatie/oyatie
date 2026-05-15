@@ -5,6 +5,9 @@
 //! live in adapter crates per Clean Architecture.
 
 #![forbid(unsafe_code)]
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BypassEntry {

@@ -8,6 +8,9 @@
 //! Architectural rule (ADR-0056 12-layer): the application layer composes
 //! kernel ports/views. Adapters supply data via ports; we do not call I/O
 //! here.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_account_domain::{
     AccountHealth, AccountId, ProviderAccount, RouteExplanation, UsageWindow, UsageWindowKind,

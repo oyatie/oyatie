@@ -15,6 +15,9 @@
 //!   - oya-check-dependency-seam (current; substring-grep replacement)
 //!   - A-family adherence sub-checks (A6_schema_adherence, etc.)
 //!   - any tooling needing JSON inspection without pulling serde_json
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 

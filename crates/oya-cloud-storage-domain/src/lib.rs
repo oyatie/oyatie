@@ -7,6 +7,9 @@
 //! adapters, while this kernel keeps the typed control/data-plane invariants for
 //! resource identity, residency, encryption binding, object-lock, and data-class
 //! admission.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -1315,7 +1318,7 @@ mod tests {
             bucket
                 .allowed_data_classes
                 .value
-                .contains(&PrivacyDataClass::new(DataClass::PiiIdentifying).unwrap())
+                .contains(&PrivacyDataClass::pii_identifying())
         );
         assert_eq!(bucket.schema_version.value, STORAGE_SCHEMA_VERSION);
     }

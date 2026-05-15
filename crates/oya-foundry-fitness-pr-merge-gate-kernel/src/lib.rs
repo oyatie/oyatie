@@ -9,6 +9,9 @@
 //! Approved verdicts: `APPROVE` and `APPROVE_WITH_NITS`. Both an
 //! `Architect:` line and a `Critic:` line must carry an approved verdict
 //! for the gate to pass.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum CouncilVerdict {

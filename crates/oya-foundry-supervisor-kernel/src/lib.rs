@@ -3,8 +3,11 @@
 //! Per ADR-0056 (12-layer enum, port-in-kernel): all port traits that cross
 //! crate boundaries live here. Adapter crates implement these traits; the app
 //! composes them. No I/O. No per-provider serialization.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 // ── Identity types (live in kernel; re-exported here for back-compat) ──────
 pub use oya_foundry_account_domain::{
@@ -327,15 +330,22 @@ pub trait UsageWindowPort: Send + Sync {
 // ── Decision Logic ────────────────────────────────────────────────────────────
 
 pub fn record_spend(ticket: &SessionTicket, tokens_in: u64, tokens_out: u64) -> SpendRecord {
+    // SystemTime::now() before UNIX_EPOCH would only occur if the host clock is
+    // mis-configured backward into the 1970-prior past; treat that as 0 epoch
+    // seconds (Tier 1: no production `.unwrap()` on a fallible Result per
+    // ADR-0083). The on-disk audit trail records the as-observed value; an
+    // upstream clock-sanity gate (ADR-0103, time-skew lane) will catch the
+    // anomaly out-of-band.
+    let completed_at_epoch_secs = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or(Duration::ZERO)
+        .as_secs();
     SpendRecord {
         account_id: ticket.account_id.clone(),
         message_id: ticket.message_id.clone(),
         tokens_in,
         tokens_out,
-        completed_at_epoch_secs: SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs(),
+        completed_at_epoch_secs,
     }
 }
 

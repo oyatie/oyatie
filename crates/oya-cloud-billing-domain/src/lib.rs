@@ -3,6 +3,9 @@
 //! Cloud billing owns cloud-resource billing events and records them through the
 //! platform metering kernel so FinOps, tax, marketplace, and tenant billing all
 //! consume one metering path.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 

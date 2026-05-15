@@ -3,6 +3,9 @@
 //! Maps incoming REST envelopes to the canonical use-case ports. Real wire
 //! framing lives in `oya-http-runtime-hyper-adapter`; this crate only owns
 //! the use-case projection.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_api_rest_kernel::{
     AuditEvent, ResponseStatus, RestRequest, RestResponse, fixture_request_payload,

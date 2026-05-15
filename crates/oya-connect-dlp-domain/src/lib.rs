@@ -5,6 +5,9 @@
 //! policy records, rule/finding validation, and admin-review hold decisions;
 //! mail, drive, chat, forms, sites, scanners, and regional-pack adapters remain
 //! outside this crate.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
@@ -323,13 +326,11 @@ impl DlpScanVerdict {
 }
 
 pub fn default_workspace_dlp_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn dlp_actor_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_dlp_data_class_from_legacy(

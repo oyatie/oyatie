@@ -3,6 +3,9 @@
 //! This crate is pure and provider-free. It models controller-owned review,
 //! rebase, and merge-queue events and returns bounded agent fixup work without
 //! letting agents own direct rebase/merge operations.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt;

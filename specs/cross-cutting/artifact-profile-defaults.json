@@ -11,7 +11,7 @@
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-13T00:00:00Z",
     "user_directive_2026_05_13": "don't defer anything",
-    "linus_critique_anchor": "architect r17 finding #8 \u2014 collapse 35KB/10-row boilerplate to profile + overrides; hyperscaler precedent K8s CRD + admission controllers + AWS Config managed-rules defaults",
+    "linus_critique_anchor": "architect r17 finding #8 — collapse 35KB/10-row boilerplate to profile + overrides; hyperscaler precedent K8s CRD + admission controllers + AWS Config managed-rules defaults",
     "merge_semantics": "Validator walks profiles[<row.artifact_profile>].capabilities then applies row.capability_overrides as a per-capability partial override. Override resolution rules: (a) capability.status override REPLACES profile default; (b) string fields (evidence_ref, validator path, generator path) override REPLACE profile default; (c) array fields (prerequisite_for_operational, blocks_on, verifies, validates) APPEND row-overrides to profile defaults unless override declares replace_mode=true.",
     "validator_crate": "crates/oya-check-active-artifact-contract",
     "purpose": "Profile defaults for the 9-capability artifact contract. Reduces per-row authoring burden: each registry row declares `artifact_profile` + optional overrides."
@@ -343,7 +343,7 @@
           "verifies": [
             "evidence_records valid per evidence-taxonomy.json",
             "honest_gap_acknowledgement populated when applicable",
-            "icm_completion_memory_id resolves"
+            "vcs_completion_payload_id resolves"
           ]
         },
         "validation": {
@@ -568,7 +568,7 @@
         },
         "autogen": {
           "status": "planned",
-          "generator": "from \u00a711 + \u00a714 + \u00a712.9 of consumed plans + hyperscaler-gates.json",
+          "generator": "from §11 + §14 + §12.9 of consumed plans + hyperscaler-gates.json",
           "inputs": [
             "consumed plans",
             "hyperscaler-gates.json"

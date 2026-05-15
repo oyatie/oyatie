@@ -1,6 +1,9 @@
 //! M02-P01-IP-004 — Usage-window enforcement kernel.
 //! Re-exports UsageWindow + UsageWindowKind from oya-foundry-account-domain
 //! and adds the enforcement port that route-policy consumes.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub use oya_foundry_account_domain::{UsageWindow, UsageWindowError, UsageWindowKind};
 

@@ -5,6 +5,9 @@
 //! schedulers, registries, and function runtimes consume these typed contracts
 //! through adapters; this kernel stays adapter-free and keeps placement,
 //! quota, identity, image, and data-class invariants explicit.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 

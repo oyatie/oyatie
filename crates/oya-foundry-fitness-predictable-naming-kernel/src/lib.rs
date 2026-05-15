@@ -7,6 +7,9 @@
 //!
 //! I/O-free. Runners walk Cargo metadata + registry/catalog and feed
 //! typed [`CrateNaming`] records into [`check`].
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub const REQUIRED_PREFIX: &str = "oya-";
 

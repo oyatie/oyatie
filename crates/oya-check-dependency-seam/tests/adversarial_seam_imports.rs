@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 //! F3 adversarial fixtures for the `seam-imports` sub-check.
 //!
 //! Each test builds a synthetic workspace skeleton in `tempdir` (no fake

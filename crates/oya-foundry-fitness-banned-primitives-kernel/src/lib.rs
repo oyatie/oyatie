@@ -3,6 +3,9 @@
 //! The kernel is I/O-free. Runners enumerate `<!-- agent-instructions:start -->`
 //! blocks, detect primitive usages inside the blocks, and pass typed records into
 //! [`check_documented_genuine_need`].
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 

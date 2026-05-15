@@ -6,6 +6,9 @@
 //! kernel only models advisory/admission invariants for claims, semantic locks,
 //! queue-aware leases, virtual-head projections, ChangeSets, and promotion state.
 //! It is not a parallel lock authority or repo-state store.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 use std::fmt;

@@ -5,6 +5,10 @@
 //! semantic diff, suite registry rows, evidence records, and rebase generation;
 //! this crate returns a CI/CD admission decision plus typed fixup tasks.
 
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` to assert
+// invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
@@ -295,7 +299,15 @@ impl TestSuiteRegistry {
         Ok(Self { rows })
     }
 
-    pub fn oyatie_default() -> Self {
+    /// Build the canonical Oyatie test-suite registry.
+    ///
+    /// ADR-0083 Tier 1 compliance: returns `Result` so every fallible
+    /// `TestSuiteRow::new` and `TestSuiteRegistry::new` call propagates via `?`
+    /// rather than masking the matchable `TestStandardError` variants behind
+    /// `.expect()`. Callers are in-tree test code only — see
+    /// `tests/gitops_vcs_ip_008.rs` and this crate's internal `mod tests` —
+    /// and they `.unwrap()` the `Result` under the Tier 3 test exemption.
+    pub fn oyatie_default() -> Result<Self, TestStandardError> {
         Self::new(vec![
             TestSuiteRow::new(
                 "rust-nextest-workspace",
@@ -304,8 +316,7 @@ impl TestSuiteRegistry {
                 "cargo nextest run --workspace --all-features --no-fail-fast",
                 "cargo-nextest",
                 BlockingRule::Always,
-            )
-            .expect("valid default registry row"),
+            )?,
             TestSuiteRow::new(
                 "rust-fuzz",
                 SuiteSelector::Language(SymbolLanguage::Rust),
@@ -313,8 +324,7 @@ impl TestSuiteRegistry {
                 "cargo fuzz run <target>",
                 "cargo-fuzz",
                 BlockingRule::Always,
-            )
-            .expect("valid default registry row"),
+            )?,
             TestSuiteRow::new(
                 "contract-parity",
                 SuiteSelector::Surface(SurfaceKind::ContractSchema),
@@ -322,8 +332,7 @@ impl TestSuiteRegistry {
                 "cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity && cargo run -p oya-dev-cli -- gate validate api-semver",
                 "oya-dev-cli",
                 BlockingRule::Always,
-            )
-            .expect("valid default registry row"),
+            )?,
             TestSuiteRow::new(
                 "generated-client-contract-parity",
                 SuiteSelector::Surface(SurfaceKind::GeneratedClient),
@@ -331,8 +340,7 @@ impl TestSuiteRegistry {
                 "oya-dev-cli gate validate generated-client-contract-parity",
                 "oya-dev-cli",
                 BlockingRule::Always,
-            )
-            .expect("valid default registry row"),
+            )?,
             TestSuiteRow::new(
                 "web-e2e",
                 SuiteSelector::Surface(SurfaceKind::UiRoute),
@@ -340,8 +348,7 @@ impl TestSuiteRegistry {
                 "playwright test (via owning package script)",
                 "Playwright",
                 BlockingRule::ProductionIfUserFacing,
-            )
-            .expect("valid default registry row"),
+            )?,
             TestSuiteRow::new(
                 "workflow-e2e",
                 SuiteSelector::Surface(SurfaceKind::Workflow),
@@ -349,10 +356,8 @@ impl TestSuiteRegistry {
                 "workflow e2e smoke (owning package)",
                 "workflow-runner",
                 BlockingRule::ProductionIfUserFacing,
-            )
-            .expect("valid default registry row"),
+            )?,
         ])
-        .expect("valid default registry")
     }
 
     fn select_for(
@@ -831,7 +836,7 @@ mod tests {
     fn input(changes: Vec<SemanticChange>, evidence: Vec<EvidenceRecord>) -> AdmissionInput {
         AdmissionInput {
             changes,
-            registry: TestSuiteRegistry::oyatie_default(),
+            registry: TestSuiteRegistry::oyatie_default().expect("default registry is valid"),
             evidence,
             accounting: Vec::new(),
             freshness_policy: policy(),

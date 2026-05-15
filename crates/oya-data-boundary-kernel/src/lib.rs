@@ -1,6 +1,9 @@
 //! Data Use Boundary kernel.
 //!
 //! Pure value types for classifying fields and checking purpose-bound use.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
@@ -281,6 +284,34 @@ impl PrivacyDataClass {
     pub const fn internal_only() -> Self {
         Self {
             data_class: DataClass::InternalOnly,
+        }
+    }
+
+    /// Infallible constructor for the `PII_IDENTIFYING` privacy-program data
+    /// class.
+    ///
+    /// Sibling of [`Self::internal_only`]; `PII_IDENTIFYING` is a statically
+    /// known privacy-program member (see [`PRIVACY_PROGRAM_DATA_CLASS_LABELS`]),
+    /// so this constructor returns [`Self`] directly without going through the
+    /// fallible [`PrivacyDataClass::new`] path. Use this at every site that
+    /// previously wrote `PrivacyDataClass::new(DataClass::PiiIdentifying)
+    /// .expect(...)` to satisfy the ADR-0083 Tier 1 ban on `.expect()` /
+    /// `.unwrap()` in production code without `#[allow]` shortcuts.
+    ///
+    /// Naming justification (v4 BNF + 12-layer-enum): identical to
+    /// [`Self::internal_only`] — kernel-layer infallible constructor named
+    /// after the privacy-program label (`PII_IDENTIFYING`).
+    pub const fn pii_identifying() -> Self {
+        Self {
+            data_class: DataClass::PiiIdentifying,
+        }
+    }
+
+    /// Infallible constructor for the `PII_QUASI_IDENTIFIER` privacy-program
+    /// data class. Sibling of [`Self::pii_identifying`].
+    pub const fn pii_quasi_identifier() -> Self {
+        Self {
+            data_class: DataClass::PiiQuasiIdentifier,
         }
     }
 

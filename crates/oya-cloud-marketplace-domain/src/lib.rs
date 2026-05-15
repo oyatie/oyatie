@@ -4,6 +4,9 @@
 //! private offers, tenant entitlements, revenue share, and marketplace fee
 //! metering for the Cloud axis. The contracts are control-plane only and keep
 //! public listing metadata separated from seller, tenant, and financial fields.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 

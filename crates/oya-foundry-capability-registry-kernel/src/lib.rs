@@ -2,6 +2,9 @@
 //!
 //! Neutral value types describing a published capability and its
 //! autonomy classification. No I/O, no provider-specific deps.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 

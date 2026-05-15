@@ -9,6 +9,9 @@
 //! the kernel stays I/O-free and the recognized-set is owned by docs/standards.
 //!
 //! Scope: pure logic over [`Prd`] nodes + a competitor-token registry.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 use std::fmt;

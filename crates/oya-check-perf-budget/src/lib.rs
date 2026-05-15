@@ -9,6 +9,9 @@
 //!
 //! Scope of this kernel: pure logic over typed [`ImplementationPlan`] nodes
 //! pre-harvested by a runner. No I/O.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 use std::fmt;

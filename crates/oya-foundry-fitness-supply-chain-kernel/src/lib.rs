@@ -5,6 +5,9 @@
 //! I/O-free. Runners verify signatures / fetch Rekor entries / parse
 //! SBOMs outside the kernel, then feed typed [`ArtifactAttestation`]
 //! records into [`check_signed`].
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 /// A built artifact under supply-chain review.
 #[derive(Clone, Debug, Eq, PartialEq)]

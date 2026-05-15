@@ -2,6 +2,9 @@
 //! Selects a ProviderAccount honoring budget, reserve, no-silent-switch,
 //! privacy, residency, and explicit failover order. Returns a RouteExplanation
 //! so downstream audit can prove the decision.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub use oya_foundry_account_domain::{
     AccountError, AccountId, AccountState, ProviderAccount, ProviderFamily, RouteExplanation,

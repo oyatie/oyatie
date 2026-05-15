@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_audit_chain_usecase::{
     AUDIT_EVENT_ASYNCAPI_CONTRACT, AUDIT_EVENT_EMIT_SCHEMA, AUDIT_EVENT_EMIT_SOURCE,
     AUDIT_EVENT_EMIT_SURFACE, AUDIT_EVENT_PROTO_CONTRACT, AUDIT_EVENT_TOPIC,

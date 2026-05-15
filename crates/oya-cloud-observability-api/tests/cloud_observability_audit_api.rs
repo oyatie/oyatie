@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_audit_chain_domain::{AuditChain, Plane};
 use oya_cloud_observability_api::{
     CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE, CloudObservabilityApiAuthorization,
@@ -59,30 +63,36 @@ fn residency() -> ObservabilityResidency {
 
 fn chain() -> AuditChain {
     let mut chain = AuditChain::default();
-    chain.append_classifications(
-        TENANT,
-        CloudAuditTopic::CloudResourceCreated.as_str(),
-        Plane::Control,
-        Purpose::CoreService,
-        [DataClass::InternalOnly, DataClass::Public, DataClass::Audit],
-        "ALLOW",
-    );
-    chain.append_classifications(
-        TENANT,
-        CloudAuditTopic::CloudIamPolicy.as_str(),
-        Plane::Control,
-        Purpose::CoreService,
-        [DataClass::InternalOnly, DataClass::Audit],
-        "ALLOW",
-    );
-    chain.append_classifications(
-        TENANT,
-        CloudAuditTopic::CloudKmsUse.as_str(),
-        Plane::Data,
-        Purpose::CoreService,
-        [DataClass::InternalOnly, DataClass::Audit],
-        "ALLOW",
-    );
+    chain
+        .append_classifications(
+            TENANT,
+            CloudAuditTopic::CloudResourceCreated.as_str(),
+            Plane::Control,
+            Purpose::CoreService,
+            [DataClass::InternalOnly, DataClass::Public, DataClass::Audit],
+            "ALLOW",
+        )
+        .unwrap();
+    chain
+        .append_classifications(
+            TENANT,
+            CloudAuditTopic::CloudIamPolicy.as_str(),
+            Plane::Control,
+            Purpose::CoreService,
+            [DataClass::InternalOnly, DataClass::Audit],
+            "ALLOW",
+        )
+        .unwrap();
+    chain
+        .append_classifications(
+            TENANT,
+            CloudAuditTopic::CloudKmsUse.as_str(),
+            Plane::Data,
+            Purpose::CoreService,
+            [DataClass::InternalOnly, DataClass::Audit],
+            "ALLOW",
+        )
+        .unwrap();
     assert!(chain.verify());
     chain
 }

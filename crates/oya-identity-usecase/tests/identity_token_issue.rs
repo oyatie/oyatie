@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_identity_usecase::{
     IDENTITY_TOKEN_ISSUE_OPENAPI_CONTRACT, IDENTITY_TOKEN_ISSUE_SURFACE, IdentityApiAuthorization,
     IdentityApiBoundaryContext, IdentityApiPrincipal, IdentityScopeRef, IdentityTokenIssueApiError,

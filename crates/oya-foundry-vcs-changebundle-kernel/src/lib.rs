@@ -5,6 +5,9 @@
 //! protected ref, shells out to Git/GitHub, or verifies a real cryptographic
 //! signature. Adapter/controller layers perform I/O; this kernel validates the
 //! deterministic attestation fields that those layers supply.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 use std::fmt;

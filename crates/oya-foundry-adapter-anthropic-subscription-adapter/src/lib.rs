@@ -1,6 +1,9 @@
 //! M02-P01 — anthropic subscription-auth adapter.
 //! In-memory mock impl of ProviderAuthPort. Live-network deferred behind feature flag.
 //! No raw secrets — SecretReference only; AuthToken Debug stays redacted.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_account_domain::SecretReference;
 use oya_foundry_adapter_anthropic_subscription_kernel::{

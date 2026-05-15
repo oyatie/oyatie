@@ -3,6 +3,9 @@
 //! Pure validator for the minimal ADR shape currently enforced by the M01-P01
 //! Data Use Boundary acceptance gate. It validates title, status, and the core
 //! Context -> Decision -> Consequences section order without filesystem I/O.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 

@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_cloud_storage_block_api::{
     CLOUD_STORAGE_BLOCK_CREATE_SURFACE, CloudStorageBlockApiAuthorization,
     CloudStorageBlockApiBoundaryContext, CloudStorageBlockApiError, CloudStorageBlockApiPrincipal,

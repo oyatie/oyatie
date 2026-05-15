@@ -3,6 +3,9 @@
 //! Stub implementation returning empty hits — the retrieval substrate
 //! lands in a later phase. This crate establishes the allowlist gate
 //! and the request/response contract.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_capability_registry_kernel::CapabilityId;
 use oya_foundry_rag_endpoint_domain::{AllowlistError, RagAllowlist};

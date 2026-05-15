@@ -3,6 +3,9 @@
 //! Pure tier-comparison kernel. T4Actuate is the highest tier and
 //! is *disabled by default* — only a tenant ceiling that explicitly
 //! permits T4Actuate will allow a T4 cap through.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 

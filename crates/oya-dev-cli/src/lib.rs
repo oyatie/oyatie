@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` to assert
+// invariants under the `cfg(test)` exemption (production code is Tier 1).
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;

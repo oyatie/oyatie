@@ -5,6 +5,9 @@
 //! receive a [`LaneVerdict`] suitable for WARN→BLOCK ratchet promotion.
 
 #![forbid(unsafe_code)]
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 /// WARN→BLOCK ratchet phase for any fitness lane.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

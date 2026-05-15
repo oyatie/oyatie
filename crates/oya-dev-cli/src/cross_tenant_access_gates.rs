@@ -185,7 +185,8 @@ fn setup_cross_tenant_fixture(foundation: &mut Foundation) -> Result<(), String>
             .map_err(|error| format!("cost budget setup failed {tenant_id}: {error:?}"))?;
     }
 
-    foundation_fixture::seed_demo_eval(foundation, "cap.cross-tenant.fixture");
+    foundation_fixture::seed_demo_eval(foundation, "cap.cross-tenant.fixture")
+        .map_err(|error| format!("cross-tenant eval seed failed: {error:?}"))?;
     foundation
         .register_capability(CapabilityRegistration {
             capability_id: "cap.cross-tenant.fixture".into(),

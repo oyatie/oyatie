@@ -10,6 +10,9 @@
 //! - `compound_separator` ("OR" / "AND") splits compound SPDX strings;
 //!   "OR" passes if any disjunct is allowed and none are denied; "AND"
 //!   passes only if every conjunct is allowed.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CrateLicense {

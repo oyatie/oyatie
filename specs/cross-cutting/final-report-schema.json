@@ -234,14 +234,20 @@
     "closeout": {
       "type": "object",
       "required": [
-        "grit_or_scaffold_status",
-        "icm_completion_memory_id"
+        "oya_vcs_promotion_status",
+        "vcs_completion_payload_id"
       ],
       "properties": {
-        "grit_or_scaffold_status": {
+        "oya_vcs_promotion_status": {
           "type": "string"
         },
-        "icm_completion_memory_id": {
+        "vcs_completion_payload_id": {
+          "type": "string"
+        },
+        "legacy_grit_or_scaffold_status": {
+          "type": "string"
+        },
+        "legacy_icm_completion_memory_id": {
           "type": "string"
         }
       },

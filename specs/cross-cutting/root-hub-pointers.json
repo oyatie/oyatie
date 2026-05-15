@@ -34,35 +34,35 @@
       "current_path": "/specs/cross-cutting/decision-principles.json",
       "target_path_after_md_retirement": "same (already machine-readable)",
       "migration_phase": "complete",
-      "purpose": "10 normative do-rules every contributor and agent follows. Each principle declares enforcement mode (mechanical / cultural / mechanical-stub / deferred) and cites the lanes enforcing it. Successor to docs/CONSTITUTION.md \u00a7Decision-principles \u2014 Do."
+      "purpose": "10 normative do-rules every contributor and agent follows. Each principle declares enforcement mode (mechanical / cultural / mechanical-stub / deferred) and cites the lanes enforcing it. Successor to docs/CONSTITUTION.md §Decision-principles — Do."
     },
     "forbidden_operations": {
       "kind": "spec",
       "current_path": "/specs/cross-cutting/forbidden-operations.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "10 prohibitions with severity (critical / high / medium) + enforcement mode + lane citations. Successor to docs/CONSTITUTION.md \u00a7Prohibitions \u2014 Avoid. Companion to master-plan-sequencing.json forbidden_primitives (lower-level: tooling vs. doctrine)."
+      "purpose": "10 prohibitions with severity (critical / high / medium) + enforcement mode + lane citations. Successor to docs/CONSTITUTION.md §Prohibitions — Avoid. Companion to master-plan-sequencing.json forbidden_primitives (lower-level: tooling vs. doctrine)."
     },
     "decision_rights": {
       "kind": "spec",
       "current_path": "/specs/cross-cutting/decision-rights.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "12-class decision-rights table (owner + escalation per class). Successor to docs/CONSTITUTION.md \u00a7Decision-rights. Per-team RACI detail still in docs/RACI-OWNERSHIP.md."
+      "purpose": "12-class decision-rights table (owner + escalation per class). Successor to docs/CONSTITUTION.md §Decision-rights. Per-team RACI detail still in docs/RACI-OWNERSHIP.md."
     },
     "governance_amendment": {
       "kind": "spec",
       "current_path": "/specs/cross-cutting/governance-amendment.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "6-step amendment procedure for the 4-file doctrinal substrate. Declares EVT-DOCTRINE-AMENDED audit-chain event. Successor to docs/CONSTITUTION.md \u00a7Amendments."
+      "purpose": "6-step amendment procedure for the 4-file doctrinal substrate. Declares EVT-DOCTRINE-AMENDED audit-chain event. Successor to docs/CONSTITUTION.md §Amendments."
     },
     "agent_operating_contract": {
       "kind": "spec",
       "current_path": "docs/AGENTS.md",
       "target_path_after_md_retirement": "/specs/cross-cutting/agent-operating-contract.json",
       "migration_phase": "PHASE-5",
-      "purpose": "Canonical agent operating contract (done-definition checklist, mandatory ICM triggers, RTK protocol, grit protocol)."
+      "purpose": "Canonical agent operating contract (done-definition checklist, Oya VCS state transitions, multispectrum evidence, legacy-tool compatibility notes)."
     },
     "doc_catalog": {
       "kind": "registry",
@@ -139,7 +139,7 @@
       "current_path": "/specs/cross-cutting/master-plan-sequencing.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete (just landed in HEAD)",
-      "purpose": "Forbidden-primitive list (git/gh) + grit protocol + ledger-required-fields + 21-step execution sequence."
+      "purpose": "Forbidden-primitive list (git/gh) + Oya VCS protocol + ledger-required-fields + execution sequence."
     },
     "hyperscaler_gates": {
       "kind": "spec",
@@ -188,7 +188,7 @@
       "current_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Early M-CC-P00 VCS replacement contract: grit-compatible symbol locks + GitOps promotion/controller integration for CI/CD-safe agent work."
+      "purpose": "M-CC-P00 Oya VCS replacement contract: semantic symbol locks + ChangeBundle/GitOps promotion/controller integration for CI/CD-safe agent work."
     },
     "test_standard": {
       "kind": "spec",
@@ -217,12 +217,12 @@
       "current_version": "2.1.0",
       "human_companion_path": "docs/standards/multispectrum-review.md",
       "migration_phase": "complete",
-      "purpose": "Multispectrum review bar \u2014 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
+      "purpose": "Multispectrum review bar — 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
     },
     "pre_pr_multispectrum_checklist": {
       "kind": "template",
       "current_path": "/templates/checklists/pre-pr-multispectrum.json",
-      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 \u2014 JSON template is the canonical form; markdown was duplicative human gateway)",
+      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template is the canonical form; markdown was duplicative human gateway)",
       "migration_phase": "complete",
       "purpose": "Machine-readable pre-PR gate template. Every changeset copies + fills evidence per facet; the seam lane refuses missing/incomplete sections. Iterative fix-and-review loop in /specs/cross-cutting/iterative-fix-loop.json."
     },
@@ -230,7 +230,7 @@
       "kind": "spec",
       "current_path": "/specs/cross-cutting/iterative-fix-loop.json",
       "migration_phase": "complete",
-      "purpose": "Loop state machine for find\u2192fix\u2192re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
+      "purpose": "Loop state machine for find→fix→re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
     },
     "fixuptask_registry": {
       "kind": "registry",
@@ -253,10 +253,11 @@
     "policy": "Decision rule (e.g., migration policy, retention policy)."
   },
   "agent_quick_start_protocol": {
-    "step_1_read_authority": "Read entry_points.constitutional_authority + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy",
-    "step_2_recall_icm": "icm recall-context 'oyatie master plan hyperscaler grit native agentic vcs hooks ci zero markdown machine-readable' --limit 5",
-    "step_3_grit_state_transition": "Every agent\u2192repo state transition uses grit claim \u2192 work \u2192 grit done. Fallback: scaffold-locks-oyatie ICM topic per ADR-0054 when grit FK error.",
+    "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
+    "step_2_context_recall": "Prefer Oya VCS / Foundry-native context once available; legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
+    "step_3_oya_vcs_state_transition": "Every agent→repo state transition uses Oya VCS claim → work → verify → done → promote. Legacy grit/icm/rtk/vox/omx/omc surfaces are read/provenance/compatibility only during cutover.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
-    "step_5_gitops_vcs_replacement": "Before broad multi-agent fan-out, honor /specs/cross-cutting/gitops-vcs-replacement.json: preserve grit-style symbol claims, but route closeout through GitOps promotion when available."
+    "step_5_multispectrum_evidence": "Every ChangeBundle promotion carries multispectrum evidence per /specs/cross-cutting/multispectrum-review.json; missing or incomplete evidence blocks Oya VCS admission.",
+    "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, honor /specs/cross-cutting/gitops-vcs-replacement.json: Oya VCS owns claim coverage, ChangeBundle closeout, review/fix loops, controller rebase/merge queue, and GitOps promotion."
   }
 }

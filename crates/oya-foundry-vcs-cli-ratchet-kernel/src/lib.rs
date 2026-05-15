@@ -5,6 +5,9 @@
 //! `watch`, `promote`), maps compatibility aliases onto controller actions, and
 //! enforces the migration ratchet that moves agents away from direct `git`/`gh`
 //! and local-only closeout.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 use std::fmt;

@@ -4,6 +4,9 @@
 //! the same [`LockStorePort`] operations onto conditional object writes,
 //! advisory locks, Kubernetes leases, or an event bus without exposing git/gh to
 //! agents.  Tests use the same port with local and remote-fake backends.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_vcs_kernel::{Claim, ClaimCompatibility, ClaimState, claim_compatibility};
 use std::collections::{BTreeMap, BTreeSet};

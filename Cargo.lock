@@ -774,7 +774,7 @@ dependencies = [
 
 [[package]]
 name = "oya-audit-chain-domain"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "ed25519-dalek",
  "oya-data-boundary-kernel",
@@ -1885,6 +1885,13 @@ name = "oya-foundry-fitness-agentic-navigability-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-fitness-api-stability-tier-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
+
+[[package]]
 name = "oya-foundry-fitness-architecture-map-freshness-kernel"
 version = "0.1.0"
 
@@ -1926,6 +1933,13 @@ name = "oya-foundry-fitness-bypass-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-fitness-capability-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
+
+[[package]]
 name = "oya-foundry-fitness-claim-ceiling-kernel"
 version = "0.1.0"
 
@@ -1934,12 +1948,40 @@ name = "oya-foundry-fitness-cohesion-fitness-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-fitness-crate-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
+
+[[package]]
+name = "oya-foundry-fitness-dependency-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
+
+[[package]]
 name = "oya-foundry-fitness-doc-freshness-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-fitness-doc-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
+
+[[package]]
 name = "oya-foundry-fitness-doc-style-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-foundry-fitness-feature-flag-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
 
 [[package]]
 name = "oya-foundry-fitness-image-discipline-kernel"
@@ -1954,8 +1996,22 @@ name = "oya-foundry-fitness-lifecycle-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-fitness-migration-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
+
+[[package]]
 name = "oya-foundry-fitness-orphan-detection-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "oya-foundry-fitness-plan-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
 
 [[package]]
 name = "oya-foundry-fitness-portfolio-citation-app"
@@ -2253,7 +2309,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-vcs-cli-ratchet"
+name = "oya-foundry-vcs-cli-ratchet-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -2276,7 +2332,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-vcs-promotion-controller"
+name = "oya-foundry-vcs-promotion-controller-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-vcs-changebundle-kernel",
@@ -2285,7 +2341,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-vcs-review-mergequeue"
+name = "oya-foundry-vcs-review-mergequeue-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-vcs-kernel",
@@ -2526,7 +2582,7 @@ name = "oya-saas-bench-app"
 version = "0.1.0"
 dependencies = [
  "oya-saas-plugin-app",
- "oya-saas-plugin-marketplace",
+ "oya-saas-plugin-marketplace-kernel",
  "oya-saas-workflow-app",
  "oya-saas-workflow-domain",
  "oya-saas-workflow-kernel",
@@ -2536,11 +2592,11 @@ dependencies = [
 name = "oya-saas-plugin-app"
 version = "0.1.0"
 dependencies = [
- "oya-saas-plugin-marketplace",
+ "oya-saas-plugin-marketplace-kernel",
 ]
 
 [[package]]
-name = "oya-saas-plugin-marketplace"
+name = "oya-saas-plugin-marketplace-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -2678,6 +2734,17 @@ version = "0.1.0"
 [[package]]
 name = "oya-tooling-agent-read"
 version = "0.1.0"
+
+[[package]]
+name = "oya-xtask-metadata-augment-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "serde_json",
+ "tempfile",
+ "toml_edit",
+]
 
 [[package]]
 name = "pin-project-lite"
@@ -3035,6 +3102,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "toml_datetime"
+version = "0.6.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22cddaf88f4fbc13c51aebbf5f8eceb5c7c5a9da2ac40a13519eb5b0a0e8f11c"
+
+[[package]]
+name = "toml_edit"
+version = "0.22.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41fe8c660ae4257887cf66394862d21dbca4a6ddd26f04a3560410406a2f819a"
+dependencies = [
+ "indexmap",
+ "toml_datetime",
+ "toml_write",
+ "winnow",
+]
+
+[[package]]
+name = "toml_write"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
+
+[[package]]
 name = "tracing"
 version = "0.1.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3338,6 +3429,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
 dependencies = [
  "windows-link",
+]
+
+[[package]]
+name = "winnow"
+version = "0.7.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
+dependencies = [
+ "memchr",
 ]
 
 [[package]]

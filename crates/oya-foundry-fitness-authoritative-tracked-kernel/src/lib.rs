@@ -2,6 +2,9 @@
 //!
 //! The kernel is I/O-free. Runners enumerate authoritative artifact paths,
 //! collect repository tracking state, and pass typed records into [`check`].
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AuthoritativeArtifact {

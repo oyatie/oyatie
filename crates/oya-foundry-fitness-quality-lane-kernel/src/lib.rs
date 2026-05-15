@@ -4,6 +4,9 @@
 //! returned green. Per CI lanes contract: clippy, fmt, doc, deny.
 
 #![forbid(unsafe_code)]
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LanePhase {

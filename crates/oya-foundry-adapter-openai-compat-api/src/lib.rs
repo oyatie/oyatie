@@ -15,6 +15,9 @@
 //! `tool_calls` shape branch by normalizing both into a single internal
 //! `ToolInvocation` record at the translator boundary; the handler sees one
 //! shape.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_account_kernel::ProviderFamily;
 use oya_foundry_provider_pool_kernel::{

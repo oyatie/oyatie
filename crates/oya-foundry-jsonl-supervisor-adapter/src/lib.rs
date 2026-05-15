@@ -4,11 +4,14 @@
 //! v4 §A.3). All disk I/O — peek_lock, commit, dead_letter rename, outbox
 //! append — is isolated here. The supervisor-kernel port traits are implemented
 //! on structs defined in this crate.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fs;
 use std::io::{self, BufRead};
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use oya_foundry_supervisor_kernel::{
     AccountId, InboxItem, InboxStore, Locked, MessageId, OutboxSink, SupervisorError,
@@ -40,9 +43,14 @@ impl JsonlInboxStore {
     }
 
     fn now_secs() -> u64 {
+        // ADR-0083 Tier 1: no production `.unwrap()` on a fallible Result.
+        // SystemTime::now() before UNIX_EPOCH is only possible on a backward
+        // mis-configured clock; treat as 0 seconds (parallels supervisor-
+        // kernel's `record_spend` and is caught out-of-band by the
+        // time-skew lane).
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or(Duration::ZERO)
             .as_secs()
     }
 }
@@ -79,7 +87,7 @@ impl InboxStore for JsonlInboxStore {
                             .modified()
                             .map_err(|e| SupervisorError::InboxError(e.to_string()))?
                             .duration_since(UNIX_EPOCH)
-                            .unwrap()
+                            .unwrap_or(Duration::ZERO)
                             .as_secs();
 
                         if Self::now_secs() < mtime {

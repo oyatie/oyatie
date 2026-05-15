@@ -18,13 +18,17 @@ use std::path::PathBuf;
 
 use oya_json_kernel::extract_object_keys;
 
-fn main() {
-    let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR"));
+// ADR-0083 Tier 1: build script returns `Result<(), Box<dyn Error>>` so every
+// fallible call uses `?` propagation instead of `.expect()` / `.unwrap()`.
+// Cargo surfaces the `Err` as a build-script failure, which is the canonical
+// signal channel for a build-time codegen problem.
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let manifest = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
     // crates/oya-check-dependency-seam/ → workspace root is parent-parent.
     let workspace_root = manifest
         .parent()
         .and_then(|p| p.parent())
-        .expect("workspace root from CARGO_MANIFEST_DIR");
+        .ok_or("workspace root not derivable from CARGO_MANIFEST_DIR (need two parents)")?;
 
     let spec_path = workspace_root.join("specs/cross-cutting/multispectrum-review.json");
 
@@ -48,7 +52,7 @@ fn main() {
         }
     }
 
-    let out_dir = env::var("OUT_DIR").expect("OUT_DIR");
+    let out_dir = env::var("OUT_DIR")?;
     let dest = PathBuf::from(out_dir).join("spec_constants.rs");
 
     let mut content = String::new();
@@ -80,5 +84,6 @@ fn main() {
     }
     content.push_str("];\n");
 
-    fs::write(&dest, content).expect("write spec_constants.rs to OUT_DIR");
+    fs::write(&dest, content)?;
+    Ok(())
 }

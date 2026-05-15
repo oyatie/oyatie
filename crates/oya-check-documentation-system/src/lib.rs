@@ -5,6 +5,9 @@
 //! documented generator is represented in `registry/docs/pipeline.tsv`, and the
 //! repo must either wire an active/adoption guard or carry a registry rationale
 //! for a deferred generator.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 

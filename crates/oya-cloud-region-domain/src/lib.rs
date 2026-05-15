@@ -4,6 +4,9 @@
 //! documents. It keeps cloud taxonomy public where the control-plane contract is
 //! public, keeps placement-sensitive details internal, and delegates residency
 //! and cell-binding enforcement to their platform kernels.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 

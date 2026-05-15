@@ -18,6 +18,10 @@
 //!
 //! Exits with code 0 when no violations; non-zero otherwise.
 
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
 use std::collections::BTreeMap;
 use std::env;
 use std::fs;
@@ -144,7 +148,10 @@ fn today_utc() -> Date {
         .map(|d| d.as_secs() as i64)
         .unwrap_or(0);
     let days = secs.div_euclid(86_400);
-    Date::new(1970, 1, 1).expect("epoch is valid").add_days(days)
+    // ADR-0083 Tier 1: use the kernel's infallible `Date::epoch()` constant
+    // constructor (sibling of `Date::new`) — encodes 1970-01-01 statically
+    // without `.expect()`.
+    Date::epoch().add_days(days)
 }
 
 fn discover_all(options: &Options) -> Result<Vec<SunsetClause>, String> {

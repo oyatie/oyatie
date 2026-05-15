@@ -17,6 +17,9 @@
 //! both produced wrong labels when a captured value happened to occur as a
 //! literal segment elsewhere (Q1 quality bug) AND leaked sensitive captured
 //! values into metric labels (S6 security class).
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 use std::sync::Mutex;
@@ -51,7 +54,15 @@ impl InMemoryMetrics {
     pub fn record(&self, method: &str, route: &str, status: u16, latency_us: u64) {
         let class = status_class(status).to_string();
         let key = (method.to_string(), route.to_string(), class.clone());
-        let mut by_key = self.by_key.lock().expect("metrics poisoned");
+        // ADR-0083 Tier 1: recover from a poisoned Mutex by taking the inner
+        // guard from the `PoisonError` rather than `.expect()`-panicking. The
+        // metrics map is monotonically growing aggregates; a writer that
+        // panicked previously cannot have left a partially-mutated entry,
+        // since insertions are atomic with respect to the Mutex.
+        let mut by_key = self
+            .by_key
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         let entry = by_key.entry(key).or_insert_with(|| TelemetrySample {
             method: method.to_string(),
             route: route.to_string(),
@@ -66,14 +77,17 @@ impl InMemoryMetrics {
     pub fn snapshot(&self) -> Vec<TelemetrySample> {
         self.by_key
             .lock()
-            .expect("metrics poisoned")
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
             .values()
             .cloned()
             .collect()
     }
 
     pub fn key_count(&self) -> usize {
-        self.by_key.lock().expect("metrics poisoned").len()
+        self.by_key
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .len()
     }
 }
 

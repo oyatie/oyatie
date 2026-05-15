@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_foundry_vcs_ast_index_kernel::{
     AstIndex, AstIndexError, AstSymbol, AstSymbolDraft, AstSymbolKind, ByteRange, DependencyEdge,
     DependencyKind, IndexAdmissionDecision, IndexAdmissionInput, ParserStatus, PromotionTarget,

@@ -11,10 +11,14 @@
 //! converts to/from `bytes::Bytes` at its boundary so this runtime no
 //! longer needs to depend on `bytes`.
 
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` to assert
+// invariants under the `cfg(test)` exemption (production code is Tier 1).
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
 use std::sync::{Arc, RwLock};
 
 use oya_http_middleware_kernel::MiddlewareChain;
-use oya_http_router_kernel::{HttpMethod, Router};
+use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
 use oya_ops_workspace_shell_usecase::{
     ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
@@ -31,74 +35,87 @@ use oya_ops_workspace_shell_rest::{
 /// durable port implementation once that crate lands (Layer 4-ish).
 pub type SharedCatalog = Arc<RwLock<InMemorySurfaceCatalog>>;
 
+/// Recover from a poisoned `RwLock` read by extracting the inner state.
+///
+/// ADR-0083 Tier 1: avoid `.expect("catalog poisoned")` — a poisoned lock means
+/// a *writer* panicked while holding the write lock; readers can still safely
+/// observe the catalog snapshot. Recover by taking the inner guard from the
+/// `PoisonError`. This is the canonical non-panicking recovery for a
+/// snapshot-reader at the HTTP boundary.
+fn read_or_recover<T: Clone>(lock: &RwLock<T>) -> T {
+    match lock.read() {
+        Ok(guard) => guard.clone(),
+        Err(poisoned) => poisoned.into_inner().clone(),
+    }
+}
+
 /// Build the Router used by the workspace-shell cell.
-pub fn build_router(catalog: SharedCatalog) -> Router<SyncHandler> {
+///
+/// ADR-0083 Tier 1: returns `Result<_, RouterError>` so the three
+/// `router.route(...)` calls propagate via `?` instead of `.expect(...)`. The
+/// binary entry-point (`main.rs`) and tests adapt with `?` / `.unwrap()`
+/// respectively.
+pub fn build_router(catalog: SharedCatalog) -> Result<Router<SyncHandler>, RouterError> {
     let mut router: Router<SyncHandler> = Router::new();
 
     // GET /workspace — Live + principal-tier-scoped.
     let cat_live = catalog.clone();
-    router
-        .route(
-            HttpMethod::Get,
-            LIST_LIVE_SURFACES_ROUTE,
-            Arc::new(move |_req: HttpRequest| -> HttpResponse {
-                let snapshot = cat_live.read().expect("catalog poisoned").clone();
-                let response =
-                    ListLiveSurfacesUseCase::new(snapshot).execute(VisibilityTier::InternalPublic);
-                let surfaces: Vec<oya_ops_workspace_shell_adapter::WireSurface> = response
-                    .surfaces
-                    .iter()
-                    .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
-                    .collect();
-                let count = surfaces.len();
-                let wire =
-                    oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
-                json_response(&surface_list_json(&wire))
-            }),
-        )
-        .expect("LIST_LIVE_SURFACES_ROUTE register failed");
+    router.route(
+        HttpMethod::Get,
+        LIST_LIVE_SURFACES_ROUTE,
+        Arc::new(move |_req: HttpRequest| -> HttpResponse {
+            let snapshot = read_or_recover(&cat_live);
+            let response =
+                ListLiveSurfacesUseCase::new(snapshot).execute(VisibilityTier::InternalPublic);
+            let surfaces: Vec<oya_ops_workspace_shell_adapter::WireSurface> = response
+                .surfaces
+                .iter()
+                .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
+                .collect();
+            let count = surfaces.len();
+            let wire =
+                oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
+            json_response(&surface_list_json(&wire))
+        }),
+    )?;
 
     // GET /workspace/api/v1/surfaces — admin-only catalog dump.
     let cat_all = catalog.clone();
-    router
-        .route(
-            HttpMethod::Get,
-            LIST_ALL_SURFACES_ROUTE,
-            Arc::new(move |_req: HttpRequest| -> HttpResponse {
-                let snapshot = cat_all.read().expect("catalog poisoned").clone();
-                let response = ListAllSurfacesUseCase::new(snapshot).execute(None, None);
-                let surfaces: Vec<oya_ops_workspace_shell_adapter::WireSurface> = response
-                    .surfaces
-                    .iter()
-                    .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
-                    .collect();
-                let count = surfaces.len();
-                let wire =
-                    oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
-                json_response(&surface_list_json(&wire))
-            }),
-        )
-        .expect("LIST_ALL_SURFACES_ROUTE register failed");
+    router.route(
+        HttpMethod::Get,
+        LIST_ALL_SURFACES_ROUTE,
+        Arc::new(move |_req: HttpRequest| -> HttpResponse {
+            let snapshot = read_or_recover(&cat_all);
+            let response = ListAllSurfacesUseCase::new(snapshot).execute(None, None);
+            let surfaces: Vec<oya_ops_workspace_shell_adapter::WireSurface> = response
+                .surfaces
+                .iter()
+                .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
+                .collect();
+            let count = surfaces.len();
+            let wire =
+                oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
+            json_response(&surface_list_json(&wire))
+        }),
+    )?;
 
     // GET /workspace/api/v1/health
     let cat_health = catalog.clone();
-    router
-        .route(
-            HttpMethod::Get,
-            SHELL_HEALTH_ROUTE,
-            Arc::new(move |_req: HttpRequest| -> HttpResponse {
-                let snapshot = cat_health.read().expect("catalog poisoned").clone();
-                let response =
-                    ShellHealthUseCase::new(snapshot, env!("CARGO_PKG_VERSION"), None).execute();
-                json_response(&format!(
-                    "{{\"status\":\"{}\",\"surface_count\":{},\"version\":\"{}\"}}",
-                    response.status, response.surface_count, response.version
-                ))
-            }),
-        )
-        .expect("SHELL_HEALTH_ROUTE register failed");
+    router.route(
+        HttpMethod::Get,
+        SHELL_HEALTH_ROUTE,
+        Arc::new(move |_req: HttpRequest| -> HttpResponse {
+            let snapshot = read_or_recover(&cat_health);
+            let response =
+                ShellHealthUseCase::new(snapshot, env!("CARGO_PKG_VERSION"), None).execute();
+            json_response(&format!(
+                "{{\"status\":\"{}\",\"surface_count\":{},\"version\":\"{}\"}}",
+                response.status, response.surface_count, response.version
+            ))
+        }),
+    )?;
 
-    router
+    Ok(router)
 }
 
 /// Empty middleware chain seed. Cedar / tenant / telemetry / deadline middlewares
@@ -183,14 +200,14 @@ mod tests {
     #[test]
     fn build_router_registers_three_routes() {
         let catalog = build_dev_catalog();
-        let router = build_router(catalog);
+        let router = build_router(catalog).unwrap();
         assert_eq!(router.count(), 3);
     }
 
     #[test]
     fn list_live_surfaces_returns_200_json() {
         let catalog = build_dev_catalog();
-        let router = build_router(catalog);
+        let router = build_router(catalog).unwrap();
         let chain = build_chain();
         let response = dispatch(mock_request(HttpMethod::Get, "/workspace"), &router, &chain);
         assert_eq!(response.status, 200);
@@ -206,7 +223,7 @@ mod tests {
     #[test]
     fn list_all_surfaces_includes_seeded_surface() {
         let catalog = build_dev_catalog();
-        let router = build_router(catalog);
+        let router = build_router(catalog).unwrap();
         let chain = build_chain();
         let response = dispatch(
             mock_request(HttpMethod::Get, "/workspace/api/v1/surfaces"),
@@ -222,7 +239,7 @@ mod tests {
     #[test]
     fn shell_health_returns_status_healthy() {
         let catalog = build_dev_catalog();
-        let router = build_router(catalog);
+        let router = build_router(catalog).unwrap();
         let chain = build_chain();
         let response = dispatch(
             mock_request(HttpMethod::Get, "/workspace/api/v1/health"),
@@ -238,7 +255,7 @@ mod tests {
     #[test]
     fn unknown_route_returns_404() {
         let catalog = build_dev_catalog();
-        let router = build_router(catalog);
+        let router = build_router(catalog).unwrap();
         let chain = build_chain();
         let response = dispatch(mock_request(HttpMethod::Get, "/nope"), &router, &chain);
         assert_eq!(response.status, 404);
@@ -262,7 +279,7 @@ mod tests {
                 retired_redirects_to: None,
             })
             .unwrap();
-        let router = build_router(catalog);
+        let router = build_router(catalog).unwrap();
         let chain = build_chain();
         let response = dispatch(
             mock_request(HttpMethod::Get, "/workspace/api/v1/surfaces"),

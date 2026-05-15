@@ -3,6 +3,9 @@
 //! Pure I/O-free model for cost-report periods, savings recommendations,
 //! and the admission rule that a recommendation cannot be promoted to
 //! "active" without a baseline-period reference + estimated savings.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum ReportPeriod {

@@ -8,6 +8,9 @@
 //! frontmatter-bearing artifacts on disk, feed the typed records here,
 //! and produce a `PublishableSite` whose chapter tree can be rendered
 //! to mdbook `SUMMARY.md` / chapter files by a thin I/O wrapper.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 

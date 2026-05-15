@@ -6,6 +6,9 @@
 //! path suffix, every document declares paths, and every operation carries an
 //! operation id plus at least one response. Adapters own filesystem discovery
 //! and semver metadata parsing.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 

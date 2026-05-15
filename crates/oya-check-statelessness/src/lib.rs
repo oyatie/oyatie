@@ -16,6 +16,9 @@
 //! Comments and string literals are NOT excluded (they're false positives, but
 //! cheap to false-positive-fix at PR time — reviewer can suppress one line vs.
 //! the lane silently missing real state).
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 use std::fmt;

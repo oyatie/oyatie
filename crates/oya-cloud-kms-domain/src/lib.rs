@@ -5,6 +5,9 @@
 //! partition binding, residency, KCMVP/FIPS validation, key-use receipts, and
 //! key-destruction evidence. It does not perform cryptography or HSM I/O; those
 //! belong in adapter/runtime crates that consume these invariants.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 

@@ -1,6 +1,9 @@
 //! M02-P01 — OpenAi Subscription-auth kernel.
 //! Port-trait crate: defines ProviderAuthPort that adapter implementations satisfy.
 //! No raw secrets — SecretReference only.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_account_kernel::{ProviderFamily, SecretReference};
 use std::fmt;

@@ -1,5 +1,8 @@
 //! M02-P00-IP-002 — ProviderAccount domain types + state machine.
 //! SecretReference inner value is NEVER exposed; sref:// scheme enforced.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 

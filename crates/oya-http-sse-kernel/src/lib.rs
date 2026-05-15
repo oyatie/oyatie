@@ -21,6 +21,9 @@
 //!   - blank line `\n` terminates the event
 //!   - `retry: <ms>\n` (optional retry hint to the browser)
 //!   - `: <comment>\n` (optional heartbeat / keepalive comment)
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 /// One SSE event ready for serialization.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]

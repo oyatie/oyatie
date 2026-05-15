@@ -10,6 +10,9 @@
 //! - One H1 per document.
 //! - H1 must be the first non-empty content line.
 //! - Lines do not exceed `MAX_LINE_WIDTH` columns (excluding fenced code).
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub const MAX_LINE_WIDTH: usize = 120;
 

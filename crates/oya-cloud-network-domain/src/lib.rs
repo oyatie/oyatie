@@ -5,6 +5,9 @@
 //! AWS/GCP/Azure-shaped primitives explicit while staying adapter-free:
 //! OVN/OVS/BGP/CoreDNS/Envoy implementations consume these typed contracts
 //! later.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};

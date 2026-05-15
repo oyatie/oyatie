@@ -6,11 +6,11 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-GITOPS-VCS-REPLACEMENT",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "status": "Accepted-for-masterplan-P00",
     "owner_team": "axis-foundry + ops-sre-reliability + council-architecture",
     "created_at": "2026-05-14T07:16:07Z",
-    "updated_at": "2026-05-14T08:02:06Z",
+    "updated_at": "2026-05-15T10:45:00Z",
     "source_inspiration": "https://github.com/rtk-ai/grit",
     "user_directives_2026_05_14": [
       "move our vcs replacement for grit earlier",
@@ -35,19 +35,22 @@
     ],
     "design_posture": "Provider-neutral Oya VCS core first; GitHub/GitHub Actions, Trivy, Argo CD, GitLab, and future in-house systems are replaceable first-class adapters. Agents never call git or gh directly.",
     "product_name": "Oya VCS",
-    "purpose": "Early masterplan prerequisite for an Oyatie-owned VCS replacement that preserves grit-style agentic-development advantages and upgrades closeout from local merges to GitOps CI/CD promotion."
+    "purpose": "Early masterplan prerequisite and current closure-authority contract for an Oyatie-owned VCS replacement that preserves useful agentic-development advantages while upgrading closeout from local merges to Oya VCS ChangeBundle/GitOps CI/CD promotion.",
+    "user_directives_2026_05_15": [
+      "grit, icm, rtk, vox, omx, and omc are being phased out; Oya VCS is set to replace them and must work seamlessly with the Foundry agentic pipeline."
+    ]
   },
   "moved_earlier_in_masterplan": {
     "milestone": "M-CC-cross-cutting",
     "phase": "P00-gitops-vcs-replacement",
-    "ordering_rule": "Runs before M-CC-P01 and before broad M01/M02/M03 fan-out. Existing grit remains the temporary compatibility shim until P00 acceptance gates pass.",
+    "ordering_rule": "Runs before M-CC-P01 refresh and before broad M01/M02/M03 fan-out. P00 core is complete; Oya VCS admission is the forward closure authority, while grit/icm-era surfaces remain compatibility/provenance only.",
     "blocks": [
       "M-CC-P01-agentic-pipeline-cutover",
       "M01 shard fan-out beyond already-landed bootstrap work",
       "M02 multi-agent substrate waves",
       "M03 first-tenant parallel waves"
     ],
-    "rationale": "The conflict-avoidance primitive must be production/GitOps-capable before dozens of agents start landing product slices. Local merge serialization is not sufficient for Oyatie CI/CD; the successor must own review/fix loops, rebase, merge queue enrollment, and promotion."
+    "rationale": "The conflict-avoidance primitive must be production/GitOps-capable before dozens of agents start landing product slices. Local merge serialization is not sufficient for Oyatie CI/CD; Oya VCS owns review/fix loops, rebase, merge queue enrollment, promotion, and multispectrum evidence closure."
   },
   "grit_capabilities_to_preserve": [
     {
@@ -400,6 +403,10 @@
       {
         "id": "ast-index-available",
         "rule": "AST/parser-backed symbols are available for all supported language surfaces or the artifact kind declares an intentional file/pointer scope."
+      },
+      {
+        "id": "multispectrum-evidence",
+        "rule": "Every promoted ChangeBundle must attach a multispectrum evidence file covering required F-family, A-family, and M-family facets for the changeset scope; missing or incomplete evidence rejects promotion."
       }
     ],
     "terminal_states": [
@@ -513,7 +520,7 @@
       "freshness": "2026-05-14T07:16:07Z",
       "command_or_lane": "manual spec update + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "docs/MASTERPLAN.md \u00a713",
+      "artifact_ref": "docs/MASTERPLAN.md §13",
       "known_gap": "Phase detail files are still TBD implementation plans; this slice establishes priority and contract."
     },
     {
@@ -711,7 +718,8 @@
       "controller_owned_rebases": "100% for promoted bundles",
       "controller_owned_merge_queue_enrollment": "100% for merge-queue-bound bundles",
       "polyglot_claim_coverage": "100% for promoted Rust/TS/Swift/Kotlin/C#/C++/XAML/schema/config changes",
-      "review_fix_loop_terminal_state_recorded": "100%"
+      "review_fix_loop_terminal_state_recorded": "100%",
+      "multispectrum_evidence_attached": "100% for promoted bundles across M-CC, M01, and M02"
     }
   },
   "review_fix_loop": {
@@ -771,7 +779,7 @@
     "merge_queue_policy": "Single controller serializes protected-branch publication. Agents can observe queue state but cannot reorder, force, or bypass it."
   },
   "test_standard_enforcement": {
-    "status": "established-and-required-for-P00-exit",
+    "status": "established-and-required-for-P00-exit-and-current-oya-vcs-admission",
     "objective": "Unit, integration, and e2e test standards are established, documented, machine-readable, and enforced by the VCS/GitOps admission path before broad agent fan-out.",
     "documentation_artifacts": [
       {
@@ -874,7 +882,7 @@
   "product_definition": {
     "name": "Oya VCS",
     "one_liner": "Agent-native semantic VCS/CI/CD coordination layer that queues ChangeSets, not just branches or PRs.",
-    "core_thesis": "Oya VCS preserves grit-style AST/symbol conflict avoidance, then adds provider-neutral ChangeSets, virtual merge stacks, queue-aware locks, review/CI fix loops, and dev\u2192staging\u2192production promotion.",
+    "core_thesis": "Oya VCS preserves grit-style AST/symbol conflict avoidance, then adds provider-neutral ChangeSets, virtual merge stacks, queue-aware locks, review/CI fix loops, and dev→staging→production promotion.",
     "not_a_git_replacement": "Oya VCS orchestrates Git-compatible storage, CI, review, security scanning, merge queues, and GitOps environments through ports/adapters; the semantic state machine remains provider-neutral.",
     "must_work_without_github": true,
     "must_provide_same_features_without_provider_adapters": [
@@ -990,12 +998,12 @@
       "adapter": "GitHubProviderAdapter",
       "status": "first-class-adapter-not-core",
       "maps": [
-        "Pull Request \u2194 ChangeSet publication view",
-        "review comments \u2194 FixupTask",
-        "checks/statuses \u2194 CiState",
-        "merge queue merge_group \u2194 provider-backed VirtualHead",
-        "branch protection/rulesets \u2194 admission policy",
-        "environments/deployment protection \u2194 PromotionGate"
+        "Pull Request ↔ ChangeSet publication view",
+        "review comments ↔ FixupTask",
+        "checks/statuses ↔ CiState",
+        "merge queue merge_group ↔ provider-backed VirtualHead",
+        "branch protection/rulesets ↔ admission policy",
+        "environments/deployment protection ↔ PromotionGate"
       ],
       "required_events": [
         "pull_request",
@@ -1014,10 +1022,10 @@
       "adapter": "GitHubActionsAdapter",
       "status": "first-class-adapter-not-core",
       "maps": [
-        "workflow jobs/logs/artifacts \u2194 CiEvidence",
-        "matrix jobs \u2194 tier evidence",
-        "merge_group-triggered workflows \u2194 queue validation",
-        "environment jobs \u2194 promotion gates"
+        "workflow jobs/logs/artifacts ↔ CiEvidence",
+        "matrix jobs ↔ tier evidence",
+        "merge_group-triggered workflows ↔ queue validation",
+        "environment jobs ↔ promotion gates"
       ],
       "required_capabilities": [
         "run targeted checks",
@@ -1059,10 +1067,10 @@
       "adapter": "GitLabProviderAdapter",
       "status": "optional-first-class-after-github",
       "maps": [
-        "merge request \u2194 ChangeSet view",
-        "merge train \u2194 provider-backed VirtualHead",
-        "pipeline \u2194 CiState",
-        "review thread \u2194 FixupTask"
+        "merge request ↔ ChangeSet view",
+        "merge train ↔ provider-backed VirtualHead",
+        "pipeline ↔ CiState",
+        "review thread ↔ FixupTask"
       ],
       "must_not_depend_on_for_core_features": true
     },
@@ -1070,12 +1078,12 @@
       "adapter": "GitHubIssuesAdapter",
       "status": "first-class-adapter-not-core",
       "maps": [
-        "GitHub issue \u2194 OyaWorkItem",
-        "labels/milestones/projects \u2194 priority/lane/gate metadata",
-        "assignees \u2194 agent/human ownership hints",
-        "issue comments \u2194 requirement updates or review/fix context",
-        "issue dependencies/sub-issues \u2194 ChangeSet dependency graph",
-        "issue close/reopen \u2194 release-state policy events"
+        "GitHub issue ↔ OyaWorkItem",
+        "labels/milestones/projects ↔ priority/lane/gate metadata",
+        "assignees ↔ agent/human ownership hints",
+        "issue comments ↔ requirement updates or review/fix context",
+        "issue dependencies/sub-issues ↔ ChangeSet dependency graph",
+        "issue close/reopen ↔ release-state policy events"
       ],
       "required_events": [
         "issues",
@@ -1402,5 +1410,74 @@
       "auto-reopen on rollback or production regression"
     ],
     "adapter_boundary": "GitHub Issues is a first-class adapter; native tracker and future in-house tracker must expose the same IssueTrackerPort behavior."
+  },
+  "foundry_agentic_pipeline_integration_plan": {
+    "status": "active-remediation-plan",
+    "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
+    "principles": [
+      "Oya VCS is the forward state-transition and promotion authority; legacy grit/icm/rtk/vox/omx/omc are compatibility/provenance only.",
+      "Every Foundry agentic changeset is a ChangeSet with claim coverage, multispectrum evidence, test-standard evidence, and controller-owned promotion.",
+      "CI and branch protection must expose Oya VCS admission as a required status before broad fan-out.",
+      "Provider adapters are replaceable; core invariants remain provider-neutral and testable locally."
+    ],
+    "decision_drivers": [
+      "prevent parallel-agent merge conflicts and wasted work",
+      "make multispectrum and test-standard evidence mechanically blocking",
+      "keep Foundry agentic throughput high without allowing local-only closeout"
+    ],
+    "workstreams": [
+      {
+        "id": "authority-cutover",
+        "status": "patched-in-current-specs",
+        "acceptance": "root hub, master sequencing, multispectrum, and phase index name Oya VCS as closure authority and demote legacy primitives to compatibility/provenance"
+      },
+      {
+        "id": "ci-admission-lane",
+        "status": "patched-in-current-repo",
+        "acceptance": "scripts/check-oya-vcs-admission.sh runs authority checks and targeted VCS package tests; pr-tests exposes oya-vcs-admission; branch protection requires it"
+      },
+      {
+        "id": "multispectrum-evidence-closure",
+        "status": "requires-follow-up-implementation",
+        "acceptance": "Oya VCS ChangeBundle schema stores a canonical /evidence/multispectrum reference and promotion refuses missing F/A/M-family evidence"
+      },
+      {
+        "id": "cli-command-surface",
+        "status": "requires-follow-up-implementation",
+        "acceptance": "oya-dev-cli exposes Oya VCS claim/work/verify/done/promote commands or an equivalent blessed Oya VCS command surface"
+      },
+      {
+        "id": "provider-adapter-proof",
+        "status": "requires-follow-up-implementation",
+        "acceptance": "GitHub/GitHub Actions/Trivy/Argo/native fixture adapters produce promotion evidence consumed by Oya VCS admission"
+      }
+    ],
+    "verification": [
+      "scripts/check-oya-vcs-admission.sh",
+      "python3 scripts/audit-master-plan-completion.py --check",
+      "python3 scripts/render-master-plan-ledger.py --check"
+    ]
+  },
+  "current_ci_admission_lane": {
+    "script": "scripts/check-oya-vcs-admission.sh",
+    "workflow_job": "oya-vcs-admission",
+    "branch_protection_status": "oya-vcs-admission",
+    "package_tests": [
+      "oya-foundry-vcs-kernel",
+      "oya-foundry-vcs-ast-index-kernel",
+      "oya-foundry-vcs-lockstore-adapter",
+      "oya-foundry-vcs-changebundle-kernel",
+      "oya-foundry-vcs-polyglot-indexer-adapter",
+      "oya-foundry-vcs-test-standard-gate-kernel",
+      "oya-foundry-vcs-promotion-controller-kernel",
+      "oya-foundry-vcs-review-mergequeue-kernel",
+      "oya-foundry-vcs-cli-ratchet-kernel"
+    ],
+    "blocks_when": [
+      "authority metadata regresses to legacy grit/icm closure authority",
+      "Oya VCS workspace packages are absent",
+      "targeted Oya VCS tests fail",
+      "branch protection or PR workflow stops exposing oya-vcs-admission"
+    ]
   }
 }

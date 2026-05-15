@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_foundry_vcs_changebundle_kernel::{
     BundleAttestation, ChangeBundle, ChangeBundleDraft, Digest, EvidenceKind,
     EvidenceRecord as BundleEvidenceRecord, EvidenceResult as BundleEvidenceResult, KgEdgeRecord,
@@ -6,7 +10,7 @@ use oya_foundry_vcs_changebundle_kernel::{
 use oya_foundry_vcs_kernel::{
     ArtifactPointer, ChangeSet, ChangeSetDraft, ChangeSetLineage, Claim, SymbolId, SymbolLanguage,
 };
-use oya_foundry_vcs_promotion_controller::{
+use oya_foundry_vcs_promotion_controller_kernel::{
     ArgoGitOpsContractFixture, CiContractFixture, Environment, EnvironmentHealth,
     EnvironmentStatus, FreshnessEnvelope, GitHubActionsContractFixture, IdempotencyKey,
     PromotionController, PromotionControllerState, PromotionError, PromotionPolicy,

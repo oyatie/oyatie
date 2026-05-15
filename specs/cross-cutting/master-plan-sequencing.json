@@ -8,7 +8,7 @@
   },
   "_metadata": {
     "sidecar_id": "EXE-MASTER-SEQUENCING",
-    "status": "draft-sidecar",
+    "status": "accepted-oya-vcs-authority-cutover",
     "created_for": "4000-character launcher prompt sidecars",
     "canonical_sources": [
       "docs/AGENTS.md",
@@ -30,7 +30,8 @@
       "/templates/checklists/agent-kickoff-checklist.md",
       "/templates/checklists/per-implementation-plan-checklist.md",
       "/templates/checklists/per-phase-completion-checklist.md"
-    ]
+    ],
+    "updated_at": "2026-05-15T10:45:00Z"
   },
   "master_plan_discovery_order": [
     "docs/MASTERPLAN.md",
@@ -48,7 +49,7 @@
   "planning_hierarchy": {
     "milestone": "multi-quarter outcome; M<NN>-slug; owns phase index and exit gate",
     "phase": "1-6 week deliverable; P<NN>-slug; owns entry/exit gates and dependency ordering",
-    "implementation_plan": "ChangeSet-sized executable phase-local slice; owns grit symbols, issue-level scope, code shape, tests, evidence, handoff, and promotion eligibility"
+    "implementation_plan": "ChangeSet-sized executable phase-local slice; owns Oya VCS symbols/artifact pointers, issue-level scope, code shape, tests, evidence, handoff, and promotion eligibility"
   },
   "forbidden_primitives": [
     "git",
@@ -61,39 +62,39 @@
   "repo_state_protocol": [
     {
       "step": "claim",
-      "primitive": "grit-compatible claim --agent <id> --intent <slice> <symbols>",
-      "fallback": "icm store -t scaffold-locks-oyatie only until P00 file/artifact claims are implemented"
+      "primitive": "Oya VCS claim --agent <id> --intent <slice> <symbols-or-artifact-pointers>",
+      "fallback": "legacy grit/scaffold locks may record compatibility blockers only when the Oya VCS command surface is unavailable; they are not closure authority"
     },
     {
       "step": "work",
-      "primitive": "edit only inside isolated claimed workspace",
-      "fallback": "stop and narrow claim on shared-symbol conflict"
+      "primitive": "edit only inside isolated Oya VCS claimed workspace / ChangeSet boundary",
+      "fallback": "stop and narrow the ChangeSet on shared-symbol conflict"
     },
     {
       "step": "verify",
-      "primitive": "run targeted then risk-scaled gates; package evidence into ChangeBundle",
-      "fallback": "record blocked check and next-best evidence"
+      "primitive": "run targeted then risk-scaled gates; package evidence, multispectrum review, provenance, and affected-test freshness into ChangeBundle",
+      "fallback": "record blocked check and next-best evidence in the ChangeBundle blocker section"
     },
     {
       "step": "done",
-      "primitive": "done emits signed ChangeBundle and GitOps promotion request; local merge is compatibility-only",
-      "fallback": "do not manually merge; report blocked promotion"
+      "primitive": "Oya VCS done seals the signed ChangeBundle and requests Promotion; local merge/done primitives are compatibility-only",
+      "fallback": "do not manually merge; report blocked Oya VCS closeout"
     },
     {
       "step": "promote",
-      "primitive": "GitOps controller owns remote ref/PR-equivalent publication, CI/CD admission, environment reconciliation, and lock release",
+      "primitive": "Oya VCS GitOps controller owns remote ref/PR-equivalent publication, CI/CD admission, review/fix, controller rebase, merge queue, environment reconciliation, and lock release",
       "fallback": "keep/release locks according to terminal policy; never agent-run git/gh"
     }
   ],
   "sequence": [
     "read_authority_contracts",
-    "recall_icm_context",
+    "recall_context_optional_legacy",
     "locate_canonical_master_plan",
     "load_sidecars_and_existing_checklists",
     "build_completion_ledger",
     "topologically_sort_by_gates_on_and_dependencies",
     "select_next_ready_item",
-    "claim_with_grit_or_scaffold_lock",
+    "claim_with_oya_vcs",
     "inspect_current_state",
     "implement_smallest_correct_slice",
     "update_tests_contracts_docs_catalog_adrs",
@@ -102,11 +103,11 @@
     "run_linus_style_critic_pass",
     "fix_and_reverify",
     "record_evidence_bundle",
-    "close_claim_with_done_bundle",
-    "gitops_promote_or_record_blocker",
+    "close_changeset_with_oya_vcs_done_bundle",
+    "oya_vcs_promote_or_record_blocker",
     "repeat_until_ledger_complete",
     "full_plan_adversarial_audit",
-    "store_icm_completion_summary",
+    "store_vcs_completion_summary",
     "emit_final_report"
   ],
   "ledger_required_fields": [
@@ -129,7 +130,7 @@
         "M-CC-P01",
         "broad M01/M02/M03 parallel fan-out"
       ],
-      "compatibility_window": "Existing local grit may be used only until P00 reaches accepted GitOps promotion path."
+      "compatibility_window": "P00 core is complete and Oya VCS admission is required for forward agentic fan-out; legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."
     }
   ],
   "implementation_plan_changeset_contract": {
@@ -142,12 +143,12 @@
       "phase_parent",
       "ip_id",
       "change_boundary",
-      "grit_claim_or_scaffold_lock_scope",
+      "oya_vcs_claim_scope",
       "affected_symbols_or_artifact_pointers",
       "affected_crates_packages_deployables",
       "required_test_evidence",
       "rollback_or_compatibility_path",
-      "icm_completion_payload"
+      "vcs_completion_payload"
     ],
     "split_when": [
       "unrelated lock scopes",
@@ -157,7 +158,7 @@
       "review/fix task independent from original ChangeSet"
     ],
     "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
-    "validation_lane": "oya-foundry-fitness-plan-hierarchy + Oya VCS admission once M-CC-P00 is accepted"
+    "validation_lane": "oya-foundry-fitness-plan-hierarchy + oya-vcs-admission"
   },
   "purpose": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them."
 }

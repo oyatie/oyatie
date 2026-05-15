@@ -3,6 +3,9 @@
 //! pnpm lanes may be active before a TypeScript workspace exists, but the first
 //! TypeScript marker must bring pnpm package metadata, lockfile, and the lane
 //! scripts with it.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TypescriptWorkspaceLane {

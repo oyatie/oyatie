@@ -108,17 +108,24 @@ fn parse_kernel_fields(path: &str, contents: &str) -> Vec<KernelField> {
 
     for line in contents.lines() {
         let trimmed = line.trim();
-        if current_struct.is_none() {
-            if let Some(struct_name) = parse_pub_struct_name(trimmed) {
-                current_struct = Some(struct_name);
-                brace_depth = count_brace_delta(line);
-                previous_line_has_data_class_annotation = false;
-                if brace_depth <= 0 {
-                    current_struct = None;
+        // ADR-0083 Tier 1: clone the active struct name out of the loop-mutable
+        // `Option<String>` so the field-construction path below has no `.expect`
+        // and the loop tail can still re-assign `current_struct = None` without
+        // a borrow conflict.
+        let active_struct = match current_struct.clone() {
+            Some(name) => name,
+            None => {
+                if let Some(struct_name) = parse_pub_struct_name(trimmed) {
+                    current_struct = Some(struct_name);
+                    brace_depth = count_brace_delta(line);
+                    previous_line_has_data_class_annotation = false;
+                    if brace_depth <= 0 {
+                        current_struct = None;
+                    }
                 }
+                continue;
             }
-            continue;
-        }
+        };
 
         if let Some(field_name) = parse_pub_field_name(trimmed) {
             let has_data_class_annotation = previous_line_has_data_class_annotation
@@ -130,7 +137,7 @@ fn parse_kernel_fields(path: &str, contents: &str) -> Vec<KernelField> {
             fields.push(KernelField {
                 identity: FieldIdentity {
                     path: path.to_string(),
-                    struct_name: current_struct.clone().expect("struct active"),
+                    struct_name: active_struct,
                     field_name,
                 },
                 has_data_class_annotation,

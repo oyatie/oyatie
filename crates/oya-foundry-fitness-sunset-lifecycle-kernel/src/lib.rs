@@ -53,6 +53,9 @@
 //! the dev-CLI runner.
 
 #![forbid(unsafe_code)]
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 /// Proleptic-Gregorian calendar date (year / month / day, 1-based month
 /// and day). Kernel-local std-only date type — keeps the kernel
@@ -66,6 +69,21 @@ pub struct Date {
 }
 
 impl Date {
+    /// Construct 1970-01-01 (Unix epoch) as an infallible constant.
+    ///
+    /// ADR-0083 Tier 1: callers that previously wrote
+    /// `Date::new(1970, 1, 1).expect("epoch is valid")` should call this
+    /// instead — the validity check is encoded statically (the year/month/day
+    /// triplet is a verified privacy-program-free constant of the date
+    /// vocabulary). No `Result`, no `.expect()`, no panic path.
+    pub const fn epoch() -> Self {
+        Self {
+            year: 1970,
+            month: 1,
+            day: 1,
+        }
+    }
+
     /// Construct a new date. Returns `None` for out-of-range month/day or
     /// day-greater-than-month-length.
     pub fn new(year: i32, month: u8, day: u8) -> Option<Self> {

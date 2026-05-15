@@ -5,6 +5,9 @@
 //! API stability, SLA windows, override packs, consent receipts, subprocessors,
 //! residency declarations, and plugin trust tiers. Apps own rendering, storage,
 //! authorization, and audit-chain append.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -763,8 +766,7 @@ pub fn trust_portal_data_class_from_legacy(
 }
 
 pub fn default_trust_portal_subject_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 fn validate_queue_completion(

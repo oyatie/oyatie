@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_cloud_compute_domain::{CloudComputeCatalog, CloudComputeError};
 use oya_cloud_compute_k8s_api::{
     CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE, CloudComputeK8sApiAuthorization,

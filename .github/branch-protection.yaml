@@ -13,6 +13,7 @@ branches:
       - cargo-check
       - cargo-clippy
       - cargo-nextest
+      - oya-vcs-admission
       - oya-foundry-fitness-supply-chain
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver

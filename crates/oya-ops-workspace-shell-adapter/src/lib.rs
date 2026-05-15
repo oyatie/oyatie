@@ -7,6 +7,9 @@
 //! Wire DTOs mirror OpenAPI `#/components/schemas/*` 1:1 by name and shape
 //! so the contract is enforceable: changing the kernel type without changing
 //! the projection breaks the build.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_ops_workspace_shell_kernel::{
     Surface, SurfaceCatalogPort, SurfaceId, SurfaceState, VisibilityTier,

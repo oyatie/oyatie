@@ -11,6 +11,9 @@
 //! reference; the runtime refuses to dispatch against unregistered manifests.
 //!
 //! No external Rust deps — std + workspace path deps only per ADR-0015.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 

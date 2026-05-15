@@ -26,6 +26,7 @@ scripts/check-stage0-application-shell-prereqs.py --self-test
 scripts/render-m02-exit-checklist.py --check
 scripts/render-master-plan-ledger.py --check
 scripts/audit-master-plan-completion.py --check
+scripts/check-oya-vcs-admission.sh
 cargo run -q -p oya-dev-cli -- gate validate codeview-read-surface
 cargo run -q -p oya-foundry-fitness-purpose-audit -- "docs/*.md" "docs/standards/*.md" "docs/runbooks/*.md" ".omc/plans/**/*.md" "registries/**/*.json" "specs/**/*.json" "contracts/**/*.json" ".omc/**/*.json"
 cargo fmt --all -- --check

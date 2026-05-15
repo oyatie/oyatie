@@ -7,6 +7,9 @@
 //! `HttpMethod` value is `Get`. Constructing `Post`/`Put`/`Delete` requires
 //! reaching for the `RejectedWriteMethod` enum, whose existence is the
 //! negative test surface for "write methods fail closed".
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_foundry_dashboard_kernel::{AccountHealthView, RoutingView, SessionView, UsageView};
 

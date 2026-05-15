@@ -509,30 +509,26 @@ serde_yaml = "0.9"
 toml = "0.8"
 regex = "1"
 
-# Workspace lints — Phase E1 promotion stalled on 2026-05-15 by
-# oya-audit-chain-domain Site 3 (`append_legacy_data_classes` private fn
-# `.expect()` on `try_append_legacy_data_classes`), which guards two real
-# failure modes (EmptyTenantId AND TenantShardMismatch). Per
-# `feedback_no_silent_regression`, eliminating the `.expect()` requires
-# making the public `append_classifications` return Result — a breaking
-# API change affecting ~30 call sites across oya-application-app,
-# oya-cloud-observability-domain, oya-audit-chain-usecase, and several
-# `tests/` integration crates. Pending ADR amendment + version bump on
-# oya-audit-chain-domain, this lane stays at WARN. All other Tier 1
-# production `.expect()` sites surfaced by the audit have been refactored
+# Workspace lints — DENY since 2026-05-15. Phase E1 promotion fully landed:
+# 128-warning cleanup arc + Tier 1 refactors at 7 production `.expect()` sites
 # (PrivacyDataClass::internal_only(), CapabilityCostProfile direct
-# construction, deterministic indexing on AuditChain::events).
+# construction, deterministic indexing on AuditChain::events, append_legacy_*
+# Result propagation). Site 3 (`append_classifications`) authorized by
+# ADR-0083 amendment 6a84735 (2026-05-15) + oya-audit-chain-domain version
+# bump 0.1.0 → 0.2.0 + ~30 call-site `?` propagation in commit 4a434a7.
+# Each workspace member opts in via `[lints] workspace = true` in its own
+# Cargo.toml.
 #
 # Tests legitimately use `.unwrap()`, `.expect()`, and `panic!`. Exemption
 # pattern: each crate's lib.rs / main.rs carries
 #   #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 # so DENY applies to production code and ALLOW applies under `cfg(test)`.
-# Integration tests under `tests/` are separate crates that need their
-# own per-file `#![allow(...)]` header.
+# Integration tests under `tests/` are separate crates that carry their own
+# per-file `#![allow(...)]` header.
 [workspace.lints.clippy]
-unwrap_used = "warn"
-expect_used = "warn"
-panic = "warn"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
 
 # Release-profile hardening per 2026-05-15 audit + hyperscaler-grade
 # performance/scalability bar (specs/cross-cutting/oyatie-doctrine.json P8,

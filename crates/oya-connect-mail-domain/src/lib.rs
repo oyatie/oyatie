@@ -4,6 +4,9 @@
 //! `docs/products/workspace/PRD.md` and ADR-0029. The kernel keeps the first
 //! vertical slice deliberately small: mailbox and message aggregates, data-class
 //! defaults, and the read seam Foundry/Search consumers will build on.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};
 
@@ -302,8 +305,7 @@ impl Folder {
 }
 
 pub fn default_workspace_mail_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_mail_data_class_from_legacy(
@@ -470,7 +472,7 @@ mod tests {
         assert_eq!(
             message.headers.value[0].name.data_class,
             DataClassification::Privacy(
-                PrivacyDataClass::new(DataClass::PiiQuasiIdentifier).unwrap()
+                PrivacyDataClass::pii_quasi_identifier()
             )
         );
     }
@@ -478,7 +480,7 @@ mod tests {
     #[test]
     fn message_rejects_body_class_that_does_not_match_message_class() {
         let mut input = valid_message_input();
-        input.data_class = Some(PrivacyDataClass::new(DataClass::InternalOnly).unwrap());
+        input.data_class = Some(PrivacyDataClass::internal_only());
 
         assert_eq!(Message::new(input), Err(MailError::InvalidDataClass));
     }

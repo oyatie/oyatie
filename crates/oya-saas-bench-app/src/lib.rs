@@ -7,6 +7,9 @@
 //! sequence. Used by the M03-P04 acceptance lane to record SLO counters per
 //! tenant and to verify cross-crate contracts compose without any external
 //! dependencies.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_saas_plugin_marketplace_kernel::{
     MarketplaceListingPublish, MarketplaceRegistry, PluginManifestRegister, TrustTier, Vertical,

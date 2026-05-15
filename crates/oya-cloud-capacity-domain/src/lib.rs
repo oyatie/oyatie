@@ -5,6 +5,9 @@
 //! cell rebalancing. Compute keeps runtime metadata; billing keeps invoices;
 //! this kernel keeps the capacity promise enforceable across public-cloud,
 //! colo, and own-datacenter phases.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 

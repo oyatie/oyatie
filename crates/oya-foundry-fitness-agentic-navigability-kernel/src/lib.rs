@@ -5,6 +5,9 @@
 //!
 //! I/O-free. Runners walk the tree and feed typed [`PlanNode`] records
 //! into [`check`].
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 /// A single planning artifact (Milestone INDEX, Phase INDEX, IP file, …).
 /// Path is repo-relative for stable error messages.

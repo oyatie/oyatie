@@ -4,6 +4,9 @@
 //! role, federation, and STS session values typed while delegating short-lived
 //! credential issuance to the platform identity kernel so the two surfaces stay
 //! in lockstep.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 

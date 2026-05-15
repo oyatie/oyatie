@@ -163,7 +163,15 @@ impl ProviderContractEvidence {
         })
     }
 
-    pub fn passed(provider: ProviderKind, fixture: impl Into<String>, generation: u64) -> Self {
+    /// Convenience fixture builder. ADR-0083 Tier 1: returns `Result` so
+    /// the underlying `Self::new` validation propagates via `?` rather than
+    /// `.expect()`. The only callers are in-tree fixtures (test scope) and
+    /// they `.unwrap()` under the Tier 3 exemption.
+    pub fn passed(
+        provider: ProviderKind,
+        fixture: impl Into<String>,
+        generation: u64,
+    ) -> Result<Self, PromotionError> {
         Self::new(
             provider,
             ProviderAvailability::Available,
@@ -173,7 +181,6 @@ impl ProviderContractEvidence {
             1_800_000_000,
             "passed fixture",
         )
-        .expect("valid provider fixture")
     }
 
     fn is_fresh_for(&self, index: &FreshnessEnvelope) -> bool {

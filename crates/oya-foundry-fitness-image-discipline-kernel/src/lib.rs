@@ -5,6 +5,9 @@
 //! I/O-free. Runners parse Dockerfiles / image manifests / OCI inspect
 //! output into typed [`ImageDescriptor`] records and feed them to
 //! [`check`].
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 /// A single image build artifact under review.
 #[derive(Clone, Debug, Eq, PartialEq)]

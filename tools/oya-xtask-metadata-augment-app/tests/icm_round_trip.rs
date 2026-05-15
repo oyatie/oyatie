@@ -1,3 +1,6 @@
+// ADR-0083 Tier 3: integration tests use .unwrap() / .expect() / panic! to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 /// ICM JSON round-trip contract test.
 ///
 /// Per Condition 3 of iter-3 final fold: mint a synthetic token via `icm store`,

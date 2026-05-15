@@ -2,7 +2,7 @@
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P01
-title: Agentic-Pipeline Cutover (grit/icm SoT)
+title: Agentic-Pipeline Cutover (Oya VCS SoT; grit/icm historical)
 status: complete
 purpose: Lift `ralplan-oyatie-sst-consolidation.md` 12-phase plan into the milestone tree; foundational for every other agent operation.
 ---
@@ -10,7 +10,7 @@ purpose: Lift `ralplan-oyatie-sst-consolidation.md` 12-phase plan into the miles
 # M-CC-P01 — Agentic-Pipeline Cutover
 
 ## Purpose
-Per [`../../../ralplan-oyatie-sst-consolidation.md`](../../../ralplan-oyatie-sst-consolidation.md) (iter-2 mid-consensus). The grit/icm cutover IS this phase. Foundational for every other phase in the masterplan.
+Per [`../../../ralplan-oyatie-sst-consolidation.md`](../../../ralplan-oyatie-sst-consolidation.md) (iter-2 mid-consensus), this phase cleared the historical grit/icm foundation. As of 2026-05-15, M-CC-P00 Oya VCS supersedes grit/icm as the forward closure authority for Foundry agentic work; this phase remains historical evidence and compatibility context.
 
 ## Acceptance
 - All ten A-criteria GREEN per [`../../../ralplan-oyatie-sst-consolidation.md`](../../../ralplan-oyatie-sst-consolidation.md) §4.
@@ -21,6 +21,10 @@ Per [`../../../ralplan-oyatie-sst-consolidation.md`](../../../ralplan-oyatie-sst
 ## Foundation-cleared evidence
 
 P01 foundation cleared on 2026-05-14 after IP-009, IP-010, and IP-012 code-review approvals. Standalone P01 lanes are green: banned-primitives, archive-orphan, authoritative-tracked, plus the IP-010 parallel-claim demo regression. Fresh full-workspace closeout now passes `./scripts/check.sh` under Rust 1.95.0 / edition 2024 / rustfmt 2024, including cargo check/clippy, cargo-nextest 1327/1327, repoctl, glossary, quality-lanes, architecture-boundary (165 crates), cargo-deny, and machine-readable JSON parse checks; see `/evidence/agentic-pipeline/ip-012-authoritative-tracked.json`.
+
+## Supersession note
+
+Forward agentic closeout is Oya VCS ChangeBundle → Promotion → ReleaseTrain. Legacy grit/icm/rtk/vox/omx/omc surfaces are compatibility/provenance only while command adapters finish landing and cannot satisfy new promotion authority.
 
 ## Implementation Plans
 | IP | Title | Status | File |
@@ -46,5 +50,6 @@ See [`../../../ralplan-oyatie-sst-consolidation.md`](../../../ralplan-oyatie-sst
 
 ## Agent-handoff
 ```
-icm store -t context-oyatie -c "M-CC-P01 complete: agentic-pipeline cutover green; banned-primitives + archive-orphan + authoritative-tracked lanes green on main; foundational gate cleared for all other milestones" -i critical -k "M-CC,P01,agentic-pipeline,cutover,complete"
+oya vcs done --agent <id> --changeset <id>
+oya vcs promote --changeset <id>
 ```

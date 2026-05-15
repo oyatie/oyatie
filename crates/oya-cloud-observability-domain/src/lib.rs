@@ -5,6 +5,9 @@
 //! `cloud.observability.audit.read` CloudTrail-class read projection. It stays
 //! adapter-free: VictoriaMetrics, Loki, Tempo, object export, and REST/gRPC API
 //! crates consume these value objects through ports.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -659,15 +662,13 @@ impl ActorRef {
     pub fn new(value: impl Into<String>) -> Result<Self, CloudObservabilityError> {
         let value = value.into();
         let allowed = ["usr_", "sp_", "role_", "agent_", "sts_"];
-        if allowed.iter().any(|prefix| value.starts_with(prefix))
-            && value.len()
-                > allowed
-                    .iter()
-                    .find(|prefix| value.starts_with(*prefix))
-                    .unwrap()
-                    .len()
-            && is_ascii_token(&value)
-        {
+        // ADR-0083 Tier 1: bind the matching prefix via `find` once instead of
+        // checking `any` then re-finding with `.unwrap()`. If no prefix matches,
+        // the `let-else` returns the canonical invalid-actor error.
+        let Some(matched_prefix) = allowed.iter().find(|prefix| value.starts_with(*prefix)) else {
+            return Err(CloudObservabilityError::InvalidActorRef);
+        };
+        if value.len() > matched_prefix.len() && is_ascii_token(&value) {
             Ok(Self { value })
         } else {
             Err(CloudObservabilityError::InvalidActorRef)

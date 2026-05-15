@@ -3,6 +3,9 @@
 //!
 //! Pure std-only adapter per ADR-0015. Mirrors `#/components/schemas/*` 1:1
 //! so contract drift breaks the build.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_ops_docs_portal_kernel::{
     ExtractorClass, ExtractorId, ExtractorRecord, LiveFeedEvent, LiveFeedEventKind, ManifestPort,

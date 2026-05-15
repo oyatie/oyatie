@@ -4,6 +4,9 @@
 //! workflow domain, workflow application, plugin runtime, and bench harness.
 //! Per ADR-0015 (flat-crates) this kernel takes no cross-context dependencies;
 //! every downstream layer flows inward from kernel -> domain -> app.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 

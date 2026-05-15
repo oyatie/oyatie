@@ -8,6 +8,9 @@
 //! "Adapter" is the only ring allowed to name a provider. Anything
 //! upstream (kernel, domain, application, app, runtime) must talk
 //! through `ProviderFamily` + adapter ports.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 /// Provider tokens that may NOT appear in import paths outside an
 /// adapter crate. Tokens are lower-cased before comparison.

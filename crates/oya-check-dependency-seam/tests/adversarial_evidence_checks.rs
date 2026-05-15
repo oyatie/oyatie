@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 //! F3 adversarial fixtures for the `change-class-declared` and
 //! `multispectrum-evidence-attached` sub-checks. Crafted evidence JSON
 //! files in tempdir; assert the lane catches the violation classes.

@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_foundry_vcs_kernel::{ArtifactPointer, SymbolLanguage};
 use oya_foundry_vcs_test_standard_gate_kernel::{
     AccountingKind, AccountingRecord, AdmissionInput, DeployEdge, EvidenceDisposition,
@@ -28,7 +32,7 @@ fn evidence(suite: &str, tier: TestTier) -> EvidenceRecord {
 fn admission(changes: Vec<SemanticChange>, evidence: Vec<EvidenceRecord>) -> AdmissionInput {
     AdmissionInput {
         changes,
-        registry: TestSuiteRegistry::oyatie_default(),
+        registry: TestSuiteRegistry::oyatie_default().unwrap(),
         evidence,
         accounting: Vec::new(),
         freshness_policy: FreshnessPolicy::new(3, 10_100),

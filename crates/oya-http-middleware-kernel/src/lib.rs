@@ -21,6 +21,9 @@
 //!   - call `next.run(req)` to continue down the chain (returning that result
 //!     optionally transformed), or
 //!   - short-circuit by returning its own `Resp` without calling `next`.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 

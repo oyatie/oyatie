@@ -1,4 +1,7 @@
 //! Audit-chain kernel: append-only tamper-evident event chain.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use oya_data_boundary_kernel::{DataClass, DataClassification, Purpose};

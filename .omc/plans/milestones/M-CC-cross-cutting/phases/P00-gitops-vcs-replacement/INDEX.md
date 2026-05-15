@@ -5,15 +5,15 @@ id: M-CC-P00
 title: Polyglot GitOps-capable VCS Replacement (Oya VCS)
 status: complete
 source_plan: ../../../../ralplan-gitops-vcs-replacement-20260514.md
-source_spec: ../../../../../specs/gitops-vcs-replacement.json
+source_spec: ../../../../../specs/cross-cutting/gitops-vcs-replacement.json
 purpose: Fold approved ralplan v5 into the cross-cutting master-plan tree as the first prerequisite before broad agent fan-out.
 ---
 
 # M-CC-P00 — Polyglot GitOps-capable VCS Replacement (Oya VCS)
 
-## M02/M03 Waiver
+## M02/M03 Authority gate
 
-**Waiver granted 2026-05-14.** M-CC-P00 (Oya VCS) is a parallel long-horizon initiative. M02 and M03 have no dependency on Oya VCS internals — they depend on the existing grit/icm agentic pipeline (M-CC-P01, foundation-cleared) and existing git/Cargo infrastructure. Broad agent fanout into M02/M03 may proceed under the existing grit coordination primitive. P00 execution continues on its own track.
+**Waiver retired 2026-05-15.** M-CC-P00 (Oya VCS) is the forward closure authority for broad M02/M03 agent fan-out. M02 and M03 may consume existing git/Cargo infrastructure, but promoted Foundry agentic ChangeSets must close through Oya VCS ChangeBundle → Promotion → ReleaseTrain evidence. Legacy grit/icm/rtk/vox/omx/omc surfaces are compatibility/provenance only and do not satisfy promotion authority.
 
 ## Verdict
 
@@ -25,7 +25,7 @@ Every IP in this phase is a ChangeSet-sized execution unit: cohesive, claimable,
 
 ## Authority boundary
 
-Grit remains the authoritative agent/repo transition and lock primitive during cutover. Oya VCS consumes/projects grit state through explicit ports. It does not reimplement branch creation, merge sequencing, repository conflict resolution, lock authority, agent `git`/`gh` access, or protected-ref mutation outside the sanctioned grit/controller path.
+Oya VCS owns the authoritative agent/repo state transition for forward work: claim → work → verify → done → promote. It consumes/projects legacy grit state only through explicit compatibility ports while the command adapters finish landing. Agents still do not call `git`/`gh`; protected-ref mutation, controller rebase, review/fix, merge queue, promotion, and terminal lock release are controller-owned.
 
 ## Object chain
 
@@ -33,9 +33,9 @@ Grit remains the authoritative agent/repo transition and lock primitive during c
 
 ## Acceptance
 
-- Every promoted ChangeBundle has grit claim coverage, semantic diff, required test evidence, package/build/deploy lineage, KG lineage, provenance, and terminal-state lock-release evidence.
+- Every promoted ChangeBundle has Oya VCS claim coverage, semantic diff, required multispectrum evidence, required test evidence, package/build/deploy lineage, KG lineage, provenance, and terminal-state lock-release evidence.
 - VirtualHead is review/build projection only.
-- QueueAwareLease cannot override or release grit locks.
+- QueueAwareLease cannot override or release controller-owned locks outside terminal policy.
 - GitHub, GitHub Actions, GitHub Issues, Trivy, and Argo CD are replaceable adapters; native fixtures provide the same core states.
 - Unit/integration/e2e standards are enforced through `/specs/cross-cutting/test-standard.json` and `/registries/cross-cutting/test-suite-registry.json`.
 - `ops.oyatie.com` exposes queue, lock, issue digest, build/cache, package/deploy, promotion, blocker, evidence, and explainability views backed by fresh evidence.
@@ -45,15 +45,15 @@ Grit remains the authoritative agent/repo transition and lock primitive during c
 
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Symbol lock domain + ChangeSet kernel | planned-from-approved-ralplan-v5 | [`IP-001-symbol-lock-domain.md`](IP-001-symbol-lock-domain.md) |
-| IP-002 | Remote lock store + event stream | planned-from-approved-ralplan-v5 | [`IP-002-remote-lock-store-events.md`](IP-002-remote-lock-store-events.md) |
-| IP-003 | ChangeBundle attestation + provenance | planned-from-approved-ralplan-v5 | [`IP-003-change-bundle-attestation.md`](IP-003-change-bundle-attestation.md) |
-| IP-004 | GitOps promotion controller + provider seams | planned-from-approved-ralplan-v5 | [`IP-004-gitops-promotion-controller.md`](IP-004-gitops-promotion-controller.md) |
-| IP-005 | Grit-compatible CLI + migration ratchet | planned-from-approved-ralplan-v5 | [`IP-005-grit-compat-cli-and-migration-ratchet.md`](IP-005-grit-compat-cli-and-migration-ratchet.md) |
-| IP-006 | Polyglot AST/indexer adapters | planned-from-approved-ralplan-v5 | [`IP-006-polyglot-indexers.md`](IP-006-polyglot-indexers.md) |
-| IP-007 | Review/fix, rebase, and merge-queue loop | planned-from-approved-ralplan-v5 | [`IP-007-review-fix-rebase-merge-queue-loop.md`](IP-007-review-fix-rebase-merge-queue-loop.md) |
-| IP-008 | Unit/integration/e2e standard enforcement | planned-from-approved-ralplan-v5 | [`IP-008-test-standard-enforcement.md`](IP-008-test-standard-enforcement.md) |
-| IP-009 | AST index contract + impacted-test mapping | planned-from-approved-ralplan-v5 | [`IP-009-ast-index-contract.md`](IP-009-ast-index-contract.md) |
+| IP-001 | Symbol lock domain + ChangeSet kernel | complete | [`IP-001-symbol-lock-domain.md`](IP-001-symbol-lock-domain.md) |
+| IP-002 | Remote lock store + event stream | complete | [`IP-002-remote-lock-store-events.md`](IP-002-remote-lock-store-events.md) |
+| IP-003 | ChangeBundle attestation + provenance | complete | [`IP-003-change-bundle-attestation.md`](IP-003-change-bundle-attestation.md) |
+| IP-004 | GitOps promotion controller + provider seams | complete | [`IP-004-gitops-promotion-controller.md`](IP-004-gitops-promotion-controller.md) |
+| IP-005 | Grit-compatible CLI + migration ratchet | complete | [`IP-005-grit-compat-cli-and-migration-ratchet.md`](IP-005-grit-compat-cli-and-migration-ratchet.md) |
+| IP-006 | Polyglot AST/indexer adapters | complete | [`IP-006-polyglot-indexers.md`](IP-006-polyglot-indexers.md) |
+| IP-007 | Review/fix, rebase, and merge-queue loop | complete | [`IP-007-review-fix-rebase-merge-queue-loop.md`](IP-007-review-fix-rebase-merge-queue-loop.md) |
+| IP-008 | Unit/integration/e2e standard enforcement | complete | [`IP-008-test-standard-enforcement.md`](IP-008-test-standard-enforcement.md) |
+| IP-009 | AST index contract + impacted-test mapping | complete | [`IP-009-ast-index-contract.md`](IP-009-ast-index-contract.md) |
 
 ## Execution order
 

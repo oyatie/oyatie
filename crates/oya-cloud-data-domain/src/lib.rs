@@ -4,6 +4,9 @@
 //! Citus, pgvector, Redis-compatible cache, Kafka, ClickHouse, and gated stable
 //! expansion engines. The kernel validates topology and evidence; adapters own
 //! engine I/O.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 

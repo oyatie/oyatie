@@ -10,6 +10,9 @@
 //! `purpose: Auto-backfilled purpose for <basename>` to satisfy a prior
 //! `check()` that accepted any non-empty string — this kernel now refuses
 //! that pattern at the source so the loop cannot recur.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 

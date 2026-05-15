@@ -53,14 +53,14 @@ Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first
 
 ## Multispectrum review bar — required on every change
 
-Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/cross-cutting/multispectrum-review.json`](..//specs/cross-cutting/multispectrum-review.json) v2.1.0 (`evidence_schema`). The seam-discipline lane `oya-check-dependency-seam` REFUSES the changeset when:
+Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/cross-cutting/multispectrum-review.json`](..//specs/cross-cutting/multispectrum-review.json) v2.4.0 (`evidence_schema`). Oya VCS admission plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
 
 - evidence file absent OR
 - declared `change_class_id` not in {CC-1..CC-7} OR
-- required facets (F1..F9; plus F10/F11/F13 when applicable; plus M1/M2 when `meta_review_triggered`) missing OR
+- required facets (F1..F13 except F12-reserved when applicable; A-family policy-adherence facets for policy-touching changes; plus M1/M2 when `meta_review_triggered`) missing OR
 - mandatory artifacts per the rigor matrix missing.
 
-This applies to **foundry agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at `grit claim` and re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registries/cross-cutting/fixuptasks.jsonl`](..//registries/cross-cutting/fixuptasks.jsonl) for the bounded-deferral registry.
+This applies to **foundry agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at Oya VCS claim time and re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registries/cross-cutting/fixuptasks.jsonl`](..//registries/cross-cutting/fixuptasks.jsonl) for the bounded-deferral registry.
 
 This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
 
@@ -161,24 +161,26 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
 ## Sanctioned primitives
 
-Agent-callable coordination and state-transition primitives are a closed set: `grit` and `oya-tooling-agent-read`. `grit` owns claims and completion. `oya-tooling-agent-read` owns read-only VCS / forge inspection. ADR-0053 defines the steady-state rule; ADR-0054 defines the scaffold-lock fallback for paths that cannot yet be claimed as indexed symbols.
+Agent-callable coordination and state-transition primitives are a closed set: Oya VCS claim / verify / done / promote plus the `oya-vcs-admission` CI lane. Oya VCS owns claims, ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock release. ADR-0053/ADR-0054 remain historical compatibility records for scaffold-lock fallback paths that cannot yet be claimed as indexed symbols.
 
-Both primitives are transitional. They sunset once Oya VCS (M-CC-P00) and Foundry go live, at which point no external agent-coordination tooling (rtk, vox, icm, grit, omc, omx) remains in repo. Until then, agents use `grit` + `oya-tooling-agent-read`; after cutover, they use the Oya VCS CLI exclusively.
+The legacy primitives (`grit`, `icm`, `rtk`, `vox`, `omx`, `omc`, and `oya-tooling-agent-read`) are compatibility/provenance surfaces only while the Oya VCS command adapters finish landing. They do not satisfy forward closure authority; Oya VCS admission is the blocking gate for new Foundry agentic work.
 
 The fenced block below is the machine-readable agent surface for the banned-primitives lane. Human-facing terminal examples may live outside fences; fenced instructions use only the sanctioned primitive names.
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
-  - grit
-  - oya-tooling-agent-read
+  - oya-vcs
+  - oya-vcs-admission
+  - legacy-grit-compat
 required_sequence:
-  - grit claim --agent <id> --intent "<slice>" <file::Identifier>
-  - oya-tooling-agent-read log --range <range> --paths <path>
-  - grit done --agent <id>
+  - oya vcs claim --agent <id> --intent "<slice>" <file::Identifier>
+  - oya vcs verify --agent <id> --changeset <id>
+  - oya vcs done --agent <id> --changeset <id>
+  - oya vcs promote --changeset <id>
 scaffold_fallback:
   topic: scaffold-locks-oyatie
   adr: docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
-sunset_note: grit + oya-tooling-agent-read are transitional. Both sunset once Oya VCS (M-CC-P00) + Foundry go live; no external tooling (rtk, vox, icm, grit, omc, omx) remains in repo post-cutover.
+compatibility_note: legacy grit/icm/rtk/vox/omx/omc/oya-tooling-agent-read are read/provenance/fallback-only during cutover; Oya VCS ChangeBundle -> Promotion -> ReleaseTrain is the forward closure authority.
 <!-- agent-instructions:end -->
 
 ## PR shape
@@ -258,7 +260,7 @@ Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `super
 
 Active hooks (PreToolUse / PostToolUse / Stop / SessionStart): merge-review gate (`scripts/hooks/guard-pr-merge-review.mjs`), pre-push gate, telemetry, loop-cancellation enforcement, memory bootstrap.
 
-OMC magic-keyword routing: `autopilot`, `ralph`, `ulw` / `ultrawork`, `team`, `ralplan`, `cancelomc`. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
+Legacy OMC magic-keyword routing remains compatibility-only while Oya VCS/Foundry-native command adapters finish landing. It does not own forward repo-state closure; Oya VCS admission does. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
 
 Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definition checklist."
 
@@ -286,15 +288,15 @@ Build / test commands: same as Codex appendix.
 
 Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
 
-### OMC (oh-my-claudecode subagents)
+### Legacy OMC (oh-my-claudecode subagents)
 
-OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls.
+OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new Foundry agentic closeout routes through Oya VCS.
 
 Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`. Route per change class.
 
 Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
 
-State: OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped; do not commit unless explicitly asked.
+State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by Oya VCS evidence.
 
 ## Anti-overlap
 
