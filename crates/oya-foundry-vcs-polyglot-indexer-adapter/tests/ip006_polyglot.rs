@@ -1,6 +1,6 @@
 use oya_foundry_vcs_ast_index_kernel::{DependencyKind, PromotionTarget};
 use oya_foundry_vcs_kernel::{ArtifactPointer, ArtifactSelectorKind};
-use oya_foundry_vcs_polyglot_indexer_adapters::{
+use oya_foundry_vcs_polyglot_indexer_adapter::{
     AdapterError, DeterministicPolyglotAdapter, DiffInput, IndexRequest, PolyglotIndexerAdapter,
     ProductionSurface, build_diff_map, index_source, surface_for_path,
 };

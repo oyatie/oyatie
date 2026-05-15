@@ -65,7 +65,7 @@ members = [
   "crates/oya-foundry-vcs-ast-index-kernel",
   "crates/oya-foundry-vcs-lockstore-adapter",
   "crates/oya-foundry-vcs-changebundle-kernel",
-  "crates/oya-foundry-vcs-polyglot-indexer-adapters",
+  "crates/oya-foundry-vcs-polyglot-indexer-adapter",
   "crates/oya-foundry-vcs-test-standard-gate",
   "crates/oya-foundry-vcs-promotion-controller",
   "crates/oya-foundry-vcs-review-mergequeue",

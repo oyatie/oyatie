@@ -2231,7 +2231,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-vcs-polyglot-indexer-adapters"
+name = "oya-foundry-vcs-polyglot-indexer-adapter"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-vcs-ast-index-kernel",
