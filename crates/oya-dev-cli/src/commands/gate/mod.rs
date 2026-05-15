@@ -1,5 +1,7 @@
 use std::process::ExitCode;
 
+mod architecture_boundaries;
+
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
     let mut args = args.into_iter();
     match (args.next().as_deref(), args.next().as_deref()) {
@@ -923,6 +925,11 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     ExitCode::from(2)
                 }
             }
+        }
+        // `gate validate architecture-boundaries` — Wave 2 B-2 replacement
+        // for scripts/check-architecture-boundaries.sh.
+        (Some("validate"), Some("architecture-boundaries")) => {
+            architecture_boundaries::run(args.collect())
         }
         (Some("validate"), Some("readme-doc-coverage")) => {
             match crate::parse_readme_doc_coverage_validate_args(args.collect()) {
