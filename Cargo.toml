@@ -148,6 +148,7 @@ members = [
   "crates/oya-foundry-fitness-purpose-kernel",
   "tools/oya-adapter-substitution-test-app",
   "tools/oya-foundry-fitness-purpose-audit-app",
+  "tools/oya-xtask-metadata-augment-app",
   "crates/oya-cloud-compute-functions-api",
   "crates/oya-cloud-compute-k8s-api",
   "crates/oya-cloud-compute-vm-api",

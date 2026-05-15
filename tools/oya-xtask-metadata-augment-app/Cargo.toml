@@ -1,5 +1,5 @@
 [package]
-name = "xtask-metadata-augment"
+name = "oya-xtask-metadata-augment-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -10,11 +10,11 @@ license = "Apache-2.0"
 vertical = "shared"
 bounded_context = "xtask"
 kind = "shared"
-layer = "cli"
+layer = "app"
 purpose = "xtask CLI for metadata augmentation, lockfile rename, rename-map generation, and workspace registry checks."
 
 [[bin]]
-name = "xtask-metadata-augment"
+name = "oya-xtask-metadata-augment"
 path = "src/main.rs"
 
 [dependencies]
