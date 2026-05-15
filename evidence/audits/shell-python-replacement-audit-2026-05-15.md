@@ -124,7 +124,7 @@
 | `scripts/supply-chain-adr0039.sh` | `.github/workflows/oya-foundry-fitness-supply-chain.yml`, ADR-0039, release runbooks. | Same-PR workflow update; ADR amendment recording the Rust replacement crate. |
 | `scripts/check-oya-vcs-admission.sh` | `.github/branch-protection.yaml`, `.github/workflows/pr-tests.yml`. | Same-PR update of branch-protection + workflow + script removal. |
 | `scripts/check-oya-vcs-provider-execution.sh` | `.github/branch-protection.yaml`, `.github/workflows/oya-foundry-fitness-supply-chain.yml`. | Same-PR update. |
-| `scripts/hooks/pre-push-repoctl.sh` | Local-developer git hooks (no CI binding). | Delete and document `cargo run -p oya-dev-cli --bin repoctl -- pre-push` as the canonical hook command. |
+| `scripts/hooks/pre-push-repoctl.sh` | Local-developer git hooks (no CI binding). | Delete and document `cargo run -p oya-dev-cli --bin repoctl -- pre-push` as the canonical hook command. **Update 2026-05-15:** `oya verify` top-level subcommand added as the canonical local-developer fold (per user directive "pre-push should really just be part of some other check/validate"). Full deletion of the .sh + retirement of the `repoctl pre-push` binary surface requires updating the `oya-check-pre-push` contract kernel (currently encodes `repoctl pre-push` as `CANONICAL_PRE_PUSH_COMMAND`); tracked as follow-up to avoid colliding with concurrent contract-kernel work. |
 
 All other in-scope scripts are internal-only.
 

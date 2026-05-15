@@ -183,6 +183,7 @@ pub fn run_cli_from_env() -> ExitCode {
         Some("catalog") => commands::catalog::run(args.collect(), &usage()),
         Some("gate") => commands::gate::run(args.collect(), &usage()),
         Some("vcs") => commands::vcs::run(args.collect(), &usage()),
+        Some("verify") => commands::verify::run(args.collect(), &usage()),
         _ => {
             eprintln!("{}", usage());
             ExitCode::from(2)
@@ -237,6 +238,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
         + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
         + "\n       oya gate run-all [--include-deferred]"
+        + "\n       oya verify [--include-deferred]   # local-developer fold of `gate run-all`; canonical pre-push entry"
 }
 
 pub(crate) fn path_has_component(path: &Path, component: &str) -> bool {
