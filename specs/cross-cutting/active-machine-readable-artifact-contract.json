@@ -21,7 +21,7 @@
       "fine tune and polish our idea into something that is hyperscaler grade in infrastructure and polish when planning, and critic/verify/review it with torvald lens. Highly scalable, maintainable, solution should be our goal.",
       "Use whatever that is most appropriate for the task. Always choose the right tool for the right task."
     ],
-    "design_rationale": "Hyperscaler precedent: AWS Config (resource compliance registry), GCP Asset Inventory (per-resource policy state), Kubernetes CRDs + admission controllers. Data plane = artifacts. Control plane = registry. Validator = Rust crate. Per CONSTITUTION Decision principle 3 (mechanical prevention over process) + ADR-0015 registry pattern.",
+    "design_rationale": "Hyperscaler precedent: AWS Config (resource compliance registry), GCP Asset Inventory (per-resource policy state), Kubernetes CRDs + admission controllers. Data plane = artifacts. Control plane = registry. Validator = Rust crate. Per decision-principles.json DP-03 (mechanical prevention over process) + ADR-0015 registry pattern.",
     "related": [
       "/registries/cross-cutting/artifact-capabilities-registry.json",
       "/specs/cross-cutting/artifact-format-bindings.json",
@@ -30,7 +30,6 @@
       "/specs/cross-cutting/master-plan-sequencing.json",
       "/specs/cross-cutting/hyperscaler-gates.json",
       "/specs/cross-cutting/evidence-taxonomy.json",
-      "docs/CONSTITUTION.md",
       "docs/standards/prevention-doctrine.md",
       "docs/decisions/ADR-0015-architectural-flattening-target.md"
     ],

@@ -13,7 +13,7 @@
       "ideally every relationship, every capability, every feature, every schema, everything mapped graphed and tracked for automation is ideal.",
       "DRY enforcement is key."
     ],
-    "design_rationale": "Per Torvalds-lens self-critique: registries with overlapping concerns (capabilities-registry, building-blocks-registry, lane-registry, catalog-registry) are redundant if they all model the same project state. The correct shape is ONE graph; registries are filter-views. Per AWS Resource Explorer / GCP Asset Inventory precedent at hyperscaler scale. Per CONSTITUTION Decision principle 5 (single canonical tree).",
+    "design_rationale": "Per Torvalds-lens self-critique: registries with overlapping concerns (capabilities-registry, building-blocks-registry, lane-registry, catalog-registry) are redundant if they all model the same project state. The correct shape is ONE graph; registries are filter-views. Per AWS Resource Explorer / GCP Asset Inventory precedent at hyperscaler scale. Per decision-principles.json DP-05 (single canonical tree).",
     "non_canonical_storage_layout_rationale": "We don't ship one giant graph.json (would not scale past ~10k nodes). Instead: per-domain contributing registries each declare _contributes_node_types + _contributes_edge_types. Validator merges them at runtime. Backed by future graph-storage adapter (Neo4j, Memgraph, or Postgres with recursive CTE) when scale warrants.",
     "related": [
       "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
@@ -21,7 +21,6 @@
       "/registries/cross-cutting/reusable-building-blocks-registry.json",
       "/specs/cross-cutting/master-plan-sequencing.json",
       "/specs/cross-cutting/hyperscaler-gates.json",
-      "docs/CONSTITUTION.md",
       "docs/decisions/ADR-0015-architectural-flattening-target.md"
     ],
     "enforcing_fitness_lane": "lean-a-knowledge-graph-integrity",

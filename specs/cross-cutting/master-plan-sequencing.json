@@ -4,7 +4,7 @@
     "description": "Machine-readable execution sequence for autonomous master-plan completion. This sidecar references canonical Oyatie plan/checklist primitives instead of duplicating them.",
     "owner_team": "council-architecture + axis-foundry",
     "validation_check": "json-valid + referenced-paths-exist + no-git-gh-primitives",
-    "authority_note": "Execution overlay only; docs/CONSTITUTION.md, docs/MASTERPLAN.md, ADRs, and checklist templates remain authoritative."
+    "authority_note": "Execution overlay only; the doctrinal substrate (decision-principles.json + forbidden-operations.json + decision-rights.json + governance-amendment.json), docs/MASTERPLAN.md, ADRs, and checklist templates remain authoritative."
   },
   "_metadata": {
     "sidecar_id": "EXE-MASTER-SEQUENCING",
@@ -12,7 +12,6 @@
     "created_for": "4000-character launcher prompt sidecars",
     "canonical_sources": [
       "docs/AGENTS.md",
-      "docs/CONSTITUTION.md",
       "docs/DOC-CATALOG.md",
       "docs/MASTERPLAN.md",
       "docs/decisions/ADR-0015-architectural-flattening-target.md",
