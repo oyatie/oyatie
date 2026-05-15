@@ -287,7 +287,7 @@ condition; the seam lane SHOULD watch for these and emit a warning row.
 | Trigger | Condition |
 |---|---|
 | **T1 — In-flight replacements** | Third workspace dep enters `replacement-in-flight` state (currently zero). At 3+ concurrent replacements the human cost of tracking via flat overlay exceeds the machine's authoring cost. |
-| **T2 — CVE-response SLA breach** | A CVE on a workspace dep ages past 7 days without a patch-bump or ADR exception. The cargo-audit + manual-rationale path missed the SLA; mechanical acceleration would have caught it. |
+| **T2 — CVE-response SLA breach** | A CVE on a workspace dep ages past 7 days without a patch-bump or ADR-tracked extension. The cargo-audit + manual-rationale path missed the SLA; mechanical acceleration would have caught it. |
 | **T3 — Compliance audit gap** | A compliance audit asks "show me the transition history for `<dep>`" and the rationales overlay cannot answer it. State machine + transition log are required. |
 | **T4 — Multi-agent race** | 4+ agents concurrently mutate `dependency-rationales.json` and a CI run detects a merge race (or worse, a silent overwrite). Atomic transitions become required. |
 | **T5 — Scale** | Workspace dep count exceeds 30 OR `[workspace.dependencies]` grows by >50% from the 2026-05-14 baseline. Hand-curated overlay cost crosses the state-machine cost. |
