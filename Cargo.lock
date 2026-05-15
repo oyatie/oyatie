@@ -2179,6 +2179,9 @@ dependencies = [
 name = "oya-foundry-pr-review-dispatcher-app"
 version = "0.1.0"
 dependencies = [
+ "oya-foundry-account-kernel",
+ "oya-foundry-subagent-runtime-app",
+ "oya-foundry-subagent-runtime-kernel",
  "tempfile",
 ]
 

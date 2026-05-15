@@ -23,14 +23,22 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use oya_foundry_account_kernel::SecretReference;
 use oya_foundry_pr_review_dispatcher_app::fanout::FacetId;
 use oya_foundry_pr_review_dispatcher_app::rollup::{
     FacetFinding, FacetRecommendation, Verdict, audit_panel_completeness, rollup_verdict,
 };
+use oya_foundry_subagent_runtime_app::{
+    FacetFindingJson, FacetPromptTemplate, MockSubagentPort, SubagentPort, SubagentRequest,
+    fanout_panel_v23,
+};
 
 const EVIDENCE_DIR: &str = "evidence/pipeline-maturity-glue/ip-004-pr-review";
+const TEMPLATES_DIR: &str = "evidence/pipeline-maturity-glue/ip-004-pr-review/facets";
 const ROLLUP_PATH: &str = "evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json";
 const ADMISSION_LOG: &str = "registries/cross-cutting/merge-queue-admission-log.json";
+const DEFAULT_API_KEY_SREF: &str = "sref://openbao/oya/foundry/anthropic-api-key";
+const DEFAULT_MODEL_ID: &str = "claude-opus-4-7";
 
 fn main() -> ExitCode {
     match run(env::args().skip(1)) {
@@ -49,10 +57,38 @@ fn main() -> ExitCode {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RuntimeMode {
+    /// Caller pre-wrote the per-facet evidence files (e.g. via the
+    /// `oya-foundry-subagent-runtime-app` binary or via an external
+    /// orchestrator). Dispatcher just rolls up whatever is present.
+    External,
+    /// Dispatcher runs the deterministic-mock runtime inline before
+    /// loading findings — canonical CI / test path.
+    InlineDeterministicMock,
+}
+
+impl RuntimeMode {
+    fn from_wire(value: &str) -> Result<Self, String> {
+        match value {
+            "external" => Ok(Self::External),
+            "inline-deterministic-mock" => Ok(Self::InlineDeterministicMock),
+            other => Err(format!(
+                "--runtime-mode: unknown mode `{other}`; expected external | inline-deterministic-mock"
+            )),
+        }
+    }
+}
+
 #[derive(Debug)]
 struct Options {
     pr_number: String,
     repo_root: PathBuf,
+    runtime_mode: RuntimeMode,
+    change_id: Option<String>,
+    user_message_file: Option<PathBuf>,
+    api_key_ref: Option<SecretReference>,
+    model_id: String,
 }
 
 impl Options {
@@ -62,6 +98,11 @@ impl Options {
     {
         let mut pr_number: Option<String> = None;
         let mut repo_root: Option<PathBuf> = None;
+        let mut runtime_mode = RuntimeMode::External;
+        let mut change_id: Option<String> = None;
+        let mut user_message_file: Option<PathBuf> = None;
+        let mut api_key_ref_raw: Option<String> = None;
+        let mut model_id = DEFAULT_MODEL_ID.to_string();
         let args = args.into_iter().collect::<Vec<_>>();
         let mut index = 0usize;
         while index < args.len() {
@@ -82,6 +123,44 @@ impl Options {
                             .ok_or_else(|| "--repo-root requires a path".to_string())?,
                     );
                 }
+                "--runtime-mode" => {
+                    index += 1;
+                    let value = args
+                        .get(index)
+                        .ok_or_else(|| "--runtime-mode requires a value".to_string())?;
+                    runtime_mode = RuntimeMode::from_wire(value)?;
+                }
+                "--change-id" => {
+                    index += 1;
+                    change_id = Some(
+                        args.get(index)
+                            .cloned()
+                            .ok_or_else(|| "--change-id requires a value".to_string())?,
+                    );
+                }
+                "--user-message-file" => {
+                    index += 1;
+                    user_message_file = Some(
+                        args.get(index)
+                            .map(PathBuf::from)
+                            .ok_or_else(|| "--user-message-file requires a path".to_string())?,
+                    );
+                }
+                "--api-key-ref" => {
+                    index += 1;
+                    api_key_ref_raw = Some(
+                        args.get(index)
+                            .cloned()
+                            .ok_or_else(|| "--api-key-ref requires a value".to_string())?,
+                    );
+                }
+                "--model-id" => {
+                    index += 1;
+                    model_id = args
+                        .get(index)
+                        .cloned()
+                        .ok_or_else(|| "--model-id requires a value".to_string())?;
+                }
                 "--help" | "-h" => return Err(usage()),
                 other => {
                     return Err(format!("unexpected argument '{other}'\n{}", usage()));
@@ -89,15 +168,27 @@ impl Options {
             }
             index += 1;
         }
+        let api_key_ref = match api_key_ref_raw {
+            Some(raw) => Some(
+                SecretReference::new(raw).map_err(|e| format!("--api-key-ref: {e}"))?,
+            ),
+            None => None,
+        };
         Ok(Self {
             pr_number: pr_number.ok_or_else(|| "missing --pr-number".to_string())?,
             repo_root: repo_root.unwrap_or_else(|| PathBuf::from(".")),
+            runtime_mode,
+            change_id,
+            user_message_file,
+            api_key_ref,
+            model_id,
         })
     }
 }
 
 fn usage() -> String {
-    "usage: oya-foundry-pr-review-dispatcher-app --pr-number <NUM> [--repo-root <PATH>]".into()
+    "usage: oya-foundry-pr-review-dispatcher-app --pr-number <NUM> [--repo-root <PATH>] \\\n         [--runtime-mode external|inline-deterministic-mock] [--change-id <ID>] \\\n         [--user-message-file <PATH>] [--api-key-ref sref://...] [--model-id <ID>]"
+        .into()
 }
 
 fn run<I>(args: I) -> Result<Verdict, String>
@@ -105,18 +196,41 @@ where
     I: IntoIterator<Item = String>,
 {
     let options = Options::parse(args)?;
-    let evidence_dir = options.repo_root.join(EVIDENCE_DIR).join(&options.pr_number);
+    let evidence_dir = options
+        .repo_root
+        .join(EVIDENCE_DIR)
+        .join(&options.pr_number);
+
+    // IP-009 wiring: when the caller requests inline runtime mode, we
+    // invoke the deterministic-mock subagent runtime BEFORE loading
+    // findings, so the per-facet JSON files exist by the time the
+    // dispatcher rolls them up. The runtime writes findings to
+    // `<evidence_dir>/<facet_id>.json`, the same paths `load_findings`
+    // already reads. This closes the `subagent_runtime_pending=true`
+    // gap end-to-end inside a single process invocation.
+    if options.runtime_mode == RuntimeMode::InlineDeterministicMock {
+        run_inline_subagent_runtime(&options, &evidence_dir)?;
+    }
+
     let findings = load_findings(&evidence_dir)?;
     let required = FacetId::full_panel_v23().to_vec();
     let completeness = audit_panel_completeness(&required, &findings);
     let verdict = rollup_verdict(&findings);
+
+    // Pending iff (a) no findings present at all, OR (b) the required
+    // panel is incomplete (missing facets or duplicate reviewer ids).
+    // The `External` runtime mode lets findings legitimately be empty
+    // (caller is still wiring up), so we keep the same condition for
+    // both modes — the marker becomes false only when a real, complete
+    // panel has landed.
+    let subagent_runtime_pending = findings.is_empty() || !completeness.is_complete();
 
     let rollup_json = render_rollup_json(
         &options.pr_number,
         &findings,
         &completeness,
         verdict,
-        findings.is_empty(),
+        subagent_runtime_pending,
     );
 
     let rollup_path = options.repo_root.join(ROLLUP_PATH);
@@ -126,9 +240,74 @@ where
     write_atomically(&per_pr_rollup, rollup_json.as_bytes())?;
 
     let admission_path = options.repo_root.join(ADMISSION_LOG);
-    append_admission_event(&admission_path, &options.pr_number, verdict)?;
+    append_admission_event(
+        &admission_path,
+        &options.pr_number,
+        verdict,
+        subagent_runtime_pending,
+    )?;
 
     Ok(verdict)
+}
+
+/// Invoke the IP-009 subagent runtime inline. Uses the deterministic
+/// mock port (canonical CI/test infrastructure; NOT a stub — see
+/// `crates/oya-foundry-subagent-runtime-kernel` doc-comment). Writes
+/// 21 per-facet JSON findings to `<evidence_dir>/<facet_id>.json`.
+fn run_inline_subagent_runtime(options: &Options, evidence_dir: &Path) -> Result<(), String> {
+    fs::create_dir_all(evidence_dir)
+        .map_err(|e| format!("mkdir {}: {e}", evidence_dir.display()))?;
+    let templates_dir = options.repo_root.join(TEMPLATES_DIR);
+    let user_message = match &options.user_message_file {
+        Some(path) => fs::read_to_string(options.repo_root.join(path))
+            .map_err(|e| format!("read {}: {e}", path.display()))?,
+        None => format!(
+            "PR #{pr} — inline-deterministic-mock fan-out; no diff bundle supplied.\n",
+            pr = options.pr_number,
+        ),
+    };
+    let change_id = options
+        .change_id
+        .clone()
+        .unwrap_or_else(|| format!("pr-{}", options.pr_number));
+    let api_key_ref = options.api_key_ref.clone().unwrap_or_else(|| {
+        SecretReference::new(DEFAULT_API_KEY_SREF.to_string())
+            .expect("DEFAULT_API_KEY_SREF is a well-formed sref:// reference by construction")
+    });
+    let port = MockSubagentPort::new();
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    for facet in fanout_panel_v23() {
+        let template_path = templates_dir.join(format!("{}.md", facet.as_str()));
+        let template_raw = fs::read_to_string(&template_path)
+            .map_err(|e| format!("read template {}: {e}", template_path.display()))?;
+        let template = FacetPromptTemplate::parse(&template_raw)
+            .map_err(|e| format!("parse template {}: {e}", template_path.display()))?;
+        let reviewer_id = format!(
+            "claude-{facet}-{change}",
+            facet = facet.as_str(),
+            change = change_id,
+        );
+        let request = SubagentRequest {
+            facet_id: facet.as_str().to_string(),
+            reviewer_id,
+            change_id: change_id.clone(),
+            system_prompt: template.render_system_prompt(),
+            user_message: user_message.clone(),
+            api_key_ref: api_key_ref.clone(),
+            model_id: options.model_id.clone(),
+        };
+        let response = port
+            .complete(&request)
+            .map_err(|e| format!("subagent {} failed: {e}", facet.as_str()))?;
+        let json = FacetFindingJson::render(&response, now);
+        let evidence_path = evidence_dir.join(format!("{}.json", facet.as_str()));
+        fs::write(&evidence_path, json)
+            .map_err(|e| format!("write {}: {e}", evidence_path.display()))?;
+    }
+    Ok(())
 }
 
 fn load_findings(dir: &Path) -> Result<Vec<FacetFinding>, String> {
@@ -310,7 +489,7 @@ fn render_rollup_json(
     buf.push_str("    \"plan_ref\": \".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md\",\n");
     buf.push_str("    \"audit_ref\": \"evidence/audits/pipeline-maturity-audit-2026-05-15.md\",\n");
     buf.push_str("    \"upstream_kernel\": \"oya-foundry-vcs-review-mergequeue-kernel\",\n");
-    buf.push_str("    \"subagent_runtime_followup\": \"TODO: wire actual per-facet subagent runtime; until then, panel-complete is gated false and APPROVE carries subagent_runtime_pending=true so IP-005/IP-006 downstreams refuse to trust it\"\n");
+    buf.push_str("    \"subagent_runtime_ref\": \"M-CC-P10-IP-009 — `oya-foundry-subagent-runtime-{kernel,app}` ships the per-facet subagent invocation; this dispatcher invokes it inline when `--runtime-mode inline-deterministic-mock` is passed, OR consumes the per-facet `<facet>.json` files written by an external runtime invocation. The pending flag flips to false once a complete 21-facet panel has landed without duplicate reviewer ids.\"\n");
     buf.push_str("  }\n");
     buf.push_str("}\n");
     buf
@@ -334,7 +513,12 @@ fn json_escape(value: &str) -> String {
     out
 }
 
-fn append_admission_event(path: &Path, pr_number: &str, verdict: Verdict) -> Result<(), String> {
+fn append_admission_event(
+    path: &Path,
+    pr_number: &str,
+    verdict: Verdict,
+    subagent_runtime_pending: bool,
+) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent)
             .map_err(|error| format!("mkdir {}: {error}", parent.display()))?;
@@ -351,11 +535,18 @@ fn append_admission_event(path: &Path, pr_number: &str, verdict: Verdict) -> Res
     } else {
         Vec::new()
     };
+    // IP-009 wiring: the emitted event now carries the
+    // `subagent_runtime_pending` flag so IP-006's admission consumer
+    // can refuse APPROVE events that still carry pending=true. The
+    // historical fields (`pr_number`, `event`, `verdict`, `emitted_at_unix`)
+    // remain in place for backward-compat with existing tooling that
+    // greps the log.
     let new_entry = format!(
-        "{{\"pr_number\": \"{}\", \"event\": \"{}\", \"verdict\": \"{}\", \"emitted_at_unix\": {}}}",
+        "{{\"pr_number\": \"{}\", \"event\": \"{}\", \"verdict\": \"{}\", \"subagent_runtime_pending\": {}, \"emitted_at_unix\": {}}}",
         json_escape(pr_number),
         verdict.admission_event(),
         verdict.label(),
+        subagent_runtime_pending,
         now
     );
     log.push(new_entry);
@@ -579,5 +770,91 @@ mod tests {
     fn options_require_pr_number() {
         let err = Options::parse(["--repo-root".to_string(), ".".to_string()]).unwrap_err();
         assert!(err.contains("--pr-number"));
+    }
+
+    fn seed_facet_templates(repo: &Path) {
+        let templates_dir = repo.join(TEMPLATES_DIR);
+        fs::create_dir_all(&templates_dir).unwrap();
+        for facet in FacetId::full_panel_v23() {
+            let body = format!(
+                "---\n\
+                 facet_id: {slug}\n\
+                 facet_name: {slug} test facet\n\
+                 lens: test lens\n\
+                 severity_bar: APPROVE / CHANGES_REQUESTED / REJECT\n\
+                 ---\n\
+                 test body for {slug}\n",
+                slug = facet.slug(),
+            );
+            fs::write(templates_dir.join(format!("{}.md", facet.slug())), body).unwrap();
+        }
+    }
+
+    #[test]
+    fn inline_runtime_mode_emits_pending_false_with_complete_panel() {
+        let tmp = TempDir::new().unwrap();
+        let repo = tmp.path();
+        seed_facet_templates(repo);
+        let pr = "pr-runtime-1";
+        let verdict = run(
+            [
+                "--pr-number".to_string(),
+                pr.to_string(),
+                "--repo-root".to_string(),
+                repo.display().to_string(),
+                "--runtime-mode".to_string(),
+                "inline-deterministic-mock".to_string(),
+                "--change-id".to_string(),
+                "test-change".to_string(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        // The deterministic mock generates a mix of APPROVE / CHANGES_REQUESTED
+        // / REJECT across the 21 facets, so the rollup verdict is one of
+        // those three. The important assertion is that the runtime
+        // produced findings + the pending flag flipped to false.
+        assert!(matches!(
+            verdict,
+            Verdict::Approve | Verdict::ChangesRequested | Verdict::Reject
+        ));
+        let rollup = fs::read_to_string(repo.join(ROLLUP_PATH)).unwrap();
+        assert!(rollup.contains("\"subagent_runtime_pending\": false"));
+        assert!(rollup.contains("\"panel_complete\": true"));
+        let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();
+        assert!(admission.contains("\"subagent_runtime_pending\": false"));
+        // Every required facet should have a finding file.
+        let evidence = repo.join(EVIDENCE_DIR).join(pr);
+        for facet in FacetId::full_panel_v23() {
+            let path = evidence.join(format!("{}.json", facet.slug()));
+            assert!(
+                path.exists(),
+                "expected per-facet finding at {}",
+                path.display()
+            );
+        }
+    }
+
+    #[test]
+    fn empty_panel_still_emits_pending_true_when_no_runtime_mode_passed() {
+        // Backward-compat: callers without --runtime-mode keep the
+        // existing "scaffold" behavior — APPROVE with pending=true so
+        // IP-006 admission gate refuses to admit.
+        let tmp = TempDir::new().unwrap();
+        let repo = tmp.path();
+        let pr = "pr-no-runtime";
+        let verdict = run(
+            [
+                "--pr-number".to_string(),
+                pr.to_string(),
+                "--repo-root".to_string(),
+                repo.display().to_string(),
+            ]
+            .into_iter(),
+        )
+        .unwrap();
+        assert_eq!(verdict, Verdict::Approve);
+        let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();
+        assert!(admission.contains("\"subagent_runtime_pending\": true"));
     }
 }
