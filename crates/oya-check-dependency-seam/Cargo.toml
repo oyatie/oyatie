@@ -12,6 +12,13 @@ license = "Apache-2.0"
 # the kernel layer — sub-check implementations that need TOML/JSON parsers
 # may be added behind features later (FixupTask F-LANE-SEAM-IMPL).
 
+[dependencies]
+# Reusable std-only JSON top-level-object parser (CONV-1 substring-grep
+# replacement). Extracted from this crate per user directive 2026-05-15:
+# "shouldn't we make a reusable json parser?". Internal workspace path dep;
+# no external transitives.
+oya-json-kernel = { path = "../oya-json-kernel" }
+
 [lib]
 name = "oya_check_dependency_seam"
 path = "src/lib.rs"

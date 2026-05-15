@@ -21,6 +21,12 @@
 
 use std::path::PathBuf;
 
+// Re-export from oya-json-kernel so call-sites in this crate continue using
+// the local symbol names (`JsonValueKind`, `parse_top_level_object`) per the
+// CONV-1 refactor. Originated as inline code; extracted to reusable kernel
+// per user directive 2026-05-15.
+pub use oya_json_kernel::{parse_top_level_object, JsonValueKind};
+
 /// One sub-check's result.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubCheckResult {
@@ -726,197 +732,40 @@ pub fn extract_string_field(raw: &str, field: &str) -> Option<String> {
     Some(tail[..qe].to_string())
 }
 
-/// Classifier for top-level JSON value kinds. Std-only; minimal; no float
-/// math; replaces brittle `raw.contains("\"key\"")` substring matching
-/// flagged by 6 facet lenses in TG2 11-facet debate synthesis CONV-1
-/// (substring approach false-positives on nested string contents AND
-/// false-negatives on whitespace variants).
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum JsonValueKind {
-    BoolTrue,
-    BoolFalse,
-    Null,
-    Number,
-    String,
-    Object,
-    Array,
-}
 
-/// Parse a JSON document and return its top-level keys mapped to value-kind
-/// classifications. Skips nested object/array contents correctly. Returns
-/// an empty map if `raw` is not a valid top-level JSON object or parsing
-/// fails. Std-only kernel; replaces substring-grep approach per CONV-1.
-pub fn parse_top_level_object(
-    raw: &str,
-) -> std::collections::BTreeMap<String, JsonValueKind> {
-    use std::collections::BTreeMap;
-    let mut out: BTreeMap<String, JsonValueKind> = BTreeMap::new();
-    let bytes = raw.as_bytes();
-    let mut i = 0usize;
-    // Skip leading whitespace.
-    while i < bytes.len() && bytes[i].is_ascii_whitespace() {
-        i += 1;
-    }
-    if i >= bytes.len() || bytes[i] != b'{' {
-        return out;
-    }
-    i += 1;
-    loop {
-        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
-            i += 1;
-        }
-        if i >= bytes.len() {
-            return out;
-        }
-        if bytes[i] == b'}' {
-            return out;
-        }
-        if bytes[i] == b',' {
-            i += 1;
-            continue;
-        }
-        if bytes[i] != b'"' {
-            return out;
-        }
-        let key_start = i + 1;
-        i += 1;
-        while i < bytes.len() && bytes[i] != b'"' {
-            if bytes[i] == b'\\' && i + 1 < bytes.len() {
-                i += 2;
-                continue;
-            }
-            i += 1;
-        }
-        if i >= bytes.len() {
-            return out;
-        }
-        let key = String::from_utf8_lossy(&bytes[key_start..i]).to_string();
-        i += 1; // past close-quote of key
-        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
-            i += 1;
-        }
-        if i >= bytes.len() || bytes[i] != b':' {
-            return out;
-        }
-        i += 1;
-        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
-            i += 1;
-        }
-        if i >= bytes.len() {
-            return out;
-        }
-        let kind = match bytes[i] {
-            b't' => {
-                if i + 4 <= bytes.len() && &bytes[i..i + 4] == b"true" {
-                    i += 4;
-                    JsonValueKind::BoolTrue
-                } else {
-                    return out;
+/// Shared scan primitive: read a directory, invoke `visit` on each Ok
+/// entry, surface read_dir + entry I/O errors as findings strings via the
+/// `errors` accumulator. Std-only.
+///
+/// Resolves TEN-2 (TG2 11-facet debate interim position): F1 wanted
+/// table-driven scan; F4 wanted per-fn testability; compromise — keep 4
+/// pub fn entry points (binary-compatible) but route each through this 1
+/// shared scan helper. Eliminates the duplicate `match read_dir { Ok =>
+/// for entry { match entry...}, Err => push }` block that appeared in
+/// every TG2 sub-check.
+pub fn scan_dir<F: FnMut(&std::fs::DirEntry)>(
+    dir: &std::path::Path,
+    errors: &mut Vec<String>,
+    mut visit: F,
+) {
+    match std::fs::read_dir(dir) {
+        Ok(entries) => {
+            for entry in entries {
+                match entry {
+                    Ok(entry) => visit(&entry),
+                    Err(e) => errors.push(format!(
+                        "read_dir entry under {} failed: {}",
+                        dir.display(),
+                        e
+                    )),
                 }
             }
-            b'f' => {
-                if i + 5 <= bytes.len() && &bytes[i..i + 5] == b"false" {
-                    i += 5;
-                    JsonValueKind::BoolFalse
-                } else {
-                    return out;
-                }
-            }
-            b'n' => {
-                if i + 4 <= bytes.len() && &bytes[i..i + 4] == b"null" {
-                    i += 4;
-                    JsonValueKind::Null
-                } else {
-                    return out;
-                }
-            }
-            b'"' => {
-                i += 1;
-                while i < bytes.len() && bytes[i] != b'"' {
-                    if bytes[i] == b'\\' && i + 1 < bytes.len() {
-                        i += 2;
-                        continue;
-                    }
-                    i += 1;
-                }
-                if i < bytes.len() {
-                    i += 1;
-                }
-                JsonValueKind::String
-            }
-            b'{' => {
-                let mut depth = 1usize;
-                i += 1;
-                while i < bytes.len() && depth > 0 {
-                    match bytes[i] {
-                        b'"' => {
-                            i += 1;
-                            while i < bytes.len() && bytes[i] != b'"' {
-                                if bytes[i] == b'\\' && i + 1 < bytes.len() {
-                                    i += 2;
-                                    continue;
-                                }
-                                i += 1;
-                            }
-                            if i < bytes.len() {
-                                i += 1;
-                            }
-                        }
-                        b'{' => {
-                            depth += 1;
-                            i += 1;
-                        }
-                        b'}' => {
-                            depth -= 1;
-                            i += 1;
-                        }
-                        _ => i += 1,
-                    }
-                }
-                JsonValueKind::Object
-            }
-            b'[' => {
-                let mut depth = 1usize;
-                i += 1;
-                while i < bytes.len() && depth > 0 {
-                    match bytes[i] {
-                        b'"' => {
-                            i += 1;
-                            while i < bytes.len() && bytes[i] != b'"' {
-                                if bytes[i] == b'\\' && i + 1 < bytes.len() {
-                                    i += 2;
-                                    continue;
-                                }
-                                i += 1;
-                            }
-                            if i < bytes.len() {
-                                i += 1;
-                            }
-                        }
-                        b'[' => {
-                            depth += 1;
-                            i += 1;
-                        }
-                        b']' => {
-                            depth -= 1;
-                            i += 1;
-                        }
-                        _ => i += 1,
-                    }
-                }
-                JsonValueKind::Array
-            }
-            b'-' | b'0'..=b'9' => {
-                while i < bytes.len()
-                    && !matches!(bytes[i], b',' | b'}' | b' ' | b'\t' | b'\n' | b'\r')
-                {
-                    i += 1;
-                }
-                JsonValueKind::Number
-            }
-            _ => return out,
-        };
-        out.insert(key, kind);
+        }
+        Err(e) => errors.push(format!(
+            "read_dir({}) failed: {} — surfaced per CONV-2",
+            dir.display(),
+            e
+        )),
     }
 }
 
@@ -930,33 +779,15 @@ pub fn check_rust_default_language(ctx: &WorkspaceContext) -> SubCheckResult {
     let mut findings = Vec::new();
     let mut total_non_rust = 0usize;
     let exts = ["sh", "py", "mjs", "rb", "pl"];
-    // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
-    match std::fs::read_dir(&scripts_dir) {
-        Ok(entries) => {
-            for entry in entries {
-                match entry {
-                    Ok(entry) => {
-                        let p = entry.path();
-                        if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
-                            if exts.contains(&ext) {
-                                total_non_rust += 1;
-                            }
-                        }
-                    }
-                    Err(e) => findings.push(format!(
-                        "read_dir entry under {} failed: {}",
-                        scripts_dir.display(),
-                        e
-                    )),
-                }
+    // TEN-2 + CONV-2: shared scan_dir helper surfaces I/O errors uniformly.
+    scan_dir(&scripts_dir, &mut findings, |entry| {
+        let p = entry.path();
+        if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
+            if exts.contains(&ext) {
+                total_non_rust += 1;
             }
         }
-        Err(e) => findings.push(format!(
-            "read_dir({}) failed: {} — surfaced per CONV-2 (no longer fail-open)",
-            scripts_dir.display(),
-            e
-        )),
-    }
+    });
     findings.push(format!(
         "scripts/ non-Rust file count: {} (.sh/.py/.mjs/.rb/.pl, all grandfathered per P15)",
         total_non_rust
@@ -989,46 +820,26 @@ pub fn check_naming_convention(ctx: &WorkspaceContext) -> SubCheckResult {
     let mut violations_total = 0usize;
     let display_cap = 10usize;
     let mut io_errors: Vec<String> = Vec::new();
-    // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
+    // TEN-2 + CONV-2: shared scan_dir helper surfaces I/O errors uniformly.
     for home in &homes {
         let p = ctx.workspace_root.join(home);
-        match std::fs::read_dir(&p) {
-            Ok(entries) => {
-                for entry in entries {
-                    match entry {
-                        Ok(entry) => {
-                            let name = entry.file_name();
-                            let s = name.to_string_lossy().to_string();
-                            if s.starts_with('.') {
-                                continue;
-                            }
-                            scanned += 1;
-                            if !s.chars().all(|c| {
-                                c.is_ascii_lowercase()
-                                    || c.is_ascii_digit()
-                                    || c == '-'
-                                    || c == '.'
-                            }) {
-                                violations_total += 1;
-                                if violations_displayed.len() < display_cap {
-                                    violations_displayed.push(format!("{}/{}", home, s));
-                                }
-                            }
-                        }
-                        Err(e) => io_errors.push(format!(
-                            "read_dir entry under {} failed: {}",
-                            p.display(),
-                            e
-                        )),
-                    }
+        scan_dir(&p, &mut io_errors, |entry| {
+            let name = entry.file_name();
+            let s = name.to_string_lossy().to_string();
+            if s.starts_with('.') {
+                return;
+            }
+            scanned += 1;
+            if !s
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '.')
+            {
+                violations_total += 1;
+                if violations_displayed.len() < display_cap {
+                    violations_displayed.push(format!("{}/{}", home, s));
                 }
             }
-            Err(e) => io_errors.push(format!(
-                "read_dir({}) failed: {} — surfaced per CONV-2 (no longer fail-open)",
-                p.display(),
-                e
-            )),
-        }
+        });
     }
     let mut findings = vec![format!(
         "scanned {} top-level entries across {} canonical homes; kebab-case violations: {}",
@@ -1078,51 +889,34 @@ pub fn check_scorecard_render(ctx: &WorkspaceContext) -> SubCheckResult {
     let mut scanned = 0usize;
     let mut renderable = 0usize;
     let mut io_errors: Vec<String> = Vec::new();
-    // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
+    let mut inner_errors: Vec<String> = Vec::new();
+    // TEN-2 + CONV-2: shared scan_dir helper surfaces I/O errors uniformly.
+    // CONV-1: structural parse replaces substring grep on JSON contents.
+    // Borrow split: scan_dir borrows io_errors; closure pushes to inner_errors
+    // for read_to_string failures (cannot share the same accumulator).
     for dir in [&evidence_dir, &per_change_dir] {
-        match std::fs::read_dir(dir) {
-            Ok(entries) => {
-                for entry in entries {
-                    match entry {
-                        Ok(entry) => {
-                            let p = entry.path();
-                            if p.extension().and_then(|s| s.to_str()) != Some("json") {
-                                continue;
-                            }
-                            scanned += 1;
-                            match std::fs::read_to_string(&p) {
-                                Ok(raw) => {
-                                    // CONV-1 (TG2 11-facet debate): parsed JSON
-                                    // structural check replaces substring grep.
-                                    let parsed = parse_top_level_object(&raw);
-                                    if parsed.contains_key("change_class_id")
-                                        && parsed.contains_key("facets")
-                                    {
-                                        renderable += 1;
-                                    }
-                                }
-                                Err(e) => io_errors.push(format!(
-                                    "read_to_string({}) failed: {}",
-                                    p.display(),
-                                    e
-                                )),
-                            }
-                        }
-                        Err(e) => io_errors.push(format!(
-                            "read_dir entry under {} failed: {}",
-                            dir.display(),
-                            e
-                        )),
+        scan_dir(dir, &mut io_errors, |entry| {
+            let p = entry.path();
+            if p.extension().and_then(|s| s.to_str()) != Some("json") {
+                return;
+            }
+            scanned += 1;
+            match std::fs::read_to_string(&p) {
+                Ok(raw) => {
+                    let parsed = parse_top_level_object(&raw);
+                    if parsed.contains_key("change_class_id") && parsed.contains_key("facets") {
+                        renderable += 1;
                     }
                 }
+                Err(e) => inner_errors.push(format!(
+                    "read_to_string({}) failed: {}",
+                    p.display(),
+                    e
+                )),
             }
-            Err(e) => io_errors.push(format!(
-                "read_dir({}) failed: {} — surfaced per CONV-2",
-                dir.display(),
-                e
-            )),
-        }
+        });
     }
+    io_errors.extend(inner_errors);
     let mut findings = vec![
         format!(
             "evidence files scanned: {}; minimum-renderable as scorecard: {}",
@@ -1151,78 +945,42 @@ pub fn check_consensus_debate_evidence(ctx: &WorkspaceContext) -> SubCheckResult
     let debate_dir = ctx.workspace_root.join("evidence/debate");
     let mut meta_triggered = 0usize;
     let mut io_errors: Vec<String> = Vec::new();
-    // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
+    let mut inner_errors: Vec<String> = Vec::new();
+    // TEN-2 + CONV-2: shared scan_dir helper surfaces I/O errors uniformly.
+    // CONV-1: parsed JSON structural match (whitespace-tolerant, bypass-safe).
+    // Borrow split: scan_dir borrows io_errors; closure pushes to inner_errors.
     for dir in [&evidence_dir, &per_change_dir] {
-        match std::fs::read_dir(dir) {
-            Ok(entries) => {
-                for entry in entries {
-                    match entry {
-                        Ok(entry) => {
-                            let p = entry.path();
-                            if p.extension().and_then(|s| s.to_str()) != Some("json") {
-                                continue;
-                            }
-                            match std::fs::read_to_string(&p) {
-                                Ok(raw) => {
-                                    // CONV-1 (TG2 11-facet debate): parsed JSON
-                                    // structural check replaces substring grep.
-                                    // Whitespace-tolerant; false-positives from
-                                    // embedded strings eliminated.
-                                    let parsed = parse_top_level_object(&raw);
-                                    if matches!(
-                                        parsed.get("meta_review_triggered"),
-                                        Some(JsonValueKind::BoolTrue)
-                                    ) {
-                                        meta_triggered += 1;
-                                    }
-                                }
-                                Err(e) => io_errors.push(format!(
-                                    "read_to_string({}) failed: {}",
-                                    p.display(),
-                                    e
-                                )),
-                            }
-                        }
-                        Err(e) => io_errors.push(format!(
-                            "read_dir entry under {} failed: {}",
-                            dir.display(),
-                            e
-                        )),
+        scan_dir(dir, &mut io_errors, |entry| {
+            let p = entry.path();
+            if p.extension().and_then(|s| s.to_str()) != Some("json") {
+                return;
+            }
+            match std::fs::read_to_string(&p) {
+                Ok(raw) => {
+                    let parsed = parse_top_level_object(&raw);
+                    if matches!(
+                        parsed.get("meta_review_triggered"),
+                        Some(JsonValueKind::BoolTrue)
+                    ) {
+                        meta_triggered += 1;
                     }
                 }
+                Err(e) => inner_errors.push(format!(
+                    "read_to_string({}) failed: {}",
+                    p.display(),
+                    e
+                )),
             }
-            Err(e) => io_errors.push(format!(
-                "read_dir({}) failed: {} — surfaced per CONV-2",
-                dir.display(),
-                e
-            )),
-        }
+        });
     }
+    io_errors.extend(inner_errors);
     let mut synthesis_present = 0usize;
-    match std::fs::read_dir(&debate_dir) {
-        Ok(entries) => {
-            for entry in entries {
-                match entry {
-                    Ok(entry) => {
-                        let name = entry.file_name();
-                        if name.to_string_lossy().ends_with("-synthesis.json") {
-                            synthesis_present += 1;
-                        }
-                    }
-                    Err(e) => io_errors.push(format!(
-                        "read_dir entry under {} failed: {}",
-                        debate_dir.display(),
-                        e
-                    )),
-                }
-            }
+    scan_dir(&debate_dir, &mut io_errors, |entry| {
+        let name = entry.file_name();
+        if name.to_string_lossy().ends_with("-synthesis.json") {
+            synthesis_present += 1;
         }
-        Err(e) => io_errors.push(format!(
-            "read_dir({}) failed: {} — surfaced per CONV-2",
-            debate_dir.display(),
-            e
-        )),
-    }
+    });
     let mut findings = vec![
         format!(
             "evidence files with meta_review_triggered: {}; synthesis files present: {}",

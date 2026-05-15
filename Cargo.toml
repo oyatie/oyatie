@@ -270,6 +270,7 @@ members = [
   "crates/oya-foundry-oauth-subscription-kernel",
   "crates/oya-foundry-fitness-upstream-api-drift-kernel",
   "crates/oya-foundry-fitness-tos-policy-kernel",
+  "crates/oya-json-kernel",
 ]
 resolver = "2"
 
