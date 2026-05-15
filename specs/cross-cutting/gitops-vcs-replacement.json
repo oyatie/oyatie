@@ -6,11 +6,11 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-GITOPS-VCS-REPLACEMENT",
-    "version": "1.6.0",
+    "version": "1.7.0",
     "status": "Accepted-for-masterplan-P00",
     "owner_team": "axis-foundry + ops-sre-reliability + council-architecture",
     "created_at": "2026-05-14T07:16:07Z",
-    "updated_at": "2026-05-15T10:45:00Z",
+    "updated_at": "2026-05-15T11:34:47Z",
     "source_inspiration": "https://github.com/rtk-ai/grit",
     "user_directives_2026_05_14": [
       "move our vcs replacement for grit earlier",
@@ -407,6 +407,18 @@
       {
         "id": "multispectrum-evidence",
         "rule": "Every promoted ChangeBundle must attach a multispectrum evidence file covering required F-family, A-family, and M-family facets for the changeset scope; missing or incomplete evidence rejects promotion."
+      },
+      {
+        "id": "cli-command-surface",
+        "rule": "The blessed Oya VCS CLI surface must accept claim, work, verify, done, and promote commands and return machine-readable ratchet decisions."
+      },
+      {
+        "id": "provider-evidence-slots",
+        "rule": "Promotion evidence must include passed CI, GitHub Actions, Trivy, and Argo GitOps provider slots or an explicitly approved native replacement slot."
+      },
+      {
+        "id": "audit-chain-coverage",
+        "rule": "Every attached multispectrum evidence file must have an audit-chain row keyed by the same change_id before promotion."
       }
     ],
     "terminal_states": [
@@ -1438,24 +1450,29 @@
       },
       {
         "id": "multispectrum-evidence-closure",
-        "status": "requires-follow-up-implementation",
-        "acceptance": "Oya VCS ChangeBundle schema stores a canonical /evidence/multispectrum reference and promotion refuses missing F/A/M-family evidence"
+        "status": "patched-in-current-repo",
+        "acceptance": "admission gate requires F/A/M multispectrum evidence and audit-chain row coverage for each multispectrum evidence file"
       },
       {
         "id": "cli-command-surface",
-        "status": "requires-follow-up-implementation",
-        "acceptance": "oya-dev-cli exposes Oya VCS claim/work/verify/done/promote commands or an equivalent blessed Oya VCS command surface"
+        "status": "patched-in-current-repo",
+        "acceptance": "oya-dev-cli exposes Oya VCS claim/work/verify/done/promote ratchet commands with JSON output and targeted tests"
       },
       {
         "id": "provider-adapter-proof",
-        "status": "requires-follow-up-implementation",
-        "acceptance": "GitHub/GitHub Actions/Trivy/Argo/native fixture adapters produce promotion evidence consumed by Oya VCS admission"
+        "status": "contract-fixture-plus-admission-evidence-patched",
+        "acceptance": "promotion-controller provider seams require CI/GitHub Actions/Trivy/Argo slots; admission evidence records current slot proof and script rejects missing/non-passed slots"
       }
     ],
     "verification": [
       "scripts/check-oya-vcs-admission.sh",
       "python3 scripts/audit-master-plan-completion.py --check",
-      "python3 scripts/render-master-plan-ledger.py --check"
+      "python3 scripts/render-master-plan-ledger.py --check",
+      "cargo test -p oya-dev-cli vcs",
+      "cargo run -q -p oya-dev-cli -- vcs --format json claim ...",
+      "cargo run -q -p oya-dev-cli -- vcs --format json done ...",
+      "cargo run -q -p oya-dev-cli -- vcs --format json promote ...",
+      "cargo run -q -p oya-dev-cli -- vcs --format json verify ..."
     ]
   },
   "current_ci_admission_lane": {
@@ -1477,7 +1494,23 @@
       "authority metadata regresses to legacy grit/icm closure authority",
       "Oya VCS workspace packages are absent",
       "targeted Oya VCS tests fail",
-      "branch protection or PR workflow stops exposing oya-vcs-admission"
+      "branch protection or PR workflow stops exposing oya-vcs-admission",
+      "oya-dev-cli stops exposing the Oya VCS claim/work/verify/done/promote command surface",
+      "provider evidence slots for CI, GitHub Actions, Trivy, or Argo GitOps are missing or not passed",
+      "multispectrum evidence files are missing audit-chain coverage rows"
+    ],
+    "command_surface_smoke": [
+      "oya vcs --format json claim --agent <agent> --intent <slice> <symbol>",
+      "oya vcs --format json verify --agent <agent> --evidence <evidence>",
+      "oya vcs --format json done --agent <agent> --evidence <evidence>",
+      "oya vcs --format json promote --agent <agent> --bundle <bundle-id> --environment <target> --evidence <evidence>"
+    ],
+    "provider_evidence_ref": "evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json#provider_evidence",
+    "provider_evidence_required": [
+      "ci",
+      "github-actions",
+      "trivy",
+      "argo-gitops"
     ]
   }
 }

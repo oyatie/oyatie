@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_type": "oya-vcs-admission-cutover",
+  "change_id": "OYA-VCS-ADMISSION-CUTOVER-2026-05-15",
+  "created_at": "2026-05-15T10:45:00Z",
+  "milestone": "M-CC-P00",
+  "phase": "P00-gitops-vcs-replacement",
+  "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
+  "legacy_surfaces": "grit/icm/rtk/vox/omx/omc compatibility/provenance only",
+  "changed_authority_surfaces": [
+    "AGENTS.md",
+    "docs/AGENTS.md",
+    "specs/cross-cutting/root-hub-pointers.json",
+    "specs/cross-cutting/master-plan-sequencing.json",
+    "specs/cross-cutting/multispectrum-review.json",
+    "specs/cross-cutting/gitops-vcs-replacement.json",
+    "specs/cross-cutting/masterplan.json",
+    ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
+    ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/INDEX.md",
+    ".github/branch-protection.yaml",
+    ".github/workflows/pr-tests.yml",
+    "scripts/check.sh",
+    "scripts/check-oya-vcs-admission.sh",
+    "crates/oya-dev-cli/Cargo.toml",
+    "crates/oya-dev-cli/src/lib.rs",
+    "crates/oya-dev-cli/src/commands/mod.rs",
+    "crates/oya-dev-cli/src/commands/vcs.rs"
+  ],
+  "validation": [
+    {
+      "command": "scripts/check-oya-vcs-admission.sh",
+      "status": "pass",
+      "summary": "authority metadata, provider evidence, audit-chain coverage, targeted VCS cargo tests, oya-dev-cli VCS tests, and CLI claim/verify/done/promote smoke passed: 107 targeted Rust tests passed"
+    },
+    {
+      "command": "python3 scripts/audit-master-plan-completion.py --check",
+      "status": "pass",
+      "summary": "status honesty checks passed"
+    },
+    {
+      "command": "python3 scripts/render-master-plan-ledger.py --check",
+      "status": "pass",
+      "summary": "output absent; source ledger ok"
+    },
+    {
+      "command": "python3 -m json.tool selected changed specs",
+      "status": "pass"
+    },
+    {
+      "command": "bash -n scripts/check-oya-vcs-admission.sh",
+      "status": "pass"
+    },
+    {
+      "command": "git diff --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli vcs",
+      "status": "pass",
+      "summary": "5 Oya VCS CLI wrapper tests passed"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json claim --agent codex-oya-vcs-followup --intent \"implement Oya VCS CLI admission follow-up\" crates/oya-dev-cli/src/commands/vcs.rs::OyaVcsCli",
+      "status": "pass",
+      "summary": "JSON ratchet decision accepted claim-lock"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json done --agent codex-oya-vcs-followup --evidence evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json",
+      "status": "pass",
+      "summary": "JSON ratchet decision accepted evidence-backed done"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json promote --agent codex-oya-vcs-followup --bundle bundle_oya_vcs_admission_cutover --environment ci-preview --evidence evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json",
+      "status": "pass",
+      "summary": "JSON ratchet decision accepted controller promote"
+    },
+    {
+      "command": "bash -n scripts/check-oya-vcs-admission.sh && scripts/check-oya-vcs-admission.sh",
+      "status": "pass",
+      "summary": "gate passed after follow-up wiring; includes CLI claim/verify/done/promote smoke, provider slot, and audit-chain coverage checks"
+    },
+    {
+      "command": "cargo run -q -p oya-dev-cli -- vcs --format json verify --agent codex-oya-vcs-followup --evidence evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json",
+      "status": "pass",
+      "summary": "JSON ratchet decision accepted evidence verification"
+    }
+  ],
+  "resolved_issues": [
+    "stale M02/M03 waiver under grit/icm retired",
+    "root quick-start no longer exposes grit as primary step_3 state transition",
+    "master-plan sequence and ImplementationPlan contract renamed to Oya VCS claim/completion payloads",
+    "multispectrum agentic_flow now names Oya VCS admission as enforcing state machine",
+    "branch protection and PR workflow now expose oya-vcs-admission",
+    "promotion-controller test import fixed after crate rename to -kernel",
+    "oya-dev-cli now exposes oya vcs claim/work/verify/done/promote ratchet command surface with text and JSON output",
+    "admission evidence now records provider slots for CI, GitHub Actions, Trivy, and Argo GitOps",
+    "admission gate now checks multispectrum evidence audit-chain coverage"
+  ],
+  "known_followups": [
+    "remote live-provider execution is environment-dependent; current closure is local admission plus provider contract/config evidence",
+    "legacy JSONL audit-chain remains compatibility format; cryptographic v2 audit-chain kernel exists and admission now requires multispectrum audit-chain coverage rows"
+  ],
+  "multispectrum_evidence": "/evidence/multispectrum/oya-vcs-admission-cutover-1778841900.json",
+  "updated_at": "2026-05-15T11:34:47Z",
+  "provider_evidence": {
+    "schema_version": "1.0.0",
+    "contract_surface": "oya-foundry-vcs-promotion-controller-kernel::ProviderEvidenceSet",
+    "proof_level": "contract-fixture-plus-repo-config-admission",
+    "required_slots": [
+      "ci",
+      "github-actions",
+      "trivy",
+      "argo-gitops"
+    ],
+    "slots": [
+      {
+        "id": "ci",
+        "provider_kind": "ci",
+        "availability": "available",
+        "decision": "passed",
+        "proof_kind": "local-admission-run",
+        "evidence_ref": "scripts/check-oya-vcs-admission.sh",
+        "observed_generation": 7,
+        "live_status": "local-gate-executed"
+      },
+      {
+        "id": "github-actions",
+        "provider_kind": "github-actions",
+        "availability": "available",
+        "decision": "passed",
+        "proof_kind": "workflow-and-branch-protection-config",
+        "evidence_ref": ".github/workflows/pr-tests.yml#oya-vcs-admission + .github/branch-protection.yaml#oya-vcs-admission",
+        "observed_generation": 7,
+        "live_status": "repo-configured; remote-run-not-required-for-local-admission"
+      },
+      {
+        "id": "trivy",
+        "provider_kind": "trivy",
+        "availability": "available",
+        "decision": "passed",
+        "proof_kind": "promotion-controller-contract-fixture",
+        "evidence_ref": "crates/oya-foundry-vcs-promotion-controller-kernel/tests/gitops_vcs_ip_004.rs::providers",
+        "observed_generation": 7,
+        "live_status": "adapter-contract-fixture; replaceable-provider-slot"
+      },
+      {
+        "id": "argo-gitops",
+        "provider_kind": "argo-gitops",
+        "availability": "available",
+        "decision": "passed",
+        "proof_kind": "promotion-controller-contract-fixture",
+        "evidence_ref": "crates/oya-foundry-vcs-promotion-controller-kernel/tests/gitops_vcs_ip_004.rs::providers",
+        "observed_generation": 7,
+        "live_status": "adapter-contract-fixture; replaceable-provider-slot"
+      }
+    ],
+    "admission_gate": "scripts/check-oya-vcs-admission.sh rejects missing/non-passed slots and targeted promotion-controller tests reject provider mismatch/stale/outage/failure states"
+  }
+}

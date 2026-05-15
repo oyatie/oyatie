@@ -54,6 +54,7 @@ oya-check-typescript-workspace = { path = "../oya-check-typescript-workspace" }
 oya-check-vendor-recency = { path = "../oya-check-vendor-recency" }
 oya-foundry-step-file-adapter = { path = "../oya-foundry-step-file-adapter" }
 oya-foundry-step-domain = { path = "../oya-foundry-step-domain" }
+oya-foundry-vcs-cli-ratchet-kernel = { path = "../oya-foundry-vcs-cli-ratchet-kernel" }
 oya-audit-chain-file-adapter = { path = "../oya-audit-chain-file-adapter" }
 oya-eventing-file-adapter = { path = "../oya-eventing-file-adapter" }
 oya-eventing-domain = { path = "../oya-eventing-domain" }

@@ -1,8 +1,8 @@
 //! Grit-compatible CLI and migration ratchet for Oya VCS.
 //!
 //! This crate is deliberately std-only and provider-free. It parses the agent
-//! ergonomics surface (`claim`, `work`, `done`, `status`, `symbols`, `queue`,
-//! `watch`, `promote`), maps compatibility aliases onto controller actions, and
+//! ergonomics surface (`claim`, `work`, `verify`, `done`, `status`, `symbols`,
+//! `queue`, `watch`, `promote`), maps compatibility aliases onto controller actions, and
 //! enforces the migration ratchet that moves agents away from direct `git`/`gh`
 //! and local-only closeout.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
@@ -74,6 +74,7 @@ impl RatchetPolicy {
 pub enum OyaVcsCommandKind {
     Claim,
     Work,
+    Verify,
     Done,
     Status,
     Symbols,
@@ -87,6 +88,7 @@ impl OyaVcsCommandKind {
         match self {
             Self::Claim => "claim",
             Self::Work => "work",
+            Self::Verify => "verify",
             Self::Done => "done",
             Self::Status => "status",
             Self::Symbols => "symbols",
@@ -101,6 +103,7 @@ impl OyaVcsCommandKind {
 pub enum ControllerAction {
     ClaimLock,
     StartWork,
+    VerifyEvidence,
     EmitChangeBundle,
     ReadStatus,
     ListSymbols,
@@ -223,6 +226,7 @@ where
     match command.as_str() {
         "claim" => parse_claim(rest),
         "work" => parse_work(rest),
+        "verify" => parse_verify(rest),
         "done" => parse_done(rest),
         "status" => parse_status(rest),
         "symbols" => parse_symbols(rest),
@@ -315,6 +319,7 @@ pub fn plan_sequence(plans: &[CommandPlan]) -> Result<Vec<ControllerAction>, Cli
             kind,
             OyaVcsCommandKind::Claim
                 | OyaVcsCommandKind::Work
+                | OyaVcsCommandKind::Verify
                 | OyaVcsCommandKind::Done
                 | OyaVcsCommandKind::Promote
         )
@@ -322,9 +327,10 @@ pub fn plan_sequence(plans: &[CommandPlan]) -> Result<Vec<ControllerAction>, Cli
     if has_lifecycle {
         let claim = position_of(&kinds, OyaVcsCommandKind::Claim)?;
         let work = position_of(&kinds, OyaVcsCommandKind::Work)?;
+        let verify = position_of(&kinds, OyaVcsCommandKind::Verify)?;
         let done = position_of(&kinds, OyaVcsCommandKind::Done)?;
         let promote = position_of(&kinds, OyaVcsCommandKind::Promote)?;
-        if !(claim < work && work < done && done < promote) {
+        if !(claim < work && work < verify && verify < done && done < promote) {
             return Err(CliRatchetError::InvalidCommandOrder);
         }
     }
@@ -376,6 +382,16 @@ fn parse_work(args: Vec<String>) -> Result<CommandPlan, CliRatchetError> {
     let mut plan = CommandPlan::new(OyaVcsCommandKind::Work, ControllerAction::StartWork);
     parse_agent_and_evidence(args, &mut plan)?;
     require_agent(&plan)?;
+    Ok(plan)
+}
+
+fn parse_verify(args: Vec<String>) -> Result<CommandPlan, CliRatchetError> {
+    let mut plan = CommandPlan::new(OyaVcsCommandKind::Verify, ControllerAction::VerifyEvidence);
+    parse_agent_and_evidence(args, &mut plan)?;
+    require_agent(&plan)?;
+    if plan.evidence_refs.is_empty() {
+        return Err(CliRatchetError::MissingEvidence);
+    }
     Ok(plan)
 }
 
@@ -597,7 +613,7 @@ mod tests {
     }
 
     #[test]
-    fn parses_grit_compatible_claim_work_done_surface() {
+    fn parses_grit_compatible_claim_work_verify_done_surface() {
         let claim = plan(&[
             "grit",
             "claim",
@@ -614,6 +630,15 @@ mod tests {
 
         let work = plan(&["work", "--agent", "agent-a"]);
         assert_eq!(work.action, ControllerAction::StartWork);
+
+        let verify = plan(&[
+            "verify",
+            "--agent",
+            "agent-a",
+            "--evidence",
+            "evidence/gitops-vcs/ip-005-cli-ratchet.json#verify",
+        ]);
+        assert_eq!(verify.action, ControllerAction::VerifyEvidence);
 
         let done = plan(&[
             "done",
@@ -632,6 +657,17 @@ mod tests {
         assert_eq!(
             plan(&["symbols", "crates/demo"]).action,
             ControllerAction::ListSymbols
+        );
+        assert_eq!(
+            plan(&[
+                "verify",
+                "--agent",
+                "agent-a",
+                "--evidence",
+                "evidence/gitops-vcs/ip-005-cli-ratchet.json#verify",
+            ])
+            .action,
+            ControllerAction::VerifyEvidence
         );
         assert_eq!(plan(&["queue"]).action, ControllerAction::QueueProjection);
         assert_eq!(plan(&["watch"]).action, ControllerAction::WatchEvents);
@@ -745,7 +781,7 @@ mod tests {
     }
 
     #[test]
-    fn agent_flow_claim_work_done_promote_uses_controller_actions_in_order() {
+    fn agent_flow_claim_work_verify_done_promote_uses_controller_actions_in_order() {
         let plans = vec![
             plan(&[
                 "claim",
@@ -756,6 +792,13 @@ mod tests {
                 "crates/oya-foundry-vcs-cli-ratchet-kernel",
             ]),
             plan(&["work", "--agent", "agent-a"]),
+            plan(&[
+                "verify",
+                "--agent",
+                "agent-a",
+                "--evidence",
+                "evidence/gitops-vcs/ip-005-cli-ratchet.json#verify",
+            ]),
             plan(&[
                 "done",
                 "--agent",
@@ -779,6 +822,7 @@ mod tests {
             vec![
                 ControllerAction::ClaimLock,
                 ControllerAction::StartWork,
+                ControllerAction::VerifyEvidence,
                 ControllerAction::EmitChangeBundle,
                 ControllerAction::PromoteBundle,
             ]
@@ -813,6 +857,13 @@ mod tests {
             ]),
             plan(&["work", "--agent", "agent-a"]),
             plan(&[
+                "verify",
+                "--agent",
+                "agent-a",
+                "--evidence",
+                "evidence/gitops-vcs/ip-005-cli-ratchet.json#verify",
+            ]),
+            plan(&[
                 "done",
                 "--agent",
                 "agent-a",
@@ -827,9 +878,16 @@ mod tests {
     }
 
     #[test]
-    fn lifecycle_sequence_requires_claim_before_work_done_promote() {
+    fn lifecycle_sequence_requires_claim_before_work_verify_done_promote() {
         let plans = vec![
             plan(&["work", "--agent", "agent-a"]),
+            plan(&[
+                "verify",
+                "--agent",
+                "agent-a",
+                "--evidence",
+                "evidence/gitops-vcs/ip-005-cli-ratchet.json#verify",
+            ]),
             plan(&[
                 "done",
                 "--agent",

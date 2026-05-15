@@ -5,3 +5,4 @@ pub(crate) mod dev;
 pub(crate) mod doc;
 pub(crate) mod gate;
 pub(crate) mod repoctl;
+pub(crate) mod vcs;

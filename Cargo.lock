@@ -1445,6 +1445,7 @@ dependencies = [
  "oya-foundry-run-file-adapter",
  "oya-foundry-step-domain",
  "oya-foundry-step-file-adapter",
+ "oya-foundry-vcs-cli-ratchet-kernel",
  "oya-secrets-domain",
  "oya-secrets-file-adapter",
  "serde_json",

@@ -28,7 +28,7 @@
       "oya-check-dependency-seam (sub-check: multispectrum-evidence-attached)",
       "PR review CODEOWNERS (manual sign-off)",
       "active-artifact-contract evidence bundle (ADR-0069)",
-      "foundry agentic-flow (claim \u2192 work \u2192 verify \u2192 grit done) per rtk-ai/grit protocol",
+      "foundry agentic-flow (oya vcs claim \u2192 work \u2192 verify \u2192 done \u2192 promote) with rtk-ai/grit compatibility/provenance only",
       "SessionStart hook in agents/settings/claude.settings.json"
     ],
     "related_adrs": [
@@ -43,15 +43,16 @@
   },
   "enforcement_scopes": {
     "agentic_flow": {
-      "description": "Multi-agent autonomous masterplan execution per Oya VCS / ADR-0054 grit protocol / ADR-0069 active-artifact-contract.",
+      "description": "Multi-agent autonomous masterplan execution per Oya VCS state machine; ADR-0054/grit-era rows are compatibility/provenance only during cutover.",
       "trigger_points": [
-        "grit claim \u2014 agent declares intent and slice; multispectrum spec MUST be read",
+        "oya vcs claim \u2014 agent declares intent and slice; multispectrum spec MUST be read",
         "work iteration \u2014 every iterative-fix-loop cycle re-evaluates facets",
-        "verify \u2014 evidence file emitted to /evidence/multispectrum/ before grit done",
-        "grit done \u2014 promotion only after lane sub-check `multispectrum-evidence-attached` passes for the changeset",
+        "verify \u2014 evidence file emitted to /evidence/multispectrum/ before oya vcs done",
+        "oya vcs done \u2014 emits evidence-backed ChangeBundle/completion payload after lane sub-check `multispectrum-evidence-attached` passes for the changeset",
+        "oya vcs promote \u2014 controller-owned promotion only after claim coverage, provider evidence, audit-chain coverage, and multispectrum evidence pass",
         "review-fix loop \u2014 reviewer comments or CI failures become FixupTasks tagged to the violating facet"
       ],
-      "mechanical_enforcement": "oya-check-dependency-seam composite lane sub-checks (multispectrum-evidence-attached + fixture-pair-coverage + change-class-declared) refuse promotion when evidence is absent / non-canonical / incomplete."
+      "mechanical_enforcement": "Oya VCS admission plus oya-check-dependency-seam composite lane sub-checks (multispectrum-evidence-attached + fixture-pair-coverage + change-class-declared) refuse promotion when evidence is absent / non-canonical / incomplete."
     },
     "dev_flow": {
       "description": "Human-authored PR / code-review path AND mixed human-agent flows.",

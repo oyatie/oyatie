@@ -120,7 +120,7 @@ fn malformed_option_value_and_incomplete_lifecycle_are_rejected() {
 }
 
 #[test]
-fn claim_work_done_promote_flow_is_controller_ordered() {
+fn claim_work_verify_done_promote_flow_is_controller_ordered() {
     let plans = vec![
         parse_command([
             "claim",
@@ -132,6 +132,14 @@ fn claim_work_done_promote_flow_is_controller_ordered() {
         ])
         .unwrap(),
         parse_command(["work", "--agent", "agent-ip005"]).unwrap(),
+        parse_command([
+            "verify",
+            "--agent",
+            "agent-ip005",
+            "--evidence",
+            "evidence/gitops-vcs/ip-005-cli-ratchet.json#verify",
+        ])
+        .unwrap(),
         parse_command([
             "done",
             "--agent",
@@ -158,6 +166,7 @@ fn claim_work_done_promote_flow_is_controller_ordered() {
         vec![
             ControllerAction::ClaimLock,
             ControllerAction::StartWork,
+            ControllerAction::VerifyEvidence,
             ControllerAction::EmitChangeBundle,
             ControllerAction::PromoteBundle,
         ]
