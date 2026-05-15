@@ -14,6 +14,7 @@ branches:
       - cargo-clippy
       - cargo-nextest
       - oya-vcs-admission
+      - oya-vcs-provider-execution
       - oya-foundry-fitness-supply-chain
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver

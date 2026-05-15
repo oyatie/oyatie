@@ -172,7 +172,7 @@ windowing rather than discrete stages).
 
 The follow-up listed under §Decision item 6 ("a follow-up refactor MAY
 convert sunset-lifecycle into a config-driven instance") is hereby
-WITHDRAWN. Sunset-lifecycle remains on its dedicated Pattern-B kernel
+withdrawn. Sunset-lifecycle remains on its dedicated Pattern-B kernel
 indefinitely. Removing this entry would be a silent regression of the
 canonical pattern.
 

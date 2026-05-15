@@ -4,9 +4,9 @@
   "_meta": { "emitter": "oya-dev-cli gate validate active-artifact-contract", "registry_path": "registries/cross-cutting/artifact-capabilities-registry.json" },
   "outcome": "success",
   "rows_seen": 50,
-  "head_tracked_count": 2976,
+  "head_tracked_count": 3021,
   "untracked_paths": [],
   "duplicate_ids": [],
-  "validation_duration_ms": 12,
+  "validation_duration_ms": 15,
   "graph_edge_count": 50
 }

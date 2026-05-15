@@ -10,7 +10,7 @@
     "status": "Accepted-for-masterplan-P00",
     "owner_team": "axis-foundry + ops-sre-reliability + council-architecture",
     "created_at": "2026-05-14T07:16:07Z",
-    "updated_at": "2026-05-15T11:34:47Z",
+    "updated_at": "2026-05-15T14:35:00Z",
     "source_inspiration": "https://github.com/rtk-ai/grit",
     "user_directives_2026_05_14": [
       "move our vcs replacement for grit earlier",
@@ -1497,7 +1497,9 @@
       "branch protection or PR workflow stops exposing oya-vcs-admission",
       "oya-dev-cli stops exposing the Oya VCS claim/work/verify/done/promote command surface",
       "provider evidence slots for CI, GitHub Actions, Trivy, or Argo GitOps are missing or not passed",
-      "multispectrum evidence files are missing audit-chain coverage rows"
+      "multispectrum evidence files are missing audit-chain coverage rows",
+      "provider execution proof script is absent or fails credential-safe CI/GitHub Actions, Trivy, or Argo desired-state checks",
+      "provider evidence regresses to contract-fixture-only proof for Trivy or Argo GitOps"
     ],
     "command_surface_smoke": [
       "oya vcs --format json claim --agent <agent> --intent <slice> <symbol>",
@@ -1511,6 +1513,9 @@
       "github-actions",
       "trivy",
       "argo-gitops"
-    ]
+    ],
+    "provider_execution_proof_ref": "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json#provider_slots",
+    "provider_execution_script": "scripts/check-oya-vcs-provider-execution.sh",
+    "provider_execution_workflow_job": "oya-vcs-provider-execution"
   }
 }

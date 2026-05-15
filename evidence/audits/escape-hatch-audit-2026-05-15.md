@@ -456,7 +456,7 @@ review tractable:
 | `docs/RACI-OWNERSHIP.md` | ip001 | `docs/RACI-OWNERSHIP.md` |
 | `tools/oya-tooling-agent-read/` | ip003 | n/a |
 | ADR-0052, ADR-0053, ADR-0054, ADR-0057, ADR-0103 (cutover ADRs) | ip001/ip002 cutover-protected | all five |
-| `oyatie-doctrine.json` `allowed_exceptions` → `allowed_extensions` rename + `evidence_for_exception` rename | follow-on doctrine pass | `specs/cross-cutting/oyatie-doctrine.json` |
+| ~~`oyatie-doctrine.json` `allowed_exceptions` → `allowed_extensions` rename + `evidence_for_exception` rename~~ — **COMPLETED** in oya-m02-m03-fanout follow-on (PR #3 reviewer-agent recommendation #3 closed) | follow-on doctrine pass | `specs/cross-cutting/oyatie-doctrine.json` |
 | `specs/cross-cutting/masterplan.json` "carve-out" reword | Item-1 / masterplan owner | `masterplan.json` |
 
 ## Notes for the next sweep

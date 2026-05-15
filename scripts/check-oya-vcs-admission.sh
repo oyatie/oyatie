@@ -111,16 +111,51 @@ for required in expected_providers:
         fail(f"provider evidence slot {required} has wrong provider kind")
     if slot.get("availability") != "available" or slot.get("decision") != "passed":
         fail(f"provider evidence slot {required} must be available/passed")
-    if not slot.get("evidence_ref") or not slot.get("proof_kind"):
+    proof_kind = slot.get("proof_kind", "")
+    evidence_ref = slot.get("evidence_ref", "")
+    live_status = slot.get("live_status", "")
+    if not evidence_ref or not proof_kind:
         fail(f"provider evidence slot {required} must name evidence_ref and proof_kind")
+    if required in {"trivy", "argo-gitops"} and "fixture" in proof_kind.lower():
+        fail(f"provider evidence slot {required} regressed to fixture-only proof: {proof_kind}")
+    if "remote-run-not-required" in live_status:
+        fail(f"provider evidence slot {required} still says remote-run-not-required")
+
+proof_ref = current_lane.get("provider_execution_proof_ref", "")
+proof_path = proof_ref.split("#", 1)[0]
+if not proof_path:
+    fail("current CI lane must point at provider execution proof")
+provider_execution = read_json(proof_path)
+proof_slots = provider_execution.get("provider_slots", [])
+proof_by_id = {slot.get("id"): slot for slot in proof_slots}
+for required in expected_providers:
+    slot = proof_by_id.get(required)
+    if not slot:
+        fail(f"provider execution proof missing slot {required}")
+    if slot.get("provider_kind") != required:
+        fail(f"provider execution proof slot {required} has wrong provider kind")
+    if slot.get("decision") != "passed":
+        fail(f"provider execution proof slot {required} must be passed")
+    if not slot.get("execution_mode"):
+        fail(f"provider execution proof slot {required} must name execution_mode")
+    if required in {"trivy", "argo-gitops"} and not slot.get("evidence_digest"):
+        fail(f"provider execution proof slot {required} must carry evidence_digest")
 
 branch_protection_text = (ROOT / ".github/branch-protection.yaml").read_text()
 if "required_status_checks:" not in branch_protection_text or "- oya-vcs-admission" not in branch_protection_text:
     fail("branch protection must require oya-vcs-admission")
+if "- oya-vcs-provider-execution" not in branch_protection_text:
+    fail("branch protection must require oya-vcs-provider-execution")
 
 workflow = (ROOT / ".github/workflows/pr-tests.yml").read_text()
 if "oya-vcs-admission" not in workflow or "scripts/check-oya-vcs-admission.sh" not in workflow:
     fail("pr-tests workflow must expose the oya-vcs-admission job")
+if "scripts/install-trivy-ci.sh" not in workflow:
+    fail("pr-tests workflow must install Trivy before Oya VCS admission")
+
+supply_chain = (ROOT / ".github/workflows/supply-chain.yml").read_text()
+if "oya-vcs-provider-execution" not in supply_chain or "scripts/check-oya-vcs-provider-execution.sh --mode ci" not in supply_chain:
+    fail("supply-chain workflow must expose the oya-vcs-provider-execution job")
 
 metadata = subprocess.check_output(["cargo", "metadata", "--no-deps", "--format-version", "1"], text=True)
 packages = {pkg["name"] for pkg in json.loads(metadata)["packages"]}
@@ -151,6 +186,8 @@ for path in sorted((ROOT / "evidence/multispectrum").glob("*.json")):
 
 print("check-oya-vcs-admission: metadata and authority checks passed")
 PY
+
+scripts/check-oya-vcs-provider-execution.sh --mode check
 
 cargo_args=()
 for package in "${VCS_PACKAGES[@]}"; do

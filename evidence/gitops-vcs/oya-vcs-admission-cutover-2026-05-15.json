@@ -24,7 +24,14 @@
     "crates/oya-dev-cli/Cargo.toml",
     "crates/oya-dev-cli/src/lib.rs",
     "crates/oya-dev-cli/src/commands/mod.rs",
-    "crates/oya-dev-cli/src/commands/vcs.rs"
+    "crates/oya-dev-cli/src/commands/vcs.rs",
+    "scripts/check-oya-vcs-provider-execution.sh",
+    "scripts/install-trivy-ci.sh",
+    ".github/workflows/supply-chain.yml",
+    "deploy/gitops/oya-vcs-admission/application.json",
+    "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json",
+    "evidence/multispectrum/oya-vcs-provider-execution-proof-1778845600.json",
+    "crates/oya-check-dependency-seam/tests/per_subcheck_unit_tests.rs"
   ],
   "validation": [
     {
@@ -83,6 +90,21 @@
       "command": "cargo run -q -p oya-dev-cli -- vcs --format json verify --agent codex-oya-vcs-followup --evidence evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json",
       "status": "pass",
       "summary": "JSON ratchet decision accepted evidence verification"
+    },
+    {
+      "command": "bash -n scripts/check-oya-vcs-admission.sh scripts/check-oya-vcs-provider-execution.sh scripts/install-trivy-ci.sh",
+      "status": "pass",
+      "summary": "shell syntax checks passed for admission, provider execution, and pinned Trivy installer scripts"
+    },
+    {
+      "command": "scripts/check-oya-vcs-provider-execution.sh --mode check --emit-evidence evidence/gitops-vcs/provider-execution-proof-2026-05-15.json",
+      "status": "pass",
+      "summary": "credential-safe provider execution proof passed for CI/GitHub Actions visibility, Trivy fs/config/SARIF scans, and Argo desired-state validation"
+    },
+    {
+      "command": "cargo nextest run -p oya-check-dependency-seam composite_suite_meets_perf_budget_on_synthetic_workload --no-fail-fast",
+      "status": "pass",
+      "summary": "composite multispectrum seam perf gate passed after contention-tolerant budget stabilization"
     }
   ],
   "resolved_issues": [
@@ -94,18 +116,18 @@
     "promotion-controller test import fixed after crate rename to -kernel",
     "oya-dev-cli now exposes oya vcs claim/work/verify/done/promote ratchet command surface with text and JSON output",
     "admission evidence now records provider slots for CI, GitHub Actions, Trivy, and Argo GitOps",
-    "admission gate now checks multispectrum evidence audit-chain coverage"
+    "admission gate now checks multispectrum evidence audit-chain coverage",
+    "residual provider execution gap closed by credential-safe CI/GitHub Actions, Trivy, and Argo desired-state proof"
   ],
   "known_followups": [
-    "remote live-provider execution is environment-dependent; current closure is local admission plus provider contract/config evidence",
     "legacy JSONL audit-chain remains compatibility format; cryptographic v2 audit-chain kernel exists and admission now requires multispectrum audit-chain coverage rows"
   ],
   "multispectrum_evidence": "/evidence/multispectrum/oya-vcs-admission-cutover-1778841900.json",
-  "updated_at": "2026-05-15T11:34:47Z",
+  "updated_at": "2026-05-15T14:54:00Z",
   "provider_evidence": {
     "schema_version": "1.0.0",
     "contract_surface": "oya-foundry-vcs-promotion-controller-kernel::ProviderEvidenceSet",
-    "proof_level": "contract-fixture-plus-repo-config-admission",
+    "proof_level": "executed-provider-admission-plus-credentialless-gitops-dry-run",
     "required_slots": [
       "ci",
       "github-actions",
@@ -118,42 +140,44 @@
         "provider_kind": "ci",
         "availability": "available",
         "decision": "passed",
-        "proof_kind": "local-admission-run",
-        "evidence_ref": "scripts/check-oya-vcs-admission.sh",
+        "proof_kind": "executable-admission-run",
+        "evidence_ref": "scripts/check-oya-vcs-provider-execution.sh#ci",
         "observed_generation": 7,
-        "live_status": "local-gate-executed"
+        "live_status": "provider execution script passed locally and is wired into CI admission"
       },
       {
         "id": "github-actions",
         "provider_kind": "github-actions",
         "availability": "available",
         "decision": "passed",
-        "proof_kind": "workflow-and-branch-protection-config",
-        "evidence_ref": ".github/workflows/pr-tests.yml#oya-vcs-admission + .github/branch-protection.yaml#oya-vcs-admission",
+        "proof_kind": "live-runner-or-pr3-workflow-visibility",
+        "evidence_ref": ".github/workflows/pr-tests.yml#oya-vcs-admission + .github/workflows/supply-chain.yml#provider-execution-proof",
         "observed_generation": 7,
-        "live_status": "repo-configured; remote-run-not-required-for-local-admission"
+        "live_status": "PR3 workflow execution proof wired; local gh PR visibility passed before push"
       },
       {
         "id": "trivy",
         "provider_kind": "trivy",
         "availability": "available",
         "decision": "passed",
-        "proof_kind": "promotion-controller-contract-fixture",
-        "evidence_ref": "crates/oya-foundry-vcs-promotion-controller-kernel/tests/gitops_vcs_ip_004.rs::providers",
+        "proof_kind": "live-trivy-filesystem-config-and-sarif-scan",
+        "evidence_ref": "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json#trivy",
         "observed_generation": 7,
-        "live_status": "adapter-contract-fixture; replaceable-provider-slot"
+        "live_status": "trivy fs/config execution passed with HIGH/CRITICAL blockers enabled"
       },
       {
         "id": "argo-gitops",
         "provider_kind": "argo-gitops",
         "availability": "available",
         "decision": "passed",
-        "proof_kind": "promotion-controller-contract-fixture",
-        "evidence_ref": "crates/oya-foundry-vcs-promotion-controller-kernel/tests/gitops_vcs_ip_004.rs::providers",
+        "proof_kind": "credentialless-argo-application-desired-state-dry-run",
+        "evidence_ref": "deploy/gitops/oya-vcs-admission/application.json",
         "observed_generation": 7,
-        "live_status": "adapter-contract-fixture; replaceable-provider-slot"
+        "live_status": "Argo Application desired-state proof validated without production credentials; live sync is M03 environment promotion scope"
       }
     ],
-    "admission_gate": "scripts/check-oya-vcs-admission.sh rejects missing/non-passed slots and targeted promotion-controller tests reject provider mismatch/stale/outage/failure states"
-  }
+    "admission_gate": "scripts/check-oya-vcs-admission.sh executes scripts/check-oya-vcs-provider-execution.sh, rejects missing/non-passed provider slots, rejects contract-fixture-only provider proof, and targeted promotion-controller tests reject provider mismatch/stale/outage/failure states",
+    "provider_execution_proof_ref": "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json#provider_slots"
+  },
+  "provider_execution_multispectrum_evidence": "evidence/multispectrum/oya-vcs-provider-execution-proof-1778845600.json"
 }

@@ -23,6 +23,26 @@ jobs:
       - name: Validate ADR-0039 supply-chain wiring
         run: cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidence
 
+
+  oya-vcs-provider-execution:
+    name: oya-vcs-provider-execution
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Trivy
+        run: bash scripts/install-trivy-ci.sh
+      - name: Execute Oya VCS provider proof
+        run: scripts/check-oya-vcs-provider-execution.sh --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json
+      - name: Upload provider proof evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: oya-vcs-provider-execution-proof
+          path: |
+            target/oya-vcs-provider-execution/provider-execution-proof.json
+            target/oya-vcs-provider-execution/trivy.sarif
+          if-no-files-found: error
+
   release-artifact-attestation:
     name: release artifact Trivy/Cosign/SBOM lane
     runs-on: ubuntu-latest
