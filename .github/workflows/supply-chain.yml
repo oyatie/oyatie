@@ -1,5 +1,16 @@
 name: oya-foundry-fitness-supply-chain
 
+# Posture: surface-all-failures (M-CC-P02-IP-007).
+#   - `static-adr0039-wiring`, `oya-vcs-provider-execution`, and
+#     `release-artifact-attestation` each run INDEPENDENTLY. No cross-job
+#     `needs:` chains. One CI cycle exposes every gate's failure mode at
+#     once instead of one-per-retry.
+#   - `release-artifact-attestation` is still tag-gated via `if:` (only
+#     fires on `refs/tags/v*`), but with `if: always()` so a failure in
+#     the static gate does NOT skip it on a release tag.
+#   - Overall workflow conclusion is the AND of every job's conclusion
+#     (GitHub required-check semantics).
+
 on:
   pull_request:
   push:
@@ -46,8 +57,11 @@ jobs:
   release-artifact-attestation:
     name: release artifact Trivy/Cosign/SBOM lane
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: static-adr0039-wiring
+    # `if: always()` + tag-gate: still only fires on release tags, but no
+    # longer skips when `static-adr0039-wiring` fails — that gate's
+    # failure surfaces in the same CI cycle as any release-time issues.
+    # No `needs:` per surface-all-failures posture (M-CC-P02-IP-007).
+    if: always() && startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
       - name: Execute ADR-0039 release supply-chain script
