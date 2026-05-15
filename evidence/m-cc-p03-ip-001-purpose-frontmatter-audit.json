@@ -171,7 +171,7 @@
       "/evidence/openapi-rest-route-parity-lane-run-2026-05-14.json",
       "/evidence/openapi-rest-route-parity-lane-run.json",
       "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json",
-      ".omc/goals/implement-masterplan-goal-prompt.json"
+      "/evidence/goals/implement-masterplan-goal-prompt.json"
     ]
   },
   "next_action": "M-CC-P03-IP-001a (proposed): per-subtree backfill IPs for each top-level directory with non-zero 'without_purpose' counts above. Lane runner is oya-foundry-fitness-doc-style-kernel + oya-foundry-fitness-orphan-detection-kernel."

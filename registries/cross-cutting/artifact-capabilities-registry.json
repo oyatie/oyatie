@@ -1067,7 +1067,7 @@
     },
     {
       "artifact_id": "implement-masterplan-goal-prompt",
-      "artifact_path": ".omc/goals/implement-masterplan-goal-prompt.json",
+      "artifact_path": "/evidence/goals/implement-masterplan-goal-prompt.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
@@ -1079,7 +1079,7 @@
         },
         "verification": {
           "checker_crate": "jq + future oya-check-active-artifact-contract",
-          "command": "jq empty .omc/goals/implement-masterplan-goal-prompt.json"
+          "command": "jq empty /evidence/goals/implement-masterplan-goal-prompt.json"
         },
         "validation": {
           "validator": "jq empty + future prompt-artifact schema validator"
@@ -1095,7 +1095,7 @@
         },
         "provenance": {
           "current_author": "codex",
-          "current_reviewed_by": "ralplan-style planner/architect/critic review in .omc/goals/implement-masterplan-goal-prompt.json",
+          "current_reviewed_by": "ralplan-style planner/architect/critic review in /evidence/goals/implement-masterplan-goal-prompt.json",
           "last_modified_at": "2026-05-14T06:36:10Z"
         }
       }

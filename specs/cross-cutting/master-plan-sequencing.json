@@ -25,7 +25,7 @@
       "/specs/cross-cutting/gitops-vcs-replacement.json"
     ],
     "deduplicates_existing": [
-      ".omc/goals/implement-masterplan.md",
+      "/evidence/goals/implement-masterplan.md",
       ".omc/plans/consensus-masterplan-2026-05-13.md",
       ".omc/plans/M01-M03-parallelization-manifest.md",
       "/templates/checklists/agent-kickoff-checklist.md",
@@ -36,7 +36,7 @@
   "master_plan_discovery_order": [
     "docs/MASTERPLAN.md",
     "/specs/cross-cutting/gitops-vcs-replacement.json",
-    ".omc/goals/implement-masterplan.md",
+    "/evidence/goals/implement-masterplan.md",
     ".omc/plans/consensus-masterplan-2026-05-13.md",
     ".omc/plans/M01-M03-parallelization-manifest.md",
     ".omc/plans/milestones/*/README.md",

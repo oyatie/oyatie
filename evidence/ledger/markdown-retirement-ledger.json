@@ -54,6 +54,6 @@
     { "source_md_path": "docs/{CONSTITUTION,AGENTS,DOC-CATALOG,MASTERPLAN}.md", "scope": "PHASE-5 core docs migration" },
     { "source_md_path": "docs/microservices/*.md + docs/bounded-contexts/*.md + docs/standards/*.md + docs/runbooks/*.md + docs/prds/*.md", "scope": "PHASE-6 consolidate per-category registries" },
     { "source_md_path": "docs/templates/*.md + docs/checklists/*.md", "scope": "PHASE-7 templates+checklists" },
-    { "source_md_path": "/specs/cross-cutting/*.md + .omc/goals/*.md + /templates/checklists/*.md", "scope": "PHASE-7 + 4-ROOT-HUB-CANONICAL" }
+    { "source_md_path": "/specs/cross-cutting/*.md + /evidence/goals/*.md + /templates/checklists/*.md", "scope": "PHASE-7 + 4-ROOT-HUB-CANONICAL" }
   ]
 }

@@ -42,7 +42,7 @@
       "docs/checklists/*.md → /specs/cross-cutting/checklists.json",
       ".omc/plans/ralplan-*.md → .omc/plans/ralplan-*.json (instances of plan-schema.json)",
       "/specs/cross-cutting/*.md → /specs/cross-cutting/*.json",
-      ".omc/goals/*.md → /registries/cross-cutting/goals.json",
+      "/evidence/goals/*.md → /registries/cross-cutting/goals.json",
       "/templates/checklists/*.md → /templates/checklists/*.json"
     ]
   },

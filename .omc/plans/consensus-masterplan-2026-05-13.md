@@ -11,7 +11,7 @@ companion_docs:
   - docs/decisions/ADR-0063-documentation-suite-coverage.md
   - docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
   - .omc/plans/M01-M03-parallelization-manifest.md
-  - .omc/goals/implement-masterplan.md
+  - /evidence/goals/implement-masterplan.md
 horizon: M02-substrate → M03-first-tenant → M04-healthcare-kr → M05-connect-personal → M06-fintech-kr → M07-industrial-kr → M08-enterprise-breadth → M09-us-expansion → M10-eu-expansion → M11-healthcare-intl → M12-hyperscaler-maturity
 codex_model: gpt-5.5 / xhigh
 ---
@@ -73,7 +73,7 @@ test -f docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
 test -f docs/localization-packs/INDEX.md
 test -f docs/localization-packs/kr.md
 test -f docs/localization-packs/kr/pack.yaml
-test -f .omc/goals/implement-masterplan.md
+test -f /evidence/goals/implement-masterplan.md
 test -f .omc/plans/M01-M03-parallelization-manifest.md
 icm recall -t context-oyatie -q "ralplan masterplan consensus" --limit 3  # consensus rows present
 ```
