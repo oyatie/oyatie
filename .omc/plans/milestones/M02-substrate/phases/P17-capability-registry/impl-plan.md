@@ -19,7 +19,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: Scaffolds all 8 capability-registry crates across 2 BCs, implements the MCP-compatible tool discovery endpoint, wires the Cedar policy gate on every capability invocation, and authors the full DDL.
 ---
 # IP-001-capability-registry-kernel-scaffold: Scaffold Capability Registry + Bindings Kernel/Domain/Application/Adapter/REST/App — MCP Gateway + DDL
 

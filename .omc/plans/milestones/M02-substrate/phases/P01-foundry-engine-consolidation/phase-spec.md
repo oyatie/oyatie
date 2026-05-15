@@ -22,7 +22,7 @@ depends_on:
   phase: P05-scaffold-locks
   reason: grit + icm CLI primitives must exist before Foundry consolidation
 owner_team: council-foundry
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase consolidates the grit/icm/oya-tooling-agent-read scaffolds into a coherent Foundry engine composed of 4 LEAN check binaries (`oya-shared-architecture-check-cli`, `oya-shared-bounded-contexts-check-cli`."
 ---
 # P01-foundry-engine-consolidation: Consolidate Foundry engine into 4 LEAN check binaries with 7 sub-commands each
 

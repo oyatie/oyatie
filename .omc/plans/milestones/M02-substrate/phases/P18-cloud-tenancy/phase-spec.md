@@ -41,7 +41,7 @@ depends_on:
   reason: Cloud IAM credentials and OCI Vault references stored via oya-secrets-kernel
     SecretReference port; no plaintext credentials in cloud-tenancy tables.
 owner_team: council-cloud
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the cloud tenancy substrate: the multi-tenant runtime infrastructure layer that provisions and manages per-tenant OCI resources."
 ---
 # P18-cloud-tenancy: Cloud Tenancy + IAM + KMS + Billing-Skeleton + Compute + Storage + Network — Multi-Tenant Runtime Substrate
 

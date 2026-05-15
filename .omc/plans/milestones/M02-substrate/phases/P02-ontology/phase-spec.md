@@ -21,7 +21,7 @@ depends_on:
   phase: P05-scaffold-locks
   reason: workspace scaffold + tenancy kernel prerequisite
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: This phase delivers the complete Ontology substrate, the information-plane adapter that all oyatie products use for typed-entity storage, link traversal, action execution, function evaluation, and LLM agent-gateway ingress.
 ---
 # P02-ontology: Full Ontology substrate — typed entity/link/action/function/agent-gateway/audit-chain/pillar layers
 

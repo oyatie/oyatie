@@ -30,7 +30,7 @@ depends_on:
   phase: P06-secrets
   reason: KMS key references stored as SecretRefs in OpenBao via Secrets substrate
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase delivers the complete KMS substrate: envelope encryption for data-at-rest field encryption (CipherText property type per Bominal ADR-0111), per-tenant DEK (Data Encryption Key) isolation with KMS-backed KEK (Key Encryption Key)."
 ---
 # P08-kms: KMS substrate — envelope encryption, per-tenant DEK, per-cell HSM, ML-DSA-87 post-quantum signing
 

@@ -22,7 +22,7 @@ depends_on:
   phase: P05-scaffold-locks
   reason: workspace scaffold prerequisite
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase delivers the complete Audit-chain substrate: an append-only, cryptographically verifiable ledger of all state-changing events across every product."
 ---
 # P04-audit-chain: Full Audit-chain substrate — Merkle/Ed25519 segment sealer, append-only events, KMS-backed signing keys
 

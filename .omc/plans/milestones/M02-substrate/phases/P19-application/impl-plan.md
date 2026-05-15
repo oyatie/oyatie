@@ -21,7 +21,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: Scaffolds all 13 application crates across 5 BCs, implements the Leptos SSR + WASM composition-root shell, wires the per-tenant product catalog from TenantProductRegistry, implements the SSO hub PKCE + nonce flow per Bominal ADR-0123.
 ---
 # IP-001-application-kernel-scaffold: Scaffold Application Shell — 13 Crates / 5 BCs + Leptos Shell + SSO Hub + DDL
 

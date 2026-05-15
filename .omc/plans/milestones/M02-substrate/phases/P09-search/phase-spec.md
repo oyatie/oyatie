@@ -25,7 +25,7 @@ depends_on:
   phase: P02-ontology
   reason: Ontology objects are the primary searchable corpus
 owner_team: council-search
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase delivers the complete Search substrate. Two complementary engines are deployed: (1) pgroonga (Postgres extension, PGroonga 3.x) for SQL-integrated full-text search with native Korean support via the built-in groonga tokenizer."
 ---
 # P09-search: Search substrate — pgroonga + Tantivy + Korean morphology (mecab-ko/khaiii FFI), per-tenant index isolation
 

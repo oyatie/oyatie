@@ -20,7 +20,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Scaffolds all 7 tenancy crates, authors the complete Postgres DDL (expanding M02-substrate-schema-foundation §4 with full indexes + RLS + `oyatie.set_current_tenant()` function), implements all three kernel port traits with sealed markers."
 ---
 # IP-001-tenancy-kernel-scaffold: Scaffold Tenancy Kernel, Domain, Application, Adapter, REST, gRPC, App — Full DDL + RLS Bootstrap
 

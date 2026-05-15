@@ -17,7 +17,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Delivers the complete Eventing substrate: 16 crates across 3 BCs (outbox, topics, subscriptions), Postgres outbox table per µservice convention, LISTEN/NOTIFY poller, Kafka KRaft publisher adapter (Apache-2.0 `rdkafka` crate)."
 ---
 # IP-P05-eventing-substrate: Scaffold 16 eventing crates with outbox dispatcher, Kafka KRaft adapter, CloudEvents framing
 

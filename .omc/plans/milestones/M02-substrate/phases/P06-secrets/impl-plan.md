@@ -17,7 +17,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Delivers the complete Secrets substrate: 12 crates across 2 BCs (refs, rotation), `secrets.refs` DDL storing only vault paths (never plaintext), OpenBao HTTP adapter (DAY-1 default), `ZeroizingSecret` type that zeroes memory on drop."
 ---
 # IP-P06-secrets-substrate: Scaffold 12 secrets crates with SecretReferencePort, OpenBao adapter, rotation worker
 

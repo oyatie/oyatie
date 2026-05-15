@@ -25,7 +25,7 @@ depends_on:
   phase: P05-scaffold-locks
   reason: workspace scaffold prerequisite
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: This phase delivers the complete Observability substrate per Bominal ADR-0042 (observability stack). Every µservice in the oyatie workspace wires against this substrate's ports at startup — not directly against OTel/VictoriaMetrics SDKs.
 ---
 # P07-observability: Observability substrate — OpenTelemetry SDK, VictoriaMetrics, structured JSON logs, Prometheus→Grafana, per-tenant partitioning
 

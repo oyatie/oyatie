@@ -19,7 +19,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: Scaffolds all 9 records crates across 2 BCs (records-fhir, records-released-view), declares the 9 FHIR R5 resource types supported in M02.
 ---
 # IP-001-records-kernel-scaffold: Scaffold Records FHIR + Released-View Kernel/Domain/Application/Adapter/REST/App — FHIR R5 Ports + Ontology Bridge + DDL
 

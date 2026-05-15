@@ -29,7 +29,7 @@ depends_on:
     cross-product data mutations (action steps call ObjectStore/ActionStore); WorkflowBridgePort
     trait uses OntologyFunction for entity reads.
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the oyatie Workflow engine substrate: the action/orchestration adapter layer that makes cross-product and intra-product integration coherent across the flat microservice catalog."
 ---
 # P12-workflow-engine: Workflow Engine Substrate — State-Machine + DAG Adapter/Glue Layer
 

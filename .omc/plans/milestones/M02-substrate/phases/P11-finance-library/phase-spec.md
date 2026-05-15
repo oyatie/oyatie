@@ -24,7 +24,7 @@ depends_on:
   phase: P05-scaffold-locks
   reason: workspace scaffold prerequisite only
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase delivers `oya-finance-library-kernel` and `oya-finance-library-domain`: a pure Rust computation crate with zero persistence, zero async dependencies, and zero HTTP dependencies."
 ---
 # P11-finance-library: Finance library substrate — pure crate, Money/CurrencyCode/JournalEntry, time-value, depreciation, amortization
 

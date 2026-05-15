@@ -32,7 +32,7 @@ depends_on:
     execution; per-tenant capability access policies stored as Cedar rule packs in
     policy.tenant_rule_packs.
 owner_team: council-foundry
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the capability registry: the MCP-compatible gateway that exposes per-tenant capability endpoints for LLM tool-call discovery."
 ---
 # P17-capability-registry: Capability Registry — MCP Gateway + Per-Tenant Endpoint + LLM Tool-Call Discovery
 

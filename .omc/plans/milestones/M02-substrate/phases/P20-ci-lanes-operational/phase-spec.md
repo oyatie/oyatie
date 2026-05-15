@@ -24,7 +24,7 @@ depends_on:
     consolidation must complete first to establish the oya-foundry-* crate namespace
     and xtask-metadata-augment binary that the fitness lanes call.
 owner_team: council-foundry
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the four new CI fitness lane binaries required by [[feedback-quality-performance-scalability-bar]] and the full 7-sub-command `oya-check-architecture` binary required by [[feedback-clean-architecture-requirements]] §13."
 ---
 # P20-ci-lanes-operational: New CI Fitness Lanes — Statelessness + Shardability + Perf-Budget + Benchmark + 7 Architecture-Check Sub-Commands
 

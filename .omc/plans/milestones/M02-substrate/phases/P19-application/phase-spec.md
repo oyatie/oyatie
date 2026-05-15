@@ -49,7 +49,7 @@ depends_on:
   reason: Every shell navigation action authorized through PolicyEvaluator; product-launchpad
     respects Cedar allow/deny per principal.
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the Application B2B unified shell substrate: the Leptos web shell that serves as the single entry point for all B2B tenants."
 ---
 # P19-application: Application B2B Unified Shell Substrate — Product-Enablement + Tenant Navigation + Branding + Launchpad + SSO Hub
 

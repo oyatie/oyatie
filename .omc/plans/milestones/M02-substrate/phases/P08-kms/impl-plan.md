@@ -19,7 +19,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Delivers the complete KMS substrate: 16 crates across 3 BCs (keys, envelope, signing), AES-256-GCM envelope encryption with CBOR envelope header, per-tenant DEK isolation, ML-DSA-87 (NIST FIPS 204) post-quantum signing."
 ---
 # IP-P08-kms-substrate: Scaffold 16 KMS crates with envelope encryption, ML-DSA-87, per-tenant DEK, OCI Vault adapter
 

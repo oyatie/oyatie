@@ -32,7 +32,7 @@ depends_on:
     from identity kernel; per-tenant rule packs reference identity entity types; AuthzRequest
     carries principal_id resolved from identity.
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the policy substrate: the Cedar authorization engine that enforces per-tenant rule packs across all µservices."
 ---
 # P14-policy: Policy Substrate — Cedar Engine + Per-Tenant Rule Packs + Evaluation Audit Log
 

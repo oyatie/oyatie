@@ -20,7 +20,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Scaffolds all 8 data-boundary crates across 2 BCs, declares the 12-class DataClass enum, implements `DubEvaluator::evaluate()` with HARD_DENY semantics for PHI/PCI/PIPA/children."
 ---
 # IP-001-data-boundary-kernel-scaffold: Scaffold DUB Engine + Classification Kernel/Domain/Application/Adapter/gRPC/App — 12 DataClass + HARD_DENY DDL + Cedar Fragment
 

@@ -19,7 +19,7 @@ depends_on:
   phase: P05-scaffold-locks
   reason: workspace scaffold prerequisite
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase delivers the complete Secrets substrate. The design principle is absolute: raw secrets NEVER enter Postgres."
 ---
 # P06-secrets: Secrets substrate — SecretReference port, OpenBao adapter (DAY-1 DEFAULT), HSM-per-cell production path
 

@@ -20,7 +20,7 @@ depends_on:
   phase: P02-ontology
   reason: Ontology objects are the primary vector corpus; embeddings reference object_id
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase delivers the complete Vector substrate. Day-1 implementation uses pgvector (Postgres extension, HNSW index with `lists=100, ef_construction=128."
 ---
 # P10-vector: Vector substrate — pgvector DAY-1, per-tenant per-object-type embedding tables, in-house HNSW/IVF long-horizon
 

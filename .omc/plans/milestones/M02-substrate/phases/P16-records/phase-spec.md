@@ -34,7 +34,7 @@ depends_on:
     = 'records.Encounter' etc.); FhirResourceStore writes through ObjectStore port;
     linkage between clinical resources uses LinkStore.
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: Delivers the records substrate kernel and ports that the Healthcare expansion (M04+) will build on.
 ---
 # P16-records: Records Substrate — FHIR R5 Canonical + Released-View Boundary (Healthcare Kernel + Ports for M04+)
 

@@ -17,7 +17,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Delivers the complete Observability substrate: 16 crates across 3 BCs (traces, metrics, logs), OpenTelemetry SDK wiring (traces + metrics + logs), VictoriaMetrics Prometheus-compatible adapter."
 ---
 # IP-P07-observability-substrate: Scaffold 16 observability crates with OTel SDK, VictoriaMetrics, structured JSON logs
 

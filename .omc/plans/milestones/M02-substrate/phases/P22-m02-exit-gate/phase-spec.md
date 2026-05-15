@@ -32,7 +32,7 @@ depends_on:
   reason: Exit gate requires all 9 architecture planes verified at L4-L5 before flipping
     lanes to BLOCKER or claiming M02 complete.
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "P22 is the terminal phase of M02-substrate. It has three coordinated goals:"
 ---
 # P22-m02-exit-gate: M02 Substrate Exit — Flip Lanes to BLOCKER + Deploy App Shell + Validate Sibling Onboarding
 

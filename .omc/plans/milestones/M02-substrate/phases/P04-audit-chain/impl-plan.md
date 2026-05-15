@@ -17,7 +17,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Delivers the complete Audit-chain substrate: 16 crates across 3 BCs (events, segments, signing), full append-only Postgres DDL with UPDATE/DELETE denial triggers, Merkle tree builder, Ed25519 segment sealer worker."
 ---
 # IP-P04-audit-chain-substrate: Scaffold 16 audit-chain crates with Merkle/Ed25519 sealer, append-only DDL, KMS bridge
 

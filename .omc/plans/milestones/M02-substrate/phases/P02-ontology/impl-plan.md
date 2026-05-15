@@ -17,7 +17,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Delivers the complete Ontology substrate: 45 crates across 7 BCs (entity, link, action, function, agent-gateway, audit-chain, pillar), full Postgres DDL with RLS and outbox, sealed port traits in kernel, Cedar policy fragment."
 ---
 # IP-P02-ontology-substrate: Scaffold 45 Ontology crates with full DDL, port traits, Cedar, Protobuf, REST/GraphQL
 

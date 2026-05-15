@@ -16,7 +16,7 @@ acceptance_lanes:
 - cargo-check
 - cargo-nextest
 - cargo-deny
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Removes `--report-only` flags from all 14 fitness lane invocations in `.github/workflows/ci-fitness-lanes.yml`. From this commit forward, any violation detected by any of the 14 lanes causes CI to fail hard, blocking merge."
 ---
 # IP-001-flip-lanes-to-blocker: Flip All 14 CI Fitness Lanes from --report-only to BLOCKER
 

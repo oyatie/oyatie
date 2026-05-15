@@ -14,7 +14,7 @@ acceptance_lanes:
 - cargo-check
 - cargo-nextest
 - cargo-deny
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Runs all 9 architecture plane checks against the complete M02 workspace, produces the `docs/architecture/plane-verification-M02.md` evidence artifact with per-plane L4/L5 assessment and evidence citations."
 ---
 # IP-001-plane-verification: Verify All 9 Architecture Planes L4-L5 + Produce Evidence Artifact
 

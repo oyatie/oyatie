@@ -24,7 +24,7 @@ depends_on:
   phase: P05-scaffold-locks
   reason: workspace scaffold prerequisite
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase delivers the complete Eventing substrate: the bridge between the Postgres outbox (write-side guarantee) and Kafka KRaft (fan-out mechanism)."
 ---
 # P05-eventing: Eventing substrate — outbox dispatcher, Kafka KRaft, CloudEvents framing, per-tenant per-cell partitioning
 

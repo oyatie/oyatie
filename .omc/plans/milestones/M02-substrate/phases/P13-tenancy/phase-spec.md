@@ -33,7 +33,7 @@ depends_on:
     accepts owner_user_id: UserId from identity kernel; RLS bootstrap calls oyatie.set_current_tenant()
     which feeds into all identity.organizations + identity.employees queries.'
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the tenancy substrate: the SaaS contract layer that partitions every subsequent µservice's data by tenant_id and governs which products each tenant has enabled."
 ---
 # P13-tenancy: Tenancy Substrate — Multi-Tenant SaaS Contract + Product-Enablement Registry + Cell Placement
 

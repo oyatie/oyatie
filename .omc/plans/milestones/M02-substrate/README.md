@@ -44,7 +44,7 @@ oyatie_adrs_cited:
 - ADR-0062
 - ADR-0063
 - ADR-0064
-purpose: Auto-backfilled purpose for README.md
+purpose: "Substrate completion milestone: every always-on substrate µservice (Foundry, Ontology, Identity, Audit-chain, Eventing, Secrets, Observability, KMS, Search, Vector, Data-Boundary, Finance-library, Capability-registry, Records, Workflow."
 ---
 # M02-substrate — Foundry engine + Cloud-Tenancy + Ontology + Workflow + Application + 16 substrate µservices ready
 

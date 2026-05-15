@@ -19,7 +19,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Scaffolds all 9 policy crates across 2 BCs (policy-engine, policy-rule-packs), authors the complete Postgres DDL for `policy.tenant_rule_packs` and `policy.evaluation_log`, integrates the `cedar-policy` crate as the evaluation adapter."
 ---
 # IP-001-policy-kernel-scaffold: Scaffold Policy Engine + Rule-Packs Kernel/Domain/Application/Adapter/gRPC/App — Cedar DDL + Port Traits
 

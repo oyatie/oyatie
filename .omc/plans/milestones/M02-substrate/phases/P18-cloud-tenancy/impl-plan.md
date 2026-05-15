@@ -25,7 +25,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: Scaffolds all 21 cloud crates across 8 BCs, authors the complete Postgres DDL for cloud resource tracking tables, implements the cell lifecycle state machine (create → active → draining → decommissioned).
 ---
 # IP-001-cloud-tenancy-kernel-scaffold: Scaffold All 21 Cloud Crates — 8 BC Kernels + DDL + OCI ARM64 Manifests + Cell Lifecycle
 

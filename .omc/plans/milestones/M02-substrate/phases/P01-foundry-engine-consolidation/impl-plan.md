@@ -17,7 +17,7 @@ acceptance_lanes:
 - lean-a2
 - lean-a3
 - lean-a4
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Scaffolds all 10 foundry and check crates, implements 7 sub-commands on `oya-shared-architecture-check-cli` (dependency-direction, cross-product-refusal, port-location, layer-correctness, lib-name-parity, composition-root-only."
 ---
 # IP-P01-foundry-lean-checks: Scaffold 10 foundry/check crates implementing 14 CI fitness lanes
 

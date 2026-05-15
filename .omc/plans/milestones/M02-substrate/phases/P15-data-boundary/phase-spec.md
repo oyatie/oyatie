@@ -39,7 +39,7 @@ depends_on:
   reason: DUB enforcement uses Cedar PolicyEvaluator for HARD_DENY decisions; DUB
     Cedar policy fragment loaded into policy.tenant_rule_packs by this phase.
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the Data-Use-Boundary (DUB) substrate: the runtime enforcement layer that prevents regulated data classes (PHI, PCI, PIPA, children's data) from crossing prohibited boundaries."
 ---
 # P15-data-boundary: Data-Use-Boundary Substrate — 12 Data Classes + HARD_DENY Runtime + Cedar DUB Policy
 

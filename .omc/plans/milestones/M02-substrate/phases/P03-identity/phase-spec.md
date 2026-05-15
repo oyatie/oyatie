@@ -19,7 +19,7 @@ depends_on:
   phase: P05-scaffold-locks
   reason: TenantId type + workspace scaffold prerequisite
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "This phase delivers the complete Identity substrate, implementing the 8 bounded contexts that represent the human/organizational layer of oyatie: users (auth principal), persons (human record), organizations (legal entity inside tenant)."
 ---
 # P03-identity: Full Identity substrate — users, persons, organizations, employees, employments, sessions, mfa, passkeys
 

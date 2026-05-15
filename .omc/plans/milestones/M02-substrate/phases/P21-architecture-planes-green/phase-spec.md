@@ -29,7 +29,7 @@ depends_on:
     planes are assessed using the same lean-a1/a2/a3/a4 + statelessness + shardability
     checks.
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: Verifies that the complete M02 substrate satisfies all 9 architecture planes defined in Bominal ADR-0224..ADR-0231 at Proof Ladder L4-L5 (Bominal ADR-0223).
 ---
 # P21-architecture-planes-green: 9 Architecture Planes L4-L5 + Wave Integration Framework Verified
 
