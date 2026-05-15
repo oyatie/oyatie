@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 81,
-    "numbering": "ADR-0001..ADR-0103 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)",
+    "total_adrs": 82,
+    "numbering": "ADR-0001..ADR-0104 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089"],
-    "next_adr": "ADR-0104",
+    "next_adr": "ADR-0105",
     "status_counts": {
-      "Accepted": 41,
+      "Accepted": 42,
       "Proposed": 36,
       "accepted": 4
     }
@@ -985,6 +985,18 @@
       "owner": "council-architecture",
       "date": "2026-05-14",
       "path": "decisions/ADR-0103-grit-cutover-inventory.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0104",
+      "number": 104,
+      "title": "Ecosystem-expansion principle for check-lane + adapter crate reintroduction",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-15",
+      "path": "decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md",
       "supersedes": [],
       "superseded_by": [],
       "related": []
