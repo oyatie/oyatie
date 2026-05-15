@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/evidence/debate/TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-M1_challenge_assumption-r1.json",
+  "_meta": {
+    "doc_class": "Evidence",
+    "evidence_id": "DEBATE-M1-TG2-LANE-SUBCHECK-1778812400-r1",
+    "created_at": "2026-05-14T23:55:00Z",
+    "session_id": "claude-tg2-debate-m1-2026-05-14",
+    "executor_topology_compliance": "single-facet-only-reviewed; reviewer_id distinct from prior F1/F5/F7 ids"
+  },
+
+  "reviewer_id": "claude-analyst-M1_challenge_assumption-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
+  "round": 1,
+  "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
+  "facet": "M1_challenge_assumption",
+  "lens": "Challenge the premise. Is the underlying assumption that motivated this change still true? Could an upstream change eliminate the need entirely? What hidden assumption is unstated? On what evidence was this declared the right problem? If we shipped nothing, what concrete breakage occurs?",
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+
+  "premise_stated": "specs/cross-cutting/multispectrum-review.json v2.2.0 (a) elevates the multispectrum review bar to a mechanical enforcement vehicle whose only mechanical-enforcement vehicle named is `oya-check-dependency-seam`, and (b) names each of the four new sub-check IDs (`rust-default-language`, `naming-convention`, `scorecard-render`, `consensus-debate-evidence`) plus the four FixupTask IDs (F-LANE-RUST-DEFAULT-ENFORCE, F-NAMING-CONVENTION-ENFORCE, F-LANE-SCORECARD-RENDER, F-LANE-DEBATE-SUBCHECK) as the full-impl tickets. Therefore: extending the lane from 6 to 10 sub-checks as day-1 NotYetArmed/ReportOnly stubs is the canonical landing path for these enforcements.",
+
+  "premise_evidence_ref": [
+    "specs/cross-cutting/multispectrum-review.json#_meta.mechanical_enforcement (line 41)",
+    "specs/cross-cutting/multispectrum-review.json line 148 — F-LANE-SCORECARD-RENDER explicitly extends oya-check-dependency-seam",
+    "specs/cross-cutting/multispectrum-review.json line 205-208 — F-LANE-DEBATE-SUBCHECK names `consensus-debate-evidence` as the sub-check id",
+    "evidence/per-change/tg2-lane-subcheck-extensions-1778812400.json lines 18-21 — each sub-check maps 1:1 to a FixupTask",
+    "crates/oya-check-dependency-seam/src/lib.rs lines 727-916 — four new pub fns land at canonical IDs in canonical run_composite order; test on line 994 asserts len==10"
+  ],
+
+  "answer": "The premise is largely TRUE but partially CIRCULAR, and one hidden assumption is unsafe. TRUE: the multispectrum spec v2.2.0 mechanically names this exact lane and these exact four sub-check IDs as the enforcement vehicle, so the work cannot be eliminated upstream without rewriting the spec. The four day-1 stubs are the minimum scaffolding that lets the FixupTask tickets land binary-compatible. CIRCULAR: the spec was authored by the same agentic flow that is now extending the lane it nominates; no third party validated that mechanical lane enforcement (vs e.g. CI workflow gates, repo-policy bot, pre-commit, ADR-only) is the right enforcement substrate. HIDDEN-ASSUMPTION-UNSAFE: shipping the four sub-checks as NotYetArmed/ReportOnly assumes that adding a no-op composite entry today is harmless and that the gap between stub and arm will close; in practice, four ReportOnly stubs that always return zero create the appearance of coverage and may suppress urgency on the four real FixupTasks (ceremony-where-the-premise-is-wrong risk). DO-NOTHING CONSEQUENCE is small in the short term: nothing breaks today because all four stubs are NotYetArmed; the lane's exit code is unaffected; no caller depends on the new IDs. Real breakage only materialises when one of the FixupTasks F-LANE-* needs the sub-check ID to exist to attach severity — at which point landing the stub becomes a 1-line prerequisite, not a phase-1 deliverable. UPSTREAM FIX considered: yes — the spec could declare these as facet auto_checks (Tier-1 deterministic checks already enumerated in the spec, lines 64-77) without requiring a sub-check ID in the seam lane, OR the spec's `mechanical_enforcement` clause could be widened to allow alternate substrates (CI workflows, gh actions, repo-policy bot). The upstream fix was REJECTED implicitly because the spec already shipped at v2.2.0 naming this lane as the substrate; renegotiating that would block TG2 on a spec rev. That is a defensible short-term call but it locks in lane-as-only-substrate before evidence shows lane is the right substrate. Net verdict: ACCEPT the four stubs because the upstream-fix cost is high and the day-1 footprint is binary-compatible/zero-risk, BUT require that before any of the four is promoted from NotYetArmed to Error the spec is asked to re-justify lane-as-substrate against at least one alternative (CI workflow gate), and require that the four FixupTask tickets carry an explicit sunset date so the stubs do not become permanent ceremony.",
+
+  "key_claims": [
+    "Premise is documented: spec v2.2.0 names all four sub-check IDs + all four FixupTasks; the change is NOT speculative.",
+    "Premise is circular: the spec authoring agent and the lane-extending agent are the same flow; no independent party validated lane-as-substrate vs alternatives.",
+    "Hidden assumption: four NotYetArmed stubs returning zero counts create coverage-illusion that may suppress urgency on the four real FixupTasks.",
+    "Do-nothing breakage is near-zero today: lane exit code unchanged, no caller depends on the new IDs, only the canonical-IDs assertion in tests/run_composite_returns_ten_sub_checks would need to expect 6 not 10.",
+    "Upstream fix exists but was implicitly rejected: spec could route these as facet Tier-1 auto_checks (already a documented mechanism, spec lines 64-77) or as CI-workflow gates, eliminating the need for sub-check IDs in this lane.",
+    "Spec mechanical_enforcement clause is monotheistic (names only oya-check-dependency-seam); locks in this lane as the only enforcement substrate before evidence shows it is the right one.",
+    "The four ReportOnly day-1 statuses are inconsistent (naming-convention returns Pass/Fail; the other three return NotYetArmed) which means the premise of 'uniform day-1 stub' is itself not held by the implementation — already flagged in synthesis CONV-3."
+  ],
+
+  "uncertainty_areas": [
+    "Whether council-architecture has already weighed lane-as-substrate against CI/gh-action/repo-policy-bot alternatives in a private decision not visible in the in-tree spec",
+    "Whether the four FixupTasks F-LANE-* carry concrete sunset/arming dates (not visible in this changeset's evidence file; would change risk profile of permanent-ReportOnly drift)",
+    "Whether the spec's v2.2.0 elevation of multispectrum from advisory to mechanical was itself preceded by an M1 challenge in some prior round (recursive premise check)",
+    "Whether the agentic flow authoring both the spec and the lane extension counts as 'same author' for M1 purposes or as 'orchestrated by an external session policy' (organisational vs technical premise validation)"
+  ],
+
+  "anti_patterns_detected": [
+    "ceremony-where-the-premise-is-wrong",
+    "consensus-by-momentum-not-evidence"
+  ],
+
+  "anti_pattern_evidence": {
+    "ceremony-where-the-premise-is-wrong": "Three of four sub-checks return NotYetArmed unconditionally regardless of scan result (rust-default-language line 759, scorecard-render line 859, consensus-debate-evidence line 912). They emit a finding string but cannot transition status. A check whose status is constant-by-construction is ceremonial: it documents intent but enforces nothing. The premise 'these are day-1 stubs' is correct, but the IMPLEMENTATION of that premise (always-NotYetArmed) means the stubs cannot detect their own arming readiness — they will remain ceremonial until a manual code change flips the status logic. Risk: ceremony hardens into permanence.",
+    "consensus-by-momentum-not-evidence": "The premise chain is: spec v2.2.0 names four sub-check IDs -> evidence/per-change file declares those IDs the canonical landing -> lane extension implements them. No step asked 'is the seam lane the right substrate?' or 'could an upstream Tier-1 auto_check eliminate the need for these four IDs?' The synthesis file itself dispatched 3 of 9+2 facets (scope_disclosure lines 22-25) — momentum-driven coverage rather than evidence-driven coverage."
+  },
+
+  "do_nothing_consequence": "If the four sub-check pub fns were NOT added today: (a) tests/run_composite_returns_ten_sub_checks would need to assert 6, not 10 — trivial; (b) the four FixupTasks F-LANE-* would still be schedulable since they each carry their own sub-check scaffolding work as the first task item; (c) no caller breaks because none exists yet (no consumer of the four new IDs is in tree); (d) the spec's mechanical_enforcement clause would document an unfulfilled promise for as long as the stubs are absent. Concrete breakage: ZERO runtime, ZERO build, ONE documentation-drift datum (spec names IDs the lane does not expose). The breakage is real but is paper-only and would be visible in the multispectrum-evidence-attached sub-check as a missing-evidence finding — i.e., self-policing.",
+
+  "upstream_fix_considered": true,
+
+  "upstream_fix_rejection_reason": "Three upstream alternatives were considered and implicitly rejected: (1) Re-route the four enforcements as facet Tier-1 auto_checks (spec lines 64-77 already define this mechanism for F2/F13) — rejected because the auto_checks list is per-facet and these four don't map cleanly to a single facet (rust-default-language ~ F1/F5, naming-convention ~ F5/F9, scorecard-render ~ F4, consensus-debate-evidence ~ M1/M2); the seam lane is the natural cross-facet home. (2) Move enforcement to a GitHub Actions workflow or repo-policy bot — rejected because the project's RTK/grit/icm primitives explicitly prefer Rust-native std-only kernel checks over external CI substrate (CLAUDE.md sanctioned_primitives gate). (3) Rewrite the spec to make mechanical_enforcement plural and allow alternate substrates — rejected because it would block TG2 on a spec v2.3.0 rev. Net: the upstream fix is not free; the lane-as-substrate decision is locally optimal even if not globally validated.",
+
+  "recommendations_within_lens": [
+    "Add a sunset_at_date field to each of the four FixupTasks F-LANE-* so the NotYetArmed stubs cannot drift into permanence (addresses ceremony-where-premise-wrong).",
+    "Open a spec ticket asking v2.3.0 to widen mechanical_enforcement to enumerate at least one alternate substrate considered-and-rejected per sub-check; this converts the implicit upstream-fix rejection into explicit decision evidence (addresses consensus-by-momentum).",
+    "Resolve CONV-3 from the synthesis by aligning all four day-1 stubs to NotYetArmed (currently naming-convention diverges to Pass/Fail) so the premise 'these are uniform day-1 stubs' actually holds in code.",
+    "Before promoting any of the four sub-checks from NotYetArmed to Error severity, require evidence that the underlying enforcement could not have been done one level up (in the spec's Tier-1 auto_checks list) — this is the M1 re-check gate."
+  ],
+
+  "scope_disclosure": "M1 lens only. Did not evaluate F1 (Linus taste), F5 (code quality), F7 (security), or any other facet — those are covered by separate r1 files. Did not propose code-level rewrites of the four functions; only challenged the premise that prompted them."
+}

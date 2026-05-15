@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/evidence/debate/TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-synthesis.json",
+  "_meta": {
+    "doc_class": "Evidence",
+    "evidence_id": "DEBATE-SYNTHESIS-TG2-LANE-SUBCHECK-1778812400-FULL",
+    "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
+    "session_id": "claude-tg2-debate-full-2026-05-14",
+    "supersedes_evidence": "DEBATE-SYNTHESIS-TG2-LANE-SUBCHECK-1778812400 (3-facet pilot at 23:30)",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-14T23:55:00Z",
+    "synthesis_owner": "claude-orchestrator (this Claude session, NOT one of the facet-lensed reviewers)",
+    "spec_governing_this_debate": "/specs/cross-cutting/multispectrum-review.json v2.2.0 consensus_debate_protocol",
+    "executor_topology_compliance": "VERIFIED — 11 reviewer_ids in 11 separate subagent contexts; ZERO reviewer_id overlap across facets",
+    "facet_coverage": "9 of 9 required (F1..F9) + 2 of 2 meta-facets (M1, M2) — FULL coverage per multispectrum-review.json#consensus_debate_protocol.required_when (meta_review_triggered=true because TG2 is CC-1 kernel public API)"
+  },
+
+  "round_1_reviewers_all_11": [
+    {"facet": "F1_linus", "reviewer_id": "claude-critic-F1_linus-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:critic"},
+    {"facet": "F2_hyperscaler", "reviewer_id": "claude-architect-F2_hyperscaler-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:architect"},
+    {"facet": "F3_adversarial", "reviewer_id": "claude-test-engineer-F3_adversarial-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:test-engineer"},
+    {"facet": "F4_ergonomic", "reviewer_id": "claude-designer-F4_ergonomic-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:designer"},
+    {"facet": "F5_quality", "reviewer_id": "claude-code-reviewer-F5_quality-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:code-reviewer"},
+    {"facet": "F6_alternatives", "reviewer_id": "claude-planner-F6_alternatives-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:planner"},
+    {"facet": "F7_security", "reviewer_id": "claude-security-reviewer-F7_security-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:security-reviewer"},
+    {"facet": "F8_performance", "reviewer_id": "claude-debugger-F8_performance-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:debugger"},
+    {"facet": "F9_compliance", "reviewer_id": "claude-verifier-F9_compliance-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:verifier"},
+    {"facet": "M1_challenge_assumption", "reviewer_id": "claude-analyst-M1_challenge_assumption-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "oh-my-claudecode:analyst"},
+    {"facet": "M2_zoomed_out_fit", "reviewer_id": "claude-code-architect-M2_zoomed_out_fit-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400", "subagent_type": "feature-dev:code-architect"}
+  ],
+
+  "consensus_points": [
+    {
+      "convergence_id": "CONV-1-SUBSTRING-JSON-PARSING",
+      "agreement_across_facets": ["F1_linus", "F2_hyperscaler", "F5_quality", "F6_alternatives", "F7_security", "F8_performance"],
+      "lens_count": 6,
+      "summary": "Substring-grep JSON inspection (`raw.contains(\"\\\"change_class_id\\\"\")`, `raw.contains(\"\\\"meta_review_triggered\\\": true\")`, the `||` for whitespace variants) is the central technical defect. Identified from 6 independent lenses.",
+      "per_lens_framing": {
+        "F1_linus": "special case caused by refusing to parse JSON; `||` whitespace variants is the smell that proves data shape is wrong",
+        "F2_hyperscaler": "N * P byte-scans where P = predicate count; no parsed-evidence memoization across sub-checks; spec drift inevitable",
+        "F5_quality": "approximate-when-exact-feasible; contradicts docstring's exact semantic",
+        "F6_alternatives": "Linus-style serde_json alternative deferred to F-LANE-SEAM-IMPL-FULL-JSON but not named inline as rejected",
+        "F7_security": "string-matching-trivial-bypass; whitespace variants, case variants, embedded string occurrences",
+        "F8_performance": "copy-introduced where zero-copy was feasible; O(N × file_size) heap allocation"
+      },
+      "severity_blocking_for_ramp": "HIGH — must resolve before any sub-check promotes from ReportOnly to Error"
+    },
+    {
+      "convergence_id": "CONV-2-FAIL-OPEN-IO",
+      "agreement_across_facets": ["F5_quality", "F7_security", "F9_compliance"],
+      "lens_count": 3,
+      "summary": "Pervasive `if let Ok(entries) = std::fs::read_dir(...)` + `filter_map(Result::ok)` silently drops I/O errors. A check lane whose job is to surface conditions cannot fail-open as zero-count.",
+      "per_lens_framing": {
+        "F5_quality": "silent-data-drop pattern in a check lane whose job is to surface conditions",
+        "F7_security": "fail-open-on-error; permissions/transient ENOENT/FS corruption yields counters=0 + green ReportOnly",
+        "F9_compliance": "audit-chain emission required for state changes — sub-check-level findings not emitted"
+      },
+      "severity_blocking_for_ramp": "HIGH"
+    },
+    {
+      "convergence_id": "CONV-3-STATUS-SEMANTICS-INCONSISTENT",
+      "agreement_across_facets": ["F1_linus", "F4_ergonomic", "F5_quality", "M1_challenge_assumption"],
+      "lens_count": 4,
+      "summary": "check_naming_convention returns Pass/Fail; the other 3 always return NotYetArmed regardless of count. The premise 'uniform day-1 stubs' is not held by the code itself.",
+      "per_lens_framing": {
+        "F1_linus": "invisible policy across function bodies",
+        "F4_ergonomic": "copy-paste hazard: SubCheckStatus::Pass instead of NotYetArmed for a stub compiles + passes test",
+        "F5_quality": "siblings of identical maturity diverge",
+        "M1_challenge_assumption": "premise of 'uniform day-1 stubs' isn't held by impl — ceremony risk"
+      },
+      "severity_blocking_for_ramp": "HIGH"
+    },
+    {
+      "convergence_id": "CONV-4-SILENT-TRUNCATION-CAP",
+      "agreement_across_facets": ["F1_linus", "F2_hyperscaler", "F5_quality", "F7_security"],
+      "lens_count": 4,
+      "summary": "check_naming_convention silently caps violations.push at 10 with no '… N more' finding. Signal saturates before the repo does.",
+      "severity_blocking_for_ramp": "MEDIUM"
+    },
+    {
+      "convergence_id": "CONV-5-FIXTURE-PAIRS-ARE-PLACEHOLDERS",
+      "agreement_across_facets": ["F3_adversarial"],
+      "lens_count": 1,
+      "summary": "All four fixture-pair directories contain only README stub files. fixture-pair-coverage sub-check today asserts only directory presence; the day-1 'F3 fixture pair' acceptance gate is met syntactically but NOT semantically.",
+      "severity_blocking_for_ramp": "HIGH — fixture pair must contain real passing+failing data before sub-check promotes to Error"
+    },
+    {
+      "convergence_id": "CONV-6-ZERO-TEST-COVERAGE",
+      "agreement_across_facets": ["F3_adversarial", "F4_ergonomic"],
+      "lens_count": 2,
+      "summary": "None of the four new sub-check fns has a dedicated unit test. The canonical-IDs test (run_composite_returns_ten_sub_checks) asserts wiring only — not behavior. Existing adversarial tests cover seam-imports + change-class-declared only.",
+      "severity_blocking_for_ramp": "HIGH"
+    },
+    {
+      "convergence_id": "CONV-7-NO-BENCHMARK-NO-PERF-BUDGET",
+      "agreement_across_facets": ["F2_hyperscaler", "F8_performance"],
+      "lens_count": 2,
+      "summary": "No criterion bench; no regression baseline; serial single-threaded scan at 100x evidence/PR count becomes the long pole of CI.",
+      "severity_blocking_for_ramp": "MEDIUM (cold-path today; warm-path at 10x)"
+    },
+    {
+      "convergence_id": "CONV-8-POLICY-AS-CODE-LITERALS",
+      "agreement_across_facets": ["F1_linus", "F2_hyperscaler"],
+      "lens_count": 2,
+      "summary": "Extension allow-list, canonical-home list, scorecard required-keys, meta-trigger key — all are policy data inlined as code literals. Canonical source lives in specs/cross-cutting/multispectrum-review.json + P14/P15. Drift inevitable.",
+      "severity_blocking_for_ramp": "MEDIUM (refactor; not behavior)"
+    },
+    {
+      "convergence_id": "CONV-9-MISSING-PER-SUBCHECK-AUDIT-EMISSION",
+      "agreement_across_facets": ["F9_compliance"],
+      "lens_count": 1,
+      "summary": "ADR-0069 requires audit-chain emission for state changes. The task_group_completion event names sub-checks collectively but emits no per-sub-check who/when/what/why. Compliance team cannot reconstruct findings from chain alone.",
+      "severity_blocking_for_ramp": "MEDIUM — depends on ADR-0069 scope interpretation"
+    },
+    {
+      "convergence_id": "CONV-10-NAMING-CONVENTION-WRONG-CRATE",
+      "agreement_across_facets": ["M2_zoomed_out_fit"],
+      "lens_count": 1,
+      "summary": "check_naming_convention enforces P14 BNF naming-governance — orthogonal to dependency-seam discipline. At 1-year zoom should migrate to oya-check-naming.",
+      "severity_blocking_for_ramp": "LOW (architectural follow-up; not blocking)"
+    },
+    {
+      "convergence_id": "CONV-11-CEREMONY-RISK",
+      "agreement_across_facets": ["F3_adversarial", "M1_challenge_assumption"],
+      "lens_count": 2,
+      "summary": "Three of four sub-checks return NotYetArmed unconditionally. They DOCUMENT intent but ENFORCE nothing. The premise 'these are day-1 stubs that will arm' assumes the gap closes — without sunset dates on the 4 FixupTasks, NotYetArmed can drift into permanence (coverage-illusion).",
+      "severity_blocking_for_ramp": "HIGH — prevention: file F-FIXUPTASK-SUNSET-DATES + open spec ticket per M1's recommendation"
+    }
+  ],
+
+  "unresolved_tensions": [
+    {
+      "tension_id": "TEN-1-STD-ONLY-CONSTRAINT",
+      "summary": "Hard rule (forbidding serde_json) or soft preference? F1/F5/F6/F8 all defer parts of their recommendation to this answer.",
+      "resolution_needed_from": "council-architecture",
+      "interim_position": "Treat as hard rule (matches render_report_json hand-rolling). Reshape via a minimal hand-rolled JSON tokenizer module shared across emit + consume paths."
+    },
+    {
+      "tension_id": "TEN-2-4-FNS-VS-1-TABLE",
+      "summary": "F1 wants table-driven scan; F2 wants spec-driven generator; F4 cares about per-fn testability locality; M2 wants per-concern extraction. 4 different reshape proposals.",
+      "resolution_needed_from": "primary maintainer of oya-check-dependency-seam",
+      "interim_position": "Keep 4 pub fn entry points (binary-compatible) but route through 1 shared scan helper. Defer spec-driven generator to F-LANE-SEAM-SPEC-DRIVEN-GENERATOR. Defer naming-convention crate extraction to F-EXTRACT-NAMING-CONVENTION-TO-OWN-CRATE."
+    },
+    {
+      "tension_id": "TEN-3-MECHANICAL-ENFORCEMENT-MONOTHEISM",
+      "summary": "M1 flagged that multispectrum-review.json#mechanical_enforcement names ONLY oya-check-dependency-seam as the substrate, locking in lane-as-substrate before evidence shows it is the right one. CI workflow gate + repo-policy bot + facet Tier-1 auto_checks are alternatives not enumerated as considered-and-rejected.",
+      "resolution_needed_from": "spec v2.3.0 revision OR council-architecture decision",
+      "interim_position": "Accept current state; require that before any sub-check promotes from NotYetArmed to Error, the spec be asked to enumerate at least one alternate substrate considered + rejected per sub-check."
+    },
+    {
+      "tension_id": "TEN-4-PARALLEL-SCAN-PREMATURE",
+      "summary": "F2 + F6 + F8 raise concerns about serial scan at 100x. F6 calls hyperscaler-style parallel an acceptable omission today but not currently bounded.",
+      "resolution_needed_from": "evidence of throughput pain",
+      "interim_position": "File F-LANE-SEAM-PARALLEL-SCAN as low priority. Premature today; gate arming on benchmark showing single-thread is the long pole."
+    }
+  ],
+
+  "final_recommendation": {
+    "verdict": "ACCEPT-WITH-FIXUPS — 11 of 11 lenses concur. NO veto. TG2 day-1 stubs are appropriate for stated maturity and shipped successfully (commits fef7152 + a6cd457). However, severity-ramp is gated on resolving 11 convergence points before any sub-check promotes from ReportOnly to Error.",
+    "blocking_actions_before_severity_ramp_to_error": [
+      "CONV-1: Replace substring-grep JSON inspection with parsed JSON structural traversal (hand-rolled tokenizer if std-only constraint is hard)",
+      "CONV-2: Surface I/O errors as Fail findings; never silent-drop std::fs::Err",
+      "CONV-3: Align all four day-1 stubs to NotYetArmed for consistent maturity semantics, OR document why naming-convention is intentionally armed at day-1",
+      "CONV-5: Replace fixture-pair README stubs with real passing+failing fixture data; extend fixture-pair-coverage sub-check to verify content, not just dir presence",
+      "CONV-6: Add per-sub-check unit tests (happy-path + adversarial-fail-path)",
+      "CONV-11: Set sunset dates on F-LANE-RUST-DEFAULT-ENFORCE / F-NAMING-CONVENTION-ENFORCE / F-LANE-SCORECARD-RENDER / F-LANE-DEBATE-SUBCHECK so stubs cannot drift to permanence"
+    ],
+    "non_blocking_followups": [
+      "CONV-4: Append `… <N-10> more` finding when violations exceed display cap",
+      "CONV-7: Add criterion benchmark + perf-budget gate",
+      "CONV-8: Generate sub-checks from canonical spec source (long-term reshape)",
+      "CONV-9: Per-sub-check audit-chain emission (ADR-0069 compliance)",
+      "CONV-10: Extract check_naming_convention to oya-check-naming crate when it graduates from NotYetArmed",
+      "F2 hyperscaler: Single-pass parsed-evidence shared across sub-checks (eliminates double-walk of evidence/multispectrum + evidence/per-change)",
+      "F6 hyperscaler-style: File F-LANE-SEAM-PARALLEL-SCAN low-priority for >10k file regime",
+      "F8: Replace to_string_lossy().to_string() with Cow<str> where allocation is unnecessary",
+      "TEN-3: Open spec ticket asking v2.3.0 to widen mechanical_enforcement"
+    ],
+    "fixuptasks_to_emit": [
+      "F-SEAM-LANE-PARSED-JSON-VS-SUBSTRING (HIGH; CONV-1; 6-lens convergence)",
+      "F-SEAM-LANE-IO-ERROR-SURFACE (HIGH; CONV-2; 3-lens convergence)",
+      "F-SEAM-LANE-STATUS-SEMANTICS-ALIGN (HIGH; CONV-3; 4-lens convergence)",
+      "F-SEAM-LANE-REAL-FIXTURE-DATA (HIGH; CONV-5; F3 unambiguous)",
+      "F-SEAM-LANE-PER-SUBCHECK-UNIT-TESTS (HIGH; CONV-6; F3+F4)",
+      "F-SEAM-LANE-FIXUPTASK-SUNSET-DATES (HIGH; CONV-11; M1+F3 ceremony prevention)",
+      "F-SEAM-LANE-TRUNCATION-FINDING (MEDIUM; CONV-4)",
+      "F-SEAM-LANE-BENCHMARK-PERF-BUDGET (MEDIUM; CONV-7)",
+      "F-SEAM-LANE-SPEC-DRIVEN-GENERATOR (MEDIUM; CONV-8)",
+      "F-SEAM-LANE-AUDIT-CHAIN-PER-SUBCHECK (MEDIUM; CONV-9)",
+      "F-EXTRACT-NAMING-CONVENTION-TO-OWN-CRATE (LOW; CONV-10)",
+      "F-LANE-SEAM-PARALLEL-SCAN (LOW; F6 hyperscaler alternative)",
+      "F-SEAM-LANE-SHARED-SCAN-HELPER (MEDIUM; TEN-2 interim position)",
+      "F-SPEC-V230-WIDEN-MECHANICAL-ENFORCEMENT (MEDIUM; TEN-3 / M1's spec-ticket)"
+    ]
+  },
+
+  "termination_reason": "consensus_reached",
+  "termination_detail": "11 of 11 facets dispatched + emitted r1.json. ZERO veto across all lenses. 11 convergence points identified with clear severity classification (6 HIGH / 5 MEDIUM-or-LOW). 4 unresolved tensions identified with interim positions. Verdict ACCEPT-WITH-FIXUPS is unanimous; severity-ramp blockers are precisely enumerated. No round-2 rebuttal needed — round-1 converged strongly and no contradictory positions surfaced.",
+
+  "rounds_executed": 1,
+  "rounds_planned_originally": 2,
+  "round_2_skipped_reason": "Round 1 converged on a unanimous ACCEPT-WITH-FIXUPS verdict with 11 named convergence points. Round 2 rebuttal would not change the verdict. Per consensus_debate_protocol.iterate.termination_conditions: 'consensus_reached == true' satisfied at round 1.",
+
+  "spectrum_lens_executor_topology_validation": {
+    "distinct_reviewer_ids": 11,
+    "distinct_subagent_types": 11,
+    "any_reviewer_id_across_multiple_facets": false,
+    "directive_compliance_per_user_2026_05_14": "VERIFIED — 'consensus debate should be done by separate subagents or separate teammate sessions' + 'with each spectrum as their lens' was honored",
+    "executor_topology_pilot_outcome": "WORKS — produced 11 truly independent reviews; convergent findings emerged from non-bias-collapsed parallel review; unresolved tensions surfaced honestly"
+  },
+
+  "lane_validation_will_check": [
+    "synthesis file exists at /evidence/debate/<change_id>-synthesis.json ✓",
+    "termination_reason ∈ {consensus_reached, escalation_resolved} ✓",
+    "per-facet r1 files exist from distinct reviewer_ids ✓ (11/11)",
+    "no reviewer_id appears across multiple facets ✓",
+    "all 9 required facets + meta_review_triggered → both M-facets present ✓"
+  ],
+
+  "decision_log": [
+    {"when": "2026-05-14T23:55:00Z", "who": "claude-orchestrator", "what_changed": "full 11-facet synthesis emitted; supersedes 3-facet pilot at 23:30", "why": "user directive 'go through as many iterations as necessary for consensus' + 'include everything you'd expect from hyperscaler ops' — full coverage instead of partial pilot"}
+  ]
+}
