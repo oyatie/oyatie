@@ -1,0 +1,1 @@
+# failing: workspace.dependencies entry exists in Cargo.toml but no rationale row

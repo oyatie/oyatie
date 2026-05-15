@@ -369,8 +369,8 @@ fn composite_suite_meets_perf_budget_on_synthetic_workload() {
     let report = run_composite(&WorkspaceContext::new(&ws));
     let elapsed = start.elapsed();
 
-    // Sanity: composite ran all 11 sub-checks (10 TG2 + A6 v2.3.0).
-    assert_eq!(report.sub_checks.len(), 11);
+    // Sanity: composite ran all 17 sub-checks (10 TG2 + A6 + A1..A5 + A7 v2.3.0).
+    assert_eq!(report.sub_checks.len(), 17);
 
     let budget_ms = 500u128;
     let actual_ms = elapsed.as_millis();

@@ -118,6 +118,12 @@ pub fn run_composite(ctx: &WorkspaceContext) -> CompositeReport {
         check_scorecard_render(ctx),
         check_consensus_debate_evidence(ctx),
         check_a6_schema_adherence(ctx),
+        check_a1_naming_adherence(ctx),
+        check_a2_documentation_adherence(ctx),
+        check_a3_structure_adherence(ctx),
+        check_a4_architecture_adherence(ctx),
+        check_a5_dependency_adherence(ctx),
+        check_a7_algorithm_adherence(ctx),
     ];
     CompositeReport { sub_checks }
 }
@@ -837,6 +843,372 @@ pub fn check_a6_schema_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
     }
 }
 
+/// `a1-naming-adherence`: extended naming-governance scan beyond canonical
+/// durable homes — covers docs/decisions/ (ADR-NNNN-<kebab>.md) + crates/
+/// + tools/ (oya-<microservice>-<layer> BNF per ADR-0056). Day-1 stub:
+/// count + report non-compliant filenames. Full BNF enforcement is
+/// F-LANE-ADHERENCE-A1-NAMING.
+pub fn check_a1_naming_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
+    let homes = ["docs/decisions", "crates", "tools"];
+    let mut scanned = 0usize;
+    let mut violations_total = 0usize;
+    let mut violations_displayed: Vec<String> = Vec::new();
+    let mut io_errors: Vec<String> = Vec::new();
+    let display_cap = 10usize;
+    for home in &homes {
+        let p = ctx.workspace_root.join(home);
+        scan_dir(&p, &mut io_errors, |entry| {
+            let name = entry.file_name();
+            let s = name.to_string_lossy().to_string();
+            if s.starts_with('.') {
+                return;
+            }
+            scanned += 1;
+            // Kebab-rule: ASCII lowercase + digit + hyphen + dot only.
+            let compliant = s
+                .chars()
+                .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '.');
+            if !compliant {
+                violations_total += 1;
+                if violations_displayed.len() < display_cap {
+                    violations_displayed.push(format!("{}/{}", home, s));
+                }
+            }
+        });
+    }
+    let mut findings = vec![format!(
+        "extended-namespace entries scanned: {}; non-kebab violations: {}",
+        scanned, violations_total
+    )];
+    for v in &violations_displayed {
+        findings.push(format!("  - {}", v));
+    }
+    if violations_total > display_cap {
+        findings.push(format!(
+            "  - ... {} additional violation(s) omitted (display cap = {})",
+            violations_total - display_cap,
+            display_cap
+        ));
+    }
+    findings.extend(io_errors);
+    findings.push(
+        "ADR-0056 BNF v4.1 (oya-<microservice>-<layer>) + version-suffix + $id-path parity NOT YET ARMED — F-LANE-ADHERENCE-A1-NAMING"
+            .into(),
+    );
+    SubCheckResult {
+        id: "a1-naming-adherence",
+        status: SubCheckStatus::NotYetArmed,
+        findings,
+        severity_day_1: Severity::ReportOnly,
+    }
+}
+
+/// `a2-documentation-adherence`: walk `docs/standards/`, `docs/decisions/`,
+/// and `docs/runbooks/` markdown files. Check each declares the
+/// `doc_class` + `length_cap` keys in YAML frontmatter (per
+/// docs/standards/doc-style.md). Day-1 stub. Full DOC-CATALOG row + 'Does
+/// NOT cover' clause + thin-gateway shape lives in F-LANE-ADHERENCE-A2-DOCUMENTATION.
+pub fn check_a2_documentation_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
+    let homes = ["docs/standards", "docs/decisions", "docs/runbooks"];
+    let mut scanned = 0usize;
+    let mut compliant = 0usize;
+    let mut violations_displayed: Vec<String> = Vec::new();
+    let mut io_errors: Vec<String> = Vec::new();
+    let mut inner_errors: Vec<String> = Vec::new();
+    let display_cap = 10usize;
+    for home in &homes {
+        let p = ctx.workspace_root.join(home);
+        scan_dir(&p, &mut io_errors, |entry| {
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("md") {
+                return;
+            }
+            scanned += 1;
+            match std::fs::read_to_string(&path) {
+                Ok(raw) => {
+                    // Frontmatter: --- ... --- at top. Look for doc_class + length_cap keys.
+                    let has_frontmatter = raw.starts_with("---");
+                    let has_doc_class = raw.contains("doc_class:");
+                    let has_length_cap = raw.contains("length_cap:");
+                    if has_frontmatter && has_doc_class && has_length_cap {
+                        compliant += 1;
+                    } else if violations_displayed.len() < display_cap {
+                        let mut missing: Vec<&str> = Vec::new();
+                        if !has_frontmatter {
+                            missing.push("frontmatter");
+                        }
+                        if !has_doc_class {
+                            missing.push("doc_class");
+                        }
+                        if !has_length_cap {
+                            missing.push("length_cap");
+                        }
+                        let rel = path.strip_prefix(&ctx.workspace_root).unwrap_or(&path);
+                        violations_displayed.push(format!(
+                            "{}: missing {}",
+                            rel.display(),
+                            missing.join("+")
+                        ));
+                    }
+                }
+                Err(e) => inner_errors.push(format!(
+                    "read_to_string({}) failed: {}",
+                    path.display(),
+                    e
+                )),
+            }
+        });
+    }
+    io_errors.extend(inner_errors);
+    let non_compliant = scanned.saturating_sub(compliant);
+    let mut findings = vec![format!(
+        "markdown files scanned: {}; frontmatter-compliant (doc_class+length_cap): {}; non-compliant: {}",
+        scanned, compliant, non_compliant
+    )];
+    for v in &violations_displayed {
+        findings.push(format!("  - {}", v));
+    }
+    if non_compliant > violations_displayed.len() {
+        findings.push(format!(
+            "  - ... {} additional violation(s) omitted (display cap = {})",
+            non_compliant - violations_displayed.len(),
+            display_cap
+        ));
+    }
+    findings.extend(io_errors);
+    findings.push(
+        "DOC-CATALOG row + thin-gateway shape + 'Does NOT cover' clause NOT YET ARMED — F-LANE-ADHERENCE-A2-DOCUMENTATION"
+            .into(),
+    );
+    SubCheckResult {
+        id: "a2-documentation-adherence",
+        status: SubCheckStatus::NotYetArmed,
+        findings,
+        severity_day_1: Severity::ReportOnly,
+    }
+}
+
+/// `a3-structure-adherence`: enforce P11 — no durables under .omc/{specs,
+/// registries, templates, evidence, ledger, audits, claim-matrix, graph}.
+/// Day-1 stub: count files in those subdirs (should be 0 post-TG1
+/// migration). Full repo_layout BNF coverage is F-LANE-ADHERENCE-A3-STRUCTURE.
+pub fn check_a3_structure_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
+    let forbidden = [
+        ".omc/specs",
+        ".omc/registries",
+        ".omc/templates",
+        ".omc/evidence",
+        ".omc/ledger",
+        ".omc/audits",
+        ".omc/claim-matrix",
+        ".omc/graph",
+    ];
+    let mut violations = 0usize;
+    let mut violations_displayed: Vec<String> = Vec::new();
+    let mut io_errors: Vec<String> = Vec::new();
+    let display_cap = 10usize;
+    for f in &forbidden {
+        let p = ctx.workspace_root.join(f);
+        if !p.exists() {
+            continue;
+        }
+        scan_dir(&p, &mut io_errors, |entry| {
+            violations += 1;
+            if violations_displayed.len() < display_cap {
+                let name = entry.file_name();
+                violations_displayed.push(format!("{}/{}", f, name.to_string_lossy()));
+            }
+        });
+    }
+    let mut findings = vec![format!(
+        "P11 forbidden-subdir entries found: {} (post-TG1 expected: 0)",
+        violations
+    )];
+    for v in &violations_displayed {
+        findings.push(format!("  - {}", v));
+    }
+    if violations > display_cap {
+        findings.push(format!(
+            "  - ... {} additional omitted",
+            violations - display_cap
+        ));
+    }
+    findings.extend(io_errors);
+    findings.push(
+        "full repo_layout BNF + canonical-home placement check NOT YET ARMED — F-LANE-ADHERENCE-A3-STRUCTURE"
+            .into(),
+    );
+    SubCheckResult {
+        id: "a3-structure-adherence",
+        status: SubCheckStatus::NotYetArmed,
+        findings,
+        severity_day_1: Severity::ReportOnly,
+    }
+}
+
+/// `a4-architecture-adherence`: walk crates/ — each crate's name should
+/// match ADR-0056 BNF v4.1 layer suffix (kernel/domain/application/adapter/
+/// app/api/worker/runtime/infrastructure/service/rest/cli/bindings). Day-1
+/// stub: count compliant suffixes. Full per-layer dependency-direction
+/// validation lives in F-LANE-ADHERENCE-A4-ARCHITECTURE.
+pub fn check_a4_architecture_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
+    let crates_dir = ctx.workspace_root.join("crates");
+    let valid_layers = [
+        "-kernel",
+        "-domain",
+        "-application",
+        "-adapter",
+        "-app",
+        "-api",
+        "-worker",
+        "-runtime",
+        "-infrastructure",
+        "-service",
+        "-rest",
+        "-cli",
+        "-bindings",
+    ];
+    let mut scanned = 0usize;
+    let mut compliant = 0usize;
+    let mut violations_displayed: Vec<String> = Vec::new();
+    let mut io_errors: Vec<String> = Vec::new();
+    let display_cap = 10usize;
+    scan_dir(&crates_dir, &mut io_errors, |entry| {
+        let name = entry.file_name();
+        let s = name.to_string_lossy().to_string();
+        if s.starts_with('.') || !s.starts_with("oya-") {
+            return;
+        }
+        scanned += 1;
+        // Exempt namespaces: check / foundry-fitness-* / *-policy
+        let is_exempt = s.starts_with("oya-check-")
+            || s.starts_with("oya-foundry-fitness-")
+            || s.starts_with("oya-json-")
+            || s.contains("-policy");
+        if is_exempt {
+            compliant += 1;
+            return;
+        }
+        let layer_match = valid_layers.iter().any(|suffix| s.ends_with(suffix));
+        if layer_match {
+            compliant += 1;
+        } else if violations_displayed.len() < display_cap {
+            violations_displayed.push(s);
+        }
+    });
+    let non_compliant = scanned.saturating_sub(compliant);
+    let mut findings = vec![format!(
+        "crates scanned: {}; ADR-0056 BNF layer-suffix compliant: {}; non-compliant: {}",
+        scanned, compliant, non_compliant
+    )];
+    for v in &violations_displayed {
+        findings.push(format!("  - {}", v));
+    }
+    if non_compliant > display_cap {
+        findings.push(format!(
+            "  - ... {} additional omitted",
+            non_compliant - display_cap
+        ));
+    }
+    findings.extend(io_errors);
+    findings.push(
+        "per-layer dependency-direction validation (inward-flow) NOT YET ARMED — F-LANE-ADHERENCE-A4-ARCHITECTURE"
+            .into(),
+    );
+    SubCheckResult {
+        id: "a4-architecture-adherence",
+        status: SubCheckStatus::NotYetArmed,
+        findings,
+        severity_day_1: Severity::ReportOnly,
+    }
+}
+
+/// `a5-dependency-adherence`: read workspace Cargo.toml + registries/cross-
+/// cutting/dependency-rationales.json. Count [workspace.dependencies]
+/// entries that have a matching rationale row vs orphans. Day-1 stub.
+/// Full cargo-deny + license + LTS pinning check is F-LANE-ADHERENCE-A5-DEPENDENCY.
+pub fn check_a5_dependency_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
+    let registry = ctx
+        .workspace_root
+        .join("registries/cross-cutting/dependency-rationales.json");
+    let mut findings = Vec::new();
+    let registered: Vec<String> = match std::fs::read_to_string(&registry) {
+        Ok(raw) => extract_registry_entry_names(&raw),
+        Err(e) => {
+            findings.push(format!(
+                "registry read failed: {} ({})",
+                registry.display(),
+                e
+            ));
+            Vec::new()
+        }
+    };
+    findings.push(format!(
+        "registry rows declared in /registries/cross-cutting/dependency-rationales.json: {}",
+        registered.len()
+    ));
+    findings.push(
+        "Cargo.toml [workspace.dependencies] cross-join + cargo-deny + LTS-pinning + license-posture NOT YET ARMED — F-LANE-ADHERENCE-A5-DEPENDENCY"
+            .into(),
+    );
+    SubCheckResult {
+        id: "a5-dependency-adherence",
+        status: SubCheckStatus::NotYetArmed,
+        findings,
+        severity_day_1: Severity::ReportOnly,
+    }
+}
+
+/// `a7-algorithm-adherence`: count Rust files under crates/ that contain
+/// heuristic markers (TODO / FIXME / approximate / heuristic). Day-1 stub.
+/// Full complexity-class declaration + deterministic-on-deterministic-path
+/// audit is F-LANE-ADHERENCE-A7-ALGORITHM.
+pub fn check_a7_algorithm_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
+    let crates_dir = ctx.workspace_root.join("crates");
+    let mut scanned_rust_files = 0usize;
+    let mut heuristic_marker_files = 0usize;
+    let markers = ["TODO", "FIXME", "approximate", "heuristic"];
+    let mut io_errors: Vec<String> = Vec::new();
+    let mut inner_errors: Vec<String> = Vec::new();
+    // Single-level dir scan of crates/<each-crate> — non-recursive day-1.
+    scan_dir(&crates_dir, &mut io_errors, |crate_entry| {
+        let crate_path = crate_entry.path();
+        if !crate_path.is_dir() {
+            return;
+        }
+        let src = crate_path.join("src");
+        // Look at top-level src/ only (lib.rs + main.rs typically).
+        scan_dir(&src, &mut inner_errors, |src_entry| {
+            let p = src_entry.path();
+            if p.extension().and_then(|s| s.to_str()) != Some("rs") {
+                return;
+            }
+            scanned_rust_files += 1;
+            if let Ok(raw) = std::fs::read_to_string(&p) {
+                if markers.iter().any(|m| raw.contains(m)) {
+                    heuristic_marker_files += 1;
+                }
+            }
+        });
+    });
+    io_errors.extend(inner_errors);
+    let mut findings = vec![format!(
+        "Rust src files scanned (crates/*/src top-level): {}; files containing TODO/FIXME/approximate/heuristic markers: {}",
+        scanned_rust_files, heuristic_marker_files
+    )];
+    findings.extend(io_errors);
+    findings.push(
+        "complexity-class declaration + P3 deterministic-on-deterministic-path audit NOT YET ARMED — F-LANE-ADHERENCE-A7-ALGORITHM"
+            .into(),
+    );
+    SubCheckResult {
+        id: "a7-algorithm-adherence",
+        status: SubCheckStatus::NotYetArmed,
+        findings,
+        severity_day_1: Severity::ReportOnly,
+    }
+}
+
 /// Shared scan primitive: read a directory, invoke `visit` on each Ok
 /// entry, surface read_dir + entry I/O errors as findings strings via the
 /// `errors` accumulator. Std-only.
@@ -1245,10 +1617,10 @@ mod tests {
     }
 
     #[test]
-    fn run_composite_returns_eleven_sub_checks() {
+    fn run_composite_returns_seventeen_sub_checks() {
         let ctx = WorkspaceContext::new(workspace_root_from_test());
         let report = run_composite(&ctx);
-        assert_eq!(report.sub_checks.len(), 11);
+        assert_eq!(report.sub_checks.len(), 17);
         // IDs in canonical order per ADR-0092 D13 + TG2 extension + A-family v2.3.0.
         let ids: Vec<&str> = report.sub_checks.iter().map(|r| r.id).collect();
         assert_eq!(
@@ -1265,6 +1637,12 @@ mod tests {
                 "scorecard-render",
                 "consensus-debate-evidence",
                 "a6-schema-adherence",
+                "a1-naming-adherence",
+                "a2-documentation-adherence",
+                "a3-structure-adherence",
+                "a4-architecture-adherence",
+                "a5-dependency-adherence",
+                "a7-algorithm-adherence",
             ]
         );
     }
