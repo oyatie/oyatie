@@ -29,6 +29,7 @@ related_adrs:
   - ADR-0017
   - ADR-0053
   - ADR-0054
+  - ADR-0056
 authority_chain_declaration: |
   docs/CONSTITUTION.md > docs/AGENTS.md > docs/standards/code-style-rust.md
   > docs/standards/crate-naming-convention.md ≡ THIS DOC
@@ -60,6 +61,8 @@ synthesis as practised by the major Rust hyperscalers (AWS smithy-rs,
 Azure SDK for Rust, Google Cloud Rust). See §8 for citations.
 
 ## 2. Layer definitions
+
+The **canonical 12-layer enum** lives in [ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)§Decision (BNF v4.1). This standard discusses **7 of the 12 layers** in semantic + testing + contract detail; the remaining 5 (`bindings`, `infrastructure`, `service`, `rest`, `cli`) are enumerated only in ADR-0056 and inherit the same inward-flow rule. **Do not redeclare the enum here — cite ADR-0056§Decision.**
 
 ```mermaid
 flowchart RL
