@@ -1,8 +1,4 @@
 ---
-purpose: Auto-backfilled purpose for README.md
----
-
----
 doc_class: Index
 shape: ~
 length_cap: 120
@@ -11,8 +7,10 @@ purpose: Root entry point for all project documentation; redirects to relevant h
 excludes:
   - path: docs/AGENTS.md
     reason: Agent operating contract — the contract for any agent or human about to make a change.
-  - path: docs/CONSTITUTION.md
-    reason: Constitutional frame — what overrides everything else.
+  - path: /specs/cross-cutting/decision-principles.json
+    reason: Machine-readable do-list (DP-01..DP-10); successor to retired CONSTITUTION.md §Decision-principles.
+  - path: /specs/cross-cutting/forbidden-operations.json
+    reason: Machine-readable avoid-list (FO-01..FO-10); successor to retired CONSTITUTION.md §Prohibitions.
   - path: docs/DOC-CATALOG.md
     reason: Per-doc lifecycle protocol.
   - path: docs/products/

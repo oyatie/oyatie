@@ -30,11 +30,14 @@ excludes:
 - path: docs/MISTAKES-LEDGER.md
   reason: Failure-mode catalog; this contract operates the doctrine, does not catalog
     it.
-authority_chain_declaration: "system / developer / user instructions\n  > /specs/cross-cutting/root-hub-pointers.json\n\
-  \  > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5\
-  \ promotion)\n  > machine-readable specs and registries under .omc/\n  > docs/ authority\
-  \ files during markdown-retirement compatibility\n  > repo-root Redirect-class files\
-  \ (non-authoritative; lane-thin)\n  > working drafts (never authoritative)\n"
+authority_chain_declaration: |
+  system / developer / user instructions
+    > /specs/cross-cutting/root-hub-pointers.json
+    > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
+    > machine-readable specs and registries under .omc/
+    > docs/ authority files during markdown-retirement compatibility
+    > repo-root Redirect-class files (non-authoritative; lane-thin)
+    > working drafts (never authoritative)
 purpose: Auto-backfilled purpose for AGENTS.md
 ---
 # Oyatie Agent Operating Contract
