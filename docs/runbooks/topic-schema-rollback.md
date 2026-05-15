@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for topic-schema-rollback.md
+purpose: Oyatie Runbook — Topic Schema Rollback
 ---
 
 # Oyatie Runbook — Topic Schema Rollback

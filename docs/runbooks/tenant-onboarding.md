@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for tenant-onboarding.md
+purpose: Oyatie Runbook — Tenant Onboarding
 ---
 
 # Oyatie Runbook — Tenant Onboarding

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for attribution-pipeline-lag.md
+purpose: Oyatie Runbook — Attribution Pipeline Lag
 ---
 
 # Oyatie Runbook — Attribution Pipeline Lag

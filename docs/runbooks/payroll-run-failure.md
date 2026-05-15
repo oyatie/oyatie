@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for payroll-run-failure.md
+purpose: Oyatie Runbook — Payroll Run Failure
 ---
 
 # Oyatie Runbook — Payroll Run Failure

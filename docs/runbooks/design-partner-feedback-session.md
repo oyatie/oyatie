@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for design-partner-feedback-session.md
+purpose: Oyatie Runbook — Design Partner Feedback Session
 ---
 
 # Oyatie Runbook — Design Partner Feedback Session

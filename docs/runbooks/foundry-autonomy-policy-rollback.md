@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-autonomy-policy-rollback.md
+purpose: Oyatie Runbook — Foundry Autonomy Policy Rollback
 ---
 
 # Oyatie Runbook — Foundry Autonomy Policy Rollback

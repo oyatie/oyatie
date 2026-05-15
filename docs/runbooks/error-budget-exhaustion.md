@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for error-budget-exhaustion.md
+purpose: Oyatie Runbook — Error Budget Exhaustion
 ---
 
 # Oyatie Runbook — Error Budget Exhaustion

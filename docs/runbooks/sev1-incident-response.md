@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for sev1-incident-response.md
+purpose: Oyatie Runbook — Sev1 Incident Response
 ---
 
 # Oyatie Runbook — Sev1 Incident Response

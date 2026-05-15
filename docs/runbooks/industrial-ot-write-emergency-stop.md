@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for industrial-ot-write-emergency-stop.md
+purpose: Oyatie Runbook — Industrial Ot Write Emergency Stop
 ---
 
 # Oyatie Runbook — Industrial Ot Write Emergency Stop

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for region-failover.md
+purpose: Oyatie Runbook — Region Failover
 ---
 
 # Oyatie Runbook — Region Failover

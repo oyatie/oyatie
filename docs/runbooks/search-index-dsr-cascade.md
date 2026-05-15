@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for search-index-dsr-cascade.md
+purpose: Oyatie Runbook — Search Index Dsr Cascade
 ---
 
 # Oyatie Runbook — Search Index Dsr Cascade

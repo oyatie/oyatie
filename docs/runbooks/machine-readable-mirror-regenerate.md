@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for machine-readable-mirror-regenerate.md
+purpose: Oyatie Runbook — Machine Readable Mirror Regenerate
 ---
 
 # Oyatie Runbook — Machine Readable Mirror Regenerate

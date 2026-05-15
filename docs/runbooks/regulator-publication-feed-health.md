@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for regulator-publication-feed-health.md
+purpose: Oyatie Runbook — Regulator Publication Feed Health
 ---
 
 # Oyatie Runbook — Regulator Publication Feed Health

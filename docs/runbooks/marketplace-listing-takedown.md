@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for marketplace-listing-takedown.md
+purpose: Oyatie Runbook — Marketplace Listing Takedown
 ---
 
 # Oyatie Runbook — Marketplace Listing Takedown

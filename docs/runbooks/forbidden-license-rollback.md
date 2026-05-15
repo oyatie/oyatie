@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for forbidden-license-rollback.md
+purpose: Oyatie Runbook — Forbidden License Rollback
 ---
 
 # Oyatie Runbook — Forbidden License Rollback

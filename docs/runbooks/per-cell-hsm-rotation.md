@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for per-cell-hsm-rotation.md
+purpose: Oyatie Runbook — Per Cell Hsm Rotation
 ---
 
 # Oyatie Runbook — Per Cell Hsm Rotation

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for doc-update-pr.md
+purpose: Oyatie Runbook — Doc Update Pr
 ---
 
 # Oyatie Runbook — Doc Update Pr

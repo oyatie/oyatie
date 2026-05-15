@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for audit-chain-integrity-check.md
+purpose: Oyatie Runbook — Audit Chain Integrity Check
 ---
 
 # Oyatie Runbook — Audit Chain Integrity Check

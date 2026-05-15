@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for capability-rollback.md
+purpose: Oyatie Runbook — Capability Rollback
 ---
 
 # Oyatie Runbook — Capability Rollback

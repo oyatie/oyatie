@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for wave-gate-evaluation.md
+purpose: Oyatie Runbook — Wave Gate Evaluation
 ---
 
 # Oyatie Runbook — Wave Gate Evaluation

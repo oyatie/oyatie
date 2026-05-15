@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-sandbox-warm-pool.md
+purpose: Oyatie Runbook — Foundry Sandbox Warm Pool
 ---
 
 # Oyatie Runbook — Foundry Sandbox Warm Pool

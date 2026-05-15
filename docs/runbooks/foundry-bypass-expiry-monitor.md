@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-bypass-expiry-monitor.md
+purpose: Oyatie Runbook — Foundry Bypass Expiry Monitor
 ---
 
 # Oyatie Runbook — Foundry Bypass Expiry Monitor

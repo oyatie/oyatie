@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for supply-chain-compromise.md
+purpose: Oyatie Runbook — Supply Chain Compromise
 ---
 
 # Oyatie Runbook — Supply Chain Compromise

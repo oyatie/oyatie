@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for cell-tier-promotion.md
+purpose: Oyatie Runbook — Cell Tier Promotion
 ---
 
 # Oyatie Runbook — Cell Tier Promotion

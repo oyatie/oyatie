@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for supply-chain-trivy-alert.md
+purpose: Oyatie Runbook — Supply Chain Trivy Alert
 ---
 
 # Oyatie Runbook — Supply Chain Trivy Alert

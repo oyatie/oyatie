@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-capability-publish.md
+purpose: Oyatie Runbook — Foundry Capability Publish
 ---
 
 # Oyatie Runbook — Foundry Capability Publish

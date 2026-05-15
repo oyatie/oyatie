@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for outbox-poller-recovery.md
+purpose: Oyatie Runbook — Outbox Poller Recovery
 ---
 
 # Oyatie Runbook — Outbox Poller Recovery

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for vertical-pilot-wave-gate-readiness.md
+purpose: Oyatie Runbook — Vertical Pilot Wave Gate Readiness
 ---
 
 # Oyatie Runbook — Vertical Pilot Wave Gate Readiness

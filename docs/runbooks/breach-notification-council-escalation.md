@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for breach-notification-council-escalation.md
+purpose: Oyatie Runbook — Breach Notification Council Escalation
 ---
 
 # Oyatie Runbook — Breach Notification Council Escalation

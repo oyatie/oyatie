@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for outbox-relay-lag.md
+purpose: Oyatie Runbook — Outbox Relay Lag
 ---
 
 # Oyatie Runbook — Outbox Relay Lag

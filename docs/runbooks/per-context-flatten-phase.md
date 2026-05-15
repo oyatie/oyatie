@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for per-context-flatten-phase.md
+purpose: Oyatie Runbook — Per-Context Flatten Phase
 ---
 
 # Oyatie Runbook — Per-Context Flatten Phase

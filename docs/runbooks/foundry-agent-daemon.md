@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-agent-daemon.md
+purpose: Oyatie Runbook — Foundry Agent Daemon
 ---
 
 # Oyatie Runbook — Foundry Agent Daemon

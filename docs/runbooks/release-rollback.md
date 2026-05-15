@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for release-rollback.md
+purpose: Oyatie Runbook — Release Rollback
 ---
 
 # Oyatie Runbook — Release Rollback

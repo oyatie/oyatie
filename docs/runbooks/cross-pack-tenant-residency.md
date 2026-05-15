@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for cross-pack-tenant-residency.md
+purpose: Oyatie Runbook — Cross Pack Tenant Residency
 ---
 
 # Oyatie Runbook — Cross Pack Tenant Residency

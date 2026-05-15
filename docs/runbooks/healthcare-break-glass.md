@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for healthcare-break-glass.md
+purpose: Oyatie Runbook — Healthcare Break Glass
 ---
 
 # Oyatie Runbook — Healthcare Break Glass

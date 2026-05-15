@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for sdk-release.md
+purpose: Oyatie Runbook — Sdk Release
 ---
 
 # Oyatie Runbook — Sdk Release

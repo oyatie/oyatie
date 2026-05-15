@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for consent-withdrawal-cascade.md
+purpose: Oyatie Runbook — Consent Withdrawal Cascade
 ---
 
 # Oyatie Runbook — Consent Withdrawal Cascade

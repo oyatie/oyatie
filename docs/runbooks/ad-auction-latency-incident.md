@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for ad-auction-latency-incident.md
+purpose: Oyatie Runbook — Ad Auction Latency Incident
 ---
 
 # Oyatie Runbook — Ad Auction Latency Incident

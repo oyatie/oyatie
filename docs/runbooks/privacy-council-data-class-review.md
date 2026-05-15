@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for privacy-council-data-class-review.md
+purpose: Oyatie Runbook — Privacy Council Data Class Review
 ---
 
 # Oyatie Runbook — Privacy Council Data Class Review

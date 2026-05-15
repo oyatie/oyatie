@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for crawler-politeness-incident.md
+purpose: Oyatie Runbook — Crawler Politeness Incident
 ---
 
 # Oyatie Runbook — Crawler Politeness Incident

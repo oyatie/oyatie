@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for cell-isolation-evidence-quarterly.md
+purpose: Oyatie Runbook — Cell Isolation Evidence Quarterly
 ---
 
 # Oyatie Runbook — Cell Isolation Evidence Quarterly

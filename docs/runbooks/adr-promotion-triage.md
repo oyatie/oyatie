@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for adr-promotion-triage.md
+purpose: Oyatie Runbook — Adr Promotion Triage
 ---
 
 # Oyatie Runbook — Adr Promotion Triage

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for cedar-policy-rollback.md
+purpose: Oyatie Runbook — Cedar Policy Rollback
 ---
 
 # Oyatie Runbook — Cedar Policy Rollback

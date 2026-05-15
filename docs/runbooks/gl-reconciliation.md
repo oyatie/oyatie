@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for gl-reconciliation.md
+purpose: Oyatie Runbook — Gl Reconciliation
 ---
 
 # Oyatie Runbook — Gl Reconciliation

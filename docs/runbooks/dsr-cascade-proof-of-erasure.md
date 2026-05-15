@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for dsr-cascade-proof-of-erasure.md
+purpose: Oyatie Runbook — Dsr Cascade Proof Of Erasure
 ---
 
 # Oyatie Runbook — Dsr Cascade Proof Of Erasure

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for agent-authoring-evidence-attach.md
+purpose: Oyatie Runbook — Agent Authoring Evidence Attach
 ---
 
 # Oyatie Runbook — Agent Authoring Evidence Attach

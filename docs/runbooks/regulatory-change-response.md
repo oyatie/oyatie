@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for regulatory-change-response.md
+purpose: Oyatie Runbook — Regulatory Change Response
 ---
 
 # Oyatie Runbook — Regulatory Change Response

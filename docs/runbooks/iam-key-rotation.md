@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for iam-key-rotation.md
+purpose: Oyatie Runbook — Iam Key Rotation
 ---
 
 # Oyatie Runbook — Iam Key Rotation

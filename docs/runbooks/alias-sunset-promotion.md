@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for alias-sunset-promotion.md
+purpose: Oyatie Runbook — Alias Sunset Promotion
 ---
 
 # Oyatie Runbook — Alias Sunset Promotion

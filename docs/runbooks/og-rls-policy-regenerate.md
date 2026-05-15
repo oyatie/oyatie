@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for og-rls-policy-regenerate.md
+purpose: Oyatie Runbook — Og Rls Policy Regenerate
 ---
 
 # Oyatie Runbook — Og Rls Policy Regenerate

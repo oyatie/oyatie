@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for analytics-warehouse-reconciliation.md
+purpose: Oyatie Runbook — Analytics Warehouse Reconciliation
 ---
 
 # Oyatie Runbook — Analytics Warehouse Reconciliation

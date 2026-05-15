@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-platform-incident.md
+purpose: Oyatie Runbook — Foundry Platform Incident
 ---
 
 # Oyatie Runbook — Foundry Platform Incident

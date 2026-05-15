@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for axis-admission-proposal.md
+purpose: Oyatie Runbook — Axis Admission Proposal
 ---
 
 # Oyatie Runbook — Axis Admission Proposal

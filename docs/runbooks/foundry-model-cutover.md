@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-model-cutover.md
+purpose: Oyatie Runbook — Foundry Model Cutover
 ---
 
 # Oyatie Runbook — Foundry Model Cutover

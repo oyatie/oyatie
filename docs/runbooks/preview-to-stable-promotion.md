@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for preview-to-stable-promotion.md
+purpose: Oyatie Runbook — Preview To Stable Promotion
 ---
 
 # Oyatie Runbook — Preview To Stable Promotion

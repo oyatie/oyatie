@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for break-glass-with-evidence.md
+purpose: Oyatie Runbook — Break Glass With Evidence
 ---
 
 # Oyatie Runbook — Break Glass With Evidence

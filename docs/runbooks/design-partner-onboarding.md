@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for design-partner-onboarding.md
+purpose: Oyatie Runbook — Design Partner Onboarding
 ---
 
 # Oyatie Runbook — Design Partner Onboarding

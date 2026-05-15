@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for autonomy-ceiling-breach-response.md
+purpose: Oyatie Runbook — Autonomy Ceiling Breach Response
 ---
 
 # Oyatie Runbook — Autonomy Ceiling Breach Response

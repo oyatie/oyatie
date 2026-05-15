@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for finops-monthly-close.md
+purpose: Oyatie Runbook — Finops Monthly Close
 ---
 
 # Oyatie Runbook — Finops Monthly Close

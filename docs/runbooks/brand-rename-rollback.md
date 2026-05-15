@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for brand-rename-rollback.md
+purpose: Oyatie Runbook — Brand Rename Rollback
 ---
 
 # Oyatie Runbook — Brand Rename Rollback

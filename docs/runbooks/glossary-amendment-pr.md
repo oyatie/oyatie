@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for glossary-amendment-pr.md
+purpose: Oyatie Runbook — Glossary Amendment Pr
 ---
 
 # Oyatie Runbook — Glossary Amendment Pr

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for legal-corpus-update.md
+purpose: Oyatie Runbook — Legal Corpus Update
 ---
 
 # Oyatie Runbook — Legal Corpus Update

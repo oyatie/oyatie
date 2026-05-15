@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for opcua-adapter-disconnect.md
+purpose: Oyatie Runbook — Opcua Adapter Disconnect
 ---
 
 # Oyatie Runbook — Opcua Adapter Disconnect

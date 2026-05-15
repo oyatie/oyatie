@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for autonomy-tier-uplift.md
+purpose: Oyatie Runbook — Autonomy Tier Uplift
 ---
 
 # Oyatie Runbook — Autonomy Tier Uplift

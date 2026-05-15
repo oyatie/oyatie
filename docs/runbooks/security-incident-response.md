@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for security-incident-response.md
+purpose: Oyatie Runbook — Security Incident Response
 ---
 
 # Oyatie Runbook — Security Incident Response

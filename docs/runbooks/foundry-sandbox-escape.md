@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-sandbox-escape.md
+purpose: Oyatie Runbook — Foundry Sandbox Escape
 ---
 
 # Oyatie Runbook — Foundry Sandbox Escape

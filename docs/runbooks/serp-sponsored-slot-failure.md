@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for serp-sponsored-slot-failure.md
+purpose: Oyatie Runbook — Serp Sponsored Slot Failure
 ---
 
 # Oyatie Runbook — Serp Sponsored Slot Failure

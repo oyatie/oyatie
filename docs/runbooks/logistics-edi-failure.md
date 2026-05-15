@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for logistics-edi-failure.md
+purpose: Oyatie Runbook — Logistics Edi Failure
 ---
 
 # Oyatie Runbook — Logistics Edi Failure

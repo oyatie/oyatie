@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for api-gateway-rate-limit-incident.md
+purpose: Oyatie Runbook — Api Gateway Rate Limit Incident
 ---
 
 # Oyatie Runbook — Api Gateway Rate Limit Incident

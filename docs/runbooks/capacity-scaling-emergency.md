@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for capacity-scaling-emergency.md
+purpose: Oyatie Runbook — Capacity Scaling Emergency
 ---
 
 # Oyatie Runbook — Capacity Scaling Emergency

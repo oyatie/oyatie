@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for webhook-delivery-failure.md
+purpose: Oyatie Runbook — Webhook Delivery Failure
 ---
 
 # Oyatie Runbook — Webhook Delivery Failure

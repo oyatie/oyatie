@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for cell-isolation-breach.md
+purpose: Oyatie Runbook — Cell Isolation Breach
 ---
 
 # Oyatie Runbook — Cell Isolation Breach

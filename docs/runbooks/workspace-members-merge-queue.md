@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for workspace-members-merge-queue.md
+purpose: Oyatie Runbook — Workspace Members Merge Queue
 ---
 
 # Oyatie Runbook — Workspace Members Merge Queue

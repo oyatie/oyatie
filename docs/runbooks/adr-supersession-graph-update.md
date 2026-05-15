@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for adr-supersession-graph-update.md
+purpose: Oyatie Runbook — Adr Supersession Graph Update
 ---
 
 # Oyatie Runbook — Adr Supersession Graph Update

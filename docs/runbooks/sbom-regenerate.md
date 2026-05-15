@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for sbom-regenerate.md
+purpose: Oyatie Runbook — Sbom Regenerate
 ---
 
 # Oyatie Runbook — Sbom Regenerate

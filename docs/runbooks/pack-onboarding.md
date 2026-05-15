@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for pack-onboarding.md
+purpose: Oyatie Runbook — Pack Onboarding
 ---
 
 # Oyatie Runbook — Pack Onboarding

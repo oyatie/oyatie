@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for kcmvp-hsm-incident.md
+purpose: Oyatie Runbook — Kcmvp Hsm Incident
 ---
 
 # Oyatie Runbook — Kcmvp Hsm Incident

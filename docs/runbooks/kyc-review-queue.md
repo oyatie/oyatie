@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for kyc-review-queue.md
+purpose: Oyatie Runbook — Kyc Review Queue
 ---
 
 # Oyatie Runbook — Kyc Review Queue

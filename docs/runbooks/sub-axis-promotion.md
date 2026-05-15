@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for sub-axis-promotion.md
+purpose: Oyatie Runbook — Sub Axis Promotion
 ---
 
 # Oyatie Runbook — Sub Axis Promotion

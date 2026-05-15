@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for demo-environment-reset.md
+purpose: Oyatie Runbook — Demo Environment Reset
 ---
 
 # Oyatie Runbook — Demo Environment Reset

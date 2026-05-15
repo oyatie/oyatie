@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-fitness-rollback.md
+purpose: Oyatie Runbook — Foundry Fitness Rollback
 ---
 
 # Oyatie Runbook — Foundry Fitness Rollback

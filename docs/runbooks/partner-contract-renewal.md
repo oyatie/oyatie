@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for partner-contract-renewal.md
+purpose: Oyatie Runbook — Partner Contract Renewal
 ---
 
 # Oyatie Runbook — Partner Contract Renewal

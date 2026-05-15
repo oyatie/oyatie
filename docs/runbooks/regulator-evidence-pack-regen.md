@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for regulator-evidence-pack-regen.md
+purpose: Oyatie Runbook — Regulator Evidence Pack Regen
 ---
 
 # Oyatie Runbook — Regulator Evidence Pack Regen

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for claim-ceiling-bypass-expiry.md
+purpose: Oyatie Runbook — Claim Ceiling Bypass Expiry
 ---
 
 # Oyatie Runbook — Claim Ceiling Bypass Expiry

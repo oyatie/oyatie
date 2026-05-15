@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for contract-introduction.md
+purpose: Oyatie Runbook — Contract Introduction
 ---
 
 # Oyatie Runbook — Contract Introduction

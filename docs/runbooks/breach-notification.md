@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for breach-notification.md
+purpose: Oyatie Runbook — Breach Notification
 ---
 
 # Oyatie Runbook — Breach Notification

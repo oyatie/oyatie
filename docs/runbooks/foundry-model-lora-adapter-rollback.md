@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-model-lora-adapter-rollback.md
+purpose: Oyatie Runbook — Foundry Model Lora Adapter Rollback
 ---
 
 # Oyatie Runbook — Foundry Model Lora Adapter Rollback

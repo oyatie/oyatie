@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for cell-failover-intra-region.md
+purpose: Oyatie Runbook — Cell Failover Intra Region
 ---
 
 # Oyatie Runbook — Cell Failover Intra Region

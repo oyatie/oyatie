@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for evidence-pack-generation.md
+purpose: Oyatie Runbook — Evidence Pack Generation
 ---
 
 # Oyatie Runbook — Evidence Pack Generation

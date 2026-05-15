@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for pack-version-upgrade.md
+purpose: Oyatie Runbook — Pack Version Upgrade
 ---
 
 # Oyatie Runbook — Pack Version Upgrade

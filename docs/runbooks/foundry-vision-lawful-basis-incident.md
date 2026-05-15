@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-vision-lawful-basis-incident.md
+purpose: Oyatie Runbook — Foundry Vision Lawful Basis Incident
 ---
 
 # Oyatie Runbook — Foundry Vision Lawful Basis Incident

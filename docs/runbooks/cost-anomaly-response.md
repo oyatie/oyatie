@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for cost-anomaly-response.md
+purpose: Oyatie Runbook — Cost Anomaly Response
 ---
 
 # Oyatie Runbook — Cost Anomaly Response

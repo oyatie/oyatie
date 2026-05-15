@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for data-class-transition-approval.md
+purpose: Oyatie Runbook — Data Class Transition Approval
 ---
 
 # Oyatie Runbook — Data Class Transition Approval

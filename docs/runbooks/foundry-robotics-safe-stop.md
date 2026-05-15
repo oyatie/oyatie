@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-robotics-safe-stop.md
+purpose: Oyatie Runbook — Foundry Robotics Safe Stop
 ---
 
 # Oyatie Runbook — Foundry Robotics Safe Stop

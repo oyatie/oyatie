@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for og-property-tier-migration.md
+purpose: Oyatie Runbook — Og Property Tier Migration
 ---
 
 # Oyatie Runbook — Og Property Tier Migration

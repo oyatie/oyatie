@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for og-schema-rollback.md
+purpose: Oyatie Runbook — Og Schema Rollback
 ---
 
 # Oyatie Runbook — Og Schema Rollback

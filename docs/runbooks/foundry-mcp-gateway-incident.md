@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-mcp-gateway-incident.md
+purpose: Oyatie Runbook — Foundry Mcp Gateway Incident
 ---
 
 # Oyatie Runbook — Foundry Mcp Gateway Incident

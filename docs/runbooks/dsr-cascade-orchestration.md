@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for dsr-cascade-orchestration.md
+purpose: Oyatie Runbook — Dsr Cascade Orchestration
 ---
 
 # Oyatie Runbook — Dsr Cascade Orchestration

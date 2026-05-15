@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for og-ciphertext-key-shred.md
+purpose: Oyatie Runbook — Og Ciphertext Key Shred
 ---
 
 # Oyatie Runbook — Og Ciphertext Key Shred

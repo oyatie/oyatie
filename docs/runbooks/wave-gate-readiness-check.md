@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for wave-gate-readiness-check.md
+purpose: Oyatie Runbook — Wave Gate Readiness Check
 ---
 
 # Oyatie Runbook — Wave Gate Readiness Check

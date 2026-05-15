@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for per-cell-broker-failover.md
+purpose: Oyatie Runbook — Per Cell Broker Failover
 ---
 
 # Oyatie Runbook — Per Cell Broker Failover

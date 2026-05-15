@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for fintech-payment-failure.md
+purpose: Oyatie Runbook — Fintech Payment Failure
 ---
 
 # Oyatie Runbook — Fintech Payment Failure

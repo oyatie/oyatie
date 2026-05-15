@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for regulatory-replay.md
+purpose: Oyatie Runbook — Regulatory Replay
 ---
 
 # Oyatie Runbook — Regulatory Replay

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for brand-rename-batch-execute.md
+purpose: Oyatie Runbook — Brand Rename Batch Execute
 ---
 
 # Oyatie Runbook — Brand Rename Batch Execute

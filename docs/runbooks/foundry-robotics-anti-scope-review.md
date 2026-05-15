@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-robotics-anti-scope-review.md
+purpose: Oyatie Runbook — Foundry Robotics Anti Scope Review
 ---
 
 # Oyatie Runbook — Foundry Robotics Anti Scope Review

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for external-dep-onboarding.md
+purpose: Oyatie Runbook — External Dep Onboarding
 ---
 
 # Oyatie Runbook — External Dep Onboarding

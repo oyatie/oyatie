@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for cross-axis-contradiction-audit.md
+purpose: Oyatie Runbook — Cross Axis Contradiction Audit
 ---
 
 # Oyatie Runbook — Cross Axis Contradiction Audit

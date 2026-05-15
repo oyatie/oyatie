@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for foundry-autonomy-break-glass.md
+purpose: Oyatie Runbook — Foundry Autonomy Break Glass
 ---
 
 # Oyatie Runbook — Foundry Autonomy Break Glass

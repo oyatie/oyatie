@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for kafka-topic-provisioning.md
+purpose: Oyatie Runbook — Kafka Topic Provisioning
 ---
 
 # Oyatie Runbook — Kafka Topic Provisioning

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for plugin-sandbox-escape.md
+purpose: Oyatie Runbook — Plugin Sandbox Escape
 ---
 
 # Oyatie Runbook — Plugin Sandbox Escape

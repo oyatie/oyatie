@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for sdk-regen-failure.md
+purpose: Oyatie Runbook — Sdk Regen Failure
 ---
 
 # Oyatie Runbook — Sdk Regen Failure

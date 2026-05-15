@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for term-deprecation-protocol.md
+purpose: Oyatie Runbook — Term Deprecation Protocol
 ---
 
 # Oyatie Runbook — Term Deprecation Protocol
