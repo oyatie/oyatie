@@ -1466,8 +1466,8 @@
     ],
     "verification": [
       "scripts/check-oya-vcs-admission.sh",
-      "python3 scripts/audit-master-plan-completion.py --check",
-      "python3 scripts/render-master-plan-ledger.py --check",
+      "cargo run -q -p oya-dev-cli -- gate audit master-plan-completion --check",
+      "cargo run -q -p oya-dev-cli -- doc render master-plan-ledger --check",
       "cargo test -p oya-dev-cli vcs",
       "cargo run -q -p oya-dev-cli -- vcs --format json claim ...",
       "cargo run -q -p oya-dev-cli -- vcs --format json done ...",
