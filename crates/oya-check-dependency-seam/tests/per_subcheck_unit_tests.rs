@@ -219,6 +219,77 @@ fn consensus_debate_happy_path_meta_triggered_with_matching_synthesis() {
 
 // =============== JSON parser (CONV-1) ===============
 
+// =============== perf-budget regression gate (CONV-7) ===============
+
+#[test]
+fn composite_suite_meets_perf_budget_on_synthetic_workload() {
+    // CONV-7 (TG2 11-facet debate): F2 hyperscaler + F8 performance flagged
+    // no benchmark + no perf-budget regression test. Std-only constraint
+    // forbids the criterion crate; this test is a coarse regression gate
+    // (1 run, no warmup, no statistical confidence) — full criterion bench
+    // deferred to F-SEAM-LANE-BENCHMARK-PERF-BUDGET-FULL when std-only is
+    // relaxed for [dev-dependencies].
+    //
+    // Budget: 500ms for a 30-file synthetic workload (10x today's live count).
+    // If this fails on a normal dev machine, a real regression exists.
+    let ws = make_workspace();
+    // 10 evidence/multispectrum files
+    let evidence = ws.join("evidence/multispectrum");
+    fs::create_dir_all(&evidence).unwrap();
+    for i in 0..10 {
+        fs::write(
+            evidence.join(format!("ev-{:03}.json", i)),
+            r#"{"change_class_id":"CC-7","facets":{},"meta_review_triggered":true}"#,
+        )
+        .unwrap();
+    }
+    // 10 evidence/per-change files
+    let per_change = ws.join("evidence/per-change");
+    fs::create_dir_all(&per_change).unwrap();
+    for i in 0..10 {
+        fs::write(
+            per_change.join(format!("pc-{:03}.json", i)),
+            r#"{"change_class_id":"CC-4","facets":{}}"#,
+        )
+        .unwrap();
+    }
+    // 10 evidence/debate synthesis files
+    let debate = ws.join("evidence/debate");
+    fs::create_dir_all(&debate).unwrap();
+    for i in 0..10 {
+        fs::write(
+            debate.join(format!("CHG-{:03}-synthesis.json", i)),
+            r#"{"termination_reason":"consensus_reached"}"#,
+        )
+        .unwrap();
+    }
+    // Scripts dir + 1 valid Rust file (rust-default-language target)
+    let scripts = ws.join("scripts");
+    fs::create_dir_all(&scripts).unwrap();
+    fs::write(scripts.join("ok.rs"), "fn main(){}").unwrap();
+    // Canonical homes (naming-convention scan targets)
+    for home in ["specs/cross-cutting", "registries/cross-cutting", "templates"] {
+        fs::create_dir_all(ws.join(home)).unwrap();
+    }
+
+    let start = std::time::Instant::now();
+    let report = run_composite(&WorkspaceContext::new(&ws));
+    let elapsed = start.elapsed();
+
+    // Sanity: composite ran all 10 sub-checks.
+    assert_eq!(report.sub_checks.len(), 10);
+
+    let budget_ms = 500u128;
+    let actual_ms = elapsed.as_millis();
+    assert!(
+        actual_ms <= budget_ms,
+        "composite suite exceeded perf budget: {}ms > {}ms on 30-file synthetic workload",
+        actual_ms,
+        budget_ms
+    );
+    cleanup(&ws);
+}
+
 // =============== render_audit_chain_rows (CONV-9) ===============
 
 #[test]
