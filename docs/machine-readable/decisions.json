@@ -1028,14 +1028,14 @@
     {
       "adr": "ADR-0107",
       "number": 107,
-      "title": "`tools/` directory is implicit `app` layer (amends ADR-0056 / ADR-0105)",
-      "status": "Accepted",
+      "title": "`tools/` directory canonical-suffix binding (was: implicit `app` layer — Superseded by self 2026-05-15)",
+      "status": "Superseded",
       "owner": "council-architecture",
       "date": "2026-05-15",
       "path": "decisions/ADR-0107-tools-implicit-app-convention.md",
       "supersedes": [],
-      "superseded_by": [],
-      "related": []
+      "superseded_by": ["ADR-0107#amendment-2026-05-15"],
+      "related": ["ADR-0105", "ADR-0053"]
     }
   ]
 }

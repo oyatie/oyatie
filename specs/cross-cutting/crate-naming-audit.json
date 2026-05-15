@@ -35,11 +35,13 @@
     },
     "tools_implicit_app": {
       "id": "ADOPT-PAT-03",
+      "status": "REJECTED",
+      "rejected_by": "ADR-0107 amendment 2026-05-15 (self-supersede)",
       "match": "^tools/oya-[a-z0-9-]+$",
       "current_count": 10,
-      "purpose": "Crates directly under tools/ are implicitly the `app` layer. Directory location IS the layer declaration. Eliminates the redundant `-app` suffix for tools/oya-foundry-fitness-*, oya-adapter-substitution-test, oya-tooling-agent-read, etc.",
-      "binding": "load-bearing — formalized in ADR-0107.",
-      "amendment_action": "DONE per ADR-0107. Constraints: tools/ crate MUST be a binary; MAY also have a lib surface; MUST NOT be lib-only."
+      "purpose": "ORIGINAL (rejected): Crates directly under tools/ are implicitly the `app` layer. REJECTED per user directive 2026-05-15 — no directory-implicit naming; every tools/ crate takes a canonical layer suffix from the 13-value enum (binaries use `-app`).",
+      "binding": "REJECTED — pattern removed; replaced by explicit canonical-suffix binding in ADR-0105 amendment 2026-05-15.",
+      "amendment_action": "REVERSED per ADR-0107 supersede 2026-05-15. Tools/ crates are renamed per their canonical layer suffix; binary tools take `-app`. Sole doctrinal carve-out: `oya-tooling-agent-read` (ADR-0053 sanctioned primitive, NOT a layer-enum exception)."
     }
   },
   "compliance_summary": {
@@ -99,7 +101,7 @@
       "count": 7,
       "rationale": "Each crate in `tools/` paired with a `crates/oya-foundry-fitness-<feature>-kernel`. Per ADR-0056 binaries are `*-app`. The tools/ binary should mirror the kernel name with `-app` suffix.",
       "amendment_action": "Per-crate rename to `*-app` suffix. Each rename touches: tools/<dir> rename, Cargo.toml workspace.members entry, internal Cargo.toml package name, any CI workflow `cargo run -p NAME` references, any scripts that invoke the binary by name.",
-      "alternative": "Accept tools/ as an implicit-`app` layer convention (similar to how `oya-check-*` is implicit). Amend ADR-0056 to recognize tools/-prefixed crates as binaries-by-convention. Lower-overhead but less explicit.",
+      "alternative_rejected": "Accept tools/ as an implicit-`app` layer convention. REJECTED per ADR-0107 amendment 2026-05-15 (no directory-implicit naming; every tools/ crate takes canonical layer suffix).",
       "crates": [
         "oya-foundry-fitness-portfolio-citation",
         "oya-foundry-fitness-predictable-naming",
@@ -130,7 +132,8 @@
   "amendment_proposal_summary": {
     "additions_to_canonical_enum": ["api"],
     "size_after": "13-value canonical enum",
-    "adopted_patterns_to_document": ["check-family", "backend-suffix", "tools/-implicit-app (under review)"],
+    "adopted_patterns_to_document": ["check-family", "backend-suffix"],
+    "rejected_patterns": ["tools/-implicit-app (rejected per ADR-0107 amendment 2026-05-15 — replaced by explicit canonical-suffix binding)"],
     "renames_required": 11,
     "rename_estimate": "11 atomic commits, ~30-60 min per crate (C1-shaped: workspace.members + Cargo.toml + crate dir + all importers + verification build)"
   },

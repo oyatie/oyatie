@@ -16,10 +16,16 @@ pub const REQUIRED_PREFIX: &str = "oya-";
 /// History:
 ///   2026-05-15 ADR-0105: added `api` (12 → 13).
 ///   2026-05-15 ADR-0106: renamed `application` → `usecase`.
+///   2026-05-15 ADR-0107 (Superseded by self): removed the
+///     "tools/-implicit-app" carve-out. Every tools/ crate MUST take a
+///     canonical layer suffix; binary tools use `-app`. The only
+///     doctrinal lock is `oya-tooling-agent-read` (ADR-0053 sanctioned
+///     primitive), recorded in `DOCTRINAL_CARVE_OUTS` below — NOT a
+///     layer-enum exception.
 ///   `runtime` and `test` were removed: `runtime` is slated for
 ///   per-crate rename to `app` per ADR-0056 §"Concrete migration";
-///   `test` was never in the canonical enum (test-only crates live in
-///   `tools/` under the implicit-app convention per ADR-0107).
+///   `test` was never in the canonical enum (test-only crates take
+///   canonical layer suffixes like any other).
 pub const ALLOWED_ROLES: [&str; 13] = [
     "kernel",
     "domain",
@@ -56,6 +62,23 @@ pub const BACKEND_SUFFIXES: [&str; 9] = [
     "redis",
     "sqlite",
 ];
+
+/// Doctrinal carve-outs: crate names whose name is locked by a
+/// higher-tier contract (CLAUDE.md sanctioned primitives per ADR-0053),
+/// NOT by a layer-enum exception. These crates are exempted from the
+/// canonical-suffix requirement only because their name is part of the
+/// agent-operating contract.
+///
+/// This set is closed. Adding an entry requires a new ADR (do NOT
+/// expand without one).
+///
+/// Sole entry as of ADR-0107's 2026-05-15 supersede: `oya-tooling-agent-read`.
+pub const DOCTRINAL_CARVE_OUTS: [&str; 1] = ["oya-tooling-agent-read"];
+
+/// True iff the crate name is in the closed `DOCTRINAL_CARVE_OUTS` set.
+pub fn is_doctrinal_carve_out(crate_name: &str) -> bool {
+    DOCTRINAL_CARVE_OUTS.contains(&crate_name)
+}
 
 /// True iff the crate name follows the `oya-check-<feature>` pattern, in
 /// which case the role-requirement is satisfied by the prefix alone.
@@ -168,11 +191,16 @@ pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
             continue;
         }
 
-        // Adopted-pattern shortcuts (ADR-0105 + ADR-0107).
+        // Adopted-pattern shortcuts (ADR-0105 §Adopted Patterns).
         // check-family is self-layering — no declared_role required.
         // backend-qualified adapter has effective layer `adapter`.
+        // Doctrinal carve-outs (CLAUDE.md sanctioned primitives per
+        // ADR-0053) are exempt from canonical-suffix enforcement — NOT
+        // because of an enum exception, but because their name is
+        // locked at the agent-operating-contract layer.
         let check_family = is_check_family(&row.crate_name);
         let backend_qualified = is_backend_qualified_adapter(&row.crate_name);
+        let doctrinal_carve_out = is_doctrinal_carve_out(&row.crate_name);
 
         let inferred = if backend_qualified {
             "adapter"
@@ -185,11 +213,13 @@ pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
 
         match &row.declared_role {
             None => {
-                // check-family + tools/ implicit-app are allowed to omit
-                // `declared_role` since their layer is implicit per ADR-0105/0107.
-                // Runners can set `declared_role = Some("app")` for tools/ crates;
-                // for check-family the runner may set None or "check-family-implicit".
-                if !check_family {
+                // check-family is self-layering (no declared_role required).
+                // Doctrinal carve-outs (ADR-0053 sanctioned primitives) are
+                // exempt — their name is locked by the agent-operating contract.
+                // All other crates (including tools/* per ADR-0107 amendment
+                // 2026-05-15) MUST declare a role; there is no directory-
+                // implicit naming surface.
+                if !check_family && !doctrinal_carve_out {
                     violations.push(NamingViolation {
                         crate_name: row.crate_name.clone(),
                         kind: NamingViolationKind::UndeclaredRole,
@@ -469,5 +499,49 @@ mod tests {
         assert!(!is_backend_qualified_adapter("oya-foundry-account-adapter")); // no backend
         assert!(!is_backend_qualified_adapter("oya-foundry-account-domain"));
         assert!(!is_backend_qualified_adapter("oya-adapter-foo")); // 'adapter' not penultimate-after-something
+    }
+
+    #[test]
+    fn is_doctrinal_carve_out_helper() {
+        // Sole entry per ADR-0107 supersede 2026-05-15.
+        assert!(is_doctrinal_carve_out("oya-tooling-agent-read"));
+        // Random non-carve-out names are not exempt.
+        assert!(!is_doctrinal_carve_out("oya-foundry-fitness-portfolio-citation"));
+        assert!(!is_doctrinal_carve_out("oya-adapter-substitution-test"));
+        assert!(!is_doctrinal_carve_out(""));
+    }
+
+    #[test]
+    fn doctrinal_carve_out_passes_without_role() {
+        // ADR-0053 sanctioned primitive — locked name, no canonical suffix
+        // required at the layer-enum surface. Must NOT raise UndeclaredRole.
+        let r = check(&[row("oya-tooling-agent-read", None, Some("tooling"))]).unwrap();
+        assert!(
+            !r.violations
+                .iter()
+                .any(|v| v.kind == NamingViolationKind::UndeclaredRole),
+            "doctrinal carve-out incorrectly flagged: {:?}",
+            r.violations
+        );
+    }
+
+    #[test]
+    fn tools_crate_without_canonical_suffix_flagged() {
+        // Post-ADR-0107 supersede 2026-05-15: tools/ crates are NOT
+        // implicitly app-layer. A tools/ crate without a declared canonical
+        // role MUST raise UndeclaredRole (no directory-implicit naming).
+        let r = check(&[row(
+            "oya-foundry-fitness-portfolio-citation",
+            None,
+            Some("foundry"),
+        )])
+        .unwrap();
+        assert!(
+            r.violations
+                .iter()
+                .any(|v| v.kind == NamingViolationKind::UndeclaredRole),
+            "tools/ crate without canonical suffix not flagged: {:?}",
+            r.violations
+        );
     }
 }
