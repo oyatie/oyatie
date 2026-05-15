@@ -473,3 +473,27 @@ hyper-util = { version = "0.1", default-features = false, features = ["tokio", "
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros"] }
 http-body-util = { version = "0.1", default-features = false }
 bytes = { version = "1", default-features = false }
+
+# Release-profile hardening per 2026-05-15 audit + hyperscaler-grade
+# performance/scalability bar (specs/cross-cutting/oyatie-doctrine.json P8,
+# docs/standards/hyperscaler-best-practices.md).
+#
+# panic = "abort"     — no unwinding in release; smaller binaries; faster panic
+#                       paths; matches release-musl.yml static-binary deploy
+#                       posture. Dev/test profiles keep panic = "unwind" so
+#                       `#[should_panic]` and `std::panic::catch_unwind` still
+#                       work for tests.
+# lto = true          — full link-time optimization across crate boundaries.
+# codegen-units = 1   — single codegen unit = better whole-program optimization.
+# strip = "symbols"   — strip debug symbols from release artifacts; smaller
+#                       distroless image surface per supply-chain workflow.
+#
+# Build time trade-off accepted: release builds get slower (LTO + cgu=1), but
+# release builds only run on tag (release-musl.yml) — they are not on the PR
+# critical path (pr-tests.yml uses dev profile via cargo build/check/clippy
+# and test profile via nextest).
+[profile.release]
+panic = "abort"
+lto = true
+codegen-units = 1
+strip = "symbols"
