@@ -33,7 +33,8 @@ agent_prerequisites:
   - ./INDEX.md
   - ./IP-001-provider-account-pool-kernel.md
   - docs/AGENTS.md
-  - docs/CONSTITUTION.md
+  - /specs/cross-cutting/decision-principles.json
+  - /specs/cross-cutting/forbidden-operations.json
   - .omc/standards/security-review.md
   - .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md
 final_shape_compliance: true
@@ -47,7 +48,7 @@ decision_log: |
   provider, version, accepted_at, accepted_by, evidence_hash) or pool-membership > 1 is
   refused. One predicate; no branching.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-006-tos-policy-audit-chain: ToS-acknowledgment policy + pool-routing audit emission

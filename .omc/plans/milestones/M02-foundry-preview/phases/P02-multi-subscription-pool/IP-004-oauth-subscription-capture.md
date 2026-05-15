@@ -32,7 +32,8 @@ agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
   - ./INDEX.md
   - docs/AGENTS.md
-  - docs/CONSTITUTION.md
+  - /specs/cross-cutting/decision-principles.json
+  - /specs/cross-cutting/forbidden-operations.json
   - docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
   - .omc/standards/security-review.md
   - .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md
@@ -50,7 +51,7 @@ decision_log: |
   surface keeps a single `capture_subscription_token` entry, and the API-key import is
   one variant in the enum (no parallel function).
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-004-oauth-subscription-capture: Subscription-token OAuth capture flow
@@ -102,7 +103,7 @@ Before `grit claim`, the agent **MUST**:
 2. Read `docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md` (mandatory).
 3. Read `.omc/standards/security-review.md §7` (secret handling).
 4. Confirm `crates/oya-foundry-agent-runtime/src/foundry/auth.rs::capture_subscription_token` unclaimed via `oya-tooling-agent-read grit-status`.
-5. Read `docs/AGENTS.md §Pre-flight checklist` and `docs/CONSTITUTION.md §Prohibitions` (specifically: no raw secrets in repo / log / chat / checkpoint).
+5. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/cross-cutting/forbidden-operations.json` (FO-01..FO-10; specifically: no raw secrets in repo / log / chat / checkpoint).
 6. Read parent INDEX `./INDEX.md`.
 <!-- agent-instructions:end -->
 
