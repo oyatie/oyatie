@@ -133,7 +133,9 @@ fn catalog_index_rejects_duplicates_and_missing_workspace_records() {
     assert!(index.lookup("oya-foundry-capability-kernel").is_some());
     assert_eq!(
         index.validate_required_crates(["oya-foundry-capability-kernel", "oya-foundry-run-kernel"]),
-        Err(CatalogError::MissingCrateRecord)
+        Err(CatalogError::MissingCrateRecord {
+            crate_id: "oya-foundry-run-kernel".into(),
+        })
     );
 }
 

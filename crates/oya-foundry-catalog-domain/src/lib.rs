@@ -70,7 +70,7 @@ pub enum CatalogError {
     InvalidSupplyChain,
     MissingDataClasses,
     DuplicateCrateRecord,
-    MissingCrateRecord,
+    MissingCrateRecord { crate_id: String },
     PlaneChanged,
 }
 
@@ -249,7 +249,9 @@ impl CatalogIndex {
         for crate_id in &reviewed_changes {
             validate_crate_id(crate_id)?;
             if !self.records.value.contains_key(crate_id) {
-                return Err(CatalogError::MissingCrateRecord);
+                return Err(CatalogError::MissingCrateRecord {
+                    crate_id: crate_id.clone(),
+                });
             }
         }
         for (crate_id, baseline_record) in &baseline.records.value {
