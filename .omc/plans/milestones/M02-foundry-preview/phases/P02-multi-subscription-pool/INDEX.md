@@ -1,14 +1,10 @@
 ---
-purpose: "Deliver oyatie's multi-subscription pool + provider-compatible passthrough surface — the Rust counterpart to ccproxy-api (https://github.com/CaddyGlow/ccproxy-api) — so a single ProviderAccountPool can rotate across multiple Claude/OpenAI/G."
----
-
----
 doc_class: PhaseIndex
 template_id: TPL-PHASE
 phase_id: P02-multi-subscription-pool
 parent: ../../INDEX.md
 milestone: M02
-status: pending approval
+status: in-progress
 purpose: |
   Deliver oyatie's multi-subscription pool + provider-compatible passthrough surface — the
   Rust counterpart to ccproxy-api (https://github.com/CaddyGlow/ccproxy-api) — so a single

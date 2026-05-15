@@ -1,8 +1,4 @@
 ---
-purpose: Ship the SvelteKit dashboard frontend shipped in distroless.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P02-IP-002

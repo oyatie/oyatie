@@ -1,8 +1,4 @@
 ---
-purpose: Ship the foundry-fitness lane suite + P00-08 evidence validator that gates every Phase 00 merge.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M02-P03

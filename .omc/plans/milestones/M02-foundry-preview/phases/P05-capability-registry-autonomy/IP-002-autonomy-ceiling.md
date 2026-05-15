@@ -1,8 +1,4 @@
 ---
-purpose: Ship autonomy ceiling T1-T4 Cedar policy + runtime check; T4 disabled by default for actuation.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P05-IP-002

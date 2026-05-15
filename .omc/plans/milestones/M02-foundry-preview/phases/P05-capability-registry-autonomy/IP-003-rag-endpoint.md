@@ -1,8 +1,4 @@
 ---
-purpose: Ship RAG endpoint to Foundry-internal capabilities; per-class data boundary.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P05-IP-003

@@ -1,8 +1,4 @@
 ---
-purpose: Ship ADR template + foundation-bypass ledger with expiry tracking.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P03-IP-003

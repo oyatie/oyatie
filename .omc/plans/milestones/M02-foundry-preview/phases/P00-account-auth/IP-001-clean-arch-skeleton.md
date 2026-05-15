@@ -1,8 +1,4 @@
 ---
-purpose: "Scaffold the 7 oya-foundry-account-* crates per P00-01."
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P00-IP-001

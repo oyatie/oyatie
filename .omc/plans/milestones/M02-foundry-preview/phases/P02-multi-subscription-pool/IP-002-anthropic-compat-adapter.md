@@ -1,15 +1,11 @@
 ---
-purpose: "Ship `oya-foundry-adapter-anthropic-compat-api`: an Axum-on-Hyper HTTP service that exposes the upstream Anthropic Messages-API shape (`POST /v1/messages`."
----
-
----
 doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-002-anthropic-compat-adapter
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable

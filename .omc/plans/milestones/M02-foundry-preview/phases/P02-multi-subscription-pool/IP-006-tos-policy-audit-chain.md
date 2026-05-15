@@ -1,15 +1,11 @@
 ---
-purpose: "Extend `oya-foundry-policy-kernel` with the `ToSAcknowledgment` record + `PoolingPolicyCheck` function that gates pool-membership > 1 on an explicit per-(tenant, provider) ToS-ack."
----
-
----
 doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-006-tos-policy-audit-chain
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable

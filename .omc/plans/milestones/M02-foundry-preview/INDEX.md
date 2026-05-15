@@ -1,8 +1,4 @@
 ---
-purpose: Stand up the Foundry agent runtime + control plane + engineering platform so every subsequent axis is force-multiplied.
----
-
----
 doc_class: MilestoneIndex
 parent: ../../MASTERPLAN.md
 id: M02

@@ -1,8 +1,4 @@
 ---
-purpose: "Lift Foundry Phase 00 account-auth contract surface from foundry-salvage into `oyatie/docs/products/foundry/PHASE-00-SPEC.md` and ship the seven `oya-foundry-account-*` crates under Clean Architecture."
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M02-P00

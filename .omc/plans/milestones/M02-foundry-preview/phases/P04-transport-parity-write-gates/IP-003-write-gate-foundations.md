@@ -1,8 +1,4 @@
 ---
-purpose: Author ADR-XXXX Foundry write-gate foundations (Phase 05 contract).
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P04-IP-003

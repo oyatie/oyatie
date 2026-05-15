@@ -1,8 +1,4 @@
 ---
-purpose: Ship OpenAI adapter in both API and subscription auth modes.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P01-IP-002

@@ -1,8 +1,4 @@
 ---
-purpose: Ship capability registry with ≥50 capabilities publishable.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P05-IP-001

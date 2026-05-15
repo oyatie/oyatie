@@ -1,8 +1,4 @@
 ---
-purpose: Ship the dry-run what-if surface (no mutations).
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P02-IP-003

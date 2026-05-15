@@ -1,8 +1,4 @@
 ---
-purpose: Ship usage windows (5h/1wk/project) and account-route policy (budget + reserve + no-silent-switch + privacy + residency + failover).
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P01-IP-004

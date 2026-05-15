@@ -1,8 +1,4 @@
 ---
-purpose: Ship SecretStorePort + local OpenBao default adapter; integration + fake-in-memory + redaction tests.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P00-IP-003

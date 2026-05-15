@@ -1,15 +1,11 @@
 ---
-purpose: Ship the ProviderAccountPool pure-kernel crate that coordinates rotation across multiple ProviderAccount records (already owned by P00 account-auth).
----
-
----
 doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-001-provider-account-pool-kernel
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable

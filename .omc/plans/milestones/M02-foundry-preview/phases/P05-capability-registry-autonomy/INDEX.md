@@ -1,8 +1,4 @@
 ---
-purpose: Ship the capability registry, Cedar-policy autonomy ceiling, audit-chain emission per invocation, and RAG endpoint exposure.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M02-P05

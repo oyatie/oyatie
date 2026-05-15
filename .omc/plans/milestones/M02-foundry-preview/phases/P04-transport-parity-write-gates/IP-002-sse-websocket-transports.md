@@ -1,8 +1,4 @@
 ---
-purpose: Ship SSE + WebSocket subscription transports for status streams.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P04-IP-002

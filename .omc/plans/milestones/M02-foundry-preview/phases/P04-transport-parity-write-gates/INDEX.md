@@ -1,8 +1,4 @@
 ---
-purpose: Same use-case ports across REST / GraphQL / SSE / WebSocket (Phase 00); foundations for gRPC / Webhook / Kafka write-gates (Phase 05).
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M02-P04

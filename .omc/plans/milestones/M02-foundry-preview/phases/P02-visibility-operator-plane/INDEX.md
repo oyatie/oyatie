@@ -1,8 +1,4 @@
 ---
-purpose: Ship account/session/usage/routing/dry-run dashboards — read-only operator plane with no write paths.
----
-
----
 doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M02-P02

@@ -1,8 +1,4 @@
 ---
-purpose: Ship ProviderAccount, AuthSession, UsageWindow, SecretReference, ProviderFamily allowlist with state-machine Draft→Verified→Active→Degraded→Disabled→Revoked.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P00-IP-002

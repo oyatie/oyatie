@@ -1,8 +1,4 @@
 ---
-purpose: Ratchet 7 fitness lanes WARN→BLOCK per wave.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P03-IP-002

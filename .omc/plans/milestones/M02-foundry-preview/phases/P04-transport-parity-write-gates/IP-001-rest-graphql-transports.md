@@ -1,8 +1,4 @@
 ---
-purpose: Ship REST + GraphQL transports binding to same use-case ports.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P04-IP-001

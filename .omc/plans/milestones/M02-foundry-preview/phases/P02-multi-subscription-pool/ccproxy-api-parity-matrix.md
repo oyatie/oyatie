@@ -1,13 +1,9 @@
 ---
-purpose: "Feature-by-feature comparison between ccproxy-api (https://github.com/CaddyGlow/ccproxy-api) and oyatie's P02 design."
----
-
----
 doc_class: ParityMatrix
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
 purpose: |
   Feature-by-feature comparison between ccproxy-api (https://github.com/CaddyGlow/ccproxy-api)
   and oyatie's P02 design. Each ccproxy-api feature is mapped to oyatie coverage with a

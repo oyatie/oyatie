@@ -1,8 +1,4 @@
 ---
-purpose: Ship read-only REST + WebSocket APIs for account/session/usage/routing dashboards.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P02-IP-001

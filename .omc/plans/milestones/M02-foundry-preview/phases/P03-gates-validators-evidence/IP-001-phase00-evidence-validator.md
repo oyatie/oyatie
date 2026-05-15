@@ -1,8 +1,4 @@
 ---
-purpose: Ship scripts/validate_foundry_phase00_evidence.mjs covering crates/tests/adapters/smoke/credentials/clean-arch.
----
-
----
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P03-IP-001
