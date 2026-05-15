@@ -10,7 +10,7 @@ license = "Apache-2.0"
 oya-saas-workflow-kernel = { path = "../oya-saas-workflow-kernel" }
 oya-saas-workflow-domain = { path = "../oya-saas-workflow-domain" }
 oya-saas-workflow-app = { path = "../oya-saas-workflow-app" }
-oya-saas-plugin-marketplace = { path = "../oya-saas-plugin-marketplace" }
+oya-saas-plugin-marketplace-kernel = { path = "../oya-saas-plugin-marketplace-kernel" }
 oya-saas-plugin-app = { path = "../oya-saas-plugin-app" }
 
 [lib]

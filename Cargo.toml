@@ -254,7 +254,7 @@ members = [
   "crates/oya-saas-workflow-kernel",
   "crates/oya-saas-workflow-domain",
   "crates/oya-saas-workflow-app",
-  "crates/oya-saas-plugin-marketplace",
+  "crates/oya-saas-plugin-marketplace-kernel",
   "crates/oya-saas-plugin-app",
   "crates/oya-saas-bench-app",
   "crates/oya-foundry-provider-pool-kernel",

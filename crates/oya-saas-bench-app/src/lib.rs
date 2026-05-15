@@ -1,14 +1,14 @@
 //! SaaS bench application — end-to-end harness driving the M03-P04 preview.
 //!
 //! Composes [`oya_saas_workflow_app::WorkflowEngine`] with
-//! [`oya_saas_plugin_marketplace::MarketplaceRegistry`] +
+//! [`oya_saas_plugin_marketplace_kernel::MarketplaceRegistry`] +
 //! [`oya_saas_plugin_app::PluginRuntime`] to exercise the full
 //! `definition.publish` -> `run.start` -> `plugin.invocation` -> `run.complete`
 //! sequence. Used by the M03-P04 acceptance lane to record SLO counters per
 //! tenant and to verify cross-crate contracts compose without any external
 //! dependencies.
 
-use oya_saas_plugin_marketplace::{
+use oya_saas_plugin_marketplace_kernel::{
     MarketplaceListingPublish, MarketplaceRegistry, PluginManifestRegister, TrustTier, Vertical,
 };
 use oya_saas_plugin_app::{
