@@ -1,3 +1,11 @@
+---
+id: ADR-0102
+title: Foundry Settings Template Canonical Rendering
+status: Accepted
+owner: council-architecture
+date: 2026-05-15
+---
+
 # ADR-0102: Foundry Settings Template Canonical Rendering
 
 ## Status

@@ -1,18 +1,23 @@
 ---
 doc_class: ADR
-adr_id: ADR-0052
+adr_id: ADR-0103
 title: Grit cutover inventory of legacy primitives
 status: Accepted
+owner: council-architecture
 deciders: council-architecture + axis-foundry
 date: 2026-05-14
 supersedes: []
 superseded_by: []
 relates_to:
+  - ADR-0052-inventory-grit-cutover.md
   - ADR-0054-grit-scaffold-claim-pattern.md
   - /specs/cross-cutting/master-plan-sequencing.json
+renumbered_from: ADR-0052
+renumbered_on: 2026-05-15
+renumber_reason: "ID-collision with ADR-0052-inventory-grit-cutover.md (Canonical Inventory Ledger for the grit/icm Cutover, dated 2026-05-12). Both ADRs cover the grit cutover but at different abstraction levels — this one is the high-level legacy-primitive replacement matrix; the older ADR-0052 is the operational ledger. Renumbered to ADR-0103 (next free slot) so both surface in the index."
 ---
 
-# ADR-0052 — Grit cutover inventory of legacy primitives
+# ADR-0103: Grit cutover inventory of legacy primitives
 
 ## Context
 

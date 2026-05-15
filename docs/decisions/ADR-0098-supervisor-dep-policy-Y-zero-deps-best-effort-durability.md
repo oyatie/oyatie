@@ -2,6 +2,7 @@
 id: ADR-0098
 title: "Supervisor dependency policy Branch Y — zero net-new external Cargo deps + best-effort durability"
 status: accepted
+owner: council-architecture
 date: 2026-05-15
 owner_phase: M02-P06
 deciders:
@@ -14,7 +15,7 @@ related:
   - ADR-0003  # audit-chain emission (crash-atomicity requirement)
 ---
 
-# ADR-0098 — Supervisor Dep-Policy Branch Y: Zero Net-New External Deps + Best-Effort Durability
+# ADR-0098: Supervisor Dep-Policy Branch Y: Zero Net-New External Deps + Best-Effort Durability
 
 ## Status
 

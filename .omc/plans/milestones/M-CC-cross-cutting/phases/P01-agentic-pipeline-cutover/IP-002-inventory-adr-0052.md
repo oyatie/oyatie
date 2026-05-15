@@ -23,7 +23,7 @@ Land inventory ADR-0052 with archived_at column per row.
 
 ## Symbols-to-grit-claim
 ```
-docs/decisions/ADR-0052-grit-cutover-inventory.md::InventoryTable
+docs/decisions/ADR-0103-grit-cutover-inventory.md::InventoryTable
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

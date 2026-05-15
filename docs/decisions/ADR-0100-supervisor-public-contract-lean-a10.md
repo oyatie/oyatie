@@ -1,3 +1,11 @@
+---
+id: ADR-0100
+title: Foundry Supervisor Public Contract (Lean-a10)
+status: Accepted
+owner: council-architecture
+date: 2026-05-15
+---
+
 # ADR-0100: Foundry Supervisor Public Contract (Lean-a10)
 
 ## Status

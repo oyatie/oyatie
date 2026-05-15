@@ -1,7 +1,3 @@
----
-purpose: Auto-backfilled purpose for ADR-INDEX.md
----
-
 # Oyatie — ADR Index
 
 > **Generated:** from [`decisions/`](decisions/) by `oya doc adr-index`. Do not hand-edit generated rows.
@@ -10,10 +6,10 @@ purpose: Auto-backfilled purpose for ADR-INDEX.md
 
 ## At-a-glance
 
-- **Total ADRs:** 68
-- **Numbering:** ADR-0001..ADR-0091 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0089)
-- **Next ADR number:** 0092
-- **Status counts:** Accepted 32, Proposed 36
+- **Total ADRs:** 81
+- **Numbering:** ADR-0001..ADR-0103 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)
+- **Next ADR number:** 0104
+- **Status counts:** Accepted 41, Proposed 36, accepted 4
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -86,20 +82,26 @@ purpose: Auto-backfilled purpose for ADR-INDEX.md
 | ADR-0066 | Accepted | Live code-introspection — docs portal reflects realtime project state with full endpoint / dep graph / dead-code coverage | axis-foundry + council-architecture | [`ADR-0066-live-code-introspection-docs-portal.md`](decisions/ADR-0066-live-code-introspection-docs-portal.md) |
 | ADR-0067 | Accepted | `ops.oyatie.com` — the canonical hyperscaler-grade operations console for the entire oyatie platform | council-architecture + axis-foundry + ops-sre-reliability | [`ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md`](decisions/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md) |
 | ADR-0069 | Accepted | Active machine-readable artifact contract — 9-capability declaration, knowledge-graph substrate, registry-pattern control plane | council-architecture + axis-foundry | [`ADR-0069-active-machine-readable-artifact-contract.md`](decisions/ADR-0069-active-machine-readable-artifact-contract.md) |
+| ADR-0083 | Accepted | Rust Error-Handling Tier Decision — thiserror at libraries / anyhow at binaries / no panics in library code | council-architecture | [`ADR-0083-rust-error-handling-tier-decision.md`](decisions/ADR-0083-rust-error-handling-tier-decision.md) |
 | ADR-0090 | Accepted | Hyper canonical HTTP backbone (LTS-exception for hyper 1.x) | council-architecture | [`ADR-0090-hyper-canonical-http-backbone.md`](decisions/ADR-0090-hyper-canonical-http-backbone.md) |
 | ADR-0091 | Accepted | Foundry write-gate foundations (Phase 05 contract) | council-foundry | [`ADR-0091-foundry-write-gate-foundations.md`](decisions/ADR-0091-foundry-write-gate-foundations.md) |
-| ADR-0096 | Accepted | Supervisor language: Rust, not Node (build-vs-adopt Siigari/claude-heartbeat; M02-P06) | council-foundry | [`ADR-0096-supervisor-language-rust-not-node.md`](decisions/ADR-0096-supervisor-language-rust-not-node.md) |
-| ADR-0097 | Accepted | Rename oya-foundry-account-adapter-{claude-code,codex-cli,gemini-cli} → oya-foundry-{claude,codex,gemini}-account-adapter (layer token must be last per BNF v4.1) | council-foundry | [`ADR-0097-foundry-account-adapter-rename-target-slot-last.md`](decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md) |
-| ADR-0098 | Accepted | Supervisor dep-policy Branch Y — zero net-new external Cargo deps + sync SessionDriver on tokio blocking pool + best-effort durability (no fsync parent_dir) | council-foundry | [`ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md`](decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md) |
-| ADR-0099 | Accepted | Cedar policy extension — foundry supervisor capabilities (inject_message, idle_tick, restart_session, dead_letter, read) at T1–T4 in docs/policies/foundry-supervisor.cedar | council-foundry | [`ADR-0099-cedar-policy-extend-supervisor-capabilities.md`](decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md) |
-| ADR-0100 | Accepted | Foundry Supervisor public contract (Lean-a10) — zero net-new public APIs on existing kernels | council-foundry | [`ADR-0100-supervisor-public-contract-lean-a10.md`](decisions/ADR-0100-supervisor-public-contract-lean-a10.md) |
-| ADR-0101 | Accepted | Foundry Supervisor mountpoint (Direct Hyper) — mount webhook directly via oya-http-runtime-hyper-adapter | council-foundry | [`ADR-0101-supervisor-mountpoint-direct-hyper.md`](decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md) |
-| ADR-0102 | Accepted | Foundry Settings Template canonical rendering — atomic-tempfile rendering + per-provider SettingsRenderer | council-foundry | [`ADR-0102-foundry-settings-template-canonical-rendering.md`](decisions/ADR-0102-foundry-settings-template-canonical-rendering.md) |
+| ADR-0092 | Accepted | Workspace dependency-seam policy | council-architecture | [`ADR-0092-workspace-dependency-seam-policy.md`](decisions/ADR-0092-workspace-dependency-seam-policy.md) |
+| ADR-0093 | Accepted | DeadlineMiddleware → LatencyBudgetReporter (honest naming) | council-architecture | [`ADR-0093-latency-budget-reporter-rename.md`](decisions/ADR-0093-latency-budget-reporter-rename.md) |
+| ADR-0094 | Accepted | `Handler` trait with associated `Error` type | council-architecture | [`ADR-0094-handler-trait-with-associated-error.md`](decisions/ADR-0094-handler-trait-with-associated-error.md) |
+| ADR-0095 | Accepted | `TenantSlug` centralized in `oya-tenancy-kernel` | council-architecture | [`ADR-0095-tenant-slug-in-tenancy-kernel.md`](decisions/ADR-0095-tenant-slug-in-tenancy-kernel.md) |
+| ADR-0096 | accepted | Supervisor Language: Rust, not Node | council-architecture | [`ADR-0096-supervisor-language-rust-not-node.md`](decisions/ADR-0096-supervisor-language-rust-not-node.md) |
+| ADR-0097 | accepted | Rename `oya-foundry-account-adapter-*` — Layer Token Must Be Last | council-architecture | [`ADR-0097-foundry-account-adapter-rename-target-slot-last.md`](decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md) |
+| ADR-0098 | accepted | Supervisor Dep-Policy Branch Y: Zero Net-New External Deps + Best-Effort Durability | council-architecture | [`ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md`](decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md) |
+| ADR-0099 | accepted | Cedar Policy Extension: Foundry Supervisor Capabilities at T1–T4 | council-architecture | [`ADR-0099-cedar-policy-extend-supervisor-capabilities.md`](decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md) |
+| ADR-0100 | Accepted | Foundry Supervisor Public Contract (Lean-a10) | council-architecture | [`ADR-0100-supervisor-public-contract-lean-a10.md`](decisions/ADR-0100-supervisor-public-contract-lean-a10.md) |
+| ADR-0101 | Accepted | Foundry Supervisor Mountpoint (Direct Hyper) | council-architecture | [`ADR-0101-supervisor-mountpoint-direct-hyper.md`](decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md) |
+| ADR-0102 | Accepted | Foundry Settings Template Canonical Rendering | council-architecture | [`ADR-0102-foundry-settings-template-canonical-rendering.md`](decisions/ADR-0102-foundry-settings-template-canonical-rendering.md) |
+| ADR-0103 | Accepted | Grit cutover inventory of legacy primitives | council-architecture | [`ADR-0103-grit-cutover-inventory.md`](decisions/ADR-0103-grit-cutover-inventory.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0092), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0104), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -112,10 +114,11 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 | ADR-0012 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | ADR-0033 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | ADR-0068 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
-| ADR-0070..ADR-0089 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| ADR-0070..ADR-0082 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| ADR-0084..ADR-0089 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 
 ## Sources scanned
 
-- `decisions/` directory listing — 68 ADR files (sorted ascending)
+- `decisions/` directory listing — 81 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

@@ -2,6 +2,7 @@
 id: ADR-0097
 title: "Rename oya-foundry-account-adapter-{claude-code,codex-cli,gemini-cli} → oya-foundry-{claude,codex,gemini}-account-adapter"
 status: accepted
+owner: council-architecture
 date: 2026-05-15
 owner_phase: M02-P06
 deciders:
@@ -13,7 +14,7 @@ related:
   - ADR-0096  # supervisor language: Rust (cites these adapter crates)
 ---
 
-# ADR-0097 — Rename `oya-foundry-account-adapter-*` — Layer Token Must Be Last
+# ADR-0097: Rename `oya-foundry-account-adapter-*` — Layer Token Must Be Last
 
 ## Status
 

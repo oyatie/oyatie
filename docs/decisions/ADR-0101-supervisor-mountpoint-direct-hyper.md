@@ -1,3 +1,11 @@
+---
+id: ADR-0101
+title: Foundry Supervisor Mountpoint (Direct Hyper)
+status: Accepted
+owner: council-architecture
+date: 2026-05-15
+---
+
 # ADR-0101: Foundry Supervisor Mountpoint (Direct Hyper)
 
 ## Status

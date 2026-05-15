@@ -2,6 +2,7 @@
 id: ADR-0096
 title: "Supervisor language: Rust, not Node (build-vs-adopt Siigari/claude-heartbeat)"
 status: accepted
+owner: council-architecture
 date: 2026-05-15
 owner_phase: M02-P06
 deciders:
@@ -15,7 +16,7 @@ related:
   - ADR-0042  # OTel gen_ai semconv
 ---
 
-# ADR-0096 — Supervisor Language: Rust, not Node
+# ADR-0096: Supervisor Language: Rust, not Node
 
 ## Status
 

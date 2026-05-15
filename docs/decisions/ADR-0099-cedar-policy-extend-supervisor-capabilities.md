@@ -2,6 +2,7 @@
 id: ADR-0099
 title: "Cedar policy extension — foundry supervisor capabilities in docs/policies/foundry-supervisor.cedar"
 status: accepted
+owner: council-architecture
 date: 2026-05-15
 owner_phase: M02-P06
 deciders:
@@ -15,7 +16,7 @@ related:
   - ADR-0098   # Supervisor dep-policy Branch Y (crash atomicity context)
 ---
 
-# ADR-0099 — Cedar Policy Extension: Foundry Supervisor Capabilities at T1–T4
+# ADR-0099: Cedar Policy Extension: Foundry Supervisor Capabilities at T1–T4
 
 ## Status
 

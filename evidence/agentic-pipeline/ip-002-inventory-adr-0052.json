@@ -8,7 +8,7 @@
   "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
   "claim": {
     "requested_symbols": [
-      "docs/decisions/ADR-0052-grit-cutover-inventory.md::InventoryTable"
+      "docs/decisions/ADR-0103-grit-cutover-inventory.md::InventoryTable"
     ],
     "actual_path": "docs/decisions/ADR-0052-inventory-grit-cutover.md",
     "grit_claim": "blocked: FOREIGN KEY constraint failed",
