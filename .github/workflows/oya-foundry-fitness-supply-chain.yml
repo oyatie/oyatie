@@ -44,7 +44,7 @@ jobs:
       - name: Install Trivy
         run: bash scripts/install-trivy-ci.sh
       - name: Execute Oya VCS provider proof
-        run: scripts/check-oya-vcs-provider-execution.sh --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json
+        run: cargo run -q -p oya-foundry-vcs-provider-execution-gate-app -- --mode ci --emit-evidence target/oya-vcs-provider-execution/provider-execution-proof.json
       - name: Upload provider proof evidence
         uses: actions/upload-artifact@v4
         with:
