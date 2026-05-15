@@ -17,6 +17,7 @@ related:
   - docs/AGENTS.md
   - docs/DOC-CATALOG.md
   - docs/RACI-OWNERSHIP.md
+doc_status: published
 ---
 
 # Cross-Reference Index

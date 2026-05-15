@@ -13,6 +13,7 @@ bominal_source:
   - ADR-0210  # M03 KR group mail launch
   - ADR-0132  # data ownership pillars (person-pillar for Personal context)
   - ADR-0123  # cross-product auth cookie + redirect contract
+doc_status: published
 ---
 
 # PRD-connect: Connect µservice (dual-context: Personal + Professional)

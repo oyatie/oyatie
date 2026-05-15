@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Pre-cutover drafts — oyatie SoT + grit/icm
 
 <!--

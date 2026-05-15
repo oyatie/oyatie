@@ -2,6 +2,7 @@
 status: Accepted
 date: 2026-05-12
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054, ADR-0055]
+doc_status: published
 ---
 
 # Cutover cross-cutting amendments — 2026-05-12

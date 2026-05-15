@@ -19,6 +19,7 @@ related:
   - docs/standards/claude-code-harness.md
   - docs/standards/agent-instructions-discipline.md
   - docs/standards/git-workflow.md
+doc_status: published
 ---
 
 # Agent Tool Protocol

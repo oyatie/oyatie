@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Orchestrator existence findings — ralplan iter-1 → iter-2 transition
 
 <!--

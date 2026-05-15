@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # RALPLAN — oyatie Single Source of Truth + grit/icm Cutover
 
 <!--

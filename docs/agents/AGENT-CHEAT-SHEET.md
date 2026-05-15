@@ -14,6 +14,7 @@ related:
   - docs/agents/AGENT-ENTRY-POINT.md
   - docs/agents/AGENT-TOOL-PROTOCOL.md
   - docs/agents/ESCALATION-MATRIX.md
+doc_status: published
 ---
 
 # Agent Cheat Sheet

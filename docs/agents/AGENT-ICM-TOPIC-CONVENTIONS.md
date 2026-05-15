@@ -15,6 +15,7 @@ related:
   - docs/agents/AGENT-ENTRY-POINT.md
   - docs/agents/AGENT-TOOL-PROTOCOL.md
   - CLAUDE.md
+doc_status: published
 ---
 
 # ICM Topic Conventions

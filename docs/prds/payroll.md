@@ -13,6 +13,7 @@ bominal_source:
   - ADR-0125  # domain naming canon
   - ADR-0028  # audit chain Merkle/Ed25519
   - ADR-0018  # tenancy RLS posture
+doc_status: published
 ---
 
 # PRD-payroll: Payroll µservice

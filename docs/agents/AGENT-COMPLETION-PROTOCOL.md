@@ -17,6 +17,7 @@ related:
   - docs/agents/AGENT-ICM-TOPIC-CONVENTIONS.md
   - docs/templates/checklists/agent-completion-checklist.md
   - docs/AGENTS.md
+doc_status: published
 ---
 
 # Agent Completion Protocol

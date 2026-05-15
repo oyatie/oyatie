@@ -52,6 +52,7 @@ related_adrs:
   - ADR-0054
   - ADR-0056
   - ADR-0057
+doc_status: published
 ---
 
 # Rename Plan v4.1 — Clean Architecture / Flat Catalog BNF (2026-05-13, Hybrid C: Shard 0 + atomic Shard 1)

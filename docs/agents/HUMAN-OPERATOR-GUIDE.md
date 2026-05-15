@@ -17,6 +17,7 @@ related:
   - docs/agents/AGENT-ICM-TOPIC-CONVENTIONS.md
   - docs/AGENTS.md
   - docs/RACI-OWNERSHIP.md
+doc_status: published
 ---
 
 # Human Operator Guide

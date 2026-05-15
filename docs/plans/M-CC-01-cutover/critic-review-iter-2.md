@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Critic Evaluation — ralplan-oyatie-sst-consolidation (Iteration 2 final)
 
 <!--

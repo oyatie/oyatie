@@ -19,6 +19,7 @@ bominal_source:
   - ADR-0018   # tenancy RLS posture
   - ADR-0009   # cell architecture
   - ADR-0019   # runtime target metadata model (active-active compatibility)
+doc_status: published
 ---
 
 # PRD-workflow: Workflow Studio (Shared Substrate + Hero Product)

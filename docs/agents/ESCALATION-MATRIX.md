@@ -16,6 +16,7 @@ related:
   - docs/agents/AGENT-DECISION-TREE.md
   - docs/agents/AGENT-FAILURE-RECOVERY.md
   - docs/agents/HUMAN-OPERATOR-GUIDE.md
+doc_status: published
 ---
 
 # Escalation Matrix
