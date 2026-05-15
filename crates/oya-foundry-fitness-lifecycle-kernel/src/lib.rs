@@ -1041,27 +1041,30 @@ pub mod cli {
     }
 
     /// Set of file paths changed in the most recent commit. Used to compute
-    /// delta-BLOCK for Wave-B. Best-effort: returns an empty set on any
-    /// git failure (degrades to "no new artifacts → WARN-only behavior on
-    /// the delta, but baseline findings still appear in output").
-    fn changed_paths_in_head_commit() -> BTreeSet<String> {
-        let mut out: BTreeSet<String> = BTreeSet::new();
+    /// delta-BLOCK for Wave-B. Returns `None` on any git failure
+    /// (squash-merge with no HEAD~1, shallow clone with depth=1, missing
+    /// git binary, etc.) so the caller can distinguish "no new artifacts"
+    /// from "git failed" — the canonical fail-closed posture is to fall
+    /// back to Wave-C (full-block) on git failure rather than silently
+    /// degrading Wave-B to WARN-only.
+    fn changed_paths_in_head_commit() -> Option<BTreeSet<String>> {
         let output = Command::new("git")
             .args(["diff", "--name-only", "HEAD~1", "HEAD"])
             .stderr(Stdio::null())
-            .output();
-        if let Ok(o) = output
-            && o.status.success()
-            && let Ok(text) = std::str::from_utf8(&o.stdout)
-        {
-            for line in text.lines() {
-                let trimmed = line.trim();
-                if !trimmed.is_empty() {
-                    out.insert(trimmed.to_string());
-                }
+            .output()
+            .ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        let text = std::str::from_utf8(&output.stdout).ok()?;
+        let mut out: BTreeSet<String> = BTreeSet::new();
+        for line in text.lines() {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() {
+                out.insert(trimmed.to_string());
             }
         }
-        out
+        Some(out)
     }
 
     /// Is this violation's location in the changed-set? Wave-B delta predicate.
@@ -1112,7 +1115,32 @@ pub mod cli {
                 ExitCode::SUCCESS
             }
             Wave::B => {
-                let changed = changed_paths_in_head_commit();
+                let changed = match changed_paths_in_head_commit() {
+                    Some(c) => c,
+                    None => {
+                        // Git failed (squash-merge, shallow clone, missing
+                        // git binary). Fail-closed: fall back to Wave-C
+                        // full-block behavior rather than silently letting
+                        // new artifacts through with WARN-only.
+                        eprintln!(
+                            "{lane_name} FAIL (wave B; git-diff unavailable → fail-closed to wave C full-block): artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
+                            report.artifacts_observed,
+                            report.stage_counts,
+                            report.violations.len(),
+                            breakdown
+                        );
+                        for v in &report.violations {
+                            eprintln!(
+                                "  - [{}] {} stage={:?} hint={}",
+                                v.kind.as_str(),
+                                v.location,
+                                v.stage,
+                                v.hint
+                            );
+                        }
+                        return ExitCode::FAILURE;
+                    }
+                };
                 let mut new_findings: Vec<&Violation> = Vec::new();
                 let mut baseline: Vec<&Violation> = Vec::new();
                 for v in &report.violations {
