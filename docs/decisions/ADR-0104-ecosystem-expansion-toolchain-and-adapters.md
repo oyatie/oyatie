@@ -115,7 +115,7 @@ deleted form. The pair was never coherent.
 
 ## Follow-ups
 
-1. Drive `oya gate validate perf-budget` to zero violations (currently 2: `IP-001-saas-pairs.md`, `IP-002-cloud-pairs.md`). Either author `## Load test` sections with real content or add exemption markers.
+1. Drive `oya gate validate perf-budget` to zero violations by authoring real `## Load test` sections. Two outstanding items (`IP-001-saas-pairs.md`, `IP-002-cloud-pairs.md`) must close before the lane greens. No exemption markers; canonical predictability requires every IP that ships an adapter to declare its load-test surface.
 2. Drive `oya gate validate benchmark` to zero violations (currently 7 across `docs/prds/` + `docs/products/`).
 3. When M02-P18 cloud sub-µservice runtimes ship, reintroduce the relevant cloud-adapter families with real port impls + consumers in the same PR.
 4. Author `oya-foundry-fitness-adapter-with-no-importer` lane as a mechanical-prevention for premature adapter creation (per Consequences). **Scaffolded** in `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` + `tools/oya-foundry-fitness-adapter-with-no-importer` (ratchet plan in `.omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`); WARN-baseline = 29 violations on first run, BLOCK ratchet across Waves B/C.
