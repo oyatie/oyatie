@@ -1,0 +1,29 @@
+{
+  "name": "migration-status",
+  "version": 1,
+  "stages": [
+    { "id": "pre-cutover", "terminal": false, "requires_supersession_edge": false },
+    { "id": "in-cutover", "terminal": false, "requires_supersession_edge": false },
+    { "id": "cleanup", "terminal": false, "requires_supersession_edge": false },
+    { "id": "done", "terminal": true, "requires_supersession_edge": false }
+  ],
+  "transitions": [
+    { "from": "pre-cutover", "to": "in-cutover" },
+    { "from": "in-cutover", "to": "cleanup" },
+    { "from": "cleanup", "to": "done" }
+  ],
+  "sources": [
+    {
+      "kind": "yaml_front_matter",
+      "glob": ".omc/plans/milestones/**/*.md",
+      "stage_field": "migration_status",
+      "supersession_field": null,
+      "deadline_field": "migration_deadline",
+      "milestone_field": "migration_milestone_anchor"
+    }
+  ],
+  "defaults": {
+    "wave": "A",
+    "case_insensitive_stage_match": true
+  }
+}
