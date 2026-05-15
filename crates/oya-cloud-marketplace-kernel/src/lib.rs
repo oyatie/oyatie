@@ -44,19 +44,29 @@ pub enum EntitlementState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Offer {
+    // data_class: INTERNAL_ONLY
     pub offer_id: String,
+    // data_class: INTERNAL_ONLY
     pub publisher_tenant_id: String,
+    // data_class: INTERNAL_ONLY
     pub kind: OfferKind,
+    // data_class: INTERNAL_ONLY
     pub state: OfferState,
+    // data_class: INTERNAL_ONLY
     pub valid_until_unix_ms: u64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Entitlement {
+    // data_class: INTERNAL_ONLY
     pub entitlement_id: String,
+    // data_class: INTERNAL_ONLY
     pub offer_id: String,
+    // data_class: INTERNAL_ONLY
     pub buyer_tenant_id: String,
+    // data_class: INTERNAL_ONLY
     pub state: EntitlementState,
+    // data_class: INTERNAL_ONLY
     pub seats: u32,
 }
 

@@ -47,19 +47,29 @@ pub enum RecommendationState {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CostReport {
+    // data_class: INTERNAL_ONLY
     pub report_id: String,
+    // data_class: INTERNAL_ONLY
     pub period: ReportPeriod,
+    // data_class: INTERNAL_ONLY
     pub period_start_unix_ms: u64,
+    // data_class: INTERNAL_ONLY
     pub period_end_unix_ms: u64,
+    // data_class: INTERNAL_ONLY
     pub total_spend_micros: u128,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Recommendation {
+    // data_class: INTERNAL_ONLY
     pub recommendation_id: String,
+    // data_class: INTERNAL_ONLY
     pub kind: RecommendationKind,
+    // data_class: INTERNAL_ONLY
     pub baseline_report_id: Option<String>,
+    // data_class: INTERNAL_ONLY
     pub estimated_savings_micros: u128,
+    // data_class: INTERNAL_ONLY
     pub state: RecommendationState,
 }
 

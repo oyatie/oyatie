@@ -63,8 +63,11 @@
 /// without an upstream-supplied workspace dep).
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Date {
+    // data_class: INTERNAL_ONLY
     pub year: i32,
+    // data_class: INTERNAL_ONLY
     pub month: u8,
+    // data_class: INTERNAL_ONLY
     pub day: u8,
 }
 
@@ -192,6 +195,7 @@ pub struct SunsetClause {
     /// data_class: INTERNAL_ONLY
     pub location: String,
     /// Optional explicit sunset date (`YYYY-MM-DD`).
+    // data_class: INTERNAL_ONLY
     pub sunset_at: Option<Date>,
     /// Optional milestone-anchored sunset (e.g. `M-CC-P01-merge`).
     /// data_class: INTERNAL_ONLY
@@ -199,10 +203,12 @@ pub struct SunsetClause {
     /// Optional explicit deprecation date. When `None` and `sunset_at` is
     /// present, defaults to `sunset_at + 30 days` per ADR-0108
     /// §"Canonical sub-rule (defaulting)".
+    // data_class: INTERNAL_ONLY
     pub deprecation_at: Option<Date>,
     /// Optional explicit removal date. When `None`, defaults to
     /// `deprecation_at + 90 days` (effective deprecation_at, including
     /// the 30-day default) per ADR-0108.
+    // data_class: INTERNAL_ONLY
     pub removal_at: Option<Date>,
     /// Short slug used for cross-referencing the same sunset in multiple
     /// surfaces. data_class: INTERNAL_ONLY
@@ -210,6 +216,7 @@ pub struct SunsetClause {
     /// True when the surface carries a deprecation marker
     /// (`#[deprecated]`, `status: Deprecated`, `Deprecated:` doc-comment).
     /// Discovery layer is responsible for populating this honestly.
+    // data_class: INTERNAL_ONLY
     pub has_deprecation_marker: bool,
 }
 
@@ -238,11 +245,13 @@ pub enum LifecycleState {
 pub struct Violation {
     /// data_class: INTERNAL_ONLY
     pub clause_location: String,
+    // data_class: INTERNAL_ONLY
     pub state: LifecycleState,
     /// data_class: INTERNAL_ONLY
     pub expected_action: String,
     /// Days overdue. `None` for [`LifecycleState::MissingFields`] (no
     /// reference date to measure overdue against).
+    // data_class: INTERNAL_ONLY
     pub days_overdue: Option<i64>,
 }
 

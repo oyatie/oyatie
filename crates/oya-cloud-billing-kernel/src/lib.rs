@@ -32,19 +32,19 @@ impl UsageUnit {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct UsageRecord {
-    pub record_id: String,
-    pub tenant_id: String,
-    pub unit: UsageUnit,
-    pub quantity: u64,
-    pub timestamp_unix_ms: u64,
+    pub record_id: String,      // data_class: INTERNAL_ONLY
+    pub tenant_id: String,      // data_class: INTERNAL_ONLY
+    pub unit: UsageUnit,        // data_class: PUBLIC
+    pub quantity: u64,          // data_class: INTERNAL_ONLY
+    pub timestamp_unix_ms: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LineItem {
-    pub line_id: String,
-    pub usage: UsageRecord,
-    pub unit_price_micros: u64,
-    pub tax_jurisdiction: Option<String>,
+    pub line_id: String,                  // data_class: INTERNAL_ONLY
+    pub usage: UsageRecord,               // data_class: INTERNAL_ONLY
+    pub unit_price_micros: u64,           // data_class: INTERNAL_ONLY
+    pub tax_jurisdiction: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl LineItem {

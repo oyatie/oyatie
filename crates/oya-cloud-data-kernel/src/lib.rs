@@ -61,17 +61,25 @@ pub enum EncryptionRequirement {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DataServicePlan {
+    // data_class: INTERNAL_ONLY
     pub plan_id: String,
+    // data_class: INTERNAL_ONLY
     pub kind: DataServiceKind,
+    // data_class: INTERNAL_ONLY
     pub residency: ResidencyClass,
+    // data_class: INTERNAL_ONLY
     pub encryption: EncryptionRequirement,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AdapterCapabilities {
+    // data_class: INTERNAL_ONLY
     pub adapter_id: String,
+    // data_class: INTERNAL_ONLY
     pub kind: DataServiceKind,
+    // data_class: INTERNAL_ONLY
     pub supports_residency: Vec<ResidencyClass>,
+    // data_class: INTERNAL_ONLY
     pub max_encryption: EncryptionRequirement,
 }
 

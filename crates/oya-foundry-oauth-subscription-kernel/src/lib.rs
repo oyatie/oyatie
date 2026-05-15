@@ -100,7 +100,9 @@ impl FlowKind {
 /// (port 35593, `/callback`). The runtime adapter binds the listener.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OAuthLoopbackServer {
+    // data_class: INTERNAL_ONLY
     pub port: u16,
+    // data_class: INTERNAL_ONLY
     pub callback_path: String,
 }
 
@@ -136,10 +138,14 @@ pub struct SubscriptionOAuthFlow {
 /// data_class: INTERNAL_ONLY
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubscriptionTokenCaptureRequest {
+    // data_class: INTERNAL_ONLY
     pub flow_kind: FlowKind,
+    // data_class: INTERNAL_ONLY
     pub provider: ProviderFamily,
     pub verifier: PkceVerifier, // data_class: INTERNAL_ONLY
+    // data_class: INTERNAL_ONLY
     pub state_nonce: String,
+    // data_class: INTERNAL_ONLY
     pub loopback: OAuthLoopbackServer,
 }
 
@@ -148,9 +154,13 @@ pub struct SubscriptionTokenCaptureRequest {
 /// this struct.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubscriptionTokenCaptureResponse {
+    // data_class: INTERNAL_ONLY
     pub sref: SecretReference,
+    // data_class: INTERNAL_ONLY
     pub flow_kind: FlowKind,
+    // data_class: INTERNAL_ONLY
     pub provider: ProviderFamily,
+    // data_class: INTERNAL_ONLY
     pub captured_unix_secs: u64,
 }
 

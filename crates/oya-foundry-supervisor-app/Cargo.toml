@@ -33,7 +33,7 @@ oya-foundry-codex-account-adapter = { path = "../oya-foundry-codex-account-adapt
 oya-foundry-gemini-account-adapter = { path = "../oya-foundry-gemini-account-adapter" }
 oya-foundry-route-policy-kernel = { path = "../oya-foundry-route-policy-kernel" }
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
-tokio.workspace = true
+tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 oya-foundry-settings-template-kernel = { version = "0.1.0", path = "../oya-foundry-settings-template-kernel" }

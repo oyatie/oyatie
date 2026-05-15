@@ -5,7 +5,7 @@ lanes:
     stage: foundation
     status: active
     owner_team: council-architecture
-    purpose: authority-chain declarations in CONSTITUTION, AGENTS, and README stay identical
+    purpose: authority-chain declarations in AGENTS and README stay identical
     source: CONSTITUTION.md
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate authority-cohesion
@@ -33,14 +33,6 @@ lanes:
     source: ADR-0011
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate cohesion
-  - id: oya-foundry-fitness-constitution-cite-coverage
-    stage: foundation
-    status: active
-    owner_team: council-architecture
-    purpose: tier-one docs cite constitutional authority at heading level
-    source: CONSTITUTION.md
-    runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate constitution-cite-coverage
   - id: oya-foundry-fitness-data-class
     stage: foundation
     status: active

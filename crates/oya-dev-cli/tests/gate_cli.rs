@@ -2231,6 +2231,35 @@ fn glossary_cross_doc_gate_accepts_active_and_retired_term_policy() {
 }
 
 #[test]
+fn glossary_cross_doc_gate_decodes_machine_unicode_escapes() {
+    let temp = temp_dir("glossary-unicode-escapes");
+    write_glossary_coverage_fixture(
+        &temp,
+        "공공정보법\nOld Alias",
+        "공공정보법 is covered outside the glossary.",
+        r"\uacf5\uacf5\uc815\ubcf4\ubc95",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(glossary_coverage_args(&temp))
+        .output()
+        .expect("glossary coverage gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("glossary cross-doc coverage validation passed: 2 terms, 1 cross-doc terms")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn glossary_vocabulary_gate_rejects_forbidden_active_vocabulary() {
     let temp = temp_dir("glossary-vocab-forbidden");
     write_glossary_vocabulary_fixture(&temp, "Trust portal MVP launch.", &["ADR"]);
@@ -2776,6 +2805,56 @@ fn doc_catalog_gate_accepts_path_glob_adr_and_codeowners_dependencies() {
         catalog.replacen(
             r#""dependent_docs": []"#,
             r#""dependent_docs": ["products/*/PRD.md", "machine-readable/catalog.json (this file)", "ADR-0050", ".github/CODEOWNERS"]"#,
+            1,
+        ),
+    )
+    .expect("machine catalog updated");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "doc-catalog",
+            "--docs-dir",
+            temp.to_str().expect("utf8 docs dir"),
+            "--catalog",
+            catalog_path.to_str().expect("utf8 catalog"),
+        ])
+        .output()
+        .expect("doc-catalog gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("doc catalog validation passed: 2 documents")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn doc_catalog_gate_accepts_workspace_spec_dependencies() {
+    let temp = temp_dir("doc-catalog-spec-dependencies");
+    write_doc_catalog_fixture(&temp, &["README.md"], &["README.md", "DOC-CATALOG.md"]);
+    fs::create_dir_all(temp.join("specs/cross-cutting")).expect("spec dir created");
+    fs::write(
+        temp.join("specs/cross-cutting/decision-principles.json"),
+        "{}\n",
+    )
+    .expect("spec written");
+
+    let catalog_path = temp.join("machine-readable/catalog.json");
+    let catalog = fs::read_to_string(&catalog_path).expect("machine catalog read");
+    fs::write(
+        &catalog_path,
+        catalog.replacen(
+            r#""dependent_docs": []"#,
+            r#""dependent_docs": ["/specs/cross-cutting/decision-principles.json"]"#,
             1,
         ),
     )

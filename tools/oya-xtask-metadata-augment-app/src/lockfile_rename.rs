@@ -88,26 +88,26 @@ pub fn rewrite_lockfile(content: &str, rename_map: &HashMap<String, String>) -> 
 
     for pkg in packages.iter_mut() {
         // Rename the package name itself
-        if let Some(name_item) = pkg.get_mut("name") {
-            if let Some(name_str) = name_item.as_str() {
-                let name_owned = name_str.to_owned();
-                if let Some(new_name) = rename_map.get(&name_owned) {
-                    *name_item = toml_edit::value(new_name.as_str());
-                }
+        if let Some(name_item) = pkg.get_mut("name")
+            && let Some(name_str) = name_item.as_str()
+        {
+            let name_owned = name_str.to_owned();
+            if let Some(new_name) = rename_map.get(&name_owned) {
+                *name_item = toml_edit::value(new_name.as_str());
             }
         }
 
         // Rename occurrences in the dependencies array
         // Dependency strings have the form: "crate-name VERSION" or "crate-name VERSION (SOURCE)"
-        if let Some(deps_item) = pkg.get_mut("dependencies") {
-            if let Some(deps_array) = deps_item.as_array_mut() {
-                for dep in deps_array.iter_mut() {
-                    if let Some(dep_str) = dep.as_str() {
-                        let dep_owned = dep_str.to_owned();
-                        let new_dep = rename_dep_string(&dep_owned, rename_map);
-                        if new_dep != dep_owned {
-                            *dep = toml_edit::Value::String(toml_edit::Formatted::new(new_dep));
-                        }
+        if let Some(deps_item) = pkg.get_mut("dependencies")
+            && let Some(deps_array) = deps_item.as_array_mut()
+        {
+            for dep in deps_array.iter_mut() {
+                if let Some(dep_str) = dep.as_str() {
+                    let dep_owned = dep_str.to_owned();
+                    let new_dep = rename_dep_string(&dep_owned, rename_map);
+                    if new_dep != dep_owned {
+                        *dep = toml_edit::Value::String(toml_edit::Formatted::new(new_dep));
                     }
                 }
             }

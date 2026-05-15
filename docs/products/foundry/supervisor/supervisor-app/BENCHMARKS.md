@@ -158,4 +158,4 @@ The CI lane `lean-settings-drift` (part of the larger `oya-foundry-fitness-*` su
 - **v4 Plan § C.13a-d:** Performance budgets
 - **v6 Amendments § BLOCKER-2:** Multi-sample p95 methodology
 - **Benchmark harness:** `crates/oya-foundry-supervisor-app/benches/heartbeat.rs`
-- **Hardware baseline:** Measured on arm64-darwin-m2 (M2 MacBook Air)
+- **Hardware baseline:** Measured on arm64-darwin Apple silicon (MacBook Air class)

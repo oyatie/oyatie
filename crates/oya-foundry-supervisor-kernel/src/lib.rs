@@ -37,22 +37,32 @@ pub struct WindowId(pub String);
 /// (ADR-0100: avoids changing oya-foundry-account-domain).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SupervisorAccount {
+    // data_class: INTERNAL_ONLY
     pub id: AccountId,
+    // data_class: INTERNAL_ONLY
     pub provider_family: ProviderFamily,
+    // data_class: INTERNAL_ONLY
     pub state: AccountState,
+    // data_class: INTERNAL_ONLY
     pub secret_ref: SecretReference,
 }
 
 /// data_class: INTERNAL_ONLY
 #[derive(Clone, Debug)]
 pub struct UsageWindowSnapshot {
+    // data_class: INTERNAL_ONLY
     pub started_at_epoch_secs: u64,
+    // data_class: INTERNAL_ONLY
     pub ends_at_epoch_secs: u64,
+    // data_class: INTERNAL_ONLY
     pub tokens_in: u64,
+    // data_class: INTERNAL_ONLY
     pub tokens_out: u64,
     /// % of nominal limit consumed in current window (0..200).
+    // data_class: INTERNAL_ONLY
     pub usage_limit_pct: u8,
     /// % of reserve buffer remaining (0..100).
+    // data_class: INTERNAL_ONLY
     pub reserve_remaining_pct: u8,
 }
 
@@ -64,24 +74,36 @@ pub struct UsageWindowSnapshot {
 /// so the comparator fails closed, or consult `ColdStartPolicy` config.
 #[derive(Clone, Debug)]
 pub struct EnforcementProjection {
+    // data_class: INTERNAL_ONLY
     pub projected_tokens_p95: u64,
+    // data_class: INTERNAL_ONLY
     pub window_id: WindowId,
+    // data_class: INTERNAL_ONLY
     pub computed_at_epoch_secs: u64,
 }
 
 /// data_class: INTERNAL_ONLY
 #[derive(Clone, Debug)]
 pub struct SessionTicket {
+    // data_class: INTERNAL_ONLY
     pub account_id: AccountId,
     /// Re-exported from oya-foundry-account-kernel.
+    // data_class: INTERNAL_ONLY
     pub provider_family: ProviderFamily,
     /// Re-exported from oya-foundry-autonomy-ceiling-kernel.
+    // data_class: INTERNAL_ONLY
     pub autonomy_tier: AutonomyTier,
+    // data_class: INTERNAL_ONLY
     pub usage_window_snapshot: UsageWindowSnapshot,
+    // data_class: INTERNAL_ONLY
     pub message_id: MessageId,
+    // data_class: INTERNAL_ONLY
     pub request_id: RequestId,
+    // data_class: INTERNAL_ONLY
     pub cost_ceiling_tokens: u64,
+    // data_class: INTERNAL_ONLY
     pub model_hint: String,
+    // data_class: INTERNAL_ONLY
     pub secret_ref: SecretReference,
 }
 
@@ -108,18 +130,26 @@ pub enum InboxState {
 
 /// data_class: INTERNAL_ONLY
 pub struct SupervisorConfig {
+    // data_class: INTERNAL_ONLY
     pub max_in_flight: usize,
+    // data_class: INTERNAL_ONLY
     pub blocking_pool_size: usize,
+    // data_class: INTERNAL_ONLY
     pub default_cost_ceiling: u64,
+    // data_class: INTERNAL_ONLY
     pub watchdog_secs: u64,
+    // data_class: INTERNAL_ONLY
     pub heartbeat_interval_secs: u64,
     // v6 BLOCKER-1 + BLOCKER-6:
+    // data_class: INTERNAL_ONLY
     pub settings_renderer_mode: RendererMode,
     /// TTL for per-(account_id, template_blake3) verify cache.
     /// 0 = cache disabled; default 60s.
+    // data_class: INTERNAL_ONLY
     pub settings_verify_debounce_secs: u64,
     /// If eligible_count drops below this after drift exclusion, return
     /// TickOutcome::DriftExcluded instead of spawning. Default 1.
+    // data_class: INTERNAL_ONLY
     pub minimum_eligible_accounts: usize,
 }
 
@@ -235,10 +265,15 @@ pub enum SupervisorError {
 /// data_class: TENANT_SCOPED (bridges to tenant_id via spend_to_usage_record)
 #[derive(Clone, Debug)]
 pub struct SpendRecord {
+    // data_class: INTERNAL_ONLY
     pub account_id: AccountId,
+    // data_class: INTERNAL_ONLY
     pub message_id: MessageId,
+    // data_class: INTERNAL_ONLY
     pub tokens_in: u64,
+    // data_class: INTERNAL_ONLY
     pub tokens_out: u64,
+    // data_class: INTERNAL_ONLY
     pub completed_at_epoch_secs: u64,
 }
 
@@ -248,8 +283,11 @@ pub struct SpendRecord {
 /// Value-only: no Arc/Box/& per kernel conventions.
 #[derive(Clone, Debug)]
 pub struct SpawnedSession {
+    // data_class: INTERNAL_ONLY
     pub session_id: String,
+    // data_class: INTERNAL_ONLY
     pub account_id: AccountId,
+    // data_class: INTERNAL_ONLY
     pub message_id: MessageId,
 }
 
@@ -264,16 +302,22 @@ pub enum DriverHealth {
 /// Wrapper for a locked inbox item + reservation metadata.
 #[derive(Clone, Debug)]
 pub struct Locked<T> {
+    // data_class: INTERNAL_ONLY
     pub reservation_id: String,
+    // data_class: INTERNAL_ONLY
     pub ttl_epoch_secs: u64,
+    // data_class: INTERNAL_ONLY
     pub item: T,
 }
 
 /// data_class: TENANT_SCOPED (opaque payload; id is INTERNAL_ONLY)
 #[derive(Clone, Debug)]
 pub struct InboxItem {
+    // data_class: INTERNAL_ONLY
     pub message_id: MessageId,
+    // data_class: INTERNAL_ONLY
     pub payload: Vec<u8>,
+    // data_class: INTERNAL_ONLY
     pub enqueued_at_epoch_secs: u64,
 }
 

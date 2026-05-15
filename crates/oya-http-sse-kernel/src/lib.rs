@@ -29,14 +29,18 @@
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct SseEvent {
     /// `id:` field. Browser uses it for Last-Event-ID resume.
+    // data_class: INTERNAL_ONLY
     pub id: Option<String>,
     /// `event:` field (event type name). When absent the client fires
     /// the default `message` event.
+    // data_class: INTERNAL_ONLY
     pub event: Option<String>,
     /// `data:` field payload. Multi-line strings are emitted as one
     /// `data:` line per `\n`.
+    // data_class: INTERNAL_ONLY
     pub data: String,
     /// `retry:` reconnection-delay hint in milliseconds (optional).
+    // data_class: INTERNAL_ONLY
     pub retry_ms: Option<u64>,
 }
 

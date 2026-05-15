@@ -6,23 +6,22 @@
 use std::process::Stdio;
 use tokio::process::Command;
 
-use oya_foundry_account_adapter_inmemory::InMemorySecretStoreAdapter;
 use oya_foundry_account_domain::SecretStorePort;
 use oya_foundry_supervisor_kernel::{
     DriverHealth, ProviderFamily, SessionDriver, SessionTicket, SpawnedSession, SupervisorError,
 };
 
-pub struct CodexDriver {
-    secrets: InMemorySecretStoreAdapter,
+pub struct CodexDriver<S> {
+    secrets: S,
 }
 
-impl CodexDriver {
-    pub fn new(secrets: InMemorySecretStoreAdapter) -> Self {
+impl<S> CodexDriver<S> {
+    pub fn new(secrets: S) -> Self {
         Self { secrets }
     }
 }
 
-impl SessionDriver for CodexDriver {
+impl<S: SecretStorePort + Send + Sync> SessionDriver for CodexDriver<S> {
     fn provider_family(&self) -> ProviderFamily {
         ProviderFamily::OpenAiOrCodex
     }

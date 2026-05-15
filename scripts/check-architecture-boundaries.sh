@@ -9,14 +9,16 @@ import sys
 LEGACY_IMPLEMENTATION_DIRS = ("modules", "services", "platform")
 
 ALLOWED_DEPENDENCY_ROLES = {
-    "kernel": {"kernel"},
+    "kernel": {"kernel", "domain"},
     "domain": {"kernel", "domain"},
     "application": {"kernel", "domain"},
-    "app": {"kernel", "domain", "application", "adapter"},
+    "app": {"kernel", "domain", "application", "adapter", "rest"},
     "api": {"kernel", "domain", "app"},
     "worker": {"kernel", "domain", "app"},
     "adapter": {"kernel", "domain"},
     "rest": {"kernel", "domain", "application", "adapter"},
+    "infrastructure": {"kernel", "domain"},
+    "test": {"kernel", "domain"},
     "runtime": {"kernel", "domain", "app", "application", "api", "worker", "adapter", "rest", "runtime"},
 }
 
@@ -168,9 +170,11 @@ def expect_self_test(label, metadata, catalog_records, expected_fragment, legacy
 
 def run_self_test():
     kernel = package("oya-platform-tenant-kernel", "kernel")
-    app = package("oya-foundation-app", "app", deps=["oya-platform-tenant-kernel"])
-    metadata = fixture([kernel, app])
-    records = catalog_for([kernel, app])
+    domain = package("oya-platform-tenant-domain", "domain", deps=["oya-platform-tenant-kernel"])
+    rest = package("oya-foundation-rest", "rest", deps=["oya-platform-tenant-kernel"])
+    app = package("oya-foundation-app", "app", deps=["oya-platform-tenant-kernel", "oya-foundation-rest"])
+    metadata = fixture([kernel, domain, app, rest])
+    records = catalog_for([kernel, domain, app, rest])
 
     expect_self_test("happy path", metadata, records, None)
 
@@ -219,11 +223,25 @@ def run_self_test():
     )
 
     extra_catalog = catalog_for(
-        [kernel, app], extra={"oya-retired-placeholder-kernel": {"role": "kernel"}}
+        [kernel, domain, app, rest],
+        extra={"oya-retired-placeholder-kernel": {"role": "kernel"}},
     )
     expect_self_test("extra catalog remains allowed", metadata, extra_catalog, None)
 
-    print("architecture boundary self-test passed: 7 cases")
+    infrastructure = package(
+        "oya-http-tenant-middleware-infrastructure",
+        "infrastructure",
+        deps=["oya-platform-tenant-kernel"],
+    )
+    check = package("oya-check-dependency-seam", "test", deps=["oya-platform-tenant-kernel"])
+    expect_self_test(
+        "infrastructure and test roles",
+        fixture([kernel, infrastructure, check]),
+        catalog_for([kernel, infrastructure, check]),
+        None,
+    )
+
+    print("architecture boundary self-test passed: 8 cases")
 
 
 def main():

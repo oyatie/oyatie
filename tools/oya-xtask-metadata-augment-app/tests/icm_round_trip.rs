@@ -85,11 +85,11 @@ fn icm_jsonl_round_trip() {
         for entry in arr {
             // icm recall -f json emits `summary` as the stored content field.
             for key in &["summary", "content"] {
-                if let Some(field) = entry.get(key).and_then(|v| v.as_str()) {
-                    if field.contains(&test_content) {
-                        found = true;
-                        break;
-                    }
+                if let Some(field) = entry.get(key).and_then(|v| v.as_str())
+                    && field.contains(&test_content)
+                {
+                    found = true;
+                    break;
                 }
             }
             if found {

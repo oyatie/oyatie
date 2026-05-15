@@ -24,6 +24,7 @@ uncited-acronym	AICPA
 uncited-acronym	AIP
 uncited-acronym	AISP
 uncited-acronym	ALLOWED
+uncited-acronym	ALONGSIDE
 uncited-acronym	ALWAYS
 uncited-acronym	AMBER
 uncited-acronym	AMD
@@ -35,17 +36,20 @@ uncited-acronym	ANS
 uncited-acronym	ANVISA
 uncited-acronym	ANY
 uncited-acronym	APM
+uncited-acronym	APPEND
 uncited-acronym	APPI
 uncited-acronym	APPROVE
 uncited-acronym	APPROVED
 uncited-acronym	APRA
 uncited-acronym	APT
 uncited-acronym	AR
+uncited-acronym	ARCHITECTURE
 uncited-acronym	ARCHIVE
 uncited-acronym	ARE
 uncited-acronym	ARM
 uncited-acronym	ARR
 uncited-acronym	ASCI
+uncited-acronym	ASCII
 uncited-acronym	ASHRAE
 uncited-acronym	ASIC
 uncited-acronym	ASRS
@@ -68,6 +72,7 @@ uncited-acronym	BCL
 uncited-acronym	BCP
 uncited-acronym	BDDK
 uncited-acronym	BEFORE
+uncited-acronym	BENCHMARKS
 uncited-acronym	BG
 uncited-acronym	BGP
 uncited-acronym	BHXH
@@ -100,6 +105,7 @@ uncited-acronym	CANNOT
 uncited-acronym	CANONICAL
 uncited-acronym	CBI
 uncited-acronym	CBN
+uncited-acronym	CBOR
 uncited-acronym	CCP
 uncited-acronym	CCTV
 uncited-acronym	CDA
@@ -127,6 +133,7 @@ uncited-acronym	CJ
 uncited-acronym	CK
 uncited-acronym	CL
 uncited-acronym	CLAIM
+uncited-acronym	CLOEXEC
 uncited-acronym	CLOSE
 uncited-acronym	CLOSED
 uncited-acronym	CMS
@@ -150,11 +157,13 @@ uncited-acronym	CPF
 uncited-acronym	CPRA
 uncited-acronym	CPS
 uncited-acronym	CQRS
+uncited-acronym	CR
 uncited-acronym	CRA
 uncited-acronym	CRAC
 uncited-acronym	CRAH
 uncited-acronym	CRD
 uncited-acronym	CRITICAL
+uncited-acronym	CRLF
 uncited-acronym	CRM
 uncited-acronym	CROSS
 uncited-acronym	CRUD
@@ -199,6 +208,7 @@ uncited-acronym	DHL
 uncited-acronym	DI
 uncited-acronym	DIFC
 uncited-acronym	DIRECT
+uncited-acronym	DIRECTLY
 uncited-acronym	DKIM
 uncited-acronym	DM
 uncited-acronym	DMA
@@ -244,6 +254,7 @@ uncited-acronym	EDD
 uncited-acronym	EDIFACT
 uncited-acronym	EDPB
 uncited-acronym	EDR
+uncited-acronym	EEXIST
 uncited-acronym	EFS
 uncited-acronym	EFT
 uncited-acronym	EFTA
@@ -299,6 +310,9 @@ uncited-acronym	FEMA
 uncited-acronym	FERPA
 uncited-acronym	FETA
 uncited-acronym	FFIEC
+uncited-acronym	FIELDS
+uncited-acronym	FIFO
+uncited-acronym	FILE
 uncited-acronym	FIN
 uncited-acronym	FINAL
 uncited-acronym	FINANCIAL
@@ -317,6 +331,7 @@ uncited-acronym	FPE
 uncited-acronym	FPGA
 uncited-acronym	FPS
 uncited-acronym	FR
+uncited-acronym	FRAMEWORK
 uncited-acronym	FRBK
 uncited-acronym	FROM
 uncited-acronym	FRR
@@ -353,6 +368,7 @@ uncited-acronym	GL
 uncited-acronym	GLBA
 uncited-acronym	GMT
 uncited-acronym	GONE
+uncited-acronym	GOOD
 uncited-acronym	GOSI
 uncited-acronym	GPG
 uncited-acronym	GPT
@@ -369,6 +385,7 @@ uncited-acronym	HALT
 uncited-acronym	HC
 uncited-acronym	HCL
 uncited-acronym	HCM
+uncited-acronym	HDD
 uncited-acronym	HEAD
 uncited-acronym	HG
 uncited-acronym	HH
@@ -406,6 +423,7 @@ uncited-acronym	IDENTIFYING
 uncited-acronym	IDFA
 uncited-acronym	IE
 uncited-acronym	IEC
+uncited-acronym	IEEE
 uncited-acronym	IF
 uncited-acronym	IFC
 uncited-acronym	IFRS
@@ -421,9 +439,11 @@ uncited-acronym	INDEX
 uncited-acronym	INFO
 uncited-acronym	INR
 uncited-acronym	INSIDE
+uncited-acronym	INTERNAL
 uncited-acronym	IO
 uncited-acronym	IONOS
 uncited-acronym	IOPS
+uncited-acronym	IPC
 uncited-acronym	IPS
 uncited-acronym	IPU
 uncited-acronym	IR
@@ -461,6 +481,7 @@ uncited-acronym	KCS
 uncited-acronym	KDIC
 uncited-acronym	KEB
 uncited-acronym	KEPCO
+uncited-acronym	KERNEL
 uncited-acronym	KFB
 uncited-acronym	KFTC
 uncited-acronym	KG
@@ -491,6 +512,7 @@ uncited-acronym	LAST
 uncited-acronym	LAYER
 uncited-acronym	LB
 uncited-acronym	LBS
+uncited-acronym	LEAKING
 uncited-acronym	LEAN
 uncited-acronym	LEGACY
 uncited-acronym	LF
@@ -521,6 +543,7 @@ uncited-acronym	MBOX
 uncited-acronym	MDN
 uncited-acronym	MDR
 uncited-acronym	MECHANICAL
+uncited-acronym	MECHANICALLY
 uncited-acronym	MED
 uncited-acronym	MEDIUM
 uncited-acronym	MENA
@@ -586,6 +609,7 @@ uncited-acronym	NL
 uncited-acronym	NLP
 uncited-acronym	NN
 uncited-acronym	NNNN
+uncited-acronym	NOFOLLOW
 uncited-acronym	NONE
 uncited-acronym	NOTE
 uncited-acronym	NOTIFY
@@ -594,6 +618,7 @@ uncited-acronym	NPP
 uncited-acronym	NSA
 uncited-acronym	NTA
 uncited-acronym	NTS
+uncited-acronym	NUL
 uncited-acronym	NVIDIA
 uncited-acronym	NY
 uncited-acronym	NZ
@@ -614,6 +639,7 @@ uncited-acronym	ONE
 uncited-acronym	ONLY
 uncited-acronym	OOM
 uncited-acronym	OPEN
+uncited-acronym	OPERATIONS
 uncited-acronym	ORCHESTRATOR
 uncited-acronym	ORM
 uncited-acronym	ORPHAN
@@ -625,6 +651,7 @@ uncited-acronym	OSKO
 uncited-acronym	OT
 uncited-acronym	OTA
 uncited-acronym	OTDR
+uncited-acronym	OTHER
 uncited-acronym	OTHERWISE
 uncited-acronym	OTLP
 uncited-acronym	OTP
@@ -652,6 +679,7 @@ uncited-acronym	PDP
 uncited-acronym	PDPA
 uncited-acronym	PDU
 uncited-acronym	PEP
+uncited-acronym	PER
 uncited-acronym	PERSONALIZATION
 uncited-acronym	PERT
 uncited-acronym	PG
@@ -676,6 +704,7 @@ uncited-acronym	POD
 uncited-acronym	POLICY
 uncited-acronym	POPIA
 uncited-acronym	POSCO
+uncited-acronym	POSIX
 uncited-acronym	POST
 uncited-acronym	PPC
 uncited-acronym	PPTX
@@ -683,11 +712,13 @@ uncited-acronym	PQ
 uncited-acronym	PQC
 uncited-acronym	PQXDH
 uncited-acronym	PRC
+uncited-acronym	PRE
 uncited-acronym	PREFERENCE
 uncited-acronym	PRFAQ
 uncited-acronym	PRIMARY
 uncited-acronym	PRIVACY
 uncited-acronym	PRNG
+uncited-acronym	PRODUCTION
 uncited-acronym	PROMPT
 uncited-acronym	PROTOCOL
 uncited-acronym	PRR
@@ -718,18 +749,24 @@ uncited-acronym	RBA
 uncited-acronym	RBD
 uncited-acronym	RBI
 uncited-acronym	RCE
+uncited-acronym	REACHED
 uncited-acronym	READ
 uncited-acronym	RECEIPT
 uncited-acronym	RED
 uncited-acronym	REFUSAL
 uncited-acronym	REFUSE
 uncited-acronym	REFUSED
-uncited-acronym	REGENERATED
+uncited-acronym	REFUSES
 uncited-acronym	REGISTERED
+uncited-acronym	REINTRODUCED
 uncited-acronym	REJECTED
+uncited-acronym	REJECTS
 uncited-acronym	RELAXED
 uncited-acronym	RELEASE
+uncited-acronym	REMOVAL
+uncited-acronym	REMOVE
 uncited-acronym	REMOVED
+uncited-acronym	RENAME
 uncited-acronym	REPLACES
 uncited-acronym	REQUEST
 uncited-acronym	REQUIRE
@@ -739,6 +776,7 @@ uncited-acronym	RESERVED
 uncited-acronym	RESOLUTION
 uncited-acronym	RESOLVED
 uncited-acronym	RETAINED
+uncited-acronym	REVERSIBLE
 uncited-acronym	REWRITE
 uncited-acronym	REWRITTEN
 uncited-acronym	RFC
@@ -822,6 +860,9 @@ uncited-acronym	SHORT
 uncited-acronym	SI
 uncited-acronym	SIEM
 uncited-acronym	SIG
+uncited-acronym	SIGINT
+uncited-acronym	SIGKILL
+uncited-acronym	SIGTERM
 uncited-acronym	SIP
 uncited-acronym	SIPC
 uncited-acronym	SIS
@@ -851,6 +892,7 @@ uncited-acronym	SPIRE
 uncited-acronym	SPLIT
 uncited-acronym	SPOF
 uncited-acronym	SQ
+uncited-acronym	SSD
 uncited-acronym	SSE
 uncited-acronym	SSH
 uncited-acronym	SSR
@@ -867,6 +909,7 @@ uncited-acronym	STRIDE
 uncited-acronym	STT
 uncited-acronym	STUB
 uncited-acronym	SUMMARY
+uncited-acronym	SUNSET
 uncited-acronym	SUPERSEDED
 uncited-acronym	SUPERSEDES
 uncited-acronym	SUPPORT
@@ -889,6 +932,7 @@ uncited-acronym	TED
 uncited-acronym	TFDA
 uncited-acronym	TGA
 uncited-acronym	TH
+uncited-acronym	THAT
 uncited-acronym	THE
 uncited-acronym	THIS
 uncited-acronym	TMS
@@ -961,6 +1005,7 @@ uncited-acronym	WCAG
 uncited-acronym	WG
 uncited-acronym	WHATWG
 uncited-acronym	WHEN
+uncited-acronym	WHICH
 uncited-acronym	WHO
 uncited-acronym	WIP
 uncited-acronym	WIT
@@ -974,6 +1019,7 @@ uncited-acronym	XAML
 uncited-acronym	XLSX
 uncited-acronym	XR
 uncited-acronym	XTTS
+uncited-acronym	YAGNI
 uncited-acronym	YY
 uncited-acronym	ZA
 uncited-acronym	ZERO

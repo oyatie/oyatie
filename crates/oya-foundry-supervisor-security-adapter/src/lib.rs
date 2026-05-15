@@ -1,12 +1,11 @@
-//! Foundry supervisor security adapter — Cedar autonomy ceiling + in-memory
-//! secret-store integration. The secret-store adapter is the in-memory
-//! `InMemorySecretStoreAdapter` (renamed from `InMemorySecretStoreAdapter` 2026-05-15);
-//! production OpenBao backend is deferred per ADR-0043 + M02-P06.
+//! Foundry supervisor security adapter — Cedar autonomy ceiling + secret-store
+//! resolution port integration. Production OpenBao backend is deferred per
+//! ADR-0043 + M02-P06; callers inject the concrete `SecretStorePort`.
 
-use oya_foundry_account_adapter_inmemory::InMemorySecretStoreAdapter;
 use oya_foundry_account_domain::{SecretMaterial, SecretReference, SecretStorePort};
-use oya_foundry_autonomy_ceiling_app as ceiling_app;
 use oya_foundry_autonomy_ceiling_domain::{CeilingPolicy, TenantId};
+use oya_foundry_autonomy_ceiling_kernel::{AutonomyTier as CeilingTier, check_tier};
+use oya_foundry_capability_registry_kernel::AutonomyTier as CapabilityTier;
 use oya_foundry_supervisor_kernel::{
     AccountId, AutonomyCeilingPort, AutonomyTier, SupervisorError,
 };
@@ -49,7 +48,10 @@ impl AutonomyCeilingPort for CedarAutonomyCeilingAdapter {
             true,
         );
 
-        match ceiling_app::enforce_for_tenant(&cap, &tenant_id, &self.policy) {
+        match check_tier(
+            bridge_capability_tier(cap.autonomy_tier),
+            self.policy.ceiling_for(&tenant_id),
+        ) {
             oya_foundry_autonomy_ceiling_kernel::CeilingVerdict::Allow => Ok(()),
             oya_foundry_autonomy_ceiling_kernel::CeilingVerdict::Block {
                 capability_tier,
@@ -62,15 +64,26 @@ impl AutonomyCeilingPort for CedarAutonomyCeilingAdapter {
     }
 }
 
-pub struct InMemorySecretResolver {
-    inner: InMemorySecretStoreAdapter,
+fn bridge_capability_tier(tier: CapabilityTier) -> CeilingTier {
+    match tier {
+        CapabilityTier::T1Read => CeilingTier::T1Read,
+        CapabilityTier::T2Suggest => CeilingTier::T2Suggest,
+        CapabilityTier::T3PropAct => CeilingTier::T3PropAct,
+        CapabilityTier::T4Actuate => CeilingTier::T4Actuate,
+    }
 }
 
-impl InMemorySecretResolver {
-    pub fn new(inner: InMemorySecretStoreAdapter) -> Self {
+pub struct SecretStoreResolver<S> {
+    inner: S,
+}
+
+impl<S> SecretStoreResolver<S> {
+    pub fn new(inner: S) -> Self {
         Self { inner }
     }
+}
 
+impl<S: SecretStorePort> SecretStoreResolver<S> {
     pub fn resolve(&self, sref: &SecretReference) -> Result<SecretMaterial, SupervisorError> {
         self.inner
             .get(sref)

@@ -21,7 +21,6 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-claim-ceiling` | prevent unshipped stability, security, and supply-chain claims above foundation evidence | ADR-0037 / registry/catalog |
 | `oya-foundry-fitness-codeowners-mirror` | RACI per-surface owner matches CODEOWNERS team ownership | RACI-OWNERSHIP.md |
 | `oya-foundry-fitness-cohesion` | cross-axis contract review-class label | ADR-0011 |
-| `oya-foundry-fitness-constitution-cite-coverage` | tier-one docs cite doctrinal authority at heading level | decision-principles.json |
 | `oya-foundry-fitness-data-class` | enforce ADR-0008 data-class annotation | ADR-0008 |
 | `oya-foundry-fitness-doc-catalog` | every consolidated doc has a DOC-CATALOG row | DOC-CATALOG.md |
 | `oya-foundry-fitness-docs` | documentation-system pipeline registry and wiki quickref stay grounded | DOCUMENTATION.md / registry/docs/pipeline.tsv |

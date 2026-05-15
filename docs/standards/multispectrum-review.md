@@ -51,7 +51,7 @@ A multi-facet review bar applied to every changeset. The lane `oya-check-depende
 | Concept | Canonical home |
 |---|---|
 | Principles (P0..P9) | `/specs/cross-cutting/oyatie-doctrine.json#principles` |
-| Facets (F1..F13, M1/M2) + change_classes + evidence_schema + scorecard + consensus_debate | `/specs/cross-cutting/multispectrum-review.json` |
+| Facets (F1..F13, `M1`/`M2`) + change_classes + evidence_schema + scorecard + consensus_debate | `/specs/cross-cutting/multispectrum-review.json` |
 | Loop state machine | `/specs/cross-cutting/iterative-fix-loop.json` |
 | Pre-PR template | `/templates/checklists/pre-pr-multispectrum.json` |
 | FixupTask registry | `/registries/cross-cutting/fixuptasks.jsonl` |

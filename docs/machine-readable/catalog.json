@@ -31,6 +31,13 @@
       "M2",
       "M3",
       "MVP"
+    ],
+    "constitutional_authority_retired_on": "2026-05-15",
+    "doctrinal_successors": [
+      "specs/cross-cutting/decision-principles.json",
+      "specs/cross-cutting/forbidden-operations.json",
+      "specs/cross-cutting/decision-rights.json",
+      "specs/cross-cutting/governance-amendment.json"
     ]
   },
   "docs": {
@@ -71,25 +78,6 @@
       ],
       "agent_authoring_allowed": false
     },
-    "doc.constitution": {
-      "path": "docs/CONSTITUTION.md",
-      "owner_team": "council-architecture",
-      "tier": 1,
-      "update_trigger": [
-        "authority change",
-        "constitutional contract change"
-      ],
-      "update_cadence": "quarterly",
-      "dependent_docs": [
-        "doc.agents",
-        "doc.design",
-        "doc.doc_catalog"
-      ],
-      "validation_check": [
-        "authority-cohesion"
-      ],
-      "agent_authoring_allowed": false
-    },
     "doc.agents": {
       "path": "docs/AGENTS.md",
       "owner_team": [
@@ -98,11 +86,13 @@
       ],
       "tier": 1,
       "update_trigger": [
-        "agent operating-contract change"
+        "agent operating-contract change",
+        "doctrinal substrate change"
       ],
       "update_cadence": "quarterly",
       "dependent_docs": [
-        "doc.constitution",
+        "specs/cross-cutting/decision-principles.json",
+        "specs/cross-cutting/forbidden-operations.json",
         "doc.design",
         "doc.doc_catalog"
       ],
@@ -551,7 +541,7 @@
       "tier": 3,
       "update_trigger": [
         "EVT-PRICING-CHANGE",
-        "capacity-cost \u2265 10% drift"
+        "capacity-cost ≥ 10% drift"
       ],
       "update_cadence": "monthly",
       "dependent_docs": [

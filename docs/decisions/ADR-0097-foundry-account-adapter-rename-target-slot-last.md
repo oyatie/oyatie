@@ -19,7 +19,7 @@ related:
 
 ## Status
 
-Accepted (v6 pre-scaffold amendment; source: F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1, CONV-8, M2 + F1).
+Accepted (v6 pre-scaffold amendment; source: F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1, CONV-8, `M2` + `F1`).
 
 ## Context
 

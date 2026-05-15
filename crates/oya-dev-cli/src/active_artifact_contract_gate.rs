@@ -99,7 +99,7 @@ pub(crate) fn validate_active_artifact_contract_gate(
 
     let mut rows_seen = 0usize;
     let mut artifact_ids: BTreeMap<String, usize> = BTreeMap::new();
-    let mut paths_seen: BTreeMap<String, String> = BTreeMap::new(); // path → artifact_id
+    let mut paths_seen: BTreeMap<String, String> = BTreeMap::new(); // normalized git path → registry artifact_path
     let mut duplicate_ids: Vec<String> = Vec::new();
     let mut graph_edges: Vec<(String, String, String)> = Vec::new();
 
@@ -125,7 +125,10 @@ pub(crate) fn validate_active_artifact_contract_gate(
             duplicate_ids.push(artifact_id.clone());
         }
 
-        paths_seen.insert(artifact_path.clone(), artifact_id.clone());
+        paths_seen.insert(
+            normalize_repo_root_artifact_path(&artifact_path),
+            artifact_path.clone(),
+        );
 
         // Emit one graph edge per row: artifact_id --declares--> artifact_profile
         graph_edges.push((
@@ -139,9 +142,9 @@ pub(crate) fn validate_active_artifact_contract_gate(
     let head_tracked = git_ls_files()?;
 
     let mut untracked_paths: Vec<String> = Vec::new();
-    for path in paths_seen.keys() {
-        if !head_tracked.contains(path) {
-            untracked_paths.push(path.clone());
+    for (path, registry_path) in &paths_seen {
+        if !is_head_tracked_artifact_path(path, &head_tracked) {
+            untracked_paths.push(registry_path.clone());
         }
     }
 
@@ -219,6 +222,24 @@ fn git_ls_files() -> Result<BTreeSet<String>, String> {
         .filter(|line| !line.trim().is_empty())
         .map(|line| line.to_string())
         .collect())
+}
+
+fn normalize_repo_root_artifact_path(path: &str) -> String {
+    path.strip_prefix('/').unwrap_or(path).to_string()
+}
+
+fn is_head_tracked_artifact_path(path: &str, head_tracked: &BTreeSet<String>) -> bool {
+    head_tracked.contains(path)
+        || head_tracked
+            .iter()
+            .any(|tracked| is_child_path(path, tracked))
+}
+
+fn is_child_path(parent: &str, child: &str) -> bool {
+    let Some(rest) = child.strip_prefix(parent) else {
+        return false;
+    };
+    rest.starts_with('/')
 }
 
 fn write_evidence_bundle(
@@ -361,5 +382,34 @@ mod tests {
     fn extract_rows_array_missing_returns_none() {
         let text = r#"{"foo": "bar"}"#;
         assert!(extract_rows_array(text).is_none());
+    }
+
+    #[test]
+    fn repo_root_artifact_paths_match_git_ls_files_shape() {
+        assert_eq!(
+            normalize_repo_root_artifact_path("/specs/cross-cutting/masterplan.json"),
+            "specs/cross-cutting/masterplan.json"
+        );
+        assert_eq!(
+            normalize_repo_root_artifact_path("registries/cross-cutting/test-suite-registry.json"),
+            "registries/cross-cutting/test-suite-registry.json"
+        );
+    }
+
+    #[test]
+    fn directory_artifact_paths_are_covered_by_tracked_children() {
+        let tracked = BTreeSet::from([
+            "crates/oya-foundry-settings-template-kernel/Cargo.toml".to_string(),
+            "crates/oya-foundry-settings-template-kernel/src/lib.rs".to_string(),
+        ]);
+
+        assert!(is_head_tracked_artifact_path(
+            "crates/oya-foundry-settings-template-kernel",
+            &tracked
+        ));
+        assert!(!is_head_tracked_artifact_path(
+            "crates/oya-foundry-settings-template",
+            &tracked
+        ));
     }
 }

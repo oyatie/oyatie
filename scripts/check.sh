@@ -43,14 +43,13 @@ cargo run -p oya-dev-cli -- demo
 cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane typecheck
 cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane test
 cargo run -p oya-dev-cli -- catalog validate
-cargo run -p oya-dev-cli -- gate validate active-artifact-contract --emit-evidence /evidence/active-artifact-contract-lane-run.json --emit-graph-edges /registries/cross-cutting/graph/active-artifact-contract-edges.json
+cargo run -p oya-dev-cli -- gate validate active-artifact-contract --emit-evidence evidence/active-artifact-contract-lane-run.json --emit-graph-edges registries/cross-cutting/graph/active-artifact-contract-edges.json
 cargo run -p oya-dev-cli -- gate validate authority-cohesion
-cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --emit-evidence /evidence/cedar-fragment-coverage-lane-run.json
-cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity --emit-evidence /evidence/openapi-rest-route-parity-lane-run.json
+cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --emit-evidence evidence/cedar-fragment-coverage-lane-run.json
+cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity --emit-evidence evidence/openapi-rest-route-parity-lane-run.json
 cargo run -p oya-dev-cli -- gate validate claim-ceiling
 cargo run -p oya-dev-cli -- gate validate codeowners-mirror
 cargo run -p oya-dev-cli -- gate validate cohesion
-cargo run -p oya-dev-cli -- gate validate constitution-cite-coverage
 cargo run -p oya-dev-cli -- gate validate data-class
 cargo run -p oya-dev-cli -- gate validate doc-catalog
 cargo run -p oya-dev-cli -- gate validate documentation-system

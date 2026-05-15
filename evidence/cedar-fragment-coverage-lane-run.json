@@ -1,16 +1,12 @@
 {
   "$schema_ref": "/templates/evidence-bundle-template.json",
   "_artifact_id": "cedar-fragment-coverage-lane-run",
-  "_meta": {
-    "emitter": "oya-dev-cli gate validate cedar-fragment-coverage",
-    "registry_path": "/registries/cross-cutting/cedar-fragments.json",
-    "purpose": "Auto-backfilled purpose for cedar-fragment-coverage-lane-run.json"
-  },
+  "_meta": { "emitter": "oya-dev-cli gate validate cedar-fragment-coverage", "registry_path": "registries/cross-cutting/cedar-fragments.json" },
   "outcome": "success",
   "rows_seen": 7,
   "openapi_references_seen": 6,
   "bc_references_seen": 7,
   "cedar_files_seen": 0,
   "violation_count": 0,
-  "validation_duration_ms": 12
+  "validation_duration_ms": 24
 }

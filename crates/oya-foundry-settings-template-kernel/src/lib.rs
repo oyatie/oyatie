@@ -105,29 +105,40 @@ pub enum McpTransport {
 
 #[derive(Clone, Debug)]
 pub struct HookRef {
+    // data_class: INTERNAL_ONLY
     pub event: HookEvent,
+    // data_class: INTERNAL_ONLY
     pub command: HookCommandPath,
+    // data_class: INTERNAL_ONLY
     pub args: Vec<String>,
 }
 
 #[derive(Clone, Debug)]
 pub struct SkillRef {
+    // data_class: INTERNAL_ONLY
     pub plugin_id: String,
+    // data_class: INTERNAL_ONLY
     pub skill_name: String,
 }
 
 /// Named struct per F-MCPSERVERREF-ENVBINDING-NAMED-STRUCT-1.
 #[derive(Clone, Debug)]
 pub struct EnvSecretBinding {
+    // data_class: INTERNAL_ONLY
     pub env_var: String,
+    // data_class: INTERNAL_ONLY
     pub sref: SecretReference,
 }
 
 #[derive(Clone, Debug)]
 pub struct McpServerRef {
+    // data_class: INTERNAL_ONLY
     pub name: String,
+    // data_class: INTERNAL_ONLY
     pub transport: McpTransport,
+    // data_class: INTERNAL_ONLY
     pub command_or_url: String,
+    // data_class: INTERNAL_ONLY
     pub env_secret_refs: Vec<EnvSecretBinding>,
 }
 
@@ -135,7 +146,9 @@ pub struct McpServerRef {
 
 #[derive(Clone, Debug)]
 pub struct ProviderOverrides {
+    // data_class: INTERNAL_ONLY
     pub model_override: Option<String>,
+    // data_class: INTERNAL_ONLY
     pub extra_allowed_tools: Vec<String>,
 }
 
@@ -148,14 +161,21 @@ pub struct ProviderOverrides {
 /// deterministic serialization order. ProviderFamily lacks Ord/Hash so a
 /// String key is used per project compiler constraints.
 pub struct SettingsTemplate {
+    // data_class: INTERNAL_ONLY
     pub version: u32,
+    // data_class: INTERNAL_ONLY
     pub hooks: Vec<HookRef>,
+    // data_class: INTERNAL_ONLY
     pub skills: Vec<SkillRef>,
+    // data_class: INTERNAL_ONLY
     pub mcp_servers: Vec<McpServerRef>,
     /// Per F-PERMISSIONENTRY-ALLOWEDTOOL-DELETE-NEWTYPE-1 (v6 MED).
+    // data_class: INTERNAL_ONLY
     pub permissions: Vec<String>,
+    // data_class: INTERNAL_ONLY
     pub allowed_tools: Vec<String>,
     /// Key: ProviderFamily string representation (e.g. "Claude", "OpenAIOrCodex").
+    // data_class: INTERNAL_ONLY
     pub provider_overrides: BTreeMap<String, ProviderOverrides>,
 }
 
@@ -180,13 +200,17 @@ pub enum DriftState {
 /// No `Option<String>` diff field per v6 amendment (F-DRIFTENTRY-DIFF-HASH-NOT-RAW-1).
 #[derive(Clone, Debug)]
 pub struct DriftEntry {
+    // data_class: INTERNAL_ONLY
     pub path: PathBuf,
+    // data_class: INTERNAL_ONLY
     pub state: DriftState,
 }
 
 #[derive(Clone, Debug)]
 pub struct DriftReport {
+    // data_class: INTERNAL_ONLY
     pub provider_family: ProviderFamily,
+    // data_class: INTERNAL_ONLY
     pub entries: Vec<DriftEntry>,
 }
 
@@ -194,14 +218,19 @@ pub struct DriftReport {
 
 #[derive(Clone, Debug)]
 pub struct RenderedFile {
+    // data_class: INTERNAL_ONLY
     pub path: PathBuf,
+    // data_class: INTERNAL_ONLY
     pub content_blake3: [u8; 32],
+    // data_class: INTERNAL_ONLY
     pub byte_len: u64,
 }
 
 #[derive(Clone, Debug)]
 pub struct RenderManifest {
+    // data_class: INTERNAL_ONLY
     pub provider_family: ProviderFamily,
+    // data_class: INTERNAL_ONLY
     pub files: Vec<RenderedFile>,
 }
 

@@ -137,7 +137,9 @@ pub struct NamingViolation {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NamingReport {
+    // data_class: INTERNAL_ONLY
     pub crates_checked: usize,
+    // data_class: INTERNAL_ONLY
     pub violations: Vec<NamingViolation>,
 }
 

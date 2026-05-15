@@ -4,6 +4,12 @@ doc_status: published
 
 # RB-SUPERVISOR-001: Foundry Supervisor Lifecycle Management
 
+> **Status:** Active supervisor lifecycle procedure
+>
+> **Severity scope:** Sev 2
+>
+> **Last verified:** 2026-05-15 (reviewed during M02 exit-readiness gate sweep)
+
 ## 1. Context
 The Foundry Supervisor is a long-lived daemon that orchestrates sessions across multiple provider accounts.
 

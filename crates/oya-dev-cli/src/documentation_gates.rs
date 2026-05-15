@@ -362,6 +362,10 @@ fn list_dependency_reference_targets(docs_dir: &Path) -> Result<Vec<String>, Str
     let mut targets = Vec::new();
     collect_dependency_reference_targets(docs_dir, docs_dir, &mut targets)?;
     let workspace_root = infer_workspace_root_from_docs_dir(docs_dir);
+    let specs_dir = workspace_root.join("specs");
+    if specs_dir.is_dir() {
+        collect_dependency_reference_targets(&workspace_root, &specs_dir, &mut targets)?;
+    }
     if workspace_root.join(".github/CODEOWNERS").is_file() {
         targets.push(".github/CODEOWNERS".to_string());
     }

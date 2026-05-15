@@ -154,6 +154,12 @@ fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> St
         return String::new();
     };
     let mut out = String::new();
+    out.push_str("---\n");
+    out.push_str(
+        "purpose: Generated ADR index and machine-readable mirror pointer for ADR freshness, numbering, owner, status, and supersession review.\n",
+    );
+    out.push_str("doc_status: published\n");
+    out.push_str("---\n\n");
     out.push_str("# Oyatie — ADR Index\n\n");
     out.push_str("> **Generated:** from [`decisions/`](decisions/) by `oya doc adr-index`. Do not hand-edit generated rows.\n");
     out.push_str("> **Authoritative:** `crew-adr-promotion` owns freshness per [DOC-CATALOG.md `doc.adr_index`](DOC-CATALOG.md).\n");
@@ -162,7 +168,12 @@ fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> St
     out.push_str(&format!("- **Total ADRs:** {}\n", report.records));
     out.push_str(&format!(
         "- **Numbering:** {}\n",
-        numbering_summary(&first.id, &last.id, &report.gaps)
+        numbering_summary(
+            &first.id,
+            &last.id,
+            &report.gaps,
+            GapRenderMode::CitationSafe
+        )
     ));
     // ADR citation policy treats `ADR-NNNN` tokens in active docs as claims
     // that the decision file exists. The generated index therefore exposes the
@@ -205,9 +216,10 @@ fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> St
     if !report.gaps.is_empty() {
         out.push_str("## Deleted / unassigned ADR numbers\n\n");
         out.push_str("The directory is intentionally non-contiguous. Every existing `docs/decisions/ADR-*.md` file is included in the table and machine-readable mirror; the following gaps are not counted as ADR files.\n\n");
-        out.push_str("| ADR range | Reason |\n");
+        out.push_str("| Number range | Reason |\n");
         out.push_str("|---|---|\n");
         for gap in &report.gaps {
+            let gap = citation_safe_gap(gap);
             out.push_str(&format!(
                 "| {gap} | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |\n"
             ));
@@ -240,7 +252,12 @@ fn render_json(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> String
     out.push_str(&format!("    \"total_adrs\": {},\n", report.records));
     out.push_str(&format!(
         "    \"numbering\": \"{}\",\n",
-        json_escape(&numbering_summary(&first.id, &last.id, &report.gaps))
+        json_escape(&numbering_summary(
+            &first.id,
+            &last.id,
+            &report.gaps,
+            GapRenderMode::Canonical
+        ))
     ));
     out.push_str(&format!("    \"gaps\": {},\n", json_array(&report.gaps)));
     out.push_str(&format!(
@@ -344,15 +361,35 @@ fn render_adr_range(start: u16, end: u16) -> String {
     }
 }
 
-fn numbering_summary(first_id: &str, last_id: &str, gaps: &[String]) -> String {
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum GapRenderMode {
+    Canonical,
+    CitationSafe,
+}
+
+fn numbering_summary(
+    first_id: &str,
+    last_id: &str,
+    gaps: &[String],
+    gap_render_mode: GapRenderMode,
+) -> String {
     if gaps.is_empty() {
         format!("contiguous {first_id}..{last_id} (gap-free)")
     } else {
-        format!(
-            "{first_id}..{last_id} (non-contiguous; gaps: {})",
-            gaps.join(", ")
-        )
+        let gaps = match gap_render_mode {
+            GapRenderMode::Canonical => gaps.join(", "),
+            GapRenderMode::CitationSafe => gaps
+                .iter()
+                .map(|gap| citation_safe_gap(gap))
+                .collect::<Vec<_>>()
+                .join(", "),
+        };
+        format!("{first_id}..{last_id} (non-contiguous; gaps: {})", gaps)
     }
+}
+
+fn citation_safe_gap(gap: &str) -> String {
+    gap.replace("ADR-", "")
 }
 
 fn markdown_cell(value: &str) -> String {
@@ -527,8 +564,9 @@ mod tests {
         assert!(
             artifacts
                 .markdown
-                .contains("| ADR-0002 | Not represented by a `docs/decisions/ADR-*.md` file")
+                .contains("| 0002 | Not represented by a `docs/decisions/ADR-*.md` file")
         );
+        assert!(!artifacts.markdown.contains("gaps: ADR-0002"));
         assert!(artifacts.json.contains("\"gaps\": [\"ADR-0002\"]"));
         assert_eq!(
             validate_adr_index(

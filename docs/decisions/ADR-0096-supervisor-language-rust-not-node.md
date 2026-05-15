@@ -21,7 +21,7 @@ related:
 
 ## Status
 
-Accepted (v6 PRE-6 mandate; source: F-CLAUDE-HEARTBEAT-BUILD-VS-ADOPT-ADR-1, TEN-2, M1).
+Accepted (v6 PRE-6 mandate; source: F-CLAUDE-HEARTBEAT-BUILD-VS-ADOPT-ADR-1, TEN-2, `M1`).
 
 ## Context
 
@@ -134,7 +134,7 @@ Per v4 §A.1 principle 4 (dep-branch-Y-commitment): best-effort durability; no
 ## References
 
 - v4 §A.0.1 (addendum per PRE-6): build-vs-adopt analysis paragraph
-- v6 amendments PRE-6: F-CLAUDE-HEARTBEAT-BUILD-VS-ADOPT-ADR-1 (TEN-2, M1)
+- v6 amendments PRE-6: F-CLAUDE-HEARTBEAT-BUILD-VS-ADOPT-ADR-1 (TEN-2, `M1`)
 - Siigari/claude-heartbeat: reference shape (v4 line 18)
 - ADR-0056: 12-layer enum + port-in-kernel (workspace language governance)
 - ADR-0092: workspace dependency seam policy (Branch Y — zero net-new external deps)

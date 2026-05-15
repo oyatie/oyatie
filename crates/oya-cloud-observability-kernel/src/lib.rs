@@ -26,14 +26,19 @@ impl SignalKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CardinalityEnvelope {
+    // data_class: INTERNAL_ONLY
     pub signal: SignalKind,
+    // data_class: INTERNAL_ONLY
     pub max_unique_attribute_combinations: u64,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EmissionPlan {
+    // data_class: INTERNAL_ONLY
     pub plan_id: String,
+    // data_class: INTERNAL_ONLY
     pub signal: SignalKind,
+    // data_class: INTERNAL_ONLY
     pub estimated_combinations: u64,
 }
 

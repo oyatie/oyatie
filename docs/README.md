@@ -77,7 +77,6 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 |---|---|---|---|
 | `doc.readme` | [`README.md`](README.md) | `cross-cutting` | `council-architecture` |
 | `doc.masterplan` | [`MASTERPLAN.md`](MASTERPLAN.md) | `0` | `council-architecture` |
-| `doc.constitution` | [`CONSTITUTION.md`](CONSTITUTION.md) | `1` | `council-architecture` |
 | `doc.agents` | [`AGENTS.md`](AGENTS.md) | `1` | `axis-foundry, council-architecture` |
 | `doc.agent_instruction_sources` | [`AGENT-INSTRUCTION-SOURCES.md`](AGENT-INSTRUCTION-SOURCES.md) | `cross-cutting` | `axis-foundry, council-architecture` |
 | `doc.prd` | [`PRD.md`](PRD.md) | `1` | `council-architecture` |
@@ -118,7 +117,7 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 ## Reading order for a new contributor (≤90 minutes)
 
 1. This file (10 min).
-2. [`CONSTITUTION.md`](CONSTITUTION.md) (10 min).
+2. Machine-readable doctrine: [decision-principles.json](../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../specs/cross-cutting/forbidden-operations.json) (10 min).
 3. [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> §1–§3 — north star + axes + scope (15 min).
 4. [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> §1–§4 — cohesion thesis + planes + axes-as-bounded-contexts (30 min).
 5. [`AGENTS.md`](AGENTS.md) (15 min) — the operating contract you'll honor on every change.
@@ -129,21 +128,23 @@ After step 6 you have the orientation needed to read any tier-2 or tier-3 doc on
 ## Authority precedence
 
 ```
-docs/CONSTITUTION.md
-  > rest of docs/
-  > catalog records (registry/catalog/, contracts/, machine-readable/)
+system / developer / user instructions
+  > /specs/cross-cutting/root-hub-pointers.json
+  > docs/AGENTS.md
+  > machine-readable specs and registries
+  > docs/ authority files during markdown-retirement compatibility
   > repo-root Redirect-class files (non-authoritative; lane-thin)
   > working drafts (never authoritative)
 ```
 
-This chain appears verbatim in [`CONSTITUTION.md`](CONSTITUTION.md), in [`AGENTS.md`](AGENTS.md), and in this file. The `oya-foundry-fitness-authority-cohesion` lane validates the three declarations are character-identical.
+This chain is mirrored by [`AGENTS.md`](AGENTS.md) and `/specs/cross-cutting/root-hub-pointers.json`; the `oya-foundry-fitness-authority-cohesion` lane validates authority declarations remain coherent.
 
 ## Anti-overlap
 
 This index does not cover:
 
 - The agent operating contract — see [`AGENTS.md`](AGENTS.md).
-- The constitutional frame — see [`CONSTITUTION.md`](CONSTITUTION.md).
+- The doctrinal substrate — see `/specs/cross-cutting/decision-principles.json` and `/specs/cross-cutting/forbidden-operations.json`.
 - The per-doc lifecycle protocol — see [`DOC-CATALOG.md`](DOC-CATALOG.md).
 - Per-product PRDs — see [`products/`](products/) <!-- forward-reference: wave-1 -->.
 - Per-team charters — see [`teams/`](teams/) <!-- forward-reference: wave-1 -->.

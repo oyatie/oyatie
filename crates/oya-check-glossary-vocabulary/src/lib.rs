@@ -377,11 +377,20 @@ fn contains_forbidden_word(line: &str, token: &str) -> bool {
 }
 
 fn casing_warning_variants(prose: &str) -> Vec<String> {
-    prose
+    let words = prose
         .split(|character: char| !character.is_ascii_alphanumeric())
-        .filter(|word| matches!(*word, "oyatie" | "OYA" | "Oya"))
-        .map(str::to_string)
-        .collect()
+        .filter(|word| !word.is_empty())
+        .collect::<Vec<_>>();
+    let mut variants = Vec::new();
+    for (index, word) in words.iter().enumerate() {
+        if *word == "Oya" && words.get(index + 1) == Some(&"VCS") {
+            continue;
+        }
+        if matches!(*word, "oyatie" | "OYA" | "Oya") {
+            variants.push((*word).to_string());
+        }
+    }
+    variants
 }
 
 fn acronym_candidates(prose: &str) -> BTreeSet<String> {
@@ -432,10 +441,28 @@ fn is_acronym_candidate(value: &str) -> bool {
 fn markdown_prose(contents: &str) -> String {
     let mut prose = String::new();
     let mut in_fence = false;
+    let mut in_frontmatter = false;
+    let mut at_document_start = true;
     let mut in_html_comment = false;
     let mut in_marker_block = false;
     for line in contents.lines() {
         let trimmed = line.trim_start();
+        if at_document_start {
+            if in_frontmatter {
+                if trimmed == "---" {
+                    in_frontmatter = false;
+                }
+                continue;
+            }
+            if trimmed.is_empty() {
+                continue;
+            }
+            if trimmed == "---" {
+                in_frontmatter = true;
+                continue;
+            }
+            at_document_start = false;
+        }
         if trimmed.starts_with("```") || trimmed.starts_with("~~~") {
             in_fence = !in_fence;
             continue;
@@ -454,7 +481,8 @@ fn markdown_prose(contents: &str) -> String {
             continue;
         }
         let line = strip_html_comments(line, &mut in_html_comment);
-        prose.push_str(&strip_inline_code(&line));
+        let line = strip_inline_code(&line);
+        prose.push_str(&strip_markdown_link_destinations(&line));
         prose.push('\n');
     }
     prose
@@ -502,6 +530,34 @@ fn strip_inline_code(line: &str) -> String {
     output
 }
 
+fn strip_markdown_link_destinations(line: &str) -> String {
+    let mut output = String::new();
+    let mut remaining = line;
+    while let Some(label_start) = remaining.find('[') {
+        output.push_str(&remaining[..label_start]);
+        let label_and_after = &remaining[label_start + 1..];
+        let Some(label_end) = label_and_after.find(']') else {
+            output.push_str(&remaining[label_start..]);
+            return output;
+        };
+        let label = &label_and_after[..label_end];
+        let after_label = &label_and_after[label_end + 1..];
+        if let Some(destination) = after_label.strip_prefix('(')
+            && let Some(destination_end) = destination.find(')')
+        {
+            output.push_str(label);
+            remaining = &destination[destination_end + 1..];
+            continue;
+        }
+        output.push('[');
+        output.push_str(label);
+        output.push(']');
+        remaining = after_label;
+    }
+    output.push_str(remaining);
+    output
+}
+
 fn is_word_or_dash(character: Option<char>) -> bool {
     character.is_some_and(|character| character.is_ascii_alphanumeric() || character == '-')
 }
@@ -532,6 +588,48 @@ mod tests {
                     "docs/ADR.md",
                     "Legacy path `apps/oyatie-admin` only.",
                     false
+                )],
+                ["ADR"],
+            ),
+            Ok(GlossaryVocabularyReport {
+                documents_checked: 1,
+                casing_warnings: 0,
+                uncited_acronym_warnings: 0,
+                warnings: vec![],
+                warning_sources: vec![],
+            })
+        );
+    }
+
+    #[test]
+    fn ignores_forbidden_prefixes_in_markdown_link_destinations() {
+        assert_eq!(
+            validate_glossary_vocabulary_hygiene(
+                [doc(
+                    "docs/AGENTS.md",
+                    "Canonical doctrine: [doctrine](../specs/cross-cutting/oyatie-doctrine.json).",
+                    false,
+                )],
+                ["ADR"],
+            ),
+            Ok(GlossaryVocabularyReport {
+                documents_checked: 1,
+                casing_warnings: 0,
+                uncited_acronym_warnings: 0,
+                warnings: vec![],
+                warning_sources: vec![],
+            })
+        );
+    }
+
+    #[test]
+    fn ignores_forbidden_prefixes_in_leading_frontmatter() {
+        assert_eq!(
+            validate_glossary_vocabulary_hygiene(
+                [doc(
+                    "docs/standards/multispectrum-review.md",
+                    "---\nrelated_specs:\n  - /specs/cross-cutting/oyatie-doctrine.json\n---\n\nVisible prose.",
+                    false,
                 )],
                 ["ADR"],
             ),
@@ -627,6 +725,27 @@ mod tests {
                         "docs/README.md",
                     ),
                 ],
+            })
+        );
+    }
+
+    #[test]
+    fn accepts_oya_vcs_as_subsystem_name_without_brand_casing_warning() {
+        assert_eq!(
+            validate_glossary_vocabulary_hygiene(
+                [doc(
+                    "docs/AGENTS.md",
+                    "Oya VCS admission owns claim closeout.",
+                    false,
+                )],
+                ["ADR", "VCS"],
+            ),
+            Ok(GlossaryVocabularyReport {
+                documents_checked: 1,
+                casing_warnings: 0,
+                uncited_acronym_warnings: 0,
+                warnings: vec![],
+                warning_sources: vec![],
             })
         );
     }

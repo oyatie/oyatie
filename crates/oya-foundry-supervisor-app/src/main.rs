@@ -188,9 +188,9 @@ impl AccountSnapshotProvider for FileAccountSnapshotProvider {
 // ── Driver Enum Wrapper ──────────────────────────────────────────────────────
 
 enum Driver {
-    Claude(ClaudeDriver),
-    Codex(CodexDriver),
-    Gemini(GeminiDriver),
+    Claude(ClaudeDriver<InMemorySecretStoreAdapter>),
+    Codex(CodexDriver<InMemorySecretStoreAdapter>),
+    Gemini(GeminiDriver<InMemorySecretStoreAdapter>),
 }
 
 impl oya_foundry_supervisor_kernel::SessionDriver for Driver {

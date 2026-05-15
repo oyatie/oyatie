@@ -14,6 +14,12 @@ last_validated: 2026-05-14
 
 # Grit session bug — upstream tracking + workaround
 
+> **Status:** Active compatibility workaround during Oya VCS cutover
+>
+> **Severity scope:** Sev 3
+>
+> **Last verified:** 2026-05-15 (reviewed during M02 exit-readiness gate sweep)
+
 ## Symptom
 
 ```

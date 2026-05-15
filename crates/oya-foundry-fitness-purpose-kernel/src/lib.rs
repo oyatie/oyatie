@@ -25,6 +25,7 @@ pub struct PurposeNode {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PurposeViolation {
     pub path: String, // data_class: INTERNAL_ONLY
+    // data_class: INTERNAL_ONLY
     pub kind: PurposeViolationKind,
 }
 
@@ -45,7 +46,9 @@ impl fmt::Display for PurposeViolationKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PurposeReport {
+    // data_class: INTERNAL_ONLY
     pub nodes_checked: usize,
+    // data_class: INTERNAL_ONLY
     pub violations: Vec<PurposeViolation>,
 }
 

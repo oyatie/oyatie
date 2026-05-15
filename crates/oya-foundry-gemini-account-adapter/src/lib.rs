@@ -6,23 +6,22 @@
 use std::process::Stdio;
 use tokio::process::Command;
 
-use oya_foundry_account_adapter_inmemory::InMemorySecretStoreAdapter;
 use oya_foundry_account_domain::SecretStorePort;
 use oya_foundry_supervisor_kernel::{
     DriverHealth, ProviderFamily, SessionDriver, SessionTicket, SpawnedSession, SupervisorError,
 };
 
-pub struct GeminiDriver {
-    secrets: InMemorySecretStoreAdapter,
+pub struct GeminiDriver<S> {
+    secrets: S,
 }
 
-impl GeminiDriver {
-    pub fn new(secrets: InMemorySecretStoreAdapter) -> Self {
+impl<S> GeminiDriver<S> {
+    pub fn new(secrets: S) -> Self {
         Self { secrets }
     }
 }
 
-impl SessionDriver for GeminiDriver {
+impl<S: SecretStorePort + Send + Sync> SessionDriver for GeminiDriver<S> {
     fn provider_family(&self) -> ProviderFamily {
         ProviderFamily::Gemini
     }

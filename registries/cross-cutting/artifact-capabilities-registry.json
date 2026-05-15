@@ -743,8 +743,8 @@
       }
     },
     {
-      "artifact_id": "oya-ops-workspace-shell-application-manifest",
-      "artifact_path": "crates/oya-ops-workspace-shell-application/Cargo.toml",
+      "artifact_id": "oya-ops-workspace-shell-usecase-manifest",
+      "artifact_path": "crates/oya-ops-workspace-shell-usecase/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -762,8 +762,8 @@
       }
     },
     {
-      "artifact_id": "oya-ops-docs-portal-application-manifest",
-      "artifact_path": "crates/oya-ops-docs-portal-application/Cargo.toml",
+      "artifact_id": "oya-ops-docs-portal-usecase-manifest",
+      "artifact_path": "crates/oya-ops-docs-portal-usecase/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -933,8 +933,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-sse-domain-manifest",
-      "artifact_path": "crates/oya-http-sse-domain/Cargo.toml",
+      "artifact_id": "oya-http-sse-kernel-manifest",
+      "artifact_path": "crates/oya-http-sse-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -990,8 +990,8 @@
       }
     },
     {
-      "artifact_id": "oya-ops-workspace-shell-runtime-manifest",
-      "artifact_path": "crates/oya-ops-workspace-shell-runtime/Cargo.toml",
+      "artifact_id": "oya-ops-workspace-shell-app-manifest",
+      "artifact_path": "crates/oya-ops-workspace-shell-app/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -1009,8 +1009,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-tenant-middleware-domain-manifest",
-      "artifact_path": "crates/oya-http-tenant-middleware-domain/Cargo.toml",
+      "artifact_id": "oya-http-tenant-middleware-infrastructure-manifest",
+      "artifact_path": "crates/oya-http-tenant-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -1028,8 +1028,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-deadline-middleware-domain-manifest",
-      "artifact_path": "crates/oya-http-deadline-middleware-domain/Cargo.toml",
+      "artifact_id": "oya-http-latency-budget-middleware-infrastructure-manifest",
+      "artifact_path": "crates/oya-http-latency-budget-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -1047,8 +1047,8 @@
       }
     },
     {
-      "artifact_id": "oya-http-telemetry-middleware-domain-manifest",
-      "artifact_path": "crates/oya-http-telemetry-middleware-domain/Cargo.toml",
+      "artifact_id": "oya-http-telemetry-middleware-infrastructure-manifest",
+      "artifact_path": "crates/oya-http-telemetry-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -1883,12 +1883,12 @@
       }
     },
     {
-      "artifact_id": "oya-dev-cli-settings-drift",
-      "artifact_path": "crates/oya-dev-cli/src/commands/settings_drift.rs",
+      "artifact_id": "foundry-settings-template-drift-adapter",
+      "artifact_path": "crates/oya-foundry-settings-template-adapter/src/lib.rs",
       "artifact_format": "rust-source",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry",
-      "purpose_short": "CLI verifier subcommand: `oya check settings-drift`. Invokes SettingsRenderer::verify across all provider accounts; reports drift + exits non-zero on mismatch. Consumed by lean-settings-drift CI lane.",
+      "purpose_short": "Settings-template adapter verifier surface. Implements SettingsRenderer::verify for Claude, Codex, and Gemini account templates; consumed by the lean-settings-drift lane.",
       "artifact_profile": "verifier",
       "capability_overrides": {
         "enforcement": {
@@ -1900,8 +1900,8 @@
           ]
         },
         "verification": {
-          "checker_crate": "crates/oya-dev-cli",
-          "command": "cargo test -p oya-dev-cli -- settings_drift",
+          "checker_crate": "crates/oya-foundry-settings-template-adapter",
+          "command": "cargo test -p oya-foundry-settings-template-adapter",
           "verifies": [
             "exit 0 on no-drift fixture",
             "exit 1 on drift fixture",

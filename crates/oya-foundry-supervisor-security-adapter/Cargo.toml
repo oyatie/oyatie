@@ -7,12 +7,10 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-foundry-supervisor-kernel = { path = "../oya-foundry-supervisor-kernel" }
-oya-foundry-autonomy-ceiling-app = { path = "../oya-foundry-autonomy-ceiling-app" }
 oya-foundry-autonomy-ceiling-domain = { path = "../oya-foundry-autonomy-ceiling-domain" }
 oya-foundry-autonomy-ceiling-kernel = { path = "../oya-foundry-autonomy-ceiling-kernel" }
 oya-foundry-capability-registry-kernel = { path = "../oya-foundry-capability-registry-kernel" }
 oya-foundry-account-domain = { path = "../oya-foundry-account-domain" }
-oya-foundry-account-adapter-inmemory = { path = "../oya-foundry-account-adapter-inmemory" }
 
 [lints]
 workspace = true

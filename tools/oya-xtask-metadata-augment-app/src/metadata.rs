@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use toml_edit::{DocumentMut, Item, Table, value};
+use toml_edit::DocumentMut;
 
 /// Required keys in [package.metadata.oya] per §3.0 schema (v4).
 const REQUIRED_KEYS: &[&str] = &["bounded_context", "kind", "layer", "purpose"];
@@ -65,13 +65,13 @@ pub fn run_metadata_augment(check: bool, _apply: bool, shard: Option<&str>) -> R
             }
         }
 
-        if let Some(layer) = meta["layer"].as_str() {
-            if !LAYER_VALUES.contains(&layer) {
-                invalid_layer.push(format!(
-                    "{manifest_path}: invalid layer \"{layer}\" (must be one of: {})",
-                    LAYER_VALUES.join(", ")
-                ));
-            }
+        if let Some(layer) = meta["layer"].as_str()
+            && !LAYER_VALUES.contains(&layer)
+        {
+            invalid_layer.push(format!(
+                "{manifest_path}: invalid layer \"{layer}\" (must be one of: {})",
+                LAYER_VALUES.join(", ")
+            ));
         }
     }
 
@@ -105,28 +105,5 @@ pub fn run_metadata_augment(check: bool, _apply: bool, shard: Option<&str>) -> R
             invalid_layer.len()
         )
     }
-    Ok(())
-}
-
-/// Emit a canonical [package.metadata.oya] block into a parsed manifest document.
-pub fn emit_oya_block(
-    doc: &mut DocumentMut,
-    bounded_context: &str,
-    kind: &str,
-    layer: &str,
-    purpose: &str,
-    vertical: Option<&str>,
-) -> Result<()> {
-    let mut oya = Table::new();
-    oya.insert("bounded_context", value(bounded_context));
-    oya.insert("kind", value(kind));
-    oya.insert("layer", value(layer));
-    oya.insert("purpose", value(purpose));
-    if let Some(v) = vertical {
-        oya.insert("vertical", value(v));
-    }
-
-    let meta = doc["package"]["metadata"].or_insert(Item::Table(Table::new()));
-    meta["oya"] = Item::Table(oya);
     Ok(())
 }

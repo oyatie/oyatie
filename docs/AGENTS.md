@@ -57,7 +57,7 @@ Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence f
 
 - evidence file absent OR
 - declared `change_class_id` not in {CC-1..CC-7} OR
-- required facets (F1..F13 except F12-reserved when applicable; A-family policy-adherence facets for policy-touching changes; plus M1/M2 when `meta_review_triggered`) missing OR
+- required facets (F1..F13 except F12-reserved when applicable; A-family policy-adherence facets for policy-touching changes; plus `M1`/`M2` when `meta_review_triggered`) missing OR
 - mandatory artifacts per the rigor matrix missing.
 
 This applies to **foundry agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at Oya VCS claim time and re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registries/cross-cutting/fixuptasks.jsonl`](..//registries/cross-cutting/fixuptasks.jsonl) for the bounded-deferral registry.

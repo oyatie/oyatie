@@ -974,7 +974,15 @@ name = "oya-cloud-billing-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-cloud-billing-tax-app"
+version = "0.1.0"
+
+[[package]]
 name = "oya-cloud-capacity-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-cloud-cell-app"
 version = "0.1.0"
 
 [[package]]
@@ -1763,7 +1771,6 @@ dependencies = [
 name = "oya-foundry-claude-account-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-account-adapter-inmemory",
  "oya-foundry-account-domain",
  "oya-foundry-supervisor-kernel",
  "tokio",
@@ -1783,7 +1790,6 @@ dependencies = [
 name = "oya-foundry-codex-account-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-account-adapter-inmemory",
  "oya-foundry-account-domain",
  "oya-foundry-supervisor-kernel",
  "tokio",
@@ -2106,7 +2112,6 @@ dependencies = [
 name = "oya-foundry-gemini-account-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-account-adapter-inmemory",
  "oya-foundry-account-domain",
  "oya-foundry-supervisor-kernel",
  "tokio",
@@ -2279,9 +2284,7 @@ dependencies = [
 name = "oya-foundry-supervisor-security-adapter"
 version = "0.1.0"
 dependencies = [
- "oya-foundry-account-adapter-inmemory",
  "oya-foundry-account-domain",
- "oya-foundry-autonomy-ceiling-app",
  "oya-foundry-autonomy-ceiling-domain",
  "oya-foundry-autonomy-ceiling-kernel",
  "oya-foundry-capability-registry-kernel",
