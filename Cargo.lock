@@ -1874,6 +1874,13 @@ name = "oya-foundry-fitness-adr-shape-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-fitness-adr-status-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-lifecycle-kernel",
+]
+
+[[package]]
 name = "oya-foundry-fitness-agentic-navigability-kernel"
 version = "0.1.0"
 
@@ -1943,6 +1950,10 @@ name = "oya-foundry-fitness-license-policy-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-foundry-fitness-lifecycle-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-foundry-fitness-orphan-detection-kernel"
 version = "0.1.0"
 
@@ -2001,6 +2012,18 @@ version = "0.1.0"
 
 [[package]]
 name = "oya-foundry-fitness-quality-lane-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-foundry-fitness-sunset-lifecycle-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-sunset-lifecycle-kernel",
+ "tempfile",
+]
+
+[[package]]
+name = "oya-foundry-fitness-sunset-lifecycle-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -2258,7 +2281,7 @@ version = "0.1.0"
 dependencies = [
  "oya-foundry-vcs-changebundle-kernel",
  "oya-foundry-vcs-kernel",
- "oya-foundry-vcs-test-standard-gate",
+ "oya-foundry-vcs-test-standard-gate-kernel",
 ]
 
 [[package]]
@@ -2269,7 +2292,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-vcs-test-standard-gate"
+name = "oya-foundry-vcs-test-standard-gate-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-vcs-kernel",

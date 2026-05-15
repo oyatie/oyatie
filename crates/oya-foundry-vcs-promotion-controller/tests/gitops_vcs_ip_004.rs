@@ -13,7 +13,7 @@ use oya_foundry_vcs_promotion_controller::{
     PromotionRequest, ProviderAvailability, ProviderContractEvidence, ProviderDecision,
     ProviderEvidenceSet, ProviderKind, TrivyContractFixture,
 };
-use oya_foundry_vcs_test_standard_gate::{AdmissionDecision, FixupTask};
+use oya_foundry_vcs_test_standard_gate_kernel::{AdmissionDecision, FixupTask};
 
 const NOW: u64 = 1_800_000_000;
 const BASE_SHA: &str = "0123456789012345678901234567890123456789";
@@ -363,7 +363,7 @@ fn unhealthy_environment_and_admission_fixup_reject() {
         accepted: false,
         fixup_tasks: vec![FixupTask {
             task_id: "fixup_1".into(),
-            reason: oya_foundry_vcs_test_standard_gate::FixupReason::MissingRequiredEvidence,
+            reason: oya_foundry_vcs_test_standard_gate_kernel::FixupReason::MissingRequiredEvidence,
             tier: None,
             suite_id: None,
             affected_refs: vec!["workflow-e2e".into()],

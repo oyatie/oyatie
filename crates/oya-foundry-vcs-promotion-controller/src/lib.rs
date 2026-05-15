@@ -12,7 +12,7 @@ use oya_foundry_vcs_changebundle_kernel::{
     BundleError, ChangeBundle, PromotionEvidence, PromotionStatus,
 };
 use oya_foundry_vcs_kernel::PromotionState as KernelPromotionState;
-use oya_foundry_vcs_test_standard_gate::{AdmissionDecision, FixupReason};
+use oya_foundry_vcs_test_standard_gate_kernel::{AdmissionDecision, FixupReason};
 
 const CONTROLLER_SCHEMA_VERSION: u32 = 1;
 

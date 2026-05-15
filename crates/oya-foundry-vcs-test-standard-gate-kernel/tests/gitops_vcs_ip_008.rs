@@ -1,5 +1,5 @@
 use oya_foundry_vcs_kernel::{ArtifactPointer, SymbolLanguage};
-use oya_foundry_vcs_test_standard_gate::{
+use oya_foundry_vcs_test_standard_gate_kernel::{
     AccountingKind, AccountingRecord, AdmissionInput, DeployEdge, EvidenceDisposition,
     EvidenceRecord, EvidenceResult, FixupReason, FreshnessPolicy, SemanticChange, SurfaceKind,
     TestSuiteRegistry, TestTier, evaluate_admission, resolve_required_tiers,
