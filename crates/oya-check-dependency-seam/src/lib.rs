@@ -791,7 +791,9 @@ pub fn check_naming_convention(ctx: &WorkspaceContext) -> SubCheckResult {
         "templates",
     ];
     let mut scanned = 0usize;
-    let mut violations: Vec<String> = Vec::new();
+    let mut violations_displayed: Vec<String> = Vec::new();
+    let mut violations_total = 0usize;
+    let display_cap = 10usize;
     let mut io_errors: Vec<String> = Vec::new();
     // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
     for home in &homes {
@@ -813,8 +815,9 @@ pub fn check_naming_convention(ctx: &WorkspaceContext) -> SubCheckResult {
                                     || c == '-'
                                     || c == '.'
                             }) {
-                                if violations.len() < 10 {
-                                    violations.push(format!("{}/{}", home, s));
+                                violations_total += 1;
+                                if violations_displayed.len() < display_cap {
+                                    violations_displayed.push(format!("{}/{}", home, s));
                                 }
                             }
                         }
@@ -837,10 +840,18 @@ pub fn check_naming_convention(ctx: &WorkspaceContext) -> SubCheckResult {
         "scanned {} top-level entries across {} canonical homes; kebab-case violations: {}",
         scanned,
         homes.len(),
-        violations.len()
+        violations_total
     )];
-    for v in &violations {
+    for v in &violations_displayed {
         findings.push(format!("  - {}", v));
+    }
+    // CONV-4 (TG2 11-facet debate): surface truncation when violations exceed display cap.
+    if violations_total > display_cap {
+        findings.push(format!(
+            "  - ... {} additional violation(s) omitted (display cap = {}; full count above)",
+            violations_total - display_cap,
+            display_cap
+        ));
     }
     findings.extend(io_errors);
     findings.push(
