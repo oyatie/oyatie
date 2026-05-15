@@ -602,12 +602,12 @@ mod tests {
             "agent-a",
             "--intent",
             "M-CC-P00-IP-005",
-            "crates/oya-foundry-vcs-cli-ratchet",
+            "crates/oya-foundry-vcs-cli-ratchet-kernel",
         ]);
         assert_eq!(claim.kind, OyaVcsCommandKind::Claim);
         assert_eq!(claim.action, ControllerAction::ClaimLock);
         assert_eq!(claim.compatibility_alias.as_deref(), Some("grit"));
-        assert_eq!(claim.scopes, vec!["crates/oya-foundry-vcs-cli-ratchet"]);
+        assert_eq!(claim.scopes, vec!["crates/oya-foundry-vcs-cli-ratchet-kernel"]);
 
         let work = plan(&["work", "--agent", "agent-a"]);
         assert_eq!(work.action, ControllerAction::StartWork);
@@ -750,7 +750,7 @@ mod tests {
                 "agent-a",
                 "--intent",
                 "ship IP-005",
-                "crates/oya-foundry-vcs-cli-ratchet",
+                "crates/oya-foundry-vcs-cli-ratchet-kernel",
             ]),
             plan(&["work", "--agent", "agent-a"]),
             plan(&[
@@ -797,7 +797,7 @@ mod tests {
                 "agent-a",
                 "--intent",
                 "ship IP-005",
-                "crates/oya-foundry-vcs-cli-ratchet",
+                "crates/oya-foundry-vcs-cli-ratchet-kernel",
             ]),
             plan(&[
                 "promote",

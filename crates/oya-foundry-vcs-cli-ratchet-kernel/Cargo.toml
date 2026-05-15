@@ -1,5 +1,5 @@
 [package]
-name = "oya-foundry-vcs-cli-ratchet"
+name = "oya-foundry-vcs-cli-ratchet-kernel"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -9,7 +9,7 @@ license = "Apache-2.0"
 [dependencies]
 
 [lib]
-name = "oya_foundry_vcs_cli_ratchet"
+name = "oya_foundry_vcs_cli_ratchet_kernel"
 path = "src/lib.rs"
 doctest = false
 

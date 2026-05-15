@@ -69,7 +69,7 @@ members = [
   "crates/oya-foundry-vcs-test-standard-gate-kernel",
   "crates/oya-foundry-vcs-promotion-controller-kernel",
   "crates/oya-foundry-vcs-review-mergequeue-kernel",
-  "crates/oya-foundry-vcs-cli-ratchet",
+  "crates/oya-foundry-vcs-cli-ratchet-kernel",
   "crates/oya-foundry-account-kernel",
   "crates/oya-foundry-account-domain",
   "crates/oya-foundry-codex-account-adapter",

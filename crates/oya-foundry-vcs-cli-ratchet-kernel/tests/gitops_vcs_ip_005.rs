@@ -1,4 +1,4 @@
-use oya_foundry_vcs_cli_ratchet::{
+use oya_foundry_vcs_cli_ratchet_kernel::{
     CliRatchetError, CloseoutMode, ControllerAction, EvidenceCommand, ForbiddenPrimitive,
     OyaVcsCommandKind, RatchetPolicy, detect_forbidden_primitives, evaluate_command, parse_command,
     plan_sequence,
@@ -13,7 +13,7 @@ fn grit_alias_claim_maps_to_controller_lock_claim() {
         "agent-ip005",
         "--intent",
         "M-CC-P00-IP-005",
-        "crates/oya-foundry-vcs-cli-ratchet",
+        "crates/oya-foundry-vcs-cli-ratchet-kernel",
     ])
     .unwrap();
 
@@ -124,7 +124,7 @@ fn claim_work_done_promote_flow_is_controller_ordered() {
             "agent-ip005",
             "--intent",
             "M-CC-P00-IP-005",
-            "crates/oya-foundry-vcs-cli-ratchet",
+            "crates/oya-foundry-vcs-cli-ratchet-kernel",
         ])
         .unwrap(),
         parse_command(["work", "--agent", "agent-ip005"]).unwrap(),
