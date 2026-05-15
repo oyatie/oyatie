@@ -2368,6 +2368,11 @@ dependencies = [
 [[package]]
 name = "oya-foundry-vcs-ci-fix-loop-dispatcher-app"
 version = "0.1.0"
+dependencies = [
+ "oya-foundry-account-kernel",
+ "oya-foundry-subagent-runtime-app",
+ "oya-foundry-subagent-runtime-kernel",
+]
 
 [[package]]
 name = "oya-foundry-vcs-cli-ratchet-kernel"

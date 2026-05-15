@@ -13,6 +13,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
+use oya_foundry_account_kernel::SecretReference;
+use oya_foundry_subagent_runtime_app::{
+    FacetFindingJson, FacetPromptTemplate, MockSubagentPort, SubagentPort, SubagentRequest,
+};
 use oya_foundry_vcs_ci_fix_loop_dispatcher_app::{
     Budget, BudgetDecision, CommitHistoryEntry, ContextBundle, DiffSummary, DispatchEvent,
     FailedJob, FailureSurface, FixLoopSource, LedgerCandidate, ReviewFinding, ReviewVerdict,
@@ -156,14 +160,115 @@ fn dispatch_bundle(
         )
         .map_err(|e| format!("write {}: {e}", registry_path.display()))?;
 
+    // IP-009 wiring: invoke the subagent runtime inline to produce a
+    // fix-agent response from the context bundle. The agent then
+    // claims via `oya verify` (the canonical pre-merge gate) BEFORE
+    // pushing the fix commit.
+    let runtime_pending = match invoke_fix_loop_runtime(
+        options,
+        attempt,
+        &bundle.to_json(),
+        workspace_root,
+        fs_io,
+    ) {
+        Ok(()) => false,
+        Err(error) => {
+            // We surface the runtime failure on stderr but DO NOT
+            // abort dispatch — the bundle is already in place, and a
+            // human / external agent can still consume it via the
+            // claim command. The pending flag stays true so IP-006
+            // refuses admission.
+            eprintln!(
+                "warn: fix-loop runtime invocation failed for pr={} attempt={attempt}: {error}",
+                options.pr_number
+            );
+            true
+        }
+    };
+
     Ok(format!(
-        "fix-loop dispatched: source={source} pr={pr} attempt={attempt}/{max} bundle={bundle} claim={claim} subagent_runtime_pending=true",
+        "fix-loop dispatched: source={source} pr={pr} attempt={attempt}/{max} bundle={bundle} claim={claim} subagent_runtime_pending={pending} next_step='oya verify' then commit+push",
         source = options.source.as_wire(),
         pr = options.pr_number,
         max = MAX_ATTEMPTS_PER_PR,
         bundle = bundle_relpath,
         claim = event.agent_claim_command(),
+        pending = runtime_pending,
     ))
+}
+
+/// Invoke the IP-009 subagent runtime for the fix-loop slot. Loads a
+/// statically-baked fix-loop prompt template (no per-facet panel —
+/// the fix-loop is single-slot, distinct from IP-004's 21-facet
+/// review panel), feeds the bundle JSON as the user message, and
+/// writes the agent response to `<evidence>/<pr>/<attempt>-agent-response.json`.
+fn invoke_fix_loop_runtime(
+    options: &Options,
+    attempt: u32,
+    bundle_json: &str,
+    workspace_root: &Path,
+    fs_io: &dyn FilesystemIo,
+) -> Result<(), String> {
+    let template = build_fix_loop_template();
+    let api_key_ref = SecretReference::new(
+        "sref://openbao/oya/foundry/anthropic-api-key".to_owned(),
+    )
+    .map_err(|e| format!("api-key-ref: {e}"))?;
+    let request = SubagentRequest {
+        facet_id: "fix_loop_agent".to_owned(),
+        reviewer_id: format!(
+            "claude-fix-loop-{source}-pr-{pr}-attempt-{attempt}",
+            source = options.source.as_wire(),
+            pr = options.pr_number,
+        ),
+        change_id: format!("pr-{}-attempt-{attempt}", options.pr_number),
+        system_prompt: template.render_system_prompt(),
+        user_message: bundle_json.to_owned(),
+        api_key_ref,
+        model_id: "claude-opus-4-7".to_owned(),
+    };
+    let port = MockSubagentPort::new();
+    let response = port
+        .complete(&request)
+        .map_err(|e| format!("subagent invocation failed: {e}"))?;
+    let response_relpath = format!(
+        "{EVIDENCE_ROOT}/{pr}/{attempt}-agent-response.json",
+        pr = options.pr_number,
+    );
+    let response_abspath = workspace_root.join(&response_relpath);
+    fs_io
+        .create_dir_all(
+            response_abspath
+                .parent()
+                .ok_or("response path has no parent")?,
+        )
+        .map_err(|e| format!("mkdir {}: {e}", response_abspath.display()))?;
+    fs_io
+        .write(
+            &response_abspath,
+            FacetFindingJson::render(&response, options.now_epoch),
+        )
+        .map_err(|e| format!("write {}: {e}", response_abspath.display()))?;
+    Ok(())
+}
+
+/// Fix-loop prompt template. Baked into the binary so the fix-loop
+/// dispatcher doesn't depend on a separate `*.md` deliverable; the
+/// per-facet panel templates live under
+/// `evidence/pipeline-maturity-glue/ip-004-pr-review/facets/` (IP-004's
+/// 21-facet review panel) — those are NOT the same as this fix-loop
+/// agent which operates one-shot per failure.
+fn build_fix_loop_template() -> FacetPromptTemplate {
+    FacetPromptTemplate::new(
+        "fix_loop_agent".to_owned(),
+        "Fix-loop agent (IP-005)".to_owned(),
+        "diagnose failing CI / review findings + produce a single patch that lands green".to_owned(),
+        "APPROVE iff you produce a complete patch; CHANGES_REQUESTED iff diagnosis incomplete; REJECT iff bundle indicates a genuine product bug not fixable by patch".to_owned(),
+        "You will receive an IP-005 ContextBundle containing failing-job logs, PR diff vs base, last N=5 commits, and mistakes-ledger candidates.\n\
+         Produce a single unified-diff patch that, when applied + run through `oya verify`, makes the failing surface green.\n\
+         Do not invent files. Do not silently change public contracts.\n\
+         Cite any mistakes-ledger row your fix addresses.\n".to_owned(),
+    ).expect("static fix-loop template is well-formed by construction")
 }
 
 fn escalate(
@@ -504,7 +609,10 @@ mod tests {
         let msg = run(&args, &fs).unwrap();
         assert!(msg.contains("dispatched"));
         assert!(msg.contains("attempt=1/5"));
-        assert!(msg.contains("subagent_runtime_pending=true"));
+        // IP-009 wiring: runtime now fires inline via the
+        // deterministic-mock port, so the pending flag is false.
+        assert!(msg.contains("subagent_runtime_pending=false"));
+        assert!(msg.contains("oya verify"));
 
         let bundle_path = PathBuf::from("/repo")
             .join(EVIDENCE_ROOT)
@@ -517,6 +625,16 @@ mod tests {
 
         let registry_json = fs.get(&registry_path).expect("registry rewritten");
         assert!(registry_json.contains("\"attempts_used\":1"));
+
+        // IP-009 wiring: the agent response file is written next to
+        // the bundle, named `<attempt>-agent-response.json`.
+        let response_path = PathBuf::from("/repo")
+            .join(EVIDENCE_ROOT)
+            .join("42")
+            .join("1-agent-response.json");
+        let response_json = fs.get(&response_path).expect("agent response written");
+        assert!(response_json.contains("\"facet_id\": \"fix_loop_agent\""));
+        assert!(response_json.contains("\"final_recommendation\""));
     }
 
     #[test]

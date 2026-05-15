@@ -36,6 +36,16 @@ name = "oya_foundry_vcs_ci_fix_loop_dispatcher_app"
 path = "src/lib.rs"
 doctest = false
 
+[dependencies]
+# IP-009 wiring: the fix-loop dispatcher invokes the subagent runtime
+# inline (deterministic-mock for CI, anthropic-api in production) to
+# produce a fix-agent response from the context bundle. The kernel
+# defines the SubagentPort; the app crate carries the canonical mock
+# implementation.
+oya-foundry-account-kernel = { path = "../../crates/oya-foundry-account-kernel" }
+oya-foundry-subagent-runtime-kernel = { path = "../../crates/oya-foundry-subagent-runtime-kernel" }
+oya-foundry-subagent-runtime-app = { path = "../oya-foundry-subagent-runtime-app" }
+
 [lints]
 workspace = true
 
