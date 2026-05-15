@@ -170,3 +170,93 @@ every `oya-*` Rust crate. Per-tier rules below are normative
 
 - 2026-05-15 — Authored. Closes
   `F-AUTHOR-ADR-ERROR-HANDLING-TIER-DECISION` filed in TG3 sprawl audit.
+- 2026-05-15 — Amendment: authorize `append_classifications` Result return
+  (see Amendment 2026-05-15 below). Closes Phase E1 DENY-promotion final
+  blocker on Site 3 (`oya-audit-chain-domain` private fn `.expect()`).
+
+## Amendment 2026-05-15 — `append_classifications` Tier 1 Compliance
+
+### Context
+
+Phase E1 DENY promotion of the workspace `[lints.clippy]` block from
+`warn` → `deny` for `unwrap_used` / `expect_used` / `panic` stalled on a
+single residual production `.expect()` site (Site 3) at
+`crates/oya-audit-chain-domain/src/lib.rs:343` — the private helper
+`append_legacy_data_classes` that hides a `.expect(...)` on the result of
+the fallible `try_append_legacy_data_classes`. That `.expect(...)` masks
+two real failure modes the inner function explicitly returns:
+`AuditChainError::EmptyTenantId` and `AuditChainError::TenantShardMismatch`.
+
+The compatibility-seam `pub fn append_classifications<C>(...)` calls into
+that helper, so the `.expect(...)` propagates to the public API. Per Tier
+1 of this ADR, infallible returns cannot stand atop fallible internals
+without erasing matchable failure information; per
+[`feedback_no_silent_regression`](../../) the two `AuditChainError`
+variants are public-contract failures that callers MUST be able to match.
+
+### Decision
+
+Authorize the breaking change on `oya-audit-chain-domain` from `0.1.0`
+to `0.2.0`. The new public signature is canonical Tier 1:
+
+```rust
+pub fn append_classifications<C>(
+    &mut self,
+    tenant_id: impl Into<String>,
+    surface: impl Into<String>,
+    plane: Plane,
+    purpose: Purpose,
+    data_classifications: impl IntoIterator<Item = C>,
+    decision: impl Into<String>,
+) -> Result<&AuditEvent, AuditChainError>
+where
+    C: Into<DataClassification>;
+```
+
+The previously-returned infallible reference `-> &AuditEvent` is
+immediately superseded — no grace window. Rationale: Tier 1 forbids
+production `.expect()`; the new variant set (`EmptyTenantId`,
+`TenantShardMismatch`) was always reachable on the existing
+`.expect(...)` path, so callers that depended on the infallible signature
+were depending on a Tier-1-violating shape that the workspace lint
+promotion now mechanically rejects. This is the canonical sub-rule
+(per `feedback_no_exceptions_canonical`): a one-line breaking change
+restoring canonical Tier 1 conformance is the canonical path, not a
+sub-clause sub-rule preserving the older shape.
+
+### Version bump
+
+`oya-audit-chain-domain` 0.1.0 → 0.2.0 (override
+`[package].version = "0.2.0"` on this crate; remaining crates continue
+to inherit `[workspace.package].version`).
+
+### Sunset
+
+The previous infallible signature is superseded with no grace window.
+All in-tree callers (~28 production sites in `oya-application-app`, 1
+in `oya-audit-chain-usecase`, 4 in `oya-cloud-observability-domain`
+test fixtures, 6 in `oya-audit-chain-domain` / `-file-adapter`
+integration tests, 1 in this crate's internal tests) are propagated to
+`?` on the same commit as the signature change.
+
+### Lane interaction
+
+- `lean-a4-semver` (cargo-semver-checks) WILL flag the
+  `append_classifications` return-type change as a major-version break.
+  The crate's version bump to `0.2.0` satisfies the lane.
+- `lean-a10-regression` (per `feedback_no_silent_regression`) is
+  satisfied by (a) this ADR amendment, (b) the version bump, (c) the
+  Tier 1 conformance restoration that eliminates the silent-failure
+  pattern Site 3 contained.
+
+### Consequences
+
+Positive: workspace-wide `[lints.clippy]` reaches DENY. Tier 1 enforced
+mechanically across every `oya-*` crate going forward. The
+`AuditChainError::{EmptyTenantId, TenantShardMismatch}` variants become
+typed branches every caller MUST handle, eliminating the silent-failure
+pattern that Site 3 hid.
+
+Negative: 35+ call sites updated this commit. Mitigated by the uniform
+`.map_err(...)?` pattern across `oya-application-app` and `?`
+propagation in `oya-audit-chain-usecase`.
