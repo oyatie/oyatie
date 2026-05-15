@@ -1,3 +1,8 @@
+---
+id: ADR-0022
+status: proposed
+---
+
 # ADR-0022: Autonomy ceiling — runtime enforcement via Cedar policy at every capability invocation
 
 > **Status:** Proposed

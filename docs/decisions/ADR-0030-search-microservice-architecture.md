@@ -1,3 +1,8 @@
+---
+id: ADR-0030
+status: accepted
+---
+
 # ADR-0030: Search microservice — crawler / parser / index / ranker / SERP architecture with KR-first morphology and Data-Use-Boundary segregation
 
 > **Status:** Accepted

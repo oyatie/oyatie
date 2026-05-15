@@ -1,3 +1,8 @@
+---
+id: ADR-0038
+status: proposed
+---
+
 # ADR-0038: Trust framework — cross-microservice lineage, DSR cascade across all all microservices, Cosign-signed proof-of-erasure, tenant trust portal
 
 > **Status:** Proposed

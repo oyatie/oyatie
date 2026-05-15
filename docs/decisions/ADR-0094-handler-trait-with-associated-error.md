@@ -1,3 +1,8 @@
+---
+id: ADR-0094
+status: accepted
+---
+
 # ADR-0094: `Handler` trait with associated `Error` type
 
 > **Status:** Accepted

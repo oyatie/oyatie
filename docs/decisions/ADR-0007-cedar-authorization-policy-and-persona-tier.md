@@ -1,3 +1,8 @@
+---
+id: ADR-0007
+status: proposed
+---
+
 # ADR-0007: Cedar policy engine for RBAC/ABAC + persona-tier autonomy ceiling (T1–T4) with per-capability runtime enforcement
 
 > **Status:** Proposed

@@ -1,3 +1,8 @@
+---
+id: ADR-0002
+status: proposed
+---
+
 # ADR-0002: Establish the Tenant and Identity kernel as the single substrate every axis consumes
 
 > **Status:** Proposed

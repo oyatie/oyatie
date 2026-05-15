@@ -1,3 +1,8 @@
+---
+id: ADR-0055
+status: accepted
+---
+
 # ADR-0055: Object Graph renamed to Ontology
 
 > **Status:** Accepted

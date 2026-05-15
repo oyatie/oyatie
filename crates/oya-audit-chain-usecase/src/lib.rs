@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
+use oya_audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
 use oya_data_boundary_kernel::{
     DataClassification, Purpose, parse_data_class_label, parse_purpose_pascal_label,
 };
@@ -232,6 +232,16 @@ pub enum AuditEventEmitAppError {
         idempotency_key: String,
     },
     Eventing(EventingError),
+    /// ADR-0083 amendment 2026-05-15: `append_classifications` is now Tier 1
+    /// fallible and propagates `AuditChainError` variants (`EmptyTenantId`,
+    /// `TenantShardMismatch`, etc.) through this app boundary.
+    AuditChain(AuditChainError),
+}
+
+impl From<AuditChainError> for AuditEventEmitAppError {
+    fn from(error: AuditChainError) -> Self {
+        Self::AuditChain(error)
+    }
 }
 
 impl AuditEventEmitAppError {
@@ -275,7 +285,8 @@ impl AuditEventEmitAppError {
             | Self::Eventing(EventingError::EmptyTopicDescription)
             | Self::Eventing(EventingError::InvalidTopicName)
             | Self::Eventing(EventingError::EmptyIdempotencyKey)
-            | Self::Eventing(EventingError::EmptyPayloadRef) => AuditEventEmitAppStatus::BadRequest,
+            | Self::Eventing(EventingError::EmptyPayloadRef)
+            | Self::AuditChain(_) => AuditEventEmitAppStatus::BadRequest,
         }
     }
 
@@ -323,6 +334,7 @@ pub fn emit_audit_event_from_app(
                 input.data_classifications,
                 input.decision,
             )
+            .map_err(AuditEventEmitAppError::from)?
             .clone();
         let outbox_record = publish_outbox(outbox, &event, &event_id)?;
         Ok(AuditEventEmitSuccessResponse::accepted(

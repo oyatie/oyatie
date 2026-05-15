@@ -1,3 +1,8 @@
+---
+id: ADR-0054
+status: accepted
+---
+
 # ADR-0054: Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback)
 
 > **Status:** Accepted

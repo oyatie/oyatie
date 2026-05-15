@@ -1,3 +1,8 @@
+---
+id: ADR-0004
+status: proposed
+---
+
 # ADR-0004: Plane separation across control / data / analytics with catalog-declared plane class
 
 > **Status:** Proposed

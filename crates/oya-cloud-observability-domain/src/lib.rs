@@ -1630,30 +1630,36 @@ mod tests {
 
     fn chain() -> AuditChain {
         let mut chain = AuditChain::default();
-        chain.append_classifications(
-            TENANT,
-            CloudAuditTopic::CloudResourceCreated.as_str(),
-            Plane::Control,
-            Purpose::CoreService,
-            [DataClass::InternalOnly, DataClass::Public, DataClass::Audit],
-            "ALLOW",
-        );
-        chain.append_classifications(
-            TENANT,
-            CloudAuditTopic::CloudIamPolicy.as_str(),
-            Plane::Control,
-            Purpose::CoreService,
-            [DataClass::InternalOnly, DataClass::Audit],
-            "ALLOW",
-        );
-        chain.append_classifications(
-            TENANT,
-            CloudAuditTopic::CloudKmsUse.as_str(),
-            Plane::Data,
-            Purpose::CoreService,
-            [DataClass::InternalOnly, DataClass::Audit],
-            "ALLOW",
-        );
+        chain
+            .append_classifications(
+                TENANT,
+                CloudAuditTopic::CloudResourceCreated.as_str(),
+                Plane::Control,
+                Purpose::CoreService,
+                [DataClass::InternalOnly, DataClass::Public, DataClass::Audit],
+                "ALLOW",
+            )
+            .expect("test fixture: append CloudResourceCreated must succeed for valid tenant");
+        chain
+            .append_classifications(
+                TENANT,
+                CloudAuditTopic::CloudIamPolicy.as_str(),
+                Plane::Control,
+                Purpose::CoreService,
+                [DataClass::InternalOnly, DataClass::Audit],
+                "ALLOW",
+            )
+            .expect("test fixture: append CloudIamPolicy must succeed for valid tenant");
+        chain
+            .append_classifications(
+                TENANT,
+                CloudAuditTopic::CloudKmsUse.as_str(),
+                Plane::Data,
+                Purpose::CoreService,
+                [DataClass::InternalOnly, DataClass::Audit],
+                "ALLOW",
+            )
+            .expect("test fixture: append CloudKmsUse must succeed for valid tenant");
         assert!(chain.verify());
         chain
     }
@@ -2041,14 +2047,16 @@ mod tests {
         );
 
         let mut secret_chain = AuditChain::default();
-        secret_chain.append_classifications(
-            TENANT,
-            CloudAuditTopic::CloudResourceCreated.as_str(),
-            Plane::Control,
-            Purpose::CoreService,
-            [DataClass::Secret],
-            "ALLOW",
-        );
+        secret_chain
+            .append_classifications(
+                TENANT,
+                CloudAuditTopic::CloudResourceCreated.as_str(),
+                Plane::Control,
+                Purpose::CoreService,
+                [DataClass::Secret],
+                "ALLOW",
+            )
+            .expect("test fixture: append secret_chain must succeed for valid tenant");
         assert_eq!(
             CloudObservabilityCatalog::default()
                 .ingest_verified_chain(&secret_chain, vec![envelopes().remove(0)], &residency)

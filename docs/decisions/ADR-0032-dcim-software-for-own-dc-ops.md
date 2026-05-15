@@ -1,3 +1,8 @@
+---
+id: ADR-0032
+status: proposed
+---
+
 # ADR-0032: DCIM software for Oyatie-owned DC operations — `crates/oya-cloud-dcops-*` with anti-scope on custom silicon
 
 > **Status:** Proposed

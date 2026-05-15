@@ -1,3 +1,8 @@
+---
+id: ADR-0027
+status: proposed
+---
+
 # ADR-0027: Robotics, vision, and speech sub-substrates — vision/speech model crates, robotics control plane, deterministic latency, safety-critical anti-scope
 
 > **Status:** Proposed

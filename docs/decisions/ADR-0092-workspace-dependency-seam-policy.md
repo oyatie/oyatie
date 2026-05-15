@@ -1,3 +1,8 @@
+---
+id: ADR-0092
+status: accepted
+---
+
 # ADR-0092: Workspace dependency-seam policy
 
 > **Status:** Accepted

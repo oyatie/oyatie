@@ -1,3 +1,8 @@
+---
+id: ADR-0025
+status: proposed
+---
+
 # ADR-0025: Foundry as the engineering platform — repoctl, catalog, gates, fitness functions, supply chain, customer-facing builder surfaces all under one axis
 
 > **Status:** Proposed

@@ -118,14 +118,16 @@ fn signed_verification_rejects_embedded_key_substitution() {
 #[test]
 fn signed_verification_requires_every_event_to_have_ed25519_signature() {
     let mut chain = AuditChain::default();
-    chain.append_classifications(
-        "ten_alpha",
-        "tenant.create",
-        Plane::Control,
-        Purpose::CoreService,
-        [DataClass::InternalOnly],
-        "ALLOW",
-    );
+    chain
+        .append_classifications(
+            "ten_alpha",
+            "tenant.create",
+            Plane::Control,
+            Purpose::CoreService,
+            [DataClass::InternalOnly],
+            "ALLOW",
+        )
+        .expect("test fixture: append_classifications must succeed for valid inputs");
 
     assert!(verify_chain(&chain).is_ok());
     assert_eq!(

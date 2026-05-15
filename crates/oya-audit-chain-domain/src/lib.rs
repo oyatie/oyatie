@@ -339,7 +339,11 @@ impl AuditChain {
         purpose: Purpose,
         data_classes: Vec<DataClass>,
         decision: impl Into<String>,
-    ) -> &AuditEvent {
+    ) -> Result<&AuditEvent, AuditChainError> {
+        // ADR-0083 Tier 1 (amendment 2026-05-15): private helper propagates
+        // the fallible `try_append_legacy_data_classes` instead of erasing
+        // its two real failure modes (`EmptyTenantId`, `TenantShardMismatch`)
+        // behind `.expect(...)`.
         self.try_append_legacy_data_classes(
             AuditAppendInput {
                 tenant_id: tenant_id.into(),
@@ -351,7 +355,6 @@ impl AuditChain {
             },
             None,
         )
-        .expect("append_classifications requires one non-empty tenant shard per chain")
     }
 
     fn try_append_legacy_data_classes(
@@ -437,6 +440,13 @@ impl AuditChain {
     /// `DataClass` audit payload and hash input. This is the compatibility seam
     /// for append-only ledger replay while callers migrate operational markers
     /// such as `AUDIT` out of privacy-program `DataClass` construction.
+    ///
+    /// Returns `Err(AuditChainError::EmptyTenantId)` if `tenant_id` is blank
+    /// and `Err(AuditChainError::TenantShardMismatch { .. })` if the chain is
+    /// in `SingleTenantShard` scope and the incoming tenant shard differs from
+    /// the existing one. See ADR-0083 amendment 2026-05-15 — Tier 1 forbids
+    /// erasing these matchable failure modes behind `.expect(...)`. Crate
+    /// version `0.2.0`.
     pub fn append_classifications<C>(
         &mut self,
         tenant_id: impl Into<String>,
@@ -445,7 +455,7 @@ impl AuditChain {
         purpose: Purpose,
         data_classifications: impl IntoIterator<Item = C>,
         decision: impl Into<String>,
-    ) -> &AuditEvent
+    ) -> Result<&AuditEvent, AuditChainError>
     where
         C: Into<DataClassification>,
     {
@@ -761,6 +771,7 @@ mod tests {
                 vec![DataClass::InternalOnly, DataClass::Audit],
                 "ALLOW",
             )
+            .expect("test-side: append must succeed for valid inputs")
             .clone();
 
         let mut classified = AuditChain::default();
@@ -776,6 +787,7 @@ mod tests {
                 ],
                 "ALLOW",
             )
+            .expect("test-side: append must succeed for valid inputs")
             .clone();
 
         assert_eq!(classified_event.data_classes, legacy_event.data_classes);

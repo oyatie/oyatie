@@ -1,3 +1,8 @@
+---
+id: ADR-0037
+status: proposed
+---
+
 # ADR-0037: Public API stability tiers — preview / stable / GA with semver-diff PR gate, contract-first SDK generation, per-deprecation telemetry
 
 > **Status:** Proposed

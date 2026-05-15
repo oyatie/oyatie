@@ -1,3 +1,8 @@
+---
+id: ADR-0067
+status: accepted
+---
+
 # ADR-0067: `ops.oyatie.com` — the canonical hyperscaler-grade operations console for the entire oyatie platform
 
 > **Status:** Accepted

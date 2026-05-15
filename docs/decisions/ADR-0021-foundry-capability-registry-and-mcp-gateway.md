@@ -1,3 +1,8 @@
+---
+id: ADR-0021
+status: proposed
+---
+
 # ADR-0021: Foundry capability registry and MCP gateway — `Capability` schema, MCP-compatible discovery, per-tenant endpoint
 
 > **Status:** Proposed

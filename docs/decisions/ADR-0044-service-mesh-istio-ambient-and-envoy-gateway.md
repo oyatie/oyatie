@@ -1,3 +1,8 @@
+---
+id: ADR-0044
+status: proposed
+---
+
 # ADR-0044: Service mesh — Istio Ambient mode for east-west, Envoy as edge gateway, mTLS everywhere, per-cell namespace, audited cross-cell traffic
 
 > **Status:** Proposed

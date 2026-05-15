@@ -1,3 +1,8 @@
+---
+id: ADR-0036
+status: proposed
+---
+
 # ADR-0036: Plugin substrate — Wasmtime + WASI Preview 2 with capability-gated context, Cosign signing, trust tiers, marketplace economics
 
 > **Status:** Proposed

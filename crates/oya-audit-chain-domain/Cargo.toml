@@ -1,7 +1,10 @@
 [package]
 name = "oya-audit-chain-domain"
 edition.workspace = true
-version.workspace = true
+# Override workspace version per ADR-0083 amendment 2026-05-15:
+# `append_classifications` returns `Result<&AuditEvent, AuditChainError>` —
+# breaking-change versioned at 0.2.0.
+version = "0.2.0"
 rust-version.workspace = true
 publish = false
 license = "Apache-2.0"

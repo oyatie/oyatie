@@ -1,3 +1,8 @@
+---
+id: ADR-0095
+status: accepted
+---
+
 # ADR-0095: `TenantSlug` centralized in `oya-tenancy-kernel`
 
 > **Status:** Accepted

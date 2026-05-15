@@ -1,3 +1,8 @@
+---
+id: ADR-0028
+status: accepted
+---
+
 # ADR-0028: Cloud microservice — compute substrate with stable product surface across three infrastructure phases
 
 > **Status:** Accepted

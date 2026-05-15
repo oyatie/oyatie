@@ -1,3 +1,8 @@
+---
+id: ADR-0093
+status: accepted
+---
+
 # ADR-0093: DeadlineMiddleware → LatencyBudgetReporter (honest naming)
 
 > **Status:** Accepted

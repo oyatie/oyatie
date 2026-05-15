@@ -1,3 +1,8 @@
+---
+id: ADR-0059
+status: accepted
+---
+
 # ADR-0059: Workflow + Ontology = ecosystem adapter layer
 
 > **Status:** Accepted

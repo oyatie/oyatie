@@ -1,3 +1,8 @@
+---
+id: ADR-0064
+status: accepted
+---
+
 # ADR-0064: Canonical base + localization packs — pack-pluggable µservice architecture, Korea is pack #1
 
 > **Status:** Accepted

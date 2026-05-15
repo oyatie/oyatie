@@ -1,3 +1,8 @@
+---
+id: ADR-0035
+status: proposed
+---
+
 # ADR-0035: Workflow engine — hybrid state-machine + DAG (not pure BPMN), per-tenant versioning, jurisdiction overlay, agent-authored steps
 
 > **Status:** Proposed

@@ -13,34 +13,40 @@ fn file_audit_ledger_replays_events_and_appends_only_new_suffix() {
     let path = temp_ledger_path("append");
     let ledger = FileAuditLedger::new(path.clone());
     let mut chain = AuditChain::default();
-    chain.append_classifications(
-        "ten_alpha",
-        "tenant.create",
-        Plane::Control,
-        Purpose::CoreService,
-        vec![DataClass::InternalOnly],
-        "ALLOW",
-    );
-    chain.append_classifications(
-        "ten_alpha",
-        "identity.user.upsert",
-        Plane::Control,
-        Purpose::CoreService,
-        vec![DataClass::PiiIdentifying],
-        "ALLOW",
-    );
+    chain
+        .append_classifications(
+            "ten_alpha",
+            "tenant.create",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::InternalOnly],
+            "ALLOW",
+        )
+        .expect("test fixture: tenant.create append must succeed");
+    chain
+        .append_classifications(
+            "ten_alpha",
+            "identity.user.upsert",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::PiiIdentifying],
+            "ALLOW",
+        )
+        .expect("test fixture: identity.user.upsert append must succeed");
 
     assert_eq!(ledger.append_chain(&chain).expect("initial append"), 2);
     assert_eq!(ledger.append_chain(&chain).expect("idempotent replay"), 0);
 
-    chain.append_classifications(
-        "ten_alpha",
-        "foundry.capability.invoke",
-        Plane::Data,
-        Purpose::CapabilityInvocation,
-        vec![DataClass::InternalOnly],
-        "ALLOW",
-    );
+    chain
+        .append_classifications(
+            "ten_alpha",
+            "foundry.capability.invoke",
+            Plane::Data,
+            Purpose::CapabilityInvocation,
+            vec![DataClass::InternalOnly],
+            "ALLOW",
+        )
+        .expect("test fixture: foundry.capability.invoke append must succeed");
     assert_eq!(ledger.append_chain(&chain).expect("suffix append"), 1);
 
     let restored = ledger.load().expect("ledger can be replayed");
@@ -55,25 +61,29 @@ fn file_audit_ledger_rejects_divergent_history_and_tampered_records() {
     let path = temp_ledger_path("tamper");
     let ledger = FileAuditLedger::new(path.clone());
     let mut original = AuditChain::default();
-    original.append_classifications(
-        "ten_alpha",
-        "tenant.create",
-        Plane::Control,
-        Purpose::CoreService,
-        vec![DataClass::InternalOnly],
-        "ALLOW",
-    );
+    original
+        .append_classifications(
+            "ten_alpha",
+            "tenant.create",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::InternalOnly],
+            "ALLOW",
+        )
+        .expect("test fixture: original tenant.create append must succeed");
     ledger.append_chain(&original).expect("initial append");
 
     let mut divergent = AuditChain::default();
-    divergent.append_classifications(
-        "ten_alpha",
-        "tenant.delete",
-        Plane::Control,
-        Purpose::CoreService,
-        vec![DataClass::InternalOnly],
-        "ALLOW",
-    );
+    divergent
+        .append_classifications(
+            "ten_alpha",
+            "tenant.delete",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::InternalOnly],
+            "ALLOW",
+        )
+        .expect("test fixture: divergent tenant.delete append must succeed");
     assert_eq!(
         ledger.append_chain(&divergent),
         Err(FileAuditLedgerError::ChainDiverged)

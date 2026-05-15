@@ -1,3 +1,8 @@
+---
+id: ADR-0011
+status: accepted
+---
+
 # ADR-0011: Cross-microservice contract registry — `contracts/microservice-contracts.yaml` source-of-truth, openapi/proto/asyncapi sub-directories, oya-check-contracts CI lane, cross-microservice contract change protocol, auto-generated SDKs
 
 > **Status:** Accepted

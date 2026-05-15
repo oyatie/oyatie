@@ -1,3 +1,8 @@
+---
+id: ADR-0066
+status: accepted
+---
+
 # ADR-0066: Live code-introspection — docs portal reflects realtime project state with full endpoint / dep graph / dead-code coverage
 
 > **Status:** Accepted

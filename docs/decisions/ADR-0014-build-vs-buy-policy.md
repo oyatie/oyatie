@@ -1,3 +1,8 @@
+---
+id: ADR-0014
+status: proposed
+---
+
 # ADR-0014: Build-vs-buy policy — per-microservice matrix (in-house obligatory / external acceptable / requires-review), decision flow chart, per-dep metadata (license tier + maturity + isolation + replacement plan + owning team), oya-foundry-fitness-build-vs-buy CI lane
 
 > **Status:** Proposed

@@ -1,3 +1,8 @@
+---
+id: ADR-0043
+status: proposed
+---
+
 # ADR-0043: Secrets management — OpenBao (MPL-2; supersedes Vault BUSL), per-tenant per-cell HSM partition (KCMVP + FIPS 140-3), per-capability SecretProvider
 
 > **Status:** Proposed

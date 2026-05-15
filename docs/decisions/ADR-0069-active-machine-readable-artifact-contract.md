@@ -1,3 +1,8 @@
+---
+id: ADR-0069
+status: accepted
+---
+
 # ADR-0069: Active machine-readable artifact contract — 9-capability declaration, knowledge-graph substrate, registry-pattern control plane
 
 > **Status:** Accepted

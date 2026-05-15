@@ -1,3 +1,8 @@
+---
+id: ADR-0017
+status: accepted
+---
+
 # ADR-0017: Brand naming and repo layout — Oyatie / oYa logo / oyatie.com domain, oya-<microservice>-<layer> Cargo prefix, repo path / GitHub slug oyatie retained
 
 > **Status:** Accepted

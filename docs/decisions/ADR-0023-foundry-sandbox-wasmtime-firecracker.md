@@ -1,3 +1,8 @@
+---
+id: ADR-0023
+status: proposed
+---
+
 # ADR-0023: Foundry sandbox — Wasmtime + WASI Preview 2 for short-lived tools, Firecracker microVMs for full-kernel tools
 
 > **Status:** Proposed

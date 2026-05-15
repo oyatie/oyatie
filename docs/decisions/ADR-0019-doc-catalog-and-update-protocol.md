@@ -1,3 +1,8 @@
+---
+id: ADR-0019
+status: proposed
+---
+
 # ADR-0019: Doc catalog and update protocol — every consolidated doc has owner / trigger / cadence / dependent-docs / validation; pre-flight + authoring + validation + review + publish stages; agent-authoring policy (agents propose; humans approve; catalog-validated additions auto-approved by the catalog gate); machine-readable mirror at machine-readable/catalog.json
 
 > **Status:** Proposed

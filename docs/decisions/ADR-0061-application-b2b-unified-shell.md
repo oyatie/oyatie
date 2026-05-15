@@ -1,3 +1,8 @@
+---
+id: ADR-0061
+status: accepted
+---
+
 # ADR-0061: Application — B2B unified shell with à-la-carte product enablement
 
 > **Status:** Accepted

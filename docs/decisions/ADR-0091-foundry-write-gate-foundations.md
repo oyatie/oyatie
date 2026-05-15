@@ -1,3 +1,8 @@
+---
+id: ADR-0091
+status: accepted
+---
+
 # ADR-0091: Foundry write-gate foundations (Phase 05 contract)
 
 > **Status:** Accepted

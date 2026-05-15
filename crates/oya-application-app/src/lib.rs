@@ -1,5 +1,7 @@
 //! Foundation application slice composing the W-Foundation kernels.
 
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
 use std::{collections::BTreeMap, fmt, sync::Arc};
 
 pub use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
@@ -337,6 +339,18 @@ pub enum FoundationError {
     CapabilityInvocationUnauthorized,
     CostBudgetNotConfigured,
     CostBudgetExceeded,
+    /// ADR-0083 amendment 2026-05-15: `AuditChain::append_classifications`
+    /// returns `Result<&AuditEvent, AuditChainError>` — Tier 1 fallible.
+    /// The variants of `AuditChainError` (`EmptyTenantId`,
+    /// `TenantShardMismatch`, etc.) propagate to this app boundary so callers
+    /// can pattern-match the failure mode rather than seeing a silent panic.
+    AuditChainAppendFailed(oya_audit_chain_domain::AuditChainError),
+}
+
+impl From<oya_audit_chain_domain::AuditChainError> for FoundationError {
+    fn from(error: oya_audit_chain_domain::AuditChainError) -> Self {
+        Self::AuditChainAppendFailed(error)
+    }
 }
 
 struct DeniedInvocationRecord<'a> {
@@ -499,7 +513,7 @@ impl Foundation {
             Purpose::CoreService,
             internal_audit_classifications(),
             "ALLOW",
-        );
+        )?;
         Ok(record)
     }
 
@@ -536,7 +550,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(tenant)
     }
 
@@ -573,7 +587,7 @@ impl Foundation {
                     Purpose::CoreService,
                     vec![DataClass::InternalOnly],
                     "ALLOW",
-                );
+                )?;
                 Ok(binding)
             }
             Err(CellError::AlreadyBound) => {
@@ -584,7 +598,7 @@ impl Foundation {
                     Purpose::CoreService,
                     vec![DataClass::InternalOnly],
                     "DENY",
-                );
+                )?;
                 Err(FoundationError::CellBindingImmutable)
             }
             Err(
@@ -650,7 +664,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::PiiIdentifying, DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(user)
     }
 
@@ -671,7 +685,7 @@ impl Foundation {
                     request.purpose,
                     vec![DataClass::PiiIdentifying],
                     "ALLOW",
-                );
+                )?;
                 Ok(token)
             }
             Err(IdentityError::TokenTtlTooLong) => {
@@ -682,7 +696,7 @@ impl Foundation {
                     request.purpose,
                     vec![DataClass::PiiIdentifying],
                     "DENY",
-                );
+                )?;
                 Err(FoundationError::TokenTtlTooLong)
             }
             Err(_) => Err(FoundationError::InvalidInput),
@@ -734,7 +748,7 @@ impl Foundation {
             purpose,
             vec![audit_data_class],
             "ALLOW",
-        );
+        )?;
         Ok(())
     }
 
@@ -757,7 +771,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(published)
     }
 
@@ -782,7 +796,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             if decision.allowed { "ALLOW" } else { "DENY" },
-        );
+        )?;
         Ok(decision)
     }
 
@@ -855,7 +869,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(capability)
     }
 
@@ -874,7 +888,7 @@ impl Foundation {
             Purpose::CoreService,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         self.audit_chain.append_classifications(
             "ten_system",
             format!("foundry.eval-set.ready:{capability_id}"),
@@ -882,7 +896,7 @@ impl Foundation {
             Purpose::CoreService,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         Ok(())
     }
 
@@ -901,7 +915,7 @@ impl Foundation {
             Purpose::Analytics,
             behavioral_audit_classifications(),
             "ALLOW",
-        );
+        )?;
         Ok(())
     }
 
@@ -924,7 +938,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(())
     }
 
@@ -964,7 +978,7 @@ impl Foundation {
                 Purpose::CapabilityInvocation,
                 vec![DataClass::InternalOnly],
                 "DENY",
-            );
+            )?;
             return Err(map_mcp_error(error));
         }
 
@@ -981,7 +995,7 @@ impl Foundation {
             Purpose::CapabilityInvocation,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(descriptor)
     }
 
@@ -1011,7 +1025,7 @@ impl Foundation {
                 request.purpose,
                 vec![DataClass::InternalOnly],
                 "DENY",
-            );
+            )?;
             return Err(FoundationError::McpAccessDenied);
         }
         if principal.subject_id.value != request.user_id {
@@ -1022,7 +1036,7 @@ impl Foundation {
                 request.purpose,
                 vec![DataClass::InternalOnly],
                 "DENY",
-            );
+            )?;
             return Err(FoundationError::McpAccessDenied);
         }
 
@@ -1040,7 +1054,7 @@ impl Foundation {
                     request.purpose,
                     vec![DataClass::InternalOnly],
                     "DENY",
-                );
+                )?;
                 FoundationError::McpAccessDenied
             })?;
         let tool = project_capability_tool(&visible_capability).map_err(map_mcp_error)?;
@@ -1052,7 +1066,7 @@ impl Foundation {
                 request.purpose,
                 vec![DataClass::InternalOnly],
                 "DENY",
-            );
+            )?;
             return Err(map_mcp_error(error));
         }
 
@@ -1068,7 +1082,7 @@ impl Foundation {
                 request.purpose,
                 vec![DataClass::InternalOnly, DataClass::BehavioralTenantProduct],
                 "DENY",
-            );
+            )?;
             return Err(map_mcp_error(error));
         }
 
@@ -1079,7 +1093,7 @@ impl Foundation {
             request.purpose,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         self.invoke_capability_as_principal(
             CapabilityInvocationPrincipal {
                 tenant_id: endpoint.tenant_id.value.clone(),
@@ -1111,7 +1125,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(())
     }
 
@@ -1157,7 +1171,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(())
     }
 
@@ -1180,11 +1194,11 @@ impl Foundation {
                         request.purpose,
                         vec![DataClass::InternalOnly],
                         "DENY",
-                    )
+                    )?
                     .hash
                     .clone();
                 let (capability_invoke_audit_hash, topic_audit_hash) =
-                    self.append_invocation_denial_audits(&request, &capability);
+                    self.append_invocation_denial_audits(&request, &capability)?;
                 self.record_denied_invocation(DeniedInvocationRecord {
                     request: &request,
                     tenant: &tenant,
@@ -1253,11 +1267,11 @@ impl Foundation {
                     request.purpose,
                     vec![DataClass::InternalOnly],
                     "DENY",
-                )
+                )?
                 .hash
                 .clone();
             let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability);
+                self.append_invocation_denial_audits(&request, &capability)?;
             self.record_denied_invocation(DeniedInvocationRecord {
                 request: &request,
                 tenant: &tenant,
@@ -1335,12 +1349,12 @@ impl Foundation {
                 } else {
                     "DENY"
                 },
-            )
+            )?
             .hash
             .clone();
         if !authorization_decision.allowed {
             let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability);
+                self.append_invocation_denial_audits(&request, &capability)?;
             self.record_denied_invocation(DeniedInvocationRecord {
                 request: &request,
                 tenant: &tenant,
@@ -1381,7 +1395,7 @@ impl Foundation {
                 } else {
                     "DENY"
                 },
-            )
+            )?
             .hash
             .clone();
         let break_glass_invoke_audit_hash = autonomy_break_glass.as_ref().map(|break_glass| {
@@ -1393,13 +1407,13 @@ impl Foundation {
                     request.purpose,
                     internal_audit_classifications(),
                     "ALLOW",
-                )
+                )?
                 .hash
                 .clone()
         });
         if !autonomy_decision.allowed() {
             let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability);
+                self.append_invocation_denial_audits(&request, &capability)?;
             let mut autonomy_fields =
                 autonomy_decision_fields(&autonomy_decision, &autonomy_audit_hash);
             autonomy_fields.insert(
@@ -1433,11 +1447,11 @@ impl Foundation {
                     denial.effective_purpose,
                     capability_record_classifications(&capability),
                     "DENY",
-                )
+                )?
                 .hash
                 .clone();
             let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability);
+                self.append_invocation_denial_audits(&request, &capability)?;
             let mut data_use_fields = data_use_denial_fields(
                 &request,
                 &capability,
@@ -1468,11 +1482,11 @@ impl Foundation {
                     request.purpose,
                     vec![DataClass::InternalOnly],
                     "DENY",
-                )
+                )?
                 .hash
                 .clone();
             let (capability_invoke_audit_hash, topic_audit_hash) =
-                self.append_invocation_denial_audits(&request, &capability);
+                self.append_invocation_denial_audits(&request, &capability)?;
             self.record_denied_invocation(DeniedInvocationRecord {
                 request: &request,
                 tenant: &tenant,
@@ -1533,11 +1547,11 @@ impl Foundation {
                         request.purpose,
                         vec![DataClass::InternalOnly],
                         "DENY",
-                    )
+                    )?
                     .hash
                     .clone();
                 let (capability_invoke_audit_hash, topic_audit_hash) =
-                    self.append_invocation_denial_audits(&request, &capability);
+                    self.append_invocation_denial_audits(&request, &capability)?;
                 self.record_denied_invocation(DeniedInvocationRecord {
                     request: &request,
                     tenant: &tenant,
@@ -1573,11 +1587,11 @@ impl Foundation {
                         request.purpose,
                         vec![DataClass::InternalOnly],
                         "DENY",
-                    )
+                    )?
                     .hash
                     .clone();
                 let (capability_invoke_audit_hash, topic_audit_hash) =
-                    self.append_invocation_denial_audits(&request, &capability);
+                    self.append_invocation_denial_audits(&request, &capability)?;
                 self.record_denied_invocation(DeniedInvocationRecord {
                     request: &request,
                     tenant: &tenant,
@@ -1619,11 +1633,11 @@ impl Foundation {
                         request.purpose,
                         internal_audit_classifications(),
                         "DENY",
-                    )
+                    )?
                     .hash
                     .clone();
                 let (capability_invoke_audit_hash, topic_audit_hash) =
-                    self.append_invocation_denial_audits(&request, &capability);
+                    self.append_invocation_denial_audits(&request, &capability)?;
                 self.record_denied_invocation(DeniedInvocationRecord {
                     request: &request,
                     tenant: &tenant,
@@ -1663,7 +1677,7 @@ impl Foundation {
                 request.purpose,
                 internal_audit_classifications(),
                 "ALLOW",
-            )
+            )?
             .hash
             .clone();
         let reservation = match self
@@ -1681,11 +1695,11 @@ impl Foundation {
                         request.purpose,
                         vec![DataClass::InternalOnly],
                         "DENY",
-                    )
+                    )?
                     .hash
                     .clone();
                 let (capability_invoke_audit_hash, topic_audit_hash) =
-                    self.append_invocation_denial_audits(&request, &capability);
+                    self.append_invocation_denial_audits(&request, &capability)?;
                 self.record_denied_invocation(DeniedInvocationRecord {
                     request: &request,
                     tenant: &tenant,
@@ -1717,7 +1731,7 @@ impl Foundation {
             request.purpose,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         let run = match self.foundry_runs.start(
             RunStart::new(
                 request.tenant_id.clone(),
@@ -1740,7 +1754,7 @@ impl Foundation {
                     None,
                     RunDisposition::FailureProvider,
                     primary_error,
-                ));
+                )?);
             }
         };
         self.audit_chain.append_classifications(
@@ -1750,7 +1764,7 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         let mut autonomy_evidence_fields =
             autonomy_decision_fields(&autonomy_decision, &autonomy_audit_hash);
         append_break_glass_evidence_fields(
@@ -1763,7 +1777,7 @@ impl Foundation {
             },
             break_glass_invoke_audit_hash.as_deref(),
         );
-        autonomy_evidence_fields.insert("run_id".to_string(), run.run_id.value.clone());
+        autonomy_evidence_fields.insert("run_id".to_string(), run.run_id.value.clone()?);
         autonomy_evidence_fields.insert(
             "evidence_topic".to_string(),
             capability.evidence_topic.value.clone(),
@@ -1787,7 +1801,7 @@ impl Foundation {
                     Some(&run.run_id.value),
                     RunDisposition::FailureProvider,
                     primary_error,
-                ));
+                )?);
             }
         };
         if let Err(error) = self.outbox.publish(
@@ -1803,7 +1817,7 @@ impl Foundation {
                 Some(&run.run_id.value),
                 RunDisposition::FailureProvider,
                 primary_error,
-            ));
+            )?);
         }
         self.audit_chain.append_classifications(
             request.tenant_id.clone(),
@@ -1812,7 +1826,7 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         self.audit_chain.append_classifications(
             request.tenant_id.clone(),
             "foundry.evidence.emit",
@@ -1820,7 +1834,7 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         let step = match self.foundry_steps.start(
             StepStart::new(
                 run.run_id.value.clone(),
@@ -1843,7 +1857,7 @@ impl Foundation {
                     Some(&run.run_id.value),
                     RunDisposition::FailureProvider,
                     primary_error,
-                ));
+                )?);
             }
         };
         let completed_step = match self.foundry_steps.complete(
@@ -1861,7 +1875,7 @@ impl Foundation {
                     Some(&run.run_id.value),
                     RunDisposition::FailureProvider,
                     primary_error,
-                ));
+                )?);
             }
         };
         let provider_call_idempotency_key = format!(
@@ -1887,7 +1901,7 @@ impl Foundation {
                     request.purpose,
                     internal_audit_classifications(),
                     "DENY",
-                );
+                )?;
                 let primary_error = map_adapter_error(error);
                 return Err(self.settle_failed_invocation(
                     &request,
@@ -1895,7 +1909,7 @@ impl Foundation {
                     Some(&run.run_id.value),
                     RunDisposition::FailureProvider,
                     primary_error,
-                ));
+                )?);
             }
         };
         let provider_call_audit_hash = self
@@ -1907,7 +1921,7 @@ impl Foundation {
                 request.purpose,
                 data_classifications.clone(),
                 "ALLOW",
-            )
+            )?
             .hash
             .clone();
         self.audit_chain.append_classifications(
@@ -1917,7 +1931,7 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         let committed = match self.cost_budgets.commit(&reservation.reservation_id.value) {
             Ok(committed) => committed,
             Err(error) => {
@@ -1928,7 +1942,7 @@ impl Foundation {
                     Some(&run.run_id.value),
                     RunDisposition::FailureBudget,
                     primary_error,
-                ));
+                )?);
             }
         };
         let capability_invoke_event_hash = self
@@ -1940,7 +1954,7 @@ impl Foundation {
                 request.purpose,
                 data_classifications.clone(),
                 "ALLOW",
-            )
+            )?
             .hash
             .clone();
         if let Err(error) = self.foundry_runs.complete(
@@ -1955,7 +1969,7 @@ impl Foundation {
                 Some(&run.run_id.value),
                 RunDisposition::FailureProvider,
                 primary_error,
-            ));
+            )?);
         }
         self.audit_chain.append_classifications(
             request.tenant_id.clone(),
@@ -1964,7 +1978,7 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         let evidence_event_hash = self
             .audit_chain
             .append_classifications(
@@ -1974,11 +1988,11 @@ impl Foundation {
                 request.purpose,
                 data_classifications.clone(),
                 "ALLOW",
-            )
+            )?
             .hash
             .clone();
         let mut evidence_fields = BTreeMap::new();
-        evidence_fields.insert("audit_event_hash".to_string(), evidence_event_hash.clone());
+        evidence_fields.insert("audit_event_hash".to_string(), evidence_event_hash.clone()?);
         evidence_fields.insert(
             "capability_invoke_audit_event_hash".to_string(),
             capability_invoke_event_hash,
@@ -2059,7 +2073,7 @@ impl Foundation {
                     Some(&run.run_id.value),
                     RunDisposition::FailureProvider,
                     primary_error,
-                ));
+                )?);
             }
         };
         if let Err(error) = self.outbox.publish(
@@ -2075,7 +2089,7 @@ impl Foundation {
                 Some(&run.run_id.value),
                 RunDisposition::FailureProvider,
                 primary_error,
-            ));
+            )?);
         }
         self.audit_chain.append_classifications(
             request.tenant_id.clone(),
@@ -2084,7 +2098,7 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         self.audit_chain.append_classifications(
             request.tenant_id.clone(),
             "foundry.evidence.emit",
@@ -2092,7 +2106,7 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         emit_invocation_trace(invocation_span.as_ref(), "succeeded", None);
         Ok(InvocationReceipt {
             tenant_id: request.tenant_id,
@@ -2155,6 +2169,13 @@ impl Foundation {
         })
     }
 
+    // ADR-0083 amendment 2026-05-15: `settle_failed_invocation` returns
+    // `Result<FoundationError, FoundationError>` so the 3 internal
+    // `append_classifications` sites can propagate `AuditChainError` via `?`.
+    // `Ok(primary_error)` carries the original failure for the outer caller to
+    // return as `Err(primary_error)`; `Err(audit_chain_error)` supersedes the
+    // primary error when the audit chain itself fails — ADR-0083 Tier 1
+    // forbids silently dropping `AuditChainError`.
     fn settle_failed_invocation(
         &mut self,
         request: &CapabilityInvocationRequest,
@@ -2162,7 +2183,7 @@ impl Foundation {
         run_id: Option<&str>,
         disposition: RunDisposition,
         primary_error: FoundationError,
-    ) -> FoundationError {
+    ) -> Result<FoundationError, FoundationError> {
         let budget_release = if let Some(reservation_id) = reservation_id {
             if self.cost_budgets.release(reservation_id).is_ok() {
                 self.audit_chain.append_classifications(
@@ -2172,7 +2193,7 @@ impl Foundation {
                     request.purpose,
                     vec![DataClass::InternalOnly],
                     "ALLOW",
-                );
+                )?;
                 InvocationSettlementStatus::Completed
             } else {
                 self.audit_chain.append_classifications(
@@ -2182,7 +2203,7 @@ impl Foundation {
                     request.purpose,
                     vec![DataClass::InternalOnly],
                     "DENY",
-                );
+                )?;
                 InvocationSettlementStatus::Failed
             }
         } else {
@@ -2205,7 +2226,7 @@ impl Foundation {
                     request.purpose,
                     audit_classifications(),
                     "DENY",
-                );
+                )?;
                 InvocationSettlementStatus::Failed
             } else {
                 InvocationSettlementStatus::Completed
@@ -2221,10 +2242,15 @@ impl Foundation {
             &primary_error,
             budget_release,
             run_completion,
-        );
-        primary_error
+        )?;
+        Ok(primary_error)
     }
 
+    // ADR-0083 amendment 2026-05-15: `record_invocation_compensation` returns
+    // `Result<(), FoundationError>` so the 6 internal `append_classifications`
+    // sites can propagate `AuditChainError` via `?`. Caller
+    // (`settle_failed_invocation`) re-propagates so the outermost invocation
+    // path surfaces audit-chain failure rather than silently swallowing it.
     #[allow(clippy::too_many_arguments)]
     fn record_invocation_compensation(
         &mut self,
@@ -2235,7 +2261,7 @@ impl Foundation {
         primary_error: &FoundationError,
         budget_release: InvocationSettlementStatus,
         run_completion: InvocationSettlementStatus,
-    ) {
+    ) -> Result<(), FoundationError> {
         let compensation_audit_hash = self
             .audit_chain
             .append_classifications(
@@ -2245,11 +2271,11 @@ impl Foundation {
                 request.purpose,
                 audit_classifications(),
                 "ALLOW",
-            )
+            )?
             .hash
             .clone();
         let Some(run_id) = run_id else {
-            return;
+            return Ok(()?);
         };
         let Some(capability) = self.capabilities.get(&request.capability_id).cloned() else {
             self.audit_chain.append_classifications(
@@ -2259,8 +2285,8 @@ impl Foundation {
                 request.purpose,
                 audit_classifications(),
                 "DENY",
-            );
-            return;
+            )?;
+            return Ok(());
         };
         let mut evidence_fields = BTreeMap::from([
             (
@@ -2310,8 +2336,8 @@ impl Foundation {
                     request.purpose,
                     audit_classifications(),
                     "DENY",
-                );
-                return;
+                )?;
+                return Ok(());
             }
         };
         if self
@@ -2331,8 +2357,8 @@ impl Foundation {
                 request.purpose,
                 audit_classifications(),
                 "DENY",
-            );
-            return;
+            )?;
+            return Ok(());
         }
         self.audit_chain.append_classifications(
             request.tenant_id.clone(),
@@ -2341,7 +2367,7 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         self.audit_chain.append_classifications(
             request.tenant_id.clone(),
             "foundry.evidence.emit",
@@ -2349,14 +2375,18 @@ impl Foundation {
             request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
+        Ok(())
     }
 
     fn append_invocation_denial_audits(
         &mut self,
         request: &CapabilityInvocationRequest,
         capability: &Capability,
-    ) -> (String, String) {
+    ) -> Result<(String, String), FoundationError> {
+        // ADR-0083 amendment 2026-05-15: `append_classifications` is Tier 1
+        // fallible; this helper propagates `AuditChainError` to the caller
+        // via `FoundationError::AuditChainAppendFailed`.
         let capability_invoke_audit_hash = self
             .audit_chain
             .append_classifications(
@@ -2366,7 +2396,7 @@ impl Foundation {
                 request.purpose,
                 capability_record_classifications(capability),
                 "DENY",
-            )
+            )?
             .hash
             .clone();
         let topic_audit_hash = self
@@ -2378,10 +2408,10 @@ impl Foundation {
                 request.purpose,
                 capability_record_classifications(capability),
                 "DENY",
-            )
+            )?
             .hash
             .clone();
-        (capability_invoke_audit_hash, topic_audit_hash)
+        Ok((capability_invoke_audit_hash, topic_audit_hash))
     }
 
     fn record_denied_invocation(
@@ -2420,7 +2450,7 @@ impl Foundation {
                 denial.request.purpose,
                 audit_classifications(),
                 "ALLOW",
-            )
+            )?
             .hash
             .clone();
         let mut evidence_fields = BTreeMap::from([
@@ -2469,7 +2499,7 @@ impl Foundation {
             denial.request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         self.audit_chain.append_classifications(
             denial.request.tenant_id.clone(),
             "foundry.evidence.emit",
@@ -2477,7 +2507,7 @@ impl Foundation {
             denial.request.purpose,
             audit_classifications(),
             "ALLOW",
-        );
+        )?;
         Ok(evidence)
     }
 
@@ -2503,7 +2533,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(pack)
     }
 
@@ -2546,7 +2576,7 @@ impl Foundation {
                 .map(|property| property.value.data_class.compatibility_data_class())
                 .collect::<Vec<_>>(),
             "ALLOW",
-        );
+        )?;
         Ok(entity)
     }
 
@@ -2571,7 +2601,7 @@ impl Foundation {
             Purpose::CoreService,
             vec![DataClass::InternalOnly],
             "ALLOW",
-        );
+        )?;
         Ok(record)
     }
 
@@ -2590,7 +2620,7 @@ impl Foundation {
                     Purpose::CoreService,
                     vec![DataClass::InternalOnly],
                     "ALLOW",
-                );
+                )?;
                 Ok(record)
             }
             Err(EventingError::OutboxRecordNotFound) => {
@@ -2601,7 +2631,7 @@ impl Foundation {
                     Purpose::CoreService,
                     vec![DataClass::InternalOnly],
                     "DENY",
-                );
+                )?;
                 Err(FoundationError::OutboxRecordNotFound)
             }
             Err(error) => Err(map_eventing_error(error)),
@@ -3345,7 +3375,7 @@ mod tests {
             Some(&run.run_id.value),
             RunDisposition::FailureProvider,
             FoundationError::CapabilityInvocationUnauthorized,
-        );
+        ).unwrap();
 
         assert_eq!(error, FoundationError::CapabilityInvocationUnauthorized);
         let settled_run = foundation.foundry_runs().last().unwrap();
@@ -3430,7 +3460,7 @@ mod tests {
             Some(&run.run_id.value),
             RunDisposition::FailureProvider,
             FoundationError::InvalidInput,
-        );
+        ).unwrap();
 
         assert_eq!(error, FoundationError::InvalidInput);
         let settled_run = foundation.foundry_runs().last().unwrap();
@@ -3500,7 +3530,7 @@ mod tests {
             Some(&run.run_id.value),
             RunDisposition::FailureProvider,
             FoundationError::CostBudgetExceeded,
-        );
+        ).unwrap();
 
         assert_eq!(error, FoundationError::CostBudgetExceeded);
         assert!(
@@ -3544,7 +3574,7 @@ mod tests {
             None,
             RunDisposition::FailureProvider,
             FoundationError::InvalidInput,
-        );
+        ).unwrap();
 
         assert_eq!(error, FoundationError::InvalidInput);
         assert_eq!(
