@@ -118,7 +118,7 @@ deleted form. The pair was never coherent.
 1. Drive `oya gate validate perf-budget` to zero violations (currently 2: `IP-001-saas-pairs.md`, `IP-002-cloud-pairs.md`). Either author `## Load test` sections with real content or add exemption markers.
 2. Drive `oya gate validate benchmark` to zero violations (currently 7 across `docs/prds/` + `docs/products/`).
 3. When M02-P18 cloud sub-µservice runtimes ship, reintroduce the relevant cloud-adapter families with real port impls + consumers in the same PR.
-4. Author `oya-foundry-fitness-adapter-with-no-importer` lane as a mechanical-prevention for premature adapter creation (per Consequences).
+4. Author `oya-foundry-fitness-adapter-with-no-importer` lane as a mechanical-prevention for premature adapter creation (per Consequences). **Scaffolded** in `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` + `tools/oya-foundry-fitness-adapter-with-no-importer` (ratchet plan in `.omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`); WARN-baseline = 29 violations on first run, BLOCK ratchet across Waves B/C.
 5. Amend `specs/cross-cutting/crate-naming-audit.json` to mark the 4 reintroduced check lanes as compliant + add deferral rows for the 14 unrestored crates.
 
 ## References

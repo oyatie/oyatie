@@ -1,0 +1,17 @@
+[package]
+name = "oya-foundry-fitness-adapter-with-no-importer"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "oya-foundry-fitness-adapter-with-no-importer"
+path = "src/main.rs"
+
+[dependencies]
+oya-foundry-fitness-adapter-with-no-importer-kernel = { path = "../../crates/oya-foundry-fitness-adapter-with-no-importer-kernel" }
+
+[lints]
+workspace = true

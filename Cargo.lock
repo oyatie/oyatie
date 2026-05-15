@@ -1849,6 +1849,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-foundry-fitness-adapter-with-no-importer"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-fitness-adapter-with-no-importer-kernel",
+]
+
+[[package]]
+name = "oya-foundry-fitness-adapter-with-no-importer-kernel"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
 name = "oya-foundry-fitness-adr-shape"
 version = "0.1.0"
 dependencies = [
