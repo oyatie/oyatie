@@ -736,15 +736,32 @@ pub fn check_rust_default_language(ctx: &WorkspaceContext) -> SubCheckResult {
     let mut findings = Vec::new();
     let mut total_non_rust = 0usize;
     let exts = ["sh", "py", "mjs", "rb", "pl"];
-    if let Ok(entries) = std::fs::read_dir(&scripts_dir) {
-        for entry in entries.filter_map(Result::ok) {
-            let p = entry.path();
-            if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
-                if exts.contains(&ext) {
-                    total_non_rust += 1;
+    // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
+    match std::fs::read_dir(&scripts_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                match entry {
+                    Ok(entry) => {
+                        let p = entry.path();
+                        if let Some(ext) = p.extension().and_then(|s| s.to_str()) {
+                            if exts.contains(&ext) {
+                                total_non_rust += 1;
+                            }
+                        }
+                    }
+                    Err(e) => findings.push(format!(
+                        "read_dir entry under {} failed: {}",
+                        scripts_dir.display(),
+                        e
+                    )),
                 }
             }
         }
+        Err(e) => findings.push(format!(
+            "read_dir({}) failed: {} — surfaced per CONV-2 (no longer fail-open)",
+            scripts_dir.display(),
+            e
+        )),
     }
     findings.push(format!(
         "scripts/ non-Rust file count: {} (.sh/.py/.mjs/.rb/.pl, all grandfathered per P15)",
@@ -775,25 +792,45 @@ pub fn check_naming_convention(ctx: &WorkspaceContext) -> SubCheckResult {
     ];
     let mut scanned = 0usize;
     let mut violations: Vec<String> = Vec::new();
+    let mut io_errors: Vec<String> = Vec::new();
+    // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
     for home in &homes {
         let p = ctx.workspace_root.join(home);
-        if let Ok(entries) = std::fs::read_dir(&p) {
-            for entry in entries.filter_map(Result::ok) {
-                let name = entry.file_name();
-                let s = name.to_string_lossy().to_string();
-                if s.starts_with('.') {
-                    continue;
-                }
-                scanned += 1;
-                if !s
-                    .chars()
-                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '.')
-                {
-                    if violations.len() < 10 {
-                        violations.push(format!("{}/{}", home, s));
+        match std::fs::read_dir(&p) {
+            Ok(entries) => {
+                for entry in entries {
+                    match entry {
+                        Ok(entry) => {
+                            let name = entry.file_name();
+                            let s = name.to_string_lossy().to_string();
+                            if s.starts_with('.') {
+                                continue;
+                            }
+                            scanned += 1;
+                            if !s.chars().all(|c| {
+                                c.is_ascii_lowercase()
+                                    || c.is_ascii_digit()
+                                    || c == '-'
+                                    || c == '.'
+                            }) {
+                                if violations.len() < 10 {
+                                    violations.push(format!("{}/{}", home, s));
+                                }
+                            }
+                        }
+                        Err(e) => io_errors.push(format!(
+                            "read_dir entry under {} failed: {}",
+                            p.display(),
+                            e
+                        )),
                     }
                 }
             }
+            Err(e) => io_errors.push(format!(
+                "read_dir({}) failed: {} — surfaced per CONV-2 (no longer fail-open)",
+                p.display(),
+                e
+            )),
         }
     }
     let mut findings = vec![format!(
@@ -805,6 +842,7 @@ pub fn check_naming_convention(ctx: &WorkspaceContext) -> SubCheckResult {
     for v in &violations {
         findings.push(format!("  - {}", v));
     }
+    findings.extend(io_errors);
     findings.push(
         "version-suffix -vMAJOR.MINOR.PATCH check NOT YET ARMED — F-NAMING-CONVENTION-ENFORCE"
             .into(),
@@ -834,29 +872,57 @@ pub fn check_scorecard_render(ctx: &WorkspaceContext) -> SubCheckResult {
     let per_change_dir = ctx.workspace_root.join("evidence/per-change");
     let mut scanned = 0usize;
     let mut renderable = 0usize;
+    let mut io_errors: Vec<String> = Vec::new();
+    // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
     for dir in [&evidence_dir, &per_change_dir] {
-        if let Ok(entries) = std::fs::read_dir(dir) {
-            for entry in entries.filter_map(Result::ok) {
-                let p = entry.path();
-                if p.extension().and_then(|s| s.to_str()) != Some("json") {
-                    continue;
-                }
-                scanned += 1;
-                if let Ok(raw) = std::fs::read_to_string(&p) {
-                    if raw.contains("\"change_class_id\"") && raw.contains("\"facets\"") {
-                        renderable += 1;
+        match std::fs::read_dir(dir) {
+            Ok(entries) => {
+                for entry in entries {
+                    match entry {
+                        Ok(entry) => {
+                            let p = entry.path();
+                            if p.extension().and_then(|s| s.to_str()) != Some("json") {
+                                continue;
+                            }
+                            scanned += 1;
+                            match std::fs::read_to_string(&p) {
+                                Ok(raw) => {
+                                    if raw.contains("\"change_class_id\"")
+                                        && raw.contains("\"facets\"")
+                                    {
+                                        renderable += 1;
+                                    }
+                                }
+                                Err(e) => io_errors.push(format!(
+                                    "read_to_string({}) failed: {}",
+                                    p.display(),
+                                    e
+                                )),
+                            }
+                        }
+                        Err(e) => io_errors.push(format!(
+                            "read_dir entry under {} failed: {}",
+                            dir.display(),
+                            e
+                        )),
                     }
                 }
             }
+            Err(e) => io_errors.push(format!(
+                "read_dir({}) failed: {} — surfaced per CONV-2",
+                dir.display(),
+                e
+            )),
         }
     }
-    let findings = vec![
+    let mut findings = vec![
         format!(
             "evidence files scanned: {}; minimum-renderable as scorecard: {}",
             scanned, renderable
         ),
         "render_evidence_scorecard() implementation NOT YET ARMED — F-LANE-SCORECARD-RENDER".into(),
     ];
+    findings.extend(io_errors);
     SubCheckResult {
         id: "scorecard-render",
         status: SubCheckStatus::NotYetArmed,
@@ -876,33 +942,74 @@ pub fn check_consensus_debate_evidence(ctx: &WorkspaceContext) -> SubCheckResult
     let per_change_dir = ctx.workspace_root.join("evidence/per-change");
     let debate_dir = ctx.workspace_root.join("evidence/debate");
     let mut meta_triggered = 0usize;
+    let mut io_errors: Vec<String> = Vec::new();
+    // CONV-2 (TG2 11-facet debate): surface I/O errors instead of fail-open silent drop.
     for dir in [&evidence_dir, &per_change_dir] {
-        if let Ok(entries) = std::fs::read_dir(dir) {
-            for entry in entries.filter_map(Result::ok) {
-                let p = entry.path();
-                if p.extension().and_then(|s| s.to_str()) != Some("json") {
-                    continue;
-                }
-                if let Ok(raw) = std::fs::read_to_string(&p) {
-                    if raw.contains("\"meta_review_triggered\": true")
-                        || raw.contains("\"meta_review_triggered\":true")
-                    {
-                        meta_triggered += 1;
+        match std::fs::read_dir(dir) {
+            Ok(entries) => {
+                for entry in entries {
+                    match entry {
+                        Ok(entry) => {
+                            let p = entry.path();
+                            if p.extension().and_then(|s| s.to_str()) != Some("json") {
+                                continue;
+                            }
+                            match std::fs::read_to_string(&p) {
+                                Ok(raw) => {
+                                    if raw.contains("\"meta_review_triggered\": true")
+                                        || raw.contains("\"meta_review_triggered\":true")
+                                    {
+                                        meta_triggered += 1;
+                                    }
+                                }
+                                Err(e) => io_errors.push(format!(
+                                    "read_to_string({}) failed: {}",
+                                    p.display(),
+                                    e
+                                )),
+                            }
+                        }
+                        Err(e) => io_errors.push(format!(
+                            "read_dir entry under {} failed: {}",
+                            dir.display(),
+                            e
+                        )),
                     }
                 }
             }
+            Err(e) => io_errors.push(format!(
+                "read_dir({}) failed: {} — surfaced per CONV-2",
+                dir.display(),
+                e
+            )),
         }
     }
     let mut synthesis_present = 0usize;
-    if let Ok(entries) = std::fs::read_dir(&debate_dir) {
-        for entry in entries.filter_map(Result::ok) {
-            let name = entry.file_name();
-            if name.to_string_lossy().ends_with("-synthesis.json") {
-                synthesis_present += 1;
+    match std::fs::read_dir(&debate_dir) {
+        Ok(entries) => {
+            for entry in entries {
+                match entry {
+                    Ok(entry) => {
+                        let name = entry.file_name();
+                        if name.to_string_lossy().ends_with("-synthesis.json") {
+                            synthesis_present += 1;
+                        }
+                    }
+                    Err(e) => io_errors.push(format!(
+                        "read_dir entry under {} failed: {}",
+                        debate_dir.display(),
+                        e
+                    )),
+                }
             }
         }
+        Err(e) => io_errors.push(format!(
+            "read_dir({}) failed: {} — surfaced per CONV-2",
+            debate_dir.display(),
+            e
+        )),
     }
-    let findings = vec![
+    let mut findings = vec![
         format!(
             "evidence files with meta_review_triggered: {}; synthesis files present: {}",
             meta_triggered, synthesis_present
@@ -910,6 +1017,7 @@ pub fn check_consensus_debate_evidence(ctx: &WorkspaceContext) -> SubCheckResult
         "termination_reason allow-list match-by-change_id NOT YET ARMED — F-LANE-DEBATE-SUBCHECK"
             .into(),
     ];
+    findings.extend(io_errors);
     SubCheckResult {
         id: "consensus-debate-evidence",
         status: SubCheckStatus::NotYetArmed,
