@@ -1,6 +1,8 @@
 ---
 id: ADR-0067
 status: accepted
+sunset_topic: adr-0067-ops-console-protected-contracts
+sunset_milestone: doctrine-not-time-bounded
 ---
 
 # ADR-0067: `ops.oyatie.com` — the canonical hyperscaler-grade operations console for the entire oyatie platform

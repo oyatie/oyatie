@@ -1,6 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/schemas/markdown-retirement-policy.schema.json",
+  "_sunset": {
+    "sunset_topic": "markdown-retirement-policy",
+    "sunset_at": "2026-08-31",
+    "status": "Accepted",
+    "_note": "sunset_at = last phase deadline (PHASE-8-CHECK-CRATE-REWRITES, 2026-08-31). Once all 11 check crates consume JSON, the policy itself retires; subsequent enforcement lives in lean-a* lanes. deprecation_at and removal_at omitted — defaults apply per ADR-0108 §Canonical sub-rule: deprecation_at = sunset_at + 30 days; removal_at = effective deprecation_at + 90 days."
+  },
   "title": "MarkdownRetirementPolicy",
   "description": "Policy for retiring hand-authored Markdown from the repo per user directive 2026-05-13. Only README.md + CLAUDE.md + AGENTS.md (at repo root) survive as machine-readable pointer hubs. Everything else under docs/, .omc/, contracts/, etc. becomes JSON/TOML/YAML with the active-artifact-contract v3.0.0 9-capability declaration. Per autonomous-prompt directive 'target 0 hand-authored Markdown'.",
   "_meta": {

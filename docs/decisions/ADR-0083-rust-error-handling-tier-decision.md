@@ -15,6 +15,8 @@ purpose: |
 canonical_authority: docs/CONSTITUTION.md
 supersedes: ~
 superseded_by: ~
+sunset_topic: adr-0083-infallible-audit-signature
+sunset_milestone: adr-0083-merge-historical-2026-05-15
 related_adrs:
   - ADR-0015
   - ADR-0017

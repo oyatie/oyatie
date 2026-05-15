@@ -1,6 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/specs/oyatie-doctrine.json",
+  "_sunset": {
+    "sunset_topic": "oyatie-doctrine",
+    "sunset_milestone": "doctrine-not-time-bounded",
+    "status": "Accepted",
+    "_note": "Oyatie-doctrine is the workspace-wide principle spec — it does NOT itself sunset on a calendar; individual principles evolve through ADR amendments. Schema present to satisfy ADR-0108 baseline; the in-spec references to `sunset date` and `sunset clause` belong to principle P6 (no-silent-regression — REQUIRES sunset on breaking change) and to extension-rationale enumeration, not to this spec's own lifecycle."
+  },
   "title": "OyatieDoctrine",
   "description": "Workspace-wide principles. Indexed by id (P0..P16). Cited by every spec / ADR / standard. Slimmed per P16 (target <= 300 lines); narrative lives in docs/standards/oyatie-doctrine.md (gateway).",
   "_meta": {

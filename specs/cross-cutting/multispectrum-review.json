@@ -1,6 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/specs/multispectrum-review.json",
+  "_sunset": {
+    "sunset_topic": "multispectrum-review",
+    "sunset_milestone": "doctrine-not-time-bounded",
+    "status": "Accepted",
+    "_note": "Multispectrum-review is the canonical doctrine spec — it does NOT itself sunset on a calendar; individual facet-version increments (v2.0 → v2.1 → v2.3) are handled via supersedes_version. Schema present to satisfy ADR-0108 baseline; the in-spec prose references to `sunset_at_date` belong to the F13-migration facet (a CHECK on changesets), not to this spec's own lifecycle."
+  },
   "title": "MultispectrumReview",
   "description": "Machine-readable mirror of docs/standards/multispectrum-review.md. Defines the seven-facet review bar, the closed change_class enum, the rigor matrix, the trigger-question registry, and the per-changeset evidence schema. Consumed by oya-check-dependency-seam (and successor lanes) for mechanical enforcement.",
   "_meta": {
