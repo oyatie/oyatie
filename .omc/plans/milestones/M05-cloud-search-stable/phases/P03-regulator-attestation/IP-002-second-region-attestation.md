@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-second-region-attestation.md
+purpose: Achieve second-region regulator attestation.
 ---
 
 ---

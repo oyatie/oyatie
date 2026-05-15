@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-search-slo.md
+purpose: Publish Search SLO commitment.
 ---
 
 ---

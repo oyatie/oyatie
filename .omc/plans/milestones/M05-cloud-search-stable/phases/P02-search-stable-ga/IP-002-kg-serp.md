@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-kg-serp.md
+purpose: Knowledge graph + SERP rendering for public search.
 ---
 
 ---

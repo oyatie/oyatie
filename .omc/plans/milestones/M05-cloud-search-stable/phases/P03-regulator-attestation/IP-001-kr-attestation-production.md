@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-kr-attestation-production.md
+purpose: Achieve full KR regulator attestation in production.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: "Take Cloud axis to public GA — marketplace open, ISV onboarding, multi-AZ failover automation, FinOps surfaces, 99.99% SLA commitment."
 ---
 
 ---

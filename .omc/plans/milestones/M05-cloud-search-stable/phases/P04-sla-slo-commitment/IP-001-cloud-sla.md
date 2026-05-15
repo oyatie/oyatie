@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-cloud-sla.md
+purpose: "Publish 99.99% Cloud SLA with uphold-or-credit policy."
 ---
 
 ---

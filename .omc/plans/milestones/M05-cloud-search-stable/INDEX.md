@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Promote Cloud and Search from preview to public GA with marketplace, ISV onboarding, multi-AZ failover, FinOps surfaces, and regulator attestation.
 ---
 
 ---

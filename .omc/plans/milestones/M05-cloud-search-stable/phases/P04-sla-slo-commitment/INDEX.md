@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: "Publish public SLA (Cloud 99.99%) and SLO (Search per catalog) commitments backed by measured evidence."
 ---
 
 ---

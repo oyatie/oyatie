@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-finops-public.md
+purpose: Expose FinOps surface to public-GA tenants.
 ---
 
 ---

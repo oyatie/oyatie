@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Achieve regulator-equivalent attestation per region in scope (KR CSAP + K-ISMS-P + KCMVP production; JP ISMAP; US FedRAMP; EU GAIA-X; etc.).
 ---
 
 ---

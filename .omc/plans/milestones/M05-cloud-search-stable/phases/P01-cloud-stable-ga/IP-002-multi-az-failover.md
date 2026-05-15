@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-multi-az-failover.md
+purpose: Multi-AZ failover automation with quarterly drill runbook.
 ---
 
 ---

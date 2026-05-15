@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Take Search axis to public GA; public web search with crawler + freshness + KG + SERP, sponsored-slot infrastructure ready (serving still off).
 ---
 
 ---

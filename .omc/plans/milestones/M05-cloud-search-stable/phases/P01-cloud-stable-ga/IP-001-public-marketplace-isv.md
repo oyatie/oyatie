@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-public-marketplace-isv.md
+purpose: Promote marketplace to public + onboard ≥10 ISV listings.
 ---
 
 ---

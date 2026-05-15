@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-crawler-freshness.md
+purpose: Public web search crawler + freshness pipeline.
 ---
 
 ---

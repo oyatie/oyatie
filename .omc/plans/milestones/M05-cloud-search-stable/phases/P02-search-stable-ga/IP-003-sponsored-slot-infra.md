@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-sponsored-slot-infra.md
+purpose: Sponsored-slot infrastructure ready; serving deferred until M06.
 ---
 
 ---
