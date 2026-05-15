@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-005-region-az-cell-taxonomy.md
+purpose: Stable cloud.region.list + cloud.az.list with cell-isolation evidence per cell.
 ---
 
 ---

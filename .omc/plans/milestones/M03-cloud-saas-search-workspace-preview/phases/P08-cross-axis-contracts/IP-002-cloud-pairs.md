@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-cloud-pairs.md
+purpose: Author tracked contracts + fitness lanes for Cloud-paired axes.
 ---
 
 ---

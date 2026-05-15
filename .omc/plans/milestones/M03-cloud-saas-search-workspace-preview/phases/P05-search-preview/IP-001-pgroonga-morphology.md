@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-pgroonga-morphology.md
+purpose: pgroonga day-1 with mecab-ko / khaiii / JP / EN tokenizer pipelines.
 ---
 
 ---

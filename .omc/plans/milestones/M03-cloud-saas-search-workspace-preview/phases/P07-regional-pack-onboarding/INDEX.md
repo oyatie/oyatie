@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Onboard ≥ 2 regional packs per W-Cloud-Preview gate; KR-Seoul mandatory, second pack council-elected (JP-Tokyo / US-Northern-Virginia / EU-Frankfurt).
 ---
 
 ---

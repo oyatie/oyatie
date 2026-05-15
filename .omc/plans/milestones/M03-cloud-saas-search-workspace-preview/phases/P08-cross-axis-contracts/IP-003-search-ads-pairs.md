@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-search-ads-pairs.md
+purpose: Author tracked contracts + fitness lanes for Search/Ads paired axes.
 ---
 
 ---

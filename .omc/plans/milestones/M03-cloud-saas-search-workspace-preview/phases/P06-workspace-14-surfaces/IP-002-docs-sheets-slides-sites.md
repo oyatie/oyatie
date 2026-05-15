@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-docs-sheets-slides-sites.md
+purpose: Ship CRDT-backed collaborative editing surfaces.
 ---
 
 ---

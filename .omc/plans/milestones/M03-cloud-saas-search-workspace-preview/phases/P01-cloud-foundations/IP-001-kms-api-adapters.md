@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-kms-api-adapters.md
+purpose: Bring cloud.kms.{encrypt,decrypt} to stable; ship ≥2 provider adapters (OpenBao/AWS-KMS/GCP-KMS/Azure-KeyVault).
 ---
 
 ---

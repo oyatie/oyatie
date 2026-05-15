@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-mail-calendar.md
+purpose: Ship workspace.mail.{smtp,imap,jmap} + workspace.calendar.caldav per RFCs.
 ---
 
 ---

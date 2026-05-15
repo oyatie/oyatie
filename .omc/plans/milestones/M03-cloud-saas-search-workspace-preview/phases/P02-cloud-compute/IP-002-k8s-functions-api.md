@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-k8s-functions-api.md
+purpose: Bring cloud.compute.k8s.cluster.create + cloud.compute.functions.invoke to stable.
 ---
 
 ---

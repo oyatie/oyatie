@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-iam-cedar-sso-sts.md
+purpose: "Bring cloud.iam.* to stable with Cedar policy substrate + SSO + STS."
 ---
 
 ---

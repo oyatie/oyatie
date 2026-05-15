@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-kr-pack.md
+purpose: Ship the KR regional-pack contract bindings + residency seams.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-workflow-engine.md
+purpose: Ship workflow.definition.publish + workflow.run.start + per-step audit emission.
 ---
 
 ---

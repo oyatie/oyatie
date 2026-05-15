@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-network-api-adapters.md
+purpose: "Bring cloud.network.* surfaces to stable; ≥2 provider adapters per surface."
 ---
 
 ---

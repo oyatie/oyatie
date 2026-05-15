@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-pgvector-tenant-private.md
+purpose: Vector index per-tenant; per-class data-boundary enforcement at index level.
 ---
 
 ---

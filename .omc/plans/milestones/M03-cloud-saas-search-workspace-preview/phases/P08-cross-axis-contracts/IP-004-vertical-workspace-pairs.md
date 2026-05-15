@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-vertical-workspace-pairs.md
+purpose: Author tracked contracts + fitness lanes for Vertical and Workspace cross-axis seams.
 ---
 
 ---

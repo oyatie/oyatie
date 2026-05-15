@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-saas-pairs.md
+purpose: Author tracked contracts + fitness lanes for SaaS-paired axes.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-capacity-management.md
+purpose: Bring reserved + committed-use + spot capacity management to stable.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-rag-endpoint-data-boundary.md
+purpose: Search RAG endpoint exposed to Foundry capabilities under Data Use Boundary.
 ---
 
 ---

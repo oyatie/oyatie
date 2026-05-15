@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-finops-report.md
+purpose: Per-tenant per-axis cost allocation + anomaly detection.
 ---
 
 ---

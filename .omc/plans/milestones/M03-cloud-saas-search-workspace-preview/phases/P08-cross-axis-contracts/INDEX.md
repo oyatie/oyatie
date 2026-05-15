@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Author every DESIGN §10 cross-axis contract row as a tracked OpenAPI / Proto / AsyncAPI artifact bound to a fitness lane.
 ---
 
 ---

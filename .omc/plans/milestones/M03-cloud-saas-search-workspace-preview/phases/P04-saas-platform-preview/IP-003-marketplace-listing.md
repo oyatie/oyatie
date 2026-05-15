@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-marketplace-listing.md
+purpose: marketplace.listing.publish per-vertical / per-region filterable; trust-tier per ADR-0036.
 ---
 
 ---

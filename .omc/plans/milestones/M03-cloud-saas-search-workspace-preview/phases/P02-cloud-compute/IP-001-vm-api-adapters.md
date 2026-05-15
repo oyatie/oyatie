@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-vm-api-adapters.md
+purpose: Bring cloud.compute.vm.create to stable; ≥2 provider adapters.
 ---
 
 ---

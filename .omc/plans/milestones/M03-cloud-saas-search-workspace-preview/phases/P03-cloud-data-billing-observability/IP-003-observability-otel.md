@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-observability-otel.md
+purpose: Audit read + OTel-emitting kernel; per-region in-region telemetry storage.
 ---
 
 ---

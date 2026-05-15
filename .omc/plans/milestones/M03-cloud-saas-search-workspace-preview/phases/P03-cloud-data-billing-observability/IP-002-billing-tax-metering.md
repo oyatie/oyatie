@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-billing-tax-metering.md
+purpose: Per-region tax-invoice format via regional pack; per-resource metering via outbox.
 ---
 
 ---

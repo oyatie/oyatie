@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship workflow engine, Object Graph property tiers consumption, plugin substrate, public REST API stability tier.
 ---
 
 ---

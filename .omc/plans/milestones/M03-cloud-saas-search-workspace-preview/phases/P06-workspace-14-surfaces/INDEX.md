@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship Axis 2 — Workspace / Productivity Suite added 2026-05-09. Google Workspace / Naver Works / Microsoft 365 / AWS Productivity class.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-005-marketplace-isv.md
+purpose: Seller application → verification → listing → settlement state machine.
 ---
 
 ---

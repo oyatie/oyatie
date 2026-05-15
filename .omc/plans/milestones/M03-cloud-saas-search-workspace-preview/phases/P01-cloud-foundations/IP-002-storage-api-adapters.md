@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-storage-api-adapters.md
+purpose: "Bring cloud.storage.{object,block}.* to stable; ship ≥2 provider adapters (S3/GCS/Azure-Blob/OCI-Object)."
 ---
 
 ---

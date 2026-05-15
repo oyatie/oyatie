@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-cloud-data-adapters.md
+purpose: Ship managed Postgres/Citus/pgvector/Redis/Kafka/ClickHouse via provider-agnostic data kernel.
 ---
 
 ---

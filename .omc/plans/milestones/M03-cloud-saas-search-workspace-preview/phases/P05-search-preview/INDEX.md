@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Stand up search foundations — pgroonga day-1, KR/JP/EN morphology, vector index, tenant-private indexes, RAG endpoint to Foundry.
 ---
 
 ---

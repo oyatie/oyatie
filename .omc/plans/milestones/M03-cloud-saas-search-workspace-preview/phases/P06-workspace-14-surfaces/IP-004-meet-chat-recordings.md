@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-meet-chat-recordings.md
+purpose: workspace.meet.{session,recording} + workspace.chat.message + recordings archival with KMS-shred.
 ---
 
 ---

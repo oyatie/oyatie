@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-plugin-substrate.md
+purpose: Ship plugin.manifest.register + plugin.invocation under Wasmtime sandbox + Cosign signing.
 ---
 
 ---

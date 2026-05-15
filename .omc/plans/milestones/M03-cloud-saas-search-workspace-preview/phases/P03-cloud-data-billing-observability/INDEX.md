@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Bring data services, billing/tax, observability, FinOps, and marketplace to W-Cloud-Preview readiness.
 ---
 
 ---

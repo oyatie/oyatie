@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-second-pack.md
+purpose: Onboard one of JP-Tokyo / US-NoVa / EU-Frankfurt; council elects.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-drive-kms-shred.md
+purpose: workspace.drive.{put,get} with per-object KMS-shred + per-permission ACL.
 ---
 
 ---
