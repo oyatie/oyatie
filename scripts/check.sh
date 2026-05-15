@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# Purpose: pre-merge gate runner. Orchestrates ~50 `cargo run -p oya-dev-cli --
+# gate validate ...` invocations plus sibling `scripts/*.{sh,py}` calls and a
+# heredoc'd Python JSON-parse smoke test. Consumed by developers locally and
+# cited from `docs/AGENTS.md` as the canonical pre-merge command.
+# Scheduled-replacement: extend `oya-dev-cli` with a top-level `gate run-all`
+# subcommand (see `evidence/audits/shell-python-replacement-audit-2026-05-15.md`
+# row B-1).
 set -euo pipefail
 
 # Hyperscaler hermetic toolchain: prioritize rustup from Homebrew if present.

@@ -10,8 +10,9 @@
 #   (a) a phase ID — regex: (M\d\d-[a-z-]+/P\d\d|M\d\d-P\d\d|Wave \d|IP-\w+)
 #   (b) an Accepted ralplan or ADR — regex: (ralplan-[a-z0-9-]+-\d{4}-\d{2}-\d{2}|consensus-masterplan-\d{4}-\d{2}-\d{2}|ADR-\d{4})
 #
-# Read-side grit operations (status, show-session, symbols, watch) are exempt.
-# Non-crate paths are exempt.
+# Scope (positive): only `grit claim` / `grit begin` invocations that touch
+# `crates/oya-*/` paths are gated. Read-side grit operations (status,
+# show-session, symbols, watch) and non-crate paths fall outside that scope.
 
 set -uo pipefail
 

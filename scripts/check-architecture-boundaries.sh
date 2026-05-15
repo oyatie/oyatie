@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# Purpose: workspace architecture-boundary gate. Validates `oya-` prefix,
+# `crates/`/`tools/` layout, catalog records, role-based dependency edges,
+# and the legacy-implementation-dir ban. Consumed by `scripts/check.sh`
+# (top-level gate runner) and the `pr-tests` CI lane.
+# Scheduled-replacement: Rust binary (see
+# `evidence/audits/shell-python-replacement-audit-2026-05-15.md` row B-2 —
+# target crate `oya-check-architecture-app` per ADR-0107).
 set -euo pipefail
 python3 - "$@" <<'PY'
 import json

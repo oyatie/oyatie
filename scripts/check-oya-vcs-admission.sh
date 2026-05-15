@@ -153,9 +153,9 @@ if "oya-vcs-admission" not in workflow or "scripts/check-oya-vcs-admission.sh" n
 if "scripts/install-trivy-ci.sh" not in workflow:
     fail("pr-tests workflow must install Trivy before Oya VCS admission")
 
-supply_chain = (ROOT / ".github/workflows/supply-chain.yml").read_text()
+supply_chain = (ROOT / ".github/workflows/oya-foundry-fitness-supply-chain.yml").read_text()
 if "oya-vcs-provider-execution" not in supply_chain or "scripts/check-oya-vcs-provider-execution.sh --mode ci" not in supply_chain:
-    fail("supply-chain workflow must expose the oya-vcs-provider-execution job")
+    fail("oya-foundry-fitness-supply-chain workflow must expose the oya-vcs-provider-execution job")
 
 metadata = subprocess.check_output(["cargo", "metadata", "--no-deps", "--format-version", "1"], text=True)
 packages = {pkg["name"] for pkg in json.loads(metadata)["packages"]}
