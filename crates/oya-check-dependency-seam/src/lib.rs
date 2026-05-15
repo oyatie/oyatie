@@ -809,13 +809,16 @@ pub fn check_naming_convention(ctx: &WorkspaceContext) -> SubCheckResult {
         "version-suffix -vMAJOR.MINOR.PATCH check NOT YET ARMED — F-NAMING-CONVENTION-ENFORCE"
             .into(),
     );
+    // Day-1 stub: report violations as findings but DO NOT gate on them.
+    // Status aligned to NotYetArmed for consistency with the other three TG2
+    // sub-checks (rust-default-language / scorecard-render / consensus-debate-
+    // evidence) so siblings of identical day-1 maturity emit identical status.
+    // Full BNF enforcement (version-suffix, ASCII bounds, $id match) ships in
+    // F-NAMING-CONVENTION-ENFORCE — at which point status transitions to
+    // Pass/Fail. Resolves CONV-3 from TG2 11-facet debate synthesis.
     SubCheckResult {
         id: "naming-convention",
-        status: if violations.is_empty() {
-            SubCheckStatus::Pass
-        } else {
-            SubCheckStatus::Fail
-        },
+        status: SubCheckStatus::NotYetArmed,
         findings,
         severity_day_1: Severity::ReportOnly,
     }
