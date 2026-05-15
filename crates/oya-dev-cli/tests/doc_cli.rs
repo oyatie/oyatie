@@ -1154,7 +1154,17 @@ fn write_mdbook_site(root: &Path, broken_link: bool) {
 fn write_file(root: &Path, name: &str, contents: &str) -> PathBuf {
     fs::create_dir_all(root).expect("temp dir created");
     let path = root.join(name);
-    fs::write(&path, contents).expect("file written");
+    // Linux's exec() rejects shell scripts without a shebang with ENOEXEC
+    // ("Exec format error"); macOS silently falls back to /bin/sh. Auto-
+    // prepend `#!/bin/sh` to `.sh` fixtures when callers omit it so the
+    // tests behave the same on both kernels.
+    let needs_shebang = name.ends_with(".sh") && !contents.starts_with("#!");
+    let final_contents = if needs_shebang {
+        format!("#!/bin/sh\n{contents}")
+    } else {
+        contents.to_string()
+    };
+    fs::write(&path, final_contents).expect("file written");
     let mut permissions = fs::metadata(&path).expect("file metadata").permissions();
     permissions.set_mode(0o755);
     fs::set_permissions(&path, permissions).expect("file executable");
