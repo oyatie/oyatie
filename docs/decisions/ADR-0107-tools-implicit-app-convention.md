@@ -1,8 +1,8 @@
 ---
 id: ADR-0107
-title: `tools/` directory canonical-suffix binding (was: implicit `app` layer — SUPERSEDED by self)
+title: `tools/` directory canonical-suffix binding (was: implicit `app` layer — SUPERSEDED by ADR-0105)
 status: Superseded
-superseded_by: ADR-0107 §"Amendment 2026-05-15 — no-exception canonical naming"
+superseded_by: ADR-0105-13-layer-enum-and-check-family-patterns.md
 owner: council-architecture
 date: 2026-05-15
 amends:
@@ -11,12 +11,18 @@ amends:
 relates_to:
   - ADR-0104-ecosystem-expansion-toolchain-and-adapters.md
   - ADR-0106-rename-application-to-usecase.md
+sunset_at: 2026-05-15
+deprecation_at: 2026-05-15
+removal_at: 2026-08-15
+sunset_topic: tools-implicit-app-exception-superseded
 ---
 
 # ADR-0107: `tools/` directory canonical-suffix binding (was: implicit `app` layer — superseded)
 
 ## Status
-Superseded by self via 2026-05-15 amendment (see §"Amendment 2026-05-15" below). The original "implicit-app" exception is REMOVED. Every crate under `tools/` MUST carry a canonical layer suffix from ADR-0105's 13-value enum. No exceptions.
+**Superseded by ADR-0105** (2026-05-15 lifecycle transition; see §"Amendment 2026-05-15 — Superseded" below). The original "implicit-app" exception was REMOVED on 2026-05-15 by self-amendment; the canonical `tools/` suffix-binding rule that replaced it has since been fully absorbed by ADR-0105 §"Amendment 2026-05-15 — `tools/` canonical-suffix binding (paired with ADR-0107 supersede)". ADR-0107 retains no unique decision content and exists as a historical record only.
+
+Forensic-retention window: `sunset_at = 2026-05-15`, `removal_at = 2026-08-15` (3-month retention per ADR-0108 default-aware schema). Cite ADR-0105 for all new work.
 
 ## Amendment 2026-05-15 — no-exception canonical naming
 
@@ -44,6 +50,22 @@ User directive (2026-05-15): *"for 9 dont allow exceptions. fix our adr and othe
 | `tools/oya-tooling-agent-read` | KEEP (doctrinal lock, not naming exception) | CLAUDE.md sanctioned primitive; name fixed at agent-operating-contract layer. Recorded as a doctrinal carve-out under ADR-0053, NOT a layer-enum exception. |
 
 All 8 renames execute as C1-shaped atomic commits per ADR-0054 §grit-scaffold-claim-pattern.
+
+## Amendment 2026-05-15 — Superseded (canonical lifecycle transition)
+
+**Lifecycle transition:** `Superseded by self` → `Superseded by ADR-0105`.
+
+**Rationale.** The 2026-05-15 self-supersession amendment above replaced the original "implicit-app" decision with a `tools/` canonical-suffix binding rule. That replacement rule has been fully absorbed by ADR-0105 §"Amendment 2026-05-15 — `tools/` canonical-suffix binding (paired with ADR-0107 supersede)" (commit `1d07b63`), which states verbatim:
+
+> "Every crate under `tools/` MUST end in a canonical layer suffix from the 13-value enum above (or match a documented Adopted Pattern: `oya-check-<feature>` or `*-adapter-<backend>`). The `tools/` directory is an organizational hint; the layer suffix is the naming declaration. For binary-shape (`[[bin]]`) tools, the canonical layer suffix is **`-app`** ..."
+
+ADR-0105 also retroactively rejects the original "Tools/-implicit-app convention" alternative and records the `oya-tooling-agent-read` doctrinal carve-out at the agent-operating-contract layer (ADR-0053). Every clause of ADR-0107's self-amendment is now present in ADR-0105. ADR-0107 carries no unique decision content.
+
+**Why supersede rather than amend further.** Per `feedback_no_exceptions_canonical.md`, superseded ADRs are a canonical lifecycle stage — supersession is the prescribed transition when content is fully absorbed by a sibling ADR. Keeping ADR-0107 as a self-referential supersede would split the canonical surface across two ADRs for one rule.
+
+**Forensic retention.** Per ADR-0108 default-aware schema (30 days deprecation → 90 days removal, both anchored at `sunset_at`), this file enters the `DEPRECATED` state on 2026-05-15 and is scheduled for removal on 2026-08-15 (3 months). The sunset frontmatter (`sunset_at`, `deprecation_at`, `removal_at`, `sunset_topic = tools-implicit-app-exception-superseded`) makes the transition machine-readable for the sunset-lifecycle lane.
+
+**Effect on downstream citations.** ADR-0108 §"Lane shape" and ADR-0109 §"Naming justification" cite "ADR-0107 §Amendment 2026-05-15" for the `tools/*-app` binding; those citations remain valid as historical references but new authors SHOULD cite ADR-0105 §"Amendment 2026-05-15 — `tools/` canonical-suffix binding" directly. No textual rewrite is required during the retention window; sweeps occur naturally as documents are touched.
 
 ## Original (superseded) decision — for history
 
@@ -78,7 +100,9 @@ Two issues with the per-crate rename:
 
 ADR-0105 §Adopted Patterns already formalized `oya-check-<feature>` as a self-layering convention (the µservice IS the layer). The same pattern applies to `tools/`: the directory IS the layer.
 
-## Decision (SUPERSEDED — historical, see §Amendment above)
+## Decision
+
+> **SUPERSEDED — historical content preserved for traceability. See §"Amendment 2026-05-15 — no-exception canonical naming" and §"Amendment 2026-05-15 — Superseded" above for the current (post-supersession) state.**
 
 ~~**Any crate under `tools/` is implicitly the `app` layer.**~~ Superseded 2026-05-15. The canonical rule is: every `tools/` crate ends in a canonical layer suffix; binaries use `-app`. The original text is preserved below for traceability only.
 
