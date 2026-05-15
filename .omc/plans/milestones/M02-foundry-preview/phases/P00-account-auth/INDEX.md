@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: "Lift Foundry Phase 00 account-auth contract surface from foundry-salvage into `oyatie/docs/products/foundry/PHASE-00-SPEC.md` and ship the seven `oya-foundry-account-*` crates under Clean Architecture."
 ---
 
 ---

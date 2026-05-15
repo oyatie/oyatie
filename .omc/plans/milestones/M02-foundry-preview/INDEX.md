@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Stand up the Foundry agent runtime + control plane + engineering platform so every subsequent axis is force-multiplied.
 ---
 
 ---

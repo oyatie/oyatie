@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-sse-websocket-transports.md
+purpose: Ship SSE + WebSocket subscription transports for status streams.
 ---
 
 ---

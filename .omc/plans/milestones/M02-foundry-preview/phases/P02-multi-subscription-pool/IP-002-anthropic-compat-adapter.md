@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-anthropic-compat-adapter.md
+purpose: "Ship `oya-foundry-adapter-anthropic-compat-api`: an Axum-on-Hyper HTTP service that exposes the upstream Anthropic Messages-API shape (`POST /v1/messages`."
 ---
 
 ---

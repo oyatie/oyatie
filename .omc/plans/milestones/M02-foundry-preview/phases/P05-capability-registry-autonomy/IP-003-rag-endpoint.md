@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-rag-endpoint.md
+purpose: Ship RAG endpoint to Foundry-internal capabilities; per-class data boundary.
 ---
 
 ---

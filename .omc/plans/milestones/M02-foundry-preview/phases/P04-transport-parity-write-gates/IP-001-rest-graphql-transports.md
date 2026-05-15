@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-rest-graphql-transports.md
+purpose: Ship REST + GraphQL transports binding to same use-case ports.
 ---
 
 ---

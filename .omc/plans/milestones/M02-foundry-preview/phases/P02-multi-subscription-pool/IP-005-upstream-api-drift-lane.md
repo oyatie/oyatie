@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-005-upstream-api-drift-lane.md
+purpose: "Ship the nightly fitness lane `oya-foundry-fitness-upstream-api-drift` that fetches the canonical upstream OpenAPI specs for Anthropic / OpenAI / Gemini and diffs them against the adapter contracts in `contracts/foundry-compat-{anthropic,op."
 ---
 
 ---

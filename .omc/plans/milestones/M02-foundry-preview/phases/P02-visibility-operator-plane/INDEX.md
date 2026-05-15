@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship account/session/usage/routing/dry-run dashboards — read-only operator plane with no write paths.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship the foundry-fitness lane suite + P00-08 evidence validator that gates every Phase 00 merge.
 ---
 
 ---

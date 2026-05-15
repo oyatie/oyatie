@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-dashboard-svelte.md
+purpose: Ship the SvelteKit dashboard frontend shipped in distroless.
 ---
 
 ---

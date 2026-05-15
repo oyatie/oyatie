@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-openai-compat-adapter.md
+purpose: "Ship `oya-foundry-adapter-openai-compat-api`: an Axum service that exposes the upstream OpenAI Chat-Completions / Embeddings / Models shape and translates incoming requests through the IP-001 `pick_account` decision into an internal `foundr."
 ---
 
 ---

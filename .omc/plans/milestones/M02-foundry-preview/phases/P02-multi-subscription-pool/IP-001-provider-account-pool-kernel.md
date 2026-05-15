@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-provider-account-pool-kernel.md
+purpose: Ship the ProviderAccountPool pure-kernel crate that coordinates rotation across multiple ProviderAccount records (already owned by P00 account-auth).
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: "Deliver oyatie's multi-subscription pool + provider-compatible passthrough surface — the Rust counterpart to ccproxy-api (https://github.com/CaddyGlow/ccproxy-api) — so a single ProviderAccountPool can rotate across multiple Claude/OpenAI/G."
 ---
 
 ---

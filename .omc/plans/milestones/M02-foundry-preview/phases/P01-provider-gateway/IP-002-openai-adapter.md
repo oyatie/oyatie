@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-openai-adapter.md
+purpose: Ship OpenAI adapter in both API and subscription auth modes.
 ---
 
 ---

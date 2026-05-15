@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-dry-run-surface.md
+purpose: Ship the dry-run what-if surface (no mutations).
 ---
 
 ---

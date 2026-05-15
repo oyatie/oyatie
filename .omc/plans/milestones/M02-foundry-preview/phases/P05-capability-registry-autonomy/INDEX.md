@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship the capability registry, Cedar-policy autonomy ceiling, audit-chain emission per invocation, and RAG endpoint exposure.
 ---
 
 ---

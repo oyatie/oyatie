@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-write-gate-foundations.md
+purpose: Author ADR-XXXX Foundry write-gate foundations (Phase 05 contract).
 ---
 
 ---

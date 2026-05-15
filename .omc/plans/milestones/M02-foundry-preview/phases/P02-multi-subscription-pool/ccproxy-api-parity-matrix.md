@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for ccproxy-api-parity-matrix.md
+purpose: "Feature-by-feature comparison between ccproxy-api (https://github.com/CaddyGlow/ccproxy-api) and oyatie's P02 design."
 ---
 
 ---

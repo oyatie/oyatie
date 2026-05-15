@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-secret-store-port.md
+purpose: Ship SecretStorePort + local OpenBao default adapter; integration + fake-in-memory + redaction tests.
 ---
 
 ---

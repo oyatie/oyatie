@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-autonomy-ceiling.md
+purpose: Ship autonomy ceiling T1-T4 Cedar policy + runtime check; T4 disabled by default for actuation.
 ---
 
 ---

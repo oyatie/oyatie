@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for fitness-lanes-additions.md
+purpose: "Delta-spec for new fitness lanes introduced by P02. This file is the *proposal*; the authoritative lane definitions land under `.omc/fitness-lanes/<lane>.md` once approved (M-CC-P01 owns lane-file shape)."
 ---
 
 ---

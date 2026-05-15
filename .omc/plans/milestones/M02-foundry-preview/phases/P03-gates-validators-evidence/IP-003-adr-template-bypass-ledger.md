@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-adr-template-bypass-ledger.md
+purpose: Ship ADR template + foundation-bypass ledger with expiry tracking.
 ---
 
 ---

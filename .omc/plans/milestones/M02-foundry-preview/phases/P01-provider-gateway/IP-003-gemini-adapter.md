@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-gemini-adapter.md
+purpose: Ship Gemini adapter in both API and subscription auth modes.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-clean-arch-skeleton.md
+purpose: "Scaffold the 7 oya-foundry-account-* crates per P00-01."
 ---
 
 ---

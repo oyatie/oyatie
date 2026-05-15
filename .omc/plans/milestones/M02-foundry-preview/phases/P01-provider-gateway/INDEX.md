@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship Claude / OpenAI / Gemini provider adapters in subscription + API auth modes — the canonical provider-agnostic adapter pattern.
 ---
 
 ---

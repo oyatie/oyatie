@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-usage-window-route-policy.md
+purpose: Ship usage windows (5h/1wk/project) and account-route policy (budget + reserve + no-silent-switch + privacy + residency + failover).
 ---
 
 ---

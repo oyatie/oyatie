@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-phase00-evidence-validator.md
+purpose: Ship scripts/validate_foundry_phase00_evidence.mjs covering crates/tests/adapters/smoke/credentials/clean-arch.
 ---
 
 ---

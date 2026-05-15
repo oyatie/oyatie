@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-readonly-api-kernel.md
+purpose: Ship read-only REST + WebSocket APIs for account/session/usage/routing dashboards.
 ---
 
 ---

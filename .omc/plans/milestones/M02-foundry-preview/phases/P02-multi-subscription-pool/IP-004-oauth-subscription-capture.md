@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-oauth-subscription-capture.md
+purpose: "Extend `oya-foundry-agent-runtime::foundry::auth` with a Claude.ai-subscription-specific OAuth capture path (and an OpenAI parallel where applicable)."
 ---
 
 ---

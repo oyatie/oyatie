@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-anthropic-adapter.md
+purpose: Ship Anthropic adapter in both API and subscription auth modes.
 ---
 
 ---

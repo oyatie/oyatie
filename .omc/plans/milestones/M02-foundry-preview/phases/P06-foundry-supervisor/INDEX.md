@@ -9,7 +9,7 @@ plan_refs:
 - v5: /Users/jasonlee/oyatie/.omc/plans/ralplan-foundry-supervisor-simple-v5-delta-settings-template-2026-05-15.md
 - v6: /Users/jasonlee/oyatie/.omc/plans/ralplan-foundry-supervisor-simple-v6-amendments-2026-05-15.md
 synthesis_evidence: evidence/debate/M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-synthesis.json
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: "Multi-account, multi-provider session supervisor implementing the hook + inbox/outbox JSONL pattern (Option D: host-injected policy ports)."
 ---
 # M02-P06 — Foundry Supervisor
 

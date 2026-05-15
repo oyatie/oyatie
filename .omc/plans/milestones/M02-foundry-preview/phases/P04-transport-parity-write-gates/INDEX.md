@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Same use-case ports across REST / GraphQL / SSE / WebSocket (Phase 00); foundations for gRPC / Webhook / Kafka write-gates (Phase 05).
 ---
 
 ---

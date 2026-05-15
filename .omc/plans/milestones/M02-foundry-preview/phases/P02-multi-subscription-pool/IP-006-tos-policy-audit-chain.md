@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-006-tos-policy-audit-chain.md
+purpose: "Extend `oya-foundry-policy-kernel` with the `ToSAcknowledgment` record + `PoolingPolicyCheck` function that gates pool-membership > 1 on an explicit per-(tenant, provider) ToS-ack."
 ---
 
 ---

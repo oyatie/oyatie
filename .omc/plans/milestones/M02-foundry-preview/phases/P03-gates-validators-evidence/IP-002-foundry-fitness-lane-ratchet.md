@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-foundry-fitness-lane-ratchet.md
+purpose: Ratchet 7 fitness lanes WARN→BLOCK per wave.
 ---
 
 ---

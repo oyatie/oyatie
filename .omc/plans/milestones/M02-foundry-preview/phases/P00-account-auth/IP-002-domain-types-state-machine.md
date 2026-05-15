@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-domain-types-state-machine.md
+purpose: Ship ProviderAccount, AuthSession, UsageWindow, SecretReference, ProviderFamily allowlist with state-machine Draft→Verified→Active→Degraded→Disabled→Revoked.
 ---
 
 ---

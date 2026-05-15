@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-capability-registry.md
+purpose: Ship capability registry with ≥50 capabilities publishable.
 ---
 
 ---
