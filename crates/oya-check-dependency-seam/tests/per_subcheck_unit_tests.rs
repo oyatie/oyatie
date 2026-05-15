@@ -21,10 +21,10 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use oya_check_dependency_seam::{
-    check_consensus_debate_evidence, check_naming_convention, check_rust_default_language,
-    check_scorecard_render, parse_top_level_object, render_audit_chain_rows, run_composite,
-    JsonValueKind, SubCheckStatus, WorkspaceContext, ALL_FACETS_FROM_SPEC, CHANGE_CLASSES,
-    CHANGE_CLASSES_FROM_SPEC, EVIDENCE_REQUIRED_FACETS,
+    check_a6_schema_adherence, check_consensus_debate_evidence, check_naming_convention,
+    check_rust_default_language, check_scorecard_render, parse_top_level_object,
+    render_audit_chain_rows, run_composite, JsonValueKind, SubCheckStatus, WorkspaceContext,
+    ALL_FACETS_FROM_SPEC, CHANGE_CLASSES, CHANGE_CLASSES_FROM_SPEC, EVIDENCE_REQUIRED_FACETS,
 };
 
 static TEST_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -220,6 +220,56 @@ fn consensus_debate_happy_path_meta_triggered_with_matching_synthesis() {
 
 // =============== JSON parser (CONV-1) ===============
 
+// =============== A6 schema_adherence (v2.3.0 A-family) ===============
+
+#[test]
+fn a6_schema_adherence_happy_path_compliant_spec() {
+    let ws = make_workspace();
+    let home = ws.join("specs/cross-cutting");
+    fs::create_dir_all(&home).unwrap();
+    fs::write(
+        home.join("ok.json"),
+        r#"{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://docs.oyatie.dev/specs/cross-cutting/ok.json","_meta":{"doc_class":"Spec"}}"#,
+    )
+    .unwrap();
+
+    let result = check_a6_schema_adherence(&WorkspaceContext::new(&ws));
+    assert_eq!(result.id, "a6-schema-adherence");
+    assert_eq!(result.status, SubCheckStatus::NotYetArmed);
+    assert!(
+        findings_contain(&result, "JSON files scanned: 1; ADR-0069 minimum-keys-compliant ($schema+$id+_meta): 1; non-compliant: 0"),
+        "happy path should report 1/1 compliant, got {:?}",
+        result.findings
+    );
+    cleanup(&ws);
+}
+
+#[test]
+fn a6_schema_adherence_failing_path_missing_keys() {
+    let ws = make_workspace();
+    let home = ws.join("specs/cross-cutting");
+    fs::create_dir_all(&home).unwrap();
+    fs::write(home.join("no-schema.json"), r#"{"$id":"x","_meta":{}}"#).unwrap();
+    fs::write(home.join("no-id.json"), r#"{"$schema":"x","_meta":{}}"#).unwrap();
+    fs::write(home.join("no-meta.json"), r#"{"$schema":"x","$id":"y"}"#).unwrap();
+    fs::write(
+        home.join("compliant.json"),
+        r#"{"$schema":"x","$id":"y","_meta":{}}"#,
+    )
+    .unwrap();
+
+    let result = check_a6_schema_adherence(&WorkspaceContext::new(&ws));
+    assert!(
+        findings_contain(&result, "JSON files scanned: 4; ADR-0069 minimum-keys-compliant ($schema+$id+_meta): 1; non-compliant: 3"),
+        "failing path: 1/4 compliant, got {:?}",
+        result.findings
+    );
+    assert!(findings_contain(&result, "missing $schema"));
+    assert!(findings_contain(&result, "missing $id"));
+    assert!(findings_contain(&result, "missing _meta"));
+    cleanup(&ws);
+}
+
 // =============== spec/code parity drift detection (CONV-8) ===============
 
 #[test]
@@ -319,8 +369,8 @@ fn composite_suite_meets_perf_budget_on_synthetic_workload() {
     let report = run_composite(&WorkspaceContext::new(&ws));
     let elapsed = start.elapsed();
 
-    // Sanity: composite ran all 10 sub-checks.
-    assert_eq!(report.sub_checks.len(), 10);
+    // Sanity: composite ran all 11 sub-checks (10 TG2 + A6 v2.3.0).
+    assert_eq!(report.sub_checks.len(), 11);
 
     let budget_ms = 500u128;
     let actual_ms = elapsed.as_millis();

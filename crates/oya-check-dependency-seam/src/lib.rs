@@ -117,6 +117,7 @@ pub fn run_composite(ctx: &WorkspaceContext) -> CompositeReport {
         check_naming_convention(ctx),
         check_scorecard_render(ctx),
         check_consensus_debate_evidence(ctx),
+        check_a6_schema_adherence(ctx),
     ];
     CompositeReport { sub_checks }
 }
@@ -738,6 +739,104 @@ pub fn extract_string_field(raw: &str, field: &str) -> Option<String> {
 }
 
 
+/// `a6-schema-adherence`: walk JSON files in canonical durable homes
+/// (/specs/, /registries/, /evidence/, /templates/) and verify each declares
+/// the ADR-0069 active-artifact-contract minimum: `$schema` + `$id` + `_meta`.
+/// Day-1 stub matching the other A-family stubs (NotYetArmed). Full impl
+/// ($id-path parity, schema version coherence, $defs validation) lives in
+/// FixupTask `F-LANE-ADHERENCE-A6-SCHEMA`.
+///
+/// Implementation note: shares the `scan_dir` helper + `parse_top_level_object`
+/// (from oya-json-kernel via re-export) with the other 4 sub-checks. First
+/// A-family check landed in the composite lane; future A-family checks
+/// (A1..A5, A7) follow the same pattern.
+pub fn check_a6_schema_adherence(ctx: &WorkspaceContext) -> SubCheckResult {
+    let homes = [
+        "specs/cross-cutting",
+        "registries/cross-cutting",
+        "evidence",
+        "templates",
+    ];
+    let mut scanned = 0usize;
+    let mut compliant = 0usize;
+    let mut violations_displayed: Vec<String> = Vec::new();
+    let mut io_errors: Vec<String> = Vec::new();
+    let mut inner_errors: Vec<String> = Vec::new();
+    let display_cap = 10usize;
+    for home in &homes {
+        let p = ctx.workspace_root.join(home);
+        scan_dir(&p, &mut io_errors, |entry| {
+            let path = entry.path();
+            if path.extension().and_then(|s| s.to_str()) != Some("json") {
+                return;
+            }
+            scanned += 1;
+            match std::fs::read_to_string(&path) {
+                Ok(raw) => {
+                    let parsed = parse_top_level_object(&raw);
+                    let has_schema = parsed.contains_key("$schema");
+                    let has_id = parsed.contains_key("$id");
+                    let has_meta = parsed.contains_key("_meta");
+                    if has_schema && has_id && has_meta {
+                        compliant += 1;
+                    } else if violations_displayed.len() < display_cap {
+                        let mut missing: Vec<&str> = Vec::new();
+                        if !has_schema {
+                            missing.push("$schema");
+                        }
+                        if !has_id {
+                            missing.push("$id");
+                        }
+                        if !has_meta {
+                            missing.push("_meta");
+                        }
+                        let rel = path
+                            .strip_prefix(&ctx.workspace_root)
+                            .unwrap_or(&path);
+                        violations_displayed.push(format!(
+                            "{}: missing {}",
+                            rel.display(),
+                            missing.join("+")
+                        ));
+                    }
+                }
+                Err(e) => inner_errors.push(format!(
+                    "read_to_string({}) failed: {}",
+                    path.display(),
+                    e
+                )),
+            }
+        });
+    }
+    io_errors.extend(inner_errors);
+    let non_compliant = scanned.saturating_sub(compliant);
+    let mut findings = vec![format!(
+        "JSON files scanned: {}; ADR-0069 minimum-keys-compliant ($schema+$id+_meta): {}; non-compliant: {}",
+        scanned, compliant, non_compliant
+    )];
+    for v in &violations_displayed {
+        findings.push(format!("  - {}", v));
+    }
+    if non_compliant > violations_displayed.len() {
+        findings.push(format!(
+            "  - ... {} additional violation(s) omitted (display cap = {})",
+            non_compliant - violations_displayed.len(),
+            display_cap
+        ));
+    }
+    findings.extend(io_errors);
+    findings.push(
+        "full BNF: $id-path parity + schema version coherence + $defs validation — F-LANE-ADHERENCE-A6-SCHEMA"
+            .into(),
+    );
+    SubCheckResult {
+        id: "a6-schema-adherence",
+        status: SubCheckStatus::NotYetArmed,
+        findings,
+        severity_day_1: Severity::ReportOnly,
+    }
+}
+
 /// Shared scan primitive: read a directory, invoke `visit` on each Ok
 /// entry, surface read_dir + entry I/O errors as findings strings via the
 /// `errors` accumulator. Std-only.
@@ -1146,11 +1245,11 @@ mod tests {
     }
 
     #[test]
-    fn run_composite_returns_ten_sub_checks() {
+    fn run_composite_returns_eleven_sub_checks() {
         let ctx = WorkspaceContext::new(workspace_root_from_test());
         let report = run_composite(&ctx);
-        assert_eq!(report.sub_checks.len(), 10);
-        // IDs in canonical order per ADR-0092 D13 + TG2 extension.
+        assert_eq!(report.sub_checks.len(), 11);
+        // IDs in canonical order per ADR-0092 D13 + TG2 extension + A-family v2.3.0.
         let ids: Vec<&str> = report.sub_checks.iter().map(|r| r.id).collect();
         assert_eq!(
             ids,
@@ -1165,6 +1264,7 @@ mod tests {
                 "naming-convention",
                 "scorecard-render",
                 "consensus-debate-evidence",
+                "a6-schema-adherence",
             ]
         );
     }
