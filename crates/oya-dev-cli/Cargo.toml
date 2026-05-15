@@ -55,7 +55,7 @@ oya-eventing-file-adapter = { path = "../oya-eventing-file-adapter" }
 oya-eventing-domain = { path = "../oya-eventing-domain" }
 oya-secrets-file-adapter = { path = "../oya-secrets-file-adapter" }
 oya-secrets-domain = { path = "../oya-secrets-domain" }
-serde_json = "1"
+serde_json = { workspace = true }
 
 [[bin]]
 name = "oya"

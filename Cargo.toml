@@ -474,6 +474,18 @@ tokio = { version = "1", default-features = false, features = ["rt-multi-thread"
 http-body-util = { version = "0.1", default-features = false }
 bytes = { version = "1", default-features = false }
 
+# Dedup baseline added 2026-05-15 (audit item #6: "workspace.dependencies has
+# 7 entries total; the dedup table you wrote a workspace for is empty for all
+# the deps that need deduping"). Versions chosen to satisfy the highest pin
+# seen across crates so no crate's semver range narrows.
+anyhow = "1"
+clap = { version = "4.5", features = ["derive"] }
+tempfile = "3"
+walkdir = "2"
+serde_yaml = "0.9"
+toml = "0.8"
+regex = "1"
+
 # Release-profile hardening per 2026-05-15 audit + hyperscaler-grade
 # performance/scalability bar (specs/cross-cutting/oyatie-doctrine.json P8,
 # docs/standards/hyperscaler-best-practices.md).

@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-foundry-fitness-purpose-kernel = { path = "../../crates/oya-foundry-fitness-purpose-kernel" }
-serde_yaml = "0.9"
+serde_yaml = { workspace = true }
 serde_json = { workspace = true }
 glob = "0.3"
-anyhow = "1"
+anyhow = { workspace = true }
