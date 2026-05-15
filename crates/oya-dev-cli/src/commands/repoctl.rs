@@ -31,6 +31,7 @@ struct PrePushArgs {
     check_script_path: PathBuf,
     agents_doc_path: PathBuf,
     cli_manifest_path: PathBuf,
+    repoctl_source_path: PathBuf,
     hook_script_path: PathBuf,
     output_format: OutputFormat,
     verify_contract: bool,
@@ -41,6 +42,7 @@ fn parse_pre_push_args(args: Vec<String>, usage: &str) -> Result<PrePushArgs, St
         check_script_path: PathBuf::from("scripts/check.sh"),
         agents_doc_path: PathBuf::from("docs/AGENTS.md"),
         cli_manifest_path: PathBuf::from("crates/oya-dev-cli/Cargo.toml"),
+        repoctl_source_path: PathBuf::from("crates/oya-dev-cli/src/commands/repoctl.rs"),
         hook_script_path: PathBuf::from("scripts/hooks/pre-push-repoctl.sh"),
         output_format: OutputFormat::Text,
         verify_contract: false,
@@ -50,6 +52,10 @@ fn parse_pre_push_args(args: Vec<String>, usage: &str) -> Result<PrePushArgs, St
         match flag.as_str() {
             "--verify-contract" => parsed.verify_contract = true,
             "--check-script" => {
+                // Retained for the non-contract `repoctl pre-push` branch
+                // (the `.sh` subprocess path) until IP-B ports it to
+                // native dispatch. The contract-validation branch
+                // (`--verify-contract`) no longer consumes this flag.
                 let Some(value) = iter.next() else {
                     return Err(usage.to_owned());
                 };
@@ -66,6 +72,12 @@ fn parse_pre_push_args(args: Vec<String>, usage: &str) -> Result<PrePushArgs, St
                     return Err(usage.to_owned());
                 };
                 parsed.cli_manifest_path = PathBuf::from(value);
+            }
+            "--repoctl-source" => {
+                let Some(value) = iter.next() else {
+                    return Err(usage.to_owned());
+                };
+                parsed.repoctl_source_path = PathBuf::from(value);
             }
             "--hook-script" => {
                 let Some(value) = iter.next() else {
@@ -166,16 +178,19 @@ fn run_pre_push_contract_check(args: PrePushArgs) -> ExitCode {
         Ok(report) => match args.output_format {
             OutputFormat::Text => {
                 println!(
-                    "repoctl pre-push contract validation passed: command={}, check-command={}, repoctl-bin=declared, hook=wired",
-                    report.canonical_command, report.contract_check_command
+                    "repoctl pre-push contract validation passed: command={}, \
+                     native-verify-dispatch-token={}, repoctl-bin=declared, hook=wired",
+                    report.canonical_command, report.native_verify_dispatch_token
                 );
                 ExitCode::SUCCESS
             }
             OutputFormat::Json => {
                 println!(
-                    "{{\"command\":\"repoctl pre-push --verify-contract\",\"status\":\"passed\",\"canonical_command\":\"{}\",\"contract_check_command\":\"{}\"}}",
+                    "{{\"command\":\"repoctl pre-push --verify-contract\",\
+                     \"status\":\"passed\",\"canonical_command\":\"{}\",\
+                     \"native_verify_dispatch_token\":\"{}\"}}",
                     json_escape(report.canonical_command),
-                    json_escape(report.contract_check_command),
+                    json_escape(report.native_verify_dispatch_token),
                 );
                 ExitCode::SUCCESS
             }
@@ -191,14 +206,14 @@ fn validate_pre_push_contract_files(
     args: &PrePushArgs,
 ) -> Result<oya_check_pre_push::PrePushContractReport, String> {
     let done_definition_doc = read_file_for_contract("AGENTS doc", &args.agents_doc_path)?;
-    let check_script = read_file_for_contract("check script", &args.check_script_path)?;
     let cli_manifest = read_file_for_contract("CLI manifest", &args.cli_manifest_path)?;
+    let repoctl_source = read_file_for_contract("repoctl source", &args.repoctl_source_path)?;
     let hook_script = read_file_for_contract("hook script", &args.hook_script_path)?;
 
     validate_pre_push_contract(PrePushContractEvidence {
         done_definition_doc: &done_definition_doc,
-        check_script: &check_script,
         cli_manifest: &cli_manifest,
+        repoctl_source: &repoctl_source,
         hook_script: &hook_script,
     })
     .map_err(|error| error.to_string())
