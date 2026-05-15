@@ -1446,7 +1446,7 @@
       {
         "id": "ci-admission-lane",
         "status": "patched-in-current-repo",
-        "acceptance": "scripts/check-oya-vcs-admission.sh runs authority checks and targeted VCS package tests; pr-tests exposes oya-vcs-admission; branch protection requires it"
+        "acceptance": "cargo run -q -p oya-foundry-vcs-admission-gate-app runs authority checks and targeted VCS package tests; pr-tests exposes oya-vcs-admission; branch protection requires it"
       },
       {
         "id": "multispectrum-evidence-closure",
@@ -1465,7 +1465,7 @@
       }
     ],
     "verification": [
-      "scripts/check-oya-vcs-admission.sh",
+      "cargo run -q -p oya-foundry-vcs-admission-gate-app",
       "cargo run -q -p oya-dev-cli -- gate audit master-plan-completion --check",
       "cargo run -q -p oya-dev-cli -- doc render master-plan-ledger --check",
       "cargo test -p oya-dev-cli vcs",
@@ -1476,7 +1476,7 @@
     ]
   },
   "current_ci_admission_lane": {
-    "script": "scripts/check-oya-vcs-admission.sh",
+    "script": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
     "workflow_job": "oya-vcs-admission",
     "branch_protection_status": "oya-vcs-admission",
     "package_tests": [
@@ -1515,7 +1515,7 @@
       "argo-gitops"
     ],
     "provider_execution_proof_ref": "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json#provider_slots",
-    "provider_execution_script": "scripts/check-oya-vcs-provider-execution.sh",
+    "provider_execution_script": "cargo run -q -p oya-foundry-vcs-provider-execution-gate-app",
     "provider_execution_workflow_job": "oya-vcs-provider-execution"
   }
 }

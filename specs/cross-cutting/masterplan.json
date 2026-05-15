@@ -480,7 +480,7 @@
     "authority_cutover": {
       "closure_authority": "Oya VCS ChangeBundle -> Promotion -> ReleaseTrain",
       "legacy_surfaces": "grit/icm/rtk/vox/omx/omc are compatibility/provenance only and cannot satisfy forward promotion authority",
-      "admission_lane": "scripts/check-oya-vcs-admission.sh"
+      "admission_lane": "cargo run -q -p oya-foundry-vcs-admission-gate-app"
     },
     "ci_admission_lane": {
       "workflow_job": "oya-vcs-admission",
