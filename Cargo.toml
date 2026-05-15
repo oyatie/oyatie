@@ -225,6 +225,7 @@ members = [
   "tools/oya-foundry-fitness-archive-orphan-app",
   "tools/oya-foundry-fitness-adapter-with-no-importer-app",
   "tools/oya-foundry-fitness-sunset-lifecycle-app",
+  "tools/oya-foundry-fitness-adr-status-lifecycle-app",
   "tools/oya-foundry-fitness-portfolio-citation-app",
   "tools/oya-foundry-fitness-authoritative-tracked-app",
   "tools/oya-foundry-fitness-adr-shape-app",
