@@ -242,10 +242,14 @@ plan file).
    3 specs. Each upgrade is its own atomic commit per ADR-0054.
 3. **Git-history walk.** Wave-D follow-up: scan `git log` for retired
    sunset clauses to ensure deletion happened on or after `removal_at`.
-4. **Promotion to ADR-0109 generic framework.** When ADR-0109's
-   framework graduates from "Accepted" to "implemented + load-bearing",
-   the sunset-lifecycle config moves under it. Until then, the
-   sunset-lifecycle lane is the load-bearing surface.
+4. **Pattern-B status under ADR-0109.** Per ADR-0109 §"Sunset-lifecycle:
+   dedicated kernel as canonical pattern (not exception)" (Amendment
+   2026-05-15), the sunset-lifecycle stays on its dedicated kernel as
+   the canonical Pattern-B shape for date-arithmetic lifecycles. The
+   earlier "MAY migrate to ADR-0109 generic framework" follow-up is
+   superseded — there is no migration: sunset-lifecycle and the generic
+   framework are both canonical at the kernel layer, selected by
+   lifecycle-domain semantics (see ADR-0109's decision rule).
 
 ## References
 

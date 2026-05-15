@@ -57,7 +57,124 @@ The parallel `oya-foundry-fitness-sunset-lifecycle-kernel` (committed independen
 
 5. **Wave ratchet (canonical per fitness-lane pattern).** Wave A = WARN baseline; Wave B = BLOCK on NEW violations; Wave C = BLOCK on all. Each per-lifecycle plan declares its wave.
 
-6. **Concurrent sunset-lifecycle integration.** The dedicated `oya-foundry-fitness-sunset-lifecycle-kernel` is canonical for the sunset-clause domain. The framework applies to OTHER lifecycles immediately; a follow-up refactor MAY convert sunset-lifecycle into a config-driven instance once that crate lands. Both shapes are canonical at the kernel layer; the framework's value is per-lifecycle DRY for the 9+ other state machines.
+6. **Concurrent sunset-lifecycle integration.** The dedicated `oya-foundry-fitness-sunset-lifecycle-kernel` is canonical for the sunset-clause domain. The framework applies to OTHER lifecycles immediately; sunset-lifecycle remains on a dedicated kernel per the canonical pattern declared in §"Sunset-lifecycle: dedicated kernel as canonical pattern" below. Both shapes are canonical at the kernel layer; the framework's value is per-lifecycle DRY for the 9+ pure-stage-transition state machines.
+
+## Sunset-lifecycle: dedicated kernel as canonical pattern (not exception)
+
+Amendment 2026-05-15. Per `feedback_no_exceptions_canonical.md`
+("predictable-naming kernel — 13-value enum + adopted patterns") and
+`feedback_lifecycle_automation_universal.md`, this section codifies the
+canonical pattern for lifecycle types whose semantics exceed pure
+stage-transition.
+
+### Two canonical lifecycle-kernel patterns
+
+Lifecycle kernels in this codebase ship in one of two canonical shapes,
+selected by the lifecycle's domain semantics:
+
+**Pattern A — generic-kernel + config (this ADR's framework).** Applies
+when the lifecycle is a *pure stage-transition state machine*: each
+artifact has a current stage, transitions between stages are declarative,
+and the only time-sensitive check is a flat `deadline_at` (single
+calendar anchor per artifact, no defaulting, no multi-anchor arithmetic).
+The 9 lifecycles enumerated in §"Initial lifecycle catalog (Wave-A
+scaffold)" all fit Pattern A — adding a new Pattern-A lifecycle is a
+3-file commit (config JSON, thin dev-CLI, plan file).
+
+**Pattern B — dedicated kernel.** Applies when the lifecycle requires
+*date-arithmetic with milestone-equivalence semantics*: multi-anchor
+defaulting (e.g. 30/90-day lag chains), canonical sentinel-milestone
+recognition with calendar-vs-milestone precedence rules, or
+domain-specific finding categories that cannot be expressed as
+StageNotDeclared / UnknownStage / OverdueTransition /
+MissingSupersession / MilestoneOverdue / IllegalTransition. The
+sunset-lifecycle (ADR-0108) is the load-bearing Pattern-B instance:
+sunset → deprecation → removal is a three-anchor lifecycle with
+defaulted lags, three distinct findings (SunsetReached / RemovalReached
+/ MissingFields), and a `doctrine-not-time-bounded` canonical sentinel
+with calendar-wins precedence.
+
+### Decision rule (machine-readable)
+
+When designing a new lifecycle automation lane, apply this gate:
+
+```
+if lifecycle has:
+  - multi-anchor date defaulting (e.g. dep_at defaults to sunset_at + N days), OR
+  - canonical sentinel-milestone recognition with precedence rules, OR
+  - domain-specific finding categories outside the framework's six
+    ViolationKinds, OR
+  - multi-surface discovery markers with surface-specific schemas (e.g.
+    YAML frontmatter + JSON `_sunset` object + Cargo
+    `[package.metadata.oya.sunset]` triple)
+then Pattern B (dedicated kernel)
+else Pattern A (generic framework + config)
+```
+
+Both patterns are canonical. Authoring a Pattern-B kernel does NOT
+violate the no-exceptions doctrine: it is a *canonical extension* for
+lifecycles whose semantics exceed Pattern A's expressive range, parallel
+to how ADR-0083 declares three canonical Tier patterns (Tier 1 library,
+Tier 2 binary, Tier 3 test) rather than one rule with two exceptions.
+
+### Why not extend the generic kernel to absorb sunset semantics
+
+Absorbing date-arithmetic defaulting, sentinel recognition, three-surface
+discovery, and the SunsetReached/RemovalReached/MissingFields finding
+categories into `oya-foundry-fitness-lifecycle-kernel` would:
+
+1. Add ≈560 LOC of domain-specific schema + algorithm + parser code to
+   the generic kernel, diluting its canonical posture for the 9
+   Pattern-A lifecycles.
+2. Force the 9 Pattern-A configs to declare empty `defaults: {}`,
+   `sentinels: []`, `precedence: ~` fields they don't use, smearing
+   sunset-specific concerns across every lifecycle config.
+3. Couple the generic kernel to a `Date` type with proleptic-Gregorian
+   arithmetic (`add_days`, `days_since`, day-number conversions) — a
+   dependency that the 9 Pattern-A lifecycles don't need.
+4. Re-introduce date-arithmetic discovery surfaces (Cargo manifest
+   `[package.metadata.oya.sunset]` sections, top-level JSON `_sunset`
+   objects, body-level sunset prose) into the framework's source-spec
+   abstraction, which today supports only YAML frontmatter + Cargo
+   metadata table scalars.
+
+The dedicated-kernel pattern keeps each canonical shape clean: the
+generic kernel stays a pure state-machine matcher; the sunset kernel
+stays a date-arithmetic-aware classifier; both honor ADR-0083 Tier 1 /
+ADR-0056 port-in-kernel / ADR-0105 13-layer-enum naming uniformly.
+
+### Naming consequence
+
+Pattern-B kernels follow the same v4 BNF as Pattern-A dev-CLIs:
+`oya-foundry-fitness-<topic>-lifecycle-kernel` (kernel layer) plus
+`oya-foundry-fitness-<topic>-lifecycle-app` (composition-root binary).
+The naming layer-enum is unchanged — both patterns terminate in
+`-kernel` / `-app` per ADR-0105 Amendment 1 / ADR-0107 Amendment
+2026-05-15. The pattern selection is invisible in the crate name; it
+shows up only in the kernel's internal schema (multi-anchor `Date`
+helpers vs. flat stage-machine evaluation).
+
+### Pattern-B registry
+
+The repo currently has one Pattern-B lifecycle:
+
+| Lifecycle | Kernel | Dev-CLI | Driving ADR | Domain semantics |
+|---|---|---|---|---|
+| sunset-lifecycle | `crates/oya-foundry-fitness-sunset-lifecycle-kernel` | `tools/oya-foundry-fitness-sunset-lifecycle-app` | ADR-0108 | 30/90-day lag defaulting; doctrine-not-time-bounded sentinel; three-surface discovery |
+
+Future Pattern-B candidates (declare here when introduced): credential
+rotation (multi-anchor expiry + reissue lag), incident postmortem
+lifecycle (root-cause → mitigation-deadline → review-deadline → publish
+deadline arithmetic), SLA-window breach lifecycle (continuous-time
+windowing rather than discrete stages).
+
+### Migration policy
+
+The follow-up listed under §Decision item 6 ("a follow-up refactor MAY
+convert sunset-lifecycle into a config-driven instance") is hereby
+WITHDRAWN. Sunset-lifecycle remains on its dedicated Pattern-B kernel
+indefinitely. Removing this entry would be a silent regression of the
+canonical pattern.
 
 ## Rationale — why automate ALL lifecycles, not just the populous ones
 
