@@ -31,5 +31,5 @@ Existing `oya-foundry-fitness-doc-freshness-kernel` complements this: freshness 
 
 ## Ratchet plan
 - Wave A: WARN on every doc lacking `doc_status:`.
-- Wave B: BLOCK new docs without `doc_status:`; mechanical backfill PR adds `doc_status: published` to all 714.
-- Wave C: full BLOCK + stale-detection integration with freshness kernel.
+- Wave B: delta-BLOCK on new docs without `doc_status:`.
+- **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations after BF1 (87 ADRs) + BF2 (9 non-ADR docs) doc-status backfills; full BLOCK retroactive across the 714-doc corpus. Stale-detection integration with freshness kernel still pending as Wave-D follow-up.

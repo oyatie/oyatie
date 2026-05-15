@@ -31,5 +31,5 @@ Fresh kernel; flag-status docs populate as `#[cfg(feature` usages grow beyond th
 
 ## Ratchet plan
 - Wave A: kernel ready.
-- Wave B: backfill manifests for each in-use flag; WARN on missing.
-- Wave C: BLOCK on deadlines.
+- Wave B: delta-BLOCK on new feature-flag manifests without `status:`.
+- **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations (no `docs/feature-flags/**/*.md` files yet). Wave-C in force so future flag manifests MUST carry valid stage + removal_deadline metadata or fail-build.

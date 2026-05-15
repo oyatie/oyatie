@@ -58,9 +58,9 @@ cargo run -q -p oya-foundry-fitness-adr-status-lifecycle-app -- --warn-only
 - Lane runs against the live workspace and reports the 68-violation baseline as the WARN ledger.
 
 ## Ratchet plan (WARN → BLOCK)
-- **Wave A (this PR):** lane runs WARN-only; CI captures the 68 baseline.
-- **Wave B (next PR cluster):** lane blocks any NEW ADR without `status:` (delta-gate against baseline).
-- **Wave C (after backfill):** lane is full BLOCKER; the 68 historical ADRs gain `status:` lines via mechanical backfill PR.
+- **Wave A (initial):** lane runs WARN-only; CI captures the 68 baseline.
+- **Wave B (delta-BLOCK):** lane blocks any NEW ADR without `status:` (delta-gate against baseline).
+- **Wave C (full-BLOCK, LIVE 2026-05-15):** full retroactive BLOCK; baseline = 0 violations after BF1/BF2/BF3 backfills closed every ADR's `status:` field.
 
 ## Rollback-procedure
 Lane is purely additive — reverting the merge removes config + dev-CLI; no other crate depends.

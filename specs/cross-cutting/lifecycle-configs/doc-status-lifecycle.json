@@ -69,7 +69,7 @@
     }
   ],
   "defaults": {
-    "wave": "B",
+    "wave": "C",
     "case_insensitive_stage_match": true
   },
   "purpose": "Lifecycle state machine for documentation publication, staleness, supersession, and archival."

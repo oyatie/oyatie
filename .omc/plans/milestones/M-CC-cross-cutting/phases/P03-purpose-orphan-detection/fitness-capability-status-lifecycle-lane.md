@@ -31,5 +31,5 @@ Fresh kernel; capability files appear once `oya-foundry-capability-registry-*` s
 
 ## Ratchet plan
 - Wave A: kernel ready; vacuous baseline.
-- Wave B: blocks any capability manifest with missing `status:` or `expires_at`.
-- Wave C: blocks any granted capability past `expires_at`.
+- Wave B: delta-BLOCK on any new capability manifest with missing `status:` or `expires_at`.
+- **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations (no `specs/**/*.capability.json` files yet). Wave-C in force so future capability manifests MUST carry valid stage + supersession metadata or fail-build.

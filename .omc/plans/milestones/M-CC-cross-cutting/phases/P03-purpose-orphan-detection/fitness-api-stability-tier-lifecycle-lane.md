@@ -32,5 +32,5 @@ Fresh kernel; pairs with ADR-0037 (stability tier doctrine). Existing 10 `#[depr
 
 ## Ratchet plan
 - Wave A: kernel ready.
-- Wave B: stability-manifest per public API; WARN on missing tier.
-- Wave C: BLOCK on overdue deprecated → removed transitions per ADR-0037 schedule.
+- Wave B: delta-BLOCK on new stability manifests without `stability_tier:`.
+- **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations (no `docs/api-stability/**/*.md` files yet; 10 `#[deprecated]` attribute sites pending manifest-tracking). Wave-C in force so future API-stability manifests MUST carry valid tier + replaced_by_api metadata or fail-build per ADR-0037 schedule.

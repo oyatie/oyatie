@@ -31,5 +31,5 @@ Fresh kernel; awaits the backfill pass that adds the metadata block to each crat
 
 ## Ratchet plan
 - Wave A: kernel in place; vacuous baseline.
-- Wave B: backfill commit adds `[package.metadata.oyatie] lifecycle_stage = "live"` to every live crate; lane flips to WARN on missing metadata.
-- Wave C: full BLOCK.
+- Wave B: delta-BLOCK on new artifacts.
+- **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations (vacuous corpus — no `crates/*-domain/Cargo.toml` files declare `package.metadata.oyatie.lifecycle_stage` yet). Wave-C in force so future backfill commits MUST land schema-correct or fail-build.

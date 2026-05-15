@@ -32,5 +32,5 @@ Wave B will narrow the glob to `**/cutover-*.md` / `**/migration-*.md` to reduce
 
 ## Ratchet plan
 - Wave A: lane in place; WARN on every plan lacking migration_status.
-- Wave B: glob narrows to cutover/migration-only plans; BLOCK new migration plans without status.
-- Wave C: full BLOCK + milestone-overdue enforcement.
+- Wave B: glob narrowed to cutover/migration-only plans via `filter` predicate; BLOCK new migration plans without status.
+- **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations after BF1 migration-status backfill across the 21 in-scope migration plans. Wave-C in force; milestone-overdue enforcement live.

@@ -31,5 +31,5 @@ Fresh kernel; dependency-status docs populate as ADR-0064 (LTS dependency policy
 
 ## Ratchet plan
 - Wave A: kernel ready; vacuous baseline.
-- Wave B: backfill commits ship `docs/dependencies/<crate>.md` for each major dep; lane flips to WARN.
-- Wave C: BLOCK on deprecated-without-replacement + overdue removals.
+- Wave B: delta-BLOCK on new dependency-status docs without `status:` or `replaced_by:` edge.
+- **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations (no `docs/dependencies/**/*.md` files yet). Wave-C in force so future dependency docs MUST carry valid stage + replacement metadata or fail-build.

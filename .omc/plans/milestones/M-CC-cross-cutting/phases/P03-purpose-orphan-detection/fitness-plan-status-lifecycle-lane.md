@@ -29,4 +29,4 @@ violations=245 (all stage_not_declared)
 - `cargo run -q -p oya-foundry-fitness-plan-status-lifecycle-app -- --warn-only` reports the 245 baseline.
 
 ## Ratchet plan
-- Wave A: WARN. Wave B: BLOCK new plans without `status:`. Wave C: full BLOCK after backfill.
+- Wave A: WARN. Wave B: BLOCK new plans without `status:`. **Wave C (full-BLOCK, LIVE 2026-05-15):** baseline = 0 violations after BF1/BF2/BF3 plan-status backfills; lane fails-build retroactively on any plan without a declared stage.
