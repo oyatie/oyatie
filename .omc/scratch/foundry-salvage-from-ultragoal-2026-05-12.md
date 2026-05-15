@@ -237,13 +237,13 @@ Validation command:
 **P00-08: Phase E2E and CI gate**
 ```
 Acceptance:
-  - `scripts/validate_foundry_phase00_evidence.mjs` passes
+  - `scripts/validate-foundry-phase00-evidence.mjs` passes
   - Local fast: `cargo test --locked -p oya-foundry-account-*`
   - GitHub Actions Foundry lane: `cargo test --workspace`, secret scans, architecture boundary checks
   - Evidence bundle: account-auth slice delivered or exact gaps honestly stated
   - No stubs, placeholders, fake paths, TODO/TBD markers in acceptance paths
 
-Validator: `validate_foundry_phase00_evidence.mjs`
+Validator: `validate-foundry-phase00-evidence.mjs`
   Checks:
     - Files present: crates, tests, adapters
     - Executed local commands: cargo test results

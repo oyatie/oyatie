@@ -81,7 +81,7 @@
         "scripts/render-m02-exit-checklist.py",
         "scripts/check-product-index.py",
         "scripts/audit-master-plan-completion.py",
-        "scripts/validate_foundry_phase00_evidence.mjs",
+        "scripts/validate-foundry-phase00-evidence.mjs",
         "scripts/proto-lint.mjs",
         "scripts/asyncapi-lint.mjs",
         "scripts/validate-adr-shape.mjs",

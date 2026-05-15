@@ -9,19 +9,19 @@ changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Ship scripts/validate_foundry_phase00_evidence.mjs covering crates/tests/adapters/smoke/credentials/clean-arch.
+purpose: Ship scripts/validate-foundry-phase00-evidence.mjs covering crates/tests/adapters/smoke/credentials/clean-arch.
 ---
 
 # M02-P03-IP-001 — Phase 00 evidence validator
 
 ## Purpose
-Ship scripts/validate_foundry_phase00_evidence.mjs covering crates/tests/adapters/smoke/credentials/clean-arch.
+Ship scripts/validate-foundry-phase00-evidence.mjs covering crates/tests/adapters/smoke/credentials/clean-arch.
 
 ## Symbols-to-grit-claim
 ```
-scripts/validate_foundry_phase00_evidence.mjs::main
-scripts/validate_foundry_phase00_evidence.mjs::check_crates_present
-scripts/validate_foundry_phase00_evidence.mjs::check_no_raw_secrets
+scripts/validate-foundry-phase00-evidence.mjs::main
+scripts/validate-foundry-phase00-evidence.mjs::check_crates_present
+scripts/validate-foundry-phase00-evidence.mjs::check_no_raw_secrets
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
