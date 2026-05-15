@@ -11,7 +11,7 @@ use std::path::Path;
 fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.is_empty() {
-        println!("Usage: oya-foundry-fitness-purpose-audit <globs...>");
+        println!("Usage: oya-foundry-fitness-purpose-audit-app <globs...>");
         return Ok(());
     }
 

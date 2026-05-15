@@ -101,7 +101,7 @@ impl Options {
 }
 
 fn usage() -> String {
-    "usage: oya-foundry-fitness-banned-primitives [--root PATH ...] [--known-rationale ICM_ID ...]"
+    "usage: oya-foundry-fitness-banned-primitives-app [--root PATH ...] [--known-rationale ICM_ID ...]"
         .into()
 }
 

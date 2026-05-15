@@ -7,7 +7,7 @@
 //! companion config; this CLI runs them and emits a typed report.
 //!
 //! Pure Rust, no shell, no external scripts. Self-test invoked via
-//! `cargo run -p oya-adapter-substitution-test -- --self-test`.
+//! `cargo run -p oya-adapter-substitution-test-app -- --self-test`.
 
 use std::collections::BTreeSet;
 use std::process::ExitCode;
@@ -120,11 +120,11 @@ fn main() -> ExitCode {
         }
         Some(other) => {
             eprintln!("unknown subcommand: {other}");
-            eprintln!("usage: oya-adapter-substitution-test [--self-test|--list]");
+            eprintln!("usage: oya-adapter-substitution-test-app [--self-test|--list]");
             ExitCode::from(2)
         }
         None => {
-            eprintln!("usage: oya-adapter-substitution-test [--self-test|--list]");
+            eprintln!("usage: oya-adapter-substitution-test-app [--self-test|--list]");
             ExitCode::from(2)
         }
     }

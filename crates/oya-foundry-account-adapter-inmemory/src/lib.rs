@@ -6,7 +6,7 @@
 //! HSM backend (ADR-0043 + masterplan M02-P06 secrets µservice); when that
 //! adapter ships, every consumer of `InMemorySecretStoreAdapter` migrates per
 //! the SecretStorePort substitution scenario in
-//! `tools/oya-adapter-substitution-test`.
+//! `tools/oya-adapter-substitution-test-app`.
 //!
 //! Renamed 2026-05-15 from `OpenBaoAdapter` (which lied about its backend) per
 //! the Linus-mode audit. The previous implementation also keyed the map on

@@ -109,7 +109,7 @@ impl Options {
 }
 
 fn usage() -> String {
-    "usage: oya-foundry-fitness-adapter-with-no-importer [--root PATH]...".into()
+    "usage: oya-foundry-fitness-adapter-with-no-importer-app [--root PATH]...".into()
 }
 
 fn scan_root(root: &Path) -> Result<Vec<WorkspaceCrate>, String> {

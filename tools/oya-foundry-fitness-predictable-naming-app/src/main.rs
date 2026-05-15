@@ -79,7 +79,7 @@ impl Options {
 }
 
 fn usage() -> String {
-    "usage: oya-foundry-fitness-predictable-naming --check <path>...".into()
+    "usage: oya-foundry-fitness-predictable-naming-app --check <path>...".into()
 }
 
 /// Derive a [`CrateNaming`] record from a crate directory path.

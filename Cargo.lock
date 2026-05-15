@@ -738,7 +738,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
-name = "oya-adapter-substitution-test"
+name = "oya-adapter-substitution-test-app"
 version = "0.1.0"
 
 [[package]]
@@ -1849,7 +1849,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-fitness-adapter-with-no-importer"
+name = "oya-foundry-fitness-adapter-with-no-importer-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-fitness-adapter-with-no-importer-kernel",
@@ -1863,7 +1863,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-foundry-fitness-adr-shape"
+name = "oya-foundry-fitness-adr-shape-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-fitness-adr-shape-kernel",
@@ -1882,7 +1882,7 @@ name = "oya-foundry-fitness-architecture-map-freshness-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-fitness-archive-orphan"
+name = "oya-foundry-fitness-archive-orphan-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-fitness-archive-orphan-kernel",
@@ -1893,7 +1893,7 @@ name = "oya-foundry-fitness-archive-orphan-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-fitness-authoritative-tracked"
+name = "oya-foundry-fitness-authoritative-tracked-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-fitness-authoritative-tracked-kernel",
@@ -1904,7 +1904,7 @@ name = "oya-foundry-fitness-authoritative-tracked-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-fitness-banned-primitives"
+name = "oya-foundry-fitness-banned-primitives-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-fitness-banned-primitives-kernel",
@@ -1947,7 +1947,7 @@ name = "oya-foundry-fitness-orphan-detection-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-fitness-portfolio-citation"
+name = "oya-foundry-fitness-portfolio-citation-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-fitness-portfolio-citation-kernel",
@@ -1970,7 +1970,7 @@ name = "oya-foundry-fitness-pre-push-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-fitness-predictable-naming"
+name = "oya-foundry-fitness-predictable-naming-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-fitness-predictable-naming-kernel",
@@ -1985,7 +1985,7 @@ name = "oya-foundry-fitness-provider-coupling-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-fitness-purpose-audit"
+name = "oya-foundry-fitness-purpose-audit-app"
 version = "0.1.0"
 dependencies = [
  "anyhow",

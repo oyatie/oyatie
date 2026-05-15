@@ -103,7 +103,7 @@ impl Options {
 }
 
 fn usage() -> String {
-    "usage: oya-foundry-fitness-authoritative-tracked [--repo-root PATH] [--authority-source PATH]"
+    "usage: oya-foundry-fitness-authoritative-tracked-app [--repo-root PATH] [--authority-source PATH]"
         .into()
 }
 

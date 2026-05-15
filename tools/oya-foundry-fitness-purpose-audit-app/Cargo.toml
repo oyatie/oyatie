@@ -1,5 +1,5 @@
 [package]
-name = "oya-foundry-fitness-purpose-audit"
+name = "oya-foundry-fitness-purpose-audit-app"
 version = "0.1.0"
 edition.workspace = true
 publish = false

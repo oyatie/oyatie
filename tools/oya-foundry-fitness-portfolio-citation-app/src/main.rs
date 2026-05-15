@@ -130,7 +130,7 @@ impl Options {
 }
 
 fn usage() -> String {
-    "usage: oya-foundry-fitness-portfolio-citation [--oyatie-prd PATH] [--bominal-prd PATH] [--foundry-prd PATH]".into()
+    "usage: oya-foundry-fitness-portfolio-citation-app [--oyatie-prd PATH] [--bominal-prd PATH] [--foundry-prd PATH]".into()
 }
 
 fn extract_citation_blocks(contents: &str) -> Result<Vec<CitationBlock>, String> {

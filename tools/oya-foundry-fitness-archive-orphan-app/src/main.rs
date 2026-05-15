@@ -142,7 +142,7 @@ impl Options {
 }
 
 fn usage() -> String {
-    "usage: oya-foundry-fitness-archive-orphan [--adr PATH] [--path-root PATH] [--scan-root PATH ...] [--allow-source PATH ...]".into()
+    "usage: oya-foundry-fitness-archive-orphan-app [--adr PATH] [--path-root PATH] [--scan-root PATH ...] [--allow-source PATH ...]".into()
 }
 
 fn default_scan_roots(path_root: &Path) -> Vec<PathBuf> {

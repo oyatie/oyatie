@@ -6,9 +6,10 @@
 //!   v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:adapter-with-no-importer>-<layer:kernel>`;
 //!   12-layer-enum suffix `kernel` (innermost ring: I/O-free port + pure check
 //!   functions per ADR-0056 "port-in-kernel").
-//! - Dev-CLI `oya-foundry-fitness-adapter-with-no-importer` —
-//!   v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:adapter-with-no-importer>`;
-//!   binary tool surface (no suffix), wraps the kernel for `oya gate validate`.
+//! - Dev-CLI `oya-foundry-fitness-adapter-with-no-importer-app` —
+//!   v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:adapter-with-no-importer>-<layer:app>`;
+//!   binary tool surface (canonical `app` suffix per ADR-0105 amendment 2026-05-15),
+//!   wraps the kernel for `oya gate validate`.
 //!
 //! # Intent
 //!
