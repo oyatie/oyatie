@@ -471,9 +471,7 @@ mod tests {
         );
         assert_eq!(
             message.headers.value[0].name.data_class,
-            DataClassification::Privacy(
-                PrivacyDataClass::pii_quasi_identifier()
-            )
+            DataClassification::Privacy(PrivacyDataClass::pii_quasi_identifier())
         );
     }
 

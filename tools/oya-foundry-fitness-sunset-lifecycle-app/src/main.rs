@@ -103,9 +103,10 @@ impl Options {
                 "--now" => {
                     i += 1;
                     let value = arg(args, i, "--now")?;
-                    now = Some(Date::parse_iso(value).ok_or_else(|| {
-                        format!("--now expects YYYY-MM-DD, got `{value}`")
-                    })?);
+                    now = Some(
+                        Date::parse_iso(value)
+                            .ok_or_else(|| format!("--now expects YYYY-MM-DD, got `{value}`"))?,
+                    );
                 }
                 "--reached-milestone" => {
                     i += 1;
@@ -170,17 +171,15 @@ fn discover_adr(root: &Path) -> Result<Vec<SunsetClause>, String> {
         return Ok(Vec::new());
     }
     let mut out = Vec::new();
-    let entries = fs::read_dir(root)
-        .map_err(|e| format!("read_dir({}): {e}", root.display()))?;
+    let entries = fs::read_dir(root).map_err(|e| format!("read_dir({}): {e}", root.display()))?;
     for entry in entries {
-        let entry =
-            entry.map_err(|e| format!("entry under {}: {e}", root.display()))?;
+        let entry = entry.map_err(|e| format!("entry under {}: {e}", root.display()))?;
         let path = entry.path();
         if path.extension().and_then(|s| s.to_str()) != Some("md") {
             continue;
         }
-        let contents = fs::read_to_string(&path)
-            .map_err(|e| format!("read {}: {e}", path.display()))?;
+        let contents =
+            fs::read_to_string(&path).map_err(|e| format!("read {}: {e}", path.display()))?;
         let map = extract_yaml_frontmatter(&contents)
             .map(parse_yaml_flat_scalars)
             .unwrap_or_default();
@@ -318,17 +317,15 @@ fn discover_specs(root: &Path) -> Result<Vec<SunsetClause>, String> {
         return Ok(Vec::new());
     }
     let mut out = Vec::new();
-    let entries = fs::read_dir(root)
-        .map_err(|e| format!("read_dir({}): {e}", root.display()))?;
+    let entries = fs::read_dir(root).map_err(|e| format!("read_dir({}): {e}", root.display()))?;
     for entry in entries {
-        let entry =
-            entry.map_err(|e| format!("entry under {}: {e}", root.display()))?;
+        let entry = entry.map_err(|e| format!("entry under {}: {e}", root.display()))?;
         let path = entry.path();
         if path.extension().and_then(|s| s.to_str()) != Some("json") {
             continue;
         }
-        let contents = fs::read_to_string(&path)
-            .map_err(|e| format!("read {}: {e}", path.display()))?;
+        let contents =
+            fs::read_to_string(&path).map_err(|e| format!("read {}: {e}", path.display()))?;
         if let Some(clause) = parse_json_sunset_block(&contents, &path.display().to_string()) {
             out.push(clause);
             continue;
@@ -467,11 +464,9 @@ fn discover_cargo_metadata(root: &Path) -> Result<Vec<SunsetClause>, String> {
         return Ok(Vec::new());
     }
     let mut out = Vec::new();
-    let entries = fs::read_dir(root)
-        .map_err(|e| format!("read_dir({}): {e}", root.display()))?;
+    let entries = fs::read_dir(root).map_err(|e| format!("read_dir({}): {e}", root.display()))?;
     for entry in entries {
-        let entry =
-            entry.map_err(|e| format!("entry under {}: {e}", root.display()))?;
+        let entry = entry.map_err(|e| format!("entry under {}: {e}", root.display()))?;
         let path = entry.path();
         if !path.is_dir() {
             continue;
@@ -482,8 +477,7 @@ fn discover_cargo_metadata(root: &Path) -> Result<Vec<SunsetClause>, String> {
         }
         let contents = fs::read_to_string(&manifest)
             .map_err(|e| format!("read {}: {e}", manifest.display()))?;
-        if let Some(clause) =
-            parse_cargo_sunset_section(&contents, &manifest.display().to_string())
+        if let Some(clause) = parse_cargo_sunset_section(&contents, &manifest.display().to_string())
         {
             out.push(clause);
         }
@@ -591,10 +585,7 @@ fn print_report(clauses: &[SunsetClause], violations: &[Violation]) {
             .days_overdue
             .map(|d| format!(" days_overdue={d}"))
             .unwrap_or_default();
-        eprintln!(
-            "  - {} state={:?}{}",
-            v.clause_location, v.state, overdue
-        );
+        eprintln!("  - {} state={:?}{}", v.clause_location, v.state, overdue);
         eprintln!("      action: {}", v.expected_action);
     }
 }
@@ -630,8 +621,7 @@ mod tests {
         let dir = tmp.path().join("decisions");
         fs::create_dir_all(&dir).expect("mkdir");
         // No YAML frontmatter; body-only prose mentions sunset 2026.
-        let body =
-            "# ADR-1111\n\nThis surface is scheduled to sunset 2026-06-01.\n";
+        let body = "# ADR-1111\n\nThis surface is scheduled to sunset 2026-06-01.\n";
         fs::write(dir.join("ADR-1111-no-frontmatter.md"), body).expect("write");
         let clauses = discover_adr(&dir).expect("discover");
         assert_eq!(clauses.len(), 1);
@@ -695,8 +685,7 @@ mod tests {
             status = \"Deprecated\"\n\n\
             [dependencies]\n";
         fs::write(crate_dir.join("Cargo.toml"), manifest).expect("write");
-        let clauses = discover_cargo_metadata(&tmp.path().join("crates"))
-            .expect("discover");
+        let clauses = discover_cargo_metadata(&tmp.path().join("crates")).expect("discover");
         assert_eq!(clauses.len(), 1);
         assert_eq!(clauses[0].sunset_at, Date::parse_iso("2026-03-01"));
         assert_eq!(clauses[0].sunset_topic, "cargo-test");
@@ -717,10 +706,7 @@ mod tests {
         assert_eq!(options.now, Date::parse_iso("2026-05-15").unwrap());
         assert_eq!(
             options.reached_milestones,
-            vec![
-                "M-CC-P01-merge".to_string(),
-                "M-CC-P00-merge".to_string(),
-            ]
+            vec!["M-CC-P01-merge".to_string(), "M-CC-P00-merge".to_string(),]
         );
     }
 

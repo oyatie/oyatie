@@ -212,7 +212,10 @@ mod tests {
     #[test]
     fn empty_section_flagged() {
         let r = check(
-            &[prd("docs/prds/y.md", "## Competitive benchmark\n\n## Next\n")],
+            &[prd(
+                "docs/prds/y.md",
+                "## Competitive benchmark\n\n## Next\n",
+            )],
             COMPETITORS,
         )
         .unwrap();

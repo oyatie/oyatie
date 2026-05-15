@@ -3,7 +3,7 @@
   "_artifact_id": "architecture-map",
   "_meta": {
     "emitter": "oya-foundry-architecture-map-app::build_map",
-    "purpose": "Auto-backfilled purpose for architecture-map.json"
+    "purpose": "Generated architecture graph of crates, contracts, registries, and ownership edges for repository navigation and drift checks."
   },
   "nodes": [
     {

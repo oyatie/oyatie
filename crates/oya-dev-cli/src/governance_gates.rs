@@ -138,4 +138,3 @@ fn read_authority_documents(docs_dir: &Path) -> Result<Vec<AuthorityDocument>, S
         })
         .collect()
 }
-

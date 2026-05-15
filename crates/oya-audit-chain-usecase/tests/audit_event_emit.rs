@@ -2,6 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use oya_audit_chain_domain::AuditChain;
 use oya_audit_chain_usecase::{
     AUDIT_EVENT_ASYNCAPI_CONTRACT, AUDIT_EVENT_EMIT_SCHEMA, AUDIT_EVENT_EMIT_SOURCE,
     AUDIT_EVENT_EMIT_SURFACE, AUDIT_EVENT_PROTO_CONTRACT, AUDIT_EVENT_TOPIC,
@@ -9,7 +10,6 @@ use oya_audit_chain_usecase::{
     AuditEventEmitAuthorization, AuditEventEmitEnvelopeContext, AuditEventEmitIdempotencyLedger,
     AuditEventEmitPayload, emit_audit_event_from_app,
 };
-use oya_audit_chain_domain::AuditChain;
 use oya_eventing_domain::Outbox;
 
 const EVENT_ID: &str = "audit_evt_cloud_vm_001";

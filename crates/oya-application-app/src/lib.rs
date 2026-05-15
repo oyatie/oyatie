@@ -3375,13 +3375,15 @@ mod tests {
             )
             .unwrap();
 
-        let error = foundation.settle_failed_invocation(
-            &request,
-            Some(&reservation.reservation_id.value),
-            Some(&run.run_id.value),
-            RunDisposition::FailureProvider,
-            FoundationError::CapabilityInvocationUnauthorized,
-        ).unwrap();
+        let error = foundation
+            .settle_failed_invocation(
+                &request,
+                Some(&reservation.reservation_id.value),
+                Some(&run.run_id.value),
+                RunDisposition::FailureProvider,
+                FoundationError::CapabilityInvocationUnauthorized,
+            )
+            .unwrap();
 
         assert_eq!(error, FoundationError::CapabilityInvocationUnauthorized);
         let settled_run = foundation.foundry_runs().last().unwrap();
@@ -3460,13 +3462,15 @@ mod tests {
             )
             .unwrap();
 
-        let error = foundation.settle_failed_invocation(
-            &request,
-            Some("res_missing"),
-            Some(&run.run_id.value),
-            RunDisposition::FailureProvider,
-            FoundationError::InvalidInput,
-        ).unwrap();
+        let error = foundation
+            .settle_failed_invocation(
+                &request,
+                Some("res_missing"),
+                Some(&run.run_id.value),
+                RunDisposition::FailureProvider,
+                FoundationError::InvalidInput,
+            )
+            .unwrap();
 
         assert_eq!(error, FoundationError::InvalidInput);
         let settled_run = foundation.foundry_runs().last().unwrap();
@@ -3530,13 +3534,15 @@ mod tests {
             )
             .unwrap();
 
-        let error = foundation.settle_failed_invocation(
-            &request,
-            None,
-            Some(&run.run_id.value),
-            RunDisposition::FailureProvider,
-            FoundationError::CostBudgetExceeded,
-        ).unwrap();
+        let error = foundation
+            .settle_failed_invocation(
+                &request,
+                None,
+                Some(&run.run_id.value),
+                RunDisposition::FailureProvider,
+                FoundationError::CostBudgetExceeded,
+            )
+            .unwrap();
 
         assert_eq!(error, FoundationError::CostBudgetExceeded);
         assert!(
@@ -3574,13 +3580,15 @@ mod tests {
         let scope = settlement_scope();
         let reservation = foundation.cost_budgets.reserve(&scope, 10).unwrap();
 
-        let error = foundation.settle_failed_invocation(
-            &request,
-            Some(&reservation.reservation_id.value),
-            None,
-            RunDisposition::FailureProvider,
-            FoundationError::InvalidInput,
-        ).unwrap();
+        let error = foundation
+            .settle_failed_invocation(
+                &request,
+                Some(&reservation.reservation_id.value),
+                None,
+                RunDisposition::FailureProvider,
+                FoundationError::InvalidInput,
+            )
+            .unwrap();
 
         assert_eq!(error, FoundationError::InvalidInput);
         assert_eq!(

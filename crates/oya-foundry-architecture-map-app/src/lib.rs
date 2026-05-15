@@ -173,7 +173,7 @@ fn render_json(map: &ArchitectureMap) -> String {
     out.push_str("  \"$schema_ref\": \"specs/cross-cutting/knowledge-graph-schema.json\",\n");
     out.push_str("  \"_artifact_id\": \"architecture-map\",\n");
     out.push_str(
-        "  \"_meta\": { \"emitter\": \"oya-foundry-architecture-map-app::build_map\" },\n",
+        "  \"_meta\": { \"emitter\": \"oya-foundry-architecture-map-app::build_map\", \"purpose\": \"Generated architecture graph of crates, contracts, registries, and ownership edges for repository navigation and drift checks.\" },\n",
     );
     out.push_str("  \"nodes\": [\n");
     let nodes: Vec<&Node> = map.nodes().collect();

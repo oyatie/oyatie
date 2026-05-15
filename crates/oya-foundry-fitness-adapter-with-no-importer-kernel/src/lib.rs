@@ -279,10 +279,10 @@ mod tests {
         let root = tmp.path().join("crates");
         fs::create_dir_all(&root).expect("create crates root");
         for name in [
-            "oya-cloud-billing-adapter-aws",       // orphan: no importer
-            "oya-foundry-claude-account-adapter",  // matched by importer below
+            "oya-cloud-billing-adapter-aws",      // orphan: no importer
+            "oya-foundry-claude-account-adapter", // matched by importer below
             "oya-foundry-claude-account-importer-supervisor",
-            "oya-foundry-supervisor-kernel",       // ignored: not an adapter
+            "oya-foundry-supervisor-kernel", // ignored: not an adapter
         ] {
             let dir = root.join(name);
             fs::create_dir(&dir).expect("mkdir crate");

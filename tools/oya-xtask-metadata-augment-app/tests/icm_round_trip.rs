@@ -34,9 +34,8 @@ fn icm_jsonl_round_trip() {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis();
-    let test_content = format!(
-        "xtask-metadata-augment JSONL round-trip contract test token {unique_suffix}"
-    );
+    let test_content =
+        format!("xtask-metadata-augment JSONL round-trip contract test token {unique_suffix}");
     let test_topic = "context-xtask-icm-roundtrip-test";
 
     // Store the synthetic token.
@@ -59,7 +58,16 @@ fn icm_jsonl_round_trip() {
 
     // Recall with JSON format (-f json emits a parseable JSON array).
     let recall_output = Command::new("icm")
-        .args(["recall", &test_content, "-t", test_topic, "-f", "json", "-l", "10"])
+        .args([
+            "recall",
+            &test_content,
+            "-t",
+            test_topic,
+            "-f",
+            "json",
+            "-l",
+            "10",
+        ])
         .output()
         .expect("icm recall failed to spawn");
 

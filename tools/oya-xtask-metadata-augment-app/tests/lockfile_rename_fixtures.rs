@@ -5,12 +5,10 @@
 ///
 /// Tests are integration-level: they call rewrite_lockfile() directly
 /// and assert on the output string.
-
 // Re-export the internal module for testing.
 // Because this is an integration test in tests/, we invoke the binary's
 // library surface via the pub(crate) rewrite_lockfile function.
 // We expose it via a helper module compiled into the test binary.
-
 use std::collections::HashMap;
 
 // We inline the rewrite_lockfile logic here by calling the module directly.
@@ -19,7 +17,10 @@ use std::collections::HashMap;
 // This is a standard Cargo integration-test pattern when the crate is a [[bin]].
 
 fn make_map(pairs: &[(&str, &str)]) -> HashMap<String, String> {
-    pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+    pairs
+        .iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect()
 }
 
 fn rewrite(content: &str, map: &HashMap<String, String>) -> String {
@@ -29,7 +30,9 @@ fn rewrite(content: &str, map: &HashMap<String, String>) -> String {
         return content.to_owned();
     }
     let mut doc: toml_edit::DocumentMut = content.parse().expect("parses Cargo.lock");
-    let packages = doc.get_mut("package").and_then(|p| p.as_array_of_tables_mut());
+    let packages = doc
+        .get_mut("package")
+        .and_then(|p| p.as_array_of_tables_mut());
     let Some(packages) = packages else {
         return content.to_owned();
     };
@@ -81,8 +84,14 @@ fn row1_workspace_member_rename() {
     let content = "[[package]]\nname = \"oya-platform-tenant-kernel\"\nversion = \"0.1.0\"\n";
     let m = make_map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
     let out = rewrite(content, &m);
-    assert!(out.contains("oya-shared-tenant-domain"), "row1: new name present: {out}");
-    assert!(!out.contains("oya-platform-tenant-kernel"), "row1: old name gone: {out}");
+    assert!(
+        out.contains("oya-shared-tenant-domain"),
+        "row1: new name present: {out}"
+    );
+    assert!(
+        !out.contains("oya-platform-tenant-kernel"),
+        "row1: old name gone: {out}"
+    );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -107,8 +116,14 @@ version = "0.1.0"
         ("oya-cloud-region-kernel", "oya-cloud-region-domain"),
     ]);
     let out = rewrite(content, &m);
-    assert!(out.contains("oya-shared-cell-domain 0.1.0"), "row2: dep renamed: {out}");
-    assert!(out.contains("oya-cloud-region-domain"), "row2: member renamed: {out}");
+    assert!(
+        out.contains("oya-shared-cell-domain 0.1.0"),
+        "row2: dep renamed: {out}"
+    );
+    assert!(
+        out.contains("oya-cloud-region-domain"),
+        "row2: member renamed: {out}"
+    );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -119,8 +134,14 @@ fn row3_external_unchanged() {
     let content = "[[package]]\nname = \"serde\"\nversion = \"1.0.200\"\nsource = \"registry+https://github.com/rust-lang/crates.io-index\"\nchecksum = \"abc\"\n";
     let m = make_map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
     let out = rewrite(content, &m);
-    assert!(out.contains("\"serde\"") || out.contains("name = \"serde\""), "row3: serde unchanged: {out}");
-    assert!(out.contains("\"1.0.200\"") || out.contains("version = \"1.0.200\""), "row3: version preserved: {out}");
+    assert!(
+        out.contains("\"serde\"") || out.contains("name = \"serde\""),
+        "row3: serde unchanged: {out}"
+    );
+    assert!(
+        out.contains("\"1.0.200\"") || out.contains("version = \"1.0.200\""),
+        "row3: version preserved: {out}"
+    );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -131,7 +152,10 @@ fn row4_quoted_form() {
     let content = "[[package]]\nname = \"oya-foundry-evidence-kernel\"\nversion = \"0.1.0\"\n";
     let m = make_map(&[("oya-foundry-evidence-kernel", "oya-foundry-evidence-domain")]);
     let out = rewrite(content, &m);
-    assert!(out.contains("oya-foundry-evidence-domain"), "row4: quoted form renamed: {out}");
+    assert!(
+        out.contains("oya-foundry-evidence-domain"),
+        "row4: quoted form renamed: {out}"
+    );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -144,7 +168,10 @@ fn row5_unquoted_form_via_toml_edit() {
     let content = "[[package]]\nname = \"oya-cloud-compute-kernel\"\nversion = \"0.1.0\"\n";
     let m = make_map(&[("oya-cloud-compute-kernel", "oya-cloud-compute-domain")]);
     let out = rewrite(content, &m);
-    assert!(out.contains("oya-cloud-compute-domain"), "row5: toml_edit rename: {out}");
+    assert!(
+        out.contains("oya-cloud-compute-domain"),
+        "row5: toml_edit rename: {out}"
+    );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -189,7 +216,10 @@ checksum = "deadbeef"
     let count = out.matches("oya-shared-eventing-domain").count();
     assert_eq!(count, 2, "row7: both source variants renamed: {out}");
     // Source and checksum preserved unchanged
-    assert!(out.contains("path+file:///workspace"), "row7: path source preserved: {out}");
+    assert!(
+        out.contains("path+file:///workspace"),
+        "row7: path source preserved: {out}"
+    );
     assert!(out.contains("deadbeef"), "row7: checksum preserved: {out}");
 }
 
@@ -202,6 +232,12 @@ fn row8_missing_entry_passes_through() {
     // Rename map has no entry for oya-unknown-crate
     let m = make_map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
     let out = rewrite(content, &m);
-    assert!(out.contains("oya-unknown-crate"), "row8: unknown crate passes through: {out}");
-    assert!(!out.contains("oya-platform-tenant-kernel"), "row8: unrelated entry absent: {out}");
+    assert!(
+        out.contains("oya-unknown-crate"),
+        "row8: unknown crate passes through: {out}"
+    );
+    assert!(
+        !out.contains("oya-platform-tenant-kernel"),
+        "row8: unrelated entry absent: {out}"
+    );
 }

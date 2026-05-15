@@ -15,14 +15,14 @@ use oya_check_benchmark::{
     check as check_benchmark,
 };
 use oya_check_perf_budget::{
-    ImplementationPlan, Report as PerfBudgetReport,
-    ViolationKind as PerfBudgetViolationKind, check as check_perf_budget,
+    ImplementationPlan, Report as PerfBudgetReport, ViolationKind as PerfBudgetViolationKind,
+    check as check_perf_budget,
 };
 use oya_check_shardability::{
     MigrationFile, Report as ShardabilityReport, check as check_shardability,
 };
 use oya_check_statelessness::{
-    SCOPED_LAYERS, Report as StatelessnessReport, SourceFile, check as check_statelessness,
+    Report as StatelessnessReport, SCOPED_LAYERS, SourceFile, check as check_statelessness,
 };
 
 // ─── statelessness ───────────────────────────────────────────────────────────
@@ -62,14 +62,11 @@ pub(crate) fn validate_statelessness_gate(
 ) -> Result<StatelessnessReport, String> {
     let crates_dir = args.workspace_root.join("crates");
     if !crates_dir.is_dir() {
-        return Err(format!(
-            "crates dir not present: {}",
-            crates_dir.display()
-        ));
+        return Err(format!("crates dir not present: {}", crates_dir.display()));
     }
     let mut files = Vec::new();
-    for entry in fs::read_dir(&crates_dir)
-        .map_err(|error| format!("{}: {error}", crates_dir.display()))?
+    for entry in
+        fs::read_dir(&crates_dir).map_err(|error| format!("{}: {error}", crates_dir.display()))?
     {
         let entry = entry.map_err(|error| format!("{}: {error}", crates_dir.display()))?;
         let crate_dir = entry.path();
@@ -278,8 +275,8 @@ pub(crate) fn validate_perf_budget_gate(
     if args.plans_dir.is_dir() {
         collect_ip_markdowns(&args.plans_dir, &mut plans)?;
     }
-    let report = check_perf_budget(&plans)
-        .map_err(|error| format!("perf-budget kernel error: {error}"))?;
+    let report =
+        check_perf_budget(&plans).map_err(|error| format!("perf-budget kernel error: {error}"))?;
     if report.plans_checked == 0 && !args.allow_empty {
         return Err(format!(
             "perf-budget validation has zero IP markdowns (plans_dir: {}). \
@@ -349,8 +346,20 @@ pub(crate) fn parse_benchmark_validate_args(
     // (per docs/standards/hyperscaler-best-practices.md). Extend via repeated
     // --competitor flags at invocation time.
     let mut competitors: Vec<String> = vec![
-        "stripe", "linear", "palantir", "n8n", "snowflake", "databricks", "anthropic",
-        "openai", "google", "aws", "azure", "salesforce", "github", "atlassian",
+        "stripe",
+        "linear",
+        "palantir",
+        "n8n",
+        "snowflake",
+        "databricks",
+        "anthropic",
+        "openai",
+        "google",
+        "aws",
+        "azure",
+        "salesforce",
+        "github",
+        "atlassian",
     ]
     .into_iter()
     .map(String::from)
@@ -423,9 +432,7 @@ pub(crate) fn validate_benchmark_gate(
                 BenchmarkViolationKind::SectionMissing => {
                     "missing `## Competitive benchmark` section"
                 }
-                BenchmarkViolationKind::SectionEmpty => {
-                    "empty `## Competitive benchmark` section"
-                }
+                BenchmarkViolationKind::SectionEmpty => "empty `## Competitive benchmark` section",
                 BenchmarkViolationKind::SectionUnsubstantiated => {
                     "`## Competitive benchmark` has no digit and no recognized competitor"
                 }

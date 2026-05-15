@@ -75,9 +75,7 @@ pub fn rewrite_lockfile(content: &str, rename_map: &HashMap<String, String>) -> 
         return Ok(content.to_owned());
     }
 
-    let mut doc: toml_edit::DocumentMut = content
-        .parse()
-        .context("parsing Cargo.lock as TOML")?;
+    let mut doc: toml_edit::DocumentMut = content.parse().context("parsing Cargo.lock as TOML")?;
 
     let packages = doc
         .get_mut("package")
@@ -142,7 +140,10 @@ mod tests {
     use super::*;
 
     fn map(pairs: &[(&str, &str)]) -> HashMap<String, String> {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     /// Row 1: workspace-member rename
@@ -155,8 +156,14 @@ version = "0.1.0"
 "#;
         let m = map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
         let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(out.contains("oya-shared-tenant-domain"), "expected new name in output: {out}");
-        assert!(!out.contains("oya-platform-tenant-kernel"), "old name should be gone: {out}");
+        assert!(
+            out.contains("oya-shared-tenant-domain"),
+            "expected new name in output: {out}"
+        );
+        assert!(
+            !out.contains("oya-platform-tenant-kernel"),
+            "old name should be gone: {out}"
+        );
     }
 
     /// Row 2: dependent rename (name appearing in another package's dependencies)
@@ -173,11 +180,20 @@ dependencies = [
 "#;
         let m = map(&[
             ("oya-platform-cell-kernel", "oya-shared-cell-domain"),
-            ("oya-platform-data-boundary-kernel", "oya-shared-data-boundary-kernel"),
+            (
+                "oya-platform-data-boundary-kernel",
+                "oya-shared-data-boundary-kernel",
+            ),
         ]);
         let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(out.contains("oya-shared-cell-domain 0.1.0"), "cell dep renamed: {out}");
-        assert!(out.contains("oya-shared-data-boundary-kernel 0.1.0"), "data-boundary dep renamed: {out}");
+        assert!(
+            out.contains("oya-shared-cell-domain 0.1.0"),
+            "cell dep renamed: {out}"
+        );
+        assert!(
+            out.contains("oya-shared-data-boundary-kernel 0.1.0"),
+            "data-boundary dep renamed: {out}"
+        );
     }
 
     /// Row 3: external crate not in rename map is unchanged
@@ -192,7 +208,10 @@ checksum = "abc123"
 "#;
         let m = map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
         let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(out.contains("\"serde\"") || out.contains("name = \"serde\""), "serde unchanged: {out}");
+        assert!(
+            out.contains("\"serde\"") || out.contains("name = \"serde\""),
+            "serde unchanged: {out}"
+        );
     }
 
     /// Row 4: quoted form works (toml_edit always emits quoted strings)
@@ -201,7 +220,10 @@ checksum = "abc123"
         let content = "[[package]]\nname = \"oya-foundry-evidence-kernel\"\nversion = \"0.1.0\"\n";
         let m = map(&[("oya-foundry-evidence-kernel", "oya-foundry-evidence-domain")]);
         let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(out.contains("oya-foundry-evidence-domain"), "quoted rename: {out}");
+        assert!(
+            out.contains("oya-foundry-evidence-domain"),
+            "quoted rename: {out}"
+        );
     }
 
     /// Row 5: unquoted edge — toml_edit parses all TOML strings as quoted; same as row 4
@@ -211,7 +233,10 @@ checksum = "abc123"
         let content = "[[package]]\nname = \"oya-cloud-compute-kernel\"\nversion = \"0.1.0\"\n";
         let m = map(&[("oya-cloud-compute-kernel", "oya-cloud-compute-domain")]);
         let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(out.contains("oya-cloud-compute-domain"), "unquoted edge via toml_edit: {out}");
+        assert!(
+            out.contains("oya-cloud-compute-domain"),
+            "unquoted edge via toml_edit: {out}"
+        );
     }
 
     /// Row 6: version disambiguator — same crate name, two versions, both renamed
@@ -259,7 +284,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
         // rename_map has no entry for oya-unknown-crate
         let m = map(&[("oya-platform-tenant-kernel", "oya-shared-tenant-domain")]);
         let out = rewrite_lockfile(content, &m).unwrap();
-        assert!(out.contains("oya-unknown-crate"), "unknown crate passes through: {out}");
+        assert!(
+            out.contains("oya-unknown-crate"),
+            "unknown crate passes through: {out}"
+        );
     }
 
     /// rename_dep_string helper tests

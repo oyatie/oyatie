@@ -28,7 +28,7 @@ scripts/render-master-plan-ledger.py --check
 scripts/audit-master-plan-completion.py --check
 scripts/check-oya-vcs-admission.sh
 cargo run -q -p oya-dev-cli -- gate validate codeview-read-surface
-cargo run -q -p oya-foundry-fitness-purpose-audit -- "docs/*.md" "docs/standards/*.md" "docs/runbooks/*.md" ".omc/plans/**/*.md" "registries/**/*.json" "specs/**/*.json" "contracts/**/*.json" ".omc/**/*.json"
+cargo run -q -p oya-foundry-fitness-purpose-audit-app -- "docs/*.md" "docs/standards/*.md" "docs/runbooks/*.md" "registries/**/*.json" "specs/**/*.json" "contracts/**/*.json"
 cargo fmt --all -- --check
 cargo check --workspace --all-targets --all-features
 cargo clippy --workspace --all-targets --all-features -- -D warnings

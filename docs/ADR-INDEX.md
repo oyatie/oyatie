@@ -1,5 +1,6 @@
 ---
 doc_status: published
+purpose: Generated index of Architecture Decision Records, including ADR numbers, statuses, owners, and canonical file paths.
 ---
 
 # Oyatie — ADR Index

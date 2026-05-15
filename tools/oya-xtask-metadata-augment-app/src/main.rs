@@ -9,7 +9,10 @@ mod lockfile_rename;
 mod metadata;
 
 #[derive(Parser)]
-#[command(name = "xtask-metadata-augment", about = "Workspace metadata augmentation and lockfile rename tooling")]
+#[command(
+    name = "xtask-metadata-augment",
+    about = "Workspace metadata augmentation and lockfile rename tooling"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -51,7 +54,10 @@ enum Commands {
     /// Generate /tmp/old-crate-names.txt and /tmp/rename-map.tsv from §3 audit table.
     GenerateRenameMap {
         /// Path to the v4 plan markdown file.
-        #[arg(long, default_value = "docs/plans/rename-plan-v4-clean-arch-2026-05-13.md")]
+        #[arg(
+            long,
+            default_value = "docs/plans/rename-plan-v4-clean-arch-2026-05-13.md"
+        )]
         plan: String,
         /// Output path for old-crate-names.txt.
         #[arg(long, default_value = "/tmp/old-crate-names.txt")]
@@ -66,27 +72,29 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::MetadataAugment { check, apply, shard } => {
-            metadata::run_metadata_augment(check, apply, shard.as_deref())
-        }
-        Commands::LockfileRename { rename_map, lockfile, inplace, reverse } => {
-            lockfile_rename::run_lockfile_rename(&rename_map, &lockfile, inplace, reverse)
-        }
-        Commands::RegistryCheck => {
-            registry_check()
-        }
-        Commands::LibNameCheck => {
-            lib_name_check()
-        }
-        Commands::GenerateRenameMap { plan, names_out, map_out } => {
-            generate_rename_map(&plan, &names_out, &map_out)
-        }
+        Commands::MetadataAugment {
+            check,
+            apply,
+            shard,
+        } => metadata::run_metadata_augment(check, apply, shard.as_deref()),
+        Commands::LockfileRename {
+            rename_map,
+            lockfile,
+            inplace,
+            reverse,
+        } => lockfile_rename::run_lockfile_rename(&rename_map, &lockfile, inplace, reverse),
+        Commands::RegistryCheck => registry_check(),
+        Commands::LibNameCheck => lib_name_check(),
+        Commands::GenerateRenameMap {
+            plan,
+            names_out,
+            map_out,
+        } => generate_rename_map(&plan, &names_out, &map_out),
     }
 }
 
 fn registry_check() -> Result<()> {
-    let root_toml = std::fs::read_to_string("Cargo.toml")
-        .context("reading root Cargo.toml")?;
+    let root_toml = std::fs::read_to_string("Cargo.toml").context("reading root Cargo.toml")?;
     let doc: toml_edit::DocumentMut = root_toml.parse().context("parsing root Cargo.toml")?;
 
     let members = doc["workspace"]["members"]
@@ -113,7 +121,9 @@ fn registry_check() -> Result<()> {
         };
         let meta = &manifest_doc["package"]["metadata"]["oya"];
         if meta.is_none() {
-            errors.push(format!("{manifest_path}: missing [package.metadata.oya] block"));
+            errors.push(format!(
+                "{manifest_path}: missing [package.metadata.oya] block"
+            ));
         }
     }
 
@@ -129,8 +139,7 @@ fn registry_check() -> Result<()> {
 }
 
 fn lib_name_check() -> Result<()> {
-    let root_toml = std::fs::read_to_string("Cargo.toml")
-        .context("reading root Cargo.toml")?;
+    let root_toml = std::fs::read_to_string("Cargo.toml").context("reading root Cargo.toml")?;
     let doc: toml_edit::DocumentMut = root_toml.parse().context("parsing root Cargo.toml")?;
 
     let members = doc["workspace"]["members"]
@@ -232,10 +241,7 @@ fn generate_rename_map(plan_path: &str, names_out: &str, map_out: &str) -> Resul
             continue;
         }
 
-        let current = cells[1]
-            .trim_matches('`')
-            .trim_matches('*')
-            .trim();
+        let current = cells[1].trim_matches('`').trim_matches('*').trim();
 
         // Determine proposed_name index based on column count:
         // 11 columns → index 7; 9 columns → index 6.
@@ -280,8 +286,7 @@ fn generate_rename_map(plan_path: &str, names_out: &str, map_out: &str) -> Resul
         .map(|(old, new)| format!("{old}\t{new}"))
         .collect::<Vec<_>>()
         .join("\n");
-    std::fs::write(map_out, map_content + "\n")
-        .with_context(|| format!("writing {map_out}"))?;
+    std::fs::write(map_out, map_content + "\n").with_context(|| format!("writing {map_out}"))?;
 
     println!(
         "generate-rename-map: {} rename pairs written to {} and {}",

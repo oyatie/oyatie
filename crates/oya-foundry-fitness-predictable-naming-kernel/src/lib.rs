@@ -55,15 +55,7 @@ pub const CHECK_FAMILY_PREFIX: &str = "oya-check-";
 /// pattern (ADR-0105 §Adopted Patterns). The layer is `adapter`; the
 /// backend is a sub-suffix denoting which external system.
 pub const BACKEND_SUFFIXES: [&str; 9] = [
-    "fake",
-    "inmemory",
-    "aws",
-    "oci",
-    "gcp",
-    "azure",
-    "postgres",
-    "redis",
-    "sqlite",
+    "fake", "inmemory", "aws", "oci", "gcp", "azure", "postgres", "redis", "sqlite",
 ];
 
 /// Doctrinal carve-outs: crate names whose name is locked by a
@@ -237,9 +229,7 @@ pub fn check(rows: &[CrateNaming]) -> Result<NamingReport, NamingError> {
                             role: declared.clone(),
                         },
                     });
-                } else if !check_family
-                    && ALLOWED_ROLES.contains(&inferred)
-                    && declared != inferred
+                } else if !check_family && ALLOWED_ROLES.contains(&inferred) && declared != inferred
                 {
                     violations.push(NamingViolation {
                         crate_name: row.crate_name.clone(),
@@ -448,23 +438,13 @@ mod tests {
 
     #[test]
     fn usecase_layer_accepted() {
-        let r = check(&[row(
-            "oya-dsr-usecase",
-            Some("usecase"),
-            Some("dsr"),
-        )])
-        .unwrap();
+        let r = check(&[row("oya-dsr-usecase", Some("usecase"), Some("dsr"))]).unwrap();
         assert!(r.violations.is_empty(), "{:?}", r.violations);
     }
 
     #[test]
     fn api_layer_accepted() {
-        let r = check(&[row(
-            "oya-cloud-compute-vm-api",
-            Some("api"),
-            Some("cloud"),
-        )])
-        .unwrap();
+        let r = check(&[row("oya-cloud-compute-vm-api", Some("api"), Some("cloud"))]).unwrap();
         assert!(r.violations.is_empty(), "{:?}", r.violations);
     }
 
@@ -496,8 +476,12 @@ mod tests {
 
     #[test]
     fn is_backend_qualified_adapter_helper() {
-        assert!(is_backend_qualified_adapter("oya-foundry-account-adapter-inmemory"));
-        assert!(is_backend_qualified_adapter("oya-cloud-billing-adapter-aws"));
+        assert!(is_backend_qualified_adapter(
+            "oya-foundry-account-adapter-inmemory"
+        ));
+        assert!(is_backend_qualified_adapter(
+            "oya-cloud-billing-adapter-aws"
+        ));
         assert!(is_backend_qualified_adapter("oya-x-adapter-postgres"));
         assert!(!is_backend_qualified_adapter("oya-foundry-account-adapter")); // no backend
         assert!(!is_backend_qualified_adapter("oya-foundry-account-domain"));
@@ -509,7 +493,9 @@ mod tests {
         // Sole entry per ADR-0107 supersede 2026-05-15.
         assert!(is_doctrinal_carve_out("oya-tooling-agent-read"));
         // Random non-carve-out names are not exempt.
-        assert!(!is_doctrinal_carve_out("oya-foundry-fitness-portfolio-citation"));
+        assert!(!is_doctrinal_carve_out(
+            "oya-foundry-fitness-portfolio-citation"
+        ));
         assert!(!is_doctrinal_carve_out("oya-adapter-substitution-test"));
         assert!(!is_doctrinal_carve_out(""));
     }

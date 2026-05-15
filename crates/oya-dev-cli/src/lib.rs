@@ -135,9 +135,8 @@ pub(crate) use runbook_gates::{
 };
 pub(crate) use scalability_gates::{
     parse_benchmark_validate_args, parse_perf_budget_validate_args,
-    parse_shardability_validate_args, parse_statelessness_validate_args,
-    validate_benchmark_gate, validate_perf_budget_gate, validate_shardability_gate,
-    validate_statelessness_gate,
+    parse_shardability_validate_args, parse_statelessness_validate_args, validate_benchmark_gate,
+    validate_perf_budget_gate, validate_shardability_gate, validate_statelessness_gate,
 };
 pub(crate) use scalar_parse::{
     clean_scalar_value, insert_scalar_field, parse_bool_field, parse_u8_percent, parse_u32_field,

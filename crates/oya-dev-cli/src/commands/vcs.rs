@@ -140,7 +140,11 @@ fn render_json(decision: &RatchetDecision) -> ExitCode {
     let plan = &decision.plan;
     println!(
         "{{\"command\":\"oya vcs\",\"status\":\"{}\",\"schema_version\":{},\"ratchet\":{{\"accepted\":{},\"warnings\":{},\"blocking_errors\":{},\"forbidden_uses\":{}}},\"plan\":{{\"kind\":\"{}\",\"action\":\"{}\",\"agent_id\":{},\"intent\":{},\"scopes\":{},\"evidence_refs\":{},\"bundle_id\":{},\"environment\":{},\"closeout_mode\":{},\"compatibility_alias\":{}}}}}",
-        if decision.accepted { "accepted" } else { "rejected" },
+        if decision.accepted {
+            "accepted"
+        } else {
+            "rejected"
+        },
         decision.schema_version,
         decision.accepted,
         json_string_array(&decision.warnings),

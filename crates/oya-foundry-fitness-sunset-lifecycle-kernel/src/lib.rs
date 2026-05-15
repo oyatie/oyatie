@@ -254,6 +254,40 @@ pub const DEFAULT_DEPRECATION_LAG_DAYS: i64 = 30;
 /// absent. Per ADR-0108 §"Canonical sub-rule (defaulting)".
 pub const DEFAULT_REMOVAL_LAG_DAYS: i64 = 90;
 
+/// Canonical sentinel milestone identifier (ADR-0108 §"Amendment 2026-05-15
+/// — doctrine-not-time-bounded canonical sentinel"). When
+/// `sunset_milestone == DOCTRINE_NOT_TIME_BOUNDED_SENTINEL`, the clause
+/// references the artifact's role as a doctrine schema rather than a
+/// time-bounded transition of the artifact itself. Such clauses are
+/// **canonically exempt** from SunsetReached / RemovalReached findings:
+/// they describe a permanent doctrinal reference, not a sunset commitment.
+///
+/// Per `feedback_no_exceptions_canonical.md` vocabulary registry, this
+/// IS the canonical pattern for non-time-bounded doctrine references —
+/// not an exception to canonical, but a canonical sub-rule of the
+/// sunset-clause schema (parallel to the 30/90-day defaulting sub-rule).
+pub const DOCTRINE_NOT_TIME_BOUNDED_SENTINEL: &str = "doctrine-not-time-bounded";
+
+/// Enumerated canonical sentinel milestone identifiers. Authors MUST
+/// use one of these when the sunset clause references a non-time-bounded
+/// concept; the kernel recognizes them and exempts matching clauses from
+/// time-based lifecycle findings.
+///
+/// Per ADR-0108 §"Amendment 2026-05-15 — doctrine-not-time-bounded
+/// canonical sentinel", new sentinels MUST be added to this list and
+/// declared in the ADR amendment to remain machine-readable.
+pub const CANONICAL_SENTINEL_MILESTONES: &[&str] = &[DOCTRINE_NOT_TIME_BOUNDED_SENTINEL];
+
+/// Returns `true` when the supplied milestone identifier is a canonical
+/// sentinel per [`CANONICAL_SENTINEL_MILESTONES`]. Sentinel-anchored
+/// clauses are exempt from SunsetReached / RemovalReached findings and
+/// classify as [`LifecycleState::PreSunset`] (silent/healthy).
+pub fn is_sentinel_milestone(milestone: &str) -> bool {
+    CANONICAL_SENTINEL_MILESTONES
+        .iter()
+        .any(|m| *m == milestone)
+}
+
 /// Effective deprecation date for a clause: explicit if present, else
 /// `sunset_at + 30 days`. `None` when sunset has no date anchor.
 pub fn effective_deprecation_at(clause: &SunsetClause) -> Option<Date> {
@@ -289,6 +323,20 @@ fn classify(
     // MissingFields: no date AND no milestone — cannot evaluate.
     if clause.sunset_at.is_none() && clause.sunset_milestone.is_none() {
         return (LifecycleState::MissingFields, None);
+    }
+
+    // Canonical sentinel milestone: clause references the artifact's role
+    // as a doctrine schema, not a time-bounded transition. Exempt from
+    // SunsetReached / RemovalReached findings per ADR-0108 §"Amendment
+    // 2026-05-15 — doctrine-not-time-bounded canonical sentinel". The
+    // sentinel applies only when `sunset_at` is absent (a clause that
+    // pairs a calendar date with a sentinel milestone is a schema error
+    // — the date wins and the sentinel is ignored, no silent contradiction).
+    if clause.sunset_at.is_none()
+        && let Some(ms) = clause.sunset_milestone.as_deref()
+        && is_sentinel_milestone(ms)
+    {
+        return (LifecycleState::PreSunset, None);
     }
 
     let removal = effective_removal_at(clause);
@@ -425,11 +473,7 @@ mod tests {
 
     #[test]
     fn pre_sunset_clause_is_silent() {
-        let clauses = [clause_with_sunset(
-            "future-thing",
-            d(2030, 1, 1),
-            false,
-        )];
+        let clauses = [clause_with_sunset("future-thing", d(2030, 1, 1), false)];
         let violations = evaluate(&clauses, d(2026, 5, 15), &[]);
         assert!(
             violations.is_empty(),
@@ -547,5 +591,75 @@ mod tests {
     fn empty_input_returns_empty_violations() {
         let violations = evaluate(&[], d(2026, 5, 15), &[]);
         assert!(violations.is_empty());
+    }
+
+    #[test]
+    fn doctrine_sentinel_is_recognized() {
+        assert!(is_sentinel_milestone(DOCTRINE_NOT_TIME_BOUNDED_SENTINEL));
+        assert!(is_sentinel_milestone("doctrine-not-time-bounded"));
+        assert!(!is_sentinel_milestone("M-CC-P01-merge"));
+        assert!(!is_sentinel_milestone("doctrine-not-time-bounded-typo"));
+    }
+
+    #[test]
+    fn doctrine_sentinel_clause_is_silent_indefinitely() {
+        // Sentinel-anchored clauses describe a doctrinal schema reference,
+        // not a time-bounded transition. They must classify as PreSunset
+        // (silent/healthy) regardless of `now` — there is no calendar
+        // anchor to overshoot. Per ADR-0108 §"Amendment 2026-05-15 —
+        // doctrine-not-time-bounded canonical sentinel".
+        let clause = SunsetClause {
+            location: "test://doctrine".into(),
+            sunset_at: None,
+            sunset_milestone: Some(DOCTRINE_NOT_TIME_BOUNDED_SENTINEL.to_string()),
+            deprecation_at: None,
+            removal_at: None,
+            sunset_topic: "doctrine-reference".into(),
+            has_deprecation_marker: false,
+        };
+
+        // Today.
+        let v_today = evaluate(std::slice::from_ref(&clause), d(2026, 5, 15), &[]);
+        assert!(v_today.is_empty(), "sentinel-today: {v_today:?}");
+
+        // Far future — still silent (no time-bounded transition exists).
+        let v_future = evaluate(std::slice::from_ref(&clause), d(2099, 12, 31), &[]);
+        assert!(v_future.is_empty(), "sentinel-future: {v_future:?}");
+
+        // Even if the literal sentinel string appears in reached_milestones
+        // it has no effect: there is no date anchor and no genuine merge
+        // gate the sentinel corresponds to.
+        let v_w_milestone = evaluate(
+            std::slice::from_ref(&clause),
+            d(2099, 12, 31),
+            &[DOCTRINE_NOT_TIME_BOUNDED_SENTINEL.to_string()],
+        );
+        assert!(
+            v_w_milestone.is_empty(),
+            "sentinel-with-reached-list: {v_w_milestone:?}"
+        );
+    }
+
+    #[test]
+    fn doctrine_sentinel_with_calendar_date_does_not_silently_exempt() {
+        // A clause that pairs `sunset_at` (calendar anchor) with the
+        // sentinel milestone is a schema error — the kernel honors the
+        // calendar date and ignores the sentinel rather than silently
+        // exempting. This avoids a backdoor where authors set
+        // `sunset_milestone: doctrine-not-time-bounded` to mute a real
+        // overdue sunset_at.
+        let clause = SunsetClause {
+            location: "test://contradiction".into(),
+            sunset_at: Some(d(2026, 1, 1)), // already past
+            sunset_milestone: Some(DOCTRINE_NOT_TIME_BOUNDED_SENTINEL.to_string()),
+            deprecation_at: None,
+            removal_at: None,
+            sunset_topic: "calendar-anchored".into(),
+            has_deprecation_marker: false,
+        };
+        let v = evaluate(std::slice::from_ref(&clause), d(2026, 5, 15), &[]);
+        // sunset_at present and reached -> SunsetReached, NOT silent.
+        assert_eq!(v.len(), 1);
+        assert_eq!(v[0].state, LifecycleState::SunsetReached);
     }
 }

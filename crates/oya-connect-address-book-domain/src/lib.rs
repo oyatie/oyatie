@@ -243,12 +243,7 @@ impl ContactCard {
         // then to an empty string for the static-borrow case. The
         // first-element fallback preserves observable behavior for the
         // (validation-guaranteed-unreachable) no-primary case.
-        if let Some(primary) = self
-            .emails
-            .value
-            .iter()
-            .find(|email| email.primary.value)
-        {
+        if let Some(primary) = self.emails.value.iter().find(|email| email.primary.value) {
             return primary.email.value.as_str();
         }
         self.emails

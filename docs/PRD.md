@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for PRD.md
+purpose: Canonical product requirements entry point for Oyatie product scope, users, capabilities, constraints, and acceptance boundaries.
 doc_status: published
 ---
 

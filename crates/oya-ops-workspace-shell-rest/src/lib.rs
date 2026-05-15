@@ -15,11 +15,11 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_ops_workspace_shell_adapter::{WireHealthResponse, WireSurface, WireSurfaceListResponse};
-use oya_ops_workspace_shell_usecase::{
-    FlipSurfaceStateUseCase, ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
-};
 use oya_ops_workspace_shell_kernel::{
     SurfaceCatalogError, SurfaceCatalogPort, SurfaceId, SurfaceState, VisibilityTier,
+};
+use oya_ops_workspace_shell_usecase::{
+    FlipSurfaceStateUseCase, ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
 
 pub const LIST_LIVE_SURFACES_ROUTE: &str = "/workspace";

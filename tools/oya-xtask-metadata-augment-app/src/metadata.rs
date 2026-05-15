@@ -6,9 +6,18 @@ const REQUIRED_KEYS: &[&str] = &["bounded_context", "kind", "layer", "purpose"];
 
 /// 12-value canonical layer enum per §2.2.
 const LAYER_VALUES: &[&str] = &[
-    "kernel", "domain", "application", "app",
-    "adapter", "infrastructure",
-    "cli", "rest", "grpc", "graphql", "worker", "sdk",
+    "kernel",
+    "domain",
+    "application",
+    "app",
+    "adapter",
+    "infrastructure",
+    "cli",
+    "rest",
+    "grpc",
+    "graphql",
+    "worker",
+    "sdk",
 ];
 
 pub fn run_metadata_augment(check: bool, _apply: bool, shard: Option<&str>) -> Result<()> {
@@ -16,8 +25,7 @@ pub fn run_metadata_augment(check: bool, _apply: bool, shard: Option<&str>) -> R
         println!("metadata-augment: shard = {s}");
     }
 
-    let root_toml = std::fs::read_to_string("Cargo.toml")
-        .context("reading root Cargo.toml")?;
+    let root_toml = std::fs::read_to_string("Cargo.toml").context("reading root Cargo.toml")?;
     let doc: DocumentMut = root_toml.parse().context("parsing root Cargo.toml")?;
 
     let members = doc["workspace"]["members"]
@@ -84,7 +92,10 @@ pub fn run_metadata_augment(check: bool, _apply: bool, shard: Option<&str>) -> R
     }
 
     if check {
-        println!("(--check mode: {} issue(s) found, no writes performed)", missing.len() + invalid_layer.len());
+        println!(
+            "(--check mode: {} issue(s) found, no writes performed)",
+            missing.len() + invalid_layer.len()
+        );
     }
 
     if !missing.is_empty() || !invalid_layer.is_empty() {
@@ -115,8 +126,7 @@ pub fn emit_oya_block(
         oya.insert("vertical", value(v));
     }
 
-    let meta = doc["package"]["metadata"]
-        .or_insert(Item::Table(Table::new()));
+    let meta = doc["package"]["metadata"].or_insert(Item::Table(Table::new()));
     meta["oya"] = Item::Table(oya);
     Ok(())
 }

@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk ls /Users/jasonlee/oyatie/tools/oya-xtask-metadata-augment-app/src/ && rtk read /Users/jasonlee/oyatie/tools/oya-xtask-metadata-augment-app/src/lib.rs --max-lines 10\",\"description\":\"Ch...",
-  "error": "Exit code 1\nlockfile_rename.rs  10.8K\nmain.rs  9.4K\nmetadata.rs  3.8K\ncat: /Users/jasonlee/oyatie/tools/oya-xtask-metadata-augment-app/src/lib.rs: No such file or directory (os error 2)",
-  "timestamp": "2026-05-15T11:13:56.055Z",
-  "retry_count": 1
+  "tool_input_preview": "{\"command\":\"/bin/grep -v 'docs/decisions/ADR-' /tmp/doc-paths.txt; echo --- COUNT_NON_ADR ---; /bin/grep -c -v 'docs/decisions/ADR-' /tmp/doc-paths.txt; echo --- COUNT_ADR ---; /bin/grep -c 'docs/deci...",
+  "error": "Exit code 127\n(eval):1: no such file or directory: /bin/grep\n--- COUNT_NON_ADR ---\n(eval):1: no such file or directory: /bin/grep\n--- COUNT_ADR ---\n(eval):1: no such file or directory: /bin/grep",
+  "timestamp": "2026-05-15T11:46:26.959Z",
+  "retry_count": 2
 }

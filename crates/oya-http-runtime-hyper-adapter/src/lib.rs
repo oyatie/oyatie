@@ -201,7 +201,8 @@ pub fn to_hyper_response(resp: HttpResponse) -> Response<Full<Bytes>> {
             // the status code on the parts. This path is hit only if the outer
             // builder rejected the header set; the fallback intentionally drops
             // user headers and serves a fixed 500 body.
-            let mut response = Response::new(Full::new(Bytes::from_static(b"response build failed")));
+            let mut response =
+                Response::new(Full::new(Bytes::from_static(b"response build failed")));
             *response.status_mut() = hyper::StatusCode::INTERNAL_SERVER_ERROR;
             response
         })

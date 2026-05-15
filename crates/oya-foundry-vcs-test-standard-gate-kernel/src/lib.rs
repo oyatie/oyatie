@@ -312,7 +312,12 @@ impl TestSuiteRegistry {
             TestSuiteRow::new(
                 "rust-nextest-workspace",
                 SuiteSelector::Language(SymbolLanguage::Rust),
-                [TestTier::Unit, TestTier::Integration, TestTier::Contract, TestTier::Property],
+                [
+                    TestTier::Unit,
+                    TestTier::Integration,
+                    TestTier::Contract,
+                    TestTier::Property,
+                ],
                 "cargo nextest run --workspace --all-features --no-fail-fast",
                 "cargo-nextest",
                 BlockingRule::Always,

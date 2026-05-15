@@ -904,8 +904,8 @@ pub mod cli {
     //!
     //! CLI flags `--block` / `--warn-only` override the config wave for
     //! ad-hoc invocations (CI uses config-driven wave).
-    use super::{LifecycleReport, NaiveDate, Violation, ViolationKind, evaluate};
     use super::discovery;
+    use super::{LifecycleReport, NaiveDate, Violation, ViolationKind, evaluate};
     use std::collections::BTreeSet;
     use std::env;
     use std::path::PathBuf;
@@ -1030,9 +1030,7 @@ pub mod cli {
         if changed.contains(&violation.location) {
             return true;
         }
-        changed
-            .iter()
-            .any(|c| violation.location.starts_with(c))
+        changed.iter().any(|c| violation.location.starts_with(c))
     }
 
     fn emit(lane_name: &str, report: &LifecycleReport, wave: Wave) -> ExitCode {
@@ -1176,15 +1174,12 @@ pub mod cli {
                 match args[i].as_str() {
                     "--config" => {
                         i += 1;
-                        config = PathBuf::from(
-                            args.get(i).ok_or("--config needs a path")?.clone(),
-                        );
+                        config = PathBuf::from(args.get(i).ok_or("--config needs a path")?.clone());
                     }
                     "--milestone" => {
                         i += 1;
-                        reached_milestones.push(
-                            args.get(i).ok_or("--milestone needs an id")?.to_string(),
-                        );
+                        reached_milestones
+                            .push(args.get(i).ok_or("--milestone needs an id")?.to_string());
                     }
                     "--wave" => {
                         i += 1;
@@ -1259,10 +1254,22 @@ mod tests {
                 },
             ],
             transitions: vec![
-                Transition { from: "proposed".into(), to: "accepted".into() },
-                Transition { from: "accepted".into(), to: "superseded".into() },
-                Transition { from: "accepted".into(), to: "archived".into() },
-                Transition { from: "superseded".into(), to: "archived".into() },
+                Transition {
+                    from: "proposed".into(),
+                    to: "accepted".into(),
+                },
+                Transition {
+                    from: "accepted".into(),
+                    to: "superseded".into(),
+                },
+                Transition {
+                    from: "accepted".into(),
+                    to: "archived".into(),
+                },
+                Transition {
+                    from: "superseded".into(),
+                    to: "archived".into(),
+                },
             ],
             sources: vec![],
             defaults: Defaults {
@@ -1357,10 +1364,7 @@ mod tests {
         a.deadline_at = Some(NaiveDate::ymd(2025, 1, 1));
         let report = evaluate(&cfg, &[a], NaiveDate::ymd(2026, 5, 15), &[]);
         assert_eq!(report.violations.len(), 1);
-        assert_eq!(
-            report.violations[0].kind,
-            ViolationKind::OverdueTransition
-        );
+        assert_eq!(report.violations[0].kind, ViolationKind::OverdueTransition);
     }
 
     #[test]
@@ -1382,10 +1386,7 @@ mod tests {
         }];
         let report = evaluate(&cfg, &[a], NaiveDate::ymd(2026, 5, 15), &[]);
         assert_eq!(report.violations.len(), 1);
-        assert_eq!(
-            report.violations[0].kind,
-            ViolationKind::IllegalTransition
-        );
+        assert_eq!(report.violations[0].kind, ViolationKind::IllegalTransition);
     }
 
     #[test]

@@ -13,11 +13,11 @@
 use oya_ops_docs_portal_adapter::{
     WireLiveFeedEvent, WireManifestSnapshot, WireRefreshExtractorResponse,
 };
-use oya_ops_docs_portal_usecase::{
-    GetManifestUseCase, RefreshExtractorError, RefreshExtractorUseCase, SubscribeLiveFeedUseCase,
-};
 use oya_ops_docs_portal_kernel::{
     ExtractorClass, ExtractorId, LiveFeedPort, ManifestPort, TenantScope,
+};
+use oya_ops_docs_portal_usecase::{
+    GetManifestUseCase, RefreshExtractorError, RefreshExtractorUseCase, SubscribeLiveFeedUseCase,
 };
 
 pub const GET_MANIFEST_ROUTE: &str = "/workspace/docs/manifest";

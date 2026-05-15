@@ -12,7 +12,7 @@
     "created_at": "2026-05-14T07:22:20Z",
     "updated_at": "2026-05-14T07:22:20Z",
     "standard_ref": "/specs/cross-cutting/test-standard.json",
-    "purpose": "Auto-backfilled purpose for test-suite-registry.json"
+    "purpose": "Registry of test suites, commands, tiers, and evidence outputs used by Oya VCS and CI admission gates."
   },
   "rows": [
     {

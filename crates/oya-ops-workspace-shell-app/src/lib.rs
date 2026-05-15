@@ -20,14 +20,14 @@ use std::sync::{Arc, RwLock};
 use oya_http_middleware_kernel::MiddlewareChain;
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
-use oya_ops_workspace_shell_usecase::{
-    ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
-};
 use oya_ops_workspace_shell_kernel::{
     InMemorySurfaceCatalog, SurfaceCatalogPort, SurfaceState, VisibilityTier,
 };
 use oya_ops_workspace_shell_rest::{
     LIST_ALL_SURFACES_ROUTE, LIST_LIVE_SURFACES_ROUTE, SHELL_HEALTH_ROUTE,
+};
+use oya_ops_workspace_shell_usecase::{
+    ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
 
 /// Shared catalog state. Wrapped in `RwLock` so handlers can clone-snapshot
@@ -73,8 +73,7 @@ pub fn build_router(catalog: SharedCatalog) -> Result<Router<SyncHandler>, Route
                 .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
                 .collect();
             let count = surfaces.len();
-            let wire =
-                oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
+            let wire = oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
             json_response(&surface_list_json(&wire))
         }),
     )?;
@@ -93,8 +92,7 @@ pub fn build_router(catalog: SharedCatalog) -> Result<Router<SyncHandler>, Route
                 .map(oya_ops_workspace_shell_adapter::WireSurface::from_kernel)
                 .collect();
             let count = surfaces.len();
-            let wire =
-                oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
+            let wire = oya_ops_workspace_shell_adapter::WireSurfaceListResponse { surfaces, count };
             json_response(&surface_list_json(&wire))
         }),
     )?;

@@ -18,8 +18,8 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" rtk cargo build -q -p oya-foundry-fitness-lifecycle-kernel 2>&1 | head -60",
-    "testCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" rtk cargo test --workspace --no-run > /tmp/cargo-test-build.log 2>&1; echo \"EXIT=$?\"",
+    "buildCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" rtk cargo build -q --workspace 2>&1 | command tail -3 && echo --- && for cli in adr-status api-stability-tier capability-status crate-status dependency-status doc-status feature-flag-status migration-status plan-status; do\n  out=$(target/debug/oya-foundry-fitness-${cli}-lifecycle-app 2>&1 | command head -1)\n  rc=$?\n  printf 'rc=%s  %s\\n' \"$rc\" \"$out\"\ndone",
+    "testCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" rtk cargo test -q -p oya-foundry-fitness-lifecycle-kernel 2>&1 | command tail -3",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
@@ -324,6 +324,12 @@
       "type": "file"
     },
     {
+      "path": "CLAUDE.md",
+      "accessCount": 3,
+      "lastAccessed": 1778845459820,
+      "type": "file"
+    },
+    {
       "path": "crates/oya-cloud-billing-usecase/tests/cloud_billing_event_ingest.rs",
       "accessCount": 2,
       "lastAccessed": 1778837131793,
@@ -357,12 +363,6 @@
       "path": "specs/cross-cutting/root-hub-pointers.json",
       "accessCount": 2,
       "lastAccessed": 1778838172015,
-      "type": "file"
-    },
-    {
-      "path": "CLAUDE.md",
-      "accessCount": 2,
-      "lastAccessed": 1778838303676,
       "type": "file"
     },
     {

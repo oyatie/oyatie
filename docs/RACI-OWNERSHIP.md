@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for RACI-OWNERSHIP.md
+purpose: Ownership and accountability matrix for teams, decision classes, code ownership, and review responsibilities.
 doc_status: published
 ---
 

@@ -11,12 +11,12 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_saas_plugin_marketplace_kernel::{
-    MarketplaceListingPublish, MarketplaceRegistry, PluginManifestRegister, TrustTier, Vertical,
-};
 use oya_saas_plugin_app::{
     PluginContext, PluginInvocation, PluginInvocationOutcome, PluginInvoke, PluginRuntime,
     PluginRuntimeError,
+};
+use oya_saas_plugin_marketplace_kernel::{
+    MarketplaceListingPublish, MarketplaceRegistry, PluginManifestRegister, TrustTier, Vertical,
 };
 use oya_saas_workflow_app::{
     PublishDefinitionInput, PublishStepInput, StartRunInput, WorkflowAppError, WorkflowEngine,

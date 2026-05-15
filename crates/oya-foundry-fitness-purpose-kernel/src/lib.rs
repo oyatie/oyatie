@@ -88,7 +88,9 @@ pub fn is_placeholder(purpose: &str) -> bool {
         return true;
     }
     let lower = trimmed.to_ascii_lowercase();
-    PLACEHOLDER_NEEDLES.iter().any(|needle| lower.contains(needle))
+    PLACEHOLDER_NEEDLES
+        .iter()
+        .any(|needle| lower.contains(needle))
 }
 
 pub fn check(nodes: &[PurposeNode]) -> Result<PurposeReport, PurposeError> {

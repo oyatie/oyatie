@@ -626,7 +626,10 @@ mod tests {
         assert_eq!(claim.kind, OyaVcsCommandKind::Claim);
         assert_eq!(claim.action, ControllerAction::ClaimLock);
         assert_eq!(claim.compatibility_alias.as_deref(), Some("grit"));
-        assert_eq!(claim.scopes, vec!["crates/oya-foundry-vcs-cli-ratchet-kernel"]);
+        assert_eq!(
+            claim.scopes,
+            vec!["crates/oya-foundry-vcs-cli-ratchet-kernel"]
+        );
 
         let work = plan(&["work", "--agent", "agent-a"]);
         assert_eq!(work.action, ControllerAction::StartWork);

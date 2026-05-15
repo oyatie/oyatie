@@ -19,14 +19,14 @@
       "cargo-deny configuration generator"
     ],
     "join_source": "cargo metadata --no-deps (workspace.dependencies)",
-    "purpose": "Auto-backfilled purpose for dependency-rationales.json"
+    "purpose": "Documents each external workspace dependency rationale, owner, layer seam, and replacement strategy for policy gates."
   },
   "entries": {
     "hyper": {
       "version_pin": "1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "HTTP I/O protocol \u2014 h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
+      "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter"
     },
@@ -50,7 +50,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-only",
       "owner_team": "council-architecture",
-      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime \u2014 those leaks are CLOSED.",
+      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime — those leaks are CLOSED.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-http-runtime-hyper-adapter"
     },
@@ -66,7 +66,7 @@
       "version_pin": "0.1",
       "layer_seam": "infrastructure-only",
       "owner_team": "council-architecture",
-      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing \u2014 pure types don't emit spans. Current usage is bounded.",
+      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing — pure types don't emit spans. Current usage is bounded.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "oya-observability-tracing-adapter and similar infrastructure-layer crates"
     },
@@ -74,7 +74,7 @@
       "version_pin": "0.3",
       "layer_seam": "app-only",
       "owner_team": "council-architecture",
-      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries \u2014 never in libraries \u2014 so binaries decide their own log routing.",
+      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries — never in libraries — so binaries decide their own log routing.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "app-layer binaries (composition roots)"
     },
@@ -82,7 +82,7 @@
       "version_pin": "1",
       "layer_seam": "adapter-and-application",
       "owner_team": "council-architecture",
-      "rationale": "Serialization framework. Used by adapters (DTOs) and application orchestrators (event emission). Kernels SHOULD NOT depend on serde \u2014 pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
+      "rationale": "Serialization framework. Used by adapters (DTOs) and application orchestrators (event emission). Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
       "isolated_in_crate": "adapter and application layer crates; kernel violations report-only"
     },

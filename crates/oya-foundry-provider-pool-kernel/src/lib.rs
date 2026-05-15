@@ -341,10 +341,7 @@ fn least_used(
     // from `healthy[0]` is the canonical non-panicking encoding of that
     // invariant.
     let mut best: &ProviderAccountId = &healthy[0];
-    let mut best_used = usage
-        .get(best)
-        .map(|s| s.requests_in_window)
-        .unwrap_or(0);
+    let mut best_used = usage.get(best).map(|s| s.requests_in_window).unwrap_or(0);
     let mut tied = false;
     for m in healthy.iter().skip(1) {
         let u = usage.get(m).map(|s| s.requests_in_window).unwrap_or(0);
@@ -370,7 +367,10 @@ fn least_latency(
 ) -> (ProviderAccountId, PoolRoutingReason) {
     // ADR-0083 Tier 1: first-element seeding (caller-enforced non-empty).
     let mut best: &ProviderAccountId = &healthy[0];
-    let mut best_p99 = usage.get(best).map(|s| s.p99_latency_ms).unwrap_or(u32::MAX);
+    let mut best_p99 = usage
+        .get(best)
+        .map(|s| s.p99_latency_ms)
+        .unwrap_or(u32::MAX);
     for m in healthy.iter().skip(1) {
         let p = usage.get(m).map(|s| s.p99_latency_ms).unwrap_or(u32::MAX);
         if p < best_p99 {

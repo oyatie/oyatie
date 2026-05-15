@@ -36,9 +36,7 @@ fn main() -> ExitCode {
             for violation in &report.violations {
                 eprintln!(
                     "  - {} expected={} hint={}",
-                    violation.adapter_crate,
-                    violation.expected_importer_pattern,
-                    violation.hint,
+                    violation.adapter_crate, violation.expected_importer_pattern, violation.hint,
                 );
             }
             ExitCode::FAILURE
