@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Executable PRD + Implementation Spec: Agentic Delivery Fabric
 
 **Date:** 2026-05-10

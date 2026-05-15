@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Plugin authoring guide
 
 Plugins extend approved surfaces without bypassing tenant policy, evidence capture, or capability

@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Foundry Supervisor Sample Payloads
 
 ## Inbox Line (JSONL)

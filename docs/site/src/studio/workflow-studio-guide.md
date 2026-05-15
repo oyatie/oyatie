@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Workflow Studio guide
 
 Workflow Studio is the user-facing workspace for composing approved capabilities into repeatable

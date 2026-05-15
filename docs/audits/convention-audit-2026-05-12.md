@@ -20,6 +20,7 @@ companion_docs:
 related_adrs:
   - ADR-0015
   - ADR-0017
+doc_status: published
 ---
 
 # Convention Audit — 2026-05-12

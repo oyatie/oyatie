@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Claude Code backup branch: comprehensive repository findings
 
 **Date:** 2026-05-10

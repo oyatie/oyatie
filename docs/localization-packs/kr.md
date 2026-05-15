@@ -10,6 +10,7 @@ date: 2026-05-13
 owners: ["council-architecture", "gtm-customer-success-kr"]
 authority_chain: docs/MASTERPLAN.md §2.5, §5.5 → ADR-0064 → docs/localization-packs/INDEX.md → pack.yaml (authoritative) → this file
 manifest: docs/localization-packs/kr/pack.yaml
+doc_status: published
 ---
 
 # Korea Localization Pack (`kr`) — Pack #1 (planned, foundational)

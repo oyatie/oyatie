@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Foundry Supervisor
 
 The Foundry Supervisor is a daemon that orchestrates session execution across multiple provider accounts (Claude, Codex, Gemini). It manages inbox/outbox JSONL files, enforces usage limits and cost ceilings, and ensures settings consistency via canonical templates.

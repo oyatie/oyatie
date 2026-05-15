@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Foundry Supervisor Architecture
 
 The supervisor follows the project's 12-layer hexagonal architecture.
