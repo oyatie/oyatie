@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # DPIA: <Capability / Surface / Vertical> — <YYYY-MM-DD>
 
 > **Owner:** `council-privacy` co-author + per-axis team

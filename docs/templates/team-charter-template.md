@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team Charter: <team-id>
 
 > **Author:** <name / agent>

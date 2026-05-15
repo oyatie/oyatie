@@ -16,6 +16,7 @@ related:
 adrs_cited:
   - ADR-0056  # BNF v4.1 + layer enum
   - ADR-0057  # LEAN checks
+doc_status: published
 ---
 
 # ADR-XXXX: <Decision Title — imperative present tense>

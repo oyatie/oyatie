@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # PR template
 
 > Per [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2, every PR uses this template. The 5 H2 sections are CI-enforced by `traceability-validator`.

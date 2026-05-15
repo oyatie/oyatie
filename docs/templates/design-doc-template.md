@@ -17,6 +17,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives (agent path)
   - ADR-0054  # scaffold-claim (grit symbols in detailed design)
 length_cap: 200
+doc_status: published
 ---
 
 ```yaml

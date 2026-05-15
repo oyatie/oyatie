@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Threat Model: <Service / Surface / Capability> — <YYYY-MM-DD>
 
 > **Owner:** `ops-security` co-author + per-axis team owner

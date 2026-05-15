@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # ADR supersession template
 
 > Per [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2. Used when authoring an ADR that supersedes another. Validated by `adr-supersession-graph` (the graph of `Supersedes:` links must remain a DAG).

@@ -18,6 +18,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (traceability)
   - ADR-0053  # sanctioned primitives
   - ADR-0054  # scaffold-claim pattern
+doc_status: published
 ---
 
 <!-- Supersedes prior docs/templates/adr-template.md once reviewed. -->

@@ -18,6 +18,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger
   - ADR-0053  # sanctioned primitives
   - ADR-0054  # scaffold-claim pattern
+doc_status: published
 ---
 
 # Templates + Checklists INDEX

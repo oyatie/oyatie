@@ -15,6 +15,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives
   - ADR-0054  # scaffold-claim pattern
 length_cap: 100
+doc_status: published
 ---
 
 ```yaml

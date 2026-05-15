@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Regional pack template
 
 > See [`regional-packs/_TEMPLATE.md`](../regional-packs/_TEMPLATE.md) for the canonical authoring template; this stub points to it. Validated by `regional-pack-validator` per ADR-0010.

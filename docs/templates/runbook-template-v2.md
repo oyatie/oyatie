@@ -18,6 +18,7 @@ related:
 adrs_cited:
   - ADR-0053  # sanctioned primitives (agent path)
   - ADR-0052  # inventory (audit emission)
+doc_status: published
 ---
 
 <!-- Supersedes prior docs/templates/runbook-template.md once reviewed. -->

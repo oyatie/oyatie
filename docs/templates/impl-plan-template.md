@@ -19,6 +19,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives (grit claim symbols)
   - ADR-0054  # scaffold-claim pattern
   - ADR-0056  # BNF v4.1 + layer enum
+doc_status: published
 ---
 
 ```yaml

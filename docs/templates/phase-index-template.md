@@ -15,6 +15,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives (icm store in handoff)
   - ADR-0054  # scaffold-claim pattern (symbols touched)
 length_cap: 50
+doc_status: published
 ---
 
 ```yaml

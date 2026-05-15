@@ -19,6 +19,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives (agent path)
   - ADR-0054  # scaffold-claim pattern (grit-claim symbols)
 rfc_2119_active: true
+doc_status: published
 ---
 
 <!-- Supersedes prior docs/templates/pull-request-template.md once reviewed. -->

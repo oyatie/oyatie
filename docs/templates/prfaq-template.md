@@ -22,6 +22,7 @@ authoring_rules:
   no_bullets_in_press_release: true     # full prose
   data_replaces_adjectives: true
   no_author_attribution_on_doc: true    # per Amazon convention
+doc_status: published
 ---
 
 ```yaml

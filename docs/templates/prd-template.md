@@ -19,6 +19,7 @@ adrs_cited:
   - ADR-0056  # BNF v4.1
   - ADR-0106  # Ontology architecture
   - ADR-0103  # Workflow hexagonal
+doc_status: published
 ---
 
 ```yaml
