@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate ADR-0039 supply-chain wiring
-        run: cargo run -p oya-tooling-cli-dev-runtime -- gate validate supply-chain --require-adr0039-evidence
+        run: cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidence
 
   release-artifact-attestation:
     name: release artifact Trivy/Cosign/SBOM lane
@@ -33,4 +33,4 @@ jobs:
       - name: Execute ADR-0039 release supply-chain script
         run: scripts/supply-chain-adr0039.sh registry/release/images.yaml
       - name: Validate release supply-chain evidence records
-        run: cargo run -p oya-tooling-cli-dev-runtime -- gate validate release-supply-chain --phase release
+        run: cargo run -p oya-dev-cli -- gate validate release-supply-chain --phase release

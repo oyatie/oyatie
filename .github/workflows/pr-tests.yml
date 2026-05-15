@@ -1,0 +1,105 @@
+name: pr-tests
+
+# Required-check workflow for every PR + push to main per the 2026-05-15
+# audit finding "0 workflows run cargo test/cargo nextest on pull_request."
+#
+# Pipeline: fmt → clippy → build → nextest. Each step is a job so failures
+# point at the specific stage; cache is shared via Swatinem/rust-cache.
+#
+# Branch-protection ruleset (`.github/branch-protection.yaml`) lists these
+# job IDs as required checks. When the ruleset is deployed (admin action),
+# every PR to `main` blocks until these jobs pass.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-tests-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  cargo-fmt:
+    name: cargo fmt --check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+          components: rustfmt
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+  cargo-clippy:
+    name: cargo clippy -D warnings
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+          components: clippy
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: pr-tests
+      - name: cargo clippy --workspace --all-targets -- -D warnings
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  cargo-check:
+    name: cargo check --workspace
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: pr-tests
+      - name: cargo check --workspace --all-targets
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: cargo check --workspace --all-targets
+
+  cargo-nextest:
+    name: cargo nextest run --workspace
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [cargo-check]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@9185c192a96ba09167ad8663015b3f5366e1bb1f
+        with:
+          tool: cargo-nextest
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: pr-tests
+      - name: cargo nextest run --workspace
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+          NEXTEST_PROFILE: ci
+        run: cargo nextest run --workspace --no-fail-fast
