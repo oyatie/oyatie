@@ -6,10 +6,10 @@
 
 ## At-a-glance
 
-- **Total ADRs:** 82
-- **Numbering:** ADR-0001..ADR-0104 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)
-- **Next ADR number:** 0105
-- **Status counts:** Accepted 42, Proposed 36, accepted 4
+- **Total ADRs:** 83
+- **Numbering:** ADR-0001..ADR-0105 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)
+- **Next ADR number:** 0106
+- **Status counts:** Accepted 43, Proposed 36, accepted 4
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -98,11 +98,12 @@
 | ADR-0102 | Accepted | Foundry Settings Template Canonical Rendering | council-architecture | [`ADR-0102-foundry-settings-template-canonical-rendering.md`](decisions/ADR-0102-foundry-settings-template-canonical-rendering.md) |
 | ADR-0103 | Accepted | Grit cutover inventory of legacy primitives | council-architecture | [`ADR-0103-grit-cutover-inventory.md`](decisions/ADR-0103-grit-cutover-inventory.md) |
 | ADR-0104 | Accepted | Ecosystem-expansion principle for check-lane + adapter crate reintroduction | council-architecture | [`ADR-0104-ecosystem-expansion-toolchain-and-adapters.md`](decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md) |
+| ADR-0105 | Accepted | 13-value canonical layer enum + check-family + backend-suffix patterns (amends ADR-0056) | council-architecture | [`ADR-0105-13-layer-enum-and-check-family-patterns.md`](decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0105), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0106), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -120,6 +121,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 82 ADR files (sorted ascending)
+- `decisions/` directory listing — 83 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

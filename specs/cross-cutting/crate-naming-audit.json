@@ -14,7 +14,8 @@
     "applies_to": "every entry in root Cargo.toml [workspace.members]",
     "purpose": "Authoritative record of crate-naming compliance against ADR-0056. Each non-compliant entry is a tracked migration item; council-architecture ratifies adopt/rename verdicts on this file (per governance-amendment.json)."
   },
-  "canonical_enum_12": ["kernel", "domain", "application", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "graphql", "worker", "sdk"],
+  "canonical_enum_13": ["kernel", "domain", "application", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "graphql", "worker", "sdk", "api"],
+  "amended_by": "ADR-0105 (2026-05-15): extends ADR-0056 12-value enum to 13 values; adds `api`; formalizes check-family + backend-suffix patterns.",
   "adopted_patterns": {
     "check_family": {
       "id": "ADOPT-PAT-01",
@@ -42,11 +43,12 @@
   },
   "non_compliant": [
     {
-      "verdict": "ADOPT",
+      "verdict": "ADOPTED",
+      "amendment_status": "complete (ADR-0105, 2026-05-15)",
       "suffix": "api",
       "count": 21,
       "rationale": "21 crates consistently use `-api` as the contract-surface layer across cloud-*, identity, tenancy, ontology, policy-cedar, regional-pack, foundry-dashboard, foundry-adapter-anthropic-compat, foundry-adapter-openai-compat. Well-defined, multi-crate, purposeful: denotes 'this crate exposes a typed contract' without committing to HTTP-vs-gRPC-vs-GraphQL at the type level. Renaming all 21 to `rest`/`grpc`/`graphql` would lose the protocol-neutral contract framing.",
-      "amendment_action": "Extend ADR-0056 §'12-Value Layer Enum' from 12 to 13 values, adding `api` as a protocol-neutral contract-surface layer. Distinguish from `rest`/`grpc`/`graphql` (specific implementations) and `sdk` (client consumer). Document the inward-only flow rule for `api`: depends on kernel only.",
+      "amendment_action": "DONE per ADR-0105: ADR-0056 §'12-Value Layer Enum' extended from 12 to 13 values; `api` added as a protocol-neutral contract-surface layer; depends-on-kernel-only flow rule documented.",
       "crates": [
         "oya-cloud-compute-functions-api",
         "oya-cloud-compute-k8s-api",
