@@ -147,8 +147,10 @@ Forbidden patterns:
    on failure — refused at code review.
 3. Logging an error and returning `Ok` — see §6.
 
-Exception: pure parsing or validation helpers MAY return `Option<T>` when
-the "absence" is semantically meaningful (e.g., `find_first(...)`).
+Sub-rule (canonical): pure parsing or validation helpers MAY return
+`Option<T>` when the "absence" is semantically meaningful (e.g.,
+`find_first(...)`); this is a canonical sub-rule of the Result-returner
+contract, not an exception.
 
 ## 6. Silent-failure prevention
 

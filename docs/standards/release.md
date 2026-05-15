@@ -45,7 +45,7 @@ Per `/oya-release-verify` (formerly `/oya-release-verify`):
 - Skip: weekly cadence
 - Cherry-pick to `main` post-merge
 
-## 5. Per-axis release exceptions
+## 5. Per-axis release extensions
 
 - **Foundry capabilities**: per-capability semver + sunset per ADR-0037; eval-set pass per release per ADR-0024
 - **Cloud control plane**: stricter API versioning per ADR-0037; major bumps with 12-month deprecation

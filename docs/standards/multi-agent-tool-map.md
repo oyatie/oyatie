@@ -96,7 +96,7 @@ the agent MUST use only the triad + the canonical tool surface above:
 | Claude Code | `Read`, `Write`, `Edit`, `Bash` (rtk-rewritten), `Grep`, `Glob`, `grit`, `icm`, `oya-tooling-agent-read`, OMC subagent skills, MCP calls | Direct `git`/`gh` via `Bash` per Directive 12 (with icm-store rationale) | bypassing hooks; `~/.claude/` edits |
 | Codex CLI | `read_file`, `apply_patch`, `shell` (rtk-rewritten), `web_fetch`, `web_search` | Direct `git`/`gh` via `shell` per Directive 12 | network calls outside the sandboxed allow-list |
 | Gemini CLI | `read_file`, `write_file`, `replace`, `run_shell_command`, `glob`, `search_file_content` | Direct `git`/`gh` per Directive 12 | sandbox-escape commands |
-| OMC subagent | inherits Claude Code's surface | inherits Claude Code's exceptions | inherits Claude Code's bans |
+| OMC subagent | inherits Claude Code's surface | inherits Claude Code's Directive-12 extensions | inherits Claude Code's bans |
 
 The lane `oya-foundry-fitness-tool-map-cohesion` validates that the
 per-harness sanctioned set in each agent appendix matches this table.

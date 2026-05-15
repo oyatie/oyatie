@@ -153,7 +153,9 @@ required keys.
 ## 6. Line-length guidance
 
 - **Prose**: SHOULD wrap at 100 columns. MUST NOT exceed 120 columns. URLs
-  and code blocks are exempt.
+  render verbatim; code blocks follow §"Code blocks" below — the column
+  rule does not apply to either by definition (canonical sub-rule, not an
+  exemption).
 - **Tables**: MUST NOT wrap inside a cell; if a cell exceeds 120 cols, break
   into multiple rows or use a footnote.
 - **Code blocks**: SHOULD wrap at 100 cols; long shell pipelines MAY use

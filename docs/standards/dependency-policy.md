@@ -230,7 +230,8 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
 
 1. **Pinning a provider SDK in `app` or `domain`.** Move to an adapter.
 2. **Adding a crate that fails `cargo-deny licenses`.** Use the
-   substitute table; if none fits, file an ADR exemption.
+   substitute table; if none fits, file an ADR-tracked extension
+   (named license addition with sunset rationale).
 3. **Skipping `cargo-vet` certification for a new crate.**
 4. **Pinning to a non-LTS line when an LTS exists** (e.g., Node.js
    Current channel for production).
