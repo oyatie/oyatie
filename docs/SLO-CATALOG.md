@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for SLO-CATALOG.md
+purpose: Oyatie — SLO Catalog
 ---
 
 # Oyatie — SLO Catalog

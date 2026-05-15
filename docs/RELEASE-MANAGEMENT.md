@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for RELEASE-MANAGEMENT.md
+purpose: Oyatie — Release Management
 ---
 
 # Oyatie — Release Management

@@ -1,6 +1,13 @@
 ---
-purpose: Auto-backfilled purpose for CHANGELOG.md
+purpose: Oyatie — Canonical Docs Changelog
 ---
+
+## 2026-05-15 — Fitness lane `oya-foundry-fitness-adapter-with-no-importer` scaffolded (ADR-0104 audit-#7 mechanical-prevention)
+
+- Added `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` (I/O-free check) and `tools/oya-foundry-fitness-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
+- Kernel exposes `WorkspaceCrate`, `Violation`, `AdapterImporterReport`, and `check`; port-in-kernel per ADR-0056 (filesystem walking lives in the dev-CLI). 8 kernel unit tests + 3 dev-CLI parser tests pass.
+- Workspace members updated (`crates/oya-foundry-fitness-adapter-with-no-importer-kernel`, `tools/oya-foundry-fitness-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
+- Implements ADR-0104 Consequences §4 mechanical-prevention candidate; scaffold lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
 ## 2026-05-15 — M02-P06 Foundry Supervisor implementation complete
 

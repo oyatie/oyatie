@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for SECURITY-PROGRAM.md
+purpose: Oyatie — Security Program
 ---
 
 # Oyatie — Security Program

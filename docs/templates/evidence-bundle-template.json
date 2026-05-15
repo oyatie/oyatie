@@ -258,5 +258,5 @@
     }
   },
   "additionalProperties": false,
-  "purpose": "Auto-backfilled purpose for evidence-bundle-template.json"
+  "purpose": "Canonical evidence-bundle shape. Lifts the Phase-00 evidence shape from .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md §D."
 }

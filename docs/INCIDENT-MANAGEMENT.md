@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INCIDENT-MANAGEMENT.md
+purpose: Oyatie — Incident Management
 ---
 
 # Oyatie — Incident Management

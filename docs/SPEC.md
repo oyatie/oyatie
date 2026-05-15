@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for SPEC.md
+purpose: Oyatie — System Specification (SPEC)
 ---
 
 # Oyatie — System Specification (SPEC)

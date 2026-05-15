@@ -38,7 +38,7 @@ authority_chain_declaration: |
     > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
-purpose: Auto-backfilled purpose for AGENTS.md
+purpose: "Operating-Contract: Oyatie Agent Operating Contract."
 ---
 # Oyatie Agent Operating Contract
 

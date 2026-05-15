@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for DOC-UPDATE-PROTOCOL.md
+purpose: Oyatie — Doc Update Protocol
 ---
 
 # Oyatie — Doc Update Protocol

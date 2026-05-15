@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for PRIVACY-PROGRAM.md
+purpose: Oyatie — Privacy Program
 ---
 
 # Oyatie — Privacy Program

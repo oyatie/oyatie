@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for DOCUMENTATION.md
+purpose: Oyatie — Documentation System
 ---
 
 # Oyatie — Documentation System

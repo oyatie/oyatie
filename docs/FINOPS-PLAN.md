@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for FINOPS-PLAN.md
+purpose: Oyatie — FinOps Plan
 ---
 
 # Oyatie — FinOps Plan

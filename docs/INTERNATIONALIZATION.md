@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INTERNATIONALIZATION.md
+purpose: Oyatie — Internationalization (i18n)
 ---
 
 # Oyatie — Internationalization (i18n)

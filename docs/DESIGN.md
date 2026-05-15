@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for DESIGN.md
+purpose: "Oyatie — Architecture & Design Document (DESIGN)"
 ---
 
 # Oyatie — Architecture & Design Document (DESIGN)

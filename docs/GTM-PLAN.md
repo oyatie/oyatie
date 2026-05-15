@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for GTM-PLAN.md
+purpose: Oyatie — Go-to-Market Plan
 ---
 
 # Oyatie — Go-to-Market Plan

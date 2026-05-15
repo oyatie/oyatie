@@ -206,5 +206,5 @@
   "evidence_portal": "trust.oyatie.com",
   "auditor_self_serve_evidence_regen_sla": "\u2264 4 hours per ADR-0003 + ADR-0038",
   "validation_lane": "oya-foundry-fitness-compliance + per-regulator pack validators per ADR-0010",
-  "purpose": "Auto-backfilled purpose for compliance.json"
+  "purpose": "Machine-readable mirror of COMPLIANCE-MATRIX.md. Per-regulator × per-control × per-evidence × per-cadence × per-owner. Generated; do not hand-edit."
 }

@@ -24,7 +24,7 @@ foundation_adrs:
 - ADR-0053
 - ADR-0054
 - ADR-0056
-purpose: Auto-backfilled purpose for MASTERPLAN.md
+purpose: "MasterPlan: Oyatie — MASTERPLAN."
 ---
 # Oyatie — MASTERPLAN
 

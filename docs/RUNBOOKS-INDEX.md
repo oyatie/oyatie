@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for RUNBOOKS-INDEX.md
+purpose: Oyatie — Runbooks Index
 ---
 
 # Oyatie — Runbooks Index

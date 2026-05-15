@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for COMPLIANCE-MATRIX.md
+purpose: Oyatie — Compliance Matrix
 ---
 
 # Oyatie — Compliance Matrix

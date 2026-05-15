@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for VENDOR-PARTNER-LEDGER.md
+purpose: Oyatie — Vendor + Partner Ledger
 ---
 
 # Oyatie — Vendor + Partner Ledger

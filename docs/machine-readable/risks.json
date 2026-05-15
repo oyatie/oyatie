@@ -311,5 +311,5 @@
       "counter": "Korea-pack is one regional pack; US is another; parallel onboarding per regional-pack architecture"
     }
   ],
-  "purpose": "Auto-backfilled purpose for risks.json"
+  "purpose": "Machine-readable mirror of RISK-REGISTER.md. Risks scored severity × likelihood × velocity. Generated; do not hand-edit."
 }

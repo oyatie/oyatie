@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for LEGAL-IP-LEDGER.md
+purpose: Oyatie — Legal + IP Ledger
 ---
 
 # Oyatie — Legal + IP Ledger

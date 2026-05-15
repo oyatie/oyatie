@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for STANDARDS-AND-TEMPLATES.md
+purpose: Oyatie — Standards, Templates, Hooks, Skills, Tools, Checklists
 ---
 
 # Oyatie — Standards, Templates, Hooks, Skills, Tools, Checklists

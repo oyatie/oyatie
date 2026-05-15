@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for ADR-LEGACY-REGRESSION-MAPPING.md
+purpose: Legacy ADR → New Pack Regression Mapping
 ---
 
 # Legacy ADR → New Pack Regression Mapping

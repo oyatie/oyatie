@@ -286,5 +286,5 @@
       "wave_first_onboarding": "W-Region-Fan-Out wave 2"
     }
   ],
-  "purpose": "Auto-backfilled purpose for products.json"
+  "purpose": "Machine-readable mirror of products/ directory. Generated; do not hand-edit."
 }

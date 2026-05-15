@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for ADR-CONSOLIDATION-PLAN.md
+purpose: Oyatie — ADR Consolidation Plan
 ---
 
 # Oyatie — ADR Consolidation Plan

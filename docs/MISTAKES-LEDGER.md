@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for MISTAKES-LEDGER.md
+purpose: Oyatie — Mistakes-and-Fixes Ledger
 ---
 
 # Oyatie — Mistakes-and-Fixes Ledger

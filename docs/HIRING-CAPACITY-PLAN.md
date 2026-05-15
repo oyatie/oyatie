@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for HIRING-CAPACITY-PLAN.md
+purpose: Oyatie — Hiring + Capacity Plan
 ---
 
 # Oyatie — Hiring + Capacity Plan

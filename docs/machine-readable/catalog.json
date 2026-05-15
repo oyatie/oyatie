@@ -1018,5 +1018,5 @@
   },
   "validation_lane": "oya-foundry-fitness-doc-catalog",
   "validation_runs_on": "every PR touching docs/**",
-  "purpose": "Auto-backfilled purpose for catalog.json"
+  "purpose": "Machine-readable catalog of every consolidated doc + per-product PRD + team charter + regional pack. Mirrored from DOC-CATALOG.md."
 }

@@ -281,5 +281,5 @@
   ],
   "med_low": "48 entries from rename-and-contradiction.md MEDIUM (33) + LOW (20) tiers; resolved en bloc via brand-rename + contradiction-resolution batches in v2 plan",
   "auto_emission": "EVT-CROSS-AXIS-CONTRADICTION-FOUND emitted on detection by oya-foundry-fitness-cohesion or manual flagging via gh issue with kind:contradiction",
-  "purpose": "Auto-backfilled purpose for contradictions.json"
+  "purpose": "Machine-readable mirror of CONTRADICTION-LEDGER.md. Tracks every cross-axis or contract contradiction with status / owner / resolution path. Generated; do not hand-edit."
 }

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for CONTRADICTION-LEDGER.md
+purpose: Oyatie — Contradiction Ledger
 ---
 
 # Oyatie — Contradiction Ledger

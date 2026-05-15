@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for COMPETITIVE-GAP-ANALYSIS.md
+purpose: Oyatie — Competitive Gap Analysis
 ---
 
 # Oyatie — Competitive Gap Analysis

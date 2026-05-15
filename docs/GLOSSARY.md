@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for GLOSSARY.md
+purpose: Oyatie — Glossary, Vocabulary, Conventions
 ---
 
 # Oyatie — Glossary, Vocabulary, Conventions

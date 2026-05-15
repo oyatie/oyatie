@@ -5,7 +5,7 @@ status: Living
 date: 2026-05-13
 auto_emitted_by: oya-check-documentation-cli (LEAN-A5)
 authority_chain: "docs/MASTERPLAN.md \xA713.5 \u2192 ADR-0063 \u2192 this file"
-purpose: Auto-backfilled purpose for DOC-COVERAGE.md
+purpose: "This file is the canonical coverage snapshot for the oyatie documentation suite contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation suite."
 ---
 # Documentation Suite Coverage Matrix
 

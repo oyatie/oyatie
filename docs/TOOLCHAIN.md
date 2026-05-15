@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for TOOLCHAIN.md
+purpose: "Oyatie — Internal Tooling & Toolchain"
 ---
 
 # Oyatie — Internal Tooling & Toolchain

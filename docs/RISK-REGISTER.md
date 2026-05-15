@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for RISK-REGISTER.md
+purpose: Oyatie — Risk Register
 ---
 
 # Oyatie — Risk Register

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for DOC-CATALOG.md
+purpose: "Doc Catalog & Update Protocol"
 ---
 
 # Doc Catalog & Update Protocol

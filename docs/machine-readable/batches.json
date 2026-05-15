@@ -827,5 +827,5 @@
     "wave_completion": "wave-gate per checklists/wave-gate.md",
     "ongoing": "automation-ci-pipeline + adr-promotion-burndown + registry-hygiene + brand-rename-docs run continuously across all waves"
   },
-  "purpose": "Auto-backfilled purpose for batches.json"
+  "purpose": "Foundry batch dispatch manifest. Each batch tag declares fanout (parallel agent count) + shared-writes (coordination set) + items + depends-on. Generated from v2 plan at docs/raw/plan-v2-draft.md."
 }

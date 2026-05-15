@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for QA-TEST-STRATEGY.md
+purpose: Oyatie — QA + Test Strategy
 ---
 
 # Oyatie — QA + Test Strategy

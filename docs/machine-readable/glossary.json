@@ -417,5 +417,5 @@
   "korean_english_pairs": "see GLOSSARY.md \u00a79 for full table",
   "acronym_index": "see GLOSSARY.md \u00a710 for full table",
   "validation_lane": "oya-foundry-fitness-glossary",
-  "purpose": "Auto-backfilled purpose for glossary.json"
+  "purpose": "Machine-readable mirror of GLOSSARY.md. Generated; do not hand-edit. Consumed by oya-foundry-fitness-glossary CI lane to enforce term-usage consistency across consolidated docs."
 }
