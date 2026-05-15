@@ -19,8 +19,8 @@
 //! - `FAKE_CARGO_STDERR`  literal string to write to stderr (one line)
 //! - `FAKE_CARGO_EXIT`    numeric exit code (default `0`)
 //! - `FAKE_CARGO_PRINT_ARGS=1` also print `cargo-args:<args>`,
-//!     `rustdoc:<RUSTDOC>`, `target:<CARGO_TARGET_DIR>` (mirrors what
-//!     the success-path test expects from the rustdoc invocation echo).
+//!   `rustdoc:<RUSTDOC>`, `target:<CARGO_TARGET_DIR>` (mirrors what
+//!   the success-path test expects from the rustdoc invocation echo).
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
@@ -42,7 +42,10 @@ fn main() -> ExitCode {
     if env::var("FAKE_CARGO_PRINT_ARGS").as_deref() == Ok("1") {
         println!("cargo-args:{}", args.join(" "));
         println!("rustdoc:{}", env::var("RUSTDOC").unwrap_or_default());
-        println!("target:{}", env::var("CARGO_TARGET_DIR").unwrap_or_default());
+        println!(
+            "target:{}",
+            env::var("CARGO_TARGET_DIR").unwrap_or_default()
+        );
     }
 
     let exit = env::var("FAKE_CARGO_EXIT")
