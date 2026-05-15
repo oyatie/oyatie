@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Every artifact declares purpose; orphans are deletion targets.
 ---
 
 ---

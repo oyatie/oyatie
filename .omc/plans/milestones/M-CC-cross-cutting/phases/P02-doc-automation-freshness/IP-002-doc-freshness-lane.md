@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-doc-freshness-lane.md
+purpose: Block PRs that change source-of-truth without regenerating dependent docs.
 ---
 
 ---

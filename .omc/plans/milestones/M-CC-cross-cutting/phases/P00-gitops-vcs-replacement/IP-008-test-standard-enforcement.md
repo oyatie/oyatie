@@ -10,7 +10,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Auto-backfilled purpose for IP-008-test-standard-enforcement.md
+purpose: Enforce documented machine-readable unit, integration, contract, e2e, property, and fuzz standards through semantic diff and CI/CD.
 ---
 # M-CC-P00-IP-008 — Unit/integration/e2e standard enforcement
 

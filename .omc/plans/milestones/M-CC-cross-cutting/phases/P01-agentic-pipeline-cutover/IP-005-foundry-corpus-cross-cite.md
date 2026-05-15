@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-005-foundry-corpus-cross-cite.md
+purpose: Land PHASE-00-SPEC and cross-cite the bominal foundry corpus.
 ---
 
 ---

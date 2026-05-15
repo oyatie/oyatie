@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-navigability-lane.md
+purpose: Lane CI-blocks missing INDEX.md / missing parent-pointer / undeclared symbols / undeclared purpose.
 ---
 
 ---

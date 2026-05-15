@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Lift `ralplan-oyatie-sst-consolidation.md` 12-phase plan into the milestone tree; foundational for every other agent operation.
 ---
 
 ---

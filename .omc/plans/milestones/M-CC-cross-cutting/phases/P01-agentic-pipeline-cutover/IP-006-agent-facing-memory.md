@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-006-agent-facing-memory.md
+purpose: Rewrite CLAUDE.md / AGENTS.md / docs/AGENTS.md agent-instruction sections.
 ---
 
 ---

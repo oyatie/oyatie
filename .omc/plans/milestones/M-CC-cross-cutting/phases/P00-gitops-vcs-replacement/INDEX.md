@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Fold approved ralplan v5 into the cross-cutting master-plan tree as the first prerequisite before broad agent fan-out.
 ---
 
 ---

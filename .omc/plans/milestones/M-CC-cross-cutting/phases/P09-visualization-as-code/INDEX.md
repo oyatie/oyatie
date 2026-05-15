@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Auto-generate architecture, product, service, tech-stack, roadmap, dependency-graph diagrams from canonical sources; publish via mdbook.
 ---
 
 ---

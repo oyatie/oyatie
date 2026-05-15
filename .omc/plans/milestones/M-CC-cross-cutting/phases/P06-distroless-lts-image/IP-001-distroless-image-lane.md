@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-distroless-image-lane.md
+purpose: Block non-distroless bases + shells/package-managers + oversized images.
 ---
 
 ---

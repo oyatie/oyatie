@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-010-parallel-claim-demo.md
+purpose: Reproducible parallel-claim demo on pinned symbols.
 ---
 
 ---

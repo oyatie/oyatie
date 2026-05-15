@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-mermaid-d2-graphviz-emitters.md
+purpose: Emit diagrams in Mermaid + D2 + Graphviz formats.
 ---
 
 ---

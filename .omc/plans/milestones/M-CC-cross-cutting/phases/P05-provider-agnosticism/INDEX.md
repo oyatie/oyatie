@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Provider-specific code lives in `oya-<context>-adapter-<provider>-*` crates only; kernels stay provider-neutral.
 ---
 
 ---

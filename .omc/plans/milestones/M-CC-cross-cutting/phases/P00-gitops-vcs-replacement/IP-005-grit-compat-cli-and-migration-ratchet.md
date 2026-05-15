@@ -10,7 +10,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Auto-backfilled purpose for IP-005-grit-compat-cli-and-migration-ratchet.md
+purpose: Provide claim/work/done/status/symbols/queue/watch/promote CLI while ratcheting agents away from direct git/gh and local-only closeout.
 ---
 # M-CC-P00-IP-005 — Grit-compatible CLI + migration ratchet
 

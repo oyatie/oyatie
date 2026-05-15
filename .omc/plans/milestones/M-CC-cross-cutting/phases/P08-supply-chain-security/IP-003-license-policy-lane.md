@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-license-policy-lane.md
+purpose: Lane hard-denies AGPL/GPL/SSPL/BUSL/RSAL in product code.
 ---
 
 ---

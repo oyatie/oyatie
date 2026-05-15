@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-inventory-adr-0052.md
+purpose: Land inventory ADR-0052 with archived_at column per row.
 ---
 
 ---

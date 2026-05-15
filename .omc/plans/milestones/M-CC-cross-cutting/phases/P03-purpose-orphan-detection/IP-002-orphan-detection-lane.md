@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-orphan-detection-lane.md
+purpose: Lane CI-blocks orphan artifacts (no inbound reference; not in known-orphan allowlist).
 ---
 
 ---

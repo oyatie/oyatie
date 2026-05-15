@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-sbom-pipeline.md
+purpose: Ship SBOM generation per build at releases/<tag>/sbom.json.
 ---
 
 ---

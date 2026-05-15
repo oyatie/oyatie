@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-008-archive-glue.md
+purpose: Archive orchestration glue under bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/; ship archive-orphan lane.
 ---
 
 ---

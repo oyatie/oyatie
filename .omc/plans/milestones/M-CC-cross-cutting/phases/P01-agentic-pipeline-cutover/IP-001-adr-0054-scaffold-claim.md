@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-adr-0054-scaffold-claim.md
+purpose: Land ADR-0054 + RACI human-orchestrator row.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-purpose-frontmatter-audit.md
+purpose: Audit every existing doc/JSON for purpose declaration; backfill where missing.
 ---
 
 ---

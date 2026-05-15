@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-adapter-substitution-harness.md
+purpose: Harness runs kernel integration tests against ≥2 adapters and verifies contract identity.
 ---
 
 ---

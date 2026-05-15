@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-architecture-map-walkers.md
+purpose: Walk Cargo metadata + contracts/ + docs/products/ + ROADMAP + ADR-INDEX + milestone frontmatter.
 ---
 
 ---

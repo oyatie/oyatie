@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-lts-dependency-lane.md
+purpose: LTS roster plus dependency-seam discipline (AMENDED scope per ADR-0092) for release-critical product paths.
 ---
 
 ---

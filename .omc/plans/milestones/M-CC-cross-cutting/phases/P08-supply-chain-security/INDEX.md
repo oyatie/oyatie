@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Every artifact Cosign-signed + Rekor-anchored; SBOM per build; SLSA level published.
 ---
 
 ---

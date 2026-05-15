@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-rust-toolchain-gates.md
+purpose: Integrate cargo-deny / audit / nextest / semver-checks / sccache / llvm-cov into scripts/check.sh.
 ---
 
 ---

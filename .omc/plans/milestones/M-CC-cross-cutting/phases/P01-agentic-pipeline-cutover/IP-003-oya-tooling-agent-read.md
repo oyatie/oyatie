@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-oya-tooling-agent-read.md
+purpose: Ship the sanctioned read-only helper CLI.
 ---
 
 ---

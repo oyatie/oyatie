@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-mdbook-pipeline.md
+purpose: Ship mdbook kernel that walks rustdoc + OpenAPI + ADR-INDEX + frontmatter.
 ---
 
 ---

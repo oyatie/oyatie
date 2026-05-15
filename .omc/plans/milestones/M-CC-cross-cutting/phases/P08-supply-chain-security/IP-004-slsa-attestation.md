@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-slsa-attestation.md
+purpose: Publish SLSA-3 attestation per release tag.
 ---
 
 ---

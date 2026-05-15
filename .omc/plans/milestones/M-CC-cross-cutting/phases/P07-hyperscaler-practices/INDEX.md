@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Adopt named practices from AWS, Google, Microsoft, Oracle; thread through every milestone.
 ---
 
 ---

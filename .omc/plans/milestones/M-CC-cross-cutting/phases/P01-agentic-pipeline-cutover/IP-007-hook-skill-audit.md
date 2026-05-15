@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-007-hook-skill-audit.md
+purpose: Audit hooks and skills; activate banned-primitives lane (revised per Directive 12).
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-1es-ci-templates.md
+purpose: Adopt Microsoft 1ES-style templated CI pipelines.
 ---
 
 ---

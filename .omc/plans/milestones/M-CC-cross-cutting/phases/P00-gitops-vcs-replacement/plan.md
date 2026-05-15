@@ -6,7 +6,7 @@ title: Oya VCS approved ralplan v5 fold-in
 status: approved-folded
 source_plan: ../../../../ralplan-gitops-vcs-replacement-20260514.md
 source_spec: ../../../../../specs/gitops-vcs-replacement.json
-purpose: Auto-backfilled purpose for plan.md
+purpose: Move the grit VCS replacement earlier in the master plan and upgrade it into an agent-native, provider-neutral GitOps control plane.
 ---
 # Oya VCS phase charter
 

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Thread cross-cutting principles through every milestone via CI lanes and recurring discipline.
 ---
 
 ---

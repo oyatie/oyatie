@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-eng-excellence-merge-gate.md
+purpose: Council-Architecture signs every cross-axis-contract PR; merge-gate enforces signature.
 ---
 
 ---

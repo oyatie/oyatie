@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-provider-coupling-lane.md
+purpose: Block provider-specific imports outside adapter crates.
 ---
 
 ---

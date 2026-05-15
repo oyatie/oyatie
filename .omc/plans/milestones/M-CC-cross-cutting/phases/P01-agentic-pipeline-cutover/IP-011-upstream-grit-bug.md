@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-011-upstream-grit-bug.md
+purpose: Author local artifact + file upstream rtk-ai/grit issue with documented genuine need.
 ---
 
 ---

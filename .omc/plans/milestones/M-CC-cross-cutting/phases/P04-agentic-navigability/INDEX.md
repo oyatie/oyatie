@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Predictable naming + machine-readable directory indexes + real grit-claim symbols in every IP.
 ---
 
 ---

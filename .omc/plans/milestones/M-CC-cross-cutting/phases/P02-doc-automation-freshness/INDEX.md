@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Generate docs from machine-readable truth (rustdoc, OpenAPI, ADR-INDEX, fitness reports); CI lane catches drift.
 ---
 
 ---

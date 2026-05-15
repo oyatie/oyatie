@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-architecture-map-freshness-lane.md
+purpose: Lane blocks PRs that change source-of-truth without regenerating visualizations.
 ---
 
 ---

@@ -10,7 +10,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Auto-backfilled purpose for IP-002-remote-lock-store-events.md
+purpose: Implement LockStorePort semantics for local and distributed leases, watch events, TTL, heartbeats, stale recovery, and queue state.
 ---
 # M-CC-P00-IP-002 — Remote lock store + event stream
 

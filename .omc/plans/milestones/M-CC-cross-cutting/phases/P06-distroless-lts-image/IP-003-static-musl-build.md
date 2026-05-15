@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-static-musl-build.md
+purpose: Ship static / musl-linked release build pipeline.
 ---
 
 ---

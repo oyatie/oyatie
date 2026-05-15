@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-prfaq-designdoc-postmortem.md
+purpose: Land standard templates per AWS / Google / SRE.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-009-delete-active-path.md
+purpose: Remove DELETE-class active-path ephemera after three concrete P7 gates are green.
 ---
 
 ---

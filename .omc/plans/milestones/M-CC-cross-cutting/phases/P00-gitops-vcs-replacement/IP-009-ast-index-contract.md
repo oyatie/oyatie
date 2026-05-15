@@ -10,7 +10,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Auto-backfilled purpose for IP-009-ast-index-contract.md
+purpose: Define stable language-neutral AST/range/pointer/dependency contracts used by claims, review mapping, impacted tests, semantic conflict.
 ---
 # M-CC-P00-IP-009 — AST index contract + impacted-test mapping
 

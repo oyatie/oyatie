@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-mdbook-publish-integration.md
+purpose: Wire architecture-map output into mdbook publishing pipeline.
 ---
 
 ---

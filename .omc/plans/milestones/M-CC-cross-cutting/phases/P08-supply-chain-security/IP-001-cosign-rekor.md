@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-cosign-rekor.md
+purpose: Ship Cosign signing + Rekor anchoring for every artifact.
 ---
 
 ---

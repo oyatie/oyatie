@@ -10,7 +10,7 @@ execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Auto-backfilled purpose for IP-001-symbol-lock-domain.md
+purpose: Define SymbolId, ArtifactPointer, Claim, Lease, QueueAwareLease, ChangeSet, and terminal-state invariants for grit-style locking.
 ---
 # M-CC-P00-IP-001 — Symbol lock domain + ChangeSet kernel
 

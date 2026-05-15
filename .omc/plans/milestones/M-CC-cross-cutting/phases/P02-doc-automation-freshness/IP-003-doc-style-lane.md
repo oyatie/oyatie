@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-doc-style-lane.md
+purpose: Enforce docs/standards/doc-style.md; auto-format on commit.
 ---
 
 ---

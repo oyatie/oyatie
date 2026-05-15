@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-cloud-multi-provider-audit.md
+purpose: Audit Cloud kernels; ensure ≥2 adapters per kernel.
 ---
 
 ---

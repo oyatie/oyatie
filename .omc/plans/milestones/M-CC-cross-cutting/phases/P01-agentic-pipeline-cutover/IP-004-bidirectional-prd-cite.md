@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-004-bidirectional-prd-cite.md
+purpose: Cross-cite oyatie/docs/PRD.md and bominal/docs/consolidated/PRD.md; ship portfolio-citation lane.
 ---
 
 ---

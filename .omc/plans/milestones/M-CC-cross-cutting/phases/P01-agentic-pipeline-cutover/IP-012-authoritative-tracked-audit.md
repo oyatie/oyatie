@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-012-authoritative-tracked-audit.md
+purpose: Ship authoritative-tracked lane that walks docs/AGENTS.md authoritative list and verifies all are tracked.
 ---
 
 ---
