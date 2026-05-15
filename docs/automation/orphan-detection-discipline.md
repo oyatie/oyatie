@@ -19,6 +19,7 @@ extends_crates:
 companion_docs:
   - INDEX.md
   - cross-reference-index-spec.md
+doc_status: published
 ---
 
 # Discipline: orphan detection

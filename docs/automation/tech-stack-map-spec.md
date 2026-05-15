@@ -20,6 +20,7 @@ companion_docs:
   - INDEX.md
   - service-map-spec.md
   - ../plans/specs/lts-versions-verified-2026-05-12.md
+doc_status: published
 ---
 
 # Visualization spec: tech-stack map

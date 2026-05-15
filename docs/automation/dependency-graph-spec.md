@@ -18,6 +18,7 @@ companion_docs:
   - INDEX.md
   - roadmap-visualization-spec.md
   - ../../docs/MASTERPLAN.md
+doc_status: published
 ---
 
 # Visualization spec: dependency graph (plan-DAG)

@@ -18,6 +18,7 @@ companion_docs:
   - INDEX.md
   - doc-freshness-discipline.md
   - ../../docs/RUNBOOKS-INDEX.md
+doc_status: published
 ---
 
 # Pipeline: runbook freshness + auto-refresh-PR

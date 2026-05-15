@@ -15,6 +15,7 @@ companion_docs:
   - ../../docs/MASTERPLAN.md
   - ../../docs/DOC-CATALOG.md
   - ../../docs/AGENTS.md
+doc_status: published
 ---
 
 # Oyatie Automation Pipeline Catalogue

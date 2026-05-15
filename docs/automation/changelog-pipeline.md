@@ -18,6 +18,7 @@ companion_docs:
   - INDEX.md
   - ../../docs/CHANGELOG.md
   - ../../docs/DOC-CATALOG.md
+doc_status: published
 ---
 
 # Pipeline: CHANGELOG row auto-emission
