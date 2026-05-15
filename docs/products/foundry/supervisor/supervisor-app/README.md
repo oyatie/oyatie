@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Overview and public API for the supervisor application layer daemon"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Foundry Supervisor App — README

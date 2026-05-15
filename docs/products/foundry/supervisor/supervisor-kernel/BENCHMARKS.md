@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Performance budgets, benchmark harness, and metrics collection"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Supervisor Kernel — Benchmarks

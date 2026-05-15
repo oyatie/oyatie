@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Symlink defense, file permissions, and secret safety"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Adapter — Security

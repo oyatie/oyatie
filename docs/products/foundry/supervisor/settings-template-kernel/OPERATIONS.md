@@ -3,6 +3,7 @@ doc_class: Runbook
 purpose: "Kernel-level operational concerns: template validation and drift detection"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Kernel — Operations

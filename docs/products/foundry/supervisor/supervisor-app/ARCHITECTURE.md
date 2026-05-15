@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Daemon architecture, 12-layer placement, composition of adapters, and signal handling"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Supervisor App — Architecture

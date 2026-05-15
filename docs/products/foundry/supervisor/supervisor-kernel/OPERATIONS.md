@@ -3,6 +3,7 @@ doc_class: Runbook
 purpose: "Operational runbooks for supervisor kernel layer (no daemon, kernel-only concerns)"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Supervisor Kernel — Operations

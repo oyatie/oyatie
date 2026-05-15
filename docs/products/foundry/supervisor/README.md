@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Overview of the Foundry supervisor lane: architecture, components, and integration"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Foundry Supervisor — Lane Overview

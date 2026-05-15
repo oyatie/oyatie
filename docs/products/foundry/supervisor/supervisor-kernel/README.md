@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Overview and public API reference for the foundry supervisor kernel layer"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Foundry Supervisor Kernel — README

@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Render and verify latency budgets for per-provider adapters"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Adapter — Benchmarks

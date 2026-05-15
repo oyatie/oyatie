@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "12-layer placement, inward-only dependency flow, and port trait locations"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Supervisor Kernel — Architecture

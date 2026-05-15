@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Secret handling, Cedar autonomy enforcement, idempotency, and symlink defense"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Supervisor Kernel — Security

@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Atomicity model, fsync placement, and crash safety guarantees"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # JSONL Adapter — Architecture

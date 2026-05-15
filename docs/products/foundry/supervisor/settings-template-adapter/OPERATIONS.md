@@ -3,6 +3,7 @@ doc_class: Runbook
 purpose: "Render/verify workflows, reconciliation, and backup management"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Adapter — Operations

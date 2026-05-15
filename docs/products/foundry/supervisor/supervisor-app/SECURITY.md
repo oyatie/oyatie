@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Application-layer security: signals, graceful shutdown, audit conformance"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Supervisor App — Security

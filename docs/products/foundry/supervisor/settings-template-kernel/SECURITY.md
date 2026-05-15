@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Secret reference handling and data class annotations"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Kernel — Security

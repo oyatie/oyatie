@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "I/O performance characteristics and fsync latency budgets"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # JSONL Adapter — Benchmarks

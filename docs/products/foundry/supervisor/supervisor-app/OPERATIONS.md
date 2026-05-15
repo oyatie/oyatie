@@ -3,6 +3,7 @@ doc_class: Runbook
 purpose: "Operational runbook for starting daemon, tuning watchdog, triage procedures"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Supervisor App — Operations

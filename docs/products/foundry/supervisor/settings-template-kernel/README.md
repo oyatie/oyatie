@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Value types and port traits for settings template rendering (v5 delta)"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Kernel — README

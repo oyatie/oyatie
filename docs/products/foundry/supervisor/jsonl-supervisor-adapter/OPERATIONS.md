@@ -3,6 +3,7 @@ doc_class: Runbook
 purpose: "Inbox/outbox maintenance, cleanup, and recovery procedures"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # JSONL Adapter — Operations

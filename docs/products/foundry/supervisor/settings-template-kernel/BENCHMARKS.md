@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Template serialization and drift detection performance"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Kernel — Benchmarks

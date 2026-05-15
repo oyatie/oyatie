@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Per-provider renderer architecture and format dialect differences"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Adapter — Architecture

@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Performance budgets and heartbeat benchmark harness for the daemon"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Supervisor App — Benchmarks

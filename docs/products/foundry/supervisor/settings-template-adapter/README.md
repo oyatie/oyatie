@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Per-provider settings renderer implementations and atomic write patterns"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Adapter — README

@@ -3,6 +3,7 @@ doc_class: Standard
 purpose: "Kernel placement, value-only invariant, and adapter composition"
 owner_team: axis-foundry
 status: draft
+doc_status: published
 ---
 
 # Settings-Template Kernel — Architecture
