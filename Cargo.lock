@@ -2342,6 +2342,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-foundry-vcs-ci-fix-loop-dispatcher-app"
+version = "0.1.0"
+
+[[package]]
 name = "oya-foundry-vcs-cli-ratchet-kernel"
 version = "0.1.0"
 
