@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-cell-routing-primitive.md
+purpose: Ship cell-routing primitive per ADR-0009 cell architecture.
 ---
 
 ---

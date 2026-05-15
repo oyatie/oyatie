@@ -9,7 +9,7 @@ owner: council-architecture
 blocked_by: []
 acceptance_lanes:
 - cargo-check
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: Authors ADR-0056 (BNF v4.1 flat microservice grammar + 12-layer enum), ADR-0057 (Hybrid C cutover mechanics), and companion ADRs ADR-0058 through ADR-0062. Produces the user-approved rename plan v4.1 that gates Shard 1 execution.
 ---
 # IP-001-bnf-v4-adrs: Author BNF v4.1 ADRs + rename plan approval
 

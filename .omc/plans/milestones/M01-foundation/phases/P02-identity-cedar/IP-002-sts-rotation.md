@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-sts-rotation.md
+purpose: Ship STS issuance bound to ≤1h purpose-bound credentials; no long-lived API keys.
 ---
 
 ---

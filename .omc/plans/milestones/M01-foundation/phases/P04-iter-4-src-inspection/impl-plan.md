@@ -11,7 +11,7 @@ blocked_by:
   reason: src-inspection runs on renamed crate dirs; requires P02 complete
 acceptance_lanes:
 - cargo-check
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Inspects `src/` of each crate with `STUB-pending-iter-4-src-inspection` in its `layer_evidence` cell; fills the cell with a concrete `file:line — <pattern>` cite; confirms or amends the layer assignment."
 ---
 # IP-001-iter-4-src-inspection: Resolve 88 STUB-pending layer-evidence cells
 

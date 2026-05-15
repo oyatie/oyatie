@@ -32,7 +32,7 @@ oyatie_adrs_cited:
 - ADR-0054
 - ADR-0055
 - ADR-0056
-purpose: Auto-backfilled purpose for README.md
+purpose: "Foundation milestone: atomic rename of all `oya-platform-*` / `oya-shared-*` / `oya-workspace-*` crates to BNF v4.1 flat µservice naming + 4 LEAN architecture-check lanes promoted from `--report-only` to `BLOCKER`."
 ---
 # M01-foundation — BNF v4.1 cutover + LEAN BLOCKER promotion
 

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-object-graph-property-tiers.md
+purpose: Ship object-graph.entity.upsert + 5 property tiers (vector/timeseries/geo/ciphertext/struct) per ADR-0006.
 ---
 
 ---

@@ -30,7 +30,7 @@ depends_on:
   reason: Protocol classification evidence from iter-4 src-inspection is the gate
     to enter Shard 1.5
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Completes the reclassification of the 26 `*-api` crates whose protocol was marked `PROTOCOL-UNKNOWN` in the §3 audit body and deferred from Shard 1."
 ---
 # P03-shard-1-5-protocol-unknown-deferred: Shard 1.5 — PROTOCOL-UNKNOWN 26-row reclassification
 

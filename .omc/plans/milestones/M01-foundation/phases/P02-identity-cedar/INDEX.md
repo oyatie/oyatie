@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: "Ship `oya-identity-*`, `oya-platform-identity-api`, and the Cedar RBAC/ABAC substrate that every capability invocation enforces against."
 ---
 
 ---

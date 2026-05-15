@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship the foundation correctness layer — every cross-axis contract correct from day one, no product surface ships before this milestone passes.
 ---
 
 ---

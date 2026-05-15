@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-eventing-adapters.md
+purpose: Keep the provider-adapter matrix explicit while M01 proves the provider-neutral eventing boundary through the live file adapter.
 ---
 
 ---

@@ -14,7 +14,7 @@ acceptance_lanes:
 - cargo-nextest
 - cargo-deny
 - cargo-doc
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: Renames all 114 Shard-1-scoped crate directories, package names, dep-edge references, root workspace members, and Cargo.lock entries from v3 names to BNF v4.1 names in a single atomic commit.
 ---
 # IP-001-shard-1-atomic-rename: Execute Shard 1 atomic 114-row rename
 

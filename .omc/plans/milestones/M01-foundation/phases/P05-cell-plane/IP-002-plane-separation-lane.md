@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-plane-separation-lane.md
+purpose: Ship the fitness lane that validates every catalog record declares plane.
 ---
 
 ---

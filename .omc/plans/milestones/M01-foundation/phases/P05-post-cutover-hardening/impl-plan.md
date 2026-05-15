@@ -19,7 +19,7 @@ acceptance_lanes:
 - cargo-build
 - cargo-clippy
 - cargo-deny
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Flips the 4 LEAN architecture check lanes from `--report-only` to `BLOCKER` in `registry/quality/lanes.yaml` and CI configuration."
 ---
 # IP-001-lean-flip-quality-scaffold: Flip 4 LEAN lanes to BLOCKER + scaffold 4 quality check crates
 

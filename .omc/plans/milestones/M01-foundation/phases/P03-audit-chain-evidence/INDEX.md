@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Implement ADR-0003 Merkle-sealed audit chain (Ed25519 signed) and the evidence emission contract every regulated capability invocation must satisfy.
 ---
 
 ---

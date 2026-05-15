@@ -33,7 +33,7 @@ depends_on:
   phase: P04-iter-4-src-inspection
   reason: layer-correctness subcommand requires evidence-confirmed layer assignments
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: Completes M01 by hardening the quality infrastructure created in Shard 0 and validated in P02–P04.
 ---
 # P05-post-cutover-hardening: Flip 4 LEAN checks to BLOCKER + scaffold 4 quality lanes
 

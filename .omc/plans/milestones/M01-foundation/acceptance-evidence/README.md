@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for README.md
+purpose: Per ADR-0063 §3 every milestone has an acceptance-evidence directory.
 ---
 
 # M01-foundation acceptance evidence

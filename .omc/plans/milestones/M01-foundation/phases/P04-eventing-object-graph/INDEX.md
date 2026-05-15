@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship the exactly-once outbox + Kafka-class topic registry + Ontology entity upsert with engine-enforced row-level isolation.
 ---
 
 ---

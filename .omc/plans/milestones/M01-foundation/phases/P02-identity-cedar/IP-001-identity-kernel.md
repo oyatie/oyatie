@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-identity-kernel.md
+purpose: Ship the per-tenant user upsert kernel with per-region IdP binding.
 ---
 
 ---

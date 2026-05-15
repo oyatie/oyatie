@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-outbox-topic-registry.md
+purpose: Ship exactly-once outbox + per-axis topic registry per ADR-0046.
 ---
 
 ---

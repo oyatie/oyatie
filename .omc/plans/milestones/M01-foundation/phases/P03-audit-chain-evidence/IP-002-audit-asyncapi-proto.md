@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-audit-asyncapi-proto.md
+purpose: Publish AsyncAPI + Proto source contracts for audit events.
 ---
 
 ---

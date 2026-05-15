@@ -14,7 +14,7 @@ acceptance_lanes:
 - cargo-clippy
 - cargo-nextest
 - cargo-deny
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Inspects each of the 26 `*-api` crates deferred from Shard 1, determines the correct protocol layer (`rest`, `grpc`, `graphql`, or `worker`) via src-inspection, and executes the rename."
 ---
 # IP-001-shard-1-5-protocol-rename: Classify and rename 26 PROTOCOL-UNKNOWN crates
 

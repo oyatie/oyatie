@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-data-use-boundary-adr.md
+purpose: Author and ratify ADR-0008 (Data Use Boundary) — the P0 prereq per PRD §6 constraint 8.
 ---
 
 ---

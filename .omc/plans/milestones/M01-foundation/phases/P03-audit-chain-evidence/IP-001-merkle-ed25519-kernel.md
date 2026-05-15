@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-merkle-ed25519-kernel.md
+purpose: Implement the audit-chain domain Merkle root and Ed25519 signing/verification kernel.
 ---
 
 ---

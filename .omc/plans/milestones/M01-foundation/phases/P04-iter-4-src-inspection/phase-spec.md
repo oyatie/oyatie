@@ -19,7 +19,7 @@ depends_on:
   phase: P02-shard-1-atomic-rename
   reason: src-inspection operates on renamed crate dirs; must run post-Shard-1
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "The §3 audit body in `docs/plans/rename-plan-v4-clean-arch-2026-05-13.md` contains 88 rows marked `STUB-pending-iter-4-src-inspection` in the `layer_evidence` column."
 ---
 # P04-iter-4-src-inspection: Resolve STUB-pending-iter-4 layer evidence cells
 

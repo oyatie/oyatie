@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Land the Data Use Boundary ADR (P0 prereq) and the tenant kernel that every other axis depends on.
 ---
 
 ---

@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-cedar-policy-substrate.md
+purpose: Ship the Cedar RBAC/ABAC substrate that every capability invocation enforces against.
 ---
 
 ---

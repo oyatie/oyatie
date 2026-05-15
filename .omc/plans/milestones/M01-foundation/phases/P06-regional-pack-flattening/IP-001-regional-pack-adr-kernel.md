@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-001-regional-pack-adr-kernel.md
+purpose: Author the regional-pack ADR + ship the kernel that pack contracts plug into.
 ---
 
 ---

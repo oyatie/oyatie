@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship the cell-routing primitive and the plane-separation enforcement that every catalog record declares.
 ---
 
 ---

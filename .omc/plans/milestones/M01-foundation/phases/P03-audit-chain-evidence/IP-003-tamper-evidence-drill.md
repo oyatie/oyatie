@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-tamper-evidence-drill.md
+purpose: Bind the Sev-1 tamper-evidence drill to the live audit-chain verification surfaces.
 ---
 
 ---

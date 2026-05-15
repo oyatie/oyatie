@@ -23,7 +23,7 @@ exit_gate: 'ADR-0056 v4.1, ADR-0057, ADR-0058, ADR-0059, ADR-0060, ADR-0061, ADR
   '
 depends_on: []
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: This phase is a retrospective capture of the Wave 1 work completed on 2026-05-13.
 ---
 # P01-bnf-v4-adrs-finalized: BNF v4.1 ADRs finalized and Wave 1 ADRs landed
 

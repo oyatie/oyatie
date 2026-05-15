@@ -35,7 +35,7 @@ depends_on:
   reason: BNF v4.1 ADRs must be accepted before rename is executed to prevent naming
     drift
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: Executes the atomic rename of all 114 Shard-1-scoped crates from v3 names to BNF v4.1 names. The 26 PROTOCOL-UNKNOWN rows are explicitly excluded (deferred to P03).
 ---
 # P02-shard-1-atomic-rename: Shard 1 atomic 114-row rename to BNF v4.1
 

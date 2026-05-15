@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-003-dsr-cascade-engine.md
+purpose: Ship the DSR cascade engine that satisfies SPEC §2 DSR rows with proof-of-erasure per affected store.
 ---
 
 ---

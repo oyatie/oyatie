@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Ship the regional-pack contract (canonical seams + per-pack plug-in) and the architectural-flattening-target ratchet per ADR-0015.
 ---
 
 ---

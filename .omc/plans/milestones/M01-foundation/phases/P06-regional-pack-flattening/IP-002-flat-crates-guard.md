@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for IP-002-flat-crates-guard.md
+purpose: Ship the flat-crates guard per ADR-0015.
 ---
 
 ---
