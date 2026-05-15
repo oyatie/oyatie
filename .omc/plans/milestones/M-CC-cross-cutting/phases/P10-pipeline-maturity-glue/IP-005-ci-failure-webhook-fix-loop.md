@@ -20,11 +20,17 @@ purpose: On `workflow_run.conclusion == failure`, dispatch a fix-loop agent with
 
 New constraint from 2026-05-15 amendment §A. PR #3's cascade demonstrated that CI failures today require a human (or Skill-tool dispatch) to read logs, diagnose, and push a fix. This IP closes the loop:
 
-- `.github/workflows/ci-failure-fix-loop.yml` triggers on `workflow_run` event where `conclusion == failure` AND `event == pull_request`.
-- Workflow invokes `tools/oya-ci-fix-loop-dispatcher` which gathers (failing-job log, full PR diff vs base, last N=5 commits on branch, mistakes-ledger candidates from IP-003) and posts a fix-loop task into the agent dispatch queue.
-- A fix-loop agent claims the task via `oya claim --agent ci-fix-loop --intent "fix-CI-failure-PR-<N>"`, executes `oya work` → fix → `oya verify` → `oya done` → push to PR branch.
-- Bounded retry budget: **N=5 per PR per CI-failure class**; sixth occurrence on same PR escalates to human via a "stuck-PR" GitHub issue.
-- Integrates with IP-003 mistakes-ledger: every fix-loop iteration writes a ledger row.
+**Dual-source fix-loop** — the same dispatcher serves two failure surfaces in the canonical state machine (`push → CI → fix-loop until green → review → fix-loop until APPROVE → merge`):
+
+  - **CI-source** (this IP's primary trigger): `.github/workflows/ci-failure-fix-loop.yml` triggers on `workflow_run` event where `conclusion == failure` AND `event == pull_request`. Context bundle: (failing-job log, full PR diff vs base, last N=5 commits, mistakes-ledger candidates from IP-003).
+  - **Review-source** (added by IP-004 `pr-review-fix-requested` event): same workflow listens for `repository_dispatch: pr-review-fix-requested` events emitted by IP-004's dispatcher on REJECT / CHANGES_REQUESTED. Context bundle: (per-facet review findings, full PR diff, last N=5 commits, mistakes-ledger candidates).
+  - Both sources funnel into the same `tools/oya-ci-fix-loop-dispatcher` → posts a fix-loop task into the agent dispatch queue.
+
+A fix-loop agent claims the task via `oya claim --agent <ci|review>-fix-loop --intent "fix-<source>-PR-<N>"`, executes `oya work` → fix → `oya verify` → `oya done` → push to PR branch.
+
+Bounded retry budget: **shared pool of N=5 attempts per PR across BOTH sources** (a PR doesn't get 5 CI attempts AND 5 review attempts — total 5 fix-loop iterations regardless of which source triggered). Sixth occurrence on same PR escalates to human via a "stuck-PR" GitHub issue. Shared budget prevents runaway loops where CI fix triggers review reject triggers CI fix etc.
+
+Integrates with IP-003 mistakes-ledger: every fix-loop iteration writes a ledger row (source + retry-count + context-bundle hash + outcome).
 
 ## Dependencies
 

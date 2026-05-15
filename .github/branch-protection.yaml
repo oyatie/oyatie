@@ -7,7 +7,12 @@ branches:
     disallow_force_push: true
     require_signed_commits: true
     require_signed_tags: true
-    required_approving_reviews: 1
+    # Interim: human-review gate dropped 2026-05-15 pending M-CC-P10-IP-004
+    # (multifacet reviewer-agent auto-dispatch on CI-green). The automated
+    # `oya-pr-review` required-check (added by IP-004) will gate merge instead
+    # of a human approval. Restore to ≥1 only if the auto-review channel is
+    # sunset and human review re-enters the pipeline.
+    required_approving_reviews: 0
     required_status_checks:
       - cargo-fmt
       - cargo-check
