@@ -4,7 +4,7 @@ shape: anchor
 status: pending approval
 date: 2026-05-13
 created_by: ralplan --consensus --architect codex --critic codex --deliberate
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 authority_chain: "docs/MASTERPLAN.md \u2192 ADR-0061 + ADR-0063 + ADR-0064 + ADR-0065\
   \ + ADR-0066 \u2192 this plan"
 codex_model: gpt-5.5 / xhigh

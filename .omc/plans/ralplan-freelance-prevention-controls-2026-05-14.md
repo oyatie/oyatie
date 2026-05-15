@@ -4,7 +4,7 @@ shape: anchor
 status: pending architect+critic
 date: 2026-05-14
 created_by: ralplan --prevention --short (post-realignment, session 7e0309c2)
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 authority_chain: "docs/MASTERPLAN.md \u2192 .omc/plans/consensus-masterplan-2026-05-13.md\
   \ \u2192 .omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md \u2192 this\
   \ plan"

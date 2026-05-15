@@ -8,7 +8,7 @@
     "version": "v1.0.0",
     "date": "2026-05-13",
     "created_by": "ralplan --consensus --architect codex --critic codex --deliberate",
-    "canonical_authority": "/specs/cross-cutting/constitution.json (planned; CONSTITUTION.md until migrated per markdown-retirement-policy.json PHASE-5)",
+    "canonical_authority": "/specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json (post-strike doctrinal substrate per markdown-retirement-policy.json + root-hub-pointers.json _retired_constitutional_authority migration map)",
     "authority_chain": "/specs/cross-cutting/masterplan.json \u2192 ADR-0061 + ADR-0062 + ADR-0065 + ADR-0066 + ADR-0067 + ADR-0069 \u2192 ralplan-ops-portal-2026-05-13 v7 Accepted \u2192 ralplan-ops-wave-5-2026-05-13 v18 Accepted (\u00a712.9) \u2192 this plan",
     "parent_plan": ".omc/plans/ralplan-ops-portal-2026-05-13.md (Wave 6 of 7; pending migration to .json)",
     "companion_plans": [

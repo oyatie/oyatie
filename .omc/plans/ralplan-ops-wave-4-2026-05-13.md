@@ -9,7 +9,7 @@ status: Accepted
 version: v4
 date: 2026-05-13
 created_by: ralplan --consensus --architect codex --critic codex --deliberate
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 authority_chain: docs/MASTERPLAN.md → ADR-0042 (observability OTel + VictoriaMetrics) + ADR-0067 §5 (SSR p99 ≤500ms / SSE p99 ≤2s / 10k concurrent SSE) → ralplan-ops-portal-2026-05-13.md v7 Accepted → ralplan-ops-wave-2-2026-05-13.md v7 Accepted → ralplan-ops-wave-3-2026-05-13.md v5 Accepted → this plan
 parent_plan: .omc/plans/ralplan-ops-portal-2026-05-13.md (ops.oyatie.com 20-BC parent v7 Accepted; this plan is Wave 4 of 7)
 companion_plans:

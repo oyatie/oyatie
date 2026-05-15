@@ -9,7 +9,7 @@ status: Accepted
 version: v5
 date: 2026-05-13
 created_by: ralplan --consensus --architect codex --critic codex --deliberate
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 authority_chain: docs/MASTERPLAN.md → ADR-0003 (Oyatie audit-chain) + Bominal ADR-0028 (audit-chain segments inheritance) + ADR-0045 (database tier) + ADR-0065 + ADR-0067 → ralplan-ops-portal-2026-05-13.md v7 Accepted → ralplan-ops-wave-2-2026-05-13.md v7 Accepted → this plan
 parent_plan: .omc/plans/ralplan-ops-portal-2026-05-13.md (ops.oyatie.com 20-BC parent v7 Accepted; this plan is Wave 3 of 7)
 companion_plans:
