@@ -2,17 +2,48 @@
   "name": "crate-status",
   "version": 1,
   "stages": [
-    { "id": "scaffolded", "terminal": false, "requires_supersession_edge": false },
-    { "id": "live", "terminal": false, "requires_supersession_edge": false },
-    { "id": "quiescent", "terminal": false, "requires_supersession_edge": false },
-    { "id": "archived", "terminal": true, "requires_supersession_edge": false }
+    {
+      "id": "scaffolded",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "live",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "quiescent",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "archived",
+      "terminal": true,
+      "requires_supersession_edge": false
+    }
   ],
   "transitions": [
-    { "from": "scaffolded", "to": "live" },
-    { "from": "live", "to": "quiescent" },
-    { "from": "quiescent", "to": "live" },
-    { "from": "quiescent", "to": "archived" },
-    { "from": "live", "to": "archived" }
+    {
+      "from": "scaffolded",
+      "to": "live"
+    },
+    {
+      "from": "live",
+      "to": "quiescent"
+    },
+    {
+      "from": "quiescent",
+      "to": "live"
+    },
+    {
+      "from": "quiescent",
+      "to": "archived"
+    },
+    {
+      "from": "live",
+      "to": "archived"
+    }
   ],
   "sources": [
     {
@@ -25,7 +56,8 @@
     }
   ],
   "defaults": {
-    "wave": "A",
+    "wave": "B",
     "case_insensitive_stage_match": true
-  }
+  },
+  "purpose": "Lifecycle state machine for workspace crate maturity, quiescence, and archival status."
 }

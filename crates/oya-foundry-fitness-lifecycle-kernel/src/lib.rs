@@ -891,11 +891,60 @@ pub mod discovery {
 pub mod cli {
     //! Reusable dev-CLI runner. Each per-lifecycle binary calls
     //! [`run_default`] with its lane name + default config path.
-    use super::{LifecycleReport, NaiveDate, ViolationKind, evaluate};
+    //!
+    //! # Wave ratchet (per ADR-0109 §"Wave ratchet")
+    //!
+    //! Per-lane wave is declared in `config.defaults.wave`:
+    //!
+    //! - `"A"` — WARN baseline. All findings reported on stdout; exit 0.
+    //! - `"B"` — delta-BLOCK. Findings on artifacts modified in the current
+    //!   commit (`git diff --name-only HEAD~1 HEAD`) BLOCK; older baseline
+    //!   findings still WARN. Exit non-zero only if any delta finding.
+    //! - `"C"` — full-BLOCK. ALL findings BLOCK (exit non-zero on any).
+    //!
+    //! CLI flags `--block` / `--warn-only` override the config wave for
+    //! ad-hoc invocations (CI uses config-driven wave).
+    use super::{LifecycleReport, NaiveDate, Violation, ViolationKind, evaluate};
     use super::discovery;
+    use std::collections::BTreeSet;
     use std::env;
     use std::path::PathBuf;
-    use std::process::ExitCode;
+    use std::process::{Command, ExitCode, Stdio};
+
+    /// Resolved wave for this run (after CLI override + config default).
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    pub enum Wave {
+        /// WARN-only: report on stdout, exit 0 unconditionally.
+        A,
+        /// Delta-BLOCK: BLOCK on findings whose `location` matches a path
+        /// in `git diff --name-only HEAD~1 HEAD` (changed-in-current-commit).
+        /// Older baseline findings still WARN.
+        B,
+        /// Full-BLOCK: BLOCK on every finding.
+        C,
+    }
+
+    impl Wave {
+        /// Parse a single-letter wave label (`A` / `B` / `C`, case-insensitive).
+        /// Named `parse_label` rather than `from_str` to avoid colliding with
+        /// the `std::str::FromStr::from_str` trait method (clippy
+        /// `should_implement_trait`).
+        pub fn parse_label(s: &str) -> Option<Self> {
+            match s.trim() {
+                "A" | "a" => Some(Self::A),
+                "B" | "b" => Some(Self::B),
+                "C" | "c" => Some(Self::C),
+                _ => None,
+            }
+        }
+        pub fn label(self) -> &'static str {
+            match self {
+                Self::A => "A",
+                Self::B => "B",
+                Self::C => "C",
+            }
+        }
+    }
 
     pub fn run_default(lane_name: &'static str, default_config: &'static str) -> ExitCode {
         let args: Vec<String> = env::args().skip(1).collect();
@@ -913,6 +962,7 @@ pub mod cli {
                 return ExitCode::FAILURE;
             }
         };
+        let wave = resolve_wave(&opts, &config);
         let now = today();
         let artifacts = match discovery::discover(&config, now) {
             Ok(a) => a,
@@ -922,75 +972,205 @@ pub mod cli {
             }
         };
         let report = evaluate(&config, &artifacts, now, &opts.reached_milestones);
-        emit(lane_name, &report, opts.wave_warn_only)
+        emit(lane_name, &report, wave)
     }
 
-    fn emit(lane_name: &str, report: &LifecycleReport, warn_only: bool) -> ExitCode {
+    /// Resolve the effective wave for this invocation.
+    ///
+    /// Precedence:
+    /// 1. `--wave A|B|C` CLI flag (explicit override).
+    /// 2. `--block` → C (legacy ad-hoc block flag).
+    /// 3. `--warn-only` → A (legacy ad-hoc warn flag).
+    /// 4. `config.defaults.wave` (canonical declaration).
+    /// 5. Default: `A` (safe baseline).
+    pub fn resolve_wave(opts: &Options, config: &super::LifecycleConfig) -> Wave {
+        if let Some(w) = opts.wave_override {
+            return w;
+        }
+        if let Some(legacy) = opts.legacy_wave_override {
+            return legacy;
+        }
+        if let Some(declared) = config.defaults.wave.as_deref()
+            && let Some(w) = Wave::parse_label(declared)
+        {
+            return w;
+        }
+        Wave::A
+    }
+
+    /// Set of file paths changed in the most recent commit. Used to compute
+    /// delta-BLOCK for Wave-B. Best-effort: returns an empty set on any
+    /// git failure (degrades to "no new artifacts → WARN-only behavior on
+    /// the delta, but baseline findings still appear in output").
+    fn changed_paths_in_head_commit() -> BTreeSet<String> {
+        let mut out: BTreeSet<String> = BTreeSet::new();
+        let output = Command::new("git")
+            .args(["diff", "--name-only", "HEAD~1", "HEAD"])
+            .stderr(Stdio::null())
+            .output();
+        if let Ok(o) = output
+            && o.status.success()
+            && let Ok(text) = std::str::from_utf8(&o.stdout)
+        {
+            for line in text.lines() {
+                let trimmed = line.trim();
+                if !trimmed.is_empty() {
+                    out.insert(trimmed.to_string());
+                }
+            }
+        }
+        out
+    }
+
+    /// Is this violation's location in the changed-set? Wave-B delta predicate.
+    fn finding_is_new(violation: &Violation, changed: &BTreeSet<String>) -> bool {
+        // Direct match, plus substring match (locations can carry `#fragment`
+        // suffixes such as `path#prose` from sunset-style runners — we treat
+        // a finding as "new" if its location starts with a changed path).
+        if changed.contains(&violation.location) {
+            return true;
+        }
+        changed
+            .iter()
+            .any(|c| violation.location.starts_with(c))
+    }
+
+    fn emit(lane_name: &str, report: &LifecycleReport, wave: Wave) -> ExitCode {
         if report.is_clean() {
             println!(
-                "{lane_name} ok: artifacts_observed={} stage_counts={:?} violations=0",
-                report.artifacts_observed, report.stage_counts
+                "{lane_name} ok (wave {}): artifacts_observed={} stage_counts={:?} violations=0",
+                wave.label(),
+                report.artifacts_observed,
+                report.stage_counts
             );
             return ExitCode::SUCCESS;
         }
-        let prefix = if warn_only { "WARN (wave A)" } else { "FAIL" };
+        let _ = ViolationKind::StageNotDeclared; // type pin
         let mut breakdown: std::collections::BTreeMap<&'static str, usize> =
             std::collections::BTreeMap::new();
         for v in &report.violations {
             *breakdown.entry(v.kind.as_str()).or_insert(0) += 1;
         }
-        let _ = ViolationKind::StageNotDeclared; // type pin
-        let target = if warn_only {
-            println!(
-                "{lane_name} {prefix}: artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
-                report.artifacts_observed,
-                report.stage_counts,
-                report.violations.len(),
-                breakdown
-            );
-            for v in &report.violations {
+        match wave {
+            Wave::A => {
                 println!(
-                    "  - [{}] {} stage={:?} hint={}",
-                    v.kind.as_str(),
-                    v.location,
-                    v.stage,
-                    v.hint
+                    "{lane_name} WARN (wave A): artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
+                    report.artifacts_observed,
+                    report.stage_counts,
+                    report.violations.len(),
+                    breakdown
                 );
+                for v in &report.violations {
+                    println!(
+                        "  - [{}] {} stage={:?} hint={}",
+                        v.kind.as_str(),
+                        v.location,
+                        v.stage,
+                        v.hint
+                    );
+                }
+                ExitCode::SUCCESS
             }
-            ExitCode::SUCCESS
-        } else {
-            eprintln!(
-                "{lane_name} {prefix}: artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
-                report.artifacts_observed,
-                report.stage_counts,
-                report.violations.len(),
-                breakdown
-            );
-            for v in &report.violations {
+            Wave::B => {
+                let changed = changed_paths_in_head_commit();
+                let mut new_findings: Vec<&Violation> = Vec::new();
+                let mut baseline: Vec<&Violation> = Vec::new();
+                for v in &report.violations {
+                    if finding_is_new(v, &changed) {
+                        new_findings.push(v);
+                    } else {
+                        baseline.push(v);
+                    }
+                }
+                if new_findings.is_empty() {
+                    println!(
+                        "{lane_name} WARN (wave B; baseline-only): artifacts_observed={} stage_counts={:?} violations={} baseline={} new=0 breakdown={:?}",
+                        report.artifacts_observed,
+                        report.stage_counts,
+                        report.violations.len(),
+                        baseline.len(),
+                        breakdown
+                    );
+                    for v in &report.violations {
+                        println!(
+                            "  - [{}] {} stage={:?} hint={}",
+                            v.kind.as_str(),
+                            v.location,
+                            v.stage,
+                            v.hint
+                        );
+                    }
+                    ExitCode::SUCCESS
+                } else {
+                    eprintln!(
+                        "{lane_name} FAIL (wave B; delta-block): artifacts_observed={} stage_counts={:?} violations={} baseline={} new={} breakdown={:?}",
+                        report.artifacts_observed,
+                        report.stage_counts,
+                        report.violations.len(),
+                        baseline.len(),
+                        new_findings.len(),
+                        breakdown
+                    );
+                    eprintln!("  -- NEW (block-on-new) --");
+                    for v in &new_findings {
+                        eprintln!(
+                            "  - [{}] {} stage={:?} hint={}",
+                            v.kind.as_str(),
+                            v.location,
+                            v.stage,
+                            v.hint
+                        );
+                    }
+                    eprintln!("  -- BASELINE (warn) --");
+                    for v in &baseline {
+                        eprintln!(
+                            "  - [{}] {} stage={:?} hint={}",
+                            v.kind.as_str(),
+                            v.location,
+                            v.stage,
+                            v.hint
+                        );
+                    }
+                    ExitCode::FAILURE
+                }
+            }
+            Wave::C => {
                 eprintln!(
-                    "  - [{}] {} stage={:?} hint={}",
-                    v.kind.as_str(),
-                    v.location,
-                    v.stage,
-                    v.hint
+                    "{lane_name} FAIL (wave C; full-block): artifacts_observed={} stage_counts={:?} violations={} breakdown={:?}",
+                    report.artifacts_observed,
+                    report.stage_counts,
+                    report.violations.len(),
+                    breakdown
                 );
+                for v in &report.violations {
+                    eprintln!(
+                        "  - [{}] {} stage={:?} hint={}",
+                        v.kind.as_str(),
+                        v.location,
+                        v.stage,
+                        v.hint
+                    );
+                }
+                ExitCode::FAILURE
             }
-            ExitCode::FAILURE
-        };
-        target
+        }
     }
 
-    struct Options {
-        config: PathBuf,
-        reached_milestones: Vec<String>,
-        wave_warn_only: bool,
+    pub struct Options {
+        pub config: PathBuf,
+        pub reached_milestones: Vec<String>,
+        /// Explicit `--wave A|B|C` flag (highest precedence).
+        pub wave_override: Option<Wave>,
+        /// Legacy `--block` / `--warn-only` flags (mapped to C / A).
+        pub legacy_wave_override: Option<Wave>,
     }
 
     impl Options {
-        fn parse(args: Vec<String>, default_config: &str) -> Result<Self, String> {
+        pub fn parse(args: Vec<String>, default_config: &str) -> Result<Self, String> {
             let mut config = PathBuf::from(default_config);
             let mut reached_milestones: Vec<String> = Vec::new();
-            let mut wave_warn_only = true;
+            let mut wave_override: Option<Wave> = None;
+            let mut legacy_wave_override: Option<Wave> = None;
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
@@ -1006,8 +1186,16 @@ pub mod cli {
                             args.get(i).ok_or("--milestone needs an id")?.to_string(),
                         );
                     }
-                    "--block" => wave_warn_only = false,
-                    "--warn-only" => wave_warn_only = true,
+                    "--wave" => {
+                        i += 1;
+                        let v = args.get(i).ok_or("--wave needs a value (A|B|C)")?;
+                        wave_override = Some(
+                            Wave::parse_label(v)
+                                .ok_or_else(|| format!("--wave expects A|B|C, got `{v}`"))?,
+                        );
+                    }
+                    "--block" => legacy_wave_override = Some(Wave::C),
+                    "--warn-only" => legacy_wave_override = Some(Wave::A),
                     "--help" | "-h" => return Err(usage()),
                     other => return Err(format!("unexpected argument '{other}'\n{}", usage())),
                 }
@@ -1016,13 +1204,14 @@ pub mod cli {
             Ok(Self {
                 config,
                 reached_milestones,
-                wave_warn_only,
+                wave_override,
+                legacy_wave_override,
             })
         }
     }
 
     fn usage() -> String {
-        "options: [--config PATH] [--milestone ID]... [--block|--warn-only]".into()
+        "options: [--config PATH] [--milestone ID]... [--wave A|B|C] [--block|--warn-only]".into()
     }
 
     fn today() -> NaiveDate {

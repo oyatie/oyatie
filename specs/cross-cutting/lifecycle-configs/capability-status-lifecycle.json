@@ -2,16 +2,44 @@
   "name": "capability-status",
   "version": 1,
   "stages": [
-    { "id": "proposed", "terminal": false, "requires_supersession_edge": false },
-    { "id": "granted", "terminal": false, "requires_supersession_edge": false },
-    { "id": "revoked", "terminal": true, "requires_supersession_edge": false },
-    { "id": "expired", "terminal": true, "requires_supersession_edge": false }
+    {
+      "id": "proposed",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "granted",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "revoked",
+      "terminal": true,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "expired",
+      "terminal": true,
+      "requires_supersession_edge": false
+    }
   ],
   "transitions": [
-    { "from": "proposed", "to": "granted" },
-    { "from": "proposed", "to": "revoked" },
-    { "from": "granted", "to": "revoked" },
-    { "from": "granted", "to": "expired" }
+    {
+      "from": "proposed",
+      "to": "granted"
+    },
+    {
+      "from": "proposed",
+      "to": "revoked"
+    },
+    {
+      "from": "granted",
+      "to": "revoked"
+    },
+    {
+      "from": "granted",
+      "to": "expired"
+    }
   ],
   "sources": [
     {
@@ -24,7 +52,8 @@
     }
   ],
   "defaults": {
-    "wave": "A",
+    "wave": "B",
     "case_insensitive_stage_match": true
-  }
+  },
+  "purpose": "Lifecycle state machine for capability grants, revocations, and expirations."
 }

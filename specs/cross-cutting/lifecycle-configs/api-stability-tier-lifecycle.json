@@ -2,16 +2,44 @@
   "name": "api-stability-tier",
   "version": 1,
   "stages": [
-    { "id": "experimental", "terminal": false, "requires_supersession_edge": false },
-    { "id": "stable", "terminal": false, "requires_supersession_edge": false },
-    { "id": "deprecated", "terminal": false, "requires_supersession_edge": true },
-    { "id": "removed", "terminal": true, "requires_supersession_edge": false }
+    {
+      "id": "experimental",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "stable",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "deprecated",
+      "terminal": false,
+      "requires_supersession_edge": true
+    },
+    {
+      "id": "removed",
+      "terminal": true,
+      "requires_supersession_edge": false
+    }
   ],
   "transitions": [
-    { "from": "experimental", "to": "stable" },
-    { "from": "experimental", "to": "removed" },
-    { "from": "stable", "to": "deprecated" },
-    { "from": "deprecated", "to": "removed" }
+    {
+      "from": "experimental",
+      "to": "stable"
+    },
+    {
+      "from": "experimental",
+      "to": "removed"
+    },
+    {
+      "from": "stable",
+      "to": "deprecated"
+    },
+    {
+      "from": "deprecated",
+      "to": "removed"
+    }
   ],
   "sources": [
     {
@@ -24,7 +52,8 @@
     }
   ],
   "defaults": {
-    "wave": "A",
+    "wave": "B",
     "case_insensitive_stage_match": true
-  }
+  },
+  "purpose": "Lifecycle state machine for API stability tier transitions from experimental through removal."
 }
