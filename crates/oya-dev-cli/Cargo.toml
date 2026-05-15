@@ -70,5 +70,15 @@ path = "src/main.rs"
 name = "repoctl"
 path = "src/repoctl.rs"
 
+# Test fixture binary: integration tests in tests/doc_cli.rs invoke this
+# as the `--cargo` executable to emulate cargo's behavior under control
+# of FAKE_CARGO_* env vars. Replaces the prior fake-cargo.sh shell-script
+# fixture per the no-shell-scripts canonical posture.
+[[bin]]
+name = "fake-cargo"
+path = "src/bin/fake-cargo.rs"
+test = false
+doctest = false
+
 [lints]
 workspace = true

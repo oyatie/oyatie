@@ -3,7 +3,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::fs;
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::thread;
@@ -12,19 +11,15 @@ use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 #[test]
 fn doc_rustdoc_uses_pinned_rustdoc_and_target_dir() {
     let temp = temp_dir("doc-rustdoc-success");
-    let fake_cargo = write_file(
-        &temp,
-        "fake-cargo.sh",
-        "echo cargo-args:$@\necho rustdoc:$RUSTDOC\necho target:$CARGO_TARGET_DIR\n",
-    );
     let target_dir = temp.join("target").join("custom-doc-target");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .env("FAKE_CARGO_PRINT_ARGS", "1")
         .args([
             "doc",
             "rustdoc",
             "--cargo",
-            fake_cargo.to_str().expect("utf8 cargo"),
+            env!("CARGO_BIN_EXE_fake-cargo"),
             "--rustdoc",
             "/tmp/rustdoc-fixture",
             "--target-dir",
@@ -64,15 +59,16 @@ fn doc_rustdoc_uses_pinned_rustdoc_and_target_dir() {
 #[test]
 fn doc_rustdoc_fails_closed_when_cargo_doc_fails() {
     let temp = temp_dir("doc-rustdoc-failure");
-    let fake_cargo = write_file(&temp, "fake-cargo.sh", "echo rustdoc-bad >&2\nexit 7\n");
     let target_dir = temp.join("target").join("custom-doc-target");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .env("FAKE_CARGO_STDERR", "rustdoc-bad")
+        .env("FAKE_CARGO_EXIT", "7")
         .args([
             "doc",
             "rustdoc",
             "--cargo",
-            fake_cargo.to_str().expect("utf8 cargo"),
+            env!("CARGO_BIN_EXE_fake-cargo"),
             "--rustdoc",
             "/tmp/rustdoc-fixture",
             "--target-dir",
@@ -96,15 +92,15 @@ fn doc_rustdoc_fails_closed_when_cargo_doc_fails() {
 #[test]
 fn doc_rustdoc_refuses_to_clean_unsafe_target_dir() {
     let temp = temp_dir("doc-rustdoc-unsafe");
-    let fake_cargo = write_file(&temp, "fake-cargo.sh", "echo should-not-run\n");
     let unsafe_target = temp.join("not-generated-doc-target");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .env("FAKE_CARGO_STDOUT", "should-not-run")
         .args([
             "doc",
             "rustdoc",
             "--cargo",
-            fake_cargo.to_str().expect("utf8 cargo"),
+            env!("CARGO_BIN_EXE_fake-cargo"),
             "--rustdoc",
             "/tmp/rustdoc-fixture",
             "--target-dir",
@@ -131,7 +127,6 @@ fn doc_rustdoc_refuses_to_clean_unsafe_target_dir() {
 #[test]
 fn doc_rustdoc_refuses_parent_traversal_under_generated_target_dir() {
     let temp = temp_dir("doc-rustdoc-parent-traversal");
-    let fake_cargo = write_file(&temp, "fake-cargo.sh", "echo should-not-run\n");
     let keepme = temp.join("target").join("keepme");
     fs::create_dir_all(&keepme).expect("keepme target dir");
     fs::write(keepme.join("sentinel"), "preserve").expect("sentinel written");
@@ -142,11 +137,12 @@ fn doc_rustdoc_refuses_parent_traversal_under_generated_target_dir() {
         .join("keepme");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .env("FAKE_CARGO_STDOUT", "should-not-run")
         .args([
             "doc",
             "rustdoc",
             "--cargo",
-            fake_cargo.to_str().expect("utf8 cargo"),
+            env!("CARGO_BIN_EXE_fake-cargo"),
             "--rustdoc",
             "/tmp/rustdoc-fixture",
             "--target-dir",
@@ -177,7 +173,6 @@ fn doc_rustdoc_refuses_parent_traversal_under_generated_target_dir() {
 #[test]
 fn doc_rustdoc_waits_for_target_lock_before_cleaning() {
     let temp = temp_dir("doc-rustdoc-lock");
-    let fake_cargo = write_file(&temp, "fake-cargo.sh", "echo cargo-after-lock\n");
     let target_dir = temp.join("target").join("oya-rustdoc-check");
     let lock_dir = temp.join("target").join("oya-rustdoc-check.lock");
     fs::create_dir_all(&target_dir).expect("target dir");
@@ -193,11 +188,12 @@ fn doc_rustdoc_waits_for_target_lock_before_cleaning() {
 
     let started = Instant::now();
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .env("FAKE_CARGO_STDOUT", "cargo-after-lock")
         .args([
             "doc",
             "rustdoc",
             "--cargo",
-            fake_cargo.to_str().expect("utf8 cargo"),
+            env!("CARGO_BIN_EXE_fake-cargo"),
             "--rustdoc",
             "/tmp/rustdoc-fixture",
             "--target-dir",
@@ -227,7 +223,6 @@ fn doc_rustdoc_waits_for_target_lock_before_cleaning() {
 #[test]
 fn doc_rustdoc_reclaims_stale_target_lock_owner() {
     let temp = temp_dir("doc-rustdoc-stale-lock");
-    let fake_cargo = write_file(&temp, "fake-cargo.sh", "echo cargo-after-stale-lock\n");
     let target_dir = temp.join("target").join("oya-rustdoc-check");
     let lock_dir = temp.join("target").join("oya-rustdoc-check.lock");
     fs::create_dir_all(&target_dir).expect("target dir");
@@ -235,11 +230,12 @@ fn doc_rustdoc_reclaims_stale_target_lock_owner() {
     fs::write(lock_dir.join("owner"), "pid=99999999\n").expect("stale lock owner");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .env("FAKE_CARGO_STDOUT", "cargo-after-stale-lock")
         .args([
             "doc",
             "rustdoc",
             "--cargo",
-            fake_cargo.to_str().expect("utf8 cargo"),
+            env!("CARGO_BIN_EXE_fake-cargo"),
             "--rustdoc",
             "/tmp/rustdoc-fixture",
             "--target-dir",
@@ -1149,26 +1145,6 @@ fn write_mdbook_site(root: &Path, broken_link: bool) {
         "# Guide\n\nReturn [home](../start.md).\n",
     )
     .expect("guide chapter written");
-}
-
-fn write_file(root: &Path, name: &str, contents: &str) -> PathBuf {
-    fs::create_dir_all(root).expect("temp dir created");
-    let path = root.join(name);
-    // Linux's exec() rejects shell scripts without a shebang with ENOEXEC
-    // ("Exec format error"); macOS silently falls back to /bin/sh. Auto-
-    // prepend `#!/bin/sh` to `.sh` fixtures when callers omit it so the
-    // tests behave the same on both kernels.
-    let needs_shebang = name.ends_with(".sh") && !contents.starts_with("#!");
-    let final_contents = if needs_shebang {
-        format!("#!/bin/sh\n{contents}")
-    } else {
-        contents.to_string()
-    };
-    fs::write(&path, final_contents).expect("file written");
-    let mut permissions = fs::metadata(&path).expect("file metadata").permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(&path, permissions).expect("file executable");
-    path
 }
 
 fn write_adr(root: &Path, name: &str, id: &str, title: &str, status: &str) -> PathBuf {
