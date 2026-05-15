@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"python3 -c \\\"\\nimport json\\npath = '/Users/jasonlee/oyatie/registries/cross-cutting/fixuptasks.jsonl'\\nwith open(path) as f:\\n    lines = [l for l in f.read().splitlines() if l.strip()]\\nu...",
+  "error": "Exit code 128\nfatal: pathspec 'crates/oya-check-dependency-seam/tests/fixtures/' did not match any files",
+  "timestamp": "2026-05-15T03:25:16.332Z",
+  "retry_count": 1
+}

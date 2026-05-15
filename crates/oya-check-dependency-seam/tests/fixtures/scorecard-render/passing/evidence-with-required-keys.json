@@ -1,0 +1,15 @@
+{
+  "_meta": {"doc_class": "Fixture", "purpose": "passing fixture: contains change_class_id + facets — scorecard-renderable"},
+  "change_class_id": "CC-7",
+  "git_sha": "0000000000000000000000000000000000000000",
+  "freshness_unix": 1778808000,
+  "facets": {
+    "F1_linus": {"considered": true},
+    "F2_hyperscaler": {"considered": true},
+    "F3_adversarial": {"considered": true},
+    "F4_ergonomic": {"considered": true},
+    "F5_quality": {"considered": true},
+    "F6_alternatives": {"considered": true},
+    "F7_security": {"considered": true}
+  }
+}

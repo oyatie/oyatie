@@ -1,0 +1,4 @@
+{
+  "_meta": {"doc_class": "Fixture", "purpose": "FAILING fixture: has facets but MISSING change_class_id — not scorecard-renderable"},
+  "facets": {"F1_linus": {"considered": true}}
+}
