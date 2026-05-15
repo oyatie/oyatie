@@ -29,7 +29,7 @@ related_adrs:
   - ADR-0053
   - ADR-0054
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > docs/AGENTS.md > docs/standards/code-style-rust.md
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
   > THIS DOC > .omc/fitness-lanes/naming-convention.md
 ---
 
@@ -37,8 +37,8 @@ authority_chain_declaration: |
 
 ## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-This standard operates within the [`CONSTITUTION.md`](../CONSTITUTION.md)
-frame (§Architecture, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
+This standard operates within the [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json)
+frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
 downstream of [`docs/standards/code-style-rust.md`](code-style-rust.md) §5.
 Every `oya-*` crate path under `crates/` MUST conform to the grammar in §2.
 The lane [`oya-foundry-fitness-naming-convention`](../../.omc/fitness-lanes/naming-convention.md)
@@ -229,7 +229,7 @@ features as accepted compound nouns:
 
 | Compound feature | Origin / referent | Crates using it |
 |---|---|---|
-| `audit-chain` | governance audit-chain doctrine (CONSTITUTION §Governance) | kernel/app/adapter |
+| `audit-chain` | governance audit-chain doctrine (decision-principles.json DP-08) | kernel/app/adapter |
 | `policy-cedar` | Cedar policy engine binding | kernel/api |
 | `object-graph` | object-graph platform substrate | kernel/api |
 | `regional-pack` | regional regulatory pack | kernel |

@@ -4,7 +4,7 @@ purpose: Auto-backfilled purpose for MISTAKES-LEDGER.md
 
 # Oyatie — Mistakes-and-Fixes Ledger
 
-## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../specs/cross-cutting/forbidden-operations.json)
 
 
 > **Owner:** `council-architecture` (curator). Per-team contributors.

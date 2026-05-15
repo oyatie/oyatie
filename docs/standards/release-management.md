@@ -54,7 +54,7 @@ and Google / Microsoft consensus:
 - Branch protection: required reviews per `RACI-OWNERSHIP.md`, merge-gate
   hook (`scripts/hooks/guard-pr-merge-review.mjs`), green CI required.
 - Force-push to `main` is forbidden per
-  [`CONSTITUTION.md`](../CONSTITUTION.md) §Avoid Item 3.
+  [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-03.
 
 Sources: [DORA — Trunk-Based Development](https://dora.dev/capabilities/trunk-based-development/),
 [Aviator — What is Trunk-Based Development](https://www.aviator.co/blog/trunk-based-development/).

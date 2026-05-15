@@ -35,7 +35,7 @@ related_adrs:
   - ADR-0054
   - ADR-0056
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > docs/AGENTS.md > docs/standards/code-style-rust.md
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
   > docs/standards/crate-naming-convention.md ≡ THIS DOC
   > .omc/fitness-lanes/architecture-conventions.md
 ---
@@ -44,8 +44,8 @@ authority_chain_declaration: |
 
 ## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-This standard operates within the [`CONSTITUTION.md`](../CONSTITUTION.md)
-frame (§Architecture; ADR-0015 flat crates) and is the **peer** of
+This standard operates within the [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json)
+frame (architecture decision principles; ADR-0015 flat crates) and is the **peer** of
 [`crate-naming-convention.md`](crate-naming-convention.md): the naming
 standard binds the **role token** of every crate name; this standard binds
 the **layer semantics** the role represents. The pair is enforced as a

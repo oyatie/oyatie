@@ -144,7 +144,7 @@ public-facing comms cadence; the on-call owns the technical mitigation.
 
 ## 5. Blameless postmortem trigger
 
-Per [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Mistakes doctrine, every
+Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) (FO-10 mechanical-prevention doctrine), every
 Sev-1 / Sev-2 closure triggers a postmortem. The standard adopts Google's
 blameless culture verbatim:
 
@@ -159,7 +159,7 @@ Postmortem shape (per `templates/postmortem-template.md`):
 3. **Timeline** — UTC + local timestamps, source citations (logs,
    dashboards, audit chain).
 4. **Root cause** — single failure mode named in one sentence (per
-   CONSTITUTION §Mistakes doctrine).
+   forbidden-operations.json FO-10 mistakes doctrine).
 5. **Mitigation** — what stopped the bleeding; how long it took; gaps.
 6. **Mechanical prevention** — the CI lane, hook, validator, schema check,
    or runtime gate that prevents replay. Class: `mechanical` or
@@ -213,7 +213,7 @@ Every on-call event of consequence emits an audit-chain record per
 2. **Alert with no runbook link.**
 3. **Suppression without expiry.**
 4. **Postmortem that names a person.**
-5. **"Process fix"** for a recurring incident (per CONSTITUTION §Mistakes
+5. **"Process fix"** for a recurring incident (per forbidden-operations.json FO-10 mistakes
    doctrine — mechanical prevention or cultural prevention, not memo-driven
    process).
 6. **Pager fatigue accepted as normal** — re-tune or retire alerts.
@@ -225,7 +225,7 @@ Every on-call event of consequence emits an audit-chain record per
 - [Google SRE Workbook — Error Budget Policy](https://sre.google/workbook/error-budget-policy/).
 - [Google SRE Workbook — Alerting on SLOs](https://sre.google/workbook/alerting-on-slos/).
 - [Google SRE — Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/).
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Mistakes doctrine.
+- [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-10 mistakes doctrine.
 - [`docs/INCIDENT-MANAGEMENT.md`](../INCIDENT-MANAGEMENT.md).
 - [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 2 "On-call / runbooks".

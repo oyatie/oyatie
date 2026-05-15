@@ -4,7 +4,7 @@ purpose: Auto-backfilled purpose for DOC-CATALOG.md
 
 # Doc Catalog & Update Protocol
 
-## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../specs/cross-cutting/forbidden-operations.json)
 
 
 > **Status:** Draft v0.1 — 2026-05-09. Treat as a *protocol*, not a guideline. Every consolidated doc is mutable but the *trigger* for the mutation is rule-bound. Agents and humans both consult this catalog before authoring or auto-updating any doc.
@@ -72,8 +72,9 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.foundry_supervisor_ops` | `docs/foundry/supervisor/operations.md` | `axis-foundry` | signal/lifecycle change | quarterly | - | `doc-catalog-self-coverage` | YES |
 | `doc.foundry_supervisor_security` | `docs/foundry/supervisor/security.md` | `axis-foundry` | secret-ref or tier change | quarterly | SECURITY-PLAN.md | `doc-catalog-self-coverage` | NO |
 | `doc.foundry_supervisor_samples` | `docs/foundry/supervisor/sample-payloads.md` | `axis-foundry` | contract/schema change | quarterly | contracts/ | `doc-catalog-self-coverage` | YES |
-| `doc.constitution` | `CONSTITUTION.md` | `council-architecture` | authority / constitutional contract change | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
-| `doc.agents` | `AGENTS.md` | `axis-foundry` + `council-architecture` | agent operating-contract change | quarterly | CONSTITUTION.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
+| `doc.decision_principles` | `/specs/cross-cutting/decision-principles.json` | `council-architecture` | doctrinal authority change | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
+| `doc.forbidden_operations` | `/specs/cross-cutting/forbidden-operations.json` | `council-architecture` | doctrinal prohibition change | quarterly | AGENTS.md, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
+| `doc.agents` | `AGENTS.md` | `axis-foundry` + `council-architecture` | agent operating-contract change | quarterly | decision-principles.json, forbidden-operations.json, DESIGN.md, DOC-CATALOG.md | `authority-cohesion` | NO |
 | `doc.prd` | `PRD.md` | `council-architecture` | EVT-AXIS-SCOPE-CHANGE, EVT-PRICING-CHANGE, EVT-VERTICAL-ADDED | quarterly | DESIGN.md, ROADMAP.md, GTM-PLAN.md, products/*/PRD.md | `prd-internal-consistency`, `prd-axis-coverage`, `prd-glossary-alignment` | NO — council-only |
 | `doc.design` | `DESIGN.md` | `council-architecture` | EVT-AXIS-CONTRACT-CHANGE, EVT-ADR-PROMOTED (cross-cutting axis), EVT-FLAT-CRATE-MOVED (target-shape change only) | monthly | SPEC.md, ROADMAP.md, ADR-INDEX.md, contracts.json | `design-contracts-mirror`, `design-vs-adr-cite-coverage` | NO |
 | `doc.spec` | `SPEC.md` | `platform-api-sdk` | EVT-CONTRACT-AUTHORED, EVT-CAPABILITY-AUTHORED, EVT-AXIS-CONTRACT-CHANGE | weekly | DESIGN.md, products/*/PRD.md, machine-readable/contracts.json | `spec-contract-mirror`, `spec-capability-coverage` | YES — agent may auto-PR for additions only; deletions need human review |

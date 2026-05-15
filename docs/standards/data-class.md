@@ -217,7 +217,7 @@ reads the same `data_class` metadata at runtime. Rules:
 
 ## 11. Sources scanned
 
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Do Item 8, §Avoid Item 5.
+- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-08 + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-05.
 - [`docs/PRIVACY-PROGRAM.md`](../PRIVACY-PROGRAM.md) (program scope).
 - [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md) §4 lanes:
   `privacy-class-taxonomy-coverage`, `privacy-consent-flow-completeness`,

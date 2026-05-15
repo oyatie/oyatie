@@ -14,7 +14,7 @@ purpose: |
   emission fabric, names the structured-logging schema, codifies the audit-chain
   `EVT-*` emission contract, requires Prometheus 3.11+ (post-3.5-EOL), enables
   Honeycomb-style exemplars on traces/metrics correlation, and sets retention
-  defaults. Operates within `docs/CONSTITUTION.md` §Do Item 8 (audit-chain
+  defaults. Operates within `decision-principles.json` DP-08 (audit-chain
   emission on every cross-axis flow).
 canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-otel-emit
@@ -34,7 +34,7 @@ related_adrs:
 
 ## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Do Item 8 — "Audit-chain
+Per [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-08 — "Audit-chain
 emission on every cross-axis flow" — observability is **not** an optional
 operational concern: cross-pillar data movement without emission is a
 defect, not an optimization. This standard names the three pillars
@@ -125,7 +125,7 @@ the JSON shape on golden fixtures.
 
 ## 4. Audit-chain `EVT-*` emission contract
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Do Item 8 and ADR-0003, every
+Per [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-08 and ADR-0003, every
 cross-pillar / cross-axis data movement emits an `EVT-*` record into the
 audit chain. The chain is hash-linked and replayable per
 DOC-CATALOG.md §4 `audit-chain-replay` lane.
