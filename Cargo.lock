@@ -2299,6 +2299,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-foundry-vcs-admission-gate-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-vcs-admission-gate-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-foundry-vcs-admission-gate-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "oya-foundry-vcs-ast-index-kernel"
 version = "0.1.0"
 dependencies = [
@@ -2342,6 +2357,21 @@ dependencies = [
  "oya-foundry-vcs-changebundle-kernel",
  "oya-foundry-vcs-kernel",
  "oya-foundry-vcs-test-standard-gate-kernel",
+]
+
+[[package]]
+name = "oya-foundry-vcs-provider-execution-gate-app"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-vcs-provider-execution-gate-kernel",
+ "serde_json",
+]
+
+[[package]]
+name = "oya-foundry-vcs-provider-execution-gate-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
