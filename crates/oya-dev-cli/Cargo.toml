@@ -23,6 +23,10 @@ oya-foundry-catalog-domain = { path = "../oya-foundry-catalog-domain" }
 oya-check-claim-ceiling = { path = "../oya-check-claim-ceiling" }
 oya-check-codeowners-mirror = { path = "../oya-check-codeowners-mirror" }
 oya-check-cohesion = { path = "../oya-check-cohesion" }
+oya-check-statelessness = { path = "../oya-check-statelessness" }
+oya-check-shardability = { path = "../oya-check-shardability" }
+oya-check-perf-budget = { path = "../oya-check-perf-budget" }
+oya-check-benchmark = { path = "../oya-check-benchmark" }
 oya-check-data-class = { path = "../oya-check-data-class" }
 oya-check-doc-catalog = { path = "../oya-check-doc-catalog" }
 oya-check-documentation-system = { path = "../oya-check-documentation-system" }

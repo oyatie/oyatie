@@ -484,6 +484,90 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("statelessness")) => {
+            match crate::parse_statelessness_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_statelessness_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "statelessness validation passed: {} files scanned, {} in scope",
+                            report.files_checked, report.files_in_scope
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("statelessness validation failed:\n{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("shardability")) => {
+            match crate::parse_shardability_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_shardability_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "shardability validation passed: {} files scanned, {} tables ({} global)",
+                            report.files_checked, report.tables_seen, report.tables_global
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("shardability validation failed:\n{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("perf-budget")) => {
+            match crate::parse_perf_budget_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_perf_budget_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "perf-budget validation passed: {} plans checked",
+                            report.plans_checked
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("perf-budget validation failed:\n{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("benchmark")) => {
+            match crate::parse_benchmark_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_benchmark_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "benchmark validation passed: {} PRDs checked",
+                            report.prds_checked
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("benchmark validation failed:\n{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("license-policy")) => {
             match crate::parse_license_policy_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_license_policy_gate(args) {

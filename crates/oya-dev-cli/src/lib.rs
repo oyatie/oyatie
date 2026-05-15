@@ -49,6 +49,7 @@ mod path_format;
 mod placeholder_debt_gates;
 mod quality_lane_gates;
 mod runbook_gates;
+mod scalability_gates;
 mod scalar_parse;
 mod supply_chain_gates;
 mod team_ownership_gates;
@@ -128,6 +129,12 @@ pub(crate) use runbook_gates::{
     parse_runbook_freshness_validate_args, parse_runbook_index_validate_args,
     validate_runbook_freshness_gate, validate_runbook_index_gate,
 };
+pub(crate) use scalability_gates::{
+    parse_benchmark_validate_args, parse_perf_budget_validate_args,
+    parse_shardability_validate_args, parse_statelessness_validate_args,
+    validate_benchmark_gate, validate_perf_budget_gate, validate_shardability_gate,
+    validate_statelessness_gate,
+};
 pub(crate) use scalar_parse::{
     clean_scalar_value, insert_scalar_field, parse_bool_field, parse_u8_percent, parse_u32_field,
     parse_u64_field, required_field, required_scalar, scalar_value,
@@ -201,6 +208,10 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate codeview-read-surface [--spec <specs/cross-cutting/codeview-read-surface.json>]"
         + "\n       oya gate validate cohesion [--workspace <Cargo.toml>] [--registry <registry/catalog>] [--contracts <docs/machine-readable/contracts.json>]"
         + "\n       oya gate validate codeowners-mirror [--codeowners <.github/CODEOWNERS>] [--teams-dir <docs/teams>]"
+        + "\n       oya gate validate statelessness [--workspace-root <.>] [--allow-empty]"
+        + "\n       oya gate validate shardability [--migrations-dir <migrations>] [--allow-empty]"
+        + "\n       oya gate validate perf-budget [--plans-dir <.omc/plans/milestones>] [--allow-empty]"
+        + "\n       oya gate validate benchmark [--prds-dir <docs/prds>] [--products-dir <docs/products>] [--competitor <name>] [--allow-empty]"
         + "\n       oya gate validate data-class [--workspace <Cargo.toml>] [--legacy <registry/data-class/legacy-unannotated-fields.tsv>]"
         + "\n       oya gate validate doc-catalog [--docs-dir <docs>] [--catalog <docs/machine-readable/catalog.json>]"
         + "\n       oya gate validate documentation-system [--documentation <docs/DOCUMENTATION.md>] [--pipeline <registry/docs/pipeline.tsv>] [--check-script <scripts/check.sh>] [--wiki-quickref <docs/wiki/quickref/README.md>] [--repo-root <.>]"
