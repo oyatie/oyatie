@@ -1,6 +1,6 @@
 ---
 purpose: Working-backwards PR/FAQ template (Amazon-style) for launching new capabilities; force-clarifies customer value before any engineering investment.
-doc_status: template
+doc_status: published
 ---
 
 ---

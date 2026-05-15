@@ -1,6 +1,6 @@
 ---
 purpose: Blameless postmortem template (Google SRE-style) for any incident or near-miss; forces causal analysis and actionable follow-up over individual blame.
-doc_status: template
+doc_status: published
 ---
 
 ---
