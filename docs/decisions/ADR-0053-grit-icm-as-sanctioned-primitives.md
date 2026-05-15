@@ -99,8 +99,8 @@ Rewrite agent-facing memory FIRST (P4), ship `oya-tooling-agent-read` SECOND (P2
 - Provider-agnostic abstraction surface: `pr-view`/`pr-comments`/`log`/`diff` are GitHub-CLI-agnostic verbs, swappable to other forges via a single adapter.
 
 ### Negative
-- Upstream dependency on `rtk-ai/grit` 0.3.0+. The `grit session start` bug (documented in `.omc/specs/pre-cutover-drafts-2026-05-12.md §Draft 1`) is a real blocker for the `grit session pr` flow until fixed upstream. Workaround is **session-less mode** documented in the spec.
-- New-crate creation has a chicken-and-egg with grit symbol-locking (you cannot claim a symbol that doesn't exist yet). Resolved by the **scaffold-claim pattern** in `ADR-0054-grit-scaffold-claim-pattern.md` (lifts from `.omc/specs/pre-cutover-drafts-2026-05-12.md §Draft 2`).
+- Upstream dependency on `rtk-ai/grit` 0.3.0+. The `grit session start` bug (documented in `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 1`) is a real blocker for the `grit session pr` flow until fixed upstream. Workaround is **session-less mode** documented in the spec.
+- New-crate creation has a chicken-and-egg with grit symbol-locking (you cannot claim a symbol that doesn't exist yet). Resolved by the **scaffold-claim pattern** in `ADR-0054-grit-scaffold-claim-pattern.md` (lifts from `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 2`).
 - Agents lose the convenience of `rtk gh pr view` etc.; they must route through `oya-tooling-agent-read pr-view`, which is one indirection.
 - The `oya-foundry-fitness-banned-primitives` lane must scope its grep to agent-instruction sections only (via HTML comment fences `<!-- agent-instructions:start -->`) — non-trivial to implement correctly.
 
@@ -116,13 +116,13 @@ This ADR is consistent with the following Master-Plan-level principles; they sha
 
 1. **Provider-agnostic**: `oya-tooling-agent-read`'s surface is verb-level (`pr-view`, `log`, `diff`), not provider-level. GitHub-specific code lives behind the verb implementation; a future second forge gets its own implementation behind the same verb. See `oyatie/docs/CONSTITUTION.md` and Master Plan §Principles.
 2. **Distroless + smallest-image**: when `oya-tooling-agent-read` is containerized (for CI runners or sandboxed agents), the image is distroless (`gcr.io/distroless/static-debian12` for the static Rust binary) with `cargo build --release` + musl static linking. CI gates the image size budget. See Master Plan §Cross-cutting workstreams §Image discipline.
-3. **Current LTS dependencies enforced**: every direct dependency of `oya-tooling-agent-read` is pinned to current LTS (verified against `.omc/specs/lts-versions-verified-2026-05-12.md`); the `oya-foundry-fitness-lts-dependency` lane (defined in Master Plan §Cross-cutting workstreams §Dependency hygiene) blocks PRs that introduce non-LTS deps without an exception ADR.
+3. **Current LTS dependencies enforced**: every direct dependency of `oya-tooling-agent-read` is pinned to current LTS (verified against `.omc/scratch/lts-versions-verified-2026-05-12.md`); the `oya-foundry-fitness-lts-dependency` lane (defined in Master Plan §Cross-cutting workstreams §Dependency hygiene) blocks PRs that introduce non-LTS deps without an exception ADR.
 4. **Final-shape adoption**: the helper's read-only-only verb set, the three-primitive sanctioned set, and the bootstrap-window-as-explicit-one-time-carve-out are all final-form decisions, not iterative ones.
 
 ## Follow-ups
 
-1. **File upstream grit bug** for `grit session start` at `rtk-ai/grit` (draft at `.omc/specs/pre-cutover-drafts-2026-05-12.md §Draft 1`). Track in oyatie's `RISK-REGISTER.md` under a new row.
-2. **ADR-0054-grit-scaffold-claim-pattern.md** for the new-crate chicken-and-egg resolution. Draft at `.omc/specs/pre-cutover-drafts-2026-05-12.md §Draft 2`.
+1. **File upstream grit bug** for `grit session start` at `rtk-ai/grit` (draft at `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 1`). Track in oyatie's `RISK-REGISTER.md` under a new row.
+2. **ADR-0054-grit-scaffold-claim-pattern.md** for the new-crate chicken-and-egg resolution. Draft at `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 2`.
 3. **Document `oya-tooling-agent-read` audit-chain topic** in `oyatie/docs/SECURITY-PROGRAM.md`. Each read invocation should emit `EVT-AGENT-READ-<verb>` with agent id, args, timestamp.
 4. **Add inventory-tracker fitness lane** for the `archive/pre-grit-cutover-2026-05-12/` directory — once a file is archived, the active-path equivalent must NOT exist (and vice versa for KEEP-class files).
 5. **Schedule re-evaluation of the helper surface in 90 days** (2026-08-12) — if `grit` upstream adds `grit log`/`grit pr-view`/`grit diff` natively, deprecate the corresponding `oya-tooling-agent-read` subcommands and shrink the helper.

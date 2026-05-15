@@ -32,9 +32,9 @@ P0 prereq per [`../../../../../docs/PRD.md`](../../../../../docs/PRD.md) §6 con
 `crates/oya-tenancy-kernel`, `crates/oya-tenancy-domain`, `crates/oya-data-boundary-kernel`, `docs/decisions/ADR-0008-data-use-boundary.md`, `docs/PRIVACY-PROGRAM.md` (consent-tier mapping table).
 
 ## Completion evidence
-- IP-001: [`.omc/evidence/foundation/m01-p01-ip-001-data-use-boundary-adr.json`](../../../../../evidence/foundation/m01-p01-ip-001-data-use-boundary-adr.json)
-- IP-002: [`.omc/evidence/foundation/m01-p01-ip-002-tenant-kernel-contracts.json`](../../../../../evidence/foundation/m01-p01-ip-002-tenant-kernel-contracts.json)
-- IP-003: [`.omc/evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json`](../../../../../evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json)
+- IP-001: [`/evidence/foundation/m01-p01-ip-001-data-use-boundary-adr.json`](../../../../../evidence/foundation/m01-p01-ip-001-data-use-boundary-adr.json)
+- IP-002: [`/evidence/foundation/m01-p01-ip-002-tenant-kernel-contracts.json`](../../../../../evidence/foundation/m01-p01-ip-002-tenant-kernel-contracts.json)
+- IP-003: [`/evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json`](../../../../../evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json)
 
 ## Agent-handoff
 On phase complete, emit:

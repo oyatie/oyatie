@@ -13,7 +13,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // Tested by oya-dev-cli::gate_cli and
         // oya-foundry-bypass-domain::foundation_bypass.
         // active-artifact-contract: ADR-0069 v3.0.0 vertical enforcement loop.
-        // Validates that every row in .omc/registries/artifact-capabilities-registry.json
+        // Validates that every row in registries/cross-cutting/artifact-capabilities-registry.json
         // (a) has its `artifact_path` HEAD-tracked per `git ls-files`, and
         // (b) has a unique `artifact_id`.
         // Optionally emits an evidence bundle and one graph-edge artifact per
@@ -43,7 +43,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             }
         }
         // cedar-fragment-coverage: enforces C01..C04 from
-        // .omc/registries/cedar-fragments.json. Closes drift between OpenAPI
+        // registries/cross-cutting/cedar-fragments.json. Closes drift between OpenAPI
         // contracts (cedar_fragments[] arrays), bounded-contexts.json
         // (cedar_fragments_planned[] arrays), and on-disk .cedar files.
         (Some("validate"), Some("cedar-fragment-coverage")) => {
@@ -71,8 +71,8 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        // architecture-map: emits .omc/graph/architecture-map.json by
-        // walking workspace Cargo.toml + .omc/registries/* + contracts/.
+        // architecture-map: emits registries/cross-cutting/graph/architecture-map.json by
+        // walking workspace Cargo.toml + registries/cross-cutting/* + contracts/.
         // Visualization-as-code directive 2026-05-12.
         (Some("emit"), Some("architecture-map")) => {
             match crate::parse_architecture_map_emit_args(args.collect()) {

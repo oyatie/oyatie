@@ -2,16 +2,15 @@ use std::collections::BTreeSet;
 
 use oya_cloud_billing_domain::Money;
 use oya_cloud_finops_api::{
-    generate_cloud_finops_report_from_api, CloudFinopsApiAuthorization,
-    CloudFinopsApiBoundaryContext, CloudFinopsApiPrincipal, CloudFinopsAxisRef,
-    CloudFinopsMoneyRecord, CloudFinopsPeriodRequest, CloudFinopsReportAnomalyPolicyRequest,
-    CloudFinopsReportApiError, CloudFinopsReportApiRequest, CloudFinopsReportApiStatus,
-    CloudFinopsReportGenerateIdempotencyLedger, CloudFinopsReportGenerateRequest,
-    CLOUD_FINOPS_REPORT_SURFACE,
+    CLOUD_FINOPS_REPORT_SURFACE, CloudFinopsApiAuthorization, CloudFinopsApiBoundaryContext,
+    CloudFinopsApiPrincipal, CloudFinopsAxisRef, CloudFinopsMoneyRecord, CloudFinopsPeriodRequest,
+    CloudFinopsReportAnomalyPolicyRequest, CloudFinopsReportApiError, CloudFinopsReportApiRequest,
+    CloudFinopsReportApiStatus, CloudFinopsReportGenerateIdempotencyLedger,
+    CloudFinopsReportGenerateRequest, generate_cloud_finops_report_from_api,
 };
 use oya_cloud_finops_domain::{
     AxisBudgetCreate, CloudFinopsLedger, CostAllocationCreate, FinopsPeriod, RateCardLineCreate,
-    UnitRate, STABLE_GROSS_MARGIN_TARGET_BPS,
+    STABLE_GROSS_MARGIN_TARGET_BPS, UnitRate,
 };
 use oya_data_boundary_kernel::DataClass;
 use oya_metering_domain::{

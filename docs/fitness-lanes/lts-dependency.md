@@ -3,7 +3,7 @@
 - status: Accepted
 - date: 2026-05-12
 - purpose: Verify every workspace dep is LTS-pinned per `lts-versions-verified` spec and `cargo deny` policy passes.
-- enforces: Directive 8 (MASTERPLAN), `.omc/specs/lts-versions-verified-2026-05-12.md`.
+- enforces: Directive 8 (MASTERPLAN), `.omc/scratch/lts-versions-verified-2026-05-12.md`.
 - kernel_crate: `oya-foundry-fitness-lts-dependency-kernel` — `DepPin { crate_id, dep_name, requested, verified_lts }`, verdict `LtsDependencyFitnessReport { deps_checked }`.
 - runner_path: `tools/oya-foundry-fitness-lts-dependency`
 - inputs: `Cargo.toml` workspace dep table, lts-verified registry, `cargo deny` report.

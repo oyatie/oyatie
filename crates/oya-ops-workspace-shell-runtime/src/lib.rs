@@ -4,13 +4,18 @@
 //! (`oya-ops-workspace-shell-rest`) through `oya-http-router-kernel` +
 //! `oya-http-middleware-kernel` + `oya-http-runtime-hyper-adapter` into a
 //! hyper service ready for `tokio::main` boot.
+//!
+//! Type migration note (per ADR-0092): kernel types renamed from
+//! `HyperRequest`/`HyperResponse` to `HttpRequest`/`HttpResponse`. Body
+//! type is now `Vec<u8>` end-to-end at this layer; the hyper adapter
+//! converts to/from `bytes::Bytes` at its boundary so this runtime no
+//! longer needs to depend on `bytes`.
 
 use std::sync::{Arc, RwLock};
 
-use bytes::Bytes;
 use oya_http_middleware_kernel::MiddlewareChain;
 use oya_http_router_kernel::{HttpMethod, Router};
-use oya_http_runtime_hyper_adapter::{HyperRequest, HyperResponse, SyncHandler};
+use oya_http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
 use oya_ops_workspace_shell_application::{
     ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
@@ -36,7 +41,7 @@ pub fn build_router(catalog: SharedCatalog) -> Router<SyncHandler> {
         .route(
             HttpMethod::Get,
             LIST_LIVE_SURFACES_ROUTE,
-            Arc::new(move |_req: HyperRequest| -> HyperResponse {
+            Arc::new(move |_req: HttpRequest| -> HttpResponse {
                 let snapshot = cat_live.read().expect("catalog poisoned").clone();
                 let response =
                     ListLiveSurfacesUseCase::new(snapshot).execute(VisibilityTier::InternalPublic);
@@ -59,7 +64,7 @@ pub fn build_router(catalog: SharedCatalog) -> Router<SyncHandler> {
         .route(
             HttpMethod::Get,
             LIST_ALL_SURFACES_ROUTE,
-            Arc::new(move |_req: HyperRequest| -> HyperResponse {
+            Arc::new(move |_req: HttpRequest| -> HttpResponse {
                 let snapshot = cat_all.read().expect("catalog poisoned").clone();
                 let response = ListAllSurfacesUseCase::new(snapshot).execute(None, None);
                 let surfaces: Vec<oya_ops_workspace_shell_adapter::WireSurface> = response
@@ -81,7 +86,7 @@ pub fn build_router(catalog: SharedCatalog) -> Router<SyncHandler> {
         .route(
             HttpMethod::Get,
             SHELL_HEALTH_ROUTE,
-            Arc::new(move |_req: HyperRequest| -> HyperResponse {
+            Arc::new(move |_req: HttpRequest| -> HttpResponse {
                 let snapshot = cat_health.read().expect("catalog poisoned").clone();
                 let response =
                     ShellHealthUseCase::new(snapshot, env!("CARGO_PKG_VERSION"), None).execute();
@@ -98,7 +103,7 @@ pub fn build_router(catalog: SharedCatalog) -> Router<SyncHandler> {
 
 /// Empty middleware chain seed. Cedar / tenant / telemetry / deadline middlewares
 /// land in slice K'' and are pushed here before the binary calls serve().
-pub fn build_chain() -> MiddlewareChain<HyperRequest, HyperResponse> {
+pub fn build_chain() -> MiddlewareChain<HttpRequest, HttpResponse> {
     MiddlewareChain::new()
 }
 
@@ -119,10 +124,10 @@ pub fn build_dev_catalog() -> SharedCatalog {
     Arc::new(RwLock::new(catalog))
 }
 
-fn json_response(body: &str) -> HyperResponse {
-    HyperResponse::new(200)
+fn json_response(body: &str) -> HttpResponse {
+    HttpResponse::new(200)
         .with_header("content-type", "application/json")
-        .with_body(Bytes::from(body.to_string()))
+        .with_body(body.to_string().into_bytes())
 }
 
 fn surface_list_json(
@@ -164,13 +169,14 @@ mod tests {
     use oya_http_runtime_hyper_adapter::dispatch;
     use std::collections::BTreeMap;
 
-    fn mock_request(method: HttpMethod, path: &str) -> HyperRequest {
-        HyperRequest {
+    fn mock_request(method: HttpMethod, path: &str) -> HttpRequest {
+        HttpRequest {
             method,
             path: path.to_string(),
             headers: BTreeMap::new(),
-            body: Bytes::new(),
+            body: Vec::new(),
             path_captures: BTreeMap::new(),
+            matched_template: None,
         }
     }
 

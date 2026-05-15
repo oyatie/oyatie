@@ -6,9 +6,9 @@ title: Eventing Backbone + Outbox + Object Graph
 status: complete
 purpose: Ship the exactly-once outbox + Kafka-class topic registry + Ontology entity upsert with engine-enforced row-level isolation.
 phase_evidence_refs:
-  - .omc/evidence/foundation/m01-p04-ip-001-outbox-topic-registry.json
-  - .omc/evidence/foundation/m01-p04-ip-002-object-graph-property-tiers.json
-  - .omc/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json
+  - /evidence/foundation/m01-p04-ip-001-outbox-topic-registry.json
+  - /evidence/foundation/m01-p04-ip-002-object-graph-property-tiers.json
+  - /evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json
 ---
 
 # M01-P04 — Eventing Backbone + Outbox + Object Graph

@@ -41,13 +41,13 @@ Oya VCS adds scheduling, projection, evidence, promotion, issue linkage, affecte
 
 ## Evidence artifact
 
-`.omc/evidence/gitops-vcs/ip-004-controller.json`
+`/evidence/gitops-vcs/ip-004-controller.json`
 
 ## Acceptance-test commands
 
 ```bash
 cargo test --workspace --all-features --test gitops_vcs_ip_004
-oya check test-standard --registry .omc/registries/test-suite-registry.json
+oya check test-standard --registry /registries/cross-cutting/test-suite-registry.json
 ```
 
 ## Stop condition

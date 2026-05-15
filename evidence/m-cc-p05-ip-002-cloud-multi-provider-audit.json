@@ -1,0 +1,178 @@
+{
+  "$schema_ref": "/templates/evidence-bundle-template.json",
+  "_artifact_id": "M-CC-P05-IP-002-cloud-multi-provider-audit",
+  "_meta": {
+    "ip": "M-CC-P05-IP-002",
+    "audited_at": "2026-05-14",
+    "scope": "crates/oya-cloud-<svc>-adapter-<provider>-*",
+    "providers_checked": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ],
+    "services_checked": [
+      "kms",
+      "storage",
+      "network",
+      "compute",
+      "iam",
+      "data",
+      "billing",
+      "observability"
+    ]
+  },
+  "total_cloud_crates_on_disk": 37,
+  "adapter_coverage_matrix": {
+    "kms": {
+      "aws": [],
+      "oci": [],
+      "gcp": [],
+      "azure": [],
+      "naver": [],
+      "kt": [],
+      "kakao": []
+    },
+    "storage": {
+      "aws": [],
+      "oci": [],
+      "gcp": [],
+      "azure": [],
+      "naver": [],
+      "kt": [],
+      "kakao": []
+    },
+    "network": {
+      "aws": [],
+      "oci": [],
+      "gcp": [],
+      "azure": [],
+      "naver": [],
+      "kt": [],
+      "kakao": []
+    },
+    "compute": {
+      "aws": [],
+      "oci": [],
+      "gcp": [],
+      "azure": [],
+      "naver": [],
+      "kt": [],
+      "kakao": []
+    },
+    "iam": {
+      "aws": [],
+      "oci": [],
+      "gcp": [],
+      "azure": [],
+      "naver": [],
+      "kt": [],
+      "kakao": []
+    },
+    "data": {
+      "aws": [],
+      "oci": [],
+      "gcp": [],
+      "azure": [],
+      "naver": [],
+      "kt": [],
+      "kakao": []
+    },
+    "billing": {
+      "aws": [],
+      "oci": [],
+      "gcp": [],
+      "azure": [],
+      "naver": [],
+      "kt": [],
+      "kakao": []
+    },
+    "observability": {
+      "aws": [],
+      "oci": [],
+      "gcp": [],
+      "azure": [],
+      "naver": [],
+      "kt": [],
+      "kakao": []
+    }
+  },
+  "missing_provider_adapters": {
+    "kms": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ],
+    "storage": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ],
+    "network": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ],
+    "compute": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ],
+    "iam": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ],
+    "data": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ],
+    "billing": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ],
+    "observability": [
+      "aws",
+      "oci",
+      "gcp",
+      "azure",
+      "naver",
+      "kt",
+      "kakao"
+    ]
+  },
+  "next_action": "Each (service, provider) cell with zero adapters is a candidate sub-IP under M-CC-P05-IP-002a..z. Schedule provider-specific adapter implementation work after kernel ports stabilize."
+}

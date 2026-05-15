@@ -167,8 +167,8 @@ mod tests {
 
     #[test]
     fn matching_digests_no_source_change_passes() {
-        let snap = vec![".omc/graph/architecture-map.json".to_owned()];
-        let roots = vec![".omc/registries".to_owned()];
+        let snap = vec!["registries/cross-cutting/graph/architecture-map.json".to_owned()];
+        let roots = vec!["registries/cross-cutting".to_owned()];
         let changed: Vec<String> = vec![];
         let g = good();
         let r = check(input(&g, &g, &snap, &roots, &changed)).unwrap();
@@ -177,8 +177,8 @@ mod tests {
 
     #[test]
     fn digest_mismatch_flagged() {
-        let snap = vec![".omc/graph/architecture-map.json".to_owned()];
-        let roots = vec![".omc/registries".to_owned()];
+        let snap = vec!["registries/cross-cutting/graph/architecture-map.json".to_owned()];
+        let roots = vec!["registries/cross-cutting".to_owned()];
         let changed: Vec<String> = vec![];
         let s = good();
         let l = "b".repeat(64);
@@ -192,9 +192,9 @@ mod tests {
 
     #[test]
     fn source_changed_snapshot_not_touched_flagged() {
-        let snap = vec![".omc/graph/architecture-map.json".to_owned()];
-        let roots = vec![".omc/registries".to_owned()];
-        let changed = vec![".omc/registries/microservices.json".to_owned()];
+        let snap = vec!["registries/cross-cutting/graph/architecture-map.json".to_owned()];
+        let roots = vec!["registries/cross-cutting".to_owned()];
+        let changed = vec!["registries/cross-cutting/microservices.json".to_owned()];
         let g = good();
         let r = check(input(&g, &g, &snap, &roots, &changed)).unwrap();
         assert!(
@@ -206,11 +206,11 @@ mod tests {
 
     #[test]
     fn source_and_snapshot_both_touched_passes() {
-        let snap = vec![".omc/graph/architecture-map.json".to_owned()];
-        let roots = vec![".omc/registries".to_owned()];
+        let snap = vec!["registries/cross-cutting/graph/architecture-map.json".to_owned()];
+        let roots = vec!["registries/cross-cutting".to_owned()];
         let changed = vec![
-            ".omc/registries/microservices.json".to_owned(),
-            ".omc/graph/architecture-map.json".to_owned(),
+            "registries/cross-cutting/microservices.json".to_owned(),
+            "registries/cross-cutting/graph/architecture-map.json".to_owned(),
         ];
         let g = good();
         let r = check(input(&g, &g, &snap, &roots, &changed)).unwrap();
@@ -219,8 +219,8 @@ mod tests {
 
     #[test]
     fn unrelated_file_changed_does_not_trigger() {
-        let snap = vec![".omc/graph/architecture-map.json".to_owned()];
-        let roots = vec![".omc/registries".to_owned()];
+        let snap = vec!["registries/cross-cutting/graph/architecture-map.json".to_owned()];
+        let roots = vec!["registries/cross-cutting".to_owned()];
         let changed = vec!["README.md".to_owned()];
         let g = good();
         let r = check(input(&g, &g, &snap, &roots, &changed)).unwrap();

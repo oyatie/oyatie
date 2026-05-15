@@ -857,7 +857,7 @@ mod tests {
             dependencies: Vec::new(),
             lineage: ChangeSetLineage::new("wi_ip007", "ip_007", Vec::new()).expect("lineage"),
             evidence_refs: vec![
-                ".omc/evidence/gitops-vcs/ip-007-review-mergequeue.json".to_string(),
+                "evidence/gitops-vcs/ip-007-review-mergequeue.json".to_string(),
             ],
         })
         .expect("changeset")

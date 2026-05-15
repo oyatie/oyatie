@@ -888,7 +888,7 @@ mod tests {
             touched_files: vec![ArtifactPointer::file("src/lib.rs").unwrap()],
             dependencies: vec![],
             lineage,
-            evidence_refs: vec![".omc/evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
+            evidence_refs: vec!["evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
         })
         .expect("valid changeset");
 
@@ -917,7 +917,7 @@ mod tests {
             touched_files: vec![ArtifactPointer::file("contracts/vcs.yaml").unwrap()],
             dependencies: vec![],
             lineage: ChangeSetLineage::new("wi_001", "ip_001", vec![]).unwrap(),
-            evidence_refs: vec![".omc/evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
+            evidence_refs: vec!["evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
         })
         .expect("valid changeset shape");
 
@@ -943,7 +943,7 @@ mod tests {
             touched_files: vec![ArtifactPointer::file("other.rs").unwrap()],
             dependencies: vec![],
             lineage: ChangeSetLineage::new("wi_001", "ip_001", vec![]).unwrap(),
-            evidence_refs: vec![".omc/evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
+            evidence_refs: vec!["evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
         })
         .expect("valid changeset shape");
 
@@ -968,7 +968,7 @@ mod tests {
             touched_files: vec![ArtifactPointer::file("src/lib.rs").unwrap()],
             dependencies: vec![],
             lineage: ChangeSetLineage::new("wi_001", "ip_001", vec![]).unwrap(),
-            evidence_refs: vec![".omc/evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
+            evidence_refs: vec!["evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
         })
         .expect_err("base_sha must be a digest-like hex value");
 

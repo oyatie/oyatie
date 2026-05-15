@@ -1,0 +1,68 @@
+{
+  "$schema_ref": "/templates/evidence-bundle-template.json",
+  "_artifact_id": "M02-P02-IP-003-openai-compat-adapter",
+  "_meta": {
+    "ip": "M02-P02-IP-003",
+    "milestone": "M02",
+    "phase": "P02-multi-subscription-pool",
+    "produced_at": "2026-05-14",
+    "auditor": "claude-a1-m02p02",
+    "scope": "crates/oya-foundry-adapter-openai-compat-api"
+  },
+  "ip_id": "IP-003-openai-compat-adapter",
+  "role": "api",
+  "crates_created": [
+    {
+      "name": "oya-foundry-adapter-openai-compat-api",
+      "role": "api",
+      "bnf_justification": "oya-<microservice:foundry>-<bc:adapter-openai-compat>-<layer:api>; v4.1 conformant; bounded-context isolates OpenAI-shape passthrough from upstream API-key adapter; layer=api per workspace 12-layer enum.",
+      "purpose": "OpenAI /v1/chat/completions + /v1/embeddings + /v1/models passthrough. Translates OpenAI shape ↔ internal CapabilityInvokeRequest; emits OpenAI-style SSE (data: {…}\\n\\ndata: [DONE]\\n\\n).",
+      "linus_good_taste": "Eliminated legacy `function_call` vs modern `tool_calls` branch — normalized into a single internal ToolInvocation record at the translator boundary."
+    }
+  ],
+  "symbols_shipped": [
+    "chat_completions_handler",
+    "embeddings_handler",
+    "models_handler",
+    "OpenAIChatCompletionRequest, OpenAIChatCompletionResponse",
+    "OpenAIChatMessage, OpenAIRole, OpenAIToolCall, OpenAITool, OpenAIChoice, OpenAIFinishReason, OpenAIUsage",
+    "OpenAIEmbeddingsRequest, OpenAIEmbeddingsResponse, OpenAIEmbedding",
+    "OpenAIModelsList, OpenAIModel",
+    "to_internal_invoke, from_internal_invoke",
+    "sse_relay",
+    "route_request",
+    "build_routes"
+  ],
+  "http_backbone": "hyper via oya-http-router-kernel + oya-http-sse-domain. async-openai 0.38.1 NOT adopted — workspace 'support everything ourselves with 0 to minimal dependency' directive 2026-05-14 mandates hand-rolled types; drift caught nightly by IP-005.",
+  "provider_isolation": "OpenAI-specific code only inside this crate; pool routing kernel (IP-001) stays provider-agnostic.",
+  "verification": {
+    "test_count": 22,
+    "tests_passed": 22,
+    "tests_failed": 0,
+    "clippy_clean": true,
+    "data_class_annotated": true,
+    "routes_registered": [
+      "POST /v1/chat/completions",
+      "POST /v1/embeddings",
+      "GET /v1/models"
+    ],
+    "sse_terminator": "data: [DONE]\\n\\n"
+  },
+  "grit_claim": {
+    "agent": "claude-a1-m02p02",
+    "intent": "M02-P02-IP-003 — OpenAI-compat adapter scaffold",
+    "fallback_mechanism": "ADR-0054 scaffold-lock",
+    "icm_lock_ulid": "01KRMC0YD48PKMXKPR4CAV3X3T"
+  },
+  "scripts_check_exit": null,
+  "ccproxy_parity": [
+    "plugins/codex → POST /v1/chat/completions",
+    "plugins/codex → POST /v1/embeddings",
+    "plugins/codex → GET /v1/models"
+  ],
+  "open_items": [
+    "Distroless image deferred to runtime layer.",
+    "POST /v1/responses (OpenAI Responses API) deferred per ccproxy-api-parity-matrix.md row A 'partial'."
+  ],
+  "next_ip": "IP-004-oauth-subscription-capture"
+}

@@ -5,6 +5,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use oya_http_runtime_hyper_adapter::ServerConfig;
 use oya_ops_workspace_shell_runtime::{build_chain, build_dev_catalog, build_router};
 
 #[tokio::main(flavor = "multi_thread")]
@@ -24,6 +25,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         router.count()
     );
 
-    oya_http_runtime_hyper_adapter::serve(addr, router, chain).await?;
+    // ADR-0092 Phase 8 (S3 + S4): default body cap + connection timeouts.
+    let config = ServerConfig::default();
+    oya_http_runtime_hyper_adapter::serve(addr, router, chain, config).await?;
     Ok(())
 }

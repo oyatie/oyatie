@@ -10,7 +10,7 @@ purpose: Same use-case ports across REST / GraphQL / SSE / WebSocket (Phase 00);
 # M02-P04 — Transport Parity + Write-Gate Foundations
 
 ## Purpose
-Per [`../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md`](../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md) §E. Transport parity is a structural cohesion invariant.
+Per [`../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`](../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md) §E. Transport parity is a structural cohesion invariant.
 
 ## Acceptance
 - Same use-case invoked via REST + GraphQL + SSE + WebSocket produces byte-identical audit events (modulo transport metadata).

@@ -37,7 +37,7 @@ Grit remains the authoritative agent/repo transition and lock primitive during c
 - VirtualHead is review/build projection only.
 - QueueAwareLease cannot override or release grit locks.
 - GitHub, GitHub Actions, GitHub Issues, Trivy, and Argo CD are replaceable adapters; native fixtures provide the same core states.
-- Unit/integration/e2e standards are enforced through `.omc/specs/test-standard.json` and `.omc/registries/test-suite-registry.json`.
+- Unit/integration/e2e standards are enforced through `/specs/cross-cutting/test-standard.json` and `/registries/cross-cutting/test-suite-registry.json`.
 - `ops.oyatie.com` exposes queue, lock, issue digest, build/cache, package/deploy, promotion, blocker, evidence, and explainability views backed by fresh evidence.
 - Long Rust/polyglot compile paths rebuild only affected crates/packages/deployables cold unless a full-gate reason is recorded.
 

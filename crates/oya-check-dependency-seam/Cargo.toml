@@ -1,0 +1,22 @@
+[package]
+name = "oya-check-dependency-seam"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Per ADR-0092 D13: composite seam-discipline lane with 6 sub-checks (3
+# mechanical + 3 multispectrum-bar). Per ADR-0056 §"Check-namespace
+# exemption": oya-check-* crates are BNF-exempt. This crate is std-only at
+# the kernel layer — sub-check implementations that need TOML/JSON parsers
+# may be added behind features later (FixupTask F-LANE-SEAM-IMPL).
+
+[lib]
+name = "oya_check_dependency_seam"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-check-dependency-seam"
+path = "src/main.rs"

@@ -10,7 +10,7 @@ owner_team: axis-foundry
 related:
   - .omc/plans/MASTERPLAN.md
   - docs/AGENTS.md
-  - .omc/specs/adr-draft-grit-icm-sanctioned-primitives.md
+  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - docs/checklists/agent-completion-checklist.md
 adrs_cited:
   - ADR-0052  # inventory ledger (migration-class claim prerequisites)

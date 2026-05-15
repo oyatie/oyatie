@@ -63,7 +63,7 @@ fn changeset(sym: SymbolId) -> ChangeSet {
         ],
         dependencies: vec![],
         lineage: ChangeSetLineage::new("wi_m_cc_p00", "ip_004", vec![]).unwrap(),
-        evidence_refs: vec![".omc/evidence/gitops-vcs/ip-004-controller.json".into()],
+        evidence_refs: vec!["evidence/gitops-vcs/ip-004-controller.json".into()],
     })
     .unwrap()
 }

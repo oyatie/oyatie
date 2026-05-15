@@ -4,12 +4,12 @@ checklist_id: CHK-INV
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Inventory ledger update at every cutover / migration phase. Records source → archive → tombstone transitions for files, crates, contracts, and capabilities. Lifts from `.omc/specs/inventory-draft-oyatie-cutover.md` shape.
+  Inventory ledger update at every cutover / migration phase. Records source → archive → tombstone transitions for files, crates, contracts, and capabilities. Lifts from `.omc/scratch/inventory-draft-oyatie-cutover.md` shape.
 enforcing_fitness_lane: oya-foundry-fitness-inventory-tracker
 owner_team: axis-foundry
 related:
-  - .omc/specs/inventory-draft-oyatie-cutover.md
-  - .omc/specs/adr-draft-grit-icm-sanctioned-primitives.md
+  - .omc/scratch/inventory-draft-oyatie-cutover.md
+  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - docs/templates/implementation-plan-template.md
 adrs_cited:
   - ADR-0052  # inventory ledger (this checklist IS the ADR-0052 operational procedure)

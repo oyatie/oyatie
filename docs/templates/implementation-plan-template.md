@@ -12,7 +12,7 @@ related:
   - docs/templates/phase-index-template.md
   - docs/templates/milestone-index-template.md
   - docs/checklists/per-implementation-plan-checklist.md
-  - .omc/specs/adr-draft-grit-icm-sanctioned-primitives.md
+  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
 adrs_cited:
   - ADR-0053  # sanctioned primitives (grit claim symbols)
   - ADR-0054  # scaffold-claim pattern
@@ -139,4 +139,4 @@ One row stating: what special case was eliminated? what data reshape removed the
 - Master Plan: `.omc/plans/MASTERPLAN.md` §<section>.
 - Phase INDEX: `./INDEX.md`.
 - Related ADR(s): `ADR-NNNN`. ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim), ADR-0052 (inventory if migration-class).
-- Hyperscaler practice inherited (if any): per `.omc/specs/hyperscaler-best-practices-2026-05-12.md §<domain>`.
+- Hyperscaler practice inherited (if any): per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §<domain>`.

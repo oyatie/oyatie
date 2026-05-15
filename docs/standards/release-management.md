@@ -96,7 +96,7 @@ Default rollout shape for an `oya-*-runtime-*` deploy:
 Rails:
 
 - **Argo Rollouts** or **Flagger** for k8s-native progressive delivery
-  (per `.omc/specs/hyperscaler-best-practices-2026-05-12.md` Domain 2).
+  (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 2).
 - The canary controller subscribes to the metric backend (per
   [`observability.md`](observability.md)) and computes burn rate per
   stage.
@@ -191,7 +191,7 @@ Every deploy emits per [`observability.md`](observability.md) §4:
 ## 9. CI lane summary
 
 Per the hyperscaler-quality CI gate set (per
-`.omc/specs/hyperscaler-best-practices-2026-05-12.md` Domain 4):
+`.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4):
 
 1. `cargo fmt --check`.
 2. `cargo clippy --workspace --all-features --all-targets -- -D warnings`.
@@ -225,5 +225,5 @@ Per the hyperscaler-quality CI gate set (per
 - [Argo Rollouts](https://argoproj.github.io/argo-rollouts/), [Flagger](https://flagger.app/).
 - [SLSA Provenance v0.1](https://slsa.dev/spec/v0.1/provenance).
 - [Chainguard — Sign SBOM with Cosign](https://edu.chainguard.dev/open-source/sigstore/cosign/how-to-sign-an-sbom-with-cosign/).
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 2 "Feature flags + progressive delivery" + Domain 4 CI gates.

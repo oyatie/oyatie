@@ -65,10 +65,11 @@ pub fn admit_plan(
     if plan.plan_id.is_empty() {
         return Err(ObservabilityError::EmptyPlanId);
     }
-    let envelope = envelopes
-        .iter()
-        .find(|e| e.signal == plan.signal)
-        .ok_or(ObservabilityError::NoEnvelopeForSignal { signal: plan.signal })?;
+    let envelope = envelopes.iter().find(|e| e.signal == plan.signal).ok_or(
+        ObservabilityError::NoEnvelopeForSignal {
+            signal: plan.signal,
+        },
+    )?;
     if plan.estimated_combinations > envelope.max_unique_attribute_combinations {
         return Err(ObservabilityError::EnvelopeExceeded {
             max: envelope.max_unique_attribute_combinations,
@@ -98,11 +99,13 @@ mod tests {
 
     #[test]
     fn under_envelope_passes() {
-        assert!(admit_plan(
-            &plan("p1", SignalKind::Metric, 100),
-            &[env(SignalKind::Metric, 1000)]
-        )
-        .is_ok());
+        assert!(
+            admit_plan(
+                &plan("p1", SignalKind::Metric, 100),
+                &[env(SignalKind::Metric, 1000)]
+            )
+            .is_ok()
+        );
     }
 
     #[test]
@@ -118,11 +121,13 @@ mod tests {
 
     #[test]
     fn at_envelope_boundary_passes() {
-        assert!(admit_plan(
-            &plan("p1", SignalKind::Metric, 1000),
-            &[env(SignalKind::Metric, 1000)]
-        )
-        .is_ok());
+        assert!(
+            admit_plan(
+                &plan("p1", SignalKind::Metric, 1000),
+                &[env(SignalKind::Metric, 1000)]
+            )
+            .is_ok()
+        );
     }
 
     #[test]

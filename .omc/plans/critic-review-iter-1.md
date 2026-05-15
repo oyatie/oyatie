@@ -52,7 +52,7 @@ All 12 MUST-LAND iter-2. None deferrable.
 
 - Source 1: `bominal/agents/ultragoal/` foundry files (mega-plan 97KB + substrate-master 97KB + implementation-plan 44KB + 6 more, all KEEP-classified).
 - Source 2: `oyatie/.omx/ultragoal/` — **does not exist; phantom path** (correct that in inventory ADR).
-- Foundry-salvage agent has already extracted normative claims to `.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md` (22KB).
+- Foundry-salvage agent has already extracted normative claims to `.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md` (22KB).
 - Landing target: `oyatie/docs/products/foundry/PHASE-00-SPEC.md` (new file) — recommendation from salvage agent.
 - Deadline: BEFORE the inventory PR (P1) lands, not BEFORE the archive PR (P6). The 9 foundry files are KEEP; they're not deletion targets. Authority-cross-cite, not destruction-prevention.
 

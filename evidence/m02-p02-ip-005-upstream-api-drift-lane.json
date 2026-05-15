@@ -1,0 +1,61 @@
+{
+  "$schema_ref": "/templates/evidence-bundle-template.json",
+  "_artifact_id": "M02-P02-IP-005-upstream-api-drift-lane",
+  "_meta": {
+    "ip": "M02-P02-IP-005",
+    "milestone": "M02",
+    "phase": "P02-multi-subscription-pool",
+    "produced_at": "2026-05-14",
+    "auditor": "claude-a1-m02p02",
+    "scope": "crates/oya-foundry-fitness-upstream-api-drift-kernel"
+  },
+  "ip_id": "IP-005-upstream-api-drift-lane",
+  "role": "kernel",
+  "crates_created": [
+    {
+      "name": "oya-foundry-fitness-upstream-api-drift-kernel",
+      "role": "kernel",
+      "bnf_justification": "oya-<microservice:foundry>-<bc:fitness-upstream-api-drift>-<layer:kernel>; v4.1 conformant — follows the established `oya-foundry-fitness-*-kernel` pattern (e.g., oya-foundry-fitness-claim-ceiling-kernel); layer=kernel: pure value types + detect_drift decision function; no I/O.",
+      "purpose": "Diff a locally pinned adapter contract fingerprint vs the upstream canonical fingerprint and classify findings (BREAKING / NON_BREAKING / ADDITIVE). JSON contract fingerprints — NOT OpenAPI YAML — per workspace constraint (validators reject incomplete schemas).",
+      "linus_good_taste": "Providers are rows in a static `UpstreamRegistry` table; `detect_drift` is one function that iterates the table. Adding Gemini, Mistral, Cohere, or a future provider is a row addition, not a code addition."
+    }
+  ],
+  "symbols_shipped": [
+    "detect_drift",
+    "DriftReport, DriftSeverity::{Breaking, NonBreaking, Additive}",
+    "DriftEntry, DriftKind (14 variants covering operation/method/path/field/enum/status changes)",
+    "ContractFingerprint, OperationFingerprint, FieldDescriptor",
+    "UpstreamSpec, upstream_registry()",
+    "DriftError::{UnknownProvider, ContractIdMismatch}"
+  ],
+  "registry_rows": [
+    "Claude (anthropic-sdk-python openapi.json, 2023-06-01)",
+    "OpenAI (openai-openapi openapi.yaml, 2024-08-06)",
+    "Gemini (ai.google.dev/api/rest/v1beta)"
+  ],
+  "verification": {
+    "test_count": 19,
+    "tests_passed": 19,
+    "tests_failed": 0,
+    "clippy_clean": true,
+    "drift_classifications_exhaustive": true,
+    "drift_simulation_breaking_field_removal_passes": true,
+    "drift_simulation_additive_field_addition_passes": true,
+    "drift_simulation_breaking_enum_removal_passes": true,
+    "drift_simulation_breaking_type_change_passes": true
+  },
+  "grit_claim": {
+    "agent": "claude-a1-m02p02",
+    "intent": "M02-P02-IP-005 — Upstream-API drift kernel scaffold",
+    "fallback_mechanism": "ADR-0054 scaffold-lock",
+    "icm_lock_ulid": "01KRMC1M5Y99AMDZJB69JGT9QY"
+  },
+  "scripts_check_exit": null,
+  "ccproxy_parity": "Net-new vs ccproxy-api — ccproxy has no automated upstream-drift lane. This IP closes that gap.",
+  "open_items": [
+    "tools/oya-foundry-fitness-upstream-api-drift/ runner crate deferred — kernel ships first; runner that fetches upstream + invokes the kernel + opens auto-PR opens in M02-P03 follow-up.",
+    ".github/workflows/upstream-api-drift.yml deferred to follow-up PR (the workflow file lives outside this crate's write-domain).",
+    "Registration in registry/quality/lanes.yaml deferred — the foundation-quality-lanes-mirror gate enforces lanes.yaml ↔ docs/standards/ci-lanes.md parity; touching one requires touching both with a coordinated commit, which is the M02-P03 follow-up's job."
+  ],
+  "next_ip": "IP-006-tos-policy-audit-chain"
+}

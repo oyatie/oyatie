@@ -12,8 +12,8 @@ use oya_cloud_compute_domain::{
     KubernetesCluster, KubernetesClusterCreate, KubernetesClusterState, KubernetesNodePoolCreate,
 };
 use oya_cloud_resource_domain::{InstanceFlavor, K8sFlavor, ResourceId};
-use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_residency_domain::{parse_residency_class_label, ResidencyClass};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
 
 pub const CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE: &str = "cloud.compute.k8s.cluster.create";
 

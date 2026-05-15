@@ -1,15 +1,15 @@
 //! Foundry architecture-map app — filesystem walker that builds an
 //! ArchitectureMap from the live workspace and emits it as JSON to
-//! `.omc/graph/architecture-map.json` (or any path).
+//! `registries/cross-cutting/graph/architecture-map.json` (or any path).
 //!
 //! Sources walked:
 //!   - root Cargo.toml `members = [...]` → Crate nodes
-//!   - .omc/registries/microservices.json → Microservice nodes
-//!   - .omc/registries/bounded-contexts.json → BoundedContext nodes
+//!   - registries/cross-cutting/microservices.json → Microservice nodes
+//!   - registries/cross-cutting/bounded-contexts.json → BoundedContext nodes
 //!     (+ `Contains` edges from owning microservice)
 //!   - contracts/*.openapi.yaml → OpenApiContract nodes
 //!     (+ `Exposes` edges from BC if declared)
-//!   - .omc/registries/cedar-fragments.json → CedarFragment nodes
+//!   - registries/cross-cutting/cedar-fragments.json → CedarFragment nodes
 //!     (+ `Governs` edges to OpenAPI contracts they protect)
 //!
 //! Pure std-only: parses each input via small line-based extractors.
@@ -59,7 +59,7 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     }
 
     // Microservices.
-    let microservices_path = root.join(".omc/registries/microservices.json");
+    let microservices_path = root.join("registries/cross-cutting/microservices.json");
     if microservices_path.exists() {
         let text = read(&microservices_path)?;
         for ms in parse_json_string_array_values(&text, "microservice_id") {
@@ -73,7 +73,7 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     }
 
     // Bounded contexts (+ contains edges).
-    let bc_path = root.join(".omc/registries/bounded-contexts.json");
+    let bc_path = root.join("registries/cross-cutting/bounded-contexts.json");
     if bc_path.exists() {
         let text = read(&bc_path)?;
         for (bc_id, microservice_id) in parse_bc_pairs(&text) {
@@ -123,7 +123,7 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     }
 
     // Cedar fragments (+ Governs edges to contracts in consumed_by_openapi[]).
-    let cedar_path = root.join(".omc/registries/cedar-fragments.json");
+    let cedar_path = root.join("registries/cross-cutting/cedar-fragments.json");
     if cedar_path.exists() {
         let text = read(&cedar_path)?;
         for (fragment_id, consumed_by) in parse_fragment_consumed_pairs(&text) {
@@ -167,7 +167,7 @@ pub fn emit_json(map: &ArchitectureMap, out_path: &Path) -> Result<(), MapBuildE
 fn render_json(map: &ArchitectureMap) -> String {
     let mut out = String::new();
     out.push_str("{\n");
-    out.push_str("  \"$schema_ref\": \".omc/specs/knowledge-graph-schema.json\",\n");
+    out.push_str("  \"$schema_ref\": \"specs/cross-cutting/knowledge-graph-schema.json\",\n");
     out.push_str("  \"_artifact_id\": \"architecture-map\",\n");
     out.push_str(
         "  \"_meta\": { \"emitter\": \"oya-foundry-architecture-map-app::build_map\" },\n",

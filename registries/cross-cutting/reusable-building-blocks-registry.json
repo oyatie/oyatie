@@ -1,0 +1,366 @@
+{
+  "_schema_ref": "/specs/cross-cutting/active-machine-readable-artifact-contract.json#v3.0.0",
+  "_registry_id": "REG-REUSABLE-BUILDING-BLOCKS",
+  "_meta": {
+    "doc_class": "Registry",
+    "purpose": "DRY-enforcement registry. Tracks reusable building blocks (Rust trait kernels, Cedar policy fragments, JSON Schema $defs, OpenAPI components, GitHub Actions composites, Cargo workspace deps, ADR patterns, runbook patterns, CI lane definitions, secret-reference patterns, grit-symbol patterns). Single source of truth per block; consumers reference, never duplicate. Per CONSTITUTION Decision principle 6 (bounded scope per doc, no drift-by-overlap). Hyperscaler precedent: AWS CloudFormation Resource Types, Terraform Registry modules, K8s CRD library, Bazel rule library, Cargo workspace.dependencies, Maven BOM.",
+    "owner_team": "council-architecture + axis-foundry",
+    "version": "1.0.0",
+    "created_at": "2026-05-13T00:00:00Z",
+    "user_directive_2026_05_13": "Make it so that we are able to keep track of reusable building blocks so that we avoid duplicating. implement all the optimization measures that is considered best practice.",
+    "best_practice_optimization_measures_codified": [
+      "DRY: every concept has exactly one canonical home; consumers reference",
+      "Composition over inheritance: reusable primitives composed, never duplicated",
+      "Schema reuse via $defs/$ref (JSON Schema 2020-12 primitive)",
+      "Cargo workspace.dependencies pinning (workspace-level version + features)",
+      "Generated-from-canonical (autogen capability of contract)",
+      "Lockfile + reproducible builds (Cargo.lock, content-addressed)",
+      "Drift detection: scan for inline-duplicate patterns matching registered block; suggest extraction",
+      "Block versioning (semver per block) prevents silent breaks",
+      "Deprecation flow: block deprecated \u2192 replacement_block_id named \u2192 migration deadline",
+      "Reuse_count auto-computed; ranks blocks by adoption; surfaces 'core primitives'",
+      "Per-domain sub-registries instead of one monolith"
+    ],
+    "drift_detector_lane": "lean-a-building-block-drift",
+    "consumer_link_invariant": "Every consumer_ref must resolve to existing file path AND that path must include a comment/import/dep referencing the block by block_id."
+  },
+  "_self_row": {
+    "artifact_id": "reusable-building-blocks-registry",
+    "artifact_path": "/registries/cross-cutting/reusable-building-blocks-registry.json",
+    "artifact_format": "json",
+    "contract_version": "v3.0.0",
+    "owner_team": "council-architecture + axis-foundry",
+    "purpose_short": "Single DRY registry for reusable building blocks across crates/specs/lanes/templates.",
+    "capabilities_ref": "/registries/cross-cutting/artifact-capabilities-registry.json#rows[artifact_id=reusable-building-blocks-registry] (TO BE ADDED by next selfupdate)"
+  },
+  "block_kinds": {
+    "rust-crate-kernel": "Sealed kernel crate exporting port traits (kernel layer per ADR-0015). Reusable by name across BCs.",
+    "rust-trait": "Trait declaration in a kernel; consumers `impl Trait for X` in adapter/runtime layers.",
+    "cedar-policy-fragment": "Cedar 4.x policy file (.cedar) reusable across BCs/Waves.",
+    "json-schema-defs": "$defs entry in a JSON Schema 2020-12 spec; referenced via $ref.",
+    "openapi-component": "components/schemas or components/parameters entry in OpenAPI; referenced via $ref.",
+    "github-actions-composite": "Composite action in .github/actions/ reusable across workflows.",
+    "cargo-workspace-dep": "Pinned dependency in Cargo.toml [workspace.dependencies]; crate members reference as `dep.workspace = true`.",
+    "template": "Hand-authored or auto-generated template in docs/templates/ or /templates/.",
+    "adr-pattern": "Recurring ADR shape (e.g., \u00b5service scaffolding ADR pattern at ADR-0081 through 0088).",
+    "runbook-pattern": "Recurring runbook shape (e.g., reconciler-worker-runbook pattern).",
+    "ci-lane-definition": "Lane defined in registry/quality/lanes.yaml; reusable across phases.",
+    "secret-reference-pattern": "SecretReference pattern per ADR-0067 / OpenBao default; consumers reference but never inline raw secrets.",
+    "grit-symbol-pattern": "Symbol claim/release pattern; declared in plan IP and verified at grit done."
+  },
+  "blocks": [
+    {
+      "block_id": "active-artifact-9-capability-contract",
+      "block_kind": "json-schema-defs",
+      "canonical_path": "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
+      "version": "v3.0.0",
+      "purpose_short": "9-capability contract (enforcement + verification + validation + autogen + selfheal + selfupdate + selfmaintain + telemetry + provenance) applied to every active artifact in repo.",
+      "consumer_count_estimated": 50,
+      "consumer_count_resolved_today_auto_computed": 0,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "council-architecture + axis-foundry",
+      "consumer_refs": [
+        "/registries/cross-cutting/artifact-capabilities-registry.json",
+        "/evidence/ledger/ops-portal-ledger.json (forward consumer when v3.0.0 _capabilities_ref adopted)",
+        "/registries/cross-cutting/claim-matrix/ops-portal.json (forward consumer)",
+        "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json (forward consumer)"
+      ],
+      "consumer_selectors": [],
+      "consumer_count_listed": 4
+    },
+    {
+      "block_id": "evidence-bundle-schema",
+      "block_kind": "json-schema-defs",
+      "canonical_path": "/templates/evidence-bundle-template.json",
+      "version": "v1.0.0",
+      "purpose_short": "Canonical EvidenceBundle shape for capability invocations, runbook executions, IP merges. cosign + rekor + audit-chain integrated.",
+      "consumer_count_estimated": 500,
+      "consumer_count_resolved_today_auto_computed": 0,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "ops-compliance + axis-foundry",
+      "consumer_refs": [],
+      "consumer_selectors": [
+        "audit-chain emitter runtime (M01/M02 prerequisite)",
+        "every capability registered in capability-registry",
+        "every runbook in docs/runbooks/",
+        "every IP merge gate"
+      ],
+      "consumer_count_listed": 4
+    },
+    {
+      "block_id": "hyperscaler-gate-claim-matrix",
+      "block_kind": "json-schema-defs",
+      "canonical_path": "/specs/cross-cutting/hyperscaler-gates.json",
+      "version": "v1.0.0",
+      "purpose_short": "10-gate (HG-ARCH..HG-GRIT) + claim_matrix_required (claims_we_can_make / cannot_yet / evidence_required).",
+      "consumer_count_estimated": 20,
+      "consumer_count_resolved_today_auto_computed": 1,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "council-architecture + ops-sre-reliability + ops-security",
+      "consumer_refs": [
+        "/registries/cross-cutting/claim-matrix/ops-portal.json"
+      ],
+      "consumer_selectors": [
+        "future per-product claim-matrices (foundry, connect, application, cloud, etc.)"
+      ],
+      "consumer_count_listed": 2
+    },
+    {
+      "block_id": "ralplan-consensus-loop-pattern",
+      "block_kind": "adr-pattern",
+      "canonical_path": "skills/oh-my-claudecode:ralplan + .omc/plans/ralplan-*.md",
+      "version": "v1.0.0",
+      "purpose_short": "Multi-round architect+critic consensus pattern (Planner draft \u2192 Architect review \u2192 Critic evaluate \u2192 iterate). Used for high-risk planning artifacts.",
+      "consumer_count_estimated": 20,
+      "consumer_count_resolved_today_auto_computed": 5,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "council-architecture + axis-foundry",
+      "drift_finding": "Multi-round consensus produced /tmp Markdown outputs (architect-rN-output.md / critic-rN-output.md). These should be archived under /evidence/audits/consensus/ AND the pattern should declare a canonical output schema. Tracked as follow-up block.",
+      "consumer_refs": [
+        ".omc/plans/ralplan-docs-portal-2026-05-13.md (v7 Accepted)",
+        ".omc/plans/ralplan-ops-portal-2026-05-13.md (v7 Accepted)",
+        ".omc/plans/ralplan-ops-wave-2-2026-05-13.md through wave-5 (v7/v5/v4/v18 Accepted)"
+      ],
+      "consumer_selectors": [
+        "future per-wave plans"
+      ],
+      "consumer_count_listed": 4
+    },
+    {
+      "block_id": "wave-5-cedar-fragment-set",
+      "block_kind": "cedar-policy-fragment",
+      "canonical_path": "cedar-policies/ops/ (PLANNED \u2014 not yet in HEAD; Wave 5 prerequisite)",
+      "version": "v0.1.0",
+      "purpose_short": "12 Cedar fragments for Wave 5 tenant/user/deployments BCs (6 tenant-tier + 5 internal-tier + 1 multi-party-approval with Rule 1 vote + Rule 2 execute).",
+      "consumer_count_estimated": 5,
+      "consumer_count_resolved_today_auto_computed": 1,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "ops-security + axis-foundry",
+      "foundation_prerequisite": "Cedar 4.x parser compatibility check",
+      "consumer_refs": [
+        ".omc/plans/ralplan-ops-wave-5-2026-05-13.md \u00a75 + \u00a76(d)"
+      ],
+      "consumer_selectors": [
+        "future Wave 5.5/5.6/5.7 plans for fragment extension"
+      ],
+      "consumer_count_listed": 2
+    },
+    {
+      "block_id": "write-action-token-store-contract",
+      "block_kind": "rust-trait",
+      "canonical_path": "crates/oya-shared-ontology-write-action-port (PLANNED \u2014 Wave 5 IP-X10-1a-3 prerequisite)",
+      "version": "v0.1.0",
+      "purpose_short": "WriteActionTokenStorePort trait + WriteActionType enum (9 variants) + ops_write_action_token_store schema. Canonical write-action idempotency contract per Wave 5 v18 Principle 6.",
+      "consumer_count_estimated": 20,
+      "consumer_count_resolved_today_auto_computed": 0,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "axis-foundry + ops-sre-reliability",
+      "consumer_refs": [
+        "oya-ops-deployments-rollback-reconciler (PLANNED)",
+        "oya-ops-tenant-mgmt-write-reconciler (PLANNED)",
+        "oya-ops-user-mgmt-write-reconciler (PLANNED)"
+      ],
+      "consumer_selectors": [
+        "every future BC with idempotent mutating endpoint"
+      ],
+      "consumer_count_listed": 4
+    },
+    {
+      "block_id": "approval-ticket-store-contract",
+      "block_kind": "rust-trait",
+      "canonical_path": "crates/oya-shared-ontology-approval-port (PLANNED \u2014 Wave 5 IP-X10-1a-3 prerequisite)",
+      "version": "v0.1.0",
+      "purpose_short": "ApprovalTicketStorePort + ops_approval_ticket_store + ops_approval_votes schemas + threshold-flip idempotency. Multi-party N-of-M approval primitive per Wave 5 v18 Principle 7.",
+      "consumer_count_estimated": 10,
+      "consumer_count_resolved_today_auto_computed": 0,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "ops-security + axis-foundry",
+      "consumer_refs": [
+        "oya-ops-approval-executor (PLANNED)"
+      ],
+      "consumer_selectors": [
+        "every future high-risk action requiring separation-of-duties"
+      ],
+      "consumer_count_listed": 2
+    },
+    {
+      "block_id": "bulkhead-per-tenant-quota-contract",
+      "block_kind": "rust-trait",
+      "canonical_path": "crates/oya-shared-ontology-bulkhead-port (PLANNED \u2014 Wave 5 IP-X10-1a-3 prerequisite)",
+      "version": "v0.1.0",
+      "purpose_short": "BulkheadPort + per-tenant TCP/DB/queue/CPU quota state in Redis cluster with mTLS. Per Wave 5 v18 Principle 8.",
+      "consumer_count_estimated": 30,
+      "consumer_count_resolved_today_auto_computed": 0,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "ops-sre-reliability + axis-foundry",
+      "consumer_refs": [],
+      "consumer_selectors": [
+        "every BC REST crate (PLANNED)"
+      ],
+      "consumer_count_listed": 1
+    },
+    {
+      "block_id": "secret-reference-openbao-pattern",
+      "block_kind": "secret-reference-pattern",
+      "canonical_path": "docs/decisions/ADR-0067-ops-oyatie-com-portal-foundation.md (interim; OpenBao primitive integration in foundation)",
+      "version": "v0.1.0",
+      "purpose_short": "SecretReference pattern; raw secrets never enter repo/chat/checkpoints; OpenBao default secret-manager.",
+      "consumer_count_estimated": 50,
+      "consumer_count_resolved_today_auto_computed": 0,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "ops-security + axis-foundry",
+      "user_directive_anchor": "User wants the Foundry Phase 00 implementation order to use local OpenBao as the default SecretReference secret-manager path for now; raw secrets must not enter repo/chat/checkpoints.",
+      "consumer_refs": [],
+      "consumer_selectors": [
+        "every crate touching secrets (Cedar key material, OpenAPI auth tokens, audit-chain signing keys, kms keys)",
+        "Wave 5 Cedar policy authoring (no inline secrets)",
+        "future Wave 7 secret-rotation BC"
+      ],
+      "consumer_count_listed": 3
+    },
+    {
+      "block_id": "grit-claim-work-done-protocol",
+      "block_kind": "grit-symbol-pattern",
+      "canonical_path": "/specs/cross-cutting/master-plan-sequencing.json#repo_state_protocol",
+      "version": "v1.0.0",
+      "purpose_short": "Every agent\u2192repo state transition: grit claim --agent <id> --intent <slice> \u2192 work in claim \u2192 grit done --agent <id>. Fallback: scaffold-locks-oyatie ICM topic for symbol-less doc-only.",
+      "consumer_count_estimated": 1000,
+      "consumer_count_resolved_today_auto_computed": 0,
+      "deprecation": "Interim \u2014 to be replaced by Oyatie-native agentic VCS per autonomous-prompt directive",
+      "replacement_block_id": "oyatie-native-agentic-vcs (NOT YET AUTHORED)",
+      "owner_team": "axis-foundry + council-architecture",
+      "drift_finding": "Commit 5880ce0 used rtk-git directly violating this protocol. Logged in /registries/cross-cutting/claim-matrix/ops-portal.json HG-GRIT row.",
+      "consumer_refs": [],
+      "consumer_selectors": [
+        "every future agent commit (HG-GRIT operational requirement)",
+        "every IP-X10/X11/X12 dispatch"
+      ],
+      "consumer_count_listed": 2
+    },
+    {
+      "block_id": "icm-store-recall-pattern",
+      "block_kind": "template",
+      "canonical_path": "AGENTS.md + docs/AGENTS.md (icm:start..icm:end block)",
+      "version": "v1.0.0",
+      "purpose_short": "Persistent memory store/recall pattern for cross-session context. Mandatory triggers (error-resolved / arch-decision / preference / completion / 20-tool-calls).",
+      "consumer_count_estimated": 100,
+      "consumer_count_resolved_today_auto_computed": 5,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "council-architecture + axis-foundry",
+      "consumer_refs": [
+        ".github/copilot-instructions.md (icm:start..icm:end)"
+      ],
+      "consumer_selectors": [
+        "every agent session (.claude / .codex / .gemini)"
+      ],
+      "consumer_count_listed": 2
+    },
+    {
+      "block_id": "rtk-token-killer-rewrite-rule",
+      "block_kind": "template",
+      "canonical_path": "~/.claude/RTK.md (user-global)",
+      "version": "v1.0.0",
+      "purpose_short": "Token-optimization rewrite rule: prefix commands with rtk for filtered output (60-90% savings). Used in command chains.",
+      "consumer_count_estimated": 1000,
+      "consumer_count_resolved_today_auto_computed": 1000,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "rtk-ai team (external)",
+      "consumer_refs": [],
+      "consumer_selectors": [
+        "every Bash command invocation that has an rtk filter (git/cargo/gh/jest/etc.)"
+      ],
+      "consumer_count_listed": 1
+    },
+    {
+      "block_id": "linus-style-critic-prompt-shape",
+      "block_kind": "template",
+      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md \u00a713 (Linus-grade critic anticipation pattern)",
+      "version": "v1.0.0",
+      "purpose_short": "Adversarial review prompt template: anticipated Linus objection \u00d7 concrete file:line-grounded answer. Pattern emerged from Wave 5 \u00a713 L1-L10.",
+      "consumer_count_estimated": 30,
+      "consumer_count_resolved_today_auto_computed": 1,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "council-architecture + axis-foundry",
+      "consumer_refs": [],
+      "consumer_selectors": [
+        "future plan \u00a713 sections",
+        "codex critic prompts in consensus loop",
+        "ai-slop-cleaner critic mode"
+      ],
+      "consumer_count_listed": 3
+    },
+    {
+      "block_id": "evergreen-revision-pointer-pattern",
+      "block_kind": "template",
+      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md \u00a712 + \u00a714.3 (evergreen wording pointing to frontmatter version)",
+      "version": "v1.0.0",
+      "purpose_short": "Anti-cascade-re-versioning pattern: body wording says 'the current revision (see frontmatter `version:`)' instead of hard-coded version. Emerged from Wave 5 v18 critic r6 sweep.",
+      "consumer_count_estimated": 100,
+      "consumer_count_resolved_today_auto_computed": 1,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "council-architecture + axis-foundry",
+      "consumer_refs": [],
+      "consumer_selectors": [
+        "future plan files",
+        "future spec frontmatter",
+        "future ADR templates"
+      ],
+      "consumer_count_listed": 3
+    },
+    {
+      "block_id": "s3a-s3b-stop-condition-split",
+      "block_kind": "template",
+      "canonical_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md \u00a714.2",
+      "version": "v1.0.0",
+      "purpose_short": "Stop-condition split: S3a (plan-stage; achievable now) vs S3b (operational-stage; post-implementation). Prevents conflating plan acceptance with operational acceptance.",
+      "consumer_count_estimated": 20,
+      "consumer_count_resolved_today_auto_computed": 1,
+      "deprecation": null,
+      "replacement_block_id": null,
+      "owner_team": "council-architecture + axis-foundry",
+      "consumer_refs": [
+        "/specs/cross-cutting/stop-conditions.json (could be extended to N-stage stops per artifact-class)"
+      ],
+      "consumer_selectors": [
+        "future plan files with multi-stage close conditions"
+      ],
+      "consumer_count_listed": 2
+    }
+  ],
+  "_known_data_quality_gaps_per_architect_r17": {
+    "finding_6_consumer_counts": "All consumer_count_resolved_today_auto_computed values are 0 because no validator yet resolves consumers\u2192graph-node edges. Field renamed from consumer_count_actual_today (which was misleadingly manual). Validator crate oya-check-active-artifact-contract will compute the resolved count from consumer_refs against the graph. Until then, treat as null/unresolved.",
+    "finding_7_typed_consumer_refs": "consumers array currently mixes concrete file paths with prose selectors like 'every future BC' and 'every runbook in docs/runbooks/'. Tracked as deferred surgery: schema change to split into consumer_refs (resolvable) + consumer_selectors (predicate). 14 block rows need surgery. Status: PLANNED, scoped follow-up after Phase F lands."
+  },
+  "optimization_measures_status": {
+    "dry_via_canonical_path": "operational (this registry enforces single-canonical-path)",
+    "schema_reuse_$ref_$defs": "operational (active-machine-readable-artifact-contract.json uses $defs)",
+    "cargo_workspace_dependencies": "operational (existing workspace Cargo.toml; ADR-0015 compliant)",
+    "generated_from_canonical": "planned (autogen capability per artifact)",
+    "lockfile_reproducible_builds": "operational (Cargo.lock present)",
+    "drift_detection_lane": "planned (lean-a-building-block-drift; needs validator crate)",
+    "block_versioning_semver": "operational (each block has version field)",
+    "deprecation_replacement_flow": "operational (deprecation + replacement_block_id fields)",
+    "reuse_count_ranking": "planned (consumer_count_actual_today is manual today; autogen via grep+graph)",
+    "per_domain_subregistries": "not-yet (single monolith registry today; will split when row count >100)"
+  },
+  "drift_detector_invariants": [
+    "Two different paths defining the same Cedar predicate \u2192 DRIFT VIOLATION",
+    "Two different crates exporting traits with identical method signatures + identical naming roots (e.g., both define TokenStore::consume) \u2192 DRIFT VIOLATION (unless one declared canonical + other declared adapter)",
+    "Two different JSON Schemas defining $defs with identical name + identical structure \u2192 DRIFT VIOLATION (must use $ref to one)",
+    "Two CI lanes with overlapping invariant assertions \u2192 DRIFT VIOLATION (consolidate)",
+    "OpenAPI contracts defining the same component twice \u2192 DRIFT VIOLATION"
+  ]
+}

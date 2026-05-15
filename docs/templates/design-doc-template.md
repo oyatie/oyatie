@@ -8,7 +8,7 @@ purpose: |
 enforcing_fitness_lane: oya-foundry-fitness-design-doc-shape  # advisory at draft; lane on lift
 owner_team: council-architecture
 related:
-  - .omc/specs/hyperscaler-best-practices-2026-05-12.md  # §Domain 1 Google design docs
+  - .omc/scratch/hyperscaler-best-practices-2026-05-12.md  # §Domain 1 Google design docs
   - docs/templates/adr-template-v2.md
   - docs/templates/implementation-plan-template.md
   - docs/DESIGN.md
@@ -136,7 +136,7 @@ Numbered list. Each item routes to: a future ADR, an IP follow-up, or an explici
 - ADR(s) authored / amended: `ADR-NNNN`. ADR-0052 (inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim).
 - Implementation Plan(s): `IP-NNN-<slug>`.
 - Related design docs: `DD-NNNN`.
-- Hyperscaler practice inherited: per `.omc/specs/hyperscaler-best-practices-2026-05-12.md §<domain>`.
+- Hyperscaler practice inherited: per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §<domain>`.
 - Industry references: papers, RFCs, vendor docs.
 
 ## Pre-mortem (RECOMMENDED for deliberate consensus mode)

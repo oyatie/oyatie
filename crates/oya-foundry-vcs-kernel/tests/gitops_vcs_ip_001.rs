@@ -125,7 +125,7 @@ fn changeset_requires_claim_coverage_and_fresh_evidence_ref() {
         ],
         dependencies: vec![],
         lineage: ChangeSetLineage::new("wi_p00", "ip_001", vec![]).unwrap(),
-        evidence_refs: vec![".omc/evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
+        evidence_refs: vec!["evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
     })
     .expect("valid changeset");
 
@@ -157,7 +157,7 @@ fn pointer_claim_does_not_cover_whole_file_touched_artifact() {
         touched_files: vec![ArtifactPointer::file("contracts/vcs.yaml").unwrap()],
         dependencies: vec![],
         lineage: ChangeSetLineage::new("wi_p00", "ip_001", vec![]).unwrap(),
-        evidence_refs: vec![".omc/evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
+        evidence_refs: vec!["evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
     })
     .expect("valid shape but pointer claim cannot cover whole file");
 
@@ -183,7 +183,7 @@ fn unclaimed_touched_file_is_rejected() {
         touched_files: vec![ArtifactPointer::file("crates/other/src/lib.rs").unwrap()],
         dependencies: vec![],
         lineage: ChangeSetLineage::new("wi_p00", "ip_001", vec![]).unwrap(),
-        evidence_refs: vec![".omc/evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
+        evidence_refs: vec!["evidence/gitops-vcs/ip-001-claim-kernel.json".into()],
     })
     .expect("valid shape but uncovered touched file");
 

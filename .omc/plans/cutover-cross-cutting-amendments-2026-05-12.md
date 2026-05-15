@@ -25,7 +25,7 @@ These 12 directives were issued by the user across the planning loop. Every phas
 
 ## 2. LTS-pin amendments for cutover deliverables
 
-Per the LTS-lookup agent's findings at `.omc/specs/lts-versions-verified-2026-05-12.md`, the cutover-deliverable phases (P2 helper crate + P3/P10 fitness lanes + P6/P7 archive-orphan lane) MUST adopt these current-LTS pins:
+Per the LTS-lookup agent's findings at `.omc/scratch/lts-versions-verified-2026-05-12.md`, the cutover-deliverable phases (P2 helper crate + P3/P10 fitness lanes + P6/P7 archive-orphan lane) MUST adopt these current-LTS pins:
 
 | Dependency | Cutover-required pin | Why |
 |---|---|---|
@@ -63,10 +63,10 @@ The helper is a binary. If it ships as a container (for sandboxed agent runners)
 
 ## 4. Hyperscaler-practice inheritance for cutover phases
 
-Pending the hyperscaler-research agent's output at `.omc/specs/hyperscaler-best-practices-2026-05-12.md`. Once available, these practices SHOULD apply to the cutover phases (cited here as expected):
+Pending the hyperscaler-research agent's output at `.omc/scratch/hyperscaler-best-practices-2026-05-12.md`. Once available, these practices SHOULD apply to the cutover phases (cited here as expected):
 
 - **Working Backwards / PRFAQ**: not applicable to internal cutover; reserved for product launches.
-- **Design Doc** (Google): each cutover phase already has a Design-Doc-equivalent in `.omc/specs/` (deep-dive spec + ADR drafts).
+- **Design Doc** (Google): each cutover phase already has a Design-Doc-equivalent in `/specs/cross-cutting/` (deep-dive spec + ADR drafts).
 - **Blameless postmortems** (Google SRE): if any cutover phase rolls back, a postmortem lands at `oyatie/docs/runbooks/<axis>/postmortem-<event>.md`.
 - **OKRs**: cutover deliverables map to wave-1 W-Foundation acceptance gates (per ROADMAP).
 - **Trunk-based development**: cutover lands on `main` (session-less mode); no long-lived branches.
@@ -133,6 +133,6 @@ Execution dispatch: **deferred per user choice** until masterplan composer + hyp
 
 Once those two agents return:
 1. Read `.omc/plans/MASTERPLAN.md` to confirm cutover's placement in the 4-tier hierarchy.
-2. Read `.omc/specs/hyperscaler-best-practices-2026-05-12.md` to update §4 above with concrete practice citations.
+2. Read `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` to update §4 above with concrete practice citations.
 3. Surface the consolidated picture to user via AskUserQuestion (skeleton at `.omc/plans/user-execution-approval-question-skeleton.md`).
 4. On user approval, invoke `Skill("oh-my-claudecode:autopilot")` with both the cutover plan and this amendments doc as inputs.

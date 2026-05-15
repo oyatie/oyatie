@@ -60,7 +60,7 @@ scripts/check.sh
   promoted the machine-readable `object-graph.entity.upsert` contract mirror to
   stable.
 - Fresh scoped evidence is recorded in
-  `.omc/evidence/foundation/m01-p04-ip-002-object-graph-property-tiers.json`.
+  `/evidence/foundation/m01-p04-ip-002-object-graph-property-tiers.json`.
 
 ## Rollback-procedure
 `grit done` is atomic per-symbol; if a subsequent IP regresses, revert the merge commit. For crates that other IPs depend on, follow per-crate split unwind per ADR-0015 §7.

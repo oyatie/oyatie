@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-14T22:49:52.771Z",
+  "updatedAt": "2026-05-15T02:43:26.666Z",
   "missions": [
     {
       "id": "session:3cca4bdf-79bd-4a71-8278-826dfd909ab7:none",
@@ -474,6 +474,172 @@
           "agent": "general-purpose:a1b085a",
           "detail": "completed",
           "sourceKey": "session-stop:a01220e988bf45275"
+        }
+      ]
+    },
+    {
+      "id": "session:4c086827-bea4-41e6-b33e-280dce5da434:none",
+      "source": "session",
+      "name": "none",
+      "objective": "Session mission",
+      "createdAt": "2026-05-15T01:10:28.364Z",
+      "updatedAt": "2026-05-15T02:43:26.666Z",
+      "status": "running",
+      "workerCount": 12,
+      "taskCounts": {
+        "total": 12,
+        "pending": 0,
+        "blocked": 0,
+        "inProgress": 1,
+        "completed": 11,
+        "failed": 0
+      },
+      "agents": [
+        {
+          "name": "planner:aae88a3",
+          "role": "planner",
+          "ownership": "aae88a38521276fe0",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T01:20:20.685Z"
+        },
+        {
+          "name": "planner:af440e2",
+          "role": "planner",
+          "ownership": "af440e2b9c0800f48",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T01:53:11.599Z"
+        },
+        {
+          "name": "architect:a792a51",
+          "role": "architect",
+          "ownership": "a792a51e1e010afee",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T01:56:34.441Z"
+        },
+        {
+          "name": "critic:ae4dc7e",
+          "role": "critic",
+          "ownership": "ae4dc7e213c5322c0",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:00:17.001Z"
+        },
+        {
+          "name": "planner:ac09439",
+          "role": "planner",
+          "ownership": "ac0943920172659e9",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:13:12.379Z"
+        },
+        {
+          "name": "architect:aa4d0bf",
+          "role": "architect",
+          "ownership": "aa4d0bfd33286af6e",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:16:46.909Z"
+        },
+        {
+          "name": "critic:a4f6fab",
+          "role": "critic",
+          "ownership": "a4f6fab608f8556b1",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:20:05.400Z"
+        },
+        {
+          "name": "planner:a0a1f66",
+          "role": "planner",
+          "ownership": "a0a1f66f6619bcff4",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:28:48.852Z"
+        },
+        {
+          "name": "architect:aba9104",
+          "role": "architect",
+          "ownership": "aba9104073c319acd",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:31:22.556Z"
+        },
+        {
+          "name": "critic:a04a2e6",
+          "role": "critic",
+          "ownership": "a04a2e6157a91bb66",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:34:19.834Z"
+        },
+        {
+          "name": "planner:a53d88c",
+          "role": "planner",
+          "ownership": "a53d88c8ea6c54087",
+          "status": "done",
+          "currentStep": null,
+          "latestUpdate": "completed",
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:42:40.714Z"
+        },
+        {
+          "name": "architect:a019a38",
+          "role": "architect",
+          "ownership": "a019a387c5a0edf97",
+          "status": "running",
+          "currentStep": null,
+          "latestUpdate": null,
+          "completedSummary": null,
+          "updatedAt": "2026-05-15T02:43:26.666Z"
+        }
+      ],
+      "timeline": [
+        {
+          "id": "session-start:a53d88c8ea6c54087:2026-05-15T02:35:09.405Z",
+          "at": "2026-05-15T02:35:09.405Z",
+          "kind": "update",
+          "agent": "planner:a53d88c",
+          "detail": "started planner:a53d88c",
+          "sourceKey": "session-start:a53d88c8ea6c54087"
+        },
+        {
+          "id": "session-stop:a53d88c8ea6c54087:2026-05-15T02:42:40.714Z",
+          "at": "2026-05-15T02:42:40.714Z",
+          "kind": "completion",
+          "agent": "planner:a53d88c",
+          "detail": "completed",
+          "sourceKey": "session-stop:a53d88c8ea6c54087"
+        },
+        {
+          "id": "session-start:a019a387c5a0edf97:2026-05-15T02:43:26.666Z",
+          "at": "2026-05-15T02:43:26.666Z",
+          "kind": "update",
+          "agent": "architect:a019a38",
+          "detail": "started architect:a019a38",
+          "sourceKey": "session-start:a019a387c5a0edf97"
         }
       ]
     }

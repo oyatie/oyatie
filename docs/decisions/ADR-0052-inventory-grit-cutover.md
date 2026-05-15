@@ -50,7 +50,7 @@ Before this ADR, no single authoritative ledger classified all 223 artifact rows
 1. **Premature deletion** — an agent or human could remove an archive-class artifact before its function was confirmed to be replaced elsewhere.
 2. **Missing-boundary ambiguity** — seven cross-boundary artifacts between `bominal/` and `oyatie/` lacked a disposition ruling, leaving their authority-home undefined.
 
-The source data for this ledger was gathered in `.omc/specs/inventory-draft-oyatie-cutover.md` (READ-ONLY; that file is not modified by this ADR's lift).
+The source data for this ledger was gathered in `.omc/scratch/inventory-draft-oyatie-cutover.md` (READ-ONLY; that file is not modified by this ADR's lift).
 
 A Critic iter-2 finding corrected one phantom-path entry: `oyatie/.omx/ultragoal/` does not exist in the repository; the entry is noted as "phantom path; not present; no action" in the ledger below.
 
@@ -568,7 +568,7 @@ Files currently in `.gitignored` paths that ANY part of the corpus treats as aut
 
 ## References
 
-- Source spec (READ-ONLY): `.omc/specs/inventory-draft-oyatie-cutover.md`
+- Source spec (READ-ONLY): `.omc/scratch/inventory-draft-oyatie-cutover.md`
 - Plan: `.omc/plans/ralplan-oyatie-sst-consolidation.md` (acceptance criterion A2)
 - ADR-0001: cohesion thesis — authority chain declaration
 - ADR-0015: architectural flattening target — flat-crates; explains all `crates/` KEEP rows

@@ -62,7 +62,7 @@ migration_guide: docs/release/migrate-foundry-v1-to-v2.md
 Missing or inconsistent frontmatter → CI fails via
 `oya-foundry-fitness-deprecation-notice` (BLOCKER).
 
-## 4. ADR template (`.omc/templates/ADR-BREAKING-CHANGE.md`)
+## 4. ADR template (`/templates/ADR-BREAKING-CHANGE.md`)
 
 Sections required:
 

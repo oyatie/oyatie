@@ -10,8 +10,8 @@ use oya_cloud_network_domain::{
     CloudNetworkCatalog, CloudNetworkError, IpProtocol, NetworkRepo, RouteCreate, RouteNextHopKind,
     RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule, Vpc, VpcCreate, VpcState,
 };
-use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_residency_domain::{parse_residency_class_label, ResidencyClass};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
 
 pub const CLOUD_NETWORK_VPC_CREATE_SURFACE: &str = "cloud.network.vpc.create";
 

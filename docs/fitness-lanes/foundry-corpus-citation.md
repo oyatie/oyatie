@@ -6,7 +6,7 @@
 - enforces: MASTERPLAN P3.5 — foundry corpus cross-cite.
 - kernel_crate: `oya-foundry-fitness-foundry-corpus-citation-kernel` — `CorpusCitation { path, line, corpus_id }`, verdict `FoundryCorpusCitationFitnessReport { citations_checked }`.
 - runner_path: `tools/oya-foundry-fitness-foundry-corpus-citation`
-- inputs: `.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md`, every doc/code marked `corpus-dependent`.
+- inputs: `.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`, every doc/code marked `corpus-dependent`.
 - failure_modes:
   - missing corpus id citation
   - cited id unresolved

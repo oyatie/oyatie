@@ -46,7 +46,7 @@ standard supplies the per-image authoring rules.
 | Build stage (multi-stage) | `clux/muslrust:1.95.0-stable` | digest-pinned | musl toolchain for static linking |
 | Build stage (FFI) | `rust:1.95.0-slim-trixie` | digest-pinned | when musl is incompatible |
 
-Per [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md):
+Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md):
 **debian13 is current**; debian12 is deprecated (EOL ~Sep 2026). All new
 image work targets debian13; legacy debian12 images carry a tracked
 migration ADR.
@@ -247,6 +247,6 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress \
 - [muslrust](https://github.com/clux/muslrust),
   [cargo-zigbuild](https://github.com/rust-cross/cargo-zigbuild).
 - [Trivy](https://trivy.dev/).
-- [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md).
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md).
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 4 "Container images" + "Supply-chain".

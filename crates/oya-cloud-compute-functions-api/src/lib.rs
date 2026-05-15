@@ -11,7 +11,7 @@ use oya_cloud_compute_domain::{
     FunctionInvocationRequest,
 };
 use oya_cloud_resource_domain::ResourceId;
-use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE: &str = "cloud.compute.functions.invoke";
 

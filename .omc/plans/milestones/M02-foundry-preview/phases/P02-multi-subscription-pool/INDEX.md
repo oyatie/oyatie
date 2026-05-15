@@ -46,12 +46,12 @@ the existing Phase 00 `ProviderAccount` state machine without duplicating accoun
 
 ## Implementation Plans
 
-- [`IP-001-provider-account-pool-kernel.md`](IP-001-provider-account-pool-kernel.md) — Pure value-type pool kernel + `pick_account` decision function — `pending approval`
-- [`IP-002-anthropic-compat-adapter.md`](IP-002-anthropic-compat-adapter.md) — `/v1/messages` + `/v1/messages/count_tokens` Anthropic-shape adapter — `pending approval`
-- [`IP-003-openai-compat-adapter.md`](IP-003-openai-compat-adapter.md) — `/v1/chat/completions` + `/v1/embeddings` + `/v1/models` OpenAI-shape adapter — `pending approval`
-- [`IP-004-oauth-subscription-capture.md`](IP-004-oauth-subscription-capture.md) — Claude.ai / OpenAI subscription-token OAuth capture flow — `pending approval`
-- [`IP-005-upstream-api-drift-lane.md`](IP-005-upstream-api-drift-lane.md) — Nightly upstream-OpenAPI diff + drift-report emission — `pending approval`
-- [`IP-006-tos-policy-audit-chain.md`](IP-006-tos-policy-audit-chain.md) — ToS-ack policy + pool-routing audit-chain emission — `pending approval`
+- [`IP-001-provider-account-pool-kernel.md`](IP-001-provider-account-pool-kernel.md) — Pure value-type pool kernel + `pick_account` decision function — `merged` (claude-a1-m02p02 2026-05-14; evidence: /evidence/m02-p02-ip-001-provider-account-pool-kernel.json)
+- [`IP-002-anthropic-compat-adapter.md`](IP-002-anthropic-compat-adapter.md) — `/v1/messages` + `/v1/messages/count_tokens` Anthropic-shape adapter — `merged` (claude-a1-m02p02 2026-05-14; evidence: /evidence/m02-p02-ip-002-anthropic-compat-adapter.json)
+- [`IP-003-openai-compat-adapter.md`](IP-003-openai-compat-adapter.md) — `/v1/chat/completions` + `/v1/embeddings` + `/v1/models` OpenAI-shape adapter — `merged` (claude-a1-m02p02 2026-05-14; evidence: /evidence/m02-p02-ip-003-openai-compat-adapter.json)
+- [`IP-004-oauth-subscription-capture.md`](IP-004-oauth-subscription-capture.md) — Claude.ai / OpenAI subscription-token OAuth capture flow — `merged` (claude-a1-m02p02 2026-05-14; evidence: /evidence/m02-p02-ip-004-oauth-subscription-capture.json)
+- [`IP-005-upstream-api-drift-lane.md`](IP-005-upstream-api-drift-lane.md) — Nightly upstream-OpenAPI diff + drift-report emission — `merged` (claude-a1-m02p02 2026-05-14; evidence: /evidence/m02-p02-ip-005-upstream-api-drift-lane.json; lane runner + workflow file deferred to P03 follow-up)
+- [`IP-006-tos-policy-audit-chain.md`](IP-006-tos-policy-audit-chain.md) — ToS-ack policy + pool-routing audit-chain emission — `merged` (claude-a1-m02p02 2026-05-14; evidence: /evidence/m02-p02-ip-006-tos-policy-audit-chain.json)
 
 ## Estimated parallelism
 

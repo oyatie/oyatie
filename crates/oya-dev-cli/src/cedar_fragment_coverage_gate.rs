@@ -1,5 +1,5 @@
 //! `oya gate validate cedar-fragment-coverage` — runtime for the C01..C04
-//! invariants declared in `.omc/registries/cedar-fragments.json`. Makes the
+//! invariants declared in `registries/cross-cutting/cedar-fragments.json`. Makes the
 //! cedar-fragments-registry non-paper: drift between OpenAPI contracts,
 //! bounded-contexts.json, and on-disk `.cedar` files now fails the lane.
 
@@ -32,8 +32,8 @@ pub(crate) fn parse_cedar_fragment_coverage_validate_args(
     args: Vec<String>,
 ) -> Result<CedarFragmentCoverageValidateArgs, String> {
     let mut parsed = CedarFragmentCoverageValidateArgs {
-        registry_path: PathBuf::from(".omc/registries/cedar-fragments.json"),
-        bounded_contexts_path: PathBuf::from(".omc/registries/bounded-contexts.json"),
+        registry_path: PathBuf::from("registries/cross-cutting/cedar-fragments.json"),
+        bounded_contexts_path: PathBuf::from("registries/cross-cutting/bounded-contexts.json"),
         contracts_dir: PathBuf::from("contracts"),
         cedar_dir: PathBuf::from(".omc/cedar"),
         emit_evidence_path: None,
@@ -321,7 +321,7 @@ fn write_evidence_bundle(
         "failure"
     };
     let body = format!(
-        "{{\n  \"$schema_ref\": \".omc/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"cedar-fragment-coverage-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate cedar-fragment-coverage\", \"registry_path\": \"{}\" }},\n  \"outcome\": \"{}\",\n  \"rows_seen\": {},\n  \"openapi_references_seen\": {},\n  \"bc_references_seen\": {},\n  \"cedar_files_seen\": {},\n  \"violation_count\": {},\n  \"validation_duration_ms\": {}\n}}\n",
+        "{{\n  \"$schema_ref\": \"/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"cedar-fragment-coverage-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate cedar-fragment-coverage\", \"registry_path\": \"{}\" }},\n  \"outcome\": \"{}\",\n  \"rows_seen\": {},\n  \"openapi_references_seen\": {},\n  \"bc_references_seen\": {},\n  \"cedar_files_seen\": {},\n  \"violation_count\": {},\n  \"validation_duration_ms\": {}\n}}\n",
         escape_json(&registry_path.display().to_string()),
         outcome,
         report.rows_seen,
@@ -393,11 +393,11 @@ mod tests {
         let args = parse_cedar_fragment_coverage_validate_args(vec![]).unwrap();
         assert_eq!(
             args.registry_path,
-            PathBuf::from(".omc/registries/cedar-fragments.json")
+            PathBuf::from("registries/cross-cutting/cedar-fragments.json")
         );
         assert_eq!(
             args.bounded_contexts_path,
-            PathBuf::from(".omc/registries/bounded-contexts.json")
+            PathBuf::from("registries/cross-cutting/bounded-contexts.json")
         );
         assert_eq!(args.contracts_dir, PathBuf::from("contracts"));
         assert_eq!(args.cedar_dir, PathBuf::from(".omc/cedar"));

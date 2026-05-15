@@ -136,7 +136,7 @@ The worst gaps, in priority order:
 
 ## Recommended Master Plan §Principles language
 
-> **LTS dependency enforcement.** Every direct runtime, framework, base image, and supply-chain tool that oyatie depends on MUST be pinned to an upstream LTS or designated stable channel, with a verified-as-of date recorded in `.omc/specs/lts-versions-verified-YYYY-MM-DD.md`. The pin set is reviewed quarterly and on any major upstream LTS announcement.
+> **LTS dependency enforcement.** Every direct runtime, framework, base image, and supply-chain tool that oyatie depends on MUST be pinned to an upstream LTS or designated stable channel, with a verified-as-of date recorded in `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`. The pin set is reviewed quarterly and on any major upstream LTS announcement.
 >
 > The workspace `rust-version` MUST equal the current Rust stable channel rounded down to the latest minor that has been live for ≥30 days (currently **1.95.0** → pin `rust-version = "1.95.0"`). The workspace edition and rustfmt parsing/style editions MUST be **2024**. `cargo-deny` MUST be pinned to a version whose MSRV is ≤ the workspace `rust-version` (currently **0.19.5**, MSRV 1.85, compatible with the current workspace pin).
 >

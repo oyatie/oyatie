@@ -18,8 +18,8 @@ excludes:
     reason: Per-region authority.
 authority_chain_declaration: |
   system / developer / user instructions
-    > .omc/specs/root-hub-pointers.json
-    > docs/AGENTS.md (until .omc/specs/agent-operating-contract.json PHASE-5 promotion)
+    > /specs/cross-cutting/root-hub-pointers.json
+    > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
     > machine-readable specs and registries under .omc/
     > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)

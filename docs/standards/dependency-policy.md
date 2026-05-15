@@ -18,7 +18,7 @@ companion_docs:
   - docs/standards/security-review.md
   - docs/standards/code-style-rust.md
   - docs/standards/image-discipline.md
-  - .omc/specs/lts-versions-verified-2026-05-12.md
+  - .omc/scratch/lts-versions-verified-2026-05-12.md
 related_adrs:
   - ADR-0053
   - ADR-0052
@@ -32,11 +32,11 @@ related_adrs:
 Every direct runtime, framework, base image, and supply-chain tool the
 workspace depends on MUST be pinned, license-clean, and reviewed via the
 supply-chain triad. This standard codifies the policy; the program-level
-inventory lives in `.omc/specs/lts-versions-verified-YYYY-MM-DD.md`.
+inventory lives in `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
 
 ## 1. LTS pinning
 
-Per [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md)
+Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md)
 and MASTERPLAN §2 Directive 8:
 
 - Every direct dependency tracks the **current LTS** major.minor where the
@@ -46,7 +46,7 @@ and MASTERPLAN §2 Directive 8:
   pin (e.g., Canonical 1.32 LTS for K8s).
 - The LTS roster is refreshed **quarterly** and on any major upstream LTS
   announcement; the verified-as-of date is recorded in
-  `.omc/specs/lts-versions-verified-YYYY-MM-DD.md`.
+  `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
 - Lane: `oya-foundry-fitness-lts-dependency` checks every direct
   dependency against the roster on every PR.
 
@@ -114,7 +114,7 @@ Pinning rules:
 
 ## 4. Renovate baseline
 
-Per [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+Per [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
 Domain 4: **Renovate** is the canonical dependency-update bot
 (supports 30+ ecosystems vs Dependabot's 14). Dependabot remains
 enabled for security-advisory fan-in only.
@@ -216,7 +216,7 @@ imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
 
 ## 8. CI/CD platform
 
-Per `.omc/specs/hyperscaler-best-practices-2026-05-12.md` Domain 4: the
+Per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4: the
 default platform is **GitHub Actions**. Self-hosted runners under the
 Buildkite control plane are the cloud-portable analog for high-volume.
 Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
@@ -236,8 +236,8 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
 
 ## 10. Sources scanned
 
-- [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md);
-  [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md);
+  [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 3 + 4.
 - [Mozilla — cargo-vet](https://mozilla.github.io/cargo-vet/);
   [cargo-deny](https://embarkstudios.github.io/cargo-deny/);

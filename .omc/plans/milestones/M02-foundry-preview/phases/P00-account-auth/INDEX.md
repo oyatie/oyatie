@@ -10,7 +10,7 @@ purpose: Lift Foundry Phase 00 account-auth contract surface from foundry-salvag
 # M02-P00 — Account-Auth Contracts
 
 ## Purpose
-Per [`../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md`](../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md) §A-B. Foundation for Foundry's multi-provider runtime.
+Per [`../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`](../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md) §A-B. Foundation for Foundry's multi-provider runtime.
 
 ## Acceptance
 - P00-01 architecture skeleton: 7 crates green (`kernel`, `domain`, `app`, `adapter-{codex-cli,claude-code,gemini-cli,openbao}`, `runtime`); boundary check passes.

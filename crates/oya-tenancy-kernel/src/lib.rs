@@ -15,6 +15,10 @@ const REGION_BINDING_SCHEMA_VERSION: u32 = 1;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum TenantKernelError {
     InvalidTenantId,
+    InvalidTenantSlug,
+    TenantSlugEmpty,
+    TenantSlugTooLong { actual: usize },
+    TenantSlugInvalidChar,
     InvalidRegionCode,
     InvalidEvidenceRef,
     InvalidLegalName,
@@ -61,6 +65,75 @@ impl FromStr for TenantId {
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         Self::new(value)
+    }
+}
+
+/// Maximum permitted length of a `TenantSlug`. 128 bytes is wide enough for
+/// any URL-safe tenant id customers actually use (typical ≤32) while bounded
+/// for hash-table label cardinality and audit-chain field budgets.
+pub const TENANT_SLUG_MAX_LEN: usize = 128;
+
+/// Customer-facing tenant slug — the form a tenant id takes on the wire
+/// (HTTP `x-tenant-id` header, URL path captures, etc.) BEFORE it's
+/// translated into the internal canonical `TenantId` (which carries the
+/// `ten_` prefix) via a directory lookup at the API boundary.
+///
+/// Grammar: 1..=`TENANT_SLUG_MAX_LEN` bytes of ASCII alphanumeric + `-` + `_`.
+///
+/// Per ADR-0095: this type centralizes the slug grammar that the HTTP tenant
+/// middleware previously defined inline. Defense in depth — the type itself
+/// enforces invariants, not just the middleware extracting it.
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub struct TenantSlug(String); // data_class: TENANT_SCOPED (customer-facing identifier)
+
+impl TenantSlug {
+    pub fn try_new(value: impl Into<String>) -> Result<Self, TenantKernelError> {
+        let value = value.into();
+        if value.is_empty() {
+            return Err(TenantKernelError::TenantSlugEmpty);
+        }
+        if value.len() > TENANT_SLUG_MAX_LEN {
+            return Err(TenantKernelError::TenantSlugTooLong {
+                actual: value.len(),
+            });
+        }
+        if !value
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_')
+        {
+            return Err(TenantKernelError::TenantSlugInvalidChar);
+        }
+        Ok(Self(value))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
+impl fmt::Display for TenantSlug {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(&self.0)
+    }
+}
+
+impl FromStr for TenantSlug {
+    type Err = TenantKernelError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Self::try_new(value)
+    }
+}
+
+impl TryFrom<&str> for TenantSlug {
+    type Error = TenantKernelError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Self::try_new(value)
     }
 }
 
@@ -556,5 +629,122 @@ mod tests {
             TenantPlaneGrants::new([TenantPlane::Control]).expect("grant set is non-empty");
         assert!(grants.contains(TenantPlane::Control));
         assert!(!grants.contains(TenantPlane::Analytics));
+    }
+
+    // ---- TenantSlug tests (ADR-0095 + F-MULTI-Q5) ----
+
+    #[test]
+    fn tenant_slug_accepts_alphanumeric_dash_underscore_at_short_lengths() {
+        assert!(TenantSlug::try_new("acme").is_ok());
+        assert!(TenantSlug::try_new("acme-co").is_ok());
+        assert!(TenantSlug::try_new("acme_co").is_ok());
+        assert!(TenantSlug::try_new("acme-co-123").is_ok());
+        assert!(TenantSlug::try_new("A").is_ok()); // single uppercase
+    }
+
+    // F3 adversarial: every rejection path returns a specific error variant.
+    #[test]
+    fn tenant_slug_rejects_empty() {
+        assert_eq!(
+            TenantSlug::try_new(""),
+            Err(TenantKernelError::TenantSlugEmpty)
+        );
+    }
+
+    #[test]
+    fn tenant_slug_rejects_too_long() {
+        let too_long = "a".repeat(TENANT_SLUG_MAX_LEN + 1);
+        assert_eq!(
+            TenantSlug::try_new(&too_long),
+            Err(TenantKernelError::TenantSlugTooLong {
+                actual: TENANT_SLUG_MAX_LEN + 1,
+            })
+        );
+    }
+
+    #[test]
+    fn tenant_slug_accepts_max_length() {
+        let max_len = "a".repeat(TENANT_SLUG_MAX_LEN);
+        assert!(TenantSlug::try_new(&max_len).is_ok());
+    }
+
+    #[test]
+    fn tenant_slug_rejects_invalid_char_slash() {
+        assert_eq!(
+            TenantSlug::try_new("abc/def"),
+            Err(TenantKernelError::TenantSlugInvalidChar)
+        );
+    }
+
+    #[test]
+    fn tenant_slug_rejects_invalid_char_space() {
+        assert_eq!(
+            TenantSlug::try_new("ab cd"),
+            Err(TenantKernelError::TenantSlugInvalidChar)
+        );
+    }
+
+    #[test]
+    fn tenant_slug_rejects_invalid_char_unicode() {
+        // Unicode letter that LOOKS like Latin 'a' but isn't ASCII —
+        // homoglyph-class attack defense.
+        assert_eq!(
+            TenantSlug::try_new("аbc"),
+            Err(TenantKernelError::TenantSlugInvalidChar)
+        );
+    }
+
+    #[test]
+    fn tenant_slug_rejects_dot_path_traversal_shape() {
+        // S5 path-traversal class — dot segments must not survive a tenant
+        // slug; the alphanumeric+dash+underscore rule excludes '.' which
+        // closes the obvious traversal vector.
+        assert_eq!(
+            TenantSlug::try_new(".."),
+            Err(TenantKernelError::TenantSlugInvalidChar)
+        );
+        assert_eq!(
+            TenantSlug::try_new("."),
+            Err(TenantKernelError::TenantSlugInvalidChar)
+        );
+        assert_eq!(
+            TenantSlug::try_new("acme.co"),
+            Err(TenantKernelError::TenantSlugInvalidChar)
+        );
+    }
+
+    // F3 adversarial: try_from / parse APIs both delegate to try_new.
+    #[test]
+    fn tenant_slug_try_from_str_works() {
+        let slug = TenantSlug::try_from("acme").unwrap();
+        assert_eq!(slug.as_str(), "acme");
+    }
+
+    #[test]
+    fn tenant_slug_from_str_parse_works() {
+        let slug: TenantSlug = "acme-co".parse().unwrap();
+        assert_eq!(slug.as_str(), "acme-co");
+    }
+
+    #[test]
+    fn tenant_slug_invariants_documented_in_max_len_constant() {
+        // Public surface declares the limit; consumers can read it without
+        // parsing comments.
+        assert_eq!(TENANT_SLUG_MAX_LEN, 128);
+    }
+
+    #[test]
+    fn tenant_slug_is_distinct_from_tenant_id() {
+        // TenantSlug is the customer-facing form; TenantId is internal
+        // canonical. The internal grammar (ten_ prefix) does NOT validate
+        // a slug, and a slug does NOT satisfy TenantId construction.
+        assert!(TenantSlug::try_new("acme-co").is_ok());
+        assert_eq!(
+            TenantId::new("acme-co"),
+            Err(TenantKernelError::InvalidTenantId)
+        );
+        // Conversely, "ten_kr" parses as both (internal IDs are slug-shaped).
+        assert!(TenantSlug::try_new("ten_kr").is_ok());
+        assert!(TenantId::new("ten_kr").is_ok());
     }
 }

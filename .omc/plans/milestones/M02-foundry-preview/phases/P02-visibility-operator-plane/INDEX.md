@@ -10,7 +10,7 @@ purpose: Ship account/session/usage/routing/dry-run dashboards — read-only ope
 # M02-P02 — Read-Only Visibility
 
 ## Purpose
-Per [`../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md`](../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md) §C. No write ops here — write-gates are deferred to M02-P04.
+Per [`../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`](../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md) §C. No write ops here — write-gates are deferred to M02-P04.
 
 ## Acceptance
 - All G004 read-only surfaces serve from kernel projections; no direct DB access.

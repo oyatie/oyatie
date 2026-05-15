@@ -1,8 +1,8 @@
 use oya_cloud_region_api::{
-    list_cloud_azs_from_api, list_cloud_regions_from_api, CloudAzListApiRequest,
+    CLOUD_AZ_LIST_SURFACE, CLOUD_REGION_LIST_SURFACE, CloudAzListApiRequest,
     CloudRegionApiAuthorization, CloudRegionApiBoundaryContext, CloudRegionApiError,
     CloudRegionApiPrincipal, CloudRegionListApiRequest, CloudRegionListApiStatus,
-    CLOUD_AZ_LIST_SURFACE, CLOUD_REGION_LIST_SURFACE,
+    list_cloud_azs_from_api, list_cloud_regions_from_api,
 };
 use oya_cloud_region_domain::{
     AzState, CloudAzCreate, CloudRegionCatalog, CloudRegionCreate, RegionState,

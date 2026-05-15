@@ -250,7 +250,7 @@ mod tests {
 
 | Question | Authority |
 |---|---|
-| Mission | [`.omc/specs/masterplan.json`](../.omc/specs/masterplan.json), [`RACI`](RACI-OWNERSHIP.md) |
+| Mission | [`specs/cross-cutting/masterplan.json`](../specs/cross-cutting/masterplan.json), [`RACI`](RACI-OWNERSHIP.md) |
 | Docs | [`products/`](products/) |
 
 ## Pre-flight checklist
@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(
             paths,
             vec![
-                ".omc/specs/masterplan.json".to_string(),
+                "specs/cross-cutting/masterplan.json".to_string(),
                 "docs/RACI-OWNERSHIP.md".to_string(),
                 "docs/products".to_string(),
             ]

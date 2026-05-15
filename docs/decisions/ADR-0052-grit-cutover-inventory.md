@@ -9,7 +9,7 @@ supersedes: []
 superseded_by: []
 relates_to:
   - ADR-0054-grit-scaffold-claim-pattern.md
-  - .omc/specs/master-plan-sequencing.json
+  - /specs/cross-cutting/master-plan-sequencing.json
 ---
 
 # ADR-0052 — Grit cutover inventory of legacy primitives

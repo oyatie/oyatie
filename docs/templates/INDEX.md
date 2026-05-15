@@ -13,7 +13,7 @@ related:
   - docs/STANDARDS-AND-TEMPLATES.md
   - docs/RACI-OWNERSHIP.md
   - .omc/plans/MASTERPLAN.md
-  - .omc/specs/hyperscaler-best-practices-2026-05-12.md
+  - .omc/scratch/hyperscaler-best-practices-2026-05-12.md
 adrs_cited:
   - ADR-0052  # inventory ledger
   - ADR-0053  # sanctioned primitives

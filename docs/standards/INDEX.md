@@ -77,7 +77,7 @@ that satisfies it.
 - `prevention-doctrine.md` — referenced in CONSTITUTION but covers a different concern
   (the mechanical-prevention authoring guide); authored separately.
 - `commit-message.md`, `code-review.md` — referenced in
-  `.omc/specs/hyperscaler-best-practices-2026-05-12.md` adoption map; future ADR-PM
+  `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` adoption map; future ADR-PM
   rollout will produce these alongside the small-CL discipline rollout.
 
 ## Authoring rules for this directory
@@ -105,6 +105,6 @@ ADR-0052 (pre-grit artifact inventory), ADR-0054 (scaffold-claim pattern).
   [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md).
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Compound principles
   (Directives 1-12).
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   (Domain 2 + Domain 3).
-- [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md).
+- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md).

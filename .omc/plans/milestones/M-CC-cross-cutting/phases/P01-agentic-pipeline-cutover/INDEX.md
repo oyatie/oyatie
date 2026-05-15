@@ -20,7 +20,7 @@ Per [`../../../ralplan-oyatie-sst-consolidation.md`](../../../ralplan-oyatie-sst
 
 ## Foundation-cleared evidence
 
-P01 foundation cleared on 2026-05-14 after IP-009, IP-010, and IP-012 code-review approvals. Standalone P01 lanes are green: banned-primitives, archive-orphan, authoritative-tracked, plus the IP-010 parallel-claim demo regression. Fresh full-workspace closeout now passes `./scripts/check.sh` under Rust 1.95.0 / edition 2024 / rustfmt 2024, including cargo check/clippy, cargo-nextest 1327/1327, repoctl, glossary, quality-lanes, architecture-boundary (165 crates), cargo-deny, and machine-readable JSON parse checks; see `.omc/evidence/agentic-pipeline/ip-012-authoritative-tracked.json`.
+P01 foundation cleared on 2026-05-14 after IP-009, IP-010, and IP-012 code-review approvals. Standalone P01 lanes are green: banned-primitives, archive-orphan, authoritative-tracked, plus the IP-010 parallel-claim demo regression. Fresh full-workspace closeout now passes `./scripts/check.sh` under Rust 1.95.0 / edition 2024 / rustfmt 2024, including cargo check/clippy, cargo-nextest 1327/1327, repoctl, glossary, quality-lanes, architecture-boundary (165 crates), cargo-deny, and machine-readable JSON parse checks; see `/evidence/agentic-pipeline/ip-012-authoritative-tracked.json`.
 
 ## Implementation Plans
 | IP | Title | Status | File |

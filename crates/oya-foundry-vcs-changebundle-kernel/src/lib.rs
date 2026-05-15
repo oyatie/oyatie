@@ -664,7 +664,7 @@ mod tests {
             touched_files: vec![touched_file],
             dependencies: vec![],
             lineage: ChangeSetLineage::new("wi_p00", "ip_003", vec![]).unwrap(),
-            evidence_refs: vec![".omc/evidence/gitops-vcs/ip-003-changebundle.json".into()],
+            evidence_refs: vec!["evidence/gitops-vcs/ip-003-changebundle.json".into()],
         })
         .unwrap()
     }
@@ -859,7 +859,7 @@ mod tests {
             "promo_ip003_dev",
             "dev",
             PromotionStatus::Published,
-            ".omc/evidence/gitops-vcs/ip-003-changebundle.json#promotion",
+            "evidence/gitops-vcs/ip-003-changebundle.json#promotion",
             false,
         )
         .unwrap();
@@ -882,7 +882,7 @@ mod tests {
                 format!("promo_ip003_{status:?}"),
                 "staging",
                 status,
-                ".omc/evidence/gitops-vcs/ip-003-changebundle.json#promotion-pending",
+                "evidence/gitops-vcs/ip-003-changebundle.json#promotion-pending",
                 false,
             )
             .unwrap();

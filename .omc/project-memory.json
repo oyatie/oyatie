@@ -19,7 +19,7 @@
   },
   "build": {
     "buildCommand": "rtk cargo build -p oya-connect-mail-domain 2>&1 | tail -5",
-    "testCommand": "icm store --topic context-oyatie --importance critical --keywords \"M02-complete,M03-partial-fanout-complete,acceptance-gate-passed\" --content \"Session 2026-05-14: M02-Foundry-Preview COMPLETE (51 crates, 303 tests, 6 phases). M03-Cloud-SaaS-Search-Workspace partial-fanout-complete: P04 SaaS (6 crates, 29 tests), P05 Search (8 crates, 33 tests), P06 Workspace (14 surfaces staging types, 22 tests), P07 Regional Pack (KR+JP manifests). P08 cross-axis contracts deferred (validator schema reconcile). P01-P03 Cloud pre-existing partial-in-flight. scripts/check.sh EXIT 0 verified workspace-wide across 240+ crates. All lanes green: cargo check, cargo test (~1900 tests), fmt, clippy, architecture boundary, supply-chain (SHA-pinned), OpenAPI, rustdoc, cargo-deny, repoctl pre-push, data-class fitness, ADR index, machine-readable JSON. Total: 73+ new crates this session, 387+ unit tests.\" 2>&1\ngrit done --agent claude-m03-finalize 2>&1 || true",
+    "testCommand": "rtk cargo test -p oya-foundry-vcs-kernel --quiet 2>&1 | tail -5",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
@@ -136,14 +136,26 @@
   "hotPaths": [
     {
       "path": "Cargo.toml",
-      "accessCount": 52,
-      "lastAccessed": 1778799379202,
+      "accessCount": 60,
+      "lastAccessed": 1778810823817,
       "type": "file"
     },
     {
       "path": "crates/oya-foundry-account-domain/src/lib.rs",
-      "accessCount": 9,
-      "lastAccessed": 1778791638864,
+      "accessCount": 10,
+      "lastAccessed": 1778810820739,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-account-kernel/src/lib.rs",
+      "accessCount": 8,
+      "lastAccessed": 1778810820319,
+      "type": "file"
+    },
+    {
+      "path": "crates/oya-foundry-account-adapter-openbao/src/lib.rs",
+      "accessCount": 8,
+      "lastAccessed": 1778813023280,
       "type": "file"
     },
     {
@@ -154,20 +166,8 @@
     },
     {
       "path": "crates/oya-foundry-account-adapter-openbao/Cargo.toml",
-      "accessCount": 6,
-      "lastAccessed": 1778791217149,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-foundry-account-kernel/src/lib.rs",
-      "accessCount": 6,
-      "lastAccessed": 1778791627866,
-      "type": "file"
-    },
-    {
-      "path": "crates/oya-foundry-account-adapter-openbao/src/lib.rs",
-      "accessCount": 5,
-      "lastAccessed": 1778791216740,
+      "accessCount": 7,
+      "lastAccessed": 1778812191655,
       "type": "file"
     },
     {
@@ -204,6 +204,12 @@
       "path": "crates/oya-ops-workspace-shell-adapter/src/lib.rs",
       "accessCount": 3,
       "lastAccessed": 1778791879927,
+      "type": "file"
+    },
+    {
+      "path": "scripts/check.sh",
+      "accessCount": 3,
+      "lastAccessed": 1778801638375,
       "type": "file"
     },
     {
@@ -246,12 +252,6 @@
       "path": "crates/oya-ops-workspace-shell-application/src/lib.rs",
       "accessCount": 2,
       "lastAccessed": 1778791868603,
-      "type": "file"
-    },
-    {
-      "path": "scripts/check.sh",
-      "accessCount": 2,
-      "lastAccessed": 1778793106179,
       "type": "file"
     },
     {

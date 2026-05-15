@@ -65,7 +65,7 @@ related:
 | `.omc/plans/milestones/<MNN>/phases/<PNN>/INDEX.md` | PhaseIndex | same path under `docs/` | pending approval per-phase |
 | `.omc/plans/milestones/<MNN>/phases/<PNN>/IP-*.md` | ImplementationPlan | same path under `docs/` | pending approval per-IP |
 | `.omc/standards/INDEX.md` + `*.md` | StandardsIndex / Standard | `docs/standards/` | pending approval per-standard |
-| `.omc/templates/INDEX.md` + `*.md|yaml|json` | TemplateIndex / Template | `docs/templates/`, `docs/checklists/` | pending approval per-template |
+| `/templates/INDEX.md` + `*.md|yaml|json` | TemplateIndex / Template | `docs/templates/`, `docs/checklists/` | pending approval per-template |
 | `.omc/fitness-lanes/*.md` | FitnessLane | `docs/fitness-lanes/<lane>.md` | pending approval per-lane |
 
 ## Agent-kickoff files (this directory)

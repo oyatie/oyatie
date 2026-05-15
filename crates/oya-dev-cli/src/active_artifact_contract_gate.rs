@@ -28,7 +28,7 @@ pub(crate) fn parse_active_artifact_contract_validate_args(
     args: Vec<String>,
 ) -> Result<ActiveArtifactContractValidateArgs, String> {
     let mut parsed = ActiveArtifactContractValidateArgs {
-        registry_path: PathBuf::from(".omc/registries/artifact-capabilities-registry.json"),
+        registry_path: PathBuf::from("registries/cross-cutting/artifact-capabilities-registry.json"),
         emit_evidence_path: None,
         emit_graph_edges_path: None,
     };
@@ -251,7 +251,7 @@ fn write_evidence_bundle(
         .collect::<Vec<_>>()
         .join(",");
     let body = format!(
-        "{{\n  \"$schema_ref\": \".omc/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"active-artifact-contract-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"registry_path\": \"{}\" }},\n  \"outcome\": \"{}\",\n  \"rows_seen\": {},\n  \"head_tracked_count\": {},\n  \"untracked_paths\": [{}],\n  \"duplicate_ids\": [{}],\n  \"validation_duration_ms\": {},\n  \"graph_edge_count\": {}\n}}\n",
+        "{{\n  \"$schema_ref\": \"/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"active-artifact-contract-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"registry_path\": \"{}\" }},\n  \"outcome\": \"{}\",\n  \"rows_seen\": {},\n  \"head_tracked_count\": {},\n  \"untracked_paths\": [{}],\n  \"duplicate_ids\": [{}],\n  \"validation_duration_ms\": {},\n  \"graph_edge_count\": {}\n}}\n",
         escape_json(&registry_path.display().to_string()),
         outcome,
         report.rows_seen,
@@ -285,7 +285,7 @@ fn write_graph_edges(path: &Path, edges: &[(String, String, String)]) -> Result<
         .collect::<Vec<_>>()
         .join(",\n");
     let body = format!(
-        "{{\n  \"$schema_ref\": \".omc/specs/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
+        "{{\n  \"$schema_ref\": \"specs/cross-cutting/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
         edges_json
     );
     fs::write(path, body)
@@ -311,7 +311,7 @@ mod tests {
         let args = parse_active_artifact_contract_validate_args(vec![]).unwrap();
         assert_eq!(
             args.registry_path,
-            PathBuf::from(".omc/registries/artifact-capabilities-registry.json")
+            PathBuf::from("registries/cross-cutting/artifact-capabilities-registry.json")
         );
         assert!(args.emit_evidence_path.is_none());
         assert!(args.emit_graph_edges_path.is_none());

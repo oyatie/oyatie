@@ -48,7 +48,7 @@ The spec is complete when all of the following hold; each criterion has a typed 
 6. **A6 — Hook + skill audit.** `agents/settings/claude.settings.json` and any project-level skill that previously called `git`/`gh` is rewritten to route through grit + icm + `oya-agent-read`. The existing `grit-claim-state-on-stop` Stop hook stays. *Test*: each touched file has a passing audit row in the inventory ledger.
 7. **A7 — Parallel-claim demo (session-less mode).** A reproducible demo proves N>1 agents can `grit claim` non-overlapping symbols, work in their auto-created `.grit/worktrees/<agent>/` directories in parallel, and land via `grit done --agent <agent>` without conflict. *Test*: a recorded session in `docs/runbooks/grit-parallel-claim-demo.md` shows the sequence with timestamps and `grit watch` event excerpts. Session-mode demo (`grit session start` + `grit session pr`) is deferred until upstream session bug fix; tracked as a follow-up runbook.
 8. **A8 — All authoritative artifacts repo-tracked.** A repo-walk audit confirms that every file referenced as authoritative in `docs/AGENTS.md` is tracked. `.gitignored` paths that house authoritative state are either committed or demoted to non-authoritative. *Test*: `oya-foundry-fitness-authoritative-tracked` lane.
-9. **A9 — Spec-to-plan handoff path.** `/ralplan --consensus --direct .omc/specs/deep-dive-oyatie-sst-consolidation.md` produces a plan at `.omc/plans/` that names this spec as Phase 0 input and routes execution to autopilot/team with parallel-grit-claim batches. *Test*: plan file exists and references this spec by path.
+9. **A9 — Spec-to-plan handoff path.** `/ralplan --consensus --direct .omc/scratch/deep-dive-oyatie-sst-consolidation.md` produces a plan at `.omc/plans/` that names this spec as Phase 0 input and routes execution to autopilot/team with parallel-grit-claim batches. *Test*: plan file exists and references this spec by path.
 10. **A10 — Linus-style audit.** The cutover PR body section "good-taste audit" enumerates: (a) the special cases eliminated by reshaping data (e.g., `G004-reconciliation-blocker.md` no longer needs to exist), (b) the deep hierarchies flattened, (c) the ceremony deleted. Empty section is a fail. *Test*: PR template gate.
 
 ## Assumptions Exposed
@@ -155,7 +155,7 @@ No remaining entity-stability issues. The 7-axis EaaS frame is stable across all
 - `grit status` showed expired stale claims in bominal — exactly the failure mode `grit gc` handles natively, validating the "don't reinvent" thesis.
 - The published `bominal/docs/consolidated/PRD.md` and the existing `oyatie/docs/PRD.md` use identical seven-axis language but did not cross-cite. Bidirectional citation closes that gap without merging the two.
 
-**Trace path**: `.omc/specs/deep-dive-trace-oyatie-sst-consolidation.md`
+**Trace path**: `.omc/scratch/deep-dive-trace-oyatie-sst-consolidation.md`
 
 ## Interview Transcript
 

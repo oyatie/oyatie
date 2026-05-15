@@ -50,7 +50,7 @@ cargo clippy -p oya-dsr-application -- -D warnings
 - `DsrSlaTier::Preview` is locked to 30 days and rejects `30d + 1s`.
 - `execute_dsr_cascade_from_api` proves multi-store cascades produce a proof id per affected store and reject completed acknowledgements missing proof fields.
 - SPEC and machine-readable contract rows now point DSR runtime ownership at `oya-dsr-application` / `oya-dsr-domain` current crate names.
-- Fresh evidence file: [`.omc/evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json`](../../../../../evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json).
+- Fresh evidence file: [`/evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json`](../../../../../evidence/foundation/m01-p01-ip-003-dsr-cascade-engine.json).
 
 ## Rollback-procedure
 `grit done` is atomic per-symbol; if a subsequent IP regresses, revert the merge commit. For crates that other IPs already depend on, follow the per-crate split unwind documented in ADR-0015 §7.

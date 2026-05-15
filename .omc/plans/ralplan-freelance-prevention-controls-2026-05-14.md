@@ -67,7 +67,7 @@ Eliminated failure mode: *"freelance code authored without plan grounding + simu
 
 | Tier | Coverage |
 |---|---|
-| **Static (registries)** | `.omc/registries/adr-contradictions.json` + `.omc/registries/bominal-inheritance-overrides.json` validate against their own JSON schemas at parse time. |
+| **Static (registries)** | `/registries/cross-cutting/adr-contradictions.json` + `/registries/cross-cutting/bominal-inheritance-overrides.json` validate against their own JSON schemas at parse time. |
 | **Stop-hook fixture** | 3 known-good intents (each with both regex citations) pass; 3 known-reject (missing phase / missing ralplan / missing both) reject with structured reason. |
 | **Future lane fixture (M02-P20 IP-005 expansion)** | Each sub-check (ADR-contradiction-graph; Bominal-inheritance-violation) ships golden fixtures: ADR-0090↔R5 known pair fails the contradiction-graph lane until supersession edge lands; freelance hyper-transport choice without override registry row fails the Bominal lane. |
 
@@ -83,7 +83,7 @@ Eliminated failure mode: *"freelance code authored without plan grounding + simu
 
 **Today's deliverable:** add §"Acceleration: ADR-contradiction golden fixture" section to `.omc/plans/milestones/M02-substrate/phases/P21-architecture-planes-green/impl-plans/IP-X-regression-lane.md` (NEW IP file if not present; extend if present).
 
-### (b) Control 2 — `.omc/registries/adr-contradictions.json` (declarative; consumed by `oya-check-adr-index` extension)
+### (b) Control 2 — `/registries/cross-cutting/adr-contradictions.json` (declarative; consumed by `oya-check-adr-index` extension)
 
 **Today's deliverable:** seed registry with ADR-0090 ↔ R5-pending-as-ADR-0091 pair. Schema mirrors `active-artifact-contract` pattern: `_schema_ref`, `_artifact_id`, `_meta`, `contradictions[]`. Each row carries:
 
@@ -96,7 +96,7 @@ Eliminated failure mode: *"freelance code authored without plan grounding + simu
 
 **Future lane:** `oya-check-adr-index --sub-check=contradiction-graph` (added to existing `crates/oya-check-adr-index/src/lib.rs` at M02-P20 IP-005 expansion). The sub-check parses `docs/decisions/ADR-*.md` frontmatter, builds the {Accepted, Superseded-by, Supersedes} graph, and fails if any registry row's pair is in mutual-Accepted state without a supersession edge.
 
-### (c) Control 3 — `.omc/registries/bominal-inheritance-overrides.json` (declarative; consumed by `oya-check-architecture --bominal-inheritance` extension)
+### (c) Control 3 — `/registries/cross-cutting/bominal-inheritance-overrides.json` (declarative; consumed by `oya-check-architecture --bominal-inheritance` extension)
 
 **Today's deliverable:** seed registry from MASTERPLAN §3 9-row override table verbatim. Schema: each row carries `override_id`, `oyatie_decision`, `bominal_canonical_ref` (Bominal ADR ID), `scope` (e.g., transport-stack / glossary / workflow-placement), `adr_cite_oyatie` (the oyatie ADR that records the override).
 

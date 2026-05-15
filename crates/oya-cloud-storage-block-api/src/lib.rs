@@ -10,8 +10,8 @@ use oya_cloud_storage_domain::{
     BlockVolume, CloudStorageCatalog, CloudStorageError, EncryptionMode, StorageRepo, VolumeCreate,
     VolumePerformance, VolumeState, VolumeTier,
 };
-use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_residency_domain::{parse_residency_class_label, ResidencyClass};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
 
 pub const CLOUD_STORAGE_BLOCK_CREATE_SURFACE: &str = "cloud.storage.block.create";
 

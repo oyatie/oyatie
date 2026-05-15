@@ -68,7 +68,7 @@ watch.log: live `grit watch` capture for claim/done window
 final-status: No active locks.
 ```
 
-Transcript artifacts from the acceptance run are under `.omc/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`.
+Transcript artifacts from the acceptance run are under `/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`.
 
 ---
 
@@ -92,7 +92,7 @@ Only the demo agents are released. If a later IP regresses this runbook, revert 
 - [ ] Agent A and agent B claims both exit 0 and are simultaneously visible in `grit status`.
 - [ ] Agent C duplicate claim emits a blocked-symbol error while agent A owns that symbol.
 - [ ] `watch.log` contains the live `grit watch` capture for the drill window.
-- [ ] Transcript files exist under `.omc/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`.
+- [ ] Transcript files exist under `/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`.
 
 ---
 
@@ -120,5 +120,5 @@ For P01 drills, emit durable memory through `icm` with:
 
 - `.omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md`
 - `.omc/plans/ralplan-oyatie-sst-consolidation.md` §P8/A7
-- `.omc/specs/pre-cutover-drafts-2026-05-12.md` §Draft 3
+- `.omc/scratch/pre-cutover-drafts-2026-05-12.md` §Draft 3
 - `docs/plans/M-CC-01-cutover/open-questions-resolutions.md` §Q5

@@ -147,14 +147,20 @@ mod tests {
     #[test]
     fn empty_record_id_errors() {
         let l = line("", UsageUnit::Cpu, 5, 100, Some("kr"));
-        assert!(matches!(finalize_line(&l), Err(BillingError::EmptyRecordId)));
+        assert!(matches!(
+            finalize_line(&l),
+            Err(BillingError::EmptyRecordId)
+        ));
     }
 
     #[test]
     fn empty_tenant_id_errors() {
         let mut l = line("L1", UsageUnit::Cpu, 5, 100, Some("kr"));
         l.usage.tenant_id = String::new();
-        assert!(matches!(finalize_line(&l), Err(BillingError::EmptyTenantId)));
+        assert!(matches!(
+            finalize_line(&l),
+            Err(BillingError::EmptyTenantId)
+        ));
     }
 
     #[test]

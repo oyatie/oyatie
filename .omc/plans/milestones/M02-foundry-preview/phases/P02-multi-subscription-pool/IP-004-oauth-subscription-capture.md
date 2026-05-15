@@ -31,7 +31,7 @@ agent_prerequisites:
   - docs/CONSTITUTION.md
   - docs/decisions/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md
   - .omc/standards/security-review.md
-  - .omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md
+  - .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md
 final_shape_compliance: true
 dependency_additions:
   - { crate: "axum 0.8 (loopback callback)", lts: true, adr_exception: null }

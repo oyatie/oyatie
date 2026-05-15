@@ -52,7 +52,7 @@ impl StaleRecoveryEvidence {
     ) -> Result<Self, LockStoreError> {
         let evidence_ref =
             normalize_non_empty(evidence_ref.into(), LockStoreError::MissingEvidence)?;
-        if !evidence_ref.starts_with(".omc/evidence/") {
+        if !evidence_ref.starts_with("evidence/") {
             return Err(LockStoreError::MissingEvidence);
         }
         Ok(Self {
@@ -642,7 +642,7 @@ mod tests {
 
     fn evidence(owner: &str, claim_id: &str, expired_at: LogicalTime) -> StaleRecoveryEvidence {
         StaleRecoveryEvidence::new(
-            ".omc/evidence/gitops-vcs/ip-002-lockstore.json",
+            "evidence/gitops-vcs/ip-002-lockstore.json",
             owner,
             claim_id,
             expired_at,

@@ -1,10 +1,10 @@
 use oya_cloud_iam_api::{
-    create_cloud_iam_role_from_api, issue_cloud_iam_sts_token_from_api, CloudIamApiAuthorization,
+    CLOUD_IAM_ROLE_CREATE_SURFACE, CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization,
     CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPrincipal, CloudIamPrincipalRef,
     CloudIamRoleCreateApiRequest, CloudIamRoleCreateApiStatus, CloudIamRoleCreateIdempotencyLedger,
     CloudIamRoleCreateRequest, CloudIamScopeRef, CloudIamStsTokenApiRequest,
     CloudIamStsTokenApiStatus, CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
-    CLOUD_IAM_ROLE_CREATE_SURFACE, CLOUD_IAM_STS_TOKEN_SURFACE,
+    create_cloud_iam_role_from_api, issue_cloud_iam_sts_token_from_api,
 };
 use oya_cloud_iam_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate, MfaState,
@@ -204,13 +204,15 @@ fn role_create_api_rejects_path_body_role_drift_before_directory_mutation() {
         })
     );
     assert!(ledger.is_empty());
-    assert!(directory
-        .create_role(role_create())
-        .expect("directory stayed mutable")
-        .id
-        .value
-        .value
-        .starts_with("role_"));
+    assert!(
+        directory
+            .create_role(role_create())
+            .expect("directory stayed mutable")
+            .id
+            .value
+            .value
+            .starts_with("role_")
+    );
 }
 
 #[test]

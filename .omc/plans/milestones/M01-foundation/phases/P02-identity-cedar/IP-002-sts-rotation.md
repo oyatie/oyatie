@@ -45,7 +45,7 @@ rustfmt --check crates/oya-identity-application/src/lib.rs crates/oya-identity-a
 - No provider-specific deps outside adapter crates (per MASTERPLAN §2 Directive 4).
 - All direct deps current LTS or have ADR-tracked exception (Directive 8).
 - PR "good-taste audit" section non-empty (Directive 7).
-- Evidence recorded at `.omc/evidence/foundation/m01-p02-ip-002-sts-rotation.json`.
+- Evidence recorded at `/evidence/foundation/m01-p02-ip-002-sts-rotation.json`.
 
 ## Rollback-procedure
 `grit done` is atomic per-symbol; if a subsequent IP regresses, revert the merge commit. For crates that other IPs already depend on, follow the per-crate split unwind documented in ADR-0015 §7.

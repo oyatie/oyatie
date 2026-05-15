@@ -4,7 +4,7 @@ Per ADR-0063 §3 every milestone has an acceptance-evidence directory.
 
 ## Current acceptance record
 
-- Evidence JSON: `.omc/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json`
+- Evidence JSON: `/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json`
 - Status: M01 Foundation acceptance complete for G1/G2 contracts.
 - G1: P01 data-use-boundary-tenancy, P02 identity-cedar, P03 audit-chain-evidence.
 - G2: P04 eventing+ontology, P05 cell+plane, P06 regional-pack+flattening.

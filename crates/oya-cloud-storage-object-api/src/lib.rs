@@ -13,7 +13,7 @@ use oya_cloud_storage_domain::{
     CloudStorageCatalog, CloudStorageError, ObjectCreate, ObjectEncryptionBindingCreate, ObjectKey,
     StorageRepo, StoredObject,
 };
-use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_STORAGE_OBJECT_PUT_SURFACE: &str = "cloud.storage.object.put";
 pub const CLOUD_STORAGE_OBJECT_GET_SURFACE: &str = "cloud.storage.object.get";

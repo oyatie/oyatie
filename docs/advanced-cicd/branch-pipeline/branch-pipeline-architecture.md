@@ -27,7 +27,7 @@ supersedes: [ADR-0041]
 
 The repository operates **four layers** for code-in-flight — a per-agent worktree, an agent-local clone of `dev`, the shared `origin/dev`, and the long-lived deployment branches `staging` and `prod`. Two human-free gates run between these layers: a **3-gate verification** (PR shape + reviewer-agent `APPROVE` + CI green) at the **local-dev → origin/dev** boundary (the first shared-world entry), and a **5-gate verification** (comments-resolved + CI-green ≥ N runs + canary-100% + zero-SLO-fast + optional reviewer-re-affirm) at the **staging → prod** boundary. `origin/dev → staging` is fully autonomous. No human presses a button at any transition.
 
-The model deliberately deviates from the hyperscaler-default trunk-based posture (per `.omc/specs/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy). Trade-off documented in [`velocity-without-stability-loss.md`](velocity-without-stability-loss.md).
+The model deliberately deviates from the hyperscaler-default trunk-based posture (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy). Trade-off documented in [`velocity-without-stability-loss.md`](velocity-without-stability-loss.md).
 
 ## 2. The four layers
 

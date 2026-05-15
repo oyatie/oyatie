@@ -6,7 +6,7 @@ title: Regional Pack Architecture + Flattening Ratchet
 status: complete
 purpose: Ship the regional-pack contract (canonical seams + per-pack plug-in) and the architectural-flattening-target ratchet per ADR-0015.
 phase_evidence_refs:
-  - .omc/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json
+  - /evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json
 ---
 
 # M01-P06 — Regional Pack Architecture + Flattening Ratchet

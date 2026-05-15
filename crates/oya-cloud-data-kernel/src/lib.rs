@@ -79,9 +79,15 @@ pub struct AdapterCapabilities {
 pub enum DataKernelError {
     EmptyPlanId,
     EmptyAdapterId,
-    KindMismatch { plan: DataServiceKind, adapter: DataServiceKind },
+    KindMismatch {
+        plan: DataServiceKind,
+        adapter: DataServiceKind,
+    },
     ResidencyUnsupported,
-    EncryptionInsufficient { required: EncryptionRequirement, max_supported: EncryptionRequirement },
+    EncryptionInsufficient {
+        required: EncryptionRequirement,
+        max_supported: EncryptionRequirement,
+    },
 }
 
 impl DataKernelError {
@@ -95,7 +101,10 @@ impl DataKernelError {
                 adapter.name()
             ),
             Self::ResidencyUnsupported => "adapter does not support requested residency".to_owned(),
-            Self::EncryptionInsufficient { required, max_supported } => format!(
+            Self::EncryptionInsufficient {
+                required,
+                max_supported,
+            } => format!(
                 "encryption insufficient: required={:?} max_supported={:?}",
                 required, max_supported
             ),
@@ -144,7 +153,11 @@ pub fn admit_plan(
 mod tests {
     use super::*;
 
-    fn plan(kind: DataServiceKind, res: ResidencyClass, enc: EncryptionRequirement) -> DataServicePlan {
+    fn plan(
+        kind: DataServiceKind,
+        res: ResidencyClass,
+        enc: EncryptionRequirement,
+    ) -> DataServicePlan {
         DataServicePlan {
             plan_id: "plan-1".into(),
             kind,
@@ -168,19 +181,37 @@ mod tests {
 
     #[test]
     fn matching_plan_and_adapter_passes() {
-        assert!(admit_plan(
-            &plan(DataServiceKind::OltpRelational, ResidencyClass::SovereignKr, EncryptionRequirement::AtRest),
-            &adapter(DataServiceKind::OltpRelational, vec![ResidencyClass::SovereignKr], EncryptionRequirement::AtRestAndInTransit),
-        )
-        .is_ok());
+        assert!(
+            admit_plan(
+                &plan(
+                    DataServiceKind::OltpRelational,
+                    ResidencyClass::SovereignKr,
+                    EncryptionRequirement::AtRest
+                ),
+                &adapter(
+                    DataServiceKind::OltpRelational,
+                    vec![ResidencyClass::SovereignKr],
+                    EncryptionRequirement::AtRestAndInTransit
+                ),
+            )
+            .is_ok()
+        );
     }
 
     #[test]
     fn kind_mismatch_rejected() {
         assert!(matches!(
             admit_plan(
-                &plan(DataServiceKind::OlapColumnar, ResidencyClass::Global, EncryptionRequirement::NotRequired),
-                &adapter(DataServiceKind::OltpRelational, vec![ResidencyClass::Global], EncryptionRequirement::AtRest),
+                &plan(
+                    DataServiceKind::OlapColumnar,
+                    ResidencyClass::Global,
+                    EncryptionRequirement::NotRequired
+                ),
+                &adapter(
+                    DataServiceKind::OltpRelational,
+                    vec![ResidencyClass::Global],
+                    EncryptionRequirement::AtRest
+                ),
             ),
             Err(DataKernelError::KindMismatch { .. })
         ));
@@ -190,8 +221,16 @@ mod tests {
     fn residency_unsupported_rejected() {
         assert!(matches!(
             admit_plan(
-                &plan(DataServiceKind::OltpRelational, ResidencyClass::SovereignKr, EncryptionRequirement::AtRest),
-                &adapter(DataServiceKind::OltpRelational, vec![ResidencyClass::SovereignUs], EncryptionRequirement::AtRest),
+                &plan(
+                    DataServiceKind::OltpRelational,
+                    ResidencyClass::SovereignKr,
+                    EncryptionRequirement::AtRest
+                ),
+                &adapter(
+                    DataServiceKind::OltpRelational,
+                    vec![ResidencyClass::SovereignUs],
+                    EncryptionRequirement::AtRest
+                ),
             ),
             Err(DataKernelError::ResidencyUnsupported)
         ));
@@ -201,8 +240,16 @@ mod tests {
     fn encryption_insufficient_rejected() {
         assert!(matches!(
             admit_plan(
-                &plan(DataServiceKind::OltpRelational, ResidencyClass::Global, EncryptionRequirement::AtRestAndInTransitAndAtUse),
-                &adapter(DataServiceKind::OltpRelational, vec![ResidencyClass::Global], EncryptionRequirement::AtRest),
+                &plan(
+                    DataServiceKind::OltpRelational,
+                    ResidencyClass::Global,
+                    EncryptionRequirement::AtRestAndInTransitAndAtUse
+                ),
+                &adapter(
+                    DataServiceKind::OltpRelational,
+                    vec![ResidencyClass::Global],
+                    EncryptionRequirement::AtRest
+                ),
             ),
             Err(DataKernelError::EncryptionInsufficient { .. })
         ));
@@ -210,19 +257,40 @@ mod tests {
 
     #[test]
     fn at_rest_satisfies_not_required() {
-        assert!(admit_plan(
-            &plan(DataServiceKind::OltpRelational, ResidencyClass::Global, EncryptionRequirement::NotRequired),
-            &adapter(DataServiceKind::OltpRelational, vec![ResidencyClass::Global], EncryptionRequirement::AtRest),
-        )
-        .is_ok());
+        assert!(
+            admit_plan(
+                &plan(
+                    DataServiceKind::OltpRelational,
+                    ResidencyClass::Global,
+                    EncryptionRequirement::NotRequired
+                ),
+                &adapter(
+                    DataServiceKind::OltpRelational,
+                    vec![ResidencyClass::Global],
+                    EncryptionRequirement::AtRest
+                ),
+            )
+            .is_ok()
+        );
     }
 
     #[test]
     fn empty_plan_id_rejected() {
-        let mut p = plan(DataServiceKind::OltpRelational, ResidencyClass::Global, EncryptionRequirement::NotRequired);
+        let mut p = plan(
+            DataServiceKind::OltpRelational,
+            ResidencyClass::Global,
+            EncryptionRequirement::NotRequired,
+        );
         p.plan_id = "".into();
         assert!(matches!(
-            admit_plan(&p, &adapter(DataServiceKind::OltpRelational, vec![ResidencyClass::Global], EncryptionRequirement::AtRest)),
+            admit_plan(
+                &p,
+                &adapter(
+                    DataServiceKind::OltpRelational,
+                    vec![ResidencyClass::Global],
+                    EncryptionRequirement::AtRest
+                )
+            ),
             Err(DataKernelError::EmptyPlanId)
         ));
     }

@@ -29,7 +29,7 @@ fn direct_provider_primitives_are_rejected_after_ratchet_arm() {
         "--agent",
         "agent-ip005",
         "--evidence",
-        ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+        "evidence/gitops-vcs/ip-005-cli-ratchet.json",
     ])
     .unwrap();
     let decision = evaluate_command(
@@ -75,7 +75,7 @@ fn local_only_closeout_is_blocked_after_ratchet_arm() {
         "agent-ip005",
         "--local-only",
         "--evidence",
-        ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+        "evidence/gitops-vcs/ip-005-cli-ratchet.json",
     ])
     .unwrap();
 
@@ -103,7 +103,7 @@ fn malformed_option_value_and_incomplete_lifecycle_are_rejected() {
             "--agent",
             "agent-ip005",
             "--evidence",
-            ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+            "evidence/gitops-vcs/ip-005-cli-ratchet.json",
         ])
         .unwrap(),
     ];
@@ -134,7 +134,7 @@ fn claim_work_done_promote_flow_is_controller_ordered() {
             "agent-ip005",
             "--controller-promote",
             "--evidence",
-            ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+            "evidence/gitops-vcs/ip-005-cli-ratchet.json",
         ])
         .unwrap(),
         parse_command([

@@ -27,7 +27,7 @@ agent_prerequisites:
   - ./INDEX.md
   - docs/AGENTS.md
   - docs/CONSTITUTION.md
-  - .omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md
+  - .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md
   - .omc/standards/dependency-policy.md
 final_shape_compliance: true
 dependency_additions:
@@ -111,7 +111,7 @@ Before `grit claim`, the agent **MUST**:
 3. Read `./INDEX.md` and the ccproxy-api parity matrix at `./ccproxy-api-parity-matrix.md`.
 4. Read `docs/AGENTS.md §Pre-flight checklist` and `docs/CONSTITUTION.md §Decision principles`.
 5. Confirm no other agent has claimed `crates/oya-foundry-provider-pool-kernel/src/lib.rs::*` via `oya-tooling-agent-read grit-status crates/oya-foundry-provider-pool-kernel`.
-6. Read `.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md §B` to inherit the P00 state machine; pool kernel MUST NOT duplicate ProviderAccount-level state.
+6. Read `.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md §B` to inherit the P00 state machine; pool kernel MUST NOT duplicate ProviderAccount-level state.
 <!-- agent-instructions:end -->
 
 **Human path:** read the same files; run `oya gate validate plan-hierarchy --ip IP-001-provider-account-pool-kernel` to confirm parent pointers + frontmatter.

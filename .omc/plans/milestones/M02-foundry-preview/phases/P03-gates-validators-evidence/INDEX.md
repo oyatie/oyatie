@@ -10,7 +10,7 @@ purpose: Ship the foundry-fitness lane suite + P00-08 evidence validator that ga
 # M02-P03 — Gates / Validators / Evidence
 
 ## Purpose
-Per [`../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md`](../../../../../.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md) §D. The lane suite enforces every other principle.
+Per [`../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`](../../../../../.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md) §D. The lane suite enforces every other principle.
 
 ## Acceptance
 - `scripts/validate_foundry_phase00_evidence.mjs` green; rejects missing crates/tests/adapters, raw-secret exposure, Clean-Architecture boundary violation.

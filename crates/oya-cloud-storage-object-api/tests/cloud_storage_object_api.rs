@@ -3,14 +3,14 @@ use oya_cloud_storage_domain::{
     ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,
 };
 use oya_cloud_storage_object_api::{
-    get_cloud_storage_object_from_api, put_cloud_storage_object_from_api,
+    CLOUD_STORAGE_OBJECT_GET_SURFACE, CLOUD_STORAGE_OBJECT_PUT_SURFACE,
     CloudStorageObjectApiAuthorization, CloudStorageObjectApiError, CloudStorageObjectApiPrincipal,
     CloudStorageObjectEncryptionBindingRequest, CloudStorageObjectGetApiRequest,
     CloudStorageObjectGetApiStatus, CloudStorageObjectMutationBoundaryContext,
     CloudStorageObjectPutApiRequest, CloudStorageObjectPutApiStatus,
     CloudStorageObjectPutIdempotencyLedger, CloudStorageObjectPutRequest,
-    CloudStorageObjectReadBoundaryContext, CLOUD_STORAGE_OBJECT_GET_SURFACE,
-    CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+    CloudStorageObjectReadBoundaryContext, get_cloud_storage_object_from_api,
+    put_cloud_storage_object_from_api,
 };
 use oya_data_boundary_kernel::DataClass;
 use oya_residency_domain::ResidencyClass;

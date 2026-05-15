@@ -2,7 +2,7 @@
 set -u -o pipefail
 
 ROOT_DIR="${ROOT_DIR:-/Users/jasonlee/oyatie}"
-EVIDENCE_DIR="${EVIDENCE_DIR:-.omc/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript}"
+EVIDENCE_DIR="${EVIDENCE_DIR:-/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript}"
 SYMBOL_A="crates/oya-cloud-billing-application/src/lib.rs::CloudBillingEventIngestAppStatus"
 SYMBOL_B="crates/oya-cloud-billing-application/src/lib.rs::CloudBillingMeterUnitRecord"
 AGENT_A="codex-ip010-agent-a"

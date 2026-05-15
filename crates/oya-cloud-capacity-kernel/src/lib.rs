@@ -69,7 +69,10 @@ impl CapacityError {
             Self::EmptyReservationId => "reservation id is empty".to_owned(),
             Self::EmptyRegionId => "region id is empty".to_owned(),
             Self::ZeroUnits => "reservation requests zero units".to_owned(),
-            Self::QuotaExceeded { available, requested } => {
+            Self::QuotaExceeded {
+                available,
+                requested,
+            } => {
                 format!("quota exceeded: requested={requested} available={available}")
             }
             Self::RegionUnknown { region } => format!("unknown region: {region}"),

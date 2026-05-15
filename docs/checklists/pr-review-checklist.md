@@ -41,7 +41,7 @@ adrs_cited:
 - [ ] `cargo nextest run --workspace --all-features --no-fail-fast` PASS.
 - [ ] `cargo deny check` PASS.
 - [ ] `unsafe` blocks (if any) carry `// SAFETY:` comments with invariant docs. *(advisory)*
-- [ ] `thiserror` in libraries / `anyhow|eyre` at the edge (per `.omc/specs/hyperscaler-best-practices-2026-05-12.md §Domain 3 error handling`).
+- [ ] `thiserror` in libraries / `anyhow|eyre` at the edge (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 3 error handling`).
 
 ### `*.ts` / `*.tsx` / `*.js` / `*.jsx` (typescript-reviewer)
 - [ ] `pnpm lint` PASS.

@@ -6,9 +6,9 @@ title: Identity Kernel + Cedar Policy Substrate
 status: complete
 purpose: Ship `oya-identity-*`, `oya-platform-identity-api`, and the Cedar RBAC/ABAC substrate that every capability invocation enforces against.
 phase_evidence_refs:
-  - .omc/evidence/foundation/m01-p02-ip-001-identity-kernel.json
-  - .omc/evidence/foundation/m01-p02-ip-002-sts-rotation.json
-  - .omc/evidence/foundation/m01-p02-ip-003-cedar-policy-substrate.json
+  - /evidence/foundation/m01-p02-ip-001-identity-kernel.json
+  - /evidence/foundation/m01-p02-ip-002-sts-rotation.json
+  - /evidence/foundation/m01-p02-ip-003-cedar-policy-substrate.json
 ---
 
 # M01-P02 — Identity Kernel + Cedar Policy Substrate

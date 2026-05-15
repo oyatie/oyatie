@@ -3,20 +3,29 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P06
 title: Distroless + Image-Discipline + Dependency-Seam/LTS Phaseout
-status: stub
+status: in-progress (1 of 3 IPs complete; image-discipline + musl lanes + Dockerfile + budgets doc still pending)
+amended_at: 2026-05-14
 purpose: Every production binary ships in distroless + smallest-form; direct deps are LTS/ADR-governed; release-critical runtime deps are seam-contained, ledgered, and trigger-phaseout governed.
+exit_gate_status_2026_05_14:
+  ip_002_dependency_seam: complete (per ADR-0092 + /evidence/m-cc-p06-ip-002-final-1778801869.json)
+  ip_001_distroless_image_lane: stub
+  ip_003_static_musl_build: stub
+  fitness_image_discipline_lane: not-yet-implemented
+  fitness_lts_dependency_lane: not-yet-implemented
+  dockerfile_distroless: not-yet-authored
+  image_size_budgets_doc: not-yet-authored
 ---
 
 # M-CC-P06 — Distroless + Dependency-Seam/LTS + Image Discipline
 
 ## Purpose
-Per MASTERPLAN §6/§8 and `.omc/specs/masterplan.json` dependency-seam invariant. Verified LTS roster lands at [`../../../../specs/lts-versions-verified-2026-05-12.md`](../../../../specs/lts-versions-verified-2026-05-12.md) (pending agent). Round-5 dep-seam findings from `../../../../ralplan-dep-seam-phaseout-round-5.md` are folded here: ship release-critical products on Hyper/Tokio first, but force wrapper/newtype seams, tech-debt ledger ownership, trigger-based phaseout, replacement parity, and CI enforcement before debt deepens.
+Per MASTERPLAN §6/§8 and `/specs/cross-cutting/masterplan.json` dependency-seam invariant. Verified LTS roster lands at [`../../../../specs/lts-versions-verified-2026-05-12.md`](../../../../specs/lts-versions-verified-2026-05-12.md) (pending agent). Round-5 dep-seam findings from `../../../../ralplan-dep-seam-phaseout-round-5.md` are folded here: ship release-critical products on Hyper/Tokio first, but force wrapper/newtype seams, tech-debt ledger ownership, trigger-based phaseout, replacement parity, and CI enforcement before debt deepens.
 
 ## Acceptance
 - `oya-foundry-fitness-image-discipline` lane CI-blocks: non-distroless base, shells/package-managers in production image, image size > budget (per binary).
 - `oya-foundry-fitness-lts-dependency` lane CI-blocks: any direct dep that drifts from current LTS without ADR-tracked exception.
 - `oya-check-dependency-seam-discipline` composite lane enforces layer metadata, seam import boundaries, tech-debt ledger coverage/freshness, vendor residue, CVE watch, review contract, and monotonic status transitions.
-- `.omc/registries/tech-debt-ledger.json` exists with 11 seed deps, top-level `default_evaluator_policies`, trigger DSL, DRI handles, replacement targets, CVE acceleration, and ADR citations.
+- `/registries/cross-cutting/tech-debt-ledger.json` exists with 11 seed deps, top-level `default_evaluator_policies`, trigger DSL, DRI handles, replacement targets, CVE acceleration, and ADR citations.
 - ADR-0091..ADR-0094 are authored/indexed at the states required by round 5; ADR-0093 becomes Accepted only with CODEOWNERS + same-PR guard in Step 6.
 - Image size budget table published at `docs/standards/image-size-budgets.md`.
 
@@ -24,14 +33,38 @@ Per MASTERPLAN §6/§8 and `.omc/specs/masterplan.json` dependency-seam invarian
 | IP | Title | Status | File |
 |---|---|---|---|
 | IP-001 | Distroless base + image-discipline lane | stub | [`IP-001-distroless-image-lane.md`](IP-001-distroless-image-lane.md) |
-| IP-002 | Dependency-seam discipline + tech-debt ledger + LTS roster | expanded from round-5 findings | [`IP-002-lts-dependency-lane.md`](IP-002-lts-dependency-lane.md) |
+| IP-002 | Dependency-seam discipline + dep-rationales overlay + LTS roster | **complete** (amended per ADR-0092 2026-05-14) | [`IP-002-lts-dependency-lane.md`](IP-002-lts-dependency-lane.md) |
 | IP-003 | Static / musl-linked binary build pipeline | stub | [`IP-003-static-musl-build.md`](IP-003-static-musl-build.md) |
+
+## IP-002 closure note (2026-05-14)
+
+IP-002 closed under amended scope per ADR-0092 (workspace dependency-seam policy).
+Original acceptance items not delivered, with bounded FixupTask citations:
+
+- `oya-check-dependency-seam-discipline` (8 sub-checks) → shipped as
+  `oya-check-dependency-seam` with 6 sub-checks (3 mechanical + 3 multispectrum).
+  2 working, 4 stubbed per FixupTask F-LANE-SEAM-IMPL.
+- `tech-debt-ledger.json` with state machine → simplified to
+  `dependency-rationales.json` (flat 11-row overlay). State machine deferred
+  with re-evaluation triggers T1-T6 in ADR-0092.
+- `oya-foundry-trigger-dsl-{kernel,runtime}` → DROPPED. Re-introduce in Cedar
+  (`oya-policy-cedar-*`) only if T6 fires.
+- ADR-0091..ADR-0094 → renumbered ADR-0092..ADR-0095 (0091 was already taken
+  by foundry-write-gate-foundations).
+
+Phase-level exit-gate items NOT yet delivered (block P06 closure):
+
+- IP-001: distroless base + `oya-foundry-fitness-image-discipline` lane crate.
+- IP-003: static/musl build pipeline.
+- `oya-foundry-fitness-lts-dependency` lane crate.
+- `Dockerfile.distroless` per cell binary.
+- `docs/standards/image-size-budgets.md`.
 
 ## Estimated parallelism
 5 agents: distroless/image lane, LTS roster, dependency-seam composite lane, trigger-DSL/ledger, and static-musl pipeline. Step 0→1 in IP-002 remains sequential; post-Step-1 work fans out.
 
 ## Symbols-touched
-`crates/oya-foundry-fitness-{image-discipline,lts-dependency}-kernel`, `crates/oya-check-dependency-seam-discipline`, `crates/oya-foundry-trigger-dsl-{kernel,runtime}`, `.omc/registries/tech-debt-ledger.json`, `Dockerfile.distroless`, `docs/standards/image-size-budgets.md`.
+`crates/oya-foundry-fitness-{image-discipline,lts-dependency}-kernel`, `crates/oya-check-dependency-seam-discipline`, `crates/oya-foundry-trigger-dsl-{kernel,runtime}`, `/registries/cross-cutting/tech-debt-ledger.json`, `Dockerfile.distroless`, `docs/standards/image-size-budgets.md`.
 
 ## Agent-handoff
 ```

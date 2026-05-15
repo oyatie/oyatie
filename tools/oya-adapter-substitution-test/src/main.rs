@@ -25,13 +25,21 @@ const SCENARIOS: &[SubstitutionScenario] = &[
         port_id: "SecretStorePort",
         primary_adapter: "openbao",
         swap_adapter: "in-memory-test-double",
-        invariants: &["store->fetch roundtrip", "delete removes entry", "foreign manager rejected"],
+        invariants: &[
+            "store->fetch roundtrip",
+            "delete removes entry",
+            "foreign manager rejected",
+        ],
     },
     SubstitutionScenario {
         port_id: "LockStorePort",
         primary_adapter: "sqlite",
         swap_adapter: "in-memory",
-        invariants: &["claim is idempotent", "TTL expiry releases lease", "stale recovery requires owner"],
+        invariants: &[
+            "claim is idempotent",
+            "TTL expiry releases lease",
+            "stale recovery requires owner",
+        ],
     },
     SubstitutionScenario {
         port_id: "TransparencyLogPort",

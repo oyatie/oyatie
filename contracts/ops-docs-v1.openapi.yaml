@@ -16,7 +16,7 @@ info:
     Streams ADR/runbook/glossary/dead-code/link-broken events as they happen.
     Extractor freshness: Hot ≤500ms / Warm ≤2s / Cold ≤10min.
 
-    Registered in `.omc/registries/artifact-capabilities-registry.json` per
+    Registered in `/registries/cross-cutting/artifact-capabilities-registry.json` per
     ADR-0069 v3.0.0.
   contact:
     name: council-foundry

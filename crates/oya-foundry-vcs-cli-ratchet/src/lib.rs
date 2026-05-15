@@ -617,7 +617,7 @@ mod tests {
             "--agent",
             "agent-a",
             "--evidence",
-            ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+            "evidence/gitops-vcs/ip-005-cli-ratchet.json",
         ]);
         assert_eq!(done.action, ControllerAction::EmitChangeBundle);
         assert_eq!(done.closeout_mode, Some(CloseoutMode::GritDone));
@@ -641,7 +641,7 @@ mod tests {
             "--env",
             "staging",
             "--evidence",
-            ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json#promote",
+            "evidence/gitops-vcs/ip-005-cli-ratchet.json#promote",
         ]);
         assert_eq!(promote.action, ControllerAction::PromoteBundle);
         assert_eq!(promote.bundle_id.as_deref(), Some("cb_ip005"));
@@ -676,7 +676,7 @@ mod tests {
             "--agent",
             "agent-a",
             "--evidence",
-            ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+            "evidence/gitops-vcs/ip-005-cli-ratchet.json",
         ]);
         let decision = evaluate_command(
             done,
@@ -730,7 +730,7 @@ mod tests {
             "agent-a",
             "--local-only",
             "--evidence",
-            ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+            "evidence/gitops-vcs/ip-005-cli-ratchet.json",
         ]);
         let decision = evaluate_command(local, &[], &RatchetPolicy::enforce());
         assert!(!decision.accepted);
@@ -759,7 +759,7 @@ mod tests {
                 "agent-a",
                 "--controller-promote",
                 "--evidence",
-                ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+                "evidence/gitops-vcs/ip-005-cli-ratchet.json",
             ]),
             plan(&[
                 "promote",
@@ -814,7 +814,7 @@ mod tests {
                 "--agent",
                 "agent-a",
                 "--evidence",
-                ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+                "evidence/gitops-vcs/ip-005-cli-ratchet.json",
             ]),
         ];
         assert_eq!(
@@ -832,7 +832,7 @@ mod tests {
                 "--agent",
                 "agent-a",
                 "--evidence",
-                ".omc/evidence/gitops-vcs/ip-005-cli-ratchet.json",
+                "evidence/gitops-vcs/ip-005-cli-ratchet.json",
             ]),
         ];
         assert_eq!(

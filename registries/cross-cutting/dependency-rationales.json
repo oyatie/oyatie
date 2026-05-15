@@ -1,0 +1,133 @@
+{
+  "$schema": "https://docs.oyatie.dev/schemas/dependency-rationales.schema.json",
+  "title": "DependencyRationales",
+  "description": "Flat overlay: per external workspace dependency, the rationale + owner + layer seam + replacement strategy. Joined with `cargo metadata --no-deps` output at lane time. Replaces the over-engineered tech-debt-ledger.json planned in original IP-002 (state machine + trigger DSL + monotonic graph DROPPED per multispectrum F1 + F2 + F6 critique).",
+  "_meta": {
+    "doc_class": "Registry",
+    "registry_id": "REG-DEPENDENCY-RATIONALES",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-14T00:00:00Z",
+    "schema_ref": ".omc/schemas/dependency-rationales.schema.json",
+    "related_adrs": ["ADR-0090", "ADR-0092"],
+    "consumed_by": [
+      "oya-check-dependency-seam (sub-check: registry-coverage)",
+      "cargo-deny configuration generator"
+    ],
+    "join_source": "cargo metadata --no-deps (workspace.dependencies)"
+  },
+
+  "entries": {
+    "hyper": {
+      "version_pin": "1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
+    },
+    "hyper-util": {
+      "version_pin": "0.1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "Tokio + auto-builder helpers for hyper. Adapter-local; no kernel exposure. Provides ConnBuilder used for slowloris-defense timeouts (ADR-0092 Phase 8 S4).",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
+    },
+    "http-body-util": {
+      "version_pin": "0.1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "Full<Bytes> body collector + Limited<B> bounded-collector. Limited is the load-bearing primitive for S3 unbounded-body DoS defense (ADR-0092 Phase 8).",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
+    },
+    "bytes": {
+      "version_pin": "1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime — those leaks are CLOSED.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
+    },
+    "tokio": {
+      "version_pin": "1",
+      "layer_seam": "adapter-only (current) + future async chain when ADR-0094 cancellation lands",
+      "owner_team": "council-architecture",
+      "rationale": "Async runtime (rt-multi-thread + net). No realistic alternative for async HTTP server in Rust today. Adapter declares; ops-runtime indirectly via the adapter and #[tokio::main].",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0090-hyper-canonical-http-backbone.md",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter (primary); cell-runtime main.rs entry"
+    },
+    "tracing": {
+      "version_pin": "0.1",
+      "layer_seam": "infrastructure-only",
+      "owner_team": "council-architecture",
+      "rationale": "Span/event API. Used by observability adapter at infrastructure layer. Kernels and domains must NOT depend on tracing — pure types don't emit spans. Current usage is bounded.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-observability-tracing-adapter and similar infrastructure-layer crates"
+    },
+    "tracing-subscriber": {
+      "version_pin": "0.3",
+      "layer_seam": "app-only",
+      "owner_team": "council-architecture",
+      "rationale": "Subscriber registration. Should ONLY appear in composition-root (app) binaries — never in libraries — so binaries decide their own log routing.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "app-layer binaries (composition roots)"
+    },
+    "serde": {
+      "version_pin": "1",
+      "layer_seam": "adapter-and-application",
+      "owner_team": "council-architecture",
+      "rationale": "Serialization framework. Used by adapters (DTOs) and application orchestrators (event emission). Kernels SHOULD NOT depend on serde — pure domain types don't carry serialization. (Some kernels currently do via convenience; the lane will report-only flag these as candidates for adapter-side DTO mapping per ADR-0092.)",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "adapter and application layer crates; kernel violations report-only"
+    },
+    "serde_json": {
+      "version_pin": "1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "JSON ser/de. Strictly adapter-layer; kernel responses use hand-rolled formatting per 0-to-minimal-deps directive (see oya-ops-workspace-shell-runtime).",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "adapter-layer crates"
+    },
+    "toml": {
+      "version_pin": "0.8",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "TOML reader (Cargo manifest parsing in lane crates). Tooling/lane only. Domain code must not consume TOML directly.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "oya-check-* lane crates + tooling binaries"
+    },
+    "toml_edit": {
+      "version_pin": "0.22",
+      "layer_seam": "tooling-only",
+      "owner_team": "council-architecture",
+      "rationale": "Format-preserving TOML editor (workspace mutation tools). NOT used by production code paths. Tooling-only.",
+      "replacement_strategy_doc_ref": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
+      "isolated_in_crate": "tooling binaries"
+    }
+  },
+
+  "lane_contract": {
+    "registry-coverage": "Every name in [workspace.dependencies] (from cargo metadata) MUST appear in entries. Orphan rows in entries (deps removed from workspace) trigger warning.",
+    "layer-seam-check": "For each entry, verify NO crate outside `isolated_in_crate` (or its compatible layer scope) declares or imports the dep.",
+    "cargo-audit-shell": "Run `cargo audit`; pass if exit 0; flag CVE findings against entries for owner attention."
+  },
+
+  "evolution_policy": {
+    "add_dep": "0-ADR action: add an entry row alongside the [workspace.dependencies] line. Lane fails until row exists.",
+    "remove_dep": "0-ADR action: remove the entry row alongside removing the workspace dep.",
+    "change_layer_seam": "1-ADR action: tightening or loosening which layer may consume a dep requires an ADR. Loosening MUST cite a concrete need.",
+    "cve_response": "Owner team has 7 calendar days from CVE publication to either patch-bump the version_pin OR file an ADR exception with mitigation. CI tracks via cargo-audit-shell sub-check."
+  },
+
+  "decision_log": [
+    {
+      "when": "2026-05-14",
+      "who": "claude-mcc-p06-ip-002",
+      "what_changed": "registry created with 11 seed entries; replaces over-engineered tech-debt-ledger from original IP-002",
+      "why": "Multispectrum F1 + F2 + F6: state machine + trigger DSL + monotonic transition graph are control plane for problems that don't exist at 11-dep scale. Flat 5-field-per-row overlay solves the actual problem (track + own + decide-removal-path per dep) in 50 lines instead of 500."
+    }
+  ]
+}

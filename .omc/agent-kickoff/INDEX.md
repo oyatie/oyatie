@@ -49,7 +49,7 @@ A fresh agent in 7 steps:
 ## Cross-references into the broader doc set
 
 - Standards: [`.omc/standards/INDEX.md`](../standards/INDEX.md) (lifts to `docs/standards/`).
-- Templates + checklists: [`.omc/templates/INDEX.md`](../templates/INDEX.md) (lifts to `docs/templates/` and `docs/checklists/`).
+- Templates + checklists: [`/templates/INDEX.md`](../templates/INDEX.md) (lifts to `docs/templates/` and `docs/checklists/`).
 - Fitness lanes: [`.omc/fitness-lanes/`](../fitness-lanes/) (parallel composer output).
 - Plan hierarchy: [`.omc/plans/MASTERPLAN.md`](../plans/MASTERPLAN.md).
 - Operating contract: [`docs/AGENTS.md`](../../docs/AGENTS.md).

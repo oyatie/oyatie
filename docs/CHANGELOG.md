@@ -104,7 +104,7 @@
 ## 2026-05-14 — M-CC-P01-IP-010 parallel-claim demo runbook
 
 - Added `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` and executable script to prove two session-less `grit` agents can claim non-overlapping symbols in one file.
-- Recorded the 2026-05-14 transcript under `.omc/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`, including the duplicate-claim negative case and final lock cleanup.
+- Recorded the 2026-05-14 transcript under `/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`, including the duplicate-claim negative case and final lock cleanup.
 - Updated the runbooks index with the agentic-pipeline demo entry.
 
 ## 2026-05-14 — M-CC-P01-IP-009 removed DELETE-class Bominal ultragoal ephemera
@@ -142,7 +142,7 @@
 
 ## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + docs/checklists/ (25 files)
 
-- **doc.templates-index** (Tier 2): 13 template files lifted from `.omc/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `.omc/templates/checklists/` to `docs/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
+- **doc.templates-index** (Tier 2): 13 template files lifted from `/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `/templates/checklists/` to `docs/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
 - 4 templates renamed to `-v2` due to conflicts with existing `docs/templates/` files: `pull-request-template-v2.md`, `adr-template-v2.md`, `runbook-template-v2.md`, `capability-record-template-v2.yaml`. Each carries `header_note: "Supersedes prior docs/templates/<name>.md once reviewed."` and `supersedes:` frontmatter field.
 - 0 checklist conflicts (all 12 checklists are new additions; existing `docs/checklists/cross-axis-contract-change.md` preserved; new `cross-axis-contract-change-checklist.md` carries `extends:` pointer to the prior file).
 - Existing `docs/templates/` files preserved as-is: `migration-runbook-template.md`, `dpia-template.md`, `team-charter-template.md`, `threat-model-template.md`, `incident-postmortem-template.md`, and others out of scope of this delivery.
@@ -167,7 +167,7 @@
 ## 2026-05-12 — Stage 1 Wave 2: agent-kickoff layer lifted to docs/agents/ (11 files)
 
 - Lifted all 11 files from `.omc/agent-kickoff/` to `docs/agents/`: INDEX, AGENT-ENTRY-POINT, AGENT-DECISION-TREE, AGENT-TOOL-PROTOCOL, AGENT-COMPLETION-PROTOCOL, AGENT-FAILURE-RECOVERY, AGENT-ICM-TOPIC-CONVENTIONS, CROSS-REFERENCE-INDEX, AGENT-CHEAT-SHEET, HUMAN-OPERATOR-GUIDE, ESCALATION-MATRIX.
-- Per-file transforms: `status: pending approval` → `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; internal references updated from `.omc/standards/` → `docs/standards/`, `.omc/templates/` → `docs/templates/`, `.omc/fitness-lanes/` → `docs/fitness-lanes/`.
+- Per-file transforms: `status: pending approval` → `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; internal references updated from `.omc/standards/` → `docs/standards/`, `/templates/` → `docs/templates/`, `.omc/fitness-lanes/` → `docs/fitness-lanes/`.
 - Foundation ADRs ADR-0053 (sanctioned primitives) and ADR-0054 (scaffold-claim) cited in each file's frontmatter and body.
 
 ## 2026-05-12 — ADR-0052 Inventory ledger for grit/icm cutover landed

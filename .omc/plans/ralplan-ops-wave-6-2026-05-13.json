@@ -1,5 +1,5 @@
 {
-  "$schema": ".omc/specs/plan-schema.json",
+  "$schema": "/specs/cross-cutting/plan-schema.json",
   "_artifact_id": "ralplan-ops-wave-6",
   "frontmatter": {
     "doc_class": "RalplanConsensusPlan",
@@ -8,8 +8,8 @@
     "version": "v1.0.0",
     "date": "2026-05-13",
     "created_by": "ralplan --consensus --architect codex --critic codex --deliberate",
-    "canonical_authority": ".omc/specs/constitution.json (planned; CONSTITUTION.md until migrated per markdown-retirement-policy.json PHASE-5)",
-    "authority_chain": ".omc/specs/masterplan.json → ADR-0061 + ADR-0062 + ADR-0065 + ADR-0066 + ADR-0067 + ADR-0069 → ralplan-ops-portal-2026-05-13 v7 Accepted → ralplan-ops-wave-5-2026-05-13 v18 Accepted (§12.9) → this plan",
+    "canonical_authority": "/specs/cross-cutting/constitution.json (planned; CONSTITUTION.md until migrated per markdown-retirement-policy.json PHASE-5)",
+    "authority_chain": "/specs/cross-cutting/masterplan.json → ADR-0061 + ADR-0062 + ADR-0065 + ADR-0066 + ADR-0067 + ADR-0069 → ralplan-ops-portal-2026-05-13 v7 Accepted → ralplan-ops-wave-5-2026-05-13 v18 Accepted (§12.9) → this plan",
     "parent_plan": ".omc/plans/ralplan-ops-portal-2026-05-13.md (Wave 6 of 7; pending migration to .json)",
     "companion_plans": [
       ".omc/plans/ralplan-docs-portal-2026-05-13.md (Wave 1)",
@@ -157,8 +157,8 @@
       { "v_id": "V4", "capability": "OpenAPI semver bumps applied", "source_path": "contracts/{ops-workspace-shell,workflow,ops-capacity,ops-finops,ops-on-call,ops-incident}.openapi.yaml", "pass_criteria": "files in HEAD with bumped version", "status": "verified-by-Wave-N-prerequisite" },
       { "v_id": "V5", "capability": "CLI parity router", "source_path": "crates/oya-ops-cli-router/src/lib.rs (NEW)", "pass_criteria": "router maps every mutating Wave 6 route to oya-cli subcommand", "status": "verified-by-Wave-N-prerequisite" },
       { "v_id": "V6", "capability": "25 BC crates land in cargo workspace", "source_path": "crates/oya-ops-{capacity,finops,on-call,incident}-*", "pass_criteria": "workspace Cargo.toml lists + cargo check per crate passes", "status": "verified-by-Wave-N-prerequisite" },
-      { "v_id": "V7", "capability": "4 reconciler runbooks authored (JSON)", "source_path": ".omc/registries/runbooks.json rows ops-*-reconciler", "pass_criteria": "rows in HEAD + lean-a-runbook-freshness green", "status": "verified-by-Wave-N-prerequisite" },
-      { "v_id": "V8", "capability": "active-artifact-contract conformance", "source_path": ".omc/registries/artifact-capabilities-registry.json", "pass_criteria": "every new Wave 6 artifact has registry row + profile + overrides", "status": "verified-by-Wave-N-prerequisite" },
+      { "v_id": "V7", "capability": "4 reconciler runbooks authored (JSON)", "source_path": "/registries/cross-cutting/runbooks.json rows ops-*-reconciler", "pass_criteria": "rows in HEAD + lean-a-runbook-freshness green", "status": "verified-by-Wave-N-prerequisite" },
+      { "v_id": "V8", "capability": "active-artifact-contract conformance", "source_path": "/registries/cross-cutting/artifact-capabilities-registry.json", "pass_criteria": "every new Wave 6 artifact has registry row + profile + overrides", "status": "verified-by-Wave-N-prerequisite" },
       { "v_id": "V9", "capability": "lean-a-cli-parity lane green", "source_path": "registry/quality/lanes.yaml + CI run", "pass_criteria": "lane status=active + green CI run URL", "status": "verified-by-Wave-N-prerequisite" }
     ],
     "baseline_summary": "Honest baseline at v1.0.0: 0/9 verified-by-existing-CI + 9/9 verified-by-Wave-6-prerequisite. Promotion per §11 lifecycle rule in ADR-0069 + Wave 5 v18."

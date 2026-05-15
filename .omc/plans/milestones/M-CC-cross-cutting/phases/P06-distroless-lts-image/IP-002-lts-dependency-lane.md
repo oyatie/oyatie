@@ -3,14 +3,27 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P06-IP-002
 title: Dependency-seam discipline + tech-debt ledger + LTS roster
-status: expanded-from-round-5-findings
+status: complete (amended scope per ADR-0092)
+amended_at: 2026-05-14
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 source_plan: ../../../../ralplan-dep-seam-phaseout-round-5.md
-purpose: LTS roster plus dependency-seam discipline: release-critical deps may ship first, but only behind layer seams, ledger ownership, machine-evaluable triggers, replacement parity, and CI enforcement.
+purpose: LTS roster plus dependency-seam discipline (AMENDED scope per ADR-0092). Ship the release-critical product paths on Hyper/Tokio/Serde-family deps; isolate hyper to a single adapter; track external deps via a flat rationales overlay (not a state machine); land the multispectrum review bar as the durable PR gate.
+amendments_summary:
+  - layer_enum_reverted_to_canonical_12_per_ADR_0056_v4_1
+  - middleware_target_layer_corrected_from_runtime_to_infrastructure
+  - tech_debt_ledger_collapsed_to_flat_rationales_overlay
+  - trigger_dsl_dropped_as_speculative_complexity_F_MULTI_F2_F6
+  - dri_and_role_roster_dropped_use_cargo_metadata_owner_team
+  - step_0_mass_cargo_toml_metadata_insert_canceled_layer_derived_from_name
+  - step_7_30_day_soak_moved_to_cron_not_session
+  - quality_findings_Q1_Q3_Q4_Q5_fixed_inline_Q2_fixuptask
+  - security_findings_S1_S2_S3_S5_S6_S7_S8_S10_closed_S4_partial_with_fixuptask
+  - readiness_gate_step_8_blocked_no_readyz_endpoint_exists_fixuptask
+adr_citations: [ADR-0092, ADR-0093, ADR-0094, ADR-0095]
 ---
 
 # M-CC-P06-IP-002 — Dependency-seam discipline + tech-debt ledger + LTS roster
@@ -34,8 +47,8 @@ This IP owns the dependency-seam and phase-out control surface. It does **not** 
 
 | Path | Action | Description |
 |---|---|---|
-| `.omc/registries/tech-debt-ledger.json` | create | Object-map ledger with 11 seed deps, DRI handles, statuses, replacement targets, trigger DSL, CVE acceleration, ADR citations, default evaluator policies. |
-| `.omc/schemas/tech-debt-ledger.schema.json` or `.omc/specs/tech-debt-ledger.schema.json` | create | Schema enforcing top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, and cross-row acyclicity. |
+| `/registries/cross-cutting/tech-debt-ledger.json` | create | Object-map ledger with 11 seed deps, DRI handles, statuses, replacement targets, trigger DSL, CVE acceleration, ADR citations, default evaluator policies. |
+| `.omc/schemas/tech-debt-ledger.schema.json` or `/specs/cross-cutting/tech-debt-ledger.schema.json` | create | Schema enforcing top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, and cross-row acyclicity. |
 | `crates/oya-check-dependency-seam-discipline/` | create | Composite runtime lane with 8 sub-checks. |
 | `crates/oya-foundry-trigger-dsl-kernel/` | create | Pure AST parser, predicate registry types, evaluator policy enums, status-transition graph validator. Zero I/O. |
 | `crates/oya-foundry-trigger-dsl-runtime/` | create | Git-toplevel file URI resolver, CI evidence fetcher, composite evaluator; consumes kernel crate. |
@@ -149,7 +162,7 @@ Hard dependency: Step 0 before Step 1. Steps 2-8 fan out after Step 1; Step 7 de
 ## Symbols-to-grit-claim
 
 ```text
-.omc/registries/tech-debt-ledger.json::entries
+/registries/cross-cutting/tech-debt-ledger.json::entries
 crates/oya-check-dependency-seam-discipline/src/lib.rs::check
 crates/oya-foundry-trigger-dsl-kernel/src/lib.rs::TriggerDslAst
 crates/oya-foundry-trigger-dsl-runtime/src/lib.rs::evaluate
@@ -202,3 +215,92 @@ Special cases eliminated by this IP:
 - SSE runtime misclassification rejected; current code is pure serializer kernel, future runtime is ADR-gated.
 - Direct calendar phase-out rejected; machine-evaluable triggers drive transitions.
 - New coordination kernel rejected; grit remains the state-transition primitive, ledger is evidence/phaseout data only.
+
+---
+
+## AMENDED — what actually shipped (2026-05-14, per ADR-0092)
+
+The original plan above was authored before discovery of:
+- ADR-0056 v4.1 canonical 12-layer enum (this IP's 5-value enum was inconsistent).
+- The middleware-kernel `bytes` leak (kernel chose `Bytes` for body; consumers transitively pulled the dep — symptom-not-root-cause).
+- The multispectrum review bar (docs/standards/multispectrum-review.md).
+- Workspace security findings S1-S10 in the existing http-* foundation.
+
+Under user directive "Option C — Full quality bar" (2026-05-14), the
+amended slice landed in 10 phases. Each phase shipped with adversarial F3
+fixtures + multispectrum-evidence-attached per the new bar.
+
+### Phase outcomes
+
+| Phase | Outcome | Evidence |
+|---|---|---|
+| 0 — protocol foundation | docs/standards/multispectrum-review.md + /specs/cross-cutting/multispectrum-review.json + pre-PR checklist + iterative-fix-loop spec authored; root-hub-pointers updated | files exist + cited by ADR-0092 |
+| 1 — SSE → kernel rename | crate + 2 foundry consumer adapter Cargo.toml + .rs updates | cargo test green; doc-comment updated |
+| 2 — kernel type rename + body Vec<u8> + bytes drop | HyperRequest→HttpRequest, HyperResponse→HttpResponse, body bytes→Vec<u8>; bytes dep removed from middleware-kernel; cascade clean | 102 tests pass; seam audit 6→1 |
+| 3 — middleware crates renamed -domain → -infrastructure | 3 crate renames per canonical 12-layer enum | 22 tests pass on renamed crates |
+| 4 — router matched_template + telemetry static label | Q1 + S6 closed; heuristic .replace() gone | 6 new adversarial fixtures pass; 126 tests total |
+| 5 — DeadlineMiddleware → LatencyBudgetReporter | Honest naming; crate renamed; ADR-0093 | 7 fixtures pass incl. side-effects-run-before-504 |
+| 6 — Handler trait + handler_to_sync bridge | Additive; ADR-0094 | 5 Handler tests + handler_to_sync end-to-end test |
+| 7 — TenantSlug in oya-tenancy-kernel | Grammar centralized; middleware delegates; ADR-0095 | 13 fixtures incl. homoglyph + dot-path-traversal-shape rejection |
+| 8 — S3 body cap + S4 connection timeouts | ServerConfig with safe defaults; HyperRuntimeError::BodyTooLarge → 413 | 7 fixtures incl. boundary tests; S4 partial (slowloris integration FixupTask) |
+| 9 — S5 path traversal + S7/S8 SSE injection | Router rejects `.`/`..` captures; render() sanitizes CR/NUL/control | 6 router fixtures + 16 SSE fixtures |
+| 10 — S1 header case + S2 non-UTF8 + S10 CRLF | Headers lowercased + values stripped; non-UTF8 → 400 | 8 fixtures incl. combined attack neutralization |
+
+### Final test count + seam audit
+
+```
+cargo test (impacted crates, 12 suites): 189 passed
+seam audit (Cargo.toml + .rs imports):
+  - hyper-family deps: exactly ONE crate (oya-http-runtime-hyper-adapter)
+  - hyper-family imports: exactly ONE .rs file (same)
+```
+
+### Original acceptance-criteria checklist — amended outcomes
+
+| Original criterion | Amended outcome |
+|---|---|
+| tech-debt-ledger.json with 11 entries + default_evaluator_policies + schema validation + quarterly review | Replaced by `/registries/cross-cutting/dependency-rationales.json` (11 entries, flat 5-field overlay, no state machine, no DSL). Multispectrum F1+F2+F6 rejected the over-engineering. |
+| Per-row evaluator_policies optional with override warnings | N/A (no policies; rationales overlay has no state) |
+| `{never: true}` short-circuit | N/A (rejected as speculative) |
+| Monotonic status transition sub-check | N/A (no transitions yet) |
+| `oya-check-dependency-seam-discipline` with 8 sub-checks | Slimmed to 3 mechanical + 3 multispectrum sub-checks per ADR-0092 D13. Lane crate scaffold is FixupTask F-LANE-SEAM-IMPL. |
+| `oya-foundry-trigger-dsl-{kernel,runtime}` | DROPPED entirely. Predicates inline as Rust fns when needed (multispectrum F1+F2+F6). |
+| `oya-http-sse-domain` renamed to `oya-http-sse-kernel`; no `oya-http-sse-runtime` in W0 | ✅ shipped (Phase 1). |
+| Middleware crates remove bytes + hyper-adapter deps | ✅ shipped (Phase 2 root-cause fix; Phase 3 layer rename to -infrastructure). |
+| Only `oya-http-runtime-hyper-adapter` declares hyper-family deps + bytes | ✅ shipped — mechanically verified. |
+| ADR-0091..ADR-0094 Accepted/indexed; 0093 Accepted at Step 6 | Renumbered to ADR-0092..ADR-0095 (0091 was already taken by foundry-write-gate-foundations). ALL FOUR ACCEPTED. |
+| `ReadinessGate` test proves /readyz 200 within budget + 503 within 500ms of SIGTERM | BLOCKED — no /readyz endpoint exists in the workspace. FixupTask F-STEP8-READYZ when an endpoint lands. |
+| Replacement parity + distroless deployment bar lanes exist | OUT OF SCOPE (original Step 5 explicitly skipped by user). FixupTask F-LANE-DISTROLESS. |
+| NO [workspace.dependencies] removal in W0 | ✅ shipped (zero removals). |
+| Walk-away path is grit-mediated | N/A (no transitions occurred). |
+
+### FixupTasks (named, bounded, deferred — not silently buried)
+
+- **F-LANE-SEAM-IMPL**: ship `oya-check-dependency-seam` crate with 3+3 sub-checks per ADR-0092 D13.
+- **F-LANE-DISTROLESS**: distroless smoke + cold-start harness + lane (original Step 5).
+- **F-STEP8-READYZ**: write the /readyz cold-start + SIGTERM tests when an endpoint exists.
+- **F-MULTI-Q2**: telemetry Mutex<BTreeMap> → sharded AtomicU64 when load tests show contention.
+- **F-ASYNCCHAIN-1**: async middleware chain enables real cancellation (real DeadlineMiddleware alongside LatencyBudgetReporter).
+- **F-HANDLER-ASYNC**: async variant of Handler trait once F-ASYNCCHAIN-1 lands.
+- **F-TENANTID-FORMAL**: formalize TenantId vs TenantSlug mapping in PRD-tenancy + auth/identity slice.
+- **F-SEC-S4-INTEGRATION**: real slowloris integration test (needs hyper client harness).
+- **F-DRI-CODEOWNERS**: generate CODEOWNERS from `[package.metadata.oya.owner_team]` (rejected dri.json + role-roster.json duplicates).
+- **F-PERF-BODY-COPY-1**: re-evaluate Bytes→Vec<u8> inbound copy when load test shows >1 MiB legitimate bodies on a hot route.
+- **F-SOAK-FLIP-CRON**: cron entry to flip seam lane severity report-only → error after 7-day green window (original Step 7).
+
+### Evidence
+
+Final multispectrum evidence: `/evidence/m-cc-p06-ip-002-final-1778801869.json`.
+
+Per-phase evidence files:
+- `/evidence/multispectrum/phase-2-kernel-rename-1778801869.json` (CC-1 kernel public API)
+
+Decision-log row (Linus good-taste, post-amendment):
+
+- Mass `[package.metadata.oyatie.layer]` insertion (269 crates) — REJECTED. Layer is derived from crate-name suffix per ADR-0056 v4.1 BNF; double-bookkeeping antipattern (Linus F1).
+- 5-layer enum {kernel, runtime, adapter, api, app} — REJECTED. Inconsistent with canonical 12-layer enum (ADR-0056 v4.1). Used the canon.
+- Mass middleware-domain → middleware-runtime renames — REJECTED. `-runtime` not in canonical enum. Used `-infrastructure`.
+- Tech-debt ledger with state machine + trigger DSL + monotonic graph + cross-row predicate for 11 deps — REJECTED. Control plane before scale (multispectrum F1+F2+F6). Used flat rationales overlay.
+- Separate dri.json + role-roster.json — REJECTED. Duplicates `[package.metadata.oya.owner_team]`; CODEOWNERS generates from that single source.
+- DeadlineMiddleware name kept "for the eventual async chain" — REJECTED. Naming what we WISH it was lies to readers; renamed honestly.
+- Stubbed F3 adversarial test (caught my own assertion in iterative-fix-loop) — REJECTED. Re-wrote to actually exercise byte-equality across full u8 range.

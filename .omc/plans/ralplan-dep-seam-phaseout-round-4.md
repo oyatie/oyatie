@@ -67,7 +67,7 @@ D. Forked-vendor-in-tree — rejected (supply-chain surface doubled).
 ## 2. Tech-Debt Ledger Spec (revised for codex Concern 3)
 
 ### Location
-`.omc/registries/tech-debt-ledger.json` (active artifact per ADR-0089).
+`/registries/cross-cutting/tech-debt-ledger.json` (active artifact per ADR-0089).
 
 ### Schema change — `entries` is an **object map**, not an array (codex Concern 3 fix)
 
@@ -109,9 +109,9 @@ All JSON pointers (`dependent_wave_status` + every cross-row reference) now reso
   "replacement_trigger": {
     "all_of": [
       {"predicate": "ontology_v1_production_uptime_sprints", "gte": 2,
-       "data_source": "file:.omc/registries/release-state.json:/ontology/v1/production_uptime_sprints"},
+       "data_source": "file:/registries/cross-cutting/release-state.json:/ontology/v1/production_uptime_sprints"},
       {"predicate": "p99_within_budget_days", "gte": 14,
-       "data_source": "file:.omc/registries/perf-budget-history.json:/hyper/p99_within_budget_days"},
+       "data_source": "file:/registries/cross-cutting/perf-budget-history.json:/hyper/p99_within_budget_days"},
       {"predicate": "parity_bench_pass", "band": "GREEN_OR_AMBER",
        "data_source": "ci:lean-a-replacement-parity:run:<run-id>:hyper",
        "evidence_immutability_policy": "run-id-required"}
@@ -122,7 +122,7 @@ All JSON pointers (`dependent_wave_status` + every cross-row reference) now reso
   "cve_acceleration_trigger": {
     "any_of": [
       {"predicate": "tracked_cve_open_cvss_gte", "gte": 7.5, "no_upstream_fix_days_gte": 14,
-       "data_source": "file:.omc/registries/cve-watch.json:/hyper"}
+       "data_source": "file:/registries/cross-cutting/cve-watch.json:/hyper"}
     ],
     "staleness_policy": "warn-on-stale",
     "pointer_missing_policy": "not-yet-armed"
@@ -188,11 +188,11 @@ The generator rejects any transition not in this graph. CI sub-check `ledger-tra
 
 | Predicate name | Data source (URI grammar) | Type |
 |---|---|---|
-| `ontology_v1_production_uptime_sprints` | `file:.omc/registries/release-state.json:/ontology/v1/production_uptime_sprints` | int (sprint count) |
-| `p99_within_budget_days` | `file:.omc/registries/perf-budget-history.json:/<dep>/p99_within_budget_days` | int (consecutive days) |
+| `ontology_v1_production_uptime_sprints` | `file:/registries/cross-cutting/release-state.json:/ontology/v1/production_uptime_sprints` | int (sprint count) |
+| `p99_within_budget_days` | `file:/registries/cross-cutting/perf-budget-history.json:/<dep>/p99_within_budget_days` | int (consecutive days) |
 | `parity_bench_pass` | `ci:lean-a-replacement-parity:run:<run-id>:<dep>` | enum {GREEN, AMBER, RED} |
-| `tracked_cve_open_cvss_gte` | `file:.omc/registries/cve-watch.json:/<dep>` | float + days-open |
-| `dependent_wave_status` | `file:.omc/registries/tech-debt-ledger.json:/entries/<dep_name>/status` | enum (status graph above) |
+| `tracked_cve_open_cvss_gte` | `file:/registries/cross-cutting/cve-watch.json:/<dep>` | float + days-open |
+| `dependent_wave_status` | `file:/registries/cross-cutting/tech-debt-ledger.json:/entries/<dep_name>/status` | enum (status graph above) |
 | `never` (new — codex Concern 5) | n/a (constant) | constant `disarmed` |
 
 #### `never` trigger variant (codex Concern 5 fix)
@@ -302,7 +302,7 @@ Round-3 graded Step 1 as **L**. With added rename + adapter-dep-removal + HttpHe
 2. **Ledger-coverage check** — every external dep observed + every key in root `[workspace.dependencies]` MUST have a ledger entry.
 3. **Ledger freshness check** — `next_review_due >= today - 5d`.
 4. **Vendor-residue sub-check** — flags pure-Rust crates >50 KB with no workspace-internal consumers.
-5. **CVE-watch sub-check** — reads `.omc/registries/cve-watch.json`; CVSS ≥7.5 + 14d → flips row to `replacement-armed-by-cve`.
+5. **CVE-watch sub-check** — reads `/registries/cross-cutting/cve-watch.json`; CVSS ≥7.5 + 14d → flips row to `replacement-armed-by-cve`.
 6. **Ledger-review-contract sub-check** — 3-quarter zero-movement → fail.
 7. **Layer-metadata sub-check** (NEW — codex Concern 1) — every crate in `cargo metadata --no-deps` declares `[package.metadata.oyatie.layer]` ∈ `{kernel, runtime, adapter, api, app}`; missing or invalid → BLOCKER. Authored by W0 Step 0 (NEW; see §10).
 8. **Ledger-transition-monotonicity sub-check** (NEW — codex Concern 3) — diff current vs prior committed ledger; any backward `status` transition → fail.
@@ -316,14 +316,14 @@ The same-PR ledger guard + role-gated `dep:new` label depends on PR-context quer
 1. **Read-side only.** The lane MAY invoke `gh api` and `gh pr view` for **read-only metadata retrieval**. Never `gh pr create`, `gh pr merge`, `gh pr review`, `gh issue comment`, or any state-mutating subcommand.
 2. **CI context required.** The lane code refuses to run `gh` when `env::var("GITHUB_ACTIONS") != Ok("true".into())`. Local agent invocation fails fast with structured error message: *"gh-mediated lookups are CI-only. For local development, run `oya-dev-cli gate validate dependency-seam --mode=composite --offline` (skips PR-context guard) or use `grit` to invoke the lane in CI."*
 3. **Agent-side state transitions remain grit-mediated.** No agent code path writes via `gh`. All mutations (ledger row edits, role-roster edits, ADR amendments, rollback PRs) flow through `grit claim → edit → grit done`.
-4. **Same-PR roster mutation rejected.** If the PR modifies BOTH `.omc/registries/role-roster.json` AND `.omc/registries/tech-debt-ledger.json` (or any `crates/*/Cargo.toml`), lane fails: *"role-roster.json changes must land in a separate PR before being relied upon by dep:new label checks."* Prevents same-PR self-promotion.
+4. **Same-PR roster mutation rejected.** If the PR modifies BOTH `/registries/cross-cutting/role-roster.json` AND `/registries/cross-cutting/tech-debt-ledger.json` (or any `crates/*/Cargo.toml`), lane fails: *"role-roster.json changes must land in a separate PR before being relied upon by dep:new label checks."* Prevents same-PR self-promotion.
 5. **CODEOWNERS enforcement of `role-roster.json`.** The roster file is listed in CODEOWNERS as owned by the named DRI of the roster row whose role applies (bootstrap: `_role_roster` DRI = jason931225). PR modifications to the file require CODEOWNERS review approval before merge.
 
 #### New ADR — ADR-0093 (Decisions §)
 
 **Path:** `docs/decisions/ADR-0093-ci-only-gh-readside-carveout.md`. **Status:** Proposed → Accepted W0 Step 6.
 
-**Decision:** *"PR-metadata read-side queries via `gh api` / `gh pr view` are permitted to the `oya-check-dependency-seam-discipline` lane runner in the GitHub Actions context only (`GITHUB_ACTIONS=true`). All agent-side state transitions remain grit-mediated per `master-plan-sequencing.json:52`. The roster file `.omc/registries/role-roster.json` is CODEOWNERS-owned by the named role DRI; same-PR self-promotion is rejected by lane sub-check."*
+**Decision:** *"PR-metadata read-side queries via `gh api` / `gh pr view` are permitted to the `oya-check-dependency-seam-discipline` lane runner in the GitHub Actions context only (`GITHUB_ACTIONS=true`). All agent-side state transitions remain grit-mediated per `master-plan-sequencing.json:52`. The roster file `/registries/cross-cutting/role-roster.json` is CODEOWNERS-owned by the named role DRI; same-PR self-promotion is rejected by lane sub-check."*
 
 **Drivers:** PR-metadata audit is mechanically necessary to defeat label spoofing (§15 vector #1); grit cannot impersonate GitHub timeline events; carve-out is narrow + audited + CI-only.
 
@@ -359,7 +359,7 @@ Round-3 Step 4 emitted `oya-dev-cli gate emit rollback-pr` — this reintroduces
    ```
 4. Rollback work via grit (NOT `emit rollback-pr`):
    ```
-   grit claim --agent <walk-away-DRI> --intent "rollback <dep> replacement work; restore [workspace.dependencies] + allowed_crates_regex" --scope crates/oya-*-{dep}-*/,Cargo.toml,.omc/registries/tech-debt-ledger.json
+   grit claim --agent <walk-away-DRI> --intent "rollback <dep> replacement work; restore [workspace.dependencies] + allowed_crates_regex" --scope crates/oya-*-{dep}-*/,Cargo.toml,/registries/cross-cutting/tech-debt-ledger.json
    # editor opens; DRI reverts refactor commits, restores allowed_crates_regex, applies {"never": true}
    grit done --evidence .omc/reports/replacement-parity-{dep}-{sha}.json
    ```
@@ -404,14 +404,14 @@ Cold-start harness (`oya-bench-cold-start-harness`, `CLOCK_MONOTONIC`), throughp
 **Status:** Proposed → Accepted on Architect + Critic + codex consensus (round-4 review pending).
 
 **Decision (round-4 additions in *italics*):**
-1. Every external dep in `crates/*/Cargo.toml` or root `[workspace.dependencies]` MUST appear in `.omc/registries/tech-debt-ledger.json` (entries as **object map keyed by `dep_name`**).
+1. Every external dep in `crates/*/Cargo.toml` or root `[workspace.dependencies]` MUST appear in `/registries/cross-cutting/tech-debt-ledger.json` (entries as **object map keyed by `dep_name`**).
 2. `oya-check-dependency-seam-discipline` composite lane (8 sub-checks: seam + ledger-coverage + freshness + vendor-residue + cve-watch + review-contract + *layer-metadata* + *ledger-transition-monotonicity*) enforces `allowed_crates_regex` across `[dependencies]` + `[build-dependencies]` + `[dev-dependencies]` + `[workspace.dependencies]`.
 3. 5 products ship on hyper/tokio without phase-out blocking.
 4. Phase-out begins only after T0 (ontology v1 stable 2 sprints + p99 14 days + parity pass with **immutable run-id evidence**).
 5. Tiered parity: GREEN ≥95%/≤105% advances; AMBER 80-95% advances with ADR amendment; RED <80% → `replacement-attempted-abandoned` permanent.
 6. `tracing` + `tracing-subscriber` + `serde_json` are exempt-permanent unless CVE-acceleration fires.
 7. CVE acceleration: CVSS ≥7.5 + 14 days no upstream fix → auto-arms replacement.
-8. DRI mapping in `.omc/registries/dri.json`; bootstrap `primary = jason931225 (user)`; role roster in `.omc/registries/role-roster.json` with **CODEOWNERS ownership + same-PR self-promotion guard**.
+8. DRI mapping in `/registries/cross-cutting/dri.json`; bootstrap `primary = jason931225 (user)`; role roster in `/registries/cross-cutting/role-roster.json` with **CODEOWNERS ownership + same-PR self-promotion guard**.
 9. Walk-away: RED parity OR DRI decline → `replacement-attempted-abandoned` + grit-mediated ADR amendment + grit-mediated rollback. **No `gh pr create` / no `emit rollback-pr`.**
 10. *(NEW round-4)* DSL evaluator policies (`staleness_policy`, `evidence_immutability_policy`, `pointer_missing_policy`, `monotonic_transitions_only`) are schema-required on every trigger; defaults are conservative (`fail-on-stale`, `run-id-required`, `not-yet-armed`, `true`).
 11. *(NEW round-4)* `gh api` / `gh pr view` permitted to the lane runner under `GITHUB_ACTIONS=true` only (ADR-0093 carve-out). All other agent paths grit-mediated.
@@ -477,7 +477,7 @@ Inherited round-3 risks: trigger-never-fires (F1), seam-lane-bypass (F2), replac
 **Step 3 — Ledger commit + generator + self-heal + object-map envelope** (L; Architect+Critic) — REVISED per codex Concern 3
 - New files: `crates/oya-dev-cli/src/commands/tech_debt_ledger_emit.rs`, `crates/oya-dev-cli/src/commands/ledger_coverage_gate.rs`; seed 11 entries as object map.
 - **Tool:** `oya-dev-cli gate emit tech-debt-ledger [--self-heal]`.
-- **Outputs:** `.omc/registries/tech-debt-ledger.json` (envelope `version: "1.1.0"`; `entries` = object map; timestamps from `current_date()`); `.omc/registries/schemas/tech-debt-ledger.schema.json` (rejects array `entries`; requires 4 evaluator policy fields on every trigger).
+- **Outputs:** `/registries/cross-cutting/tech-debt-ledger.json` (envelope `version: "1.1.0"`; `entries` = object map; timestamps from `current_date()`); `/registries/cross-cutting/schemas/tech-debt-ledger.schema.json` (rejects array `entries`; requires 4 evaluator policy fields on every trigger).
 - **Verification:** schema validated; coverage sub-check green; fixture dep without ledger entry → fail; same-PR guard → fail; **self-heal fixture:** delete entries `hyper` + `bytes`, run `--self-heal`, result bit-for-bit identical (SHA-256); object-map lexicographic ordering enforced.
 
 **Step 4 — `oya-foundry-trigger-dsl-runtime` parser + evaluator + ADR-0091 + ADR-0092 + ADR-0093** (M+; Architect+Critic+codex) — REVISED per codex Concerns 1, 3, 4, 5
@@ -495,12 +495,12 @@ Inherited round-3 risks: trigger-never-fires (F1), seam-lane-bypass (F2), replac
 
 **Step 6 — `dri.json` + `role-roster.json` + CODEOWNERS update** (S; Critic+DRI) — REVISED per codex Concern 4
 - **Tool:** `oya-dev-cli gate validate raci-coverage`.
-- **Outputs:** `.omc/registries/{dri,role-roster}.json` + schemas; updated `CODEOWNERS` entry: `.omc/registries/role-roster.json @jason931225` (bootstrap; role-DRI named).
+- **Outputs:** `/registries/cross-cutting/{dri,role-roster}.json` + schemas; updated `CODEOWNERS` entry: `/registries/cross-cutting/role-roster.json @jason931225` (bootstrap; role-DRI named).
 - **Verification:** every entry has named `primary` (bootstrap jason931225); `raci-coverage` green; no `council-*` labels; CODEOWNERS rule active on `role-roster.json`; same-PR self-promotion guard fixture (PR modifying both roster + ledger) → lane fail.
 
 **Step 7 — Flip lane to `error` after 30-day soak + INDEX.md row + quarterly template** (M; Architect)
 - **Tool:** `oya-dev-cli gate validate fitness-lane-index`.
-- **Outputs:** updated `.omc/fitness-lanes/INDEX.md` (lane count 64 → **67** for new composite seam lane + parity + deployment-bar); `.omc/registries/tech-debt-ledger-review-template.md`.
+- **Outputs:** updated `.omc/fitness-lanes/INDEX.md` (lane count 64 → **67** for new composite seam lane + parity + deployment-bar); `/registries/cross-cutting/tech-debt-ledger-review-template.md`.
 - **Verification:** composite at `error`, green on `main`; review-contract sub-check arms; first quarterly review scheduled.
 
 **Step 8 — Ops-binary cloud-native code-changes** (M; DRI) — NEW per codex Concern 6
@@ -522,7 +522,7 @@ Inherited round-3 risks: trigger-never-fires (F1), seam-lane-bypass (F2), replac
 - [ ] **Status transition graph monotonic**; backward transitions rejected by `ledger-transition-monotonicity` sub-check.
 - [ ] **`{"never": true}` recognized as valid `replacement_trigger`** by DSL registry; permitted only on `keep` / `replacement-attempted-abandoned` rows.
 - [ ] `dri.json` + `role-roster.json` committed; every entry has named `primary` (bootstrap jason931225).
-- [ ] **CODEOWNERS rule for `.omc/registries/role-roster.json`** committed; same-PR self-promotion guard fixture → lane fail.
+- [ ] **CODEOWNERS rule for `/registries/cross-cutting/role-roster.json`** committed; same-PR self-promotion guard fixture → lane fail.
 - [ ] `crates/oya-check-dependency-seam-discipline/` exists with `[package.metadata.oyatie.layer] = "runtime"`; policy doc + CI job wired; **8 sub-checks** active (seam + ledger-coverage + freshness + vendor-residue + cve-watch + review-contract + **layer-metadata** + **ledger-transition-monotonicity**).
 - [ ] **`gh` invocation gated by `GITHUB_ACTIONS=true`**; local invocation fails fast with grit-redirect message; ADR-0093 indexed + accepted.
 - [ ] `oya-dev-cli` subcommands authored: `gate validate dependency-seam [--offline]`, `gate emit tech-debt-ledger [--self-heal]`, `gate emit layer-metadata-bootstrap`, `gate validate ledger-coverage`, `gate emit ops-workspace-shell-baseline`, `gate emit middleware-adapter-import-audit`. **REMOVED:** `gate emit rollback-pr` (replaced by grit primitive — §6).
@@ -636,7 +636,7 @@ Lane budget impact: 64 existing + 3 new = **67 total**. 30 BLOCKER existing + 3 
 
 Round-3 entries preserved. Round 4 adds:
 
-- `_role_roster` (CODEOWNERS owner for `.omc/registries/role-roster.json`; same-PR-guard reviewer) — bootstrap `primary = jason931225`.
+- `_role_roster` (CODEOWNERS owner for `/registries/cross-cutting/role-roster.json`; same-PR-guard reviewer) — bootstrap `primary = jason931225`.
 
 ```json
 {

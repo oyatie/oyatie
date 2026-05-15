@@ -1,0 +1,12 @@
+{
+  "$schema_ref": "/templates/evidence-bundle-template.json",
+  "_artifact_id": "active-artifact-contract-lane-run",
+  "_meta": { "emitter": "oya-dev-cli gate validate active-artifact-contract", "registry_path": "/registries/cross-cutting/artifact-capabilities-registry.json" },
+  "outcome": "success",
+  "rows_seen": 37,
+  "head_tracked_count": 1982,
+  "untracked_paths": [],
+  "duplicate_ids": [],
+  "validation_duration_ms": 12,
+  "graph_edge_count": 37
+}

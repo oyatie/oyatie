@@ -1,7 +1,7 @@
 //! Active machine-readable artifact contract validator kernel.
 //!
 //! Pure std-only kernel implementing the v3.0.0 artifact-capabilities-registry
-//! validation rules per ADR-0069 + `.omc/specs/active-machine-readable-artifact-contract.json`.
+//! validation rules per ADR-0069 + `specs/cross-cutting/active-machine-readable-artifact-contract.json`.
 //!
 //! The kernel is I/O-free: it takes pre-parsed `ArtifactRow` values and a set of
 //! HEAD-tracked paths (resolved by the runtime via `git ls-files`), and returns
@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-/// Closed enum of artifact profiles per `.omc/specs/artifact-profile-defaults.json`.
+/// Closed enum of artifact profiles per `specs/cross-cutting/artifact-profile-defaults.json`.
 /// Each profile bundles default capability declarations; registry rows declare
 /// `artifact_profile` + sparse `capability_overrides` rather than full 9-cap boilerplate.
 /// Closes architect r17 finding #8.
@@ -65,7 +65,7 @@ impl ArtifactProfile {
     }
 
     /// Profile defaults baked into the kernel for testability. The canonical
-    /// authority is `.omc/specs/artifact-profile-defaults.json`; runtimes
+    /// authority is `specs/cross-cutting/artifact-profile-defaults.json`; runtimes
     /// that load the JSON should use that file and MAY use this baseline only
     /// as a sanity-check fallback. The default for every capability in every
     /// profile is `Planned`; runtime is responsible for richer defaults.
@@ -388,7 +388,7 @@ mod tests {
         head.insert("docs/CONSTITUTION.md".into());
         let rows = vec![row(
             "ops-portal-ledger",
-            ".omc/ledger/ops-portal-ledger.json",
+            "evidence/ledger/ops-portal-ledger.json",
             full_caps(
                 CapabilityStatus::Planned,
                 None,
@@ -409,11 +409,11 @@ mod tests {
     #[test]
     fn r02_flags_duplicate_artifact_id() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::Planned, None, &["validator-crate"], None);
         let rows = vec![
-            row("dup", ".omc/specs/x.json", caps.clone()),
-            row("dup", ".omc/specs/x.json", caps),
+            row("dup", "specs/cross-cutting/x.json", caps.clone()),
+            row("dup", "specs/cross-cutting/x.json", caps),
         ];
         let report = validate(&rows, &head);
         assert_eq!(
@@ -429,13 +429,13 @@ mod tests {
     #[test]
     fn r03_flags_missing_capabilities() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let mut caps = BTreeMap::new();
         caps.insert(
             CapabilityKind::Enforcement,
             cap(CapabilityStatus::Planned, None, &["x"], None),
         );
-        let rows = vec![row("partial", ".omc/specs/x.json", caps)];
+        let rows = vec![row("partial", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r03_count = report
             .violations
@@ -448,9 +448,9 @@ mod tests {
     #[test]
     fn r04_flags_operational_without_evidence() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::Operational, None, &[], None);
-        let rows = vec![row("op", ".omc/specs/x.json", caps)];
+        let rows = vec![row("op", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r04 = report
             .violations
@@ -463,9 +463,9 @@ mod tests {
     #[test]
     fn r05_flags_planned_without_prerequisite() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::Planned, None, &[], None);
-        let rows = vec![row("p", ".omc/specs/x.json", caps)];
+        let rows = vec![row("p", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r05 = report
             .violations
@@ -478,9 +478,9 @@ mod tests {
     #[test]
     fn r06_flags_blocked_without_prerequisite() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::BlockedByFoundation, None, &[], None);
-        let rows = vec![row("b", ".omc/specs/x.json", caps)];
+        let rows = vec![row("b", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r06 = report
             .violations
@@ -493,9 +493,9 @@ mod tests {
     #[test]
     fn r07_warns_na_without_rationale() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::NotApplicable, None, &[], None);
-        let rows = vec![row("n", ".omc/specs/x.json", caps)];
+        let rows = vec![row("n", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r07 = report
             .violations
@@ -554,14 +554,14 @@ mod tests {
     #[test]
     fn happy_path_no_violations() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(
             CapabilityStatus::Planned,
             None,
             &["crates/oya-check-active-artifact-contract"],
             None,
         );
-        let rows = vec![row("ok", ".omc/specs/x.json", caps)];
+        let rows = vec![row("ok", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         assert_eq!(report.violations.len(), 0);
         assert!(!report.has_errors());

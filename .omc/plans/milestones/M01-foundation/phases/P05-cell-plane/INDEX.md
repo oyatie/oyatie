@@ -6,7 +6,7 @@ title: Cell Architecture + Plane Separation Enforcement
 status: complete
 purpose: Ship the cell-routing primitive and the plane-separation enforcement that every catalog record declares.
 phase_evidence_refs:
-  - .omc/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json
+  - /evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json
 ---
 
 # M01-P05 — Cell Architecture + Plane Separation Enforcement

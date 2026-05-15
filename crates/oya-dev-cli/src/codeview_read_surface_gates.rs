@@ -17,7 +17,7 @@ pub(crate) struct CodeviewReadSurfaceReport {
 pub(crate) fn parse_codeview_read_surface_validate_args(
     args: Vec<String>,
 ) -> Result<CodeviewReadSurfaceValidateArgs, String> {
-    let mut spec = PathBuf::from(".omc/specs/codeview-read-surface.json");
+    let mut spec = PathBuf::from("specs/cross-cutting/codeview-read-surface.json");
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {

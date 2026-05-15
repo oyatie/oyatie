@@ -1,0 +1,23 @@
+{
+  "title": "PassingFixture",
+  "description": "F3 adversarial-fixture pair (passing case): a well-formed dependency-rationales.json with the canonical `entries` object containing at least one workspace dep. The extract_registry_entry_names extractor must return the entry names.",
+  "_meta": {
+    "fixture_kind": "passing"
+  },
+  "entries": {
+    "hyper": {
+      "version_pin": "1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "test fixture",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
+    },
+    "tokio": {
+      "version_pin": "1",
+      "layer_seam": "adapter-only",
+      "owner_team": "council-architecture",
+      "rationale": "test fixture",
+      "isolated_in_crate": "oya-http-runtime-hyper-adapter"
+    }
+  }
+}

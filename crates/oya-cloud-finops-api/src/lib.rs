@@ -12,7 +12,7 @@ use oya_cloud_finops_domain::{
     CostAnomalyKind, FinopsPeriod, FinopsRecommendation, FinopsReport, FinopsReportRequest,
     RecommendationKind, ResourceCostBreakdown,
 };
-use oya_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 use oya_metering_domain::AxisId;
 
 pub const CLOUD_FINOPS_REPORT_SURFACE: &str = "cloud.finops.report";

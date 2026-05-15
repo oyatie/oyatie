@@ -4,13 +4,13 @@ use oya_cloud_network_domain::{
     VpcCreate, VpcState,
 };
 use oya_cloud_network_lb_api::{
-    create_cloud_network_load_balancer_from_api, CloudNetworkLbApiAuthorization,
+    CLOUD_NETWORK_LB_CREATE_SURFACE, CloudNetworkLbApiAuthorization,
     CloudNetworkLbApiBoundaryContext, CloudNetworkLbApiError, CloudNetworkLbApiPrincipal,
     CloudNetworkLbCreateApiRequest, CloudNetworkLbCreateApiStatus,
     CloudNetworkLbCreateIdempotencyLedger, CloudNetworkLbCreateRequest,
     CloudNetworkLbListenerCreateRequest, CloudNetworkLbMtlsConfigCreateRequest,
     CloudNetworkLbSubnetRef, CloudNetworkLbTargetGroupCreateRequest,
-    CLOUD_NETWORK_LB_CREATE_SURFACE,
+    create_cloud_network_load_balancer_from_api,
 };
 use oya_data_boundary_kernel::DataClass;
 use oya_residency_domain::ResidencyClass;

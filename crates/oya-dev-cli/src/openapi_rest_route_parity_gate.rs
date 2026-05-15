@@ -266,7 +266,7 @@ fn write_evidence_bundle(
         "failure"
     };
     let body = format!(
-        "{{\n  \"$schema_ref\": \".omc/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"openapi-rest-route-parity-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate openapi-rest-route-parity\" }},\n  \"outcome\": \"{}\",\n  \"rest_route_count\": {},\n  \"openapi_path_count\": {},\n  \"violation_count\": {},\n  \"validation_duration_ms\": {}\n}}\n",
+        "{{\n  \"$schema_ref\": \"/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"openapi-rest-route-parity-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate openapi-rest-route-parity\" }},\n  \"outcome\": \"{}\",\n  \"rest_route_count\": {},\n  \"openapi_path_count\": {},\n  \"violation_count\": {},\n  \"validation_duration_ms\": {}\n}}\n",
         outcome,
         report.rest_route_count,
         report.openapi_path_count,

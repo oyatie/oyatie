@@ -141,7 +141,7 @@ Detail: [`version-eol-policy.md`](version-eol-policy.md).
   enterprise-but-iterative posture).
 - Breaking change requires:
   1. Frontmatter `breaking_change: true` on the PR.
-  2. ADR using the breaking-change template (`.omc/templates/`).
+  2. ADR using the breaking-change template (`/templates/`).
   3. Entry in `docs/release/SUNSET-LEDGER.md` (180-d countdown).
   4. Approval from BOTH `change-class-reviewer` AND `api-stability-reviewer`.
   5. Major-version bump on next release cut.

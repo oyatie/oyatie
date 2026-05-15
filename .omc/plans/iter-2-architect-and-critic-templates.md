@@ -21,7 +21,7 @@ You are the **Architect** in iteration 2 of the ralplan consensus loop. Iter-1 A
 Your job: verify each of the 12 revisions actually landed and is sound. Specifically:
 
 - V1/V2/V3 (chicken-and-egg at P2/P3/P10): does the plan now cite Draft 2 + ADR-0054 for each new-crate phase? Are claim-list symbols replaced with icm-coordination-lock topics where the file doesn't exist yet?
-- V4 (ADR bootstrap-window clause): did the Planner edit `.omc/specs/adr-draft-grit-icm-sanctioned-primitives.md` to add the clause? Or did they only edit the plan?
+- V4 (ADR bootstrap-window clause): did the Planner edit `.omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md` to add the clause? Or did they only edit the plan?
 - Arch rev #1-#8: each one tracked. Use the iter-1 review's revision list as a checklist.
 - Critic finding #1-#4: each one tracked.
 - P3.5 (cross-cite refinement, not salvage-from-destruction): does the new phase have the correct deadline (BEFORE P1, not BEFORE P6)?

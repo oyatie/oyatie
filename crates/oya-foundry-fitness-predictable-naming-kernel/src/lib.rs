@@ -27,9 +27,9 @@ pub const ALLOWED_ROLES: [&str; 13] = [
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CrateNaming {
-    pub crate_name: String,                  // data_class: INTERNAL_ONLY
-    pub declared_role: Option<String>,       // data_class: INTERNAL_ONLY
-    pub declared_context: Option<String>,    // data_class: INTERNAL_ONLY
+    pub crate_name: String,               // data_class: INTERNAL_ONLY
+    pub declared_role: Option<String>,    // data_class: INTERNAL_ONLY
+    pub declared_context: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -169,50 +169,103 @@ mod tests {
 
     #[test]
     fn well_formed_crate_passes() {
-        let r = check(&[row("oya-foundry-account-kernel", Some("kernel"), Some("foundry"))]).unwrap();
+        let r = check(&[row(
+            "oya-foundry-account-kernel",
+            Some("kernel"),
+            Some("foundry"),
+        )])
+        .unwrap();
         assert!(r.violations.is_empty(), "{:?}", r.violations);
     }
 
     #[test]
     fn missing_oya_prefix_flagged() {
-        let r = check(&[row("foundry-account-kernel", Some("kernel"), Some("foundry"))]).unwrap();
-        assert!(r.violations.iter().any(|v| v.kind == NamingViolationKind::MissingOyaPrefix));
+        let r = check(&[row(
+            "foundry-account-kernel",
+            Some("kernel"),
+            Some("foundry"),
+        )])
+        .unwrap();
+        assert!(
+            r.violations
+                .iter()
+                .any(|v| v.kind == NamingViolationKind::MissingOyaPrefix)
+        );
     }
 
     #[test]
     fn empty_after_prefix_flagged() {
         let r = check(&[row("oya-", Some("kernel"), Some("foundry"))]).unwrap();
-        assert!(r.violations.iter().any(|v| v.kind == NamingViolationKind::EmptyAfterPrefix));
+        assert!(
+            r.violations
+                .iter()
+                .any(|v| v.kind == NamingViolationKind::EmptyAfterPrefix)
+        );
     }
 
     #[test]
     fn role_mismatch_flagged() {
-        let r = check(&[row("oya-foundry-account-domain", Some("kernel"), Some("foundry"))]).unwrap();
-        assert!(r.violations.iter().any(|v| matches!(v.kind, NamingViolationKind::RoleMismatch { .. })));
+        let r = check(&[row(
+            "oya-foundry-account-domain",
+            Some("kernel"),
+            Some("foundry"),
+        )])
+        .unwrap();
+        assert!(
+            r.violations
+                .iter()
+                .any(|v| matches!(v.kind, NamingViolationKind::RoleMismatch { .. }))
+        );
     }
 
     #[test]
     fn unknown_role_flagged() {
-        let r = check(&[row("oya-foundry-account-helper", Some("helper"), Some("foundry"))]).unwrap();
-        assert!(r.violations.iter().any(|v| matches!(v.kind, NamingViolationKind::UnknownRole { .. })));
+        let r = check(&[row(
+            "oya-foundry-account-helper",
+            Some("helper"),
+            Some("foundry"),
+        )])
+        .unwrap();
+        assert!(
+            r.violations
+                .iter()
+                .any(|v| matches!(v.kind, NamingViolationKind::UnknownRole { .. }))
+        );
     }
 
     #[test]
     fn undeclared_role_flagged() {
         let r = check(&[row("oya-foundry-account-kernel", None, Some("foundry"))]).unwrap();
-        assert!(r.violations.iter().any(|v| v.kind == NamingViolationKind::UndeclaredRole));
+        assert!(
+            r.violations
+                .iter()
+                .any(|v| v.kind == NamingViolationKind::UndeclaredRole)
+        );
     }
 
     #[test]
     fn undeclared_context_flagged() {
         let r = check(&[row("oya-foundry-account-kernel", Some("kernel"), None)]).unwrap();
-        assert!(r.violations.iter().any(|v| v.kind == NamingViolationKind::UndeclaredContext));
+        assert!(
+            r.violations
+                .iter()
+                .any(|v| v.kind == NamingViolationKind::UndeclaredContext)
+        );
     }
 
     #[test]
     fn uppercase_in_name_flagged() {
-        let r = check(&[row("Oya-Foundry-Account-Kernel", Some("kernel"), Some("foundry"))]).unwrap();
-        assert!(r.violations.iter().any(|v| v.kind == NamingViolationKind::NameContainsUppercase));
+        let r = check(&[row(
+            "Oya-Foundry-Account-Kernel",
+            Some("kernel"),
+            Some("foundry"),
+        )])
+        .unwrap();
+        assert!(
+            r.violations
+                .iter()
+                .any(|v| v.kind == NamingViolationKind::NameContainsUppercase)
+        );
     }
 
     #[test]
@@ -224,7 +277,10 @@ mod tests {
 
     #[test]
     fn empty_crate_name_errors() {
-        assert!(matches!(check(&[row("", None, None)]), Err(NamingError::EmptyCrateName)));
+        assert!(matches!(
+            check(&[row("", None, None)]),
+            Err(NamingError::EmptyCrateName)
+        ));
     }
 
     #[test]

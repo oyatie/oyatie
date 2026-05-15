@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/root-hub-pointers.schema.json",
+  "title": "RootHubPointers",
+  "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file. Agents read this JSON to discover canonical entry points; humans read the README/CLAUDE/AGENTS summaries that mirror this.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-ROOT-HUB-POINTERS",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture + axis-foundry",
+    "created_at": "2026-05-13T00:00:00Z",
+    "user_directives_2026_05_13": [
+      "the only thing that we should maintain is a README.md",
+      "CLAUDE.md and AGENTS.md",
+      "that should utilize machine readable pointers to relevant files",
+      "Heavy diet. Make sure everything has a purpose."
+    ]
+  },
+  "entry_points": {
+    "_retired_constitutional_authority": {
+      "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution concept retired. Content redistributed: mission → masterplan; decision principles → agent-operating-contract; prohibitions → forbidden-operations.json (extends master-plan-sequencing forbidden_primitives); decision rights → RACI-OWNERSHIP. Source docs/CONSTITUTION.md marked for retirement (no migration to constitution.json)."
+    },
+    "agent_operating_contract": {
+      "kind": "spec",
+      "current_path": "docs/AGENTS.md",
+      "target_path_after_md_retirement": "/specs/cross-cutting/agent-operating-contract.json",
+      "migration_phase": "PHASE-5",
+      "purpose": "Canonical agent operating contract (done-definition checklist, mandatory ICM triggers, RTK protocol, grit protocol)."
+    },
+    "doc_catalog": {
+      "kind": "registry",
+      "current_path": "docs/DOC-CATALOG.md",
+      "target_path_after_md_retirement": "/registries/cross-cutting/doc-catalog.json",
+      "migration_phase": "PHASE-5",
+      "purpose": "Per-doc lifecycle protocol. Every canonical doc has class + owner + length cap + 'Does NOT cover' clause."
+    },
+    "masterplan": {
+      "kind": "spec",
+      "current_path": "docs/MASTERPLAN.md",
+      "target_path_after_md_retirement": "/specs/cross-cutting/masterplan.json",
+      "migration_phase": "PHASE-5",
+      "purpose": "Multi-quarter roadmap; 7 axes (SaaS/Workspace/Vertical/Foundry/Cloud/Search/Ads+Analytics); Wave-plan dependencies."
+    },
+    "active_artifact_contract": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
+      "target_path_after_md_retirement": "same (already machine-readable)",
+      "migration_phase": "complete",
+      "purpose": "v3.0.0 9-capability contract per ADR-0069. Every machine-readable artifact declares enforcement+verification+validation+autogen+selfheal+selfupdate+selfmaintain+telemetry+provenance."
+    },
+    "knowledge_graph_semantic": {
+      "kind": "registry",
+      "current_path": "/registries/cross-cutting/knowledge-graph-semantic.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (per Palantir 3-layer split commit 0806f91; supersedes knowledge-graph-catalog.json deleted in same commit)",
+      "purpose": "SEMANTIC layer: 24 node types + 18 edge types + 14 invariants + 5 read-side queries. Static structure of the knowledge graph."
+    },
+    "knowledge_graph_kinetic": {
+      "kind": "registry",
+      "current_path": "/registries/cross-cutting/knowledge-graph-kinetic.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (per Palantir 3-layer split commit 0806f91)",
+      "purpose": "KINETIC layer: 14 action types + 4 workflows. Write-side mutations with audit topic + idempotency + lock pattern."
+    },
+    "knowledge_graph_dynamic": {
+      "kind": "registry",
+      "current_path": "/registries/cross-cutting/knowledge-graph-dynamic.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (per Palantir 3-layer split commit 0806f91)",
+      "purpose": "DYNAMIC layer: 9 live state sources + OTel telemetry pointers. Real-time graph state."
+    },
+    "artifact_capabilities_registry": {
+      "kind": "registry",
+      "current_path": "/registries/cross-cutting/artifact-capabilities-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (10 baseline rows; per-artifact rows added incrementally)",
+      "purpose": "Control plane: one row per machine-readable artifact + artifact_profile + capability_overrides."
+    },
+    "reusable_building_blocks_registry": {
+      "kind": "registry",
+      "current_path": "/registries/cross-cutting/reusable-building-blocks-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (15 baseline blocks)",
+      "purpose": "DRY enforcement. Single canonical home per block + consumer_refs + consumer_selectors."
+    },
+    "plan_schema": {
+      "kind": "schema",
+      "current_path": "/specs/cross-cutting/plan-schema.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "JSON Schema for ralplan consensus plans. Markdown plans are projections (being retired)."
+    },
+    "artifact_profile_defaults": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/artifact-profile-defaults.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "7 profiles (schema/registry/template/plan-attestation/ledger/claim-matrix/evidence-bundle); reduces per-row authoring burden."
+    },
+    "master_plan_sequencing": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/master-plan-sequencing.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (just landed in HEAD)",
+      "purpose": "Forbidden-primitive list (git/gh) + grit protocol + ledger-required-fields + 21-step execution sequence."
+    },
+    "hyperscaler_gates": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/hyperscaler-gates.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "10 HG-* gates (HG-ARCH..HG-GRIT) + claim_matrix_required (can/cannot/required)."
+    },
+    "evidence_taxonomy": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/evidence-taxonomy.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "8 evidence classes + freshness rule + minimum_completion_set for ledger rows."
+    },
+    "stop_conditions": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/stop-conditions.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "SC-01..SC-09 stop conditions for autonomous master-plan loop."
+    },
+    "final_report_schema": {
+      "kind": "schema",
+      "current_path": "/specs/cross-cutting/final-report-schema.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "JSON Schema for MPR-... final autonomous master-plan completion reports."
+    },
+    "markdown_retirement_policy": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/markdown-retirement-policy.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Migration policy per user 'we don't need markdown' directive. 8 phases; ~250 files to retire by 2026-08-31."
+    },
+    "markdown_retirement_ledger": {
+      "kind": "ledger",
+      "current_path": "/evidence/ledger/markdown-retirement-ledger.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete (seed; per-row migration tracked over time)",
+      "purpose": "Per-file rows tracking each Markdown retirement event (source_md_path / target_json_path / status / migration_date)."
+    },
+    "gitops_vcs_replacement": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Early M-CC-P00 VCS replacement contract: grit-compatible symbol locks + GitOps promotion/controller integration for CI/CD-safe agent work."
+    },
+    "test_standard": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/test-standard.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Machine-readable unit/integration/e2e/property/fuzz test standard enforced by GitOps VCS admission and CI/CD gates."
+    },
+    "test_suite_registry": {
+      "kind": "registry",
+      "current_path": "/registries/cross-cutting/test-suite-registry.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Registry-driven polyglot test commands and evidence outputs by language/surface."
+    },
+    "oyatie_doctrine": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/oyatie-doctrine.json",
+      "current_version": "1.0.0",
+      "migration_phase": "complete",
+      "purpose": "Workspace-wide doctrine. Principles P0..P8 apply to every documentation / file / workflow / lane / ADR / spec / registry / code change. P0 (agentic-primary) elevates agent consumption above human; P1 (machine-optimized); P2 (programmatic-where-possible); P3 (deterministic-where-it-matters); P4 (enforce-in-every-thing); P5 (iterate-until-consensus); P6 (no-silent-regression); P7 (Bominal-inheritance-precedence); P8 (canonical-base + localization-pack). Cited by docs/AGENTS.md and every ADR."
+    },
+    "multispectrum_review": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/multispectrum-review.json",
+      "current_version": "2.1.0",
+      "human_companion_path": "docs/standards/multispectrum-review.md",
+      "migration_phase": "complete",
+      "purpose": "Multispectrum review bar — 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
+    },
+    "pre_pr_multispectrum_checklist": {
+      "kind": "template",
+      "current_path": "/templates/checklists/pre-pr-multispectrum.json",
+      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template is the canonical form; markdown was duplicative human gateway)",
+      "migration_phase": "complete",
+      "purpose": "Machine-readable pre-PR gate template. Every changeset copies + fills evidence per facet; the seam lane refuses missing/incomplete sections. Iterative fix-and-review loop in /specs/cross-cutting/iterative-fix-loop.json."
+    },
+    "iterative_fix_loop": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/iterative-fix-loop.json",
+      "migration_phase": "complete",
+      "purpose": "Loop state machine for find→fix→re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
+    },
+    "fixuptask_registry": {
+      "kind": "registry",
+      "current_path": "/registries/cross-cutting/fixuptasks.jsonl",
+      "migration_phase": "complete",
+      "purpose": "Append-only JSONL stream of bounded FixupTasks. One JSON record per line: {id, title, priority, status, source_session, source_change_id, named_in, created_at, blocker_for?}. Consumed by lane sub-checks + dashboards."
+    },
+    "audit_chain": {
+      "kind": "ledger",
+      "current_path": "/evidence/audit-chain.jsonl",
+      "migration_phase": "scaffold (F-EVIDENCE-AUDIT-CHAIN-WIRE pending for ADR-0069 cryptographic-immutability integration)",
+      "purpose": "Append-only JSONL stream of changeset evidence emissions, lane runs, spec-version bumps, ADR acceptances, IP status flips, seam audit baselines. Schema: {event_type, change_id?, session_id, timestamp_unix, payload}."
+    }
+  },
+  "by_kind": {
+    "spec": "Schema or canonical-truth definition. Read by validators + agents.",
+    "registry": "Data plane with rows. Validators check row conformance to schema.",
+    "schema": "JSON Schema (Draft 2020-12). Validates instances.",
+    "ledger": "Append-only timeline of state-change events.",
+    "policy": "Decision rule (e.g., migration policy, retention policy)."
+  },
+  "agent_quick_start_protocol": {
+    "step_1_read_authority": "Read entry_points.constitutional_authority + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy",
+    "step_2_recall_icm": "icm recall-context 'oyatie master plan hyperscaler grit native agentic vcs hooks ci zero markdown machine-readable' --limit 5",
+    "step_3_grit_state_transition": "Every agent→repo state transition uses grit claim → work → grit done. Fallback: scaffold-locks-oyatie ICM topic per ADR-0054 when grit FK error.",
+    "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
+    "step_5_gitops_vcs_replacement": "Before broad multi-agent fan-out, honor /specs/cross-cutting/gitops-vcs-replacement.json: preserve grit-style symbol claims, but route closeout through GitOps promotion when available."
+  }
+}

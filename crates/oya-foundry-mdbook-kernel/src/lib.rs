@@ -281,7 +281,7 @@ mod tests {
     #[test]
     fn wire_appends_architecture_map_chapter() {
         let site = walk_sources(&[art("docs/a.md", SourceKind::Adr, "A")]).unwrap();
-        let wired = wire_architecture_map(site, ".omc/graph/map.json", "Architecture Map").unwrap();
+        let wired = wire_architecture_map(site, "registries/cross-cutting/graph/map.json", "Architecture Map").unwrap();
         assert!(
             wired
                 .chapters
@@ -300,7 +300,7 @@ mod tests {
     #[test]
     fn wire_updates_kind_counts() {
         let site = walk_sources(&[art("docs/a.md", SourceKind::Adr, "A")]).unwrap();
-        let wired = wire_architecture_map(site, ".omc/graph/map.json", "Map").unwrap();
+        let wired = wire_architecture_map(site, "registries/cross-cutting/graph/map.json", "Map").unwrap();
         assert_eq!(
             *wired.by_kind_counts.get(&SourceKind::Frontmatter).unwrap(),
             1

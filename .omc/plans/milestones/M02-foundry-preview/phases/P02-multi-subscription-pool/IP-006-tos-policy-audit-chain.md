@@ -31,7 +31,7 @@ agent_prerequisites:
   - docs/AGENTS.md
   - docs/CONSTITUTION.md
   - .omc/standards/security-review.md
-  - .omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md
+  - .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md
 final_shape_compliance: true
 dependency_additions:
   - { crate: "cedar-policy 4.4", lts: true, adr_exception: null }

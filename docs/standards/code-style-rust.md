@@ -37,7 +37,7 @@ The workspace ships in Rust. This standard governs every `oya-*` crate.
 
 ## 1. Toolchain pin
 
-Per [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md):
+Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md):
 
 - The workspace MUST pin `rust-toolchain.toml` to the current stable channel
   rounded down to the latest minor live for ≥ 30 days (currently **1.95.0**).

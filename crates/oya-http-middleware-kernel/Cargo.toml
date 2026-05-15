@@ -7,7 +7,9 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-bytes.workspace = true
+# Kernel is std-only per ADR-0092. Body type is Vec<u8>; the hyper adapter
+# converts to/from `bytes::Bytes` at its boundary so no hyper-family dep
+# (bytes, hyper, http-body-util, hyper-util) leaks into this kernel.
 oya-http-router-kernel = { path = "../oya-http-router-kernel" }
 
 [lib]

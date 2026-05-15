@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"echo \\\"=== Session accomplishment summary ===\\\"\\necho \\\"=== uncommitted changes (file-level scope) ===\\\"\\ngit status --short 2>&1 | wc -l | xargs -I{} echo \\\"{} status lines\\\"\\necho \\\"=== ...",
+  "error": "Exit code 1\n=== Session accomplishment summary ===\n=== uncommitted changes (file-level scope) ===\n402 status lines\n=== new files in canonical homes ===\n0 files under new canonical homes\n=== fixuptasks.jsonl row count ===\nwc: registries/cross-cutting/fixuptasks.jsonl: open: No such file or directory\n=== audit-chain.jsonl row count ===\nwc: evidence/audit-chain.jsonl: open: No such file or directory\n=== per-change evidence files ===\nls: evidence/per-change/: No such file or directory",
+  "timestamp": "2026-05-15T02:40:26.670Z",
+  "retry_count": 1
+}
