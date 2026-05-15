@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/specs/crate-naming-audit.json",
+  "title": "CrateNamingAudit",
+  "description": "Audit of workspace.members against the 12-layer canonical enum (per ADR-0056). Captures each non-compliant crate with a proposed action: ADOPT the suffix as a canonical extension if it is a well-defined, multi-crate pattern, or RENAME to a canonical layer otherwise. Per user directive 2026-05-15: 'audit enums layers as well ... if they are well defined and serve a purpose, consider adopting them. otherwise stick to canonical layer types.'",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-CRATE-NAMING-AUDIT",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-15T00:00:00Z",
+    "primary_consumer": "agentic_flow + per-crate rename PRs",
+    "applies_to": "every entry in root Cargo.toml [workspace.members]",
+    "purpose": "Authoritative record of crate-naming compliance against ADR-0056. Each non-compliant entry is a tracked migration item; council-architecture ratifies adopt/rename verdicts on this file (per governance-amendment.json)."
+  },
+  "canonical_enum_12": ["kernel", "domain", "application", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "graphql", "worker", "sdk"],
+  "adopted_patterns": {
+    "check_family": {
+      "id": "ADOPT-PAT-01",
+      "match": "^oya-check-",
+      "current_count": 36,
+      "purpose": "fitness-check µservice family: one crate per check, dual-purpose lib+bin. The µservice IS the layer (the crate's whole identity is 'a check named X'). Layer suffix is omitted by convention.",
+      "binding": "load-bearing — formalize in ADR-0056 amendment.",
+      "amendment_action": "Add an exception clause to ADR-0056 §'12-Value Layer Enum' allowing `oya-check-<feature>` as a self-layering convention; cite this spec."
+    },
+    "backend_suffix": {
+      "id": "ADOPT-PAT-02",
+      "match": "*-adapter-{fake|aws|oci|inmemory}",
+      "current_count": 13,
+      "purpose": "Backend qualifier on an adapter crate: the layer is `adapter`; the backend name is a sub-suffix denoting which external system. Already canonical (last canonical token is `adapter` and the backend qualifies it).",
+      "binding": "load-bearing — already implicit; document in ADR-0056 amendment as a recognized sub-suffix pattern.",
+      "amendment_action": "Add `{fake|aws|oci|inmemory|...}` to ADR-0056 §'Layer semantics > adapter' as the allowed backend-qualifier set. Define open-vs-closed semantics (whether new backend names require ADR or just CODEOWNERS approval)."
+    }
+  },
+  "compliance_summary": {
+    "total_workspace_members": 264,
+    "canonical_count": 245,
+    "adopted_pattern_count": 49,
+    "non_compliant_count": 41,
+    "non_compliant_percent": 15.5
+  },
+  "non_compliant": [
+    {
+      "verdict": "ADOPT",
+      "suffix": "api",
+      "count": 21,
+      "rationale": "21 crates consistently use `-api` as the contract-surface layer across cloud-*, identity, tenancy, ontology, policy-cedar, regional-pack, foundry-dashboard, foundry-adapter-anthropic-compat, foundry-adapter-openai-compat. Well-defined, multi-crate, purposeful: denotes 'this crate exposes a typed contract' without committing to HTTP-vs-gRPC-vs-GraphQL at the type level. Renaming all 21 to `rest`/`grpc`/`graphql` would lose the protocol-neutral contract framing.",
+      "amendment_action": "Extend ADR-0056 §'12-Value Layer Enum' from 12 to 13 values, adding `api` as a protocol-neutral contract-surface layer. Distinguish from `rest`/`grpc`/`graphql` (specific implementations) and `sdk` (client consumer). Document the inward-only flow rule for `api`: depends on kernel only.",
+      "crates": [
+        "oya-cloud-compute-functions-api",
+        "oya-cloud-compute-k8s-api",
+        "oya-cloud-compute-vm-api",
+        "oya-cloud-finops-api",
+        "oya-cloud-iam-api",
+        "oya-cloud-kms-api",
+        "oya-cloud-network-dns-api",
+        "oya-cloud-network-lb-api",
+        "oya-cloud-network-vpc-api",
+        "oya-cloud-observability-api",
+        "oya-cloud-region-api",
+        "oya-cloud-storage-block-api",
+        "oya-cloud-storage-object-api",
+        "oya-foundry-adapter-anthropic-compat-api",
+        "oya-foundry-adapter-openai-compat-api",
+        "oya-foundry-dashboard-api",
+        "oya-identity-api",
+        "oya-ontology-api",
+        "oya-policy-cedar-api",
+        "oya-regional-pack-api",
+        "oya-tenancy-api"
+      ]
+    },
+    {
+      "verdict": "RENAME",
+      "suffix": "runtime",
+      "count": 3,
+      "rationale": "ADR-0056 §'Concrete migration' (lines 283-289) explicitly slates `*-runtime` crates for rename to `*-app`. `runtime` is not in the canonical enum and doesn't generalize: each of the 3 crates is a composition-root binary that wires kernels + adapters into a deployable service — that is `app`'s exact definition.",
+      "amendment_action": "Per-crate rename to `-app` suffix. Each rename = C1-shaped atomic commit (workspace.members + crate dir + Cargo.toml + all importers + any *-runtime binary refs in workflows/scripts).",
+      "crates": [
+        {"current": "oya-foundry-account-runtime", "proposed": "oya-foundry-account-app", "conflict_note": "Already a crate named oya-foundry-account-app. Likely candidates: merge into the existing -app crate, OR rename to oya-foundry-account-runtime-app, OR rename to a more specific name like oya-foundry-account-supervisor-app. Council-architecture decision required."},
+        {"current": "oya-ops-workspace-shell-runtime", "proposed": "oya-ops-workspace-shell-app", "conflict_note": "Verify no name collision with oya-ops-workspace-shell-application (which exists)."},
+        {"current": "oya-saas-plugin-runtime", "proposed": "oya-saas-plugin-app", "conflict_note": "No collision detected."}
+      ]
+    },
+    {
+      "verdict": "RENAME",
+      "suffix": "<fitness-feature-without-suffix>",
+      "count": 7,
+      "rationale": "Each crate in `tools/` paired with a `crates/oya-foundry-fitness-<feature>-kernel`. Per ADR-0056 binaries are `*-app`. The tools/ binary should mirror the kernel name with `-app` suffix.",
+      "amendment_action": "Per-crate rename to `*-app` suffix. Each rename touches: tools/<dir> rename, Cargo.toml workspace.members entry, internal Cargo.toml package name, any CI workflow `cargo run -p NAME` references, any scripts that invoke the binary by name.",
+      "alternative": "Accept tools/ as an implicit-`app` layer convention (similar to how `oya-check-*` is implicit). Amend ADR-0056 to recognize tools/-prefixed crates as binaries-by-convention. Lower-overhead but less explicit.",
+      "crates": [
+        "oya-foundry-fitness-portfolio-citation",
+        "oya-foundry-fitness-predictable-naming",
+        "oya-foundry-fitness-archive-orphan",
+        "oya-foundry-fitness-banned-primitives",
+        "oya-foundry-fitness-adr-shape",
+        "oya-foundry-fitness-authoritative-tracked",
+        "oya-foundry-fitness-purpose-audit"
+      ]
+    },
+    {
+      "verdict": "RENAME-CASE-BY-CASE",
+      "suffix": "<one-off-vcs-and-other-drift>",
+      "count": 8,
+      "rationale": "One-off non-canonical suffixes that don't generalize. Each crate's shape (lib-only vs bin vs both) determines the correct canonical mapping.",
+      "crates": [
+        {"current": "oya-foundry-vcs-promotion-controller", "shape": "lib-only", "proposed": "oya-foundry-vcs-promotion-application", "note": "controller logic is a library composed at app-level; application layer fits."},
+        {"current": "oya-foundry-vcs-review-mergequeue", "shape": "lib-only", "proposed": "oya-foundry-vcs-review-domain", "note": "merge-queue is domain logic; rename to domain. Or split into kernel+domain+adapter if the queue has I/O seams."},
+        {"current": "oya-foundry-vcs-cli-ratchet", "shape": "lib-only", "proposed": "oya-foundry-vcs-cli", "note": "the `-ratchet` is a feature name; the layer should be `cli`. Drop the suffix."},
+        {"current": "oya-foundry-vcs-test-standard-gate", "shape": "lib-only", "proposed": "oya-foundry-vcs-test-standard-domain", "note": "gate logic is domain; rename."},
+        {"current": "oya-foundry-vcs-polyglot-indexer-adapters", "shape": "lib-only", "proposed": "oya-foundry-vcs-polyglot-indexer-adapter", "note": "PLURAL → SINGULAR. ADR-0056 §'Layer semantics > adapter' is singular."},
+        {"current": "oya-saas-plugin-marketplace", "shape": "?", "proposed": "oya-saas-plugin-marketplace-app", "note": "Need to inspect — if lib, suffix `-domain` or `-application`; if bin, `-app`."},
+        {"current": "oya-adapter-substitution-test", "shape": "bin (in tools/)", "proposed": "oya-adapter-substitution-test-app", "note": "Tool binary; needs `-app` suffix per ADR-0056. Alternative: adopt tools/ convention (see ADOPT-PAT-03 candidate)."},
+        {"current": "oya-tooling-agent-read", "shape": "bin (in tools/)", "proposed": "KEEP", "note": "Sanctioned primitive per CLAUDE.md; renaming would break the agent operating contract. Adopt as fixed name (Exception). Add to ADR-0056 §'Naming exceptions'."}
+      ]
+    }
+  ],
+  "amendment_proposal_summary": {
+    "additions_to_canonical_enum": ["api"],
+    "size_after": "13-value canonical enum",
+    "adopted_patterns_to_document": ["check-family", "backend-suffix", "tools/-implicit-app (under review)"],
+    "renames_required": 11,
+    "rename_estimate": "11 atomic commits, ~30-60 min per crate (C1-shaped: workspace.members + Cargo.toml + crate dir + all importers + verification build)"
+  },
+  "execution_dependencies": [
+    "ADR-0056 amendment ratification (per governance-amendment.json §procedure) BEFORE any rename executes",
+    "Per-rename PR cites this audit row + the ADR amendment number",
+    "Cargo.lock refreshed after each rename"
+  ],
+  "references": [
+    "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md — current canonical 12-layer enum",
+    "specs/cross-cutting/decision-principles.json#DP-06-bounded-scope-per-doc — naming discipline",
+    "specs/cross-cutting/governance-amendment.json — procedure for ratifying ADR-0056 amendment",
+    "2026-05-15 user directive: 'audit enums layers as well ... if they are well defined and serve a purpose, consider adopting them. otherwise stick to canonical layer types.'"
+  ]
+}
