@@ -1,5 +1,5 @@
 [package]
-name = "oya-saas-plugin-runtime"
+name = "oya-saas-plugin-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -10,7 +10,7 @@ license = "Apache-2.0"
 oya-saas-plugin-marketplace = { path = "../oya-saas-plugin-marketplace" }
 
 [lib]
-name = "oya_saas_plugin_runtime"
+name = "oya_saas_plugin_app"
 path = "src/lib.rs"
 doctest = false
 

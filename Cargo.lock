@@ -2417,20 +2417,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ops-workspace-shell-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-ops-workspace-shell-rest"
-version = "0.1.0"
-dependencies = [
- "oya-ops-workspace-shell-adapter",
- "oya-ops-workspace-shell-kernel",
- "oya-ops-workspace-shell-usecase",
-]
-
-[[package]]
-name = "oya-ops-workspace-shell-runtime"
+name = "oya-ops-workspace-shell-app"
 version = "0.1.0"
 dependencies = [
  "oya-http-middleware-kernel",
@@ -2441,6 +2428,19 @@ dependencies = [
  "oya-ops-workspace-shell-rest",
  "oya-ops-workspace-shell-usecase",
  "tokio",
+]
+
+[[package]]
+name = "oya-ops-workspace-shell-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "oya-ops-workspace-shell-rest"
+version = "0.1.0"
+dependencies = [
+ "oya-ops-workspace-shell-adapter",
+ "oya-ops-workspace-shell-kernel",
+ "oya-ops-workspace-shell-usecase",
 ]
 
 [[package]]
@@ -2488,23 +2488,23 @@ dependencies = [
 name = "oya-saas-bench-app"
 version = "0.1.0"
 dependencies = [
+ "oya-saas-plugin-app",
  "oya-saas-plugin-marketplace",
- "oya-saas-plugin-runtime",
  "oya-saas-workflow-app",
  "oya-saas-workflow-domain",
  "oya-saas-workflow-kernel",
 ]
 
 [[package]]
-name = "oya-saas-plugin-marketplace"
-version = "0.1.0"
-
-[[package]]
-name = "oya-saas-plugin-runtime"
+name = "oya-saas-plugin-app"
 version = "0.1.0"
 dependencies = [
  "oya-saas-plugin-marketplace",
 ]
+
+[[package]]
+name = "oya-saas-plugin-marketplace"
+version = "0.1.0"
 
 [[package]]
 name = "oya-saas-workflow-app"

@@ -1,5 +1,5 @@
 [package]
-name = "oya-ops-workspace-shell-runtime"
+name = "oya-ops-workspace-shell-app"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -20,7 +20,7 @@ tokio.workspace = true
 
 
 [lib]
-name = "oya_ops_workspace_shell_runtime"
+name = "oya_ops_workspace_shell_app"
 path = "src/lib.rs"
 doctest = false
 

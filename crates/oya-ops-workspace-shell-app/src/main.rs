@@ -6,7 +6,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 
 use oya_http_runtime_hyper_adapter::ServerConfig;
-use oya_ops_workspace_shell_runtime::{build_chain, build_dev_catalog, build_router};
+use oya_ops_workspace_shell_app::{build_chain, build_dev_catalog, build_router};
 
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
