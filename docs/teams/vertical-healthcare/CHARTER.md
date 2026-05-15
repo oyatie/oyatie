@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Healthcare (Clinical / Ambulatory / HL7-FHIR)
 
 ## Mission

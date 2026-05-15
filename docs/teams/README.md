@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Engineering Teams — Team-of-Teams Overview
 
 > **Status:** Draft v0.1 — 2026-05-09.

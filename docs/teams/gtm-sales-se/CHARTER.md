@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: GTM — Sales & Solutions Engineering
 
 ## Mission

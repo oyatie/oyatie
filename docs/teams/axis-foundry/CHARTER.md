@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Axis — Foundry (Agent Runtime + Foundry)
 
 ## Mission

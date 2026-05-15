@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Food (Supply-Chain Compliance)
 
 ## Mission
