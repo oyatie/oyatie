@@ -1,5 +1,6 @@
 ---
 purpose: Auto-backfilled purpose for RACI-OWNERSHIP.md
+doc_status: published
 ---
 
 # Oyatie — RACI + Ownership Matrix

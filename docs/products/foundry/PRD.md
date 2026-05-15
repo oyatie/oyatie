@@ -1,3 +1,6 @@
+---
+doc_status: published
+---
 # Oyatie — Product PRD: Foundry — AI Agent Runtime + Foundry engineering platform (UNIFIED)
 
 > **Status:** draft → preview *(industry-standard labels per [GLOSSARY.md §11](../../GLOSSARY.md))*

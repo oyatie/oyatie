@@ -1,5 +1,6 @@
 ---
 purpose: Auto-backfilled purpose for PRD.md
+doc_status: published
 ---
 
 # Oyatie — Product Requirements Document (PRD)

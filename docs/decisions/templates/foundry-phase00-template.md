@@ -1,3 +1,6 @@
+---
+doc_status: drafted
+---
 # ADR-XXXX — <title>
 
 - Status: Proposed | Accepted | Superseded

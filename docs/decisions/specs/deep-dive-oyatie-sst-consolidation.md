@@ -1,3 +1,6 @@
+---
+doc_status: published
+---
 # Deep-Dive Spec: oyatie Single Source of Truth + grit/icm agentic pipeline
 
 <!--

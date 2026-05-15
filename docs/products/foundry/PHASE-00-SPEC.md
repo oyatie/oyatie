@@ -1,3 +1,6 @@
+---
+doc_status: published
+---
 # Foundry Phase 00 Specification — Account-Auth Bootstrap
 
 <!--
