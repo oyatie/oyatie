@@ -283,9 +283,7 @@ pub const CANONICAL_SENTINEL_MILESTONES: &[&str] = &[DOCTRINE_NOT_TIME_BOUNDED_S
 /// clauses are exempt from SunsetReached / RemovalReached findings and
 /// classify as [`LifecycleState::PreSunset`] (silent/healthy).
 pub fn is_sentinel_milestone(milestone: &str) -> bool {
-    CANONICAL_SENTINEL_MILESTONES
-        .iter()
-        .any(|m| *m == milestone)
+    CANONICAL_SENTINEL_MILESTONES.contains(&milestone)
 }
 
 /// Effective deprecation date for a clause: explicit if present, else
@@ -650,7 +648,10 @@ mod tests {
         // overdue sunset_at.
         let clause = SunsetClause {
             location: "test://contradiction".into(),
-            sunset_at: Some(d(2026, 1, 1)), // already past
+            // Past sunset but pre-removal window: 14 days past sunset_at;
+            // effective_removal_at defaults to sunset_at + 30 + 90 = 120 days
+            // out, which is still future relative to `now`.
+            sunset_at: Some(d(2026, 5, 1)),
             sunset_milestone: Some(DOCTRINE_NOT_TIME_BOUNDED_SENTINEL.to_string()),
             deprecation_at: None,
             removal_at: None,
@@ -658,7 +659,7 @@ mod tests {
             has_deprecation_marker: false,
         };
         let v = evaluate(std::slice::from_ref(&clause), d(2026, 5, 15), &[]);
-        // sunset_at present and reached -> SunsetReached, NOT silent.
+        // sunset_at present and reached -> SunsetReached, NOT silently exempt.
         assert_eq!(v.len(), 1);
         assert_eq!(v[0].state, LifecycleState::SunsetReached);
     }
