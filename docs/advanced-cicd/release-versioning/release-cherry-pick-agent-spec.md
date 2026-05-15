@@ -12,6 +12,7 @@ purpose: |
   Directive 12 (documented direct tool invocations).
 enforced_by: oya-foundry-fitness-cherry-pick-trail, oya-foundry-fitness-release-branch-cut
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Release Cherry-Pick Agent Spec — oyatie

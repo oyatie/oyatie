@@ -14,6 +14,7 @@ purpose: |
   contract that matches industry expectation.
 enforced_by: oya-foundry-fitness-semver-discipline, oya-foundry-fitness-api-version-stability, oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-version-eol-warning, oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-cherry-pick-trail
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Release Versioning Strategy — oyatie

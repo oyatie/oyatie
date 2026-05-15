@@ -12,6 +12,7 @@ purpose: |
   enforcement in CI and a breaking-change ADR gate.
 enforced_by: oya-foundry-fitness-semver-discipline
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Crate Versioning Spec — oyatie

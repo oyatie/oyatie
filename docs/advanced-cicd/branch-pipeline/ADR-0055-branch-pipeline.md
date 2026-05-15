@@ -14,6 +14,7 @@ purpose: |
   No human-button at any transition. Reviewer-agent verdict gates shared-world entry.
 related_adrs: [ADR-0040, ADR-0041, ADR-0042, ADR-0050]
 supersedes: [ADR-0041]
+doc_status: published
 ---
 
 # ADR-DRAFT: Four-Layer Branch Pipeline with Reviewer-Agent-Gated Auto-Promotion (Supersedes ADR-0041)

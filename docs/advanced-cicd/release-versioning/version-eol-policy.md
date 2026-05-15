@@ -12,6 +12,7 @@ purpose: |
   EOL-LEDGER as the single source of truth for support status.
 enforced_by: oya-foundry-fitness-version-eol-warning
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Version EOL Policy — oyatie

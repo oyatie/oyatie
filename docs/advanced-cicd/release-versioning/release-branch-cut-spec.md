@@ -12,6 +12,7 @@ purpose: |
   pipeline, and the cherry-pick rules. Aligns with Kubernetes release-X.Y model.
 enforced_by: oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-cherry-pick-trail
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Release Branch Cut Spec — oyatie

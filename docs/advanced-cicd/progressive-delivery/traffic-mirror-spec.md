@@ -12,6 +12,7 @@ purpose: |
 enforced_by:
   - oya-foundry-fitness-shadow-diff
 related_adrs: [ADR-0044, ADR-0040]
+doc_status: published
 ---
 
 # Traffic-Mirror Specification

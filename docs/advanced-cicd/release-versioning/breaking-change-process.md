@@ -13,6 +13,7 @@ purpose: |
   next release cut. Calibrated between AWS (12 months) and Stripe (never-break).
 enforced_by: oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-api-version-stability
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Breaking Change Process — oyatie

@@ -13,6 +13,7 @@ enforced_by:
   - oya-foundry-fitness-shadow-diff
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0020, ADR-0021, ADR-0024, ADR-0039]
+doc_status: published
 ---
 
 # Playbook: Foundry Capability Rollout

@@ -12,6 +12,7 @@ purpose: |
   cherry-pick trail integrity, EOL warning, and deprecation notice.
 enforced_by: self
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Enforcement Lanes — Release Versioning

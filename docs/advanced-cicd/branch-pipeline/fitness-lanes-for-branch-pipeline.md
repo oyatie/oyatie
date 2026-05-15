@@ -12,6 +12,7 @@ purpose: |
   evaluation logic, output schema, escalation. Provider-agnostic lane definitions.
 enforced_by: self-describing
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Fitness Lanes for the Branch Pipeline

@@ -15,6 +15,7 @@ enforced_by:
   - oya-foundry-fitness-canary-regression-sla
   - oya-foundry-fitness-promotion-gate-staging-to-prod
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Velocity Without Stability Loss — The Trade-Off Doc

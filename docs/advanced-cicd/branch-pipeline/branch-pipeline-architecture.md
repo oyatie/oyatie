@@ -17,6 +17,7 @@ enforced_by:
   - oya-foundry-fitness-no-direct-origin-dev-commit
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 supersedes: [ADR-0041]
+doc_status: published
 ---
 
 # Branch Pipeline Architecture — Four-Layer Auto-Promotion

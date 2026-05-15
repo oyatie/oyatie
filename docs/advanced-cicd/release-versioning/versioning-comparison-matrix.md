@@ -12,6 +12,7 @@ purpose: |
   LTS commitments. Anchors the oyatie policy choices in real-world precedent.
 enforced_by: self
 related_adrs: [ADR-0041]
+doc_status: published
 ---
 
 # Versioning Comparison Matrix — oyatie
