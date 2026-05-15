@@ -90,7 +90,7 @@ jobs:
         with:
           toolchain: stable
       - name: Install cargo-nextest
-        uses: taiki-e/install-action@9185c192a96ba09167ad8663015b3f5366e1bb1f
+        uses: taiki-e/install-action@184183c2401be73c3bf42c2e61268aa5855379c1
         with:
           tool: cargo-nextest
       - name: Cache cargo registry + target

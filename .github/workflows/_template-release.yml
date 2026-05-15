@@ -59,7 +59,7 @@ jobs:
           targets: x86_64-unknown-linux-musl,aarch64-unknown-linux-musl
 
       - name: Install cross
-        uses: taiki-e/install-action@9185c192a96ba09167ad8663015b3f5366e1bb1f
+        uses: taiki-e/install-action@184183c2401be73c3bf42c2e61268aa5855379c1
         with:
           tool: cross
 
