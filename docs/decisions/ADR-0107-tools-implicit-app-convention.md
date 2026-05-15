@@ -34,7 +34,7 @@ User directive (2026-05-15): *"for 9 dont allow exceptions. fix our adr and othe
 1. **The "implicit-app" exception is REMOVED.** Crates under `tools/` are NOT implicitly `app` by directory location. The directory is an organizational hint, not a naming declaration.
 2. **Every `tools/` crate MUST end in a canonical layer suffix** drawn from ADR-0105's 13-value enum (`kernel | domain | usecase | app | adapter | infrastructure | cli | rest | grpc | graphql | worker | sdk | api`), or match a documented Adopted Pattern (`oya-check-<feature>` self-layering or `*-adapter-<backend>` backend-qualifier).
 3. **Binary tool crates under `tools/` SHALL use the `-app` suffix** as the canonical declaration of composition-root layer. This is the documented binding of `app` to the `[[bin]]` shape per ADR-0056 §"Layer semantics > app".
-4. **`oya-tooling-agent-read` retains its name** ONLY because CLAUDE.md declares it a sanctioned coordination primitive whose name is doctrinally fixed by the agent-operating contract. This is a doctrinal lock at the agent-contract layer, NOT a naming-canonical exception. The crate-naming kernel records it as a documented doctrinal carve-out tied to ADR-0053 (sanctioned primitives), distinct from the layer-enum canonical surface.
+4. **`oya-tooling-agent-read` retains its name** ONLY because CLAUDE.md declares it a sanctioned coordination primitive whose name is doctrinally fixed by the agent-operating contract. This is a doctrinal lock at the agent-contract layer, NOT a naming-canonical exception. The crate-naming kernel records it as a documented doctrinal bounded-extension tied to ADR-0053 (sanctioned primitives), distinct from the layer-enum canonical surface.
 
 ### Effect on the 9 crates originally enumerated
 
@@ -48,7 +48,7 @@ User directive (2026-05-15): *"for 9 dont allow exceptions. fix our adr and othe
 | `tools/oya-foundry-fitness-authoritative-tracked` | RENAME → `*-app` | Binary tool; canonical `-app`. |
 | `tools/oya-foundry-fitness-purpose-audit` | RENAME → `*-app` | Binary tool; canonical `-app`. |
 | `tools/oya-adapter-substitution-test` | RENAME → `*-app` | Binary tool; canonical `-app`. |
-| `tools/oya-tooling-agent-read` | KEEP (doctrinal lock, not naming exception) | CLAUDE.md sanctioned primitive; name fixed at agent-operating-contract layer. Recorded as a doctrinal carve-out under ADR-0053, NOT a layer-enum exception. |
+| `tools/oya-tooling-agent-read` | KEEP (doctrinal lock, not naming exception) | CLAUDE.md sanctioned primitive; name fixed at agent-operating-contract layer. Recorded as a doctrinal bounded-extension under ADR-0053, NOT a layer-enum exception. |
 
 All 8 renames execute as C1-shaped atomic commits per ADR-0054 §grit-scaffold-claim-pattern.
 
@@ -60,7 +60,7 @@ All 8 renames execute as C1-shaped atomic commits per ADR-0054 §grit-scaffold-c
 
 > "Every crate under `tools/` MUST end in a canonical layer suffix from the 13-value enum above (or match a documented Adopted Pattern: `oya-check-<feature>` or `*-adapter-<backend>`). The `tools/` directory is an organizational hint; the layer suffix is the naming declaration. For binary-shape (`[[bin]]`) tools, the canonical layer suffix is **`-app`** ..."
 
-ADR-0105 also retroactively rejects the original "Tools/-implicit-app convention" alternative and records the `oya-tooling-agent-read` doctrinal carve-out at the agent-operating-contract layer (ADR-0053). Every clause of ADR-0107's self-amendment is now present in ADR-0105. ADR-0107 carries no unique decision content.
+ADR-0105 also retroactively rejects the original "Tools/-implicit-app convention" alternative and records the `oya-tooling-agent-read` doctrinal bounded-extension at the agent-operating-contract layer (ADR-0053). Every clause of ADR-0107's self-amendment is now present in ADR-0105. ADR-0107 carries no unique decision content.
 
 **Why supersede rather than amend further.** Per `feedback_no_exceptions_canonical.md`, superseded ADRs are a canonical lifecycle stage — supersession is the prescribed transition when content is fully absorbed by a sibling ADR. Keeping ADR-0107 as a self-referential supersede would split the canonical surface across two ADRs for one rule.
 
@@ -72,7 +72,7 @@ ADR-0105 also retroactively rejects the original "Tools/-implicit-app convention
 
 (Original §"Decision" content preserved below for traceability. Do NOT cite.)
 
-~~**Any crate under `tools/` is implicitly the `app` layer.**~~ Superseded by 2026-05-15 amendment — implicit-by-location is no longer a sanctioned naming surface. The 9 crates enumerated above are resolved either by explicit rename to canonical layer suffix or by recorded doctrinal carve-out (only `oya-tooling-agent-read`).
+~~**Any crate under `tools/` is implicitly the `app` layer.**~~ Superseded by 2026-05-15 amendment — implicit-by-location is no longer a sanctioned naming surface. The 9 crates enumerated above are resolved either by explicit rename to canonical layer suffix or by recorded doctrinal bounded-extension (only `oya-tooling-agent-read`).
 
 ## Pre-amendment Status (historical)
 Originally `Accepted` on 2026-05-15. Superseded the same day by user directive prioritizing predictable canonical naming over directory-implicit conventions.
@@ -142,7 +142,7 @@ The audit's residual non-compliant count drops from 18 to 9 (the remaining 9 are
 - **`oya-foundry-fitness-predictable-naming-kernel`** must be updated to recognize the tools/-implicit-app convention. Until then, the lane would flag these 9 crates as non-compliant.
 - **`specs/cross-cutting/crate-naming-audit.json`** is amended in this commit to mark the 9 tools/ crates as compliant via ADR-0107.
 - **Cargo.toml `[workspace.metadata.oya]`** comment block updated to document the convention alongside the check-family and backend-suffix patterns from ADR-0105.
-- **`oya-tooling-agent-read` no longer requires the "naming-exceptions" doctrinal carve-out** I added in ADR-0105 (it's now compliant via the standard convention).
+- **`oya-tooling-agent-read` no longer requires the "naming-exceptions" doctrinal bounded-extension** I added in ADR-0105 (it's now compliant via the standard convention).
 
 ## Drivers
 
