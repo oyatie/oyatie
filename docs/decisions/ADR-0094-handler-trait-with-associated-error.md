@@ -1,6 +1,7 @@
 ---
 id: ADR-0094
 status: accepted
+doc_status: published
 ---
 
 # ADR-0094: `Handler` trait with associated `Error` type

@@ -2,6 +2,7 @@
 id: ADR-0102
 title: Foundry Settings Template Canonical Rendering
 status: Accepted
+doc_status: published
 owner: council-architecture
 date: 2026-05-15
 ---

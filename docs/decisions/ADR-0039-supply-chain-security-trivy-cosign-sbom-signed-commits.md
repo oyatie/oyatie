@@ -1,6 +1,7 @@
 ---
 id: ADR-0039
 status: proposed
+doc_status: published
 ---
 
 # ADR-0039: Supply chain security — Trivy 4-layer scan, Cosign keyless signing, SBOM dual-format, signed commits and tags, Kyverno admission

@@ -1,6 +1,7 @@
 ---
 id: ADR-0031
 status: accepted
+doc_status: published
 ---
 
 # ADR-0031: Ads + Analytics microservice — singleton tenant-ads-gate sourcing, sub-100ms auction, privacy-preserving attribution, Data-Use-Boundary at runtime

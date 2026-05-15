@@ -1,6 +1,7 @@
 ---
 id: ADR-0050
 status: proposed
+doc_status: published
 ---
 
 # ADR-0050: Automation-first pipeline — Google + Amazon doctrine, sccache + remote execution, affected-graph testing, Foundry-driven PR triage

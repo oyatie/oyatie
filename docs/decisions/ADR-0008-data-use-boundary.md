@@ -1,6 +1,7 @@
 ---
 id: ADR-0008
 status: accepted
+doc_status: published
 ---
 
 # ADR-0008: Data Use Boundary — twelve data classes with HARD_DENY for PHI/PCI/PIPA-Art23/CHILDREN, orthogonal subject_class, purpose-permission matrix, and four-pillar flow matrix

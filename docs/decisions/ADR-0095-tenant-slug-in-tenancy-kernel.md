@@ -1,6 +1,7 @@
 ---
 id: ADR-0095
 status: accepted
+doc_status: published
 ---
 
 # ADR-0095: `TenantSlug` centralized in `oya-tenancy-kernel`

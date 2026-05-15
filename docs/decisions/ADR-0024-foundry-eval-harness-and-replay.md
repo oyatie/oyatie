@@ -1,6 +1,7 @@
 ---
 id: ADR-0024
 status: proposed
+doc_status: published
 ---
 
 # ADR-0024: Foundry eval harness and replay — per-capability golden sets, A/B routing, adversarial cohorts, regional linguistic eval

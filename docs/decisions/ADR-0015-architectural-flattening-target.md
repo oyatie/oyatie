@@ -1,6 +1,7 @@
 ---
 id: ADR-0015
 status: accepted
+doc_status: published
 ---
 
 # ADR-0015: Architectural flattening target — flat-crates `crates/oya-<context>-<role>[-<capability>]/`, role taxonomy (kernel / domain / app / api / worker / adapter / runtime), dep-direction kernel←domain←app←api/worker/adapter←runtime, boundary validator, migration path from legacy modules / services / platform tree

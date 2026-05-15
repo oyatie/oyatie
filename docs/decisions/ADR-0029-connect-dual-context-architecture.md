@@ -1,6 +1,7 @@
 ---
 id: ADR-0029
 status: accepted
+doc_status: published
 ---
 
 # ADR-0029: Connect microservice — dual-context communications (Professional + Personal) as cohesion-bound replacement for Google Workspace / M365 / Naver Works / Kakao Work

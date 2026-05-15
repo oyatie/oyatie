@@ -1,6 +1,7 @@
 ---
 id: ADR-0037
 status: proposed
+doc_status: published
 sunset_topic: adr-0037-public-api-deprecation-doctrine
 sunset_milestone: doctrine-not-time-bounded
 ---

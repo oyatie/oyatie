@@ -1,6 +1,7 @@
 ---
 id: ADR-0063
 status: accepted
+doc_status: published
 ---
 
 # ADR-0063: Documentation suite coverage — every planned feature ships with a complete doc suite, CI-enforced

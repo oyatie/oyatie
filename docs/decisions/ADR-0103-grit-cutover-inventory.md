@@ -3,6 +3,7 @@ doc_class: ADR
 adr_id: ADR-0103
 title: Grit cutover inventory of legacy primitives
 status: Accepted
+doc_status: published
 owner: council-architecture
 deciders: council-architecture + axis-foundry
 date: 2026-05-14

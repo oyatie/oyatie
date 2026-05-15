@@ -4,6 +4,7 @@ shape: ~
 length_cap: 500
 authority_tier: 2
 status: Accepted
+doc_status: published
 date: 2026-05-13
 version: v4.1
 purpose: |

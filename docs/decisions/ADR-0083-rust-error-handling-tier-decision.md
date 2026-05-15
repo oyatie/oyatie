@@ -4,6 +4,7 @@ shape: ~
 length_cap: 250
 authority_tier: 2
 status: Accepted
+doc_status: published
 date: 2026-05-15
 purpose: |
   Formalise the thiserror (library crates) / anyhow (binary crates) tier

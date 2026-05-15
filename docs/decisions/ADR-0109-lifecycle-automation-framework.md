@@ -2,6 +2,7 @@
 id: ADR-0109
 title: Lifecycle-automation framework (generic kernel + per-lifecycle configs)
 status: Accepted
+doc_status: published
 owner: council-architecture
 date: 2026-05-15
 relates_to:

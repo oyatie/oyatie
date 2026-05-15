@@ -1,6 +1,7 @@
 ---
 id: ADR-0060
 status: accepted
+doc_status: published
 ---
 
 # ADR-0060: Bominal-inheritance precedence — default inherit Bominal ADRs; session decisions override

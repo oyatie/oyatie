@@ -2,6 +2,7 @@
 id: ADR-0052
 title: "Canonical inventory ledger for the grit/icm cutover"
 status: Accepted
+doc_status: published
 date: 2026-05-12
 owners:
   - council-architecture

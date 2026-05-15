@@ -2,6 +2,7 @@
 id: ADR-0097
 title: "Rename oya-foundry-account-adapter-{claude-code,codex-cli,gemini-cli} → oya-foundry-{claude,codex,gemini}-account-adapter"
 status: accepted
+doc_status: published
 owner: council-architecture
 date: 2026-05-15
 owner_phase: M02-P06

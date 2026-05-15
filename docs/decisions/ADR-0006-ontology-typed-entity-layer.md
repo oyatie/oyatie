@@ -1,6 +1,7 @@
 ---
 id: ADR-0006
 status: accepted
+doc_status: published
 ---
 
 # ADR-0006: Ontology as the engine-enforced typed-entity layer with per-property tier classification

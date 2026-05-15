@@ -1,6 +1,7 @@
 ---
 id: ADR-0047
 status: proposed
+doc_status: published
 ---
 
 # ADR-0047: Search backend strategy — pgroonga day-1 (LGPL legal isolation), Tantivy in-Rust at scale, OpenSearch as Apache-2 adapter, in-house long-horizon

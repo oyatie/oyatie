@@ -1,6 +1,7 @@
 ---
 id: ADR-0018
 status: accepted
+doc_status: published
 ---
 
 # ADR-0018: Glossary and terminology canon — industry-aligned vocabulary, Oyatie-specific terms with industry analog, Korean-English parity table, oya-check-glossary CI lane

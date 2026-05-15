@@ -1,6 +1,7 @@
 ---
 id: ADR-0040
 status: proposed
+doc_status: published
 ---
 
 # ADR-0040: Progressive delivery — Argo Rollouts canary, blue-green for stateful surfaces, metric-gated rollback at SLO burn-rate ≥ 14.4×

@@ -2,6 +2,7 @@
 id: ADR-0107
 title: `tools/` directory canonical-suffix binding (was: implicit `app` layer — SUPERSEDED by ADR-0105)
 status: Superseded
+doc_status: superseded
 superseded_by: ADR-0105-13-layer-enum-and-check-family-patterns.md
 owner: council-architecture
 date: 2026-05-15

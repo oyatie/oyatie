@@ -1,6 +1,7 @@
 ---
 id: ADR-0093
 status: accepted
+doc_status: published
 ---
 
 # ADR-0093: DeadlineMiddleware → LatencyBudgetReporter (honest naming)

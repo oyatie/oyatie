@@ -1,6 +1,7 @@
 ---
 id: ADR-0065
 status: accepted
+doc_status: published
 ---
 
 # ADR-0065: Documentation as Leptos web pages with machine-readable JSON/YAML/TOML co-emission

@@ -1,6 +1,7 @@
 ---
 id: ADR-0053
 status: Accepted
+doc_status: published
 date: 2026-05-12
 owners:
   - council-architecture

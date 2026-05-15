@@ -1,6 +1,7 @@
 ---
 id: ADR-0048
 status: proposed
+doc_status: published
 ---
 
 # ADR-0048: Korean morphology + multilingual tokenization — `Tokenizer` trait per language family, mecab-ko + khaiii FFI day-1, in-house Rust port long-horizon

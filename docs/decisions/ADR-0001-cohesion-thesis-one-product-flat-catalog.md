@@ -1,6 +1,7 @@
 ---
 id: ADR-0001
 status: accepted
+doc_status: published
 ---
 
 # ADR-0001: Adopt the cohesion thesis — one product across a flat microservice catalog joined at six shared substrates

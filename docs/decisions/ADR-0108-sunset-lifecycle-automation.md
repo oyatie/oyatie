@@ -2,6 +2,7 @@
 id: ADR-0108
 title: Sunset → deprecation → removal lifecycle automation schema (machine-readable)
 status: Accepted
+doc_status: published
 owner: council-architecture
 date: 2026-05-15
 relates_to:

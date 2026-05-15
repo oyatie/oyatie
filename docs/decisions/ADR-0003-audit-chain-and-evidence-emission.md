@@ -1,6 +1,7 @@
 ---
 id: ADR-0003
 status: proposed
+doc_status: published
 ---
 
 # ADR-0003: Audit chain and evidence emission as the single tamper-evident record-keeping substrate

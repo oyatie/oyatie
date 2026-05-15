@@ -1,6 +1,7 @@
 ---
 id: ADR-0010
 status: proposed
+doc_status: published
 ---
 
 # ADR-0010: Regional pack architecture — canonical seams + per-locale plug-ins for regulatory, compliance, i18n, currency, calendar, tax, identity, payment, address, ecosystem partners, content safety, ad policy, industry data models, and vendor partners

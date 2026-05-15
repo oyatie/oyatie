@@ -2,6 +2,7 @@
 id: ADR-0099
 title: "Cedar policy extension — foundry supervisor capabilities in docs/policies/foundry-supervisor.cedar"
 status: accepted
+doc_status: published
 owner: council-architecture
 date: 2026-05-15
 owner_phase: M02-P06

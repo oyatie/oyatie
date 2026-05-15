@@ -1,6 +1,7 @@
 ---
 id: ADR-0041
 status: proposed
+doc_status: published
 ---
 
 # ADR-0041: GitOps — trunk-based development with release branch cut at tag, merge queue with one-PR-at-a-time root-Cargo-touch

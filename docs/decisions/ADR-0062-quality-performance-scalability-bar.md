@@ -1,6 +1,7 @@
 ---
 id: ADR-0062
 status: accepted
+doc_status: published
 ---
 
 # ADR-0062: Quality/Performance/Scalability bar — industry leaders + hyperscaler scale, mandatory from day one

@@ -1,6 +1,7 @@
 ---
 id: ADR-0055
 status: accepted
+doc_status: published
 ---
 
 # ADR-0055: Object Graph renamed to Ontology

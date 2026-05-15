@@ -2,6 +2,7 @@
 id: ADR-0104
 title: Ecosystem-expansion principle for check-lane + adapter crate reintroduction
 status: Accepted
+doc_status: published
 owner: council-architecture
 date: 2026-05-15
 relates_to:
