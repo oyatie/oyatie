@@ -105,8 +105,7 @@ pub(crate) use glossary_cross_doc_gates::{
 };
 pub(crate) use governance_gates::{
     parse_authority_cohesion_validate_args, parse_claim_ceiling_validate_args,
-    parse_constitution_cite_validate_args, parse_plane_class_validate_args,
-    validate_authority_cohesion_gate, validate_claim_ceiling_gate, validate_constitution_cite_gate,
+    parse_plane_class_validate_args, validate_authority_cohesion_gate, validate_claim_ceiling_gate,
     validate_plane_class_gate,
 };
 pub(crate) use json_scan::{
@@ -202,7 +201,6 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate codeview-read-surface [--spec <specs/cross-cutting/codeview-read-surface.json>]"
         + "\n       oya gate validate cohesion [--workspace <Cargo.toml>] [--registry <registry/catalog>] [--contracts <docs/machine-readable/contracts.json>]"
         + "\n       oya gate validate codeowners-mirror [--codeowners <.github/CODEOWNERS>] [--teams-dir <docs/teams>]"
-        + "\n       oya gate validate constitution-cite-coverage [--docs-dir <docs>]"
         + "\n       oya gate validate data-class [--workspace <Cargo.toml>] [--legacy <registry/data-class/legacy-unannotated-fields.tsv>]"
         + "\n       oya gate validate doc-catalog [--docs-dir <docs>] [--catalog <docs/machine-readable/catalog.json>]"
         + "\n       oya gate validate documentation-system [--documentation <docs/DOCUMENTATION.md>] [--pipeline <registry/docs/pipeline.tsv>] [--check-script <scripts/check.sh>] [--wiki-quickref <docs/wiki/quickref/README.md>] [--repo-root <.>]"

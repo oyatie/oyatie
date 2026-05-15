@@ -20,7 +20,42 @@
   },
   "entry_points": {
     "_retired_constitutional_authority": {
-      "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution concept retired. Content redistributed: mission \u2192 masterplan; decision principles \u2192 agent-operating-contract; prohibitions \u2192 forbidden-operations.json (extends master-plan-sequencing forbidden_primitives); decision rights \u2192 RACI-OWNERSHIP. Source docs/CONSTITUTION.md marked for retirement (no migration to constitution.json)."
+      "retirement_note": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Strike executed 2026-05-15. Content redistributed to 4 machine-readable successor specs (see decision_principles, forbidden_operations, decision_rights, governance_amendment entry_points below). docs/CONSTITUTION.md deleted; crates/oya-check-constitution-cite deleted; oya-dev-cli constitution-cite gate removed. Per-file citation sweep tracked as follow-up.",
+      "retired_on": "2026-05-15",
+      "successor_specs": [
+        "decision_principles",
+        "forbidden_operations",
+        "decision_rights",
+        "governance_amendment"
+      ]
+    },
+    "decision_principles": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/decision-principles.json",
+      "target_path_after_md_retirement": "same (already machine-readable)",
+      "migration_phase": "complete",
+      "purpose": "10 normative do-rules every contributor and agent follows. Each principle declares enforcement mode (mechanical / cultural / mechanical-stub / deferred) and cites the lanes enforcing it. Successor to docs/CONSTITUTION.md \u00a7Decision-principles \u2014 Do."
+    },
+    "forbidden_operations": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/forbidden-operations.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "10 prohibitions with severity (critical / high / medium) + enforcement mode + lane citations. Successor to docs/CONSTITUTION.md \u00a7Prohibitions \u2014 Avoid. Companion to master-plan-sequencing.json forbidden_primitives (lower-level: tooling vs. doctrine)."
+    },
+    "decision_rights": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/decision-rights.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "12-class decision-rights table (owner + escalation per class). Successor to docs/CONSTITUTION.md \u00a7Decision-rights. Per-team RACI detail still in docs/RACI-OWNERSHIP.md."
+    },
+    "governance_amendment": {
+      "kind": "spec",
+      "current_path": "/specs/cross-cutting/governance-amendment.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "6-step amendment procedure for the 4-file doctrinal substrate. Declares EVT-DOCTRINE-AMENDED audit-chain event. Successor to docs/CONSTITUTION.md \u00a7Amendments."
     },
     "agent_operating_contract": {
       "kind": "spec",

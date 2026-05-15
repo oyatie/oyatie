@@ -39,7 +39,7 @@ This is the canonical engineering documentation tree for **Oyatie**, one cohesiv
 
 | If you are a... | Read first | Then |
 |---|---|---|
-| Founder / Council member | [`CONSTITUTION.md`](CONSTITUTION.md) | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
+| Founder / Council member | [`AGENTS.md`](AGENTS.md) + [decision-principles.json](../specs/cross-cutting/decision-principles.json) | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
 | Engineer / contributor | This file | [`AGENTS.md`](AGENTS.md) → the canonical doc map there |
 | Coding agent (Claude / Codex / Gemini / OMC) | [`AGENTS.md`](AGENTS.md) | per-agent appendix in `## Per-agent appendices` |
 | Auditor / regulator | [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) <!-- forward-reference: wave-1 --> | [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`SECURITY-PROGRAM.md`](SECURITY-PROGRAM.md) <!-- forward-reference: wave-1 --> |
@@ -47,8 +47,7 @@ This is the canonical engineering documentation tree for **Oyatie**, one cohesiv
 
 ## Tier-1 documents
 
-- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and ultimately from `docs/CONSTITUTION.md`. Foundation ADRs: ADR-0052, ADR-0053, ADR-0054.
-- [`CONSTITUTION.md`](CONSTITUTION.md) — mission, decision rights, prohibitions, amendments.
+- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and from the machine-readable doctrinal substrate at [`specs/cross-cutting/`](../specs/cross-cutting/) (`decision-principles.json`, `forbidden-operations.json`, `decision-rights.json`, `governance-amendment.json`). Foundation ADRs: ADR-0052, ADR-0053, ADR-0054.
 - [`AGENTS.md`](AGENTS.md) — single agent operating contract for every agent and every human.
 - [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> — architecture, planes, cross-axis contracts.
 - [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> — north star, axes, scope, success metrics.

@@ -1576,41 +1576,6 @@ fn authority_cohesion_gate_rejects_drifted_chain_declarations() {
 }
 
 #[test]
-fn constitution_cite_gate_rejects_tier_one_doc_without_heading_citation() {
-    let temp = temp_dir("constitution-cite");
-    fs::create_dir_all(&temp).expect("docs dir created");
-    fs::write(
-        temp.join("README.md"),
-        "# Docs\n\n## Tier-1 documents\n\n- [`AGENTS.md`](AGENTS.md) — contract.\n\n## Layer redirects\n",
-    )
-    .expect("docs readme written");
-    fs::write(
-        temp.join("AGENTS.md"),
-        "# Agent Contract\n\nBody cites [CONSTITUTION.md](CONSTITUTION.md), but heading does not.\n",
-    )
-    .expect("agent doc written");
-
-    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
-        .args([
-            "gate",
-            "validate",
-            "constitution-cite-coverage",
-            "--docs-dir",
-            temp.to_str().expect("utf8 docs dir"),
-        ])
-        .output()
-        .expect("constitution cite gate command runs");
-
-    assert!(!output.status.success());
-    assert!(
-        String::from_utf8_lossy(&output.stderr)
-            .contains("constitution cite coverage validation failed")
-    );
-
-    fs::remove_dir_all(temp).ok();
-}
-
-#[test]
 fn runbook_index_gate_rejects_indexed_missing_runbook() {
     let temp = temp_dir("runbook-index");
     fs::create_dir_all(temp.join("runbooks/foundry")).expect("runbooks dir created");

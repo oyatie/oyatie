@@ -36,7 +36,6 @@ members = [
   "crates/oya-check-pre-push",
   "crates/oya-check-pr-traceability",
   "crates/oya-check-quality-lane",
-  "crates/oya-check-constitution-cite",
   "crates/oya-foundry-catalog-domain",
   "crates/oya-check-claim-ceiling",
   "crates/oya-check-cohesion",

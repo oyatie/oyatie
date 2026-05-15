@@ -484,26 +484,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        (Some("validate"), Some("constitution-cite-coverage")) => {
-            match crate::parse_constitution_cite_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_constitution_cite_gate(args) {
-                    Ok(documents) => {
-                        println!(
-                            "constitution cite coverage validation passed: {documents} documents"
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("constitution cite coverage validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
         (Some("validate"), Some("license-policy")) => {
             match crate::parse_license_policy_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_license_policy_gate(args) {

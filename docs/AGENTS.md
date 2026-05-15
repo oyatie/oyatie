@@ -39,7 +39,7 @@ purpose: Auto-backfilled purpose for AGENTS.md
 ---
 # Oyatie Agent Operating Contract
 
-## Machine-readable authority — [root hub pointers](..//specs/cross-cutting/root-hub-pointers.json); retired [CONSTITUTION.md](CONSTITUTION.md)
+## Machine-readable authority — [root hub pointers](..//specs/cross-cutting/root-hub-pointers.json)
 
 ## Workspace doctrine — applies to every documentation / file / workflow
 

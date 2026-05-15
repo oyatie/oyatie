@@ -850,10 +850,6 @@ name = "oya-check-cohesion"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-constitution-cite"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-cost-budget"
 version = "0.1.0"
 dependencies = [
@@ -1458,7 +1454,6 @@ dependencies = [
  "oya-check-claim-ceiling",
  "oya-check-codeowners-mirror",
  "oya-check-cohesion",
- "oya-check-constitution-cite",
  "oya-check-data-class",
  "oya-check-doc-catalog",
  "oya-check-documentation-system",

@@ -3,9 +3,6 @@ use std::path::{Path, PathBuf};
 
 use oya_check_authority_cohesion::{AuthorityDocument, validate_authority_cohesion};
 use oya_check_claim_ceiling::FoundationClaimCeiling;
-use oya_check_constitution_cite::{
-    ConstitutionCitationDocument, validate_constitution_cite_coverage,
-};
 use oya_foundry_catalog_domain::CatalogIndex;
 
 use crate::{read_catalog_records, usage};
@@ -128,7 +125,7 @@ pub(crate) fn validate_authority_cohesion_gate(
 }
 
 fn read_authority_documents(docs_dir: &Path) -> Result<Vec<AuthorityDocument>, String> {
-    ["CONSTITUTION.md", "AGENTS.md", "README.md"]
+    ["AGENTS.md", "README.md"]
         .into_iter()
         .map(|file_name| {
             let path = docs_dir.join(file_name);
@@ -142,81 +139,3 @@ fn read_authority_documents(docs_dir: &Path) -> Result<Vec<AuthorityDocument>, S
         .collect()
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub(crate) struct ConstitutionCiteValidateArgs {
-    docs_dir: PathBuf,
-}
-
-pub(crate) fn parse_constitution_cite_validate_args(
-    args: Vec<String>,
-) -> Result<ConstitutionCiteValidateArgs, String> {
-    let mut parsed = ConstitutionCiteValidateArgs {
-        docs_dir: PathBuf::from("docs"),
-    };
-    let mut iter = args.into_iter();
-    while let Some(flag) = iter.next() {
-        let Some(path) = iter.next() else {
-            return Err(usage());
-        };
-        match flag.as_str() {
-            "--docs-dir" => parsed.docs_dir = PathBuf::from(path),
-            _ => return Err(usage()),
-        }
-    }
-    Ok(parsed)
-}
-
-pub(crate) fn validate_constitution_cite_gate(
-    args: ConstitutionCiteValidateArgs,
-) -> Result<usize, String> {
-    let documents = read_tier_one_documents(&args.docs_dir)?;
-    let report = validate_constitution_cite_coverage(&documents)
-        .map_err(|error| format!("tier-one Constitution citation invalid: {error:?}"))?;
-    Ok(report.document_count)
-}
-
-fn read_tier_one_documents(docs_dir: &Path) -> Result<Vec<ConstitutionCitationDocument>, String> {
-    let readme_path = docs_dir.join("README.md");
-    let readme = fs::read_to_string(&readme_path)
-        .map_err(|error| format!("docs README unreadable: {error}"))?;
-    parse_tier_one_doc_paths(&readme)?
-        .into_iter()
-        .map(|doc_path| {
-            let path = docs_dir.join(&doc_path);
-            let contents = fs::read_to_string(&path).map_err(|error| {
-                format!("tier-one document unreadable {}: {error}", path.display())
-            })?;
-            Ok(ConstitutionCitationDocument {
-                path: path.display().to_string(),
-                contents,
-            })
-        })
-        .collect()
-}
-
-fn parse_tier_one_doc_paths(readme: &str) -> Result<Vec<String>, String> {
-    let section = readme
-        .split("## Tier-1 documents")
-        .nth(1)
-        .ok_or_else(|| "docs README missing Tier-1 documents section".to_string())?
-        .split("\n## ")
-        .next()
-        .ok_or_else(|| "docs README missing Tier-1 section body".to_string())?;
-    let paths = section
-        .lines()
-        .filter_map(|line| {
-            let trimmed = line.trim_start();
-            if !trimmed.starts_with("- [") {
-                return None;
-            }
-            let (_, after_open) = trimmed.split_once("](")?;
-            let (path, _) = after_open.split_once(')')?;
-            Some(path.to_string())
-        })
-        .collect::<Vec<_>>();
-    if paths.is_empty() {
-        Err("docs README Tier-1 document list is empty".to_string())
-    } else {
-        Ok(paths)
-    }
-}
