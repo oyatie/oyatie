@@ -50,11 +50,11 @@ Net: the architecture is mature on paper, the *enforcement surface* is partial, 
 
 ## Recommended next-3 IPs to drive maturity
 
-1. **IP-MCC-P01-001 — `oya` CLI binary + `oya gate run-all` aggregator.** Thin wrapper crate `tools/oya-cli` dispatching to existing kernels (`oya-foundry-vcs-*-kernel`, all `oya-foundry-fitness-*-kernel`). Single entry point closes Stages 1/3/4 simultaneously and ends the silent `git`/`gh` bypass. **Highest ROI.**
-2. **IP-MCC-P01-002 — Mistakes-ledger lane + preflight runbook.** Ship `oya-foundry-fitness-mistakes-ledger-{kernel,app}` + `docs/runbooks/sanctioned-primitives/preflight.md` + `docs/templates/mistakes-ledger-row-template.md` + wire into the new `oya gate run-all`. Implements the 5-control stack from `feedback_repeat_mistake_prevention.md` that is currently 0/5 on disk. Closes Stage 10.
-3. **IP-MCC-P01-003 — PR-review automation + branch-protection deployment.** Author `.github/workflows/pr-review.yml` (multispectrum subagent fan-out → APPROVE/REJECT Check Run), deploy `.github/branch-protection.yaml` to live GitHub (admin action), flip `allow_auto_merge: true`. Closes Stages 5 + 6 + 7 in one phase. **URGENT sub-step (branch-protection deploy) can ship same-day independent of the workflow build.**
+1. **IP-MCC-P10-001 — `oya` CLI binary + `oya gate run-all` aggregator.** Thin wrapper crate `tools/oya-cli` dispatching to existing kernels (`oya-foundry-vcs-*-kernel`, all `oya-foundry-fitness-*-kernel`). Single entry point closes Stages 1/3/4 simultaneously and ends the silent `git`/`gh` bypass. **Highest ROI.**
+2. **IP-MCC-P10-002 — Mistakes-ledger lane + preflight runbook.** Ship `oya-foundry-fitness-mistakes-ledger-{kernel,app}` + `docs/runbooks/sanctioned-primitives/preflight.md` + `docs/templates/mistakes-ledger-row-template.md` + wire into the new `oya gate run-all`. Implements the 5-control stack from `feedback_repeat_mistake_prevention.md` that is currently 0/5 on disk. Closes Stage 10.
+3. **IP-MCC-P10-003 — PR-review automation + branch-protection deployment.** Author `.github/workflows/pr-review.yml` (multispectrum subagent fan-out → APPROVE/REJECT Check Run), deploy `.github/branch-protection.yaml` to live GitHub (admin action), flip `allow_auto_merge: true`. Closes Stages 5 + 6 + 7 in one phase. **URGENT sub-step (branch-protection deploy) can ship same-day independent of the workflow build.**
 
-After these three, Stage 8 (staging deploy / canary / rollback) becomes the natural next milestone phase — but it is large enough to warrant its own M-CC-P02.
+After these three, Stage 8 (staging deploy / canary / rollback) becomes the natural next milestone phase — but it is large enough to warrant its own M-CC-P11 (M-CC-P02 slot is already occupied by `doc-automation-freshness`; canonical next free slot after P00..P09 is P10, and Layer 3 follow-on lands at P11).
 
 ---
 
@@ -62,3 +62,34 @@ After these three, Stage 8 (staging deploy / canary / rollback) becomes the natu
 
 - Overall pipeline maturity: **PARTIAL** (substrate mature on paper; runtime enforcement partial; Layer 3 absent)
 - **URGENT:** Branch-protection ruleset is *declared but not deployed* — `main` is currently unprotected on GitHub. Single highest-leverage fix.
+
+---
+
+## Amendment 2026-05-15 — net-new constraints from interactive review
+
+After the initial audit landed, user surfaced 3 additional pipeline-maturity constraints:
+
+### A. CI-failure → webhook → fix-loop
+On `workflow_run.conclusion == failure`, dispatch a fix-loop agent with: failing-job log, PR diff, prior commit history. Agent diagnoses, writes fix, commits + pushes to the same PR branch. Bounded retry budget (3? 5?) before escalating to human.
+
+### B. Merge-queue fix-loop integration
+When a parked PR's fix lands:
+- Queue position preserved (PR not evicted)
+- Speculative rebase + re-CI against current queue HEAD (not the original rebase target — queue may have advanced)
+- Other PRs in queue continue processing (parked PRs don't block head)
+- Concurrent fix-loops permitted; convergence guaranteed
+- Bounded retry per PR; eviction + human escalation on exhaustion
+
+### C. Surface-all-failures CI
+PR #3's cascade (broken SHA → missing nextest profile → missing shebang) surfaced one issue per CI cycle. Mature pipeline shows ALL failures in cycle 1:
+- Workflow `needs:` chains relaxed (`cargo-nextest` no longer hard-needs `cargo-check`)
+- `if: always()` on dependent jobs
+- `continue-on-error: false` (default) with `if: always()` so overall workflow runs all gates
+- `strategy.fail-fast: false` on matrix jobs
+- nextest `[profile.ci].fail-fast = false` (already set in `.config/nextest.toml`)
+
+### Combined effect
+One CI cycle = exhaustive failure surface → fix-loop agent receives all issues at once → merge-queue retry-counter decrements once per cycle (not once per issue) → bounded convergence.
+
+### Slot correction
+The original audit's §"Recommended next-3 IPs" labeled the IPs `IP-MCC-P01-001..003` and the closing sentence said "warrants its own M-CC-P02". Both are wrong against the on-disk tree at `.omc/plans/milestones/M-CC-cross-cutting/phases/`: P00..P09 are all occupied (P00=gitops-vcs-replacement, P01=agentic-pipeline-cutover, P02=doc-automation-freshness, P03..P09 likewise). Per `feedback_no_exceptions_canonical.md`, the canonical extension is the next free integer slot — **M-CC-P10-pipeline-maturity-glue**. The audit body has been corrected to use `IP-MCC-P10-001..003`; the Layer-3 follow-on lands at M-CC-P11 (not M-CC-P02).
