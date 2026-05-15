@@ -262,8 +262,12 @@ rust-version = "1.95.0"
 # v4.1 BNF registry: oya-<microservice>[-<bc>]-<layer> (flat catalog; no shared|vertical binary)
 # Layer enum (13 canonical values per ADR-0056 amended by ADR-0105):
 #   kernel|domain|application|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk|api
-# Adopted patterns (ADR-0105): oya-check-<feature> (self-layering check family);
-#   *-adapter-<backend> (backend-qualifier sub-suffix where backend ∈ {fake,inmemory,aws,oci,gcp,azure,postgres,redis,sqlite,...}).
+# Adopted patterns (ADR-0105 + ADR-0107):
+#   oya-check-<feature>  — self-layering check family (the µservice IS the layer).
+#   *-adapter-<backend>  — backend-qualifier sub-suffix where backend ∈
+#                          {fake,inmemory,aws,oci,gcp,azure,postgres,redis,sqlite,...}.
+#   tools/*              — implicit `app` layer; any crate directly under tools/
+#                          is a binary, no `-app` suffix required (ADR-0107).
 # Microservice registry (open set; registered microservice names)
 [workspace.metadata.oya.microservices.cloud]
 owner = "council-cloud"

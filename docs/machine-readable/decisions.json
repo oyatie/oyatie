@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 84,
-    "numbering": "ADR-0001..ADR-0106 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)",
+    "total_adrs": 85,
+    "numbering": "ADR-0001..ADR-0107 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089"],
-    "next_adr": "ADR-0107",
+    "next_adr": "ADR-0108",
     "status_counts": {
-      "Accepted": 44,
+      "Accepted": 45,
       "Proposed": 36,
       "accepted": 4
     }
@@ -1021,6 +1021,18 @@
       "owner": "council-architecture",
       "date": "2026-05-15",
       "path": "decisions/ADR-0106-rename-application-to-usecase.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0107",
+      "number": 107,
+      "title": "`tools/` directory is implicit `app` layer (amends ADR-0056 / ADR-0105)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-15",
+      "path": "decisions/ADR-0107-tools-implicit-app-convention.md",
       "supersedes": [],
       "superseded_by": [],
       "related": []

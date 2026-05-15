@@ -31,7 +31,15 @@
       "current_count": 13,
       "purpose": "Backend qualifier on an adapter crate: the layer is `adapter`; the backend name is a sub-suffix denoting which external system. Already canonical (last canonical token is `adapter` and the backend qualifies it).",
       "binding": "load-bearing — already implicit; document in ADR-0056 amendment as a recognized sub-suffix pattern.",
-      "amendment_action": "Add `{fake|aws|oci|inmemory|...}` to ADR-0056 §'Layer semantics > adapter' as the allowed backend-qualifier set. Define open-vs-closed semantics (whether new backend names require ADR or just CODEOWNERS approval)."
+      "amendment_action": "DONE per ADR-0105: ADR-0056 §'Layer semantics > adapter' amended with `{fake|aws|oci|inmemory|...}` as the allowed backend-qualifier set."
+    },
+    "tools_implicit_app": {
+      "id": "ADOPT-PAT-03",
+      "match": "^tools/oya-[a-z0-9-]+$",
+      "current_count": 10,
+      "purpose": "Crates directly under tools/ are implicitly the `app` layer. Directory location IS the layer declaration. Eliminates the redundant `-app` suffix for tools/oya-foundry-fitness-*, oya-adapter-substitution-test, oya-tooling-agent-read, etc.",
+      "binding": "load-bearing — formalized in ADR-0107.",
+      "amendment_action": "DONE per ADR-0107. Constraints: tools/ crate MUST be a binary; MAY also have a lib surface; MUST NOT be lib-only."
     }
   },
   "compliance_summary": {
