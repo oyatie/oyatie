@@ -1,11 +1,25 @@
 #!/usr/bin/env bash
-# Purpose: pre-merge gate runner. Orchestrates ~50 `cargo run -p oya-dev-cli --
-# gate validate ...` invocations plus sibling `scripts/*.{sh,py}` calls and a
-# heredoc'd Python JSON-parse smoke test. Consumed by developers locally and
-# cited from `docs/AGENTS.md` as the canonical pre-merge command.
-# Scheduled-replacement: extend `oya-dev-cli` with a top-level `gate run-all`
-# subcommand (see `evidence/audits/shell-python-replacement-audit-2026-05-15.md`
-# row B-1).
+# CANONICAL ENTRY POINT (preferred):
+#     cargo run -q -p oya-dev-cli -- gate run-all
+#
+# This script is retained as a transitional fixture per Wave 2 of the
+# shell/python → Rust replacement program (audit row B-1,
+# `evidence/audits/shell-python-replacement-audit-2026-05-15.md`). The
+# canonical Rust implementation now lives at
+# `crates/oya-dev-cli/src/commands/gate/run_all.rs`.
+#
+# The legacy command list below is preserved verbatim because three
+# downstream content-validation gates read this script's body as their
+# input data:
+#   - `oya gate validate quality-lanes` reads it to verify each lane's
+#     `check_command` (in `registry/quality/lanes.yaml`) is wired.
+#   - `oya gate validate documentation-system` reads it to verify each
+#     active doc-pipeline step (in `registry/docs/pipeline.tsv`) is wired.
+#   - `oya gate validate supply-chain` reads it to verify the
+#     `cargo deny check` / `cargo audit` tokens are present.
+# A follow-up ADR will re-point those three gates at the Rust
+# aggregator's `AGGREGATED_VALIDATE_LANES` constant (or an emitted
+# manifest), after which this file will be `git rm`-ed.
 set -euo pipefail
 
 # Hyperscaler hermetic toolchain: prioritize rustup from Homebrew if present.

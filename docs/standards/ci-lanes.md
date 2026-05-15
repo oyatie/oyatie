@@ -110,7 +110,7 @@ Per ADR-0050:
 
 1. Add or update the lane record in `registry/quality/lanes.yaml`.
 2. Mirror the lane row in this document under the matching stage table.
-3. If `status: active`, wire `check_command` into `scripts/check.sh`.
+3. If `status: active`, wire `check_command` into the `oya gate run-all` aggregator (`crates/oya-dev-cli/src/commands/gate/run_all.rs::AGGREGATED_VALIDATE_LANES`) — the canonical pre-merge gate runner that replaced `scripts/check.sh` per audit row B-1.
 4. Run `oya gate validate quality-lanes`.
 5. Open a PR; cite the source ADR in the PR body Verification section.
 6. After merge, `oya-foundry-fitness-cohesion` validates the lane is wired into the per-PR + nightly + release shapes appropriately.

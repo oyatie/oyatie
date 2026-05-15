@@ -236,6 +236,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate runbook-freshness [--runbooks-dir <docs/runbooks>] [--today <YYYY-MM-DD>]"
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
         + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
+        + "\n       oya gate run-all [--include-deferred]"
 }
 
 pub(crate) fn path_has_component(path: &Path, component: &str) -> bool {

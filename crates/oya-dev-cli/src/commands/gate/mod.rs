@@ -1,8 +1,23 @@
 use std::process::ExitCode;
 
 mod architecture_boundaries;
+mod run_all;
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
+    // `gate run-all` aggregator branch: replaces the legacy
+    // `scripts/check.sh` per Wave 2 of the shell/python → Rust
+    // replacement program (audit row B-1). Special-case before the
+    // (verb, lane) match because the verb is `run-all`, not `validate`.
+    if args.first().map(String::as_str) == Some("run-all") {
+        let rest = args.into_iter().skip(1).collect::<Vec<_>>();
+        return match run_all::parse_run_all_args(rest) {
+            Ok(parsed) => run_all::run_all_gates(parsed, usage),
+            Err(message) => {
+                eprintln!("{message}");
+                ExitCode::from(2)
+            }
+        };
+    }
     let mut args = args.into_iter();
     match (args.next().as_deref(), args.next().as_deref()) {
         // Grounding note for exception-ledger audits:
