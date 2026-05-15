@@ -1,5 +1,6 @@
 ---
 purpose: Legacy ADR → New Pack Regression Mapping
+doc_status: published
 ---
 
 # Legacy ADR → New Pack Regression Mapping

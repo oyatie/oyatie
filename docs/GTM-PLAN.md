@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Go-to-Market Plan
+doc_status: published
 ---
 
 # Oyatie — Go-to-Market Plan

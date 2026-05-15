@@ -1,5 +1,6 @@
 ---
 purpose: "Doc Catalog & Update Protocol"
+doc_status: published
 ---
 
 # Doc Catalog & Update Protocol

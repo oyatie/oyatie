@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Hiring + Capacity Plan
+doc_status: published
 ---
 
 # Oyatie — Hiring + Capacity Plan

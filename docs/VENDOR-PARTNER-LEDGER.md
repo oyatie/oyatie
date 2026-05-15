@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Vendor + Partner Ledger
+doc_status: published
 ---
 
 # Oyatie — Vendor + Partner Ledger

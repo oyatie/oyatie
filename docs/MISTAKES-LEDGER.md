@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Mistakes-and-Fixes Ledger
+doc_status: published
 ---
 
 # Oyatie — Mistakes-and-Fixes Ledger

@@ -25,6 +25,7 @@ foundation_adrs:
 - ADR-0054
 - ADR-0056
 purpose: "MasterPlan: Oyatie — MASTERPLAN."
+doc_status: published
 ---
 # Oyatie — MASTERPLAN
 

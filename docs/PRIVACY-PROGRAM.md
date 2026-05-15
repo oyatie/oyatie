@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Privacy Program
+doc_status: published
 ---
 
 # Oyatie — Privacy Program

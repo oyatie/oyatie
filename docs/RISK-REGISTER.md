@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Risk Register
+doc_status: published
 ---
 
 # Oyatie — Risk Register

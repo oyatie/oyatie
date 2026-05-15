@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Contradiction Ledger
+doc_status: published
 ---
 
 # Oyatie — Contradiction Ledger

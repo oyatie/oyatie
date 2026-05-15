@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Canonical Docs Changelog
+doc_status: published
 ---
 
 ## 2026-05-15 — Fitness lane `oya-foundry-fitness-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)

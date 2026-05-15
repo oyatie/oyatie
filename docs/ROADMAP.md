@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Roadmap
+doc_status: published
 ---
 
 # Oyatie — Roadmap

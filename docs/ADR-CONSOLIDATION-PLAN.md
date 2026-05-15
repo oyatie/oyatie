@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — ADR Consolidation Plan
+doc_status: published
 ---
 
 # Oyatie — ADR Consolidation Plan

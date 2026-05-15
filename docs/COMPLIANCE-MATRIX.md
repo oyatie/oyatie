@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Compliance Matrix
+doc_status: published
 ---
 
 # Oyatie — Compliance Matrix

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Incident Management
+doc_status: published
 ---
 
 # Oyatie — Incident Management

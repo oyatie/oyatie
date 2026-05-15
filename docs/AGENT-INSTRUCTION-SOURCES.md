@@ -5,6 +5,7 @@ id: AGENT-INSTRUCTION-SOURCES
 status: Accepted
 generated_at: 2026-05-14 12:49:00+00:00
 purpose: "This inventory enumerates repo-local files that contain exact `agent-instructions` fences after M-CC-P01-IP-007."
+doc_status: published
 ---
 # Agent Instruction Sources
 

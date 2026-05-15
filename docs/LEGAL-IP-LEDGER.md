@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Legal + IP Ledger
+doc_status: published
 ---
 
 # Oyatie — Legal + IP Ledger

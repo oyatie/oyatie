@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Documentation System
+doc_status: published
 ---
 
 # Oyatie — Documentation System

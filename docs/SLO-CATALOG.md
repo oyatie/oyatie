@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — SLO Catalog
+doc_status: published
 ---
 
 # Oyatie — SLO Catalog

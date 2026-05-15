@@ -39,6 +39,7 @@ authority_chain_declaration: |
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
 purpose: "Operating-Contract: Oyatie Agent Operating Contract."
+doc_status: published
 ---
 # Oyatie Agent Operating Contract
 

@@ -1,5 +1,6 @@
 ---
 purpose: "Oyatie — Internal Tooling & Toolchain"
+doc_status: published
 ---
 
 # Oyatie — Internal Tooling & Toolchain

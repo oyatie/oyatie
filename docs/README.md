@@ -27,6 +27,7 @@ authority_chain_declaration: |
     > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
+doc_status: published
 ---
 
 # Oyatie — Canonical Engineering Documentation

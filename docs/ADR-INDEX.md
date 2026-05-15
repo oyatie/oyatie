@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie — ADR Index
 
 > **Generated:** from [`decisions/`](decisions/) by `oya doc adr-index`. Do not hand-edit generated rows.

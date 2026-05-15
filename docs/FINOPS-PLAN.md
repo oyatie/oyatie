@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — FinOps Plan
+doc_status: published
 ---
 
 # Oyatie — FinOps Plan

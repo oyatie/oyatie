@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Doc Update Protocol
+doc_status: published
 ---
 
 # Oyatie — Doc Update Protocol

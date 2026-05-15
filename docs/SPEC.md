@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — System Specification (SPEC)
+doc_status: published
 ---
 
 # Oyatie — System Specification (SPEC)

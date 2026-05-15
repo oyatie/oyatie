@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Security Program
+doc_status: published
 ---
 
 # Oyatie — Security Program

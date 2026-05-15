@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Glossary, Vocabulary, Conventions
+doc_status: published
 ---
 
 # Oyatie — Glossary, Vocabulary, Conventions

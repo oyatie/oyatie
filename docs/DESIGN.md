@@ -1,5 +1,6 @@
 ---
 purpose: "Oyatie — Architecture & Design Document (DESIGN)"
+doc_status: published
 ---
 
 # Oyatie — Architecture & Design Document (DESIGN)

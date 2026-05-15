@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Competitive Gap Analysis
+doc_status: published
 ---
 
 # Oyatie — Competitive Gap Analysis

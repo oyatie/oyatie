@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Internationalization (i18n)
+doc_status: published
 ---
 
 # Oyatie — Internationalization (i18n)

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Standards, Templates, Hooks, Skills, Tools, Checklists
+doc_status: published
 ---
 
 # Oyatie — Standards, Templates, Hooks, Skills, Tools, Checklists

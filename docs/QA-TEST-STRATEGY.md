@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — QA + Test Strategy
+doc_status: published
 ---
 
 # Oyatie — QA + Test Strategy

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Release Management
+doc_status: published
 ---
 
 # Oyatie — Release Management

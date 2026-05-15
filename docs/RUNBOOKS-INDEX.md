@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Runbooks Index
+doc_status: published
 ---
 
 # Oyatie — Runbooks Index
