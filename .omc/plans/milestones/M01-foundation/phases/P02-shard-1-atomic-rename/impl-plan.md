@@ -5,6 +5,7 @@ milestone: M01-foundation
 phase: P02-shard-1-atomic-rename
 impl_plan_id: IP-001-shard-1-atomic-rename
 status: merged
+migration_status: done
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:

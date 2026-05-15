@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M01-foundation
 phase: P02-shard-1-atomic-rename
 status: Complete
+migration_status: done
 acceptance_lanes: []
 entry_gate: 'P01-bnf-v4-adrs-finalized complete; ADR-0056 v4.1 accepted; rename plan
   v4.1

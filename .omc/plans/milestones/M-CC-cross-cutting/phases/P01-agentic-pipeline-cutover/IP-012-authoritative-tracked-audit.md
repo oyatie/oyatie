@@ -4,6 +4,7 @@ parent: ./INDEX.md
 id: M-CC-P01-IP-012
 title: Authoritative-tracked repo-walk audit (P10)
 status: complete
+migration_status: cleanup
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable

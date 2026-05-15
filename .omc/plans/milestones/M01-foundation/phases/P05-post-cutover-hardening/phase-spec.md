@@ -4,6 +4,7 @@ template_id: TPL-PHASE-SPEC
 milestone: M01-foundation
 phase: P05-post-cutover-hardening
 status: Complete
+migration_status: pre-cutover
 acceptance_lanes: []
 entry_gate: "P02-shard-1-atomic-rename complete (all 6 acceptance gates exit 0);\n\
   P03-shard-1-5-protocol-unknown-deferred complete (zero *-api crates remain);\nP04-iter-4-src-inspection\

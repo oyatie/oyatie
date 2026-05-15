@@ -5,6 +5,7 @@ milestone: M01-foundation
 phase: P05-post-cutover-hardening
 impl_plan_id: IP-001-lean-flip-quality-scaffold
 status: pending
+migration_status: pre-cutover
 owner: council-architecture
 blocked_by:
 - impl_plan: P02/IP-001-shard-1-atomic-rename

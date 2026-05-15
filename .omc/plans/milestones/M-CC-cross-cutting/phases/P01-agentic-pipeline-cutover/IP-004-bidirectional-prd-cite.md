@@ -4,6 +4,7 @@ parent: ./INDEX.md
 id: M-CC-P01-IP-004
 title: Bidirectional PRD citation + portfolio-citation lane (P3)
 status: complete
+migration_status: cleanup
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable

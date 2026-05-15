@@ -4,6 +4,7 @@ parent: ./INDEX.md
 id: M-CC-P01-IP-005
 title: Foundry corpus cross-cite + PHASE-00-SPEC.md (P3.5)
 status: complete
+migration_status: cleanup
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable

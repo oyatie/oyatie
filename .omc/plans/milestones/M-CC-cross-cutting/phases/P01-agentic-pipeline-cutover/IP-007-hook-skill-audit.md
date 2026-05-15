@@ -4,6 +4,7 @@ parent: ./INDEX.md
 id: M-CC-P01-IP-007
 title: Hook + skill audit + banned-primitives lane activation (P5)
 status: complete
+migration_status: cleanup
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable

@@ -4,6 +4,7 @@ parent: ./INDEX.md
 id: M-CC-P00-IP-005
 title: Grit-compatible CLI + migration ratchet
 status: complete
+migration_status: cleanup
 source_plan: ../../../../ralplan-gitops-vcs-replacement-20260514.md
 source_spec: ../../../../../specs/gitops-vcs-replacement.json
 execution_unit: ChangeSet

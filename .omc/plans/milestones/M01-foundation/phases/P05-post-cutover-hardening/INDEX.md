@@ -4,6 +4,7 @@ parent: ../../INDEX.md
 id: P05-post-cutover-hardening
 title: Post Cutover Hardening
 status: indexed-from-existing-ips
+migration_status: pre-cutover
 execution_unit_rule: ImplementationPlans are ChangeSet-sized units
 purpose: Generated hierarchy index for existing implementation plans so masterplan.json can address this phase explicitly.
 ---

@@ -4,6 +4,7 @@ parent: ./INDEX.md
 id: M-CC-P03-IP-FITNESS-MIGRATION-STATUS-LIFECYCLE
 title: Fitness lane — migration-status lifecycle (ADR-0109 framework instance #5)
 status: scaffolded
+migration_status: pre-cutover
 execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:

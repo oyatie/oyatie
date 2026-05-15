@@ -4,6 +4,7 @@ parent: ../../INDEX.md
 id: M-CC-P01
 title: Agentic-Pipeline Cutover (Oya VCS SoT; grit/icm historical)
 status: complete
+migration_status: cleanup
 purpose: Lift `ralplan-oyatie-sst-consolidation.md` 12-phase plan into the milestone tree; foundational for every other agent operation.
 ---
 
