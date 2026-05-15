@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Evidence Pack Generation
+doc_status: published
 ---
 
 # Oyatie Runbook — Evidence Pack Generation

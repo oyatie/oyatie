@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Outbox Relay Lag
+doc_status: published
 ---
 
 # Oyatie Runbook — Outbox Relay Lag

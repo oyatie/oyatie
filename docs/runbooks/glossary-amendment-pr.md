@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Glossary Amendment Pr
+doc_status: published
 ---
 
 # Oyatie Runbook — Glossary Amendment Pr

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Claim Ceiling Bypass Expiry
+doc_status: published
 ---
 
 # Oyatie Runbook — Claim Ceiling Bypass Expiry

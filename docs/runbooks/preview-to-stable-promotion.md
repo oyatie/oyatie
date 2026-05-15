@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Preview To Stable Promotion
+doc_status: published
 ---
 
 # Oyatie Runbook — Preview To Stable Promotion

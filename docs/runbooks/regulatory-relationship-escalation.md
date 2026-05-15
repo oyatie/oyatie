@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Regulatory Relationship Escalation
+doc_status: published
 ---
 
 # Oyatie Runbook — Regulatory Relationship Escalation

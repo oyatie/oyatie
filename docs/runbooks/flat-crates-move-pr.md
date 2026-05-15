@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Flat Crates Move PR
+doc_status: published
 ---
 
 # Oyatie Runbook — Flat Crates Move PR

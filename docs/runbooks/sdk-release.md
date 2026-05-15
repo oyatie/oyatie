@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Sdk Release
+doc_status: published
 ---
 
 # Oyatie Runbook — Sdk Release

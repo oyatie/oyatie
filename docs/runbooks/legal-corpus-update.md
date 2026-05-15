@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Legal Corpus Update
+doc_status: published
 ---
 
 # Oyatie Runbook — Legal Corpus Update

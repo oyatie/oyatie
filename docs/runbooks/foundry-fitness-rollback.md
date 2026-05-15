@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Fitness Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Fitness Rollback

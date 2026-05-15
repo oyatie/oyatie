@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Breach Notification Council Escalation
+doc_status: published
 ---
 
 # Oyatie Runbook — Breach Notification Council Escalation

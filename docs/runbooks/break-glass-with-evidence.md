@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Break Glass With Evidence
+doc_status: published
 ---
 
 # Oyatie Runbook — Break Glass With Evidence

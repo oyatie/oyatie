@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Kyc Review Queue
+doc_status: published
 ---
 
 # Oyatie Runbook — Kyc Review Queue

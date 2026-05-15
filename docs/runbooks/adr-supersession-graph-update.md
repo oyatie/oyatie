@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Adr Supersession Graph Update
+doc_status: published
 ---
 
 # Oyatie Runbook — Adr Supersession Graph Update

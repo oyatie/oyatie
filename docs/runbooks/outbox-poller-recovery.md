@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Outbox Poller Recovery
+doc_status: published
 ---
 
 # Oyatie Runbook — Outbox Poller Recovery

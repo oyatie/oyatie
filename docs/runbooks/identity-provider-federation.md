@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Identity Provider Federation
+doc_status: published
 ---
 
 # Oyatie Runbook — Identity Provider Federation

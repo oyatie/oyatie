@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Mcp Gateway Incident
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Mcp Gateway Incident

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Payroll Run Failure
+doc_status: published
 ---
 
 # Oyatie Runbook — Payroll Run Failure

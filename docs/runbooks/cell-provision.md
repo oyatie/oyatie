@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cell Provision
+doc_status: published
 ---
 
 # Oyatie Runbook — Cell Provision

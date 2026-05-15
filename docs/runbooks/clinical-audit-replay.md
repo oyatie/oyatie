@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Clinical Audit Replay
+doc_status: published
 ---
 
 # Oyatie Runbook — Clinical Audit Replay

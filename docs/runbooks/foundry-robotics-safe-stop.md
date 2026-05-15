@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Robotics Safe Stop
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Robotics Safe Stop

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Pack Onboarding
+doc_status: published
 ---
 
 # Oyatie Runbook — Pack Onboarding

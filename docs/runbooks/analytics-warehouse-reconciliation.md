@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Analytics Warehouse Reconciliation
+doc_status: published
 ---
 
 # Oyatie Runbook — Analytics Warehouse Reconciliation

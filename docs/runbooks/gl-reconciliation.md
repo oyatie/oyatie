@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Gl Reconciliation
+doc_status: published
 ---
 
 # Oyatie Runbook — Gl Reconciliation

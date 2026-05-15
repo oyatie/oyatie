@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Aml Alert Escalation
+doc_status: published
 ---
 
 # Oyatie Runbook — Aml Alert Escalation

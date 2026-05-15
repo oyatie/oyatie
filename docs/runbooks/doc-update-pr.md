@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Doc Update Pr
+doc_status: published
 ---
 
 # Oyatie Runbook — Doc Update Pr

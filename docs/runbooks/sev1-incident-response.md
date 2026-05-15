@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Sev1 Incident Response
+doc_status: published
 ---
 
 # Oyatie Runbook — Sev1 Incident Response

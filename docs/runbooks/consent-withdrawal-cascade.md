@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Consent Withdrawal Cascade
+doc_status: published
 ---
 
 # Oyatie Runbook — Consent Withdrawal Cascade

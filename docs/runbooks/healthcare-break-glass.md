@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Healthcare Break Glass
+doc_status: published
 ---
 
 # Oyatie Runbook — Healthcare Break Glass

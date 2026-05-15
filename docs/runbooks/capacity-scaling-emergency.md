@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Capacity Scaling Emergency
+doc_status: published
 ---
 
 # Oyatie Runbook — Capacity Scaling Emergency

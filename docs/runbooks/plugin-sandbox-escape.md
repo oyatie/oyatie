@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Plugin Sandbox Escape
+doc_status: published
 ---
 
 # Oyatie Runbook — Plugin Sandbox Escape

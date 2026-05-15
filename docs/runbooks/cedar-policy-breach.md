@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cedar Policy Breach
+doc_status: published
 ---
 
 # Oyatie Runbook — Cedar Policy Breach

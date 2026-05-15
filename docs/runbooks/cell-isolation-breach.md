@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cell Isolation Breach
+doc_status: published
 ---
 
 # Oyatie Runbook — Cell Isolation Breach

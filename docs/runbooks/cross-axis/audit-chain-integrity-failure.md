@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Runbook — Audit-Chain Integrity Failure
 
 > **Status:** Active (M01-P03 tamper-evidence drill verified)

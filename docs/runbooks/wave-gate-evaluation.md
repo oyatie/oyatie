@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Wave Gate Evaluation
+doc_status: published
 ---
 
 # Oyatie Runbook — Wave Gate Evaluation

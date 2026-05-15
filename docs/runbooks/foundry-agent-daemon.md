@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Agent Daemon
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Agent Daemon

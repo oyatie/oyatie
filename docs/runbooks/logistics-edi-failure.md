@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Logistics Edi Failure
+doc_status: published
 ---
 
 # Oyatie Runbook — Logistics Edi Failure

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — On Call Handover
+doc_status: published
 ---
 
 # Oyatie Runbook — On Call Handover

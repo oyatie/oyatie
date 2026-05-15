@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Pack Version Upgrade
+doc_status: published
 ---
 
 # Oyatie Runbook — Pack Version Upgrade

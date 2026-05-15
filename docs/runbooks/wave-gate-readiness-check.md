@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Wave Gate Readiness Check
+doc_status: published
 ---
 
 # Oyatie Runbook — Wave Gate Readiness Check

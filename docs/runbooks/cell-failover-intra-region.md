@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cell Failover Intra Region
+doc_status: published
 ---
 
 # Oyatie Runbook — Cell Failover Intra Region

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Workspace Members Merge Queue
+doc_status: published
 ---
 
 # Oyatie Runbook — Workspace Members Merge Queue

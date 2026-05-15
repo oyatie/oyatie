@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Axis Admission Proposal
+doc_status: published
 ---
 
 # Oyatie Runbook — Axis Admission Proposal

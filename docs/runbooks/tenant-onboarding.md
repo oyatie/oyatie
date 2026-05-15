@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Tenant Onboarding
+doc_status: published
 ---
 
 # Oyatie Runbook — Tenant Onboarding

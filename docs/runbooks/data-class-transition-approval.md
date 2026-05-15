@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Data Class Transition Approval
+doc_status: published
 ---
 
 # Oyatie Runbook — Data Class Transition Approval

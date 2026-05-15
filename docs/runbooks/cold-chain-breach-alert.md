@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cold Chain Breach Alert
+doc_status: published
 ---
 
 # Oyatie Runbook — Cold Chain Breach Alert

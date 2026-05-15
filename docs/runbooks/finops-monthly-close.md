@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Finops Monthly Close
+doc_status: published
 ---
 
 # Oyatie Runbook — Finops Monthly Close

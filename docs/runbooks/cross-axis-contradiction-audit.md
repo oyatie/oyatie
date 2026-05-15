@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cross Axis Contradiction Audit
+doc_status: published
 ---
 
 # Oyatie Runbook — Cross Axis Contradiction Audit

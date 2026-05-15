@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Error Budget Exhaustion
+doc_status: published
 ---
 
 # Oyatie Runbook — Error Budget Exhaustion

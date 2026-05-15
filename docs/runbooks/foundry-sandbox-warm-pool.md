@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Sandbox Warm Pool
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Sandbox Warm Pool

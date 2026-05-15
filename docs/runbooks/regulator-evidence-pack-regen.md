@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Regulator Evidence Pack Regen
+doc_status: published
 ---
 
 # Oyatie Runbook — Regulator Evidence Pack Regen

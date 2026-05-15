@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Per Cell Hsm Rotation
+doc_status: published
 ---
 
 # Oyatie Runbook — Per Cell Hsm Rotation

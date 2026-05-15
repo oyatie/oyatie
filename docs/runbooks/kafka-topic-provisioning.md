@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Kafka Topic Provisioning
+doc_status: published
 ---
 
 # Oyatie Runbook — Kafka Topic Provisioning

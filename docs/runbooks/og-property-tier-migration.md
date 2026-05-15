@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Og Property Tier Migration
+doc_status: published
 ---
 
 # Oyatie Runbook — Og Property Tier Migration

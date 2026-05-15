@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Release Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Release Rollback

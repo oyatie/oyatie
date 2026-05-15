@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Audit Chain Integrity Check
+doc_status: published
 ---
 
 # Oyatie Runbook — Audit Chain Integrity Check

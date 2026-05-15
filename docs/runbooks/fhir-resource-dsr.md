@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Fhir Resource Dsr
+doc_status: published
 ---
 
 # Oyatie Runbook — Fhir Resource Dsr

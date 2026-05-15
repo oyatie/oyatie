@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Capability Publish
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Capability Publish

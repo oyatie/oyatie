@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Contract Introduction
+doc_status: published
 ---
 
 # Oyatie Runbook — Contract Introduction

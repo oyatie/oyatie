@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Kcmvp Hsm Incident
+doc_status: published
 ---
 
 # Oyatie Runbook — Kcmvp Hsm Incident

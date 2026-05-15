@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Capability Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Capability Rollback

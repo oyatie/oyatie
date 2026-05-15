@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Esign Failure
+doc_status: published
 ---
 
 # Oyatie Runbook — Esign Failure

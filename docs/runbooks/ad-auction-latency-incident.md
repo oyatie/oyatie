@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Ad Auction Latency Incident
+doc_status: published
 ---
 
 # Oyatie Runbook — Ad Auction Latency Incident

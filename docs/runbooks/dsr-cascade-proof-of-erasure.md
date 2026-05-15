@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Dsr Cascade Proof Of Erasure
+doc_status: published
 ---
 
 # Oyatie Runbook — Dsr Cascade Proof Of Erasure

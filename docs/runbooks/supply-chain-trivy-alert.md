@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Supply Chain Trivy Alert
+doc_status: published
 ---
 
 # Oyatie Runbook — Supply Chain Trivy Alert

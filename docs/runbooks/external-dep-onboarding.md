@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — External Dep Onboarding
+doc_status: published
 ---
 
 # Oyatie Runbook — External Dep Onboarding

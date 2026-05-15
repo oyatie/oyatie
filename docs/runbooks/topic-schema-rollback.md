@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Topic Schema Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Topic Schema Rollback

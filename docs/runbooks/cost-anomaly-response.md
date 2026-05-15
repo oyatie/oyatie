@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cost Anomaly Response
+doc_status: published
 ---
 
 # Oyatie Runbook — Cost Anomaly Response

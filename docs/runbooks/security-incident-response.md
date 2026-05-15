@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Security Incident Response
+doc_status: published
 ---
 
 # Oyatie Runbook — Security Incident Response

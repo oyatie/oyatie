@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Fintech Payment Failure
+doc_status: published
 ---
 
 # Oyatie Runbook — Fintech Payment Failure

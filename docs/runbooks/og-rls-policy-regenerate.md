@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Og Rls Policy Regenerate
+doc_status: published
 ---
 
 # Oyatie Runbook — Og Rls Policy Regenerate

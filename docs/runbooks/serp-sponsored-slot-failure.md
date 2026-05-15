@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Serp Sponsored Slot Failure
+doc_status: published
 ---
 
 # Oyatie Runbook — Serp Sponsored Slot Failure

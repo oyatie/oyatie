@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — In House Replacement Trigger
+doc_status: published
 ---
 
 # Oyatie Runbook — In House Replacement Trigger

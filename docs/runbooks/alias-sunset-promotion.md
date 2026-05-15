@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Alias Sunset Promotion
+doc_status: published
 ---
 
 # Oyatie Runbook — Alias Sunset Promotion

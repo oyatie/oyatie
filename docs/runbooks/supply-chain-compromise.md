@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Supply Chain Compromise
+doc_status: published
 ---
 
 # Oyatie Runbook — Supply Chain Compromise

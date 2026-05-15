@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Attribution Pipeline Lag
+doc_status: published
 ---
 
 # Oyatie Runbook — Attribution Pipeline Lag

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Autonomy Break Glass
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Autonomy Break Glass

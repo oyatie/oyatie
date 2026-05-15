@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cedar Policy Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Cedar Policy Rollback

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Iam Key Rotation
+doc_status: published
 ---
 
 # Oyatie Runbook — Iam Key Rotation

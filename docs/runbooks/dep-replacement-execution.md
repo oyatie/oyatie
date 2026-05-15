@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Dep Replacement Execution
+doc_status: published
 ---
 
 # Oyatie Runbook — Dep Replacement Execution

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Autonomy Policy Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Autonomy Policy Rollback

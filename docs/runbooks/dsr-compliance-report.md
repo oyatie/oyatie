@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Dsr Compliance Report
+doc_status: published
 ---
 
 # Oyatie Runbook — Dsr Compliance Report

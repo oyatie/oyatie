@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Autonomy Ceiling Breach Response
+doc_status: published
 ---
 
 # Oyatie Runbook — Autonomy Ceiling Breach Response

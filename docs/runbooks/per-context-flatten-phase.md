@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Per-Context Flatten Phase
+doc_status: published
 ---
 
 # Oyatie Runbook — Per-Context Flatten Phase

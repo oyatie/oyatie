@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Contract Breaking Change
+doc_status: published
 ---
 
 # Oyatie Runbook — Contract Breaking Change

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cross Doc Impact Analysis
+doc_status: published
 ---
 
 # Oyatie Runbook — Cross Doc Impact Analysis

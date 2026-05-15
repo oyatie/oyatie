@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Crawler Politeness Incident
+doc_status: published
 ---
 
 # Oyatie Runbook — Crawler Politeness Incident

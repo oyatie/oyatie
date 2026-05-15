@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Machine Readable Mirror Regenerate
+doc_status: published
 ---
 
 # Oyatie Runbook — Machine Readable Mirror Regenerate

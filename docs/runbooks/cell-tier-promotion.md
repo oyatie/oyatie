@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cell Tier Promotion
+doc_status: published
 ---
 
 # Oyatie Runbook — Cell Tier Promotion

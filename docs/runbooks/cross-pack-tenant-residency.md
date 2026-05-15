@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Cross Pack Tenant Residency
+doc_status: published
 ---
 
 # Oyatie Runbook — Cross Pack Tenant Residency

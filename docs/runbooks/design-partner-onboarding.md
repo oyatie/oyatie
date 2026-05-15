@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Design Partner Onboarding
+doc_status: published
 ---
 
 # Oyatie Runbook — Design Partner Onboarding

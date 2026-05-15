@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Opcua Adapter Disconnect
+doc_status: published
 ---
 
 # Oyatie Runbook — Opcua Adapter Disconnect

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Regulator Publication Feed Health
+doc_status: published
 ---
 
 # Oyatie Runbook — Regulator Publication Feed Health

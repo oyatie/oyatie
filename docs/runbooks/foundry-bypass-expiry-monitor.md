@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Bypass Expiry Monitor
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Bypass Expiry Monitor

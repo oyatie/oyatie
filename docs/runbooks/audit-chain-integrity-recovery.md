@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Audit Chain Integrity Recovery
+doc_status: published
 ---
 
 # Oyatie Runbook — Audit Chain Integrity Recovery

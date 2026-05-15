@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Term Deprecation Protocol
+doc_status: published
 ---
 
 # Oyatie Runbook — Term Deprecation Protocol

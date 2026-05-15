@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Robotics Anti Scope Review
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Robotics Anti Scope Review

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Search Index Dsr Cascade
+doc_status: published
 ---
 
 # Oyatie Runbook — Search Index Dsr Cascade

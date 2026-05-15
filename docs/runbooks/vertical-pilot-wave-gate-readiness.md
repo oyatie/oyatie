@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Vertical Pilot Wave Gate Readiness
+doc_status: published
 ---
 
 # Oyatie Runbook — Vertical Pilot Wave Gate Readiness

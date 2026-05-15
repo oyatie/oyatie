@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Dsr Cascade Orchestration
+doc_status: published
 ---
 
 # Oyatie Runbook — Dsr Cascade Orchestration

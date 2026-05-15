@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Api Gateway Rate Limit Incident
+doc_status: published
 ---
 
 # Oyatie Runbook — Api Gateway Rate Limit Incident

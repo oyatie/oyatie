@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Brand Rename Batch Execute
+doc_status: published
 ---
 
 # Oyatie Runbook — Brand Rename Batch Execute

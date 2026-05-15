@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Runbook: grit parallel-claim demo
 
 > **Owner:** `council-architecture + axis-foundry`

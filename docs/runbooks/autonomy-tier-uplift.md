@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Autonomy Tier Uplift
+doc_status: published
 ---
 
 # Oyatie Runbook — Autonomy Tier Uplift

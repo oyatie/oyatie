@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Partner Contract Renewal
+doc_status: published
 ---
 
 # Oyatie Runbook — Partner Contract Renewal

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Agent Authoring Evidence Attach
+doc_status: published
 ---
 
 # Oyatie Runbook — Agent Authoring Evidence Attach

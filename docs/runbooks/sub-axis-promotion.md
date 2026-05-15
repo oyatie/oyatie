@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Sub Axis Promotion
+doc_status: published
 ---
 
 # Oyatie Runbook — Sub Axis Promotion

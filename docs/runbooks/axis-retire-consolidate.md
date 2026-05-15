@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Axis Retire Consolidate
+doc_status: published
 ---
 
 # Oyatie Runbook — Axis Retire Consolidate

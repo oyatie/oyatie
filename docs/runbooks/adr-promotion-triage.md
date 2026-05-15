@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Adr Promotion Triage
+doc_status: published
 ---
 
 # Oyatie Runbook — Adr Promotion Triage

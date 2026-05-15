@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Sbom Regenerate
+doc_status: published
 ---
 
 # Oyatie Runbook — Sbom Regenerate

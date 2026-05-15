@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Demo Environment Reset
+doc_status: published
 ---
 
 # Oyatie Runbook — Demo Environment Reset

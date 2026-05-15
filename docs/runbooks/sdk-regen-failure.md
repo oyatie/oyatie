@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Sdk Regen Failure
+doc_status: published
 ---
 
 # Oyatie Runbook — Sdk Regen Failure

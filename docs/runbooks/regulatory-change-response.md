@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Regulatory Change Response
+doc_status: published
 ---
 
 # Oyatie Runbook — Regulatory Change Response

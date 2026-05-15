@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Og Schema Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Og Schema Rollback

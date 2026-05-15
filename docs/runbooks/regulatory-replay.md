@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Regulatory Replay
+doc_status: published
 ---
 
 # Oyatie Runbook — Regulatory Replay

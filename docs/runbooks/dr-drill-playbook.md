@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Dr Drill Playbook
+doc_status: published
 ---
 
 # Oyatie Runbook — Dr Drill Playbook

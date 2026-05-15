@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Region Failover
+doc_status: published
 ---
 
 # Oyatie Runbook — Region Failover

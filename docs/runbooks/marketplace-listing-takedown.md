@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Marketplace Listing Takedown
+doc_status: published
 ---
 
 # Oyatie Runbook — Marketplace Listing Takedown

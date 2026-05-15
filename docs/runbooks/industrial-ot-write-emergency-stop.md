@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Industrial Ot Write Emergency Stop
+doc_status: published
 ---
 
 # Oyatie Runbook — Industrial Ot Write Emergency Stop

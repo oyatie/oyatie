@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Vision Lawful Basis Incident
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Vision Lawful Basis Incident

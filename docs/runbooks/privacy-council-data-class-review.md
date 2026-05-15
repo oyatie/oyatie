@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Privacy Council Data Class Review
+doc_status: published
 ---
 
 # Oyatie Runbook — Privacy Council Data Class Review

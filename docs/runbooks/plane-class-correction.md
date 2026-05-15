@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Plane Class Correction
+doc_status: published
 ---
 
 # Oyatie Runbook — Plane Class Correction

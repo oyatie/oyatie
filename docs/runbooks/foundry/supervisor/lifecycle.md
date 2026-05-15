@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # RB-SUPERVISOR-001: Foundry Supervisor Lifecycle Management
 
 ## 1. Context

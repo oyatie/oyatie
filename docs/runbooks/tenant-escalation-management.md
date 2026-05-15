@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Tenant Escalation Management
+doc_status: published
 ---
 
 # Oyatie Runbook — Tenant Escalation Management

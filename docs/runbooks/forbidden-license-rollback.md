@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Forbidden License Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Forbidden License Rollback

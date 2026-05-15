@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Dsr Cascade With Evidence
+doc_status: published
 ---
 
 # Oyatie Runbook — Dsr Cascade With Evidence

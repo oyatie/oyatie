@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Model Lora Adapter Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Model Lora Adapter Rollback

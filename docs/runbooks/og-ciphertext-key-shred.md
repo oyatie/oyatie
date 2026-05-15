@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Og Ciphertext Key Shred
+doc_status: published
 ---
 
 # Oyatie Runbook — Og Ciphertext Key Shred

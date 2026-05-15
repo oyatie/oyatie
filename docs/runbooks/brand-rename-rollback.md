@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Brand Rename Rollback
+doc_status: published
 ---
 
 # Oyatie Runbook — Brand Rename Rollback

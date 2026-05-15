@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — License Tier 3 Review
+doc_status: published
 ---
 
 # Oyatie Runbook — License Tier 3 Review

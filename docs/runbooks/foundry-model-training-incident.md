@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie Runbook — Foundry Model Training Incident
+doc_status: published
 ---
 
 # Oyatie Runbook — Foundry Model Training Incident
