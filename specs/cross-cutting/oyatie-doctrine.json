@@ -143,7 +143,7 @@
       "title": "Rust is the default; exceptions need ADR",
       "statement": "Every new lane / service / tool / coordination primitive is Rust by default. EXPLICITLY INCLUDES rejecting shell (.sh), Node/JS/TS (.mjs/.js/.ts) as glue, Python, Ruby, Perl, awk, sed for new coordination work without ADR.",
       "binding": "load-bearing",
-      "allowed_exceptions": [
+      "allowed_extensions": [
         "Swift (iOS)",
         "Kotlin (Android)",
         "C#/WinUI3 (Windows)",
@@ -152,7 +152,7 @@
         "CI YAML (ecosystem-required)",
         "IaC (Terraform / Pulumi / Helm)"
       ],
-      "evidence_for_exception": [
+      "evidence_for_extension": [
         "ADR cite",
         "Rust alternative considered",
         "sunset clause or permanent-exception rationale"
