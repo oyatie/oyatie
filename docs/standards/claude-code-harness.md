@@ -1,5 +1,6 @@
 ---
 purpose: "Claude Code harness contract for oyatie. Defines the sanctioned-primitive triad (`grit`, `icm`, `oya-tooling-agent-read`), the Directive-12 pragmatic git/gh extension with documented rationale, the grit claim→work→done lifecycle."
+doc_status: published
 ---
 
 ---

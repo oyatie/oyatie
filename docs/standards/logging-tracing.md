@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Logging + Tracing Standard
+doc_status: published
 ---
 
 # Oyatie — Logging + Tracing Standard

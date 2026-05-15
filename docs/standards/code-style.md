@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Code Style Standard
+doc_status: published
 ---
 
 # Oyatie — Code Style Standard

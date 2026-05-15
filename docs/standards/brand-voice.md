@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie / oYa brand voice for KR + global
+doc_status: published
 ---
 
 # Oyatie — Brand Voice Standard

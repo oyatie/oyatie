@@ -1,5 +1,6 @@
 ---
 purpose: Sev 1-4 taxonomy declared per service
+doc_status: published
 ---
 
 # Oyatie — Incident Severity Standard

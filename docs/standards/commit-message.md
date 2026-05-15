@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Commit Message Standard
+doc_status: published
 ---
 
 # Oyatie — Commit Message Standard

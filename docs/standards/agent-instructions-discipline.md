@@ -1,5 +1,6 @@
 ---
 purpose: "Cross-cutting discipline for `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` fences in IPs, runbooks, ADRs, and standards."
+doc_status: published
 ---
 
 ---

@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — CI Lanes Catalog
+doc_status: published
 ---
 
 # Oyatie — CI Lanes Catalog

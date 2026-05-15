@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Prevention Doctrine
+doc_status: published
 ---
 
 # Oyatie — Prevention Doctrine

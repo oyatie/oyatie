@@ -1,5 +1,6 @@
 ---
 purpose: Canonical error-handling discipline for the oyatie Rust workspace.
+doc_status: published
 ---
 
 ---

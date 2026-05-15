@@ -1,5 +1,6 @@
 ---
 purpose: "Canonical house style for every doc under `docs/`. Defines the Diátaxis quadrants, RFC-2119 normative-language discipline, the dual-audience rule, frontmatter shapes per doc-class, heading hierarchy, and line-length guidance."
+doc_status: published
 ---
 
 ---

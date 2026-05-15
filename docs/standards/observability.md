@@ -1,5 +1,6 @@
 ---
 purpose: "Cross-cutting observability standard. Mandates OpenTelemetry as the canonical emission fabric, names the structured-logging schema, codifies the audit-chain `EVT-*` emission contract, requires Prometheus 3.11+ (post-3.5-EOL)."
+doc_status: published
 ---
 
 ---

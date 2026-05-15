@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — API Design Standard
+doc_status: published
 ---
 
 # Oyatie — API Design Standard

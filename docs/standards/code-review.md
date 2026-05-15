@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Code Review Standard
+doc_status: published
 ---
 
 # Oyatie — Code Review Standard

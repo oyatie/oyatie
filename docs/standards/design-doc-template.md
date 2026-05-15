@@ -1,5 +1,6 @@
 ---
 purpose: Engineering design-doc template (Google-style) for non-trivial changes; forces explicit trade-offs before code is written and provides a durable record for future-you.
+doc_status: template
 ---
 
 ---

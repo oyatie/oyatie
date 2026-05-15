@@ -1,5 +1,6 @@
 ---
 purpose: "<!-- status: Accepted date: 2026-05-12 related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055 -->"
+doc_status: published
 ---
 
 # LTS Versions Verified — 2026-05-12

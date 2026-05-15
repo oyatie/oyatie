@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Fintech Compliance Deep-Dive
+doc_status: published
 ---
 
 # Oyatie — Fintech Compliance Deep-Dive

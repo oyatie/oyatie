@@ -1,5 +1,6 @@
 ---
 purpose: "Canonical layered-architecture standard for every `oya-*` crate."
+doc_status: published
 ---
 
 ---

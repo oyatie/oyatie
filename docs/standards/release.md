@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Release Standard
+doc_status: published
 ---
 
 # Oyatie — Release Standard

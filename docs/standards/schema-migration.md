@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Schema Migration Standard
+doc_status: published
 ---
 
 # Oyatie — Schema Migration Standard

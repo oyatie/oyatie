@@ -1,5 +1,6 @@
 ---
 purpose: "Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0 (unit / integration / contract / e2e / property / fuzz), mandates `cargo nextest run --workspace --all-features --no-fail-fast` as the evidence run."
+doc_status: published
 ---
 
 ---

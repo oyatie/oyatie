@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Tenant Migration Playbook (from competitor stacks)
+doc_status: published
 ---
 
 # Oyatie — Tenant Migration Playbook (from competitor stacks)

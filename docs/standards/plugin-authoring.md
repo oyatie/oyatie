@@ -1,5 +1,6 @@
 ---
 purpose: Oyatie — Plugin Authoring Standard
+doc_status: published
 ---
 
 # Oyatie — Plugin Authoring Standard

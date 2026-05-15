@@ -1,5 +1,6 @@
 ---
 purpose: "Cross-cutting data-class standard. Mandates `oyatie.data_class` annotations on every kernel struct field, codifies the cross-pillar flow rules (which classes may cross which axis boundaries)."
+doc_status: published
 ---
 
 ---

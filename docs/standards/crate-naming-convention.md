@@ -1,5 +1,6 @@
 ---
 purpose: "Canonical, machine-checkable grammar for every `oya-*` Cargo crate name and every `[package.metadata.oya]` block in the oyatie workspace."
+doc_status: published
 ---
 
 ---

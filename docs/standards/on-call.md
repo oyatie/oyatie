@@ -1,5 +1,6 @@
 ---
 purpose: Canonical on-call standard. Defines rotation cadence, runbook discipline, escalation paths, blameless-postmortem trigger, and SLO-burn-rate alerting thresholds.
+doc_status: published
 ---
 
 ---

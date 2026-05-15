@@ -1,5 +1,6 @@
 ---
 purpose: Cross-agent tool-name mapping for Claude Code, Codex (OpenAI Codex CLI), Gemini (Gemini CLI), and OMC subagents.
+doc_status: published
 ---
 
 ---
