@@ -1,5 +1,5 @@
 ---
-purpose: "Claude Code harness contract for oyatie. Defines the sanctioned-primitive triad (`grit`, `icm`, `oya-tooling-agent-read`), the Directive-12 pragmatic git/gh exception with documented rationale, the grit claim→work→done lifecycle."
+purpose: "Claude Code harness contract for oyatie. Defines the sanctioned-primitive triad (`grit`, `icm`, `oya-tooling-agent-read`), the Directive-12 pragmatic git/gh extension with documented rationale, the grit claim→work→done lifecycle."
 ---
 
 ---
@@ -12,7 +12,7 @@ date: 2026-05-12
 purpose: |
   Claude Code harness contract for oyatie. Defines the sanctioned-primitive
   triad (`grit`, `icm`, `oya-tooling-agent-read`), the Directive-12 pragmatic
-  git/gh exception with documented rationale, the grit claim→work→done
+  git/gh extension with documented rationale, the grit claim→work→done
   lifecycle, icm topic conventions, Stop-hook expectations, and PreToolUse /
   PostToolUse / Stop / SessionStart hooks ordering. Resolves the
   `standards/claude-code-harness.md` wave-2 forward-reference sentinel in
