@@ -22,8 +22,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use oya_check_dependency_seam::{
     check_consensus_debate_evidence, check_naming_convention, check_rust_default_language,
-    check_scorecard_render, parse_top_level_object, JsonValueKind, SubCheckStatus,
-    WorkspaceContext,
+    check_scorecard_render, parse_top_level_object, render_audit_chain_rows, run_composite,
+    JsonValueKind, SubCheckStatus, WorkspaceContext,
 };
 
 static TEST_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -215,6 +215,49 @@ fn consensus_debate_happy_path_meta_triggered_with_matching_synthesis() {
         result.findings
     );
     cleanup(&ws);
+}
+
+// =============== JSON parser (CONV-1) ===============
+
+// =============== render_audit_chain_rows (CONV-9) ===============
+
+#[test]
+fn audit_chain_rows_one_per_sub_check_with_required_keys() {
+    let ws = make_workspace();
+    let report = run_composite(&WorkspaceContext::new(&ws));
+    let rows = render_audit_chain_rows(&report, "CHG-TEST-X", "session-y", 1700000000);
+    assert_eq!(rows.len(), report.sub_checks.len(),
+        "one audit-chain row per sub-check");
+    for (idx, row) in rows.iter().enumerate() {
+        let sub_check_id = report.sub_checks[idx].id;
+        assert!(row.starts_with("{"), "row {} must be JSON object", idx);
+        assert!(row.contains("\"event_type\":\"seam_lane_subcheck_run\""), "missing event_type in row {}", idx);
+        assert!(row.contains("\"change_id\":\"CHG-TEST-X\""), "missing change_id");
+        assert!(row.contains("\"session_id\":\"session-y\""), "missing session_id");
+        assert!(row.contains("\"timestamp_unix\":1700000000"), "missing timestamp_unix");
+        assert!(row.contains(&format!("\"sub_check_id\":\"{}\"", sub_check_id)),
+            "row {} missing sub_check_id {}", idx, sub_check_id);
+        assert!(row.contains("\"status\":\""), "missing status");
+        assert!(row.contains("\"findings_count\":"), "missing findings_count");
+    }
+    cleanup(&ws);
+}
+
+#[test]
+fn audit_chain_row_escapes_double_quote_in_findings() {
+    use oya_check_dependency_seam::{CompositeReport, Severity, SubCheckResult};
+    let report = CompositeReport {
+        sub_checks: vec![SubCheckResult {
+            id: "test-x",
+            status: SubCheckStatus::Pass,
+            findings: vec!["a \"quoted\" finding".into()],
+            severity_day_1: Severity::ReportOnly,
+        }],
+    };
+    let rows = render_audit_chain_rows(&report, "C", "S", 0);
+    assert_eq!(rows.len(), 1);
+    assert!(rows[0].contains("\\\"quoted\\\""),
+        "double-quote in finding must be escaped, got: {}", rows[0]);
 }
 
 // =============== JSON parser (CONV-1) ===============

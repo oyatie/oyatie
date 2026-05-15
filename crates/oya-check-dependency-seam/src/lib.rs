@@ -1055,6 +1055,76 @@ pub fn render_report_json(report: &CompositeReport) -> String {
     out
 }
 
+/// Emit per-sub-check audit-chain rows (one JSONL line per sub-check) per
+/// ADR-0069. Resolves CONV-9 from TG2 11-facet debate synthesis (F9
+/// compliance): the prior `task_group_completion` event named sub-checks
+/// collectively, but per-sub-check who/when/what/why was not emitted, so a
+/// compliance team could not reconstruct findings from the audit chain
+/// alone. This helper returns the JSONL rows for the caller to append to
+/// `evidence/audit-chain.jsonl`.
+///
+/// Caller pattern (from lane binary or CI orchestrator):
+///   for row in render_audit_chain_rows(&report, change_id, session_id, ts) {
+///       writeln!(audit_chain_file, "{}", row)?;
+///   }
+pub fn render_audit_chain_rows(
+    report: &CompositeReport,
+    change_id: &str,
+    session_id: &str,
+    timestamp_unix: u64,
+) -> Vec<String> {
+    fn escape(s: &str) -> String {
+        s.chars()
+            .map(|c| match c {
+                '"' => "\\\"".to_string(),
+                '\\' => "\\\\".to_string(),
+                '\n' => "\\n".to_string(),
+                '\r' => "\\r".to_string(),
+                '\t' => "\\t".to_string(),
+                c => c.to_string(),
+            })
+            .collect()
+    }
+    let mut rows = Vec::with_capacity(report.sub_checks.len());
+    for r in &report.sub_checks {
+        let status_str = match r.status {
+            SubCheckStatus::Pass => "pass",
+            SubCheckStatus::Fail => "fail",
+            SubCheckStatus::NotYetArmed => "not-yet-armed",
+        };
+        let severity_str = match r.severity_day_1 {
+            Severity::ReportOnly => "report-only",
+            Severity::Error => "error",
+        };
+        let first_n: usize = 3;
+        let findings_count = r.findings.len();
+        let mut findings_preview = String::from("[");
+        for (idx, f) in r.findings.iter().take(first_n).enumerate() {
+            if idx > 0 {
+                findings_preview.push_str(",");
+            }
+            findings_preview.push('"');
+            findings_preview.push_str(&escape(f));
+            findings_preview.push('"');
+        }
+        findings_preview.push(']');
+        let row = format!(
+            "{{\"event_type\":\"seam_lane_subcheck_run\",\"change_id\":\"{}\",\"session_id\":\"{}\",\"timestamp_unix\":{},\"payload\":{{\"sub_check_id\":\"{}\",\"status\":\"{}\",\"severity_day_1\":\"{}\",\"findings_count\":{},\"findings_first_{}\":{}}}}}",
+            escape(change_id),
+            escape(session_id),
+            timestamp_unix,
+            r.id,
+            status_str,
+            severity_str,
+            findings_count,
+            first_n,
+            findings_preview
+        );
+        rows.push(row);
+    }
+    rows
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
