@@ -24,7 +24,7 @@ depends_on:
     \ to them."
 parallel_wave: 4
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the `oya-application-*` µservice: the B2B unified shell through which KR group tenants sign in (OIDC/SAML SSO."
 ---
 # P06-application-b2b-live: Application B2B shell — OIDC/SAML SSO, product-enablement console, tenant onboarding, Leptos SSR
 

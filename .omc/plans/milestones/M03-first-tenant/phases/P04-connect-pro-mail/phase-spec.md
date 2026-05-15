@@ -33,7 +33,7 @@ depends_on:
     HR to ship first.
 parallel_wave: 2
 owner_team: council-connect
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers Connect Professional Mail: hosted corporate email for tenant domains with SMTP ingest, IMAP access, JMAP protocol support, SPF/DKIM/DMARC enforcement, and full compliance stack (legal hold, eDiscovery export in PST/MBOX."
 ---
 # P04-connect-pro-mail: Connect Professional Mail — SMTP/IMAP, tenant DEK encryption, legal hold, eDiscovery, retention
 

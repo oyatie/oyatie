@@ -22,7 +22,7 @@ acceptance_lanes:
 - lean-a4
 - audit-chain
 - k6-smoke
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Extends `oya-connect-app` with the `messenger` BC: Rust kernel port traits (`MessengerStore`, `RatchetKeyStore`); domain entities (`Channel`, `DirectMessage`, `RatchetSession`, `ObjectReference` deep-links)."
 ---
 # IP-P05-connect-pro-messenger-full-scaffold: Connect Professional Messenger — PQXDH, Signal double-ratchet, InternalAuditable threads, WebSocket fan-out, Workflow deep-links
 

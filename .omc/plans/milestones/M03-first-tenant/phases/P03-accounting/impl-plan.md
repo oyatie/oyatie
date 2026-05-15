@@ -25,7 +25,7 @@ acceptance_lanes:
 - audit-chain
 - jurisdiction-overlay
 - k6-smoke
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Scaffolds the complete `oya-accounting-*` µservice: Postgres DDL for chart-of-accounts + ledger (append-only) + period-close + reporting with Citus sharding + RLS + outbox; Rust kernel port traits."
 ---
 # IP-P03-accounting-full-scaffold: Accounting µservice — K-GAAP COA, double-entry ledger, auto-journal from PayrollRunCompleted, period-close, Typst financial statements
 

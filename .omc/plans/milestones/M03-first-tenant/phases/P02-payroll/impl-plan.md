@@ -25,7 +25,7 @@ acceptance_lanes:
 - audit-chain
 - jurisdiction-overlay
 - k6-smoke
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Scaffolds the complete `oya-payroll-*` µservice: Postgres DDL for all 5 BCs with Citus sharding + RLS + outbox; Rust kernel port traits."
 ---
 # IP-P02-payroll-full-scaffold: Payroll µservice — DDL, gross-to-net engine, 4대보험 EDI, 연말정산, Typst payslips, bank disbursement, Workflow events, load tests
 

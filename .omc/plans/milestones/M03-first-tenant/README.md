@@ -42,7 +42,7 @@ oyatie_adrs_cited:
 - ADR-0061
 - ADR-0063
 - ADR-0064
-purpose: Auto-backfilled purpose for README.md
+purpose: "First-paying-tenant GA. Equivalent to Bominal M3 per ADR-0210. Ship the canonical product to a paying KR group tenant using the KR localization pack (pack #1)."
 ---
 # M03-first-tenant — 1 KR paying tenant live (HR + Payroll + Accounting + Connect Pro Mail/Messenger + Workflow Studio)
 

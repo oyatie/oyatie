@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "P07 — Workflow Studio Visual Editor: Implementation Plan"
 ---
 
 # P07 — Workflow Studio Visual Editor: Implementation Plan

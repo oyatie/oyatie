@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "P08 — KR Acceptance Evidence: Implementation Plan"
 ---
 
 # P08 — KR Acceptance Evidence: Implementation Plan

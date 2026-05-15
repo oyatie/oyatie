@@ -25,7 +25,7 @@ depends_on:
     entity types and emit events.
 parallel_wave: 1
 owner_team: council-enterprise
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the `oya-hr-*` µservice: the authoritative source for `Employee`, `Employment`, and `Organization` entities within a tenant."
 ---
 # P01-hr: HR µservice — Employee lifecycle, KR compliance, Ontology entity registration
 

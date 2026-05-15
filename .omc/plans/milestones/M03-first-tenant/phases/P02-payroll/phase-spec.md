@@ -32,7 +32,7 @@ depends_on:
     engine.
 parallel_wave: 2
 owner_team: council-enterprise
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the `oya-payroll-*` µservice: monthly payroll computation (gross-to-net under Korean tax law), 4대보험 EDI electronic submission (NPS / NHIS / MOEL), 연말정산 year-end settlement, payslip generation (Typst PDF)."
 ---
 # P02-payroll: Payroll µservice — KR gross-to-net, 4대보험 EDI, 연말정산, disbursement
 

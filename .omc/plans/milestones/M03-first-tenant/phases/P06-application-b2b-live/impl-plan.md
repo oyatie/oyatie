@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "P06 — Application B2B Shell Live: Implementation Plan"
 ---
 
 # P06 — Application B2B Shell Live: Implementation Plan

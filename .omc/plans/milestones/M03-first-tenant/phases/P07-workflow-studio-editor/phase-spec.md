@@ -28,7 +28,7 @@ depends_on:
     wire triggers.
 parallel_wave: 2
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the Workflow Studio visual editor: the HERO product. An n8n-class drag-drop canvas (Leptos WASM."
 ---
 # P07-workflow-studio-editor: Workflow Studio visual editor — Leptos canvas, 10 domain templates, agentic nodes, durable execution, approval chains
 

@@ -31,7 +31,7 @@ depends_on:
     balance invariant primitives.
 parallel_wave: 3
 owner_team: council-enterprise
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Delivers the `oya-accounting-*` µservice: K-GAAP double-entry bookkeeping with automatic journal entry generation from Payroll events via Workflow, chart of accounts CRUD, period-end closing (월마감/연마감)."
 ---
 # P03-accounting: Accounting µservice — K-GAAP double-entry ledger, auto-journal from Payroll, financial statements
 

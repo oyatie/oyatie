@@ -22,7 +22,7 @@ acceptance_lanes:
 - audit-chain
 - jurisdiction-overlay
 - k6-smoke
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Scaffolds the complete `oya-hr-*` µservice: Postgres DDL with Citus distribution + RLS + outbox tables for all 4 BCs; Rust kernel port traits."
 ---
 # IP-P01-hr-full-scaffold: HR µservice — DDL, domain entities, port traits, adapters, REST API, Cedar policies, Workflow events, Ontology types, load tests
 

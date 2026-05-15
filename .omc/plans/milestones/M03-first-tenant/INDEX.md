@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for INDEX.md
+purpose: Generated hierarchy index for existing phase/IP tree so masterplan.json can address this milestone explicitly.
 ---
 
 ---

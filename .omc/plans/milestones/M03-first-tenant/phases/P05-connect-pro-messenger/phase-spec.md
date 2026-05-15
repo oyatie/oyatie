@@ -25,7 +25,7 @@ depends_on:
     with Mail; P04 must ship first to avoid re-wiring the composition root.
 parallel_wave: 3
 owner_team: council-connect
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Extends the `oya-connect-*` µservice with Professional Messenger: real-time channels and direct messages using PQXDH key exchange and Signal double-ratchet for forward secrecy (per Bominal `platform/libs/ratchet/` port)."
 ---
 # P05-connect-pro-messenger: Connect Professional Messenger — E2E PQXDH, Signal double-ratchet, work-mode threads, Workflow deep-links
 

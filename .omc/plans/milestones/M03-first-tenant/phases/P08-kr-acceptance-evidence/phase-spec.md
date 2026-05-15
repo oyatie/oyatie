@@ -29,7 +29,7 @@ depends_on:
     configure automations.
 parallel_wave: 5
 owner_team: council-architecture
-purpose: Auto-backfilled purpose for phase-spec.md
+purpose: "Closes the M03 milestone by producing the production evidence required by Bominal ADR-0210 §\"Launch-Blocking Client Bar\" and §\"M3 In Scope\": one paid KR group customer running real payroll in production, 4대보험 EDI submissions acknowledged."
 ---
 # P08-kr-acceptance-evidence: M3 KR group customer onboarding + acceptance evidence — payroll close, EDI green, 연말정산, legal hold, 7-day SLO
 

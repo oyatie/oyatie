@@ -25,7 +25,7 @@ acceptance_lanes:
 - audit-chain
 - cedar-policy
 - k6-smoke
-purpose: Auto-backfilled purpose for impl-plan.md
+purpose: "Scaffolds the `oya-connect-*` µservice: Postgres DDL for mail + legal-hold BCs with Citus sharding + RLS + dual-context schema isolation (`connect_pro` / `connect_personal`); Rust kernel port traits (`MailboxStore`, `LegalHoldStore`)."
 ---
 # IP-P04-connect-pro-mail-full-scaffold: Connect Professional Mail — SMTP/IMAP/JMAP, tenant DEK encryption, legal hold, eDiscovery, retention, dual-context Cedar policies
 
