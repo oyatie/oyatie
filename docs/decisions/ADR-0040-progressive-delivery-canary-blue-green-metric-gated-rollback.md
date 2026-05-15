@@ -164,7 +164,7 @@ This ADR does not own the SLO catalog (per ADR-0042). Does not own the gitops br
 - Per-cell rollback runbook.
 - Argo Rollouts + Prometheus / VictoriaMetrics adapter (per ADR-0042) maintained per-cell.
 - Per-quarter rollback drill: deliberately deploy a faulty version to a preview cell and confirm auto-rollback fires.
-- Per-month review of any rollout that didn't follow stages (exceptions documented per ADR amendment).
+- Per-month review of any rollout that did not follow the canonical stages. Stage adherence is mandatory; a non-conforming rollout triggers an ADR-amendment proposal whose acceptance is the canonical extension path. No grandfathered deviations.
 
 ---
 
