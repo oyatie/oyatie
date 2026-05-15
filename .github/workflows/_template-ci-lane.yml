@@ -71,7 +71,13 @@ jobs:
           shared-key: ${{ inputs.lane-name }}
 
       - name: Build (${{ inputs.package-glob }})
-        run: cargo build ${{ inputs.package-glob }}
+        env:
+          PACKAGE_GLOB: ${{ inputs.package-glob }}
+        run: cargo build $PACKAGE_GLOB
 
       - name: Acceptance
-        run: ${{ inputs.acceptance-commands }}
+        env:
+          ACCEPTANCE_COMMANDS: ${{ inputs.acceptance-commands }}
+        run: |
+          set -euo pipefail
+          bash -c "$ACCEPTANCE_COMMANDS"
