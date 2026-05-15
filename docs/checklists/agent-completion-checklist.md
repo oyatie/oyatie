@@ -17,6 +17,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (migration-class completion)
   - ADR-0053  # sanctioned primitives (grit done, icm store, oya-tooling-agent-read)
   - ADR-0054  # scaffold-claim (symbol release)
+doc_status: published
 ---
 
 # Agent Completion Checklist

@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Audit Readiness
 
 > **When:** Per audit cycle (annual + on-demand). Required before any external audit (SOC 2 / ISO 27001 / KR-ISMS-P / CSAP / HIPAA / PCI-DSS / per regulator).

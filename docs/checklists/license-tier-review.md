@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Checklist — License Tier Review
 
 > **Trigger:** new external dep / version bump

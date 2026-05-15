@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Pre-push
 
 > **When:** Before every `git push`. Mechanically enforced by `.git/hooks/pre-push`. Never skip with `--no-verify`.

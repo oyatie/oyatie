@@ -15,6 +15,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (phase audit emission)
   - ADR-0053  # sanctioned primitives (icm handoff store)
   - ADR-0054  # scaffold-claim (symbol reconciliation)
+doc_status: published
 ---
 
 # Per-Phase Completion Checklist

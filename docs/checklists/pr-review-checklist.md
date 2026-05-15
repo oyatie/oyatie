@@ -15,6 +15,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (migration-class review)
   - ADR-0053  # sanctioned primitives (no bypass)
   - ADR-0054  # scaffold-claim (grit symbols review)
+doc_status: published
 ---
 
 # PR Review Checklist

@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Checklist — Foundation Bypass Renewal
 
 > **Trigger:** per bypass expiry

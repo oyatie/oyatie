@@ -18,6 +18,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (cutover carve-out; E1)
   - ADR-0053  # sanctioned primitives (defines the primitive boundary that triggers halts)
   - ADR-0054  # scaffold-claim (E6 final_shape_compliance)
+doc_status: published
 ---
 
 # Escalation Checklist (BLOCKED_ON_HUMAN_ORCHESTRATOR)

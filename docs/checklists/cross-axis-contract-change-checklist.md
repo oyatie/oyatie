@@ -16,6 +16,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (contract rename/move audit)
   - ADR-0053  # sanctioned primitives (agent notification path)
   - ADR-0054  # scaffold-claim (symbol updates on contract rename)
+doc_status: published
 ---
 
 # Cross-Axis Contract Change Checklist

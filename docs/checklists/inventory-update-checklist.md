@@ -15,6 +15,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (this checklist IS the ADR-0052 operational procedure)
   - ADR-0053  # sanctioned primitives (primitive field in row schema)
   - ADR-0054  # scaffold-claim (symbol update when file moves)
+doc_status: published
 ---
 
 # Inventory Update Checklist

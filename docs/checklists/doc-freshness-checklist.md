@@ -14,6 +14,7 @@ related:
 adrs_cited:
   - ADR-0052  # inventory ledger (doc move/archive triggers)
   - ADR-0053  # sanctioned primitives (auto-update agent path)
+doc_status: published
 ---
 
 # Doc Freshness Checklist

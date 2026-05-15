@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Checklist — Cross Axis Contract Change
 
 > **Trigger:** any DESIGN §10 row change

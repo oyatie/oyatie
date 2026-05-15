@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Pre-merge
 
 > **When:** Before `gh pr merge`. After all CI lanes green + reviewer-agent verdict.

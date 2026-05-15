@@ -15,6 +15,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (migration-class IP rows)
   - ADR-0053  # sanctioned primitives (grit done, icm store)
   - ADR-0054  # scaffold-claim (symbol coverage)
+doc_status: published
 ---
 
 # Per-IP Completion Checklist

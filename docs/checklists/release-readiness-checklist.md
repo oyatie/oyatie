@@ -16,6 +16,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (wave-gate audit emission)
   - ADR-0053  # sanctioned primitives (agent release path)
   - ADR-0054  # scaffold-claim (capability scaffolding at release)
+doc_status: published
 ---
 
 # Release Readiness Checklist (wave-gate)

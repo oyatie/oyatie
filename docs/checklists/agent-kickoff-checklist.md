@@ -16,6 +16,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (migration-class claim prerequisites)
   - ADR-0053  # sanctioned primitives (grit claim, icm recall)
   - ADR-0054  # scaffold-claim pattern (symbol verification)
+doc_status: published
 ---
 
 # Agent Kickoff Checklist

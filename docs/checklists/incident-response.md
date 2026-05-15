@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Incident Response
 
 > **When:** Sev 1/2 (or escalated Sev 3) detected. Mechanically driven by [INCIDENT-MANAGEMENT.md](../INCIDENT-MANAGEMENT.md).
