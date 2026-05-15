@@ -18,7 +18,7 @@
       ".omc/plans/ralplan-ops-portal-2026-05-13.md (Markdown projection precedent)",
       ".omc/plans/ralplan-ops-wave-5-2026-05-13.md (Markdown projection v18 Accepted)"
     ],
-    "purpose": "Auto-backfilled purpose for plan-schema.json"
+    "purpose": "Machine-readable canonical form of a ralplan-consensus plan. The Markdown plan at .omc/plans/ralplan-*.md is a generated projection of this JSON."
   },
   "type": "object",
   "additionalProperties": false,

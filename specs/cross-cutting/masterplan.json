@@ -32,7 +32,7 @@
       "01KRJN9MX6W8BD8TE87NC5GA37"
     ],
     "oya_vcs_directive_2026_05_14": "Oya VCS is the provider-neutral, agent-native successor to grit with first-class but replaceable GitHub/GitHub Actions/Trivy/Argo CD adapters, native queue feature parity, semantic ChangeSets, virtual merge stack, queue-aware locks, review/CI fix loops, dev/staging/prod promotion, and Rust compile-latency scheduling.",
-    "purpose": "Auto-backfilled purpose for masterplan.json"
+    "purpose": "Schema for https://docs.oyatie.dev/specs/masterplan.json"
   },
   "vision": {
     "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent \u00b5services integrated through Workflow and Ontology.",

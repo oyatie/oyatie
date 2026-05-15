@@ -35,7 +35,7 @@
     ],
     "design_posture": "Provider-neutral Oya VCS core first; GitHub/GitHub Actions, Trivy, Argo CD, GitLab, and future in-house systems are replaceable first-class adapters. Agents never call git or gh directly.",
     "product_name": "Oya VCS",
-    "purpose": "Auto-backfilled purpose for gitops-vcs-replacement.json"
+    "purpose": "Early masterplan prerequisite for an Oyatie-owned VCS replacement that preserves grit-style agentic-development advantages and upgrades closeout from local merges to GitOps CI/CD promotion."
   },
   "moved_earlier_in_masterplan": {
     "milestone": "M-CC-cross-cutting",

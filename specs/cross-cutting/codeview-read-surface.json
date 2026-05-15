@@ -72,5 +72,5 @@
       "reason": "Rebase/merge/done state must be owned by grit done or GitOps promotion."
     }
   ],
-  "purpose": "Auto-backfilled purpose for codeview-read-surface.json"
+  "purpose": "Defines the agent read-only codeview surface after the BNF v4.1 rename, including compatibility binaries and rejected direct VCS tokens."
 }

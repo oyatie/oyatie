@@ -21,7 +21,7 @@
       "docs/templates/postmortem-template.md",
       "docs/templates/mistakes-ledger-row-template.md"
     ],
-    "purpose": "Auto-backfilled purpose for final-report-schema.json"
+    "purpose": "Schema for the final autonomous master-plan completion report. Requires honest claim boundaries and evidence references."
   },
   "type": "object",
   "additionalProperties": false,

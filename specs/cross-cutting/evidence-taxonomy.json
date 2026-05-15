@@ -90,5 +90,5 @@
       "supply_chain"
     ]
   },
-  "purpose": "Auto-backfilled purpose for evidence-taxonomy.json"
+  "purpose": "Evidence taxonomy for master-plan completion ledger rows. Reuses the canonical EvidenceBundle template instead of defining a competing bundle format."
 }

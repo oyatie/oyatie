@@ -80,5 +80,5 @@
     "final_claim_stronger_than_evidence"
   ],
   "allowed_blocked_exit": "Only when no meaningful recovery path remains; final report must use blocked status, not completion status.",
-  "purpose": "Auto-backfilled purpose for stop-conditions.json"
+  "purpose": "Stop conditions for the autonomous master-plan loop. Complements docs/AGENTS.md Done-Definition and long-running-loop rule."
 }

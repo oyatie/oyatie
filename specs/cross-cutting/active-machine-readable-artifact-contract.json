@@ -35,7 +35,7 @@
     ],
     "enforcing_fitness_lane": "lean-a-active-artifact-contract",
     "validator_crate": "crates/oya-check-active-artifact-contract (planned)",
-    "purpose": "Auto-backfilled purpose for active-machine-readable-artifact-contract.json"
+    "purpose": "Registry-row schema for the central artifact capabilities control-plane."
   },
   "type": "object",
   "required": [

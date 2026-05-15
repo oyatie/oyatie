@@ -17,7 +17,7 @@
       "M-CC-P00 GitOps VCS admission",
       "merge-queue CI/CD gates"
     ],
-    "purpose": "Auto-backfilled purpose for test-standard.json"
+    "purpose": "Machine-readable unit/integration/e2e test standard enforced by M-CC-P00 GitOps VCS admission and CI/CD promotion."
   },
   "tiers": [
     {

@@ -17,7 +17,7 @@
       "CLAUDE.md and AGENTS.md",
       "that should utilize machine readable pointers to relevent files"
     ],
-    "purpose": "Auto-backfilled purpose for markdown-retirement-policy.json"
+    "purpose": "Policy for retiring hand-authored Markdown from the repo per user directive 2026-05-13. Only README.md + CLAUDE.md + AGENTS.md (at repo root) survive as machine-readable pointer hubs. Everything else under docs/, .omc/, contracts/, etc."
   },
   "retention_rules": {
     "survive_at_root_as_pointer_hubs": [

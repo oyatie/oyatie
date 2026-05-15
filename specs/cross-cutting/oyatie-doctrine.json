@@ -12,7 +12,7 @@
     "created_at": "2026-05-14T00:00:00Z",
     "primary_consumer": "agentic_flow",
     "applies_to": "every artifact in the workspace; no exemptions without ADR-tracked carve-out",
-    "purpose": "Auto-backfilled purpose for oyatie-doctrine.json"
+    "purpose": "Workspace-wide principles. Indexed by id (P0..P16). Cited by every spec / ADR / standard. Slimmed per P16 (target <= 300 lines); narrative lives in docs/standards/oyatie-doctrine.md (gateway)."
   },
   "principles": {
     "P0_agentic_primary": {

@@ -33,7 +33,7 @@
       "ADR-0092"
     ],
     "session_start_directive": "Every session \u2014 agentic OR human-dev \u2014 reads this spec before any code change. Quality bar is durable across sessions AND across agents.",
-    "purpose": "Auto-backfilled purpose for multispectrum-review.json"
+    "purpose": "Machine-readable mirror of docs/standards/multispectrum-review.md. Defines the seven-facet review bar, the closed change_class enum, the rigor matrix, the trigger-question registry, and the per-changeset evidence schema."
   },
   "enforcement_scopes": {
     "agentic_flow": {

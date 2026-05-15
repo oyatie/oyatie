@@ -173,5 +173,5 @@
     "claims_we_cannot_make_yet",
     "evidence_required_to_make_remaining_claims"
   ],
-  "purpose": "Auto-backfilled purpose for hyperscaler-gates.json"
+  "purpose": "Gate registry for honest hyperscaler-grade architecture claims. References repo standards; does not replace them."
 }

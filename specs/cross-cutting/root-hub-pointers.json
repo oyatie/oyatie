@@ -16,7 +16,7 @@
       "that should utilize machine readable pointers to relevant files",
       "Heavy diet. Make sure everything has a purpose."
     ],
-    "purpose": "Auto-backfilled purpose for root-hub-pointers.json"
+    "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md (only Markdown files surviving at repo root per user directive 2026-05-13) include a section that references this file."
   },
   "entry_points": {
     "_retired_constitutional_authority": {

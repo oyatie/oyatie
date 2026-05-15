@@ -18,7 +18,7 @@
     "related_specs": [
       "/specs/cross-cutting/multispectrum-review.json"
     ],
-    "purpose": "Auto-backfilled purpose for iterative-fix-loop.json"
+    "purpose": "Protocol for the find → fix → re-review cycle invoked by the pre-PR multispectrum checklist. Defines the loop state machine, termination conditions, and the bounded depth of iterations before escalating to human review."
   },
   "loop_state_machine": {
     "states": [
