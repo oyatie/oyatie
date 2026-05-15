@@ -157,31 +157,24 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
 ## Sanctioned primitives
 
-Agent-callable coordination and state-transition primitives are a closed set: `grit`, `icm`, and `oya-tooling-agent-read`. `grit` owns claims and completion, `icm` owns durable recall plus audit memory, and `oya-tooling-agent-read` owns read-only VCS / forge inspection. ADR-0053 defines the steady-state rule; ADR-0054 defines the scaffold-lock fallback for paths that cannot yet be claimed as indexed symbols.
+Agent-callable coordination and state-transition primitives are a closed set: `grit` and `oya-tooling-agent-read`. `grit` owns claims and completion. `oya-tooling-agent-read` owns read-only VCS / forge inspection. ADR-0053 defines the steady-state rule; ADR-0054 defines the scaffold-lock fallback for paths that cannot yet be claimed as indexed symbols.
 
-Persistent memory is mandatory: recall before repo work; store resolved errors, architecture decisions, discovered user preferences, significant completions, and long-running progress checkpoints. Never store secrets, credentials, raw private logs, or bulky file contents.
+Both primitives are transitional. They sunset once Oya VCS (M-CC-P00) and Foundry go live, at which point no external agent-coordination tooling (rtk, vox, icm, grit, omc, omx) remains in repo. Until then, agents use `grit` + `oya-tooling-agent-read`; after cutover, they use the Oya VCS CLI exclusively.
 
 The fenced block below is the machine-readable agent surface for the banned-primitives lane. Human-facing terminal examples may live outside fences; fenced instructions use only the sanctioned primitive names.
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
   - grit
-  - icm
   - oya-tooling-agent-read
 required_sequence:
-  - icm recall-context "<task>" --limit 5
   - grit claim --agent <id> --intent "<slice>" <file::Identifier>
   - oya-tooling-agent-read log --range <range> --paths <path>
   - grit done --agent <id>
-mandatory_icm_store_triggers:
-  - errors-resolved
-  - decisions-oyatie
-  - preferences
-  - context-oyatie
-  - progress-checkpoint
 scaffold_fallback:
   topic: scaffold-locks-oyatie
   adr: docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
+sunset_note: grit + oya-tooling-agent-read are transitional. Both sunset once Oya VCS (M-CC-P00) + Foundry go live; no external tooling (rtk, vox, icm, grit, omc, omx) remains in repo post-cutover.
 <!-- agent-instructions:end -->
 
 ## PR shape
