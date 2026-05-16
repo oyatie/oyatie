@@ -194,7 +194,7 @@ fn invoke_fix_loop_runtime(
     workspace_root: &Path,
     fs_io: &dyn FilesystemIo,
 ) -> Result<(), String> {
-    let template = build_fix_loop_template();
+    let template = build_fix_loop_template()?;
     let api_key_ref =
         SecretReference::new("sref://openbao/oya/foundry/anthropic-api-key".to_owned())
             .map_err(|e| format!("api-key-ref: {e}"))?;
@@ -242,7 +242,7 @@ fn invoke_fix_loop_runtime(
 /// `evidence/pipeline-maturity-glue/ip-004-pr-review/facets/` (IP-004's
 /// 21-facet review panel) — those are NOT the same as this fix-loop
 /// agent which operates one-shot per failure.
-fn build_fix_loop_template() -> FacetPromptTemplate {
+fn build_fix_loop_template() -> Result<FacetPromptTemplate, String> {
     FacetPromptTemplate::new(
         "fix_loop_agent".to_owned(),
         "Fix-loop agent (IP-005)".to_owned(),
@@ -252,7 +252,8 @@ fn build_fix_loop_template() -> FacetPromptTemplate {
          Produce a single unified-diff patch that, when applied + run through `oya verify`, makes the failing surface green.\n\
          Do not invent files. Do not silently change public contracts.\n\
          Cite any mistakes-ledger row your fix addresses.\n".to_owned(),
-    ).expect("static fix-loop template is well-formed by construction")
+    )
+    .map_err(|error| format!("fix-loop template construction failed: {error}"))
 }
 
 fn escalate(

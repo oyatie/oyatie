@@ -380,7 +380,7 @@ fn run_fix_loop(options: FixLoopOptions) -> Result<String, String> {
         .map(|d| d.as_secs())
         .unwrap_or(0);
 
-    let fix_template = build_fix_loop_template();
+    let fix_template = build_fix_loop_template()?;
     let request = SubagentRequest {
         facet_id: "fix_loop_agent".to_owned(),
         reviewer_id: format!("claude-fix-loop-attempt-{}", options.attempt),
@@ -424,7 +424,7 @@ fn run_fix_loop(options: FixLoopOptions) -> Result<String, String> {
 /// The fix-loop subagent doesn't get a per-facet template; it gets a
 /// single canonical fix-agent template baked into the binary so the
 /// fix-loop doesn't depend on a separate `*.md` deliverable.
-fn build_fix_loop_template() -> FacetPromptTemplate {
+fn build_fix_loop_template() -> Result<FacetPromptTemplate, String> {
     FacetPromptTemplate::new(
         "fix_loop_agent".to_owned(),
         "Fix-loop agent (IP-005)".to_owned(),
@@ -434,7 +434,8 @@ fn build_fix_loop_template() -> FacetPromptTemplate {
          Produce a single unified-diff patch that, when applied + run through `oya verify`, makes the failing surface green.\n\
          Do not invent files. Do not silently change public contracts.\n\
          Cite any mistakes-ledger row your fix addresses.\n".to_owned(),
-    ).expect("static fix-loop template is well-formed by construction")
+    )
+    .map_err(|error| format!("fix-loop template construction failed: {error}"))
 }
 
 fn usage() -> String {

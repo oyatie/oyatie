@@ -270,10 +270,11 @@ fn run_inline_subagent_runtime(options: &Options, evidence_dir: &Path) -> Result
         .change_id
         .clone()
         .unwrap_or_else(|| format!("pr-{}", options.pr_number));
-    let api_key_ref = options.api_key_ref.clone().unwrap_or_else(|| {
-        SecretReference::new(DEFAULT_API_KEY_SREF.to_string())
-            .expect("DEFAULT_API_KEY_SREF is a well-formed sref:// reference by construction")
-    });
+    let api_key_ref = match options.api_key_ref.clone() {
+        Some(key) => key,
+        None => SecretReference::new(DEFAULT_API_KEY_SREF.to_string())
+            .map_err(|error| format!("DEFAULT_API_KEY_SREF malformed: {error}"))?,
+    };
     let port = MockSubagentPort::new();
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -354,12 +355,9 @@ fn load_findings(dir: &Path) -> Result<Vec<FacetFinding>, String> {
 }
 
 fn parse_facet_slug(slug: &str) -> Option<FacetId> {
-    for facet in FacetId::full_panel_v23() {
-        if facet.slug() == slug {
-            return Some(facet);
-        }
-    }
-    None
+    FacetId::full_panel_v23()
+        .into_iter()
+        .find(|facet| facet.slug() == slug)
 }
 
 /// Minimal JSON-string-value reader. The subagent r1.json shape per
@@ -594,10 +592,10 @@ fn parse_admission_log(raw: &str) -> Vec<String> {
             }
             '}' => {
                 depth -= 1;
-                if depth == 0 {
-                    if let Some(start) = object_start.take() {
-                        out.push(body[start..=index].to_string());
-                    }
+                if depth == 0
+                    && let Some(start) = object_start.take()
+                {
+                    out.push(body[start..=index].to_string());
                 }
             }
             ']' if depth == 0 => break,

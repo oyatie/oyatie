@@ -64,11 +64,19 @@ jobs:
         uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
         with:
           shared-key: pr-tests
-      - name: cargo clippy --workspace --all-targets -- -D warnings
+      - name: cargo clippy --workspace --all-targets --keep-going -- -D warnings
         env:
           CARGO_TERM_COLOR: always
           CARGO_INCREMENTAL: "0"
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        # `--keep-going` (stable since 1.74) continues clippy across every
+        # crate even after one fails — surfaces ALL lint errors in a
+        # single CI run instead of stopping at the first crate's first
+        # error. Aligns with the surface-all-failures CI doctrine
+        # elsewhere in this workflow (no `needs:` chains; nextest uses
+        # `--no-fail-fast`). Three CI cycles on PR #3 (2026-05-15)
+        # surfaced one clippy crate-failure at a time; this flag is the
+        # canonical fix.
+        run: cargo clippy --workspace --all-targets --keep-going -- -D warnings
 
   cargo-check:
     name: cargo check --workspace
@@ -84,11 +92,15 @@ jobs:
         uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
         with:
           shared-key: pr-tests
-      - name: cargo check --workspace --all-targets
+      - name: cargo check --workspace --all-targets --keep-going
         env:
           CARGO_TERM_COLOR: always
           CARGO_INCREMENTAL: "0"
-        run: cargo check --workspace --all-targets
+        # `--keep-going` continues checking every crate even after one
+        # fails — surfaces ALL compile errors in a single CI run
+        # (same surface-all-failures doctrine as the clippy step
+        # above and `--no-fail-fast` on nextest).
+        run: cargo check --workspace --all-targets --keep-going
 
   cargo-nextest:
     name: cargo nextest run --workspace
