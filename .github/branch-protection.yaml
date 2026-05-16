@@ -13,6 +13,14 @@ branches:
     # of a human approval. Restore to ≥1 only if the auto-review channel is
     # sunset and human review re-enters the pipeline.
     required_approving_reviews: 0
+    # Canonical contract: each entry below is BOTH the workflow
+    # YAML job-key AND the workflow's `name:` field. GitHub matches
+    # required checks by `name:`, so name ≡ job-key keeps the
+    # rule trivially equal to the running workflow and makes future
+    # display-name drift impossible. Asserted by the
+    # `oya-foundry-fitness-protection-context-match` CI lane:
+    # every entry here must be the `name:` of a job in some
+    # `.github/workflows/*.yml`.
     required_status_checks:
       - cargo-fmt
       - cargo-check
@@ -23,13 +31,16 @@ branches:
       - oya-foundry-fitness-supply-chain
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver
-      # M-CC-P10-IP-004: multispectrum reviewer-agent auto-dispatch.
-      # Posted by .github/workflows/pr-review.yml job-id `oya-pr-review`
-      # after pr-tests + oya-foundry-fitness-supply-chain converge green.
-      # Until the per-facet subagent runtime lands (TODO captured in
-      # evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json
-      # audit_trail.subagent_runtime_followup), the dispatcher emits
-      # APPROVE with subagent_runtime_pending=true; the merge-queue
-      # admission consumer (IP-006) refuses to trust that until the
-      # runtime ships.
-      - oya-pr-review
+      # oya-pr-review — multispectrum reviewer-agent auto-dispatch
+      # (M-CC-P10-IP-004 + IP-009). TIME-BOUNDED REMOVAL FROM
+      # REQUIRED LIST until 2026-06-15 OR until 5 consecutive PRs
+      # have `oya-pr-review` post APPROVE via the live subagent
+      # runtime (whichever comes first). The dispatcher currently
+      # emits APPROVE with `subagent_runtime_pending=true` because
+      # IP-009 ships the runtime as a substrate-extension hook
+      # (Anthropic API transport seam pending). IP-006 admission
+      # gate already refuses to trust the pending shape, so making
+      # this rule required today blocks all merges with zero added
+      # safety. Restoring is a 1-line uncomment after the runtime
+      # consistently fires.
+      # - oya-pr-review

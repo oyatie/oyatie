@@ -36,7 +36,7 @@ concurrency:
 
 jobs:
   cargo-fmt:
-    name: cargo fmt --check
+    name: cargo-fmt
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -50,7 +50,7 @@ jobs:
         run: cargo fmt --all -- --check
 
   cargo-clippy:
-    name: cargo clippy -D warnings
+    name: cargo-clippy
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -79,7 +79,7 @@ jobs:
         run: cargo clippy --workspace --all-targets --keep-going -- -D warnings
 
   cargo-check:
-    name: cargo check --workspace
+    name: cargo-check
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -103,7 +103,7 @@ jobs:
         run: cargo check --workspace --all-targets --keep-going
 
   cargo-nextest:
-    name: cargo nextest run --workspace
+    name: cargo-nextest
     runs-on: ubuntu-latest
     timeout-minutes: 45
     # No `needs:` — runs independently per surface-all-failures posture
@@ -133,7 +133,7 @@ jobs:
         run: cargo nextest run --workspace --no-fail-fast
 
   oya-vcs-admission:
-    name: Oya VCS admission
+    name: oya-vcs-admission
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
