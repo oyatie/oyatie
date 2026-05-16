@@ -89,6 +89,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "slo-coverage",
     "architecture-boundaries",
     "product-index",
+    "product-prd-json",
     "stage0-prereqs",
     "changeset-state-monotonicity",
     "changeset-state-enum-closed",

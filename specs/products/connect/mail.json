@@ -1,0 +1,624 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/connect/mail.schema.json",
+  "title": "ProductPrd:ConnectMail",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-CONNECT-MAIL",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "connect-product-council",
+    "created_at": "2026-05-16T14:30:00Z",
+    "purpose": "Connect Mail PRD: standards-compatible personal and professional mail with tenant retention, legal hold, eDiscovery, migration/coexistence adapters, encrypted search, and Workflow handoff boundaries."
+  },
+  "identity": {
+    "product_id": "connect-mail",
+    "suite_id": "connect",
+    "owning_axis": "workspace-communications",
+    "product_class": "suite-app",
+    "user_facing_surface": true,
+    "context_model": [
+      "personal",
+      "work"
+    ],
+    "crate_refs_planned": [
+      "oya-connect-mail-kernel",
+      "oya-connect-mail-domain",
+      "oya-connect-mail-app",
+      "oya-connect-mail-rest"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+      "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+      "$ref:bominal/decisions/ADR-0132-data-ownership-pillars.md",
+      "$ref:bominal/decisions/ADR-0140-multi-jurisdiction-policy.md",
+      "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/products/workflow.json",
+      "$ref:specs/products/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "source_docs": [
+      "$ref:bominal/docs/products/connect/enterprise-readiness.md",
+      "$ref:bominal/docs/products/connect/messaging.md",
+      "$ref:bominal/docs/products/connect/internal-communications.md",
+      "$ref:bominal/docs/roadmap/family-connect.md"
+    ],
+    "user_decisions": [
+      "2026-05-16:D-13 one PRD per suite plus per-app sub-PRDs",
+      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/products/<id>.json"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0208#symmetric-product-model + $ref:bominal/decisions/ADR-0215#four-committed-contracts",
+  "target_users": [
+    {
+      "persona": "employee_end_user",
+      "interface": "mailbox, thread, compose, search",
+      "billing": "workspace seat"
+    },
+    {
+      "persona": "mail_admin",
+      "interface": "domain, mailbox, alias, retention, migration admin APIs",
+      "billing": "enterprise tenant admin"
+    },
+    {
+      "persona": "compliance_officer",
+      "interface": "legal-hold and eDiscovery export",
+      "billing": "compliance entitlement"
+    },
+    {
+      "persona": "external_sender_recipient",
+      "interface": "SMTP/JMAP/IMAP/REST edge",
+      "billing": "recipient-side free; tenant pays"
+    },
+    {
+      "persona": "workflow_operator",
+      "interface": "approved mail-to-workflow handoff",
+      "billing": "workflow execution units"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a work mailbox receives a message",
+      "when": "the message is persisted",
+      "then": "it is encrypted under tenant DEK, tagged Org pillar, indexed without plaintext, and covered by retention policy",
+      "test_ref": "crates/oya-connect-mail-domain/tests/storage.rs::test_work_mail_tenant_dek_and_retention"
+    },
+    {
+      "id": "AC-02",
+      "given": "a personal mailbox receives a message",
+      "when": "the message is persisted",
+      "then": "it is Person pillar and unavailable to org-admin search/export APIs",
+      "test_ref": "crates/oya-connect-mail-domain/tests/personal.rs::test_org_admin_cannot_export_personal_mail"
+    },
+    {
+      "id": "AC-03",
+      "given": "a compliance officer opens a scoped legal hold",
+      "when": "held messages match mailbox/date/query criteria",
+      "then": "deletion and retention expiry are blocked until release and all actions are audit chained",
+      "test_ref": "crates/oya-connect-mail-domain/tests/legal_hold.rs::test_hold_blocks_mail_deletion"
+    },
+    {
+      "id": "AC-04",
+      "given": "a tenant migrates from Google/Microsoft",
+      "when": "coexistence adapter imports mail",
+      "then": "source hashes, folder labels, message IDs, and retention class survive import",
+      "test_ref": "crates/oya-connect-mail-app/tests/migration.rs::test_import_preserves_chain_of_custody"
+    },
+    {
+      "id": "AC-05",
+      "given": "a user turns a work mail into a Workflow item",
+      "when": "handoff is explicitly invoked",
+      "then": "WorkflowHandoffAuditLog links original message, extracted payload, consent/policy basis, and workflow item id",
+      "test_ref": "crates/oya-connect-mail-domain/tests/workflow_handoff.rs::test_mail_to_workflow_requires_policy_basis"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "mailbox/thread/message model",
+        "work retention policy",
+        "basic search",
+        "send/receive adapters as planned contracts"
+      ],
+      "stable": [
+        "SMTP/JMAP/IMAP runtime",
+        "migration/coexistence adapters",
+        "legal-hold/eDiscovery export",
+        "shared mailboxes and aliases"
+      ],
+      "GA": [
+        "deliverability operations",
+        "restore drills",
+        "DLP and abuse controls",
+        "S/MIME and corporate E2E classification",
+        "load-tested multi-region mail cells"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "personal mail discovery by employer",
+        "why": "ADR-0215 forbids org-initiated hold/export of person-pillar artifacts"
+      },
+      {
+        "item": "third-party forwarding as workflow integration",
+        "why": "native handoff must preserve audit chain and consent/policy basis"
+      },
+      {
+        "item": "plaintext search indexes",
+        "why": "professional mail search uses encrypted/tokenized indexes"
+      }
+    ]
+  },
+  "contracts": {
+    "consumes": [
+      "connect.context.v1",
+      "workflow.handoff.v1",
+      "ontology.MailMessage",
+      "deployment.ops.v1"
+    ],
+    "produces": [
+      "connect.mail.message.v1",
+      "connect.mail.retention.v1",
+      "connect.mail.ediscovery_export.v1",
+      "connect.mail.migration_audit.v1"
+    ]
+  },
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "MailMessage",
+        "fields": [
+          "message_id",
+          "tenant_id",
+          "mailbox_id",
+          "context_kind",
+          "ownership_pillar",
+          "headers_ciphertext",
+          "body_ciphertext",
+          "retention_policy_id",
+          "legal_hold_ids",
+          "data_class",
+          "received_at",
+          "schema_version"
+        ],
+        "invariants": [
+          "context immutable",
+          "hold blocks purge",
+          "headers classified before indexing"
+        ]
+      },
+      {
+        "entity": "Mailbox",
+        "fields": [
+          "mailbox_id",
+          "tenant_id",
+          "owner_ref",
+          "context_kind",
+          "aliases",
+          "quota_policy",
+          "region",
+          "data_class"
+        ],
+        "invariants": [
+          "owner pillar matches context"
+        ]
+      },
+      {
+        "entity": "EDiscoveryExportJob",
+        "fields": [
+          "export_id",
+          "scope",
+          "requested_by",
+          "approved_by",
+          "artifact_digest",
+          "expires_at",
+          "chain_of_custody_ref"
+        ],
+        "invariants": [
+          "four-eyes for professional plaintext disclosure"
+        ]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "MailMessageReceived",
+        "topic": "connect.mail.received",
+        "idempotency_key": "message_id"
+      },
+      {
+        "event": "MailLegalHoldApplied",
+        "topic": "audit.connect.mail.legal_hold",
+        "idempotency_key": "hold_id+message_id"
+      },
+      {
+        "event": "MailWorkflowHandoffCreated",
+        "topic": "audit.connect.mail.workflow_handoff",
+        "idempotency_key": "message_id+workflow_item_id"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "Mailbox",
+        "store": "Postgres/RLS + object store for MIME blobs",
+        "sharding_key": "tenant_id+mailbox_id",
+        "retention": "per policy/hold"
+      },
+      {
+        "aggregate": "MailSearchToken",
+        "store": "encrypted search index",
+        "sharding_key": "tenant_id+token_bucket",
+        "retention": "mirrors message"
+      }
+    ],
+    "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003 + $ref:specs/agent-durable-goal.json#score_cards"
+  },
+  "optimization_practices": [
+    {
+      "practice": "pagination",
+      "implementation": "cursor by mailbox_id + received_at + message_id"
+    },
+    {
+      "practice": "bulk endpoint",
+      "implementation": "batch label/move/archive with idempotency-key"
+    },
+    {
+      "practice": "backpressure",
+      "implementation": "SMTP ingress queues expose retry_after and quota class"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "Korea-first UX, PIPA retention bounds, work-mail retention floor, Korean input/search/calendar locale rules"
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "employment discovery, HIPAA/GLBA overlays when vertical data enters professional context"
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
+      }
+    ],
+    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+  },
+  "deps": {
+    "external_adopted": [
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "runtime primitive only"
+      },
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "rustls",
+        "maturity_tier": "kernel-grade",
+        "license": "Apache-2.0 OR ISC OR MIT",
+        "decision": "TLS primitive only"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "Slack/Teams/Google/Microsoft APIs as product substrate",
+        "reason": "Connect is native product; third-party platforms may be import/coexistence adapters only"
+      },
+      {
+        "name": "shell-script operational glue",
+        "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust oya gates"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "mail_send_p99_ms",
+      "targets": {
+        "preview": 500,
+        "stable": 300,
+        "GA": 150
+      },
+      "verification_ref": "cargo bench -p oya-connect-mail-domain -- send_p99",
+      "lane_ref": "perf-budget"
+    },
+    {
+      "name": "ediscovery_export_chain_verified_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "oya gate validate connect-mail-ediscovery",
+      "lane_ref": "audit-chain"
+    },
+    {
+      "name": "mail_restore_rpo_minutes",
+      "targets": {
+        "preview": 15,
+        "stable": 10,
+        "GA": 5
+      },
+      "verification_ref": "oya gate validate connect-mail-restore-drill",
+      "lane_ref": "slo-coverage"
+    },
+    {
+      "name": "cross_pillar_mail_export_denials_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "cargo nextest -p oya-connect-mail-domain -- personal_export_denied",
+      "lane_ref": "cargo-nextest"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-01",
+      "severity": "critical",
+      "risk": "mail retention/legal-hold incompleteness blocks enterprise adoption",
+      "mitigation": "legal-hold ACs and export chain tests gate promotion",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-02",
+      "severity": "high",
+      "risk": "deliverability reputation collapse",
+      "mitigation": "domain/authentication reputation metrics and rate-limited warmup",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-03",
+      "severity": "high",
+      "risk": "migration loses legal chain-of-custody",
+      "mitigation": "source hash and import audit required for every message",
+      "owner": "connect-product-council"
+    }
+  ],
+  "competitive": [
+    {
+      "competitor": "Gmail Enterprise",
+      "observed_strengths": [
+        "mailbox scale",
+        "Vault legal hold",
+        "admin maturity"
+      ],
+      "we_beat_on": [
+        "dual-context pillar model",
+        "Workflow-native handoff",
+        "no passive plaintext surveillance"
+      ],
+      "measurable_target": "hold activation <60s, export digest verified"
+    },
+    {
+      "competitor": "Microsoft Exchange/365",
+      "observed_strengths": [
+        "enterprise admin",
+        "coexistence",
+        "calendar integration"
+      ],
+      "we_beat_on": [
+        "Ontology/Workflow-native objects",
+        "strict personal/work separation"
+      ],
+      "measurable_target": "migration import preserves 100% message source hashes"
+    },
+    {
+      "competitor": "Superhuman",
+      "observed_strengths": [
+        "speed and keyboard UX"
+      ],
+      "we_beat_on": [
+        "enterprise compliance and native workflows"
+      ],
+      "measurable_target": "compose/search critical paths p95 <150ms with full keyboard coverage"
+    }
+  ],
+  "best_practices": [
+    {
+      "id": "BP-01",
+      "rule": "professional mail is encrypted under tenant DEK and never plaintext-indexed",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-mail-encryption"
+    },
+    {
+      "id": "BP-02",
+      "rule": "retention expiry checks legal hold before delete",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-retention"
+    },
+    {
+      "id": "BP-03",
+      "rule": "mail-to-Workflow requires explicit user action or tenant policy basis",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-workflow-handoff"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "sealed_ediscovery_export",
+      "when_to_use": "export produces signed digest, expiry, and chain-of-custody pointer",
+      "reference": "$ref:bominal/decisions/ADR-0215#contract-1"
+    },
+    {
+      "pattern": "coexistence_adapter",
+      "when_to_use": "external providers are migration/coexistence adapters, never product authority",
+      "reference": "$ref:bominal/docs/roadmap/family-connect.md#corporate-mail"
+    },
+    {
+      "pattern": "encrypted_search_token",
+      "when_to_use": "search index stores policy-scoped tokens, not plaintext",
+      "reference": "$ref:bominal/decisions/ADR-0208#professional-message-storage"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "anti_pattern": "org_export_personal_mail",
+      "why_forbidden": "violates person-pillar boundary",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    },
+    {
+      "anti_pattern": "plaintext_mail_index",
+      "why_forbidden": "creates disclosure surface outside audit flow",
+      "detection_lane": "oya-foundry-fitness-connect-mail-encryption"
+    },
+    {
+      "anti_pattern": "silent_mail_to_workflow_mining",
+      "why_forbidden": "turns communications into surveillance/profiling",
+      "detection_lane": "oya-foundry-fitness-connect-workflow-consent"
+    }
+  ],
+  "goals": {
+    "scalability": {
+      "target": "10M active Connect identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
+      "verification": "oya gate validate connect-scale-model --repo-root ."
+    },
+    "security": {
+      "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
+      "verification": "cargo nextest -p oya-connect-security-domain -- cross_pillar"
+    },
+    "performance": {
+      "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
+      "verification": "cargo bench -p oya-connect-bench -- connect_hot_paths"
+    },
+    "efficiency": {
+      "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
+      "verification": "oya gate validate connect-finops-unit-economics"
+    },
+    "reliability": {
+      "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
+      "verification": "oya gate validate connect-slo-coverage"
+    }
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/products/connect/suite.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard traversal 100% for inbox, thread, compose, calendar, legal-hold and approval flows",
+    "responsive_breakpoints": [
+      "mobile-portrait",
+      "mobile-landscape",
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic; KR and en-US are launch gates, EU locales follow regional-pack coverage",
+    "design_system_components_used": "$ref:specs/products/connect/suite.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "enterprise_it_admin",
+        "journeys": [
+          "configure retention policy",
+          "open legal hold",
+          "export eDiscovery package"
+        ],
+        "time_to_success_target": "< 5 minutes with policy warnings visible"
+      },
+      {
+        "persona": "employee_end_user",
+        "journeys": [
+          "switch personal/work persona",
+          "send message/mail/calendar invite",
+          "act on approval card"
+        ],
+        "time_to_success_target": "< 30 seconds for routine send or approve"
+      },
+      {
+        "persona": "compliance_officer",
+        "journeys": [
+          "search held artifacts",
+          "verify chain-of-custody",
+          "release or extend hold"
+        ],
+        "time_to_success_target": "< 10 minutes for scoped investigation packet"
+      }
+    ],
+    "error_state_coverage": {
+      "policy_denied": "inline plus audit-safe explanation",
+      "network_partition": "offline queue with explicit sync status",
+      "legal_hold_conflict": "blocking modal requiring authorized role",
+      "delivery_failure": "per-recipient retry/error card"
+    },
+    "offline_behavior": "read cached non-sensitive state, queue user-owned drafts locally, never expose unwrapped professional plaintext offline without session-bound policy token",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "skeleton for lists, progressive render for thread/calendar, no spinner-only critical paths"
+  },
+  "frontend_components": [
+    {
+      "component": "ConnectShellPersonaSwitcher",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
+      "variants": [
+        "personal",
+        "work",
+        "admin-audit"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "CommunicationThreadList",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/communication-thread-list.json",
+      "variants": [
+        "mail",
+        "messenger",
+        "calendar-agenda"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "legal-hold",
+        "retention",
+        "consent-required",
+        "audit-access"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "desktop"
+      ]
+    }
+  ],
+  "decision_log": [
+    {
+      "date": "2026-05-16",
+      "decision": "Canonical Connect PRDs are JSON under specs/products/connect; Markdown is projection only",
+      "drivers": [
+        "user directive: machine optimized PRDs",
+        "handoff F-PRD-CONNECT-SUITE-AUTHOR",
+        "shell-to-Rust consolidation"
+      ]
+    }
+  ],
+  "sources_scanned": [
+    "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+    "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+    "$ref:bominal/docs/roadmap/family-connect.md",
+    "$ref:bominal/docs/products/connect/enterprise-readiness.md",
+    "$ref:bominal/docs/products/connect/messaging.md",
+    "$ref:bominal/docs/products/connect/internal-communications.md"
+  ]
+}

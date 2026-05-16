@@ -1,0 +1,617 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/connect/messenger.schema.json",
+  "title": "ProductPrd:ConnectMessenger",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-CONNECT-MESSENGER",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "connect-product-council",
+    "created_at": "2026-05-16T14:30:00Z",
+    "purpose": "Connect Messenger PRD: fast personal and professional messaging with personal E2E guarantees, professional tenant-DEK auditability, realtime delivery, rich media, group/channel semantics, and strict retention/legal-hold boundaries."
+  },
+  "identity": {
+    "product_id": "connect-messenger",
+    "suite_id": "connect",
+    "owning_axis": "workspace-communications",
+    "product_class": "suite-app",
+    "user_facing_surface": true,
+    "context_model": [
+      "personal",
+      "work"
+    ],
+    "crate_refs_planned": [
+      "oya-connect-messenger-kernel",
+      "oya-connect-messenger-domain",
+      "oya-connect-messenger-app",
+      "oya-connect-messenger-rest"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+      "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+      "$ref:bominal/decisions/ADR-0132-data-ownership-pillars.md",
+      "$ref:bominal/decisions/ADR-0140-multi-jurisdiction-policy.md",
+      "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/products/workflow.json",
+      "$ref:specs/products/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "source_docs": [
+      "$ref:bominal/docs/products/connect/enterprise-readiness.md",
+      "$ref:bominal/docs/products/connect/messaging.md",
+      "$ref:bominal/docs/products/connect/internal-communications.md",
+      "$ref:bominal/docs/roadmap/family-connect.md"
+    ],
+    "user_decisions": [
+      "2026-05-16:D-13 one PRD per suite plus per-app sub-PRDs",
+      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/products/<id>.json"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0208#symmetric-product-model + $ref:bominal/decisions/ADR-0215#four-committed-contracts",
+  "target_users": [
+    {
+      "persona": "personal_user",
+      "interface": "E2E direct/group messaging",
+      "billing": "personal tier"
+    },
+    {
+      "persona": "employee_end_user",
+      "interface": "work DMs, groups, channels, action cards",
+      "billing": "workspace seat"
+    },
+    {
+      "persona": "security_admin",
+      "interface": "policy, device, retention, audit console",
+      "billing": "enterprise security add-on"
+    },
+    {
+      "persona": "compliance_officer",
+      "interface": "professional hold/eDiscovery only",
+      "billing": "compliance entitlement"
+    },
+    {
+      "persona": "mobile_power_user",
+      "interface": "native phone/desktop realtime clients",
+      "billing": "seat included"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a personal DM is created",
+      "when": "participants exchange messages",
+      "then": "content is E2E and org-admin APIs cannot decrypt or hold it",
+      "test_ref": "crates/oya-connect-messenger-domain/tests/personal_e2e.rs::test_personal_dm_never_org_discoverable"
+    },
+    {
+      "id": "AC-02",
+      "given": "a work channel message is created",
+      "when": "message persists",
+      "then": "content is tenant-DEK encrypted, retention-classed, and auditable with four-eyes approval",
+      "test_ref": "crates/oya-connect-messenger-domain/tests/work_audit.rs::test_work_message_four_eyes_disclosure"
+    },
+    {
+      "id": "AC-03",
+      "given": "a professional user posts anonymously in a verified community",
+      "when": "routine readers load the post",
+      "then": "display identity is pseudonymous while real author remains audit-decryptable under disclosed policy",
+      "test_ref": "crates/oya-connect-messenger-domain/tests/anonymity.rs::test_verified_anonymity_routine_vs_audit"
+    },
+    {
+      "id": "AC-04",
+      "given": "a message has attachments",
+      "when": "client uploads encrypted blobs",
+      "then": "attachment metadata, digest, preview policy, and retention class follow the parent message",
+      "test_ref": "crates/oya-connect-messenger-domain/tests/attachments.rs::test_attachment_retention_inherits_parent"
+    },
+    {
+      "id": "AC-05",
+      "given": "realtime delivery is degraded",
+      "when": "backpressure triggers",
+      "then": "delivery receipts expose queued/retry/failure state without losing idempotency",
+      "test_ref": "crates/oya-connect-messenger-app/tests/realtime.rs::test_delivery_backpressure_is_idempotent"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "direct/group messages",
+        "read receipts",
+        "typing state",
+        "tenant/persona context",
+        "basic attachments"
+      ],
+      "stable": [
+        "channels/spaces",
+        "rich media previews",
+        "message search by allowed context",
+        "admin policy console",
+        "retention purge worker"
+      ],
+      "GA": [
+        "voice/video signaling",
+        "large organizations channels",
+        "external secure-channel API",
+        "full web/desktop/mobile parity",
+        "crypto audit evidence"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "org legal hold on personal messages",
+        "why": "ADR-0215 forbids"
+      },
+      {
+        "item": "Signal/Kakao/Slack bridge as core runtime",
+        "why": "native product, adapters only after security review"
+      },
+      {
+        "item": "runtime-config trust-model switch",
+        "why": "trust model must be compile/data-model enforced"
+      }
+    ]
+  },
+  "contracts": {
+    "consumes": [
+      "connect.context.v1",
+      "connect.policy.v1",
+      "notify.fanout.v1",
+      "ontology.Message"
+    ],
+    "produces": [
+      "connect.messenger.thread.v1",
+      "connect.messenger.message.v1",
+      "connect.messenger.delivery_receipt.v1",
+      "connect.messenger.audit_disclosure.v1"
+    ]
+  },
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "DirectConversation",
+        "fields": [
+          "conversation_id",
+          "tenant_or_person_scope",
+          "context_kind",
+          "ownership_pillar",
+          "participant_refs",
+          "retention_policy_id",
+          "created_at"
+        ],
+        "invariants": [
+          "pillar matches context",
+          "participants policy-eligible"
+        ]
+      },
+      {
+        "entity": "Message",
+        "fields": [
+          "message_id",
+          "conversation_or_channel_id",
+          "author_ref",
+          "body_ciphertext",
+          "body_client_only",
+          "attachments_refs",
+          "ttl",
+          "data_class",
+          "created_at"
+        ],
+        "invariants": [
+          "personal body_client_only or E2E envelope",
+          "professional tenant DEK and audit path"
+        ]
+      },
+      {
+        "entity": "MessageAuditLog",
+        "fields": [
+          "audit_id",
+          "message_id",
+          "requested_by",
+          "approved_by",
+          "reason",
+          "decrypted_at",
+          "chain_ref"
+        ],
+        "invariants": [
+          "professional only",
+          "append-only"
+        ]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "MessengerMessageSent",
+        "topic": "connect.messenger.sent",
+        "idempotency_key": "message_id"
+      },
+      {
+        "event": "MessengerDeliveryReceiptUpdated",
+        "topic": "connect.messenger.delivery",
+        "idempotency_key": "message_id+recipient+state"
+      },
+      {
+        "event": "MessengerAuditDisclosureOpened",
+        "topic": "audit.connect.messenger.disclosure",
+        "idempotency_key": "audit_id"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "Conversation",
+        "store": "Postgres/RLS",
+        "sharding_key": "context_kind+tenant_or_person_scope",
+        "retention": "per message policy"
+      },
+      {
+        "aggregate": "AttachmentBlob",
+        "store": "object store with encrypted digest",
+        "sharding_key": "tenant_id+message_id",
+        "retention": "inherits parent"
+      }
+    ],
+    "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003 + $ref:specs/agent-durable-goal.json#score_cards"
+  },
+  "optimization_practices": [
+    {
+      "practice": "realtime fanout",
+      "implementation": "per-conversation partitioned queue with recipient delivery idempotency"
+    },
+    {
+      "practice": "hot path cache",
+      "implementation": "thread list cache keyed by context_kind + pillar + principal"
+    },
+    {
+      "practice": "batch dispatch",
+      "implementation": "delivery/read receipt coalescing under 250ms"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "Korea-first UX, PIPA retention bounds, work-mail retention floor, Korean input/search/calendar locale rules"
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "employment discovery, HIPAA/GLBA overlays when vertical data enters professional context"
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
+      }
+    ],
+    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+  },
+  "deps": {
+    "external_adopted": [
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "runtime primitive only"
+      },
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "rustls",
+        "maturity_tier": "kernel-grade",
+        "license": "Apache-2.0 OR ISC OR MIT",
+        "decision": "TLS primitive only"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "Slack/Teams/Google/Microsoft APIs as product substrate",
+        "reason": "Connect is native product; third-party platforms may be import/coexistence adapters only"
+      },
+      {
+        "name": "shell-script operational glue",
+        "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust oya gates"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "message_send_p99_ms",
+      "targets": {
+        "preview": 300,
+        "stable": 180,
+        "GA": 90
+      },
+      "verification_ref": "cargo bench -p oya-connect-messenger-domain -- send_p99",
+      "lane_ref": "perf-budget"
+    },
+    {
+      "name": "realtime_delivery_p99_ms",
+      "targets": {
+        "preview": 1000,
+        "stable": 700,
+        "GA": 500
+      },
+      "verification_ref": "cargo bench -p oya-connect-messenger-app -- realtime_delivery",
+      "lane_ref": "perf-budget"
+    },
+    {
+      "name": "personal_org_access_denial_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "cargo nextest -p oya-connect-messenger-domain -- personal_access_denied",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "professional_audit_disclosure_logged_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "oya gate validate connect-messenger-disclosure",
+      "lane_ref": "audit-chain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-01",
+      "severity": "critical",
+      "risk": "personal privacy guarantee weakened by shared professional logic",
+      "mitigation": "compile/data-model trust boundary tests",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-02",
+      "severity": "high",
+      "risk": "realtime fanout amplifies outages",
+      "mitigation": "backpressure and replay idempotency on every delivery state",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-03",
+      "severity": "high",
+      "risk": "verified anonymity misunderstood as legal anonymity",
+      "mitigation": "UX disclosure and audit policy required before posting",
+      "owner": "connect-product-council"
+    }
+  ],
+  "competitive": [
+    {
+      "competitor": "Signal",
+      "observed_strengths": [
+        "E2E messaging",
+        "safety expectations"
+      ],
+      "we_beat_on": [
+        "same privacy guarantee plus work-context sibling without app fragmentation"
+      ],
+      "measurable_target": "personal messages remain undecryptable by org and platform"
+    },
+    {
+      "competitor": "Slack/Teams",
+      "observed_strengths": [
+        "channels and enterprise collaboration"
+      ],
+      "we_beat_on": [
+        "tenant-DEK four-eyes disclosure and Workflow-native action cards"
+      ],
+      "measurable_target": "all professional disclosures logged with four-eyes"
+    },
+    {
+      "competitor": "KakaoTalk",
+      "observed_strengths": [
+        "Korean-first fast messaging"
+      ],
+      "we_beat_on": [
+        "enterprise compliance and dual-context shell"
+      ],
+      "measurable_target": "KR UX parity, p99 delivery <500ms GA"
+    }
+  ],
+  "best_practices": [
+    {
+      "id": "BP-01",
+      "rule": "personal and professional trust models are separate data-model states, not runtime flags",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-trust-boundary"
+    },
+    {
+      "id": "BP-02",
+      "rule": "delivery state transitions are idempotent and replayable",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-realtime"
+    },
+    {
+      "id": "BP-03",
+      "rule": "verified anonymity includes explicit disclosure of audit exception",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anonymity-disclosure"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "personal_privacy_maximal",
+      "when_to_use": "use for person-pillar DMs/groups where Bominal and employer must not decrypt",
+      "reference": "$ref:bominal/docs/roadmap/family-connect.md#personal-privacy-maximal-messenger"
+    },
+    {
+      "pattern": "professional_auditable",
+      "when_to_use": "use for org-pillar work comms needing legal hold/eDiscovery",
+      "reference": "$ref:bominal/decisions/ADR-0208#professional-message-storage"
+    },
+    {
+      "pattern": "context_keyed_cache",
+      "when_to_use": "all cached lists include context_kind and ownership_pillar in key",
+      "reference": "$ref:specs/products/connect/suite.json#AC-01"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "anti_pattern": "runtime_config_trust_model",
+      "why_forbidden": "permits accidental switch of personal privacy into audit mode",
+      "detection_lane": "oya-foundry-fitness-connect-trust-boundary"
+    },
+    {
+      "anti_pattern": "unlogged_professional_decrypt",
+      "why_forbidden": "breaks four-eyes chain-of-custody",
+      "detection_lane": "oya-foundry-fitness-connect-disclosure"
+    },
+    {
+      "anti_pattern": "spinner_only_thread_loading",
+      "why_forbidden": "fails production UX bar",
+      "detection_lane": "oya-foundry-fitness-frontend-ux"
+    }
+  ],
+  "goals": {
+    "scalability": {
+      "target": "10M active Connect identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
+      "verification": "oya gate validate connect-scale-model --repo-root ."
+    },
+    "security": {
+      "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
+      "verification": "cargo nextest -p oya-connect-security-domain -- cross_pillar"
+    },
+    "performance": {
+      "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
+      "verification": "cargo bench -p oya-connect-bench -- connect_hot_paths"
+    },
+    "efficiency": {
+      "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
+      "verification": "oya gate validate connect-finops-unit-economics"
+    },
+    "reliability": {
+      "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
+      "verification": "oya gate validate connect-slo-coverage"
+    }
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/products/connect/suite.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard traversal 100% for inbox, thread, compose, calendar, legal-hold and approval flows",
+    "responsive_breakpoints": [
+      "mobile-portrait",
+      "mobile-landscape",
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic; KR and en-US are launch gates, EU locales follow regional-pack coverage",
+    "design_system_components_used": "$ref:specs/products/connect/suite.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "enterprise_it_admin",
+        "journeys": [
+          "configure retention policy",
+          "open legal hold",
+          "export eDiscovery package"
+        ],
+        "time_to_success_target": "< 5 minutes with policy warnings visible"
+      },
+      {
+        "persona": "employee_end_user",
+        "journeys": [
+          "switch personal/work persona",
+          "send message/mail/calendar invite",
+          "act on approval card"
+        ],
+        "time_to_success_target": "< 30 seconds for routine send or approve"
+      },
+      {
+        "persona": "compliance_officer",
+        "journeys": [
+          "search held artifacts",
+          "verify chain-of-custody",
+          "release or extend hold"
+        ],
+        "time_to_success_target": "< 10 minutes for scoped investigation packet"
+      }
+    ],
+    "error_state_coverage": {
+      "policy_denied": "inline plus audit-safe explanation",
+      "network_partition": "offline queue with explicit sync status",
+      "legal_hold_conflict": "blocking modal requiring authorized role",
+      "delivery_failure": "per-recipient retry/error card"
+    },
+    "offline_behavior": "read cached non-sensitive state, queue user-owned drafts locally, never expose unwrapped professional plaintext offline without session-bound policy token",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "skeleton for lists, progressive render for thread/calendar, no spinner-only critical paths"
+  },
+  "frontend_components": [
+    {
+      "component": "ConnectShellPersonaSwitcher",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
+      "variants": [
+        "personal",
+        "work",
+        "admin-audit"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "CommunicationThreadList",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/communication-thread-list.json",
+      "variants": [
+        "mail",
+        "messenger",
+        "calendar-agenda"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "legal-hold",
+        "retention",
+        "consent-required",
+        "audit-access"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "desktop"
+      ]
+    }
+  ],
+  "decision_log": [
+    {
+      "date": "2026-05-16",
+      "decision": "Canonical Connect PRDs are JSON under specs/products/connect; Markdown is projection only",
+      "drivers": [
+        "user directive: machine optimized PRDs",
+        "handoff F-PRD-CONNECT-SUITE-AUTHOR",
+        "shell-to-Rust consolidation"
+      ]
+    }
+  ],
+  "sources_scanned": [
+    "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+    "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+    "$ref:bominal/docs/roadmap/family-connect.md",
+    "$ref:bominal/docs/products/connect/enterprise-readiness.md",
+    "$ref:bominal/docs/products/connect/messaging.md",
+    "$ref:bominal/docs/products/connect/internal-communications.md"
+  ]
+}
