@@ -246,7 +246,7 @@ table inet oyatie {
       nd-neighbor-solicit, nd-neighbor-advert
     } accept
 
-    # SSH — tighten the source after you confirm tailscale-only access works
+    # SSH — source tightening is owned by the Rust/ops hardening controller
     tcp dport 22 accept
   }
 
@@ -261,26 +261,19 @@ table inet oyatie {
 EOF
   echo "draft written to /etc/nftables.conf.draft"
   echo
-  echo "TO ACTIVATE (run from a terminal you can recover from if SSH dies):"
-  echo "  sudo nft -c -f /etc/nftables.conf.draft        # syntax check, no apply"
-  echo "  sudo cp /etc/nftables.conf.draft /etc/nftables.conf"
-  echo "  sudo systemctl restart nftables                # apply"
-  echo "  # verify SSH still works in a SECOND ssh session before continuing"
-  echo "  sudo systemctl enable nftables                 # persist on boot"
-  echo
-  echo "  Safety net: in another terminal first run:"
-  echo "    sudo bash -c '(sleep 300 && nft flush ruleset) &'"
-  echo "  This auto-flushes after 5 min if you get locked out — kill it once you've verified."
+  echo "Activation is intentionally not printed as an ad hoc host runbook."
+  echo "Route firewall convergence through ops/OpenTofu/Rust hardening control."
 }
 
-# ---------- 11. sshd hardening (DRAFT — does not activate destructive flags) ----------
+# ---------- 11. sshd hardening (DRAFT — no ad hoc remote-access troubleshooting) ----------
 step_sshd_draft() {
   banner "sshd: drafting /etc/ssh/sshd_config.d/99-oyatie.conf"
   sudo install -d -m 0755 /etc/ssh/sshd_config.d
   sudo tee /etc/ssh/sshd_config.d/99-oyatie.conf > /dev/null <<'EOF'
 # Managed by setup-hardening.sh — safe-to-apply tightening.
-# Note: PasswordAuthentication is NOT disabled here — flip to "no" only after
-# you've verified key-based login works for every user who needs access.
+# Note: PasswordAuthentication is NOT disabled here. Source tightening is
+# owned by ops/Rust hardening control, not by a manual host troubleshooting
+# recipe.
 PermitRootLogin no
 X11Forwarding no
 AllowAgentForwarding no
@@ -301,9 +294,7 @@ EOF
     return 1
   fi
   echo
-  echo "TO FULLY DISABLE PASSWORD AUTH (after key login is verified):"
-  echo "  sudo sed -i 's|^# PasswordAuthentication no|PasswordAuthentication no|' /etc/ssh/sshd_config.d/99-oyatie.conf"
-  echo "  sudo sshd -t && sudo systemctl reload ssh"
+  echo "Further auth tightening must be shipped through ops/Rust hardening control."
 }
 
 # ---------- dispatch ----------

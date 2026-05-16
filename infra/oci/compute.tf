@@ -1,8 +1,8 @@
-// Stage-0 ARM A1 Always Free instance.
-// Capacity is contested in ap-chuncheon-1; tofu retries are governed at the
-// resource via `lifecycle.create_before_destroy` + retryable_errors at the
-// provider level. If "Out of host capacity" persists, fall back to a paid
-// flex shape (overrides via tfvars) then resize to Always Free once it's up.
+// Stage-0 ARM instance.
+// Capacity is contested in ap-chuncheon-1. Shape selection is desired state:
+// change var.stage0_shape / var.stage0_ocpus / var.stage0_memory_gbs and run
+// OpenTofu through the root Makefile. Do not resize with OCI CLI or console
+// edits; the deployment ops contract forbids manual mutation paths.
 
 resource "oci_core_instance" "stage0" {
   count = var.create_stage0_a1 ? 1 : 0
@@ -40,15 +40,7 @@ resource "oci_core_instance" "stage0" {
 
   freeform_tags = local.common_tags
 
-  lifecycle {
-    // Resize A2.Flex → A1.Flex happens out-of-band (stop instance, change
-    // shape via `oci compute instance update`, start). Ignore shape drift
-    // after that so tofu doesn't try to revert. Also ignore console-edited
-    // freeform tags.
-    ignore_changes = [
-      shape,
-      shape_config,
-      freeform_tags["last-console-edit"],
-    ]
-  }
+  // Shape and tag drift are OpenTofu-owned. If capacity requires a temporary
+  // paid shape, encode that desired state in tfvars and converge via
+  // `make apply`; do not preserve manual console/CLI drift here.
 }

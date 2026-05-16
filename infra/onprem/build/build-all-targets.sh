@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # build-all-targets.sh — build oya-ops-workspace-shell for the deploy fleet.
-# Produces tarballs in $REPO/dist/ ready to scp to each target host.
+# Produces tarballs in $REPO/dist/ for the ops/OpenTofu deployment pipeline.
 #
 # Targets:
 #   linux-x86_64-znver4      -> this box (Ryzen 7 7800X3D)              [build on linux]
@@ -127,4 +127,4 @@ for d in "$DIST"/linux-*/; do
   cat "$d/$BIN.sha256"
 done
 echo
-echo "Deploy with: scp $DIST/${BIN}-${VERSION}-<label>.tar.gz host:; ssh host 'install-from-tarball.sh'"
+echo "Publish through the ops/OpenTofu deployment pipeline; direct host-copy or remote-shell deploy is not supported."
