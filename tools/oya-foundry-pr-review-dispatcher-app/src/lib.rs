@@ -22,7 +22,7 @@
 //!    `registries/cross-cutting/merge-queue-admission-log.json`:
 //!    - on APPROVE → `pr-review-approved`
 //!    - on CHANGES_REQUESTED / REJECT → `pr-review-fix-requested`
-//!    (consumed by IP-005's fix-loop and IP-006's merge-queue).
+//!      (consumed by IP-005's fix-loop and IP-006's merge-queue).
 //!
 //! ## Subagent runtime (the deliberate scaffold gap)
 //!
