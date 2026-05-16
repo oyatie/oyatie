@@ -61,6 +61,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-api-semver` | public-API stability tier per ADR-0037 |
 | `oya-foundry-fitness-cargo-prefix` | every workspace member starts with `oya-` |
 | `oya-foundry-fitness-pre-push` | oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml) |
+| `oya-foundry-fitness-loop-recovery-patterns` | pre-push repeat-mistake blocker joins deterministic score cards, loop-recovery patterns, and mistakes-ledger rows without shell hook expansion |
 | `oya-foundry-fitness-retired-vocabulary` | no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record) |
 | `oya-foundry-fitness-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
 | `oya-foundry-fitness-changeset-state-monotonicity` | every changeset's event-log row sequence is a non-decreasing subsequence of the 13-value closed enum (per ADR-0110); detects backwards-transition bugs in dispatcher emitters |

@@ -71,6 +71,27 @@
       "migration_phase": "complete",
       "purpose": "Cross-session durable goal + 100% autonomous-Foundry contract: lifecycle phases (plan/dev/ci_cd/deploy), iteration_loops (TDD feature+bugfix prove-it), spec_contract + tdd_contract + source_driven_contract + doubt_driven_contract, review_tiering (T0-T3 by deterministic blast_radius_score), score_cards (LLM-judgment forbidden in pass/fail), pipeline (lane categories + secret_handling + rollback first-class + auto_promotion + incident_response), autonomous_foundry (8 roles + quorum_rules + conservative_default + lane_promotion_protocol + meta_agent_anomaly_watch). Companion to agent_operating_contract — that's the per-session checklist; this is the persistent ambition + non-negotiable guardrails."
     },
+    "score_cards": {
+      "kind": "spec",
+      "current_path": "/specs/score-cards.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Concrete deterministic score-card inventory consumed by `oya gate validate loop-recovery-patterns` and the canonical `oya verify` pre-push path. Companion to agent_durable_goal.score_cards."
+    },
+    "loop_recovery_patterns": {
+      "kind": "registry",
+      "current_path": "/registry/loop-recovery-patterns",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Append-only repeat-loop recovery patterns linked to deterministic score-card ids and mistakes-ledger rows. Enforced by `oya gate validate loop-recovery-patterns` under `oya verify`."
+    },
+    "check_empirical_evidence": {
+      "kind": "registry",
+      "current_path": "/registry/check-empirical-evidence",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Evidence records proving a deterministic score card has caught or prevented at least one regression before BLOCKER promotion."
+    },
     "deployment_ops_contract": {
       "kind": "spec",
       "current_path": "/specs/deployment-ops-contract.json",
