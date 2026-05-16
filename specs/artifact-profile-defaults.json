@@ -24,9 +24,9 @@
         "yaml"
       ],
       "examples": [
-        "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
-        "/specs/cross-cutting/hyperscaler-gates.json",
-        "/specs/cross-cutting/evidence-taxonomy.json"
+        "/specs/active-machine-readable-artifact-contract.json",
+        "/specs/hyperscaler-gates.json",
+        "/specs/evidence-taxonomy.json"
       ],
       "default_capabilities": {
         "enforcement": {
@@ -93,7 +93,7 @@
               "name": "deprecate-superseded-version",
               "action": "archive",
               "trigger": "on-new-version-Accepted",
-              "destination": "/specs/cross-cutting/archived/",
+              "destination": "/specs/archived/",
               "audit_emission_required": true
             }
           ]

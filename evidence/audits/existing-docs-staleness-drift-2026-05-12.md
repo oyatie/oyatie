@@ -8,7 +8,7 @@
 
 ## Methodology
 
-- **Inputs read:** MASTERPLAN.md (`.omc/plans/`, 218 lines, 12-directive anchor), hyperscaler-best-practices-2026-05-12.md (/specs/cross-cutting/), lts-versions-verified-2026-05-12.md (/specs/cross-cutting/).
+- **Inputs read:** MASTERPLAN.md (`.omc/plans/`, 218 lines, 12-directive anchor), hyperscaler-best-practices-2026-05-12.md (/specs/), lts-versions-verified-2026-05-12.md (/specs/).
 - **Drift dimensions checked:** (1) Staleness (dates passed, milestones retired, deprecated tools); (2) Drift from 12 directives (Principles §2 of MASTERPLAN); (3) Drift from hyperscaler practices (adoption gaps); (4) Drift from LTS targets (version pins stale); (5) Forward-reference debt (wave-1/wave-2 unresolved); (6) Orphans (unreferenced files, no purpose: frontmatter); (7) Contradictions with MASTERPLAN (claims conflict §Principles); (8) Missing cross-references (MASTERPLAN, cutover plan, hyperscaler-best-practices, LTS, ADR-0053, ADR-0054).
 - **Severity scale:** BLOCKER = ships violate spec on merge; HIGH = ships incorrect orientation; MED = agent confusion; LOW = stylistic; INFO = informational.
 

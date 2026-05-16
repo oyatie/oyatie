@@ -147,9 +147,9 @@
     "deferred": "Enforcement depends on infrastructure not yet shipped (e.g., M02-P04 audit-chain substrate). Will become mechanical once the substrate lands."
   },
   "references": [
-    "docs/standards/prevention-doctrine.md \u2014 mechanical-prevention authoring guide",
-    "docs/MISTAKES-LEDGER.md \u2014 failure-mode row registry with mechanical_prevention field",
-    "specs/cross-cutting/root-hub-pointers.json \u2014 migration source map (entry_points._retired_constitutional_authority)",
-    "specs/cross-cutting/forbidden-operations.json \u2014 companion avoid-list (prohibitions)"
+    "docs/standards/prevention-doctrine.md — mechanical-prevention authoring guide",
+    "docs/MISTAKES-LEDGER.md — failure-mode row registry with mechanical_prevention field",
+    "specs/root-hub-pointers.json — migration source map (entry_points._retired_constitutional_authority)",
+    "specs/forbidden-operations.json — companion avoid-list (prohibitions)"
   ]
 }

@@ -221,7 +221,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate authority-cohesion [--docs-dir <docs>]"
         + "\n       oya gate validate cargo-prefix [--workspace <Cargo.toml>] [--prefix <oya->]"
         + "\n       oya gate validate claim-ceiling [--registry <registry/catalog>]"
-        + "\n       oya gate validate codeview-read-surface [--spec <specs/cross-cutting/codeview-read-surface.json>]"
+        + "\n       oya gate validate codeview-read-surface [--spec <specs/codeview-read-surface.json>]"
         + "\n       oya gate validate cohesion [--workspace <Cargo.toml>] [--registry <registry/catalog>] [--contracts <docs/machine-readable/contracts.json>]"
         + "\n       oya gate validate codeowners-mirror [--codeowners <.github/CODEOWNERS>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate statelessness [--workspace-root <.>] [--allow-empty]"

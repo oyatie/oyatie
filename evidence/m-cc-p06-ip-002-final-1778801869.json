@@ -29,10 +29,10 @@
       "name": "Protocol foundation",
       "artifacts": [
         "docs/standards/multispectrum-review.md",
-        "/specs/cross-cutting/multispectrum-review.json",
+        "/specs/multispectrum-review.json",
         "/templates/checklists/pre-pr-multispectrum.md",
-        "/specs/cross-cutting/iterative-fix-loop.json",
-        "/specs/cross-cutting/root-hub-pointers.json (multispectrum_review + pre_pr_multispectrum_checklist pointers added)"
+        "/specs/iterative-fix-loop.json",
+        "/specs/root-hub-pointers.json (multispectrum_review + pre_pr_multispectrum_checklist pointers added)"
       ]
     },
     {
@@ -254,9 +254,9 @@
     "M2_zoomed_out_fit": {
       "considered": true,
       "existing_primitives_surveyed": [
-        "/specs/cross-cutting/active-machine-readable-artifact-contract.json (ADR-0069, 9-capability contract)",
-        "/specs/cross-cutting/hyperscaler-gates.json (10 HG-* gates)",
-        "/specs/cross-cutting/test-standard.json + /specs/cross-cutting/evidence-taxonomy.json",
+        "/specs/active-machine-readable-artifact-contract.json (ADR-0069, 9-capability contract)",
+        "/specs/hyperscaler-gates.json (10 HG-* gates)",
+        "/specs/test-standard.json + /specs/evidence-taxonomy.json",
         "docs/standards/clean-architecture.md + ADR-0056 BNF v4.1 12-layer enum"
       ],
       "industry_primitives_surveyed": [

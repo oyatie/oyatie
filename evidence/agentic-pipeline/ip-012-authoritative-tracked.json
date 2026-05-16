@@ -43,7 +43,7 @@
     "Added an I/O-free authoritative-tracked kernel with check() and validate_authoritative_tracked_fitness().",
     "Added a runner that parses docs/AGENTS.md Canonical doc map, normalizes local markdown links, accepts tracked directories through tracked children, and validates each authoritative path.",
     "Registered the kernel and runner in the workspace manifest without adding dependencies.",
-    "Corrected docs/AGENTS.md masterplan authority pointer from untracked future-target /specs/cross-cutting/masterplan.json to current tracked docs/MASTERPLAN.md per root hub current_path.",
+    "Corrected docs/AGENTS.md masterplan authority pointer from untracked future-target /specs/masterplan.json to current tracked docs/MASTERPLAN.md per root hub current_path.",
     "Reran the P01 lane trio: banned-primitives, archive-orphan, and authoritative-tracked all pass in standalone execution.",
     "Reran the IP-010 parallel-claim script as a regression check; final grit status stayed clean."
   ],
@@ -136,7 +136,7 @@
   "resolved_errors": [
     {
       "icm_id": "01KRKCKNYDE2QXT9HWCASFMVC2",
-      "summary": "authoritative-tracked runner exposed untracked /specs/cross-cutting/masterplan.json pointer; docs/AGENTS.md now points at tracked docs/MASTERPLAN.md current authority."
+      "summary": "authoritative-tracked runner exposed untracked /specs/masterplan.json pointer; docs/AGENTS.md now points at tracked docs/MASTERPLAN.md current authority."
     }
   ],
   "known_blockers": [],

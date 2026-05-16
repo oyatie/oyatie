@@ -18,7 +18,7 @@ purpose: |
   hands off to another. Resolves the
   `standards/multi-agent-tool-map.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Gemini).
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-tool-map-cohesion
 companion_docs:
   - docs/AGENTS.md
@@ -32,7 +32,7 @@ related_adrs:
 
 # Multi-Agent Tool Map
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 Multiple agent harnesses operate on this repository (Claude Code, Codex,
 Gemini, OMC subagents). Each harness exposes slightly different tool names

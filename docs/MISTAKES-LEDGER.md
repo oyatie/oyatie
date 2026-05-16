@@ -5,7 +5,7 @@ doc_status: published
 
 # Oyatie — Mistakes-and-Fixes Ledger
 
-## Doctrinal authority — [decision-principles.json](../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../specs/decision-principles.json) + [forbidden-operations.json](../specs/forbidden-operations.json)
 
 
 > **Owner:** `council-architecture` (curator). Per-team contributors.

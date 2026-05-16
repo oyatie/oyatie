@@ -1,5 +1,5 @@
 // Purpose: render or check the compact status ledger from
-// `specs/cross-cutting/masterplan.json`. Validates IPs declare
+// `specs/masterplan.json`. Validates IPs declare
 // `execution_unit=ChangeSet` and `changeset_contract=claimable-verifiable-
 // bundleable-promotable`; `--check` mode verifies parity against the on-disk
 // ledger. Ported from `scripts/render-master-plan-ledger.py` per
@@ -13,7 +13,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-const DEFAULT_MASTER_PLAN: &str = "specs/cross-cutting/masterplan.json";
+const DEFAULT_MASTER_PLAN: &str = "specs/masterplan.json";
 const DEFAULT_OUTPUT: &str = "evidence/master-plan-ledger.md";
 const EXPECTED_EXECUTION_UNIT: &str = "ChangeSet";
 const EXPECTED_CHANGESET_CONTRACT: &str = "claimable-verifiable-bundleable-promotable";

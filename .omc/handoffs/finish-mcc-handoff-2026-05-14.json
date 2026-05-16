@@ -21,7 +21,7 @@
       "/registry/tech-debt-ledger.json (object-map, 11 seed deps, top-level default_evaluator_policies, schema validation, quarterly review metadata)"
     ],
     "schemas": [
-      "/specs/cross-cutting/tech-debt-ledger.schema.json OR .omc/schemas/tech-debt-ledger.schema.json (top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, cross-row acyclicity)"
+      "/specs/tech-debt-ledger.schema.json OR .omc/schemas/tech-debt-ledger.schema.json (top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, cross-row acyclicity)"
     ],
     "new_crates": {
       "oya-check-dependency-seam-discipline": "composite lane with 8 sub-checks (seam imports, ledger coverage, ledger freshness, vendor residue, CVE-watch, ledger review-contract, layer-metadata, monotonic-transitions)",

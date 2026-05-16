@@ -1,5 +1,5 @@
 {
-  "_schema_ref": "/specs/cross-cutting/active-machine-readable-artifact-contract.json#v3.0.0",
+  "_schema_ref": "/specs/active-machine-readable-artifact-contract.json#v3.0.0",
   "_artifact_id": "markdown-retirement-ledger",
   "_meta": {
     "doc_class": "Ledger",
@@ -7,7 +7,7 @@
     "owner_team": "council-architecture + axis-foundry",
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
-    "policy_ref": "/specs/cross-cutting/markdown-retirement-policy.json"
+    "policy_ref": "/specs/markdown-retirement-policy.json"
   },
   "rows": [
     {
@@ -40,7 +40,7 @@
       "migration_date": "pending PHASE-5",
       "retirement_phase": "PHASE-5 (per markdown-retirement-policy.json updated row)",
       "commit_sha": "pending-this-commit (retirement scheduled; deletion follows after content redistribution lands)",
-      "replacement_notes": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution-as-a-concept retired. Content redistributes: (a) mission \u2192 masterplan.json \u00a71; (b) decision principles \u2192 agent-operating-contract.json `principles` section; (c) prohibitions \u2192 new `/specs/cross-cutting/forbidden-operations.json` (extends master-plan-sequencing.json forbidden_primitives); (d) decision rights \u2192 docs/RACI-OWNERSHIP.md (existing). Existing inbound citations from CI check crates + ADRs + plans must redirect after content redistributes; tracked in PHASE-8 check-crate rewrites.",
+      "replacement_notes": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution-as-a-concept retired. Content redistributes: (a) mission \u2192 masterplan.json \u00a71; (b) decision principles \u2192 agent-operating-contract.json `principles` section; (c) prohibitions \u2192 new `/specs/forbidden-operations.json` (extends master-plan-sequencing.json forbidden_primitives); (d) decision rights \u2192 docs/RACI-OWNERSHIP.md (existing). Existing inbound citations from CI check crates + ADRs + plans must redirect after content redistributes; tracked in PHASE-8 check-crate rewrites.",
       "consolidation_action": "content-redistributed-across-4-sinks; constitution concept retired"
     }
   ],
@@ -82,7 +82,7 @@
       "scope": "PHASE-7 templates+checklists"
     },
     {
-      "source_md_path": "/specs/cross-cutting/*.md + /evidence/goals/*.md + /templates/checklists/*.md",
+      "source_md_path": "/specs/*.md + /evidence/goals/*.md + /templates/checklists/*.md",
       "scope": "PHASE-7 + 4-ROOT-HUB-CANONICAL"
     }
   ],

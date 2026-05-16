@@ -222,7 +222,7 @@
       "type": "file"
     },
     {
-      "path": "specs/cross-cutting/markdown-retirement-policy.json",
+      "path": "specs/markdown-retirement-policy.json",
       "accessCount": 11,
       "lastAccessed": 1778842099929,
       "type": "file"
@@ -264,7 +264,7 @@
       "type": "file"
     },
     {
-      "path": "specs/cross-cutting/crate-naming-audit.json",
+      "path": "specs/crate-naming-audit.json",
       "accessCount": 5,
       "lastAccessed": 1778838888600,
       "type": "file"
@@ -360,7 +360,7 @@
       "type": "file"
     },
     {
-      "path": "specs/cross-cutting/root-hub-pointers.json",
+      "path": "specs/root-hub-pointers.json",
       "accessCount": 2,
       "lastAccessed": 1778838172015,
       "type": "file"
@@ -480,7 +480,7 @@
       "type": "file"
     },
     {
-      "path": "specs/cross-cutting/active-machine-readable-artifact-contract.json",
+      "path": "specs/active-machine-readable-artifact-contract.json",
       "accessCount": 1,
       "lastAccessed": 1778838133542,
       "type": "file"

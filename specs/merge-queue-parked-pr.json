@@ -14,8 +14,8 @@
       "M-CC-P10-IP-006"
     ],
     "related_specs": [
-      "/specs/cross-cutting/iterative-fix-loop.json",
-      "/specs/cross-cutting/ci-fix-loop-context-bundle.json"
+      "/specs/iterative-fix-loop.json",
+      "/specs/ci-fix-loop-context-bundle.json"
     ],
     "purpose": "Canonical state-machine spec for parked-PR semantics + bounded retry + fairness + speculative rebase. Companion to the kernel scheduler in oya-foundry-vcs-review-mergequeue-kernel."
   },

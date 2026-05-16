@@ -40,7 +40,7 @@ makes that framing enforceable by:
 
 1. **Discovering** every sunset clause across three surfaces:
    - ADR YAML frontmatter (`docs/decisions/*.md`)
-   - spec JSON `_sunset` objects (`specs/cross-cutting/*.json`)
+   - spec JSON `_sunset` objects (`specs/*.json`)
    - `[package.metadata.oya.sunset]` Cargo manifest sections
 2. **Classifying** each clause into a `LifecycleState` (PRE_SUNSET,
    SUNSET_REACHED, DEPRECATED, REMOVAL_REACHED, MISSING_FIELDS) given
@@ -136,9 +136,9 @@ sunset-lifecycle FAIL: clauses_scanned=6 violations=6
   - docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md
   - docs/decisions/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md
   - docs/decisions/ADR-0083-rust-error-handling-tier-decision.md
-  - specs/cross-cutting/markdown-retirement-policy.json#prose
-  - specs/cross-cutting/multispectrum-review.json#prose
-  - specs/cross-cutting/oyatie-doctrine.json#prose
+  - specs/markdown-retirement-policy.json#prose
+  - specs/multispectrum-review.json#prose
+  - specs/oyatie-doctrine.json#prose
 ```
 
 ## Ratchet plan (WARN → BLOCK)

@@ -7,7 +7,7 @@ status: scaffolded
 execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
-  - specs/cross-cutting/lifecycle-configs/dependency-status-lifecycle.json
+  - specs/lifecycle-configs/dependency-status-lifecycle.json
   - tools/oya-foundry-fitness-dependency-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect third-party deps whose deprecation has not advanced to removal by the declared deadline.

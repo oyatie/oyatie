@@ -5,7 +5,7 @@ doc_status: published
 
 # Oyatie — Product Requirements Document (PRD)
 
-## Doctrinal authority — [decision-principles.json](../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../specs/decision-principles.json) + [forbidden-operations.json](../specs/forbidden-operations.json)
 
 
 > **Brand:** Oyatie (logo: `oYa`, domain: `oyatie.com`).
@@ -255,7 +255,7 @@ These are open at PRD draft v0.1 and need a council decision before promoting to
 
 - ADRs: `decisions/ADR-0001..ADR-0051` (51 files)
 - Roadmap: `docs/ROADMAP.md`, `decisions/ADR-0015-architectural-flattening-target.md`
-- Doctrine: `/specs/cross-cutting/decision-principles.json` + `/specs/cross-cutting/forbidden-operations.json`
+- Doctrine: `/specs/decision-principles.json` + `/specs/forbidden-operations.json`
 - Source of truth: `docs/DOC-CATALOG.md` (per [`DOC-CATALOG.md`](DOC-CATALOG.md))
 - Mistakes & fixes: `docs/MISTAKES-LEDGER.md`
 - Audits: `docs/engineering/audits/2026-05-09-foundry-upstream-spec-conformance-audit.md` (separate parallel-track artifact; lives outside `docs/` because it was authored by the foundry-agent-daemon track)

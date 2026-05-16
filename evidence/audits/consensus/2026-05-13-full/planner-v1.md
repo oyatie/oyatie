@@ -19,7 +19,7 @@
 **Net:** ~14 machine-readable artifacts + 1 ADR + 1 Rust validator crate + 25 codex consensus outputs archived. ~9000 lines added.
 
 **HEAD-tracked load-bearing files:**
-- 7 canonical specs at `/specs/cross-cutting/` (active-artifact-contract v3.0.0 + 5 inherited + plan-schema + markdown-retirement-policy + artifact-profile-defaults + root-hub-pointers)
+- 7 canonical specs at `/specs/` (active-artifact-contract v3.0.0 + 5 inherited + plan-schema + markdown-retirement-policy + artifact-profile-defaults + root-hub-pointers)
 - 5 registries at `/registry/` (artifact-capabilities + reusable-building-blocks + knowledge-graph-{semantic/kinetic/dynamic})
 - 2 ledgers/attestations at `.omc/ledger/` + `/evidence/`
 - 1 ADR-0069 at `docs/decisions/`
@@ -105,7 +105,7 @@ Per direction consensus §"Acceptance criteria for the next slice":
 | Hop | Artifact | Current state | Target |
 |---|---|---|---|
 | 1 | Tracked registry row | ✅ 10 rows in artifact-capabilities-registry.json | Add 1 row for plan-schema.json + verify with validator |
-| 2 | Schema validation | ✅ JSON Schema 2020-12 in /specs/cross-cutting/active-machine-readable-artifact-contract.json | Validator parses + checks instance |
+| 2 | Schema validation | ✅ JSON Schema 2020-12 in /specs/active-machine-readable-artifact-contract.json | Validator parses + checks instance |
 | 3 | Validator runtime | ✅ crates/oya-check-active-artifact-contract::validate (12 tests pass) | No change |
 | 4 | `oya` command | ❌ NOT WIRED | NEW: `oya-dev-cli gate validate active-artifact-contract` subcommand |
 | 5 | Pre-claim/pre-done validation | ❌ NOT WIRED | NEW: scripts/hooks/pre-commit/validate-artifact-contract.sh OR grit pre-claim hook |
