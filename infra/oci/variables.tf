@@ -15,9 +15,26 @@ variable "ssh_authorized_keys" {
 }
 
 variable "stage0_shape" {
-  description = "Bootstrap compute shape for Stage-0 application-shell VM. Defaults to VM.Standard.A2.Flex because A1.Flex Always Free is out-of-capacity at launch in ap-chuncheon-1; resize to A1.Flex after the instance is RUNNING."
+  description = "Desired compute shape for Stage-0 application-shell VM. Defaults to VM.Standard.A2.Flex because A1.Flex Always Free can be out-of-capacity in ap-chuncheon-1; switch to A1.Flex by changing this variable and running OpenTofu through the root Makefile."
   type        = string
   default     = "VM.Standard.A2.Flex"
+}
+
+variable "ops_notification_subscriptions" {
+  description = "OpenTofu-managed notification subscribers for oyatie-ops-alerts. Keys are stable subscriber ids; endpoints are stored in OpenTofu state, so do not put secrets here."
+  type = map(object({
+    protocol = string
+    endpoint = string
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue([
+      for subscriber in values(var.ops_notification_subscriptions) :
+      contains(["CUSTOM_HTTPS", "EMAIL", "ORACLE_FUNCTIONS", "PAGERDUTY", "SLACK", "SMS"], subscriber.protocol)
+    ])
+    error_message = "ops_notification_subscriptions.protocol must be one of CUSTOM_HTTPS, EMAIL, ORACLE_FUNCTIONS, PAGERDUTY, SLACK, SMS."
+  }
 }
 
 variable "stage0_ocpus" {

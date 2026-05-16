@@ -71,6 +71,13 @@
       "migration_phase": "complete",
       "purpose": "Cross-session durable goal + 100% autonomous-Foundry contract: lifecycle phases (plan/dev/ci_cd/deploy), iteration_loops (TDD feature+bugfix prove-it), spec_contract + tdd_contract + source_driven_contract + doubt_driven_contract, review_tiering (T0-T3 by deterministic blast_radius_score), score_cards (LLM-judgment forbidden in pass/fail), pipeline (lane categories + secret_handling + rollback first-class + auto_promotion + incident_response), autonomous_foundry (8 roles + quorum_rules + conservative_default + lane_promotion_protocol + meta_agent_anomaly_watch). Companion to agent_operating_contract — that's the per-session checklist; this is the persistent ambition + non-negotiable guardrails."
     },
+    "deployment_ops_contract": {
+      "kind": "spec",
+      "current_path": "/specs/deployment-ops-contract.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Deployment entrypoint contract for OpenTofu-owned infra, root Makefile bootstrap/install/ops targets, no manual SSH troubleshooting, and Rust migration inventory for infra/onprem shell scripts."
+    },
     "ci_fix_loop_context_bundle": {
       "kind": "spec",
       "current_path": "/specs/ci-fix-loop-context-bundle.json",

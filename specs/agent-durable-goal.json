@@ -95,6 +95,8 @@
       {
         "id": "deploy",
         "canonical_artifacts": [
+          "specs/deployment-ops-contract.json (OpenTofu + Makefile + ops-only deployment contract)",
+          "Makefile (minimal bootstrap/install/plan/apply/ops entrypoint)",
           "infra/kyverno/<svc>/application.json (Argo Application)",
           "infra/onprem/ (per ADR-0121 — kubeadm + containerd + Istio + Envoy)",
           "infra/oci/ (per ADR-0117 — OKE)",
@@ -108,10 +110,10 @@
           "primary_onprem": "KR primary cell — kubeadm vanilla upstream (per ADR-0121)",
           "cloud_cells": "OCI OKE (KR secondary; future regions per ADR-0117)"
         },
-        "back_edge_production_incident": "If production health degrades OR canary rollback fires → Argo auto-rollback to previous revision (FIRST, before anything else) + file incident in registry/incidents/<id>.json + emit EVT-PRODUCTION-INCIDENT-OPEN audit-chain row. THEN: dispatch autonomous incident-response quorum per autonomous_foundry.roles.incident_responder. Quorum identifies root cause: if code, open autonomous hotfix PR through full pipeline with hotfix-priority lane budget; if unknown / first-of-kind, hold service in rolled-back state + open F-INCIDENT-UNKNOWN-ROOT-CAUSE for compounding investigation. NO human page.",
+        "back_edge_production_incident": "If production health degrades OR canary rollback fires → Argo auto-rollback to previous revision (FIRST, before anything else) + file incident in registry/incidents/<id>.json + emit EVT-PRODUCTION-INCIDENT-OPEN audit-chain row. THEN: dispatch autonomous incident-response quorum per autonomous_foundry.roles.incident_responder. Quorum identifies root cause: if code, open autonomous hotfix PR through full pipeline with hotfix-priority lane budget; if infra/config, converge desired state through specs/deployment-ops-contract.json via OpenTofu/ops surfaces; if unknown / first-of-kind, hold service in rolled-back state + open F-INCIDENT-UNKNOWN-ROOT-CAUSE for compounding investigation. NO human page and NO manual SSH troubleshooting.",
         "back_edge_drift_detected": "If live cluster state drifts from infra/ git (Argo selfHeal would diverge) → emit EVT-GITOPS-DRIFT row; investigate before forcing reconcile.",
         "loop": "iteration_loops.deploy_observability",
-        "references": ["ADR-0117", "ADR-0121", "ADR-0044", "ADR-0114"]
+        "references": ["ADR-0117", "ADR-0121", "ADR-0044", "ADR-0114", "deployment_ops_contract"]
       }
     ]
   },
@@ -185,7 +187,7 @@
         {"id": "D-1", "step": "canary_observe", "verb": "Per ADR-0114: canary observability gate watches error rate + latency + saturation for first N minutes post-promotion"},
         {"id": "D-2", "step": "auto_rollback", "verb": "If canary fires: Argo rollback to previous revision; emit EVT-CANARY-ROLLBACK audit-chain row"},
         {"id": "D-3", "step": "steady_state", "verb": "Once canary clears: shift to steady-state telemetry (OTel; Istio access logs)"},
-        {"id": "D-4", "step": "incident_response", "verb": "If incident: page on-call; file in registry/incidents/; back-edge to ci_cd_feedback via hotfix PR"}
+        {"id": "D-4", "step": "incident_response", "verb": "If incident: auto-rollback first; file in registry/incidents/; route code fixes to ci_cd_feedback via hotfix PR; route infra/config fixes through specs/deployment-ops-contract.json OpenTofu/ops surfaces; do not manually SSH-troubleshoot"}
       ],
       "back_edge_to_dev_outer": "Production incident with code root-cause → new dev_outer loop with hotfix-priority claim"
     }
@@ -430,8 +432,8 @@
         }
       },
       "post_deploy_observability": {
-        "criticality": "PAGE if breached",
-        "fail_policy": "auto-rollback via Argo revision history + page on-call",
+        "criticality": "BLOCKER if breached",
+        "fail_policy": "auto-rollback via Argo revision history + autonomous incident-response quorum + ops/OpenTofu convergence; no human page",
         "lanes": ["canary error-rate", "canary latency p99", "canary saturation", "mTLS posture (Istio strict)", "audit-chain row freshness"]
       }
     },
