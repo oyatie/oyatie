@@ -17,8 +17,8 @@
 #                         adapter, infrastructure, cli, rest, grpc, graphql,
 #                         worker, sdk, api}. ✓
 #   - Sibling pattern:    matches every other tools/oya-foundry-*-app crate
-#                         (banned-primitives, archive-orphan, adr-shape,
-#                         supply-chain gates, etc.).
+#                         (banned-primitives, adr-shape, authoritative-tracked,
+#                         supply-chain gates, etc.; archive-orphan retired by ADR-0118).
 #
 # IP plan symbol-claims listed `tools/oya-pr-review-dispatcher` literally
 # (.omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/

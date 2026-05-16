@@ -2006,17 +2006,6 @@ name = "oya-foundry-fitness-architecture-map-freshness-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-foundry-fitness-archive-orphan-app"
-version = "0.1.0"
-dependencies = [
- "oya-foundry-fitness-archive-orphan-kernel",
-]
-
-[[package]]
-name = "oya-foundry-fitness-archive-orphan-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-foundry-fitness-authoritative-tracked-app"
 version = "0.1.0"
 dependencies = [

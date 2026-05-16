@@ -42,7 +42,7 @@ User directive (2026-05-15): *"for 9 dont allow exceptions. fix our adr and othe
 |---|---|---|
 | `tools/oya-foundry-fitness-portfolio-citation` | RENAME → `*-app` | Binary tool; canonical `-app` suffix per layer enum. |
 | `tools/oya-foundry-fitness-predictable-naming` | RENAME → `*-app` | Binary tool; canonical `-app`. |
-| `tools/oya-foundry-fitness-archive-orphan` | RENAME → `*-app` | Binary tool; canonical `-app`. |
+| `tools/oya-foundry-fitness-archive-orphan` | RETIRED by ADR-0118 | One-time IP-008 lane removed after M-CC-P11 replaced the grit-era cutover substrate. |
 | `tools/oya-foundry-fitness-banned-primitives` | RENAME → `*-app` | Binary tool; canonical `-app`. |
 | `tools/oya-foundry-fitness-adr-shape` | RENAME → `*-app` | Binary tool; canonical `-app`. |
 | `tools/oya-foundry-fitness-authoritative-tracked` | RENAME → `*-app` | Binary tool; canonical `-app`. |
@@ -84,7 +84,7 @@ The 2026-05-15 crate-naming audit (`specs/cross-cutting/crate-naming-audit.json`
 ```
 tools/oya-foundry-fitness-portfolio-citation
 tools/oya-foundry-fitness-predictable-naming
-tools/oya-foundry-fitness-archive-orphan
+tools/oya-foundry-fitness-archive-orphan  # retired by ADR-0118
 tools/oya-foundry-fitness-banned-primitives
 tools/oya-foundry-fitness-adr-shape
 tools/oya-foundry-fitness-authoritative-tracked
@@ -127,7 +127,7 @@ All 9 become compliant in-place without renaming:
 |---|---|---|
 | `tools/oya-foundry-fitness-portfolio-citation` | app | ✓ |
 | `tools/oya-foundry-fitness-predictable-naming` | app | ✓ |
-| `tools/oya-foundry-fitness-archive-orphan` | app | ✓ |
+| `tools/oya-foundry-fitness-archive-orphan` | retired | ADR-0118 |
 | `tools/oya-foundry-fitness-banned-primitives` | app | ✓ |
 | `tools/oya-foundry-fitness-adr-shape` | app | ✓ |
 | `tools/oya-foundry-fitness-authoritative-tracked` | app | ✓ |

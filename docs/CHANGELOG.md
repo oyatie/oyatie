@@ -3,6 +3,12 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-05-16 — archive-orphan lane retired after M-CC-P11 cutover
+
+- Retired the one-time `archive-orphan` fitness lane after ADR-0116 established the Foundry pipeline (M-CC-P11) as the canonical VCS substrate.
+- Removed the pre-grit archive payload, `oya-foundry-fitness-archive-orphan-kernel`, `oya-foundry-fitness-archive-orphan-app`, workspace members, and catalog entries.
+- Naming justification: `archive-orphan` remains only as a historical lane id because IP-008 used that exact cutover-boundary name.
+
 ## 2026-05-15 — Fitness lane `oya-foundry-fitness-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)
 
 - Added `crates/oya-foundry-fitness-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/oya-foundry-fitness-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oya.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/specs/forbidden-operations.json",
   "title": "ForbiddenOperations",
-  "description": "Machine-readable avoid-list: the 10 prohibitions every contributor and every agent observes. Migrated from docs/CONSTITUTION.md §Prohibitions — Avoid during the 2026-05-15 CONSTITUTION strike per root-hub-pointers.json _retired_constitutional_authority migration map. Extends the forbidden_primitives concept from master-plan-sequencing.json with a doctrinally-binding avoid set.",
+  "description": "Machine-readable avoid-list: the 10 prohibitions every contributor and every agent observes. Migrated from docs/CONSTITUTION.md \u00a7Prohibitions \u2014 Avoid during the 2026-05-15 CONSTITUTION strike per root-hub-pointers.json _retired_constitutional_authority migration map. Extends the forbidden_primitives concept from master-plan-sequencing.json with a doctrinally-binding avoid set.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-FORBIDDEN-OPERATIONS",
@@ -23,8 +23,10 @@
       "severity": "high",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-foundry-fitness-archive-orphan-kernel", "oya-foundry-fitness-authoritative-tracked-kernel"],
-        "evidence": "archive-orphan lane refuses orphan content under retired paths; authoritative-tracked lane verifies every authoritative doc is in docs/"
+        "enforced_by": [
+          "oya-foundry-fitness-authoritative-tracked-kernel"
+        ],
+        "evidence": "authoritative-tracked lane verifies every authoritative doc is in docs/"
       }
     },
     {
@@ -34,7 +36,10 @@
       "severity": "high",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-foundry-fitness-pre-push-kernel", ".github/workflows/cosign.yml (post-2026-05-15: pinned identity + issuer regex)"],
+        "enforced_by": [
+          "oya-foundry-fitness-pre-push-kernel",
+          ".github/workflows/cosign.yml (post-2026-05-15: pinned identity + issuer regex)"
+        ],
         "evidence": "pre-push fitness lane rejects commits authored with --no-verify; cosign verify-blob now pins certificate identity to repo's own workflow file"
       }
     },
@@ -45,7 +50,9 @@
       "severity": "critical",
       "enforcement": {
         "mode": "mechanical-deferred",
-        "enforced_by": [".github/branch-protection.yaml"],
+        "enforced_by": [
+          ".github/branch-protection.yaml"
+        ],
         "evidence": "GAP: branch-protection.yaml is currently a YAML spec, not a deployed ruleset (per 2026-05-15 audit). Enforcement effective only after admin applies the ruleset to the GitHub org. Until then, observance is cultural."
       }
     },
@@ -67,7 +74,9 @@
       "severity": "high",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-check-data-class"],
+        "enforced_by": [
+          "oya-check-data-class"
+        ],
         "evidence": "data-class lane scans kernel-crate struct fields for `// data_class:` annotation comment; absence flags PR"
       }
     },
@@ -89,8 +98,8 @@
       "severity": "medium",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-foundry-fitness-archive-orphan-kernel"],
-        "evidence": "archive-orphan lane diffs PR against retired-paths registry"
+        "enforced_by": null,
+        "evidence": "ADR-0118 retirement removes the one-time archive lane; M-CC-P11 admission gates replacement changes per ADR-0116"
       }
     },
     {
@@ -100,7 +109,9 @@
       "severity": "high",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["docs/MISTAKES-LEDGER.md row contract enforces mechanical_prevention field"],
+        "enforced_by": [
+          "docs/MISTAKES-LEDGER.md row contract enforces mechanical_prevention field"
+        ],
         "evidence": "MFL-row template rejects rows with empty mechanical_prevention field at authoring time"
       }
     },
@@ -111,7 +122,10 @@
       "severity": "critical",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-check-license-policy", "oya-foundry-fitness-license-policy-kernel"],
+        "enforced_by": [
+          "oya-check-license-policy",
+          "oya-foundry-fitness-license-policy-kernel"
+        ],
         "evidence": "license-policy lane scans Cargo.lock + transitive deps against forbidden-license enum"
       }
     },
@@ -122,7 +136,12 @@
       "severity": "critical",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-foundry-autonomy-ceiling-kernel", "oya-foundry-autonomy-ceiling-domain", "oya-foundry-autonomy-ceiling-app", "oya-foundry-fitness-claim-ceiling-kernel"],
+        "enforced_by": [
+          "oya-foundry-autonomy-ceiling-kernel",
+          "oya-foundry-autonomy-ceiling-domain",
+          "oya-foundry-autonomy-ceiling-app",
+          "oya-foundry-fitness-claim-ceiling-kernel"
+        ],
         "evidence": "autonomy-ceiling crates validate Cedar policy presence + runtime check on every uplift attempt"
       }
     }
@@ -138,9 +157,9 @@
     "mechanical-deferred": "A spec file exists declaring the rule but the runtime enforcement (e.g., GitHub ruleset application, M02-P04 audit-chain) is not yet deployed. Honest distinction from `mechanical`."
   },
   "references": [
-    "specs/cross-cutting/master-plan-sequencing.json — forbidden_primitives (related but lower-level: tooling vs. doctrine)",
-    "specs/cross-cutting/decision-principles.json — companion do-list (DPs)",
-    "specs/cross-cutting/root-hub-pointers.json — migration source map",
-    "docs/standards/dependency-policy.md — FO-09 license detail"
+    "specs/cross-cutting/master-plan-sequencing.json \u2014 forbidden_primitives (related but lower-level: tooling vs. doctrine)",
+    "specs/cross-cutting/decision-principles.json \u2014 companion do-list (DPs)",
+    "specs/cross-cutting/root-hub-pointers.json \u2014 migration source map",
+    "docs/standards/dependency-policy.md \u2014 FO-09 license detail"
   ]
 }

@@ -2,37 +2,39 @@
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-008
-title: Archive orchestration glue + archive-orphan lane (P6)
-status: complete
-migration_status: cleanup
+title: Retired archive orchestration glue + archive-orphan lane (P6)
+status: retired
+migration_status: retired
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Archive orchestration glue under bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/; ship archive-orphan lane.
+purpose: Historical record for the one-time archive-orphan lane; ADR-0118 removes the archive payload and retired lane crates after ADR-0116 promoted M-CC-P11 as the canonical VCS substrate.
 ---
 
-# M-CC-P01-IP-008 — Archive orchestration glue + archive-orphan lane (P6)
+# M-CC-P01-IP-008 — Retired archive orchestration glue + archive-orphan lane (P6)
 
 ## Purpose
-Archive orchestration glue under bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/; ship archive-orphan lane.
+Record IP-008 as retired: the one-time archive payload and executable archive-orphan lane are removed, while historical traceability stays in ADR-0118 and evidence metadata.
 
-## Symbols-to-grit-claim
+## Retired-symbols
 ```
-bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/::ArchiveDir
-crates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs::check
+bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/::RetiredArchiveDir
+crates/oya-foundry-fitness-archive-orphan-kernel::RetiredKernel
+tools/oya-foundry-fitness-archive-orphan-app::RetiredApp
 ```
-(Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
+Naming justification: `RetiredArchiveDir`, `RetiredKernel`, and `RetiredApp` are ledger-only names that preserve IP-008 traceability without keeping executable workspace members.
 
 ## Agent-prerequisites
 Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles understood; M-CC-P01 ≥ P5 merged (except for IPs IN M-CC-P01 itself).
 
-## Acceptance-test-commands
+## Retirement-validation-commands
 ```
-cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
-scripts/check.sh
+git diff --name-status origin/dev...HEAD
+~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin/cargo metadata --no-deps --format-version 1
+~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin/cargo check -p oya-foundry-fitness-authoritative-tracked-kernel
+node scripts/validate-adr-shape.mjs docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md
 ```
 
 ## Done-criteria
@@ -43,15 +45,13 @@ scripts/check.sh
 - PR "good-taste audit" section non-empty (Directive 7).
 
 ## Rollback-procedure
-`grit done` is atomic per-symbol; if a subsequent IP regresses, revert the merge commit.
+Revert the retirement PR with plain git if downstream history proves the one-time archive payload is still required. Do not recreate grit/rtk/icm/vox coordination flows; ADR-0116 keeps M-CC-P11 as the canonical substrate.
 
 ## Next-IP-pointer
 Next IP in this phase's INDEX list (or first IP of next phase if phase complete).
 
-## Icm-store-payload
-```
-icm store -t context-oyatie -c 'M-CC-P01-IP-008 Archive orchestration glue + archive-orphan lane (P6) shipped; acceptance commands green' -i high -k 'M-CC-P01-IP-008,complete'
-```
+## Retirement-note
+The old archive-orphan executable lane is removed rather than renamed because its invariant was one-time cutover hygiene. Continuing to carry a runner would duplicate M-CC-P11 admission/projected-merge-state checks after ADR-0116.
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this retirement: a one-time archive validator no longer masquerades as reusable VCS infrastructure after M-CC-P11 became canonical.
