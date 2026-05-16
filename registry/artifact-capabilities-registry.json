@@ -843,7 +843,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
-      "purpose_short": "Cargo manifest for openapi-rest-route-parity check kernel (std-only). Compares REST _ROUTE constants vs OpenAPI paths sets. Backs lean-a-openapi-rest-route-parity lane (active in scripts/check.sh).",
+      "purpose_short": "Cargo manifest for openapi-rest-route-parity check kernel (std-only). Compares REST _ROUTE constants vs OpenAPI paths sets. Backs lean-a-openapi-rest-route-parity lane (active via oya gate run-all).",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
