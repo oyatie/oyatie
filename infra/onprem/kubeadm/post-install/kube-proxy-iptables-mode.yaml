@@ -1,0 +1,44 @@
+# kube-proxy iptables mode (Debian 13 trixie pin).
+# Authority: ADR-0119 §Debian-13-gotcha. Apply with:
+#   kubectl apply -f infra/onprem/kubeadm/post-install/kube-proxy-iptables-mode.yaml
+#   kubectl -n kube-system rollout restart daemonset kube-proxy
+#
+# Why iptables (empty string == iptables) instead of nftables:
+#   kube-proxy v1.35's nftables mode segfaults on the Debian 13 kernel
+#   (`nft: signal: segmentation fault`). The iptables-legacy backend
+#   (set via update-alternatives in kubeadm/install.sh Step 1) routes
+#   pod traffic correctly.
+#
+# When to revisit: bump kube-proxy to a release with the nft regression
+# fixed (track via https://github.com/kubernetes/kubernetes/issues).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kube-proxy
+  namespace: kube-system
+  labels:
+    app: kube-proxy
+    managed-by: oyatie-infra-onprem
+data:
+  config.conf: |
+    apiVersion: kubeproxy.config.k8s.io/v1alpha1
+    kind: KubeProxyConfiguration
+    bindAddress: 0.0.0.0
+    bindAddressHardFail: false
+    clientConnection:
+      kubeconfig: /var/lib/kube-proxy/kubeconfig.conf
+    clusterCIDR: 10.244.0.0/16
+    configSyncPeriod: 0s
+    detectLocalMode: ""
+    enableProfiling: false
+    iptables:
+      masqueradeAll: false
+      masqueradeBit: null
+      minSyncPeriod: 0s
+      syncPeriod: 0s
+    mode: ""  # empty == iptables (default); explicit so future drift is visible.
+    nftables:
+      masqueradeAll: false
+      masqueradeBit: null
+      minSyncPeriod: 0s
+      syncPeriod: 0s

@@ -1,0 +1,29 @@
+{
+  "evidence_id": "onprem-foundry-readiness-cell-smoke-2026-05-16",
+  "captured_at": "2026-05-16T05:00:57Z",
+  "branch": "dev",
+  "git_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "host": "oyatie",
+  "kernel": "6.12.86+deb13-amd64",
+  "rust_toolchain": "1.95.0",
+  "binary": {
+    "path": "/home/oyatie/projects/oyatie/target/release/oya-ops-workspace-shell",
+    "sha256": "e830bb3f02c9b1e7000a8c015b2e0f788da966c51a783107ff2e09ec372d6d1e",
+    "size_bytes": 1075768
+  },
+  "smoke": {
+    "port": 18080,
+    "endpoints": [
+      {"path": "/workspace/api/v1/health", "http_code": 200, "body": {"status":"healthy","surface_count":1,"version":"0.1.0"}},
+      {"path": "/workspace/api/v1/surfaces", "http_code": 200, "body": {"surfaces":[{"id":"docs-portal","canonical_route":"/workspace/docs","visibility_tier":"internal-public","state":"reserved-coming-soon","owning_bc_id":"ops/docs-portal"}],"count":1}},
+      {"path": "/", "http_code": 404, "body": "not found"},
+      {"path": "/health", "http_code": 404, "body": "not found"}
+    ]
+  },
+  "zfs_mounts": {
+    "audit_chain": "/srv/oyatie/audit-chain (oyatie-bulk/srv/audit-chain)",
+    "object_graph": "/srv/oyatie/object-graph (oyatie-bulk/srv/object-graph)",
+    "regional_packs": "/srv/oyatie/regional-packs (oyatie-bulk/srv/regional-packs)"
+  },
+  "systemd_install_blocker": "sudo requires password; setup-oyatie-service.sh references stale crate name oya-ops-workspace-shell-runtime (should be oya-ops-workspace-shell-app)"
+}

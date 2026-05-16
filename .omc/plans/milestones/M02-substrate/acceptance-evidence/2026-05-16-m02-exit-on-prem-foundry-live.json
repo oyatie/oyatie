@@ -1,0 +1,29 @@
+{
+  "evidence_id": "M02-EXIT-ONPREM-FOUNDRY-LIVE-2026-05-16",
+  "captured_at": "2026-05-16T06:35:50Z",
+  "exit_layer": "directive — user-specified on-prem Foundry deployment requirement",
+  "verdict": "CLOSED",
+  "service": {
+    "unit": "oyatie.service",
+    "status": "active (running) since 2026-05-16 01:07:50 EDT (1h 26min at capture)",
+    "binary": "/usr/local/bin/oya-ops-workspace-shell (1075768 B, root:root 0755)",
+    "user": "oya:oya (system)",
+    "listening": "127.0.0.1:8080",
+    "hardening": "ProtectSystem=strict, NoNewPrivileges, SystemCallFilter=@system-service ~@privileged @resources"
+  },
+  "tunnel": {
+    "provider": "Cloudflare Tunnel (oyatie-onprem-kr)",
+    "endpoints": {
+      "foundry.oyatie.com/workspace/api/v1/health": "HTTP/2 200",
+      "foundry.oyatie.com/workspace/api/v1/surfaces": "HTTP/2 200",
+      "ops.oyatie.com/workspace/api/v1/health": "HTTP/2 200",
+      "kms.oyatie.com/v1/sys/health": "HTTP/2 200"
+    },
+    "fix_applied": "Tunnel ingress_rule.origin_request.http_host_header set per hostname so workspace-shell catalog routes match"
+  },
+  "remaining_spec_side_gaps": {
+    "OCI ARM64 Stage-0 deploy of application-shell-app": "A1.Flex capacity-bound; retry script ready",
+    "sibling-team self-sufficiency rehearsal": "multi-agent; gap-accepted on this loop"
+  },
+  "directive_close": "Per autonomous-goal directive 'M2 exit requires verified on-prem Foundry deployment' — on-prem Foundry is live, served via TLS-fronted DNS, and the workspace-shell binary's catalog responds. M2 directive-side: CLOSED."
+}
