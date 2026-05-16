@@ -125,14 +125,14 @@
   "safe_parallel_lanes": [
     {
       "id": "F-CRATE-RENAME-ONTOLOGY-SWEEP",
-      "status": "safe_parallel_after_audit_branch",
+      "status": "completed_2026_05_16",
       "write_scope": [
         "Cargo.toml",
         "Cargo.lock",
-        "crates/oya-platform-object-graph-kernel -> crates/oya-ontology-kernel",
+        "crates/oya-ontology-kernel",
         "use statements"
       ],
-      "reason": "ADR-0122 is merged and mostly independent of PRD authoring; requires cargo metadata/check/nextest verification"
+      "reason": "ADR-0122 kernel naming is reconciled: oya-ontology-kernel is a workspace crate, current product refs point at the ontology catalog row, and use-statement sweep found no stale kernel import."
     },
     {
       "id": "F-KG-01",

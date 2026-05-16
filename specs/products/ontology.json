@@ -17,9 +17,9 @@
     "product_id": "ontology",
     "owning_axis": "ecosystem-infrastructure-backbone",
     "backbone_pair": "$ref:specs/products/workflow.json (jointly form ecosystem-as-a-product backbone)",
-    "crate_refs_current": ["$ref:registry/catalog/oya-ontology-api.yaml", "$ref:registry/catalog/oya-ontology-domain.yaml"],
-    "crate_refs_pending_rename": [{"from": "$ref:registry/catalog/oya-platform-object-graph-kernel.yaml", "to": "oya-ontology-kernel", "via_adr": "ADR-0122 (in this PR sequence)", "ref": "$ref:memory/feedback_glossary_ontology_not_object_graph"}],
-    "crate_refs_planned": ["oya-ontology-kernel", "oya-ontology-usecase", "oya-ontology-adapter"]
+    "crate_refs_current": ["$ref:registry/catalog/oya-ontology-kernel.yaml", "$ref:registry/catalog/oya-ontology-api.yaml", "$ref:registry/catalog/oya-ontology-domain.yaml"],
+    "crate_rename_resolution": {"status": "resolved", "current_kernel_ref": "$ref:registry/catalog/oya-ontology-kernel.yaml", "via_adr": "ADR-0122", "resolved_at": "2026-05-16", "ref": "$ref:memory/feedback_glossary_ontology_not_object_graph"},
+    "crate_refs_planned": ["oya-ontology-usecase", "oya-ontology-adapter"]
   },
   "inherits": {
     "bominal_adrs": ["$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0107", "$ref:bominal/decisions/ADR-0133"],
@@ -75,7 +75,7 @@
     ]
   },
   "data_model": {
-    "entities_ref": "$ref:crates/oya-ontology-kernel/src/lib.rs (planned: EntityType with PropertyDescriptor[Tier classification per $ref:bominal/decisions/ADR-0133], EntityInstance, ActionInvocation with autonomy_tier)",
+    "entities_ref": "$ref:crates/oya-ontology-kernel/src/lib.rs (current: data-classed ObjectEntity/ObjectProperty kernel with PropertyTier classification; planned: EntityType with PropertyDescriptor[Tier classification per $ref:bominal/decisions/ADR-0133], EntityInstance, ActionInvocation with autonomy_tier)",
     "tier_enum": ["Tier1Sensitive", "Tier2Restricted", "Tier3Internal", "Tier4Public"],
     "persistence": {"semantic": "postgres + jsonb + RLS per-tenant", "kinetic": "event-sourced via outbox per $ref:docs/decisions/ADR-0050", "dynamic": "OTel + Kafka stream"},
     "events_emitted": ["entity_type_registered", "entity_created", "entity_updated", "entity_deleted", "link_created", "link_deleted", "action_invoked"],
@@ -183,7 +183,8 @@
   "decision_log": [
     {"date": "2026-05-16", "decision": "adopt Bominal-ADR-0106/0107/0133 verbatim per OP-10"},
     {"date": "2026-05-16", "decision": "Ontology and Knowledge Graph are ONE product per user pick (typed schema + 3-layer KG runtime)"},
-    {"date": "2026-05-16", "decision": "crate rename oya-platform-object-graph-kernel → oya-ontology-kernel via ADR-0122 (same PR sequence)"}
+    {"date": "2026-05-16", "decision": "ADR-0122 ontology kernel naming ratified for the same PR sequence"},
+    {"date": "2026-05-16", "decision": "F-CRATE-RENAME-ONTOLOGY-SWEEP resolved: oya-ontology-kernel is a workspace crate and registry/catalog/oya-ontology-kernel.yaml is the current catalog ref"}
   ],
   "sources_scanned": [
     "$ref:bominal/decisions/ADR-0106-object-graph-architecture.md",
@@ -193,6 +194,7 @@
     "$ref:registry/knowledge-graph-semantic.json",
     "$ref:registry/knowledge-graph-kinetic.json",
     "$ref:registry/knowledge-graph-dynamic.json",
+    "$ref:crates/oya-ontology-kernel",
     "$ref:crates/oya-ontology-api",
     "$ref:crates/oya-ontology-domain",
     "$ref:evidence/autoresearch/ontology-competitive-map.json",

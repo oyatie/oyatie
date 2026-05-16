@@ -2697,6 +2697,13 @@ dependencies = [
 name = "oya-ontology-domain"
 version = "0.1.0"
 dependencies = [
+ "oya-ontology-kernel",
+]
+
+[[package]]
+name = "oya-ontology-kernel"
+version = "0.1.0"
+dependencies = [
  "oya-data-boundary-kernel",
 ]
 
