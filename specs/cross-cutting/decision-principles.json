@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/specs/decision-principles.json",
   "title": "DecisionPrinciples",
-  "description": "Machine-readable do-list: the 10 normative rules every contributor and every agent follows. Migrated from docs/CONSTITUTION.md §Decision principles — Do during the 2026-05-15 CONSTITUTION strike per root-hub-pointers.json _retired_constitutional_authority migration map.",
+  "description": "Machine-readable do-list: the 10 normative rules every contributor and every agent follows. Migrated from docs/CONSTITUTION.md \u00a7Decision principles \u2014 Do during the 2026-05-15 CONSTITUTION strike per root-hub-pointers.json _retired_constitutional_authority migration map.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-DECISION-PRINCIPLES",
@@ -23,7 +23,10 @@
       "binding": "load-bearing",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-check-cohesion", "oya-foundry-fitness-cohesion-fitness-kernel"],
+        "enforced_by": [
+          "oya-check-cohesion",
+          "oya-foundry-fitness-cohesion-fitness-kernel"
+        ],
         "evidence": "PR-time cohesion-lane verdict"
       }
     },
@@ -34,18 +37,23 @@
       "binding": "load-bearing",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-check-doc-catalog", "oya-foundry-fitness-pr-traceability-kernel"],
+        "enforced_by": [
+          "oya-check-doc-catalog",
+          "oya-foundry-fitness-pr-traceability-kernel"
+        ],
         "evidence": "doc-catalog lane refuses PRs that change a canonical surface without updating dependents the catalog names"
       }
     },
     {
       "id": "DP-03-mechanical-prevention-over-process",
       "title": "Mechanical prevention over process",
-      "statement": "Recurring failures produce a CI lane, hook, validator, or schema check — not a checklist line.",
+      "statement": "Recurring failures produce a CI lane, hook, validator, or schema check \u2014 not a checklist line.",
       "binding": "load-bearing",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["docs/MISTAKES-LEDGER.md row contract: every MFL row REQUIRES a non-empty mechanical_prevention field; process-only fixes are rejected per docs/standards/prevention-doctrine.md §6"],
+        "enforced_by": [
+          "docs/MISTAKES-LEDGER.md row contract: every MFL row REQUIRES a non-empty mechanical_prevention field; process-only fixes are rejected per docs/standards/prevention-doctrine.md \u00a76"
+        ],
         "evidence": "MFL row template in docs/templates/mistakes-ledger-row-template.md enforces field at authoring time"
       }
     },
@@ -67,7 +75,9 @@
       "binding": "load-bearing",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-foundry-fitness-authoritative-tracked-kernel", "oya-foundry-fitness-archive-orphan-kernel"],
+        "enforced_by": [
+          "oya-foundry-fitness-authoritative-tracked-kernel"
+        ],
         "evidence": "authoritative-tracked lane verifies every doc cited as authoritative in docs/AGENTS.md is repo-tracked"
       }
     },
@@ -78,7 +88,10 @@
       "binding": "load-bearing",
       "enforcement": {
         "mode": "mechanical",
-        "enforced_by": ["oya-foundry-fitness-doc-style-kernel", "oya-check-doc-catalog"],
+        "enforced_by": [
+          "oya-foundry-fitness-doc-style-kernel",
+          "oya-check-doc-catalog"
+        ],
         "evidence": "doc-style lane enforces length cap + frontmatter shape per doc_class"
       }
     },
@@ -101,7 +114,7 @@
       "enforcement": {
         "mode": "deferred",
         "enforced_by": null,
-        "evidence": "audit-chain emission verification deferred until M02-P04-audit-chain ships the substrate µservice; currently relies on per-PR review"
+        "evidence": "audit-chain emission verification deferred until M02-P04-audit-chain ships the substrate \u00b5service; currently relies on per-PR review"
       }
     },
     {
@@ -112,7 +125,7 @@
       "enforcement": {
         "mode": "cultural",
         "enforced_by": null,
-        "evidence": "No mechanical enforcement today. The 4 stub crates that claimed to enforce this (oya-check-statelessness, -shardability, -perf-budget, -benchmark) were deleted 2026-05-15 — 6-line doc-stubs claiming 'Accepted' status are worse than no crate (per audit). PRs cite performance claims; review is the only check until real lane crates ship under M02 substrate. Re-introduction requires a real implementation, not a doc-stub."
+        "evidence": "No mechanical enforcement today. The 4 stub crates that claimed to enforce this (oya-check-statelessness, -shardability, -perf-budget, -benchmark) were deleted 2026-05-15 \u2014 6-line doc-stubs claiming 'Accepted' status are worse than no crate (per audit). PRs cite performance claims; review is the only check until real lane crates ship under M02 substrate. Re-introduction requires a real implementation, not a doc-stub."
       }
     },
     {
@@ -134,9 +147,9 @@
     "deferred": "Enforcement depends on infrastructure not yet shipped (e.g., M02-P04 audit-chain substrate). Will become mechanical once the substrate lands."
   },
   "references": [
-    "docs/standards/prevention-doctrine.md — mechanical-prevention authoring guide",
-    "docs/MISTAKES-LEDGER.md — failure-mode row registry with mechanical_prevention field",
-    "specs/cross-cutting/root-hub-pointers.json — migration source map (entry_points._retired_constitutional_authority)",
-    "specs/cross-cutting/forbidden-operations.json — companion avoid-list (prohibitions)"
+    "docs/standards/prevention-doctrine.md \u2014 mechanical-prevention authoring guide",
+    "docs/MISTAKES-LEDGER.md \u2014 failure-mode row registry with mechanical_prevention field",
+    "specs/cross-cutting/root-hub-pointers.json \u2014 migration source map (entry_points._retired_constitutional_authority)",
+    "specs/cross-cutting/forbidden-operations.json \u2014 companion avoid-list (prohibitions)"
   ]
 }
