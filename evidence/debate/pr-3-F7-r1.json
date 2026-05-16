@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-3",
+  "pr_number": 3,
+  "pr_title": "ADR-0083 DENY + M-CC-P10 pipeline maturity + CLI canonicalization",
+  "merge_commit_sha": "27fe6705519cebccc1cfb780f293e5b1619c6672",
+  "facet_id": "F7",
+  "facet_name": "Security review",
+  "reviewer_id": "codex-F7-pr-3-r1-security",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "F7 security review for PR #3: reviewed large workflow/pipeline diff metadata and current workflow evidence; 3 actionable findings, highest severity BLOCKER.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": ".github/workflows/pr-review.yml:34-47,64-104",
+      "issue": "The review workflow is triggered by workflow_run, checks out the PR head SHA, and runs cargo from that checkout while the job has checks:write/actions:read permissions. That executes untrusted PR-controlled code in a privileged workflow_run context.",
+      "remediation": "Do not run PR-head code in workflow_run with write permissions. Run analysis in a pull_request/read-only job, or have workflow_run execute only trusted default-branch code against downloaded artifacts, with a separate minimal status-poster step."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "GitHub PR #3 file list: .audit/agent-read.jsonl",
+      "issue": "A local agent audit/session log was committed as part of the 2712-file pipeline PR. Even without inspecting its contents here, committing local session artifacts violates smallest-actionable evidence discipline and risks leaking workstation paths or prompt context into canonical history.",
+      "remediation": "Remove committed .audit session artifacts from the PR lineage, add ignore/deny coverage for local audit scratch paths, and keep only minimized review evidence with explicit redaction rules."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/sbom.yml:29-33; .github/workflows/cosign.yml:25-29; .github/workflows/slsa.yml:25-53",
+      "issue": "PR #3 introduced release/supply-chain workflows that still rely on mutable action tags or unversioned cargo install behavior in security-critical lanes.",
+      "remediation": "Pin action references and installed tooling to reviewed immutable versions; verify checksums or provenance for downloaded tools before using them in release evidence."
+    }
+  ],
+  "null_finding_reason": null
+}

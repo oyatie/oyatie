@@ -1,0 +1,27 @@
+{
+  "change_id": "pr-8",
+  "pr_number": 8,
+  "pr_title": "Keep M01/M02 local gates honest with usecase boundary",
+  "merge_commit_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "facet_id": "F4",
+  "facet_name": "Ergonomics/operator review",
+  "reviewer_id": "codex-F4-pr-8-r1",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "F4 operator/contributor UX review for PR #8: the gate surface is mostly understandable and checked, but transitional naming aliases and runbook drift make the contributor path ambiguous. Highest severity MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs:55-88",
+      "issue": "The architecture-boundaries gate still accepts both corrected roles (`usecase`, `app`) and legacy/transitional roles (`application`, `runtime`, `api`, `worker`, `test`) without an operator-visible sunset condition. New contributors can pass the gate while copying old layer names, then later be surprised by follow-up cleanup or stricter doctrine.",
+      "remediation": "Add a ratchet fixture or date/phase-scoped allowlist that names the exact legacy role records still tolerated and prints a warning/remediation path before the aliases become hard failures."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "docs/runbooks/sanctioned-primitives/preflight.md as touched by PR #8 before ADR-0116 retirement",
+      "issue": "PR #8 adjusted gate honesty while operator runbooks were still in transition around sanctioned primitives. Even though later PR #10 retired the external-tool wording, the PR #8 contributor journey still mixed local gate commands with stale coordination-tool expectations.",
+      "remediation": "For each gate-hardening PR, require a matching runbook/CLI help check showing the exact current command sequence and explicitly marking retired tools as tombstones, not prerequisites."
+    }
+  ],
+  "null_finding_reason": null
+}

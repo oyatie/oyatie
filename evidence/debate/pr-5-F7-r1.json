@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-5",
+  "pr_number": 5,
+  "pr_title": "ADR-0110/0111/0112/0113 — end-to-end agentic VCS pipeline (M-CC-P11)",
+  "merge_commit_sha": "3185596f5a1bfbbfd1fff7e1ccd7500af9906613",
+  "facet_id": "F7",
+  "facet_name": "Security review",
+  "reviewer_id": "codex-F7-pr-5-r1-security",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "F7 security review for PR #5: reviewed VCS pipeline protections and promotion workflows; 3 actionable findings, highest severity BLOCKER.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": ".github/branch-protection.yaml:37-43,59-61",
+      "issue": "The dev protection record sets required_approving_reviews to 0 and comments out the oya-pr-review required check. The agentic VCS pipeline can therefore admit security-sensitive changes without an enforced reviewer-agent gate.",
+      "remediation": "Restore a required review gate before treating the pipeline as end-to-end: require either approving reviews or an oya-pr-review check that fails closed when the multispectrum panel is incomplete or pending."
+    },
+    {
+      "severity": "BLOCKER",
+      "file": ".github/workflows/promote-dev-to-staging.yml:27-35; .github/workflows/promote-staging-to-production.yml:15-22",
+      "issue": "Both promotion workflows document that canary/full-rollout observability gates are FUTURE and currently always promote. This is fail-open promotion from dev to staging and staging to production.",
+      "remediation": "Add mandatory canary and full-rollout health gates before advancing refs, or disable automatic promotion until those gates exist and fail closed on missing/unknown observability evidence."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/promote-dev-to-staging.yml:74-92",
+      "issue": "The downstream production promotion path optionally uses a broad WORKFLOW_PAT secret to trigger another workflow, with no environment approval or scoped app-token boundary documented in the workflow.",
+      "remediation": "Replace the PAT path with a least-privilege GitHub App or environment-protected deployment token, and require explicit environment gates for staging/production promotion."
+    }
+  ],
+  "null_finding_reason": null
+}
