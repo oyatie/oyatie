@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install.sh — vanilla Kubernetes via kubeadm on the on-prem KR primary cell.
-# Authority: ADR-0118. Requires containerd already installed (see ../containerd/install.sh).
+# Authority: ADR-0119. Requires containerd already installed (see ../containerd/install.sh).
 # Run as: sudo bash /home/oyatie/projects/oyatie/infra/onprem/kubeadm/install.sh
 set -euo pipefail
 

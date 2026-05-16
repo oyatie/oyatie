@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install.sh — install Istio (Envoy data plane) on top of the kubeadm cluster.
-# Authority: ADR-0118 (kubeadm + containerd + Istio + Envoy).
+# Authority: ADR-0119 (kubeadm + containerd + Istio + Envoy).
 # Per ADR-0044: service-mesh mTLS posture starts permissive, graduates to strict.
 # Prereq: ../containerd/install.sh + ../kubeadm/install.sh have completed.
 #

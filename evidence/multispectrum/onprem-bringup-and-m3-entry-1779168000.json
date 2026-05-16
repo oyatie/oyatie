@@ -5,11 +5,11 @@
   "captured_at": "2026-05-16T07:30:00Z",
   "captured_by": "claude-opus-4-7 (autonomous session)",
   "branch": "dev",
-  "summary": "On-prem KR primary cell stand-up + OCI KR secondary cell provisioning + M2 directive-side close + M3 entry. ADR-0118 (k8s stack), ADR-0119 (Rust-first tooling + paired uninstall), full infra/onprem/ tree with hardening + cleanup + security + paired uninstalls, infra/oci/ (31 tofu-managed resources), infra/cloudflare/ (tunnel + DNS), PR #10 rebased.",
+  "summary": "On-prem KR primary cell stand-up + OCI KR secondary cell provisioning + M2 directive-side close + M3 entry. ADR-0119 (k8s stack), ADR-0120 (Rust-first tooling + paired uninstall), full infra/onprem/ tree with hardening + cleanup + security + paired uninstalls, infra/oci/ (31 tofu-managed resources), infra/cloudflare/ (tunnel + DNS), PR #10 rebased.",
   "facets": {
     "F1_linus": {
       "verdict": "PASS",
-      "narrative": "Each install script is one composable step with a paired uninstall. No magic; readable bash. Rust migration deferred to ADR-0119 Phase B as a separate ChangeSet.",
+      "narrative": "Each install script is one composable step with a paired uninstall. No magic; readable bash. Rust migration deferred to ADR-0120 Phase B as a separate ChangeSet.",
       "no_special_cases": "Debian 13 nftables / kube-proxy regression is captured in 2 places (kubeadm/install.sh + post-install/kube-proxy-iptables-mode.yaml) with explicit comments; not a special case, a documented workaround with a re-visit trigger."
     },
     "F2_hyperscaler": {
@@ -26,11 +26,11 @@
     },
     "F5_quality": {
       "verdict": "PASS",
-      "narrative": "Per ADR-0118 §test plan: `cargo check --workspace --all-targets` 0; `cargo nextest run --workspace --all-features --no-fail-fast` 2683/2683 0; `cargo deny check` 0; `oya verify` 44/44 lanes 0. Diagnose verdict HEALTHY across 11 sections."
+      "narrative": "Per ADR-0119 §test plan: `cargo check --workspace --all-targets` 0; `cargo nextest run --workspace --all-features --no-fail-fast` 2683/2683 0; `cargo deny check` 0; `oya verify` 44/44 lanes 0. Diagnose verdict HEALTHY across 11 sections."
     },
     "F6_alternatives": {
       "verdict": "PASS",
-      "narrative": "ADR-0118 §rejected explicitly considers k3s, k0s, MicroK8s, Talos for k8s; explains why kubeadm wins for the primary cell. ADR-0119 §rejected covers stay-in-shell, Ansible/Chef/Puppet, per-component crates."
+      "narrative": "ADR-0119 §rejected explicitly considers k3s, k0s, MicroK8s, Talos for k8s; explains why kubeadm wins for the primary cell. ADR-0120 §rejected covers stay-in-shell, Ansible/Chef/Puppet, per-component crates."
     },
     "F7_security": {
       "verdict": "PASS",
@@ -46,7 +46,7 @@
     },
     "F10_reversibility": {
       "verdict": "PASS",
-      "narrative": "ADR-0119 Rule 2: every install paired with uninstall. Top-level `uninstall-all.sh` reverses `setup.sh` in dependency order. Idempotent. PURGE=1 flag wipes user-data; default preserves it."
+      "narrative": "ADR-0120 Rule 2: every install paired with uninstall. Top-level `uninstall-all.sh` reverses `setup.sh` in dependency order. Idempotent. PURGE=1 flag wipes user-data; default preserves it."
     },
     "F11_observability": {
       "verdict": "PASS",
@@ -58,7 +58,7 @@
     },
     "M1_challenge_assumption": {
       "verdict": "PASS",
-      "narrative": "Challenged: is k3s fine for primary cell? → No, OKE parity matters; chose kubeadm. Is Envoy/Istio really needed pre-M3? → User pulled it forward; we delivered. Is per-script shell the right tooling long-term? → No (ADR-0119); Rust migration is the plan."
+      "narrative": "Challenged: is k3s fine for primary cell? → No, OKE parity matters; chose kubeadm. Is Envoy/Istio really needed pre-M3? → User pulled it forward; we delivered. Is per-script shell the right tooling long-term? → No (ADR-0120); Rust migration is the plan."
     },
     "M2_zoomed_out_fit": {
       "verdict": "PASS",
@@ -67,8 +67,8 @@
   },
   "artifacts_attached": {
     "adrs": [
-      "docs/decisions/ADR-0118-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
-      "docs/decisions/ADR-0119-rust-first-onprem-tooling-with-paired-uninstall.md"
+      "docs/decisions/ADR-0119-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md",
+      "docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md"
     ],
     "iac_modules": [
       "infra/oci/ (31 resources tracked + always-free.tf staged)",
@@ -91,7 +91,7 @@
     "tofu apply infra/oci/always-free.tf (Bastion + Logging + Notifications + OCIR)",
     "M03-P01-IP-001: scaffold oya-cloud-kms-adapter-{openbao,oci} crates with live tests",
     "A1.Flex capacity-acquire (retry loop running; 288×5min budget)",
-    "ADR-0119 Phase B: scaffold crates/oya-onprem-cli with Component trait",
+    "ADR-0120 Phase B: scaffold crates/oya-onprem-cli with Component trait",
     "Multi-agent rehearsal of sibling-team self-sufficiency (M02-P22 last open spec criterion)"
   ]
 }

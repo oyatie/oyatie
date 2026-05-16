@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# uninstall.sh — k3s is retired per ADR-0118. If k3s was installed via the
+# uninstall.sh — k3s is retired per ADR-0119. If k3s was installed via the
 # tombstoned install.sh OR via the upstream `curl get.k3s.io | sh` path,
 # this script delegates to the upstream uninstaller and clears the ZFS dataset.
 set -uo pipefail

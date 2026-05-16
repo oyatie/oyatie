@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # uninstall-all.sh — reverse of setup.sh. Removes every installed component
-# in reverse dependency order. Authority: ADR-0119.
+# in reverse dependency order. Authority: ADR-0120.
 #
 # Default: preserves user-data (audit-chain, vault data, ZFS snapshots).
 # Pass --purge to also wipe data dirs.

@@ -1,14 +1,14 @@
 ---
-id: ADR-0119
+id: ADR-0120
 status: accepted
 doc_status: published
 date: 2026-05-16
 supersedes: []
 superseded_by: []
-related: [ADR-0083, ADR-0118]
+related: [ADR-0083, ADR-0119]
 ---
 
-# ADR-0119: Rust-first on-prem tooling; every install paired with uninstall
+# ADR-0120: Rust-first on-prem tooling; every install paired with uninstall
 
 > **Status:** Accepted
 > **Owner:** `axis-foundry` + `ops-sre`

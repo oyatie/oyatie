@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # setup.sh — single-command on-prem bring-up: hardening → setup → verify.
-# Authority: ADR-0118 (k8s stack), ADR-0043 (OpenBao), CLAUDE.md root-hub.
+# Authority: ADR-0119 (k8s stack), ADR-0043 (OpenBao), CLAUDE.md root-hub.
 #
 # Everything called from here is tracked in this repo under infra/onprem/.
 # The historical scripts under /home/oyatie/ are mirrored here verbatim so

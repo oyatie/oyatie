@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # install.sh — system cleanup for the on-prem host.
 # Idempotent. Hooks into setup.sh phase 0 + can be run independently.
-# Authority: ADR-0118 § hygiene; user directive 2026-05-16 (no unneeded packages or garbage).
+# Authority: ADR-0119 § hygiene; user directive 2026-05-16 (no unneeded packages or garbage).
 #
 # Run as: sudo bash /home/oyatie/projects/oyatie/infra/onprem/cleanup/install.sh
 set -euo pipefail

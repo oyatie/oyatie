@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install.sh — secret scanning + vulnerability monitoring for the on-prem host.
-# Authority: ADR-0118 § hygiene; per-tenant-per-cell HSM (ADR-0043).
+# Authority: ADR-0119 § hygiene; per-tenant-per-cell HSM (ADR-0043).
 # Idempotent. Hooks into setup.sh.
 #
 # What this installs (system + user mode, no Docker required):

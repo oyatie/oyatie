@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # install.sh — containerd CRI runtime for the on-prem KR primary cell.
-# Authority: ADR-0118.
+# Authority: ADR-0119.
 # Run as: sudo bash /home/oyatie/projects/oyatie/infra/onprem/containerd/install.sh
 set -euo pipefail
 
