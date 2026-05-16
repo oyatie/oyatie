@@ -336,6 +336,43 @@
         ".omc/project-memory.json"
       ]
     },
+    "AcceptanceCriterion": {
+      "purpose": "Machine-readable product or plan acceptance criterion with deterministic verification command linkage.",
+      "id_pattern": "^ac:[a-z0-9][a-z0-9-]*:[A-Z0-9-]+$",
+      "examples": [
+        "ac:ontology:AC-KG-ROBUSTNESS",
+        "ac:foundry:AC-VCS-ADMISSION"
+      ],
+      "contributing_registries": [
+        "specs/products/*.json",
+        "specs/agent-durable-goal.json"
+      ]
+    },
+    "Test": {
+      "purpose": "Unit, integration, nextest, gate, or smoke test that proves an acceptance criterion.",
+      "id_pattern": "^test:[a-z0-9_./:-]+$",
+      "examples": [
+        "test:crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::agent_decision_provenance_chain_is_graph_traversable",
+        "test:cargo-nextest:oya-dev-cli"
+      ],
+      "contributing_registries": [
+        "crates/**/tests/*.rs",
+        "evidence/audit-chain.jsonl",
+        "GitHub check runs"
+      ]
+    },
+    "CILaneRun": {
+      "purpose": "Concrete CI lane run/check result that executed a test or verification command.",
+      "id_pattern": "^ci-run:[a-z0-9_.:/#-]+$",
+      "examples": [
+        "ci-run:github/pr-42/cargo-nextest",
+        "ci-run:github/pr-42/oya-vcs-admission"
+      ],
+      "contributing_registries": [
+        "GitHub Actions check runs",
+        "evidence/audit-chain.jsonl"
+      ]
+    },
     "Claim": {
       "purpose": "Hyperscaler claim per claim-matrix",
       "id_pattern": "^claim:[a-z0-9-]+$",
@@ -629,6 +666,28 @@
       "cardinality": "many-to-many",
       "semantics": "agent decision was caused by, superseded by, or derived from a prior agent decision, enabling decision-chain traversal without relying on prose-only event logs."
     },
+    "covered_by_test": {
+      "direction": "directed",
+      "source_node_types": [
+        "AcceptanceCriterion"
+      ],
+      "target_node_types": [
+        "Test"
+      ],
+      "cardinality": "one-to-many",
+      "semantics": "acceptance criterion is proven by a deterministic test, gate, or verification command."
+    },
+    "executed_by_ci_lane": {
+      "direction": "directed",
+      "source_node_types": [
+        "Test"
+      ],
+      "target_node_types": [
+        "CILaneRun"
+      ],
+      "cardinality": "many-to-many",
+      "semantics": "test or gate was executed by a concrete CI lane run/check with status, URL, and run id."
+    },
     "blocks_on": {
       "direction": "directed",
       "source_node_types": [
@@ -824,6 +883,12 @@
       "rule": "Every AgentDecision node that declares caused_by_decision_ids has matching caused_by edges to AgentDecision nodes; cycles are rejected unless explicitly marked loop_closure=true.",
       "severity": "error",
       "remediation_hint": "When emitting agent_decision provenance, materialize AgentDecision nodes and caused_by edges for every upstream decision dependency."
+    },
+    {
+      "id": "I18-acceptance-criterion-has-test-ci-chain",
+      "rule": "Every AcceptanceCriterion node with verification_required=true has at least one covered_by_test edge to Test and every blocking Test has at least one executed_by_ci_lane edge to CILaneRun.",
+      "severity": "error",
+      "remediation_hint": "Attach deterministic test/gate nodes and concrete CI lane run evidence for every acceptance criterion before claiming closure."
     }
   ],
   "read_side_query_examples": [
@@ -861,6 +926,11 @@
       "name": "trace_agent_decision_chain",
       "description": "Recursively traverses AgentDecision caused_by edges to explain why an agent chose a plan, implementation path, or remediation.",
       "query_sketch": "WITH RECURSIVE decision_chain AS (SELECT decision.id, decision.agent_id, decision.summary, decision.evidence_ref, 0 AS depth FROM agent_decisions decision WHERE decision.id = :decision_id UNION ALL SELECT prior.id, prior.agent_id, prior.summary, prior.evidence_ref, chain.depth + 1 FROM caused_by_edges edge JOIN decision_chain chain ON edge.source = chain.id JOIN agent_decisions prior ON prior.id = edge.target WHERE chain.depth < :max_depth) SELECT * FROM decision_chain ORDER BY depth, id"
+    },
+    {
+      "name": "trace_acceptance_test_ci_chain",
+      "description": "Returns acceptance criteria, the deterministic tests that prove them, and the concrete CI lane runs that executed those tests.",
+      "query_sketch": "SELECT ac.id AS acceptance_criterion_id, test.id AS test_id, ci.id AS ci_lane_run_id, ci.status, ci.url, ci.completed_at FROM acceptance_criteria ac JOIN covered_by_test_edges cbt ON cbt.source = ac.id JOIN tests test ON test.id = cbt.target JOIN executed_by_ci_lane_edges ecl ON ecl.source = test.id JOIN ci_lane_runs ci ON ci.id = ecl.target WHERE ac.verification_required = true ORDER BY ac.id, test.id, ci.completed_at DESC"
     },
     {
       "name": "find_unreachable_features",
