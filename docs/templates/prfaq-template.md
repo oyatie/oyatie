@@ -123,7 +123,7 @@ authority_chain_declaration: |
 2. Discussion follows; the author **does NOT** present.
 3. Verdict: `proceed-to-design-doc` | `revise` | `kill`.
 4. On `proceed-to-design-doc`: author lifts to a Google-style design doc (`docs/templates/design-doc-template.md`) before any IP claim. Scaffold grit symbols per ADR-0054.
-5. On `kill`: archive at `/specs/cross-cutting/killed/PRFAQ-NNNN-<slug>.md` with the kill reason recorded. Inventory entry per ADR-0052.
+5. On `kill`: archive at `/specs/killed/PRFAQ-NNNN-<slug>.md` with the kill reason recorded. Inventory entry per ADR-0052.
 
 ## Sources
 

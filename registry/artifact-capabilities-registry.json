@@ -1,5 +1,5 @@
 {
-  "_schema_ref": "/specs/cross-cutting/active-machine-readable-artifact-contract.json#v3.0.0",
+  "_schema_ref": "/specs/active-machine-readable-artifact-contract.json#v3.0.0",
   "_registry_id": "REG-ARTIFACT-CAPABILITIES",
   "_meta": {
     "doc_class": "Registry",
@@ -7,8 +7,8 @@
     "owner_team": "council-architecture + axis-foundry",
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
-    "baseline_audit_scope": "First-batch rows: (a) the contract schema itself, (b) 5 existing canonical /specs/cross-cutting/*, (c) evidence-bundle-template, (d) 3 ops-portal artifacts just authored. Remaining repo artifacts to be added incrementally per migration policy registry. Self-update lane scans applicable_paths_glob nightly + adds rows for new artifacts.",
-    "profile_system": "Per architect r17 fix #8: each row uses artifact_profile + capability_overrides instead of full 9-capability boilerplate. Profile defaults live at /specs/cross-cutting/artifact-profile-defaults.json. Validator merges profile_defaults[<row.artifact_profile>].default_capabilities + row.capability_overrides to produce the resolved declaration."
+    "baseline_audit_scope": "First-batch rows: (a) the contract schema itself, (b) 5 existing canonical /specs/*, (c) evidence-bundle-template, (d) 3 ops-portal artifacts just authored. Remaining repo artifacts to be added incrementally per migration policy registry. Self-update lane scans applicable_paths_glob nightly + adds rows for new artifacts.",
+    "profile_system": "Per architect r17 fix #8: each row uses artifact_profile + capability_overrides instead of full 9-capability boilerplate. Profile defaults live at /specs/artifact-profile-defaults.json. Validator merges profile_defaults[<row.artifact_profile>].default_capabilities + row.capability_overrides to produce the resolved declaration."
   },
   "_self_row": {
     "artifact_id": "artifact-capabilities-registry",
@@ -93,7 +93,7 @@
   "rows": [
     {
       "artifact_id": "active-machine-readable-artifact-contract",
-      "artifact_path": "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
+      "artifact_path": "/specs/active-machine-readable-artifact-contract.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
@@ -142,7 +142,7 @@
     },
     {
       "artifact_id": "master-plan-sequencing",
-      "artifact_path": "/specs/cross-cutting/master-plan-sequencing.json",
+      "artifact_path": "/specs/master-plan-sequencing.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0-retroactive",
       "owner_team": "council-architecture + axis-foundry",
@@ -187,7 +187,7 @@
     },
     {
       "artifact_id": "hyperscaler-gates",
-      "artifact_path": "/specs/cross-cutting/hyperscaler-gates.json",
+      "artifact_path": "/specs/hyperscaler-gates.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0-retroactive",
       "owner_team": "council-architecture + ops-sre-reliability + ops-security",
@@ -232,7 +232,7 @@
     },
     {
       "artifact_id": "evidence-taxonomy",
-      "artifact_path": "/specs/cross-cutting/evidence-taxonomy.json",
+      "artifact_path": "/specs/evidence-taxonomy.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0-retroactive",
       "owner_team": "ops-compliance + axis-foundry",
@@ -277,7 +277,7 @@
     },
     {
       "artifact_id": "stop-conditions",
-      "artifact_path": "/specs/cross-cutting/stop-conditions.json",
+      "artifact_path": "/specs/stop-conditions.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0-retroactive",
       "owner_team": "council-architecture + axis-foundry",
@@ -323,7 +323,7 @@
     },
     {
       "artifact_id": "final-report-schema",
-      "artifact_path": "/specs/cross-cutting/final-report-schema.json",
+      "artifact_path": "/specs/final-report-schema.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0-retroactive",
       "owner_team": "council-architecture + axis-foundry",
@@ -1102,7 +1102,7 @@
     },
     {
       "artifact_id": "masterplan",
-      "artifact_path": "/specs/cross-cutting/masterplan.json",
+      "artifact_path": "/specs/masterplan.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
@@ -1114,7 +1114,7 @@
         },
         "verification": {
           "checker_crate": "jq + future crates/oya-check-masterplan",
-          "command": "jq empty /specs/cross-cutting/masterplan.json"
+          "command": "jq empty /specs/masterplan.json"
         },
         "validation": {
           "validator": "jq empty + future masterplan.schema.json validator"
@@ -1137,7 +1137,7 @@
     },
     {
       "artifact_id": "gitops-vcs-replacement",
-      "artifact_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "artifact_path": "/specs/gitops-vcs-replacement.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry + ops-sre-reliability + council-architecture",
@@ -1149,7 +1149,7 @@
         },
         "verification": {
           "checker_crate": "jq + future crates/oya-check-gitops-vcs-replacement",
-          "command": "jq empty /specs/cross-cutting/gitops-vcs-replacement.json"
+          "command": "jq empty /specs/gitops-vcs-replacement.json"
         },
         "validation": {
           "validator": "jq empty + future gitops-vcs-replacement.schema.json validator"
@@ -1256,7 +1256,7 @@
     },
     {
       "artifact_id": "test-standard",
-      "artifact_path": "/specs/cross-cutting/test-standard.json",
+      "artifact_path": "/specs/test-standard.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry + ops-quality",
@@ -1268,7 +1268,7 @@
         },
         "verification": {
           "checker_crate": "jq + future crates/oya-check-test-standard",
-          "command": "jq empty /specs/cross-cutting/test-standard.json"
+          "command": "jq empty /specs/test-standard.json"
         },
         "validation": {
           "validator": "jq empty + future test-standard validator"
@@ -1346,7 +1346,7 @@
     },
     {
       "artifact_id": "codeview-read-surface",
-      "artifact_path": "/specs/cross-cutting/codeview-read-surface.json",
+      "artifact_path": "/specs/codeview-read-surface.json",
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
@@ -1358,7 +1358,7 @@
         },
         "verification": {
           "checker_crate": "crates/oya-dev-cli",
-          "command": "oya gate validate codeview-read-surface --spec /specs/cross-cutting/codeview-read-surface.json"
+          "command": "oya gate validate codeview-read-surface --spec /specs/codeview-read-surface.json"
         },
         "validation": {
           "validator": "crates/oya-dev-cli::codeview_read_surface_gates"

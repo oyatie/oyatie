@@ -16,7 +16,7 @@ purpose: |
   the cutover-bootstrap window (time-bounded canonical extension with named
   sunset at M-CC-P01 sign-off), and the revised banned-primitives lane
   semantics (catch *undocumented* invocations only).
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
 companion_docs:
   - docs/AGENTS.md
@@ -30,7 +30,7 @@ related_adrs:
 
 # Git Workflow
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 This standard codifies [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md)
 **Directive 12 — Pragmatic git/gh**: direct `git` / `gh` invocation is
@@ -201,7 +201,7 @@ scoped to the action.
 ## 11. Sources scanned
 
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
-- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json).
+- [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json).
 - [`docs/AGENTS.md`](../AGENTS.md) §Boundaries + §PR shape.
 - [`docs/standards/claude-code-harness.md`](claude-code-harness.md).
 - [rtk-ai/grit](https://github.com/rtk-ai/grit), [rtk-ai/icm](https://github.com/rtk-ai/icm).

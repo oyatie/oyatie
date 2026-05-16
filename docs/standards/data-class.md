@@ -17,7 +17,7 @@ purpose: |
   hooks to each class. Implements `forbidden-operations.json` Item 5
   ("No new struct fields in kernel crates without `data_class`") and §Do Item 8
   (audit-chain emission on every cross-axis flow).
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-data-class
 companion_docs:
   - docs/PRIVACY-PROGRAM.md
@@ -32,7 +32,7 @@ related_adrs:
 
 # Data Class
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 Every kernel struct field MUST carry a `data_class` annotation. The
 annotation gates cross-pillar flow, audit-chain emission, DSR cascade
@@ -218,7 +218,7 @@ reads the same `data_class` metadata at runtime. Rules:
 
 ## 11. Sources scanned
 
-- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-08 + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-05.
+- [`decision-principles.json`](../../specs/decision-principles.json) DP-08 + [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-05.
 - [`docs/PRIVACY-PROGRAM.md`](../PRIVACY-PROGRAM.md) (program scope).
 - [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md) §4 lanes:
   `privacy-class-taxonomy-coverage`, `privacy-consent-flow-completeness`,

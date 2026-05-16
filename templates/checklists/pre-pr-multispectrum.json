@@ -12,11 +12,11 @@
       "oya-check-dependency-seam (multispectrum-evidence-attached sub-check)"
     ],
     "spec_refs": {
-      "evidence_schema": "/specs/cross-cutting/multispectrum-review.json#evidence_schema",
-      "facets_registry": "/specs/cross-cutting/multispectrum-review.json#facets",
-      "change_classes_registry": "/specs/cross-cutting/multispectrum-review.json#change_classes",
-      "rigor_matrix": "/specs/cross-cutting/multispectrum-review.json#change_classes.*.rigor_per_facet",
-      "iterative_fix_loop": "/specs/cross-cutting/iterative-fix-loop.json"
+      "evidence_schema": "/specs/multispectrum-review.json#evidence_schema",
+      "facets_registry": "/specs/multispectrum-review.json#facets",
+      "change_classes_registry": "/specs/multispectrum-review.json#change_classes",
+      "rigor_matrix": "/specs/multispectrum-review.json#change_classes.*.rigor_per_facet",
+      "iterative_fix_loop": "/specs/iterative-fix-loop.json"
     },
     "purpose": "Auto-backfilled purpose for pre-pr-multispectrum.json"
   },
@@ -118,7 +118,7 @@
       "duration_seconds": "<integer or null>"
     },
     "mandatory_artifacts": {
-      "_describes": "Populate the subset matching the declared change_class per /specs/cross-cutting/multispectrum-review.json#change_classes.*.mandatory_artifacts",
+      "_describes": "Populate the subset matching the declared change_class per /specs/multispectrum-review.json#change_classes.*.mandatory_artifacts",
       "adr_cite": "<docs/decisions/ADR-<NNNN>-<slug>.md>",
       "failing_fixture": "<path to lane fixture or test>",
       "request_body_limit_declaration": "<path:line if HTTP boundary>",
@@ -134,8 +134,8 @@
     "decision_log_row": "<one-line Linus-style: special cases eliminated, rejected antipatterns, why this changeset chose what it chose>"
   },
   "lane_validation_rules": {
-    "syntactic": "Instance MUST validate against /specs/cross-cutting/multispectrum-review.json#evidence_schema. Missing required fields = REJECT.",
-    "rigor_matrix": "For each facet, depth = /specs/cross-cutting/multispectrum-review.json#change_classes[change_class_id].rigor_per_facet[facet_id]. 'deep' requires findings.length >= 1 OR null_finding_reason set. 'scan' requires considered = true. 'skip' requires considered = false AND not_applicable_reason set.",
+    "syntactic": "Instance MUST validate against /specs/multispectrum-review.json#evidence_schema. Missing required fields = REJECT.",
+    "rigor_matrix": "For each facet, depth = /specs/multispectrum-review.json#change_classes[change_class_id].rigor_per_facet[facet_id]. 'deep' requires findings.length >= 1 OR null_finding_reason set. 'scan' requires considered = true. 'skip' requires considered = false AND not_applicable_reason set.",
     "adversarial_fixture_requirement": "If change_class_id \u2208 {CC-1, CC-7}, F3.failing_fixture_added MUST be true.",
     "alternative_minimum": "F6.alternatives_named.length MUST be >= 1.",
     "freshness": "freshness_unix MUST be within 24 hours of lane invocation time (prevents stale evidence reuse).",

@@ -26,7 +26,7 @@
     ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/IP-001-outbox-topic-registry.md",
     ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/INDEX.md",
     ".omc/plans/milestones/M01-foundation/INDEX.md",
-    "/specs/cross-cutting/masterplan.json",
+    "/specs/masterplan.json",
     "docs/CHANGELOG.md",
     "/evidence/foundation/m01-p04-ip-001-outbox-topic-registry.json"
   ],
@@ -76,7 +76,7 @@
       "status": "pass"
     },
     {
-      "command": "python3 -m json.tool /specs/cross-cutting/masterplan.json",
+      "command": "python3 -m json.tool /specs/masterplan.json",
       "status": "pass"
     },
     {

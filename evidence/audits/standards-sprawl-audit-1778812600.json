@@ -38,7 +38,7 @@
       "pair_id": "pair-2-ci-lanes",
       "markdown": "docs/standards/ci-lanes.md",
       "markdown_size_bytes": 9300,
-      "partner": "specs/cross-cutting/hyperscaler-gates.json (formerly .omc/specs/hyperscaler-gates.json; migrated TG1 slice 4)",
+      "partner": "specs/hyperscaler-gates.json (formerly .omc/specs/hyperscaler-gates.json; migrated TG1 slice 4)",
       "partner_size_bytes": 4700,
       "verdict": "COMPLEMENTARY-NO-ACTION",
       "overlap_description": "ci-lanes.md is human-readable mirror of registry/quality/lanes.yaml (catalogs the lanes that actually run in CI). hyperscaler-gates.json defines HG-* CLAIM-DISCIPLINE gates (when may we claim hyperscaler-grade behavior). Different artifact roles: lanes catalog vs. claim authority overlay.",

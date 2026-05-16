@@ -70,7 +70,7 @@ Critic r1 finding #3: v2 steps 3-6 were "mush". v3 provides Command / Expected f
 - `oya-dev-cli gate validate active-artifact-contract` emits `validation_duration_ms` field into evidence bundle (step 5 above)
 - `oya-gen-graph-materialize` (post-VL) emits `graph_build_duration_ms`
 - Stale-state window tracked via evidence-bundle `emitted_at` vs previous run timestamp
-- Lane `lean-a-control-plane-slo` (post-VL) compares emissions vs SLOs from `/specs/cross-cutting/control-plane-slos.json`
+- Lane `lean-a-control-plane-slo` (post-VL) compares emissions vs SLOs from `/specs/control-plane-slos.json`
 
 ## §7 Scale-failure-mode coverage (unchanged from v2 §7)
 

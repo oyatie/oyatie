@@ -68,7 +68,7 @@
     "non_negotiable_floor": "F1..F9 always required (rigor per change_class). M1/M2 required when meta_review_triggered (CC-1 kernel public API + CC-5 doc-only adding new ADR/standard/spec)."
   },
   "principles_reference": {
-    "_note": "Doctrine principles P0..P9 are canonical at /specs/cross-cutting/oyatie-doctrine.json#principles. This spec inherits and applies them; it does NOT redeclare. Per oyatie-doctrine.json#consolidation_policy.",
+    "_note": "Doctrine principles P0..P9 are canonical at /specs/oyatie-doctrine.json#principles. This spec inherits and applies them; it does NOT redeclare. Per oyatie-doctrine.json#consolidation_policy.",
     "inherits": [
       "P0_agentic_primary",
       "P1_machine_optimized",
@@ -924,7 +924,7 @@
         "P3_deterministic_where_it_matters"
       ],
       "external_authorities_cited": [
-        "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
+        "/specs/active-machine-readable-artifact-contract.json",
         "ADR-0069"
       ],
       "triggers_when": "any new JSON spec/registry added; any $defs or required[] change; any schema version bump",

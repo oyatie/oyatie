@@ -177,6 +177,6 @@ components:
             $ref: "#/components/schemas/CedarDenyResponse"
   # Cedar deny response shape (shared with every ops BC).
   # Pulled into per-route response sets via $ref.
-  # Future iteration: extract to /specs/cross-cutting/openapi-shared-components.yaml
+  # Future iteration: extract to /specs/openapi-shared-components.yaml
   # and consume via $ref so duplication is removed across all BC contracts
   # (DRY enforcement at OpenAPI level per architect-r1 amendment #7).

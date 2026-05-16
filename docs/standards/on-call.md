@@ -16,7 +16,7 @@ purpose: |
   thresholds. Inspired by the Google SRE postmortem culture and SRE Workbook
   error-budget-policy chapter. Resolves the `standards/on-call.md`
   forward-reference sentinel in `docs/AGENTS.md` canonical doc map.
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-runbook-index-resolves
 companion_docs:
   - docs/INCIDENT-MANAGEMENT.md
@@ -32,7 +32,7 @@ related_adrs:
 
 # On-Call
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 [`docs/INCIDENT-MANAGEMENT.md`](../INCIDENT-MANAGEMENT.md) defines the per-incident
 playbook (severity, IM/CM roles, comms). This standard defines the steady-state
@@ -145,7 +145,7 @@ public-facing comms cadence; the on-call owns the technical mitigation.
 
 ## 5. Blameless postmortem trigger
 
-Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) (FO-10 mechanical-prevention doctrine), every
+Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) (FO-10 mechanical-prevention doctrine), every
 Sev-1 / Sev-2 closure triggers a postmortem. The standard adopts Google's
 blameless culture verbatim:
 
@@ -226,7 +226,7 @@ Every on-call event of consequence emits an audit-chain record per
 - [Google SRE Workbook — Error Budget Policy](https://sre.google/workbook/error-budget-policy/).
 - [Google SRE Workbook — Alerting on SLOs](https://sre.google/workbook/alerting-on-slos/).
 - [Google SRE — Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/).
-- [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-10 mistakes doctrine.
+- [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-10 mistakes doctrine.
 - [`docs/INCIDENT-MANAGEMENT.md`](../INCIDENT-MANAGEMENT.md).
 - [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 2 "On-call / runbooks".
