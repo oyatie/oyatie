@@ -227,7 +227,7 @@ fn stub_signature(changeset_id: &str, to_state: ChangesetState) -> String {
 
 fn base64_encode(bytes: &[u8]) -> String {
     const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-    let mut out = String::with_capacity(((bytes.len() + 2) / 3) * 4);
+    let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
     let mut chunks = bytes.chunks_exact(3);
     for chunk in chunks.by_ref() {
         let n = (u32::from(chunk[0]) << 16) | (u32::from(chunk[1]) << 8) | u32::from(chunk[2]);
@@ -494,10 +494,11 @@ mod tests {
 
     #[test]
     fn rfc3339_format_known_date() {
-        // 2026-05-16T01:00:00Z = 1_779_584_400 (verified via `date -u -d`).
-        // Compute the expected from algorithm rather than hardcoding the
-        // epoch to keep the test self-checking against the algorithm.
-        let formatted = format_rfc3339_utc(1_779_584_400);
+        // 2026-05-16T01:00:00Z = (days-since-epoch 20589) * 86400 + 3600
+        // = 1_778_893_200. Algorithm: days_since_epoch via div_euclid +
+        // epoch_day_to_ymd (Hinnant civil-from-days). Independently
+        // checkable via `date -u -d @1778893200`.
+        let formatted = format_rfc3339_utc(1_778_893_200);
         assert_eq!(formatted, "2026-05-16T01:00:00Z");
     }
 
@@ -537,7 +538,7 @@ mod tests {
             log_path: log_path.clone(),
         };
         let candidate = build_candidate_event(&args).unwrap();
-        write_event_log(&log_path, &[candidate.clone()]).unwrap();
+        write_event_log(&log_path, std::slice::from_ref(&candidate)).unwrap();
         let round_trip = read_event_log(&log_path).unwrap();
         assert_eq!(round_trip.len(), 1);
         assert_eq!(round_trip[0].changeset_id, candidate.changeset_id);

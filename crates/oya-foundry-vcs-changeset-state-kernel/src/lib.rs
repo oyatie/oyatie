@@ -292,16 +292,16 @@ pub fn validate_monotonic_event_log(
             // check below. Other terminals (`Abandoned`, `Rejected`,
             // `CostExhausted`) have no ordinal and skip the check.
             if let Some(new_ord) = event.to_state.advancing_ordinal() {
-                if let Some(prev_ord) = last_advancing_ordinal {
-                    if new_ord < prev_ord {
-                        return Err(MonotonicityError::BackwardsTransition {
-                            from: event
-                                .from_state
-                                .unwrap_or_else(|| recover_state_from_ordinal(prev_ord)),
-                            to: event.to_state,
-                            at: event.at.clone(),
-                        });
-                    }
+                if let Some(prev_ord) = last_advancing_ordinal
+                    && new_ord < prev_ord
+                {
+                    return Err(MonotonicityError::BackwardsTransition {
+                        from: event
+                            .from_state
+                            .unwrap_or_else(|| recover_state_from_ordinal(prev_ord)),
+                        to: event.to_state,
+                        at: event.at.clone(),
+                    });
                 }
                 last_advancing_ordinal = Some(new_ord);
             }
@@ -319,16 +319,16 @@ pub fn validate_monotonic_event_log(
                 at: event.at.clone(),
             });
         };
-        if let Some(prev_ord) = last_advancing_ordinal {
-            if new_ord < prev_ord {
-                return Err(MonotonicityError::BackwardsTransition {
-                    from: event
-                        .from_state
-                        .unwrap_or_else(|| recover_state_from_ordinal(prev_ord)),
-                    to: event.to_state,
-                    at: event.at.clone(),
-                });
-            }
+        if let Some(prev_ord) = last_advancing_ordinal
+            && new_ord < prev_ord
+        {
+            return Err(MonotonicityError::BackwardsTransition {
+                from: event
+                    .from_state
+                    .unwrap_or_else(|| recover_state_from_ordinal(prev_ord)),
+                to: event.to_state,
+                at: event.at.clone(),
+            });
         }
         last_advancing_ordinal = Some(new_ord);
     }
