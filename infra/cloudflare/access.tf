@@ -18,9 +18,9 @@ variable "access_allowed_emails" {
 }
 
 variable "access_auth_domain" {
-  description = "Cloudflare Zero Trust team subdomain (`<auth_domain>.cloudflareaccess.com`). Account-wide. Renaming invalidates active Access sessions."
+  description = "Cloudflare Zero Trust team auth domain — MUST be the full FQDN (e.g., `oyatie.cloudflareaccess.com`), not just the subdomain. Account-wide; renaming invalidates active Access sessions."
   type        = string
-  default     = "oyatie"
+  default     = "oyatie.cloudflareaccess.com"
 }
 
 # ---- Zero Trust org / team domain (account-wide) ----
@@ -31,14 +31,14 @@ variable "access_auth_domain" {
 # provisioned via the dashboard. Import before apply:
 #   tofu import cloudflare_access_organization.this <account_id>
 resource "cloudflare_access_organization" "this" {
-  account_id                         = var.cloudflare_account_id
-  name                               = "Oyatie"
-  auth_domain                        = var.access_auth_domain
-  is_ui_read_only                    = false
-  session_duration                   = "24h"
-  user_seat_expiration_inactive_time = "720h" // 30d
-  auto_redirect_to_identity          = false
-  allow_authenticate_via_warp        = false
+  account_id  = var.cloudflare_account_id
+  name        = "Oyatie"
+  auth_domain = var.access_auth_domain
+  // user_seat_expiration_inactive_time intentionally omitted: Cloudflare's
+  // schema rejected every tested format (720h, 30d, 720h0m0s, 1month, P30D
+  // all return 12123). The field is optional and defaults to Cloudflare's
+  // internal value. Revisit when the v5 provider lands (resource renames to
+  // cloudflare_zero_trust_access_organization per the v4 deprecation warning).
 }
 
 # ---- Application: kms.oyatie.com (OpenBao UI + API) ----
