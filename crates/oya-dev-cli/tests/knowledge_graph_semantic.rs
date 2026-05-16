@@ -220,6 +220,55 @@ fn agent_decision_provenance_chain_is_graph_traversable() {
     }
 }
 
+#[test]
+fn acceptance_criterion_test_ci_lane_chain_is_graph_traversable() {
+    let graph = semantic_graph();
+    let node_types = graph["node_types"]
+        .as_object()
+        .expect("node_types is an object");
+    for node_type in ["AcceptanceCriterion", "Test", "CILaneRun"] {
+        assert!(
+            node_types.contains_key(node_type),
+            "missing node_type {node_type}"
+        );
+    }
+
+    assert_edge_allows(&graph, "covered_by_test", "AcceptanceCriterion", "Test");
+    assert_edge_allows(&graph, "executed_by_ci_lane", "Test", "CILaneRun");
+
+    let invariants = graph["invariants"]
+        .as_array()
+        .expect("invariants are an array");
+    assert!(invariants.iter().any(|invariant| {
+        invariant["id"] == "I18-acceptance-criterion-has-test-ci-chain"
+            && invariant["rule"]
+                .as_str()
+                .is_some_and(|rule| rule.contains("covered_by_test"))
+    }));
+
+    let queries = graph["read_side_query_examples"]
+        .as_array()
+        .expect("queries are an array");
+    let trace_query = queries
+        .iter()
+        .find(|query| query["name"] == "trace_acceptance_test_ci_chain")
+        .expect("acceptance/test/CI trace query exists");
+    let query_sketch = trace_query["query_sketch"]
+        .as_str()
+        .expect("query sketch is a string");
+    for required_term in [
+        "acceptance_criterion_id",
+        "covered_by_test_edges",
+        "executed_by_ci_lane_edges",
+        "ci_lane_run_id",
+    ] {
+        assert!(
+            query_sketch.contains(required_term),
+            "acceptance/test/CI query missing {required_term}"
+        );
+    }
+}
+
 fn assert_edge_allows(graph: &Value, edge: &str, source_type: &str, target_type: &str) {
     let edge_type = &graph["edge_types"][edge];
     assert_eq!(edge_type["direction"], "directed");
