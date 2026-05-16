@@ -72,10 +72,10 @@ Not reject: the direction is right. One graph substrate + contributed registries
 ## Architectural critique (per-file)
 - `/specs/cross-cutting/active-machine-readable-artifact-contract.json`: strong vocabulary, too much manual payload; planned validators; related paths include untracked/missing specs.
 - `/specs/cross-cutting/knowledge-graph-schema.json`: right substrate idea; wrong enforceability shape. Catalogs live as ignored custom schema metadata; no storage/query model.
-- `/registries/cross-cutting/artifact-capabilities-registry.json`: useful control-plane seed; currently 10 rows of promises. Needs generated profiles and a failing lane.
-- `/registries/cross-cutting/reusable-building-blocks-registry.json`: right DRY intent; current data is polluted by estimates, prose, future paths, and manual counts.
+- `/registry/artifact-capabilities-registry.json`: useful control-plane seed; currently 10 rows of promises. Needs generated profiles and a failing lane.
+- `/registry/reusable-building-blocks-registry.json`: right DRY intent; current data is polluted by estimates, prose, future paths, and manual counts.
 - `.omc/ledger/ops-portal-ledger.json`: useful plan ledger; evidence refs include WT-only and `/tmp`; statuses are plan-level only.
-- `/registries/cross-cutting/claim-matrix/ops-portal.json`: best artifact in the set for honesty; still contains an over-classified reliability evidence claim.
+- `/registry/claim-matrix/ops-portal.json`: best artifact in the set for honesty; still contains an over-classified reliability evidence claim.
 - `/evidence/ops-portal-plan-suite-accepted-2026-05-13.json`: candid about missing cosign/rekor/audit/grit; not durable enough because it cites `/tmp` and untracked artifacts.
 
 ## Recommended next-action

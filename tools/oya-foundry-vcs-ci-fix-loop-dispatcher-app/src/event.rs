@@ -1,7 +1,7 @@
 //! Event shape posted to the agent dispatch queue.
 //!
 //! The dispatch queue today is the JSON registry file
-//! `registries/cross-cutting/ci-fix-loop-retry-budget.json::entries`.
+//! `registry/ci-fix-loop-retry-budget.json::entries`.
 //! Each emitted [`DispatchEvent`] is appended; the agent-runtime follow-up
 //! (subagent_runtime_pending) will tail the file and claim each entry via
 //! `oya claim --agent ci-fix-loop --intent fix-<source>-PR-<N>`.

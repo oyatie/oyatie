@@ -57,7 +57,7 @@ Integrates with IP-003 mistakes-ledger: every fix-loop iteration writes a ledger
 - `tools/oya-ci-fix-loop-dispatcher/src/retry_budget.rs::Budget`
 - `tools/oya-ci-fix-loop-dispatcher/src/escalation.rs::open_stuck_pr_issue`
 - `specs/cross-cutting/ci-fix-loop-context-bundle.json::*` (new schema for the agent task payload)
-- `registries/cross-cutting/ci-fix-loop-retry-budget.json::*` (per-PR retry counters)
+- `registry/ci-fix-loop-retry-budget.json::*` (per-PR retry counters)
 
 ## Exit evidence
 

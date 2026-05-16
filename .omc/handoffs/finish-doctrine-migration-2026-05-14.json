@@ -19,14 +19,14 @@
     "/specs/cross-cutting/multispectrum-review.json (v2.1.0; review bar)",
     "/specs/cross-cutting/iterative-fix-loop.json (loop state machine)",
     "/specs/cross-cutting/master-plan-sequencing.json (grit / forbidden primitives / 21-step sequence)",
-    "/registries/cross-cutting/fixuptasks.jsonl (34 entries; 8 named in this handoff)",
+    "/registry/fixuptasks.jsonl (34 entries; 8 named in this handoff)",
     "/evidence/audit-chain.jsonl (event stream)",
     "/evidence/audits/doc-antipattern-audit-1778808000.json (audit findings driving migration)"
   ],
 
   "hard_rules": [
     "No direct agent git/gh. grit claim → work → verify → grit done.",
-    "No new durables in /specs/cross-cutting / /registries/cross-cutting / .omc/templates / .omc/evidence. New durables → /specs/, /registries/, /templates/, /evidence/.",
+    "No new durables in /specs/cross-cutting / /registry / .omc/templates / .omc/evidence. New durables → /specs/, /registry/, /templates/, /evidence/.",
     "New code = Rust by default (P15). Shell / Python / mjs / Ruby / Perl REJECTED for new coordination without ADR.",
     "Every changeset emits multispectrum evidence per /specs/cross-cutting/multispectrum-review.json#evidence_schema.",
     "All artifacts machine-optimized (P1) + size-optimized (P16). No new sprawl (P9).",
@@ -39,19 +39,19 @@
       "priority": "high",
       "estimated_effort": "multi-hour; atomic cutover required",
       "steps_ordered": [
-        "Enumerate every file under /specs/cross-cutting/, /registries/cross-cutting/, /templates/, /evidence/ (~93 files per audit)",
+        "Enumerate every file under /specs/cross-cutting/, /registry/, /templates/, /evidence/ (~93 files per audit)",
         "For each: derive canonical path per P14 BNF: /<kind>/<scope>/<concept>-v<semver>.<ext> for versioned specs; /<kind>/<concept>.<ext> for cross-cutting",
         "Build path-rewrite map (old → new); commit it to /evidence/audits/migration-map-<unix_ts>.json",
         "Atomically: mv files + rewrite every cross-reference in *.rs, *.md, *.json, *.jsonl, Cargo.toml, Cargo.toml workspace.members",
         "Update /specs/cross-cutting/root-hub-pointers.json with new paths (back-compat: keep old path as `migrated_to` field)",
         "Update docs/AGENTS.md + standards/*.md citations",
-        "Update oya-check-dependency-seam lane crate paths (`/registries/cross-cutting/dependency-rationales.json` → `/registries/cross-cutting/dependency-rationales-v1.0.0.json`)",
+        "Update oya-check-dependency-seam lane crate paths (`/registry/dependency-rationales.json` → `/registry/dependency-rationales-v1.0.0.json`)",
         "cargo test -p oya-check-dependency-seam (lane sub-checks must still pass against new paths)",
         "cargo check --workspace --all-features",
         "Emit migration evidence file to /evidence/per-change/migration-durables-<unix_ts>.json with full path-rewrite map"
       ],
       "acceptance_gates": [
-        "/specs/cross-cutting/, /registries/cross-cutting/, /templates/, /evidence/ contain ZERO durables",
+        "/specs/cross-cutting/, /registry/, /templates/, /evidence/ contain ZERO durables",
         "every cross-reference resolves to new path",
         "oya-check-dependency-seam exits 0 against new paths",
         "cargo test -p oya-check-dependency-seam passes",
@@ -64,7 +64,7 @@
       "estimated_effort": "1-3 hours per sub-check",
       "steps_ordered": [
         "Extend oya-check-dependency-seam with sub-check `rust-default-language`: scan workspace for new .sh/.mjs/.py/.rb/.pl files (excluding .grit/worktrees/ + target/); require ADR cite in companion metadata; existing files grandfathered with audit-chain entries.",
-        "Add sub-check `naming-convention`: walk /specs/, /registries/, /evidence/, /templates/; refuse files violating P14 BNF (kebab-case + versioned suffix where required + matching $id).",
+        "Add sub-check `naming-convention`: walk /specs/, /registry/, /evidence/, /templates/; refuse files violating P14 BNF (kebab-case + versioned suffix where required + matching $id).",
         "Add sub-check `scorecard-render`: implement render_evidence_scorecard(evidence_path) -> Scorecard JSON + tabular human form per multispectrum-review.json#scorecard_schema.",
         "Add sub-check `consensus-debate-evidence`: when M1/M2/F7-critical triggered in evidence, refuse changeset unless /evidence/debate/<change_id>-synthesis.json exists with termination_reason ∈ allow-list (post-migration: /evidence/debate/).",
         "Each sub-check ships F3 passing+failing fixture pair under tests/fixtures/<sub-check>/.",
@@ -87,7 +87,7 @@
         "docs/standards/api-design.md ↔ ADR-0037",
         "docs/standards/agent-instructions-discipline.md ↔ docs/AGENTS.md",
         "docs/standards/data-class.md ↔ Data Boundary engine specs",
-        "docs/standards/dependency-policy.md ↔ /registries/cross-cutting/dependency-rationales.json",
+        "docs/standards/dependency-policy.md ↔ /registry/dependency-rationales.json",
         "docs/standards/error-handling.md ↔ ADR(s) — find them"
       ],
       "steps_per_pair": [
@@ -127,8 +127,8 @@
       "/specs/cross-cutting/multispectrum-review.json v2.1.0 (884 lines; slim FixupTask F-SPEC-PROSE-SLIM open)",
       "/specs/cross-cutting/iterative-fix-loop.json (pre-existing this session)",
       "/templates/checklists/pre-pr-multispectrum.json",
-      "/registries/cross-cutting/dependency-rationales.json (11 rows)",
-      "/registries/cross-cutting/fixuptasks.jsonl (34 entries; 1 completed in-session, 33 open)",
+      "/registry/dependency-rationales.json (11 rows)",
+      "/registry/fixuptasks.jsonl (34 entries; 1 completed in-session, 33 open)",
       "/evidence/audit-chain.jsonl",
       "/evidence/audits/doc-antipattern-audit-1778808000.json (NEW first-class root path)"
     ],

@@ -8,14 +8,14 @@
 //! pure (no I/O, no GitHub awareness). This crate:
 //!
 //! 1. Consumes `pr-review-approved` events emitted by IP-004's reviewer-
-//!    agent dispatcher (file `registries/cross-cutting/merge-queue-admission-log.json`)
+//!    agent dispatcher (file `registry/merge-queue-admission-log.json`)
 //!    — feeds `Scheduler::admit`.
 //! 2. Consumes `pr-review-fix-requested` events from the same source — feeds
 //!    `Scheduler::park(..., ParkedReason::ReviewChangesRequested, ...)`.
 //! 3. Consumes IP-005's fix-loop bundles (a successful post-fix CI cycle
 //!    on a parked PR's branch) — feeds `Scheduler::revalidate_parked`.
 //! 4. Runs scheduler ticks and writes the convergence-proof tick log to
-//!    `registries/cross-cutting/merge-queue-tick-log.json`.
+//!    `registry/merge-queue-tick-log.json`.
 //! 5. On `BudgetVerdict::EvictWithEscalation`, writes an escalation
 //!    record under
 //!    `evidence/pipeline-maturity-glue/ip-006-merge-queue/<pr>/eviction.json`
@@ -28,7 +28,7 @@
 //!
 //! - **`pr-review-approved`** — emitted by
 //!   `tools/oya-foundry-pr-review-dispatcher-app` per IP-004. Schema lives
-//!   at `registries/cross-cutting/merge-queue-admission-log.json::entries`.
+//!   at `registry/merge-queue-admission-log.json::entries`.
 //! - **`pr-review-fix-requested`** — same emit, REJECT / CHANGES_REQUESTED
 //!   outcome.
 //! - **`fix-loop-converged`** — emitted by this crate after parsing an

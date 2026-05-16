@@ -49,7 +49,7 @@
       "summary": "workspace metadata fails before test discovery because crates/oya-tenancy-kernel/Cargo.toml is missing"
     },
     {
-      "command": "oya check test-standard --registry /registries/cross-cutting/test-suite-registry.json",
+      "command": "oya check test-standard --registry /registry/test-suite-registry.json",
       "status": "blocked-environment",
       "exit_code": 127,
       "summary": "oya command is not installed in this shell; cargo-run fallback remains blocked by workspace metadata"

@@ -70,7 +70,7 @@
   "acceptance_gates_per_handoff": {
     "zero_durables_in_omc_specs_registries_templates_evidence_ledger": "TRUE \u2014 all 5 named subdirs emptied + removed",
     "every_cross_reference_resolves_to_new_path": "TRUE \u2014 straggler-checks all clean (excluding .audit/agent-read.jsonl ephemeral log)",
-    "oya_check_dependency_seam_exits_0_against_new_paths": "TRUE \u2014 30 tests pass post-migration; reads registries/cross-cutting/dependency-rationales.json + evidence/multispectrum/ correctly",
+    "oya_check_dependency_seam_exits_0_against_new_paths": "TRUE \u2014 30 tests pass post-migration; reads registry/dependency-rationales.json + evidence/multispectrum/ correctly",
     "cargo_test_oya_check_dependency_seam_passes": "TRUE",
     "cargo_check_workspace_all_features_passes": "TRUE (verified after each slice)"
   },
@@ -92,9 +92,9 @@
     ],
     "new_canonical_homes_populated": {
       "specs/cross-cutting/": 18,
-      "registries/cross-cutting/": 13,
-      "registries/cross-cutting/claim-matrix/": 1,
-      "registries/cross-cutting/graph/": 2,
+      "registry/": 13,
+      "registry/claim-matrix/": 1,
+      "registry/graph/": 2,
       "templates/": 13,
       "templates/checklists/": 14,
       "evidence/audits/": 30,
@@ -131,7 +131,7 @@
     "F3_adversarial": {
       "considered": true,
       "findings": [
-        "seam lane's 2 critical Path::join sites (registries/cross-cutting/dependency-rationales.json + evidence/multispectrum/) both verified by cargo test post-rewrite \u2014 runtime behavior preserved"
+        "seam lane's 2 critical Path::join sites (registry/dependency-rationales.json + evidence/multispectrum/) both verified by cargo test post-rewrite \u2014 runtime behavior preserved"
       ],
       "failing_fixture_added": false,
       "passing_fixture_id": "oya-check-dependency-seam-suite",
@@ -141,7 +141,7 @@
     "F4_ergonomic": {
       "considered": true,
       "findings": [
-        "new contributor follows doctrine prose paths directly: /specs/cross-cutting/, /registries/cross-cutting/, /evidence/, /templates/"
+        "new contributor follows doctrine prose paths directly: /specs/cross-cutting/, /registry/, /evidence/, /templates/"
       ],
       "new_contributor_minutes_estimate": 3
     },

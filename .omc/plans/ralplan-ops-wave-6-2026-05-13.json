@@ -457,14 +457,14 @@
       {
         "v_id": "V7",
         "capability": "4 reconciler runbooks authored (JSON)",
-        "source_path": "/registries/cross-cutting/runbooks.json rows ops-*-reconciler",
+        "source_path": "/registry/runbooks.json rows ops-*-reconciler",
         "pass_criteria": "rows in HEAD + lean-a-runbook-freshness green",
         "status": "verified-by-Wave-N-prerequisite"
       },
       {
         "v_id": "V8",
         "capability": "active-artifact-contract conformance",
-        "source_path": "/registries/cross-cutting/artifact-capabilities-registry.json",
+        "source_path": "/registry/artifact-capabilities-registry.json",
         "pass_criteria": "every new Wave 6 artifact has registry row + profile + overrides",
         "status": "verified-by-Wave-N-prerequisite"
       },

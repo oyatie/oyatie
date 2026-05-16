@@ -62,7 +62,7 @@ Seam fixtures (incl. `oya-http-sse-kernel` consumed from adapter without import 
 ## 2. Tech-Debt Ledger Spec (round 5 — closes codex C3 example + Architect Note 1)
 
 ### Location
-`/registries/cross-cutting/tech-debt-ledger.json` (active artifact per ADR-0089).
+`/registry/tech-debt-ledger.json` (active artifact per ADR-0089).
 
 ### Schema envelope — inheritance pattern (codex C3 fix)
 
@@ -125,11 +125,11 @@ replaced | keep | replacement-attempted-abandoned   (terminal; fresh ADR re-open
 
 | Predicate | Data source | Type | Cross-row? |
 |---|---|---|---|
-| `ontology_v1_production_uptime_sprints` | `file:/registries/cross-cutting/release-state.json:/ontology/v1/production_uptime_sprints` | int | no |
-| `p99_within_budget_days` | `file:/registries/cross-cutting/perf-budget-history.json:/<dep>/p99_within_budget_days` | int | no |
+| `ontology_v1_production_uptime_sprints` | `file:/registry/release-state.json:/ontology/v1/production_uptime_sprints` | int | no |
+| `p99_within_budget_days` | `file:/registry/perf-budget-history.json:/<dep>/p99_within_budget_days` | int | no |
 | `parity_bench_pass` | `ci:lean-a-replacement-parity:run:<run-id>:<dep>` | enum | no |
-| `tracked_cve_open_cvss_gte` | `file:/registries/cross-cutting/cve-watch.json:/<dep>` | float+days | no |
-| `dependent_wave_status` | `file:/registries/cross-cutting/tech-debt-ledger.json:/entries/<dep_name>/status` | enum | **YES** |
+| `tracked_cve_open_cvss_gte` | `file:/registry/cve-watch.json:/<dep>` | float+days | no |
+| `dependent_wave_status` | `file:/registry/tech-debt-ledger.json:/entries/<dep_name>/status` | enum | **YES** |
 | `never` | n/a | constant `disarmed` | no |
 
 **Cross-row predicate enumeration (Critic MINOR fix to round-4 §2 "every cross-row reference" ambiguity).** Exactly ONE predicate is cross-row: `dependent_wave_status`. Schema-level coverage check rejects circular `dependent_wave_status` references via topological sort at load time.
@@ -152,9 +152,9 @@ replaced | keep | replacement-attempted-abandoned   (terminal; fresh ADR re-open
   "replacement_trigger": {
     "all_of": [
       {"predicate": "ontology_v1_production_uptime_sprints", "gte": 2,
-       "data_source": "file:/registries/cross-cutting/release-state.json:/ontology/v1/production_uptime_sprints"},
+       "data_source": "file:/registry/release-state.json:/ontology/v1/production_uptime_sprints"},
       {"predicate": "p99_within_budget_days", "gte": 14,
-       "data_source": "file:/registries/cross-cutting/perf-budget-history.json:/hyper/p99_within_budget_days"},
+       "data_source": "file:/registry/perf-budget-history.json:/hyper/p99_within_budget_days"},
       {"predicate": "parity_bench_pass", "band": "GREEN_OR_AMBER",
        "data_source": "ci:lean-a-replacement-parity:run:<run-id>:hyper"}
     ]
@@ -162,7 +162,7 @@ replaced | keep | replacement-attempted-abandoned   (terminal; fresh ADR re-open
   "cve_acceleration_trigger": {
     "any_of": [
       {"predicate": "tracked_cve_open_cvss_gte", "gte": 7.5, "no_upstream_fix_days_gte": 14,
-       "data_source": "file:/registries/cross-cutting/cve-watch.json:/hyper"}
+       "data_source": "file:/registry/cve-watch.json:/hyper"}
     ]
   },
   "dri_handles": {"primary": "jason931225 (user)", "backup": "<TBD>"},
@@ -181,7 +181,7 @@ replaced | keep | replacement-attempted-abandoned   (terminal; fresh ADR re-open
 
 ### `ledger-transition-monotonicity` sub-check comparator (Critic MINOR fix)
 
-Comparator: **PR parent merge-base on `main`**. Specifically: `git merge-base origin/main HEAD` resolves the parent committed ledger; sub-check loads that revision's `/registries/cross-cutting/tech-debt-ledger.json` via `git show <merge-base>:/registries/cross-cutting/tech-debt-ledger.json` and diffs status fields per row. Rationale: HEAD~1 fails on multi-commit PRs; "last green CI" requires CI state coupling. PR-parent merge-base is deterministic, branch-independent, and matches the CODEOWNERS PR review model.
+Comparator: **PR parent merge-base on `main`**. Specifically: `git merge-base origin/main HEAD` resolves the parent committed ledger; sub-check loads that revision's `/registry/tech-debt-ledger.json` via `git show <merge-base>:/registry/tech-debt-ledger.json` and diffs status fields per row. Rationale: HEAD~1 fails on multi-commit PRs; "last green CI" requires CI state coupling. PR-parent merge-base is deterministic, branch-independent, and matches the CODEOWNERS PR review model.
 
 ---
 
@@ -476,7 +476,7 @@ New files unchanged from R4. **Schema additions per round 5:** `default_evaluato
 
 ### Step 6 — `dri.json` + `role-roster.json` + CODEOWNERS + **ADR-0093 acceptance** (S; Critic+DRI) — REVISED per Critic MINOR (ADR-0093 status pin)
 
-- Outputs: `/registries/cross-cutting/{dri,role-roster}.json` + schemas; updated `CODEOWNERS` entry: `/registries/cross-cutting/role-roster.json @jason931225`; **ADR-0093 status amended from Proposed → Accepted via grit-mediated edit** (`grit claim → edit ADR-0093 §Status → grit done`).
+- Outputs: `/registry/{dri,role-roster}.json` + schemas; updated `CODEOWNERS` entry: `/registry/role-roster.json @jason931225`; **ADR-0093 status amended from Proposed → Accepted via grit-mediated edit** (`grit claim → edit ADR-0093 §Status → grit done`).
 - **Verification:** raci-coverage green; CODEOWNERS rule active; same-PR self-promotion fixture → lane fail; ADR-0093 indexed with Status=Accepted.
 
 ### Step 7 — Flip lane to `error` after 30-day soak + INDEX.md row + quarterly template (M; Architect) — REVISED per Critic MAJOR #3 (SHA-anchored baseline)
@@ -500,7 +500,7 @@ Expected post-W0 lane count = 67 (30 + 3 BLOCKER soak; HIGH/MED unchanged).
 If `INDEX.md` drifts between round-5 emit and W0 Step 7 merge, Step 7 re-anchors against the new merge-base SHA and recomputes `expected = <new-baseline> + 3`. The composite lane sub-check `fitness-lane-index-coverage` validates this delta against the SHA-anchored emit metadata.
 
 - **Tool:** `oya-dev-cli gate validate fitness-lane-index --baseline-sha 4d6bf91b51671e37076b2a8c15f0f950cdb3ba56`.
-- **Outputs:** updated `.omc/fitness-lanes/INDEX.md` to **67 lanes**; `/registries/cross-cutting/tech-debt-ledger-review-template.md`.
+- **Outputs:** updated `.omc/fitness-lanes/INDEX.md` to **67 lanes**; `/registry/tech-debt-ledger-review-template.md`.
 - **Verification:** composite at `error`, green on `main`; review-contract sub-check arms; first quarterly review scheduled.
 
 ### Step 8 — Ops-binary cloud-native code-changes (M; DRI) — unchanged from R4
@@ -536,7 +536,7 @@ Step 0 is the only hard predecessor of Step 1. Steps 2-8 fan out from Step 1; St
 - [ ] **`monotonic_transitions_only: false` per-row emits warn-level lane finding `monotonicity-disabled: <dep>`** (Architect Note 1).
 - [ ] `{"never": true}` recognized as `replacement_trigger`; **short-circuits all 4 policies**; permitted only on `keep` / `replacement-attempted-abandoned`.
 - [ ] `dri.json` + `role-roster.json` committed; named `primary` everywhere; bootstrap = jason931225.
-- [ ] CODEOWNERS rule for `/registries/cross-cutting/role-roster.json`; same-PR self-promotion guard fixture → lane fail.
+- [ ] CODEOWNERS rule for `/registry/role-roster.json`; same-PR self-promotion guard fixture → lane fail.
 - [ ] `crates/oya-check-dependency-seam-discipline/` exists, `layer = "runtime"`; **8 sub-checks** active.
 - [ ] `gh` invocation gated by `GITHUB_ACTIONS=true`; ADR-0093 indexed; **Status: Accepted at Step 6** (not Step 4 draft).
 - [ ] `oya-dev-cli` subcommands authored: `gate validate dependency-seam [--offline]`, `gate emit tech-debt-ledger [--self-heal]`, `gate emit layer-metadata-bootstrap`, `gate validate ledger-coverage`, `gate emit ops-workspace-shell-baseline`, `gate emit middleware-adapter-import-audit`, **`gate emit sse-classification-audit`** (NEW round 5), **`gate emit current-date`** (NEW round 5 — single emit-tool for `current_date()` literals; Critic MINOR). REMOVED: `gate emit rollback-pr`.

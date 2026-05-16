@@ -124,7 +124,7 @@
       "promotion_blocking": true
     }
   ],
-  "polyglot_command_registry_ref": "/registries/cross-cutting/test-suite-registry.json",
+  "polyglot_command_registry_ref": "/registry/test-suite-registry.json",
   "admission_algorithm": [
     "Compute semantic diff from AST/artifact index.",
     "Map changed symbols to surfaces, languages, contracts, and generated clients.",

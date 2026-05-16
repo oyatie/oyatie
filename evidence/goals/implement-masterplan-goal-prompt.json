@@ -234,12 +234,12 @@
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/registries/cross-cutting/artifact-capabilities-registry.json",
+      "source_path": "/registry/artifact-capabilities-registry.json",
       "summary": "Registered implement-masterplan-goal-prompt in artifact-capabilities registry using template profile and jq validation command.",
       "freshness": "2026-05-14T06:39:00Z",
       "command_or_lane": "jq row lookup + jq empty",
       "result": "registry row present",
-      "artifact_ref": "/registries/cross-cutting/artifact-capabilities-registry.json#implement-masterplan-goal-prompt",
+      "artifact_ref": "/registry/artifact-capabilities-registry.json#implement-masterplan-goal-prompt",
       "known_gap": "future active-artifact-contract validator crate is planned; current validation uses jq and profile-based registry row shape."
     },
     {
@@ -267,7 +267,7 @@
   ],
   "honest_gap_acknowledgement": {
     "grit_done_seal": "Gap accepted with reason: grit claim failed for unregistered symbol path; ICM scaffold locks 01KRJJEQQ9GAN1VR3CC06DEVB2 and 01KRJK5B70R79FCBRK6722A0JH recorded. No manual git/gh transition was used.",
-    "registry_row": "Resolved: /registries/cross-cutting/artifact-capabilities-registry.json contains implement-masterplan-goal-prompt row using template profile.",
+    "registry_row": "Resolved: /registry/artifact-capabilities-registry.json contains implement-masterplan-goal-prompt row using template profile.",
     "full_phase_verification": "Not applicable: this artifact saves a prompt; it does not implement a master-plan phase.",
     "critic_review": "Resolved: local critic approved after external critic subagent timed out."
   },

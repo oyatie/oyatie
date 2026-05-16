@@ -11,7 +11,7 @@
 //!
 //! - `evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json`
 //! - `evidence/pipeline-maturity-glue/ip-004-pr-review/<pr>/rollup.json`
-//! - `registries/cross-cutting/merge-queue-admission-log.json` (append)
+//! - `registry/merge-queue-admission-log.json` (append)
 //!
 //! On any I/O error: exit non-zero — the GitHub Check Run posts FAILURE
 //! and branch protection blocks merge.
@@ -36,7 +36,7 @@ use oya_foundry_subagent_runtime_usecase::{
 const EVIDENCE_DIR: &str = "evidence/pipeline-maturity-glue/ip-004-pr-review";
 const TEMPLATES_DIR: &str = "evidence/pipeline-maturity-glue/ip-004-pr-review/facets";
 const ROLLUP_PATH: &str = "evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json";
-const ADMISSION_LOG: &str = "registries/cross-cutting/merge-queue-admission-log.json";
+const ADMISSION_LOG: &str = "registry/merge-queue-admission-log.json";
 const DEFAULT_API_KEY_SREF: &str = "sref://openbao/oya/foundry/anthropic-api-key";
 const DEFAULT_MODEL_ID: &str = "claude-opus-4-7";
 

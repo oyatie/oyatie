@@ -35,12 +35,12 @@ Per architect r1 execution order (lines 56-63), the 7-step ordered slice:
 
 | Step | Action | Acceptance |
 |---|---|---|
-| 1 | Wire `oya-dev-cli gate validate active-artifact-contract` | subcommand callable; loads `/registries/cross-cutting/artifact-capabilities-registry.json`; invokes kernel validator |
+| 1 | Wire `oya-dev-cli gate validate active-artifact-contract` | subcommand callable; loads `/registry/artifact-capabilities-registry.json`; invokes kernel validator |
 | 2 | Add failing fixture for missing-row applicable artifact | fixture: synthetic JSON under applicable_paths_glob without registry row → validator exit ≠ 0 |
 | 3 | Flip `lean-a-active-artifact-contract` to active in registry/quality/lanes.yaml; `scripts/check.sh` or CI invokes the subcommand | lane status=active; CI green run URL recorded |
 | 4 | Add grit pre-done/pre-claim validation (or narrow ICM fallback while grit FK blocks) | hook script in `scripts/hooks/`; explicit "degraded mode with expiry" for ICM fallback |
 | 5 | Emit evidence/status bundle for lane result (per spec/status pattern amendment #5) | artifact at `/evidence/lane-run-${RUN_ID}.json`; conforming to evidence-bundle-template |
-| 6 | Materialize first graph edges from validated row (kinetic CreateArtifact action) | edge written to `/registries/cross-cutting/graph/edges-2026-05-13.json` OR audit-chain (foundation-blocked alternative) |
+| 6 | Materialize first graph edges from validated row (kinetic CreateArtifact action) | edge written to `/registry/graph/edges-2026-05-13.json` OR audit-chain (foundation-blocked alternative) |
 | 7 | Resume consumer-backed migrations only after steps 1-6 land | gate: green CI + failing fixture verified |
 
 ## §6 Architectural amendments absorbed from architect r1 (10)
@@ -59,7 +59,7 @@ At >100 rows per registry, MUST shard by stable resource kind. Generated aggrega
 
 ### Amendment 4 — Graph materialization layer
 
-Generated outputs from canonical registries: `nodes`, `edges`, `reverse_indexes`, `unresolved_refs`, `owners`, `freshness`, `impact_queries`. Output paths under `/registries/cross-cutting/graph/materialized/`. Generator crate `crates/oya-gen-graph-materialize` (planned; post-VL slice).
+Generated outputs from canonical registries: `nodes`, `edges`, `reverse_indexes`, `unresolved_refs`, `owners`, `freshness`, `impact_queries`. Output paths under `/registry/graph/materialized/`. Generator crate `crates/oya-gen-graph-materialize` (planned; post-VL slice).
 
 ### Amendment 5 — Kubernetes-like `spec/status` separation
 

@@ -45,7 +45,7 @@
         "internal-private",
         "system-only"
       ],
-      "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=ops)",
+      "owned_bounded_contexts_ref": "/registry/bounded-contexts.json (filter microservice_id=ops)",
       "plan_refs": [
         ".omc/plans/ralplan-ops-portal-2026-05-13.md (parent v7 Accepted)",
         ".omc/plans/ralplan-docs-portal-2026-05-13.md (Wave 1 v7 Accepted)",
@@ -63,7 +63,7 @@
       "canonical_base_only": true,
       "owner_team": "council-foundry",
       "consumer_facing_surface": "internal-only via `oya check <name>` CLI",
-      "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=foundry)",
+      "owned_bounded_contexts_ref": "/registry/bounded-contexts.json (filter microservice_id=foundry)",
       "plan_refs": [
         "docs/decisions/ADR-0088-microservice-foundry.md"
       ]
@@ -75,7 +75,7 @@
       "canonical_base_only": false,
       "owner_team": "council-connect",
       "consumer_facing_surface": "Connect Professional shell + Connect Personal (post-M03)",
-      "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=connect)",
+      "owned_bounded_contexts_ref": "/registry/bounded-contexts.json (filter microservice_id=connect)",
       "plan_refs": [
         "docs/decisions/ADR-0087-microservice-connect.md"
       ]
@@ -87,7 +87,7 @@
       "canonical_base_only": false,
       "owner_team": "council-architecture",
       "consumer_facing_surface": "tenant-private workspace shell",
-      "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=application)",
+      "owned_bounded_contexts_ref": "/registry/bounded-contexts.json (filter microservice_id=application)",
       "plan_refs": [
         "docs/decisions/ADR-0086-microservice-application-scaffold.md"
       ]

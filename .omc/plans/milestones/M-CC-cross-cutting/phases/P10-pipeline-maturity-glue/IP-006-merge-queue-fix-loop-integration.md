@@ -54,7 +54,7 @@ New constraint from 2026-05-15 amendment §B. Today's merge-queue semantics are 
 - `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/src/retry_budget.rs::PrBudget`
 - `tools/oya-cli/src/subcommands/merge_queue.rs::scheduler_tick`
 - `specs/cross-cutting/merge-queue-parked-pr.json::*` (state-machine spec)
-- `registries/cross-cutting/merge-queue-tick-log.json::*` (per-tick admission log)
+- `registry/merge-queue-tick-log.json::*` (per-tick admission log)
 
 ## Exit evidence
 

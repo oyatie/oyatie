@@ -24,7 +24,7 @@ use oya_foundry_vcs_ci_fix_loop_dispatcher_app::{
     retry_budget::{MAX_ATTEMPTS_PER_PR, parse_entries_block},
 };
 
-const REGISTRY_PATH: &str = "registries/cross-cutting/ci-fix-loop-retry-budget.json";
+const REGISTRY_PATH: &str = "registry/ci-fix-loop-retry-budget.json";
 const EVIDENCE_ROOT: &str = "evidence/pipeline-maturity-glue/ip-005-fix-loop";
 // Verbatim _meta block of the seed registry file (kept here so the
 // dispatcher can rewrite the file without dropping the meta). The actual

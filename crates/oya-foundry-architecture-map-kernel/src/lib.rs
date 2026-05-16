@@ -25,11 +25,11 @@ pub mod walk;
 
 /// Node kind taxonomy. Each variant maps to one row class in the
 /// underlying registries:
-///   Microservice ↔ registries/cross-cutting/microservices.json
-///   BoundedContext ↔ registries/cross-cutting/bounded-contexts.json
+///   Microservice ↔ registry/microservices.json
+///   BoundedContext ↔ registry/bounded-contexts.json
 ///   Crate ↔ workspace members in root Cargo.toml
 ///   OpenApiContract ↔ contracts/*.openapi.yaml
-///   CedarFragment ↔ registries/cross-cutting/cedar-fragments.json
+///   CedarFragment ↔ registry/cedar-fragments.json
 ///   Lane ↔ registry/quality/lanes.yaml
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum NodeKind {

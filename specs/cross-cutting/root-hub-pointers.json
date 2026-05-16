@@ -67,7 +67,7 @@
     "doc_catalog": {
       "kind": "registry",
       "current_path": "docs/DOC-CATALOG.md",
-      "target_path_after_md_retirement": "/registries/cross-cutting/doc-catalog.json",
+      "target_path_after_md_retirement": "/registry/doc-catalog.json",
       "migration_phase": "PHASE-5",
       "purpose": "Per-doc lifecycle protocol. Every canonical doc has class + owner + length cap + 'Does NOT cover' clause."
     },
@@ -87,35 +87,35 @@
     },
     "knowledge_graph_semantic": {
       "kind": "registry",
-      "current_path": "/registries/cross-cutting/knowledge-graph-semantic.json",
+      "current_path": "/registry/knowledge-graph-semantic.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete (per Palantir 3-layer split commit 0806f91; supersedes knowledge-graph-catalog.json deleted in same commit)",
       "purpose": "SEMANTIC layer: 24 node types + 18 edge types + 14 invariants + 5 read-side queries. Static structure of the knowledge graph."
     },
     "knowledge_graph_kinetic": {
       "kind": "registry",
-      "current_path": "/registries/cross-cutting/knowledge-graph-kinetic.json",
+      "current_path": "/registry/knowledge-graph-kinetic.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete (per Palantir 3-layer split commit 0806f91)",
       "purpose": "KINETIC layer: 14 action types + 4 workflows. Write-side mutations with audit topic + idempotency + lock pattern."
     },
     "knowledge_graph_dynamic": {
       "kind": "registry",
-      "current_path": "/registries/cross-cutting/knowledge-graph-dynamic.json",
+      "current_path": "/registry/knowledge-graph-dynamic.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete (per Palantir 3-layer split commit 0806f91)",
       "purpose": "DYNAMIC layer: 9 live state sources + OTel telemetry pointers. Real-time graph state."
     },
     "artifact_capabilities_registry": {
       "kind": "registry",
-      "current_path": "/registries/cross-cutting/artifact-capabilities-registry.json",
+      "current_path": "/registry/artifact-capabilities-registry.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete (10 baseline rows; per-artifact rows added incrementally)",
       "purpose": "Control plane: one row per machine-readable artifact + artifact_profile + capability_overrides."
     },
     "reusable_building_blocks_registry": {
       "kind": "registry",
-      "current_path": "/registries/cross-cutting/reusable-building-blocks-registry.json",
+      "current_path": "/registry/reusable-building-blocks-registry.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete (15 baseline blocks)",
       "purpose": "DRY enforcement. Single canonical home per block + consumer_refs + consumer_selectors."
@@ -199,7 +199,7 @@
     },
     "test_suite_registry": {
       "kind": "registry",
-      "current_path": "/registries/cross-cutting/test-suite-registry.json",
+      "current_path": "/registry/test-suite-registry.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
       "purpose": "Registry-driven polyglot test commands and evidence outputs by language/surface."
@@ -234,7 +234,7 @@
     },
     "fixuptask_registry": {
       "kind": "registry",
-      "current_path": "/registries/cross-cutting/fixuptasks.jsonl",
+      "current_path": "/registry/fixuptasks.jsonl",
       "migration_phase": "complete",
       "purpose": "Append-only JSONL stream of bounded FixupTasks. One JSON record per line: {id, title, priority, status, source_session, source_change_id, named_in, created_at, blocker_for?}. Consumed by lane sub-checks + dashboards."
     },

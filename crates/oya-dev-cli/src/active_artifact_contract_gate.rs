@@ -28,9 +28,7 @@ pub(crate) fn parse_active_artifact_contract_validate_args(
     args: Vec<String>,
 ) -> Result<ActiveArtifactContractValidateArgs, String> {
     let mut parsed = ActiveArtifactContractValidateArgs {
-        registry_path: PathBuf::from(
-            "registries/cross-cutting/artifact-capabilities-registry.json",
-        ),
+        registry_path: PathBuf::from("registry/artifact-capabilities-registry.json"),
         emit_evidence_path: None,
         emit_graph_edges_path: None,
     };
@@ -334,7 +332,7 @@ mod tests {
         let args = parse_active_artifact_contract_validate_args(vec![]).unwrap();
         assert_eq!(
             args.registry_path,
-            PathBuf::from("registries/cross-cutting/artifact-capabilities-registry.json")
+            PathBuf::from("registry/artifact-capabilities-registry.json")
         );
         assert!(args.emit_evidence_path.is_none());
         assert!(args.emit_graph_edges_path.is_none());
@@ -391,8 +389,8 @@ mod tests {
             "specs/cross-cutting/masterplan.json"
         );
         assert_eq!(
-            normalize_repo_root_artifact_path("registries/cross-cutting/test-suite-registry.json"),
-            "registries/cross-cutting/test-suite-registry.json"
+            normalize_repo_root_artifact_path("registry/test-suite-registry.json"),
+            "registry/test-suite-registry.json"
         );
     }
 

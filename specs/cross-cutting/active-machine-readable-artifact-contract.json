@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/schemas/active-machine-readable-artifact-contract.schema.json",
   "title": "ActiveMachineReadableArtifactContract",
-  "description": "Registry-row schema for the central artifact capabilities control-plane. Format-agnostic: applies to JSON, TOML, YAML, Cedar, SQL migrations, Cargo.toml, OpenAPI, GitHub-Actions YAML, and any other serialized canonical artifact in this repo. Per ADR-0015 registry pattern, capability state lives in `/registries/cross-cutting/artifact-capabilities-registry.json`, NOT embedded in each artifact. One Rust crate validates the entire data plane.",
+  "description": "Registry-row schema for the central artifact capabilities control-plane. Format-agnostic: applies to JSON, TOML, YAML, Cedar, SQL migrations, Cargo.toml, OpenAPI, GitHub-Actions YAML, and any other serialized canonical artifact in this repo. Per ADR-0015 registry pattern, capability state lives in `/registry/artifact-capabilities-registry.json`, NOT embedded in each artifact. One Rust crate validates the entire data plane.",
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-ACTIVE-ARTIFACT-CONTRACT",
@@ -23,10 +23,10 @@
     ],
     "design_rationale": "Hyperscaler precedent: AWS Config (resource compliance registry), GCP Asset Inventory (per-resource policy state), Kubernetes CRDs + admission controllers. Data plane = artifacts. Control plane = registry. Validator = Rust crate. Per decision-principles.json DP-03 (mechanical prevention over process) + ADR-0015 registry pattern.",
     "related": [
-      "/registries/cross-cutting/artifact-capabilities-registry.json",
+      "/registry/artifact-capabilities-registry.json",
       "/specs/cross-cutting/artifact-format-bindings.json",
       "/specs/cross-cutting/artifact-telemetry-semantic-conventions.json",
-      "/registries/cross-cutting/artifact-contract-migration-policy.json",
+      "/registry/artifact-contract-migration-policy.json",
       "/specs/cross-cutting/master-plan-sequencing.json",
       "/specs/cross-cutting/hyperscaler-gates.json",
       "/specs/cross-cutting/evidence-taxonomy.json",

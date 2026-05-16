@@ -47,7 +47,7 @@ This IP owns the dependency-seam and phase-out control surface. It does **not** 
 
 | Path | Action | Description |
 |---|---|---|
-| `/registries/cross-cutting/tech-debt-ledger.json` | create | Object-map ledger with 11 seed deps, DRI handles, statuses, replacement targets, trigger DSL, CVE acceleration, ADR citations, default evaluator policies. |
+| `/registry/tech-debt-ledger.json` | create | Object-map ledger with 11 seed deps, DRI handles, statuses, replacement targets, trigger DSL, CVE acceleration, ADR citations, default evaluator policies. |
 | `.omc/schemas/tech-debt-ledger.schema.json` or `/specs/cross-cutting/tech-debt-ledger.schema.json` | create | Schema enforcing top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, and cross-row acyclicity. |
 | `crates/oya-check-dependency-seam-discipline/` | create | Composite runtime lane with 8 sub-checks. |
 | `crates/oya-foundry-trigger-dsl-kernel/` | create | Pure AST parser, predicate registry types, evaluator policy enums, status-transition graph validator. Zero I/O. |
@@ -162,7 +162,7 @@ Hard dependency: Step 0 before Step 1. Steps 2-8 fan out after Step 1; Step 7 de
 ## Symbols-to-grit-claim
 
 ```text
-/registries/cross-cutting/tech-debt-ledger.json::entries
+/registry/tech-debt-ledger.json::entries
 crates/oya-check-dependency-seam-discipline/src/lib.rs::check
 crates/oya-foundry-trigger-dsl-kernel/src/lib.rs::TriggerDslAst
 crates/oya-foundry-trigger-dsl-runtime/src/lib.rs::evaluate
@@ -259,7 +259,7 @@ seam audit (Cargo.toml + .rs imports):
 
 | Original criterion | Amended outcome |
 |---|---|
-| tech-debt-ledger.json with 11 entries + default_evaluator_policies + schema validation + quarterly review | Replaced by `/registries/cross-cutting/dependency-rationales.json` (11 entries, flat 5-field overlay, no state machine, no DSL). Multispectrum F1+F2+F6 rejected the over-engineering. |
+| tech-debt-ledger.json with 11 entries + default_evaluator_policies + schema validation + quarterly review | Replaced by `/registry/dependency-rationales.json` (11 entries, flat 5-field overlay, no state machine, no DSL). Multispectrum F1+F2+F6 rejected the over-engineering. |
 | Per-row evaluator_policies optional with override warnings | N/A (no policies; rationales overlay has no state) |
 | `{never: true}` short-circuit | N/A (rejected as speculative) |
 | Monotonic status transition sub-check | N/A (no transitions yet) |

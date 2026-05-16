@@ -7,7 +7,7 @@
 //!   13-layer-enum suffix `kernel` (innermost ring: I/O-free port + pure check
 //!   functions per ADR-0056 "port-in-kernel"). The topic `mistakes-ledger`
 //!   matches `docs/MISTAKES-LEDGER.md`, `docs/templates/mistakes-ledger-row-template.md`,
-//!   and `registries/cross-cutting/mistakes-ledger.json` — the canonical
+//!   and `registry/mistakes-ledger.json` — the canonical
 //!   Control-2 storage path per `feedback_repeat_mistake_prevention` memory.
 //! - Future dev-CLI `oya-foundry-fitness-mistakes-ledger-app` —
 //!   v4 BNF `oya-<product:foundry>-<facet:fitness>-<topic:mistakes-ledger>-<layer:app>`;
@@ -22,7 +22,7 @@
 //!
 //! The check (audit blocker #3) detects two anti-patterns:
 //!
-//! 1. **Unindexed mistake.** A row in `registries/cross-cutting/mistakes-ledger.json`
+//! 1. **Unindexed mistake.** A row in `registry/mistakes-ledger.json`
 //!    whose `(primitive, failure_mode)` pair has no matching row in
 //!    `docs/runbooks/sanctioned-primitives/preflight.md`. This means the
 //!    repeat-class lesson never made it into a preflight probe and the
@@ -57,7 +57,7 @@
 
 use std::collections::BTreeSet;
 
-/// One row from `registries/cross-cutting/mistakes-ledger.json`.
+/// One row from `registry/mistakes-ledger.json`.
 ///
 /// Fields mirror the strict schema in
 /// `docs/templates/mistakes-ledger-row-template.md`. The runner is

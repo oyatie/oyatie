@@ -92,7 +92,7 @@
     },
     "P11_durables_outside_omc": {
       "title": "Durables live OUTSIDE .omc/ and .omx/",
-      "statement": ".omc/ + .omx/ = agent ephemeral state ONLY (session caches, scratch, handoffs). Durables \u2192 /specs/, /registries/, /evidence/, /templates/, docs/decisions/, docs/standards/.",
+      "statement": ".omc/ + .omx/ = agent ephemeral state ONLY (session caches, scratch, handoffs). Durables \u2192 /specs/, /registry/, /evidence/, /templates/, docs/decisions/, docs/standards/.",
       "binding": "load-bearing",
       "migration_status": "F-MIGRATE-DURABLES-OUT-OF-OMC; policy during migration: NO NEW durables in .omc/"
     },
@@ -120,7 +120,7 @@
       "statement": "Every durable: <kind>/<scope>/<concept>-v<semver>.<ext>  |  <kind>/<concept>.<ext> (cross-cutting).",
       "binding": "load-bearing",
       "bnf": {
-        "kind": "specs | registries | evidence | templates | adrs | standards | plans",
+        "kind": "specs | registry | evidence | templates | adrs | standards | plans",
         "scope": "registered-microservice-name | cross-cutting | omitted",
         "concept": "kebab-token+",
         "semver": "MAJOR.MINOR.PATCH (required for versioned specs; optional for immutable-by-id evidence + ADRs)",
@@ -128,7 +128,7 @@
       },
       "examples": {
         "doctrine": "/specs/cross-cutting/oyatie-doctrine-v1.0.0.json (post-migration)",
-        "registry_stream": "/registries/cross-cutting/fixuptasks.jsonl",
+        "registry_stream": "/registry/fixuptasks.jsonl",
         "evidence_per_change": "/evidence/per-change/<change_id>-<unix_ts>.json",
         "adr": "docs/decisions/ADR-<NNNN>-<kebab-slug>.md (existing)"
       },
@@ -180,9 +180,9 @@
       "multispectrum_facets_change_classes_evidence_schema_scorecard_consensus_debate": "/specs/cross-cutting/multispectrum-review.json",
       "iterative_fix_loop": "/specs/cross-cutting/iterative-fix-loop.json",
       "pre_pr_template": "/templates/checklists/pre-pr-multispectrum.json",
-      "fixuptasks": "/registries/cross-cutting/fixuptasks.jsonl",
+      "fixuptasks": "/registry/fixuptasks.jsonl",
       "audit_chain": "/evidence/audit-chain.jsonl",
-      "dependency_rationales": "/registries/cross-cutting/dependency-rationales.json",
+      "dependency_rationales": "/registry/dependency-rationales.json",
       "12_layer_enum_BNF": "docs/decisions/ADR-0056",
       "active_artifact_contract": "/specs/cross-cutting/active-machine-readable-artifact-contract.json (ADR-0069)",
       "hyperscaler_gates": "/specs/cross-cutting/hyperscaler-gates.json"
@@ -267,7 +267,7 @@
     "_purpose": "Concrete homes per P10 + P11.",
     "first_class_durable_homes": {
       "/specs/": "Machine-readable specs (JSON). Versioned filenames.",
-      "/registries/": "Machine-readable registries (JSON | JSONL).",
+      "/registry/": "Machine-readable registry entries (JSON | JSONL).",
       "/evidence/": "Per-change records + audit-chain.jsonl. /evidence/audits/ for workspace audits.",
       "/templates/": "Durable templates.",
       "docs/decisions/": "ADRs (markdown).",
@@ -281,7 +281,7 @@
     "migration_2026_05_14": {
       "violation_count": "approximately 93 durables under .omc/* per /evidence/audits/doc-antipattern-audit-1778808000.json",
       "fixuptask": "F-MIGRATE-DURABLES-OUT-OF-OMC",
-      "policy_during_migration": "NO new durables in /specs/cross-cutting / /registries/cross-cutting / .omc/templates / .omc/evidence. New durables land in canonical homes."
+      "policy_during_migration": "NO new durables in /specs/cross-cutting / /registry / .omc/templates / .omc/evidence. New durables land in canonical homes."
     }
   },
   "agent_protocol": {

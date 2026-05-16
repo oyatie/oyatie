@@ -128,7 +128,7 @@ confirmed.
 
 ### Negative / Trade-offs
 - `Cargo.toml` path and `[package] name` updates required across workspace + any existing
-  references in `docs/`, `registries/`, `templates/`.
+  references in `docs/`, `registry/`, `templates/`.
 - `lib.rs` `#![crate_name]` attribute and `use` imports must be updated to snake_case equivalents:
   `oya_foundry_claude_account_adapter`, `oya_foundry_codex_account_adapter`,
   `oya_foundry_gemini_account_adapter`.
@@ -143,7 +143,7 @@ confirmed.
 ## Follow-ups
 
 1. **Prerequisite task** — Execute the three-crate rename before Wave 3a grit unit opens.
-   Update `Cargo.toml`, `[lib] name`, all `docs/` + `registries/` + `templates/` references.
+   Update `Cargo.toml`, `[lib] name`, all `docs/` + `registry/` + `templates/` references.
 2. **oya-check-architecture** — Verify LEAN-A1 passes on all three renamed crates after rename.
 3. **ADR-0096 §Alternatives** — Update prose references from old to new names in a companion PR.
 

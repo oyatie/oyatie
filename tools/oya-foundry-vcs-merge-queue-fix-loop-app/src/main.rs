@@ -19,8 +19,8 @@ use oya_foundry_vcs_merge_queue_fix_loop_app::{
     AdmissionEventKind, ParkedReason, Scheduler, parse_admission_log_str, render_tick_log_registry,
 };
 
-const ADMISSION_LOG_PATH: &str = "registries/cross-cutting/merge-queue-admission-log.json";
-const TICK_LOG_PATH: &str = "registries/cross-cutting/merge-queue-tick-log.json";
+const ADMISSION_LOG_PATH: &str = "registry/merge-queue-admission-log.json";
+const TICK_LOG_PATH: &str = "registry/merge-queue-tick-log.json";
 const EVIDENCE_ROOT: &str = "evidence/pipeline-maturity-glue/ip-006-merge-queue";
 const TICK_LOG_META: &str = include_str!("../tick_log_meta.json");
 

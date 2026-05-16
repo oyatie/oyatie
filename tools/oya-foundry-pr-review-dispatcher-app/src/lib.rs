@@ -19,7 +19,7 @@
 //! 4. Writes the rollup to
 //!    `evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json`.
 //! 5. Emits a merge-queue admission event to
-//!    `registries/cross-cutting/merge-queue-admission-log.json`:
+//!    `registry/merge-queue-admission-log.json`:
 //!    - on APPROVE → `pr-review-approved`
 //!    - on CHANGES_REQUESTED / REJECT → `pr-review-fix-requested`
 //!      (consumed by IP-005's fix-loop and IP-006's merge-queue).

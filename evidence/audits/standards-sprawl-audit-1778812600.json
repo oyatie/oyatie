@@ -82,7 +82,7 @@
       "pair_id": "pair-6-dependency-policy",
       "markdown": "docs/standards/dependency-policy.md",
       "markdown_size_bytes": 9700,
-      "partner": "registries/cross-cutting/dependency-rationales.json (formerly .omc/registries/dependency-rationales.json; migrated TG1 slice 3)",
+      "partner": "registry/dependency-rationales.json (formerly .omc/registries/dependency-rationales.json; migrated TG1 slice 3)",
       "partner_size_bytes": 8100,
       "verdict": "COMPLEMENTARY-NO-ACTION",
       "overlap_description": "dependency-policy.md = POLICY (LTS pinning rules, license posture, cargo-vet/deny, Renovate baseline, provider-SDK strategy). dependency-rationales.json = PER-DEP DATA (rationale + owner + layer seam + replacement strategy per dep). Policy authors rules; registry instantiates them per dep. Zero overlap.",

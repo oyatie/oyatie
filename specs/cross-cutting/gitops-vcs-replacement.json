@@ -390,7 +390,7 @@
       },
       {
         "id": "test-standard-documented",
-        "rule": "docs/standards/testing.md, /specs/cross-cutting/test-standard.json, and /registries/cross-cutting/test-suite-registry.json exist before P00 exits."
+        "rule": "docs/standards/testing.md, /specs/cross-cutting/test-standard.json, and /registry/test-suite-registry.json exist before P00 exits."
       },
       {
         "id": "test-tier-coverage",
@@ -560,7 +560,7 @@
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/cross-cutting/test-standard.json + /registries/cross-cutting/test-suite-registry.json",
+      "source_path": "/specs/cross-cutting/test-standard.json + /registry/test-suite-registry.json",
       "summary": "Created machine-readable test standard and polyglot test-suite registry for M-CC-P00 admission enforcement.",
       "freshness": "2026-05-14T07:22:20Z",
       "command_or_lane": "python json write + jq validation",
@@ -805,7 +805,7 @@
         "status": "created"
       },
       {
-        "path": "/registries/cross-cutting/test-suite-registry.json",
+        "path": "/registry/test-suite-registry.json",
         "purpose": "Per-language/test-suite inventory: owner, command, scope, required trigger, flake budget, artifact outputs.",
         "status": "created"
       }
@@ -889,7 +889,7 @@
       ]
     },
     "machine_readable_standard_ref": "/specs/cross-cutting/test-standard.json",
-    "test_suite_registry_ref": "/registries/cross-cutting/test-suite-registry.json"
+    "test_suite_registry_ref": "/registry/test-suite-registry.json"
   },
   "product_definition": {
     "name": "Oya VCS",

@@ -18,7 +18,7 @@ adr_ref: docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
 
 Per [`feedback_repeat_mistake_prevention.md`](../../../../.claude/projects/-Users-jasonlee-oyatie/memory/feedback_repeat_mistake_prevention.md) Control 1: every agent MUST run this preflight BEFORE the first `grit claim`, `icm store`, `cargo`, or `oya-tooling-agent-read` invocation in a session. Each row is a `--version` probe plus a smoke check that exits non-zero on first failure. The preflight is the single authority for "is this primitive callable today?".
 
-Today's session paid 3 commit cycles to debug 3 CI-infrastructure regressions (broken action SHA, missing nextest profile, missing shebang) — exactly the repeat-class signature this runbook exists to prevent. Each backfilled row is recorded in `registries/cross-cutting/mistakes-ledger.json` and indexed below.
+Today's session paid 3 commit cycles to debug 3 CI-infrastructure regressions (broken action SHA, missing nextest profile, missing shebang) — exactly the repeat-class signature this runbook exists to prevent. Each backfilled row is recorded in `registry/mistakes-ledger.json` and indexed below.
 
 ## Canonical preflight sequence
 
@@ -42,7 +42,7 @@ Run these in order. The first failing probe blocks the session until repaired.
 When any probe fails:
 
 1. STOP. Do NOT issue `grit claim`, `git commit`, or `gh pr create`.
-2. Search the ledger: `jq '.entries[] | select(.failure_mode == "<ledger-key>")' registries/cross-cutting/mistakes-ledger.json`.
+2. Search the ledger: `jq '.entries[] | select(.failure_mode == "<ledger-key>")' registry/mistakes-ledger.json`.
 3. If a row exists, this is a recurrence — escalate immediately, do not patch ad-hoc. Apply the linked control.
 4. If no row exists, this is a first occurrence — fix in place, then APPEND a new ledger row using `docs/templates/mistakes-ledger-row-template.md`.
 5. ICM record: `icm store -t mistakes-prevention -c "<symptom>"` keyed by `error-class,<primitive>,<symptom>`.
@@ -53,7 +53,7 @@ When any probe fails:
 - Citation: `docs/AGENTS.md` D17 (mistakes-ledger row D17 lane).
 - Fitness lane: `oya-foundry-fitness-mistakes-ledger-kernel` verifies every ledger row carries a preflight reference here.
 - Verify gate: `oya gate validate mistakes-ledger` invokes the kernel as a required check.
-- Backfill rows (today's session): `gha::broken-action-sha`, `nextest::missing-profile-ci`, `bash::missing-shebang` — see `registries/cross-cutting/mistakes-ledger.json`.
+- Backfill rows (today's session): `gha::broken-action-sha`, `nextest::missing-profile-ci`, `bash::missing-shebang` — see `registry/mistakes-ledger.json`.
 
 ## Naming justification
 

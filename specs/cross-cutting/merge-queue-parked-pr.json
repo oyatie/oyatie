@@ -76,7 +76,7 @@
     "queue_position_preservation": "A parked PR retains its admission_position; it is skipped on each tick but not removed.",
     "fairness": "While one PR is parked, other admissible PRs continue processing. Parked PRs do NOT block head.",
     "shared_retry_budget": "Per-PR retry budget is N=5 attempts; mirrors the shared-pool budget in IP-005 (the integration crate deduplicates the escalation issue by PR number, so a PR can never receive two stuck-PR issues for the same exhaustion).",
-    "convergence_proof": "Every scheduler tick appends a TickEntry to registries/cross-cutting/merge-queue-tick-log.json so an external observer can verify forward progress and detect deadlock/livelock.",
+    "convergence_proof": "Every scheduler tick appends a TickEntry to registry/merge-queue-tick-log.json so an external observer can verify forward progress and detect deadlock/livelock.",
     "no_agent_owned_rebase": "Inherits ADR-0083 / kernel invariant: agents NEVER own rebase/merge operations; the scheduler is controller-owned."
   },
   "kernel_module_map": {

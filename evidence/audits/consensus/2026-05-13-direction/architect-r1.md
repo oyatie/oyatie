@@ -60,7 +60,7 @@ Net: Kubernetes CRD + admission/reconciliation is the right comparison. Oyatie s
 3. `b0798b0`: good reduction via artifact profiles, but still expands graph/gate/report specs before proving the validator through CI.
 4. `1f96255`: stale-text purge is healthy, but it signals the system still relies on manual critique to catch claim drift.
 5. `6938c89`: Markdown retirement policy is coherent, but PHASE-8 admits ~12 check-crate rewrites. That is a real migration cliff.
-6. `0806f91`: Palantir 3-layer split is conceptually cleaner, but the old planner path `/registries/cross-cutting/knowledge-graph-catalog.json` is no longer tracked; consumers must be updated to semantic/kinetic/dynamic paths immediately.
+6. `0806f91`: Palantir 3-layer split is conceptually cleaner, but the old planner path `/registry/knowledge-graph-catalog.json` is no longer tracked; consumers must be updated to semantic/kinetic/dynamic paths immediately.
 
 ## Recommended next-action
 Specific concrete amendment to α:

@@ -9,8 +9,8 @@
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
     "sibling_layers": [
-      "/registries/cross-cutting/knowledge-graph-semantic.json (type definitions)",
-      "/registries/cross-cutting/knowledge-graph-dynamic.json (live state)"
+      "/registry/knowledge-graph-semantic.json (type definitions)",
+      "/registry/knowledge-graph-dynamic.json (live state)"
     ],
     "palantir_analog": "Action Types + Workflows in Palantir Foundry Ontology",
     "workflow_traceability_integration_anchor": "/specs/cross-cutting/workflow-task-traceability-schema.json (planned next slice)"

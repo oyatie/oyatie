@@ -171,7 +171,7 @@
   "consensus_debate_required": false,
   "next_slice": {
     "slice_id": "TG1-SLICE-3-REGISTRIES",
-    "scope": "/registries/cross-cutting/* \u2192 registries/cross-cutting/",
+    "scope": "/registry/* \u2192 registry/",
     "estimated_files_to_move": 13,
     "estimated_cross_refs": "~85 files (9 Rust + 36 MD + 36 JSON + 3 YAML + 1 JSONL)",
     "complication": "Rust files split between Path::join (no leading slash) and format!()-string JSON emissions (leading slash) \u2014 needs two-pass sed"

@@ -161,7 +161,7 @@ breaks. See ADR-0094 for the full rationale.
 
 ### D12 — Dependency rationales overlay (NOT a state machine)
 
-`/registries/cross-cutting/dependency-rationales.json` holds 11 rows, 5 fields each:
+`/registry/dependency-rationales.json` holds 11 rows, 5 fields each:
 `{name, version_pin, layer_seam, owner_team, rationale, replacement_strategy_doc_ref, isolated_in_crate}`.
 
 The original IP's tech-debt ledger with state machine + trigger DSL +
@@ -346,5 +346,5 @@ Even at all-triggers-fired conditions, three findings from the amendment survive
 - `docs/standards/multispectrum-review.md` (the review bar applied to this ADR)
 - `/specs/cross-cutting/multispectrum-review.json` (machine-readable mirror)
 - `/specs/cross-cutting/iterative-fix-loop.json` (loop protocol)
-- `/registries/cross-cutting/dependency-rationales.json` (data plane for D12 + D13)
+- `/registry/dependency-rationales.json` (data plane for D12 + D13)
 - `/templates/checklists/pre-pr-multispectrum.md` (pre-PR gate)

@@ -1,7 +1,7 @@
 //! Convergence-proof tick-log rendering (IP-006 §"Per-tick evidence").
 //!
 //! Renders [`TickEntry`] values from the kernel into the JSON envelope
-//! used at `registries/cross-cutting/merge-queue-tick-log.json`. Kept
+//! used at `registry/merge-queue-tick-log.json`. Kept
 //! out of the kernel because the kernel is pure and IO-free; this is
 //! the serialization adapter.
 

@@ -47,7 +47,7 @@ Oya VCS adds scheduling, projection, evidence, promotion, issue linkage, affecte
 
 ```bash
 cargo test --workspace --all-features --test gitops_vcs_ip_008
-oya check test-standard --registry /registries/cross-cutting/test-suite-registry.json
+oya check test-standard --registry /registry/test-suite-registry.json
 ```
 
 ## Stop condition
