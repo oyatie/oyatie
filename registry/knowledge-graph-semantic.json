@@ -249,6 +249,43 @@
         "audit-chain runtime (M01/M02 prerequisite)"
       ]
     },
+    "ComplianceControl": {
+      "purpose": "Compliance control objective that must be mechanically attested by one or more quality/admission lanes.",
+      "id_pattern": "^control:[a-z0-9][a-z0-9-]*(\\.[a-z0-9-]+)*$",
+      "examples": [
+        "control:soc2-cc6.1",
+        "control:iso27001-a.8.15",
+        "control:isms-p-2.10.1"
+      ],
+      "contributing_registries": [
+        "registry/compliance/**/*.json (planned)",
+        "registry/quality/lanes.yaml"
+      ]
+    },
+    "SatisfiedByLane": {
+      "purpose": "Typed compliance attestation join node: one control satisfied by a concrete lane_id with freshness policy.",
+      "id_pattern": "^lane-satisfaction:[a-z0-9-]+:[a-z0-9][a-z0-9.:-]*$",
+      "examples": [
+        "lane-satisfaction:oya-foundry-fitness-supply-chain:control:soc2-cc6.1",
+        "lane-satisfaction:oya-vcs-admission:control:isms-p-2.10.1"
+      ],
+      "contributing_registries": [
+        "registry/quality/lanes.yaml",
+        "evidence/audit-chain.jsonl"
+      ]
+    },
+    "EvidencePath": {
+      "purpose": "Machine-readable evidence location proving a lane satisfied a compliance control, including JSONL path and freshness window.",
+      "id_pattern": "^evidence:[a-z0-9_./:@#-]+$",
+      "examples": [
+        "evidence:evidence/audit-chain.jsonl#oya-foundry-fitness-supply-chain",
+        "evidence:evidence/multispectrum/ontology-rename-sweep-1778949351.json"
+      ],
+      "contributing_registries": [
+        "evidence/audit-chain.jsonl",
+        "evidence/multispectrum/*.json"
+      ]
+    },
     "Claim": {
       "purpose": "Hyperscaler claim per claim-matrix",
       "id_pattern": "^claim:[a-z0-9-]+$",
@@ -487,6 +524,28 @@
       "cardinality": "many-to-many",
       "semantics": "source provides evidence for target capability/claim being operational."
     },
+    "satisfied_by_lane": {
+      "direction": "directed",
+      "source_node_types": [
+        "ComplianceControl"
+      ],
+      "target_node_types": [
+        "SatisfiedByLane"
+      ],
+      "cardinality": "one-to-many",
+      "semantics": "control is satisfied by a concrete lane-attestation join node carrying lane_id, status, freshness policy, and last_verified_at."
+    },
+    "evidence_path": {
+      "direction": "directed",
+      "source_node_types": [
+        "SatisfiedByLane"
+      ],
+      "target_node_types": [
+        "EvidencePath"
+      ],
+      "cardinality": "one-to-many",
+      "semantics": "lane attestation points to machine-readable evidence path(s), usually JSONL rows or multispectrum evidence files, so freshness can be queried mechanically."
+    },
     "blocks_on": {
       "direction": "directed",
       "source_node_types": [
@@ -664,6 +723,12 @@
       "rule": "Every Claim node in claims_we_cannot_make_yet category has at least one prerequisite_for edge.",
       "severity": "error",
       "remediation_hint": "Specify what evidence is required."
+    },
+    {
+      "id": "I15-compliance-control-has-fresh-evidence-chain",
+      "rule": "Every ComplianceControl node has at least one satisfied_by_lane edge to a SatisfiedByLane node and every SatisfiedByLane node has at least one evidence_path edge to EvidencePath.",
+      "severity": "error",
+      "remediation_hint": "Attach a lane satisfaction node with lane_id/status/freshness policy and at least one JSONL or evidence-bundle path."
     }
   ],
   "read_side_query_examples": [
@@ -681,6 +746,11 @@
       "name": "find_orphan_capabilities",
       "description": "Returns Capability nodes with status=operational but zero satisfies-edges.",
       "query_sketch": "SELECT cap.id FROM capabilities cap LEFT JOIN satisfies_edges ON satisfies.target = cap.id WHERE cap.status = 'operational' AND satisfies.id IS NULL"
+    },
+    {
+      "name": "show_compliance_evidence_freshness",
+      "description": "Returns every ComplianceControl with satisfying lane_id, latest evidence path, freshness status, and stale controls first.",
+      "query_sketch": "SELECT control.id, lane.lane_id, evidence.jsonl_path, evidence.generated_at, CASE WHEN evidence.generated_at < NOW() - lane.freshness_window THEN 'STALE' ELSE 'FRESH' END AS freshness FROM compliance_controls control JOIN satisfied_by_lane_edges sbl ON sbl.source = control.id JOIN lane_satisfactions lane ON lane.id = sbl.target JOIN evidence_path_edges ep ON ep.source = lane.id JOIN evidence_paths evidence ON evidence.id = ep.target ORDER BY freshness DESC, control.id"
     },
     {
       "name": "find_unreachable_features",
