@@ -321,6 +321,14 @@ lanes:
     source: specs/agent-durable-goal.json score_cards + autonomous_foundry.meta_agent_anomaly_watch
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate loop-recovery-patterns
+  - id: oya-foundry-fitness-master-plan-completion
+    stage: per-pr
+    status: active
+    owner_team: council-architecture
+    purpose: status-honesty audit — no phase in specs/masterplan.json#live_implementation_index may be Complete while any child IP is stub/planned/pending/blocked/in-flight/probe-green; every complete IP must be referenced by at least one evidence JSON file
+    source: NEXT-004 (evidence/goals/masterplan-actionability-durable-goal-2026-05-16.json) + scripts/audit-master-plan-completion.py port (audit B-7)
+    runtime_budget_seconds: 60
+    check_command: cargo run -p oya-dev-cli -- gate validate master-plan-completion
   - id: oya-foundry-fitness-retired-vocabulary
     stage: per-pr
     status: active
