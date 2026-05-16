@@ -1,0 +1,52 @@
+{
+  "change_id": "pr-17",
+  "pr_number": 17,
+  "pr_title": "Record multispectrum review evidence for merged PR wave",
+  "merge_commit_sha": null,
+  "facet_id": "F4",
+  "facet_name": "Ergonomic / DX / debuggability review",
+  "reviewer_id": "claude-F4-pr-17-r1",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "F4 ergonomic review of PR #17 (retroactive evidence wave, 173 files). DX is reasonable for someone who already knows the naming contract but actively poor for newcomers; the missing README in evidence/debate/ is the single largest discoverability defect.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "evidence/debate/ (no README/index file added in 173-file PR)",
+      "issue": "Researcher who asks 'what did review of PR #5 conclude?' has zero in-tree orientation. No README, no INDEX, no MANIFEST exists at evidence/debate/. They must (a) know the implicit naming convention pr-<N>-<facet>-r<round>.json, (b) know which facets exist (F1-F9, plus A1-A7, M1-M2, F10/F11/F13 added later for PR #12+), (c) know to look in evidence/audit-chain.jsonl to find the synthesis_path pointer, and (d) ls a directory now containing 70+ pr-17-era files mingled with M02-P06-* and TG2-* sessions. The 9 synthesis files are the canonical entry points but are visually indistinguishable from the 64 facet files by ls alone.",
+      "remediation": "Add evidence/debate/README.md (or INDEX.json) listing: (1) naming contract pr-<N>-<facet>-r<round>.json, (2) facet enum with full names, (3) per-PR table mapping pr_number -> synthesis_path + verdict + blocker_count, (4) how to consume an artifact (start at synthesis, drill into per-facet r1 for findings, r2 for rebuttal). For PR #17 specifically, append a 'retroactive review wave' section pointing to the 9 synthesis files."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "evidence/debate/pr-5-F5-r2.json (round numbering breaks pattern)",
+      "issue": "PR #5 has F5-r2 + F5-r3 instead of F5-r1 + F5-r2 like every other facet. Anyone scripting over evidence/debate/ with the obvious glob pr-*-F*-r1.json will silently miss PR #5 F5. The naming-justification field in the PR body explains 'required PR #5 F5 re-dispatch round' but the explanation lives in the PR description, not in any in-tree doc the researcher will see post-merge.",
+      "remediation": "Either (a) add evidence/debate/pr-5-F5-r1.json as a stub pointing to r2 with rationale, or (b) document the round-numbering exception in the proposed README and add a machine-readable exception list (e.g., evidence/debate/exceptions.json)."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "evidence/debate/ flat layout (74 new pr-* files + 9 synthesis files, plus pre-existing 70+ session files)",
+      "issue": "Flat directory with mixed schemas (pr-N-* multispectrum + M02-P06-FOUNDRY-* phase reviews + TG2-LANE-SUBCHECK-* gate reviews) defeats tab-completion and ls scanning. Searching for 'pr-5' evidence with ls evidence/debate/pr-5-* returns 19 files of three different shapes (F-r1, F-r2, synthesis) with no visual grouping. Debugger trying to step through one PR's review must mentally filter.",
+      "remediation": "Either (a) reorganize into evidence/debate/pr-<N>/{F1-r1.json,F1-r2.json,...,synthesis.json}/ subdirs to leverage filesystem grouping, or (b) since reorg is now expensive after merge, ship a small jq-script or oya-dev-cli subcommand (e.g., 'oya-dev-cli evidence show --pr 5') that pretty-prints the per-PR review tree. Filing as FixupTask is acceptable; do not silently accept the flat layout as final."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "evidence/debate/pr-*-synthesis.json self-containedness (consensus_points + final_recommendation visibility)",
+      "issue": "Truncated diff prevented full inspection of synthesis schema body, but the available signals are mixed: synthesis files are sized 136-237 lines (vs. 24-39 line facet artifacts) which suggests rich content, AND the audit-chain payload carries the headline metrics (verdict, fixuptasks_recommended, high_severity_blockers, major_findings, minor_findings) -- but the audit-chain row is the wrong place to put the summary because a researcher who opens pr-5-synthesis.json directly must not have to cross-reference evidence/audit-chain.jsonl line 7 to learn the verdict. Cannot positively verify consensus_points and final_recommendation fields exist as top-level keys in the synthesis file body from this diff.",
+      "remediation": "Ensure every pr-<N>-synthesis.json has TOP-LEVEL fields: verdict, fixuptasks_recommended, blocker_count, consensus_points (array), final_recommendation (string), per_facet_summary (map facet_id -> {rigor, finding_count}). If already present, add a head-of-file 'tl_dr' string so opening the file at byte 0 immediately conveys the verdict. File this as a FixupTask if any synthesis lacks any of these fields."
+    },
+    {
+      "severity": "MINOR",
+      "file": "PR #17 description (Validation section)",
+      "issue": "Validation lists 'jq empty on audit-chain, fixuptasks, review evidence, and capability evidence' but does not link to a script the researcher can re-run, nor does it record the exact jq invocation. Reproducing the validation requires reverse-engineering from the description.",
+      "remediation": "Add a tiny scripts/verify-evidence-debate.sh (or oya-dev-cli evidence verify) and cite it in PR descriptions going forward; for retroactive PRs document the exact one-liner in the PR body."
+    },
+    {
+      "severity": "MINOR",
+      "file": "evidence/audit-chain.jsonl (synthesis_path is the only cross-link)",
+      "issue": "Forward link audit-chain -> synthesis exists. Reverse link synthesis -> audit-chain event does NOT exist (synthesis cannot answer 'when was consensus declared for me?' without a full-file grep). Hurts debug-time root-causing of stale evidence.",
+      "remediation": "Add audit_event_timestamp_unix + session_id to each synthesis.json so the artifact is self-referential."
+    }
+  ],
+  "null_finding_reason": null,
+  "naming_justification": "evidence/debate/pr-17-F4-r1.json conforms to the established multispectrum evidence path contract pr-<N>-<facet>-r<round>.json (12-layer enum: evidence is the artifact-kind shard; debate is the lane; pr-17 is the change_id; F4 is the facet_id; r1 is the round). Matches the same convention used by the 74 pr-* artifacts added in PR #17 itself."
+}

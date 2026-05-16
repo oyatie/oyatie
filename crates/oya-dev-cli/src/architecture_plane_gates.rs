@@ -91,7 +91,7 @@ pub(crate) fn parse_wave_integration_validate_args(
 ) -> Result<WaveIntegrationValidateArgs, String> {
     let mut milestone = None;
     let mut manifest = PathBuf::from(".omc/plans/M01-M03-parallelization-manifest.md");
-    let mut phases_dir = PathBuf::from(".omc/plans/milestones/M02-substrate/phases");
+    let mut phases_dir = PathBuf::from(".omc/plans/milestones/M02b-substrate/phases");
     let mut iter = args.into_iter();
     while let Some(arg) = iter.next() {
         match arg.as_str() {

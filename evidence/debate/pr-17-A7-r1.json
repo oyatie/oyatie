@@ -1,0 +1,38 @@
+{
+  "pr": 17,
+  "facet": "A7_algorithm_adherence",
+  "round": 1,
+  "lens": "P3 deterministic + complexity",
+  "verdict": "PASS",
+  "confidence": "HIGH",
+  "summary": "Pure evidence data PR (multispectrum review JSON + audit-chain.jsonl rows for PR wave 1-12). 7639 additions, 0 deletions; no source code, no executable, no algorithm, sort, comparator, heuristic, or control-flow introduced.",
+  "evidence": [
+    {
+      "file": "evidence/debate/pr-{1,2,3,5,6,11}-F{1..9}-r{1,2}.json + synthesis.json",
+      "change": "New per-facet review records and synthesis aggregates for merged PR wave",
+      "algorithmic_delta": "none"
+    },
+    {
+      "file": "evidence/audit-chain.jsonl",
+      "change": "9 append-only audit rows recording the wave",
+      "algorithmic_delta": "none"
+    }
+  ],
+  "checks": {
+    "new_sort_introduced": false,
+    "new_comparator_introduced": false,
+    "new_heuristic_introduced": false,
+    "non_determinism_introduced": false,
+    "iteration_order_change": false,
+    "complexity_class_change": false,
+    "side_effect_change": false
+  },
+  "findings": [],
+  "open_questions": [],
+  "ralplan_summary": {
+    "principle_option_consistency": "Pass — data-only PR, A7 not implicated.",
+    "alternatives_depth": "n/a — no algorithmic choice made.",
+    "risk_verification_rigor": "Pass — gh pr view confirms files are evidence/*.json and evidence/audit-chain.jsonl only.",
+    "deliberate_additions": "n/a"
+  }
+}

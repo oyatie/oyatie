@@ -45,7 +45,7 @@ Eliminated failure mode: *"freelance code authored without plan grounding + simu
 ## §4 Pre-mortem (3 scenarios)
 
 ### Scenario 1: Stop-hook regex too strict; legitimate work blocked
-- **Trigger:** grit `claim --intent` text doesn't happen to mention a phase ID + Accepted ralplan in the regex shape (e.g., agent cites `M02-substrate/P20` instead of `M02-P20`).
+- **Trigger:** grit `claim --intent` text doesn't happen to mention a phase ID + Accepted ralplan in the regex shape (e.g., agent cites `M02b-substrate/P20` instead of `M02-P20`).
 - **Blast radius:** legitimate authoring blocked; agent retries with reworded intent; productivity tax.
 - **Prevention:** §6(d) gate accepts both shapes: `M\d\d-P\d\d` AND `M\d\d-[a-z]+(-[a-z]+)*/P\d\d-[a-z]+(-[a-z]+)*`. Plus accept Wave designator `Wave \d` cross-references. Plus accept impl-plan reference `IP-\w+`. The regex is permissive on grounding *form* but strict on grounding *presence*.
 - **Detection:** Stop hook emits structured log line `grit-claim-intent-reject: <claim-id> <reason>`; lane fixture covers known-good + known-reject examples.
@@ -83,7 +83,7 @@ Eliminated failure mode: *"freelance code authored without plan grounding + simu
 
 **Gating:** this control's TODAY-land is blocked behind 297-missing-crate workspace resolution. The plan-level edit (adding the fixture spec to the M02-P21 impl-plan) lands today; the crate authoring rides the resolution.
 
-**Today's deliverable:** add §"Acceleration: ADR-contradiction golden fixture" section to `.omc/plans/milestones/M02-substrate/phases/P21-architecture-planes-green/impl-plans/IP-X-regression-lane.md` (NEW IP file if not present; extend if present).
+**Today's deliverable:** add §"Acceleration: ADR-contradiction golden fixture" section to `.omc/plans/milestones/M02b-substrate/phases/P21-architecture-planes-green/impl-plans/IP-X-regression-lane.md` (NEW IP file if not present; extend if present).
 
 ### (b) Control 2 — `/registry/adr-contradictions.json` (declarative; consumed by `oya-check-adr-index` extension)
 

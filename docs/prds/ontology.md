@@ -6,7 +6,7 @@ microservice: ontology
 status: Accepted
 sales_segment: shared-substrate
 tier: internal
-milestone_first_ship: M02-substrate-ready
+milestone_first_ship: M02b-substrate-ready
 bominal_source:
   - ADR-0106  # Ontology architecture (typed Object/Link/Action/Function; RLS; audit; jurisdiction; plugin SDK; multi-renderer)
   - ADR-0107  # Ontology agent gateway (LLM tool-call ingress)

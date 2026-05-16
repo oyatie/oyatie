@@ -1,0 +1,57 @@
+{
+  "reviewer_id": "claude-F2_hyperscaler-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "F2_hyperscaler",
+  "lens": "Hyperscaler-grade — operational excellence, fleet-scale, GitOps hygiene, infra topology coherence",
+  "answer": "PR #12 is hyperscaler-acceptable for CC-2 hygiene scope. The Argo Application at infra/kyverno/oya-vcs-admission/application.json (commit 70b83631) correctly enables automated.prune + automated.selfHeal + ServerSideApply + CreateNamespace — the four sync-policy options Google/AWS GitOps reference architectures require for self-healing fleet-scale rollouts. The kernel validator in crates/oya-foundry-vcs-provider-execution-gate-kernel/src/lib.rs:113-126 CI-enforces prune+selfHeal, which is the hyperscaler GitOps invariant (any regression = ARGO_MANIFEST_SYNC_POLICY_INVALID). The deploy/gitops → infra/kyverno consolidation is correct: a single admission-policy root with kyverno policies (require-signed-images.yaml = cosign+rekor keyless verification) co-located with the Argo Application that ships them is the canonical layout (matches Google Anthos Config Sync and AWS EKS GitOps patterns). The .audit/ gitignore is correct for session-scoped agent telemetry — fleet-grade audit emits to an event sink (oya-audit-chain-domain already exists in the workspace), not to repo files. ADR-0117 justifies the move with both 'less sprawl' AND structural reasoning ('infra/kyverno/ is the established admission-policy root'), which is acceptable for a CC-2 path-only change. Below-the-line hyperscaler gaps remain but are out of CC-2 scope and explicitly named in PR body as M03: no retry/backoff stanza, no revisionHistoryLimit, no per-env overlays (only 'preview' exists), no AppProject scoping (project: default), no syncWindows, no Application health check thresholds, and no kustomize base/overlay tree. These are M03 promotion concerns, not merge blockers.",
+  "key_claims": [
+    "syncPolicy.automated.prune=true + selfHeal=true present at application.json:25-28 — meets hyperscaler GitOps self-heal invariant",
+    "syncOptions includes ServerSideApply=true + CreateNamespace=true at application.json:30-32 — matches AWS/Google reference patterns",
+    "Kernel validator at provider-execution-gate-kernel/src/lib.rs:113-126 CI-enforces prune+selfHeal — silent regression to manual sync is impossible",
+    "Consolidation under infra/kyverno/ correctly co-locates Argo Application with the Kyverno ClusterPolicy it ships (require-signed-images.yaml — cosign keyless + rekor)",
+    ".audit/ gitignore is hyperscaler-correct: session telemetry → event sink (oya-audit-chain-domain), not git-tracked files",
+    "ADR-0117 justifies move with reusability (single admission root) + uniformity (matches existing infra/kyverno/policies sibling), not only 'less sprawl'",
+    "Path-only rename preserves git history (R rename detected) + rewrites all 7 inbound refs across 5 files including the self-referential spec.source.path"
+  ],
+  "uncertainty_areas": [
+    "No environment-overlay (dev/staging/prod) tree exists yet — application name is 'oya-vcs-admission-preview' which implies promotion is M03 scope; verified out-of-scope for CC-2",
+    "No AppProject (spec.project = 'default') — at hyperscaler fleet scale a dedicated AppProject with sourceRepos/destinations/clusterResourceWhitelist scoping is standard; deferred to M03 promotion",
+    "No revisionHistoryLimit set — Argo defaults to 10 which is acceptable for hygiene PR",
+    "No syncPolicy.retry stanza — Argo defaults to no retry; hyperscaler ops usually pin retry.limit + backoff",
+    "Repo uses raw application.json rather than App-of-Apps pattern — acceptable for 1-app footprint but will need restructure when admission family grows"
+  ],
+  "anti_patterns_detected": [
+    "Single-environment Argo Application with 'preview' suffix lacking explicit env-overlay — not a CC-2 blocker but flagged for M03 promotion ADR",
+    "spec.project='default' (no AppProject isolation) — common in early-stage repos, must be tightened before multi-tenant fleet rollout"
+  ],
+  "findings": [
+    {
+      "severity": "info",
+      "summary": "syncPolicy.retry stanza absent; Argo will not auto-retry transient sync failures at fleet scale",
+      "recommended_action": "In M03 environment-promotion PR, add spec.syncPolicy.retry with limit=5, backoff.duration=5s, factor=2, maxDuration=3m. Update kernel validator to enforce.",
+      "fixuptask_id": "F-PR12-01"
+    },
+    {
+      "severity": "info",
+      "summary": "spec.project='default' provides no AppProject scoping; at fleet scale this leaks sourceRepos/destinations enforcement",
+      "recommended_action": "In M03, create AppProject 'oyatie-foundry' with sourceRepos=[this repo], destinations=[oyatie-system ns + oyatie cluster], clusterResourceWhitelist constrained to kyverno.io. Update kernel validator to assert project != 'default'.",
+      "fixuptask_id": "F-PR12-02"
+    },
+    {
+      "severity": "info",
+      "summary": "No environment-overlay tree (kustomize bases + dev/staging/prod overlays) under infra/kyverno/; single 'preview' Application only",
+      "recommended_action": "When admission policy family grows beyond 1 Application, restructure to infra/kyverno/{base,overlays/{dev,staging,prod}}/ kustomize layout per hyperscaler GitOps norm. Track in M03 promotion ADR.",
+      "fixuptask_id": "F-PR12-03"
+    },
+    {
+      "severity": "info",
+      "summary": "revisionHistoryLimit not pinned (Argo default 10); acceptable for now but should be explicit at fleet scale",
+      "recommended_action": "Add spec.revisionHistoryLimit: 10 explicitly in M03 to document the rollback window choice.",
+      "fixuptask_id": "F-PR12-04"
+    }
+  ],
+  "verdict": "approve"
+}

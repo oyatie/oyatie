@@ -12,7 +12,7 @@ companion_docs:
 - docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
 - .omc/plans/M01-M03-parallelization-manifest.md
 - /evidence/goals/implement-masterplan.md
-horizon: "M02-substrate \u2192 M03-first-tenant \u2192 M04-healthcare-kr \u2192 M05-connect-personal\
+horizon: "M02b-substrate \u2192 M07-first-tenant \u2192 M04-healthcare-kr \u2192 M05-connect-personal\
   \ \u2192 M06-fintech-kr \u2192 M07-industrial-kr \u2192 M08-enterprise-breadth \u2192\
   \ M09-us-expansion \u2192 M10-eu-expansion \u2192 M11-healthcare-intl \u2192 M12-hyperscaler-maturity"
 codex_model: gpt-5.5 / xhigh
@@ -125,7 +125,7 @@ Consensus loop iterations (codex gpt-5.5 / xhigh):
 1. Dispatch parallel executor sweep to author the 119 missing canonical artifacts (PRDs + microservice records + naming ADRs + BC registrations) for the 24 registered µservices.
 2. Dispatch KR-pack executor sweep to author the 72 missing pack overlay artifacts (regulatory ADRs + acceptance evidence + overlay PRDs per `material_scope` flag).
 3. Author missing impl-plan sections (933 violations across legacy and new impl-plans).
-4. Remove legacy milestone dirs (M-CC / M02-foundry-preview / M03-cloud-saas-search-workspace-preview / M04-vertical-pilot-korea / M05-cloud-search-stable / M06-ads-vertical-fanout) per ADR-0063 §7 "stale removed in reality"; their content has either migrated to M01-foundation/M02-substrate/M03-first-tenant or is superseded by the new M04-M12 plan.
+4. Remove legacy milestone dirs (M-CC / M02-foundry-preview / M03-cloud-saas-search-workspace-preview / M04-vertical-pilot-korea / M05-cloud-search-stable / M06-ads-vertical-fanout) per ADR-0063 §7 "stale removed in reality"; their content has either migrated to M01-foundation/M02b-substrate/M07-first-tenant or is superseded by the new M04-M12 plan.
 5. Implement `oya-check-documentation` full algorithm per M02-P20 IP-005 (pack.yaml parity check + integration tests + GitHub Actions wiring + Prometheus observability).
 6. Author the 9 sub-commands of `oya-check-architecture` (currently 7; adding `canonical-base-neutrality` + `cross-pack-refusal` per ADR-0064 §7 §8).
 

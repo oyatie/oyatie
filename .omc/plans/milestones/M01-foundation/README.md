@@ -60,11 +60,11 @@ Foundation milestone: atomic rename of all `oya-platform-*` / `oya-shared-*` / `
 | P04-iter-4-src-inspection | `phases/P04-iter-4-src-inspection/` | Complete |
 | P05-post-cutover-hardening | `phases/P05-post-cutover-hardening/` | Complete |
 
-Legacy substrate phase directories (`P01-data-use-boundary-tenancy`, `P02-identity-cedar`, `P03-audit-chain-evidence`, `P04-eventing-object-graph`, `P05-cell-plane`, `P06-regional-pack-flattening`) are historical artifacts of an earlier numbering; their content has migrated to `M02-substrate/phases/` under the new milestone-phase hierarchy.
+Legacy substrate phase directories (`P01-data-use-boundary-tenancy`, `P02-identity-cedar`, `P03-audit-chain-evidence`, `P04-eventing-object-graph`, `P05-cell-plane`, `P06-regional-pack-flattening`) are historical artifacts of an earlier numbering; their content has migrated to `M02b-substrate/phases/` under the new milestone-phase hierarchy.
 
 ## Unblocks
 
-All M02 work (M02-substrate phases P01-P22). The BNF v4.1 cutover is the precondition for every M02 crate authoring task.
+All M02 work (M02b-substrate phases P01-P22). The BNF v4.1 cutover is the precondition for every M02 crate authoring task.
 
 ## Acceptance evidence
 

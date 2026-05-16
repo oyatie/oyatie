@@ -1,0 +1,82 @@
+{
+  "review_id": "pr-13-A5-r1",
+  "pr_number": 13,
+  "pr_title": "Retire archive-orphan cleanup lane",
+  "merge_commit": "59534679",
+  "facet": "A5_dependency_adherence",
+  "reviewer": "critic-subagent",
+  "review_date": "2026-05-16",
+  "lens": "ADR-0092 seam policy + registries/cross-cutting/dependency-rationales.json + deny.toml",
+  "verdict": "PASS",
+  "drift_detected": false,
+  "new_deps_count": 0,
+  "evidence": {
+    "cargo_toml_change": {
+      "lines_added": 0,
+      "lines_removed": 2,
+      "removed_workspace_members": [
+        "crates/oya-foundry-fitness-archive-orphan-kernel",
+        "tools/oya-foundry-fitness-archive-orphan-app"
+      ],
+      "added_workspace_members": []
+    },
+    "cargo_lock_change": {
+      "lines_added": 0,
+      "lines_removed": 11,
+      "removed_packages": [
+        "oya-foundry-fitness-archive-orphan-app",
+        "oya-foundry-fitness-archive-orphan-kernel"
+      ],
+      "added_packages": [],
+      "new_transitive_deps": []
+    },
+    "pr_review_dispatcher_app_cargo_toml": {
+      "status": "MODIFIED",
+      "lines_added": 2,
+      "lines_removed": 2,
+      "change_type": "comment-only",
+      "summary": "Sibling-pattern comment updated: removed 'archive-orphan' from example list, added 'authoritative-tracked' and a parenthetical pointing at ADR-0118. Zero changes to [dependencies], [dev-dependencies], [lib], [bin], or [package].metadata.oya.",
+      "deps_diff": {
+        "added": [],
+        "removed": [],
+        "version_changed": []
+      }
+    },
+    "dependency_rationales_json": {
+      "touched_by_pr": false,
+      "tracked_entries_affected": [],
+      "registry_coverage_intact": true,
+      "rationale": "PR only removes intra-workspace path-deps (kernel+app); zero impact on the 11 external workspace.dependencies tracked in entries (hyper, hyper-util, http-body-util, bytes, tokio, tracing, tracing-subscriber, serde, serde_json, toml, toml_edit)."
+    },
+    "deny_toml": {
+      "touched_by_pr": false,
+      "licenses_section_impact": "none",
+      "advisories_section_impact": "none",
+      "bans_section_impact": "none",
+      "sources_section_impact": "none",
+      "duplicate_versions_risk": "none — pure deletion cannot create new diamonds"
+    },
+    "adr_0092_seam_policy": {
+      "compliant": true,
+      "rationale": "ADR-0092 governs which layer may consume which external dep. PR introduces no external deps and removes none from the registry; layer-seam invariants untouched."
+    },
+    "cargo_audit_advisory_regression_risk": "none — no new versions pinned"
+  },
+  "findings": [],
+  "open_questions": [],
+  "self_audit": {
+    "confidence": "HIGH",
+    "low_confidence_findings_moved": 0,
+    "preferences_downgraded": 0
+  },
+  "realist_check": {
+    "recalibrations": [],
+    "rationale": "No findings to recalibrate; PR is a pure deletion with one cosmetic comment edit."
+  },
+  "mode_escalation": {
+    "started_in": "THOROUGH",
+    "escalated_to_adversarial": false,
+    "reason": "Zero CRITICAL/MAJOR findings; pattern is uniformly clean deletion."
+  },
+  "summary": "PR #13 is a clean, deletion-only dependency change. Two workspace members (archive-orphan kernel + app) plus their Cargo.lock entries are removed; no external dep added, removed, or version-bumped. The only non-deletion edit is a 2-line comment update inside tools/oya-foundry-pr-review-dispatcher-app/Cargo.toml that rewrites a sibling-pattern example list — it touches zero dependency declarations. dependency-rationales.json (registries/cross-cutting/) and deny.toml are untouched. ADR-0092 layer-seam policy, cargo-deny policy, and cargo-audit advisory surface are all unaffected. A5 PASS."
+}

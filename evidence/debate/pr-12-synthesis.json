@@ -1,0 +1,58 @@
+{
+  "schema": "multispectrum-review/v2.3.0",
+  "change_id": "pr-12",
+  "pr_number": 12,
+  "pr_title": "chore(hygiene): gitignore .audit/; move oya-vcs-admission under infra/kyverno/",
+  "merge_commit_sha": "70b83631",
+  "change_class_id": "CC-2 adapter_or_infrastructure",
+  "round": "synthesis",
+  "rendered_at_unix": 1779063300,
+  "spec_version": "2.3.0",
+  "synthesis_owner": "claude-msr-orchestrator-pr-12-18-wave-2026-05-16",
+  "facets_evaluated": ["F1_linus", "F2_hyperscaler", "F3_adversarial", "F4_ergonomic", "F5_quality", "F6_alternatives", "F7_security", "F8_performance", "F9_compliance", "F10_reversibility", "F13_migration", "M1_challenge_assumption", "M2_zoomed_out_fit", "A1_naming_adherence", "A2_documentation_adherence", "A3_structure_adherence", "A4_architecture_adherence", "A5_dependency_adherence", "A6_schema_adherence", "A7_algorithm_adherence"],
+  "facet_count_total": 20,
+  "facet_skipped_with_reason": {"F11_observability": "not_applicable — no new HTTP/state-machine/worker"},
+  "executor_topology_compliance": {"rule": "one subagent per facet, no reviewer_id reuse across facets", "verified": true, "reviewer_id_overlap_across_facets": "NONE", "distinct_reviewer_ids": 20},
+  "round_1_verdicts": {
+    "F1_linus": "approve-with-fixups", "F2_hyperscaler": "approve", "F3_adversarial": "approve-with-fixups",
+    "F4_ergonomic": "approve-with-fixups", "F5_quality": "approve-with-fixups", "F6_alternatives": "approve-with-fixups",
+    "F7_security": "approve", "F8_performance": "approve", "F9_compliance": "approve-with-fixups",
+    "F10_reversibility": "approve-with-fixups", "F13_migration": "approve-with-fixups",
+    "M1_challenge_assumption": "approve-with-fixups", "M2_zoomed_out_fit": "approve-with-fixups",
+    "A1_naming_adherence": "approve", "A2_documentation_adherence": "block",
+    "A3_structure_adherence": "approve-with-fixups", "A4_architecture_adherence": "approve",
+    "A5_dependency_adherence": "approve", "A6_schema_adherence": "approve-with-fixups", "A7_algorithm_adherence": "approve"
+  },
+  "consensus_points": [
+    "PR is a clean, history-preserving git mv + gitignore hygiene change at the infra layer; no kernel/code semantics affected",
+    "infra/kyverno/ IS the canonical admission-policy root per ADR-0039/0041 — move is structurally correct",
+    "Argo Application self-referential path was correctly rewritten (gitops self-heal preserved)",
+    "Zero new dependencies; no security regression; .audit/ untrack does not leak secrets (history scan clean)",
+    "git revert is cheap and history-preserving (data_loss_class=none)"
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [],
+  "unresolved_tensions": [
+    "F1 vs F4: Linus wants the ADR shortened/deleted (ceremony); F4 wants more contributor-onboarding context",
+    "Bundling .audit/ + dir move + ADR in one PR — F1 calls bisect-hostile, F2 calls correctly atomic"
+  ],
+  "fixuptasks": [
+    {"id": "F-PR12-01", "severity": "critical", "summary": "ADR-0117 not entered into docs/DOC-CATALOG.md, docs/ADR-INDEX.md, docs/machine-readable/decisions.json (A2)", "lane": "docs-catalog-drift"},
+    {"id": "F-PR12-02", "severity": "high", "summary": ".audit/agent-read.jsonl blob retained in git history (8 prior commits); rm --cached only — needs BFG/filter-repo for true scrub if any future leak suspected (F3)", "lane": "git-history-scrub"},
+    {"id": "F-PR12-03", "severity": "medium", "summary": "ADR-0117 missing related: citations to ADR-0039 kyverno + ADR-0041 GitOps + ADR-0052 inventory (A2 + A3)", "lane": "adr-related-citations"},
+    {"id": "F-PR12-04", "severity": "medium", "summary": "ADR-0117 missing Sunset/Reversal section (F10 + A2)", "lane": "adr-template-conformance"},
+    {"id": "F-PR12-05", "severity": "medium", "summary": "docs/DESIGN.md §8 line 456 still lists deploy/ as canonical flat-target top-level directory — drift introduced by PR12 (A3)", "lane": "design-md-drift"},
+    {"id": "F-PR12-06", "severity": "medium", "summary": "Audit-chain row missing for kyverno consolidation (F9)", "lane": "audit-chain-emission"},
+    {"id": "F-PR12-07", "severity": "medium", "summary": "M1/M2 meta-facet evidence files absent from this PR's pre-merge debate; multispectrum doctrine requires when meta_review_triggered (new ADR) (F9)", "lane": "doctrine-debate-coverage"},
+    {"id": "F-PR12-08", "severity": "medium", "summary": "PR description Task 1 says .config/ was gitignored; actual merge only ignored .audit/ (F5)", "lane": "pr-body-stale"},
+    {"id": "F-PR12-09", "severity": "low", "summary": "Argo manifest path is magic string duplicated 5 sites — extract pub const in kernel for future moves (F5 + F6)", "lane": "magic-string-dedup"},
+    {"id": "F-PR12-10", "severity": "low", "summary": "Add .audit/ + .config/ + .omc/*.tmp.* to .gitignore + add CI lane preventing reintroduction (F3 + M2)", "lane": "gitignore-defense"},
+    {"id": "F-PR12-11", "severity": "low", "summary": "ADR-0117 should explicitly disclaim non-sensitivity of historical .audit blob (F7)", "lane": "adr-content"},
+    {"id": "F-PR12-12", "severity": "low", "summary": "docs/CHANGELOG.md not updated for PR #12 (A2)", "lane": "changelog-drift"},
+    {"id": "F-PR12-13", "severity": "low", "summary": "ADR-0117 frontmatter uses non-canonical shape (deciders/purpose vs id/title/status); duplicate Status (frontmatter + body); should match TPL-ADR (A2)", "lane": "adr-template-conformance"},
+    {"id": "F-PR12-14", "severity": "low", "summary": "Application name carries -preview suffix that is semantically stale (F7 + F2)", "lane": "name-cleanup"}
+  ],
+  "final_recommendation": "approve-with-fixups (post-merge)",
+  "termination_reason": "consensus_reached",
+  "post_merge_action": "Bundle PR-12 fixups into the consolidated PRs-12-18 fix-PR per user directive 2026-05-16",
+  "audit_chain_event_to_emit": "consensus_debate_complete"
+}

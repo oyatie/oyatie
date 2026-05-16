@@ -18,9 +18,9 @@ its first impl plan can be authored (per `feedback_autonomous_implementation_art
 
 | PRD file | µservice | Milestone | Status | Sales segment |
 |---|---|---|---|---|
-| [`tenancy.md`](tenancy.md) | `tenancy` | M02-substrate-ready | Accepted | shared-substrate |
-| [`ontology.md`](ontology.md) | `ontology` | M02-substrate-ready | Accepted | shared-substrate |
-| [`workflow.md`](workflow.md) | `workflow` | M02-substrate-ready | Accepted | shared-substrate + B2B hero product |
+| [`tenancy.md`](tenancy.md) | `tenancy` | M02b-substrate-ready | Accepted | shared-substrate |
+| [`ontology.md`](ontology.md) | `ontology` | M02b-substrate-ready | Accepted | shared-substrate |
+| [`workflow.md`](workflow.md) | `workflow` | M02b-substrate-ready | Accepted | shared-substrate + B2B hero product |
 
 ## B2B Application Shell
 

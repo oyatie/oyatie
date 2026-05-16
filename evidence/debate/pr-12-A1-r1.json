@@ -1,0 +1,49 @@
+{
+  "reviewer_id": "claude-A1_naming_adherence-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "A1_naming_adherence",
+  "lens": "Naming adherence — P10/P14 BNF kebab-case + version-suffix + filename rules",
+  "policy_refs": [
+    "docs/standards/crate-naming-convention.md",
+    "ADR-0056",
+    "docs/decisions/ADR-0017-brand-naming-and-repo-layout.md",
+    ".omc/specs/oyatie-doctrine.json#P10",
+    ".omc/specs/oyatie-doctrine.json#P14",
+    "memory: feedback_naming_justification"
+  ],
+  "answer": "PR #12 introduces three new names: (1) ADR file ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md, (2) directory infra/kyverno/oya-vcs-admission/, (3) const ARGO_MANIFEST. All three pass the A1_naming_adherence lens (P10/P14 BNF kebab-case + ADR-NNNN convention + identifier-hygiene + naming-justification rule), with two MINOR observations and zero BLOCKER/MAJOR drift. ADR-0117 filename is fully kebab-case, uses the canonical ADR-NNNN-<slug>.md form, and at 86 characters its title slug is the longest in docs/decisions/ (next is ADR-0040 at 79; ADR-0098 at 75) but no length cap is specified in crate-naming-convention.md §1-§11 or in ADR-0017, so it is non-blocking. The slug accurately reflects both actions taken (gitignore-audit-config + kyverno-consolidation) which is consistent with the dual-action 'chore(hygiene)' commit. The directory token `oya-vcs-admission` carries the required `oya-` brand prefix (ADR-0017) and is consistent with the established `oya-foundry-vcs-*` crate family in /Users/jasonlee/oyatie/Cargo.toml (oya-foundry-vcs-kernel, oya-foundry-vcs-admission-gate-kernel, etc.), so its choice of `vcs` as a path token follows existing repo precedent. The crate-naming BNF v4.1 (slot-2 microservice closed enum) does NOT apply because this is a filesystem path under infra/kyverno/, not a Cargo crate name — the BNF binds only `oya-*` package names per §2 'crate ::= ...'. ADR-0117 carries an explicit '## Naming justification' section satisfying feedback_naming_justification (one-line proof of v4-BNF + 12-layer-enum non-impact since the move is path-only). ARGO_MANIFEST const is SCREAMING_SNAKE_CASE per crate-naming-convention.md §10 (in-crate identifier hygiene). The four rewritten evidence-file paths inside oya-vcs-provider-execution-proof-1778845600.json are consistent — both old (deploy/gitops/oya-vcs-admission) and new (infra/kyverno/oya-vcs-admission) preserve the oya-vcs-admission leaf token, so no broader naming-scheme drift. Verdict: approve.",
+  "key_claims": [
+    "ADR-0117 filename is kebab-case + ADR-NNNN compliant — exact form `ADR-<4-digit>-<kebab-slug>.md` per docs/decisions/ precedent.",
+    "Title slug is 86 chars — longest in docs/decisions/ but no length cap is documented in crate-naming-convention.md, ADR-0017, or doc-style.md; non-blocking, downgraded from MAJOR to MINOR per Realist Check.",
+    "Directory `infra/kyverno/oya-vcs-admission` carries `oya-` prefix per ADR-0017 brand convention and matches the established `oya-foundry-vcs-*` crate family naming pattern.",
+    "Crate-naming BNF v4.1 (slot-2 µservice enum) does NOT apply to filesystem paths under infra/kyverno/ — BNF §2 binds only `oya-*` Cargo crate names. Path naming is governed by ADR-0017 (brand prefix) only.",
+    "ADR-0117 includes an explicit `## Naming justification` section (lines 56-61 of diff) satisfying memory: feedback_naming_justification (one-line BNF-conformance proof for the new directory name).",
+    "ARGO_MANIFEST is SCREAMING_SNAKE_CASE per crate-naming-convention.md §10 in-crate identifier hygiene rule for constants.",
+    "Evidence-file path rewrites in oya-vcs-provider-execution-proof-1778845600.json preserve the oya-vcs-admission leaf token; no leaf-name drift across the move.",
+    "infra/kyverno/ root precedent confirmed: pre-existing infra/kyverno/policies/require-signed-images.yaml established the admission-policy root before this PR."
+  ],
+  "uncertainty_areas": [
+    "Whether the workspace separately enforces an ADR-filename length cap not captured in crate-naming-convention.md (no cap found in scan; could exist in an unindexed lane).",
+    "Whether `vcs` should eventually be elevated to a slot-2 microservice in [workspace.metadata.oya.microservices] given the depth of the oya-foundry-vcs-* crate family — out of A1 scope but flagged for A4_architecture facet.",
+    "Whether `infra/` itself should carry a brand-prefix rule (this PR doesn't introduce `infra/`; it already existed)."
+  ],
+  "drift_detected": false,
+  "findings": [
+    {
+      "severity": "MINOR",
+      "summary": "ADR-0117 filename slug is 86 characters — the longest in docs/decisions/ (vs ADR-0040 at 79, ADR-0098 at 75). It encodes two distinct actions ('gitignore-audit-config' + 'kyverno-consolidation') in one ADR. No length cap is documented, so non-blocking, but two single-action ADRs would each yield shorter, more discoverable slugs.",
+      "recommended_action": "Optional: in a future hygiene wave, prefer one-action-per-ADR to keep slugs ≤70 chars and improve `ls docs/decisions/ | grep` discoverability. No fix required for this PR.",
+      "fixuptask_id": "F-PR12-01"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "The Naming justification section in ADR-0117 covers only the directory move (`infra/kyverno/` root reuse) but does not explicitly assert ARGO_MANIFEST const-name conformance to crate-naming-convention.md §10. The const is in fact compliant, but the justification text doesn't say so.",
+      "recommended_action": "Optional one-line append to ADR-0117 §Naming justification: 'ARGO_MANIFEST identifier follows crate-naming-convention.md §10 SCREAMING_SNAKE_CASE for constants.' Not required for merge.",
+      "fixuptask_id": "F-PR12-02"
+    }
+  ],
+  "verdict": "approve"
+}

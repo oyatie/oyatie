@@ -5,7 +5,7 @@ doc_status: published
 date: 2026-05-16
 supersedes: []
 superseded_by: []
-related: [ADR-0083, ADR-0119]
+related: [ADR-0083, ADR-0121]
 ---
 
 # ADR-0120: Rust-first on-prem tooling; every install paired with uninstall

@@ -1,0 +1,49 @@
+{
+  "reviewer_id": "claude-F2_hyperscaler-pr-13",
+  "round": 1,
+  "change_id": "pr-13",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "F2_hyperscaler",
+  "lens": "Hyperscaler-grade — operational excellence, fleet-scale, lane-lifecycle hygiene",
+  "answer": "ADR-0118 is a near-textbook lane-retirement at hyperscaler standards: explicit Decision, three Rejected alternatives (keep-empty, rename, full-erase), named Replacement (M-CC-P11 admission + projected-merge-state + conflict-kernel via ADR-0116), preserved historical lane records in both docs/ and .omc/ surfaces, supersedes ADR-0052, and IP-008 reframed status=retired with retirement-validation commands replacing acceptance commands. Workspace, Cargo.lock, registry catalog (3 entries), CHANGELOG, INDEX, ADR-0104/0107 backrefs, and evidence/agentic-pipeline JSON all updated atomically — no dangling references. The lane is correctly treated as a one-time cutover gate rather than steady-state CI; AWS/Google would similarly delete a bootstrap-only Lambda once the migration target shipped. Two hygiene gaps vs Stripe/Palantir bar: (1) no formal sunset window — lane went from Accepted to Retired same-day without a deprecation announcement period or 'last green run' metric capture; ADR-0108 sunset-lifecycle kernel exists in repo (referenced in CHANGELOG 2026-05-15) but was not applied here, creating an inconsistency in lane-retirement procedure. (2) Coverage migration is asserted ('projected-merge-state and conflict-kernel already own the replacement invariant') but not evidenced — no diff cross-reference proving M-CC-P11 actually exercises the four failure_modes the retired lane caught (archive-row-missing, original-still-active, archive-outside-root, live-ref-to-archived). For a one-time cleanup lane post-cutover this is acceptable; for a steady-state lane it would be blocking. IP-008 was the correct hierarchy slot per milestone>phase>impl-plan rule.",
+  "key_claims": [
+    "ADR-0118 follows canonical retirement pattern (Decision, Rejected alternatives, Replacement, Verification, supersedes chain) rather than rip-and-replace",
+    "Atomic deletion: workspace members, Cargo.lock, registry/catalog (3 yaml files), backrefs in ADR-0104/0107, INDEX, CHANGELOG, and IP-008 evidence JSON all updated in one PR — zero dangling references",
+    "Lane is correctly classified as one-time cutover gate (bootstrap Lambda pattern), not steady-state CI, justifying full removal over rename",
+    "Historical traceability preserved in both docs/fitness-lanes/archive-orphan.md and .omc/fitness-lanes/archive-orphan.md with retired_on/retired_by frontmatter",
+    "IP-008 hierarchy placement is correct: lane is owned by M-CC-P01-IP-008, so retirement record lives in same IP file (milestone>phase>impl-plan compliance)",
+    "Replacement gate (M-CC-P11 admission + projected-merge-state + conflict-kernel) is named but not cross-referenced to the four specific failure_modes the retired lane caught"
+  ],
+  "uncertainty_areas": [
+    "Whether M-CC-P11 conflict-kernel actually catches archive-row-missing / original-still-active invariants (asserted, not evidenced in diff)",
+    "Whether the lane ever ran green in CI and produced a pre-retirement metric (no 'last green' citation in ADR-0118 Verification plan)",
+    "Whether ADR-0108 sunset-lifecycle kernel should have driven this retirement through a deprecation window rather than same-day Accepted->Retired"
+  ],
+  "anti_patterns_detected": [
+    "Missing sunset-window / deprecation-announcement period — ADR-0108 sunset-lifecycle automation exists in repo but was bypassed here, creating a procedure inconsistency",
+    "No pre-retirement metric captured (lane-execution count, last-green-run-date) — hyperscalers require 'data justifying it ever existed' before deletion",
+    "Replacement-coverage assertion without diff evidence — ADR-0118 claims M-CC-P11 owns the invariant but does not point to the specific kernel checks that subsume the four failure_modes"
+  ],
+  "findings": [
+    {
+      "severity": "P2",
+      "summary": "ADR-0118 skips ADR-0108 sunset-lifecycle procedure: lane went from Accepted (2026-05-12) to Retired (2026-05-16) without a documented deprecation window or sunset clause, despite repo having a dedicated sunset-lifecycle kernel landed 2026-05-15.",
+      "recommended_action": "Either add a _sunset frontmatter object to ADR-0118 retroactively documenting the 4-day cutover window as the de-facto sunset, OR amend ADR-0108 / the fitness-lane retirement procedure to explicitly exempt one-time-cutover lanes from the standard sunset>deprecation>removal cycle. The current PR is fine as-is but the procedure inconsistency will recur.",
+      "fixuptask_id": "F-PR13-01"
+    },
+    {
+      "severity": "P3",
+      "summary": "ADR-0118 asserts M-CC-P11 owns the replacement invariant but does not cross-reference the four specific failure_modes (archive-row-missing, original-still-active, archive-outside-root, live-ref-to-archived) to specific M-CC-P11 kernel checks. For a one-time lane this is acceptable, but the assertion is not evidence-backed.",
+      "recommended_action": "Add a Coverage-migration subsection to ADR-0118 mapping each retired failure_mode to either (a) the M-CC-P11 kernel that subsumes it or (b) an explicit 'no longer reachable post-cutover' justification. Three lines suffice.",
+      "fixuptask_id": "F-PR13-02"
+    },
+    {
+      "severity": "P3",
+      "summary": "No pre-retirement metric captured: ADR-0118 Verification plan validates removal but not 'did this lane ever produce signal'. Hyperscaler bar requires last-green-date or execution count to justify both the lane's prior existence and the safety of its removal.",
+      "recommended_action": "Add one bullet to Consequences or Verification: 'Lane executed N times via IP-008 P6/P7 gating, last green on YYYY-MM-DD; archived payload integrity confirmed by final run before deletion.' If no run history exists, state that explicitly.",
+      "fixuptask_id": "F-PR13-03"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}

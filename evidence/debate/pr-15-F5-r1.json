@@ -1,0 +1,78 @@
+{
+  "facet": "F5_quality",
+  "round": 1,
+  "pr": 15,
+  "pr_title": "Centralize capability templates under registry",
+  "merge_commit": "6b3262afe18e135364aac25da3585a98334f86b8",
+  "merged_at": "2026-05-16T07:49:02Z",
+  "base": "dev",
+  "head": "cleanup/capability-template-registry",
+  "change_class": "CC-3",
+  "verdict": "REQUEST_CHANGES_POST_MERGE",
+  "ci_status": "all_green",
+  "summary": "Mechanical path-rename PR. Dev-cli code defaults and usage text correctly updated to registry/capability-templates in merge commit 6b3262af; 12 nextest tests + cargo-check/clippy/fmt all green; 5 ADR amendments are coherent path-substitutions but undated. Quality-blocking issue: six .omc/.project-memory.json.tmp.<uuid>.* files were committed as real tracked artifacts because .gitignore has no rule for them. Deletion-safety issue: docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md duplicates docs/specs/deep-dive-oyatie-sst-consolidation.md (21KB each, both edited in this PR) — a single doc is now in two canonical locations, both updated in lockstep, indicating accidental fork.",
+  "findings": [
+    {
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "id": "F5-PR15-01",
+      "category": "deletion_safety",
+      "file": ".omc/.project-memory.json.tmp.*",
+      "line": null,
+      "issue": "Six .project-memory.json.tmp.<uuid>.* files (4.5K-12.3K each) are tracked in git and edited by this PR. These are tool scratch files (atomic-write temp shadows of project-memory.json). No .gitignore rule excludes .omc/*.tmp.* or .omc/.*.tmp.*. Every future write to project-memory.json will dirty 7 files instead of 1, polluting diffs and review.",
+      "fix": "Add `.omc/*.tmp.*` and `.omc/.*.tmp.*` to .gitignore; `git rm --cached .omc/.project-memory.json.tmp.*` in a follow-up PR; consider whether project-memory.json itself should be tracked at all."
+    },
+    {
+      "severity": "HIGH",
+      "confidence": "HIGH",
+      "id": "F5-PR15-02",
+      "category": "maintainability",
+      "file": "docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md vs docs/specs/deep-dive-oyatie-sst-consolidation.md",
+      "line": null,
+      "issue": "Same spec exists at two paths (both 21KB, both touched by this PR with identical +1/-1 path-rename edits). docs/decisions/specs/ is a non-canonical location — specs belong under docs/specs/ per repo convention; docs/decisions/ is reserved for ADRs. Lockstep editing confirms accidental duplication, not intentional mirror.",
+      "fix": "Delete docs/decisions/specs/deep-dive-oyatie-sst-consolidation.md (and the sibling deep-dive-trace-* file); audit docs/decisions/specs/ for other duplicates; add a CI lane that rejects docs/decisions/specs/**."
+    },
+    {
+      "severity": "MEDIUM",
+      "confidence": "MEDIUM",
+      "id": "F5-PR15-03",
+      "category": "documentation",
+      "file": "docs/decisions/ADR-0003, ADR-0007, ADR-0019, ADR-0050, ADR-0052",
+      "line": null,
+      "issue": "Five ADR amendments substitute `product-control/capabilities/` → `registry/capability-templates/` but carry no `Amended: 2026-05-16 — path topology moved per cleanup/capability-template-registry` superseded-by/amended-by header. ADR amendments without date+reason hurt forensic traceability when paths are later revisited.",
+      "fix": "Follow-up PR adding an Amendments section to each touched ADR with date, PR ref, and one-line reason."
+    },
+    {
+      "severity": "LOW",
+      "confidence": "HIGH",
+      "id": "F5-PR15-04",
+      "category": "verification_gap",
+      "file": "PR body Verification section",
+      "line": null,
+      "issue": "PR body admits `cargo fmt --check` and `cargo clippy -- -D warnings` were not run locally (`toolchain lacks the subcommand`). CI compensated (cargo-fmt + cargo-clippy jobs both green), so not blocking, but contributor toolchain is broken — risks future PRs landing fmt/clippy regressions locally before push.",
+      "fix": "Add a note to docs/checklists/pre-push.md: install rustup component add rustfmt clippy; or pin a toolchain file."
+    },
+    {
+      "severity": "LOW",
+      "confidence": "HIGH",
+      "id": "F5-PR15-05",
+      "category": "test_coverage",
+      "file": "crates/oya-dev-cli/tests/",
+      "line": null,
+      "issue": "No test asserts the new default `registry/capability-templates` path resolves to a real directory containing at least one record. parse_foundry_capability_schema_validate_args default is silently rebindable; if registry/ is ever moved again, only an integration run catches it.",
+      "fix": "Add `#[test] fn default_capabilities_dir_exists()` in foundry_capability_schema_cli.rs asserting Path::new(\"registry/capability-templates\").is_dir()."
+    }
+  ],
+  "open_questions": [],
+  "positive_observations": [
+    "All 14 CI checks green at merge (cargo-check, cargo-nextest, cargo-fmt, cargo-clippy, foundry-fitness lanes).",
+    "Dev-cli source defaults AND usage help text updated consistently in same commit (both gate parsers + lib.rs usage string).",
+    "Registered new artifact rows in registry/artifact-capabilities-registry.json (+105 lines) — registry-as-source-of-truth pattern honored.",
+    "Three rename-with-edit operations on YAML templates preserved git rename detection (RENAMED changeType in PR meta), keeping blame intact.",
+    "Multispectrum evidence file attached at evidence/multispectrum/capability-template-registry-cleanup-1778915963.json before merge."
+  ],
+  "files_reviewed": 44,
+  "total_issues": 5,
+  "by_severity": {"CRITICAL": 0, "HIGH": 2, "MEDIUM": 1, "LOW": 2},
+  "by_confidence": {"HIGH": 4, "MEDIUM": 1, "LOW": 0}
+}

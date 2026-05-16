@@ -1,5 +1,5 @@
 ---
-purpose: Auto-backfilled purpose for M02-substrate-schema-foundation.md
+purpose: Auto-backfilled purpose for M02b-substrate-schema-foundation.md
 ---
 
 ---

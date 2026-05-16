@@ -1,0 +1,88 @@
+{
+  "reviewer_id": "claude-A2_documentation_adherence-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "A2_documentation_adherence",
+  "lens": "Documentation adherence — P9 no-sprawl + DOC-CATALOG + doc-class + thin-gateway",
+  "policy_refs": ["docs/DOC-CATALOG.md", "docs/standards/doc-style.md", "docs/templates/adr-template.md", "docs/ADR-INDEX.md", "docs/CHANGELOG.md", "docs/machine-readable/decisions.json", "docs/machine-readable/catalog.json"],
+  "answer": "PR #12 lands docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md but FAILS to register the new ADR into ANY of the canonical indexes. ADR-INDEX.md still says 'Next ADR number: 0110' and contains no row for ADR-0117 (or for 0110-0116). DOC-CATALOG.md has zero rows referencing ADR-0117 — and the existing pattern (doc.adr_0096..doc.adr_0099) shows per-ADR rows are the established convention for individually-cataloged ADRs. CHANGELOG.md has no 2026-05-16 entry for this PR. The two machine-readable mirrors (decisions.json, catalog.json) have no ADR-0117 entries. The ADR file itself partially conforms to TPL-ADR but has structural defects: (1) frontmatter omits canonical fields (`id`, `title`, `bominal_source`) and uses a non-template ad-hoc schema (`deciders`, `purpose`); (2) `related: []` is empty despite the ADR explicitly discussing kyverno (must cite ADR-0039), Argo GitOps (must cite ADR-0040/ADR-0041), and sitting adjacent to supply-chain admission policy — violates cite-the-rule discipline; (3) no `## Sunset / Reversal` section (the template's mandatory closure for terminal vs forward-pointing ADRs); (4) `## Status` is duplicated (once in frontmatter `status: Accepted`, once as bottom section); (5) Naming-Justification section exists but does NOT use the canonical NAME/JUSTIFICATION code-block format from the template. This is a multi-doc DOC-CATALOG drift event: a new ADR was minted, merged, but never wired into the catalog substrate the rest of the doc machinery reads. Future readers querying ADR-INDEX.md or machine-readable/decisions.json will not see ADR-0117 exists. The 'Next ADR number: 0110' stale pointer means any subsequent ADR author will collide on 0110 instead of advancing to 0118.",
+  "key_claims": [
+    "ADR-0117 file exists in PR diff but is absent from docs/ADR-INDEX.md (verified: grep -n '0117' returns 0 hits, and the doc still claims 'Next ADR number: 0110')",
+    "ADR-0117 is absent from docs/DOC-CATALOG.md despite the established per-ADR row convention (doc.adr_0096..doc.adr_0099 rows present at lines 84-87)",
+    "ADR-0117 is absent from docs/CHANGELOG.md (no 2026-05-16 entry for this PR; last entries are dated 2026-05-15)",
+    "ADR-0117 is absent from docs/machine-readable/decisions.json (grep '0117' returns 0 hits)",
+    "ADR-0117 is absent from docs/machine-readable/catalog.json (grep '0117' returns 0 hits)",
+    "ADR-0117 frontmatter `related: []` is empty despite explicit textual mention of kyverno (ADR-0039 anchors supply-chain admission) and Argo GitOps (ADR-0040/ADR-0041) — violates cite-the-rule discipline",
+    "ADR-0117 omits canonical `## Sunset / Reversal` section required by TPL-ADR template at docs/templates/adr-template.md",
+    "ADR-0117 frontmatter shape (`deciders`, `purpose` keys) does not match TPL-ADR canonical frontmatter table (id, title, status, date, supersedes, superseded_by, owner, related, bominal_source)",
+    "ADR-0117 has `## Status` section duplicating the frontmatter status field — TPL-ADR puts status only in frontmatter",
+    "Naming-Justification text is present but does NOT follow the NAME/JUSTIFICATION code-block format mandated by the template (`NAME: oya-...` / `JUSTIFICATION:` bullets)",
+    "ADR-INDEX 'Next ADR number: 0110' counter is also stale w.r.t. ADR-0110/0111/0112/0113/0114 (already on disk per ls) — this is a pre-existing drift but PR #12 inherits the obligation and does not fix it",
+    "PR body explicitly references neither DOC-CATALOG nor ADR-INDEX nor CHANGELOG updates — the author scoped the PR to code-and-ADR-file only"
+  ],
+  "uncertainty_areas": [
+    "Whether oyatie has a regeneration script that rebuilds ADR-INDEX/machine-readable mirrors from the decisions/ directory (would convert hard BLOCKERs to MAJOR procedure misses); the docs hint at it ('regenerated' in supersession protocol) but no such job is wired in PR #12",
+    "Whether the 'Next ADR number' stale counter (0110 vs. actual 0117) is a PR #12 responsibility or a pre-existing tech-debt item from PRs #5/#7 (ADR-0110..0114 also absent from index) — A2 still flags it for PR #12 because the catalog drift compounds",
+    "Whether DOC-CATALOG requires a per-ADR row for EVERY ADR or only for ADRs that introduce new doc surfaces (current catalog has rows for 0096-0099 only, suggesting selective inclusion) — flagged as MAJOR not CRITICAL on that uncertainty"
+  ],
+  "drift_detected": true,
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "summary": "ADR-0117 is not registered in docs/ADR-INDEX.md; index still claims 'Next ADR number: 0110' and contains no row for ADR-0117. New ADRs are invisible to any downstream consumer reading the canonical index.",
+      "recommended_action": "Append ADR-0117 row to the ADR-INDEX.md table (mirroring the ADR-0109 row format) and bump 'Next ADR number' to 0118. Verify ADR-0110..0116 are also indexed in the same fix-up (pre-existing drift PR #12 must not perpetuate).",
+      "fixuptask_id": "F-PR12-01"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0117 is not registered in docs/DOC-CATALOG.md despite the established per-ADR row convention (doc.adr_0096..doc.adr_0099 rows present). DOC-CATALOG drift means update-trigger machinery cannot route events to this ADR.",
+      "recommended_action": "Add a `doc.adr_0117` row in DOC-CATALOG.md §2 specifying owner_team=council-developer-experience, update_trigger=EVT-INFRA-PATH-CHANGE, validation_check=`grep -rn 'deploy/gitops/oya-vcs-admission' .` returns 0, and the dependent_docs link to infra/kyverno/oya-vcs-admission/application.json.",
+      "fixuptask_id": "F-PR12-02"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0117 has no CHANGELOG.md entry. CHANGELOG is the canonical human-readable docs-change feed; absence breaks the cite-by-date discipline used by every prior P11/P10 entry.",
+      "recommended_action": "Prepend a `## 2026-05-16 — Repo hygiene: .audit gitignored, kyverno admission consolidated (ADR-0117)` section with 3-4 bullets matching the style of the 2026-05-15 entries.",
+      "fixuptask_id": "F-PR12-03"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0117 `related: []` is empty despite explicit kyverno + Argo GitOps subject matter — violates cite-the-rule discipline. Must cite ADR-0039 (Kyverno admission), ADR-0040 (Argo Rollouts/progressive delivery), ADR-0041 (GitOps trunk-based), and ADR-0052 (inventory) per the review brief.",
+      "recommended_action": "Update frontmatter to `related: [ADR-0039, ADR-0040, ADR-0041, ADR-0052]` and add a closing sentence in Context explaining inheritance (e.g., `extends ADR-0039 by collapsing the parallel deploy/gitops/ admission root into the kyverno/ root the ADR established`).",
+      "fixuptask_id": "F-PR12-04"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0117 omits the `## Sunset / Reversal` section required by TPL-ADR. Either declare terminal (`no reversal — path-only move`) or describe the rollback procedure.",
+      "recommended_action": "Add `## Sunset / Reversal` section stating: `Terminal. No sunset clause. Reversal = git revert of the rename commit + restore .audit/agent-read.jsonl from git history. No downstream consumers depend on the legacy deploy/gitops/ path post-cutover.`",
+      "fixuptask_id": "F-PR12-05"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0117 frontmatter shape does not match TPL-ADR canonical schema. Uses ad-hoc keys (`deciders`, `purpose`) instead of canonical (`id`, `title`, `bominal_source`). A1_naming/A2_documentation lanes will fail when wired.",
+      "recommended_action": "Restructure frontmatter to TPL-ADR table (id, title, status, date, supersedes, superseded_by, owner, related, bominal_source) and keep `purpose` only if it is additive (otherwise drop — Context already conveys it).",
+      "fixuptask_id": "F-PR12-06"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "Machine-readable mirrors (docs/machine-readable/decisions.json, docs/machine-readable/catalog.json) have no ADR-0117 entry. Any agent or tool consuming the JSON substrate cannot discover ADR-0117.",
+      "recommended_action": "Regenerate (or hand-append) the ADR-0117 row in both JSON mirrors. If a regeneration script exists, run it in the fix-up PR; otherwise mirror the ADR-0109 JSON object verbatim with updated fields.",
+      "fixuptask_id": "F-PR12-07"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "Naming-Justification text is present but does not use the canonical NAME/JUSTIFICATION fenced-block format from TPL-ADR (lines 61-79). Doc-style fitness lane will downgrade.",
+      "recommended_action": "Reformat the Naming-Justification section using the template's `NAME: <name>` / `JUSTIFICATION:` bullet block. For this ADR, the 'name' is `infra/kyverno/oya-vcs-admission/` and the justification is the existing single paragraph.",
+      "fixuptask_id": "F-PR12-08"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "ADR-0117 has duplicate Status (frontmatter `status: Accepted` + a `## Status` body section). TPL-ADR places status only in frontmatter.",
+      "recommended_action": "Remove the trailing `## Status` body section; keep `status: Accepted` in frontmatter.",
+      "fixuptask_id": "F-PR12-09"
+    }
+  ],
+  "verdict": "block"
+}

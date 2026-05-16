@@ -1,0 +1,59 @@
+{
+  "reviewer_id": "claude-M1_challenge_assumption-pr-18",
+  "round": 1,
+  "change_id": "pr-18",
+  "change_class": "CC-3 cross-cutting_topology",
+  "rigor": "deep",
+  "facet": "M1_challenge_assumption",
+  "lens": "Meta — challenge the load-bearing assumption of the merged PR",
+  "answer": "Four assumptions interrogated. (1) 'PR #18 flattens specs/cross-cutting' — TRUE on dev. Verified via `git show 743a6fe6 --stat` which renders 17+ `specs/{cross-cutting => }/foo.json` rename arrows (renames detected, similarity preserved). The r1 conflict between F5/F6 ('renames preserved, 34 R-status') and F3/F9 ('flat files don't exist on disk + 748 stale refs') is a workspace artifact: the working tree at `oya-m01-m02-gate-usecase-doc-drift` is BEHIND dev, so F3/F9 inspected stale state. On origin/dev: `specs/oyatie-doctrine.json`, `specs/multispectrum-review.json`, `specs/master-plan-sequencing.json` etc. all exist at flat root; `git grep specs/cross-cutting origin/dev` returns 0. The 748-stale-refs claim is the working-branch reality, not dev's. The flattening claim survives.  (2) 'The PR-18 diff contains the moves' — FALSE-by-tooling but TRUE-on-commit. `/tmp/oya-msr-pr12-18/pr-18.diff` was captured via `gh pr diff` which defaults to `--no-renames`, so it shows zero `diff --git` headers and zero rename lines — only 222 content-modification hunks. A naive reviewer reading only the captured diff (F3/F9 likely did) would conclude the mv is unrecorded. Verified the mv IS in the commit by re-running `git show 743a6fe6 --stat -M` against the merged ref. Finding: the evidence-capture method is misleading future reviewers; the PR itself is fine. (3) '(signed replacement) justifies extra PR vs amend' — DEFENSIBLE but not theater-free. The supersedes line on #18 says #14 was 'blocked by unsigned commit f2c0696'. A force-push amend on the branch would have re-signed and kept #14; instead a new branch `cleanup/specs-cross-cutting-flatten-signed` was created. Cost: one extra PR id, history shows two commits (`Preserve specs flattening without unsigned history` 237a2b30 → `Retire cross-cutting subdirectory…` 743a6fe6) doing what one signed amend could have done. Benefit: avoids force-push on a branch that may have had other consumers / open review threads, and keeps audit-trail linear-additive instead of mutating. For a CC-3 topology change touching 222 files, linear-additive wins; the call is acceptable, not theater. (4) 'M02-substrate vs M02-foundry-preview is the same milestone' — A3 was right that they collide on `M02` prefix. Verified `.omc/plans/milestones/` on dev contains BOTH `M02-foundry-preview/` AND `M02-substrate/` trees, plus `M03-cloud-saas-search-workspace-preview/` AND `M03-first-tenant/`. PR #18 modifies content inside both M02-* trees without consolidating. The collision is real and pre-existing; PR #18 inherits the ambiguity rather than creating it, but ALSO does not flag it in the topology ADR-0119 — a missed opportunity given the PR is explicitly about specs-authority hygiene. (5) BONUS — 'ADR-0119 is the topology ADR' — REAL but LATENT collision. On dev, ADR-0119 = `ADR-0119-specs-flat-root-topology.md` (this PR). On branch `oya-followup-onprem-bringup-and-m3-entry-2026-05-16` (commit adf9a7c0), ADR-0118 was renumbered to ADR-0119 to add Cloudflare Access gate, then bumped to ADR-0120 with the actual Cloudflare ADR taking 0119. The followup branch's renumber notes 'collision with dev's ADR-0118' but pre-dates 743a6fe6 by ~1h. When that followup branch rebases onto dev, ADR-0119 will collide AGAIN — F4's concern is forward-looking valid. Mitigation: the followup branch must renumber a second time to ADR-0121 (Cloudflare) + ADR-0120 (onprem), or this PR's ADR-0119 needs renumber. Either way ADR-numbering is racing.",
+  "key_claims": [
+    "PR #18 contains REAL git renames preserved: `git show 743a6fe6 --stat -M` shows 17+ `specs/{cross-cutting => }/foo.json` arrows; rename detection works.",
+    "The captured diff at /tmp/oya-msr-pr12-18/pr-18.diff has ZERO `diff --git` and ZERO `rename from/to` lines because `gh pr diff` defaults to `--no-renames`; reviewers using only this file as ground truth (F3/F9) reach false conclusions.",
+    "On origin/dev: `git grep -c specs/cross-cutting` returns 0; flat files at `specs/oyatie-doctrine.json`, `specs/multispectrum-review.json`, etc. confirmed via `git ls-tree -r origin/dev specs/`.",
+    "Working tree at `oya-m01-m02-gate-usecase-doc-drift` is BEHIND dev, so F3/F9's 'flat files don't exist + 748 stale refs' is workspace-state, not dev-state — the facet conflict resolves in F5/F6's favor.",
+    "Both `M02-foundry-preview/` and `M02-substrate/` trees exist on dev under `.omc/plans/milestones/`; PR #18 touches both without consolidation and ADR-0119 does not name or resolve the milestone-id collision A3 raised.",
+    "ADR-0119 has a latent cross-branch collision: PR #18 = specs-flat-root-topology; commit adf9a7c0 on branch `oya-followup-onprem-bringup-and-m3-entry-2026-05-16` already renumbered onprem-stack to ADR-0119 (then again to ADR-0120 for Cloudflare). On followup-branch rebase onto dev, ADR-0119 conflicts a second time — F4's claim is forward-valid.",
+    "The signed-replacement-PR approach over amend is acceptable for CC-3 (linear-additive audit trail beats force-push mutation for 222-file topology changes), not git-history theater."
+  ],
+  "uncertainty_areas": [
+    "Whether the onprem-bringup followup branch is intended to be rebased onto dev or merged via a different path that would avoid the ADR-0119 second collision (no merge plan documented in the followup commit message).",
+    "Whether out-of-repo consumers (other oyatie checkouts, agent instances with cached /specs/cross-cutting/ paths in their memory, CI caches) have been refreshed; PR body's `Not-tested: Full downstream consumer scan outside this repository` admits the gap.",
+    "Whether the M02-substrate vs M02-foundry-preview split is intentional (two parallel milestones in M02 phase) or unresolved technical debt the topology PR should have surfaced."
+  ],
+  "challenged_assumptions": [
+    "ASSUMPTION: 'PR #18 flattens specs/cross-cutting' — TRUE. Verified renames-with-detection in 743a6fe6.",
+    "ASSUMPTION: 'The diff in /tmp/oya-msr-pr12-18/pr-18.diff is sufficient evidence to judge the PR' — FALSE. `gh pr diff` strips rename metadata; reviewers F3/F9 were misled by tooling, not by the PR. Future MSR captures must use `gh pr diff --patch` or `git show -M --stat` to preserve rename signal.",
+    "ASSUMPTION: '(signed replacement) is git-history theater' — FALSE. Linear-additive audit trail vs force-push amend is a defensible CC-3 trade-off; cost is one extra PR id, benefit is no history mutation on a 222-file change.",
+    "ASSUMPTION: 'M02-substrate and M02-foundry-preview are the same milestone' — FALSE-of-trees, TRUE-of-id-prefix. Both exist as separate trees on dev; the collision is at the M02-id-prefix level, not the directory level. PR #18 should have flagged it but did not.",
+    "ASSUMPTION: 'ADR-0119 is unambiguously this PR's topology ADR' — TRUE on dev, FRAGILE across active branches. The onprem-bringup followup branch already used ADR-0119 internally and will need a second renumber on rebase."
+  ],
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "summary": "Evidence-capture method (gh pr diff without --patch / -M) strips rename metadata and creates phantom facet conflicts. F3/F9 concluded the mv was unrecorded; in reality the diff just hid it. The PR is fine — the MSR pipeline produced unreliable input. This is a process bug, not a PR bug, but it materially affects the trustworthiness of the entire multispectrum review for any rename-heavy PR.",
+      "recommended_action": "Update the MSR diff-capture script to use `gh pr diff <n> --patch` AND `git show -M --stat <merge-sha>` and emit both as evidence inputs. Add a guard: if PR meta `changedFiles` >> distinct `diff --git` headers in captured diff, fail-fast with 'rename detection likely stripped'.",
+      "fixuptask_id": "F-PR18-M1-01"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0119 latent collision: branch `oya-followup-onprem-bringup-and-m3-entry-2026-05-16` (commit adf9a7c0) internally renumbered an ADR to 0119 (then 0120 for Cloudflare Access) BEFORE PR #18 landed on dev. On followup-branch rebase, ADR-0119 will collide a second time — exactly the failure mode that triggered the first renumber. PR #18's ADR-0119 is correct on dev today but the absence of an ADR-number reservation registry guarantees the next merge from that followup branch will require either another renumber or a force-push to PR #18.",
+      "recommended_action": "Either (a) add an ADR-number reservation registry (specs/adr-number-registry.jsonl) updated on PR open, OR (b) coordinate with the followup-branch author to renumber Cloudflare/onprem to ADR-0121/0122 NOW before merge. Document the resolution in ADR-0119 §Related.",
+      "fixuptask_id": "F-PR18-M1-02"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "M02-substrate vs M02-foundry-preview co-existence on `.omc/plans/milestones/` is pre-existing tech debt that ADR-0119 (a specs-topology PR) had an opportunity to flag but did not. Same for M03-cloud-saas-search-workspace-preview vs M03-first-tenant. The PR's scope was specs/, not .omc/plans/, but its purpose ('simplify authority') applies symmetrically.",
+      "recommended_action": "Out of scope for #18; open a follow-up issue to either consolidate or formalize-and-distinguish the M02-*/M03-* milestone-id reuse. Note in ADR-0119 §Out-of-scope.",
+      "fixuptask_id": "F-PR18-M1-03"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "PR body's `Not-tested: Full downstream consumer scan outside this repository` admits an unverified gap. Out-of-repo consumers (other clones with cached paths, agent memories, CI caches, sibling repos with hardcoded /specs/cross-cutting/) may still resolve old paths until they re-pull.",
+      "recommended_action": "Add a one-line note in ADR-0119 §Consequences: 'out-of-repo consumers must re-pull; sibling-repo references should be searched via cross-org grep.' Optionally tag an issue for the consumer scan.",
+      "fixuptask_id": "F-PR18-M1-04"
+    }
+  ],
+  "verdict": "approve-with-fixups",
+  "verdict_justification": "Load-bearing assumption 'PR #18 flattens specs/cross-cutting' survives full verification. The facet conflict between F5/F6 and F3/F9 dissolves once you check origin/dev (flat files exist, 0 stale refs) and recognize the working tree is behind dev. The two MAJOR findings target meta-issues (MSR evidence-capture tooling stripping rename signal; ADR-0119 latent cross-branch collision) — both are real, both are fixable, neither blocks merging the PR (which is already merged) nor undermines its claim. The PR's substantive content is sound; the surrounding process needs two patches."
+}

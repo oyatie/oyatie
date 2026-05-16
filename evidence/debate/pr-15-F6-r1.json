@@ -1,0 +1,67 @@
+{
+  "reviewer_id": "claude-architect-F6_alternatives-pr-15",
+  "round": 1,
+  "change_id": "pr-15-centralize-capability-templates-under-registry",
+  "pr_number": 15,
+  "pr_title": "Centralize capability templates under registry",
+  "change_class": "CC-3",
+  "rigor": "standard",
+  "facet": "F6_alternatives",
+  "lens": "F6_Better_Alternative — What's the better way? Why not that way? If 'later', bounded FixupTask with priority + reasoning? At least one Linus-style and one hyperscaler-style alternative per load-bearing decision.",
+  "artifacts_reviewed": [
+    "/tmp/oya-msr-pr12-18/pr-15-meta.json (44-file diff, 230 add / 61 del, head=cleanup/capability-template-registry, base=dev)",
+    "/tmp/oya-msr-pr12-18/pr-15.diff (full unified diff including renames and registry rows)",
+    "embedded evidence: evidence/multispectrum/capability-template-registry-cleanup-1778915963.json (in-PR F6 row)"
+  ],
+  "answer": "FAIL_F6. The PR's own embedded multispectrum file lists only 3 alternatives ('keep retired dir', 'move to registry/capability-templates', 'add new ADR') and rejects them in one-line trade-offs — this is below F6 floor for CC-3 (need 3+ named with Linus-style AND hyperscaler-style per load-bearing decision). Four load-bearing decisions ship with NO options table: (D1) directory location — `registry/capability-templates/` was chosen as a new fragmenting root rather than landing under the existing `registries/cross-cutting/` canonical control-plane root (which would match the docs/AGENTS.md taxonomy and avoid yet another top-level registry sibling); (D2) versioning policy — both `capability-record-template.yaml` and `capability-record-template-v2.yaml` are kept side-by-side with no deprecation plan, when single-source-of-truth (delete v1 when v2 lands) is the canonical Oyatie discipline per the no-silent-regression and ADR-0064 doctrine; (D3) PR granularity — one 44-file blob touches CLI defaults + 6 ADRs + 9 docs + 3 templates + registry rows + 7 .omc project-memory tmp files in a single merge; F1-style discipline would split into ≥5 concern-scoped PRs (registry move, CLI defaults, ADR amendments, doc renames, template path edits) so each can be reviewed and reverted independently; (D4) ADR posture — five existing ADRs (0003, 0007, 0019, 0050, 0052) are amended in-place to swap `product-control/` → `registry/capability-templates/` without writing a new ADR that records the topology rename rationale; the in-PR evidence explicitly rejects an ADR ('would duplicate topology rationale already represented by the task') but a path move that mutates five ratified ADRs IS the canonical trigger for a superseding/amending ADR per ADR-0019 update protocol. The author's selected_rationale leans on ADR-0116 'already covers Foundry-pipeline VCS/tooling cutover' but ADR-0116 is not cited in the diff hunks for the amended ADRs, so the linkage is unverified.",
+  "alternatives_considered": [
+    "==DECISION 1: DIRECTORY LOCATION (PR chose; F6 supplies competitors)==",
+    "A: registry/capability-templates/ at repo root (CHOSEN). Adds a new top-level registry sibling next to registry/catalog/, registry/audit-chain/, registry/foundation-bypasses/, etc.",
+    "B [canonical-fit]: registries/cross-cutting/capability-templates/ — lands under the existing cross-cutting registries root mentioned in CLAUDE.md root-hub-pointers and matches the cross-cutting axis taxonomy. Cost: deeper path, more typing in CLI defaults; Benefit: zero new top-level fragmentation, aligns with established control-plane root.",
+    "C [Linus-style]: registry/foundry/capabilities/ — scope to the consuming axis (Foundry) rather than inventing a new generic 'capability-templates' bucket. Cost: less generic; Benefit: ownership is unambiguous, no cross-axis confusion if Cloud/Data axes later also want capability records.",
+    "D [hyperscaler-style]: control-plane/capabilities/<id>/{template.yaml,eval-set.yaml,eval-run.yaml} — colocate the three related artifacts under one capability-id directory (Stripe/AWS-style). Cost: directory-per-capability bloat for small catalogs; Benefit: discoverability and atomic per-capability ownership.",
+    "==DECISION 2: TEMPLATE VERSIONING POLICY (PR kept both v1+v2; F6 supplies)==",
+    "A: Keep capability-record-template.yaml AND capability-record-template-v2.yaml side-by-side (CHOSEN by omission — both files are edited in the PR but neither is deleted).",
+    "B [no-silent-regression]: Delete v1 the moment v2 lands; single source of truth; force consumers off legacy. Aligns with the project's own [No silent regression] feedback note and avoids template-drift bugs.",
+    "C: Mark v1 with explicit `sunset_after:` frontmatter and a sunset lane (lean-a-template-sunset) that fails CI after the cutover date. Compromise between (A) and (B).",
+    "==DECISION 3: PR GRANULARITY (PR chose monolith; F6 supplies)==",
+    "A: One 44-file PR covering registry move + CLI defaults + 5 ADR amendments + 9 doc renames + 3 template edits + 7 .omc tmp files (CHOSEN).",
+    "B [F1/Linus-style]: 5 concern-scoped PRs — (b1) git-mv registry files + add registry rows; (b2) CLI default-path swap with test update; (b3) ADR amendments as a single doc-only PR with explicit citation block; (b4) docs/templates path rename; (b5) .omc/project-memory tmp file purge (should arguably never be committed at all — see D5 below). Each is independently revertable and reviewable.",
+    "C [hyperscaler-style]: 2 PRs — (c1) introduce new path, dual-write registry rows for both old and new locations behind a feature flag, run for one cycle; (c2) remove old path. Safer cutover for a path that CI gates reference.",
+    "==DECISION 4: ADR POSTURE (PR chose 'amend 5 ADRs in place'; F6 supplies)==",
+    "A: Amend ADR-0003 / 0007 / 0019 / 0050 / 0052 in-place to swap path strings; no new ADR (CHOSEN, rationale: 'covered by ADR-0116').",
+    "B [ADR-0019 compliant]: Write ADR-0117 'Capability template registry topology cutover from product-control/ to registry/capability-templates/' as a small superseding ADR that the 5 amended ADRs link forward to. Cost: one extra file; Benefit: the move is traceable in the decisions index, not buried in PR body text.",
+    "C [minimum-trace]: Leave the 5 ADRs untouched and add a single ADDENDUM file (docs/decisions/addenda/path-cutover-2026-05-16.md) that records the global string substitution. Avoids rewriting ratified ADRs while preserving forensic intent.",
+    "==DECISION 5 (BONUS — F6 identified): .OMC PROJECT-MEMORY TMP FILES==",
+    "A: Commit 7 .omc/.project-memory.json.tmp.* files into the PR (CHOSEN — see files [0..6] in pr-15-meta.json).",
+    "B: .omc/.project-memory.json.tmp.* should be in .gitignore — these are tool tmp files; committing them pollutes git history and the diff. Alternative: add to .gitignore and `git rm --cached` in a follow-up cleanup PR."
+  ],
+  "in_pr_evidence_critique": {
+    "embedded_F6_row_path": "evidence/multispectrum/capability-template-registry-cleanup-1778915963.json",
+    "embedded_F6_alternatives_count": 3,
+    "f6_floor_for_CC3": 3,
+    "verdict_on_embedded_F6": "MEETS minimum count but FAILS depth — none of the 3 named alternatives are Linus-style or hyperscaler-style competitors; they are 'keep status quo / do the move / write an ADR' which is a trivial 3-option ladder. The four load-bearing decisions enumerated above are not surfaced in the embedded row."
+  },
+  "anti_patterns_detected": [
+    "alternative-not-considered (directory location, versioning policy, PR granularity, ADR posture, .omc tmp files)",
+    "monolithic-PR (44 files mixing 6 concern classes)",
+    "ADR-by-amendment (5 ratified ADRs mutated in-place without a superseding ADR)",
+    "shallow-alternatives-ladder (in-PR F6 row uses 'do nothing / do it / write ADR' as the 3 options instead of comparing principled topology choices)",
+    "version-coexistence (both v1 and v2 templates kept without deprecation plan)",
+    "tool-tmp-files-committed (7 .omc/*.tmp.* in tracked changes)"
+  ],
+  "key_claims": [
+    "PR moves three capability/eval YAML files via git-mv from product-control/ to registry/capability-templates/ and registers each in registry/artifact-capabilities-registry.json (verified in diff lines ~480-540 and rename entries in pr-15-meta files[].changeType=RENAMED).",
+    "Five ratified ADRs (0003, 0007, 0019, 0050, 0052) are amended in-place to swap path strings; no new ADR added; selected_rationale claims coverage by ADR-0116 but ADR-0116 is not cited in any amended ADR hunk.",
+    "Both docs/templates/capability-record-template.yaml and docs/templates/capability-record-template-v2.yaml are edited in the same PR but neither is sunset — version coexistence anti-pattern.",
+    "7 .omc/.project-memory.json.tmp.* files are part of the committed diff (pr-15-meta files[0..6]) — these are tool tmp files that should be gitignored.",
+    "In-PR F6 evidence row lists only 3 alternatives, none of which is the canonical-fit 'registries/cross-cutting/' option, the per-axis 'registry/foundry/capabilities/' option, or the per-capability-directory hyperscaler layout."
+  ],
+  "uncertainty_areas": [
+    "Whether ADR-0116 actually authorizes the path cutover — could not verify from the PR diff alone (ADR-0116 is named in the PR body but its text is not included in the diff).",
+    "Whether registries/cross-cutting/ is the established canonical root or merely a CLAUDE.md pointer naming convention — would need to inspect /specs/cross-cutting/root-hub-pointers.json to confirm.",
+    "Whether capability-record-template.yaml (v1) is still consumed anywhere or can simply be deleted — a grep over the repo would resolve this; not done within the 200-word reply budget.",
+    "Whether .omc/.project-memory.json.tmp.* files are intentionally tracked (some workflows rely on session memory persistence) or pure tooling artifacts."
+  ],
+  "recommendation": "BLOCK. Require: (1) author surfaces D1-D5 alternatives in evidence file with explicit Linus + hyperscaler trade-off per decision; (2) write ADR-0117 (or addendum) recording the topology cutover per ADR-0019 protocol; (3) split into ≥3 PRs (registry/CLI move; ADR amendments; doc renames); (4) decide v1-vs-v2 template policy explicitly; (5) gitignore .omc/*.tmp.*. If splitting is refused, at minimum add the missing alternatives table and the superseding ADR within this PR before merge."
+}

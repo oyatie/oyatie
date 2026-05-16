@@ -33,7 +33,7 @@
   },
   "next_changeset_pre_decisions": {
     "compartment_structure": "Decide: flat (everything in root) or partitioned (e.g. foundry/, cloud/, pilot-kr/, prod/, nonprod/)",
-    "stage_0_runtime": "Decide: Bominal ADR-0117 prescribes 'OCI A1 → OKE stages'. Stage 0 == ARM Always Free A1 instance running oya-application-shell-app, per M02-substrate-P22 exit-gate spec",
+    "stage_0_runtime": "Decide: Bominal ADR-0117 prescribes 'OCI A1 → OKE stages'. Stage 0 == ARM Always Free A1 instance running oya-application-shell-app, per M02b-substrate-P22 exit-gate spec",
     "kms_vault": "Required by M02-P08 secrets/kms; create one default vault now or per-environment",
     "api_gateway": "Needed for public ingress; may be deferred until first public service",
     "oke": "Stage 1 target; not required for M2 exit (Stage 0 is A1)",

@@ -1,0 +1,55 @@
+{
+  "schema": "multispectrum-review/v2.3.0",
+  "change_id": "pr-17",
+  "pr_number": 17,
+  "pr_title": "Record multispectrum review evidence for merged PR wave",
+  "change_class_id": "CC-6 generated_or_vendored",
+  "round": "synthesis",
+  "rendered_at_unix": 1779063300,
+  "spec_version": "2.3.0",
+  "synthesis_owner": "claude-msr-orchestrator-pr-12-18-wave-2026-05-16",
+  "facets_evaluated": ["F1_linus", "F2_hyperscaler", "F3_adversarial", "F4_ergonomic", "F5_quality", "F6_alternatives", "F7_security", "F8_performance", "F9_compliance", "F10_reversibility", "F13_migration", "M1_challenge_assumption", "M2_zoomed_out_fit", "A1_naming_adherence", "A2_documentation_adherence", "A3_structure_adherence", "A4_architecture_adherence", "A5_dependency_adherence", "A6_schema_adherence", "A7_algorithm_adherence"],
+  "facet_count_total": 20,
+  "executor_topology_compliance": {"rule": "one subagent per facet", "verified": true, "reviewer_id_overlap_across_facets": "NONE", "distinct_reviewer_ids": 20},
+  "round_1_verdicts": {
+    "F1_linus": "approve-with-fixups (against policy not PR)", "F2_hyperscaler": "changes-requested",
+    "F3_adversarial": "approve-with-fixups (3 HIGH)", "F4_ergonomic": "yellow (4 MAJOR)",
+    "F5_quality": "request-changes", "F6_alternatives": "fail-pass-with-reservations",
+    "F7_security": "approve (medium)", "F8_performance": "pass",
+    "F9_compliance": "pass (2 gaps)", "F10_reversibility": "pass",
+    "F13_migration": "approve-with-fixups", "M1_challenge_assumption": "approve-with-fixups (major)",
+    "M2_zoomed_out_fit": "partial-sidesteps", "A1_naming_adherence": "request-changes",
+    "A2_documentation_adherence": "revise", "A3_structure_adherence": "accept",
+    "A4_architecture_adherence": "accept", "A5_dependency_adherence": "pass",
+    "A6_schema_adherence": "fail", "A7_algorithm_adherence": "pass"
+  },
+  "consensus_points": [
+    "Pure-data evidence emission — zero code/security risk; CI green; revert trivial",
+    "9 audit-chain rows correctly emitted; executor_topology technically compliant (18 distinct reviewer_ids/PR; no cross-facet collisions in records)",
+    "64 declared FixupTasks NOT filed in registries/cross-cutting/fixuptasks.jsonl (F2 + F3 + F9)",
+    "All 9 audit-chain events share IDENTICAL timestamp_unix=1778920055 + identical session_id — proves single-session emission, contradicting per-facet-per-subagent doctrine spirit (M2)",
+    "r1 schema does not match doctrine: pr-N-FX-r1.json carry {pr_number, summary, findings} but lack required {answer, key_claims, uncertainty_areas} (F5 + A6)",
+    "r2 files are byte-identical templates per facet (boilerplate filler) (F1 + M1 + F6)"
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [],
+  "unresolved_tensions": [
+    "Schema mismatch is doctrine-vs-emitted: either ratify retrospective-PR-review variant OR backfill required keys"
+  ],
+  "fixuptasks": [
+    {"id": "F-PR17-01", "severity": "critical", "summary": "64 declared FixupTasks NOT filed in registries/cross-cutting/fixuptasks.jsonl — synthesis arrays only (F2 + F3 + F9)", "lane": "fixuptasks-registry-emission"},
+    {"id": "F-PR17-02", "severity": "high", "summary": "Audit-chain rows lack prev_hash/content_sha256/signature — 'audit-chain' is misnomer; should be cryptographically chained per [[no_silent_regression]] (F3 + F5 + F7)", "lane": "audit-chain-cryptographic-chain"},
+    {"id": "F-PR17-03", "severity": "high", "summary": "All 9 audit-chain events share identical timestamp_unix + session_id — proves single-session emission contradicting per-facet-per-subagent doctrine (M2)", "lane": "doctrine-true-subagent-execution"},
+    {"id": "F-PR17-04", "severity": "high", "summary": "pr-N-FX-r1.json schema diverges from doctrine round_1_independent.required_keys (missing answer, key_claims, uncertainty_areas) (F5 + A6)", "lane": "evidence-schema-doctrine-conformance"},
+    {"id": "F-PR17-05", "severity": "high", "summary": "r2 rebuttal files are byte-identical templates per facet — banning shell/Python rule forced hand-typed boilerplate (F1 + M1)", "lane": "doctrine-r2-no-op-schema"},
+    {"id": "F-PR17-06", "severity": "medium", "summary": "Naming drift: pr-N wave uses codex-F1-pr-1 (id-only); doctrine + self-review use claude-F1_linus-pr-N (with descriptor) — same PR two conventions (A1)", "lane": "reviewer-id-format-uniformity"},
+    {"id": "F-PR17-07", "severity": "medium", "summary": "Build evidence-emitter generator (omc msr backfill --prs <list>) so future waves are scripted not hand-typed; codify in ADR (F2 + F6 + M1 + M2)", "lane": "automate-everything"},
+    {"id": "F-PR17-08", "severity": "medium", "summary": "ADR-0119/0118/0117/0116/0115 not in DOC-CATALOG/ADR-INDEX/decisions.json — wave-wide systemic doc-index drift; emit one fix per ADR plus a regenerator script (A2 across PRs 12/13/15/17/18)", "lane": "docs-catalog-drift-systemic"},
+    {"id": "F-PR17-09", "severity": "medium", "summary": "evidence/debate/ has no README/INDEX orienting newcomers to the 173-file corpus (F4 + A2)", "lane": "evidence-debate-readme"},
+    {"id": "F-PR17-10", "severity": "low", "summary": "PR #5 round numbering exception (r2/r3 instead of r1/r2) breaks pr-*-F*-r1.json glob — document or normalize (F4)", "lane": "evidence-naming-normalization"},
+    {"id": "F-PR17-11", "severity": "low", "summary": "PRs #4 and #10 absent from this evidence wave (F13)", "lane": "evidence-coverage-gap"},
+    {"id": "F-PR17-12", "severity": "low", "summary": "Add CHANGELOG entry for the evidence backfill wave (A2)", "lane": "changelog-drift"}
+  ],
+  "final_recommendation": "approve-with-fixups (post-merge); precedent risk for retroactive review pattern flagged",
+  "termination_reason": "consensus_reached",
+  "audit_chain_event_to_emit": "consensus_debate_complete"
+}

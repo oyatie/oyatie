@@ -12,7 +12,7 @@ related:
 purpose: Define the merge-queue algorithm (projected-merge-state diff validation + fix-at-any-stage adjustment) that prevents divergence + conflicts under heavy agentic concurrency.
 ---
 
-# ADR-0111 — Merge queue: projected-merge-state + fix-at-any-stage
+# ADR-0111: Merge queue: projected-merge-state + fix-at-any-stage
 
 ## Context
 

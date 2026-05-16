@@ -1,0 +1,83 @@
+{
+  "pr": 15,
+  "facet": "A6_schema_adherence",
+  "round": 1,
+  "verdict": "REVISE",
+  "drift_detected": true,
+  "schemas_missing_id": true,
+  "findings": {
+    "critical": [
+      {
+        "id": "A6-C1",
+        "title": "Referenced schema file does not exist in repo",
+        "evidence": "capability-record-template-v2.yaml line 1 and 6 cite `registry/quality/capability-record.schema.json`; capability-record-template.yaml line 2 cites same path. `find registry/quality -name capability-record.schema.json` returns zero hits (only `lanes.yaml` and `lanes/` exist under registry/quality/).",
+        "confidence": "HIGH",
+        "impact": "CI gate `capability-schema-validator` and `oya-foundry-fitness-capability-publish` lane reference a non-existent schema. Any caller copying these templates and attempting validation will fail. PR claims templates were 'centralized under registry' but the schema they validate against is missing.",
+        "fix": "Add `registry/quality/capability-record.schema.json` with `$schema`, `$id`, `_meta` and closed-enum coverage for autonomy tier (T1..T4), status (proposed|preview|stable|deprecated), cost_class (low|med|high), slsa_provenance_level (1|2|3). Or update templates to reference the actually-present schema path."
+      }
+    ],
+    "major": [
+      {
+        "id": "A6-M1",
+        "title": "capability-eval-set-template.yaml has zero schema markers",
+        "evidence": "docs/templates/capability-eval-set-template.yaml lines 1-34: no `# yaml-language-server: $schema=...` directive, no `$id`, no `_meta`. `metric` field is open string with pipe-separated suggestions `ExactMatch | F1 | Bleu | Rouge | HumanJudged | Composite` — not a closed enum at schema level.",
+        "confidence": "HIGH",
+        "impact": "P1 machine-optimized validation impossible. Adversarial/linguistic/golden sub-shapes have no required fields enforced. CI lanes `capability-eval-coverage` and `capability-eval-{adversarial,linguistic}-coverage` cited at line 3 cannot enforce a schema that does not exist.",
+        "fix": "Add `# yaml-language-server: $schema=../../registry/quality/capability-eval-set.schema.json` header and ship the JSON Schema with closed `metric` enum, `required: [capability_id, version, metric, pass_threshold]`."
+      },
+      {
+        "id": "A6-M2",
+        "title": "v2 not schema-compatible with v1 callers (silent breaking change)",
+        "evidence": "v1 template uses flat keys `id`, `namespace`, `version`, `autonomy_tier_required`, `data_classes_touched`, `evidence_emission_topic`, `eval_set`, `owner_team`. v2 nests under `metadata.{id,namespace,version,owner_team,status,purpose}`, renames `autonomy_tier_required` -> `autonomy.tier_required`, `data_classes_touched` -> `data_class.allowlist`+`blocklist`, `evidence_emission_topic` -> `evidence.audit_chain.emission_topic`, `eval_set` -> `evidence.evaluation.eval_set_ref`. Also adds `apiVersion`/`kind`. Header at v2 line 8 says 'Supersedes ... (preserves existing schema...)' which is FALSE — the shape changed.",
+        "confidence": "HIGH",
+        "impact": "Violates [no_silent_regression] precedent. Any v1 caller (CLI, lane, fitness gate) reading flat keys gets `None` for every field. No version-pin, no compatibility adapter, no ADR cited for the breaking rename.",
+        "fix": "Either (a) add an `apiVersion`-based discriminator in the schema with explicit v1 deprecation ADR + sunset date per ADR-0037, (b) provide a v1->v2 migrator, or (c) correct the misleading 'preserves existing schema' line in the v2 header."
+      },
+      {
+        "id": "A6-M3",
+        "title": ".project-memory.json.tmp.<UUID> files have no schema validation and ship in PR",
+        "evidence": "6 tmp files modified in PR (`.omc/.project-memory.json.tmp.{02e54f69,1132fddd,4a0c6800,8c4e8f96,d332bcd9,f76fe76c}`). Each contains plain JSON with no `$schema`, no `$id`, no `_meta`. `grep -rl 'project-memory.json.tmp' crates/ scripts/` returns zero hits — nothing validates these. Content drifts (e.g. tmp.02e54f69 line 21 contains `cd /Users/jasonlee/bominal && rtk cargo build` — a stale Bominal absolute path leaking into Oyatie repo).",
+        "confidence": "HIGH",
+        "impact": "Six tmp/UUID-named files committed as canonical state with no schema, no closed enums, and content pointing at a sibling repo. They are not gitignored. Drift will compound on every OMC scan.",
+        "fix": "Gitignore `.omc/.project-memory.json.tmp.*`, remove the six files from the merge, and define a JSON Schema for `.omc/project-memory.json` with `$schema`, `$id`, closed enums for `techStack.languages[].confidence`, `structure.gitBranches.branchingStrategy`, etc."
+      },
+      {
+        "id": "A6-M4",
+        "title": "capability-record-template.yaml v1 still ships with no schema directive",
+        "evidence": "docs/templates/capability-record-template.yaml lines 1-3 are bare comments. No `# yaml-language-server: $schema=...`. Open-string fields: `input_token_cost_class: low | med | high` (line 36) is documented as enum-by-pipe but enforced nowhere. `autonomy_tier_required: T2` (line 23) similarly open.",
+        "confidence": "HIGH",
+        "impact": "IDE/CI validation impossible without LSP directive. Author intent (closed enum) is not enforceable.",
+        "fix": "Add `# yaml-language-server: $schema=../../registry/quality/capability-record.schema.json` directive (matching v2 line 1) and ship the schema with closed enums."
+      }
+    ],
+    "minor": [
+      {
+        "id": "A6-m1",
+        "title": "PR is a path-rename cleanup that touches templates only at the path-comment level",
+        "evidence": "All three template diffs are single-line comment changes redirecting `product-control/capabilities/` -> `registry/capability-templates/`. The PR did not regress existing schema markers; it failed to ADD them while having the templates open.",
+        "confidence": "HIGH"
+      }
+    ]
+  },
+  "ambiguity_risks": [
+    {
+      "quote": "Validates against registry/quality/capability-record.schema.json",
+      "interp_a": "Schema file exists and is the authoritative validator",
+      "interp_b": "Schema file is aspirational / scheduled for future work",
+      "risk": "Implementers copying templates assume (a); CI run silently fails or skips. Codex-side review may rubber-stamp because the path is plausible."
+    }
+  ],
+  "whats_missing": [
+    "No `$id` URN/URI in any template",
+    "No `_meta` block (owner, schema_version, generated_at) in any template",
+    "No JSON Schema artifact at the cited registry/quality/ path",
+    "No closed enum for autonomy tiers, cost classes, SLSA level, status",
+    "No `required` field declaration in YAML headers",
+    "No gitignore for .omc/.project-memory.json.tmp.* (six tmp files committed)",
+    "No ADR justifying v1->v2 capability-record schema break",
+    "No version-pin / apiVersion discriminator in v1 template"
+  ],
+  "verdict_justification": "Three CRITICAL/MAJOR schema-adherence violations: (1) the referenced schema file does not exist on disk, (2) v2 is a silent breaking rename masquerading as backward-compatible, (3) six tmp/UUID JSON files committed without any schema and leaking a Bominal absolute path. Templates carry partial yaml-language-server hint (v2 only); v1 and eval-set template carry none. Realist check: downgrade A6-M3 stayed at MAJOR because the tmp files contain a cross-repo absolute path that will mislead the next scanner — mitigated only by the fact they are local-state files. A6-C1 stays CRITICAL — a CI gate citing a non-existent schema is a verifiable lie. Review operated in THOROUGH mode; did not escalate because only one CRITICAL found and PR scope is mechanical cleanup.",
+  "principle_option_consistency": "Fail — PR title 'Centralize capability templates under registry' is met for paths, not for schema. Path centralization without schema centralization is half-done.",
+  "ralplan_summary": null
+}

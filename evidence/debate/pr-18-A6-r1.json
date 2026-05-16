@@ -1,0 +1,40 @@
+{
+  "facet": "A6_schema_adherence",
+  "pr": 18,
+  "round": 1,
+  "verdict": "REJECT",
+  "drift_detected": true,
+  "schemas_missing_id": false,
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "claim": "PR title 'Flatten specs cross-cutting topology' is false on filesystem",
+      "evidence": "ls /Users/jasonlee/oyatie/specs/ shows only 'cross-cutting/' subdirectory; 26 JSONs still live under /specs/cross-cutting/, none at /specs/ flat root. No 'rename from'/'rename to' lines in pr-18.diff.",
+      "impact": "Textual flattening only; no actual file move."
+    },
+    {
+      "severity": "CRITICAL",
+      "claim": "$schema/cross-references rewritten to non-existent flat paths",
+      "evidence": "pr-18.diff L502-503 rewrites \"$schema\":\"/specs/cross-cutting/plan-schema.json\" -> \"/specs/plan-schema.json\"; L84-88 rewrites pointers to /specs/{root-hub-pointers,masterplan,master-plan-sequencing,gitops-vcs-replacement,test-standard}.json. None of those flat paths exist (verified via ls).",
+      "impact": "Any resolver following $schema or root-hub-pointers entries will 404. Schema validation breaks for affected JSONs."
+    },
+    {
+      "severity": "MAJOR",
+      "claim": "$id fields not updated in lockstep",
+      "evidence": "jq on specs/cross-cutting/masterplan.json shows $id=https://docs.oyatie.dev/specs/masterplan.json (already flat URL form, unchanged). $id is absolute-URL-based and decoupled from on-disk path, so $id stayed coherent — but the *textual* $schema rewrites in the diff create a new mismatch class between $schema literals and actual file locations.",
+      "impact": "$id remains valid; $schema literals introduced by this PR are stale on day one."
+    },
+    {
+      "severity": "MINOR",
+      "claim": ".omc/handoffs JSONs lack $id and $schema",
+      "evidence": "jq on .omc/handoffs/finish-mcc-handoff-2026-05-14.json and session-handoff-2026-05-14.json returns null for both $id and $schema. PR-18 modified these but did not add schema metadata.",
+      "impact": "Handoffs remain unschematized; pre-existing condition, not introduced by this PR."
+    }
+  ],
+  "realist_check": "CRITICAL findings hold: ADR-0119 ('specs flat root topology') and 26 textual references promise a flat topology that the merged tree does not deliver. Mitigated by: $id absolute URLs decouple from disk paths, so jsonschema runtime resolution via $id is unaffected; only literal $schema/pointer dereferences break.",
+  "mode": "ADVERSARIAL",
+  "open_questions": [
+    "Was a follow-up rename commit intended but dropped during the signed-replacement rebase that superseded #14?",
+    "Does any CI lane resolve /specs/<file>.json literally? If yes, lanes will fail post-merge."
+  ]
+}

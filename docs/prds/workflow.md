@@ -6,7 +6,7 @@ microservice: workflow
 status: Accepted
 sales_segment: shared-substrate
 tier: B2B
-milestone_first_ship: M02-substrate-ready
+milestone_first_ship: M02b-substrate-ready
 bominal_source:
   - ADR-0035   # Workflow engine (hybrid state machine + DAG)
   - ADR-0103   # Workflow hexagonal migration

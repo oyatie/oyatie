@@ -110,7 +110,7 @@ events: [<EventName>, ...]
 # Phase-spec (already has frontmatter; ADR-0063 §4 enforced)
 doc_class: PhaseSpec
 template_id: TPL-PHASE-SPEC
-milestone: M02-substrate
+milestone: M02b-substrate
 phase: P20-ci-lanes-operational
 status: Proposed | InProgress | Complete
 acceptance_lanes: [<lane-id>, ...]
@@ -124,7 +124,7 @@ exit_gate: |
 # Impl-plan
 doc_class: ImplementationPlan
 template_id: TPL-IMPL
-milestone: M02-substrate
+milestone: M02b-substrate
 phase: P20-ci-lanes-operational
 impl_plan_id: IP-001-ci-lanes-statelessness-shardability
 status: pending | in-progress | complete
@@ -134,7 +134,7 @@ acceptance_lanes: [<lane-id>, ...]
 # Milestone README
 doc_class: MilestoneReadme
 template_id: TPL-MILE-README
-milestone_id: M02-substrate
+milestone_id: M02b-substrate
 status: Proposed | Active | Complete
 entry_gate: ...
 exit_gate: ...
@@ -221,7 +221,7 @@ The agent / fitness-lane / autopilot consumer contract (per ADR-0063 + Foundry p
   "indexes": {
     "by_doc_class": { "ADR": [...], "PRD": [...], ... },
     "by_microservice": { "payroll": [...], "hr": [...], ... },
-    "by_milestone": { "M02-substrate": [...], "M03-first-tenant": [...], ... },
+    "by_milestone": { "M02b-substrate": [...], "M07-first-tenant": [...], ... },
     "by_pack": { "kr": [...] }
   }
 }

@@ -1,0 +1,48 @@
+{
+  "reviewer_id": "claude-F13_migration-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "F13_migration",
+  "lens": "Migration — upgrade path, deprecation window, breaking-change handling",
+  "answer": "PR #12 executes a single-commit, zero-deprecation-window cutover of an Argo CD GitOps path from deploy/gitops/oya-vcs-admission to infra/kyverno/oya-vcs-admission. The merge commit 70b83631 atomically (a) deletes the old tree, (b) creates the new tree, (c) rewrites the application.json self-referential spec.source.path to the new location, and (d) rewrites all 7 in-repo string references. This is a TECHNICALLY BREAKING CHANGE for any external consumer that hardcoded deploy/gitops/oya-vcs-admission (e.g., a cluster-side Argo Application object whose spec.source.path was authored manually rather than via the repo's application.json, a Flux Kustomization, an ApplicationSet generator, or another repo's git submodule pin). The PR makes zero attempt to enumerate or notify such consumers. Rename detection: `git diff-tree -M 70b83631^ 70b83631` confirms git detected the move as a RENAME for application.json (the only file in the moved tree), preserving --follow history — verified via `git log --all --follow -- infra/kyverno/oya-vcs-admission/application.json` walking back to the original deploy/gitops commit chain. So history preservation: PASS. Cutover atomicity: SINGLE COMMIT, no two-paths-coexist window — this is the right call for an internal-only path but the wrong call if any external Argo controller has the old path cached. ADR-0117 lives in docs/decisions/ and documents the move with rationale and naming justification, but it is NOT a migration note: no docs/migration/ entry exists, docs/CHANGELOG.md was NOT updated in this PR (verified via `git show 70b83631 -- docs/CHANGELOG.md` returning empty), and no consumer-facing breaking-change notice was issued. The repo has no docs/migration/ directory at all. External-consumer enumeration: NOT PERFORMED. The PR body, ADR-0117, and merge commit message all assume in-repo references are the complete consumer set; sibling reviewers F1, F3, F7, A3 all independently flagged 'whether external Argo ApplicationSet / Flux / out-of-repo automation hardcodes deploy/gitops/oya-vcs-admission' as an unverified uncertainty. Risk-rating assessment: the application.json is itself the source-of-truth Argo Application manifest (kind: Application, name: oya-vcs-admission-preview), so it is plausibly the ONLY way the cluster knows about this app, meaning the spec.source.path rewrite is self-contained and reconciliation just picks up the new path on the next sync. However, if Argo was already reconciling the OLD path and the application.json was registered out-of-band (e.g., applied manually with `kubectl apply` of an older revision), Argo will see 'path deploy/gitops/oya-vcs-admission not found' on the next sync after merge and mark the Application Unknown/OutOfSync — no rollback runbook ships with the PR. Deprecation window: NONE (zero days). For a CC-2 single-Argo-app rename in an internal repo this is defensible IF (and only if) the application.json is the authoritative bootstrap and no external manifests reference the path. The PR neither asserts nor verifies that precondition.",
+  "key_claims": [
+    "Atomic single-commit cutover (70b83631) — old tree deleted and new tree created in the same commit; no two-paths-coexist window exists",
+    "git mv preserved history — rename detection confirmed via `git diff-tree -M 70b83631^ 70b83631` (R-status for application.json) and `git log --follow` walks back through deploy/gitops chain",
+    "Self-referential application.json spec.source.path was correctly rewritten to infra/kyverno/oya-vcs-admission — Argo will reconcile to the new location on next sync if it reads the in-repo manifest",
+    "ADR-0117 documents the move with naming justification but is NOT a migration note — it lives in docs/decisions/, not docs/migration/ (which does not exist), and docs/CHANGELOG.md was not updated in this PR",
+    "Zero deprecation window (0 days) — defensible for an internal-only Argo path rename, but the PR makes no attempt to verify the internal-only assumption",
+    "External-consumer enumeration was NOT performed — flagged by sibling reviewers F1, F3, F7, A3 as a shared uncertainty; if any cluster-side Argo Application, ApplicationSet, Flux Kustomization, or sibling repo hardcodes the old path, it will break silently on the next reconcile",
+    "No rollback runbook ships with the PR (e.g., `argocd app set ... --path deploy/gitops/oya-vcs-admission` reversion sequence)",
+    "No pre-flight or post-cutover Argo state snapshot (`kubectl -n argocd get application oya-vcs-admission-preview -o yaml`) was captured to evidence/"
+  ],
+  "uncertainty_areas": [
+    "Whether any out-of-repo Argo ApplicationSet, Flux Kustomization, or cluster-side automation hardcodes deploy/gitops/oya-vcs-admission — cannot verify without cluster access; only in-repo refs were enumerated by the PR and by all sibling reviewers",
+    "Whether the Argo Application object on the cluster was bootstrapped from the in-repo application.json (in which case the self-referential path rewrite is sufficient) or applied out-of-band with a manually authored path (in which case the cluster Application still points at the dead path)",
+    "Whether other repos submodule or git-subtree this repo and pin the old path — not enumerable from inside the repo"
+  ],
+  "is_breaking_change": true,
+  "deprecation_window": "none",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "summary": "Zero-day cutover with no external-consumer enumeration: the PR atomically moves the Argo manifest path and assumes the in-repo application.json is the sole consumer of the old path, but never verifies that assumption. Any cluster-side Argo Application or ApplicationSet authored with the old path will silently fail to reconcile on the next sync after merge.",
+      "recommended_action": "Before or immediately after merge, run `kubectl -n argocd get applications -o yaml | grep -E 'path:.*deploy/gitops/oya-vcs-admission'` (and the same against any Flux Kustomization) and attach the (empty) output to evidence/gitops-vcs/ as a pre-flight attestation. If any cluster Application points at the old path, follow up with `argocd app set <name> --path infra/kyverno/oya-vcs-admission`.",
+      "fixuptask_id": "F-PR12-13"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "No migration note in docs/CHANGELOG.md and no docs/migration/ entry — ADR-0117 is the only durable record of the breaking path change, and ADRs are decision records not consumer-facing migration notices. Downstream readers scanning the changelog for breaking-path notices will find nothing.",
+      "recommended_action": "Add a 'Breaking — infrastructure path' row to docs/CHANGELOG.md citing ADR-0117 with the explicit before/after path pair, the merge SHA (70b83631), and a one-line consumer-action instruction. Optionally create docs/migration/2026-05-16-oya-vcs-admission-path.md as the canonical migration note (one-line: 'deploy/gitops/oya-vcs-admission → infra/kyverno/oya-vcs-admission; update any out-of-repo Argo Application spec.source.path').",
+      "fixuptask_id": "F-PR12-14"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "No rollback runbook accompanies the cutover. If post-merge Argo reconciliation reports OutOfSync because some cluster Application still references the old path, the PR provides no documented reversion sequence.",
+      "recommended_action": "Append a 'Rollback' section to ADR-0117 with the literal `argocd app set oya-vcs-admission-preview --path deploy/gitops/oya-vcs-admission` reversion command and the conditions under which to invoke it (Application status Unknown or OutOfSync due to 'path not found' within 1 reconcile interval of merge).",
+      "fixuptask_id": "F-PR12-15"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}

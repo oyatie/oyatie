@@ -1,5 +1,5 @@
 # kube-proxy iptables mode (Debian 13 trixie pin).
-# Authority: ADR-0119 §Debian-13-gotcha. Apply with:
+# Authority: ADR-0121 §Debian-13-gotcha. Apply with:
 #   kubectl apply -f infra/onprem/kubeadm/post-install/kube-proxy-iptables-mode.yaml
 #   kubectl -n kube-system rollout restart daemonset kube-proxy
 #

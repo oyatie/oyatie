@@ -14,7 +14,7 @@ purpose: |
   non-overlapping executors in dependency-aware waves.
 phase_count:
   M01: 11  # 6 foundational (P01-P06, all EXISTS/complete) + 5 operational BNF-cutover (PShard0-PShard4)
-  M02: 22  # P01-P22 in .omc/plans/milestones/M02-substrate/phases/
+  M02: 22  # P01-P22 in .omc/plans/milestones/M02b-substrate/phases/
   M03: 8   # P01-P08 in .omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/
   total: 41 # (35 operational + 6 M01 foundational completed)
 grit_session_note: |
@@ -60,7 +60,7 @@ All phases in dependency order. `parallel_wave` encodes which phases may fire si
 
 ### M02 — Substrate Ready
 
-**Directory:** `.omc/plans/milestones/M02-substrate/phases/`
+**Directory:** `.omc/plans/milestones/M02b-substrate/phases/`
 
 Dependency logic: P01-P11 are independent substrate µservices that can all fan out in parallel after M01 exits. P12-P16 require the foundational substrate (P01-P11) to be at least structurally established (kernel crates + DDL merged). P17-P19 require P12-P16 complete (workflow engine, tenancy, policy, data-boundary, records). P20 is a CI lane gate running in parallel with P17-P19. P21 serializes on P17-P20. P22 serializes on P21.
 
@@ -278,17 +278,17 @@ Symbol spaces are non-overlapping. Each executor owns its µservice namespace ex
 
 | Executor  | Phase   | Slug                      | Grit claim symbol space                                                    | Path |
 |-----------|---------|---------------------------|----------------------------------------------------------------------------|------|
-| M02.W1.A  | M02-P01 | foundry-engine-consolidation | `oya-foundry-*` / `oya-tooling-agent-read` / grit-integration symbols    | `.omc/plans/milestones/M02-substrate/phases/P01-foundry-engine-consolidation/` |
-| M02.W1.B  | M02-P02 | ontology                  | `oya-ontology-*` (all BCs: entity, link, action, function, agent-gateway, audit-chain, pillar) | `.omc/plans/milestones/M02-substrate/phases/P02-ontology/` |
-| M02.W1.C  | M02-P03 | identity                  | `oya-identity-*` (user, person, organization, employee, session, passkey)  | `.omc/plans/milestones/M02-substrate/phases/P03-identity/` |
-| M02.W1.D  | M02-P04 | audit-chain               | `oya-audit-chain-*` (kernel, adapter, merkle, sealer, worker)              | `.omc/plans/milestones/M02-substrate/phases/P04-audit-chain/` |
-| M02.W1.E  | M02-P05 | eventing                  | `oya-eventing-*` (outbox, kafka-adapter, dispatcher, worker)               | `.omc/plans/milestones/M02-substrate/phases/P05-eventing/` |
-| M02.W1.F  | M02-P06 | secrets                   | `oya-secrets-*` (kernel, openbao-adapter, hsm-adapter)                     | `.omc/plans/milestones/M02-substrate/phases/P06-secrets/` |
-| M02.W1.G  | M02-P07 | observability             | `oya-observability-*` (otel-kernel, victoria-metrics-adapter, log-drain)   | `.omc/plans/milestones/M02-substrate/phases/P07-observability/` |
-| M02.W1.H  | M02-P08 | kms                       | `oya-kms-*` (kernel, envelope-encryption, dek-store, hsm-adapter) — **starts after M02-P06 grit done within W1** | `.omc/plans/milestones/M02-substrate/phases/P08-kms/` |
-| M02.W1.I  | M02-P09 | search                    | `oya-search-*` (pgroonga-adapter, tantivy-adapter, morphology-ko, worker)  | `.omc/plans/milestones/M02-substrate/phases/P09-search/` |
-| M02.W1.J  | M02-P10 | vector                    | `oya-vector-*` (pgvector-adapter, hnsw-adapter, embedding-kernel)          | `.omc/plans/milestones/M02-substrate/phases/P10-vector/` |
-| M02.W1.K  | M02-P11 | finance-library           | `oya-finance-*` (money, currency-code, journal-entry, rounding-policy)     | `.omc/plans/milestones/M02-substrate/phases/P11-finance-library/` |
+| M02.W1.A  | M02-P01 | foundry-engine-consolidation | `oya-foundry-*` / `oya-tooling-agent-read` / grit-integration symbols    | `.omc/plans/milestones/M02b-substrate/phases/P01-foundry-engine-consolidation/` |
+| M02.W1.B  | M02-P02 | ontology                  | `oya-ontology-*` (all BCs: entity, link, action, function, agent-gateway, audit-chain, pillar) | `.omc/plans/milestones/M02b-substrate/phases/P02-ontology/` |
+| M02.W1.C  | M02-P03 | identity                  | `oya-identity-*` (user, person, organization, employee, session, passkey)  | `.omc/plans/milestones/M02b-substrate/phases/P03-identity/` |
+| M02.W1.D  | M02-P04 | audit-chain               | `oya-audit-chain-*` (kernel, adapter, merkle, sealer, worker)              | `.omc/plans/milestones/M02b-substrate/phases/P04-audit-chain/` |
+| M02.W1.E  | M02-P05 | eventing                  | `oya-eventing-*` (outbox, kafka-adapter, dispatcher, worker)               | `.omc/plans/milestones/M02b-substrate/phases/P05-eventing/` |
+| M02.W1.F  | M02-P06 | secrets                   | `oya-secrets-*` (kernel, openbao-adapter, hsm-adapter)                     | `.omc/plans/milestones/M02b-substrate/phases/P06-secrets/` |
+| M02.W1.G  | M02-P07 | observability             | `oya-observability-*` (otel-kernel, victoria-metrics-adapter, log-drain)   | `.omc/plans/milestones/M02b-substrate/phases/P07-observability/` |
+| M02.W1.H  | M02-P08 | kms                       | `oya-kms-*` (kernel, envelope-encryption, dek-store, hsm-adapter) — **starts after M02-P06 grit done within W1** | `.omc/plans/milestones/M02b-substrate/phases/P08-kms/` |
+| M02.W1.I  | M02-P09 | search                    | `oya-search-*` (pgroonga-adapter, tantivy-adapter, morphology-ko, worker)  | `.omc/plans/milestones/M02b-substrate/phases/P09-search/` |
+| M02.W1.J  | M02-P10 | vector                    | `oya-vector-*` (pgvector-adapter, hnsw-adapter, embedding-kernel)          | `.omc/plans/milestones/M02b-substrate/phases/P10-vector/` |
+| M02.W1.K  | M02-P11 | finance-library           | `oya-finance-*` (money, currency-code, journal-entry, rounding-policy)     | `.omc/plans/milestones/M02b-substrate/phases/P11-finance-library/` |
 
 **Est. wall-clock (max parallelism):** 8h (bottleneck = M02-P02 ontology).
 **Sequential fallback est.:** ~51h (sum of all 11 estimates).
@@ -303,11 +303,11 @@ Symbol spaces are non-overlapping. Each executor owns its µservice namespace ex
 
 | Executor  | Phase   | Slug            | Grit claim symbol space                                                            | Path |
 |-----------|---------|-----------------|------------------------------------------------------------------------------------|------|
-| M02.W2.A  | M02-P12 | workflow-engine | `oya-workflow-*` (state-machine, dag, approvals, escalations, sla-timer, worker)   | `.omc/plans/milestones/M02-substrate/phases/P12-workflow-engine/` |
-| M02.W2.B  | M02-P13 | tenancy         | `oya-tenancy-*` (kernel, cell-placer, product-registry, rls-bootstrap, adapter)    | `.omc/plans/milestones/M02-substrate/phases/P13-tenancy/` |
-| M02.W2.C  | M02-P14 | policy          | `oya-policy-*` (cedar-kernel, rule-pack, evaluation-log, enforcement-adapter)      | `.omc/plans/milestones/M02-substrate/phases/P14-policy/` |
-| M02.W2.D  | M02-P15 | data-boundary   | `oya-data-boundary-*` (12-class-kernel, hard-deny-enforcer, cedar-policy, audit)   | `.omc/plans/milestones/M02-substrate/phases/P15-data-boundary/` |
-| M02.W2.E  | M02-P16 | records         | `oya-records-*` (fhir-r5-kernel, encounter, observation, medication, adapter)      | `.omc/plans/milestones/M02-substrate/phases/P16-records/` |
+| M02.W2.A  | M02-P12 | workflow-engine | `oya-workflow-*` (state-machine, dag, approvals, escalations, sla-timer, worker)   | `.omc/plans/milestones/M02b-substrate/phases/P12-workflow-engine/` |
+| M02.W2.B  | M02-P13 | tenancy         | `oya-tenancy-*` (kernel, cell-placer, product-registry, rls-bootstrap, adapter)    | `.omc/plans/milestones/M02b-substrate/phases/P13-tenancy/` |
+| M02.W2.C  | M02-P14 | policy          | `oya-policy-*` (cedar-kernel, rule-pack, evaluation-log, enforcement-adapter)      | `.omc/plans/milestones/M02b-substrate/phases/P14-policy/` |
+| M02.W2.D  | M02-P15 | data-boundary   | `oya-data-boundary-*` (12-class-kernel, hard-deny-enforcer, cedar-policy, audit)   | `.omc/plans/milestones/M02b-substrate/phases/P15-data-boundary/` |
+| M02.W2.E  | M02-P16 | records         | `oya-records-*` (fhir-r5-kernel, encounter, observation, medication, adapter)      | `.omc/plans/milestones/M02b-substrate/phases/P16-records/` |
 
 **Est. wall-clock (max parallelism):** 10h (bottleneck = M02-P12 workflow-engine).
 **Sequential fallback est.:** ~32h.
@@ -322,9 +322,9 @@ Symbol spaces are non-overlapping. Each executor owns its µservice namespace ex
 
 | Executor  | Phase   | Slug                    | Grit claim symbol space                                                                 | Path |
 |-----------|---------|-------------------------|-----------------------------------------------------------------------------------------|------|
-| M02.W3.A  | M02-P17 | capability-registry     | `oya-capability-*` (mcp-discovery, endpoint-registry, binding-store, adapter)           | `.omc/plans/milestones/M02-substrate/phases/P17-capability-registry/` |
-| M02.W3.B  | M02-P18 | cloud-tenancy           | `oya-cloud-tenancy-*` / `oya-cloud-iam-*` / `oya-cloud-kms-*` (cloud substrate layer) | `.omc/plans/milestones/M02-substrate/phases/P18-cloud-tenancy/` |
-| M02.W3.C  | M02-P19 | application             | `oya-application-*` (product-enablement, tenant-onboarding, capability-menu, rest)      | `.omc/plans/milestones/M02-substrate/phases/P19-application/` |
+| M02.W3.A  | M02-P17 | capability-registry     | `oya-capability-*` (mcp-discovery, endpoint-registry, binding-store, adapter)           | `.omc/plans/milestones/M02b-substrate/phases/P17-capability-registry/` |
+| M02.W3.B  | M02-P18 | cloud-tenancy           | `oya-cloud-tenancy-*` / `oya-cloud-iam-*` / `oya-cloud-kms-*` (cloud substrate layer) | `.omc/plans/milestones/M02b-substrate/phases/P18-cloud-tenancy/` |
+| M02.W3.C  | M02-P19 | application             | `oya-application-*` (product-enablement, tenant-onboarding, capability-menu, rest)      | `.omc/plans/milestones/M02b-substrate/phases/P19-application/` |
 
 **Est. wall-clock (max parallelism):** 10h (bottleneck = M02-P18 cloud-tenancy and M02-P19 application, both 10h).
 **Sequential fallback est.:** ~23h.
@@ -337,7 +337,7 @@ Symbol spaces are non-overlapping. Each executor owns its µservice namespace ex
 
 | Executor  | Phase   | Slug                  | Grit claim symbol space                                                       | Path |
 |-----------|---------|-----------------------|-------------------------------------------------------------------------------|------|
-| M02.W4.A  | M02-P20 | ci-lanes-operational  | `oya-check-statelessness-cli` / `oya-check-shardability-cli` / `oya-check-perf-budget-cli` / `oya-check-benchmark-cli` / CI pipeline YAML | `.omc/plans/milestones/M02-substrate/phases/P20-ci-lanes-operational/` |
+| M02.W4.A  | M02-P20 | ci-lanes-operational  | `oya-check-statelessness-cli` / `oya-check-shardability-cli` / `oya-check-perf-budget-cli` / `oya-check-benchmark-cli` / CI pipeline YAML | `.omc/plans/milestones/M02b-substrate/phases/P20-ci-lanes-operational/` |
 
 **Est. wall-clock:** 4h.
 **Note:** W4 fires in parallel with W2 and W3, not after them. It only requires W1 to complete.
@@ -350,7 +350,7 @@ Symbol spaces are non-overlapping. Each executor owns its µservice namespace ex
 
 | Executor  | Phase   | Slug                         | Grit claim symbol space                                              | Path |
 |-----------|---------|------------------------------|----------------------------------------------------------------------|------|
-| M02.W5.A  | M02-P21 | architecture-planes-green    | Read-only audit crate / CI configuration / fitness lane enforcement | `.omc/plans/milestones/M02-substrate/phases/P21-architecture-planes-green/` |
+| M02.W5.A  | M02-P21 | architecture-planes-green    | Read-only audit crate / CI configuration / fitness lane enforcement | `.omc/plans/milestones/M02b-substrate/phases/P21-architecture-planes-green/` |
 
 **Est. wall-clock:** 3h.
 
@@ -362,7 +362,7 @@ Symbol spaces are non-overlapping. Each executor owns its µservice namespace ex
 
 | Executor  | Phase   | Slug             | Grit claim symbol space                                           | Path |
 |-----------|---------|------------------|-------------------------------------------------------------------|------|
-| M02.W6.A  | M02-P22 | m02-exit-gate    | `oya-shared-migrate-cli` / evidence checklist / ICM milestone row | `.omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/` |
+| M02.W6.A  | M02-P22 | m02-exit-gate    | `oya-shared-migrate-cli` / evidence checklist / ICM milestone row | `.omc/plans/milestones/M02b-substrate/phases/P22-m02-exit-gate/` |
 
 **Est. wall-clock:** 1h.
 **M02 EXIT GATE fires here.** After `grit done` on M02-P22 and ICM row emitted, M03.W1 may dispatch.
@@ -533,50 +533,50 @@ WAVE M02.W1  (11 executors in parallel; fires after M01 exit gate)
 ═══════════════════════════════════════════════════════════════════
 
 Agent("M02-P01 foundry-engine-consolidation",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P01-foundry-engine-consolidation/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P01-foundry-engine-consolidation/phase-spec.md",
   grit_symbols: ["oya-foundry-*", "oya-tooling-agent-read"])
 
 Agent("M02-P02 ontology",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P02-ontology/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P02-ontology/phase-spec.md",
   grit_symbols: ["oya-ontology-*"],
   priority: CRITICAL_PATH)
 
 Agent("M02-P03 identity",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P03-identity/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P03-identity/phase-spec.md",
   grit_symbols: ["oya-identity-*"])
 
 Agent("M02-P04 audit-chain",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P04-audit-chain/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P04-audit-chain/phase-spec.md",
   grit_symbols: ["oya-audit-chain-*"])
 
 Agent("M02-P05 eventing",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P05-eventing/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P05-eventing/phase-spec.md",
   grit_symbols: ["oya-eventing-*"])
 
 Agent("M02-P06 secrets",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P06-secrets/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P06-secrets/phase-spec.md",
   grit_symbols: ["oya-secrets-*"],
   note: "Must complete before M02-P08 (kms) can start within this wave")
 
 Agent("M02-P07 observability",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P07-observability/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P07-observability/phase-spec.md",
   grit_symbols: ["oya-observability-*"])
 
 Agent("M02-P08 kms",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P08-kms/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P08-kms/phase-spec.md",
   grit_symbols: ["oya-kms-*"],
   entry_gate: "M02-P06 grit done")
 
 Agent("M02-P09 search",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P09-search/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P09-search/phase-spec.md",
   grit_symbols: ["oya-search-*"])
 
 Agent("M02-P10 vector",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P10-vector/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P10-vector/phase-spec.md",
   grit_symbols: ["oya-vector-*"])
 
 Agent("M02-P11 finance-library",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P11-finance-library/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P11-finance-library/phase-spec.md",
   grit_symbols: ["oya-finance-*"])
 
 
@@ -585,24 +585,24 @@ WAVE M02.W2  (5 executors in parallel; fires after M02.W1 complete)
 ═══════════════════════════════════════════════════════════════════
 
 Agent("M02-P12 workflow-engine",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P12-workflow-engine/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P12-workflow-engine/phase-spec.md",
   grit_symbols: ["oya-workflow-*"],
   priority: CRITICAL_PATH)
 
 Agent("M02-P13 tenancy",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P13-tenancy/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P13-tenancy/phase-spec.md",
   grit_symbols: ["oya-tenancy-*"])
 
 Agent("M02-P14 policy",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P14-policy/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P14-policy/phase-spec.md",
   grit_symbols: ["oya-policy-*"])
 
 Agent("M02-P15 data-boundary",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P15-data-boundary/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P15-data-boundary/phase-spec.md",
   grit_symbols: ["oya-data-boundary-*"])
 
 Agent("M02-P16 records",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P16-records/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P16-records/phase-spec.md",
   grit_symbols: ["oya-records-*"])
 
 
@@ -614,20 +614,20 @@ WAVE M02.W4  (1 executor in parallel; fires after M02.W1 complete)
 ═══════════════════════════════════════════════════════════════════
 
 Agent("M02-P17 capability-registry",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P17-capability-registry/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P17-capability-registry/phase-spec.md",
   grit_symbols: ["oya-capability-*"])
 
 Agent("M02-P18 cloud-tenancy",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P18-cloud-tenancy/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P18-cloud-tenancy/phase-spec.md",
   grit_symbols: ["oya-cloud-tenancy-*", "oya-cloud-iam-*", "oya-cloud-kms-*"])
 
 Agent("M02-P19 application",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P19-application/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P19-application/phase-spec.md",
   grit_symbols: ["oya-application-*"],
   priority: CRITICAL_PATH)
 
 Agent("M02-P20 ci-lanes-operational",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P20-ci-lanes-operational/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P20-ci-lanes-operational/phase-spec.md",
   grit_symbols: ["oya-check-statelessness-cli", "oya-check-shardability-cli",
                  "oya-check-perf-budget-cli", "oya-check-benchmark-cli"],
   entry_gate: "M02.W1 complete (not W2)")
@@ -638,7 +638,7 @@ WAVE M02.W5  (1 executor; fires after M02.W3 + M02.W4 both complete)
 ═══════════════════════════════════════════════════════════════════
 
 Agent("M02-P21 architecture-planes-green",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P21-architecture-planes-green/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P21-architecture-planes-green/phase-spec.md",
   grit_symbols: ["oya-check-architecture-planes-cli", "fitness-lane-config"])
 
 
@@ -647,7 +647,7 @@ WAVE M02.W6  (1 executor; fires after M02.W5 complete)
 ═══════════════════════════════════════════════════════════════════
 
 Agent("M02-P22 m02-exit-gate",
-  brief: ".omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/phase-spec.md",
+  brief: ".omc/plans/milestones/M02b-substrate/phases/P22-m02-exit-gate/phase-spec.md",
   grit_symbols: ["oya-shared-migrate-cli", "m02-evidence-checklist"],
   note: "Emit ICM row: icm store -t context-oyatie -c 'M02 exit gate complete...' -i high")
 

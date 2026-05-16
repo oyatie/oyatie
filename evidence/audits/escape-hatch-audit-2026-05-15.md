@@ -384,7 +384,7 @@ These are deny-by-default closed sets, not exceptions to a canonical rule:
     - **Verdict:** REFRAME. "policy exception" → "policy-extension
       proposal". Light touch.
 
-50. `.omc/plans/M02-substrate-schema-foundation.md:541`
+50. `.omc/plans/M02b-substrate-schema-foundation.md:541`
     — `RAISE EXCEPTION 'audit_events is append-only'`.
     - **Verdict:** KEEP. This is a PostgreSQL `RAISE EXCEPTION` statement
       (SQL/PLpgSQL keyword for runtime error); not a doctrinal escape

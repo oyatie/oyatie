@@ -1,0 +1,75 @@
+{
+  "reviewer_id": "claude-architect-M2_zoomed_out_fit-PR-15",
+  "round": 1,
+  "pr_number": 15,
+  "pr_title": "Centralize capability templates under registry",
+  "change_class": "CC-3",
+  "facet": "M2_zoomed_out_fit",
+  "lens": "Master plan fit — does this PR advance the master plan or sidestep it?",
+  "artifacts_reviewed": [
+    "/tmp/oya-msr-pr12-18/pr-15.diff",
+    "/tmp/oya-msr-pr12-18/pr-15-meta.json",
+    "docs/decisions/ADR-0019-doc-catalog-and-update-protocol.md",
+    "evidence/debate/M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-M2_zoomed_out_fit-r1.json"
+  ],
+  "fits_masterplan": "no-sidesteps",
+  "fit_rationale": "PR #15 is a mechanical path rename (product-control/capabilities/ → registry/capability-templates/) executed AHEAD of the M-CC-P11 Foundry pipeline that is supposed to OWN this topology decision and ENFORCE it via a gate. Per [[feedback_foundry_pipeline_canonical]] the Foundry pipeline (M-CC-P11) is the canonical agentic workflow; template centralization is a control-plane move whose authoritative source-of-truth path belongs in the M-CC-P11 capability-registry gate that does not yet exist. Doing it now via 44-file textual sed without the enforcing gate ships the new topology as convention-only — a future M-CC-P11 wave can either ratify it (lucky) or override it (refactor tax). The PR body explicitly says 'no new ADR added because this is a mechanical topology move' — that IS the sidestep: a path that 26 docs + 6 ADRs + 3 templates now hard-code deserves an ADR row OR an M-CC-P11 plan-line, not neither. The cited 'ADR-0116' anchor does not exist in /Users/jasonlee/oyatie/docs/decisions/ (verified empty find result), so the provenance chain is broken at the citation level. Master-plan-sequencing.json contains zero references to either 'product-control' or 'capability-templates' — neither the old nor new path is locked into the sequencing artifact, confirming this PR is racing ahead of the master plan rather than executing it.",
+  "antithesis_steelman": "PR #15 IS plan-advancing: (a) cleanup lane A #4 is a real masterplan-tracked item; (b) the foundry-capability-schema + foundry-eval gates pass on the new directory proving the move is mechanically safe; (c) deferring topology cleanup until M-CC-P11 ships its enforcement gate stalls debt for months while every doc that references product-control/ ages further; (d) ADR-0019 protocol violation is overstated because path-only changes to terminal-leaf path strings are arguably refactor-class not policy-class; (e) v1+v2 coexistence (capability-record-template.yaml + capability-record-template-v2.yaml both updated) is the canonical migration shape the lifecycle state machine actually expects (deprecated + replacement coexist with sunset date).",
+  "tradeoff_tension": "Mechanical-cleanup-now vs gate-enforced-cleanup-later. Doing it now: 44 files re-sync immediately, no further drift, but topology is convention-only until M-CC-P11 enforces. Waiting: topology locked by the very gate that will police it, but accumulates 1-3 months of drift in net-new docs and ADRs that keep citing the dead path. PR #15 picks 'now' without the second-half (the enforcement lane the PR body names — `lean-a-foundry-capability-template-registry` — is asserted in the artifact-capabilities-registry rows but not implemented as a CI gate in this PR; verified by absence in crates/oya-dev-cli/src/commands/gate/).",
+  "synthesis": "Acceptable if the PR is amended (or a same-cycle follow-up PR lands) to (1) add an ADR row formalizing the registry/capability-templates path as the canonical topology with sunset date for product-control/ string-references, (2) implement the named lean-a-foundry-capability-template-registry CI lane that fails any new doc/code referencing product-control/capabilities/, and (3) cite an M-CC-P11 plan-line claiming this slice. Without these three, the move ships as orphan convention.",
+  "principle_violations": [
+    {
+      "principle": "feedback_no_silent_regression",
+      "severity": "MEDIUM",
+      "evidence": "PR #15 silently rewrites the path target of 6 ADRs (ADR-0003 line 57+106; ADR-0007 line 72; ADR-0019 line 105; ADR-0050 line 111; ADR-0052 line 185) plus the canonical capability-record-template.yaml + v2 template + eval-set-template — these are public contract surfaces (docs/decisions/ + docs/templates/) per the no-silent-regression doctrine. The PR body says 'no new ADR added' explicitly. Sunset date for the old path string is also absent."
+    },
+    {
+      "principle": "feedback_foundry_pipeline_canonical",
+      "severity": "MEDIUM",
+      "evidence": "PR centralizes a Foundry-domain control-plane artifact (capability templates) WITHOUT routing through the M-CC-P11 Foundry pipeline that is named as the canonical agentic workflow. The cited ADR-0116 anchor cannot be located in docs/decisions/ — broken provenance to the very ADR claimed to authorize the move."
+    },
+    {
+      "principle": "feedback_clean_architecture_requirements",
+      "severity": "LOW-MEDIUM",
+      "evidence": "crates/oya-dev-cli/src/foundry_capability_schema_gates.rs:25 and foundry_eval_gates.rs:26 hard-code the new path as a string default. dev-cli is the CLI layer (12-layer enum); embedding a registry topology default in CLI rather than reading it from a registry-owned manifest perpetuates the inward-flow concern A4 flagged. Not net-worse than before (the old hard-code lived in the same file), but the centralization opportunity was missed."
+    },
+    {
+      "principle": "feedback_lifecycle_automation_universal",
+      "severity": "LOW",
+      "evidence": "v1 + v2 capability-record-template.yaml coexistence is updated in lockstep (both files patched in the same PR), which is consistent with a migration window — NOT a violation per se. Becomes a violation only if no sunset date is assigned to v1. The PR adds neither sunset nor deprecation marker to capability-record-template.yaml (v1)."
+    },
+    {
+      "principle": "feedback_doc_coverage_enforced",
+      "severity": "LOW",
+      "evidence": "26 doc files patched, but no row added/updated in DOC-CATALOG.md formalizing the path policy itself (only the foundry-eval lane description line is rewritten). The doc-coverage doctrine wants the policy ROW, not just the path strings inside other rows."
+    },
+    {
+      "principle": "ADR-0019-doc-catalog-and-update-protocol",
+      "severity": "MEDIUM",
+      "evidence": "ADR-0019 line 105 itself is patched by this PR to change its own canonical path reference, which is the protocol-update shape ADR-0019 explicitly says requires its own update cycle. Mutating the protocol ADR in the same PR that changes the thing the protocol governs is the textbook silent-protocol-mutation pattern."
+    }
+  ],
+  "findings": [
+    "ADR-0116 citation in PR body cannot be verified — find /Users/jasonlee/oyatie/docs/decisions -name 'ADR-0116*' returns 0 results. The PR claims the move is 'covered by ADR-0116' but the ADR is absent from the repo.",
+    "master-plan-sequencing.json contains zero references to 'product-control' or 'capability-templates' — neither old nor new path is locked into the sequencing artifact, confirming this PR runs ahead of (not in lockstep with) the master plan.",
+    "The named enforcement lane 'lean-a-foundry-capability-template-registry' is declared in registry/artifact-capabilities-registry.json rows but no corresponding gate exists in crates/oya-dev-cli/src/commands/gate/ — the enforcement is asserted, not implemented.",
+    "PR self-reports cargo fmt + clippy as 'not run; this toolchain lacks the fmt subcommand' — verification gap on style + lint lanes despite the PR touching 6 Rust files plus 38 doc/JSON files.",
+    "44 changed files for what is functionally a path rename indicates the move is not abstracted: every consumer hard-codes the path string. M-CC-P11 should fix this with a single registry-owned topology constant, then no consumer would change on future renames. This PR ossifies the hard-coding pattern.",
+    "Per the prior M02-P06 M2 reference review (evidence/debate/M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-M2_zoomed_out_fit-r1.json line 27-28), ADR-0069 mandates artifact-capabilities-registry rows + 9-capability declarations — PR #15 DOES add three rows with capability_overrides (registry/artifact-capabilities-registry.json line 1958+) which is the one strongly-plan-aligned move in this PR.",
+    "v1+v2 template coexistence (docs/templates/capability-record-template.yaml + capability-record-template-v2.yaml both updated) is not itself a lifecycle violation as long as v1 carries a sunset marker; the PR adds neither marker nor deprecation header — that IS the lifecycle violation."
+  ],
+  "uncertainty_areas": [
+    "Whether ADR-0116 exists in a sibling branch or has been merged on dev but is missing from the snapshot — needs cross-branch grep before final verdict",
+    "Whether the M-CC-P11 plan has a wave-line claiming this slice (master-plan-sequencing.json text search returned no matches but the JSON structure may key on slice IDs rather than path strings)",
+    "Whether the artifact-capabilities-registry.json rows for the three new templates satisfy ADR-0069's 9-capability declaration completely (rows show enforcement/verification/validation/autogen/selfheal/telemetry/provenance — 7 of 9; need to verify the remaining 2)"
+  ],
+  "verdict": "no-sidesteps with conditional-approval-path",
+  "fixuptasks": [
+    "F-PR15-ADR-OR-MCCP11-PLANLINE-1",
+    "F-PR15-IMPLEMENT-LEAN-A-LANE-1",
+    "F-PR15-VERIFY-ADR-0116-EXISTS-1",
+    "F-PR15-V1-TEMPLATE-SUNSET-MARKER-1",
+    "F-PR15-DOC-CATALOG-POLICY-ROW-1",
+    "F-PR15-ABSTRACT-PATH-CONSTANT-1"
+  ]
+}

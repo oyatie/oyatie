@@ -1,0 +1,30 @@
+{
+  "reviewer_id": "claude-A6_schema_adherence-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "A6_schema_adherence",
+  "lens": "Schema adherence — P1 machine-optimized + JSON Schema $schema/$id/_meta + closed enums + required",
+  "policy_refs": ["docs/standards/spec-style.md", "P1 in oyatie-doctrine.json"],
+  "answer": "PR #12 modifies four JSON files: infra/kyverno/oya-vcs-admission/application.json (Argo Application, schema_version field), evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json, evidence/gitops-vcs/provider-execution-proof-2026-05-15.json, evidence/multispectrum/oya-vcs-provider-execution-proof-1778845600.json. Project convention uses schema_version not $schema/$id/_meta on these particular evidence files; only the multispectrum evidence carries $schema. The cutover JSON has TWO slots that retained the legacy deploy/gitops/oya-vcs-admission path string post-rewrite — that is structural drift INSIDE the same PR. Argo Application JSON does not pin a project-side $schema URL for the upstream Argo CR. Net: drift detected, schemas_missing_id true on 3 of 4 (per project convention which doesn't require $id on evidence/gitops-vcs files).",
+  "key_claims": [
+    "infra/kyverno/oya-vcs-admission/application.json carries no $schema/$id pointing at upstream Argo Application CR — schema-validation impossible",
+    "evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json retained 2 path-string slots referencing the legacy deploy/gitops path post-rewrite (intra-PR drift)",
+    "evidence schemas use schema_version field rather than $schema/$id/_meta envelope — inconsistent with multispectrum-evidence convention",
+    "Path-string rewrites preserved key shapes (no removed/added fields) on the rewritten JSONs",
+    "No closed-enum violation introduced"
+  ],
+  "uncertainty_areas": [
+    "Whether the project intentionally adopts schema_version for evidence and $schema/$id/_meta only for cross-cutting specs",
+    "Whether an Argo Application $schema URL is sanctioned to be pinned"
+  ],
+  "drift_detected": true,
+  "schemas_missing_id": ["infra/kyverno/oya-vcs-admission/application.json", "evidence/gitops-vcs/oya-vcs-admission-cutover-2026-05-15.json", "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json"],
+  "findings": [
+    {"severity": "medium", "summary": "cutover evidence JSON retained 2 stale legacy-path slots after rewrite — structural intra-PR drift", "recommended_action": "follow-up sweep to rewrite the 2 remaining slots", "fixuptask_id": "F-PR12-A6-01"},
+    {"severity": "low", "summary": "Argo Application JSON lacks project-pinned $schema URL", "recommended_action": "add $schema reference to upstream Argo CR or document non-pinning rationale in ADR", "fixuptask_id": "F-PR12-A6-02"},
+    {"severity": "info", "summary": "schema_version vs $schema/$id/_meta inconsistency between evidence/gitops-vcs and evidence/multispectrum", "recommended_action": "ratify one envelope convention in spec-style.md", "fixuptask_id": "F-PR12-A6-03"}
+  ],
+  "verdict": "approve-with-fixups"
+}

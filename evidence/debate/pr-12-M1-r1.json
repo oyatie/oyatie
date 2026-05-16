@@ -1,0 +1,58 @@
+{
+  "reviewer_id": "claude-M1_challenge_assumption-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "M1_challenge_assumption",
+  "lens": "Meta — challenge the load-bearing assumption of the PR",
+  "answer": "PR #12 rests on four load-bearing assumptions; one is materially weaker than the ADR presents it, two are under-verified, and one is acceptable. (1) THE PRIMARY LOAD-BEARING ASSUMPTION — 'infra/kyverno/ is the established admission-policy root' — is the weakest. ADR-0039 line 107 and ADR-0041 line 118 establish infra/kyverno/policies/ as the canonical home for KYVERNO CLUSTER POLICIES (require-signed-images.yaml). They do NOT establish infra/kyverno/ as the canonical home for ARGO CD APPLICATION MANIFESTS. PR #12 silently conflates two distinct concerns — Kyverno admission enforcement policy (the policies/ subdir) and Argo CD GitOps deployment artifacts (application.json) — under a tree whose name is one of those concerns. ADR-0117 then asserts the canonicalization as self-evident ('per the established root') without citing a single prior ADR, retroactively elevating a co-location convenience into doctrine. A future agent who needs to ship a NEW Argo Application for, say, a non-admission workload now has an ambiguous precedent: do all Argo Applications go under infra/kyverno/? Under infra/? Under a reinstated deploy/gitops/? ADR-0117 created a slot for exactly one Application and called it canonical. The correct framing the PR avoided: 'we are creating a new convention — Argo Applications for admission policies co-locate with the policies they ship — and accepting that this is the first instance.' The author took 'kyverno-named-dir = admission-policy-root' for granted; the evidence supports kyverno-named-dir = kyverno-policy-root, narrower than claimed. (2) 'git rm --cached suffices for .audit/' — I scanned full history (git log --all -p -- .audit/) for secret/token/password/api_key/bearer/aws_/GITHUB_TOKEN/GH_TOKEN/ANTHROPIC/sk-/ghp_/ghs_ patterns and found zero hits, so the residual-risk impact is empirically LOW today. But ADR-0117 ASSUMES this without running the scan, without documenting the scan, and without acknowledging that history is not rewritten — exactly the path by which a future careless emission becomes permanent. Sibling F3 flagged the same gap. The assumption is correct-by-luck, not correct-by-verification. (3) 'history-preserving git mv was correct' — accepted. Git rename detection is preserved (10/10 PR meta) and bisect/blame survive. The trade-off vs. an explicit migration-log entry is acceptable for CC-2 scope; the rename in `git log --follow` IS the migration log. (4) 'the move is safe because kyverno is admission-only / consumers were enumerated' — I cross-checked in-repo: no Helm Chart.yaml, no Backstage catalog-info.yaml, no Argo ApplicationSet generator, no Terraform/.tf, no kustomization.yaml, no GitHub workflow references the old or new path. In-repo enumeration is COMPLETE. What was NOT enumerated and what the PR took for granted: the LIVE Argo CD cluster state. application.json carries a self-referential spec.source.path, and Argo CD on each reconcile reads commit HEAD's tree. At reconcile of commit 70b83631, the path string flips AND the old subtree disappears in the same commit. Sibling F3 named this; ADR-0117 documents no pre/post `argocd app get` evidence, no rollback runbook, no revisionHistoryLimit. The 'safe' assumption rests on 'Argo will atomically pick up the new path' — usually true, occasionally not.",
+  "key_claims": [
+    "ADR-0117's load-bearing assertion 'infra/kyverno/ is the established admission-policy root' is unsupported — prior ADRs (0039 line 107, 0041 line 118) establish infra/kyverno/POLICIES/ as the kyverno-policy root, a narrower scope than 'admission-policy root', and silently absorb an Argo Application (a GitOps-deploy artifact) into a kyverno-named tree without naming the new convention.",
+    "ADR-0117 frontmatter `related: []` is empty — no inheritance link to ADR-0039/0041/0052, hiding the citation chain the answer relies on (sibling A2/A3 flagged the same).",
+    "History scan for secrets in .audit/agent-read.jsonl across all reachable commits returned zero hits for common token/credential regexes — the secret-history non-issue is empirically true but ADR-0117 documents no scan and acknowledges no residual risk.",
+    "In-repo consumer enumeration is complete: no Helm Chart.yaml, Backstage catalog-info.yaml, Argo ApplicationSet, Terraform .tf, kustomization.yaml, or GitHub workflow references deploy/gitops/oya-vcs-admission or infra/kyverno/oya-vcs-admission outside the 7-ref / 5-file set the PR rewrote.",
+    "Live Argo CD cluster-state safety was assumed not verified: no pre/post `argocd app get oya-vcs-admission-preview -o yaml` artifact, no revisionHistoryLimit setting, no rollback runbook — the path-flip + subtree-removal happen in a single commit Argo reconciles atomically (usually fine, but the assumption is undocumented).",
+    "The bundled scope (gitignore + dir move + ADR + nextest.toml restore) is wider than the PR title implies; A1/A3/F5 each address only a slice. Bisect cost across the bundle is higher than two separate PRs would have been."
+  ],
+  "uncertainty_areas": [
+    "Whether council-architecture intended infra/kyverno/ to be the canonical home for ALL admission-related Argo Applications, or only kyverno cluster-policy YAML — ADR-0117 collapses both readings into one without acknowledging the distinction.",
+    "Whether any out-of-repo cluster automation (Argo CD ApplicationSet running outside this repo, cluster-bootstrap pipeline, FluxCD Kustomization in a sibling repo, OCI-stored manifest) still resolves the old path — only in-repo grep was performed.",
+    "Whether docs/DESIGN.md §8 'flat target shape' (still listing deploy/ as canonical per sibling A3) was intentionally left for a later PR or was an oversight."
+  ],
+  "challenged_assumptions": [
+    "ASSUMPTION: 'infra/kyverno/ is the canonical admission-policy root' — REALITY: prior ADRs establish infra/kyverno/POLICIES/ as the kyverno-cluster-policy root; PR #12 retroactively widened scope to include Argo Application manifests with no ADR-level naming-of-the-new-convention. Distinct concerns (admission ENFORCEMENT policy vs admission GitOps DEPLOYMENT artifact) are silently co-located.",
+    "ASSUMPTION: 'git rm --cached suffices; history scrub is not needed' — REALITY: history scan happens to be clean today, but the assumption was made without scanning and without documenting acknowledgement that .audit/ blob is permanently retrievable from any clone. Re-introduction via `git add -f` is unblocked by any pre-commit/CI lane.",
+    "ASSUMPTION: 'history-preserving git mv was the right choice over explicit migration log' — DEFENSIBLE; git --follow + the ADR together constitute the log. Not contesting.",
+    "ASSUMPTION: 'move is safe because kyverno is admission-only and consumers are enumerated' — REALITY: in-repo enumeration is complete (verified). Out-of-repo Argo CD live cluster state is the consumer that was NOT enumerated; F3 named this gap. The 'safe' framing also assumes Argo reconcile atomicity which is undocumented.",
+    "ASSUMPTION (implicit): 'co-locating an Argo Application with the kyverno policies it ships is the obvious right pattern' — REALITY: this is the first instance and the ADR does not name the convention. Future Argo Applications now lack guidance.",
+    "ASSUMPTION (implicit): 'bundling 4 unrelated hygiene changes into one PR is appropriate at CC-2 scope' — REALITY: revertability across the bundle is non-trivial; the nextest.toml restoration, the gitignore, the dir move, and the ADR have independent failure modes."
+  ],
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "summary": "Load-bearing assumption 'infra/kyverno/ is the canonical admission-policy root' is materially overstated. Prior ADRs (0039 line 107, 0041 line 118) establish infra/kyverno/POLICIES/ as the kyverno-cluster-policy root — a narrower scope. PR silently widens it to include Argo Application manifests (a distinct GitOps-deploy concern) under a kyverno-named tree, and ADR-0117 asserts canonicalization with `related: []` and no citation. Future agents shipping a non-admission Argo Application now have an ambiguous precedent: the slot fits exactly one Application and was retroactively called canonical.",
+      "recommended_action": "Either (a) supersede ADR-0117 with an umbrella infra-topology ADR that explicitly names the convention 'Argo Applications for admission policies co-locate with the policies they ship under infra/kyverno/<workload>/application.json; non-admission GitOps deployments DO NOT live here' and updates ADR-0117 `related:` to [ADR-0039, ADR-0041, ADR-0052]; or (b) add a Consequences subsection to ADR-0117 explicitly bounding the rule to admission workloads and naming where non-admission Argo Applications go. Also remove docs/DESIGN.md §8 reference to deploy/ as a canonical top-level extraction target (sibling A3 flagged).",
+      "fixuptask_id": "F-PR12-01"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0117 assumes git rm --cached + .gitignore suffices for .audit/ without scanning history or acknowledging that the blob remains permanently retrievable. History scan in this review returned zero secret-pattern hits (confirmed empirically), but the assumption was made without verification and the residual-risk surface is not documented. Re-introduction via `git add -f` is unblocked.",
+      "recommended_action": "Add a one-line residual-risk note in ADR-0117 Consequences: 'history not rewritten; .audit/ blob retrievable via git log --all -p; pattern scan for token/secret regexes returned zero hits at commit 70b83631; future re-introduction prevented by .gitignore (force-add bypass acknowledged).' Optionally add a pre-commit or CI lane that blocks .audit/ paths via `git check-ignore` regardless of -f.",
+      "fixuptask_id": "F-PR12-02"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "Live Argo CD cluster-state cutover was assumed safe; no pre/post `argocd app get` evidence captured. In-repo references are correctly enumerated and rewritten (verified) but the external Argo controller is the actual consumer of the path string and its reconcile-window safety is undocumented. Sibling F3 raised this from a stronger angle.",
+      "recommended_action": "Attach pre- and post-cutover `argocd app get oya-vcs-admission-preview -o yaml` snapshots to evidence/gitops-vcs/ (concur with F3 fixup) — out of CC-2 scope but a forward-pointer in ADR-0117 saying 'cluster-state attestation deferred to M03 promotion' would close the assumption explicitly.",
+      "fixuptask_id": "F-PR12-03"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "PR bundles four unrelated changes (audit gitignore, nextest.toml restoration, dir move, ADR). Bisect/revert across the bundle is non-trivial; the title 'gitignore + move' undersells the nextest.toml resurrection which is itself the actual merge-blocker fix.",
+      "recommended_action": "Future hygiene PRs at CC-2: one concern per PR, or amend the title to enumerate all in-scope changes. No retroactive fixup required for #12.",
+      "fixuptask_id": "F-PR12-04"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}

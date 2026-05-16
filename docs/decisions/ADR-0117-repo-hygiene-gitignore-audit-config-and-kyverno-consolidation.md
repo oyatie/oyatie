@@ -1,15 +1,16 @@
 ---
+id: ADR-0117
 status: Accepted
 deciders: council-architecture, council-developer-experience
 date: 2026-05-16
 owner: council-developer-experience
 supersedes: []
 superseded_by: []
-related: []
+related: [ADR-0039, ADR-0041, ADR-0052, ADR-0115]
 purpose: Document the small hygiene PR that gitignores accidentally tracked session-scoped audit artifacts (.audit/) and consolidates the single-file deploy/gitops/oya-vcs-admission policy under the established infra/kyverno/ admission-policy root. The tracked .config/nextest.toml stays because CI requires [profile.ci].
 ---
 
-# ADR-0117 — Repo hygiene: gitignore .audit/, consolidate kyverno admission
+# ADR-0117: Repo hygiene: gitignore .audit/, consolidate kyverno admission
 
 ## Context
 
@@ -71,3 +72,18 @@ is path-only, no crate or capability naming changes).
 ## Status
 
 Accepted. Implementation lands in the same PR as the ADR.
+
+## Sunset / Reversal
+
+This is a terminal hygiene ADR with no sunset clause — the move and
+gitignore are persistent unless explicitly reverted.
+
+**Reversal procedure (if the kyverno consolidation proves wrong):**
+
+1. `git revert <merge-sha-of-PR-12>` — history-preserving rename inverts cleanly; the original `deploy/gitops/oya-vcs-admission/` tree is restored with all 7 inbound refs back to their pre-merge paths in one atomic commit.
+2. If the live Argo cluster has already reconciled to `infra/kyverno/oya-vcs-admission/`, `kubectl -n argocd edit application oya-vcs-admission-preview` to point `spec.source.path` back to the legacy path AND force-sync. Without this step a `git revert` alone creates a split-brain window.
+3. Confirm no consumer (sibling repo CI, downstream ApplicationSet) hardcodes the new path; restore those if any.
+
+**Data-loss class:** none. `.audit/` blob remains in git object store, recoverable via `git checkout <pre-merge-sha> -- .audit/agent-read.jsonl`.
+
+**Related cross-checks:** ADR-0039 (kyverno admission), ADR-0041 (GitOps topology), ADR-0052 (cutover inventory; now Superseded by ADR-0118), ADR-0115 (registry consolidation precedent for flat-root sprawl removal).

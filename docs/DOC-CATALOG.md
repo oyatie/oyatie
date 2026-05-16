@@ -85,6 +85,28 @@ Each event below maps to specific docs. The §2 rows enumerate the docs per even
 | `doc.adr_0097` | `decisions/ADR-0097-foundry-account-adapter-rename-target-slot-last.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0098` | `decisions/ADR-0098-supervisor-dep-policy-Y-zero-deps-best-effort-durability.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_0099` | `decisions/ADR-0099-cedar-policy-extend-supervisor-capabilities.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0100` | `decisions/ADR-0100-supervisor-public-contract-lean-a10.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0101` | `decisions/ADR-0101-supervisor-mountpoint-direct-hyper.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0102` | `decisions/ADR-0102-foundry-settings-template-canonical-rendering.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0103` | `decisions/ADR-0103-grit-cutover-inventory.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0104` | `decisions/ADR-0104-ecosystem-expansion-toolchain-and-adapters.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0105` | `decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0106` | `decisions/ADR-0106-rename-application-to-usecase.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0107` | `decisions/ADR-0107-tools-implicit-app-convention.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0108` | `decisions/ADR-0108-sunset-lifecycle-automation.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0109` | `decisions/ADR-0109-lifecycle-automation-framework.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0110` | `decisions/ADR-0110-changeset-state-machine.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0111` | `decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0112` | `decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0113` | `decisions/ADR-0113-vcs-orchestrator-end-to-end.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0114` | `decisions/ADR-0114-canary-observability-rollback.md` | `council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0115` | `decisions/ADR-0115-registry-consolidation-flat-singular.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0116` | `decisions/ADR-0116-retire-external-agent-coordination-tooling.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0117` | `decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md` | `council-architecture` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0118` | `decisions/ADR-0118-retire-archive-orphan-fitness-lane.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0119` | `decisions/ADR-0119-specs-flat-root-topology.md` | `council-architecture + council-foundry-vcs` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0120` | `decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md` | `council-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
+| `doc.adr_0121` | `decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md` | `axis-cloud + axis-foundry` | EVT-ADR-AUTHORED | per event | ADR-INDEX.md | `adr-index-completeness` | NO |
 | `doc.adr_consolidation_plan` | `ADR-CONSOLIDATION-PLAN.md` | `crew-adr-promotion` | ADR consolidation strategy change | per event | ADR-INDEX.md, DESIGN.md | `adr-index-completeness` | NO |
 | `doc.adr_legacy_regression_mapping` | `ADR-LEGACY-REGRESSION-MAPPING.md` | `crew-adr-promotion` | legacy ADR regression discovered or retired | per event | ADR-INDEX.md, DESIGN.md | `adr-index-completeness` | NO |
 | `doc.risk_register` | `RISK-REGISTER.md` | `council-architecture` | EVT-RISK-MATERIALIZED, EVT-INCIDENT-CLOSED, EVT-AUDIT-FINDING | weekly | ROADMAP.md, machine-readable/risks.json | `risk-register-coverage` | YES for low/med; NO for catastrophic |

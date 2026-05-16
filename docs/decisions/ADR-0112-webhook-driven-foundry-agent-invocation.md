@@ -13,7 +13,7 @@ related:
 purpose: Define the webhook-driven Foundry-agent invocation substrate (HTTP receiver, HMAC verify, dedup, retry, post-back) that makes the agentic pipeline event-driven instead of poll-driven.
 ---
 
-# ADR-0112 — Webhook-driven Foundry agent invocation
+# ADR-0112: Webhook-driven Foundry agent invocation
 
 ## Context
 

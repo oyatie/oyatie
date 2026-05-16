@@ -6,7 +6,7 @@ microservice: tenancy
 status: Accepted
 sales_segment: shared-substrate
 tier: internal
-milestone_first_ship: M02-substrate-ready
+milestone_first_ship: M02b-substrate-ready
 bominal_source:
   - ADR-0018  # tenancy + RLS posture (JWT tenant_id + Postgres RLS)
   - ADR-0011  # isolation-compatible operating model

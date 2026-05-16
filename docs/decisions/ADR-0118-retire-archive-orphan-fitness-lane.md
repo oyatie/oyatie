@@ -64,3 +64,17 @@ Filename `ADR-0118-retire-archive-orphan-fitness-lane.md` uses the next free loc
 - Confirm Cargo metadata resolves with the direct Rust 1.95.0 cargo path.
 - Validate this ADR shape with the repo validator.
 - Run targeted checks for the adjacent authoritative-tracked lane that now remains responsible for canonical-tree enforcement.
+
+## Sunset / Reversal
+
+Terminal retirement; no future sunset clause applies.
+
+**Reversal procedure (if M-CC-P11 admission gate proves insufficient as the replacement enforcer):**
+
+1. `git revert <merge-sha-of-PR-13>` — pure-deletion revert is mechanically clean; restores the kernel + app + 3 catalog yamls + workspace.members + archive payload in one atomic commit. `data_loss_class: none` because there is no state to reconcile.
+2. Re-add CI lane invocation if it had been removed from `.github/workflows/`.
+3. Re-add forbidden-operations.json FO-01/FO-07 enforcer ref (this fix-PR's Fix #6 commit cleared it; reverting that commit + this commit together restores the prior state).
+
+**ADR-0108 lifecycle-policy waiver:** PR #13 bypassed the canonical sunset → deprecation → removal window (ADR-0108 default 30d + 90d). The waiver was implicit ("one-time pre-grit cutover hygiene with payload deleted in same ChangeSet — sunset window cannot produce new violations when inputs are deleted simultaneously"). Codifying that exception as a `one_time_lane: true` carve-out in ADR-0108 is filed as `F-ADR0108-ONETIME-LANE-CARVEOUT` (see registries/cross-cutting/fixuptasks.jsonl).
+
+**Related cross-checks:** ADR-0052 (now Superseded by this ADR; previously the cutover inventory), ADR-0056 (12-layer enum — kernel+app deletion is enum-neutral), ADR-0108 (sunset-lifecycle automation; bypassed here, waiver above), ADR-0116 (Foundry pipeline canonical substrate).

@@ -1,0 +1,44 @@
+{
+  "reviewer_id": "claude-M2_zoomed_out_fit-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "M2_zoomed_out_fit",
+  "lens": "Meta — zoomed-out fit with master plan / M-CC-P11 arc / sprawl trajectory",
+  "answer": "PR #12 fits the master-plan trajectory in intent: it tightens repo hygiene (gitignore .audit/, .config/) and collapses a parallel infra root (deploy/gitops/) into the established infra/kyverno/ root used by the M-CC-P11 agentic VCS pipeline. Both moves directly serve [[feedback_foundry_pipeline_canonical]] (single Foundry pipeline arc, no parallel gitops root) and [[deprecate-external-agent-coord-tooling]] (.audit/ is agent-coord scratch output). ADR-0117 documents both decisions in one paragraph each, which matches the v2.2.0 lightweight CC-2 governance bar. Net topology effect: -1 root directory, -1 tracked transient artifact stream, +1 ADR; debt and sprawl both go DOWN. However, the PR's existence itself is evidence of an upstream gap — .audit/agent-read.jsonl slipped into the tree because no PreCommit/CI lane rejects writes from retired agent-coord tooling. A repo-hygiene gate (forbidden-paths CI check) would prevent re-occurrence and is the missing piece that keeps this PR from being a one-shot. Additionally, working-tree inspection shows deploy/gitops/oya-vcs-admission/ and .audit/agent-read.jsonl STILL present locally and ADR-0116/0117 files NOT on disk — needs confirmation this is just an unsynced workspace vs. a real merge defect.",
+  "key_claims": [
+    "Direction is correct: consolidating into infra/kyverno/ reduces sprawl per P9 and aligns with M-CC-P11 single-pipeline arc.",
+    ".audit/ untracking aligns with [[deprecate-external-agent-coord-tooling]] (2026-05-16) — these are oya-tooling-agent-read outputs from sunset-bound tooling.",
+    "ADR-0117 right-sizes governance for CC-2 (one paragraph per decision, no over-process).",
+    "PR is a hygiene patch, not a masterplan-arc change — neither advances nor blocks M-CC-P11 substrate; correctly scoped to CC-2.",
+    "Missing systemic fix: no CI lane forbids .audit/, .config/, or deploy/gitops/ paths reappearing — this PR will be re-needed without a gate."
+  ],
+  "uncertainty_areas": [
+    "Local working tree still shows deploy/gitops/oya-vcs-admission/ and .audit/agent-read.jsonl; ADR-0116 and ADR-0117 files not on disk under docs/decisions/. Cannot confirm from inspection whether merge actually landed on dev tip or if this is purely a stale local workspace on a different branch.",
+    "ADR-0116 referenced in task prompt but not produced by this PR — unclear whether ADR-0116 is a separate companion ADR or a typo for ADR-0117.",
+    "bominal/ lane-retirement explicitly deferred — fit with the broader sunset arc depends on that follow-up PR landing."
+  ],
+  "fits_masterplan": "partial",
+  "findings": [
+    {
+      "severity": "medium",
+      "summary": "No CI gate prevents .audit/, .config/, or retired deploy/gitops/ paths from reappearing — this PR fixes the symptom, not the upstream lane gap.",
+      "recommended_action": "Add a forbidden-paths lane (e.g. lean-repo-hygiene) that fails CI on any tracked file under .audit/, .config/nextest.toml, or deploy/gitops/. Cite [[deprecate-external-agent-coord-tooling]] as the policy source.",
+      "fixuptask_id": "F-PR12-01"
+    },
+    {
+      "severity": "low",
+      "summary": "ADR-0117 should cross-link the retirement-policy ADR-0108 (sunset-lifecycle-automation) and the deprecation memory note to make the zoomed-out trajectory legible from the ADR alone.",
+      "recommended_action": "Edit ADR-0117 to add a See-also section pointing to ADR-0108 and the deprecate-external-agent-coord-tooling memory entry.",
+      "fixuptask_id": "F-PR12-02"
+    },
+    {
+      "severity": "low",
+      "summary": "CLAUDE.md sanctioned_primitives still lists grit + oya-tooling-agent-read while .audit/ is being purged — slight zoomed-out coherence drift between top-of-repo contract and PR direction.",
+      "recommended_action": "Track in the pending retirement ADR (already noted in memory) — out of scope for PR #12 but worth a forward-ref in ADR-0117.",
+      "fixuptask_id": "F-PR12-03"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}

@@ -1,0 +1,83 @@
+{
+  "reviewer_id": "claude-critic-F3_adversarial-pr-18",
+  "round": 1,
+  "change_id": "PR-18-flatten-specs-cross-cutting",
+  "facet": "F3_adversarial",
+  "lens": "How does this merged PR break things? What attack scenarios does the half-finished migration enable? What did the 'signed replacement' lose?",
+  "verdict": "REJECT (post-merge: needs follow-up PR)",
+  "severity": "CRITICAL",
+  "attack_scenarios": [
+    {
+      "id": "AS-1",
+      "name": "Dual-truth path resolution (filesystem still populated)",
+      "evidence": "specs/cross-cutting/ still contains 26 entries (gitops-vcs-replacement.json, masterplan.json, decision-principles.json, forbidden-operations.json, etc.). PR #18 rewrote REFERENCES from /specs/cross-cutting/X to /specs/X but did NOT mv the files. The new flat paths /specs/X DO NOT EXIST in the working tree.",
+      "first_breaker": "Any plan-walker or agent following ADR-0054 grit-claim sequence that resolves /specs/masterplan.json (new path) gets ENOENT; the file is still at /specs/cross-cutting/masterplan.json. The 14 fitness-lifecycle lanes (fitness-{adr,api-stability,capability,crate,dependency,doc,feature-flag,migration,plan}-status-lifecycle-lane.md) all now point at /specs/lifecycle-configs/* which does not exist; configs live at /specs/cross-cutting/lifecycle-configs/. CI lanes consuming these configs will fail open or panic at first run.",
+      "blast_radius": "Every fitness lane, every plan-walker, every agent reading via .omc/handoffs/* or /specs/root-hub-pointers.json (which itself still lives at /specs/cross-cutting/root-hub-pointers.json) hits ENOENT immediately."
+    },
+    {
+      "id": "AS-2",
+      "name": "748 stale refs vs claimed 285",
+      "evidence": "grep -rn 'specs/cross-cutting/' across *.rs *.json *.md *.toml *.yaml *.jsonl returns 748 hits on dev HEAD post-merge (verified 2026-05-16). The brief stated 285. The undercount is 2.6x. PR #18 declares 222 files changed / 789 additions / 682 deletions but the actual stale-ref population is 3.4x larger than the changed-file count.",
+      "first_breaker": "F5 quality lane (compliance gate) will fail any new ADR or plan that adds references because the codebase has two competing canonical paths. Any agent attempting cross-reference resolution sees /specs/X in docs but only /specs/cross-cutting/X on disk."
+    },
+    {
+      "id": "AS-3",
+      "name": "PR #19 is NOT the companion mv PR",
+      "evidence": "gh pr list confirms #19 = 'on-prem KR primary cell + OCI KR secondary cell bring-up' (jason931225), entirely unrelated to specs topology. There is NO companion mv PR in the dev branch history. Commit 743a6fe6 message claims 'Retire cross-cutting subdirectory' but no `git mv` occurred. The task brief's 'two-PR split' framing is FALSE — there is only #18, and the mv half was never landed.",
+      "first_breaker": "The migration is structurally stuck in a 'references-only' half-state with no documented plan to complete it. ADR-0119 (file added in this PR) contains no migration map, no cutover sequence, no deadline.",
+      "blast_radius": "Indefinite. Every subsequent PR that touches /specs/* must choose between perpetuating the old path (correct on disk, wrong per ADR-0119) or the new path (matches ADR-0119, breaks resolution). Drift compounds."
+    },
+    {
+      "id": "AS-4",
+      "name": "Competing M02 milestones — agentic walker ambiguity",
+      "evidence": "Diff modifies BOTH .omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/INDEX.md AND .omc/plans/milestones/M02-substrate/INDEX.md AND .omc/plans/milestones/M03-cloud-saas-search-workspace-preview/INDEX.md AND .omc/plans/milestones/M03-first-tenant/INDEX.md. There are two M02-* and two M03-* milestone directories with identical milestone-tier names.",
+      "first_breaker": "Any agentic walker that resolves milestone by short-id (M02, M03) hits a directory-name collision. Plan resolution becomes non-deterministic. Subagent dispatching with arg 'M02' picks whichever the walker lists first.",
+      "blast_radius": "Subagent fanout dispatches to the wrong milestone tree silently. No CI lane gates milestone-id uniqueness."
+    },
+    {
+      "id": "AS-5",
+      "name": "Signed-replacement content drift from #14",
+      "evidence": "PR #18 title 'signed replacement', body says 'Replaces #14 without force-pushing so unsigned commit f2c0696 is no longer in the PR history' and 'Preserves the specs/cross-cutting flattening final tree from the original branch'. Asserted as 'one signed replacement commit'. No diff comparison to #14 is provided. The unsigned f2c0696 is gone but there is no evidence that the new signed commit byte-equals the original tree.",
+      "first_breaker": "If the signed replacement silently dropped a file rename, dropped an evidence row, or rebased over an interim conflict, no reviewer can detect it without a side-by-side diff between #14 HEAD and #18 HEAD. The PR provides no such artifact.",
+      "lost_content_hypotheses": [
+        "Original branch likely included `git mv` operations on specs/cross-cutting/* → specs/*. PR #18 contains ZERO renames in the diff (changeType counts: 0 RENAMED, 222 MODIFIED, 1 ADDED). If #14 had renames they were dropped during the signed-replacement reconstruction.",
+        "ADR-0119 marked as ADDED (116 lines) — if #14 contained additional ADR sections or a migration runbook they would not be visible without #14 history.",
+        "Possible: migration-map evidence file under /evidence/audits/migration-map-<unix_ts>.json was authored in #14 (it is referenced in .omc/handoffs/finish-doctrine-migration-2026-05-14.json as the deliverable) but does NOT appear in the #18 file list."
+      ]
+    },
+    {
+      "id": "AS-6",
+      "name": "Self-referential broken pointer in PR's own additions",
+      "evidence": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/INDEX.md was edited to cite `[`/specs/decision-rights.json`](../../../specs/cross-cutting/decision-rights.json)` — the visible link text says /specs/decision-rights.json (new), the href target says ../../../specs/cross-cutting/decision-rights.json (old). The PR itself ships a contradictory link in its first batch of edits.",
+      "first_breaker": "Any markdown renderer or link-checker following the href succeeds (file exists at old path) but the displayed canonical path lies. Future find-and-replace sweeps over the displayed text will miss the href."
+    },
+    {
+      "id": "AS-7",
+      "name": "ADR-0119 ratchet without lane enforcement",
+      "evidence": "docs/decisions/ADR-0119-specs-flat-root-topology.md is ADDED (116 lines) but no diff hunk introduces a CI lane (e.g. lean-specs-topology-flat) that BLOCKs new specs/cross-cutting/* paths. The ADR is doctrinal-only.",
+      "first_breaker": "Without an enforcement lane, every future PR will reintroduce specs/cross-cutting/* references because (a) the files are still there and (b) tab-completion and editor jump-to-file still resolve the old path."
+    }
+  ],
+  "key_claims": [
+    "748 stale specs/cross-cutting/ refs remain on dev HEAD post-merge (F5 reported 285; verified count is 2.6x higher).",
+    "26 entries still populate specs/cross-cutting/ on disk; no `git mv` occurred in PR #18.",
+    "PR #19 is unrelated (KR cell bring-up); the assumed companion mv PR does NOT exist.",
+    "ADR-0119 (added by this PR) declares the flat topology but ships NO migration map, NO deadline, NO enforcement lane.",
+    "Diff contains 0 RENAMED files (222 MODIFIED, 1 ADDED). The flattening is reference-only.",
+    "M02-foundry-preview vs M02-substrate and M03-cloud-saas-search-workspace-preview vs M03-first-tenant create milestone-id collisions for agentic walkers.",
+    "Signed-replacement reconstruction provides no byte-equality proof against #14; renames likely dropped.",
+    "Own PR ships a contradictory link in M03-cloud-saas-search-workspace-preview/INDEX.md (visible text /specs/decision-rights.json, href /specs/cross-cutting/decision-rights.json)."
+  ],
+  "anti_patterns_detected": [
+    "half-migration-merged",
+    "no-enforcement-lane-with-policy-adr",
+    "claimed-renames-zero-actual-renames",
+    "signed-replacement-without-equality-proof",
+    "milestone-id-collision",
+    "reference-rewrite-precedes-filesystem-mv"
+  ],
+  "failing_fixture_added": false,
+  "passing_fixture_id": null,
+  "failing_fixture_id": null,
+  "diagnostic_asserted": "PR #18 is a doctrinal half-merge: it rewrote 222 files of references from /specs/cross-cutting/X to /specs/X and added ADR-0119, but it did NOT mv the underlying files and did NOT add a CI lane to enforce the new topology. The filesystem and the docs now disagree. 748 paths in the repo (2.6x the F5 estimate) point at a flat /specs/* root that contains 26 files only under specs/cross-cutting/. PR #19 is unrelated (KR cell bring-up) — the assumed companion mv PR does NOT exist anywhere in the dev history. First-breakers: (1) any agent that follows root-hub-pointers.json into /specs/X gets ENOENT, (2) every fitness-*-status-lifecycle lane points at /specs/lifecycle-configs/* which does not exist, (3) milestone-id collisions (M02-foundry-preview/M02-substrate, M03-cloud-saas-search-workspace-preview/M03-first-tenant) make agentic walker dispatch non-deterministic. The 'signed replacement' provides no byte-equality proof vs #14 and contains ZERO renames in the diff — strongly suggesting the rename half of #14 was lost during reconstruction. Required follow-up: (a) PR that performs the actual `git mv specs/cross-cutting/* specs/` AND removes the empty specs/cross-cutting/ tree, (b) CI lane lean-specs-topology-flat that BLOCKs any path containing `specs/cross-cutting/`, (c) milestone-id deduplication ADR, (d) link-checker lane that catches link-text-vs-href divergence."
+}

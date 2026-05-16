@@ -1,5 +1,15 @@
 ---
-doc_status: published
+doc_status: deprecated-wrong-location
+canonical_at: docs/specs/deep-dive-oyatie-sst-consolidation.md
+deprecation_note: |
+  This copy is in the wrong location. docs/decisions/ is for ADRs only, not
+  specs. The canonical spec lives at docs/specs/deep-dive-oyatie-sst-consolidation.md.
+  This copy diverged from canonical (~127 lines added / ~122 removed / ~51 modified)
+  per PRs-12-18 multispectrum review (pr-15-A2-r1.json, pr-15-A3-r1.json).
+  Filed as F-SST-TRIPLICATE-DEDUP-CONTENT-MERGE in registries/cross-cutting/
+  fixuptasks.jsonl to merge unique content back into canonical and delete
+  this copy. Until that closes: this file is read-only; new content goes to
+  canonical.
 ---
 # Deep-Dive Spec: oyatie Single Source of Truth + grit/icm agentic pipeline
 

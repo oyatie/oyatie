@@ -1,0 +1,44 @@
+{
+  "reviewer_id": "claude-F10_reversibility-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "F10_reversibility",
+  "lens": "Reversibility — revert cost, data loss, rollback runbook",
+  "answer": "The PR is largely reversible with low revert cost, but carries one conditionally-irreversible operational risk: if the Argo CD cluster has already reconciled to infra/kyverno/oya-vcs-admission, a naive git revert of the merge commit will restore the old path in git while the cluster remains pointed at the new one, creating a split-brain sync conflict. That risk is real but manageable with a documented two-step revert. The .audit/ gitignore change is trivially reversible. The git-history blob for the untracked .audit/agent-read.jsonl is preserved in the object store and recoverable via git log --all --full-history -- .audit/agent-read.jsonl + git checkout <sha> -- .audit/agent-read.jsonl. ADR-0117 does NOT enumerate a rollback procedure — this is a gap.",
+  "key_claims": [
+    "git revert <merge-commit> on the directory rename restores all 7 inbound refs atomically because git mv preserves history and the revert inverse is a clean rename-back",
+    ".audit/agent-read.jsonl blob is recoverable from git object store; data_loss_class = none for the untracking action",
+    "Argo cluster reconciliation creates the only non-trivial revert hazard: if Argo has synced to infra/kyverno/oya-vcs-admission, git revert alone causes a 404 on the old path until a force-sync or Argo Application edit is applied",
+    "ADR-0117 has no rollback section — violates the expectation that infra ADRs enumerate revert procedures",
+    "All 7 inbound refs are in-repo source/evidence files (not external systems), so the ref sweep is fully reversible via git revert"
+  ],
+  "uncertainty_areas": [
+    "Whether a live Argo CD cluster is active and has already reconciled; diff and meta give no cluster-state signal — this is the single largest unknown for revert safety",
+    "Whether any CI workflow hardcodes deploy/gitops/ as a path (grep pass was not run on .github/); the diff shows 0 remaining hits on source extensions but CI YAML was not confirmed clean in the diff evidence"
+  ],
+  "revert_steps": [
+    "1. git revert <merge-commit-sha> — restores all 7 in-repo path refs and the .gitignore addition atomically",
+    "2. If Argo cluster has synced: kubectl edit Application oya-vcs-admission -n argocd (or equivalent) to repoint spec.source.path back to deploy/gitops/oya-vcs-admission, then trigger a manual sync",
+    "3. Verify: grep -rn 'infra/kyverno/oya-vcs-admission' . returns 0 hits in source/evidence",
+    "4. Verify: Argo Application shows Synced + Healthy on the restored path",
+    "5. To recover .audit/agent-read.jsonl if needed: git log --all --full-history -- .audit/agent-read.jsonl, then git checkout <pre-merge-sha> -- .audit/agent-read.jsonl"
+  ],
+  "data_loss_class": "none",
+  "findings": [
+    {
+      "severity": "medium",
+      "summary": "ADR-0117 has no rollback section. For an infra path change that rewires a live Argo Application source.path, the absence of a documented rollback procedure leaves operators without a runbook if the cluster has already reconciled and a revert is needed.",
+      "recommended_action": "Add a ## Rollback section to ADR-0117 enumerating the two-step revert (git revert + Argo Application edit/force-sync). This is a docs-only fixup with no code change.",
+      "fixuptask_id": "F-PR12-01"
+    },
+    {
+      "severity": "low",
+      "summary": "Argo cluster state at merge time is undocumented in the PR evidence. If the cluster has synced to the new path before any revert is issued, step 2 of the revert becomes mandatory but is not captured in any runbook or evidence artifact.",
+      "recommended_action": "Record cluster sync state (kubectl get application oya-vcs-admission -n argocd -o jsonpath='{.status.sync.status}') in an evidence artifact at merge time, so a future reverter knows whether the cluster needs manual intervention.",
+      "fixuptask_id": "F-PR12-02"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}

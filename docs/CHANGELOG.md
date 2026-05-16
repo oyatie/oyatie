@@ -3,6 +3,36 @@ purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
+## 2026-05-16 — PRs 12-18 multispectrum review backfill + drift-sweep fix-PR
+
+Multispectrum-review v2.3.0 wave covering merged PRs #12, #13, #15, #17, #18.
+20 facets per PR (F1-F9 + F10 + F13 + M1 + M2 + A1-A7) as separate
+subagents; 105 evidence files at `evidence/debate/pr-N-FX-r1.json` +
+`pr-N-synthesis.json`. Independent codex gpt-5 high-reasoning cross-check
+captured at `.omc/artifacts/ask/codex-high-cross-check-claude-s-multi...md`.
+
+Consolidated fix-PR addresses systemic findings:
+
+- **BREAKING (ADR-renumber):** ADR-0119-onprem-k8s renumbered to ADR-0121
+  to resolve the merge-race collision with ADR-0119-specs-flat-root
+  (PR #18 merged 3m31s earlier). 7 inbound onprem refs swept.
+- **Drift sweep:** ADR-0100 through ADR-0121 (22 ADRs) added to
+  `doc.adr_*` catalog rows in `DOC-CATALOG.md`. `ADR-INDEX.md` +
+  `decisions.json` regenerated via `oya doc adr-index --write`
+  (99 records, next=ADR-0122).
+- **Hygiene:** Untracked 8 `.omc/**/*.json.tmp.<uuid>` stowaways
+  (PII surface — one leaked a local absolute path); added
+  `**/*.json.tmp.*` and `.omc/**/*.tmp.*` to `.gitignore`.
+- **ADR template normalization:** 8 ADR H1s (0110/0111/0112/0113/0114/0115/0117/0119)
+  normalized from `# ADR-NNNN — title` to `# ADR-NNNN: title` for
+  generator compliance; ADR-0054 supersession blockquote moved AFTER
+  the H1.
+
+Follow-up FixupTasks filed in `registries/cross-cutting/fixuptasks.jsonl`
+for findings outside this fix-PR's control-plane-only scope (audit-chain
+cryptographic chaining, PR15 v1/v2 template migration, M02/M03 milestone
+collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
+
 ## 2026-05-16 — archive-orphan lane retired after M-CC-P11 cutover
 
 - Retired the one-time `archive-orphan` fitness lane after ADR-0116 established the Foundry pipeline (M-CC-P11) as the canonical VCS substrate.

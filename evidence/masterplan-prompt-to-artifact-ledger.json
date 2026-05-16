@@ -237,7 +237,7 @@
       },
       "milestone_status": "complete"
     },
-    "M02-substrate": {
+    "M02b-substrate": {
       "phases": {
         "P01-foundry-engine-consolidation": {
           "phase_status": "indexed-from-existing-ips",
@@ -405,7 +405,7 @@
       },
       "milestone_status": "partial-fanout-complete"
     },
-    "M03-first-tenant": {
+    "M07-first-tenant": {
       "phases": {
         "P01-hr": {
           "phase_status": "indexed-from-existing-ips",

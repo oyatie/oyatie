@@ -2,7 +2,7 @@
   "evidence_id": "ONPREM-PRODUCTION-READY-BASELINE-2026-05-16",
   "captured_at": "2026-05-16T07:25:00Z",
   "verdict": "HEALTHY — all critical checks green; production-ready per user attestation 2026-05-16",
-  "authority": "ADR-0009 (cell architecture) + ADR-0043 (OpenBao/HSM) + ADR-0119 (k8s stack) + ADR-0120 (Rust-first tooling + paired uninstall)",
+  "authority": "ADR-0009 (cell architecture) + ADR-0043 (OpenBao/HSM) + ADR-0121 (k8s stack) + ADR-0120 (Rust-first tooling + paired uninstall)",
   "host": "oyatie (KR primary cell)",
   "kernel": "6.12.86+deb13-amd64",
   "os": "Debian GNU/Linux 13 (trixie)",
@@ -87,7 +87,7 @@
     "by": "user directive 2026-05-16",
     "scope": "on-prem KR primary cell + KR secondary cell shape on OCI (A1 capacity-pending)",
     "criteria_met": [
-      "hardening — done (ADR-0119 §security-posture + setup-hardening.sh)",
+      "hardening — done (ADR-0121 §security-posture + setup-hardening.sh)",
       "cleanup — automated weekly via systemd timer",
       "everything-installed-looked-at — diagnose.sh enumerates 11 sections; current state HEALTHY",
       "optimized — kubeadm 1.35 N-1 LTS, containerd 2.3.0 annual LTS, Istio 1.29.2 current-supported, OpenBao 2.5.3 latest, OpenTofu 1.12.0 latest"
