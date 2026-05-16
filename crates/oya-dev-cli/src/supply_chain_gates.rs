@@ -31,6 +31,7 @@ pub(crate) struct SupplyChainValidateArgs {
     /// `tests/gate_cli.rs` to exercise rejection paths.
     check_script_path: Option<PathBuf>,
     adr0039_script_path: PathBuf,
+    adr0039_rust_path: PathBuf,
     workflows_dir: PathBuf,
     release_images_path: PathBuf,
     branch_protection_path: PathBuf,
@@ -46,6 +47,7 @@ pub(crate) fn parse_supply_chain_validate_args(
         deny_config_path: PathBuf::from("deny.toml"),
         check_script_path: None,
         adr0039_script_path: PathBuf::from("scripts/supply-chain-adr0039.sh"),
+        adr0039_rust_path: PathBuf::from("crates/oya-dev-cli/src/commands/supply_chain.rs"),
         workflows_dir: PathBuf::from(".github/workflows"),
         release_images_path: PathBuf::from("registry/release/images.yaml"),
         branch_protection_path: PathBuf::from(".github/branch-protection.yaml"),
@@ -62,6 +64,7 @@ pub(crate) fn parse_supply_chain_validate_args(
                 parsed.check_script_path = Some(PathBuf::from(next_arg(&mut iter)?))
             }
             "--adr0039-script" => parsed.adr0039_script_path = PathBuf::from(next_arg(&mut iter)?),
+            "--adr0039-rust" => parsed.adr0039_rust_path = PathBuf::from(next_arg(&mut iter)?),
             "--workflows-dir" => parsed.workflows_dir = PathBuf::from(next_arg(&mut iter)?),
             "--release-images" => parsed.release_images_path = PathBuf::from(next_arg(&mut iter)?),
             "--branch-protection" => {
@@ -99,7 +102,9 @@ pub(crate) fn validate_supply_chain_gate(
     };
     let workflow_text = read_workflow_text(&args.workflows_dir)?;
     let adr0039_script = read_optional_text(&args.adr0039_script_path)?;
-    let supply_chain_text = format!("{wired_commands}\n{workflow_text}\n{adr0039_script}");
+    let adr0039_rust = read_optional_text(&args.adr0039_rust_path)?;
+    let supply_chain_text =
+        format!("{wired_commands}\n{workflow_text}\n{adr0039_script}\n{adr0039_rust}");
     let sbom_spdx_wired = sbom_spdx_wired(&supply_chain_text);
     let sbom_cyclonedx_wired = sbom_cyclonedx_wired(&supply_chain_text);
     let evidence = SupplyChainEvidence {
