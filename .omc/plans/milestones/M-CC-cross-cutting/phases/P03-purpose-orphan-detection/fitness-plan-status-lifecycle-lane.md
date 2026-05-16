@@ -7,7 +7,7 @@ status: scaffolded
 execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
-  - specs/cross-cutting/lifecycle-configs/plan-status-lifecycle.json
+  - specs/lifecycle-configs/plan-status-lifecycle.json
   - tools/oya-foundry-fitness-plan-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect plan files whose `status:` is missing or uses an undeclared stage.

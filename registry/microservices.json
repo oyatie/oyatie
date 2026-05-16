@@ -1,5 +1,5 @@
 {
-  "_schema_ref": "/specs/cross-cutting/active-machine-readable-artifact-contract.json#v3.0.0",
+  "_schema_ref": "/specs/active-machine-readable-artifact-contract.json#v3.0.0",
   "_artifact_id": "microservices-registry",
   "_meta": {
     "doc_class": "Registry",

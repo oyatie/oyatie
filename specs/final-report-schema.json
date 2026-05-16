@@ -9,9 +9,9 @@
     "status": "draft-sidecar",
     "owner_team": "council-architecture + axis-foundry",
     "related": [
-      "/specs/cross-cutting/evidence-taxonomy.json",
-      "/specs/cross-cutting/stop-conditions.json",
-      "/specs/cross-cutting/hyperscaler-gates.json",
+      "/specs/evidence-taxonomy.json",
+      "/specs/stop-conditions.json",
+      "/specs/hyperscaler-gates.json",
       "docs/templates/postmortem-template.md",
       "docs/templates/mistakes-ledger-row-template.md",
       "docs/templates/evidence-bundle-template.json"

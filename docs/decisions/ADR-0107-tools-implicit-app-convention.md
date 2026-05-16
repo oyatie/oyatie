@@ -79,7 +79,7 @@ Originally `Accepted` on 2026-05-15. Superseded the same day by user directive p
 
 ## Context
 
-The 2026-05-15 crate-naming audit (`specs/cross-cutting/crate-naming-audit.json`) flagged 9 crates in `tools/` that lacked an explicit layer suffix:
+The 2026-05-15 crate-naming audit (`specs/crate-naming-audit.json`) flagged 9 crates in `tools/` that lacked an explicit layer suffix:
 
 ```
 tools/oya-foundry-fitness-portfolio-citation
@@ -140,7 +140,7 @@ The audit's residual non-compliant count drops from 18 to 9 (the remaining 9 are
 ## Consequences
 
 - **`oya-foundry-fitness-predictable-naming-kernel`** must be updated to recognize the tools/-implicit-app convention. Until then, the lane would flag these 9 crates as non-compliant.
-- **`specs/cross-cutting/crate-naming-audit.json`** is amended in this commit to mark the 9 tools/ crates as compliant via ADR-0107.
+- **`specs/crate-naming-audit.json`** is amended in this commit to mark the 9 tools/ crates as compliant via ADR-0107.
 - **Cargo.toml `[workspace.metadata.oya]`** comment block updated to document the convention alongside the check-family and backend-suffix patterns from ADR-0105.
 - **`oya-tooling-agent-read` no longer requires the "naming-exceptions" doctrinal bounded-extension** I added in ADR-0105 (it's now compliant via the standard convention).
 
@@ -172,5 +172,5 @@ The audit's residual non-compliant count drops from 18 to 9 (the remaining 9 are
 - ADR-0056 §"12-Value Layer Enum" (the original closed enum)
 - ADR-0105 §Adopted Patterns (where check-family and backend-suffix conventions were formalized; this ADR adds the tools/ convention)
 - ADR-0106 (application → usecase rename, sibling change)
-- specs/cross-cutting/crate-naming-audit.json (per-crate compliance ledger)
+- specs/crate-naming-audit.json (per-crate compliance ledger)
 - User directive 2026-05-15: "if they are well defined and serve a purpose, consider adopting them"

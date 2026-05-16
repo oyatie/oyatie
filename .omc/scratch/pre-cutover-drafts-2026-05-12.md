@@ -293,6 +293,6 @@ Lane lives at `tools/oya-foundry-fitness-banned-primitives/`; kernel at `crates/
 
 ## Notes
 
-- All six drafts above are /specs/cross-cutting/ scratch and pre-approval. None of them are committed; none of them are authoritative until the Planner→Architect→Critic consensus lands and the user approves execution.
+- All six drafts above are /specs/ scratch and pre-approval. None of them are committed; none of them are authoritative until the Planner→Architect→Critic consensus lands and the user approves execution.
 - The new-crate chicken-and-egg (Draft 2) is the most architecturally-significant of these drafts — it surfaces a real gap in the spec and adds a small ADR target (`ADR-NNNN-grit-scaffold-claim-pattern`).
 - The bug report (Draft 1) should be filed upstream once the user approves; until then it's a draft.

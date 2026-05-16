@@ -1,5 +1,5 @@
 {
-  "_schema_ref": "/specs/cross-cutting/knowledge-graph-schema.json#v1.0.0",
+  "_schema_ref": "/specs/knowledge-graph-schema.json#v1.0.0",
   "_artifact_id": "knowledge-graph-dynamic",
   "_layer": "dynamic",
   "_meta": {

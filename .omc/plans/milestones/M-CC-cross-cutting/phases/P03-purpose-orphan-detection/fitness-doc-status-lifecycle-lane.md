@@ -7,7 +7,7 @@ status: scaffolded
 execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
-  - specs/cross-cutting/lifecycle-configs/doc-status-lifecycle.json
+  - specs/lifecycle-configs/doc-status-lifecycle.json
   - tools/oya-foundry-fitness-doc-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect docs whose `doc_status:` field is missing or whose terminal `superseded` lacks a `superseded_by:` edge.

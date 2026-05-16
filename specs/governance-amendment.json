@@ -17,12 +17,12 @@
   },
   "scope": {
     "applies_to": [
-      "specs/cross-cutting/decision-principles.json",
-      "specs/cross-cutting/forbidden-operations.json",
-      "specs/cross-cutting/decision-rights.json",
-      "specs/cross-cutting/governance-amendment.json"
+      "specs/decision-principles.json",
+      "specs/forbidden-operations.json",
+      "specs/decision-rights.json",
+      "specs/governance-amendment.json"
     ],
-    "decision_class": "DR-01-constitutional-amendment (per specs/cross-cutting/decision-rights.json)"
+    "decision_class": "DR-01-constitutional-amendment (per specs/decision-rights.json)"
   },
   "authority": {
     "amender": "founder",
@@ -34,7 +34,7 @@
     {
       "step": 1,
       "action": "open-draft-amendment-pr",
-      "description": "Open a draft amendment as a PR against the target spec file in specs/cross-cutting/.",
+      "description": "Open a draft amendment as a PR against the target spec file in specs/.",
       "evidence_required": "PR exists; PR draft flag set"
     },
     {
@@ -88,8 +88,8 @@
     "gap": "PR-merge-gate lane needs an amendment-recognizer that triggers on diffs touching scope.applies_to files. Candidate fitness-lane work."
   },
   "references": [
-    "specs/cross-cutting/decision-rights.json (DR-01-constitutional-amendment)",
-    "specs/cross-cutting/root-hub-pointers.json — migration source map",
+    "specs/decision-rights.json (DR-01-constitutional-amendment)",
+    "specs/root-hub-pointers.json — migration source map",
     "docs/CHANGELOG.md — amendment row destination",
     "docs/decisions/ADR-0003-audit-chain.md — audit-chain emission semantics (EVT-DOCTRINE-AMENDED)"
   ]

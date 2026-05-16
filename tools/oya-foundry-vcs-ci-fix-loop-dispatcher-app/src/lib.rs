@@ -25,7 +25,7 @@
 //!   `--source pr-review-fix-requested --pr <N> --rollup <PATH>`.
 //!
 //! Both sources produce a [`crate::context_bundle::ContextBundle`] of the
-//! shape declared in `/specs/cross-cutting/ci-fix-loop-context-bundle.json`
+//! shape declared in `/specs/ci-fix-loop-context-bundle.json`
 //! (schema version 1) and post it to the agent dispatch queue.
 //!
 //! ## Surface-all-failures

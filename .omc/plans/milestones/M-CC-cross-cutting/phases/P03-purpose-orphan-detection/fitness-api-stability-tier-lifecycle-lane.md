@@ -7,7 +7,7 @@ status: scaffolded
 execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
-  - specs/cross-cutting/lifecycle-configs/api-stability-tier-lifecycle.json
+  - specs/lifecycle-configs/api-stability-tier-lifecycle.json
   - tools/oya-foundry-fitness-api-stability-tier-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 adr_anchor: docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md

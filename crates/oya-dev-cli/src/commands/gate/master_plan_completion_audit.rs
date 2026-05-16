@@ -1,4 +1,4 @@
-// Purpose: status-honesty audit for `specs/cross-cutting/masterplan.json`.
+// Purpose: status-honesty audit for `specs/masterplan.json`.
 // Verifies that no phase is marked complete with incomplete child IPs, and that
 // every IP marked complete has a referencing evidence JSON record. Ported from
 // `scripts/audit-master-plan-completion.py` per
@@ -19,8 +19,14 @@ const COMPLETE_STATUSES: &[&str] = &[
     "foundation-cleared",
     "foundation cleared",
 ];
-const INCOMPLETE_MARKERS: &[&str] =
-    &["stub", "planned", "pending", "blocked", "in-flight", "probe-green"];
+const INCOMPLETE_MARKERS: &[&str] = &[
+    "stub",
+    "planned",
+    "pending",
+    "blocked",
+    "in-flight",
+    "probe-green",
+];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct MasterPlanCompletionAuditArgs {
@@ -32,7 +38,7 @@ pub(crate) fn parse_master_plan_completion_audit_args(
     args: Vec<String>,
 ) -> Result<MasterPlanCompletionAuditArgs, String> {
     let mut parsed = MasterPlanCompletionAuditArgs {
-        master_plan_path: PathBuf::from("specs/cross-cutting/masterplan.json"),
+        master_plan_path: PathBuf::from("specs/masterplan.json"),
         evidence_dirs: vec![
             PathBuf::from("evidence/foundation"),
             PathBuf::from("evidence/gitops-vcs"),
@@ -132,18 +138,14 @@ pub(crate) fn audit_master_plan_completion_strings(
     let index = data
         .get("live_implementation_index")
         .ok_or_else(|| "masterplan missing live_implementation_index".to_string())?;
-    let milestones = index
-        .get("milestones")
-        .and_then(|value| value.as_array());
+    let milestones = index.get("milestones").and_then(|value| value.as_array());
 
     let mut errors: Vec<String> = Vec::new();
     let mut phases_checked = 0usize;
     let mut ips_checked = 0usize;
     let milestones_iter = milestones.into_iter().flatten();
     for milestone in milestones_iter {
-        let phases = milestone
-            .get("phases")
-            .and_then(|value| value.as_array());
+        let phases = milestone.get("phases").and_then(|value| value.as_array());
         let Some(phases) = phases else { continue };
         for phase in phases {
             phases_checked += 1;
@@ -162,9 +164,7 @@ pub(crate) fn audit_master_plan_completion_strings(
                 .map(|ip| ip.get("status").and_then(|value| value.as_str()))
                 .collect();
             if is_complete(phase_status)
-                && child_statuses
-                    .iter()
-                    .any(|status| is_incomplete(*status))
+                && child_statuses.iter().any(|status| is_incomplete(*status))
             {
                 errors.push(format!(
                     "phase {phase_id} is complete but has incomplete child IP"

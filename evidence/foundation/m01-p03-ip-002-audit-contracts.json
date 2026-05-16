@@ -25,7 +25,7 @@
     "docs/machine-readable/contracts.json",
     ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/IP-002-audit-asyncapi-proto.md",
     ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/INDEX.md",
-    "/specs/cross-cutting/masterplan.json",
+    "/specs/masterplan.json",
     "docs/CHANGELOG.md",
     "/evidence/foundation/m01-p03-ip-002-audit-contracts.json"
   ],
@@ -77,7 +77,7 @@
       "status": "pass"
     },
     {
-      "command": "python3 -m json.tool /specs/cross-cutting/masterplan.json",
+      "command": "python3 -m json.tool /specs/masterplan.json",
       "status": "pass"
     },
     {

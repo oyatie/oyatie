@@ -73,7 +73,7 @@ The helper is a binary. If it ships as a container (for sandboxed agent runners)
 Pending the hyperscaler-research agent's output at `.omc/scratch/hyperscaler-best-practices-2026-05-12.md`. Once available, these practices SHOULD apply to the cutover phases (cited here as expected):
 
 - **Working Backwards / PRFAQ**: not applicable to internal cutover; reserved for product launches.
-- **Design Doc** (Google): each cutover phase already has a Design-Doc-equivalent in `/specs/cross-cutting/` (deep-dive spec + ADR drafts).
+- **Design Doc** (Google): each cutover phase already has a Design-Doc-equivalent in `/specs/` (deep-dive spec + ADR drafts).
 - **Blameless postmortems** (Google SRE): if any cutover phase rolls back, a postmortem lands at `oyatie/docs/runbooks/<axis>/postmortem-<event>.md`.
 - **OKRs**: cutover deliverables map to wave-1 W-Foundation acceptance gates (per ROADMAP).
 - **Trunk-based development**: cutover lands on `main` (session-less mode); no long-lived branches.

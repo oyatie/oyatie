@@ -185,7 +185,7 @@ predicates as Rust functions inline at the lane crate, not as a DSL.
 Plus 3 multispectrum-bar sub-checks per `docs/standards/multispectrum-review.md`:
 
 4. `multispectrum-evidence-attached`: per-changeset evidence bundle exists
-   and validates against `/specs/cross-cutting/multispectrum-review.json#evidence_schema`.
+   and validates against `/specs/multispectrum-review.json#evidence_schema`.
 5. `fixture-pair-coverage`: every new lane sub-check ships with passing + failing fixtures.
 6. `change-class-declared`: changeset declares a canonical `change_class_id`.
 
@@ -344,7 +344,7 @@ Even at all-triggers-fired conditions, three findings from the amendment survive
 - ADR-0094 (Handler trait + associated Error type)
 - ADR-0095 (TenantSlug centralization in oya-tenancy-kernel)
 - `docs/standards/multispectrum-review.md` (the review bar applied to this ADR)
-- `/specs/cross-cutting/multispectrum-review.json` (machine-readable mirror)
-- `/specs/cross-cutting/iterative-fix-loop.json` (loop protocol)
+- `/specs/multispectrum-review.json` (machine-readable mirror)
+- `/specs/iterative-fix-loop.json` (loop protocol)
 - `/registry/dependency-rationales.json` (data plane for D12 + D13)
 - `/templates/checklists/pre-pr-multispectrum.md` (pre-PR gate)

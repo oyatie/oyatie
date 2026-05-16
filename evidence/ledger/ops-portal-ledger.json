@@ -1,7 +1,7 @@
 {
   "_schema": {
     "version": "1.0.0",
-    "description": "Completion ledger for ops.oyatie.com (parent + 7 Waves). Rows conform to /specs/cross-cutting/master-plan-sequencing.json:ledger_required_fields. Plan-stage rows only; implementation-stage rows are written when IPs dispatch.",
+    "description": "Completion ledger for ops.oyatie.com (parent + 7 Waves). Rows conform to /specs/master-plan-sequencing.json:ledger_required_fields. Plan-stage rows only; implementation-stage rows are written when IPs dispatch.",
     "owner_team": "council-foundry",
     "validation_check": "json-valid + referenced-paths-exist + every-row-has-required-fields"
   },
@@ -13,10 +13,10 @@
       "docs/MASTERPLAN.md",
       "docs/decisions/ADR-0067-ops-oyatie-com-portal-foundation.md",
       ".omc/plans/ralplan-ops-portal-2026-05-13.md",
-      "/specs/cross-cutting/master-plan-sequencing.json",
-      "/specs/cross-cutting/hyperscaler-gates.json",
-      "/specs/cross-cutting/evidence-taxonomy.json",
-      "/specs/cross-cutting/stop-conditions.json"
+      "/specs/master-plan-sequencing.json",
+      "/specs/hyperscaler-gates.json",
+      "/specs/evidence-taxonomy.json",
+      "/specs/stop-conditions.json"
     ],
     "ralplan_sidecar_note": "Plan files at .omc/plans/ralplan-ops-* are sidecar working-drafts. Canonical milestone/phase/IP hierarchy at .omc/plans/milestones/M03-cloud-saas-search-workspace/phases/* will be authored as machine-readable JSON when IPs dispatch; current ledger rows reference sidecars + masterplan section as source_path until canonical projection exists.",
     "foundation_prerequisite_gaps": [

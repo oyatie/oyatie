@@ -6,7 +6,7 @@
     "for_next_session": "any agent picking up the masterplan loop",
     "created_at": "2026-05-14",
     "user_directives_in_effect": [
-      "Implement everything planned in /specs/cross-cutting/masterplan.json with maximum safe parallelization and ChangeSet efficiency.",
+      "Implement everything planned in /specs/masterplan.json with maximum safe parallelization and ChangeSet efficiency.",
       "no shellscript no mjs etc all rust (2026-05-14)",
       "Don't delete anything (2026-05-14)",
       "Commit + push only on explicit user request",
@@ -16,11 +16,11 @@
 
   "authority_reads_required_at_session_start": [
     "AGENTS.md",
-    "/specs/cross-cutting/root-hub-pointers.json",
-    "/specs/cross-cutting/masterplan.json",
-    "/specs/cross-cutting/master-plan-sequencing.json",
-    "/specs/cross-cutting/gitops-vcs-replacement.json",
-    "/specs/cross-cutting/test-standard.json",
+    "/specs/root-hub-pointers.json",
+    "/specs/masterplan.json",
+    "/specs/master-plan-sequencing.json",
+    "/specs/gitops-vcs-replacement.json",
+    "/specs/test-standard.json",
     "/registry/test-suite-registry.json"
   ],
 

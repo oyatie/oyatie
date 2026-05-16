@@ -1,5 +1,5 @@
 {
-  "$schema_ref": "/specs/cross-cutting/knowledge-graph-schema.json",
+  "$schema_ref": "/specs/knowledge-graph-schema.json",
   "_artifact_id": "architecture-map",
   "_meta": {
     "emitter": "oya-foundry-architecture-map-app::build_map",

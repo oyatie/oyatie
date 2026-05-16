@@ -20,7 +20,7 @@
     "docs/machine-readable/contracts.json",
     ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/IP-002-object-graph-property-tiers.md",
     ".omc/plans/milestones/M01-foundation/phases/P04-eventing-object-graph/INDEX.md",
-    "/specs/cross-cutting/masterplan.json",
+    "/specs/masterplan.json",
     "docs/CHANGELOG.md",
     "/evidence/foundation/m01-p04-ip-002-object-graph-property-tiers.json"
   ],
@@ -73,7 +73,7 @@
       "status": "pass"
     },
     {
-      "command": "python3 -m json.tool /specs/cross-cutting/masterplan.json",
+      "command": "python3 -m json.tool /specs/masterplan.json",
       "status": "pass"
     },
     {

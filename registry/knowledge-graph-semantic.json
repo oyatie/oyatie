@@ -1,5 +1,5 @@
 {
-  "_schema_ref": "/specs/cross-cutting/knowledge-graph-schema.json#v1.0.0",
+  "_schema_ref": "/specs/knowledge-graph-schema.json#v1.0.0",
   "_artifact_id": "knowledge-graph-semantic",
   "_layer": "semantic",
   "_meta": {
@@ -36,7 +36,7 @@
         "cap:verification"
       ],
       "contributing_registries": [
-        "/specs/cross-cutting/active-machine-readable-artifact-contract.json"
+        "/specs/active-machine-readable-artifact-contract.json"
       ]
     },
     "Block": {
@@ -226,7 +226,7 @@
         "schema:evidence-bundle"
       ],
       "contributing_registries": [
-        "/specs/cross-cutting/*.json",
+        "/specs/*.json",
         "contracts/*.yaml"
       ]
     },

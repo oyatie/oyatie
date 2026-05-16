@@ -1,5 +1,5 @@
 ---
-purpose: "Thin human gateway for the multispectrum review bar. The canonical spec is `/specs/cross-cutting/multispectrum-review.json` v2.1.0. The doctrine principles are `/specs/cross-cutting/oyatie-doctrine.json` P0..P9."
+purpose: "Thin human gateway for the multispectrum review bar. The canonical spec is `/specs/multispectrum-review.json` v2.1.0. The doctrine principles are `/specs/oyatie-doctrine.json` P0..P9."
 doc_status: published
 ---
 
@@ -11,13 +11,13 @@ authority_tier: 2
 shape: thin-pointer-gateway
 purpose: |
   Thin human gateway for the multispectrum review bar. The canonical
-  spec is `/specs/cross-cutting/multispectrum-review.json` v2.1.0. The doctrine
-  principles are `/specs/cross-cutting/oyatie-doctrine.json` P0..P9. This markdown
+  spec is `/specs/multispectrum-review.json` v2.1.0. The doctrine
+  principles are `/specs/oyatie-doctrine.json` P0..P9. This markdown
   does NOT restate spec content (per P9 no-sprawl).
-canonical_authority: /specs/cross-cutting/multispectrum-review.json
+canonical_authority: /specs/multispectrum-review.json
 related_specs:
-  - /specs/cross-cutting/oyatie-doctrine.json (canonical P0..P9 principles)
-  - /specs/cross-cutting/iterative-fix-loop.json (loop state machine)
+  - /specs/oyatie-doctrine.json (canonical P0..P9 principles)
+  - /specs/iterative-fix-loop.json (loop state machine)
   - /templates/checklists/pre-pr-multispectrum.json (evidence template)
   - /registry/fixuptasks.jsonl (FixupTask registry)
   - /evidence/audit-chain.jsonl (audit-chain stream)
@@ -31,7 +31,7 @@ related_adrs:
 
 # Multispectrum Review — Human Gateway
 
-> **Canonical spec:** [`/specs/cross-cutting/multispectrum-review.json`](../..//specs/cross-cutting/multispectrum-review.json) v2.1.0.
+> **Canonical spec:** [`/specs/multispectrum-review.json`](../..//specs/multispectrum-review.json) v2.1.0.
 > Read THAT for the schema, enums, rigor matrix, and evidence contract. This markdown does not restate.
 
 ## What it is
@@ -50,21 +50,21 @@ A multi-facet review bar applied to every changeset. The lane `oya-check-depende
 
 | Concept | Canonical home |
 |---|---|
-| Principles (P0..P9) | `/specs/cross-cutting/oyatie-doctrine.json#principles` |
-| Facets (F1..F13, `M1`/`M2`) + change_classes + evidence_schema + scorecard + consensus_debate | `/specs/cross-cutting/multispectrum-review.json` |
-| Loop state machine | `/specs/cross-cutting/iterative-fix-loop.json` |
+| Principles (P0..P9) | `/specs/oyatie-doctrine.json#principles` |
+| Facets (F1..F13, `M1`/`M2`) + change_classes + evidence_schema + scorecard + consensus_debate | `/specs/multispectrum-review.json` |
+| Loop state machine | `/specs/iterative-fix-loop.json` |
 | Pre-PR template | `/templates/checklists/pre-pr-multispectrum.json` |
 | FixupTask registry | `/registry/fixuptasks.jsonl` |
 | Audit-chain stream | `/evidence/audit-chain.jsonl` |
 | Per-PR evidence files | `/evidence/multispectrum/<change_id>-<unix_ts>.json` |
 | 12-layer enum + BNF | `docs/decisions/ADR-0056` |
-| Active-artifact-contract | `/specs/cross-cutting/active-machine-readable-artifact-contract.json` |
+| Active-artifact-contract | `/specs/active-machine-readable-artifact-contract.json` |
 
 Per P9 no-sprawl: no facet table, no principle list, no rigor matrix is duplicated in this markdown.
 
 ## Anti-patterns explicitly forbidden
 
-Listed in `/specs/cross-cutting/multispectrum-review.json#anti_patterns_explicitly_forbidden` (per facet). Read there.
+Listed in `/specs/multispectrum-review.json#anti_patterns_explicitly_forbidden` (per facet). Read there.
 
 ## Decision-log row (Linus good-taste)
 

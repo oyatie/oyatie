@@ -1,5 +1,5 @@
 {
-  "_schema_ref": "/specs/cross-cutting/active-machine-readable-artifact-contract.json#v3.0.0",
+  "_schema_ref": "/specs/active-machine-readable-artifact-contract.json#v3.0.0",
   "_registry_id": "REG-REUSABLE-BUILDING-BLOCKS",
   "_meta": {
     "doc_class": "Registry",
@@ -52,7 +52,7 @@
     {
       "block_id": "active-artifact-9-capability-contract",
       "block_kind": "json-schema-defs",
-      "canonical_path": "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
+      "canonical_path": "/specs/active-machine-readable-artifact-contract.json",
       "version": "v3.0.0",
       "purpose_short": "9-capability contract (enforcement + verification + validation + autogen + selfheal + selfupdate + selfmaintain + telemetry + provenance) applied to every active artifact in repo.",
       "consumer_count_estimated": 50,
@@ -92,7 +92,7 @@
     {
       "block_id": "hyperscaler-gate-claim-matrix",
       "block_kind": "json-schema-defs",
-      "canonical_path": "/specs/cross-cutting/hyperscaler-gates.json",
+      "canonical_path": "/specs/hyperscaler-gates.json",
       "version": "v1.0.0",
       "purpose_short": "10-gate (HG-ARCH..HG-GRIT) + claim_matrix_required (claims_we_can_make / cannot_yet / evidence_required).",
       "consumer_count_estimated": 20,
@@ -230,7 +230,7 @@
     {
       "block_id": "grit-claim-work-done-protocol",
       "block_kind": "grit-symbol-pattern",
-      "canonical_path": "/specs/cross-cutting/master-plan-sequencing.json#repo_state_protocol",
+      "canonical_path": "/specs/master-plan-sequencing.json#repo_state_protocol",
       "version": "v1.0.0",
       "purpose_short": "Every agent\u2192repo state transition: grit claim --agent <id> --intent <slice> \u2192 work in claim \u2192 grit done --agent <id>. Fallback: scaffold-locks-oyatie ICM topic for symbol-less doc-only.",
       "consumer_count_estimated": 1000,
@@ -332,7 +332,7 @@
       "replacement_block_id": null,
       "owner_team": "council-architecture + axis-foundry",
       "consumer_refs": [
-        "/specs/cross-cutting/stop-conditions.json (could be extended to N-stage stops per artifact-class)"
+        "/specs/stop-conditions.json (could be extended to N-stage stops per artifact-class)"
       ],
       "consumer_selectors": [
         "future plan files with multi-stage close conditions"

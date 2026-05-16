@@ -16,7 +16,7 @@ purpose: |
   SLO-burn-rate auto-rollback rail, and the Sigstore-signed-release pipeline.
   Operates downstream of `docs/RELEASE-MANAGEMENT.md` (program-level mechanics)
   and supplies the per-PR / per-release authoring rules.
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-flag-debt
 companion_docs:
   - docs/RELEASE-MANAGEMENT.md
@@ -33,7 +33,7 @@ related_adrs:
 
 # Release Management
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 The program-level lifecycle (CI gates, lanes, rollout strategies) lives in
 [`docs/RELEASE-MANAGEMENT.md`](../RELEASE-MANAGEMENT.md). This standard
@@ -55,7 +55,7 @@ and Google / Microsoft consensus:
 - Branch protection: required reviews per `RACI-OWNERSHIP.md`, merge-gate
   hook (`scripts/hooks/guard-pr-merge-review.mjs`), green CI required.
 - Force-push to `main` is forbidden per
-  [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-03.
+  [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-03.
 
 Sources: [DORA — Trunk-Based Development](https://dora.dev/capabilities/trunk-based-development/),
 [Aviator — What is Trunk-Based Development](https://www.aviator.co/blog/trunk-based-development/).

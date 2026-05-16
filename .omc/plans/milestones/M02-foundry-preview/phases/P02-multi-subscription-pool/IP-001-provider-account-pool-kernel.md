@@ -26,8 +26,8 @@ agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
   - ./INDEX.md
   - docs/AGENTS.md
-  - /specs/cross-cutting/decision-principles.json
-  - /specs/cross-cutting/forbidden-operations.json
+  - /specs/decision-principles.json
+  - /specs/forbidden-operations.json
   - .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md
   - .omc/standards/dependency-policy.md
 final_shape_compliance: true
@@ -40,7 +40,7 @@ decision_log: |
   by representing single-account as a pool of size 1 with `RoundRobin`. The pick_account
   function therefore has no `if members.len() == 1` branch — the data shape removes it.
 authority_chain_declaration: |
-  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/decision-principles.json + /specs/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-001-provider-account-pool-kernel: ProviderAccountPool kernel + value types
@@ -110,7 +110,7 @@ Before `grit claim`, the agent **MUST**:
 1. `icm recall-context "P02 provider-account-pool-kernel ccproxy-api" --limit 5` and read.
 2. Read `.omc/plans/MASTERPLAN.md §2` Directives 3, 4, 7 (final-shape, provider-agnostic, Linus).
 3. Read `./INDEX.md` and the ccproxy-api parity matrix at `./ccproxy-api-parity-matrix.md`.
-4. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/cross-cutting/decision-principles.json` (DP-01..DP-10).
+4. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/decision-principles.json` (DP-01..DP-10).
 5. Confirm no other agent has claimed `crates/oya-foundry-provider-pool-kernel/src/lib.rs::*` via `oya-tooling-agent-read grit-status crates/oya-foundry-provider-pool-kernel`.
 6. Read `.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md §B` to inherit the P00 state machine; pool kernel MUST NOT duplicate ProviderAccount-level state.
 <!-- agent-instructions:end -->

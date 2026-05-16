@@ -27,10 +27,10 @@ use std::process::{Command, ExitCode, Stdio};
 use oya_foundry_vcs_admission_gate_kernel::{AdmissionInputs, AdmissionReport, validate_admission};
 use serde_json::Value;
 
-const ROOT_HUB_POINTERS: &str = "specs/cross-cutting/root-hub-pointers.json";
-const MASTER_PLAN_SEQUENCING: &str = "specs/cross-cutting/master-plan-sequencing.json";
-const MULTISPECTRUM_REVIEW: &str = "specs/cross-cutting/multispectrum-review.json";
-const GITOPS_VCS_REPLACEMENT: &str = "specs/cross-cutting/gitops-vcs-replacement.json";
+const ROOT_HUB_POINTERS: &str = "specs/root-hub-pointers.json";
+const MASTER_PLAN_SEQUENCING: &str = "specs/master-plan-sequencing.json";
+const MULTISPECTRUM_REVIEW: &str = "specs/multispectrum-review.json";
+const GITOPS_VCS_REPLACEMENT: &str = "specs/gitops-vcs-replacement.json";
 const BRANCH_PROTECTION_YAML: &str = ".github/branch-protection.yaml";
 const PR_TESTS_WORKFLOW: &str = ".github/workflows/pr-tests.yml";
 const SUPPLY_CHAIN_WORKFLOW: &str = ".github/workflows/oya-foundry-fitness-supply-chain.yml";
@@ -185,7 +185,7 @@ fn run() -> Result<(), GateError> {
             "admission-gate",
             "--intent",
             "Oya VCS admission CLI smoke",
-            "specs/cross-cutting/gitops-vcs-replacement.json::foundry_agentic_pipeline_integration_plan",
+            "specs/gitops-vcs-replacement.json::foundry_agentic_pipeline_integration_plan",
         ],
     )?;
     smoke_vcs_command(

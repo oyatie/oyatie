@@ -39,7 +39,7 @@ New constraint from 2026-05-15 amendment §B. Today's merge-queue semantics are 
 
 - Three test PRs (A, B, C) admitted in that order; PR A fails CI; PRs B and C are NOT blocked behind A and continue processing.
 - PR A enters parked state; IP-005 fix-loop pushes a fix; scheduler rebases against current queue HEAD (which may now include B or C if they merged) and re-runs CI.
-- If PR A succeeds, it merges at its preserved queue position (or the next-available position if its original was filled — semantic decision documented in `/specs/cross-cutting/merge-queue-parked-pr.json`).
+- If PR A succeeds, it merges at its preserved queue position (or the next-available position if its original was filled — semantic decision documented in `/specs/merge-queue-parked-pr.json`).
 - If PR A fails 5 times, it is evicted with a stuck-PR issue labeled `human-escalation`.
 - Concurrent fix-loops: PRs A and D both parked simultaneously; both fix-loops run; one merges, the other re-parks. Scheduler does not deadlock.
 - Per-tick evidence at `/evidence/pipeline-maturity-glue/ip-006-merge-queue/<tick-N>.json`.
@@ -53,7 +53,7 @@ New constraint from 2026-05-15 amendment §B. Today's merge-queue semantics are 
 - `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/src/fairness.rs::pick_next_pr`
 - `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/src/retry_budget.rs::PrBudget`
 - `tools/oya-cli/src/subcommands/merge_queue.rs::scheduler_tick`
-- `specs/cross-cutting/merge-queue-parked-pr.json::*` (state-machine spec)
+- `specs/merge-queue-parked-pr.json::*` (state-machine spec)
 - `registry/merge-queue-tick-log.json::*` (per-tick admission log)
 
 ## Exit evidence

@@ -547,7 +547,7 @@ expect_used = "deny"
 panic = "deny"
 
 # Release-profile hardening per 2026-05-15 audit + hyperscaler-grade
-# performance/scalability bar (specs/cross-cutting/oyatie-doctrine.json P8,
+# performance/scalability bar (specs/oyatie-doctrine.json P8,
 # docs/standards/hyperscaler-best-practices.md).
 #
 # panic = "abort"     — no unwinding in release; smaller binaries; faster panic

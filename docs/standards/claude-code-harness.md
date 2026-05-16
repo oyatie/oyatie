@@ -18,7 +18,7 @@ purpose: |
   PostToolUse / Stop / SessionStart hooks ordering. Resolves the
   `standards/claude-code-harness.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Claude Code).
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
 companion_docs:
   - docs/AGENTS.md
@@ -33,7 +33,7 @@ related_adrs:
 
 # Claude Code Harness
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 This standard governs the Claude Code harness (the long-lived agent runtime
 documented at <https://docs.anthropic.com/en/docs/claude-code/>). Per
@@ -239,5 +239,5 @@ the loop complete or records the structural block.
 - [rtk-ai/grit](https://github.com/rtk-ai/grit), [rtk-ai/icm](https://github.com/rtk-ai/icm).
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
 - [`docs/AGENTS.md`](../AGENTS.md) §Per-agent appendices (Claude Code).
-- [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-02 (no
+- [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-02 (no
   hook bypass).

@@ -17,7 +17,7 @@ purpose: |
   inside fences unless the documented-rationale flow per Directive 12 is
   followed), and the dual-audience requirement (every fenced block has adjacent
   plain-English prose). Implements MASTERPLAN §7 dual-audience contract.
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-agent-instructions-fence
 companion_docs:
   - docs/standards/doc-style.md
@@ -32,9 +32,9 @@ related_adrs:
 
 # Agent Instructions Discipline
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
-Per [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-04 (dual-audience for
+Per [`decision-principles.json`](../../specs/decision-principles.json) DP-04 (dual-audience for
 instructions) and MASTERPLAN §7, every artifact that contains agent-
 actionable instructions wraps them in a **stable HTML-comment fence**.
 The fence is machine-extractable and runs the banned-token grep narrowly
@@ -218,7 +218,7 @@ The following block is a complete, conformant directive:
 
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12 +
   §7 dual-audience contract.
-- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-04 (dual audience).
+- [`decision-principles.json`](../../specs/decision-principles.json) DP-04 (dual audience).
 - [`docs/AGENTS.md`](../AGENTS.md) §PR shape, §Per-agent appendices.
 - [`docs/standards/doc-style.md`](doc-style.md) §3 (dual-audience rule).
 - [`docs/standards/git-workflow.md`](git-workflow.md) §4 (revised lane).

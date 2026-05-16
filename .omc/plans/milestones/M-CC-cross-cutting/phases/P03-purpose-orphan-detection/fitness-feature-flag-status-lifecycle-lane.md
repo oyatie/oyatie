@@ -7,7 +7,7 @@ status: scaffolded
 execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
-  - specs/cross-cutting/lifecycle-configs/feature-flag-status-lifecycle.json
+  - specs/lifecycle-configs/feature-flag-status-lifecycle.json
   - tools/oya-foundry-fitness-feature-flag-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect feature flags whose ramp/sunset has stalled past its declared deadline.

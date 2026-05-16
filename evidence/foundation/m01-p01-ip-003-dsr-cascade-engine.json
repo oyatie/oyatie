@@ -24,7 +24,7 @@
     "docs/machine-readable/contracts.json",
     ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-003-dsr-cascade-engine.md",
     ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/INDEX.md",
-    "/specs/cross-cutting/masterplan.json",
+    "/specs/masterplan.json",
     "docs/CHANGELOG.md"
   ],
   "acceptance": {
@@ -76,7 +76,7 @@
       "status": "pass"
     },
     {
-      "command": "python3 -m json.tool /specs/cross-cutting/masterplan.json",
+      "command": "python3 -m json.tool /specs/masterplan.json",
       "status": "pass"
     },
     {

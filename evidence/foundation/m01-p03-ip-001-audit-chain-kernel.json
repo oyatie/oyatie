@@ -25,7 +25,7 @@
     "crates/oya-audit-chain-file-adapter/tests/file_ledger.rs",
     ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/IP-001-merkle-ed25519-kernel.md",
     ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/INDEX.md",
-    "/specs/cross-cutting/masterplan.json",
+    "/specs/masterplan.json",
     "docs/CHANGELOG.md",
     "crates/oya-codeview-cli/Cargo.toml",
     "tools/oya-tooling-agent-read/Cargo.toml"
@@ -91,7 +91,7 @@
       "summary": "scoped audit-chain crates clippy clean with rustup cargo-clippy path"
     },
     {
-      "command": "python3 -m json.tool /specs/cross-cutting/masterplan.json",
+      "command": "python3 -m json.tool /specs/masterplan.json",
       "status": "pass",
       "summary": "valid JSON after M01-P03-IP-001 status/dependency update"
     },

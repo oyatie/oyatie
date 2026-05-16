@@ -91,7 +91,7 @@
       "standards (DEFERRED-F-MIGRATE-OMC-MD-HEAVY-SUBDIRS)"
     ],
     "new_canonical_homes_populated": {
-      "specs/cross-cutting/": 18,
+      "specs/": 18,
       "registry/": 13,
       "registry/claim-matrix/": 1,
       "registry/graph/": 2,
@@ -141,7 +141,7 @@
     "F4_ergonomic": {
       "considered": true,
       "findings": [
-        "new contributor follows doctrine prose paths directly: /specs/cross-cutting/, /registry/, /evidence/, /templates/"
+        "new contributor follows doctrine prose paths directly: /specs/, /registry/, /evidence/, /templates/"
       ],
       "new_contributor_minutes_estimate": 3
     },

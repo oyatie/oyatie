@@ -22,7 +22,7 @@
     "crates/oya-platform-policy-cedar-api/tests/cedar_policy_publish_api.rs",
     ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/IP-003-cedar-policy-substrate.md",
     ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/INDEX.md",
-    "/specs/cross-cutting/masterplan.json",
+    "/specs/masterplan.json",
     "docs/CHANGELOG.md"
   ],
   "acceptance": {
@@ -65,7 +65,7 @@
       "status": "pass"
     },
     {
-      "command": "python3 -m json.tool /specs/cross-cutting/masterplan.json",
+      "command": "python3 -m json.tool /specs/masterplan.json",
       "status": "pass"
     },
     {

@@ -5,7 +5,7 @@
 //! 1. **ADR frontmatter** — `docs/decisions/*.md` files whose YAML
 //!    frontmatter carries `sunset_at` / `sunset_milestone` /
 //!    `deprecation_at` / `removal_at` / `sunset_topic` keys.
-//! 2. **Spec JSON `_sunset` objects** — `specs/cross-cutting/*.json`
+//! 2. **Spec JSON `_sunset` objects** — `specs/*.json`
 //!    files containing a top-level `"_sunset": { ... }` member.
 //! 3. **Cargo manifest sunset metadata** — `[package.metadata.oya.sunset]`
 //!    section in any workspace crate's `Cargo.toml`.
@@ -34,7 +34,7 @@ use oya_foundry_fitness_sunset_lifecycle_kernel::{
 };
 
 const DEFAULT_ADR_ROOT: &str = "docs/decisions";
-const DEFAULT_SPECS_ROOT: &str = "specs/cross-cutting";
+const DEFAULT_SPECS_ROOT: &str = "specs";
 const DEFAULT_CRATES_ROOT: &str = "crates";
 const DEFAULT_TOOLS_ROOT: &str = "tools";
 

@@ -43,4 +43,4 @@ This milestone index was generated from existing phase directories and IP files 
 
 ## ChangeSet rule
 
-Every ImplementationPlan below this milestone is a ChangeSet-sized unit governed by `/specs/cross-cutting/master-plan-sequencing.json#implementation_plan_changeset_contract`.
+Every ImplementationPlan below this milestone is a ChangeSet-sized unit governed by `/specs/master-plan-sequencing.json#implementation_plan_changeset_contract`.

@@ -397,7 +397,7 @@ See [Foundry Phase 00 Specification](./products/foundry/PHASE-00-SPEC.md) for ac
 **Consolidation path:**
 ```
 oyatie/docs/products/foundry/
-├── PHASE-00-SPEC.md (this document, relocated from /specs/cross-cutting/)
+├── PHASE-00-SPEC.md (this document, relocated from /specs/)
 ├── PHASE-01-SPEC.md (kernel control plane — future)
 ├── PHASE-02-SPEC.md (self-hosting agent loop — future)
 ├── PHASE-03-SPEC.md (dashboard command center — future)

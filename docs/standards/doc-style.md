@@ -17,7 +17,7 @@ purpose: |
   `standards/doc-style.md` forward-reference sentinel in
   `doc-catalog.md` + the post-2026-05-15 doctrinal substrate, `docs/AGENTS.md` canonical doc map, and
   `docs/README.md`.
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-doc-style
 companion_docs:
   - docs/DOC-CATALOG.md
@@ -31,9 +31,9 @@ related_adrs:
 
 # Doc Style
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
-This standard operates within the [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json)
+This standard operates within the [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json)
 frame (§Documentation) and downstream of [`AGENTS.md`](../AGENTS.md). It
 defines *how* to write canonical docs; [`DOC-CATALOG.md`](../DOC-CATALOG.md)
 defines *when* and *why* to update them.
@@ -85,7 +85,7 @@ positions and flags candidates for human review (advisory, not blocking).
 
 ## 3. Dual-audience rule
 
-Per [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-04:
+Per [`decision-principles.json`](../../specs/decision-principles.json) DP-04:
 every directive read by an agent is also readable to a human, and vice versa.
 The mechanical contract:
 
@@ -117,12 +117,12 @@ status: <pending approval | accepted | superseded | retired>
 purpose: |
   One paragraph: what this doc answers; who reads it.
 lift_target: <path/under/docs/...>   # only for working drafts under .omc/
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: <ci-lane-name>          # standards/runbooks only
 companion_docs:
   - <path>
 authority_chain_declaration: |
-  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class files > working drafts
+  /specs/decision-principles.json + /specs/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class files > working drafts
 ---
 ```
 

@@ -17,7 +17,7 @@ purpose: |
   and the provider-SDK strategy: Anthropic / OpenAI / Gemini SDKs sit behind a
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
   MASTERPLAN Directive 4.
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-lts-dependency
 companion_docs:
   - docs/standards/security-review.md
@@ -32,7 +32,7 @@ related_adrs:
 
 # Dependency Policy
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 Every direct runtime, framework, base image, and supply-chain tool the
 workspace depends on MUST be pinned, license-clean, and reviewed via the
@@ -72,7 +72,7 @@ Per the verified-LTS spec:
 
 ## 2. License posture
 
-Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-09, the
+Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-09, the
 following licenses MUST NOT appear in product-code dependencies:
 
 - **AGPL** (Affero GPL).

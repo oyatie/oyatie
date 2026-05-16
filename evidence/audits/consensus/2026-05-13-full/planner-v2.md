@@ -100,7 +100,7 @@ Per architect r1 line 46: every migration MUST update the consuming validator/ge
 
 ### Amendment 9 — ICM scaffold-lock = degraded mode with expiry
 
-NOT normal operating mode. Add to `/specs/cross-cutting/master-plan-sequencing.json`:
+NOT normal operating mode. Add to `/specs/master-plan-sequencing.json`:
 - `icm_fallback_max_age_hours: 24`
 - `icm_fallback_alert_threshold_hours: 4`
 - Alert lane: `lean-a-grit-fallback-stale` flags ICM scaffold-locks older than threshold.
@@ -109,7 +109,7 @@ Long-term: investigate grit SQLite FK root cause OR build Oyatie-native VCS repl
 
 ### Amendment 10 — Control-plane scale SLOs
 
-Add to `/specs/cross-cutting/control-plane-slos.json` (NEW; allowed under narrowing as it's the operationalization-spec for VL):
+Add to `/specs/control-plane-slos.json` (NEW; allowed under narrowing as it's the operationalization-spec for VL):
 - `validation_runtime_p99_seconds: 5`
 - `graph_build_p99_seconds: 30`
 - `stale_state_window_max_minutes: 60` (warn) / `240` (alert)

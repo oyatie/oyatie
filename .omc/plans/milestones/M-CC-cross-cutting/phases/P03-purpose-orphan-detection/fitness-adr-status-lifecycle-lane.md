@@ -9,7 +9,7 @@ changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions:
-  - specs/cross-cutting/lifecycle-configs/adr-status-lifecycle.json
+  - specs/lifecycle-configs/adr-status-lifecycle.json
   - tools/oya-foundry-fitness-adr-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 adr_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md

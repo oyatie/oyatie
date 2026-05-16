@@ -11,7 +11,7 @@ purpose: Every production binary ships in distroless + smallest-form; direct dep
 # M-CC-P06 — Distroless + Dependency-Seam/LTS + Image Discipline
 
 ## Purpose
-Per MASTERPLAN §6/§8 and `/specs/cross-cutting/masterplan.json` dependency-seam invariant. Verified LTS roster lands at [`../../../../specs/lts-versions-verified-2026-05-12.md`](../../../../specs/lts-versions-verified-2026-05-12.md) (pending agent). Round-5 dep-seam findings from `../../../../ralplan-dep-seam-phaseout-round-5.md` are folded here: ship release-critical products on Hyper/Tokio first, but force wrapper/newtype seams, tech-debt ledger ownership, trigger-based phaseout, replacement parity, and CI enforcement before debt deepens.
+Per MASTERPLAN §6/§8 and `/specs/masterplan.json` dependency-seam invariant. Verified LTS roster lands at [`../../../../specs/lts-versions-verified-2026-05-12.md`](../../../../specs/lts-versions-verified-2026-05-12.md) (pending agent). Round-5 dep-seam findings from `../../../../ralplan-dep-seam-phaseout-round-5.md` are folded here: ship release-critical products on Hyper/Tokio first, but force wrapper/newtype seams, tech-debt ledger ownership, trigger-based phaseout, replacement parity, and CI enforcement before debt deepens.
 
 ## Acceptance
 - `oya-foundry-fitness-image-discipline` lane CI-blocks: non-distroless base, shells/package-managers in production image, image size > budget (per binary).

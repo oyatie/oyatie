@@ -607,7 +607,7 @@ mod tests {
             validate_glossary_vocabulary_hygiene(
                 [doc(
                     "docs/AGENTS.md",
-                    "Canonical doctrine: [doctrine](../specs/cross-cutting/oyatie-doctrine.json).",
+                    "Canonical doctrine: [doctrine](../specs/oyatie-doctrine.json).",
                     false,
                 )],
                 ["ADR"],
@@ -628,7 +628,7 @@ mod tests {
             validate_glossary_vocabulary_hygiene(
                 [doc(
                     "docs/standards/multispectrum-review.md",
-                    "---\nrelated_specs:\n  - /specs/cross-cutting/oyatie-doctrine.json\n---\n\nVisible prose.",
+                    "---\nrelated_specs:\n  - /specs/oyatie-doctrine.json\n---\n\nVisible prose.",
                     false,
                 )],
                 ["ADR"],

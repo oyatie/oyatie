@@ -11,7 +11,7 @@ use crate::fanout::FacetId;
 
 /// Per-facet recommendation from one subagent. Mirrors
 /// `consensus_debate_protocol.rounds.round_1_independent.required_keys`
-/// from `specs/cross-cutting/multispectrum-review.json` but only the
+/// from `specs/multispectrum-review.json` but only the
 /// fields the rollup needs to make a verdict.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FacetFinding {

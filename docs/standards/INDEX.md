@@ -16,13 +16,13 @@ purpose: |
   in `docs/AGENTS.md` and `docs/README.md` that points at
   `standards/<file>.md`. Each row names the file, its enforcement lane, and its
   authority position.
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 companion_docs:
   - docs/AGENTS.md
   - docs/DOC-CATALOG.md
   - docs/STANDARDS-AND-TEMPLATES.md
 authority_chain_declaration: |
-  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class files > working drafts
+  /specs/decision-principles.json + /specs/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class files > working drafts
 related_adrs:
   - ADR-0053
   - ADR-0052
@@ -32,7 +32,7 @@ related_adrs:
 # Oyatie Standards Index
 
 This directory holds the cross-cutting **authoring standards** that operate within the
-[`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) frame, downstream of the
+[`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json) frame, downstream of the
 [`docs/AGENTS.md`](../AGENTS.md) operating contract, and managed under the
 [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md) lifecycle protocol.
 
@@ -105,7 +105,7 @@ ADR-0052 (pre-grit artifact inventory), ADR-0054 (scaffold-claim pattern).
 
 ## Sources scanned
 
-- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json), [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json), [`docs/AGENTS.md`](../AGENTS.md),
+- [`decision-principles.json`](../../specs/decision-principles.json), [`forbidden-operations.json`](../../specs/forbidden-operations.json), [`docs/AGENTS.md`](../AGENTS.md),
   [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md),
   [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md).
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Compound principles

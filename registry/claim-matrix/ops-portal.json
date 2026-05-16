@@ -1,7 +1,7 @@
 {
   "_schema": {
     "version": "1.0.0",
-    "description": "Hyperscaler claim matrix for ops.oyatie.com plan suite. Conforms to /specs/cross-cutting/hyperscaler-gates.json:claim_matrix_required. Honest separation of what plan-acceptance lets us claim vs what requires implementation evidence.",
+    "description": "Hyperscaler claim matrix for ops.oyatie.com plan suite. Conforms to /specs/hyperscaler-gates.json:claim_matrix_required. Honest separation of what plan-acceptance lets us claim vs what requires implementation evidence.",
     "owner_team": "council-foundry",
     "validation_check": "json-valid + every-cannot-yet-claim-has-evidence-required + cited-paths-exist-or-explicitly-WT-only"
   },
@@ -11,8 +11,8 @@
     "created_at": "2026-05-13T00:00:00Z",
     "scope": "ops.oyatie.com plan suite (parent v7 + waves 1-5 Accepted; waves 5.5/5.6/5.7/6/7 pending)",
     "canonical_authority": [
-      "/specs/cross-cutting/hyperscaler-gates.json",
-      "/specs/cross-cutting/stop-conditions.json",
+      "/specs/hyperscaler-gates.json",
+      "/specs/stop-conditions.json",
       "docs/CONSTITUTION.md"
     ],
     "claim_stage": "plan-stage (NOT operational-stage). Stronger claims require IP-X10/X11/X12 dispatch + §11 lifecycle promotion of V-rows to verified-by-existing-CI."

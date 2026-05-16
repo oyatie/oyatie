@@ -32,7 +32,7 @@ where every direct child is a semantic class. No `cross-cutting/` subdir.
 No plural form.
 
 This consolidation also aligns the on-disk layout with the BNF in
-`specs/cross-cutting/oyatie-doctrine.json` P14, which already declares
+`specs/oyatie-doctrine.json` P14, which already declares
 `/registry/` as the first-class durable home.
 
 ## Decision
@@ -97,10 +97,10 @@ All source code, configs, workflows, docs, specs, registries, and plans
 that referenced `registries/cross-cutting/` or the bare `registries/`
 directory token were rewritten to `registry/`. Live-code occurrences
 (e.g., `crates/oya-foundry-fitness-architecture-map-freshness-kernel/src/lib.rs`
-roots vector) updated. `specs/cross-cutting/root-hub-pointers.json`
+roots vector) updated. `specs/root-hub-pointers.json`
 entry-point paths updated.
 
-The doctrine BNF kind enum in `specs/cross-cutting/oyatie-doctrine.json`
+The doctrine BNF kind enum in `specs/oyatie-doctrine.json`
 P14 updated from `specs | registries | evidence | templates | adrs |
 standards | plans` to `specs | registry | evidence | templates | adrs |
 standards | plans` to lock the singular form.
@@ -153,7 +153,7 @@ of CLAUDE.md.
 
 ## Follow-up
 
-- **`specs/cross-cutting/` flattening** is a deliberate follow-up
+- **`specs/` flattening** is a deliberate follow-up
   (separate ADR + separate PR). The same flat-singular logic
   (`specs/`) will likely apply, but the surface is larger and is not
   included in this PR.

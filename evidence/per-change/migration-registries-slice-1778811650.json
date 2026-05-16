@@ -172,11 +172,11 @@
   "consensus_debate_required": false,
   "next_slice": {
     "slice_id": "TG1-SLICE-4-SPECS",
-    "scope": "/specs/cross-cutting/*.json \u2192 /specs/cross-cutting/; /specs/cross-cutting/*.md \u2192 .omc/scratch/ (re-classify drafts)",
+    "scope": "/specs/*.json \u2192 /specs/; /specs/*.md \u2192 .omc/scratch/ (re-classify drafts)",
     "estimated_json_files_to_move": 18,
     "estimated_md_drafts_to_scratch": 10,
     "estimated_cross_refs": "~190 files (8 Rust + 121 MD + 61 JSON + 4 JSONL + 3 YAML + 2 PY)",
-    "complication": "10 .md drafts in /specs/cross-cutting/ are NOT durables \u2014 reclassify to .omc/scratch/ before mass sed touches the .json prefix"
+    "complication": "10 .md drafts in /specs/ are NOT durables \u2014 reclassify to .omc/scratch/ before mass sed touches the .json prefix"
   },
   "decision_log": [
     {

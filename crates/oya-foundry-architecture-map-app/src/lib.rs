@@ -170,7 +170,7 @@ pub fn emit_json(map: &ArchitectureMap, out_path: &Path) -> Result<(), MapBuildE
 fn render_json(map: &ArchitectureMap) -> String {
     let mut out = String::new();
     out.push_str("{\n");
-    out.push_str("  \"$schema_ref\": \"specs/cross-cutting/knowledge-graph-schema.json\",\n");
+    out.push_str("  \"$schema_ref\": \"specs/knowledge-graph-schema.json\",\n");
     out.push_str("  \"_artifact_id\": \"architecture-map\",\n");
     out.push_str(
         "  \"_meta\": { \"emitter\": \"oya-foundry-architecture-map-app::build_map\", \"purpose\": \"Generated architecture graph of crates, contracts, registries, and ownership edges for repository navigation and drift checks.\" },\n",

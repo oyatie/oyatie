@@ -24,12 +24,12 @@
     "design_rationale": "Hyperscaler precedent: AWS Config (resource compliance registry), GCP Asset Inventory (per-resource policy state), Kubernetes CRDs + admission controllers. Data plane = artifacts. Control plane = registry. Validator = Rust crate. Per decision-principles.json DP-03 (mechanical prevention over process) + ADR-0015 registry pattern.",
     "related": [
       "/registry/artifact-capabilities-registry.json",
-      "/specs/cross-cutting/artifact-format-bindings.json",
-      "/specs/cross-cutting/artifact-telemetry-semantic-conventions.json",
+      "/specs/artifact-format-bindings.json",
+      "/specs/artifact-telemetry-semantic-conventions.json",
       "/registry/artifact-contract-migration-policy.json",
-      "/specs/cross-cutting/master-plan-sequencing.json",
-      "/specs/cross-cutting/hyperscaler-gates.json",
-      "/specs/cross-cutting/evidence-taxonomy.json",
+      "/specs/master-plan-sequencing.json",
+      "/specs/hyperscaler-gates.json",
+      "/specs/evidence-taxonomy.json",
       "docs/standards/prevention-doctrine.md",
       "docs/decisions/ADR-0015-architectural-flattening-target.md"
     ],
@@ -170,7 +170,7 @@
         "ratel-conf",
         "plain-text-manifest"
       ],
-      "description": "Drives format-specific validator selection per /specs/cross-cutting/artifact-format-bindings.json."
+      "description": "Drives format-specific validator selection per /specs/artifact-format-bindings.json."
     },
     "enforcement_timing": {
       "enum": [

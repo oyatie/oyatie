@@ -18,7 +18,7 @@ Accepted (amends ADR-0056 §"12-Value Layer Enum")
 
 ## Context
 
-The 2026-05-15 crate-naming audit (`specs/cross-cutting/crate-naming-audit.json`) classified 264 workspace.members against ADR-0056's 12-value enum and found three classes of non-compliance:
+The 2026-05-15 crate-naming audit (`specs/crate-naming-audit.json`) classified 264 workspace.members against ADR-0056's 12-value enum and found three classes of non-compliance:
 
 1. **21 crates use `-api` suffix** — a coherent, well-defined pattern for protocol-neutral contract-surface layers (cloud-*, identity, tenancy, ontology, policy-cedar, regional-pack, foundry-dashboard, *-compat). Renaming all 21 to `-rest`/`-grpc`/`-graphql` would lose the protocol-neutral framing that justified the suffix.
 
@@ -81,7 +81,7 @@ Constraints:
   - 7 × tools/`oya-foundry-fitness-<feature>` (decide: tools/-implicit-app convention, or add `-app` suffix per crate)
   - 8 × one-off drift (vcs-*-{controller,mergequeue,ratchet,gate,adapters}, saas-plugin-marketplace, adapter-substitution-test, oya-foundry-fitness-purpose-audit)
 - **`oya-foundry-fitness-predictable-naming-kernel` lane** must be updated to enforce the 13-value enum + adopted patterns. Until then, the lane is too strict (it would flag legitimate `*-api` and `oya-check-*` crates).
-- **`specs/cross-cutting/crate-naming-audit.json`** is updated in this same commit to mark the 21 `api`, 36 check-family, and 13 backend-suffix crates as compliant.
+- **`specs/crate-naming-audit.json`** is updated in this same commit to mark the 21 `api`, 36 check-family, and 13 backend-suffix crates as compliant.
 
 ## Drivers
 
@@ -102,7 +102,7 @@ Constraints:
 
 ## Follow-ups
 
-1. Update `specs/cross-cutting/crate-naming-audit.json` to reflect the 13-value enum + adopted patterns. **Done in this commit.**
+1. Update `specs/crate-naming-audit.json` to reflect the 13-value enum + adopted patterns. **Done in this commit.**
 2. Update `oya-foundry-fitness-predictable-naming-kernel` to recognize the 13-value enum + adopted patterns. Tracked separately.
 3. Per-crate rename for the 18 remaining non-compliant entries (3 runtime + 7 fitness-tool + 8 one-offs). Each is its own C1-shaped atomic commit.
 4. Update `Cargo.toml [workspace.metadata.oya]` comment block (line 266) which references the "Layer enum (12 canonical values)" — bump to 13.
@@ -182,5 +182,5 @@ Tracked as a follow-up entry in `evidence/audits/shell-python-replacement-audit-
 
 - ADR-0056 §"12-Value Layer Enum (closed)" — the enum this ADR amends
 - ADR-0104 — ecosystem-expansion principle (why some adapters stay deferred)
-- specs/cross-cutting/crate-naming-audit.json — per-crate classification table
+- specs/crate-naming-audit.json — per-crate classification table
 - 2026-05-15 user directives

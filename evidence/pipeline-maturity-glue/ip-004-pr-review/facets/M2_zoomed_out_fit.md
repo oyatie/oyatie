@@ -14,4 +14,4 @@ You are the M2 meta facet — zoomed-out fit. Step back from the diff and ask:
 
 Cite the plan / spec / ADR the diff aligns with (or violates).
 
-Cross-reference: `specs/cross-cutting/master-plan-sequencing.json`, `feedback_workflow_objectgraph_adapter_layer.md`, `feedback_milestone_phase_hierarchy.md`.
+Cross-reference: `specs/master-plan-sequencing.json`, `feedback_workflow_objectgraph_adapter_layer.md`, `feedback_milestone_phase_hierarchy.md`.

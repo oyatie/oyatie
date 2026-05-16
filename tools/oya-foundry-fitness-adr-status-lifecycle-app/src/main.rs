@@ -7,7 +7,7 @@ use oya_foundry_fitness_lifecycle_kernel::cli;
 use std::process::ExitCode;
 
 const LANE: &str = "adr-status-lifecycle";
-const DEFAULT_CONFIG: &str = "specs/cross-cutting/lifecycle-configs/adr-status-lifecycle.json";
+const DEFAULT_CONFIG: &str = "specs/lifecycle-configs/adr-status-lifecycle.json";
 
 fn main() -> ExitCode {
     cli::run_default(LANE, DEFAULT_CONFIG)

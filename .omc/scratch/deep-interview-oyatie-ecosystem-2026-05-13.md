@@ -144,7 +144,7 @@ All criteria are concrete and testable by an autonomous agent invoking `Implemen
 - [ ] All session-decided overrides authored as ADRs (0055/0056/0057/0058/0059/0060/0061)
 - [ ] BNF v4.1 amendment landed (ADR-0056 v4.1)
 - [ ] MASTERPLAN refreshed to canonical glossary (no `platform`, `Object Graph`, `workspace` crate names, `Product Group`, `Arm`, `vertical/shared binary slot`)
-- [ ] All stale ADRs/plans/specs/docs DELETED (not marked retired) — `rtk grep -rl "Product Group\|Object Graph\|<shared|vertical>\|Modular Product Shell\|oya-platform-\|oya-workspace-" docs/ .omc/plans/ /specs/cross-cutting/` returns no hits outside of this spec's historical-transcript section
+- [ ] All stale ADRs/plans/specs/docs DELETED (not marked retired) — `rtk grep -rl "Product Group\|Object Graph\|<shared|vertical>\|Modular Product Shell\|oya-platform-\|oya-workspace-" docs/ .omc/plans/ /specs/` returns no hits outside of this spec's historical-transcript section
 - [ ] Bominal-inheritance override list in `feedback_bominal_inheritance_precedence.md` reflected in oyatie ADRs (10 overrides, each with an ADR cite)
 - [ ] `oya-check-benchmark-cli` green (every µservice that has reached Proof-Ladder L4 has a competitive-benchmark section in its PRD)
 

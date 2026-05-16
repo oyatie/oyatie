@@ -12,9 +12,9 @@
     "created_at": "2026-05-13T00:00:00Z",
     "user_directive": "Phase 1 of accumulated-requirements roadmap: kill Markdown-as-source-of-truth gap",
     "related": [
-      "/specs/cross-cutting/active-machine-readable-artifact-contract.json",
-      "/specs/cross-cutting/knowledge-graph-schema.json",
-      "/specs/cross-cutting/artifact-profile-defaults.json",
+      "/specs/active-machine-readable-artifact-contract.json",
+      "/specs/knowledge-graph-schema.json",
+      "/specs/artifact-profile-defaults.json",
       ".omc/plans/ralplan-ops-portal-2026-05-13.md (Markdown projection precedent)",
       ".omc/plans/ralplan-ops-wave-5-2026-05-13.md (Markdown projection v18 Accepted)"
     ],

@@ -16,7 +16,7 @@ purpose: |
   image-size budgets, Cosign keyless OIDC signing, Syft-generated SBOM, and SLSA
   Level 2 provenance attestation. Implements MASTERPLAN Directive 5 (distroless
   + smallest-image containers) and Directive 6 (hyperscaler-bar).
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-image-discipline
 companion_docs:
   - docs/standards/security-review.md
@@ -30,7 +30,7 @@ related_adrs:
 
 # Image Discipline
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 Per MASTERPLAN Directive 5, production binaries are statically-linked Rust
 artifacts shipped in **distroless** containers — no shells, no package

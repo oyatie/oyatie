@@ -97,4 +97,4 @@ Numbered list of items that need a future decision or implementation. Each gets 
 - Internal ADRs cited: ADR-0052 (inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim).
 - Codex / Claude / Gemini / external review feedback (if applicable).
 - Related issues (`Refs #N`, `Closes #N`).
-- Source spec / plan if lifted from a `/specs/cross-cutting/*` draft.
+- Source spec / plan if lifted from a `/specs/*` draft.

@@ -3,7 +3,7 @@ template_class: PrePrChecklist
 status: Accepted
 date: 2026-05-14
 authority: docs/standards/multispectrum-review.md
-machine_mirror: /specs/cross-cutting/multispectrum-review.json
+machine_mirror: /specs/multispectrum-review.json
 purpose: |
   Runnable gate every PR/changeset/session MUST pass before claiming "done" or
   opening a PR. Acts as the iterative review loop: find issues per facet →
@@ -23,7 +23,7 @@ purpose: |
 ## Step 1 — declare change_class
 
 Mark exactly ONE row. The machine spec enumerates seven classes;
-the rigor matrix is read from `/specs/cross-cutting/multispectrum-review.json#change_classes`.
+the rigor matrix is read from `/specs/multispectrum-review.json#change_classes`.
 
 - [ ] `CC-1_kernel_public_api` — touches public API of a kernel crate
 - [ ] `CC-2_adapter_or_infrastructure` — adapter or infrastructure crate
@@ -45,7 +45,7 @@ multispectrum_spec_version: 1.0.0
 ## Step 3 — facet review
 
 For each facet, answer ALL trigger questions per the rigor required by your
-`change_class`. Trigger questions from `/specs/cross-cutting/multispectrum-review.json#facets`.
+`change_class`. Trigger questions from `/specs/multispectrum-review.json#facets`.
 
 ### F1 Linus critique
 
@@ -153,7 +153,7 @@ Write the JSON evidence to:
 /evidence/multispectrum/<change_id>-<unix-ts>.json
 ```
 
-Schema: `/specs/cross-cutting/multispectrum-review.json#evidence_schema`.
+Schema: `/specs/multispectrum-review.json#evidence_schema`.
 
 ## Step 7 — invoke lane
 
@@ -194,7 +194,7 @@ Special cases eliminated by this checklist:
 ## References
 
 - `docs/standards/multispectrum-review.md` (human authority)
-- `/specs/cross-cutting/multispectrum-review.json` (machine truth)
-- `/specs/cross-cutting/iterative-fix-loop.json` (loop protocol)
+- `/specs/multispectrum-review.json` (machine truth)
+- `/specs/iterative-fix-loop.json` (loop protocol)
 - ADR-0092 (first ADR citing this checklist)
 - ADR-0069 (active-artifact-contract evidence bundle)

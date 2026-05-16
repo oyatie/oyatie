@@ -41,7 +41,7 @@ The parallel `oya-foundry-fitness-sunset-lifecycle-kernel` (committed independen
 
 ## Decision
 
-1. **One generic kernel.** `oya-foundry-fitness-lifecycle-kernel` exposes the canonical `LifecycleConfig`, `LifecycledArtifact`, `Stage`, `Transition`, `Violation`, and `evaluate()` function. Every lifecycle lane is data — a JSON config under `specs/cross-cutting/lifecycle-configs/`. Adding a new lifecycle is a config-file + thin dev-CLI commit, not a new kernel.
+1. **One generic kernel.** `oya-foundry-fitness-lifecycle-kernel` exposes the canonical `LifecycleConfig`, `LifecycledArtifact`, `Stage`, `Transition`, `Violation`, and `evaluate()` function. Every lifecycle lane is data — a JSON config under `specs/lifecycle-configs/`. Adding a new lifecycle is a config-file + thin dev-CLI commit, not a new kernel.
 
 2. **Per-lifecycle dev-CLI wrappers.** Each lifecycle ships `tools/oya-foundry-fitness-<lifecycle-name>-lifecycle-app/` — a thin binary that loads its config, discovers artifacts from the repo (via the kernel's source-spec abstraction), calls `evaluate()`, and reports/exits. The CLI is the IO ring (clean-architecture port-in-kernel: kernel is I/O-free; the app does the directory walk + front-matter parsing).
 

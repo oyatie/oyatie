@@ -7,7 +7,7 @@
 > `/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/feedback_no_exceptions_canonical.md`.
 >
 > **Method:** ripgrep sweep across `docs/decisions/`, `docs/standards/`,
-> `.omc/plans/`, `specs/cross-cutting/`, and `crates/` + `tools/` for
+> `.omc/plans/`, `specs/`, and `crates/` + `tools/` for
 > vocabulary: *exception, escape hatch, implicit, carve-out, opt-out,
 > allowlist, exempt, except-for, except-when, covered-without, no-suffix-needed,
 > skip-this-lane, safe-harbor, conditional-allow, deviation, tolerated,
@@ -348,7 +348,7 @@ These are deny-by-default closed sets, not exceptions to a canonical rule:
 
 ### Category F — Spec / plan wording
 
-45. `specs/cross-cutting/oyatie-doctrine.json:14,49,137,140,149,152`
+45. `specs/oyatie-doctrine.json:14,49,137,140,149,152`
     — "no exemptions without ADR-tracked carve-out"; "Applies to every
     change across every layer. No exemptions without ADR.";
     "exceptions need ADR"; "allowed_exceptions"; "evidence_for_exception";
@@ -361,25 +361,25 @@ These are deny-by-default closed sets, not exceptions to a canonical rule:
       (separate from this audit's commit-scope) since the JSON schema is
       cross-referenced.
 
-46. `specs/cross-cutting/multispectrum-review.json:60,352,443`
+46. `specs/multispectrum-review.json:60,352,443`
     — "No exemptions without an ADR-tracked carve-out";
     "implicit-conventions-not-declared".
     - **Verdict:** KEEP-WITH-RESTRUCTURE. The first line is
       anti-exception (good). The "implicit-conventions-not-declared"
       facet is itself the canonical-naming defense and should stay.
 
-47. `specs/cross-cutting/crate-naming-audit.json:26,33,36,40,102,126,133`
+47. `specs/crate-naming-audit.json:26,33,36,40,102,126,133`
     — multiple "exception clause", "tools_implicit_app",
     "Naming exceptions".
     - **Verdict:** DEFERRED — Items 6+9 agent + Item-10 docs agent
       (per task brief "Item-10 docs agent: spec/crate-naming audit
       docs"). DO NOT touch.
 
-48. `specs/cross-cutting/masterplan.json:93`
+48. `specs/masterplan.json:93`
     — "CI-only gh api/gh pr view carve-out as ADR-0093".
     - **Verdict:** DEFERRED — masterplan is cutover/Item-1 territory.
 
-49. `specs/cross-cutting/gitops-vcs-replacement.json:1253`
+49. `specs/gitops-vcs-replacement.json:1253`
     — `"escalate_when": "policy exception or vulnerability acceptance required"`.
     - **Verdict:** REFRAME. "policy exception" → "policy-extension
       proposal". Light touch.
@@ -440,7 +440,7 @@ review tractable:
 - **REFRAME-7**: `docs/standards/error-handling.md:150` — "Exception:" → "Sub-rule:".
 - **REFRAME-8**: `docs/standards/doc-style.md:156` — "code blocks are exempt" → declarative reword.
 - **REFRAME-9**: `docs/standards/multi-agent-tool-map.md:99` — "exceptions" → "Directive-12 extensions".
-- **REFRAME-10**: `specs/cross-cutting/gitops-vcs-replacement.json:1253` — "policy exception" → "policy-extension proposal".
+- **REFRAME-10**: `specs/gitops-vcs-replacement.json:1253` — "policy exception" → "policy-extension proposal".
 
 ## Deferred (other agents' territories — do not touch in this audit)
 
@@ -450,14 +450,14 @@ review tractable:
 | Workspace members + DENY crates | Item-3 finish agent | `Cargo.toml` + 4 crates |
 | CONSTITUTION-cite sweep | Item-1 agent | `docs/standards/INDEX.md`, observability, on-call, `docs/MISTAKES-LEDGER.md`, `docs/DOC-CATALOG.md`, `docs/CHANGELOG.md`, `.omc/plans` |
 | ADR-0107 / ADR-0105 / `tools/oya-foundry-fitness-*` / predictable-naming-kernel / `docs/standards/predictable-naming*` | Items 6+9 agent | ADR-0056 / ADR-0058 / ADR-0062 / ADR-0063 / ADR-0069 / ADR-0097 / ADR-0058 / `code-style-rust.md` / `crate-naming-convention.md` |
-| spec/crate-naming audit docs | Item-10 docs agent | `specs/cross-cutting/crate-naming-audit.json` |
+| spec/crate-naming audit docs | Item-10 docs agent | `specs/crate-naming-audit.json` |
 | `docs/PRD.md` | ip004 | `docs/PRD.md` |
 | `docs/products/foundry/*` | ip005 | `docs/products/foundry/*` |
 | `docs/RACI-OWNERSHIP.md` | ip001 | `docs/RACI-OWNERSHIP.md` |
 | `tools/oya-tooling-agent-read/` | ip003 | n/a |
 | ADR-0052, ADR-0053, ADR-0054, ADR-0057, ADR-0103 (cutover ADRs) | ip001/ip002 cutover-protected | all five |
-| ~~`oyatie-doctrine.json` `allowed_exceptions` → `allowed_extensions` rename + `evidence_for_exception` rename~~ — **COMPLETED** in oya-m02-m03-fanout follow-on (PR #3 reviewer-agent recommendation #3 closed) | follow-on doctrine pass | `specs/cross-cutting/oyatie-doctrine.json` |
-| `specs/cross-cutting/masterplan.json` "carve-out" reword | Item-1 / masterplan owner | `masterplan.json` |
+| ~~`oyatie-doctrine.json` `allowed_exceptions` → `allowed_extensions` rename + `evidence_for_exception` rename~~ — **COMPLETED** in oya-m02-m03-fanout follow-on (PR #3 reviewer-agent recommendation #3 closed) | follow-on doctrine pass | `specs/oyatie-doctrine.json` |
+| `specs/masterplan.json` "carve-out" reword | Item-1 / masterplan owner | `masterplan.json` |
 
 ## Notes for the next sweep
 

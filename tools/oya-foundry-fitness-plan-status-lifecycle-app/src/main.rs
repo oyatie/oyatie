@@ -3,7 +3,7 @@ use oya_foundry_fitness_lifecycle_kernel::cli;
 use std::process::ExitCode;
 
 const LANE: &str = "plan-status-lifecycle";
-const DEFAULT_CONFIG: &str = "specs/cross-cutting/lifecycle-configs/plan-status-lifecycle.json";
+const DEFAULT_CONFIG: &str = "specs/lifecycle-configs/plan-status-lifecycle.json";
 
 fn main() -> ExitCode {
     cli::run_default(LANE, DEFAULT_CONFIG)

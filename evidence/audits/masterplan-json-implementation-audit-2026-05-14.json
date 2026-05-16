@@ -1,7 +1,7 @@
 {
   "doc_class": "CompletionAudit",
   "audit_id": "masterplan-json-implementation-audit-2026-05-14",
-  "objective": "Implement /specs/cross-cutting/masterplan.json",
+  "objective": "Implement /specs/masterplan.json",
   "restated_deliverables": [
     "Masterplan JSON is valid JSON and remains canonical machine-readable seed.",
     "Masterplan JSON encodes the current implementation hierarchy from actual milestone/phase/IP files.",
@@ -12,18 +12,18 @@
   ],
   "prompt_to_artifact_checklist": [
     {
-      "requirement": "Implement /specs/cross-cutting/masterplan.json",
-      "artifact": "/specs/cross-cutting/masterplan.json",
+      "requirement": "Implement /specs/masterplan.json",
+      "artifact": "/specs/masterplan.json",
       "evidence": "version 0.9.0; live_implementation_index generated from .omc/plans/milestones; jq validation pending in final gate"
     },
     {
       "requirement": "milestone, phase, implementation plans",
-      "artifact": "/specs/cross-cutting/masterplan.json#live_implementation_index.milestones",
+      "artifact": "/specs/masterplan.json#live_implementation_index.milestones",
       "evidence": "9 milestones, 78 phases, 150 implementation plans indexed"
     },
     {
       "requirement": "implementation plans are basically changesets",
-      "artifact": "/specs/cross-cutting/master-plan-sequencing.json#implementation_plan_changeset_contract and every IP frontmatter",
+      "artifact": "/specs/master-plan-sequencing.json#implementation_plan_changeset_contract and every IP frontmatter",
       "evidence": "150/150 IP files declare execution_unit: ChangeSet and changeset_contract"
     },
     {

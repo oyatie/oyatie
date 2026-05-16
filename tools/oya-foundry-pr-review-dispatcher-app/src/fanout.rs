@@ -15,7 +15,7 @@
 /// + 7-element A-family (own-policy adherence lenses).
 ///
 /// Closed enum. Adding a facet REQUIRES an ADR + a memory note + a row
-/// in `specs/cross-cutting/multispectrum-review.json` (the A-family
+/// in `specs/multispectrum-review.json` (the A-family
 /// closed-enum cap is RELAXED per `feedback_multispectrum_adherence_facets`,
 /// but every addition still gets an ADR cite).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

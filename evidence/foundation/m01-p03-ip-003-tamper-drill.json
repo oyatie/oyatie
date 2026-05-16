@@ -19,7 +19,7 @@
     "docs/runbooks/cross-axis/audit-chain-integrity-failure.md",
     ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/IP-003-tamper-evidence-drill.md",
     ".omc/plans/milestones/M01-foundation/phases/P03-audit-chain-evidence/INDEX.md",
-    "/specs/cross-cutting/masterplan.json",
+    "/specs/masterplan.json",
     "docs/CHANGELOG.md",
     "/evidence/foundation/m01-p03-ip-003-tamper-drill.json"
   ],
@@ -48,7 +48,7 @@
       "summary": "1 passed; file ledger rejects divergent append history and tampered record replay as InvalidChain."
     },
     {
-      "command": "python3 -m json.tool /specs/cross-cutting/masterplan.json",
+      "command": "python3 -m json.tool /specs/masterplan.json",
       "status": "pass"
     },
     {

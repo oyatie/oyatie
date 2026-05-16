@@ -390,7 +390,7 @@
       },
       {
         "id": "test-standard-documented",
-        "rule": "docs/standards/testing.md, /specs/cross-cutting/test-standard.json, and /registry/test-suite-registry.json exist before P00 exits."
+        "rule": "docs/standards/testing.md, /specs/test-standard.json, and /registry/test-suite-registry.json exist before P00 exits."
       },
       {
         "id": "test-tier-coverage",
@@ -521,7 +521,7 @@
       "freshness": "2026-05-14T07:16:07Z",
       "command_or_lane": "web open official GitHub repository",
       "result": "features folded into upgrade spec",
-      "artifact_ref": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "artifact_ref": "/specs/gitops-vcs-replacement.json",
       "known_gap": "External repository may evolve; this spec captures the subset needed for Oyatie and upgrades GitOps integration."
     },
     {
@@ -538,47 +538,47 @@
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "source_path": "/specs/gitops-vcs-replacement.json",
       "summary": "Expanded spec to require polyglot semantic indexing, review/fix loop, controller-owned rebase, merge queue, and CI/CD promotion.",
       "freshness": "2026-05-14T07:19:08Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/gitops-vcs-replacement.json#review_fix_loop",
+      "artifact_ref": "/specs/gitops-vcs-replacement.json#review_fix_loop",
       "known_gap": "Implementation crates/controllers are still planned by M-CC-P00 IPs."
     },
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "source_path": "/specs/gitops-vcs-replacement.json",
       "summary": "Added mandatory documented/enforced unit/integration/e2e test standard and preserved AST handling as a core semantic-lock capability.",
       "freshness": "2026-05-14T07:20:28Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/gitops-vcs-replacement.json#test_standard_enforcement",
+      "artifact_ref": "/specs/gitops-vcs-replacement.json#test_standard_enforcement",
       "known_gap": "test-standard.json and test-suite-registry.json are planned P00 deliverables, not authored in this slice."
     },
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/cross-cutting/test-standard.json + /registry/test-suite-registry.json",
+      "source_path": "/specs/test-standard.json + /registry/test-suite-registry.json",
       "summary": "Created machine-readable test standard and polyglot test-suite registry for M-CC-P00 admission enforcement.",
       "freshness": "2026-05-14T07:22:20Z",
       "command_or_lane": "python json write + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/gitops-vcs-replacement.json#test_standard_enforcement",
+      "artifact_ref": "/specs/gitops-vcs-replacement.json#test_standard_enforcement",
       "known_gap": "Future implementation must wire these into the controller and CI lanes."
     },
     {
       "id": "EVT-OYA-VCS-PRODUCT-SYNTHESIS-2026-05-14",
       "timestamp": "2026-05-14T08:00:24Z",
-      "source_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "source_path": "/specs/gitops-vcs-replacement.json",
       "summary": "Renamed target product to Oya VCS and added provider-neutral core, first-class replaceable adapters for GitHub/GitHub Actions/Trivy/Argo CD, semantic ChangeSet queue model, and Rust compile-latency strategy.",
       "evidence_type": "design-contract-update"
     },
     {
       "id": "EVT-OYA-VCS-THROUGHPUT-ISSUES-2026-05-14",
       "timestamp": "2026-05-14T08:02:06Z",
-      "source_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "source_path": "/specs/gitops-vcs-replacement.json",
       "summary": "Added high-throughput variable-speed agent scheduler and provider-neutral issue tracker integration with GitHubIssuesAdapter.",
       "evidence_type": "design-contract-update"
     }
@@ -800,7 +800,7 @@
         "status": "exists"
       },
       {
-        "path": "/specs/cross-cutting/test-standard.json",
+        "path": "/specs/test-standard.json",
         "purpose": "Machine-readable standard consumed by admission gates and CI/CD templates.",
         "status": "created"
       },
@@ -888,7 +888,7 @@
         "generated-client impact analysis"
       ]
     },
-    "machine_readable_standard_ref": "/specs/cross-cutting/test-standard.json",
+    "machine_readable_standard_ref": "/specs/test-standard.json",
     "test_suite_registry_ref": "/registry/test-suite-registry.json"
   },
   "product_definition": {

@@ -11,7 +11,7 @@
 //! # Intent (per ADR-0109)
 //!
 //! One generic kernel that consumes a [`LifecycleConfig`] (declared per
-//! lifecycle in `specs/cross-cutting/lifecycle-configs/<name>.json`) plus
+//! lifecycle in `specs/lifecycle-configs/<name>.json`) plus
 //! a slice of discovered [`LifecycledArtifact`]s, and returns a
 //! [`Vec<Violation>`] for any artifact whose state-machine posture is
 //! drifted (unknown stage, overdue deadline, missing supersession edge,
@@ -149,7 +149,7 @@ pub struct Defaults {
     pub case_insensitive_stage_match: bool, // data_class: INTERNAL_ONLY
 }
 
-/// Full lifecycle configuration. One per `specs/cross-cutting/lifecycle-configs/<name>.json`.
+/// Full lifecycle configuration. One per `specs/lifecycle-configs/<name>.json`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LifecycleConfig {
     // data_class: INTERNAL_ONLY
