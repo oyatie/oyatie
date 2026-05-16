@@ -1,0 +1,39 @@
+{
+  "change_id": "pr-3",
+  "consensus_delta": "round-2 evidence attached before consensus declaration; synthesis now cites both primary facet evidence and rebuttal evidence paths",
+  "considered": true,
+  "facet_id": "F4",
+  "facet_name": "Ergonomics and contributor experience",
+  "inputs_reviewed": [
+    "evidence/debate/pr-3-F4-r1.json",
+    "evidence/debate/pr-3-synthesis.json"
+  ],
+  "merge_commit_sha": "27fe6705519cebccc1cfb780f293e5b1619c6672",
+  "naming_justification": "evidence/debate/pr-3-F4-r2.json follows the multispectrum evidence path contract and separates the rebuttal round from the primary facet review.",
+  "null_finding_reason": null,
+  "position": "concurs_with_synthesis_after_rebuttal",
+  "pr_number": 3,
+  "pr_title": "ADR-0083 DENY + M-CC-P10 pipeline maturity + CLI canonicalization",
+  "rendered_at_unix": 1778920055,
+  "reviewer_id": "codex-F4-pr-3-r2-rebuttal",
+  "rigor": "GREEN",
+  "round": "r2_rebuttal",
+  "round_2_findings": [
+    {
+      "issue": "Round-2 F4 reconciliation preserved consensus finding: Temporary agent memory/audit files were committed in a 2712-file pipeline PR. That violates smallest-actionable artifact discipline and risks turning local session byproducts into canonical product state.",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F4 reconciliation preserved consensus finding: Temporary agent memory, HUD, and audit scratch files were committed alongside canonical pipeline maturity work. For contributors, this blurs product evidence versus local session exhaust and creates a real risk that future agents cargo-cult transient state as…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F4 reconciliation preserved consensus finding: The review workflow is triggered by workflow_run, checks out the PR head SHA, and runs cargo from that checkout while the job has checks:write/actions:read permissions. That executes untrusted PR-controlled code in a privileged workflow_run context.",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    }
+  ],
+  "summary": "F4 Ergonomics and contributor experience round-2 rebuttal for PR #3 rechecked the primary facet evidence against the synthesis consensus points. This r2 artifact is the explicit consensus rebuttal round required before synthesis. No consensus contradiction or reviewer-id reuse was found; blockers remain represented as FixupTasks."
+}

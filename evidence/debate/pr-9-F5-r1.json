@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-9",
+  "pr_number": 9,
+  "pr_title": "Consolidate registries/cross-cutting/ into flat registry/ (ADR-0115)",
+  "merge_commit_sha": "86b454d122d2999e29adea60eae2c12e1f0b9339",
+  "facet_id": "F5",
+  "facet_name": "Quality/testability review",
+  "reviewer_id": "codex-F5-pr-9-r1",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "F5 review of PR #9 found the registry-root move mechanically strong: PR checks passed and live grep evidence found no residual registries/cross-cutting references outside preserved historical evidence/ADR context. Remaining maintainability risk is semantic drift from broad text rewrites into handoff/plan artifacts and a deferred specs flattening dependency. Highest severity: MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": ".omc/handoffs/finish-doctrine-migration-2026-05-14.json:25,42-54",
+      "issue": "The path rewrite changed handoff instructions into a contradictory rule: it now says no new durables in `/registry` while also saying new durables go to `/registry/`. Because .omc handoffs can be reused by agents, this creates ambiguous future instructions rather than a purely mechanical path migration.",
+      "remediation": "Review every rewritten .omc handoff/plan sentence semantically, not just by string replacement. For historical handoffs, either preserve original text with an explicit migrated_path annotation or update the whole rule so it distinguishes retired roots from the new canonical registry root."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "docs/decisions/ADR-0115-registry-consolidation-flat-singular.md:94-114; PR #9 merge diff: 135 files",
+      "issue": "ADR-0115 says historical evidence under evidence/debate and evidence/per-change was preserved, but the PR still rewrote .omc handoffs, plans, and session-state text. That splits provenance policy by directory and makes it unclear which historical artifacts are immutable versus live control surfaces.",
+      "remediation": "Codify a directory-level migration policy for .omc handoffs/plans/state before additional bulk path rewrites. Add a migration verifier that distinguishes live references, historical evidence, and historical-but-consumed handoff artifacts."
+    },
+    {
+      "severity": "MINOR",
+      "file": "docs/decisions/ADR-0115-registry-consolidation-flat-singular.md:154-159",
+      "issue": "The PR deliberately defers specs/cross-cutting flattening. That scope boundary is reasonable, but it leaves registry and specs using different topology rules during the transition.",
+      "remediation": "Track the specs flattening as a bounded follow-up with its own grep/assertion gate, and keep synthesis from declaring the entire cross-cutting topology flattened until that PR lands."
+    }
+  ],
+  "null_finding_reason": null
+}

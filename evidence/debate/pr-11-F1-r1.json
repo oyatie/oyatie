@@ -1,0 +1,36 @@
+{
+  "change_id": "pr-11",
+  "facet_id": "F1",
+  "facet_name": "Linus critique",
+  "reviewer_id": "codex-F1-pr-11-r1",
+  "considered": true,
+  "rigor": "GREEN",
+  "summary": "PR #11 claims merge-queue runner-side wiring, but the new modules are mostly detached seams and tests. There is no real GitMergeTreeRunner implementation in the app, the merge-tree invocation does not project queued PRs, and an impossible branch fabricates PR #0 instead of failing loudly.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:34-38 + grep call sites",
+      "issue": "The PR adds a `GitMergeTreeRunner` trait, but `git grep` shows only test stubs implement `run_merge_tree`; the production app has no Command-backed runner and the existing admission loop does not call `pre_admit_check`. This is not runner-side wiring; it is detached code.",
+      "remediation": "Implement a production runner using `git merge-tree`, wire `pre_admit_check` into the app admission path, and add a test that the app refuses a conflicting candidate through the real seam."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:171-174",
+      "issue": "`run_projected_merge_state_check` calls `run_merge_tree(dev_head, candidate.head_sha, dev_head)`. That compares the candidate against dev using dev as both base and theirs; it never builds a projected base including queued PRs. The function name promises projected merge state, but the code checks only candidate-vs-dev plus separate path-overlap bookkeeping.",
+      "remediation": "Construct the projected queue head (or iterate queued PR merge-tree applications) and call merge-tree against that projected base. Rename the current function if it is only a candidate-vs-dev check."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/fix_at_any_stage_revalidate.rs:124-129 + 188-201",
+      "issue": "An unreachable split branch is handled by fabricating a synthetic `QueuedPr { pr_number: 0, sha: 000... }`. That masks impossible control-flow evidence and can turn a logic bug into a misleading kernel refusal.",
+      "remediation": "Index safely without cloning through `unwrap_or_else`, or return an explicit internal error. Never invent PR #0 as a fallback for impossible state."
+    },
+    {
+      "severity": "MEDIUM",
+      "file": "registry/vcs/concurrent-safe-paths.yaml:1-24",
+      "issue": "The strict-default whitelist is fine, but the parser is a bespoke indentation scanner while the registry is YAML. This adds another tiny parser special case in runner code for a config format the repo already treats as structured data.",
+      "remediation": "Use the existing YAML parser path in the app layer or make the registry JSON if std-only parsing is a hard requirement."
+    }
+  ],
+  "null_finding_reason": null
+}

@@ -1,0 +1,72 @@
+{
+  "change_id": "pr-5",
+  "facet_id": "F2",
+  "facet_name": "Hyperscaler critique",
+  "reviewer_id": "f2-pilot-pr5",
+  "considered": true,
+  "rigor": "GREEN",
+  "summary": "PR #5 ships a four-ADR substrate (0110 state machine, 0111 merge queue, 0112 webhook, 0113 orchestrator) plus wave-A kernel/app for changeset state and unconditional dev->staging->production promotion workflows. Hyperscaler lens surfaces ten findings: the most damaging are the single-JSON-file event log as the canonical pipeline source-of-truth (R/W contention + unbounded growth + unsharded), Quadratic-Q*pr-tests merge-queue re-validation triggered by every PR push without admission control, the unbounded promotion concurrency-group with cancel-in-progress=false (queue head-of-line blocking), 30-min/hourly cron skew producing variable promotion lag, an Ed25519 stub that exists in wave-A and is not enforced anywhere, GitHub-API as the sole control plane (single-region, single-vendor rate-limit blast radius), and absent back-pressure on webhook fan-in (the 1000/24h cap is documented but not implemented). None blocks the merged ADR-set conceptually, but several need explicit wave-B sequencing locks before any production cell ever consumes this pipeline.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": "registry/vcs/changeset-event-log.json:1 + crates/oya-foundry-vcs-changeset-state-app/src/main.rs:431-446",
+      "issue": "Single global JSON file as the canonical state-of-truth for ALL changesets in the pipeline. Every append rewrites the entire file via read-parse-append-write-rename. At hyperscaler agentic load (N=100s of concurrent changesets, 10+ events each, multiple emitters: orchestrator+IP-004+IP-005+IP-006+2 promotion workflows+canary controller) this is O(N*E) per append, single-writer-serialized, and the rename-on-the-same-file pattern is NOT safe across concurrent writers — fs::rename is atomic per-call but two writers reading-then-writing will silently clobber each other's appends (TOCTOU). There is no fcntl/flock, no compare-and-swap, no per-changeset shard. This is exactly the 'per-instance control plane' anti-pattern called out in the F2 spec.",
+      "remediation": "Wave-B MUST shard the event log by changeset_id (e.g., registry/vcs/changeset-events/<bucket>/<changeset_id>.jsonl one-line-per-event append-only with O_APPEND, or move to an actual event store: SQLite WAL per-bucket, Postgres LISTEN/NOTIFY, or DynamoDB conditional-put). The current file shape can stay as a periodic snapshot/index but MUST NOT be the write path. Add an ADR amendment locking the shard key and the writer-CAS contract before any second emitter (IP-004 wave-B) writes."
+    },
+    {
+      "severity": "BLOCKER",
+      "file": "docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md:152-158",
+      "issue": "ADR-0111 'fix-at-any-stage re-validation' admits Q*pr-tests worst-case work per push event, mitigated only by MAX_REPOSITION=3 and per-changeset cost_budget. At Q=50 queued PRs (realistic at agentic scale), one fix push triggers up to 50 fresh pr-tests CI runs. pr-tests is the most expensive surface on the substrate (multi-minute compile+test on hosted runners). There is no admission control on push-rate, no debounce/coalesce of repeated pushes from the same fix-loop within a short window, and no per-runner-pool cap. A pathological IP-005 fix-loop on one PR can saturate the entire CI fleet and starve every other team.",
+      "remediation": "Wave-A of IP-002 MUST add: (a) per-PR push-debounce (coalesce pushes within 30s into one re-validation), (b) per-runner-pool concurrency cap (e.g., max 10 concurrent re-validations across the queue), (c) an explicit 'queue depth' SLO and a queue-shedding mode when depth exceeds threshold (admit only changesets above a priority floor). The cost budget caps spend per CS but does NOT cap fleet-wide blast radius."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/promote-dev-to-staging.yml:47-49 + .github/workflows/promote-staging-to-production.yml:34-36",
+      "issue": "concurrency.group is a single global string ('promote-dev-to-staging') with cancel-in-progress=false. Under heavy dev throughput (multiple merges within the 30-min cron window plus push triggers plus dispatch triggers), promotions serialize behind a single queue head. There is no per-product or per-cell sharding even though ADR-0114 explicitly says canary cohorts are per-product and Foundry/Workflow-Studio expand independently. When ADR-0114 lands, this global mutex is exactly the 'single-mutex-hot-lock' F2 anti-pattern: every product's promotion blocks behind every other.",
+      "remediation": "Add concurrency.group keyed by product OR by target-ref-shard once multi-product staging exists. Even pre-multi-product, key by ${{ github.event_name }} so push-triggered, dispatch-triggered, and cron-triggered runs do not contend. Add a queue-depth metric on this workflow so saturation is observable."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/promote-dev-to-staging.yml:42 + .github/workflows/promote-staging-to-production.yml:29",
+      "issue": "Cron-fallback cadence (30-min dev->staging, hourly staging->production) is the documented safety net when WORKFLOW_PAT is absent. At hyperscaler load this gives variable end-to-end promotion lag of [push-time .. push-time+90min] for a single changeset, which makes the ADR-0114 'observation_window_per_stage_seconds: 900' (15 min) gate effectively un-implementable — observation cannot start within the canary SLO if promotion lag dominates. Worse, hourly cron at minute :17 means production lag is deterministically clustered (every hour, all backlog flushes at once) — thundering-herd into canary controller at the top of every hour.",
+      "remediation": "Jitter the cron schedule (or split into multiple offset cron entries) AND make WORKFLOW_PAT the contracted path (not the fallback) before ADR-0114 wave-B gates on canary windows. Document the SLO: 'p99 promotion lag < 5 min' and make the cron a *liveness* probe, not a steady-state mechanism."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:62-72 + crates/oya-foundry-vcs-changeset-state-kernel/src/lib.rs:200-213",
+      "issue": "Ed25519 signature is a wave-A stub (`ed25519-stub:<base64>`) AND the kernel explicitly says it does NOT verify signatures. Every downstream gate that the ADRs describe as 'signed + audited' (canary verdict, rewind log, override row) currently has NO crypto. At hyperscaler trust boundaries (cross-cell, cross-tenant, post-incident audit), an unsigned event log is indistinguishable from a tampered one — and there is no CI lane that flags 'still on stub' so the placeholder can persist silently into wave-B.",
+      "remediation": "Add an oya-foundry-fitness-changeset-state-signature-stub-detector lane NOW (wave-A) that fails CI when any production-target event row carries signature prefix `ed25519-stub:`. The lane permits stubs only in `target=dev` rows, blocks them at staging promotion. This forces wave-B to land real signing before any production event log row exists."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md:131-137",
+      "issue": "Bounded-latency SLO declares 'per-changeset webhook fan-in cap: 1000 events / 24 h (prevents runaway loops)' as the only back-pressure surface. 1000 events/CS/24h at N=10k concurrent changesets = 10M webhook deliveries/day at a single receiver endpoint piggy-backed on the Foundry control plane (per the ADR). No mention of: per-source rate-limit (GitHub itself), receiver horizontal-scale strategy, dedup-table sharding (the registry/vcs/webhook-delivery-log.json suffers the same single-file flaw as the changeset-event-log), or what happens when the receiver is the bottleneck (drop? queue? shed?). 'Hosted on Foundry control plane' is per-instance control plane in disguise.",
+      "remediation": "ADR-0112 wave-B MUST specify: (a) receiver is stateless and horizontally scaled behind a load balancer, (b) dedup table is moved to a shared KV (Redis/DynamoDB) with TTL=7d natively supported, (c) per-source rate-limiter (GitHub IP/installation token) with explicit shed policy, (d) measured fan-in capacity per receiver instance and the scale-out trigger. Today's `webhook-delivery-log.json` write path inherits the SQL of finding #1."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "docs/decisions/ADR-0113-vcs-orchestrator-end-to-end.md:78-86 + 165-179",
+      "issue": "Synchronous `--wait` mode polls `registry/vcs/changeset-event-log.json` every 30s for up to 2 hours. At hyperscaler scale where the log is unsharded (finding #1), each poller re-reads + re-parses the entire file. 100 concurrent `--wait` callers = 100 full-file reads every 30s, on top of the writer contention. Worse, the cited 'human-driven testing only' caveat is unenforceable — agentic callers can and will use --wait when their subscription endpoint is misconfigured (graceful-degradation footgun).",
+      "remediation": "Either (a) gate --wait behind a TTY check + explicit --i-am-human-and-this-is-a-test flag, OR (b) move polling to the orchestrator's process (single reader) and let --wait subscribers consume via a local Unix socket, OR (c) deprecate --wait and ship a CLI subscriber (`oya vcs follow <changeset_id>`) that uses the webhook receiver as the single fan-out point."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "docs/decisions/ADR-0114-canary-observability-rollback.md:218-223",
+      "issue": "Canary controller assumes per-cell control vs canary baseline, but admits 'Stage 4 full-rollout collapses the control set to zero; the controller switches to historical-baseline comparison at that point.' Historical-baseline comparison is the classic anti-pattern at hyperscaler scale: time-of-day/day-of-week traffic shifts dwarf the canary signal-to-noise ratio. AWS/Google production canary systems all use *paired* control cells held back at the previous version specifically to avoid this. The ADR offers no mitigation; ROLLBACK at stage 4 becomes statistically unreliable.",
+      "remediation": "ADR-0114 wave-B MUST mandate a permanent 'shadow' control cohort (e.g., 1% of cells pinned to prior production ref) that never advances past stage 3 until the next changeset begins canary. The shadow rotates per-changeset so no single cell is permanently behind. Without this, stage-4 ROLLBACK is theatrics."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:218-225 + 75-77",
+      "issue": "Single-source-of-truth violation: `ChangesetState::ALL`, `as_wire`, and the parser are all reauthored in three places (kernel lib.rs, app main.rs, dev-cli changeset_state_monotonicity_gate.rs). Each event parser (app:321-362, gate:87-133) reimplements identical field extraction. At hyperscaler scale, a new field (or a renamed state) requires touching three parsers in lockstep; one drift = silent acceptance/rejection mismatch between writer and validator. This is the F2 'n-source-of-truth-without-generator' anti-pattern.",
+      "remediation": "Move event parsing into the kernel (e.g., `ChangesetEvent::from_json_value`) and delete both copy-paste parsers. Or: derive Serialize/Deserialize on the kernel types via serde (the kernel's 'no external deps beyond std' rule can be relaxed for serde; it's the canonical wire-format library and not a leaky abstraction). The ADR-0056 port-in-kernel discipline does not forbid serde."
+    },
+    {
+      "severity": "MINOR",
+      "file": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:261-267 + 275-302",
+      "issue": "Hand-rolled RFC3339 formatter to avoid chrono/time dep. Sub-second precision is truncated, which means at hyperscaler emit rates (multiple events per second per changeset under fix-loop pressure) the dedup_key `<cs>_<state>_<at>` is NOT unique — two re-emits of the same to_state within one wall-second produce identical dedup_keys, which the kernel will reject as `DuplicateDedupKey`. The kernel's own monotonicity-test (lib.rs:556-570) is the exact failure mode in production.",
+      "remediation": "Either format with millisecond precision (truncate to ms not s), or append a per-process monotonic counter to the dedup_key. Cheaper still: depend on `time` 0.3 (single dep, no chrono baggage) and get RFC3339 with sub-second native. The 'dep-thin' justification at line 273 is false economy."
+    }
+  ],
+  "null_finding_reason": null
+}

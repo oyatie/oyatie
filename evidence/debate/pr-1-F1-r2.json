@@ -1,0 +1,39 @@
+{
+  "change_id": "pr-1",
+  "consensus_delta": "round-2 evidence attached before consensus declaration; synthesis now cites both primary facet evidence and rebuttal evidence paths",
+  "considered": true,
+  "facet_id": "F1",
+  "facet_name": "Linus critique",
+  "inputs_reviewed": [
+    "evidence/debate/pr-1-F1-r1.json",
+    "evidence/debate/pr-1-synthesis.json"
+  ],
+  "merge_commit_sha": "cdc53bf2d80274c33c000bd8cb299fbfb3c3c313",
+  "naming_justification": "evidence/debate/pr-1-F1-r2.json follows the multispectrum evidence path contract and separates the rebuttal round from the primary facet review.",
+  "null_finding_reason": null,
+  "position": "concurs_with_synthesis_after_rebuttal",
+  "pr_number": 1,
+  "pr_title": "Publish verified Oyatie API contract surface",
+  "rendered_at_unix": 1778920055,
+  "reviewer_id": "codex-F1-pr-1-r2-rebuttal",
+  "rigor": "GREEN",
+  "round": "r2_rebuttal",
+  "round_2_findings": [
+    {
+      "issue": "Round-2 F1 reconciliation preserved consensus finding: PR #1 was merged while the static ADR-0039 wiring gate reported FAILURE. That makes the initial verified API surface untrustworthy as a compliance baseline because the release evidence lane did not pass before merge.",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F1 reconciliation preserved consensus finding: The PR title promises a verified API contract surface, but the operator-visible check rollup says the wiring gate failed and release attestation was skipped. A contributor reading the merged PR has conflicting instructions: trust the baseline or stop on faile…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F1 reconciliation preserved consensus finding: The PR was merged even though the static ADR-0039 supply-chain gate concluded FAILURE and the release artifact Trivy/Cosign/SBOM lane was SKIPPED. A baseline described as verified cannot be trusted when its release/security evidence lane did not pass before m…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    }
+  ],
+  "summary": "F1 Linus critique round-2 rebuttal for PR #1 rechecked the primary facet evidence against the synthesis consensus points. This r2 artifact is the explicit consensus rebuttal round required before synthesis. No consensus contradiction or reviewer-id reuse was found; blockers remain represented as FixupTasks."
+}

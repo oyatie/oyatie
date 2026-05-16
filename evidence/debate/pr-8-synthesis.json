@@ -1,0 +1,180 @@
+{
+  "change_id": "pr-8",
+  "consensus_points": [
+    {
+      "evidence": "tools/oya-foundry-pr-review-dispatcher-app/src/main.rs:99-102,215-248,640-658,820-838; .github/workflows/pr-review.yml:97-104",
+      "facets_concurring": [
+        "F7"
+      ],
+      "headline": "The dispatcher defaults to External runtime mode; the workflow does not pass --runtime-mode; and tests lock the empty-panel behavior as APPROVE with subagent_runtime_pending=true plus a pr-review-approved event. That is a fail-open review signal unless every…",
+      "id": "PR8-CONV-1",
+      "recommended_remediation": "Change missing/incomplete panels to CHANGES_REQUESTED or REJECT at the dispatcher boundary, and make the workflow pass an explicit runtime mode only when a complete panel is produced.",
+      "remediation_fixuptasks": [
+        "F-PR8-01"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "evidence/multispectrum/codex-m01-m02-exit-1778903088.json",
+      "facets_concurring": [
+        "F2",
+        "F3",
+        "F6"
+      ],
+      "headline": "The PR adds M01/M02 gate evidence but the main worktree state shows many later untracked/dirty gate changes; completion claims need branch-local reproducibility rather than ambient workspace state.",
+      "id": "PR8-CONV-2",
+      "recommended_remediation": "Tie each gate evidence file to a commit SHA and command output so reruns prove the exact branch, not a dirty workstation.",
+      "remediation_fixuptasks": [
+        "F-PR8-02"
+      ],
+      "severity": "MAJOR"
+    },
+    {
+      "evidence": "crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs:30-75",
+      "facets_concurring": [
+        "F3",
+        "F6"
+      ],
+      "headline": "The gate still carries transitional role mappings for `application` and `runtime` even after the repo moved toward `usecase`/`app` layer names. That is necessary for transition but weakens clean-architecture enforcement if it is not time-boxed.",
+      "id": "PR8-CONV-3",
+      "recommended_remediation": "Add an explicit sunset/ratchet fixture that fails once the three named follow-ups land and removes the legacy role aliases.",
+      "remediation_fixuptasks": [
+        "F-PR8-03"
+      ],
+      "severity": "MAJOR"
+    },
+    {
+      "evidence": "registry/quality/lanes.yaml:535",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "New active lane `oya-foundry-fitness-merge-queue-ref-hygiene` runs `oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600`, but the app parser in this PR only accepts `--workspace-root`, `--initial-head-sha`, `--now-epoch`, and…",
+      "id": "PR8-CONV-4",
+      "recommended_remediation": "Implement the GC flags in the app and add a CLI regression test, or mark the lane planned/inactive until the command exists.",
+      "remediation_fixuptasks": [
+        "F-PR8-04"
+      ],
+      "severity": "MAJOR"
+    },
+    {
+      "evidence": "crates/oya-foundry-subagent-runtime-usecase/src/fanout.rs:14-47 + tools/oya-foundry-pr-review-dispatcher-app/src/fanout.rs:22-112",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "The new usecase crate duplicates the 21-facet panel while the dispatcher keeps its own `FacetId::full_panel_v23`. The comment says it mirrors the dispatcher list, which is exactly the double-bookkeeping the boundary fix should delete.",
+      "id": "PR8-CONV-5",
+      "recommended_remediation": "Move the authoritative facet enum/list into the usecase crate and have the dispatcher import it. Keep one source of truth; delete the mirror test and duplicate enum.",
+      "remediation_fixuptasks": [
+        "F-PR8-05"
+      ],
+      "severity": "MAJOR"
+    },
+    {
+      "evidence": "docs/runbooks/sanctioned-primitives/preflight.md:28-44",
+      "facets_concurring": [
+        "F2"
+      ],
+      "headline": "PR #8 touched/validated gates while the sanctioned-primitives runbook still instructed grit/icm flows. ADR-0116 later retired them, but this PR still demonstrates doc/gate drift during the transition.",
+      "id": "PR8-CONV-6",
+      "recommended_remediation": "Ensure retired-vocabulary gates cover runbooks and migrate preflight references to Foundry pipeline/plain git surfaces.",
+      "remediation_fixuptasks": [
+        "F-PR8-06"
+      ],
+      "severity": "MAJOR"
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass.",
+    "Round 2 rebuttal evidence is now recorded for every F1-F9 facet before declaring consensus."
+  ],
+  "executor_topology_compliance": {
+    "reviewer_id_overlap_across_facets": "NONE",
+    "reviewer_ids": [
+      "codex-F1-pr-8-r1",
+      "codex-F1-pr-8-r2-rebuttal",
+      "codex-F2-pr-8-r1",
+      "codex-F2-pr-8-r2-rebuttal",
+      "codex-F3-pr-8-r1",
+      "codex-F3-pr-8-r2-rebuttal",
+      "codex-F4-pr-8-r1",
+      "codex-F4-pr-8-r2-rebuttal",
+      "codex-F5-pr-8-r1",
+      "codex-F5-pr-8-r2-rebuttal",
+      "codex-F6-pr-8-r1",
+      "codex-F6-pr-8-r2-rebuttal",
+      "codex-F7-pr-8-r1-security",
+      "codex-F7-pr-8-r2-rebuttal",
+      "codex-F8-pr-8-r1-ops",
+      "codex-F8-pr-8-r2-rebuttal",
+      "codex-F9-pr-8-r1-product",
+      "codex-F9-pr-8-r2-rebuttal"
+    ],
+    "rule": "Each F1-F9 facet has a distinct reviewer_id for primary evidence, and each round-2 rebuttal has a distinct round-specific reviewer_id; no reviewer_id is reused across facets within the change_id.",
+    "verified": true
+  },
+  "facet_count_total": 9,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-8-F1-r1.json",
+    "evidence/debate/pr-8-F1-r2.json",
+    "evidence/debate/pr-8-F2-r1.json",
+    "evidence/debate/pr-8-F2-r2.json",
+    "evidence/debate/pr-8-F3-r1.json",
+    "evidence/debate/pr-8-F3-r2.json",
+    "evidence/debate/pr-8-F4-r1.json",
+    "evidence/debate/pr-8-F4-r2.json",
+    "evidence/debate/pr-8-F5-r1.json",
+    "evidence/debate/pr-8-F5-r2.json",
+    "evidence/debate/pr-8-F6-r1.json",
+    "evidence/debate/pr-8-F6-r2.json",
+    "evidence/debate/pr-8-F7-r1.json",
+    "evidence/debate/pr-8-F7-r2.json",
+    "evidence/debate/pr-8-F8-r1.json",
+    "evidence/debate/pr-8-F8-r2.json",
+    "evidence/debate/pr-8-F9-r1.json",
+    "evidence/debate/pr-8-F9-r2.json"
+  ],
+  "facets_evaluated": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+  ],
+  "final_recommendation": "ACCEPT_WITH_BLOCKING_FIXUPS",
+  "fixuptasks": [
+    "F-PR8-01",
+    "F-PR8-02",
+    "F-PR8-03",
+    "F-PR8-04",
+    "F-PR8-05",
+    "F-PR8-06"
+  ],
+  "merge_commit_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "naming_justification": "evidence/debate/pr-8-synthesis.json is the canonical synthesis path for PR #8 under the multispectrum debate evidence naming contract.",
+  "pr_number": 8,
+  "pr_title": "Keep M01/M02 local gates honest with usecase boundary",
+  "rendered_at_unix": 1778920055,
+  "round": "synthesis",
+  "round_2_evidence_policy": {
+    "consensus_declaration_precondition": "Every synthesis facet_evidence_paths list includes each primary facet review and the matching rebuttal-round evidence before termination_reason=consensus_reached.",
+    "pr5_f5_note": "not_applicable",
+    "single_reviewer_shortcut_allowed": false
+  },
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "severity_counts": {
+    "BLOCKER": 1,
+    "MAJOR": 19,
+    "MEDIUM": 2,
+    "MINOR": 3
+  },
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "termination_reason": "consensus_reached",
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #8 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
+  ]
+}
