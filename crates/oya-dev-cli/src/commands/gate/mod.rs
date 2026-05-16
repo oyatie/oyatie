@@ -2,6 +2,7 @@ use std::process::ExitCode;
 
 mod architecture_boundaries;
 mod deployment_ops_contract;
+mod master_plan_completion_audit;
 mod milestone_audit;
 mod product_index;
 mod product_prd_json;
@@ -664,6 +665,31 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                         ExitCode::FAILURE
                     }
                 },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("master-plan-completion")) => {
+            match master_plan_completion_audit::parse_master_plan_completion_audit_args(
+                args.collect(),
+            ) {
+                Ok(parsed) => {
+                    match master_plan_completion_audit::audit_master_plan_completion(parsed) {
+                        Ok(report) => {
+                            println!(
+                                "master-plan-completion validation passed: {} phases, {} implementation plans",
+                                report.phases_checked, report.implementation_plans_checked
+                            );
+                            ExitCode::SUCCESS
+                        }
+                        Err(message) => {
+                            eprintln!("master-plan-completion validation failed:\n{message}");
+                            ExitCode::FAILURE
+                        }
+                    }
+                }
                 Err(message) => {
                     eprintln!("{message}");
                     ExitCode::from(2)

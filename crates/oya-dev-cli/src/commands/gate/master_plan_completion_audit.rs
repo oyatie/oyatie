@@ -6,7 +6,7 @@
 // Naming-justification: `master_plan_completion_audit_gate` is a check-family
 // (`*_gate`) module under `oya-dev-cli`, satisfying predictable-naming-kernel
 // `is_check_family(name)`. Surface command
-// `gate audit master-plan-completion` is canonical kebab-case verb-noun pair
+// `gate validate master-plan-completion` is canonical kebab-case verb-noun pair
 // (ADR-0105 v4 BNF).
 
 use std::path::PathBuf;
