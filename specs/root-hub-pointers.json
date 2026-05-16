@@ -356,6 +356,34 @@
       "migration_phase": "complete",
       "purpose": "Connect Calendar sub-PRD — personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-pillar-safe availability projections."
     },
+    "prd_enterprise_suite": {
+      "kind": "prd",
+      "current_path": "/specs/products/enterprise/suite.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Enterprise suite PRD — business operating system shell binding HR, Payroll, Accounting, compliance evidence, approvals, and operating intelligence under shared Workflow/Object Graph/ops constraints."
+    },
+    "prd_enterprise_hr": {
+      "kind": "prd",
+      "current_path": "/specs/products/enterprise/hr.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Enterprise HR sub-PRD — employee lifecycle, org hierarchy, attendance, leave, recruiting/performance shells, sensitive-data policy, and KR/US/EU labor-compliance evidence."
+    },
+    "prd_enterprise_payroll": {
+      "kind": "prd",
+      "current_path": "/specs/products/enterprise/payroll.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Enterprise Payroll sub-PRD — KR-first payroll close, payee classes, statutory taxes/4대보험, year-end settlement, payroll-to-accounting bridge, and group close evidence."
+    },
+    "prd_enterprise_accounting": {
+      "kind": "prd",
+      "current_path": "/specs/products/enterprise/accounting.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Enterprise Accounting sub-PRD — double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, financial close workflow, and audit-ready controls."
+    },
     "design_connect_shell_persona_switcher": {
       "kind": "design-system-component",
       "current_path": "/specs/design-system/connect-shell-persona-switcher.json",
