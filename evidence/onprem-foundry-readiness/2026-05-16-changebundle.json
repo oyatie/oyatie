@@ -1,0 +1,70 @@
+{
+  "evidence_id": "onprem-foundry-readiness-changebundle-2026-05-16",
+  "captured_at": "2026-05-16T06:30:00Z",
+  "kind": "ChangeBundle",
+  "schema_authority": "specs/cross-cutting/gitops-vcs-replacement.json v1.7.0 (ChangeBundlePort)",
+  "branch": "dev",
+  "git_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "agent_id": "claude-onprem-bringup-2026-05-16",
+  "intent": "onprem-foundry-readiness-evidence",
+  "policy": "observe",
+  "lifecycle": {
+    "claim": {
+      "action": "claim-lock",
+      "ratchet": "accepted",
+      "scopes": [
+        "evidence/onprem-foundry-readiness/2026-05-16-cell-smoke.json",
+        "evidence/onprem-foundry-readiness/2026-05-16-cell-extended.json",
+        "evidence/onprem-foundry-readiness/2026-05-16-gate-slate.json",
+        "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
+        ".omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json"
+      ]
+    },
+    "verify": {
+      "action": "verify-evidence",
+      "ratchet": "accepted",
+      "evidence_refs_count": 6
+    },
+    "done": {
+      "action": "emit-change-bundle",
+      "ratchet": "accepted",
+      "closeout_mode": "local-only",
+      "evidence_refs_count": 5
+    },
+    "promote": {
+      "action": "skipped",
+      "reason": "controller-promote requires GitOps controller (Argo CD on OKE) which is part of step 4 of the autonomous directive (deploy non-Foundry services to OCI). Cannot promote without controller."
+    }
+  },
+  "evidence_refs": [
+    "evidence/onprem-foundry-readiness/2026-05-16-cell-smoke.json",
+    "evidence/onprem-foundry-readiness/2026-05-16-cell-extended.json",
+    "evidence/onprem-foundry-readiness/2026-05-16-gate-slate.json",
+    "evidence/onprem-foundry-readiness/2026-05-16-oya-verify-44-of-44.log",
+    "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
+    ".omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json"
+  ],
+  "covered_acceptance": {
+    "implementation": "Foundry cell binary (oya-ops-workspace-shell) built clean from oya-ops-workspace-shell-app",
+    "verification": [
+      "cargo check --workspace --all-targets exit 0",
+      "cargo nextest run --workspace --all-features --no-fail-fast: 2683/2683 passed in 0.734s",
+      "cargo deny check: advisories+bans+licenses+sources ok",
+      "oya verify (gate run-all): 44/44 lanes passed",
+      "Live cell smoke: /workspace/api/v1/health 200, /workspace/api/v1/surfaces 200",
+      "Load: 100 sequential 200/200 in 453ms; 50 parallel 200/200 wall 27ms",
+      "Signal: SIGTERM → shutdown+port-free in 1ms"
+    ],
+    "docs": "M2 exit evidence written under .omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json",
+    "review": "single-agent self-review; multi-spectrum facets covered via gate slate (44 lanes incl. cohesion, plane-class, license-policy, supply-chain, security adjacent)",
+    "runtime_deploy_readiness": "GREEN for spec-side codebase; BLOCKED on host sudo for systemd cutover and on OCI auth for Stage 0",
+    "closeout": "oya vcs done --local-only accepted; promote deferred to controller"
+  },
+  "non_overclaim_disclosures": [
+    "policy=observe (not enforce) — ratchet evaluates but does not block the host",
+    "no on-prem systemd-bound /health smoke captured (deploy blocked on sudo)",
+    "no OCI iam/kms/api-gw probe results (auth not configured)",
+    "no multi-agent sibling-team self-sufficiency rehearsal (single agent)",
+    "M-CC-P11 changeset-event-log.json has 0 events for this bundle (we are operating outside the controller's event-driven topology)"
+  ]
+}

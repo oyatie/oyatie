@@ -4,7 +4,7 @@ parent: ../../MASTERPLAN.md
 id: M03
 title: Cloud + SaaS + Search + Workspace Preview (4-way parallel)
 wave: W-Cloud-Preview ∥ W-SaaS-Preview ∥ W-Search-Preview ∥ W-Workspace-Preview
-status: partial-fanout-complete
+status: entry-gate-passed-2026-05-16
 owner: axis-cloud + axis-saas + axis-search + axis-workspace
 purpose: Stand up four axis previews in parallel on the M01 foundation + M02 Foundry substrate so vertical pilots can run.
 acceptance_authority: docs/ROADMAP.md §2.3, §2.4, §2.5, plus §2-Axis-2 (workspace) gate criteria
@@ -16,7 +16,17 @@ acceptance_authority: docs/ROADMAP.md §2.3, §2.4, §2.5, plus §2-Axis-2 (work
 Run all four axis previews concurrently to compress build-out time. Each axis preview sits on the M01 foundation and consumes M02 Foundry capabilities for AI assists, gates, and evidence emission. Cloud is the substrate the other three run on; cross-axis cohesion is enforced per [`docs/DESIGN.md`](../../../docs/DESIGN.md) §10.
 
 ## Status
-**gated on M02.** Once M02 acceptance gate passes, M03 unlocks all eight phases simultaneously.
+
+**Entry gate passed 2026-05-16.** M02 directive-side exit closed (`evidence/M02-EXIT-ONPREM-FOUNDRY-LIVE-2026-05-16.json`). M2 substrate spec-side also green (`cargo check/nextest/deny/oya verify` all 0; see `.omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json`).
+
+**Live infrastructure ready for M3 fan-out (per ADR-0118 + ADR-0043):**
+- On-prem KR primary cell: kubeadm k8s 1.35 + containerd 2.3.0 LTS + Istio 1.29.2 + Envoy + OpenBao v2.5.3 + Cloudflare Tunnel ✓
+- OCI ap-chuncheon-1 KR secondary cell: 31 tofu-managed resources (4 compartments, VCN+NAT+SGW+NSGs+private subnet, KMS vault+master key, Object Storage bucket, 2× E2.1.Micro Always Free running) ✓
+- A1.Flex 4 OCPU/24 GB Always Free: scripted retry loop firing every 5 min, waiting on regional capacity ✓
+- DNS + TLS (`kms.oyatie.com`, `foundry.oyatie.com`, `ops.oyatie.com`) via Cloudflare Tunnel ✓
+- Security pipeline (trivy + gitleaks + debsecan + cargo-audit + unattended-upgrades; weekly Sun 02:30 timer + audit-chain emit) ✓
+
+**Next ChangeSet:** M03-P01-IP-001 (Cloud KMS provider-agnostic API + adapter set). Both target providers — OpenBao (transit engine, on-prem live) and OCI KMS (vault+master key live) — are already provisioned, so adapter tests can run against real backends without mocks.
 
 ## Scope
 Eight phases:

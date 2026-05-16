@@ -11,3 +11,4 @@ __pycache__/
 
 # Transient session-scoped audit logs
 .audit/
+evidence/oci-readiness/a1-capacity-retry.log

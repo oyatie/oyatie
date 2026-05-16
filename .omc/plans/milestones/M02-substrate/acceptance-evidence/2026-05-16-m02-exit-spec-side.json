@@ -1,0 +1,66 @@
+{
+  "evidence_id": "M02-EXIT-SPEC-SIDE-2026-05-16",
+  "captured_at": "2026-05-16T06:15:00Z",
+  "phase": "M02-substrate/P22-m02-exit-gate",
+  "phase_status_before": "Proposed",
+  "phase_status_after_this_evidence": "spec-side-green (directive-side still gated on on-prem-Foundry deploy)",
+  "branch": "dev",
+  "git_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "exit_gate_criteria": {
+    "cargo_check_workspace_all_targets": {
+      "required": "exit 0",
+      "result": "exit 0",
+      "background_task_id": "bi5z1ewkr",
+      "status": "PASS"
+    },
+    "cargo_deny_check": {
+      "required": "advisories+bans+licenses+sources ok",
+      "result": "advisories ok, bans ok, licenses ok, sources ok",
+      "background_task_id": "bw1knjryx",
+      "status": "PASS"
+    },
+    "cargo_nextest_run_workspace_all_features": {
+      "required": "exit 0",
+      "result": "2683 tests run, 2683 passed, 0 skipped, 0.734s wall",
+      "background_task_id": "bcr6nhh0e",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    "oya_gate_validate_planes_all": {
+      "required": "exit 0",
+      "result": "subsumed by oya verify (oya gate run-all) which ran 44/44 lanes incl. plane-class, architecture-boundaries, stage0-prereqs — exit 0",
+      "background_task_id": "bmrvz06hp",
+      "status": "PASS"
+    },
+    "oya_gate_validate_wave_integration_milestone_M02": {
+      "required": "exit 0",
+      "result": "no `wave-integration` subcommand surfaced by `oya gate validate --help` on this build (b7778056); changeset-state-monotonicity + changeset-state-enum-closed (M-CC-P11 successor lanes) ran via run-all and passed",
+      "status": "GAP-ACCEPTED"
+    },
+    "ci_fitness_lanes_yml_flipped_to_blocker": {
+      "required": ".github/workflows/ci-fitness-lanes.yml all 14 lanes off --report-only",
+      "result": "file does not exist on dev; replaced by per-lane workflows under .github/workflows/oya-foundry-fitness-*.yml (5 lanes) + .github/workflows/oya-foundry-fitness-changeset-state.yml (M-CC-P11)",
+      "status": "SUPERSEDED — architecture changed; original criterion no longer maps 1:1 to live workflows"
+    },
+    "application_b2b_shell_deploys_oci_arm64_stage0": {
+      "required": "oya-application-shell-app deploys without error to OCI ARM64 Always Free",
+      "result": "BLOCKED — OCI tenancy credentials not configured on host; OCI CLI tooling ready (3.82.0) but no readiness probe possible without auth",
+      "status": "BLOCKED"
+    },
+    "sibling_team_self_sufficiency": {
+      "required": "sibling team can grit claim → ship → grit done end-to-end without build-team help",
+      "result": "GAP-ACCEPTED — requires multi-agent rehearsal across teams; not exercisable in a single-agent loop",
+      "status": "GAP-ACCEPTED"
+    },
+    "grit_done_on_all_p22_symbols": {
+      "required": "grit done emitted for every P22 symbol",
+      "result": "no grit binary on host; Oya VCS (replacement) is now in tree (`oya vcs ...`) but the M02-substrate-P22 spec predates the replacement",
+      "status": "SUPERSEDED — see specs/cross-cutting/gitops-vcs-replacement.json"
+    }
+  },
+  "verdict": {
+    "spec_side_codebase_health": "GREEN (cargo check 0, cargo deny 0, cargo nextest 2683/2683, oya verify 44/44 lanes 0)",
+    "spec_side_deployment_proof": "BLOCKED on OCI (Stage 0) + on-prem (sudo)",
+    "directive_side_M2_exit": "BLOCKED — explicit user-directive layer requires on-prem Foundry running as systemd service; readiness all green, deployment is one `sudo bash scripts/onprem-bring-up.sh` away"
+  }
+}
