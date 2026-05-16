@@ -1,0 +1,60 @@
+{
+  "facet": "M1_challenge_assumption",
+  "pr": 15,
+  "change_class_id": "CC-3",
+  "round": 1,
+  "title": "Centralize capability templates under registry",
+  "challenged_assumptions": [
+    {
+      "id": "A1",
+      "assumption": "registry/ is the canonical home for capability templates",
+      "verdict": "PARTIALLY_VALID",
+      "evidence": "Diff renames product-control/ -> registry/capability-templates/, and existing registry/catalog and registry/quality/capability-record.schema.json already live under registry/. So registry/ is pre-existing, not a new root. But ADR-0116 is invoked as cover without any ADR explicitly designating registry/capability-templates as the home for this artifact class.",
+      "challenge": "Why was a sibling sub-tree (capability-templates/) created at registry/ root instead of folding under registry/catalog/ or registry/quality/ where the schema already lives? No structural justification given."
+    },
+    {
+      "id": "A2",
+      "assumption": "5 ADR amendments (ADR-0003, 0007, 0019, 0050, 0052) are routine path-pivot fixups, not supersession events",
+      "verdict": "REJECTED",
+      "evidence": "PR body says 'no new ADR added because this is a mechanical topology move covered by the cleanup task plus registry control-plane rows.' But ADRs are immutable decisions; pure-path amendment across 5 ADRs without a superseding ADR violates ADR governance. ADR-0052 even cites the OLD path in its inventory table; rewriting history-of-decision text in-place is forensic tampering.",
+      "challenge": "Topology moves of normative paths MUST be captured by a superseding ADR (e.g., ADR-0117). Otherwise the audit trail loses 'when did capabilities move'."
+    },
+    {
+      "id": "A3",
+      "assumption": "v2 template (capability-record-template-v2.yaml) is a clean evolution of v1",
+      "verdict": "UNVERIFIED_BY_PR",
+      "evidence": "Both docs/templates/capability-record-template.yaml AND capability-record-template-v2.yaml get only a 1-line path comment edit. PR does not address v1/v2 coexistence, deprecation timing, or which template the schema validator accepts. Cited A6 finding of schema incompatibility is plausible from the surface; the PR does not refute it.",
+      "challenge": "Carrying two templates with identical 1-line edits implies neither is sunset. Pick one or supersede the other; do not bless both silently."
+    },
+    {
+      "id": "A4",
+      "assumption": ".omc/.project-memory.json.tmp.* commits are accidental",
+      "verdict": "REJECTED",
+      "evidence": "Six .tmp UUIDs committed with identical 2/-2 deltas, plus the canonical project-memory.json with the SAME diff. Recurrence across PRs (visible in working tree of M02 branch as well) proves a SYSTEMIC tooling defect, not a slip. They are NOT in .gitignore.",
+      "challenge": "Either OMC project-memory writer is racing/leaking temp files into commits, or pre-commit hook is missing a .omc/*.tmp* exclusion. Both root causes are gate gaps, not author error. This PR papered over the symptom by editing the tmp files instead of removing/ignoring them — making the defect harder to detect."
+    },
+    {
+      "id": "A5",
+      "assumption": "Centralization improves DX",
+      "verdict": "WEAKENED",
+      "evidence": "4 directories with template/registry roles still coexist after the move: registry/capability-templates/, registry/catalog/, registry/quality/, docs/templates/. The 'centralized' label is rhetorical — capability schema sits in registry/quality/, records in registry/catalog/, templates in registry/capability-templates/, and human templates duplicate under docs/templates/. F4 ergonomic critique stands.",
+      "challenge": "True centralization requires collapsing the four locations or publishing a one-page topology map. Neither is in this PR."
+    },
+    {
+      "id": "A6",
+      "assumption": "cargo fmt and cargo clippy verification gaps are acceptable",
+      "verdict": "REJECTED",
+      "evidence": "PR body lists both as '⚠️ not run; this toolchain lacks the fmt subcommand.' Verification stanza is incomplete by repo's own pre-push checklist; using a stripped toolchain bypasses two of the mandatory lanes.",
+      "challenge": "Either install full toolchain or block PR until lanes run in CI. Stating 'not run' is not a substitute for running."
+    }
+  ],
+  "load_bearing_failure": "The PR markets itself as a mechanical cleanup but in fact (a) creates a NEW registry sub-root without ADR cover, (b) silently rewrites 5 ADRs, (c) leaves dual v1/v2 templates unreconciled, and (d) re-commits OMC tmp churn that signals an unfixed tooling leak. The load-bearing assumption — 'this is too mechanical to need governance' — is precisely what makes it dangerous.",
+  "recommended_followups": [
+    "Open ADR-0117 superseding the path clauses of ADR-0003/0007/0019/0050/0052.",
+    "Add .omc/*.tmp.* to .gitignore and a lane that fails when .omc/.project-memory.json.tmp.* appears in a commit.",
+    "Resolve v1 vs v2 capability-record template: deprecate one, or document the split.",
+    "Publish a one-page topology map of registry/{catalog,quality,capability-templates,openapi,...} and docs/templates/ to justify the 'centralization' claim.",
+    "Re-run fmt + clippy with full toolchain before merge OR rely on CI green; do not accept 'not run' in PR body."
+  ],
+  "verdict_severity": "MAJOR"
+}

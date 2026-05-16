@@ -1,0 +1,71 @@
+{
+  "reviewer_id": "claude-architect-F2_hyperscaler-pr-18-2026-05-16",
+  "round": 1,
+  "change_id": "pr-18-specs-cross-cutting-flatten-signed-replacement",
+  "facet": "F2_hyperscaler",
+  "lens": "Hyperscaler-grade structure — flat-canonical-root topology, single source of truth, milestone>phase>impl-plan strict 3-level, mechanical move integrity, no silent behavior regression",
+  "answer": "PR-18 is correctly motivated and structurally coherent on the milestone/phase axis but only PARTIALLY executes the topology it advertises and ships a freshly-ADR-0083-fragile alias-window the next PR (#19) had to close — the head ref `cleanup/specs-cross-cutting-flatten-signed` flattens nothing in PR-18 itself. The diff is 222 files but contains 0 deletions of `specs/cross-cutting/*`, 0 git renames of `specs/cross-cutting/*` → `specs/*`, and 0 added files at `specs/*` (only 1 added file: ADR-0119). All 222 changes are in-place edits/renames to `.omc/`, `docs/`, `crates/` text that REFERENCE the flat path, plus the ADR itself. The actual `git mv` from `specs/cross-cutting/*` to `specs/*` happens in commit `743a6fe6` (\"Retire cross-cutting subdirectory…\", PR #19, +176 file ops), NOT in PR-18. So PR-18 wrote forward-references to `specs/<flat>.json` paths that DID NOT EXIST at merge time of PR-18 — a temporary dangling-reference window only closed when #19 landed. Per [[feedback_no_silent_regression]] this is the textbook silent-regression shape: public reference contract (path strings) changed in one PR, backing files moved in another. ADR-0119 exists at PR-18 head (verified at `237a2b30`) and is well-formed (Context, Decision, Naming justification table for every hoisted basename, Migration, Consequences/Positive+Negative+Operational, Rejected alternatives) and explicitly invokes ADR-0115 as precedent — that is hyperscaler-shape. But ADR-0119's Migration section says \"Move every file from the former nested spec scope directory to `specs/` with `git mv`\" — which is the contract PR-18 violates by deferring the moves to #19. Milestone>Phase>Impl-plan hierarchy survives: text edits touch `.omc/plans/milestones/M-CC-cross-cutting/phases/P{00,02,03,06,10}/*` and `.omc/plans/milestones/M0{2,3}-*/phases/P02/*` with exactly the canonical 3-level depth — no flat plans, no 4-deep paths introduced. Stripe/Palantir/Linear analogue: their public spec/openapi roots are flat-singular (Stripe's `openapi/spec3.{json,sdk.json,sdk.yaml}` at the openapi/ root, Linear's `schema.graphql` at the schemas/ root) — so the END STATE (post-#19) matches the canonical shape; the EXECUTION (PR-18 alone) does not.",
+  "key_claims": [
+    "PR-18 head commit `237a2b30` adds exactly ONE new file (`docs/decisions/ADR-0119-specs-flat-root-topology.md`, +116 lines) and deletes ZERO files; the other 221 diffs are content edits or near-rename text touches inside `.omc/`, `docs/`, `crates/`, `templates/` that REWRITE references from `specs/cross-cutting/*` to `specs/*`. The promised `git mv` of the 34 cross-cutting JSON files does NOT happen in PR-18.",
+    "Current working-tree confirms: `/Users/jasonlee/oyatie/specs/` contains ONLY the `cross-cutting/` subdirectory; there are NO flat siblings under `specs/`. The flat topology described in ADR-0119 only materializes after PR #19 (`743a6fe6 Retire cross-cutting subdirectory…`, 176-file delta) lands. PR-18 in isolation produces a tree where every rewritten reference to `specs/<basename>.json` is a dangling path.",
+    "ADR-0119 exists at PR-18 head and is hyperscaler-shape: explicit deciders (`council-architecture`, `council-foundry-vcs`), supersedes/related links to ADR-0115/ADR-0116, full Naming-justification table covering every hoisted basename (one row per file — consistent with the [[feedback_naming_justification]] one-line rule), explicit Migration/Consequences/Rejected-alternatives sections. The ADR also names the supersedes ancestry (`ADR-0115-registry-consolidation-flat-singular.md`) — correct flat-root lineage.",
+    "Per [[feedback_no_silent_regression]]: path strings in `.omc/`, `crates/`, `docs/`, `templates/` are public-shape references for the agent surface. Mutating them in PR-18 while the backing files still live at `specs/cross-cutting/<basename>.json` is a public-contract change with no corresponding backing-file change in the same PR — silent regression by construction during the PR-18→PR-#19 window. The intent was right; the slice boundary was wrong.",
+    "Milestone>Phase>Impl-plan hierarchy ([[feedback_milestone_phase_hierarchy]]): all `.omc/plans/milestones/*/phases/*/*` paths in the diff respect strict 3 levels (e.g. `M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-002-…`, `M02-foundry-preview/phases/P02-multi-subscription-pool/IP-001-…`). No 4-deep paths introduced, no flat plans. This axis is clean.",
+    "\"(signed replacement)\" in the PR title refers to PR #14 (`cleanup/specs-cross-cutting-flatten`, no `-signed` suffix), which was blocked by unsigned commit `f2c0696` per the PR body. PR-18 preserves the same final tree but with one signed replacement commit on a parallel branch — verifiable from the body: \"Replaces #14 without force-pushing so unsigned commit f2c0696 is no longer in the PR history.\" The replacement story is sound; the under-execution issue is independent of the replay.",
+    "Stripe/Palantir/Linear specs comparison: Stripe's `openapi/` directory keeps the spec at root (`spec3.json`, `spec3.sdk.json`) — no `cross-cutting/` token. Palantir Foundry's TypeScript SDK keeps generated schemas at `packages/foundry.*/src/_*` flat per service domain. Linear's `schema.graphql` lives at top-level. ADR-0119's flat-root end state matches these references; the pre-flatten layout (`specs/cross-cutting/<basename>.json`) is the n=1 default-scope wrapper anti-pattern the ADR correctly retires."
+  ],
+  "uncertainty_areas": [
+    "Whether PR-18's split (text references in PR-18, file moves in PR #19) was an intentional 2-PR slice to keep diff reviewable, or an accidental under-execution. The PR body claims \"Preserves the specs/cross-cutting flattening final tree from the original branch\" — but the final tree at PR-18's head still has files under `specs/cross-cutting/`. Either the PR body is inaccurate about what 'flattening final tree' means, or PR #14 also under-executed and the inheritance carried.",
+    "Whether CI green at PR-18 merge time was real (path-resolving code in `crates/` would have failed on rewritten paths) or whether the production code reads `specs/cross-cutting/<basename>.json` paths from a config that was NOT rewritten in PR-18. The diff shows `crates/oya-dev-cli/src/active_artifact_contract_gate.rs` is touched (3 add / 3 del) — needs inspection to confirm whether it now points at non-existent flat paths.",
+    "Whether ADR-0119 was retroactively co-signed by `council-foundry-vcs` in a separate evidence file under `evidence/debate/` — none was searched for in this review."
+  ],
+  "anti_patterns_detected": [
+    "two-slice-public-contract-change (path strings rewritten in PR-18; backing files moved in PR #19) — temporary dangling-reference window violating [[feedback_no_silent_regression]]",
+    "ADR-promises-not-executed-in-same-PR (ADR-0119 'Migration' section enumerates the `git mv` plan; PR-18 ships the ADR but defers the moves)"
+  ],
+  "hyperscaler_structure_findings": {
+    "flat_root_alignment": "End state (post-#19) matches Stripe/Linear flat-root canonical pattern; ADR-0119's reasoning correctly cites ADR-0115 as the consolidation precedent",
+    "milestone_phase_impl_hierarchy": "Strict 3-level Milestone>Phase>Impl-plan preserved in all touched `.omc/plans/milestones/*/phases/*/IP-*` paths",
+    "single_source_of_truth": "Lifecycle-configs correctly retained as a typed family (`specs/lifecycle-configs/`) rather than further flattened — matches Stripe's similar grouping for sub-API surfaces",
+    "naming_justification_completeness": "ADR-0119 ships one-line justification for EVERY hoisted basename (~35 rows) — exceeds the [[feedback_naming_justification]] minimum bar",
+    "behavior_preservation_within_pr18": "FAIL — text references point at paths that don't exist at PR-18 head; closure depends on follow-on PR #19"
+  },
+  "fixuptasks": [
+    {
+      "id": "F-PR18-RETROACTIVE-AUDIT-CI-PATH-RESOLUTION",
+      "intent": "Audit `crates/oya-dev-cli/src/active_artifact_contract_gate.rs`, `crates/oya-check-active-artifact-contract/src/lib.rs`, and all other runtime path resolvers touched in PR-18 to confirm whether ANY production code path resolves `specs/<basename>.json` and would have hit a missing-file error between PR-18 merge and PR #19 merge. If yes, document as a CI gap (path-resolution-rehearsal lane is missing); if no, document that the change was purely doc-string text and the silent-regression risk was bounded to agent-prompt context.",
+      "owner_phase": "M-CC-cross-cutting/P02-doc-automation-freshness",
+      "severity": "S2"
+    },
+    {
+      "id": "F-MERGE-QUEUE-ATOMIC-MV-PLUS-REFS",
+      "intent": "Add a merge-queue admission rule (or fix-loop check) that REJECTS a PR whose changes rewrite references to a path while no `git mv` (or `A`+`D` pair) of the underlying file appears in the same merge-queue batch. Either PR-18 and PR #19 should have been batched, or a single PR should carry both halves. The current shape allows the public contract to drift mid-flight.",
+      "owner_phase": "M-CC-cross-cutting/P11-foundry-vcs-substrate",
+      "severity": "S1"
+    },
+    {
+      "id": "F-ADR-MIGRATION-EXECUTION-PROOF",
+      "intent": "Augment the ADR template so any ADR whose Migration section names file moves must link the commit SHA where those moves land. ADR-0119's Migration section enumerates `git mv` operations but the executing SHA is PR #19, not PR-18 — future ADR readers will follow the ADR to PR-18 and find the moves missing. Cross-link or fold the Migration evidence.",
+      "owner_phase": "M-CC-cross-cutting/P02-doc-automation-freshness",
+      "severity": "S3"
+    }
+  ],
+  "verdict": {
+    "approve_in_isolation": false,
+    "approve_as_part_of_pr18_plus_pr19_pair": true,
+    "stripe_palantir_linear_alignment": "end_state_yes_execution_path_no",
+    "milestone_hierarchy_compliance": true,
+    "adr_justification_quality": "high",
+    "silent_regression_risk": "real_but_time_bounded_to_pr19_window"
+  },
+  "references": [
+    "/Users/jasonlee/oyatie/specs/cross-cutting/ (current tree still has 26 entries under cross-cutting/; flat specs/* has 0 sibling files)",
+    "/tmp/oya-msr-pr12-18/pr-18-meta.json:title (\"Flatten specs cross-cutting topology (signed replacement)\")",
+    "/tmp/oya-msr-pr12-18/pr-18-meta.json:body (Replaces #14 without force-pushing; preserves flattening final tree)",
+    "git show 237a2b30 -- docs/decisions/ADR-0119-specs-flat-root-topology.md (+116 -0, full ADR with Naming-justification table)",
+    "git diff 237a2b30^..237a2b30 --name-status (1 added, 0 deleted, 0 cross-cutting→flat renames)",
+    "git log --oneline 237a2b30..743a6fe6 (PR #19 743a6fe6 'Retire cross-cutting subdirectory' is where the 176-file move actually lands)",
+    "ADR-0115-registry-consolidation-flat-singular.md (cited precedent for flat-root consolidation pattern)",
+    "ADR-0116-retire-external-agent-coordination-tooling.md (cited as substrate change enabling Foundry-pipeline-only execution)"
+  ]
+}

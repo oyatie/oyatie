@@ -1,0 +1,46 @@
+{
+  "reviewer_id": "claude-F4_ergonomic-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "F4_ergonomic",
+  "lens": "Developer/operator ergonomics — DX, debuggability, surprise-minimization, runbook clarity",
+  "answer": "PR #12 scores high on ergonomic value relative to effort. The .gitignore + git-rm-cached pair eliminates a recurring DX papercut (52 KB of session-scoped agent-read.jsonl that would otherwise reappear on every developer's `git status`). The deploy/gitops/ -> infra/kyverno/ consolidation removes a real surprise: an oncall engineer searching for admission policy today would have had to know two parallel roots existed; after this PR there is one obvious home (`infra/kyverno/`), co-located with the existing `infra/kyverno/policies/require-signed-images.yaml` sibling. ADR-0117 is well-structured and answers the WHY clearly: it explicitly names the discoverability-sprawl rationale and notes that `infra/kyverno/` was already established. A contributor adding a new admission policy tomorrow will see the existing structure and put it in the right place. The PR-body Test plan is mostly copy-pasteable and gives concrete cargo invocations. Two ergonomic gaps weaken the runbook story: (1) ADR-0117 does not contain a one-line forward-pointer like 'see infra/kyverno/README.md for admission-policy authoring' (no README exists at infra/kyverno/), so future contributors must infer the convention from the directory layout; (2) the four manifest paths are self-documenting at the kernel/app site but the bare `ARGO_MANIFEST` constant in main.rs lacks a doc comment explaining what consumes it (Argo CD reads it via the application.json `path:` field). Neither is a blocker — both are fixup-class. The .config/nextest.toml restoration story in the PR body is helpful for any future contributor wondering 'why does nextest fail with profile ci not found' — that is genuine debuggability uplift. Verdict: approve-with-fixups; the move itself is a net ergonomic win and the ADR is sufficient for the 6-month-out oncall test, but two small follow-ups would harden the runbook story.",
+  "key_claims": [
+    "ADR-0117 explicitly names the WHY (eliminate parallel admission-policy roots; reduce discoverability sprawl) and cites the existing sibling `infra/kyverno/policies/require-signed-images.yaml` as anchor — passes the 6-month oncall comprehension test.",
+    "New path `infra/kyverno/oya-vcs-admission/application.json` is self-documenting at the directory level: `infra/` (deployment infra) > `kyverno/` (admission engine) > `oya-vcs-admission` (the policy bundle) > `application.json` (Argo wrapper). A contributor adding a new policy will mirror this pattern naturally.",
+    "PR-body Test plan is copy-pasteable: explicit cargo build/test/fmt invocations + a `grep -rn 'deploy/gitops/oya-vcs-admission' .` zero-hit assertion that any reviewer can re-run mechanically.",
+    "The ergonomic story for `.audit/` is strong: gitignore + untrack means future agent-read sessions stop polluting `git status` automatically; no follow-up scrubbing required (ADR-0117 explicitly notes this).",
+    "The `.config/nextest.toml` retention with rationale ('CI requires [profile.ci]') is a debuggability uplift — a future contributor hitting `profile ci not found` can grep for the ADR and find the answer.",
+    "No README/CONTRIBUTING entry exists at `infra/kyverno/` to point future contributors at the convention; they must infer from layout. ADR-0117 is the only durable signpost.",
+    "The `ARGO_MANIFEST` constant in tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs lacks a doc comment explaining what reads the file or how the path is also embedded inside application.json itself — small but real debuggability gap.",
+    "Self-referential `path:` rewrite inside the moved application.json is correctly called out in ADR-0117 as an Argo-consumed live config value (not just a comment) — that explanatory note prevents a future contributor from 'cleaning up' what looks like a stale duplicate."
+  ],
+  "uncertainty_areas": [
+    "Whether any out-of-tree GitOps tooling (Argo CD live cluster, ApplicationSet generators, external runbooks) hard-codes `deploy/gitops/oya-vcs-admission` — the PR body covers in-repo refs but live-cluster reconfiguration is implied to be M03 scope per the cutover-2026-05-15 evidence.",
+    "Whether the rewritten evidence/*.json files will confuse a future auditor reading historical migration evidence — the ADR claims these are 'configuration-target refs, not historical migration records' but the file names embed dates (2026-05-15) which read as historical.",
+    "Whether `infra/kyverno/` is documented anywhere as the canonical admission-policy root, or whether ADR-0117 is the first place that codifies this — affects the 6-month-out discoverability claim."
+  ],
+  "findings": [
+    {
+      "severity": "low",
+      "summary": "No README at `infra/kyverno/` to onboard future admission-policy contributors. ADR-0117 is the only durable signpost for the 'put new admission policies here' convention.",
+      "recommended_action": "Add a 5-line `infra/kyverno/README.md` pointing at ADR-0117 and listing the two existing policy bundles (`policies/require-signed-images.yaml` and `oya-vcs-admission/`). Optional fixup, not a blocker.",
+      "fixuptask_id": "F-PR12-01"
+    },
+    {
+      "severity": "low",
+      "summary": "`ARGO_MANIFEST` constant in tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs lacks a doc comment explaining its consumer (Argo CD) and the fact that the same path is also embedded inside the manifest's own `path:` field.",
+      "recommended_action": "Add a one-line `/// Path to the Argo Application manifest; mirrored inside the file's own spec.source.path for Argo CD self-reference.` doc comment above the const.",
+      "fixuptask_id": "F-PR12-02"
+    },
+    {
+      "severity": "info",
+      "summary": "Rewritten evidence JSONs (cutover-2026-05-15.json, provider-execution-proof-2026-05-15.json, multispectrum proof) now read as if 'deploy/gitops/' never existed in their referenced state — a future auditor reading these date-stamped artifacts could be confused. ADR-0117 mitigates by explicitly naming this rewrite, but the evidence files themselves do not link back to ADR-0117.",
+      "recommended_action": "Optionally add a `notes` field to each rewritten evidence JSON pointing at ADR-0117 so the audit trail is self-contained. Low priority; ADR cross-reference is sufficient.",
+      "fixuptask_id": "F-PR12-03"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}

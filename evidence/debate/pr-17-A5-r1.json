@@ -1,0 +1,18 @@
+{
+  "change_id": "pr-17",
+  "facet_id": "A5",
+  "facet_name": "dependency_adherence",
+  "reviewer_id": "claude-A5-pr-17-r1",
+  "considered": true,
+  "rigor": "GREEN",
+  "lens": "dependency",
+  "summary": "PR #17 is pure evidence/data: 173 files under evidence/debate/ plus evidence/audit-chain.jsonl. No Cargo.toml, Cargo.lock, package.json, requirements.txt, go.mod, or pyproject.toml modifications. The lone 'Cargo.toml' string in the diff is a quoted token inside a synthesis JSON describing prior PR scope, not an actual dependency edit. Dependency-adherence is vacuously satisfied.",
+  "new_deps_count": 0,
+  "removed_deps_count": 0,
+  "version_bumps_count": 0,
+  "transitive_lockfile_changes": 0,
+  "dep_files_touched": [],
+  "findings": [],
+  "verdict": "PASS",
+  "round": "r1"
+}

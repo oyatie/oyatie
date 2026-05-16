@@ -1,0 +1,80 @@
+{
+  "pr": 15,
+  "facet": "F3_adversarial",
+  "round": "r1",
+  "verdict": "REJECT",
+  "summary": "Centralization is a sham. The 'authoritative' registry/capability-templates/ directory does NOT exist at HEAD — templates remain fragmented across templates/, docs/templates/, and product-control prose. The PR also commits 6 .omc/.project-memory.json.tmp.* lockfile-companion artifacts (per-agent transient memory snapshots) into git history and merges a v1+v2 schema split without a deprecation/migration shim.",
+  "attack_scenarios": [
+    {
+      "id": "F3-A1",
+      "title": "Directory vanished post-merge — registry centralization is fictional",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "evidence": [
+        "git ls-files registry/capability-templates/ → empty at HEAD",
+        "ls /Users/jasonlee/oyatie/registry/capability-templates/ → No such file or directory",
+        "git log --all -- registry/capability-templates/ shows ONLY the two PR-15 commits (6b3262af, 0e4e9dcd); zero subsequent commits explain the deletion",
+        "Templates currently scattered: /templates/capability-record-template.yaml + /docs/templates/{capability-record-template.yaml, capability-record-template-v2.yaml, capability-eval-set-template.yaml}"
+      ],
+      "exploit": "A contributor reading the PR description, ADR-0116, and docs/GLOSSARY.md will look in registry/capability-templates/ — find nothing — and either (a) recreate templates ad-hoc in a 5th location, or (b) silently use stale copies in /templates/ or /docs/templates/. The 'one registry-owned artifact home' claim in the PR body is false at HEAD. The cleanup intent was reverted without ADR, without sunset row, and without registry-row deletion — a Linus-grade silent-regression violation per feedback_no_silent_regression."
+    },
+    {
+      "id": "F3-A2",
+      "title": "CLI default path now points at a non-existent directory — silent gate-skip risk",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "evidence": [
+        "pr-15.diff modifies crates/oya-dev-cli/src/foundry_capability_schema_gates.rs and foundry_eval_gates.rs to default at registry/capability-templates/",
+        "registry/capability-templates/ does not exist at HEAD",
+        "The PR's own 'Verification' block only proved gates passed when the directory existed at merge time"
+      ],
+      "exploit": "If the CLI default resolves to a missing directory, foundry-capability-schema and foundry-eval gates either (a) hard-fail every CI run downstream — masking real validation failures behind a path error, or (b) silently report '0 capabilities validated' as success. Either path lets non-conforming capability records ship. The PR commit message claims '53 rows, 3120 HEAD-tracked' but that snapshot is stale; no follow-up gate run was captured after the directory disappeared."
+    },
+    {
+      "id": "F3-A3",
+      "title": ".omc/.project-memory.json.tmp.* artifacts committed to git — transient memory state leaked",
+      "severity": "MAJOR",
+      "confidence": "HIGH",
+      "evidence": [
+        "PR-15 diff lists 6 files matching .omc/.project-memory.json.tmp.<uuid> as MODIFIED",
+        ".gitignore contains NO entry for .omc/ or *.tmp (grep returned empty)",
+        "Files persist at HEAD: ls -la .omc/ shows all 6 .tmp.<uuid> files plus project-memory.json.lock",
+        "Content scan: keys include 'product-control', 'registry', 'workspaces', 'crates', 'scripts', 'frameworks' — repo topology snapshots, not credentials, but per-session agent memory state with stale paths (still references retired 'product-control')"
+      ],
+      "exploit": "These are per-process lockfile-companion temp files from concurrent .omc agent sessions; they should never enter git history. Three concrete harms: (1) every future agent session creates more .tmp.<uuid> files → unbounded repo bloat; (2) the committed snapshots reference the retired product-control topology, so future deep-init/recall steps will rehydrate stale architecture beliefs; (3) if a future memory snapshot includes a transcript fragment with API tokens, env vars, or PII, the same broken .gitignore lets it leak. Add `.omc/*.tmp.*` and `.omc/*.lock` to .gitignore and `git rm` the existing 6 files."
+    },
+    {
+      "id": "F3-A4",
+      "title": "v1 vs v2 capability-record schemas coexist without deprecation contract",
+      "severity": "MAJOR",
+      "confidence": "HIGH",
+      "evidence": [
+        "/templates/capability-record-template.yaml header: 'Status: pending approval. Lift target: oyatie/docs/templates/capability-record-template.yaml … Supersedes: docs/templates/capability-record-template.yaml'",
+        "/docs/templates/capability-record-template-v2.yaml header: 'Status: Accepted. Date: 2026-05-12. … Supersedes prior docs/templates/capability-record-template.yaml once reviewed.'",
+        "/docs/templates/capability-record-template.yaml also still present (pre-v2)",
+        "Both files declare apiVersion: foundry.oyatie.dev/v1 but differ in metadata field set (id vs id+namespace ordering, adrs_cited header field added only in v2)"
+      ],
+      "exploit": "Three live copies, two of which claim to 'supersede' the third, all using apiVersion v1. A capability author cannot determine which is canonical without reading commit history. No sunset row in registry/artifact-capabilities-registry.json, no ADR retiring the older copies, no version bump despite metadata-shape drift — violates feedback_no_silent_regression (public contract changed silently) and feedback_naming_justification (v2 suffix is not BNF-justified in any new ADR)."
+    },
+    {
+      "id": "F3-A5",
+      "title": "Fragmentation across 4+ directories with no precedence rule",
+      "severity": "MAJOR",
+      "confidence": "HIGH",
+      "evidence": [
+        "Templates currently live in: /templates/ (root), /docs/templates/, /registries/cross-cutting/, and conceptually /registry/capability-templates/ (missing)",
+        "The PR moved fixtures into registry/capability-templates/ then surrounding cleanup work scattered them again",
+        "No README in any of those dirs explains precedence; docs/STANDARDS-AND-TEMPLATES.md still cites the registry path that no longer exists"
+      ],
+      "exploit": "A new contributor adding a capability template has 4 plausible homes and no signal. Result: silent fragmentation cascade — each contributor picks a different dir → next reviewer either centralizes again (PR-15 redux, this is the second attempt) or rubber-stamps drift. The PR's stated goal ('validators default to that path') is now actively misleading documentation."
+    }
+  ],
+  "downgrades": [],
+  "open_questions": [
+    "Was the registry/capability-templates/ directory deleted by an automated cleanup hook, a follow-up PR squashed before #15 merged, or a manual git rm? git log shows zero post-merge commits touching that path — the disappearance has no trail.",
+    "Do foundry-capability-schema and foundry-eval CLI gates fail-open or fail-closed when their default --templates-dir is missing? Direct cargo test at HEAD would settle it; gate output was captured only at merge time."
+  ],
+  "mode": "ADVERSARIAL",
+  "escalation_reason": "Two CRITICAL findings (F3-A1 directory vanished, F3-A2 CLI points at void) plus three MAJOR. Pattern is systemic: PR claims centralization, reality is fragmentation + silent-regression + dirty tmp files in git. Escalated past THOROUGH on first CRITICAL.",
+  "realist_check": "F3-A1 stays CRITICAL: missing canonical dir referenced by CLI defaults + docs + glossary is not a paper cut — it actively misleads every contributor and every future review. F3-A2 stays CRITICAL until gate behavior is verified at HEAD; if gates fail-closed it downgrades to MAJOR (mitigated by CI hard-stop), but no evidence of fail-closed exists. F3-A3 stays MAJOR not CRITICAL — current tmp content is topology not credentials, but the missing .gitignore is the latent vulnerability. F3-A4 and F3-A5 stay MAJOR: contract drift + naming-justification miss are real but recoverable with a sunset row + ADR."
+}

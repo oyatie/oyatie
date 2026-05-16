@@ -1,0 +1,47 @@
+{
+  "reviewer_id": "claude-F1_linus-pr-13",
+  "round": 1,
+  "change_id": "pr-13",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "facet": "F1_linus",
+  "answer": "ACCEPT. This is the kind of PR Linus likes: 332 additions, 949 deletions, net -617. Two whole crates die (kernel + app, ~700 lines), plus an obsolete archive payload, plus three catalog yamls, plus a stale Cargo.lock and workspace member list. The lane never had a sustainable invariant — it was one-time pre-grit cutover hygiene masquerading as reusable CI. Killing it is correct. The pr-review-dispatcher Cargo.toml change is a 4-line collateral edit (likely a dep removed), not a bundled new app — meta confirms +2/-2. Scope is clean: one lane, one ADR, one retirement event.",
+  "key_claims": [
+    "Net deletion of ~617 lines (332 add / 949 del) across 24 files — deletion-first as Linus prefers.",
+    "Kernel + app + 3 catalog yamls + workspace members + Cargo.lock entries all removed together — no half-retirement leaving dead symbols.",
+    "ADR-0118 is 66 lines, not 100+ — context/decision/consequences/rejected-alternatives, no padding. Acceptable ceremony for a lane retirement that supersedes ADR-0052.",
+    "Pre-grit archive payload (`bominal/.../pre-grit-cutover-2026-05-12/README.md`) deleted; the lane that policed it dies with it. Symmetric.",
+    "Amendments to ADR-0104/0107 are one-line edits redirecting readers — not rewrites. ADR-0104 swaps a 'candidate extension' line for the actual landed crate name. ADR-0107 changes the table row from RENAME to RETIRED. This is the minimum viable forward-reference, not ceremony.",
+    "Lane retirement is justified in-text: ADR-0116 made M-CC-P11 the canonical VCS substrate; an always-empty runner would be 'false mechanical confidence' (their words, which Linus would endorse)."
+  ],
+  "uncertainty_areas": [
+    "The dispatcher app dep edit was not fully visible in the diff tail (truncated at line 518) — relying on PR meta showing +2/-2.",
+    "Cannot independently confirm the lane was never wired into a green CI run that other code depended on — but the retirement IP-008 doc shows it was a P6/P7 one-time gate, not a recurring CI lane."
+  ],
+  "anti_patterns_detected": [
+    {
+      "pattern": "minor: lane doc files kept as tombstones instead of deleted outright",
+      "severity": "MINOR",
+      "note": "Both `.omc/fitness-lanes/archive-orphan.md` and `docs/fitness-lanes/archive-orphan.md` survive as 12-line retirement stubs. Linus would prefer deleting them and recording the lane death in ADR-0118 + CHANGELOG only. But traceability for IP-008 evidence is a reasonable defense, and the stubs are small."
+    },
+    {
+      "pattern": "minor: doctrine spec files (decision-principles.json, forbidden-operations.json, masterplan.json, crate-naming-audit.json) get +191/-77 of edits in a 'retire one lane' PR",
+      "severity": "MINOR",
+      "note": "Bundles doctrine drift into a cleanup PR. Probably necessary to keep machine-readable specs honest, but increases blast radius vs a pure deletion PR. Acceptable because the edits are direct consequences of the retirement."
+    }
+  ],
+  "findings": [
+    {
+      "severity": "MINOR",
+      "summary": "Two tombstone lane docs (`.omc/fitness-lanes/archive-orphan.md`, `docs/fitness-lanes/archive-orphan.md`) survive as 12-18-line retirement stubs when ADR-0118 + INDEX.md + CHANGELOG already carry the historical record.",
+      "recommended_action": "Optional follow-up: delete the two stub files and rely on the INDEX retirement row + ADR-0118 for IP-008 traceability. Not a blocker — current state is consistent.",
+      "fixuptask_id": "pr-13-fixup-tombstone-stubs"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "ADR-0118 'Verification plan' lists steps already executed in PR validation — duplicates the PR body instead of pointing to it.",
+      "recommended_action": "Optional: collapse the ADR verification plan to one line referencing the PR validation block. Not blocking.",
+      "fixuptask_id": "pr-13-fixup-adr-verification-redundancy"
+    }
+  ],
+  "verdict": "ACCEPT"
+}

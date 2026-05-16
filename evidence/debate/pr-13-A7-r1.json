@@ -1,0 +1,22 @@
+{
+  "reviewer_id": "claude-A7_algorithm_adherence-pr-13",
+  "round": 1,
+  "change_id": "pr-13",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "A7_algorithm_adherence",
+  "lens": "Algorithm adherence — P3 deterministic + approximate-vs-exact + complexity classes + algorithm choice rationale",
+  "policy_refs": ["P3 in oyatie-doctrine.json"],
+  "answer": "PR #13 is pure deletion: removes the archive-orphan kernel + app + 3 catalog yamls + spec edits. No new algorithm, heuristic, sort, or comparator introduced; no .rs files added. The deleted kernel's check function disappears. Net effect on validation hot paths is removal — fewer comparisons, no new control-flow branches, no non-determinism added. P3 deterministic invariants unchanged.",
+  "key_claims": [
+    "Zero new .rs files; zero new function/method definitions",
+    "Pure removal of pre-existing fitness check (no replacement algorithm in this PR)",
+    "Spec JSON edits are descriptive removals (e.g., dropping enforcer references); no algorithm encoded in the edits"
+  ],
+  "uncertainty_areas": [
+    "Whether the M-CC-P11 admission gate (named as the replacement substrate) preserves the same complexity class for the invariant the retired lane caught"
+  ],
+  "drift_detected": false,
+  "findings": [],
+  "verdict": "approve"
+}

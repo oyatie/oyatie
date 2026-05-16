@@ -1,0 +1,44 @@
+{
+  "reviewer_id": "claude-M2_zoomed_out_fit-pr-13",
+  "round": 1,
+  "change_id": "pr-13",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "M2_zoomed_out_fit",
+  "lens": "Meta — zoomed-out fit with master plan / M-CC-P11 arc / sprawl trajectory",
+  "answer": "PR #13 advances the M-CC-P11 arc cleanly. Per ADR-0118 (origin/dev:docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md) the archive-orphan lane was a one-time pre-grit cutover invariant whose semantics are now subsumed by Foundry admission gate + projected-merge-state + conflict kernel after ADR-0116. Retiring it directly serves [[feedback_foundry_pipeline_canonical]]: one canonical pipeline, no parallel grit-era fitness lanes pretending to be active CI. Net topology effect: -2 workspace crates (kernel + app), -3 registry catalog entries, -1 archive payload, +1 ADR, +1 small historical lane stub for IP-008 traceability; sprawl trajectory DOWN. The retirement is bounded (332 add / 949 del), supersedes ADR-0052 explicitly, keeps lane-id breadcrumbs in docs/fitness-lanes/ and .omc/fitness-lanes/, and updates IP-008 + masterplan + decision-principles + forbidden-operations in lock-step — matches v2.2.0 lightweight CC-2 governance. Tension with [[feedback_lifecycle_automation_universal]]: ADR-0108/0109 prescribe a sunset→deprecation→removal state machine, but PR #13 hard-deletes in one ChangeSet with revert-as-rollback. Defensible because the lane has no external consumers and was self-declared one-time, but it sets a precedent that 'one-time' lanes can skip the state machine — worth a follow-up principle clarifying the carve-out. On 'automate everything': retirement was executed manually; oya-foundry-fitness-sunset-lifecycle-kernel exists (ADR-0109 ref) but did not drive this deletion — that is the systemic gap.",
+  "key_claims": [
+    "Direction is correct: retiring a grit-era one-time lane after ADR-0116 reduces the M-CC-P11 surface area to exactly the canonical primitives.",
+    "Sprawl trajectory DOWN: -2 crates, -3 catalog entries, -1 archive payload; +1 ADR is proportionate governance.",
+    "Lock-step doctrine update (masterplan.json, decision-principles.json, forbidden-operations.json, crate-naming-audit.json) prevents stale references — good zoomed-out hygiene.",
+    "Tension with ADR-0108/0109 lifecycle state machine: hard-delete skipped sunset→deprecation→removal stages. Justified for self-declared one-time lanes but precedent risk.",
+    "Automate-everything gap: oya-foundry-fitness-sunset-lifecycle-kernel did not drive the retirement; manual git surgery + manual ADR — the new automation should have detected and queued this."
+  ],
+  "uncertainty_areas": [
+    "Whether the 'one-time lane' carve-out is codified anywhere in ADR-0108/0109 or whether this PR silently establishes it.",
+    "Whether oya-foundry-fitness-sunset-lifecycle-kernel is wired to scan workspace members + catalog entries for retirement candidates, or still only operates on prose sunset clauses.",
+    "Whether IP-008's status was updated to reflect that its 'P7 deletion precondition' (archive-orphan lane) no longer exists — the IP-008 edit is visible but the masterplan phase-state was not inspected."
+  ],
+  "fits_masterplan": "yes",
+  "findings": [
+    {
+      "severity": "medium",
+      "summary": "Hard-delete skipped the ADR-0108/0109 sunset→deprecation→removal state machine. Defensible for a one-time lane but no ADR clause carves out 'one-time/historical' lanes from the universal lifecycle.",
+      "recommended_action": "Add a one-paragraph carve-out to ADR-0108 (or a small follow-up ADR) declaring that lanes flagged one_time=true at creation may skip the sunset/deprecation stages and go straight to removal, provided a retirement ADR exists. Cite ADR-0118 as the reference precedent.",
+      "fixuptask_id": "F-PR13-01"
+    },
+    {
+      "severity": "medium",
+      "summary": "Retirement was executed by hand; oya-foundry-fitness-sunset-lifecycle-kernel did not detect or drive it. Violates [[feedback_automate_everything]] for mechanical retirements.",
+      "recommended_action": "File a follow-up IP under M-CC-P11 (or the sunset-lifecycle phase) to extend the sunset-lifecycle kernel to scan workspace members + registry catalog + .omc fitness-lanes for items past their sunset_at or marked one_time+canonical_replacement and emit a retirement PR plan. Use PR #13 as the golden test case for the kernel's expected output.",
+      "fixuptask_id": "F-PR13-02"
+    },
+    {
+      "severity": "low",
+      "summary": "ADR-0118 supersedes ADR-0052 but no reverse-link audit ensured every downstream reference to ADR-0052 still resolves. Risk is low because only IP-008 was directly tied.",
+      "recommended_action": "Run a grep for ADR-0052 across docs/, specs/, .omc/ and confirm each reference still makes sense post-retirement; if any cite the deleted crate paths, add a one-line 'see ADR-0118' note.",
+      "fixuptask_id": "F-PR13-03"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}

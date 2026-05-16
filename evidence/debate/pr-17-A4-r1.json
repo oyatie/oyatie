@@ -1,0 +1,56 @@
+{
+  "facet": "A4_architecture_adherence",
+  "pr": 17,
+  "round": "r1",
+  "verdict": "ACCEPT",
+  "lens": "ADR-0056 12-layer enum + clean-architecture inward flow",
+  "scope": "PR #17 'Record multispectrum review evidence for merged PR wave' (head review/multispectrum-9-prs-final -> base dev). 173 files changed, +7639/-0. CC-6 generated retrospective review evidence for PRs #1/2/3/5/6/7/8/9/11.",
+  "drift_detected": false,
+  "layer_violations": [],
+  "evidence_only_verification": {
+    "total_diff_paths": 173,
+    "evidence_path_count": 173,
+    "non_evidence_path_count": 0,
+    "rust_source_touched": false,
+    "cargo_toml_touched": false,
+    "adr_touched": false,
+    "spec_touched": false,
+    "path_prefixes_observed": [
+      "evidence/audit-chain.jsonl (modified, +9/-0)",
+      "evidence/debate/pr-{1,2,3,5,6,7,8,9,11}-F{1..9}-r{1,2}.json (added)",
+      "evidence/debate/pr-5-F5-r2.json + pr-5-F5-r3.json (re-dispatch round)",
+      "evidence/debate/pr-{1,2,3,5,6,7,8,9,11}-synthesis.json (added)"
+    ],
+    "method": "grep -E '^diff --git' on /tmp/oya-msr-pr12-18/pr-17.diff confirms every path begins with 'evidence/'. No crates/**, no docs/decisions/**, no Cargo.{toml,lock}, no specs/**."
+  },
+  "consolidation_collapsed_kernel_adapter_pair": false,
+  "consolidation_analysis": "PR is pure data emission into evidence/debate/ + an append to evidence/audit-chain.jsonl. No Rust module, port trait, kernel/adapter pairing, or usecase boundary is created, moved, merged, or removed. Layer enum is structurally untouched.",
+  "adr_amendment_weakens_inward_flow": false,
+  "adr_check": "Zero ADR files modified or added. ADR-0056 (12-layer enum) and inward-flow doctrine unaffected. PR body cites Foundry pipeline M-CC-P11 as canonical and explicitly disclaims grit/rtk/icm/vox usage; no policy weakening.",
+  "spec_coherence": {
+    "doc": "n/a",
+    "verdict": "COHERENT",
+    "notes": "No specs/** or docs/specs/** path appears in the diff. Clean-architecture spec text is untouched."
+  },
+  "right_layer_for_evidence_emission": {
+    "current": "evidence/ (control-plane artifact directory, outside the 12-layer code enum)",
+    "should_be": "evidence/ (same)",
+    "rationale": "Per ADR-0056, the layer enum constrains Rust crate roles. JSON review artifacts under evidence/debate/ are out-of-band review records, not code; placing them under evidence/ is the correct location and does not invoke layer rules."
+  },
+  "pre_commitment_predictions_vs_actual": {
+    "predicted": [
+      "PR may sneak a Cargo.toml or crates/** touch alongside evidence files",
+      "audit-chain append may reference a non-existent synthesis path",
+      "Synthesis JSONs may inline ADR amendments or layer-rule changes"
+    ],
+    "actual": [
+      "Refuted: 173/173 paths under evidence/. Zero source/manifest touched.",
+      "Out-of-scope for A4: synthesis-path existence is F2/F8 territory, not architecture adherence.",
+      "Refuted: zero ADR additions/amendments; synthesis JSONs are review records, not normative policy."
+    ]
+  },
+  "realist_check": "A4 lens evaluates whether a PR mutates the 12-layer code topology or weakens inward flow. PR #17 emits review evidence only and cannot drift architecture by construction. No CRITICAL/MAJOR finding survives Realist Check; severity is correctly zero.",
+  "verdict_justification": "ACCEPT. PR #17 is a pure evidence/data emission with zero Rust source, zero manifest, zero ADR, and zero spec touch. The 12-layer enum and inward-flow invariant are structurally unreachable from this diff. No layer violations, no consolidation collapse, no ADR weakening. Operated in THOROUGH mode; no escalation warranted (zero CRITICAL/MAJOR findings).",
+  "follow_up_tasks": [],
+  "open_questions": []
+}

@@ -1,0 +1,108 @@
+{
+  "review_id": "PR-18-A4-r1",
+  "pr": 18,
+  "facet": "A4_architecture_adherence",
+  "round": 1,
+  "reviewer": "critic",
+  "date": "2026-05-16",
+  "scope": "PR #18 'Flatten specs cross-cutting topology (signed replacement)' merged 2026-05-16",
+  "verdict": "APPROVE",
+  "summary": "PR #18 is a path-flattening cutover (`specs/cross-cutting/X.json` -> `specs/X.json`). All 13 Rust/Cargo edits are mechanical string substitutions in doc-comments, test fixtures, default path constants, $schema_ref emitters, and one rustfmt reflow in master_plan_completion_audit.rs. Zero changes to module boundaries, trait surfaces, kernel/runtime split, dependency edges, layer placement, or port-in-kernel discipline.",
+  "layer_violations": 0,
+  "architecture_findings": [],
+  "evidence": {
+    "pr_metadata": {
+      "title": "Flatten specs cross-cutting topology (signed replacement)",
+      "base": "dev",
+      "head": "cleanup/specs-cross-cutting-flatten-signed",
+      "additions": 789,
+      "deletions": 682,
+      "merged_at": "2026-05-16T08:53:49Z"
+    },
+    "rust_files_touched": [
+      {
+        "path": "Cargo.toml",
+        "delta": "+1/-1",
+        "kind": "comment_path_update"
+      },
+      {
+        "path": "crates/oya-check-active-artifact-contract/src/lib.rs",
+        "delta": "+18/-18",
+        "kind": "doc_comment+test_fixture_path_update"
+      },
+      {
+        "path": "crates/oya-check-glossary-vocabulary/src/lib.rs",
+        "delta": "+2/-2",
+        "kind": "test_fixture_path_update"
+      },
+      {
+        "path": "crates/oya-dev-cli/src/active_artifact_contract_gate.rs",
+        "delta": "+3/-3",
+        "kind": "schema_ref_string+test_path_update"
+      },
+      {
+        "path": "crates/oya-dev-cli/src/codeview_read_surface_gates.rs",
+        "delta": "+1/-1",
+        "kind": "default_spec_path_update"
+      },
+      {
+        "path": "crates/oya-dev-cli/src/commands/doc/master_plan_ledger.rs",
+        "delta": "+2/-2",
+        "kind": "default_path_const_update"
+      },
+      {
+        "path": "crates/oya-dev-cli/src/commands/gate/master_plan_completion_audit.rs",
+        "delta": "+13/-13",
+        "kind": "default_path_const_update+rustfmt_reflow"
+      },
+      {
+        "path": "crates/oya-dev-cli/src/lib.rs",
+        "delta": "+1/-1",
+        "kind": "usage_string_path_update"
+      },
+      {
+        "path": "crates/oya-dev-cli/tests/gate_cli.rs",
+        "delta": "+3/-7",
+        "kind": "test_fixture_path_update"
+      },
+      {
+        "path": "crates/oya-foundry-architecture-map-app/src/lib.rs",
+        "delta": "+1/-1",
+        "kind": "schema_ref_emitter_update"
+      },
+      {
+        "path": "crates/oya-foundry-fitness-lifecycle-kernel/src/lib.rs",
+        "delta": "+2/-2",
+        "kind": "doc_comment_path_update"
+      },
+      {
+        "path": "crates/oya-foundry-subagent-runtime-kernel/src/lib.rs",
+        "delta": "+2/-2",
+        "kind": "doc_comment_path_update"
+      },
+      {
+        "path": "crates/oya-foundry-vcs-admission-gate-kernel/src/lib.rs",
+        "delta": "+9/-9",
+        "kind": "doc_comment_path_update"
+      }
+    ],
+    "diff_pattern": "Every code edit replaces literal substring 'specs/cross-cutting/' with 'specs/' inside string/doc contexts; no identifiers, imports, signatures, trait bounds, or visibility modifiers changed.",
+    "verification_method": "Inspected raw git diff origin/dev...origin/cleanup/specs-cross-cutting-flatten-signed for all *.rs and Cargo.toml files; confirmed no fn/impl/trait/struct/mod/use/pub/Cargo dependency lines mutated.",
+    "ci_signal_from_pr_body": "cargo check --workspace --locked + cargo nextest run --workspace --locked 2725 passed"
+  },
+  "adherence_checks": {
+    "12_layer_enum_respected": true,
+    "kernel_runtime_split_respected": true,
+    "port_in_kernel_respected": true,
+    "no_cross_product_calls_introduced": true,
+    "dependency_seam_unchanged": true,
+    "public_api_surface_unchanged": true,
+    "no_new_crates": true,
+    "no_removed_crates": true
+  },
+  "notes": [
+    "User-supplied framing 'no Rust source' is technically inaccurate (13 .rs/Cargo.toml files touched) but spirit is correct: edits are pure path-literal updates carrying the spec flattening through to docstrings, default paths, test fixtures, and $schema_ref emitters.",
+    "One incidental rustfmt reflow in master_plan_completion_audit.rs (INCOMPLETE_MARKERS array + .and_then chain) is cosmetic; no logic or layer change.",
+    "Cutover is consistent: every .rs reference and every plan/handoff/spec citation moves together in the same PR -> no dangling pointer to old path inside this PR scope."
+  ]
+}

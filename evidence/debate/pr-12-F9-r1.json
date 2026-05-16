@@ -1,0 +1,60 @@
+{
+  "reviewer_id": "claude-F9_compliance-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "F9_compliance",
+  "lens": "Compliance — declared gates, ADR/standards conformance, audit-chain, branch-protection",
+  "answer": "PR #12 passes all 14 CI checks (cargo-fmt, cargo-clippy, cargo-check, cargo-nextest, oya-vcs-admission, oya-vcs-provider-execution, and 8 oya-foundry-fitness-* lanes) on signed head 1d30a9ec, merged to dev on 2026-05-16T06:23:58Z. ADR-0117 status is 'Accepted', carries all required frontmatter fields (status, deciders, date, owner, supersedes, superseded_by, related), and includes all mandatory sections (Context, Decision, Naming justification, Consequences, Status). The dir-move audit-chain row is MISSING: no row with change_id scoped to PR-12 or the kyverno consolidation event appears in evidence/audit-chain.jsonl; the existing oya_vcs_admission_cutover rows predate the PR and document the original cutover, not this path reorganisation. Consensus debate coverage is partial: facets A1–A5 and F1–F8 are present; F9 is this review (the first); M1/M2 and F10/F11 are absent. For a CC-2 low-risk hygiene PR the v2.2.0 doctrine does not mandate the full 13-facet slate, but the absence of M1/M2 (meta-challenge / zoomed-out-fit) leaves strategic fit unreviewed.",
+  "key_claims": [
+    "All 14 CI status checks concluded SUCCESS on head 1d30a9ec before merge",
+    "ADR-0117 status is Accepted with complete frontmatter and all required section headers",
+    "cargo-fmt, cargo-nextest (14/14), cargo-clippy, cargo-check all pass per CI rollup",
+    "oya-vcs-admission and oya-vcs-provider-execution CI jobs pass, confirming rename did not break live Argo path",
+    "Audit-chain has no PR-12-scoped row for the kyverno dir-move event",
+    "Debate coverage: A1–A5 + F1–F8 present (13 files); F9 = this review; M1/M2/F10/F11 absent",
+    "PR merged to dev (correct base branch per branch-pipeline policy)"
+  ],
+  "uncertainty_areas": [
+    "Whether CC-2 hygiene PRs are formally exempt from audit-chain emit under ADR-0003 — ADR-0003 text not conclusive via grep; exemption not documented in PR body or ADR-0117",
+    "Whether M1/M2 are required for CC-2 class under multispectrum v2.2.0 — doctrine says 'when applicable'; PR body does not declare exemption"
+  ],
+  "gates_passed": [
+    "cargo-fmt — SUCCESS",
+    "cargo-clippy — SUCCESS",
+    "cargo-check — SUCCESS",
+    "cargo-nextest — SUCCESS (14/14)",
+    "oya-vcs-admission — SUCCESS",
+    "oya-vcs-provider-execution — SUCCESS",
+    "oya-foundry-fitness-api-semver — SUCCESS",
+    "oya-foundry-fitness-changeset-state-monotonicity — SUCCESS",
+    "oya-foundry-fitness-changeset-state-enum-closed — SUCCESS",
+    "oya-foundry-fitness-cohesion — SUCCESS",
+    "oya-foundry-fitness-protection-context-match — SUCCESS",
+    "oya-foundry-fitness-supply-chain-adr0039 — SUCCESS",
+    "oya-foundry-fitness-supply-chain — SUCCESS",
+    "ADR-0117 lifecycle — status Accepted, frontmatter complete, all required sections present",
+    "Base branch — dev (correct per branch-pipeline policy)",
+    "Consensus debate — A-family (A1–A5) + F1–F8 present"
+  ],
+  "gates_missing": [
+    "Audit-chain emit for PR-12 kyverno dir-move — no change_id row scoped to this PR or event in evidence/audit-chain.jsonl",
+    "M1/M2 meta-facet debate files absent — strategic fit and assumption-challenge reviews not on record"
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "summary": "No audit-chain row emitted for the oya-vcs-admission dir-move in PR-12. The existing OYA-VCS-ADMISSION-CUTOVER-2026-05-15 rows predate this PR and document the original cutover, not the path reorganisation from deploy/gitops/ to infra/kyverno/. ADR-0003 establishes audit-chain as the append-only event stream for changeset evidence; a structural path change affecting a live Argo config value qualifies as an emittable event.",
+      "recommended_action": "Append a row to evidence/audit-chain.jsonl with event_type='oya_vcs_admission_path_consolidation', change_id scoped to PR-12 (e.g. 'OYA-HYGIENE-PR12-KYVERNO-CONSOLIDATION-2026-05-16'), and payload referencing the new infra/kyverno/ path and ADR-0117.",
+      "fixuptask_id": "F-PR12-01"
+    },
+    {
+      "severity": "low",
+      "summary": "M1 (challenge-assumption) and M2 (zoomed-out-fit) meta-facet debate files are absent. For a CC-2 hygiene PR this is borderline acceptable, but the PR body and ADR-0117 do not explicitly declare these facets inapplicable. The multispectrum v2.2.0 doctrine marks M1/M2 as 'when applicable' without a formal exemption criteria list.",
+      "recommended_action": "Either add pr-12-M1-r1.json and pr-12-M2-r1.json (lightweight, since the change is low-risk), or add a one-line exemption note to ADR-0117 or the PR body declaring 'M1/M2 not applicable: CC-2 hygiene, no architectural decision' to close the gap without ceremony.",
+      "fixuptask_id": "F-PR12-02"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}
