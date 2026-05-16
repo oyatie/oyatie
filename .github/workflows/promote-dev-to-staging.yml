@@ -1,0 +1,62 @@
+name: promote-dev-to-staging
+
+# Phase 2 of the FINAL-FINAL branch pipeline (per
+# `feedback_branch_pipeline_final_final`, 2026-05-12). Auto-promotes
+# `dev` to `staging` by fast-forwarding the `staging` ref to dev's
+# HEAD. The commit at that SHA was signed + gated by every required
+# check on dev (PR-level), so staging inherits the same signature +
+# CI state with no re-review.
+#
+# Trigger:
+#   - push to `dev` (every merge to dev attempts promotion)
+#   - workflow_dispatch (manual canary-pass-confirmed promotion)
+#   - schedule (every 30 minutes, idempotent — re-points staging to
+#     dev if dev advanced; no-op if already at the same SHA)
+#
+# Canary gate (FUTURE — currently always-promote):
+#   Per FINAL-FINAL "canary cohort exposure begins here", a future
+#   amendment SHOULD add a step that queries the canary observability
+#   surface (latency, error rate, SLO breach count for the prior 15
+#   min window of dev traffic on the canary cohort) and refuses to
+#   advance staging if any threshold is breached. The
+#   `oya-foundry-fitness-canary-cohort-observability` lane (TBD) will
+#   own that logic; this workflow consumes it as a single gate step.
+#   Until that lane lands, every dev → staging is unconditional.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promote-dev-to-staging
+  cancel-in-progress: false
+
+jobs:
+  promote-dev-to-staging:
+    name: promote-dev-to-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fast-forward staging to dev HEAD
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          dev_sha=$(gh api repos/${{ github.repository }}/git/ref/heads/dev --jq .object.sha)
+          staging_sha=$(gh api repos/${{ github.repository }}/git/ref/heads/staging --jq .object.sha)
+          echo "dev HEAD     = $dev_sha"
+          echo "staging HEAD = $staging_sha"
+          if [ "$dev_sha" = "$staging_sha" ]; then
+            echo "staging already at dev HEAD — no-op"
+            exit 0
+          fi
+          gh api -X PATCH repos/${{ github.repository }}/git/refs/heads/staging \
+            -F sha="$dev_sha" \
+            -F force=false
+          echo "staging advanced to $dev_sha"

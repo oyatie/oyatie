@@ -1,0 +1,60 @@
+name: promote-staging-to-production
+
+# Phase 3 of the FINAL-FINAL branch pipeline (per
+# `feedback_branch_pipeline_final_final`, 2026-05-12). Auto-promotes
+# `staging` to `production` by fast-forwarding the `production` ref
+# to staging's HEAD. The commit at that SHA was signed + gated +
+# canary-observed on staging, so production inherits that state with
+# no re-review.
+#
+# Trigger:
+#   - push to `staging` (every staging advance attempts promotion)
+#   - workflow_dispatch (manual full-cohort confirmation)
+#   - schedule (every hour, idempotent)
+#
+# Full-rollout gate (FUTURE — currently always-promote):
+#   Per FINAL-FINAL "full rollout", a future amendment SHOULD add a
+#   step that asserts the staging traffic has run for ≥1 hour with
+#   zero SLO breach on the FULL cohort. The
+#   `oya-foundry-fitness-full-rollout-observability` lane (TBD) will
+#   own that logic. Until then, every staging → production is
+#   unconditional (with a longer cadence to give canary time to
+#   accumulate signal).
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: promote-staging-to-production
+  cancel-in-progress: false
+
+jobs:
+  promote-staging-to-production:
+    name: promote-staging-to-production
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fast-forward production to staging HEAD
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          staging_sha=$(gh api repos/${{ github.repository }}/git/ref/heads/staging --jq .object.sha)
+          production_sha=$(gh api repos/${{ github.repository }}/git/ref/heads/production --jq .object.sha)
+          echo "staging HEAD    = $staging_sha"
+          echo "production HEAD = $production_sha"
+          if [ "$staging_sha" = "$production_sha" ]; then
+            echo "production already at staging HEAD — no-op"
+            exit 0
+          fi
+          gh api -X PATCH repos/${{ github.repository }}/git/refs/heads/production \
+            -F sha="$staging_sha" \
+            -F force=false
+          echo "production advanced to $staging_sha"
