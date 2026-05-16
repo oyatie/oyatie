@@ -28,6 +28,16 @@ Per-persona table:
 | Persona | What they get | What they pay for |
 |---|---|---|
 
+## 2a. Acceptance criteria (required) — *each AC-NN has a stable ID + back-linked test_id*
+
+Per `agent-durable-goal.json#spec_contract.acceptance_criteria_rule`: every PRD acceptance criterion carries a stable ID and is back-linked from the test that proves it. This is the load-bearing structure that lets autonomous agents verify "done" without human interpretation.
+
+| AC-ID | Given | When | Then | Test ID | Test path |
+|---|---|---|---|---|---|
+| AC-01 | (precondition) | (action) | (postcondition) | T-01 | (e.g., `crates/oya-<context>-kernel/tests/<name>.rs::test_<func>`) |
+
+ID stability rule: ACs are **append-only**. Renumber forbidden — retire by adding `status: superseded_by: AC-NN` rather than re-using a slot. Per `agent-durable-goal.json#OP-11` no-stubs.
+
 ## 3. In-scope / out-of-scope (required)
 
 ### 3.1 In-scope at each wave (preview / stable / GA)
@@ -183,6 +193,16 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 
 Plus structural metrics: cross-axis-contract-violation count = 0; audit-chain emission completeness = 100%; foundation-bypass count not increasing.
 
+## 9b. Verification commands (required) — *one runnable check per metric*
+
+Per `agent-durable-goal.json#score_cards.design_principle`: deterministic checks; LLM judgment forbidden in pass/fail. Every success metric above has a runnable command an agent (or CI lane) can invoke to verify the metric.
+
+| Metric | Verification command | Pass criterion | CI lane |
+|---|---|---|---|
+| (metric name) | `oya gate validate <lane>` OR `cargo nextest -p <crate> -- <test>` OR `jq '...' <evidence-path>` | `exit 0` / `count == 0` / `>= threshold` | `oya-foundry-fitness-<lane>` |
+
+Anti-pattern (forbidden): "TBD verification" or "manual check" — every metric MUST have a runnable command. If a metric can't be verified mechanically, it doesn't belong in this table (move to §11 open questions).
+
 ## 10. Risks + mitigations
 
 Per-product risk register slice. Mirror to [`RISK-REGISTER.md`](../RISK-REGISTER.md).
@@ -193,6 +213,75 @@ Per-product risk register slice. Mirror to [`RISK-REGISTER.md`](../RISK-REGISTER
 ## 11. Open questions
 
 Council-pending items.
+
+## 11b. Competitive analysis (required) — *who we beat and on what*
+
+Per-competitor table. NOT vague positioning — concrete + measurable differentiators.
+
+| Competitor | What they do well | Where we beat them | Measurable target |
+|---|---|---|---|
+
+Per `agent-durable-goal.json#identity.quality_bar`: Stripe + Palantir + Linear. Per `feedback_quality_performance_scalability_bar`: hyperscaler-grade. NO "we're better in spirit" framing. Every row must cite a measurable target (latency p99, throughput, error budget, time-to-feature, tenant-isolation guarantee, etc.).
+
+## 11c. Best practices (required) — *production-grade patterns this product enforces*
+
+Bulleted list. Each item: a positive pattern + why it's load-bearing + how it's mechanically enforced (which CI lane / fitness check / kernel-level guard).
+
+Per `agent-durable-goal.json#OP-11`: NO "good enough for MVP" framing. Every practice is hyperscaler-target.
+
+## 11d. Patterns + anti-patterns (required) — *what to do, what to never do*
+
+### 11d.1 Sanctioned patterns
+
+| Pattern | When to use | Reference |
+|---|---|---|
+
+### 11d.2 Anti-patterns (forbidden)
+
+| Anti-pattern | Why forbidden | Detection lane |
+|---|---|---|
+
+Per `agent-durable-goal.json#tdd_contract.test_first_anti_patterns_forbidden` for test-related; per this product for product-specific.
+
+## 11f. User experience (required for user-facing surfaces) — *real end-user needs, not toy demos*
+
+Per user directive 2026-05-16 — "think about the end user experience as well; think what their actual needs will look like." For any product with a user-facing surface (UI, CLI, API consumed by an external dev) declare:
+
+| Field | Content |
+|---|---|
+| `ux_personas_ref` | Pointer to user-journey spec at `/specs/products/<id>/ux.json` |
+| `accessibility_coverage` | Minimum WCAG 2.2 AA; document any extension to AAA |
+| `responsive_breakpoints` | Closed enum: mobile-portrait / mobile-landscape / tablet / desktop / wide-desktop |
+| `internationalization_scope` | Closed enum: en-only / multi-language-fixed-set / locale-aware-dynamic |
+| `design_system_components_used` | Pointer to `/specs/design-system/<component>.json` rows used |
+| `journey_critical_paths` | Per-persona table of top-3 happy-path journeys + time-to-success target |
+| `error_state_coverage` | How errors surface: inline / toast / modal / page; per-error class |
+| `offline_behavior` | Behavior when network breaks; required for editor-class products per `/specs/products/workflow-studio.json#AC-03` |
+| `keyboard_navigation_coverage_pct` | Minimum 100% for power-user products |
+| `loading_state_coverage` | Skeleton / spinner / progressive-render policy per surface |
+
+Per `agent-skills:frontend-ui-engineering`: production-quality UIs, not AI-generated slop. Anti-patterns: spinner-only-loading-states; alert-modal-as-error-surface; missing-keyboard-shortcuts on power-user surfaces; inaccessible color contrast.
+
+## 11g. Frontend components (required for products with rendered UI)
+
+| Component | Source | Variants | Tested-at-breakpoint |
+|---|---|---|---|
+
+Components must be sourced from `/specs/design-system/` catalog. Custom one-off components require a design-system-promotion ADR before merge per `agent-durable-goal.json#OP-11` no-stubs (one-off custom = stub of "should have promoted to design-system but didn't").
+
+## 11e. Goals (required) — *production-quality, hyperscaler-grade targets, not MVP*
+
+Per user directive 2026-05-16 captured in `agent-durable-goal.json#OP-11.user_directive_verbatim`: "We are not building MVP, demo, or sample. We are building full hyperscaler production platform and ecosystem. That is scalable, secure, performant, and efficient."
+
+| Dimension | Target | Verification |
+|---|---|---|
+| Scalability | (concrete number — tenants, RPS, GB/day) | (benchmark lane / load-test artifact) |
+| Security | (e.g., per-tenant isolation by row-level security + signed audit-chain + Cedar policy at every edge) | (oya-foundry-fitness-* lane) |
+| Performance | (latency p50/p99, throughput) | (perf-budget lane in CI) |
+| Efficiency | (cost per tenant per month, per call, per GB) | (FinOps unit-economics dashboard) |
+| Reliability | (SLO targets — availability, MTTR, error budget) | (canary-observability + post-deploy lanes per agent-durable-goal.json#pipeline.lane_categories.post_deploy_observability) |
+
+NO "MVP-shape" targets. NO "we'll improve in v2" caveats. If a target can't be met in initial GA, the product doesn't ship to GA.
 
 ## 12. Decision log
 

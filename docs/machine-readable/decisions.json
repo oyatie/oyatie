@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 99,
-    "numbering": "ADR-0001..ADR-0121 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)",
+    "total_adrs": 100,
+    "numbering": "ADR-0001..ADR-0122 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089"],
-    "next_adr": "ADR-0122",
+    "next_adr": "ADR-0123",
     "status_counts": {
-      "Accepted": 17,
+      "Accepted": 18,
       "Proposed": 5,
       "Superseded": 2,
       "accepted": 38,
@@ -1207,6 +1207,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0009", "ADR-0028", "ADR-0043", "ADR-0044", "ADR-0117", "ADR-0119", "ADR-0120"]
+    },
+    {
+      "adr": "ADR-0122",
+      "number": 122,
+      "title": "Ontology crate rename — retire \"object-graph\" naming",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-16",
+      "path": "decisions/ADR-0122-ontology-crate-rename-from-object-graph.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0056", "ADR-0106", "ADR-0107", "ADR-0133"]
     }
   ]
 }
