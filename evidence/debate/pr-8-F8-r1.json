@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-8",
+  "pr_number": 8,
+  "pr_title": "Keep M01/M02 local gates honest with usecase boundary",
+  "merge_commit_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "facet_id": "F8",
+  "facet_name": "Observability/operations review",
+  "reviewer_id": "codex-F8-pr-8-r1-ops",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "F8 observability/operations review for PR #8: local gate honesty improved, but release-readiness evidence and runbook diagnosability remain incomplete; 3 actionable findings, highest severity MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "evidence/multispectrum/codex-m01-m02-exit-1778903088.json:13-16,57-60",
+      "issue": "The evidence correctly says formal M02 exit is externally blocked by inactive P22, but the same artifact still records local M01/M02 gates as GREEN. Without a separate fail-closed transition check, operators can misread local green as deploy/release readiness.",
+      "remediation": "Add a machine-readable readiness verdict that blocks milestone/promotion when formal_exit is BLOCKED_EXTERNAL, and require it in the release/milestone transition gate."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "evidence/multispectrum/codex-m01-m02-exit-1778903088.json:50-55",
+      "issue": "Runbook freshness reports 193 runbooks but only 54 severity-scoped and 139 unscoped. Incident diagnosability is materially incomplete for the surfaces this gate claims to have checked.",
+      "remediation": "Require each runbook to declare severity/surface/SLO links, fail the runbook gate on unscoped rows, and backfill the 139 unscoped entries before treating M02 operations posture as green."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "evidence/multispectrum/codex-m01-m02-exit-1778903088.json:188-196,224-246",
+      "issue": "The artifact cites command logs under a local /tmp directory and summarizes verification, but it does not persist those raw command outputs as repo/CI artifacts. A later incident reviewer cannot independently inspect the exact gate failures or warnings.",
+      "remediation": "Store the verification log bundle under evidence or upload it as a CI artifact keyed by git_sha, and include SHA256 digests for every referenced log file."
+    }
+  ],
+  "null_finding_reason": null
+}

@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-8",
+  "pr_number": 8,
+  "pr_title": "Keep M01/M02 local gates honest with usecase boundary",
+  "merge_commit_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "facet_id": "F9",
+  "facet_name": "Product/plan/hierarchy/adoption review",
+  "reviewer_id": "codex-F9-pr-8-r1-product",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "F9 product/plan review for PR #8: the local-gate honesty and usecase vocabulary move fit the roadmap, but adoption still needs runnable M02-exit evidence and a sunset for transitional role aliases. Highest severity MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "evidence/multispectrum/codex-m01-m02-exit-1778903088.json:12-17 and scripts/render-m02-exit-checklist.py (absent in current tree)",
+      "issue": "PR #8 correctly says formal M02 exit is blocked by inactive P22, but the current tree does not contain the referenced `scripts/render-m02-exit-checklist.py` rerun surface. Future adopters cannot independently re-check the blocker from the evidence file.",
+      "remediation": "Restore the renderer or migrate the check to `oya gate validate m02-exit-checklist`; update the evidence command to the current runnable surface and pin the command output to the merge SHA."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs:29-38 and crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs:58-92",
+      "issue": "The usecase migration improves readability, but the gate still accepts legacy `application` and `runtime` dependency roles without a ratchet date or counted remaining inventory. That weakens adoption of the new vocabulary because old role names can keep passing indefinitely.",
+      "remediation": "Add a sunset fixture/count for legacy role aliases, expose the count in the architecture-boundaries report, and fail once the named migration follow-ups have landed."
+    },
+    {
+      "severity": "MINOR",
+      "file": "docs/decisions/ADR-0015-architectural-flattening-target.md:46-57 and docs/decisions/ADR-0015-architectural-flattening-target.md:16-17",
+      "issue": "ADR-0015 still carries the old role table body while the amendment note points to ADR-0105/0106. That is survivable, but new contributors will read contradictory role names unless they notice the amendment first.",
+      "remediation": "Convert ADR-0015 to a thin historical gateway and point role taxonomy readers directly to ADR-0105/0106 plus the machine-readable role registry."
+    }
+  ],
+  "null_finding_reason": null
+}

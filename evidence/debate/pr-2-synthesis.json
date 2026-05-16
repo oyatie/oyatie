@@ -1,0 +1,136 @@
+{
+  "change_id": "pr-2",
+  "consensus_points": [
+    {
+      "evidence": "docs/machine-readable/contracts.json:428; registry/openapi/runtime-bindings.tsv:37; registry/openapi/schema-bindings.tsv:282-290; Cargo.toml:128-130",
+      "facets_concurring": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9"
+      ],
+      "headline": "The stable foundry.rag.retrieve contract still points at oya-foundry-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-foundry-rag-api --locked --offline` no longer resolves a package. That makes…",
+      "id": "PR2-CONV-1",
+      "recommended_remediation": "Either restore oya-foundry-rag-api as a checked workspace package or migrate the contract mirror, runtime binding, schema bindings, catalog row, and tests to the current oya-foundry-rag-endpoint-* crates in one bounded follow-up.",
+      "remediation_fixuptasks": [
+        "F-PR2-01"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "crates/oya-foundry-rag-api/src/lib.rs:766-775",
+      "facets_concurring": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7",
+        "F8",
+        "F9"
+      ],
+      "headline": "Authorization for citation retrieval only checks tenant/principal plus the generic foundry.rag.retrieve surface. It does not bind the authorization decision to namespace, capability_id, or search_index_id, so a broad surface grant can authorize citations for…",
+      "id": "PR2-CONV-2",
+      "recommended_remediation": "Add decision-scope fields for namespace, capability_id, and search_index_id (or an equivalent signed authorization input hash), reject drift before retrieval, and add regression tests for cross-capability/index denial.",
+      "remediation_fixuptasks": [
+        "F-PR2-02"
+      ],
+      "severity": "MAJOR"
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass.",
+    "Prior single-reviewer shortcut was replaced with mandatory F1-F9 primary evidence plus F1-F9 round-2 rebuttal evidence before declaring consensus."
+  ],
+  "executor_topology_compliance": {
+    "reviewer_id_overlap_across_facets": "NONE",
+    "reviewer_ids": [
+      "codex-F1-pr-2-r1",
+      "codex-F1-pr-2-r2-rebuttal",
+      "codex-F2-pr-2-r1",
+      "codex-F2-pr-2-r2-rebuttal",
+      "codex-F3-pr-2-r1",
+      "codex-F3-pr-2-r2-rebuttal",
+      "codex-F4-pr-2-r1",
+      "codex-F4-pr-2-r2-rebuttal",
+      "codex-F5-pr-2-r1",
+      "codex-F5-pr-2-r2-rebuttal",
+      "codex-F6-pr-2-r1",
+      "codex-F6-pr-2-r2-rebuttal",
+      "codex-F7-pr-2-r1",
+      "codex-F7-pr-2-r2-rebuttal",
+      "codex-F8-pr-2-r1",
+      "codex-F8-pr-2-r2-rebuttal",
+      "codex-F9-pr-2-r1",
+      "codex-F9-pr-2-r2-rebuttal"
+    ],
+    "rule": "Each F1-F9 facet has a distinct reviewer_id for primary evidence, and each round-2 rebuttal has a distinct round-specific reviewer_id; no reviewer_id is reused across facets within the change_id.",
+    "verified": true
+  },
+  "facet_count_total": 9,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-2-F1-r1.json",
+    "evidence/debate/pr-2-F1-r2.json",
+    "evidence/debate/pr-2-F2-r1.json",
+    "evidence/debate/pr-2-F2-r2.json",
+    "evidence/debate/pr-2-F3-r1.json",
+    "evidence/debate/pr-2-F3-r2.json",
+    "evidence/debate/pr-2-F4-r1.json",
+    "evidence/debate/pr-2-F4-r2.json",
+    "evidence/debate/pr-2-F5-r1.json",
+    "evidence/debate/pr-2-F5-r2.json",
+    "evidence/debate/pr-2-F6-r1.json",
+    "evidence/debate/pr-2-F6-r2.json",
+    "evidence/debate/pr-2-F7-r1.json",
+    "evidence/debate/pr-2-F7-r2.json",
+    "evidence/debate/pr-2-F8-r1.json",
+    "evidence/debate/pr-2-F8-r2.json",
+    "evidence/debate/pr-2-F9-r1.json",
+    "evidence/debate/pr-2-F9-r2.json"
+  ],
+  "facets_evaluated": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+  ],
+  "final_recommendation": "ACCEPT_WITH_BLOCKING_FIXUPS",
+  "fixuptasks": [
+    "F-PR2-01",
+    "F-PR2-02"
+  ],
+  "merge_commit_sha": "498b3cef8f091ee900dd334a38155e1705317090",
+  "naming_justification": "evidence/debate/pr-2-synthesis.json is the canonical synthesis path for PR #2 under the multispectrum debate evidence naming contract.",
+  "pr_number": 2,
+  "pr_title": "Gate Foundry RAG retrieve citations",
+  "rendered_at_unix": 1778920055,
+  "round": "synthesis",
+  "round_2_evidence_policy": {
+    "consensus_declaration_precondition": "Every synthesis facet_evidence_paths list includes each primary facet review and the matching rebuttal-round evidence before termination_reason=consensus_reached.",
+    "pr5_f5_note": "not_applicable",
+    "single_reviewer_shortcut_allowed": false
+  },
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "severity_counts": {
+    "BLOCKER": 1,
+    "MAJOR": 1,
+    "MINOR": 0
+  },
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "termination_reason": "consensus_reached",
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #2 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
+  ]
+}

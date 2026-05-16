@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-8",
+  "pr_number": 8,
+  "pr_title": "Keep M01/M02 local gates honest with usecase boundary",
+  "merge_commit_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "facet_id": "F5",
+  "facet_name": "Quality/testability review",
+  "reviewer_id": "codex-F5-pr-8-r1",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "F5 review of PR #8 found the PR honestly scopes itself as local gate remediation and explicitly blocks formal M02 closure, with all reported PR checks passing. Remaining quality risk is maintainability drift in active sanctioned-primitives docs and the breadth of the local-gate sweep. Highest severity: MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "docs/runbooks/sanctioned-primitives/preflight.md:12-18",
+      "issue": "PR #8 marks the sanctioned-primitives preflight runbook active/last-verified while the same section still instructs agents to run grit/icm-era preflight before normal work. That keeps a transitional, stale coordination surface active at the same time the repo is trying to keep local gates honest.",
+      "remediation": "Either retire this runbook in the same control surface that replaced grit/icm flows, or rewrite the active preflight around the current plain-git/Oya VCS expectations and add a retired-vocabulary check covering runbooks."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "evidence/multispectrum/codex-m01-m02-exit-1778903088.json:13,75-81,181,233-244",
+      "issue": "The evidence correctly says formal M02 remains blocked by inactive P22, missing Stage 0 deploy, and missing sibling-team smoke. That is honest, but it means this PR's quality evidence proves local gate repair only, not milestone transition readiness.",
+      "remediation": "Keep downstream synthesis from using this PR as M02 closure evidence. Require the P22 activation, Stage 0 OCI ARM64 smoke, sibling-team smoke, generated exit checklist, and phase-complete event before any M03 transition gate consumes this evidence."
+    },
+    {
+      "severity": "MINOR",
+      "file": "PR #8 merge diff: 71 files, 1353 additions, 425 deletions",
+      "issue": "The PR repaired architecture boundaries, usecase separation, CLI gates, catalogs, docs, and evidence in one pass. The size is much smaller than PR #1/#3, but still broad enough that future regressions may be hard to attribute to one intent.",
+      "remediation": "For follow-ups, keep usecase-boundary code, gate-dispatch tests, catalog registration, and milestone evidence in separate reviewable slices with per-slice verification evidence."
+    }
+  ],
+  "null_finding_reason": null
+}

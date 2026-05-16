@@ -1,0 +1,36 @@
+{
+  "change_id": "pr-7",
+  "facet_id": "F1",
+  "facet_name": "Linus critique",
+  "reviewer_id": "codex-F1-pr-7-r1",
+  "considered": true,
+  "rigor": "GREEN",
+  "summary": "PR #7 adds useful webhook pieces, but the production path has two control-plane lies: HMAC is skipped whenever the secret file is missing, and dedup is only a read-time in-memory lookup with no append in the HTTP handler. This is a webhook receiver that can accept unsigned repeat deliveries while saying it fails closed.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:459-468 + src/lib.rs:191",
+      "issue": "`from_paths_or_optional` catches `SecretIo` and retries with `secret_path: None`; `process`/HTTP verification only runs HMAC when `secret` is `Some`. So a production server with a missing secret starts and accepts unsigned webhooks unless `--skip-hmac` is explicitly false but irrelevant. The comments say fail-closed; the code fails open on missing secret.",
+      "remediation": "Require a secret for server mode unless an explicit `--local-dev-skip-hmac` mode is selected. Treat missing secret as startup failure for HTTP serving; keep optional secret only for deterministic simulate tests."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:354-430",
+      "issue": "The HTTP handler dedups against `state.dispatch.log` but never appends the accepted delivery to `registry/vcs/webhook-delivery-log.json` or any durable store. Redeliveries after startup hit the same stale log and can be accepted again. The idempotency table is read-only theater.",
+      "remediation": "Add a single append path for accepted/routing-failed/agent-failed outcomes before returning, with atomic write/lock discipline and tests proving the second delivery deduplicates."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:68-83 + 141-170",
+      "issue": "`--secret-ref sref://openbao/...` is documented as the canonical secret reference, but `resolve_secret_ref` merely maps it to `$HOME/.openbao/...`. That is naming-that-lies: the flag looks like OpenBao integration while shipping a file-path shim.",
+      "remediation": "Either wire the actual SecretReference/OpenBao resolver now, or rename the current behavior to `--secret-file` and leave `--secret-ref` unsupported until the resolver exists."
+    },
+    {
+      "severity": "MINOR",
+      "file": "registry/vcs/event-router.yaml:30-68",
+      "issue": "The router encodes multi-agent dispatch as a string value (`agent: app + app`) for pull_request/synchronize. That turns routing from a typed dispatch plan into a name-parsing convention.",
+      "remediation": "Model one route row as `agents: []` or split into explicit ordered rows with deterministic fan-out semantics."
+    }
+  ],
+  "null_finding_reason": null
+}

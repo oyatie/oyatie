@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-3",
+  "pr_number": 3,
+  "pr_title": "ADR-0083 DENY + M-CC-P10 pipeline maturity + CLI canonicalization",
+  "merge_commit_sha": "27fe6705519cebccc1cfb780f293e5b1619c6672",
+  "facet_id": "F5",
+  "facet_name": "Quality/testability review",
+  "reviewer_id": "codex-F5-pr-3-r1",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "F5 review of PR #3 found all reported required PR checks passing, but the change remains too broad for high-confidence maintainability and includes committed temporary project-memory files with workstation-specific content. GitHub reports 2712 files, 151318 additions, and 19578 deletions; gh pr diff was too large for the PR diff endpoint, so review used PR metadata and local merge-commit diff/stat evidence. Highest severity: MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": ".omc/.project-memory.json.tmp.1132fddd-2b59-47e8-8b4b-0e83ad36575f:1-24; .omc/.project-memory.json.tmp.4a0c6800-e82c-4c6b-8f2c-897b3ae9a250:1; .omc/.project-memory.json.tmp.d332bcd9-ac18-4d75-b255-8995d04a0f44:1; .omc/.project-memory.json.tmp.f76fe76c-6932-4118-a818-9ec8af2aea67:1",
+      "issue": "Four atomic temp project-memory files were committed. They contain local workstation paths such as /Users/jasonlee/oyatie and command memories including rtk-prefixed build/test commands. Temporary files are not stable product evidence and make the control surface non-deterministic.",
+      "remediation": "Delete the committed .tmp project-memory files from the canonical tree, add an ignore or gate for .omc/*.tmp.*, and if any content is needed, promote only a sanitized, intentionally named machine-readable artifact with deterministic provenance."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "PR #3 merge diff: 2712 files, 151318 additions, 19578 deletions",
+      "issue": "ADR doctrine, M-CC planning, CI workflows, branch protection, registries, crates, and CLI canonicalization landed in one oversized PR. Even with green checks, this makes regression attribution and reviewer reproduction weak because many independent control surfaces changed together.",
+      "remediation": "Backfill a decomposition ledger for PR #3 that maps each substrate area to its verification command and owner, then enforce smaller follow-up PR boundaries for workflow policy, registry moves, plan hierarchy, and crate implementation."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/oya-foundry-fitness-supply-chain.yml:62-90; GitHub PR #3 statusCheckRollup",
+      "issue": "The release-artifact attestation lane was intentionally skipped in the successful status rollup. That may be acceptable for PR-only changes, but the PR also changed release/SBOM/SLSA workflow surfaces, so the quality evidence does not prove release-attestation behavior end to end.",
+      "remediation": "Run the release-artifact attestation/SBOM/SLSA path on a release-capable ref or attach an explicit non-release applicability decision that names which changed workflow files were not exercised."
+    }
+  ],
+  "null_finding_reason": null
+}

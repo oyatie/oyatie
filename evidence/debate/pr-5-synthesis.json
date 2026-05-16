@@ -1,0 +1,233 @@
+{
+  "change_id": "pr-5",
+  "consensus_points": [
+    {
+      "evidence": "registry/vcs/changeset-event-log.json:1 + crates/oya-foundry-vcs-changeset-state-app/src/main.rs:431-446",
+      "facets_concurring": [
+        "F2"
+      ],
+      "headline": "Single global JSON file as the canonical state-of-truth for ALL changesets in the pipeline. Every append rewrites the entire file via read-parse-append-write-rename. At hyperscaler agentic load (N=100s of concurrent changesets, 10+ events each, multiple emitt…",
+      "id": "PR5-CONV-1",
+      "recommended_remediation": "Wave-B MUST shard the event log by changeset_id (e.g., registry/vcs/changeset-events/<bucket>/<changeset_id>.jsonl one-line-per-event append-only with O_APPEND, or move to an actual event store: SQLite WAL per-bucket, Postgres LISTEN/NOTIFY, or DynamoDB condi…",
+      "remediation_fixuptasks": [
+        "F-PR5-01"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md:152-158",
+      "facets_concurring": [
+        "F2"
+      ],
+      "headline": "ADR-0111 'fix-at-any-stage re-validation' admits Q*pr-tests worst-case work per push event, mitigated only by MAX_REPOSITION=3 and per-changeset cost_budget. At Q=50 queued PRs (realistic at agentic scale), one fix push triggers up to 50 fresh pr-tests CI run…",
+      "id": "PR5-CONV-2",
+      "recommended_remediation": "Wave-A of IP-002 MUST add: (a) per-PR push-debounce (coalesce pushes within 30s into one re-validation), (b) per-runner-pool concurrency cap (e.g., max 10 concurrent re-validations across the queue), (c) an explicit 'queue depth' SLO and a queue-shedding mode…",
+      "remediation_fixuptasks": [
+        "F-PR5-02"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "tools/oya-foundry-vcs-changeset-state-app/src/main.rs:218-226",
+      "facets_concurring": [
+        "F3"
+      ],
+      "headline": "stub_signature() returns base64(changeset_id:to_state) with the ed25519-stub: prefix. ADR-0110 §'Event log shape' specifies the signature is the canonical anti-tamper field and consumers MUST verify it before trusting a transition. The stub is (a) determinist…",
+      "id": "PR5-CONV-3",
+      "recommended_remediation": "Either (a) gate the app behind a feature flag so it refuses to run in production until real Ed25519 lands, OR (b) make the signature field carry a clearly invalid placeholder like 'UNSIGNED-WAVE-A' and have validate_monotonic_event_log refuse rows with that p…",
+      "remediation_fixuptasks": [
+        "F-PR5-03"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": ".github/workflows/promote-dev-to-staging.yml:1-62 and .github/workflows/promote-staging-to-production.yml:1-60",
+      "facets_concurring": [
+        "F3"
+      ],
+      "headline": "Both promotion workflows fast-forward unconditionally with no canary gate, no observability check, no human approval, and no rollback path. ADR-0114 acknowledges this is wrong but is Proposed (not Implemented). Combined attack window: a malicious commit landi…",
+      "id": "PR5-CONV-4",
+      "recommended_remediation": "Add an explicit gate step BEFORE the PATCH that (a) reads a registry/vcs/promotion-freeze.flag and exits 0 (no-op) if present, (b) refuses to advance if dev_sha is older than 24h (staleness guard against revived branches), and (c) requires a manual approval e…",
+      "remediation_fixuptasks": [
+        "F-PR5-04"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "crates/oya-foundry-vcs-changeset-state-app/src/main.rs:104-111; crates/oya-dev-cli/src/changeset_state_monotonicity_gate.rs:53-63; crates/oya-foundry-vcs-changeset-state-kernel/sr…",
+      "facets_concurring": [
+        "F5"
+      ],
+      "headline": "The app and CI gate pass the entire global changeset-event-log into validate_monotonic_event_log as one stream. The validator keeps a single last_advancing_ordinal and terminal_state, with no grouping by changeset_id. That makes the second valid changeset fai…",
+      "id": "PR5-CONV-5",
+      "recommended_remediation": "Group events by changeset_id before validation. In the app, validate only the target changeset's existing rows plus the candidate, then write the global log after the per-changeset check passes. In the gate, iterate all changeset groups and report the failing…",
+      "remediation_fixuptasks": [
+        "F-PR5-05"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": ".github/branch-protection.yaml:37-43,59-61",
+      "facets_concurring": [
+        "F7"
+      ],
+      "headline": "The dev protection record sets required_approving_reviews to 0 and comments out the oya-pr-review required check. The agentic VCS pipeline can therefore admit security-sensitive changes without an enforced reviewer-agent gate.",
+      "id": "PR5-CONV-6",
+      "recommended_remediation": "Restore a required review gate before treating the pipeline as end-to-end: require either approving reviews or an oya-pr-review check that fails closed when the multispectrum panel is incomplete or pending.",
+      "remediation_fixuptasks": [
+        "F-PR5-06"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": ".github/workflows/promote-dev-to-staging.yml:27-35; .github/workflows/promote-staging-to-production.yml:15-22",
+      "facets_concurring": [
+        "F7"
+      ],
+      "headline": "Both promotion workflows document that canary/full-rollout observability gates are FUTURE and currently always promote. This is fail-open promotion from dev to staging and staging to production.",
+      "id": "PR5-CONV-7",
+      "recommended_remediation": "Add mandatory canary and full-rollout health gates before advancing refs, or disable automatic promotion until those gates exist and fail closed on missing/unknown observability evidence.",
+      "remediation_fixuptasks": [
+        "F-PR5-07"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": ".github/workflows/promote-dev-to-staging.yml:27-35 and .github/workflows/promote-staging-to-production.yml:15-22",
+      "facets_concurring": [
+        "F8"
+      ],
+      "headline": "Both promotion workflows explicitly document their canary/full-rollout gates as future work and currently fast-forward unconditionally. That can promote a bad dev/staging commit without SLO, error-rate, rollback, or incident signal checks.",
+      "id": "PR5-CONV-8",
+      "recommended_remediation": "Gate each fast-forward on a canary controller verdict or equivalent check-run API result, and fail closed with rollback/escalation evidence when the verdict is not PROMOTE.",
+      "remediation_fixuptasks": [
+        "F-PR5-08"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "docs/decisions/ADR-0110-changeset-state-machine.md:1-13, docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md:1-13, docs/decisions/ADR-0112-webhook-driven-found…",
+      "facets_concurring": [
+        "F9"
+      ],
+      "headline": "PR #5 is described as the Foundry pipeline (M-CC-P11) design contract, but the ADRs remain `status: Proposed`. Proposed ADRs do not lock the product/roadmap contract that later PRs are expected to implement.",
+      "id": "PR5-CONV-9",
+      "recommended_remediation": "Promote ADR-0110..0114 to Accepted only after council signoff, or change PR #5/P11 wording to say it is a proposal and block implementation PRs from treating it as canonical until accepted.",
+      "remediation_fixuptasks": [
+        "F-PR5-09"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/INDEX.md:20-24 and specs/cross-cutting/masterplan.json:520-553",
+      "facets_concurring": [
+        "F9"
+      ],
+      "headline": "P11 exists as `.omc` phase files, but the current machine-readable masterplan live index does not include M-CC-P11. The canonical agentic VCS substrate cannot be reliably adopted if its phase is only discoverable by filesystem search rather than the masterpla…",
+      "id": "PR5-CONV-10",
+      "recommended_remediation": "Regenerate the masterplan live hierarchy with M-CC-P11 and make the plan-hierarchy lane fail when a phase file is absent from `/specs/cross-cutting/masterplan.json`.",
+      "remediation_fixuptasks": [
+        "F-PR5-10"
+      ],
+      "severity": "BLOCKER"
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "F5 was re-dispatched as pr-5-F5-r2 after the handoff noted the first F5 task terminated mid-task.",
+    "Final synthesis incorporates independent F7/F8/F9 security, operations, and product-plan passes after the initial scaffolded artifacts.",
+    "Round 2 rebuttal evidence is now recorded for every F1-F9 facet before declaring consensus."
+  ],
+  "executor_topology_compliance": {
+    "reviewer_id_overlap_across_facets": "NONE",
+    "reviewer_ids": [
+      "f1-pilot-pr5",
+      "codex-F1-pr-5-r2-rebuttal",
+      "f2-pilot-pr5",
+      "codex-F2-pr-5-r2-rebuttal",
+      "f3-pilot-pr5",
+      "codex-F3-pr-5-r2-rebuttal",
+      "f4-pilot-pr5",
+      "codex-F4-pr-5-r2-rebuttal",
+      "codex-F5-pr-5-r2",
+      "codex-F5-pr-5-r3-rebuttal",
+      "codex-F6-pr-5-r1",
+      "codex-F6-pr-5-r2-rebuttal",
+      "codex-F7-pr-5-r1-security",
+      "codex-F7-pr-5-r2-rebuttal",
+      "codex-F8-pr-5-r1-ops",
+      "codex-F8-pr-5-r2-rebuttal",
+      "codex-F9-pr-5-r1-product",
+      "codex-F9-pr-5-r2-rebuttal"
+    ],
+    "rule": "Each F1-F9 facet has a distinct reviewer_id for primary evidence, and each round-2 rebuttal has a distinct round-specific reviewer_id; no reviewer_id is reused across facets within the change_id.",
+    "verified": true
+  },
+  "facet_count_total": 9,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-5-F1-r1.json",
+    "evidence/debate/pr-5-F1-r2.json",
+    "evidence/debate/pr-5-F2-r1.json",
+    "evidence/debate/pr-5-F2-r2.json",
+    "evidence/debate/pr-5-F3-r1.json",
+    "evidence/debate/pr-5-F3-r2.json",
+    "evidence/debate/pr-5-F4-r1.json",
+    "evidence/debate/pr-5-F4-r2.json",
+    "evidence/debate/pr-5-F5-r2.json",
+    "evidence/debate/pr-5-F5-r3.json",
+    "evidence/debate/pr-5-F6-r1.json",
+    "evidence/debate/pr-5-F6-r2.json",
+    "evidence/debate/pr-5-F7-r1.json",
+    "evidence/debate/pr-5-F7-r2.json",
+    "evidence/debate/pr-5-F8-r1.json",
+    "evidence/debate/pr-5-F8-r2.json",
+    "evidence/debate/pr-5-F9-r1.json",
+    "evidence/debate/pr-5-F9-r2.json"
+  ],
+  "facets_evaluated": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+  ],
+  "final_recommendation": "ACCEPT_WITH_BLOCKING_FIXUPS",
+  "fixuptasks": [
+    "F-PR5-01",
+    "F-PR5-02",
+    "F-PR5-03",
+    "F-PR5-04",
+    "F-PR5-05",
+    "F-PR5-06",
+    "F-PR5-07",
+    "F-PR5-08",
+    "F-PR5-09",
+    "F-PR5-10"
+  ],
+  "merge_commit_sha": "3185596f5a1bfbbfd1fff7e1ccd7500af9906613",
+  "naming_justification": "evidence/debate/pr-5-synthesis.json is the canonical synthesis path for PR #5 under the multispectrum debate evidence naming contract.",
+  "pr_number": 5,
+  "pr_title": "ADR-0110/0111/0112/0113 — end-to-end agentic VCS pipeline (M-CC-P11)",
+  "rendered_at_unix": 1778920055,
+  "round": "synthesis",
+  "round_2_evidence_policy": {
+    "consensus_declaration_precondition": "Every synthesis facet_evidence_paths list includes each primary facet review and the matching rebuttal-round evidence before termination_reason=consensus_reached.",
+    "pr5_f5_note": "pr-5-F5-r2.json is the redispatched primary F5 review; pr-5-F5-r3.json is the explicit rebuttal evidence.",
+    "single_reviewer_shortcut_allowed": false
+  },
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "severity_counts": {
+    "BLOCKER": 10,
+    "MAJOR": 45,
+    "MINOR": 21
+  },
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "termination_reason": "consensus_reached",
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #5 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
+  ]
+}

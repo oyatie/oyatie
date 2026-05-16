@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-1",
+  "pr_number": 1,
+  "pr_title": "Publish verified Oyatie API contract surface",
+  "merge_commit_sha": "cdc53bf2d80274c33c000bd8cb299fbfb3c3c313",
+  "facet_id": "F9",
+  "facet_name": "Product/plan/hierarchy/adoption review",
+  "reviewer_id": "codex-F9-pr-1-r1-product",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "F9 product/plan review for PR #1: the bootstrap created useful contract surface, but as a 1070-file main-targeted import it is not a reusable ChangeSet/IP adoption pattern. Highest severity BLOCKER.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": "GitHub PR #1 metadata + specs/cross-cutting/masterplan.json:491-516",
+      "issue": "PR #1 imported the repository as a 1070-file bootstrap instead of a ChangeSet-sized implementation packet. Current masterplan contract requires every ImplementationPlan to be independently claimable/verifiable/promotable and to split unrelated lock scopes; product roadmap consumers cannot infer which M01/M02/M-CC IPs are actually advanced by this one PR.",
+      "remediation": "Backfill a machine-readable PR #1 decomposition map that groups each shipped contract/crate/doc cluster to the owning milestone/phase/IP and marks PR #1 as bootstrap-only, not a valid future PR template. Open bounded FixupTasks for any group without a current IP owner."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "GitHub PR #1 baseRefName + specs/cross-cutting/masterplan.json:318-327",
+      "issue": "PR #1 targeted `main`, while the current Oya VCS roadmap expects dev→staging→production release trains before broad M01/M02/M03 fan-out. Leaving the bootstrap unannotated makes historical main-targeted PRs easy to copy into the Foundry pipeline by mistake.",
+      "remediation": "Record the branch-pipeline cutover in a compact migration note and require future large implementation PRs to target `dev` or carry an explicit pre-cutover exception."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "GitHub PR #1 file list: contracts/openapi/**, contracts/asyncapi/**, contracts/proto/**",
+      "issue": "The published API surface is adoption-relevant, but the PR did not ship a small endpoint-to-product/owner/readiness index beside the contracts. New adopters can see many APIs but cannot tell which are preview, blocked, or tied to a roadmap axis without manually traversing catalog and masterplan files.",
+      "remediation": "Generate a contract adoption index keyed by operation/topic/proto package with product axis, owner team, maturity, auth posture, and owning IP; wire it to the existing contract/documentation inventory gate."
+    }
+  ],
+  "null_finding_reason": null
+}

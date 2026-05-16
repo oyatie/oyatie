@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-9",
+  "pr_number": 9,
+  "pr_title": "Consolidate registries/cross-cutting/ into flat registry/ (ADR-0115)",
+  "merge_commit_sha": "86b454d122d2999e29adea60eae2c12e1f0b9339",
+  "facet_id": "F7",
+  "facet_name": "Security review",
+  "reviewer_id": "codex-F7-pr-9-r1-security",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "F7 security review for PR #9: reviewed registry/workflow consolidation evidence and current security review gateway; 3 actionable findings, highest severity BLOCKER.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": ".github/workflows/pr-review.yml:34-47,64-104",
+      "issue": "The consolidated review workflow still uses workflow_run, checks out the PR head SHA, and runs cargo from that untrusted checkout while holding checks:write/actions:read permissions. Registry consolidation preserved a privileged PR-code execution path.",
+      "remediation": "Split untrusted PR analysis from privileged status posting; the workflow_run job should run only trusted default-branch code and consume immutable artifacts, not execute cargo from the PR head."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "docs/standards/multispectrum-review.md:2,14,34; specs/cross-cutting/multispectrum-review.json:744-781,996-1036",
+      "issue": "The human gateway still names multispectrum v2.1.0 while the machine spec is v2.3.0 and includes A-family/distinct-reviewer requirements. Security review evidence can drift if humans follow the stale gateway during or after registry consolidation.",
+      "remediation": "Render the human gateway version from the JSON spec or update it in the same PR as spec changes; add a check that refuses stale multispectrum version references."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "GitHub PR #9 file list: .omc/handoffs/*.json and .omc/state/sessions/*/investigation-synthesis.md",
+      "issue": "The registry consolidation PR included session handoff/state artifacts alongside canonical registries. Those are not the smallest actionable registry evidence and may carry local investigation context that should not become authoritative product state.",
+      "remediation": "Separate durable registry moves from local session handoffs; redact/minimize any required handoff evidence and add a deny rule for .omc/state/session artifacts in broad consolidation PRs."
+    }
+  ],
+  "null_finding_reason": null
+}

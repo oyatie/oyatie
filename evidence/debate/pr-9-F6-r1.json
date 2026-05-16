@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-9",
+  "pr_number": 9,
+  "pr_title": "Consolidate registries/cross-cutting/ into flat registry/ (ADR-0115)",
+  "merge_commit_sha": "86b454d122d2999e29adea60eae2c12e1f0b9339",
+  "facet_id": "F6",
+  "facet_name": "Alternatives review",
+  "reviewer_id": "codex-F6-pr-9-r1",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "Alternatives review for PR #9: reviewed merged diff metadata and current tree evidence; 3 actionable finding(s), highest severity MAJOR.",
+  "findings": [
+    {
+      "severity": "MINOR",
+      "file": "docs/decisions/ADR-0115-registry-consolidation-flat-singular.md:77-92",
+      "issue": "The move preserves subdirectories under registry while describing a flat singular root. This is defensible, but readers may confuse flat-root with no subdirectories.",
+      "remediation": "Clarify that `flat` means one root (`registry/`) and semantic direct children, not every registry file at root."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "docs/standards/multispectrum-review.md:14-34",
+      "issue": "The standards gateway still says the canonical spec is v2.1.0 while the machine spec is v2.3.0. PR #9 touched this surface during registry consolidation but left version drift.",
+      "remediation": "Update the human gateway to the current multispectrum spec version or make it derive/render from the JSON spec."
+    },
+    {
+      "severity": "MINOR",
+      "file": "GitHub PR #9 design alternatives",
+      "issue": "Ask whether a simpler or safer design could deliver the same outcome with less machinery. The PR evidence does not consistently encode rejected alternatives in machine-readable form.",
+      "remediation": "Add an alternatives/rejected-options section to the synthesis/fixuptask row for this change class."
+    }
+  ],
+  "null_finding_reason": null
+}

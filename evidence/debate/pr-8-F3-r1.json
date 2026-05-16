@@ -1,0 +1,27 @@
+{
+  "change_id": "pr-8",
+  "pr_number": 8,
+  "pr_title": "Keep M01/M02 local gates honest with usecase boundary",
+  "merge_commit_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "facet_id": "F3",
+  "facet_name": "Adversarial/failure-mode review",
+  "reviewer_id": "codex-F3-pr-8-r1",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "Adversarial/failure-mode review for PR #8: reviewed merged diff metadata and current tree evidence; 2 actionable finding(s), highest severity MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "evidence/multispectrum/codex-m01-m02-exit-1778903088.json",
+      "issue": "The PR adds M01/M02 gate evidence but the main worktree state shows many later untracked/dirty gate changes; completion claims need branch-local reproducibility rather than ambient workspace state.",
+      "remediation": "Tie each gate evidence file to a commit SHA and command output so reruns prove the exact branch, not a dirty workstation."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "crates/oya-dev-cli/src/commands/gate/architecture_boundaries.rs:30-75",
+      "issue": "The gate still carries transitional role mappings for `application` and `runtime` even after the repo moved toward `usecase`/`app` layer names. That is necessary for transition but weakens clean-architecture enforcement if it is not time-boxed.",
+      "remediation": "Add an explicit sunset/ratchet fixture that fails once the three named follow-ups land and removes the legacy role aliases."
+    }
+  ],
+  "null_finding_reason": null
+}

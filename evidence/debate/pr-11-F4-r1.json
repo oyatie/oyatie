@@ -1,0 +1,27 @@
+{
+  "change_id": "pr-11",
+  "pr_number": 11,
+  "pr_title": "M-CC-P11-IP-002 wave-A: merge-queue app-side modules",
+  "merge_commit_sha": "5ec873ce2b6a5e37465b037ddeeb9343199abe59",
+  "facet_id": "F4",
+  "facet_name": "Ergonomics/operator review",
+  "reviewer_id": "codex-F4-pr-11-r1",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "F4 operator/contributor UX review for PR #11: the small PR shape is good, but the merge-queue operator surface can claim projected-state protection while using an incorrect merge-tree tuple and sparse conflict evidence. Highest severity BLOCKER.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:139-154",
+      "issue": "`run_projected_merge_state_check` invokes `run_merge_tree(dev_head, candidate.head_sha, dev_head)`: `dev_head` is both base and theirs, and queued PRs are only passed to the kernel after parsing. Operators are told this is projected merge-state against the queue, but the git simulation does not actually apply the accumulated queue head. Conflict admission can therefore feel green while the later merge queue still breaks.",
+      "remediation": "Build or accept a real projected base/head that includes queued PRs, pass that into `git merge-tree`, and add a regression where candidate B only conflicts after queued PR A is applied."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:38-68; registry/vcs/concurrent-safe-paths.yaml",
+      "issue": "Conflict path extraction is a heuristic over stdout and may return `Conflict { paths: [] }`. Fail-closed is good, but the operator receives little actionable evidence: no raw git status, no stderr, no merge-tree argv, and an empty `products: {}` whitelist that gives no contributor example of safe concurrent paths.",
+      "remediation": "Write evidence with merge-tree argv, exit/status, raw conflict summary, parsed paths, and product safe-path source. Add one commented or test fixture example for a safe path so contributors know how to request a whitelist change."
+    }
+  ],
+  "null_finding_reason": null
+}

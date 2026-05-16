@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-5",
+  "pr_number": 5,
+  "pr_title": "ADR-0110/0111/0112/0113 — end-to-end agentic VCS pipeline (M-CC-P11)",
+  "merge_commit_sha": "3185596f5a1bfbbfd1fff7e1ccd7500af9906613",
+  "facet_id": "F9",
+  "facet_name": "Product/plan/hierarchy/adoption review",
+  "reviewer_id": "codex-F9-pr-5-r1-product",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "F9 product/plan review for PR #5: it correctly names the Foundry pipeline (M-CC-P11) substrate, but the design contract is not adoption-ready because hierarchy, ADR status, and promotion gating disagree. Highest severity BLOCKER.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": "docs/decisions/ADR-0110-changeset-state-machine.md:1-13, docs/decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md:1-13, docs/decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md:1-14, docs/decisions/ADR-0114-canary-observability-rollback.md:1-14",
+      "issue": "PR #5 is described as the Foundry pipeline (M-CC-P11) design contract, but the ADRs remain `status: Proposed`. Proposed ADRs do not lock the product/roadmap contract that later PRs are expected to implement.",
+      "remediation": "Promote ADR-0110..0114 to Accepted only after council signoff, or change PR #5/P11 wording to say it is a proposal and block implementation PRs from treating it as canonical until accepted."
+    },
+    {
+      "severity": "BLOCKER",
+      "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/INDEX.md:20-24 and specs/cross-cutting/masterplan.json:520-553",
+      "issue": "P11 exists as `.omc` phase files, but the current machine-readable masterplan live index does not include M-CC-P11. The canonical agentic VCS substrate cannot be reliably adopted if its phase is only discoverable by filesystem search rather than the masterplan control surface.",
+      "remediation": "Regenerate the masterplan live hierarchy with M-CC-P11 and make the plan-hierarchy lane fail when a phase file is absent from `/specs/cross-cutting/masterplan.json`."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/promote-dev-to-staging.yml:27-35 and .github/workflows/promote-staging-to-production.yml:15-22",
+      "issue": "PR #5 adds the dev→staging→production promotion surface while both workflows explicitly remain unconditional until future canary/full-rollout gates. That advances pipeline shape, but not safe product adoption of automatic promotion.",
+      "remediation": "Keep the workflows disabled/manual or clearly mark them bootstrap-only until M-CC-P11-IP-005/IP-006 canary gates are wired; add a machine-readable promotion-readiness flag consumed by branch protection."
+    }
+  ],
+  "null_finding_reason": null
+}

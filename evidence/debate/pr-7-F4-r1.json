@@ -1,0 +1,27 @@
+{
+  "change_id": "pr-7",
+  "pr_number": 7,
+  "pr_title": "ADR-0112 wave-A: webhook-receiver kernel + app (HMAC + dedup + router)",
+  "merge_commit_sha": "5f1f83f7e6ab1fa7dbe846e01b807901e4e5ca11",
+  "facet_id": "F4",
+  "facet_name": "Ergonomics/operator review",
+  "reviewer_id": "codex-F4-pr-7-r1",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "F4 operator/contributor UX review for PR #7: reviewed merged files and current app surfaces. Highest severity BLOCKER: production-looking defaults can silently run without an HMAC secret, and success messages say a delivery was routed even though wave-A does not durably invoke the routed agent.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:101-115, 454-469; tools/oya-foundry-webhook-receiver-app/src/lib.rs:186-194",
+      "issue": "Secret loading is optional at startup. If the default `~/.openbao/...` file or `--secret-ref` resolution is missing, `from_paths_or_optional` retries with `secret_path: None`; then both simulated and HTTP paths skip HMAC verification whenever `skip_hmac` is false but no secret exists. The operator gets no startup failure or warning, so a production misconfiguration accepts unsigned webhooks.",
+      "remediation": "Fail startup/HTTP readiness when `--skip-hmac` is false and no secret is loaded. Keep local ergonomics by requiring explicit `--skip-hmac` for dev, and print the resolved secret source or exact missing path in the startup log."
+    },
+    {
+      "severity": "BLOCKER",
+      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:236-244, 390-396; registry/vcs/README.md webhook-delivery-log section",
+      "issue": "The user-facing output says `accepted: routed to <agent>` but the app only returns a route decision; it does not append a delivery-log row or create a durable invocation request. For operators, this is a silent mismatch: the surface reads like work was handed to an agent, while no rollback/retry/audit artifact exists.",
+      "remediation": "Change the wave-A message to `accepted: route resolved; invocation not yet emitted` or emit a durable dispatch-request/delivery-log row. Add `agent_invocation_failed` evidence when dispatch cannot happen so retries and rollback are understandable."
+    }
+  ],
+  "null_finding_reason": null
+}

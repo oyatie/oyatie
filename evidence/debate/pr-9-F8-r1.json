@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-9",
+  "pr_number": 9,
+  "pr_title": "Consolidate registries/cross-cutting/ into flat registry/ (ADR-0115)",
+  "merge_commit_sha": "86b454d122d2999e29adea60eae2c12e1f0b9339",
+  "facet_id": "F8",
+  "facet_name": "Observability/operations review",
+  "reviewer_id": "codex-F8-pr-9-r1-ops",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "F8 observability/operations review for PR #9: registry consolidation is directionally clear, but migration observability and the touched review workflow still need fail-closed proof; 3 actionable findings, highest severity MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "docs/decisions/ADR-0115-registry-consolidation-flat-singular.md:94-106,143-153",
+      "issue": "The migration verification is documented as grep results in the ADR/PR body, not as a checked, replayable migration artifact. Operators cannot tell which live path class failed if a stale registries/cross-cutting reference reappears.",
+      "remediation": "Add a dedicated registry-root migration gate that emits JSON counts by path class and fails on live stale references while explicitly excluding immutable historical evidence."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/pr-review.yml:97-105,117-143",
+      "issue": "The touched review workflow still runs the dispatcher without inline runtime mode and posts success based on verdict parsing, but it does not fail when subagent_runtime_pending is true. That leaves merge-queue telemetry ambiguous for large PRs.",
+      "remediation": "Pass --runtime-mode inline-deterministic-mock or require a preexisting complete facet directory, then fail the job if the rollup's subagent_runtime_pending field is true."
+    },
+    {
+      "severity": "MINOR",
+      "file": "docs/decisions/ADR-0115-registry-consolidation-flat-singular.md:154-165",
+      "issue": "The ADR intentionally defers specs/cross-cutting flattening. During the split state, operators still have two root-hub families to search when diagnosing control-surface drift.",
+      "remediation": "Track the specs flattening follow-up with a dated owner and add an interim lookup note or redirect map so incident responders know which root is authoritative for each artifact class."
+    }
+  ],
+  "null_finding_reason": null
+}
