@@ -114,7 +114,7 @@ resource "cloudflare_record" "api" {
   content = "${cloudflare_zero_trust_tunnel_cloudflared.onprem_kr.id}.cfargotunnel.com"
   type    = "CNAME"
   proxied = true
-  comment = "Public API gateway (canonical REST surface) — currently on-prem :8080; OCI API GW takes over at M3-P03"
+  comment = "Public API gateway — on-prem :8080 today; OCI API GW at M3-P03"
 }
 
 resource "cloudflare_record" "ops" {
