@@ -1,0 +1,20 @@
+# Istio Gateway binds the Envoy ingress to the api.oyatie.com hostname.
+# Cloudflared tunnel will be repointed at the istio-ingressgateway service.
+---
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: api-oyatie-gateway
+  namespace: api-gateway
+spec:
+  selector:
+    istio: ingressgateway  # the istio-ingressgateway service in istio-system
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "api.oyatie.com"
+      # Cloudflare terminates TLS at the edge; cloudflared sends plain HTTP
+      # over the tunnel. No TLS needed between cloudflared and Istio.

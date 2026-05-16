@@ -1,0 +1,28 @@
+# Mesh-wide default-deny: every namespace gets an AuthorizationPolicy that
+# denies traffic by default. Each service then declares an explicit ALLOW
+# policy (api-gateway already has one in infra/k8s/api-gateway/40-*.yaml).
+#
+# This is the "deny by default, allow by exception" posture: a forgotten
+# service can't accidentally accept traffic, and every new exposed surface
+# must come with an explicit policy that ships in the same PR.
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: default-deny
+  namespace: foundry
+spec: {}  # empty spec = ALLOW with no rules = deny everything
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: default-deny
+  namespace: ops
+spec: {}
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: default-deny
+  namespace: cloud-axis
+spec: {}

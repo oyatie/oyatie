@@ -1,0 +1,34 @@
+# VirtualService routes api.oyatie.com/* to the workspace-shell Service.
+# Includes retry + timeout policies. Per-route rate-limit + JWT validation
+# land in the AuthorizationPolicy + RequestAuthentication below.
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: api-oyatie
+  namespace: api-gateway
+spec:
+  hosts:
+    - "api.oyatie.com"
+  gateways:
+    - api-oyatie-gateway
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: workspace-shell.api-gateway.svc.cluster.local
+            port:
+              number: 8080
+      timeout: 30s
+      retries:
+        attempts: 2
+        perTryTimeout: 10s
+        retryOn: "5xx,reset,connect-failure,refused-stream"
+      headers:
+        request:
+          set:
+            # Make sure the workspace-shell sees the original host header so
+            # its host-aware catalog routing matches (api.oyatie.com).
+            host: api.oyatie.com

@@ -1,0 +1,30 @@
+# Mesh-wide Istio + Envoy hardening — applied across every on-prem service
+# namespace, not just api-gateway. Authority: user directive 2026-05-16
+# ("just general hardening with istio and envoy all together").
+#
+# These namespaces participate in the mesh: every workload pod gets an
+# Envoy sidecar via istio-injection=enabled.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: foundry
+  labels:
+    istio-injection: enabled
+    managed-by: oyatie-infra
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ops
+  labels:
+    istio-injection: enabled
+    managed-by: oyatie-infra
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloud-axis
+  labels:
+    istio-injection: enabled
+    managed-by: oyatie-infra

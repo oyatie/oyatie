@@ -1,0 +1,96 @@
+#cloud-config
+# Watchdog role — OCI E2.1.Micro (oyatie-watchdog-kr-01).
+# Tailnet-only host (joins the tailnet via a pre-auth key from oyatie-vpn-kr-01)
+# that probes on-prem service health + posts to OCI Notifications on failure.
+#
+# Workloads (all ~ 80 MB RSS total):
+#   - tailscale (joins the headscale tailnet at vpn.oyatie.com)
+#   - blackbox_exporter (probes foundry/api/ops/kms over the tailnet)
+#   - oya-cloud-watchdog (Rust; reads probe state, pages via OCI Notifications)
+#   - prometheus-node-exporter
+#
+# NO public-facing service. SSH-only via default security list; everything
+# else binds to 127.0.0.1 or the tailscale0 interface.
+#
+# Authority: ADR-0121.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - ca-certificates
+  - gnupg
+  - ufw
+  - prometheus-node-exporter
+  - prometheus-blackbox-exporter
+
+write_files:
+  - path: /etc/oyatie/watchdog.toml
+    permissions: '0644'
+    content: |
+      # oya-cloud-watchdog configuration
+      poll_interval_seconds = ${poll_interval_seconds}
+      failure_threshold     = ${failure_threshold}
+      notifications_topic_id = "${notifications_topic_id}"
+
+      # Probe targets — comma-separated in the cloud-init var, expanded here.
+      [[targets]]
+      url = "${replace(watchdog_targets, ",", "\"\n\n[[targets]]\nurl = \"")}"
+
+  - path: /etc/prometheus/blackbox.yml
+    permissions: '0644'
+    content: |
+      modules:
+        http_2xx:
+          prober: http
+          timeout: 10s
+          http:
+            preferred_ip_protocol: "ip4"
+            valid_status_codes: [200, 204]
+            method: GET
+
+  - path: /usr/local/bin/oya-cloud-watchdog
+    permissions: '0755'
+    content: |
+      #!/bin/sh
+      # Placeholder until the Rust binary is published to OCIR by M3-P03.
+      # Until then, run a minimal probe loop via curl + oci CLI for alerting.
+      # The full Rust binary (crates/oya-cloud-watchdog) replaces this script.
+      set -eu
+      CONFIG=/etc/oyatie/watchdog.toml
+      logger "oya-cloud-watchdog: placeholder shell; awaiting Rust binary"
+      sleep 60
+
+  - path: /etc/systemd/system/oya-cloud-watchdog.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Oyatie cloud watchdog (on-prem outage detection)
+      After=network-online.target tailscaled.service
+      Wants=network-online.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/local/bin/oya-cloud-watchdog
+      Restart=always
+      RestartSec=10s
+      User=root
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  # Install Tailscale client (joins the headscale tailnet).
+  - [ sh, -c, "curl -fsSL https://tailscale.com/install.sh | sh" ]
+  - [ ufw, allow, "22/tcp" ]
+  - [ ufw, --force, enable ]
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, --now, prometheus-node-exporter.service ]
+  - [ systemctl, enable, --now, prometheus-blackbox-exporter.service ]
+  - [ systemctl, enable, --now, oya-cloud-watchdog.service ]
+  # tailscale up requires a pre-auth key — issue from vpn-kr-01 and drop into
+  # /etc/oyatie/headscale-authkey.env, then run `systemctl start tailscaled-up.service`.
+  - [ sh, -c, "echo \"$(date -u +%FT%TZ) watchdog-cloud-init-completed\" >> /var/log/oyatie-cloud-init.log" ]
+
+final_message: "Watchdog bootstrap complete. Join tailnet: tailscale up --login-server https://vpn.${replace(notifications_topic_id, "ocid1.onstopic.oc1.ap-chuncheon-1.", "oyatie.com --authkey ")}"

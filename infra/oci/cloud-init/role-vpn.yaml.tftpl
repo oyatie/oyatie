@@ -1,0 +1,134 @@
+#cloud-config
+# Headscale cloud-init — declarative bootstrap for the OCI E2.1.Micro VPN
+# control plane. Pure cloud-init YAML; no hand-rolled shell apart from the
+# minimal commands cloud-init itself runs to install + start the systemd unit.
+#
+# Pinned versions:
+#   - headscale ${headscale_version} (upstream Debian package)
+# Domain:
+#   - server_url  = ${server_url}
+#   - listen_addr = 0.0.0.0:443 (Caddy/auto-HTTPS handles TLS)
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - curl
+  - ca-certificates
+  - gnupg
+  - sqlite3
+  - ufw
+
+write_files:
+  - path: /etc/headscale/config.yaml
+    permissions: '0640'
+    owner: root:headscale
+    content: |
+      server_url: ${server_url}
+      listen_addr: 0.0.0.0:443
+      metrics_listen_addr: 127.0.0.1:9090
+
+      # DERP — embedded relay using the same instance (free DERP tier).
+      derp:
+        server:
+          enabled: true
+          region_id: 999
+          region_code: "oyatie-kr"
+          region_name: "Oyatie KR (Chuncheon)"
+          stun_listen_addr: "0.0.0.0:3478"
+        urls:
+          - https://controlplane.tailscale.com/derpmap/default
+        auto_update_enabled: true
+        update_frequency: 24h
+
+      database:
+        type: sqlite
+        sqlite:
+          path: /var/lib/headscale/db.sqlite
+
+      tls_letsencrypt_hostname: ${headscale_domain}
+      tls_letsencrypt_cache_dir: /var/lib/headscale/cache
+      tls_letsencrypt_challenge_type: HTTP-01
+      tls_letsencrypt_listen: ":80"
+
+      ip_prefixes:
+        - 100.64.0.0/10
+        - fd7a:115c:a1e0::/48
+
+      dns_config:
+        magic_dns: true
+        base_domain: oyatie.tailnet
+        nameservers:
+          - 1.1.1.1
+          - 9.9.9.9
+
+      log:
+        format: text
+        level: info
+
+      policy:
+        mode: file
+        path: /etc/headscale/acl.yaml
+
+      private_key_path: /var/lib/headscale/private.key
+      noise:
+        private_key_path: /var/lib/headscale/noise_private.key
+
+      disable_check_updates: false
+
+      randomize_client_port: false
+
+  - path: /etc/headscale/acl.yaml
+    permissions: '0640'
+    owner: root:headscale
+    content: |
+      # Minimal default policy — allow all tailnet nodes to reach each other.
+      # Tighten via ADR-0121 follow-up once the OCI + on-prem nodes are joined.
+      groups:
+        group:admins:
+          - webservicepost@gmail.com
+      acls:
+        - action: accept
+          src: ["*"]
+          dst: ["*:*"]
+
+  - path: /etc/systemd/system/headscale-bootstrap.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Headscale post-install bootstrap (create default user)
+      After=headscale.service
+      Requires=headscale.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/headscale users create oyatie
+      RemainAfterExit=yes
+      User=root
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  # Install Headscale Debian package (upstream releases).
+  - [ sh, -c, "curl -fsSL -o /tmp/headscale.deb https://github.com/juanfont/headscale/releases/download/v${headscale_version}/headscale_${headscale_version}_linux_amd64.deb" ]
+  - [ apt-get, install, -y, /tmp/headscale.deb ]
+  - [ mkdir, -p, /var/lib/headscale, /var/lib/headscale/cache ]
+  - [ chown, -R, "headscale:headscale", /var/lib/headscale, /etc/headscale ]
+
+  # Open the host firewall (NSG also enforces).
+  - [ ufw, allow, "22/tcp" ]
+  - [ ufw, allow, "80/tcp" ]
+  - [ ufw, allow, "443/tcp" ]
+  - [ ufw, allow, "3478/udp" ]
+  - [ ufw, --force, enable ]
+
+  # Enable + start Headscale + the bootstrap user-create unit.
+  - [ systemctl, daemon-reload ]
+  - [ systemctl, enable, --now, headscale.service ]
+  - [ systemctl, enable, --now, headscale-bootstrap.service ]
+
+  # Audit-chain crumb — first-boot timestamp for the audit-chain replay.
+  - [ sh, -c, "echo \"$(date -u +%FT%TZ) headscale-cloud-init-completed version=${headscale_version}\" >> /var/log/oyatie-cloud-init.log" ]
+
+final_message: "Headscale ${headscale_version} bootstrap complete. Server URL: ${server_url}"

@@ -1,0 +1,47 @@
+# Kubernetes-level default-deny NetworkPolicy per namespace. Sits BELOW the
+# Istio AuthorizationPolicy (which operates at L7 via Envoy); this one
+# blocks L3/L4 traffic at the CNI (Flannel + iptables-legacy) before it
+# ever reaches Envoy.
+#
+# Defense in depth: a misconfigured AuthorizationPolicy can't accidentally
+# expose a workload if the NetworkPolicy already drops the packet.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: foundry
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: ops
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: cloud-axis
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: api-gateway
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress

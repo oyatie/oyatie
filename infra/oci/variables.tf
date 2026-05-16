@@ -48,3 +48,9 @@ variable "create_stage0_a1" {
   type        = bool
   default     = false
 }
+
+variable "cloudflare_domain" {
+  description = "Apex domain that owns DNS / Cloudflare-managed subdomains. Matches infra/cloudflare/variables.tf's cloudflare_domain."
+  type        = string
+  default     = "oyatie.com"
+}

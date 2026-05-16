@@ -1,0 +1,53 @@
+# AuthorizationPolicy hardens api.oyatie.com:
+#   - Allow GET / HEAD on health/readiness paths unconditionally.
+#   - Allow other methods only when a valid JWT is present (RequestAuthentication
+#     below validates the JWT signature + audience + issuer).
+#
+# Until an issuer is wired (M3-P04 SaaS-platform-preview adds the workflow-engine
+# JWT issuer), this policy is in `permissive` shape: deny mutating verbs without
+# a JWT, but health + read-only API stays open for public use.
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: api-oyatie-policy
+  namespace: api-gateway
+spec:
+  action: ALLOW
+  rules:
+    # Public read-only paths (always allow)
+    - to:
+        - operation:
+            methods: ["GET", "HEAD", "OPTIONS"]
+            paths:
+              - "/workspace/api/v1/health"
+              - "/workspace/api/v1/surfaces"
+              - "/"
+
+    # Authenticated mutating traffic: require principal from RequestAuthentication
+    - to:
+        - operation:
+            methods: ["POST", "PUT", "PATCH", "DELETE"]
+      when:
+        - key: request.auth.principal
+          notValues: [""]
+---
+# RequestAuthentication: validate JWTs from the (future) workspace JWT issuer.
+# Until the issuer is live, leave this block placeholder-friendly: jwksUri
+# points at the cluster-local issuer service that lands in M3-P04.
+apiVersion: security.istio.io/v1
+kind: RequestAuthentication
+metadata:
+  name: api-oyatie-jwt
+  namespace: api-gateway
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway  # validate at the edge, not at the upstream pod
+  jwtRules:
+    - issuer: "https://api.oyatie.com/oauth/issuer"
+      # jwksUri is intentionally unset until the issuer ships; until then,
+      # JWT validation simply fails (so mutating verbs are blocked by the
+      # AuthorizationPolicy above). Read-only stays open.
+      forwardOriginalToken: true
+      outputPayloadToHeader: "x-jwt-payload"

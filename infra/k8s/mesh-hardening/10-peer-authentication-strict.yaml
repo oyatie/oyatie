@@ -1,0 +1,12 @@
+# Mesh-wide PeerAuthentication: require mutual TLS between every pod in the
+# mesh. Pods outside the mesh (the istio-ingressgateway itself) accept plain
+# HTTP at the edge, but every cluster-internal hop is mTLS-only.
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default-strict-mtls
+  namespace: istio-system  # applies mesh-wide because it lives in the root ns
+spec:
+  mtls:
+    mode: STRICT

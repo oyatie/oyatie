@@ -1,0 +1,94 @@
+# Pre-emptive allow rules so that default-deny doesn't lock out kubelet
+# probes / DNS / control-plane traffic when workloads land in these namespaces.
+#
+# Without these, a Deployment in foundry/ops/cloud-axis ns would fail
+# liveness/readiness probes (kubelet probes come from the node IP, blocked
+# by default-deny-ingress) — pods would CrashLoopBackOff forever.
+#
+# Allow rules:
+#   - From kube-system ns (covers any system pod that needs to call workloads)
+#   - From the node's cni0 bridge IP (10.244.0.1/32 — where kubelet probes
+#     originate on this single-node Flannel cluster)
+#   - From istio-system ns (covers istiod xDS + istio-ingressgateway)
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-system-traffic
+  namespace: foundry
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+        - ipBlock:
+            # Single-node cluster: kubelet probes come from the cni0 bridge.
+            # Multi-node: expand to the node-pod-CIDR-block range.
+            cidr: 10.244.0.1/32
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-system-traffic
+  namespace: ops
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+        - ipBlock:
+            cidr: 10.244.0.1/32
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-system-traffic
+  namespace: cloud-axis
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+        - ipBlock:
+            cidr: 10.244.0.1/32
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-system-traffic
+  namespace: api-gateway
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: istio-system
+        - ipBlock:
+            cidr: 10.244.0.1/32

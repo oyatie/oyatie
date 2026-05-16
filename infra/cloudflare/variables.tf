@@ -19,3 +19,14 @@ variable "cloudflare_domain" {
   type        = string
   default     = "oyatie.com"
 }
+
+variable "headscale_public_ip" {
+  description = "Reserved public IP of the Headscale OCI VM (output of infra/oci/headscale.tf). Provide via TF_VAR_headscale_public_ip or wire as a remote-state lookup."
+  type        = string
+}
+
+variable "access_auth_domain" {
+  description = "Cloudflare Access auth_domain FQDN (e.g., oyatie.cloudflareaccess.com)."
+  type        = string
+  default     = "oyatie.cloudflareaccess.com"
+}

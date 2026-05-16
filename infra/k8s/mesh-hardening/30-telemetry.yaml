@@ -1,0 +1,27 @@
+# Mesh-wide Telemetry CR: structured access logs + tracing on every Envoy
+# sidecar. Access logs go to stdout (collected by node logging agent → OCI
+# Logging via the cloudflared sidecar in M3-P03). Tracing exports OTLP to
+# the workspace-shell telemetry endpoint (oya-ops-telemetry crate).
+---
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: mesh-default
+  namespace: istio-system
+spec:
+  accessLogging:
+    - providers:
+        - name: envoy
+  tracing:
+    - providers:
+        - name: opentelemetry
+      randomSamplingPercentage: 10.0  # 10% sample rate; bumped at incident time
+  metrics:
+    - providers:
+        - name: prometheus
+      overrides:
+        - match:
+            metric: REQUEST_COUNT
+          tagOverrides:
+            request_protocol:
+              value: "request.protocol"

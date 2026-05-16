@@ -55,7 +55,7 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "onprem_kr" {
       hostname = "foundry.${var.cloudflare_domain}"
       service  = "http://127.0.0.1:8080"
       origin_request {
-        connect_timeout = "30s"
+        connect_timeout  = "30s"
         http_host_header = "foundry.${var.cloudflare_domain}"
       }
     }
@@ -79,6 +79,19 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "onprem_kr" {
       origin_request {
         connect_timeout  = "30s"
         http_host_header = "api.${var.cloudflare_domain}"
+      }
+    }
+
+    # auth.oyatie.com — self-hosted OIDC identity provider.
+    # Phase A: routes to oya-auth-proxy at :9200 (path-rewrite to OpenBao OIDC
+    # at /v1/identity/oidc/provider/oyatie/*). Phase B (M3-P04): replaced by
+    # oya-auth-oidc-provider Rust crate. See ADR-0121.
+    ingress_rule {
+      hostname = "auth.${var.cloudflare_domain}"
+      service  = "http://127.0.0.1:9200"
+      origin_request {
+        connect_timeout  = "30s"
+        http_host_header = "auth.${var.cloudflare_domain}"
       }
     }
 
@@ -124,4 +137,27 @@ resource "cloudflare_record" "ops" {
   type    = "CNAME"
   proxied = true
   comment = "Ops portal / docs surface via Cloudflare Tunnel (managed-by: opentofu)"
+}
+
+# vpn.oyatie.com — Headscale control plane on OCI E2.1.Micro.
+# NOT proxied: Headscale uses raw HTTPS gRPC + DERP UDP/3478, which Cloudflare
+# proxy cannot pass through.
+resource "cloudflare_record" "vpn" {
+  zone_id = var.cloudflare_zone_id
+  name    = "vpn"
+  content = var.headscale_public_ip
+  type    = "A"
+  proxied = false
+  comment = "Headscale tailnet control plane — OCI E2.1.Micro (managed-by: opentofu)"
+}
+
+# auth.oyatie.com — self-hosted IdP behind cloudflared tunnel.
+# CNAME (proxied) because the auth surface is plain HTTPS (no gRPC/DERP).
+resource "cloudflare_record" "auth" {
+  zone_id = var.cloudflare_zone_id
+  name    = "auth"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.onprem_kr.id}.cfargotunnel.com"
+  type    = "CNAME"
+  proxied = true
+  comment = "Oyatie OIDC IdP — on-prem (managed-by: opentofu)"
 }

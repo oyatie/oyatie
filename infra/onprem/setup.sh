@@ -111,6 +111,22 @@ else
   bash "$HERE/istio/install.sh"
 fi
 
+# ---------- 9b. Mesh hardening + api-gateway (ADR-0119 + ADR-0121) ----------
+# Mesh-wide PeerAuth STRICT mTLS + default-deny AuthZ + Telemetry +
+# default-deny NetworkPolicy + allow-system-traffic + api.oyatie.com
+# Istio Gateway/VirtualService/AuthorizationPolicy/EnvoyFilter rate-limit.
+# Replaced by an oya-onprem Component impl in ADR-0120 Phase C (kube-rs).
+banner "9b/11  Istio mesh-wide hardening + api.oyatie.com gateway manifests"
+MANIFEST_BASE="$HERE/../k8s"
+if [ -d "$MANIFEST_BASE/mesh-hardening" ]; then
+  KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f "$MANIFEST_BASE/mesh-hardening/" 2>&1 | tee -a "$LOG"
+  KUBECONFIG=/etc/kubernetes/admin.conf kubectl apply -f "$MANIFEST_BASE/api-gateway/"     2>&1 | tee -a "$LOG"
+  # HA the ingressgateway (default install = 1 replica; scale to 2 for cheap HA on single-host cluster).
+  KUBECONFIG=/etc/kubernetes/admin.conf kubectl -n istio-system scale deployment/istio-ingressgateway --replicas=2 2>&1 | tee -a "$LOG" || true
+else
+  log "skipping mesh-hardening (manifests not found at $MANIFEST_BASE)"
+fi
+
 # ---------- 10. Cloudflare Tunnel ----------
 banner "10/11  Cloudflare Tunnel daemon"
 if systemctl is-active --quiet cloudflared 2>/dev/null; then

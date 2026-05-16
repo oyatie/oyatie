@@ -1,0 +1,38 @@
+# workspace-shell is a systemd service on the host network (127.0.0.1:8080).
+# We expose it to the cluster as a headless Service backed by an Endpoints
+# object pointing at the host's primary non-loopback IPv4. The Istio
+# VirtualService routes traffic to this Service.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: workspace-shell
+  namespace: api-gateway
+  labels:
+    app: workspace-shell
+    managed-by: oyatie-infra
+spec:
+  type: ClusterIP
+  clusterIP: None  # headless; backed by the Endpoints below
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: workspace-shell
+  namespace: api-gateway
+  labels:
+    app: workspace-shell
+subsets:
+  - addresses:
+      # Replace with the on-prem host's reachable IP (kubectl apply -k after substituting).
+      # On this host, primary non-loopback IPv4 = 220.84.203.169 (per `ip route get 1.1.1.1`).
+      - ip: 220.84.203.169
+    ports:
+      - name: http
+        port: 8080
+        protocol: TCP
