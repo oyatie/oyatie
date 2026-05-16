@@ -1,0 +1,80 @@
+{
+  "change_id": "kg-changeset-provenance-1778952286",
+  "change_class_id": "CC-5_governance_registry",
+  "freshness_unix": 1778952286,
+  "session_id": "codex-kg-changeset-provenance-2026-05-16",
+  "scope": [
+    "registry/knowledge-graph-semantic.json",
+    "registry/kg-audit/index.json",
+    "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Close F-KG-06 by declaring ChangeSet/AuditChainRow nodes, merged_as_pr/emitted_audit_row edges, I19 invariant, and trace_changeset_pr_audit_row query so promoted changesets traverse through merged PRs to append-only audit-chain rows.",
+  "verification": [
+    {
+      "command": "python3 -m json.tool registry/knowledge-graph-semantic.json && python3 -m json.tool registry/kg-audit/index.json",
+      "status": "passed",
+      "evidence": "semantic and audit registries parse as JSON"
+    },
+    {
+      "command": "audit-chain JSONL parse",
+      "status": "passed",
+      "evidence": "all non-empty evidence/audit-chain.jsonl rows parse as JSON"
+    },
+    {
+      "command": "jq semantic count and F-KG-06 closure checks",
+      "status": "passed",
+      "evidence": "36 nodes, 27 edges, 19 invariants, 11 read-side queries; development_traceability 100%; F-KG-06 resolved_2026_05_16"
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed",
+      "evidence": "formatted"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli --test knowledge_graph_semantic",
+      "status": "passed",
+      "evidence": "7 tests passed including changeset_pr_audit_row_provenance_chain_is_graph_traversable"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --test knowledge_graph_semantic -- -D warnings",
+      "status": "passed",
+      "evidence": "targeted clippy passed with -D warnings"
+    },
+    {
+      "command": "oya gate validate active-artifact-contract",
+      "status": "passed",
+      "evidence": "53 rows, 3541 HEAD-tracked, 53 graph edges"
+    },
+    {
+      "command": "oya gate validate retired-vocabulary",
+      "status": "passed",
+      "evidence": "1203 documents checked, 6 retired terms enforced, 0 drift hits"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "command": "oya vcs verify/done/promote",
+      "status": "passed",
+      "evidence": "codex-kg-changeset-provenance evidence verified, bundle emitted, and kg-changeset-provenance-1778952286 promoted to dev"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Extends the existing semantic registry with two nodes, two edges, one invariant, and one query instead of introducing another provenance subsystem."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "passing_fixture_id": "knowledge_graph_semantic::changeset_pr_audit_row_provenance_chain_is_graph_traversable"
+    }
+  },
+  "remaining_risks": [
+    "Runtime materialization of ChangeSet/PullRequest/AuditChainRow rows remains a future adapter concern; this slice defines and tests the graph contract."
+  ]
+}

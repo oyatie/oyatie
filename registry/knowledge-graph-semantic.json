@@ -373,6 +373,30 @@
         "evidence/audit-chain.jsonl"
       ]
     },
+    "ChangeSet": {
+      "purpose": "Oya VCS or PR-local change bundle with evidence, scope, and promotion lifecycle.",
+      "id_pattern": "^changeset:[a-z0-9][a-z0-9_.:-]*$",
+      "examples": [
+        "changeset:kg-acceptance-ci-1778951867",
+        "changeset:ontology-rename-sweep-1778949351"
+      ],
+      "contributing_registries": [
+        "evidence/multispectrum/*.json",
+        "evidence/audit-chain.jsonl",
+        "Oya VCS bundle metadata"
+      ]
+    },
+    "AuditChainRow": {
+      "purpose": "Append-only audit-chain JSONL row proving that a change, PR, or evidence bundle was emitted and can be replayed.",
+      "id_pattern": "^audit-row:[a-z0-9_./:@#-]+$",
+      "examples": [
+        "audit-row:evidence/audit-chain.jsonl#kg-acceptance-ci-1778951867",
+        "audit-row:evidence/audit-chain.jsonl#pr-43"
+      ],
+      "contributing_registries": [
+        "evidence/audit-chain.jsonl"
+      ]
+    },
     "Claim": {
       "purpose": "Hyperscaler claim per claim-matrix",
       "id_pattern": "^claim:[a-z0-9-]+$",
@@ -688,6 +712,28 @@
       "cardinality": "many-to-many",
       "semantics": "test or gate was executed by a concrete CI lane run/check with status, URL, and run id."
     },
+    "merged_as_pr": {
+      "direction": "directed",
+      "source_node_types": [
+        "ChangeSet"
+      ],
+      "target_node_types": [
+        "PullRequest"
+      ],
+      "cardinality": "many-to-many",
+      "semantics": "change bundle or Oya VCS changeset was reviewed/merged as a GitHub pull request."
+    },
+    "emitted_audit_row": {
+      "direction": "directed",
+      "source_node_types": [
+        "PullRequest"
+      ],
+      "target_node_types": [
+        "AuditChainRow"
+      ],
+      "cardinality": "one-to-many",
+      "semantics": "pull request or merge emitted an append-only audit-chain row that anchors evidence and replay provenance."
+    },
     "blocks_on": {
       "direction": "directed",
       "source_node_types": [
@@ -889,6 +935,12 @@
       "rule": "Every AcceptanceCriterion node with verification_required=true has at least one covered_by_test edge to Test and every blocking Test has at least one executed_by_ci_lane edge to CILaneRun.",
       "severity": "error",
       "remediation_hint": "Attach deterministic test/gate nodes and concrete CI lane run evidence for every acceptance criterion before claiming closure."
+    },
+    {
+      "id": "I19-changeset-pr-audit-row-provenance",
+      "rule": "Every promoted ChangeSet node has at least one merged_as_pr edge to PullRequest and every merged PullRequest has at least one emitted_audit_row edge to AuditChainRow.",
+      "severity": "error",
+      "remediation_hint": "Attach PR metadata and audit-chain JSONL row ids before promoting the changeset bundle."
     }
   ],
   "read_side_query_examples": [
@@ -931,6 +983,11 @@
       "name": "trace_acceptance_test_ci_chain",
       "description": "Returns acceptance criteria, the deterministic tests that prove them, and the concrete CI lane runs that executed those tests.",
       "query_sketch": "SELECT ac.id AS acceptance_criterion_id, test.id AS test_id, ci.id AS ci_lane_run_id, ci.status, ci.url, ci.completed_at FROM acceptance_criteria ac JOIN covered_by_test_edges cbt ON cbt.source = ac.id JOIN tests test ON test.id = cbt.target JOIN executed_by_ci_lane_edges ecl ON ecl.source = test.id JOIN ci_lane_runs ci ON ci.id = ecl.target WHERE ac.verification_required = true ORDER BY ac.id, test.id, ci.completed_at DESC"
+    },
+    {
+      "name": "trace_changeset_pr_audit_row",
+      "description": "Returns Oya VCS changesets with their merged PR and append-only audit-chain row provenance.",
+      "query_sketch": "SELECT changeset.id AS changeset_id, pr.id AS pull_request_id, pr.merge_commit, audit_row.id AS audit_chain_row_id, audit_row.event_type, audit_row.evidence_path, audit_row.timestamp_unix FROM changesets changeset JOIN merged_as_pr_edges mapr ON mapr.source = changeset.id JOIN pull_requests pr ON pr.id = mapr.target JOIN emitted_audit_row_edges ear ON ear.source = pr.id JOIN audit_chain_rows audit_row ON audit_row.id = ear.target WHERE changeset.status IN ('promoted','merged') ORDER BY audit_row.timestamp_unix DESC, changeset.id"
     },
     {
       "name": "find_unreachable_features",

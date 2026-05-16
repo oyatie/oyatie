@@ -269,6 +269,56 @@ fn acceptance_criterion_test_ci_lane_chain_is_graph_traversable() {
     }
 }
 
+#[test]
+fn changeset_pr_audit_row_provenance_chain_is_graph_traversable() {
+    let graph = semantic_graph();
+    let node_types = graph["node_types"]
+        .as_object()
+        .expect("node_types is an object");
+    for node_type in ["ChangeSet", "PullRequest", "AuditChainRow"] {
+        assert!(
+            node_types.contains_key(node_type),
+            "missing node_type {node_type}"
+        );
+    }
+
+    assert_edge_allows(&graph, "merged_as_pr", "ChangeSet", "PullRequest");
+    assert_edge_allows(&graph, "emitted_audit_row", "PullRequest", "AuditChainRow");
+
+    let invariants = graph["invariants"]
+        .as_array()
+        .expect("invariants are an array");
+    assert!(invariants.iter().any(|invariant| {
+        invariant["id"] == "I19-changeset-pr-audit-row-provenance"
+            && invariant["rule"]
+                .as_str()
+                .is_some_and(|rule| rule.contains("emitted_audit_row"))
+    }));
+
+    let queries = graph["read_side_query_examples"]
+        .as_array()
+        .expect("queries are an array");
+    let trace_query = queries
+        .iter()
+        .find(|query| query["name"] == "trace_changeset_pr_audit_row")
+        .expect("changeset/PR/audit-row trace query exists");
+    let query_sketch = trace_query["query_sketch"]
+        .as_str()
+        .expect("query sketch is a string");
+    for required_term in [
+        "changeset_id",
+        "merged_as_pr_edges",
+        "pull_request_id",
+        "emitted_audit_row_edges",
+        "audit_chain_row_id",
+    ] {
+        assert!(
+            query_sketch.contains(required_term),
+            "changeset/PR/audit-row query missing {required_term}"
+        );
+    }
+}
+
 fn assert_edge_allows(graph: &Value, edge: &str, source_type: &str, target_type: &str) {
     let edge_type = &graph["edge_types"][edge];
     assert_eq!(edge_type["direction"], "directed");
