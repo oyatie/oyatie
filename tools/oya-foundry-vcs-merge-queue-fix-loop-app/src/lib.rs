@@ -59,7 +59,10 @@
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod conflict_avoidance_pre_admit;
 pub mod event;
+pub mod fix_at_any_stage_revalidate;
+pub mod projected_merge_state;
 pub mod tick_log;
 
 pub use event::{
