@@ -20,7 +20,8 @@
     "crate_refs_current": ["$ref:registry/catalog/oya-ontology-kernel.yaml", "$ref:registry/catalog/oya-ontology-api.yaml", "$ref:registry/catalog/oya-ontology-domain.yaml"],
     "crate_rename_resolution": {"status": "resolved", "current_kernel_ref": "$ref:registry/catalog/oya-ontology-kernel.yaml", "via_adr": "ADR-0122", "resolved_at": "2026-05-16", "ref": "$ref:memory/feedback_glossary_ontology_not_object_graph"},
     "crate_refs_planned": ["oya-ontology-usecase", "oya-ontology-adapter"]
-  },
+  ,
+    "user_facing_surface": true},
   "inherits": {
     "bominal_adrs": ["$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0107", "$ref:bominal/decisions/ADR-0133"],
     "oyatie_specs": ["$ref:specs/agent-durable-goal.json", "$ref:specs/knowledge-graph-schema.json"],
@@ -107,13 +108,13 @@
   "metrics": [
     {"name": "type_lookup_p99_ms", "targets": {"preview": 50, "stable": 10, "GA": 5}, "verification_ref": "cargo bench -p oya-ontology-kernel -- type_lookup_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
     {"name": "entity_read_p99_ms", "targets": {"preview": 100, "stable": 50, "GA": 20}, "verification_ref": "cargo bench -p oya-ontology-domain -- entity_read_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
-    {"name": "action_p99_ms", "targets": {"preview": 200, "stable": 100, "GA": 50}, "lane_ref": "oya-foundry-fitness-perf-budget"},
-    {"name": "kg_3layer_join_p99_ms", "targets": {"preview": 1000, "stable": 500, "GA": 200}, "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "action_p99_ms", "targets": {"preview": 200, "stable": 100, "GA": 50}, "verification_ref": "cargo bench -p oya-ontology-domain -- action_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "kg_3layer_join_p99_ms", "targets": {"preview": 1000, "stable": 500, "GA": 200}, "verification_ref": "cargo bench -p oya-ontology-api -- kg_3layer_join_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
     {"name": "cross_tenant_link_leak_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "cargo nextest -- test_no_cross_tenant_link", "lane_ref": "cargo-nextest"},
     {"name": "tier_violation_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "oya gate validate ontology-tier-enforcement --window 30d", "lane_ref": "oya-foundry-fitness-ontology-tier-enforcement"},
-    {"name": "dynamic_layer_freshness_lag_seconds", "targets": {"preview": 30, "stable": 5, "GA": 2}, "verification_ref": "cargo nextest -- test_freshness_budget"},
+    {"name": "dynamic_layer_freshness_lag_seconds", "targets": {"preview": 30, "stable": 5, "GA": 2}, "verification_ref": "cargo nextest -- test_freshness_budget", "lane_ref": "oya-foundry-fitness-ontology-dynamic-freshness"},
     {"name": "action_audit_chain_completeness_pct", "targets": {"preview": 100, "stable": 100, "GA": 100}, "verification_ref": "jq cross-check audit-chain vs invocation count", "lane_ref": "oya-foundry-fitness-audit-chain-emission"},
-    {"name": "type_registry_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "lane_ref": "oya-foundry-fitness-canary-observability"}
+    {"name": "type_registry_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "verification_ref": "oya gate validate ontology-type-registry-availability --window 30d", "lane_ref": "oya-foundry-fitness-canary-observability"}
   ],
   "risks": [
     {"id": "R-01", "severity": "high", "risk": "schema-evolution breaks pinned callers", "mitigation": "schema_version field + per-type evolution policy (analogous to $ref:bominal/decisions/ADR-0149) + back-compat lane"},
@@ -180,6 +181,133 @@
     "efficiency": {"target": "<$0.001 per entity-read + <$0.01 per action + per-tenant overhead <$10/month", "verification_ref": "$ref:crates/oya-cloud-finops-kernel"},
     "reliability": {"target": "type registry SLO 99.95% + instance store SLO 99.95% + MTTR <60s auto-rollback canary", "verification_lane_ref": "canary-observability-rollback"}
   },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/products/ontology.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum for graph explorer, schema admin, SDK docs, action preview, and audit evidence surfaces; graph always has table/tree mirror",
+    "responsive_breakpoints": [
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic for schema labels, policy/action copy, and SDK docs; ko-KR and en-US launch gates",
+    "design_system_components_used": "$ref:specs/products/ontology.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "product_team",
+        "journeys": [
+          "register entity type",
+          "inspect link/action contract",
+          "verify audit evidence"
+        ],
+        "time_to_success_target": "< 10 minutes from type draft to review-ready schema"
+      },
+      {
+        "persona": "vertical_specialist",
+        "journeys": [
+          "apply jurisdiction overlay",
+          "inspect affected fields/actions",
+          "export policy evidence"
+        ],
+        "time_to_success_target": "< 15 minutes per overlay change"
+      },
+      {
+        "persona": "external_sdk_consumer",
+        "journeys": [
+          "browse typed schema",
+          "copy SDK example",
+          "understand policy denial"
+        ],
+        "time_to_success_target": "< 3 minutes from error code to fix path"
+      }
+    ],
+    "error_state_coverage": {
+      "tier_violation": "inline field redaction plus policy preview and remediation",
+      "cross_tenant_link_denied": "blocking policy explanation with source/target tenant redacted as required",
+      "stale_dynamic_state": "freshness badge and disabled action until telemetry meets budget",
+      "schema_evolution_break": "semantic diff viewer identifies breaking callers and compatibility lane"
+    },
+    "offline_behavior": "schema docs and read-only cached graph slices may be viewed offline; mutations/actions require online Cedar and freshness checks",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "paginated graph skeletons, progressive table/tree render, determinate export progress; no spinner-only graph state"
+  },
+  "frontend_components": [
+    {
+      "component": "OntologyGraphExplorer",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/ontology-graph-explorer.json",
+      "variants": [
+        "schema-browse",
+        "instance-traversal",
+        "policy-overlay",
+        "dynamic-state-freshness"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "EntityActionPolicyPreview",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/entity-action-policy-preview.json",
+      "variants": [
+        "allow",
+        "deny",
+        "requires-approval",
+        "autonomy-tier-ceiling",
+        "jurisdiction-overlay"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    },
+    {
+      "component": "SpecDiffViewer",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/spec-diff-viewer.json",
+      "variants": [
+        "semantic-entity-diff",
+        "jurisdiction-overlay",
+        "read-only-pr-review"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "AuditEvidenceTimeline",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/audit-evidence-timeline.json",
+      "variants": [
+        "changeset-provenance",
+        "compliance-control",
+        "agent-decision-chain"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "audit-access",
+        "requires-second-approver",
+        "expired-policy"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    }
+  ],
   "decision_log": [
     {"date": "2026-05-16", "decision": "adopt Bominal-ADR-0106/0107/0133 verbatim per OP-10"},
     {"date": "2026-05-16", "decision": "Ontology and Knowledge Graph are ONE product per user pick (typed schema + 3-layer KG runtime)"},
@@ -204,5 +332,8 @@
     "official:stardog-docs",
     "$ref:memory/feedback_glossary_ontology_not_object_graph",
     "$ref:memory/feedback_workflow_objectgraph_adapter_layer"
-  ]
+  ,
+    "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
+    "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
+    "$ref:specs/design-system/catalog.json"]
 }

@@ -620,6 +620,30 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Tax-invoice format drift (regulator updates) | Medium | Versioned `TaxInvoiceFormatter` per pack; tax-pack changelog reviewed quarterly | Cloud-billing + regional-pack maintainers |
 | Service mesh (Istio Ambient) maturity | Medium | Linkerd available as fallback (ADR-0044 preserved as drop-in); per-cell mesh upgrade gated on metric stability | Cloud + SRE |
 
+## 11f. User experience (required for user-facing surfaces)
+
+| Field | Content |
+|---|---|
+| `ux_personas_ref` | Cloud operators, tenant admins, SRE-on-call, compliance reviewers from §2. |
+| `accessibility_coverage` | WCAG 2.2 AA; topology, deployment, cost, and incident surfaces require keyboard/table mirrors. |
+| `responsive_breakpoints` | tablet / desktop / wide-desktop; mobile is read-only incident status only. |
+| `internationalization_scope` | locale-aware-dynamic; ko-KR and en-US launch gates for operator copy and error remediation. |
+| `design_system_components_used` | `CloudCellTopologyMap`, `OpsDeploymentStatusPanel`, `AuditEvidenceTimeline`, `PolicyDisclosureBanner`. |
+| `journey_critical_paths` | find tenant cell route < 60s; inspect canary/rollback state < 90s; export compliance evidence < 5m. |
+| `error_state_coverage` | drift, stale telemetry, failed OpenTofu plan, blocked secret, canary pause, rollback running. |
+| `offline_behavior` | no mutating offline ops; cached read-only topology/evidence clearly marked stale. |
+| `keyboard_navigation_coverage_pct` | 100 for topology table mirror, deployment actions, rollback controls, evidence export. |
+| `loading_state_coverage` | skeleton topology/table rows and determinate plan/apply progress; spinner-only states forbidden. |
+
+## 11g. Frontend components (required for products with rendered UI)
+
+| Component | Source | Variants | Tested-at-breakpoint |
+|---|---|---|---|
+| `CloudCellTopologyMap` | `$ref:specs/design-system/cloud-cell-topology-map.json` | region-overview / tenant-cell-route / canary-rollout / incident-mode | tablet / desktop / wide-desktop |
+| `OpsDeploymentStatusPanel` | `$ref:specs/design-system/ops-deployment-status-panel.json` | plan-preview / apply-running / canary / rollback / drift-detected | tablet / desktop / wide-desktop |
+| `AuditEvidenceTimeline` | `$ref:specs/design-system/audit-evidence-timeline.json` | compliance-control / release-evidence / changeset-provenance | tablet / desktop |
+| `PolicyDisclosureBanner` | `$ref:specs/design-system/policy-disclosure-banner.json` | audit-access / expired-policy / requires-second-approver | tablet / desktop |
+
 ## 11. Open questions
 
 1. **Cloud axis pricing model at public-GA**: per-resource-hour AWS-style, or per-tenant-bundle Connect-style? (Same as PRD §8.) Default proposed: per-resource-hour with committed-use discounts.

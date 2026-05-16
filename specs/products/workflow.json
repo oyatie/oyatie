@@ -16,7 +16,8 @@
     "owning_axis": "ecosystem-infrastructure-backbone",
     "backbone_of": "ecosystem-as-a-product (with $ref:specs/products/ontology.json)",
     "crate_refs": ["$ref:registry/catalog/oya-saas-workflow-kernel.yaml", "$ref:registry/catalog/oya-saas-workflow-domain.yaml", "$ref:registry/catalog/oya-saas-workflow-app.yaml"]
-  },
+  ,
+    "user_facing_surface": true},
   "inherits": {
     "bominal_adrs": ["$ref:bominal/decisions/ADR-0103", "$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0148", "$ref:bominal/decisions/ADR-0149", "$ref:bominal/decisions/ADR-0164", "$ref:bominal/decisions/ADR-0192"],
     "oyatie_specs": ["$ref:specs/agent-durable-goal.json", "$ref:specs/oyatie-doctrine.json", "$ref:specs/multispectrum-review.json"],
@@ -159,6 +160,102 @@
     "efficiency": {"target": "<$0.0001 per step transition (GA) + <$0.50 per tenant per month overhead", "verification_ref": "$ref:crates/oya-cloud-finops-kernel"},
     "reliability": {"target": "MTTR 30s (auto-rollback) + error budget 0.05%/quarter + durable state survives restart with zero duplicate side-effects", "verification_lane_ref": "canary-observability-rollback per $ref:docs/decisions/ADR-0114"}
   },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/products/workflow.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum for debugger/replay, developer console, CLI help, and generated SDK documentation; keyboard navigation 100% for replay and diff surfaces",
+    "responsive_breakpoints": [
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic for operator-visible errors and SDK docs; ko-KR and en-US launch gates",
+    "design_system_components_used": "$ref:specs/products/workflow.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "external_developer",
+        "journeys": [
+          "deploy workflow spec",
+          "inspect validation failure",
+          "compare definition diff"
+        ],
+        "time_to_success_target": "< 3 minutes from schema error to corrected spec"
+      },
+      {
+        "persona": "enterprise_it_admin",
+        "journeys": [
+          "find failed instance",
+          "inspect replay timeline",
+          "trigger policy-safe retry or rollback"
+        ],
+        "time_to_success_target": "< 5 minutes for failed-instance triage"
+      },
+      {
+        "persona": "vertical_specialist",
+        "journeys": [
+          "select jurisdiction overlay",
+          "verify affected steps",
+          "export audit evidence"
+        ],
+        "time_to_success_target": "< 10 minutes for overlay impact review"
+      }
+    ],
+    "error_state_coverage": {
+      "schema_validation_error": "inline hunk-level error with code, JSON pointer, remediation, and docs link",
+      "policy_denied": "policy disclosure banner plus disabled retry/deploy action until Cedar permits",
+      "execution_failure": "timeline row with failing step, idempotency state, audit row id, and rollback/retry eligibility",
+      "stale_telemetry": "blocking stale-state banner; no silent replay-derived decisions"
+    },
+    "offline_behavior": "engine APIs do not execute offline; UI surfaces cache read-only replay/spec data and Workflow Studio owns offline edit buffering",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "progressive replay rendering and skeleton diff/timeline states; spinner-only loading is forbidden"
+  },
+  "frontend_components": [
+    {
+      "component": "WorkflowReplayTimeline",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-replay-timeline.json",
+      "variants": [
+        "live-run",
+        "historical-replay",
+        "failure-debug",
+        "audit-export"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "SpecDiffViewer",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/spec-diff-viewer.json",
+      "variants": [
+        "json-patch",
+        "workflow-round-trip",
+        "read-only-pr-review"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "audit-access",
+        "consent-required",
+        "requires-second-approver"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    }
+  ],
   "decision_log": [
     {"date": "2026-05-16", "decision": "adopt Bominal-ADR-0148/0149/0164/0192/0103/0106 verbatim per OP-10", "ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-10"}
   ],
@@ -178,5 +275,8 @@
     "official:temporal-docs",
     "official:camunda-docs",
     "official:argo-workflows-docs"
-  ]
+  ,
+    "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
+    "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
+    "$ref:specs/design-system/catalog.json"]
 }
