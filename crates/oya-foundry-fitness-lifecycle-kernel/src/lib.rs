@@ -47,11 +47,11 @@ use std::collections::BTreeSet;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub struct NaiveDate {
     // data_class: INTERNAL_ONLY
-    pub year: i32,
+    pub year: i32, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub month: u8,
+    pub month: u8, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub day: u8,
+    pub day: u8, // data_class: INTERNAL_ONLY
 }
 
 impl NaiveDate {
@@ -64,26 +64,26 @@ impl NaiveDate {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Stage {
     // data_class: INTERNAL_ONLY
-    pub id: String,
+    pub id: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub terminal: bool,
+    pub terminal: bool, // data_class: INTERNAL_ONLY
     /// When true, an artifact in this stage MUST carry a non-empty
     /// `supersession_target` (e.g. `superseded_by:` for ADRs).
     // data_class: INTERNAL_ONLY
-    pub requires_supersession_edge: bool,
+    pub requires_supersession_edge: bool, // data_class: INTERNAL_ONLY
     /// Optional milestone gate: if set, the artifact MUST have advanced
     /// to (or past) this stage by the time the milestone is reached.
     // data_class: INTERNAL_ONLY
-    pub gated_by_milestone: Option<String>,
+    pub gated_by_milestone: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 /// Allowed `from → to` transition in the state machine.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Transition {
     // data_class: INTERNAL_ONLY
-    pub from: String,
+    pub from: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub to: String,
+    pub to: String, // data_class: INTERNAL_ONLY
 }
 
 /// Source-spec abstraction. Concrete dev-CLIs translate these into
@@ -92,17 +92,17 @@ pub struct Transition {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SourceSpec {
     // data_class: INTERNAL_ONLY
-    pub kind: String,
+    pub kind: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub glob: String,
+    pub glob: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub stage_field: String,
+    pub stage_field: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub supersession_field: Option<String>,
+    pub supersession_field: Option<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub deadline_field: Option<String>,
+    pub deadline_field: Option<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub milestone_field: Option<String>,
+    pub milestone_field: Option<String>, // data_class: INTERNAL_ONLY
     /// Optional in-scope predicate. When present, a discovered file is
     /// only treated as a `LifecycledArtifact` if it matches the filter.
     /// Files outside the filter are silently skipped (NOT reported as
@@ -118,7 +118,7 @@ pub struct SourceSpec {
     /// canonical extension, not an exception (per
     /// `feedback_no_exceptions_canonical.md`).
     // data_class: INTERNAL_ONLY
-    pub filter: Option<SourceFilter>,
+    pub filter: Option<SourceFilter>, // data_class: INTERNAL_ONLY
 }
 
 /// In-scope predicate for a `SourceSpec`. The predicate is OR-composed
@@ -132,59 +132,59 @@ pub struct SourceFilter {
     /// front-matter declares `<field>: <value>` (case-insensitive value
     /// match). Typical use: `("kind", "migration")`.
     // data_class: INTERNAL_ONLY
-    pub kind_field_value: Option<(String, String)>,
+    pub kind_field_value: Option<(String, String)>, // data_class: INTERNAL_ONLY
     /// When non-empty, the file is in scope if its path or filename
     /// contains any of these substrings (case-insensitive). Typical
     /// use: `["migration", "cutover", "rename", "rewrite"]`.
     // data_class: INTERNAL_ONLY
-    pub filename_contains_any: Vec<String>,
+    pub filename_contains_any: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 /// Defaults applied when fields are absent in artifact metadata.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Defaults {
     // data_class: INTERNAL_ONLY
-    pub wave: Option<String>,
+    pub wave: Option<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub case_insensitive_stage_match: bool,
+    pub case_insensitive_stage_match: bool, // data_class: INTERNAL_ONLY
 }
 
 /// Full lifecycle configuration. One per `specs/cross-cutting/lifecycle-configs/<name>.json`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LifecycleConfig {
     // data_class: INTERNAL_ONLY
-    pub name: String,
+    pub name: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub version: u32,
+    pub version: u32, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub stages: Vec<Stage>,
+    pub stages: Vec<Stage>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub transitions: Vec<Transition>,
+    pub transitions: Vec<Transition>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub sources: Vec<SourceSpec>,
+    pub sources: Vec<SourceSpec>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub defaults: Defaults,
+    pub defaults: Defaults, // data_class: INTERNAL_ONLY
 }
 
 /// A discovered artifact in the workspace — produced by dev-CLI I/O ring.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LifecycledArtifact {
     // data_class: INTERNAL_ONLY
-    pub location: String,
+    pub location: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub kind: String,
+    pub kind: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub current_stage: Option<String>,
+    pub current_stage: Option<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub observed_at: NaiveDate,
+    pub observed_at: NaiveDate, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub deadline_at: Option<NaiveDate>,
+    pub deadline_at: Option<NaiveDate>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub history: Vec<Transition>,
+    pub history: Vec<Transition>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub supersession_target: Option<String>,
+    pub supersession_target: Option<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub milestone_anchor: Option<String>,
+    pub milestone_anchor: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 /// Categorical violation kind. Stable string enum so dev-CLIs can group
@@ -215,25 +215,25 @@ impl ViolationKind {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Violation {
     // data_class: INTERNAL_ONLY
-    pub kind: ViolationKind,
+    pub kind: ViolationKind, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub location: String,
+    pub location: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub artifact_kind: String,
+    pub artifact_kind: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub stage: Option<String>,
+    pub stage: Option<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub hint: String,
+    pub hint: String, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LifecycleReport {
     // data_class: INTERNAL_ONLY
-    pub artifacts_observed: usize,
+    pub artifacts_observed: usize, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub stage_counts: Vec<(String, usize)>,
+    pub stage_counts: Vec<(String, usize)>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub violations: Vec<Violation>,
+    pub violations: Vec<Violation>, // data_class: INTERNAL_ONLY
 }
 
 impl LifecycleReport {
@@ -1226,15 +1226,15 @@ pub mod cli {
 
     pub struct Options {
         // data_class: INTERNAL_ONLY
-        pub config: PathBuf,
+        pub config: PathBuf, // data_class: INTERNAL_ONLY
         // data_class: INTERNAL_ONLY
-        pub reached_milestones: Vec<String>,
+        pub reached_milestones: Vec<String>, // data_class: INTERNAL_ONLY
         /// Explicit `--wave A|B|C` flag (highest precedence).
         // data_class: INTERNAL_ONLY
-        pub wave_override: Option<Wave>,
+        pub wave_override: Option<Wave>, // data_class: INTERNAL_ONLY
         /// Legacy `--block` / `--warn-only` flags (mapped to C / A).
         // data_class: INTERNAL_ONLY
-        pub legacy_wave_override: Option<Wave>,
+        pub legacy_wave_override: Option<Wave>, // data_class: INTERNAL_ONLY
     }
 
     impl Options {

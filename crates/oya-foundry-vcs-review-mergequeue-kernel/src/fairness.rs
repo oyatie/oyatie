@@ -21,10 +21,10 @@ use std::fmt;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct QueueEntry {
-    pub pr_number: u64,
-    pub changeset_id: String,
-    pub admission_position: u32,
-    pub admission_state: AdmissionState,
+    pub pr_number: u64,                  // data_class: INTERNAL_ONLY
+    pub changeset_id: String,            // data_class: INTERNAL_ONLY
+    pub admission_position: u32,         // data_class: INTERNAL_ONLY
+    pub admission_state: AdmissionState, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

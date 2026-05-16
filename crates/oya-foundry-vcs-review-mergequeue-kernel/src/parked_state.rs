@@ -23,25 +23,25 @@ use std::fmt;
 /// One PR's queue-parked status.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ParkedPr {
-    pub pr_number: u64,
-    pub changeset_id: String,
+    pub pr_number: u64,       // data_class: INTERNAL_ONLY
+    pub changeset_id: String, // data_class: INTERNAL_ONLY
     /// Original queue position when admitted. Preserved across fix-loop
     /// iterations so the PR can re-enter at its slot on the next
     /// successful admission (IP-006 §"Queue position preserved").
-    pub original_queue_position: u32,
+    pub original_queue_position: u32, // data_class: INTERNAL_ONLY
     /// Head SHA at the moment of parking (i.e. the SHA that failed
     /// admission). Used by `speculative_rebase::rebase_against_head` to
     /// detect when the fix-loop has pushed a new tip.
-    pub head_sha_at_park: String,
+    pub head_sha_at_park: String, // data_class: INTERNAL_ONLY
     /// Base SHA the queue head pointed at when this PR was last admitted.
     /// May be stale once other PRs land while this one is parked — the
     /// scheduler re-rebases against current queue head, not this snapshot.
-    pub queue_head_at_park: String,
+    pub queue_head_at_park: String, // data_class: INTERNAL_ONLY
     /// Source of the failure that caused parking (mirrors IP-005
     /// dual-source dispatch).
-    pub parked_reason: ParkedReason,
+    pub parked_reason: ParkedReason, // data_class: INTERNAL_ONLY
     /// Epoch at which the PR was parked.
-    pub parked_at_epoch: u64,
+    pub parked_at_epoch: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

@@ -33,7 +33,7 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 ## 2. Inputs
 
 - Workspace `Cargo.toml` `[workspace.members]`.
-- Each crate's `Cargo.toml` `[package.metadata.oyatie]` block: `axis`, `layer ∈ {kernel, runtime, adapter, api, app}`, `role`.
+- Each crate's `Cargo.toml` `[package.metadata.oyatie]` block: `axis`, `layer ∈ {kernel, domain, usecase, app, adapter, infrastructure, cli, rest, grpc, graphql, worker, sdk, api}`, `role`.
 - Each crate's `Cargo.toml` `[dependencies]` and `[dev-dependencies]` keys (filtered to workspace-internal crates only — external deps live in `tech-stack-map-spec.md`).
 - The cross-crate link graph from `rustdoc-pipeline.md`.
 - The cross-axis contract records from `oya-foundry-cohesion-fitness-kernel`.
@@ -43,12 +43,14 @@ A finer-grained view than `product-map-spec.md`: not "what products", but "what 
 | Layer | Role | Examples |
 |---|---|---|
 | `kernel` | Pure value-object; no I/O | `oya-foundry-cohesion-fitness-kernel`, `oya-foundry-runbook-freshness-kernel` |
-| `runtime` | Schedulers, lifecycles, side-effect orchestrators | `oya-foundry-run-kernel`, `oya-foundry-step-kernel` |
+| `domain` | Business invariants and port traits | `oya-identity-domain` |
+| `usecase` | Application/use-case orchestration over domain ports | `oya-identity-usecase`, `oya-audit-chain-usecase` |
+| `app` | Deployable/composition root; composes usecases + adapters/surfaces; never imports another app | `oya-foundation-app`, `oya-cloud-billing-app` |
 | `adapter` | Provider-specific I/O (storage, network, KMS, AI) | `oya-foundry-evidence-adapter-file`, `oya-foundry-run-adapter-file` |
-| `api` | External-surface HTTP/gRPC handlers | `oya-foundry-api`, `oya-cloud-iam-api` |
-| `app` | Top-level binary; composes kernels + runtimes + adapters | `oya-foundation-app`, `oya-cloud-billing-app` |
+| `rest` / `grpc` / `graphql` / `api` | External-surface handlers | `oya-foundry-rest`, `oya-cloud-iam-api` |
+| `worker` | Queue/scheduled entrypoints | `oya-foundry-ci-worker` |
 
-Layer is declared in `[package.metadata.oyatie.layer]`. The pipeline rejects crates without one.
+Layer is declared in `[package.metadata.oya.layer]` / catalog `role`. The pipeline rejects crates without a catalog role. The active dependency rule is inward-only: `kernel <- domain <- usecase <- app`; `app -> app` is a blocker.
 
 ## 4. Output rendering
 
@@ -60,9 +62,12 @@ kernel: {
   cohesion-fitness: {shape: cylinder}
   runbook-freshness: {shape: cylinder}
 }
-runtime: {
-  run-kernel: {shape: rectangle}
-  step-kernel: {shape: rectangle}
+domain: {
+  identity-domain: {shape: rectangle}
+}
+usecase: {
+  identity-usecase: {shape: rectangle}
+  subagent-runtime-usecase: {shape: rectangle}
 }
 adapter: {
   evidence-adapter-file: {shape: page}
@@ -74,8 +79,9 @@ api: {
 app: {
   foundation-app: {shape: rectangle; style.bold: true}
 }
-api.foundry-api -> runtime.run-kernel
-runtime.run-kernel -> kernel.runbook-freshness
+app.foundation-app -> usecase.identity-usecase
+usecase.identity-usecase -> domain.identity-domain
+domain.identity-domain -> kernel.runbook-freshness
 adapter.evidence-adapter-file -> kernel.cohesion-fitness: {style.stroke-dash: 2}
 ```
 
@@ -91,8 +97,8 @@ The pipeline also emits per-layer subviews `docs/visualization/service-map-<laye
 
 ## 5. Validation gates (`oya-foundry-fitness-service-map`)
 
-1. **Layer declaration.** Every workspace crate has `[package.metadata.oyatie.layer]` (BLOCKER).
-2. **Downstream-only edges.** A `kernel` crate MUST NOT depend on a `runtime`/`adapter`/`api`/`app` crate (BLOCKER). A `runtime` crate MUST NOT depend on an `adapter`/`api`/`app` crate. The pipeline enforces the strict DAG ordering.
+1. **Layer declaration.** Every workspace crate has catalog `role` plus `[package.metadata.oya.layer]` where present (BLOCKER).
+2. **Downstream-only edges.** A `kernel` crate MUST NOT depend on outer layers; `domain` must not depend on `usecase`/`app`/adapters/surfaces; `usecase` must not depend on concrete adapters or apps; `app -> app` is a BLOCKER. The pipeline enforces strict inward dependency direction.
 3. **Cycle ban.** Workspace-internal dependency cycles → BLOCKER (cargo already rejects, but the pipeline asserts the rendered DAG is acyclic for visual clarity).
 4. **Catalog presence.** Every crate exists in the registry catalog (cross-validated via `oya-foundry-catalog-kernel`).
 5. **Generated drift.** Committed service map differs from re-rendered (BLOCKER).

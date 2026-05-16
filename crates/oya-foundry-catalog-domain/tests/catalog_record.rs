@@ -45,6 +45,18 @@ fn catalog_record_validates_existing_registry_shape() {
 }
 
 #[test]
+fn catalog_record_accepts_usecase_role() {
+    let record = CatalogRecordInput {
+        role: "usecase".into(),
+        ..valid_record("oya-foundry-subagent-runtime-usecase")
+    }
+    .build()
+    .expect("usecase role is valid");
+
+    assert_eq!(record.role.value, CatalogRole::Usecase);
+}
+
+#[test]
 fn catalog_record_rejects_non_privacy_owned_data_class_labels() {
     for data_class in ["AUDIT", "SECRET", "CHILDREN"] {
         let invalid = CatalogRecordInput {

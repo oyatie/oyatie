@@ -106,40 +106,40 @@ pub enum McpTransport {
 #[derive(Clone, Debug)]
 pub struct HookRef {
     // data_class: INTERNAL_ONLY
-    pub event: HookEvent,
+    pub event: HookEvent, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub command: HookCommandPath,
+    pub command: HookCommandPath, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub args: Vec<String>,
+    pub args: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug)]
 pub struct SkillRef {
     // data_class: INTERNAL_ONLY
-    pub plugin_id: String,
+    pub plugin_id: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub skill_name: String,
+    pub skill_name: String, // data_class: INTERNAL_ONLY
 }
 
 /// Named struct per F-MCPSERVERREF-ENVBINDING-NAMED-STRUCT-1.
 #[derive(Clone, Debug)]
 pub struct EnvSecretBinding {
     // data_class: INTERNAL_ONLY
-    pub env_var: String,
+    pub env_var: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub sref: SecretReference,
+    pub sref: SecretReference, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug)]
 pub struct McpServerRef {
     // data_class: INTERNAL_ONLY
-    pub name: String,
+    pub name: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub transport: McpTransport,
+    pub transport: McpTransport, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub command_or_url: String,
+    pub command_or_url: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub env_secret_refs: Vec<EnvSecretBinding>,
+    pub env_secret_refs: Vec<EnvSecretBinding>, // data_class: SECRET
 }
 
 // ── Provider overrides ────────────────────────────────────────────────────────
@@ -147,9 +147,9 @@ pub struct McpServerRef {
 #[derive(Clone, Debug)]
 pub struct ProviderOverrides {
     // data_class: INTERNAL_ONLY
-    pub model_override: Option<String>,
+    pub model_override: Option<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub extra_allowed_tools: Vec<String>,
+    pub extra_allowed_tools: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 // ── SettingsTemplate ──────────────────────────────────────────────────────────
@@ -162,21 +162,21 @@ pub struct ProviderOverrides {
 /// String key is used per project compiler constraints.
 pub struct SettingsTemplate {
     // data_class: INTERNAL_ONLY
-    pub version: u32,
+    pub version: u32, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub hooks: Vec<HookRef>,
+    pub hooks: Vec<HookRef>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub skills: Vec<SkillRef>,
+    pub skills: Vec<SkillRef>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub mcp_servers: Vec<McpServerRef>,
+    pub mcp_servers: Vec<McpServerRef>, // data_class: INTERNAL_ONLY
     /// Per F-PERMISSIONENTRY-ALLOWEDTOOL-DELETE-NEWTYPE-1 (v6 MED).
     // data_class: INTERNAL_ONLY
-    pub permissions: Vec<String>,
+    pub permissions: Vec<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub allowed_tools: Vec<String>,
+    pub allowed_tools: Vec<String>, // data_class: INTERNAL_ONLY
     /// Key: ProviderFamily string representation (e.g. "Claude", "OpenAIOrCodex").
     // data_class: INTERNAL_ONLY
-    pub provider_overrides: BTreeMap<String, ProviderOverrides>,
+    pub provider_overrides: BTreeMap<String, ProviderOverrides>, // data_class: INTERNAL_ONLY
 }
 
 // ── Drift types ───────────────────────────────────────────────────────────────
@@ -201,17 +201,17 @@ pub enum DriftState {
 #[derive(Clone, Debug)]
 pub struct DriftEntry {
     // data_class: INTERNAL_ONLY
-    pub path: PathBuf,
+    pub path: PathBuf, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub state: DriftState,
+    pub state: DriftState, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug)]
 pub struct DriftReport {
     // data_class: INTERNAL_ONLY
-    pub provider_family: ProviderFamily,
+    pub provider_family: ProviderFamily, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub entries: Vec<DriftEntry>,
+    pub entries: Vec<DriftEntry>, // data_class: INTERNAL_ONLY
 }
 
 // ── Render manifest ───────────────────────────────────────────────────────────
@@ -219,19 +219,19 @@ pub struct DriftReport {
 #[derive(Clone, Debug)]
 pub struct RenderedFile {
     // data_class: INTERNAL_ONLY
-    pub path: PathBuf,
+    pub path: PathBuf, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub content_blake3: [u8; 32],
+    pub content_blake3: [u8; 32], // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub byte_len: u64,
+    pub byte_len: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug)]
 pub struct RenderManifest {
     // data_class: INTERNAL_ONLY
-    pub provider_family: ProviderFamily,
+    pub provider_family: ProviderFamily, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub files: Vec<RenderedFile>,
+    pub files: Vec<RenderedFile>, // data_class: INTERNAL_ONLY
 }
 
 // ── SettingsRendererError ─────────────────────────────────────────────────────
