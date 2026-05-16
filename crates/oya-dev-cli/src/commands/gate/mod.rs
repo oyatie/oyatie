@@ -2,6 +2,7 @@ use std::process::ExitCode;
 
 mod architecture_boundaries;
 mod deployment_ops_contract;
+mod milestone_audit;
 mod product_index;
 mod run_all;
 mod stage0_application_shell_prereqs;
@@ -979,6 +980,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         (Some("validate"), Some("deployment-ops-contract")) => {
             deployment_ops_contract::run(args.collect())
         }
+        // milestone-audit: machine-readable replacement for ad-hoc shell/Markdown
+        // milestone readiness reviews.
+        (Some("validate"), Some("milestone-audit")) => milestone_audit::run(args.collect()),
         // `gate validate architecture-boundaries` — Wave 2 B-2 replacement
         // for scripts/check-architecture-boundaries.sh.
         (Some("validate"), Some("architecture-boundaries")) => {
