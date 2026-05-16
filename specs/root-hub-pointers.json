@@ -71,6 +71,48 @@
       "migration_phase": "complete",
       "purpose": "Cross-session durable goal + 100% autonomous-Foundry contract: lifecycle phases (plan/dev/ci_cd/deploy), iteration_loops (TDD feature+bugfix prove-it), spec_contract + tdd_contract + source_driven_contract + doubt_driven_contract, review_tiering (T0-T3 by deterministic blast_radius_score), score_cards (LLM-judgment forbidden in pass/fail), pipeline (lane categories + secret_handling + rollback first-class + auto_promotion + incident_response), autonomous_foundry (8 roles + quorum_rules + conservative_default + lane_promotion_protocol + meta_agent_anomaly_watch). Companion to agent_operating_contract — that's the per-session checklist; this is the persistent ambition + non-negotiable guardrails."
     },
+    "ci_fix_loop_context_bundle": {
+      "kind": "spec",
+      "current_path": "/specs/ci-fix-loop-context-bundle.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Canonical shape of the context bundle a ci_fixer role consumes when diagnosing CI lane failures."
+    },
+    "codeview_read_surface": {
+      "kind": "spec",
+      "current_path": "/specs/codeview-read-surface.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Canonical read surface for code-view queries; what an agent can ask for + what fields are returned."
+    },
+    "crate_naming_audit": {
+      "kind": "spec",
+      "current_path": "/specs/crate-naming-audit.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Per-package naming audit including retired_package_notes for traceability (e.g., oya-foundry-fitness-archive-orphan retired by ADR-0118)."
+    },
+    "knowledge_graph_schema": {
+      "kind": "schema",
+      "current_path": "/specs/knowledge-graph-schema.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "JSON Schema for the knowledge-graph 3-layer split (semantic + kinetic + dynamic) consumed by registry/knowledge-graph-*.json."
+    },
+    "merge_queue_parked_pr": {
+      "kind": "spec",
+      "current_path": "/specs/merge-queue-parked-pr.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Semantics for parked PRs in the Foundry merge queue (per ADR-0111); admission criteria + unpark transitions."
+    },
+    "root_hub_pointers": {
+      "kind": "spec",
+      "current_path": "/specs/root-hub-pointers.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "This file itself — canonical machine-readable pointer registry. Self-reference present so every spec has a discoverable entry_point row (per OP-11 no-stubs-no-defer)."
+    },
     "doc_catalog": {
       "kind": "registry",
       "current_path": "docs/DOC-CATALOG.md",

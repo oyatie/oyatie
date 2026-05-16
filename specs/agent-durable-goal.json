@@ -6,17 +6,18 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-AGENT-DURABLE-GOAL",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "status": "Accepted",
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-16T11:30:00Z",
-    "updated_at": "2026-05-16T12:30:00Z",
+    "updated_at": "2026-05-16T12:45:00Z",
     "successor_of": null,
     "changelog": [
       {"version": "1.0.0", "date": "2026-05-16T11:30:00Z", "change": "initial draft — identity + persistent_goal + lifecycle (4 phases) + 10 operating_principles + confusion_management + verification_before_completion + scope_discipline + pattern_to_follow + stop_conditions + memory_pointers"},
       {"version": "1.1.0", "date": "2026-05-16T11:45:00Z", "change": "sharpened: lifecycle phases now carry entry_gate + exit_gate + back_edges; added iteration_loops; added spec_contract; added tdd_contract; added pipeline"},
       {"version": "1.2.0", "date": "2026-05-16T12:00:00Z", "change": "100% AUTONOMOUS FOUNDRY: added autonomous_foundry; REMOVED human-escalation paths. Per user directive 2026-05-16: target autonomy = 100%, quorum = 2 distinct vendors CC-1/CC-2 + 1 CC-3, lane promotion drift → ≥3 prevented incidents → BLOCKER."},
-      {"version": "1.3.0", "date": "2026-05-16T12:30:00Z", "change": "TIERED REVIEW (cost-efficient): added review_tiering (T0-T3 with deterministic blast_radius_score; trivial PRs <30s, risky PRs unchanged); added score_cards (deterministic checks via jq/regex/cargo; LLM triage only; no-false-signals discipline); added source_driven_contract (oya-foundry-fitness-source-citation BLOCKER lane on public API touches); added doubt_driven_contract (fresh_context_required for T1+); rewrote OP-07 from 'always-20-facet' to 'tier-driven'; updated autonomous_foundry.quorum_rules to reflect tiering. Per user 2026-05-16: multispectrum-on-every-PR is inefficient; tier by deterministic blast-radius; score-cards mechanical, no LLM judgment in pass/fail; incorporate source-driven-development + doubt-driven-development."}
+      {"version": "1.3.0", "date": "2026-05-16T12:30:00Z", "change": "TIERED REVIEW: added review_tiering + score_cards + source_driven_contract + doubt_driven_contract; rewrote OP-07; updated autonomous_foundry.quorum_rules. Per user 2026-05-16: multispectrum-on-every-PR is inefficient; tier deterministic; no LLM judgment in pass/fail."},
+      {"version": "1.4.0", "date": "2026-05-16T12:45:00Z", "change": "OP-11 NO-STUBS / NO-DEFER / 100-PRODUCTION-QUALITY: added per user directive 2026-05-16: 'Prevent drifts, prevent /documentation-and-adrs contradictions and drifts, make sure agents surface any tangent issues. Don't do stubs, placeholders, or defer issues for later. Address them there and then to 100% production quality. We are not building MVP, demo, or sample. We are building full hyperscaler production platform and ecosystem.' This SUPERSEDES the prior scope_discipline 'a bug fix doesn't need surrounding cleanup' rule when the cleanup is doctrinal drift — drift gets fixed in-PR, never deferred to FixupTask. FixupTasks remain valid ONLY for findings genuinely out of the PR's reachable scope (e.g., upstream-vendor change). Plus comprehensive sweep applied to this PR: 23 missing DOC-CATALOG rows for specs/*.json + 5 missing root-hub-pointers entry_points filled in-PR, not deferred."}
     ],
     "purpose": "Persistent across-session goal + load-bearing operating principles + lifecycle phase contract + iteration loop semantics + spec contract + TDD contract + CI/CD pipeline contract + confusion-management protocol + verification-before-completion checklist + scope-discipline rule. Single canonical source so every agent — Claude, codex, gemini, future — operates from the same durable contract.",
     "originating_directive": "User invocation 2026-05-16 of /agent-skills:context-engineering with argument 'Prompt for durable goal for entire lifecycle of hyperscaler product/service planning, development, ci/cd, and deployment.' Distilled from session-resident memory + multispectrum-review v2.3.0 doctrine + codex consultation 2026-05-16T10-38."
@@ -255,6 +256,25 @@
       "rule": "Bominal ADRs apply 1:1 unless an oyatie ADR explicitly overrides. When citing inherited ADRs, qualify as 'Bominal-ADR-NNNN' to disambiguate from oyatie ADRs with the same number.",
       "registry_path": "registry/adr/inherited-bominal-adrs.yaml",
       "references": ["feedback_bominal_inheritance_precedence"]
+    },
+    {
+      "id": "OP-11",
+      "name": "no_stubs_no_defer_100_production_quality",
+      "rule": "Address every drift, contradiction, stub, placeholder, or tangent issue IN THE SAME PR that surfaces it. No 'defer to FixupTask' for findings inside the PR's reachable scope. No 'good enough for MVP/demo/sample' framing — every ChangeSet ships to full hyperscaler-production-quality (scalable, secure, performant, efficient). Agents MUST surface tangent issues they notice while working, then fix them — not file as follow-up.",
+      "directive_date": "2026-05-16",
+      "supersedes_when_conflict": "scope_discipline.rule 'a bug fix doesn't need surrounding cleanup' — narrowed: surrounding doctrinal/structural drift IS in scope; surrounding orthogonal-feature cleanup is NOT",
+      "fixuptask_legitimacy": "FixupTasks remain valid ONLY for findings genuinely out of the PR's reachable scope: upstream-vendor changes, follow-up architectural waves explicitly out-of-charter, multi-week migrations that can't atomically land. Drift/contradictions/missing-catalog-rows/stale-references ARE in scope and MUST be fixed in-PR.",
+      "anti_patterns_forbidden": [
+        "TODO comments in production code (use a tracked spec instead)",
+        "stub functions that panic or return placeholder values",
+        "'good enough for MVP' framing",
+        "'we'll fix this later' in PR body or commit message",
+        "filing F-* fixuptask for in-scope drift instead of fixing it",
+        "deferring catalog/index/registry registration to a separate PR"
+      ],
+      "verification_check": "PR body must NOT contain phrases: 'stub', 'placeholder', 'MVP', 'good enough', 'will fix later', 'TBD' (except inside explicit-out-of-scope follow-ups list with stable F-* IDs that match registry/fixuptasks.jsonl entries)",
+      "user_directive_verbatim": "Prevent drifts, prevent /documentation-and-adrs contradictions and drifts, make sure agents surface any tangent issues. Don't do stubs, placeholders, or defer issues for later. Address them there and then to 100% production quality. Don't say this is good enough for MVP scope. we are not building MVP, demo, or sample. we are building full hyperscaler production platform and ecosystem. that is scalable, secure, performant, and efficient.",
+      "references": ["feedback_no_silent_regression", "feedback_quality_performance_scalability_bar", "feedback_autonomous_implementation_artifacts", "agent-skills:documentation-and-adrs"]
     }
   ],
   "review_tiering": {
