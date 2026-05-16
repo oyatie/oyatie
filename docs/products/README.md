@@ -74,7 +74,7 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 
 ## Templates for sub-artifacts
 
-- Capability record YAML — per [`product-control/capabilities/`](../../../product-control/capabilities/)
+- Capability record YAML — per [`registry/capability-templates/`](../../registry/capability-templates/)
 - Catalog record YAML — per [`registry/catalog/`](../../registry/catalog/)
 - ADR shape — per [`decisions/`](../decisions/) (use `decisions/_template.md` if present)
 

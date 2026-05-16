@@ -185,7 +185,7 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 | oyatie/scripts/ | dir | KEEP | null | A8 | Build/lint/release helpers (5 scripts); humans + sanctioned CI only; KEEP |
 | oyatie/contracts/ | dir | KEEP | null | A8 | Cross-axis contract files (OpenAPI/Proto/AsyncAPI); 20+ files; KEEP |
 | oyatie/registry/ | dir | KEEP | null | A8 | Catalog + capability records; machine-readable registry; KEEP |
-| oyatie/product-control/ | dir | KEEP | null | A8 | Evaluation harness metadata (capabilities/eval-runs/eval-sets); KEEP |
+| oyatie/registry/capability-templates/ | dir | KEEP | null | A8 | Capability templates plus eval-runs/eval-sets; KEEP |
 | oyatie/infra/ | dir | KEEP | null | A8 | Policy-as-code (kyverno); 1 file; KEEP |
 
 ### oyatie/ — Hidden/session directories

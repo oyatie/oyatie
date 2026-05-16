@@ -190,7 +190,7 @@ This doc is the catalog OF the catalogs. The other catalogs are:
 |---|---|---|
 | Document catalog | [DOC-CATALOG.md](DOC-CATALOG.md) + `machine-readable/catalog.json` | every consolidated doc |
 | Crate catalog | `registry/catalog/<crate>.yaml` | every flat-crate |
-| Capability catalog | `product-control/capabilities/*.yaml` | every Foundry capability |
+| Capability catalog | `registry/capability-templates/*.yaml` | every Foundry capability |
 | Contract catalog | `contracts/` + `machine-readable/contracts.json` | every cross-axis contract |
 | Regulatory pack catalog | `regional-packs/<pack>/PACK.md` + `machine-readable/regional-packs.json` | every regional pack |
 | Risk register | [RISK-REGISTER.md](RISK-REGISTER.md) + `machine-readable/risks.json` | every risk |

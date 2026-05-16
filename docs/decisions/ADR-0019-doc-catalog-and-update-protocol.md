@@ -105,7 +105,7 @@ A doc's cadence is the *floor*, not the ceiling. Trigger events (regulator chang
 
 ### Boundary
 
-- Applies to: every doc in `docs/`, every ADR in the new pack, every catalog record under `registry/catalog/`, every capability record under `product-control/capabilities/`, every per-pack doc under `regional-packs/<pack>/`, every per-team CHARTER under `teams/`.
+- Applies to: every doc in `docs/`, every ADR in the new pack, every catalog record under `registry/catalog/`, every capability record under `registry/capability-templates/`, every per-pack doc under `regional-packs/<pack>/`, every per-team CHARTER under `teams/`.
 - Does not apply to: legacy ADRs (forensic), per-PR ephemeral evidence in PR bodies, dev-side scratch docs in worktrees.
 
 ---

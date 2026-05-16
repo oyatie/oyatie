@@ -497,7 +497,7 @@ repoctl ci explain --change chg_... --why-lane cargo-nextest-affected
 ### 4.3 `repoctl pod`
 
 ```bash
-repoctl pod validate --manifest product-control/pods/pod_foundry_repoctl.yaml
+repoctl pod validate --manifest registry/capability-templates/pods/pod_foundry_repoctl.yaml
 repoctl pod claim --pod pod_foundry_repoctl --change chg_... --format json
 repoctl pod status --pod pod_foundry_repoctl --format json
 ```
@@ -1527,7 +1527,7 @@ These replace the earlier ADF-001–ADF-010 list.
 #### ADF-010 — Pod manifest autonomy gate
 
 - **Depends on:** ADF-008.
-- **Target paths:** `product-control/pods/*.yaml`, `tools/repoctl/src/pod.rs`, tests.
+- **Target paths:** `registry/capability-templates/pods/*.yaml`, `tools/repoctl/src/pod.rs`, tests.
 - **CLI:** `repoctl pod validate`, `repoctl pod claim`, `repoctl pod status`.
 - **Acceptance tests:** Group F, Group G.
 - **Exit:** owned low-risk change can reach allow verdict; cross-project/high-blast changes return `needs_tpm`; runtime security policy is represented in pod status.
