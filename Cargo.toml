@@ -179,6 +179,7 @@ members = [
   "crates/oya-check-active-artifact-contract",
   "crates/oya-check-cedar-fragment-coverage",
   "crates/oya-check-openapi-rest-route-parity",
+  "crates/oya-check-protection-context-match",
   "crates/oya-check-retired-vocabulary",
   "crates/oya-foundry-architecture-map-kernel",
   "crates/oya-foundry-architecture-map-app",

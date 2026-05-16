@@ -52,6 +52,7 @@ mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
 mod pre_push_contract_gate;
+mod protection_context_match_gate;
 mod quality_lane_gates;
 mod retired_vocabulary_gate;
 mod runbook_gates;
@@ -130,6 +131,9 @@ pub(crate) use placeholder_debt_gates::{
 };
 pub(crate) use pre_push_contract_gate::{
     parse_pre_push_contract_validate_args, validate_pre_push_contract_gate,
+};
+pub(crate) use protection_context_match_gate::{
+    parse_protection_context_match_validate_args, validate_protection_context_match_gate,
 };
 pub(crate) use quality_lane_gates::{
     parse_quality_lanes_validate_args, validate_quality_lanes_gate,
@@ -223,6 +227,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate glossary-vocabulary [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--baseline <registry/glossary-vocabulary/warning-baseline.tsv>] [--ignored-uppercase-words <registry/glossary-vocabulary/ignored-uppercase-words.tsv>] [--write-baseline <path>] [--write-warning-report <path>]"
         + "\n       oya gate validate placeholder-debt [--docs-dir <docs>] [--registry <registry/placeholder-debt/registry.tsv>] [--write-registry <path>] [--write-report <path>]"
         + "\n       oya gate validate pre-push-contract [--done-definition <docs/checklists/done-definition-checklist.md>] [--cli-dispatch-source <crates/oya-dev-cli/src/lib.rs>] [--hook-script <scripts/hooks/pre-push.sh>]"
+        + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <main>]"
         + "\n       oya gate validate retired-vocabulary [--registry <registry/vocabulary/retired.yaml>] [--corpus-root <path>] (repeatable) [--exclude-root <path>] (repeatable)"
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"

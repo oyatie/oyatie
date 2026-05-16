@@ -994,6 +994,40 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // protection-context-match: enforces that every required
+        // status-check context in `.github/branch-protection.yaml`
+        // is the `name:` field of some workflow job in
+        // `.github/workflows/*.yml`. Catches the silent-bypass class
+        // where the protection lists a context name that no
+        // workflow posts; GitHub then waits forever for a check_run
+        // that never arrives. Lane id:
+        // `oya-foundry-fitness-protection-context-match`. Kernel:
+        // `oya-check-protection-context-match` (port-in-kernel,
+        // ADR-0056).
+        (Some("validate"), Some("protection-context-match")) => {
+            match crate::parse_protection_context_match_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_protection_context_match_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "protection-context-match validation passed: {} required contexts, \
+                             {} workflow jobs indexed across {} workflows",
+                            report.contexts_checked,
+                            report.workflow_jobs_indexed,
+                            report.workflows_indexed
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("protection-context-match validation failed:\n{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         // pre-push-contract: enforces the canonical `oya verify`
         // local-developer entry point is wired consistently across
         // Done-Definition, dev-CLI dispatch source, and the local

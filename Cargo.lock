@@ -905,6 +905,10 @@ name = "oya-check-pre-push"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-protection-context-match"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-quality-lane"
 version = "0.1.0"
 
@@ -1424,6 +1428,7 @@ dependencies = [
  "oya-check-placeholder-debt",
  "oya-check-pr-traceability",
  "oya-check-pre-push",
+ "oya-check-protection-context-match",
  "oya-check-quality-lane",
  "oya-check-raci-coverage",
  "oya-check-readme-coverage",

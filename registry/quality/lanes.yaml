@@ -321,6 +321,14 @@ lanes:
     source: feedback_no_silent_regression + feedback_no_exceptions_canonical
     runtime_budget_seconds: 60
     check_command: cargo run -p oya-dev-cli -- gate validate retired-vocabulary
+  - id: oya-foundry-fitness-protection-context-match
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts)
+    source: feedback_no_silent_regression + 2026-05-15 PR #3 merge-block incident
+    runtime_budget_seconds: 30
+    check_command: cargo run -p oya-dev-cli -- gate validate protection-context-match
   - id: foundry-eval-nightly
     stage: nightly
     status: active

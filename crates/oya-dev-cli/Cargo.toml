@@ -40,6 +40,7 @@ oya-foundry-openapi-domain = { path = "../oya-foundry-openapi-domain" }
 oya-check-mobile-native = { path = "../oya-check-mobile-native" }
 oya-check-placeholder-debt = { path = "../oya-check-placeholder-debt" }
 oya-check-pre-push = { path = "../oya-check-pre-push" }
+oya-check-protection-context-match = { path = "../oya-check-protection-context-match" }
 oya-check-pr-traceability = { path = "../oya-check-pr-traceability" }
 oya-check-quality-lane = { path = "../oya-check-quality-lane" }
 oya-check-raci-coverage = { path = "../oya-check-raci-coverage" }
