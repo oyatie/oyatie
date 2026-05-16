@@ -1,0 +1,78 @@
+# registry/vcs/event-router.yaml
+#
+# Canonical (event, action) -> Foundry-agent router table per
+# ADR-0112 §"Event-router table". Owned by council-foundry-vcs.
+#
+# Invariants:
+# - Closed mapping: every GitHub event we react to MUST appear here.
+#   The oya-foundry-fitness-event-router-completeness CI lane (wave-C)
+#   asserts this so we never silently miss an event.
+# - New rows go through an ADR amendment — no silent additions.
+# - Empty `action: ""` is the row-side wildcard; ADR-0112 uses it for
+#   `push`-to-branch entries (which carry no GitHub `action` field).
+#
+# Schema (consumed by oya-foundry-webhook-receiver-app):
+#   rows:
+#     - event:      <X-GitHub-Event header value>
+#       action:     <payload "action" field, or "" for wildcard>
+#       conclusion: <optional payload "workflow_run.conclusion" or
+#                    "check_suite.conclusion" discriminator; omit or
+#                    set to "" to match any conclusion>
+#       agent:      <Foundry-agent or workflow that handles this event>
+#       purpose:    <one-line description, audit-friendly>
+#
+# Lookup precedence inside the kernel (see route_event):
+#   1. exact (event, action, conclusion)
+#   2. exact (event, action) with no conclusion declared (wildcard)
+#   3. exact (event) with empty action (event-level wildcard)
+# The most-specific match always wins.
+
+rows:
+  - event: pull_request
+    action: opened
+    agent: oya-foundry-vcs-orchestrator-app
+    purpose: Begin changeset state transition to pr_open
+
+  - event: pull_request
+    action: synchronize
+    agent: oya-foundry-vcs-merge-queue-fix-loop-app + oya-foundry-vcs-ci-fix-loop-dispatcher-app
+    purpose: Fix-at-any-stage re-validate (ADR-0111)
+
+  - event: pull_request
+    action: closed
+    agent: oya-foundry-vcs-orchestrator-app
+    purpose: If merged=true, transition to merged_dev
+
+  # ADR-0112 §"Event-router table" rows 4-5: workflow_run/completed is
+  # split by `conclusion`. v1 router honors the conclusion discriminator
+  # so each row still resolves to exactly one agent per ADR-0112 §"Open
+  # questions" #2. If a workflow_run delivery arrives with a conclusion
+  # other than success/failure (e.g. cancelled, timed_out, skipped),
+  # the lookup falls through to RoutingFailed and the
+  # oya-foundry-fitness-event-router-completeness lane (wave-C) alerts.
+  - event: workflow_run
+    action: completed
+    conclusion: success
+    agent: oya-foundry-pr-review-dispatcher-app
+    purpose: Run multispectrum review (IP-004)
+
+  - event: workflow_run
+    action: completed
+    conclusion: failure
+    agent: oya-foundry-vcs-ci-fix-loop-dispatcher-app
+    purpose: Run fix-loop with retry budget (IP-005)
+
+  - event: check_suite
+    action: completed
+    agent: oya-foundry-vcs-merge-queue-fix-loop-app
+    purpose: Re-evaluate queue (some checks landed)
+
+  - event: push
+    action: ""
+    agent: oya-foundry-vcs-promotion-controller-kernel
+    purpose: Trigger promotion workflow (dev->staging->production)
+
+  - event: pull_request_review
+    action: submitted
+    agent: oya-foundry-vcs-orchestrator-app
+    purpose: Update changeset state if human override

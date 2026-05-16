@@ -1,0 +1,51 @@
+[package]
+# Naming justification (per feedback_naming_justification):
+#   - BNF v4.1:  oya - foundry - webhook-receiver - app
+#   - slot-2 µservice: `foundry`.
+#   - bc-tokens: `webhook-receiver` (kebab tokens; bounded context is the
+#                HTTP receiver that fronts the kernel — HMAC verify, dedup
+#                table I/O, axum server, OpenBao secret read, gh-api
+#                post-back).
+#   - layer (slot-N): `app` — binary tool that orchestrates the kernel
+#                per ADR-0107 amended 2026-05-15 "tools/ binding".
+#
+# Introducing IP: M-CC-P11-IP-003 (ADR-0112 wave-A).
+name = "oya-foundry-webhook-receiver-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "oya-foundry-webhook-receiver-app"
+path = "src/main.rs"
+
+[lib]
+name = "oya_foundry_webhook_receiver_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-webhook-receiver-kernel = { path = "../../crates/oya-foundry-webhook-receiver-kernel" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+clap = { workspace = true }
+tokio = { workspace = true }
+axum = "0.7"
+
+[lints]
+workspace = true
+
+[package.metadata.oya]
+context     = "foundry"
+role        = "app"
+feature     = "webhook-receiver"
+capability  = ""
+layer       = "app"
+audit_chain = true
+
+[package.metadata.oya.lifecycle]
+stage = "scaffolded"
+introducing_ip = "M-CC-P11-IP-003"
