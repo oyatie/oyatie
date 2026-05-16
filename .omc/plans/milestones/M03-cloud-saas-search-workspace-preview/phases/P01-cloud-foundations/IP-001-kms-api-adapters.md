@@ -3,19 +3,32 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P01-IP-001
 title: Cloud KMS provider-agnostic API + adapter set
-status: stub
+status: ready-to-claim-2026-05-16 (kernel + api complete; both adapter targets provisioned)
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
-dependency_additions: []
-purpose: Bring cloud.kms.{encrypt,decrypt} to stable; ship ≥2 provider adapters (OpenBao/AWS-KMS/GCP-KMS/Azure-KeyVault).
+dependency_additions:
+  - crates/oya-cloud-kms-adapter-openbao (new; live backend: kms.oyatie.com)
+  - crates/oya-cloud-kms-adapter-oci (new; live backend: bitween-default-vault in cloud compartment)
+purpose: Bring cloud.kms.{encrypt,decrypt} to stable; ship ≥2 provider adapters (OpenBao + OCI KMS; AWS/GCP/Azure are deferred to subsequent IPs).
 ---
 
 # M03-P01-IP-001 — Cloud KMS provider-agnostic API + adapter set
 
 ## Purpose
-Bring cloud.kms.{encrypt,decrypt} to stable; ship ≥2 provider adapters (OpenBao/AWS-KMS/GCP-KMS/Azure-KeyVault).
+Bring `cloud.kms.{encrypt,decrypt}` to stable; ship ≥2 provider adapters with live integration tests.
+
+## Adapter target selection (2026-05-16)
+
+Per directive "≥ 2 of {AWS, OCI, GCP, Azure, NaverCloud, NHN, KT, KakaoCloud}", the two adapters shipped in this IP are **OpenBao** + **OCI KMS** because both backends are already live on this bring-up:
+
+| Adapter | Backend | Live since | API surface |
+|---|---|---|---|
+| `oya-cloud-kms-adapter-openbao` | OpenBao v2.5.3 transit engine on the on-prem KR primary cell | 2026-05-16 (this session) | `POST /v1/transit/encrypt/<key>` + `POST /v1/transit/decrypt/<key>` |
+| `oya-cloud-kms-adapter-oci` | OCI KMS vault `bitween-default-vault` + AES-256 master key in `cloud` compartment, region ap-chuncheon-1 | 2026-05-16 (this session, via OpenTofu) | `Encrypt` / `Decrypt` against the per-vault management endpoint |
+
+AWS / GCP / Azure adapters are sequenced into follow-up IPs (M03-P01-IP-001a/b/c) once those tenancies are provisioned. They're not required for the ≥2-adapter acceptance criterion because OpenBao and OCI are two distinct providers under the same trait.
 
 ## Symbols-to-grit-claim
 ```

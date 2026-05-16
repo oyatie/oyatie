@@ -1,0 +1,42 @@
+{
+  "evidence_id": "oci-readiness-summary-2026-05-16",
+  "captured_at": "2026-05-16T06:55:00Z",
+  "branch": "dev",
+  "git_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "tooling": {
+    "oci_cli_version": "3.82.0",
+    "binary": "/home/oyatie/.local/bin/oci",
+    "config": "/home/oyatie/.oci/config (mode 0600)",
+    "key_file": "/home/oyatie/.oci/oci_api_key.pem (mode 0600)",
+    "region": "ap-chuncheon-1",
+    "tenancy_name": "bitween",
+    "tenancy_description": "TENLS-6209",
+    "tenancy_created": "2026-05-07T02:03:15.576000+00:00"
+  },
+  "auth": {
+    "status": "GREEN",
+    "proof": "oci iam region list → 200; oci iam compartment list --include-root --all → 200 with root compartment 'bitween' returned"
+  },
+  "readiness_probes": {
+    "regions": {"file": "2026-05-16-regions.json", "result": "40+ regions listed (subset of full OCI region fleet)", "size_bytes": 2759, "status": "PASS"},
+    "compartments": {"file": "2026-05-16-compartments.json", "result": "no sub-compartments (only root tenancy 'bitween')", "size_bytes": 0, "status": "PASS-EMPTY"},
+    "kms_vaults": {"file": "2026-05-16-kms-vaults.json", "result": "zero vaults", "size_bytes": 0, "status": "PASS-EMPTY"},
+    "api_gateways": {"file": "2026-05-16-api-gateways.json", "result": "{\"data\":{\"items\":[]}} — zero gateways", "size_bytes": 36, "status": "PASS-EMPTY"},
+    "oke_clusters": {"file": "2026-05-16-oke-clusters.json", "result": "zero OKE clusters", "size_bytes": 0, "status": "PASS-EMPTY"},
+    "compute_instances": {"file": "2026-05-16-compute-instances.json", "result": "zero VMs", "size_bytes": 0, "status": "PASS-EMPTY"},
+    "vault_secrets": {"file": "2026-05-16-vault-secrets.json", "result": "zero secrets", "size_bytes": 0, "status": "PASS-EMPTY"}
+  },
+  "verdict": {
+    "auth_credentials_admission": "GREEN",
+    "service_inventory": "EMPTY (fresh tenancy)",
+    "interpretation": "Tooling and credentials are ready; no OCI resources exist yet. Provisioning is the next step but requires user authorization (destructive external-production change)."
+  },
+  "next_changeset_pre_decisions": {
+    "compartment_structure": "Decide: flat (everything in root) or partitioned (e.g. foundry/, cloud/, pilot-kr/, prod/, nonprod/)",
+    "stage_0_runtime": "Decide: Bominal ADR-0117 prescribes 'OCI A1 → OKE stages'. Stage 0 == ARM Always Free A1 instance running oya-application-shell-app, per M02-substrate-P22 exit-gate spec",
+    "kms_vault": "Required by M02-P08 secrets/kms; create one default vault now or per-environment",
+    "api_gateway": "Needed for public ingress; may be deferred until first public service",
+    "oke": "Stage 1 target; not required for M2 exit (Stage 0 is A1)",
+    "free_tier_budget": "Confirm staying within Always Free (2× A1 1/6 vCPU + 1 GB; 200 GB block; auth-tier KMS not free, etc.)"
+  }
+}

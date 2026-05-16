@@ -1,0 +1,29 @@
+#cloud-config
+# Oracle Linux 10.1 x86_64 — default user `opc`. dnf + firewalld.
+# Shared cloud-init for both E2.1.Micro Always-Free auxiliary instances.
+hostname: oyatie-stage0-aux
+manage_etc_hosts: true
+package_update: true
+package_upgrade: false
+packages:
+  - curl
+  - jq
+  - git
+  - ca-certificates
+  - htop
+runcmd:
+  - [systemctl, enable, --now, firewalld]
+  - [firewall-cmd, --permanent, --add-service=ssh]
+  - [firewall-cmd, --permanent, --add-service=http]
+  - [firewall-cmd, --permanent, --add-service=https]
+  - [firewall-cmd, --reload]
+write_files:
+  - path: /etc/oyatie-stage0.markers
+    permissions: "0644"
+    content: |
+      stage=0
+      tier=always-free-e2
+      provisioned_by=opentofu
+      shape=VM.Standard.E2.1.Micro
+      os=oraclelinux-10.1-x86_64
+final_message: "oyatie-stage0-aux cloud-init complete"

@@ -1,0 +1,34 @@
+#cloud-config
+# Oracle Linux 9.7 aarch64 — default user is `opc`. Uses dnf + firewalld.
+hostname: oyatie-stage0
+manage_etc_hosts: true
+package_update: true
+package_upgrade: false
+packages:
+  - curl
+  - jq
+  - git
+  - tar
+  - gcc
+  - make
+  - openssl-devel
+  - pkgconf-pkg-config
+  - ca-certificates
+  - htop
+runcmd:
+  - [systemctl, enable, --now, firewalld]
+  - [firewall-cmd, --permanent, --add-service=ssh]
+  - [firewall-cmd, --permanent, --add-service=http]
+  - [firewall-cmd, --permanent, --add-service=https]
+  - [firewall-cmd, --reload]
+write_files:
+  - path: /etc/oyatie-stage0.markers
+    permissions: "0644"
+    content: |
+      stage=0
+      role=oya-application-shell-app-host
+      provisioned_from=onprem-bringup-2026-05-16
+      provisioned_by=opentofu
+      shape=VM.Standard.A1.Flex
+      os=oraclelinux-10.1-aarch64
+final_message: "oyatie-stage0 cloud-init complete"
