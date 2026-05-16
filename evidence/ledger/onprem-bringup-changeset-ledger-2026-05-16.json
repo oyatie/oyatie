@@ -38,7 +38,7 @@
         "evidence/onprem-foundry-readiness/2026-05-16-gate-slate.json",
         "evidence/onprem-foundry-readiness/2026-05-16-oya-verify-44-of-44.log",
         "evidence/onprem-foundry-readiness/2026-05-16-changebundle.json",
-        ".omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json",
+        ".omc/plans/milestones/M02b-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json",
         "tests: kernel 10/10 + usecase 10/10 + rest 10/10 (background task b72ej8xjz, exit 0)",
         "workspace nextest: 2683/2683 passed in 0.734s (background task bcr6nhh0e, exit 0)",
         "cargo check --workspace --all-targets exit 0 (background task bi5z1ewkr)",
@@ -102,7 +102,7 @@
       "item_id": "OCI-READINESS-AUTH-KMS-APIGW-2026-05-16",
       "source_path": "specs/cross-cutting/* + (forthcoming) infra/oci/",
       "milestone": "M-CC-cross-cutting",
-      "phase": "M-CC-P05-cloud-multi-provider + M02-substrate identity/kms/audit-chain phases",
+      "phase": "M-CC-P05-cloud-multi-provider + M02b-substrate identity/kms/audit-chain phases",
       "dependencies": [
         "OCI-CLI-TOOLING-INSTALL-2026-05-16 (verified)",
         "OCI tenancy OCID + region + user OCID + API key pair",
@@ -153,7 +153,7 @@
         "OCI-DEPLOY-NON-FOUNDRY-2026-05-16 (blocked)"
       ],
       "acceptance_criteria": [
-        "live M2 exit evidence written under .omc/plans/milestones/M02-substrate/acceptance-evidence/",
+        "live M2 exit evidence written under .omc/plans/milestones/M02b-substrate/acceptance-evidence/",
         "M03-P01 ImplementationPlan rows created in ledger"
       ],
       "claim_scope": "(deferred)",

@@ -243,19 +243,19 @@ M02-P22 (exit gate)
   ↓ flips lean-a5/a6/a7 to BLOCKER (lean-a8 already BLOCKER)
   ↓ flips canonical-base-neutrality + cross-pack-refusal to BLOCKER
 M03-P01..P03 (HR + Payroll + Accounting) — UNCHANGED
-M03-first-tenant-P04 (connect-pro-mail) — IP-X1 ADDED (NEW)
+M07-first-tenant-P04 (connect-pro-mail) — IP-X1 ADDED (NEW)
   ↓ IP-X1: author oya-docs-{portal,generator,manifest}-* crates (kernel/domain/application/adapter/rest/worker/cli/app)
   ↓ IP-X1: author 12 docs substrate crates
-M03-first-tenant-P05 (connect-pro-messenger) — IP-X1 ADDED (NEW)
+M07-first-tenant-P05 (connect-pro-messenger) — IP-X1 ADDED (NEW)
   ↓ IP-X1: author oya-docs-{search,cross-ref,live-diff}-* crates (~10 crates)
   ↓ IP-X1: author 3 G4 cold extractors (ICM / grit / GH Actions)
   ↓ IP-X1: author oya-docs-watch daemon + SSE wiring + per-cell daemon manifest
-M03-first-tenant-P06 (application-b2b-live) — IP-X1 ADDED (NEW)
+M07-first-tenant-P06 (application-b2b-live) — IP-X1 ADDED (NEW)
   ↓ IP-X1: expose Docs Portal as the SECOND product in Application B2B shell (Workflow Studio is first)
   ↓ IP-X1: tenant SSO scoping (Cedar) — `/files`, `/live`, `/manifest` redaction policies (§6.5)
   ↓ IP-X1: pgroonga + pgvector indexes seeded
-M03-first-tenant-P07 (workflow-studio-editor) — UNCHANGED (parallel to P06)
-M03-first-tenant-P08 (kr-acceptance-evidence)
+M07-first-tenant-P07 (workflow-studio-editor) — UNCHANGED (parallel to P06)
+M07-first-tenant-P08 (kr-acceptance-evidence)
   ↓ Evidence bundle INCLUDES: 16 extractors green; lean-a5/a6/a7 BLOCKER green; lean-a8 BLOCKER green; daemon ≤2s p99 incremental for hot extractors; Docs Portal in Stage 0 OCI ARM64 cell.
 ```
 
@@ -300,7 +300,7 @@ Cedar policy authoring is an M03-P06 IP-X1 deliverable; portal MUST NOT enable a
 
 ## §8 ADR record (v3; per ralplan step 6 contract; B-prime aligned)
 
-- **Decision**: Adopt **Option B-prime** — Live-Introspection Docs Portal delivered as added Impl-Plans inside the EXISTING M02-P19 / P20 / P21 / P22 + M03-first-tenant-P04 / P05 / P06 / P08 phases. **Zero new phase IDs.** 24 docs crates (6 BCs × ~4 layers each minus `-leptos`) + 16 extractors (5 hot G1 + 4 warm G2 + 4 warm G3 + 3 cold G4) + **4 CI lanes via 4 separate binaries** (existing `oya-check-documentation` scope-limited; NEW `oya-check-docs-generated` / `oya-check-endpoint-coverage` / `oya-check-dead-code`) + 1 daemon (`oya-docs-watch`) + 13 MVP Leptos pages (including `/endpoints`, `/dep-graph`, `/dead-code`, `/live`) + 5+ full-set pages M04+ + Cedar-policy redaction per surface (§6.5).
+- **Decision**: Adopt **Option B-prime** — Live-Introspection Docs Portal delivered as added Impl-Plans inside the EXISTING M02-P19 / P20 / P21 / P22 + M07-first-tenant-P04 / P05 / P06 / P08 phases. **Zero new phase IDs.** 24 docs crates (6 BCs × ~4 layers each minus `-leptos`) + 16 extractors (5 hot G1 + 4 warm G2 + 4 warm G3 + 3 cold G4) + **4 CI lanes via 4 separate binaries** (existing `oya-check-documentation` scope-limited; NEW `oya-check-docs-generated` / `oya-check-endpoint-coverage` / `oya-check-dead-code`) + 1 daemon (`oya-docs-watch`) + 13 MVP Leptos pages (including `/endpoints`, `/dep-graph`, `/dead-code`, `/live`) + 5+ full-set pages M04+ + Cedar-policy redaction per surface (§6.5).
 - **Drivers**: realtime reflection of state (user mandate); zero-gap endpoint/dep/dead-code coverage (user mandate; `feedback_autonomous_implementation_artifacts.md` "no dead code"); Leptos SSR stack reuse (Bominal ADR-0209 inheritance).
 - **Alternatives considered**:
   - **Option B (rejected)** — new phase IDs P19.5/P21.5/M03-P09. Architect r1 Gap 1: parallelization-manifest DAG re-baseline is more cost than slotting work into existing phases.
@@ -312,15 +312,15 @@ Cedar policy authoring is an M03-P06 IP-X1 deliverable; portal MUST NOT enable a
   - Negative: tighter scope per existing phase; partial coupling between docs-portal IPs and Connect/Application phases (mitigated by parallelization-manifest declared parallel capacity).
   - Neutral: Bominal ADR-0209 (Leptos) + ADR-0020 (OTel) compose cleanly; cargo-deny + cargo-machete + cargo-udeps already in oyatie supply-chain budget.
 - **Follow-ups (no new phase dir authoring; all are IPs added to existing phase dirs)**:
-  1. Author `.omc/plans/milestones/M02-substrate/phases/P19-application/impl-plans/IP-X1-docs-catalog-registration.md`
-  2. Extend `.omc/plans/milestones/M02-substrate/phases/P20-ci-lanes-operational/impl-plans/IP-005-doc-coverage-full-algorithm.md` to author 5 G1 extractors + `oya-check-docs-generated` binary
-  3. Extend `.omc/plans/milestones/M02-substrate/phases/P21-architecture-planes-green/impl-plans/IP-005-docs-portal-realtime.md` (NEW IP-005) to author G2+G3 extractors + `oya-check-endpoint-coverage` + `oya-check-dead-code` binaries
-  4. Extend `.omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/impl-plan.md` BLOCKER list with lean-a5/a6/a7/a8 (lean-a8 already BLOCKER day 1)
-  5. Author `.omc/plans/milestones/M03-first-tenant/phases/P04-connect-pro-mail/impl-plans/IP-X1-docs-portal-substrate-crates.md` (oya-docs-{portal,generator,manifest}-* — 12 crates)
-  6. Author `.omc/plans/milestones/M03-first-tenant/phases/P05-connect-pro-messenger/impl-plans/IP-X1-docs-portal-realtime-substrate.md` (oya-docs-{search,cross-ref,live-diff}-* + oya-docs-watch daemon + 3 G4 cold extractors)
-  7. Author `.omc/plans/milestones/M03-first-tenant/phases/P06-application-b2b-live/impl-plans/IP-X1-docs-portal-as-second-product.md` (Docs Portal exposed as Application's second product; Cedar policy fragments for §6.5 redaction)
+  1. Author `.omc/plans/milestones/M02b-substrate/phases/P19-application/impl-plans/IP-X1-docs-catalog-registration.md`
+  2. Extend `.omc/plans/milestones/M02b-substrate/phases/P20-ci-lanes-operational/impl-plans/IP-005-doc-coverage-full-algorithm.md` to author 5 G1 extractors + `oya-check-docs-generated` binary
+  3. Extend `.omc/plans/milestones/M02b-substrate/phases/P21-architecture-planes-green/impl-plans/IP-005-docs-portal-realtime.md` (NEW IP-005) to author G2+G3 extractors + `oya-check-endpoint-coverage` + `oya-check-dead-code` binaries
+  4. Extend `.omc/plans/milestones/M02b-substrate/phases/P22-m02-exit-gate/impl-plan.md` BLOCKER list with lean-a5/a6/a7/a8 (lean-a8 already BLOCKER day 1)
+  5. Author `.omc/plans/milestones/M07-first-tenant/phases/P04-connect-pro-mail/impl-plans/IP-X1-docs-portal-substrate-crates.md` (oya-docs-{portal,generator,manifest}-* — 12 crates)
+  6. Author `.omc/plans/milestones/M07-first-tenant/phases/P05-connect-pro-messenger/impl-plans/IP-X1-docs-portal-realtime-substrate.md` (oya-docs-{search,cross-ref,live-diff}-* + oya-docs-watch daemon + 3 G4 cold extractors)
+  7. Author `.omc/plans/milestones/M07-first-tenant/phases/P06-application-b2b-live/impl-plans/IP-X1-docs-portal-as-second-product.md` (Docs Portal exposed as Application's second product; Cedar policy fragments for §6.5 redaction)
   8. Update `docs/MASTERPLAN.md` §2.1 catalog to add `docs` µservice; update `[workspace.metadata.oya.microservices]` to register `docs` (status: planned until M03-P04 crate scaffold lands)
-  9. `.omc/plans/M01-M03-parallelization-manifest.md` requires NO DAG restructure — only the per-phase IP-list section needs amendment to enumerate the 8 new IPs. Manifest header phase-count stays M02=22 + M03-first-tenant=8.
+  9. `.omc/plans/M01-M03-parallelization-manifest.md` requires NO DAG restructure — only the per-phase IP-list section needs amendment to enumerate the 8 new IPs. Manifest header phase-count stays M02=22 + M07-first-tenant=8.
 
 ## §9 Architect+Critic verification status
 

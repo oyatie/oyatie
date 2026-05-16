@@ -79,7 +79,7 @@
       "evidence/onprem-foundry-readiness/2026-05-16-{cell-smoke,cell-extended,gate-slate,changebundle,openbao-wave1,cloudflare-tunnel,k8s-istio-stack,production-ready-baseline}.json",
       "evidence/oci-readiness/2026-05-16-{regions,compartments,kms-vaults,api-gateways,oke-clusters,compute-instances,vault-secrets,oci-readiness-summary,deploy-summary}.json",
       "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
-      ".omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-{spec-side,on-prem-foundry-live}.json"
+      ".omc/plans/milestones/M02b-substrate/acceptance-evidence/2026-05-16-m02-exit-{spec-side,on-prem-foundry-live}.json"
     ],
     "ledger": "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
     "audit_chain_emissions": "/srv/oyatie/audit-chain/{openbao-audit,security-scan-events}.jsonl (ZFS-backed)"

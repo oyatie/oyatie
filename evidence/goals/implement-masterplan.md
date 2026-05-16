@@ -3,7 +3,7 @@ goal_id: implement-masterplan
 status: active
 created: 2026-05-13
 trigger: "Implement the masterplan" | "/goal implement-masterplan" | autonomous re-entry
-horizon: M02-substrate → M03-first-tenant → M04-healthcare-kr → M05-connect-personal → M06-fintech-kr → M07-industrial-kr → M08-enterprise-breadth → M09-us-expansion → M10-eu-expansion → M11-healthcare-intl → M12-hyperscaler-maturity
+horizon: M02b-substrate → M07-first-tenant → M04-healthcare-kr → M05-connect-personal → M06-fintech-kr → M07-industrial-kr → M08-enterprise-breadth → M09-us-expansion → M10-eu-expansion → M11-healthcare-intl → M12-hyperscaler-maturity
 authority: durable; supersedes ad-hoc execution prompts
 ---
 
@@ -179,7 +179,7 @@ No conversation context required. The repo + ICM + this goal file are the durabl
 **Pointers**:
 
 - Manifest: `.omc/plans/M01-M03-parallelization-manifest.md`
-- Phases: `.omc/plans/milestones/{M01-foundation,M02-substrate,M03-first-tenant}/phases/`
+- Phases: `.omc/plans/milestones/{M01-foundation,M02b-substrate,M07-first-tenant}/phases/`
 - Masterplan narrative: `docs/MASTERPLAN.md`
 - Templates: `docs/templates/`
 - PRDs: `docs/prds/`

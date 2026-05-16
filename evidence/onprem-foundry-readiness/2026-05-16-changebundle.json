@@ -17,7 +17,7 @@
         "evidence/onprem-foundry-readiness/2026-05-16-cell-extended.json",
         "evidence/onprem-foundry-readiness/2026-05-16-gate-slate.json",
         "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
-        ".omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json"
+        ".omc/plans/milestones/M02b-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json"
       ]
     },
     "verify": {
@@ -42,7 +42,7 @@
     "evidence/onprem-foundry-readiness/2026-05-16-gate-slate.json",
     "evidence/onprem-foundry-readiness/2026-05-16-oya-verify-44-of-44.log",
     "evidence/ledger/onprem-bringup-changeset-ledger-2026-05-16.json",
-    ".omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json"
+    ".omc/plans/milestones/M02b-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json"
   ],
   "covered_acceptance": {
     "implementation": "Foundry cell binary (oya-ops-workspace-shell) built clean from oya-ops-workspace-shell-app",
@@ -55,7 +55,7 @@
       "Load: 100 sequential 200/200 in 453ms; 50 parallel 200/200 wall 27ms",
       "Signal: SIGTERM → shutdown+port-free in 1ms"
     ],
-    "docs": "M2 exit evidence written under .omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json",
+    "docs": "M2 exit evidence written under .omc/plans/milestones/M02b-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json",
     "review": "single-agent self-review; multi-spectrum facets covered via gate slate (44 lanes incl. cohesion, plane-class, license-policy, supply-chain, security adjacent)",
     "runtime_deploy_readiness": "GREEN for spec-side codebase; BLOCKED on host sudo for systemd cutover and on OCI auth for Stage 0",
     "closeout": "oya vcs done --local-only accepted; promote deferred to controller"

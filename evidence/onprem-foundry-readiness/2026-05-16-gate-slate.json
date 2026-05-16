@@ -59,7 +59,7 @@
   },
   "m2_exit_gate_alignment": {
     "directive_layer": "M2 exit requires verified on-prem Foundry deployment (still BLOCKED on sudo for systemd install)",
-    "spec_layer": ".omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/phase-spec.md → cargo check/nextest/deny all exit 0 + oya gate validate planes/wave-integration",
+    "spec_layer": ".omc/plans/milestones/M02b-substrate/phases/P22-m02-exit-gate/phase-spec.md → cargo check/nextest/deny all exit 0 + oya gate validate planes/wave-integration",
     "spec_layer_status": "cargo check 0; cargo deny 0; oya verify (=gate run-all) 44/44 lanes 0; cargo nextest 2683/2683 0",
     "note": "Per directive 'If live state contradicts the manifest, record it and follow the stricter gate' — both gates recorded. Spec-side is verifiably green minus nextest still running. Directive-side is blocked on host sudo."
   }

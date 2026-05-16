@@ -241,7 +241,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-contract-recency [--ledger <docs/VENDOR-PARTNER-LEDGER.md>] [--today <YYYY-MM-DD>] [--renewal-window-days <90>]"
         + "\n       oya gate validate planes --all [--repo-root <.>]"
-        + "\n       oya gate validate wave-integration --milestone <M02> [--manifest <.omc/plans/M01-M03-parallelization-manifest.md>] [--phases-dir <.omc/plans/milestones/M02-substrate/phases>]"
+        + "\n       oya gate validate wave-integration --milestone <M02> [--manifest <.omc/plans/M01-M03-parallelization-manifest.md>] [--phases-dir <.omc/plans/milestones/M02b-substrate/phases>]"
         + "\n       oya gate validate mobile-native [--manifest <registry/mobile-native/products.tsv>] [--repo-root <.>]"
         + "\n       oya gate validate plane-class [--registry <registry/catalog>] [--baseline <registry/catalog>] [--reviewed-change <crate-id>]"
         + "\n       oya gate validate raci-team-coverage [--teams-dir <docs/teams>] [--raci <docs/RACI-OWNERSHIP.md>] [--codeowners <.github/CODEOWNERS>]"

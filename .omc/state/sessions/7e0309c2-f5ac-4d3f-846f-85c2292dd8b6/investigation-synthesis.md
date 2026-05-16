@@ -6,14 +6,14 @@
 
 **Authority chain**: `docs/MASTERPLAN.md → ADR-0063 (doc-suite coverage) → ADR-0064 (canonical-base + localization-packs) → consensus-masterplan-2026-05-13.md`
 
-**Horizon**: M02-substrate → M03-first-tenant → M04-healthcare-kr → M05-connect-personal → M06-fintech-kr → M07-industrial-kr → M08-enterprise-breadth → M09-us-expansion → M10-eu-expansion → M11-healthcare-intl → M12-hyperscaler-maturity
+**Horizon**: M02b-substrate → M07-first-tenant → M04-healthcare-kr → M05-connect-personal → M06-fintech-kr → M07-industrial-kr → M08-enterprise-breadth → M09-us-expansion → M10-eu-expansion → M11-healthcare-intl → M12-hyperscaler-maturity
 
 **Three pillars**:
 1. Canonical global base + localization seams/adapters/packs. Korea = pack #1 (foundational; M01–M07 ship canonical + KR lockstep).
 2. Documentation-suite coverage CI-enforced via `lean-a5-documentation` (report-only at HEAD → BLOCKER at M02-P22).
 3. Workflow + Ontology = sole inter-µservice adapter layer (per ADR-0059). Products never call each other directly.
 
-**5 products user named** (corporate / connect / ops / workflow / ontology) map onto M03-first-tenant phases:
+**5 products user named** (corporate / connect / ops / workflow / ontology) map onto M07-first-tenant phases:
 - corporate = Application B2B shell + SaaS administration (M02-P19 → M03 application phases)
 - connect = M03-P04 Connect Pro Mail + M03-P05 Connect Pro Messenger
 - ops = `ops.oyatie.com` 20-BC console; Wave 1 = docs BC ships across M03-P04..P08

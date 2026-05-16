@@ -4,7 +4,7 @@ shape: anchor
 status: open
 date: 2026-05-14
 author_session: 7e0309c2-f5ac-4d3f-846f-85c2292dd8b6 (ops-Wave-1-realignment)
-target_session: <parallel-session WIP — M02-substrate authoring sweep>
+target_session: <parallel-session WIP — M02b-substrate authoring sweep>
 authority_chain: docs/MASTERPLAN.md → docs/decisions/ADR-0063 → .omc/plans/consensus-masterplan-2026-05-13.md → this note
 companion_docs:
   - .omc/plans/ralplan-ops-freelance-realignment-2026-05-14.md (this session's realignment plan)
@@ -51,7 +51,7 @@ Full lists frozen for this hand-off:
    …rest scattered…
 ```
 
-These prefixes mirror the M02-substrate µservices catalog (audit-chain / identity / eventing / ontology / data-boundary / capability-registry / policy / cloud / kms / records / workflow-engine). The pattern says: this is **M02 substrate authoring sweep WIP**, not random rot.
+These prefixes mirror the M02b-substrate µservices catalog (audit-chain / identity / eventing / ontology / data-boundary / capability-registry / policy / cloud / kms / records / workflow-engine). The pattern says: this is **M02 substrate authoring sweep WIP**, not random rot.
 
 ## §3 Resolution choices (target session decides; ops realignment session declines to choose)
 

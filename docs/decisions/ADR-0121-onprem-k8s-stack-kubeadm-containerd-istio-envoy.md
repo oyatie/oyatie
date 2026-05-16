@@ -67,7 +67,7 @@ k3s and k0s are **explicitly rejected** for this cell. They remain valid options
 - Debian 13 (trixie) gotcha: `setup.sh` pins iptables-legacy and flushes nftables ruleset before kubeadm init — k8s 1.35's kube-proxy nftables mode segfaults on this kernel, and orphan nft rules from prior attempts break pod-to-pod traffic.
 - Per ADR-0044, mTLS posture moves from `permissive` to `strict` after first cross-cell traffic is observed.
 - The OCI side: OKE remains the target (per ADR-0117) for cloud cells. The on-prem cell and OKE cells form a federation; workloads should be portable.
-- M02-substrate-P22 exit-gate spec line "mTLS Istio between services — deferred to M03 per ADR-0117 §1" is now **partially closed** for the on-prem cell (Istio installed, mTLS configurable). M03 work remains for the OKE side and cross-cluster mesh.
+- M02b-substrate-P22 exit-gate spec line "mTLS Istio between services — deferred to M03 per ADR-0117 §1" is now **partially closed** for the on-prem cell (Istio installed, mTLS configurable). M03 work remains for the OKE side and cross-cluster mesh.
 
 ### Rejected for the primary cell, accepted for edge
 
@@ -86,7 +86,7 @@ If the on-prem primary cell graduates to multi-node HA (planned for M04), the sa
 - `istioctl version --remote` shows the in-cluster Istio control-plane.
 - `kubectl get pods -A` shows etcd, kube-apiserver, kube-controller-manager, kube-scheduler, kube-proxy, CoreDNS, the CNI pods, and Istio-system pods all `Running`.
 - `kubectl create namespace smoke && kubectl label namespace smoke istio-injection=enabled && kubectl run smoke --image=nginxdemos/hello -n smoke && kubectl wait pod/smoke -n smoke --for=condition=Ready --timeout=120s` — single-pod smoke with sidecar.
-- Audit: `containerd --version`, `runc --version`, and `cri-tools` versions captured in the M02-substrate evidence trail.
+- Audit: `containerd --version`, `runc --version`, and `cri-tools` versions captured in the M02b-substrate evidence trail.
 
 ---
 

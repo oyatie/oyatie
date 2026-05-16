@@ -227,7 +227,7 @@ grit claim \
 # M01 completion row
 icm store \
   -t context-oyatie \
-  -c "M01-foundation EXIT GATE DECLARED. P05 complete: 4 LEAN lanes BLOCKER (LEAN-A1..A4); 4 quality lanes scaffolded (statelessness/shardability/perf-budget/benchmark, report-only). Total M01 output: 114 crates renamed, 26 deferred, 88 STUB cells resolved, 4 LEAN crates BLOCKER, 4 quality crates scaffolded. Next milestone: M02-substrate-schema-foundation." \
+  -c "M01-foundation EXIT GATE DECLARED. P05 complete: 4 LEAN lanes BLOCKER (LEAN-A1..A4); 4 quality lanes scaffolded (statelessness/shardability/perf-budget/benchmark, report-only). Total M01 output: 114 crates renamed, 26 deferred, 88 STUB cells resolved, 4 LEAN crates BLOCKER, 4 quality crates scaffolded. Next milestone: M02b-substrate-schema-foundation." \
   -i high \
   -k "M01,P05,IP-001,LEAN-BLOCKER,quality-scaffold,M01-complete,M02-next"
 ```
@@ -244,7 +244,7 @@ icm store \
 
 ## Next IP Pointer
 
-M02: `.omc/plans/milestones/M02-substrate-schema-foundation/` (separate milestone; not in M01 scope)
+M02: `.omc/plans/milestones/M02b-substrate-schema-foundation/` (separate milestone; not in M01 scope)
 
 ---
 
