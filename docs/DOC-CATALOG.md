@@ -284,7 +284,7 @@ Each validation check below is a binary CI gate. Failing one blocks the merge.
 | `glossary-cross-doc-coverage` | Every term in GLOSSARY appears in ≥1 consolidated doc. |
 | `glossary-vocabulary` | Retired vocabulary hard-fails outside forensic docs; casing/acronym drift ratchets against `registry/glossary-vocabulary/warning-baseline.tsv` per ADR-0018. |
 | `placeholder-debt` | `TODO` / `TBD` markers are tracked in `registry/placeholder-debt/registry.tsv`; new, stale, or count-drifted placeholders fail CI instead of hiding in glossary warnings. |
-| `quality-lanes` | `registry/quality/lanes.yaml`, `docs/standards/ci-lanes.md`, owner-team charters, runtime budgets, and active `scripts/check.sh` commands stay mirrored. |
+| `quality-lanes` | `registry/quality/lanes.yaml`, `docs/standards/ci-lanes.md`, owner-team charters, runtime budgets, and active `oya gate run-all` commands stay mirrored. |
 | `cargo-prefix` | Every Cargo workspace member path and package name keeps the ADR-0017 `oya-` prefix, and the member path matches the package name. |
 | `adr-citation` | Active docs cite only existing new-pack ADRs; legacy ADR numbers are confined to the explicit forensic consolidation surfaces. |
 | `brand-residue` | Product-brand usage stays canonical while sed-style tautological rebrand / rename residues fail CI. |

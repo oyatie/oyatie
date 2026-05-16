@@ -57,7 +57,7 @@ If any pre-check fails, stop the move and route to [workspace-members-merge-queu
    If differs: stop and fix the catalog record before running gates.
 
 5. ☐ Run the flat-crates guard.
-   Command: `scripts/check-architecture-boundaries.sh --self-test && scripts/check-architecture-boundaries.sh`
+   Command: `oya gate validate architecture-boundaries --self-test && oya gate validate architecture-boundaries`
    Expected: self-test passes and the architecture boundary check reports the workspace crate count.
    If differs: fix path, catalog, role, or dependency-direction errors.
 
@@ -73,7 +73,7 @@ If any pre-check fails, stop the move and route to [workspace-members-merge-queu
 1. Restore the previous directory path.
 2. Restore the previous root `Cargo.toml [workspace.members]` entry.
 3. Restore or remove the corresponding `registry/catalog/<package-name>.yaml` change.
-4. Re-run `scripts/check-architecture-boundaries.sh` to prove the workspace is back to a valid state.
+4. Re-run `oya gate validate architecture-boundaries` to prove the workspace is back to a valid state.
 
 ---
 
@@ -81,8 +81,8 @@ If any pre-check fails, stop the move and route to [workspace-members-merge-queu
 
 - [ ] `cargo fmt --all -- --check` passes.
 - [ ] `cargo check --workspace --all-targets --all-features` passes.
-- [ ] `scripts/check-architecture-boundaries.sh --self-test` passes.
-- [ ] `scripts/check-architecture-boundaries.sh` passes.
+- [ ] `oya gate validate architecture-boundaries --self-test` passes.
+- [ ] `oya gate validate architecture-boundaries` passes.
 - [ ] `cargo run -p oya-tooling-cli-dev-runtime -- catalog validate` passes.
 - [ ] `cargo run -p oya-tooling-cli-dev-runtime -- gate validate cargo-prefix` passes.
 - [ ] `cargo run -p oya-tooling-cli-dev-runtime --bin repoctl -- pre-push` passes or the PR records a local-resource blocker plus the targeted substitutes above.

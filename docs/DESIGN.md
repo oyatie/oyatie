@@ -332,7 +332,7 @@ Each axis is a bounded context with the four-layer hexagonal stack:
                 └─────────────────────────────────────────┘
 ```
 
-Dependency direction: always inward. Adapters import use-cases; use-cases import entities. The validator (ADR-0015 §3.3, `scripts/check-architecture-boundaries.sh`) hard-fails any forbidden edge.
+Dependency direction: always inward. Adapters import use-cases; use-cases import entities. The validator (ADR-0015 §3.3, `oya gate validate architecture-boundaries`) hard-fails any forbidden edge.
 
 The flat-crates target encodes the layers as crate-level roles per ADR-0015:
 

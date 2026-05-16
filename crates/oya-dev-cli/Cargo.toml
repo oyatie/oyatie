@@ -45,6 +45,7 @@ oya-check-quality-lane = { path = "../oya-check-quality-lane" }
 oya-check-raci-coverage = { path = "../oya-check-raci-coverage" }
 oya-check-readme-coverage = { path = "../oya-check-readme-coverage" }
 oya-check-release-pack = { path = "../oya-check-release-pack" }
+oya-check-retired-vocabulary = { path = "../oya-check-retired-vocabulary" }
 oya-foundry-run-file-adapter = { path = "../oya-foundry-run-file-adapter" }
 oya-check-runbook-freshness = { path = "../oya-check-runbook-freshness" }
 oya-check-runbook-index = { path = "../oya-check-runbook-index" }

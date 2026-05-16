@@ -309,10 +309,18 @@ lanes:
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; replaces retired repoctl pre-push + oya dev check)
+    purpose: oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml)
     source: AGENTS.md D12
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate pre-push-contract
+  - id: oya-foundry-fitness-retired-vocabulary
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record)
+    source: feedback_no_silent_regression + feedback_no_exceptions_canonical
+    runtime_budget_seconds: 60
+    check_command: cargo run -p oya-dev-cli -- gate validate retired-vocabulary
   - id: foundry-eval-nightly
     stage: nightly
     status: active

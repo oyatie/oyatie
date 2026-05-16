@@ -27,7 +27,7 @@ Per `docs/standards/ci-lanes.md` (legacy authoritative) + new `oya-foundry-fitne
 | `cargo-nextest --workspace --all-features` | every PR | yes |
 | `cargo check --workspace --all-targets --all-features` | every PR (PM-2 mitigation) | yes |
 | `cargo deny check licenses` | every PR | yes (per License Policy ADR) |
-| `bash scripts/check-architecture-boundaries.sh` (PARTS A-G) | every PR | yes (post PG-1 per ADR-0015) |
+| `bash oya gate validate architecture-boundaries` (PARTS A-G) | every PR | yes (post PG-1 per ADR-0015) |
 | `oya catalog validate` | every PR | yes |
 | `oya gate validate claim-ceiling` | every PR | yes |
 | `oya gate validate foundation-bypass` | every PR | yes |

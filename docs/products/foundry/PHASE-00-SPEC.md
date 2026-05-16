@@ -196,7 +196,7 @@ Acceptance:
   - All crates in workspace [members] glob
 
 Validation command:
-  bash scripts/check-architecture-boundaries.sh crates/oya-foundry-account-*
+  bash oya gate validate architecture-boundaries crates/oya-foundry-account-*
 ```
 
 **P00-02: Domain types + application commands + ports**

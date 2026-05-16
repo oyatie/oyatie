@@ -921,6 +921,10 @@ name = "oya-check-release-pack"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-retired-vocabulary"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-runbook-freshness"
 version = "0.1.0"
 
@@ -1424,6 +1428,7 @@ dependencies = [
  "oya-check-raci-coverage",
  "oya-check-readme-coverage",
  "oya-check-release-pack",
+ "oya-check-retired-vocabulary",
  "oya-check-runbook-freshness",
  "oya-check-runbook-index",
  "oya-check-shardability",

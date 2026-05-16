@@ -83,7 +83,7 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | Hook | Event | Purpose | Path |
 |---|---|---|---|
 | `pre-commit-license` | git pre-commit | Refuses commits that add an external dep without a license-ledger entry | `scripts/hooks/pre-commit-license.sh` |
-| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | `scripts/check-architecture-boundaries.sh` |
+| `pre-commit-arch-boundary` | git pre-commit | Refuses commits that violate ADR-0015 dep direction (kernel←domain←app←api/worker/adapter←runtime) | `oya gate validate architecture-boundaries` |
 | `pre-commit-data-class-annotation` | git pre-commit | Refuses commits that add a struct field without a `data_class` annotation when the file is in a kernel crate | `scripts/hooks/pre-commit-data-class.sh` |
 | `pre-commit-yaml-date-quoted` | git pre-commit | Refuses unquoted YAML dates (per mistakes-and-fixes-ledger) | `scripts/hooks/pre-commit-yaml-date.sh` |
 | `pre-commit-forward-ref` | git pre-commit | Refuses markdown links to paths not yet on origin/main (per Issue #1433) | `scripts/hooks/pre-commit-forward-ref.sh` |

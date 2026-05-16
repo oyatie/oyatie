@@ -14,7 +14,7 @@ doc_status: published
 2. ☐ **Affected-set tested** — `cargo nextest run --workspace --all-features` passes (or scoped subset for fast iteration; full pass before push).
 3. ☐ **Format clean** — `cargo fmt --check` passes (no diff).
 4. ☐ **Lint clean** — `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes.
-5. ☐ **Architecture boundaries** — `cargo run -q -p oya-dev-cli -- gate validate architecture-boundaries` passes (PARTS A-G hard-fail per ADR-0015; replaces the retired `scripts/check-architecture-boundaries.sh` per audit row B-2).
+5. ☐ **Architecture boundaries** — `cargo run -q -p oya-dev-cli -- gate validate architecture-boundaries` passes (PARTS A-G hard-fail per ADR-0015; replaces the retired `oya gate validate architecture-boundaries` per audit row B-2).
 6. ☐ **License gate** — `cargo deny check` passes; no new dependency without ledger entry.
 7. ☐ **Schema-class annotations** — every new struct field in a kernel crate has a `data_class` per [PRIVACY-PROGRAM §2.2.1](../PRIVACY-PROGRAM.md).
 8. ☐ **YAML date integrity** — every YAML date is quoted (per mistakes-and-fixes-ledger).

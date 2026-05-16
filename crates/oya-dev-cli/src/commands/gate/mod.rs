@@ -964,6 +964,36 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // retired-vocabulary: enforces zero drift back to retired CLI
+        // surfaces, retired crates, and retired script paths. The
+        // registry at `registry/vocabulary/retired.yaml` is the
+        // machine-readable record of every retirement decision; the
+        // lane fails fast on any document that still mentions a
+        // retired term. Lane id:
+        // `oya-foundry-fitness-retired-vocabulary`. Kernel:
+        // `oya-check-retired-vocabulary` (port-in-kernel, ADR-0056).
+        (Some("validate"), Some("retired-vocabulary")) => {
+            match crate::parse_retired_vocabulary_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_retired_vocabulary_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "retired-vocabulary validation passed: {} documents checked, \
+                             {} retired terms enforced, 0 drift hits",
+                            report.documents_checked, report.terms_checked
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("retired-vocabulary validation failed:\n{message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         // pre-push-contract: enforces the canonical `oya verify`
         // local-developer entry point is wired consistently across
         // Done-Definition, dev-CLI dispatch source, and the local
