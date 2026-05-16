@@ -1,0 +1,33 @@
+{
+  "change_id": "pr-7",
+  "pr_number": 7,
+  "pr_title": "ADR-0112 wave-A: webhook-receiver kernel + app (HMAC + dedup + router)",
+  "merge_commit_sha": "5f1f83f7e6ab1fa7dbe846e01b807901e4e5ca11",
+  "facet_id": "F9",
+  "facet_name": "Product/plan/hierarchy/adoption review",
+  "reviewer_id": "codex-F9-pr-7-r1-product",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "F9 product/plan review for PR #7: the webhook receiver is the right Foundry pipeline (M-CC-P11) IP-003 direction, but the adoption contract diverges from the plan and is not yet a dependable event-driven substrate. Highest severity BLOCKER.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:42-60 and tools/oya-foundry-webhook-receiver-app/src/main.rs:342-409",
+      "issue": "M-CC-P11-IP-003 acceptance requires the HTTP receiver to dedup against an append-only delivery log and route deliveries, but the HTTP path only reads the startup log and returns accepted/routing-failed without appending a delivery outcome. Operators cannot adopt it as the canonical event-driven pipeline because restarts lose first-delivery evidence.",
+      "remediation": "Append each HTTP delivery outcome atomically to `registry/vcs/webhook-delivery-log.json` before returning, add restart/redelivery tests, and make PR #7 evidence distinguish simulate-only behavior from live HTTP behavior."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:50-57 and registry/vcs/event-router.yaml:30-78",
+      "issue": "The IP acceptance says the event-router is initialized with the 9 ADR rows, while the current router has one wildcard `push` row rather than separate dev and staging promotion rows. That makes adoption ambiguous for the dev→staging→production pipeline.",
+      "remediation": "Align router config with ADR-0112 by representing push-to-dev and push-to-staging distinctly, or amend the ADR/IP acceptance to define a single promotion-controller row with branch discrimination in payload."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "tools/oya-foundry-webhook-receiver-app/src/main.rs:15-22 and .omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:58-60",
+      "issue": "The plan calls for OpenBao SecretReference validation, but PR #7 documents a file-backed fallback/TODO. That is acceptable for local simulation, not for adopting the receiver as the live Foundry pipeline ingress.",
+      "remediation": "Gate production deployment on a real SecretReference resolver smoke probe, and label the fallback as local-test-only in the IP exit evidence."
+    }
+  ],
+  "null_finding_reason": null
+}

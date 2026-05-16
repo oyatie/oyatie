@@ -1,0 +1,39 @@
+{
+  "change_id": "pr-11",
+  "consensus_delta": "round-2 evidence attached before consensus declaration; synthesis now cites both primary facet evidence and rebuttal evidence paths",
+  "considered": true,
+  "facet_id": "F1",
+  "facet_name": "Linus critique",
+  "inputs_reviewed": [
+    "evidence/debate/pr-11-F1-r1.json",
+    "evidence/debate/pr-11-synthesis.json"
+  ],
+  "merge_commit_sha": "5ec873ce2b6a5e37465b037ddeeb9343199abe59",
+  "naming_justification": "evidence/debate/pr-11-F1-r2.json follows the multispectrum evidence path contract and separates the rebuttal round from the primary facet review.",
+  "null_finding_reason": null,
+  "position": "concurs_with_synthesis_after_rebuttal",
+  "pr_number": 11,
+  "pr_title": "M-CC-P11-IP-002 wave-A: merge-queue app-side modules",
+  "rendered_at_unix": 1778920055,
+  "reviewer_id": "codex-F1-pr-11-r2-rebuttal",
+  "rigor": "GREEN",
+  "round": "r2_rebuttal",
+  "round_2_findings": [
+    {
+      "issue": "Round-2 F1 reconciliation preserved consensus finding: Projected merge-state invokes `run_merge_tree(dev_head, candidate.head_sha, dev_head)`: `dev_head` is both base and one side, and accumulated queued PRs are not represented in the merge-tree input. The path-overlap check sees queued_prs, but the actual confli…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F1 reconciliation preserved consensus finding: `run_projected_merge_state_check` invokes `run_merge_tree(dev_head, candidate.head_sha, dev_head)`: `dev_head` is both base and theirs, and queued PRs are only passed to the kernel after parsing. Operators are told this is projected merge-state against the qu…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F1 reconciliation preserved consensus finding: The projected merge-state runner calls `run_merge_tree(dev_head, candidate.head_sha, dev_head)`, matching the comment `git merge-tree dev_head pr.head dev_head`. In the three-tree form, using the same dev head as both base and one side means the merge has one…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    }
+  ],
+  "summary": "F1 Linus critique round-2 rebuttal for PR #11 rechecked the primary facet evidence against the synthesis consensus points. This r2 artifact is the explicit consensus rebuttal round required before synthesis. No consensus contradiction or reviewer-id reuse was found; blockers remain represented as FixupTasks."
+}

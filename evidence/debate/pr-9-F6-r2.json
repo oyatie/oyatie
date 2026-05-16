@@ -1,0 +1,39 @@
+{
+  "change_id": "pr-9",
+  "consensus_delta": "round-2 evidence attached before consensus declaration; synthesis now cites both primary facet evidence and rebuttal evidence paths",
+  "considered": true,
+  "facet_id": "F6",
+  "facet_name": "Alternatives and simplification",
+  "inputs_reviewed": [
+    "evidence/debate/pr-9-F6-r1.json",
+    "evidence/debate/pr-9-synthesis.json"
+  ],
+  "merge_commit_sha": "86b454d122d2999e29adea60eae2c12e1f0b9339",
+  "naming_justification": "evidence/debate/pr-9-F6-r2.json follows the multispectrum evidence path contract and separates the rebuttal round from the primary facet review.",
+  "null_finding_reason": null,
+  "position": "concurs_with_synthesis_after_rebuttal",
+  "pr_number": 9,
+  "pr_title": "Consolidate registries/cross-cutting/ into flat registry/ (ADR-0115)",
+  "rendered_at_unix": 1778920055,
+  "reviewer_id": "codex-F6-pr-9-r2-rebuttal",
+  "rigor": "GREEN",
+  "round": "r2_rebuttal",
+  "round_2_findings": [
+    {
+      "issue": "Round-2 F6 reconciliation preserved consensus finding: The consolidated review workflow still uses workflow_run, checks out the PR head SHA, and runs cargo from that untrusted checkout while holding checks:write/actions:read permissions. Registry consolidation preserved a privileged PR-code execution path.",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F6 reconciliation preserved consensus finding: The standards gateway still says the canonical spec is v2.1.0 while the machine spec is v2.3.0. PR #9 touched this surface during registry consolidation but left version drift.",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F6 reconciliation preserved consensus finding: A registry path-consolidation ADR declares `grit/rtk/icm/vox` deprecated and no longer required going forward. That is a scope jump: tool-governance retirement is not the same decision as moving `registries/cross-cutting` to `registry`, and it conflicts with…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    }
+  ],
+  "summary": "F6 Alternatives and simplification round-2 rebuttal for PR #9 rechecked the primary facet evidence against the synthesis consensus points. This r2 artifact is the explicit consensus rebuttal round required before synthesis. No consensus contradiction or reviewer-id reuse was found; blockers remain represented as FixupTasks."
+}
