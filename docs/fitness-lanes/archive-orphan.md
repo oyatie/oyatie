@@ -1,43 +1,18 @@
 ---
-doc_status: published
+doc_status: retired
+retired_by: docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md
+retired_on: 2026-05-16
 ---
 
 # Fitness Lane: archive-orphan
 
-- status: Accepted
+- status: Retired
 - date: 2026-05-12
-- purpose: Verify Bominal ultragoal orchestration-glue ARCHIVE rows were moved under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/`, active originals are absent, and living files do not reference the archived runtime paths except explicit authority/provenance docs.
-- enforces: Directive A3 P6/P7 gate (MASTERPLAN) — archive-before-delete rollback boundary.
-- activation: Scaffolded and active at M-CC-P01-IP-008 / P6; used as a required P7 deletion precondition.
-- kernel_crate: `oya-foundry-fitness-archive-orphan-kernel` — `ArchivedPath { original_path, archive_path, original_exists, archive_exists }`, `InboundRef { source_path, target_path, line, context }`, verdict `ArchiveOrphanFitnessReport { archives_checked, archive_files_present, originals_absent, inbound_refs_checked }`.
-- runner_path: `tools/oya-foundry-fitness-archive-orphan`
-- inputs: `docs/decisions/ADR-0052-inventory-grit-cutover.md` ARCHIVE rows, filesystem state rooted at `..`, living scan roots under Oyatie `docs/`, `.omc/`, `crates/`, `tools/`, root manifests/instructions, plus `../bominal/agents/ultragoal`, and authority-source allowlist.
-- failure_modes:
-  - ARCHIVE row missing its archived copy
-  - ARCHIVE row still exists at its active pre-cutover path
-  - archive copy lands outside `archive/pre-grit-cutover-2026-05-12/`
-  - living code/docs/config reference an archived runtime-glue path outside authority/provenance docs
-- ci_invocation: `cargo run -p oya-foundry-fitness-archive-orphan`
-- runtime_budget: 1200 ms
-- severity: BLOCKER
-- kernel_sketch:
-```rust
-pub struct ArchivedPath {
-    pub original_path: String, // data_class: INTERNAL_ONLY
-    pub archive_path: String,  // data_class: INTERNAL_ONLY
-    pub original_exists: bool, // data_class: INTERNAL_ONLY
-    pub archive_exists: bool,  // data_class: INTERNAL_ONLY
-}
-
-pub struct InboundRef {
-    pub source_path: String, // data_class: INTERNAL_ONLY
-    pub target_path: String, // data_class: INTERNAL_ONLY
-    pub line: u32,           // data_class: INTERNAL_ONLY
-    pub context: String,     // data_class: INTERNAL_ONLY
-}
-
-pub fn check(
-    archived: &[ArchivedPath],
-    inbound_refs: &[InboundRef],
-) -> Result<ArchiveOrphanFitnessReport, ArchiveOrphanFitnessError> { /* implemented in Rust */ }
-```
+- retired_on: 2026-05-16
+- retired_by: `docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md`
+- retirement_reason: The one-time pre-cutover archive boundary has served its purpose; the archived payload is removed, and ADR-0116 makes the Foundry pipeline (M-CC-P11) the canonical concurrent-work substrate.
+- former_scope: Verified Bominal ultragoal orchestration-glue ARCHIVE rows under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/`, absent active originals, and zero living references outside authority/provenance docs.
+- replacement: Foundry pipeline admission + projected-merge-state + conflict-kernel under M-CC-P11, with ADR-0116 retiring grit/rtk/icm/vox-era coordination surfaces.
+- former_kernel_crate: `oya-foundry-fitness-archive-orphan-kernel` — retired; removed from workspace members.
+- former_runner_path: `tools/oya-foundry-fitness-archive-orphan-app` — retired; removed from workspace members.
+- naming_justification: `archive-orphan` remains only as a retired lane id because IP-008 and prior evidence used that exact one-time archive-boundary name.
