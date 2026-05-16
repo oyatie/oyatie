@@ -18,8 +18,8 @@
     "runtime": null
   },
   "build": {
-    "buildCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" rtk cargo build -q --workspace 2>&1 | command tail -3 && echo --- && for cli in adr-status api-stability-tier capability-status crate-status dependency-status doc-status feature-flag-status migration-status plan-status; do\n  out=$(target/debug/oya-foundry-fitness-${cli}-lifecycle-app 2>&1 | command head -1)\n  rc=$?\n  printf 'rc=%s  %s\\n' \"$rc\" \"$out\"\ndone",
-    "testCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" rtk cargo test -q -p oya-foundry-fitness-lifecycle-kernel 2>&1 | command tail -3",
+    "buildCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" cargo build -q --workspace 2>&1 | command tail -3 && echo --- && for cli in adr-status api-stability-tier capability-status crate-status dependency-status doc-status feature-flag-status migration-status plan-status; do\n  out=$(target/debug/oya-foundry-fitness-${cli}-lifecycle-app 2>&1 | command head -1)\n  rc=$?\n  printf 'rc=%s  %s\\n' \"$rc\" \"$out\"\ndone",
+    "testCommand": "PATH=\"/Users/jasonlee/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin:$PATH\" cargo test -q -p oya-foundry-fitness-lifecycle-kernel 2>&1 | command tail -3",
     "lintCommand": "cargo clippy",
     "devCommand": "cargo run",
     "scripts": {}
