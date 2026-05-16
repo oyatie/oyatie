@@ -12,6 +12,10 @@ adr_ref: docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
 
 # Sanctioned-primitives preflight
 
+**Status:** active
+**Severity scope:** Sev-2
+**Last verified:** 2026-05-16
+
 Per [`feedback_repeat_mistake_prevention.md`](../../../../.claude/projects/-Users-jasonlee-oyatie/memory/feedback_repeat_mistake_prevention.md) Control 1: every agent MUST run this preflight BEFORE the first `grit claim`, `icm store`, `cargo`, or `oya-tooling-agent-read` invocation in a session. Each row is a `--version` probe plus a smoke check that exits non-zero on first failure. The preflight is the single authority for "is this primitive callable today?".
 
 Today's session paid 3 commit cycles to debug 3 CI-infrastructure regressions (broken action SHA, missing nextest profile, missing shebang) — exactly the repeat-class signature this runbook exists to prevent. Each backfilled row is recorded in `registries/cross-cutting/mistakes-ledger.json` and indexed below.

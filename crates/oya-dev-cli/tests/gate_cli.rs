@@ -3949,6 +3949,109 @@ fn write_doc_catalog_fixture(docs_dir: &Path, root_docs: &[&str], catalog_docs: 
     .expect("machine catalog written");
 }
 
+#[test]
+fn product_index_gate_is_dispatched() {
+    let temp = temp_dir("product-index-dispatch");
+    let products_dir = temp.join("docs/products");
+    let machine_dir = temp.join("docs/machine-readable");
+    fs::create_dir_all(&products_dir).expect("products dir created");
+    fs::create_dir_all(&machine_dir).expect("machine dir created");
+    let readme = "intro\n\n### Axis products (7)\n\n| Product | PRD |\n|---|---|\n| SaaS Platform | saas-platform/PRD.md |\n| Workspace | workspace/PRD.md |\n| Foundry | foundry/PRD.md |\n| Cloud Provider | cloud/PRD.md |\n| Search | search/PRD.md |\n| Ads + Analytics | ads-analytics/PRD.md |\n| Vertical Industry Cloud | n/a |\n\n### Vertical products\n\nlater\n";
+    fs::write(products_dir.join("README.md"), readme).expect("readme written");
+    for product in [
+        "saas-platform",
+        "workspace",
+        "foundry",
+        "cloud",
+        "search",
+        "ads-analytics",
+    ] {
+        let dir = products_dir.join(product);
+        fs::create_dir_all(&dir).expect("product dir created");
+        fs::write(dir.join("PRD.md"), "# PRD\n").expect("prd written");
+    }
+    fs::write(
+        machine_dir.join("catalog.json"),
+        r#"{"products":{"saas-platform":{"prd_path":"docs/products/saas-platform/PRD.md"},"workspace":{"prd_path":"docs/products/workspace/PRD.md"},"foundry":{"prd_path":"docs/products/foundry/PRD.md"},"cloud":{"prd_path":"docs/products/cloud/PRD.md"},"search":{"prd_path":"docs/products/search/PRD.md"},"ads-analytics":{"prd_path":"docs/products/ads-analytics/PRD.md"}}}"#,
+    )
+    .expect("catalog written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "product-index",
+            "--products-readme",
+            products_dir
+                .join("README.md")
+                .to_str()
+                .expect("utf8 readme"),
+            "--catalog",
+            machine_dir
+                .join("catalog.json")
+                .to_str()
+                .expect("utf8 catalog"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("product-index validation passed"));
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn stage0_prereqs_gate_is_dispatched() {
+    let temp = temp_dir("stage0-prereqs-dispatch");
+    fs::create_dir_all(temp.join("crates/oya-application-app/src")).expect("app dir created");
+    fs::create_dir_all(temp.join("docs/decisions")).expect("decisions dir created");
+    fs::write(
+        temp.join("Cargo.toml"),
+        "[workspace]\nmembers = [\"crates/oya-application-app\"]\nresolver = \"2\"\n\n[workspace.package]\nedition = \"2024\"\nversion = \"0.1.0\"\nrust-version = \"1.95.0\"\n",
+    )
+    .expect("workspace written");
+    fs::write(
+        temp.join("crates/oya-application-app/Cargo.toml"),
+        "[package]\nname = \"oya-application-app\"\nedition.workspace = true\nversion.workspace = true\nrust-version.workspace = true\npublish = false\n\n[lib]\npath = \"src/lib.rs\"\n",
+    )
+    .expect("app manifest written");
+    fs::write(
+        temp.join("crates/oya-application-app/src/lib.rs"),
+        "pub fn smoke() -> bool { true }\n",
+    )
+    .expect("app lib written");
+    fs::write(
+        temp.join("docs/decisions/ADR-0061-application-b2b-unified-shell.md"),
+        "# ADR-0061\n",
+    )
+    .expect("adr written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "stage0-prereqs",
+            "--repo-root",
+            temp.to_str().expect("utf8 temp"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(String::from_utf8_lossy(&output.stdout).contains("stage0-prereqs validation passed"));
+    fs::remove_dir_all(temp).ok();
+}
+
 fn write_catalog_record(registry_dir: &Path, crate_id: &str, plane: &str) {
     write_catalog_record_with_claim(registry_dir, crate_id, plane, "preview");
 }

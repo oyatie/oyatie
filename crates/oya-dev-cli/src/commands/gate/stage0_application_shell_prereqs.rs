@@ -68,16 +68,13 @@ pub(crate) fn validate_stage0_prereqs_gate(
     if !errors.is_empty() {
         return Err(format_errors(&errors));
     }
-    let workspace_text = std::fs::read_to_string(args.repo_root.join("Cargo.toml")).map_err(
-        |error| format!("Cargo.toml unreadable at repo root: {error}"),
-    )?;
+    let workspace_text = std::fs::read_to_string(args.repo_root.join("Cargo.toml"))
+        .map_err(|error| format!("Cargo.toml unreadable at repo root: {error}"))?;
     let members = parse_workspace_members(&workspace_text);
     let (edition, rust_version) = read_application_app_metadata(&args.repo_root)?;
     Ok(Stage0PrereqsReport {
         required_paths_checked: REQUIRED_PATHS.len(),
-        workspace_member_present: members
-            .iter()
-            .any(|member| member == APP_WORKSPACE_MEMBER),
+        workspace_member_present: members.iter().any(|member| member == APP_WORKSPACE_MEMBER),
         package_edition: edition,
         package_rust_version: rust_version,
     })
@@ -129,20 +126,38 @@ pub(crate) fn parse_workspace_members(cargo_toml_text: &str) -> Vec<String> {
     for raw_line in cargo_toml_text.lines() {
         let line = raw_line.trim();
         if line.starts_with("members") && line.contains('[') {
-            in_members = true;
+            collect_quoted_values(
+                line.split_once('[').map_or("", |(_, rest)| rest),
+                &mut members,
+            );
+            if !line.contains(']') {
+                in_members = true;
+            }
             continue;
         }
         if in_members && line.starts_with(']') {
             break;
         }
-        if in_members
-            && line.starts_with('"')
-            && let Some(end) = line[1..].find('"')
-        {
-            members.push(line[1..=end].to_string());
+        if in_members {
+            collect_quoted_values(line, &mut members);
+            if line.contains(']') {
+                break;
+            }
         }
     }
     members
+}
+
+fn collect_quoted_values(text: &str, values: &mut Vec<String>) {
+    let mut rest = text;
+    while let Some(start) = rest.find('"') {
+        let after_start = &rest[start + 1..];
+        let Some(end) = after_start.find('"') else {
+            break;
+        };
+        values.push(after_start[..end].to_string());
+        rest = &after_start[end + 1..];
+    }
 }
 
 fn read_application_app_metadata(root: &Path) -> Result<(String, String), String> {
@@ -206,6 +221,13 @@ mod tests {
     #[test]
     fn parse_workspace_members_returns_quoted_paths() {
         let toml = "[workspace]\nmembers = [\n  \"crates/a\",\n  \"crates/b\",\n]\n";
+        let members = parse_workspace_members(toml);
+        assert_eq!(members, vec!["crates/a", "crates/b"]);
+    }
+
+    #[test]
+    fn parse_workspace_members_accepts_inline_array() {
+        let toml = "[workspace]\nmembers = [\"crates/a\", \"crates/b\"]\n";
         let members = parse_workspace_members(toml);
         assert_eq!(members, vec!["crates/a", "crates/b"]);
     }

@@ -60,7 +60,11 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `traceability-validator` | PR template carries the 5 mandatory traceability H2 sections |
 | `oya-foundry-fitness-api-semver` | public-API stability tier per ADR-0037 |
 | `oya-foundry-fitness-cargo-prefix` | every workspace member starts with `oya-` |
-| `oya-foundry-fitness-pre-push` | oya verify command contract maps to the checked local verification bundle |
+| `oya-foundry-fitness-pre-push` | oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml) |
+| `oya-foundry-fitness-retired-vocabulary` | no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record) |
+| `oya-foundry-fitness-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
+| `oya-foundry-fitness-changeset-state-monotonicity` | every changeset's event-log row sequence is a non-decreasing subsequence of the 13-value closed enum (per ADR-0110); detects backwards-transition bugs in dispatcher emitters |
+| `oya-foundry-fitness-changeset-state-enum-closed` | every changeset-event-log row's to_state is in the closed 13-value enum (per ADR-0110); detects rogue state-name additions that bypass the design contract |
 | `lean-a1-architecture` | layer-correctness — no dep-direction violations per ADR-0056 §2.2 |
 | `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
 | `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |
@@ -79,6 +83,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 
 | Lane | Purpose |
 |---|---|
+| `oya-foundry-fitness-merge-queue-ref-hygiene` | GC merge-queue-staging-i refs older than 1 hour per ADR-0111 §"Consequences"; transient projected-merge-state staging refs must not accumulate after each scheduler tick. Lane is the post-tick hygiene gate referenced by ADR-0111 wave-C. |
 | `foundry-eval-nightly` | per-capability eval set per ADR-0024 |
 | `chain-replay-drill` | per-shard audit-chain integrity per ADR-0003 |
 | `cross-tenant-access-fuzz` | per-cell isolation per ADR-0009 |

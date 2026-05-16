@@ -35,13 +35,13 @@ pub struct ReservationId(pub String);
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CapacityQuota {
     // data_class: INTERNAL_ONLY
-    pub region: RegionId,
+    pub region: RegionId, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub class: CapacityClass,
+    pub class: CapacityClass, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub limit_units: u64,
+    pub limit_units: u64, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub used_units: u64,
+    pub used_units: u64, // data_class: INTERNAL_ONLY
 }
 
 impl CapacityQuota {
@@ -53,13 +53,13 @@ impl CapacityQuota {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Reservation {
     // data_class: INTERNAL_ONLY
-    pub id: ReservationId,
+    pub id: ReservationId, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub region: RegionId,
+    pub region: RegionId, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub class: CapacityClass,
+    pub class: CapacityClass, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub units: u64,
+    pub units: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use oya_foundry_account_kernel::SecretReference;
-use oya_foundry_subagent_runtime_app::{
+use oya_foundry_subagent_runtime_usecase::{
     FacetFindingJson, FacetPromptTemplate, MockSubagentPort, SubagentPort, SubagentRequest,
 };
 use oya_foundry_vcs_ci_fix_loop_dispatcher_app::{

@@ -8,6 +8,7 @@
 - id: ADR-0033 # deleted/reserved Oyatie gap or legacy compatibility citation
 - id: ADR-0068 # deleted/reserved Oyatie gap or legacy compatibility citation
 - id: ADR-0070 # deleted/reserved Oyatie gap or legacy compatibility citation
+- id: ADR-0086 # inherited Bominal/Oyatie event-sourced evidence-log compatibility citation
 - id: ADR-0088 # deleted/reserved Oyatie gap or legacy compatibility citation
 - id: ADR-0089 # deleted/reserved Oyatie gap or legacy compatibility citation
 - id: ADR-0100 # inherited Bominal ADR compatibility citation
