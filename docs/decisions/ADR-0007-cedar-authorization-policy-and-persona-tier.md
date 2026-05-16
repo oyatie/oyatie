@@ -72,7 +72,7 @@ Default: **T2** for all newly registered capabilities. Tenants explicitly uplift
 
 ### Per-capability `autonomy_tier_required` field
 
-Every capability declared under `product-control/capabilities/<id>.yaml`:
+Every capability declared under `registry/capability-templates/<id>.yaml`:
 
 ```yaml
 id: cloud.iam.role.publish

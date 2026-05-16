@@ -44,7 +44,7 @@ Generated 2026-05-12. READ-ONLY data gathering for spec A2 acceptance criterion.
 | oyatie/scripts/ | dir | KEEP | A8 | Build/lint/release helpers (5 scripts); humans + sanctioned CI only; KEEP |
 | oyatie/contracts/ | dir | KEEP | A8 | Cross-axis contract files (OpenAPI/Proto/AsyncAPI); 20+ files; KEEP |
 | oyatie/registry/ | dir | KEEP | A8 | Catalog + capability records; machine-readable registry; KEEP |
-| oyatie/product-control/ | dir | KEEP | A8 | Evaluation harness metadata (capabilities/eval-runs/eval-sets); KEEP |
+| oyatie/registry/capability-templates/ | dir | KEEP | A8 | Capability templates plus eval-runs/eval-sets; KEEP |
 | oyatie/infra/ | dir | KEEP | A8 | Policy-as-code (kyverno); 1 file; KEEP |
 
 ### Hidden/session directories

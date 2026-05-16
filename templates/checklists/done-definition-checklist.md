@@ -68,7 +68,7 @@ related:
 - [ ] CI lanes still green. *Verification:* CI status.
 
 ### capability
-- [ ] Capability record at `product-control/capabilities/<id>.yaml` validates against schema. *Lane:* `capability-schema-validator`.
+- [ ] Capability record at `registry/capability-templates/<id>.yaml` validates against schema. *Lane:* `capability-schema-validator`.
 - [ ] Eval set (golden + adversarial + linguistic) min-pass-rate met. *Lane:* `oya-foundry-fitness-capability-publish`.
 - [ ] Cedar policy + runtime gate present when tier ≥ T2. *Lane:* `oya-foundry-fitness-autonomy-ceiling`.
 - [ ] Cosign keyless OIDC signature + Syft SBOM + SLSA L2+ provenance attested. *Lane:* `oya-foundry-fitness-supply-chain`.

@@ -147,7 +147,7 @@ runtime   — composition root (binary)
 | `FinOps Report API` | `contracts/openapi/cloud/cloud-finops-report-v1.yaml` | analytics | p99 ≤ 500 ms tenant cost report generation; budget and margin anomaly projection |
 | `Observability API` (logs / metrics / traces / dashboards / audit read) | `contracts/openapi/cloud/cloud-observability-audit-v1.yaml` | analytics | per-stream class SLO; p99 ≤ 500 ms audit-read projection |
 | `Marketplace API` (cloud-app listing) | `contracts/cloud-marketplace-v1.openapi.yaml` | control | 99.9% |
-| `Foundry capability surface` (cloud.* mutators) | `product-control/capabilities/cloud.*.yaml` | control + audit | p99 ≤ 500 ms; every call audit-emits |
+| `Foundry capability surface` (cloud.* mutators) | `registry/capability-templates/cloud.*.yaml` | control + audit | p99 ≤ 500 ms; every call audit-emits |
 | `Cloud Console (web)` | `apps/oya-cloud-console/` (Leptos, ADR-0033) | control | p95 ≤ 1 000 ms; 99.9% |
 | `Direct interconnect` | physical port + BGP | network | per-link SLA; 99.99% |
 | `Audit log export` | per-tenant signed S3 stream | audit | 100% emission completeness |

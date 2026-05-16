@@ -51,7 +51,7 @@ Sources: ADR-0024 (capability ceiling), ADR-0025 (Foundry consolidation).
 ## 2. The capability record
 
 Per [`docs/AGENTS.md`](../AGENTS.md) D5, every capability published
-under `product-control/capabilities/` carries a record with:
+under `registry/capability-templates/capabilities/` carries a record with:
 
 ```yaml
 ---
@@ -65,10 +65,10 @@ data_classes_consumed:
   - public
 data_classes_produced:
   - internal
-cedar_policy: product-control/policies/foundry.rag.semantic-search.cedar
+cedar_policy: registry/capability-templates/policies/foundry.rag.semantic-search.cedar
 runtime_gate: oya-foundry-runtime-rag::gate::semantic_search
 audit_topic: EVT-CAPABILITY-INVOKED
-eval_set: product-control/evals/foundry.rag.semantic-search/
+eval_set: registry/capability-templates/eval-sets/foundry.rag.semantic-search/
   - golden.jsonl
   - adversarial.jsonl
   - linguistic.jsonl
@@ -84,7 +84,7 @@ shape on PR.
 ## 3. Cedar policy binding
 
 Every capability declares a Cedar policy in
-`product-control/policies/<capability-id>.cedar`. The policy is
+`registry/capability-templates/policies/<capability-id>.cedar`. The policy is
 **authoritative**; the runtime gate enforces.
 
 ```cedar
