@@ -88,6 +88,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "release-evidence-pack",
     "slo-coverage",
     "architecture-boundaries",
+    "master-plan-completion",
     "product-index",
     "product-prd-json",
     "stage0-prereqs",

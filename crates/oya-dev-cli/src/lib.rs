@@ -254,6 +254,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate runbook-freshness [--runbooks-dir <docs/runbooks>] [--today <YYYY-MM-DD>]"
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
         + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
+        + "\n       oya gate validate master-plan-completion [--master-plan <specs/masterplan.json>] [--evidence-dir <evidence/foundation>]..."
         + "\n       oya gate validate product-index [--products-readme <docs/products/README.md>] [--catalog <docs/machine-readable/catalog.json>]"
         + "\n       oya gate validate product-prd-json [--repo-root <.>] [--product <specs/products/<id>.json>]..."
         + "\n       oya gate validate stage0-prereqs [--repo-root <.>] [--self-test]"

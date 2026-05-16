@@ -4002,6 +4002,65 @@ fn product_index_gate_is_dispatched() {
 }
 
 #[test]
+fn master_plan_completion_gate_is_dispatched() {
+    let temp = temp_dir("master-plan-completion-dispatch");
+    let specs_dir = temp.join("specs");
+    let evidence_dir = temp.join("evidence/foundation");
+    fs::create_dir_all(&specs_dir).expect("specs dir created");
+    fs::create_dir_all(&evidence_dir).expect("evidence dir created");
+    fs::write(
+        specs_dir.join("masterplan.json"),
+        r#"{
+  "live_implementation_index": {
+    "milestones": [
+      {
+        "phases": [
+          {
+            "id": "P-X",
+            "status": "complete",
+            "implementation_plans": [
+              {"id": "IP-001", "status": "complete"}
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}"#,
+    )
+    .expect("masterplan written");
+    fs::write(evidence_dir.join("ip-001.json"), r#"{"ip":"IP-001"}"#).expect("evidence written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "master-plan-completion",
+            "--master-plan",
+            specs_dir
+                .join("masterplan.json")
+                .to_str()
+                .expect("utf8 masterplan"),
+            "--evidence-dir",
+            evidence_dir.to_str().expect("utf8 evidence"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("master-plan-completion validation passed")
+    );
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn stage0_prereqs_gate_is_dispatched() {
     let temp = temp_dir("stage0-prereqs-dispatch");
     fs::create_dir_all(temp.join("crates/oya-application-app/src")).expect("app dir created");
