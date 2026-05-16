@@ -32,6 +32,8 @@ mod architecture_plane_gates;
 mod catalog_contract_gates;
 mod catalog_registry;
 mod cedar_fragment_coverage_gate;
+mod changeset_state_enum_closed_gate;
+mod changeset_state_monotonicity_gate;
 mod codeview_read_surface_gates;
 mod command_output;
 mod command_process;
@@ -82,6 +84,12 @@ pub(crate) use catalog_contract_gates::{
 pub(crate) use catalog_registry::read_catalog_records;
 pub(crate) use cedar_fragment_coverage_gate::{
     parse_cedar_fragment_coverage_validate_args, validate_cedar_fragment_coverage_gate,
+};
+pub(crate) use changeset_state_enum_closed_gate::{
+    parse_changeset_state_enum_closed_validate_args, validate_changeset_state_enum_closed_gate,
+};
+pub(crate) use changeset_state_monotonicity_gate::{
+    parse_changeset_state_monotonicity_validate_args, validate_changeset_state_monotonicity_gate,
 };
 pub(crate) use codeview_read_surface_gates::{
     parse_codeview_read_surface_validate_args, validate_codeview_read_surface_gate,
@@ -242,6 +250,8 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate runbook-freshness [--runbooks-dir <docs/runbooks>] [--today <YYYY-MM-DD>]"
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
         + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
+        + "\n       oya gate validate changeset-state-monotonicity [--log <registry/vcs/changeset-event-log.json>]"
+        + "\n       oya gate validate changeset-state-enum-closed [--log <registry/vcs/changeset-event-log.json>]"
         + "\n       oya gate run-all [--include-deferred]"
         + "\n       oya verify [--include-deferred]   # local-developer fold of `gate run-all`; canonical pre-push entry"
 }

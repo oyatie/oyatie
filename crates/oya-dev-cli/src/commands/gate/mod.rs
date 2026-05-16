@@ -1055,6 +1055,62 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // changeset-state-monotonicity: ADR-0110 wave-A IP-001. Asserts every
+        // row in registry/vcs/changeset-event-log.json obeys the
+        // non-decreasing-subsequence invariant on the advancing-state
+        // axis, has a unique dedup_key, and terminates at most once.
+        // Lane: oya-foundry-fitness-changeset-state-monotonicity.
+        (Some("validate"), Some("changeset-state-monotonicity")) => {
+            match crate::parse_changeset_state_monotonicity_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_changeset_state_monotonicity_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "changeset-state-monotonicity validation passed: {} events checked, terminal={}",
+                            report.events_checked,
+                            report
+                                .terminal_state
+                                .map(|s| s.as_wire().to_string())
+                                .unwrap_or_else(|| "none".to_string())
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("changeset-state-monotonicity validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        // changeset-state-enum-closed: ADR-0110 wave-A IP-001. Asserts every
+        // emitted `to_state` (and `from_state`, when present) is in the
+        // closed 13-value ChangesetState enum. Distinct lane from the
+        // monotonicity check so a typo surfaces with the right name.
+        // Lane: oya-foundry-fitness-changeset-state-enum-closed.
+        (Some("validate"), Some("changeset-state-enum-closed")) => {
+            match crate::parse_changeset_state_enum_closed_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_changeset_state_enum_closed_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "changeset-state-enum-closed validation passed: {} events checked, {} distinct states observed",
+                            report.events_checked, report.distinct_states_seen
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("changeset-state-enum-closed validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         _ => {
             eprintln!("{usage}");
             ExitCode::from(2)
