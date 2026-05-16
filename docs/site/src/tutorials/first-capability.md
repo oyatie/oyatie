@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # First capability tutorial
 
 A capability is published only after its catalog record, evaluation evidence, autonomy tier,

@@ -1,3 +1,6 @@
+---
+doc_status: published
+---
 # Oyatie ADR Pack
 
 > **Status:** Draft v0.1 — 2026-05-09. The new self-contained ADR pack per user directive 2026-05-09: "I want a consolidated ADR pack. that means no reference to our old ADRs."

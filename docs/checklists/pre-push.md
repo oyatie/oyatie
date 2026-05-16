@@ -1,8 +1,12 @@
+---
+doc_status: published
+---
+
 # Checklist: Pre-push
 
 > **When:** Before every `git push`. Mechanically enforced by `.git/hooks/pre-push`. Never skip with `--no-verify`.
 > **Owner:** Author of the change.
-> **Validator:** `oya dev check`
+> **Validator:** `oya verify`
 
 ---
 
@@ -10,7 +14,7 @@
 2. ☐ **Affected-set tested** — `cargo nextest run --workspace --all-features` passes (or scoped subset for fast iteration; full pass before push).
 3. ☐ **Format clean** — `cargo fmt --check` passes (no diff).
 4. ☐ **Lint clean** — `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes.
-5. ☐ **Architecture boundaries** — `bash scripts/check-architecture-boundaries.sh` passes (PARTS A-G hard-fail per ADR-0015).
+5. ☐ **Architecture boundaries** — `cargo run -q -p oya-dev-cli -- gate validate architecture-boundaries` passes (PARTS A-G hard-fail per ADR-0015; replaces the retired `oya gate validate architecture-boundaries` per audit row B-2).
 6. ☐ **License gate** — `cargo deny check` passes; no new dependency without ledger entry.
 7. ☐ **Schema-class annotations** — every new struct field in a kernel crate has a `data_class` per [PRIVACY-PROGRAM §2.2.1](../PRIVACY-PROGRAM.md).
 8. ☐ **YAML date integrity** — every YAML date is quoted (per mistakes-and-fixes-ledger).
@@ -25,7 +29,7 @@
 17. ☐ **Migration ledger** — if this is a flat-crates move PR (per ADR-0015), `registry/migrations/2026-flat-crate-migration/` entry added.
 18. ☐ **Rebrand check** — no new `Oyatie` brand string in product code (per ADR-0017); repo path / GitHub slug exception OK.
 19. ☐ **License-tier residue** — no new AGPL/GPL/SSPL/BUSL dependency in product code (per drafted License Policy ADR).
-20. ☐ **Run** `oya dev check` — final mechanical verification.
+20. ☐ **Run** `oya verify` — final mechanical verification.
 
 ---
 

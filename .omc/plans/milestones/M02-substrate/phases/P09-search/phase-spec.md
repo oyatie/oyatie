@@ -5,26 +5,28 @@ milestone: M02-substrate
 phase: P09-search
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; P02-ontology merged (Ontology objects are the primary
-  searchable corpus); Postgres 16 with pgroonga extension available;
-  mecab-ko / khaiii FFI available in build environment; cargo check exits 0.
-exit_gate: |
-  All search crates compile; pgroonga full-text index created on
-  ontology.objects.payload; Tantivy index directory initialized per tenant;
-  mecab-ko tokenization returns correct Korean morphemes for test strings;
-  khaiii FFI binding compiles; per-tenant index isolation verified (tenant A
-  cannot query tenant B index); k6 search p99≤50ms; grit done; ICM row emitted.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "workspace scaffold prerequisite"
-  - milestone: M02
-    phase: P02-ontology
-    reason: "Ontology objects are the primary searchable corpus"
-owner_team: council-search
----
+entry_gate: 'M01-P05 complete; P02-ontology merged (Ontology objects are the primary
 
+  searchable corpus); Postgres 16 with pgroonga extension available;
+
+  mecab-ko / khaiii FFI available in build environment; cargo check exits 0.
+
+  '
+exit_gate: "All search crates compile; pgroonga full-text index created on\nontology.objects.payload;\
+  \ Tantivy index directory initialized per tenant;\nmecab-ko tokenization returns\
+  \ correct Korean morphemes for test strings;\nkhaiii FFI binding compiles; per-tenant\
+  \ index isolation verified (tenant A\ncannot query tenant B index); k6 search p99\u2264\
+  50ms; grit done; ICM row emitted.\n"
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: workspace scaffold prerequisite
+- milestone: M02
+  phase: P02-ontology
+  reason: Ontology objects are the primary searchable corpus
+owner_team: council-search
+purpose: "This phase delivers the complete Search substrate. Two complementary engines are deployed: (1) pgroonga (Postgres extension, PGroonga 3.x) for SQL-integrated full-text search with native Korean support via the built-in groonga tokenizer."
+---
 # P09-search: Search substrate — pgroonga + Tantivy + Korean morphology (mecab-ko/khaiii FFI), per-tenant index isolation
 
 ## Purpose

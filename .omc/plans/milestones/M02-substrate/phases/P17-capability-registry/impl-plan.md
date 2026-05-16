@@ -7,20 +7,20 @@ impl_plan_id: IP-001-capability-registry-kernel-scaffold
 status: pending
 owner: council-foundry
 blocked_by:
-  - impl_plan: P14-policy/IP-001
-    reason: "McpToolDiscoveryAdapter calls PolicyEvaluator to gate capability invocations"
+- impl_plan: P14-policy/IP-001
+  reason: McpToolDiscoveryAdapter calls PolicyEvaluator to gate capability invocations
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Scaffolds all 8 capability-registry crates across 2 BCs, implements the MCP-compatible tool discovery endpoint, wires the Cedar policy gate on every capability invocation, and authors the full DDL.
 ---
-
 # IP-001-capability-registry-kernel-scaffold: Scaffold Capability Registry + Bindings Kernel/Domain/Application/Adapter/REST/App — MCP Gateway + DDL
 
 ## Intent

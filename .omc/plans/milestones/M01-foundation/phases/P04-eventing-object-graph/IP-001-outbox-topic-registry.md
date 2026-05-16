@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P04-IP-001
 title: Outbox + topic registry kernel
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship exactly-once outbox + per-axis topic registry per ADR-0046.
@@ -14,11 +17,14 @@ purpose: Ship exactly-once outbox + per-axis topic registry per ADR-0046.
 ## Purpose
 Ship exactly-once outbox + per-axis topic registry per ADR-0046.
 
+> Sunset note (2026-05-15 audit #6 follow-up): `oya-eventing-application` stub orphan deleted per ADR-0106 §Consequences. Forward-looking references below are kept for plan-integrity continuity; on IP execution, scaffold the canonical replacement as `oya-eventing-app` per the ADR-0106 `application → usecase` rename + ADR-0107 `-app` binding (this IP authorizes the scaffold-claim).
+
 ## Symbols-to-grit-claim
 ```
-crates/oya-platform-eventing-kernel/src/lib.rs::Outbox
-crates/oya-platform-eventing-kernel/src/lib.rs::Topic
-crates/oya-platform-eventing-kernel/src/lib.rs::publish_exactly_once
+crates/oya-eventing-domain/src/lib.rs::Outbox
+crates/oya-eventing-domain/src/lib.rs::TopicRegistry
+crates/oya-eventing-application/src/lib.rs::publish_eventing_outbox_from_app
+crates/oya-eventing-file-adapter/src/lib.rs::FileOutboxStore
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -27,8 +33,8 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 
 ## Acceptance-test-commands
 ```
-cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo test --locked -p oya-eventing-domain -p oya-eventing-application -p oya-eventing-file-adapter
+cargo clippy --locked -p oya-eventing-domain -p oya-eventing-application -p oya-eventing-file-adapter --all-targets -- -D warnings
 scripts/check.sh
 ```
 
@@ -53,3 +59,15 @@ icm store -t context-oyatie -c 'M01-P04-IP-001 Outbox + topic registry kernel sh
 
 ## Decision-log (Linus good-taste row)
 Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+
+## Probe-evidence
+- Scoped eventing package tests pass: `cargo test --locked -p oya-eventing-domain -p oya-eventing-application -p oya-eventing-file-adapter`.
+- Scoped eventing clippy passes: `cargo clippy --locked -p oya-eventing-domain -p oya-eventing-application -p oya-eventing-file-adapter --all-targets -- -D warnings`.
+- Exactly-once semantics now reject same tenant/topic/idempotency key with a changed payload reference at the domain boundary.
+- File outbox replay rejects malformed UTF-8-boundary length prefixes without panicking.
+- Review fixup closed the two eventing invariants found by code review:
+  `TopicRegistry::register` revalidates topic invariants behind private topic
+  fields, and `FileOutboxStore` persists published-state transitions as
+  append-only `v1-published` ledger events.
+- AsyncAPI payload `$ref` resolves to the eventing Proto source and the machine-readable contract mirror is stable.
+- `scripts/check.sh` remains acceptance-blocked by missing `scripts/check-stage0-application-shell-prereqs.py`; this IP is not marked complete until the repository-wide check gate is restored or waived.

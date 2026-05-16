@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — On Call Handover
+doc_status: published
+---
+
 # Oyatie Runbook — On Call Handover
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

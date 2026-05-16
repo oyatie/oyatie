@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Legal Corpus Update
+doc_status: published
+---
+
 # Oyatie Runbook — Legal Corpus Update
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

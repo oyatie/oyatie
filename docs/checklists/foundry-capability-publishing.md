@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Foundry capability publishing
 
 > **When:** New Foundry capability ready to publish to the registry. Authoring agent or human follows this list before requesting merge.

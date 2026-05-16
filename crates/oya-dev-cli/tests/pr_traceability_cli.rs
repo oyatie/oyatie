@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -19,8 +23,10 @@ fn pr_traceability_gate_accepts_author_pr_shape() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("PR traceability validation passed: 5 required sections"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("PR traceability validation passed: 5 required sections")
+    );
 
     fs::remove_dir_all(temp).ok();
 }

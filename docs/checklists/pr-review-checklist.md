@@ -15,6 +15,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (migration-class review)
   - ADR-0053  # sanctioned primitives (no bypass)
   - ADR-0054  # scaffold-claim (grit symbols review)
+doc_status: published
 ---
 
 # PR Review Checklist
@@ -41,7 +42,7 @@ adrs_cited:
 - [ ] `cargo nextest run --workspace --all-features --no-fail-fast` PASS.
 - [ ] `cargo deny check` PASS.
 - [ ] `unsafe` blocks (if any) carry `// SAFETY:` comments with invariant docs. *(advisory)*
-- [ ] `thiserror` in libraries / `anyhow|eyre` at the edge (per `.omc/specs/hyperscaler-best-practices-2026-05-12.md §Domain 3 error handling`).
+- [ ] `thiserror` in libraries / `anyhow|eyre` at the edge (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 3 error handling`).
 
 ### `*.ts` / `*.tsx` / `*.js` / `*.jsx` (typescript-reviewer)
 - [ ] `pnpm lint` PASS.

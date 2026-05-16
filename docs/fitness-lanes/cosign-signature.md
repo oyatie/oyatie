@@ -1,8 +1,12 @@
+---
+doc_status: published
+---
+
 # Fitness Lane: cosign-signature
 
 - status: Accepted
 - date: 2026-05-12
-- purpose: Verify every release artifact carries a valid Cosign signature using the OYA root key.
+- purpose: Verify every release artifact carries a valid Cosign signature using the platform root key.
 - enforces: hyperscaler-best-practices spec — every artifact Cosign-signed.
 - kernel_crate: `oya-foundry-fitness-cosign-signature-kernel` — `SignedArtifact { artifact, signature_path, issuer, verified }`, verdict `CosignSignatureFitnessReport { artifacts_checked }`.
 - runner_path: `tools/oya-foundry-fitness-cosign-signature`

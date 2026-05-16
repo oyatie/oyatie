@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Ad Auction Latency Incident
+doc_status: published
+---
+
 # Oyatie Runbook — Ad Auction Latency Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

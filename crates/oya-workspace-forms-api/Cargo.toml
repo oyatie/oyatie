@@ -14,3 +14,6 @@ oya-connect-forms-domain = { path = "../oya-connect-forms-domain" }
 name = "oya_workspace_forms_api"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

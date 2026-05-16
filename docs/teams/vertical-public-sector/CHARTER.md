@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Public Sector (Forms / 조달청 / Global Gov)
 
 ## Mission

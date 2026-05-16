@@ -19,6 +19,7 @@ companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
   - ../../docs/decisions/ADR-0003-audit-chain-and-evidence-emission.md
+doc_status: published
 ---
 
 # Visualization spec: audit-chain map

@@ -3,12 +3,15 @@
 //! This crate owns the `CLOUD_RESOURCE_TYPE` contract. A resource is the
 //! control-plane consistency boundary for kind, owner, tenant, location,
 //! residency, lifecycle state, tags, policy attachments, and metering identity.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_region_kernel::{AzCode, CellId, RegionCode};
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_residency_kernel::{residency_class_allows_home_region_label, ResidencyClass};
+use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 
 const RESOURCE_SCHEMA_VERSION: u32 = 1;
 const RESOURCE_ID_PREFIX_OWNER: &str = "oya";

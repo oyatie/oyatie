@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for oyatie-mega-plan-execution.md
+---
+
 # Oyatie Implementation Plan — Wave 0 + Wave 1 §2
 
 > **Status**: DRAFT — pending Architect review

@@ -10,3 +10,6 @@ license = "Apache-2.0"
 name = "oya_foundry_cargo_prefix_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

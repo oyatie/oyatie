@@ -4,14 +4,17 @@
 //! Citus, pgvector, Redis-compatible cache, Kafka, ClickHouse, and gated stable
 //! expansion engines. The kernel validates topology and evidence; adapters own
 //! engine I/O.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_kms_kernel::KmsKeyId;
-use oya_cloud_region_kernel::{AzCode, CellId, RegionCode};
-use oya_cloud_resource_kernel::{DatabaseEngine, QueueEngine, ResourceId, ResourceKind};
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_residency_kernel::{residency_class_allows_home_region_label, ResidencyClass};
+use oya_cloud_kms_domain::KmsKeyId;
+use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+use oya_cloud_resource_domain::{DatabaseEngine, QueueEngine, ResourceId, ResourceKind};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 
 const CLOUD_DATA_SCHEMA_VERSION: u32 = 1;
 const BACKUP_EVIDENCE_SCHEMA_VERSION: u32 = 1;

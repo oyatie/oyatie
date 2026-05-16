@@ -7,20 +7,20 @@ impl_plan_id: IP-001-records-kernel-scaffold
 status: pending
 owner: council-architecture
 blocked_by:
-  - impl_plan: P02-ontology/IP-001
-    reason: "OntologyFhirAdapter calls ObjectStore + LinkStore ports from oya-ontology-entity-kernel"
+- impl_plan: P02-ontology/IP-001
+  reason: OntologyFhirAdapter calls ObjectStore + LinkStore ports from oya-ontology-entity-kernel
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Scaffolds all 9 records crates across 2 BCs (records-fhir, records-released-view), declares the 9 FHIR R5 resource types supported in M02.
 ---
-
 # IP-001-records-kernel-scaffold: Scaffold Records FHIR + Released-View Kernel/Domain/Application/Adapter/REST/App — FHIR R5 Ports + Ontology Bridge + DDL
 
 ## Intent

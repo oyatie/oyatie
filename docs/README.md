@@ -3,11 +3,14 @@ doc_class: Index
 shape: ~
 length_cap: 120
 authority_tier: 0
+purpose: Root entry point for all project documentation; redirects to relevant hubs.
 excludes:
   - path: docs/AGENTS.md
     reason: Agent operating contract — the contract for any agent or human about to make a change.
-  - path: docs/CONSTITUTION.md
-    reason: Constitutional frame — what overrides everything else.
+  - path: /specs/cross-cutting/decision-principles.json
+    reason: Machine-readable do-list (DP-01..DP-10); successor to retired CONSTITUTION.md §Decision-principles.
+  - path: /specs/cross-cutting/forbidden-operations.json
+    reason: Machine-readable avoid-list (FO-01..FO-10); successor to retired CONSTITUTION.md §Prohibitions.
   - path: docs/DOC-CATALOG.md
     reason: Per-doc lifecycle protocol.
   - path: docs/products/
@@ -17,11 +20,14 @@ excludes:
   - path: docs/regional-packs/
     reason: Per-region authority.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md
-    > rest of docs/
-    > catalog records (registry/catalog/, contracts/, machine-readable/)
+  system / developer / user instructions
+    > /specs/cross-cutting/root-hub-pointers.json
+    > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
+    > machine-readable specs and registries under .omc/
+    > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
+doc_status: published
 ---
 
 # Oyatie — Canonical Engineering Documentation
@@ -32,7 +38,7 @@ This is the canonical engineering documentation tree for **Oyatie**, one cohesiv
 
 | If you are a... | Read first | Then |
 |---|---|---|
-| Founder / Council member | [`CONSTITUTION.md`](CONSTITUTION.md) | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
+| Founder / Council member | [`AGENTS.md`](AGENTS.md) + [decision-principles.json](../specs/cross-cutting/decision-principles.json) | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
 | Engineer / contributor | This file | [`AGENTS.md`](AGENTS.md) → the canonical doc map there |
 | Coding agent (Claude / Codex / Gemini / OMC) | [`AGENTS.md`](AGENTS.md) | per-agent appendix in `## Per-agent appendices` |
 | Auditor / regulator | [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) <!-- forward-reference: wave-1 --> | [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`SECURITY-PROGRAM.md`](SECURITY-PROGRAM.md) <!-- forward-reference: wave-1 --> |
@@ -40,8 +46,7 @@ This is the canonical engineering documentation tree for **Oyatie**, one cohesiv
 
 ## Tier-1 documents
 
-- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and ultimately from `docs/CONSTITUTION.md`. Foundation ADRs: ADR-0052, ADR-0053, ADR-0054.
-- [`CONSTITUTION.md`](CONSTITUTION.md) — mission, decision rights, prohibitions, amendments.
+- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and from the machine-readable doctrinal substrate at [`specs/cross-cutting/`](../specs/cross-cutting/) (`decision-principles.json`, `forbidden-operations.json`, `decision-rights.json`, `governance-amendment.json`). Foundation ADRs: ADR-0052, ADR-0053, ADR-0054.
 - [`AGENTS.md`](AGENTS.md) — single agent operating contract for every agent and every human.
 - [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> — architecture, planes, cross-axis contracts.
 - [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> — north star, axes, scope, success metrics.
@@ -72,8 +77,8 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 |---|---|---|---|
 | `doc.readme` | [`README.md`](README.md) | `cross-cutting` | `council-architecture` |
 | `doc.masterplan` | [`MASTERPLAN.md`](MASTERPLAN.md) | `0` | `council-architecture` |
-| `doc.constitution` | [`CONSTITUTION.md`](CONSTITUTION.md) | `1` | `council-architecture` |
 | `doc.agents` | [`AGENTS.md`](AGENTS.md) | `1` | `axis-foundry, council-architecture` |
+| `doc.agent_instruction_sources` | [`AGENT-INSTRUCTION-SOURCES.md`](AGENT-INSTRUCTION-SOURCES.md) | `cross-cutting` | `axis-foundry, council-architecture` |
 | `doc.prd` | [`PRD.md`](PRD.md) | `1` | `council-architecture` |
 | `doc.design` | [`DESIGN.md`](DESIGN.md) | `1` | `council-architecture` |
 | `doc.spec` | [`SPEC.md`](SPEC.md) | `1` | `platform-api-sdk` |
@@ -104,6 +109,7 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 | `doc.doc_catalog` | [`DOC-CATALOG.md`](DOC-CATALOG.md) | `cross-cutting` | `council-architecture` |
 | `doc.doc_update_protocol` | [`DOC-UPDATE-PROTOCOL.md`](DOC-UPDATE-PROTOCOL.md) | `cross-cutting` | `council-architecture` |
 | `doc.documentation` | [`DOCUMENTATION.md`](DOCUMENTATION.md) | `cross-cutting` | `council-architecture` |
+| `doc.doc_coverage` | [`DOC-COVERAGE.md`](DOC-COVERAGE.md) | `cross-cutting` | `axis-foundry, council-architecture` |
 | `doc.standards_and_templates` | [`STANDARDS-AND-TEMPLATES.md`](STANDARDS-AND-TEMPLATES.md) | `cross-cutting` | `axis-foundry, council-architecture` |
 | `doc.toolchain` | [`TOOLCHAIN.md`](TOOLCHAIN.md) | `cross-cutting` | `axis-foundry` |
 | `doc.mistakes_ledger` | [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) | `cross-cutting` | `council-architecture` |
@@ -111,7 +117,7 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 ## Reading order for a new contributor (≤90 minutes)
 
 1. This file (10 min).
-2. [`CONSTITUTION.md`](CONSTITUTION.md) (10 min).
+2. Machine-readable doctrine: [decision-principles.json](../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../specs/cross-cutting/forbidden-operations.json) (10 min).
 3. [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> §1–§3 — north star + axes + scope (15 min).
 4. [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> §1–§4 — cohesion thesis + planes + axes-as-bounded-contexts (30 min).
 5. [`AGENTS.md`](AGENTS.md) (15 min) — the operating contract you'll honor on every change.
@@ -122,21 +128,23 @@ After step 6 you have the orientation needed to read any tier-2 or tier-3 doc on
 ## Authority precedence
 
 ```
-docs/CONSTITUTION.md
-  > rest of docs/
-  > catalog records (registry/catalog/, contracts/, machine-readable/)
+system / developer / user instructions
+  > /specs/cross-cutting/root-hub-pointers.json
+  > docs/AGENTS.md
+  > machine-readable specs and registries
+  > docs/ authority files during markdown-retirement compatibility
   > repo-root Redirect-class files (non-authoritative; lane-thin)
   > working drafts (never authoritative)
 ```
 
-This chain appears verbatim in [`CONSTITUTION.md`](CONSTITUTION.md), in [`AGENTS.md`](AGENTS.md), and in this file. The `oya-foundry-fitness-authority-cohesion` lane validates the three declarations are character-identical.
+This chain is mirrored by [`AGENTS.md`](AGENTS.md) and `/specs/cross-cutting/root-hub-pointers.json`; the `oya-foundry-fitness-authority-cohesion` lane validates authority declarations remain coherent.
 
 ## Anti-overlap
 
 This index does not cover:
 
 - The agent operating contract — see [`AGENTS.md`](AGENTS.md).
-- The constitutional frame — see [`CONSTITUTION.md`](CONSTITUTION.md).
+- The doctrinal substrate — see `/specs/cross-cutting/decision-principles.json` and `/specs/cross-cutting/forbidden-operations.json`.
 - The per-doc lifecycle protocol — see [`DOC-CATALOG.md`](DOC-CATALOG.md).
 - Per-product PRDs — see [`products/`](products/) <!-- forward-reference: wave-1 -->.
 - Per-team charters — see [`teams/`](teams/) <!-- forward-reference: wave-1 -->.

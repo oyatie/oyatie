@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::process::Command;
 
 #[test]
@@ -13,8 +17,10 @@ fn cross_tenant_access_fuzz_gate_exercises_isolation_cases() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("cross-tenant access fuzz validation passed: 7 cases"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("cross-tenant access fuzz validation passed: 7 cases")
+    );
 }
 
 #[test]

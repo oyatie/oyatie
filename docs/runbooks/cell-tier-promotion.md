@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cell Tier Promotion
+doc_status: published
+---
+
 # Oyatie Runbook — Cell Tier Promotion
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

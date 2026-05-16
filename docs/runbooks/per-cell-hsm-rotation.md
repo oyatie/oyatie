@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Per Cell Hsm Rotation
+doc_status: published
+---
+
 # Oyatie Runbook — Per Cell Hsm Rotation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

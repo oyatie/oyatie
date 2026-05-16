@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Privacy Council Data Class Review
+doc_status: published
+---
+
 # Oyatie Runbook — Privacy Council Data Class Review
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

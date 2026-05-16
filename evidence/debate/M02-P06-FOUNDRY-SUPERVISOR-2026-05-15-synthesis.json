@@ -1,0 +1,475 @@
+{
+  "schema": "multispectrum-review/v2.2.0",
+  "change_id": "M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "change_class_id": "CC-1",
+  "change_description": "M02-P06 foundry supervisor lane: v4 (4 new crates: supervisor-kernel/app/jsonl-adapter/conformance) + v5 delta (2 new crates: settings-template-kernel/adapter-fs). Adds atomic InboxStore::dead_letter, value-only SessionTicket, max_in_flight semaphore, hyper-only HTTP, zero new external deps (Branch Y).",
+  "round": "synthesis",
+  "rendered_at_unix": 1778821800,
+  "spec_version": "2.2.0",
+  "synthesis_owner": "team-lead@foundry-supervisor",
+  "facets_evaluated": [
+    "F1_linus",
+    "F2_hyperscaler",
+    "F3_adversarial",
+    "F4_ergonomic",
+    "F5_quality",
+    "F6_alternatives",
+    "F7_security",
+    "F8_performance",
+    "F9_compliance",
+    "F10_reversibility",
+    "F11_observability",
+    "M1_challenge_assumption",
+    "M2_zoomed_out_fit"
+  ],
+  "facet_count_total": 13,
+  "facet_count_required_by_cc1": 11,
+  "facet_count_extra_when_applicable": 2,
+  "facet_count_deferred_to_followup": 7,
+  "facet_count_deferred_to_followup_reason": "A1..A7 (v2.3.0 A-family adherence facets) deferred to follow-up FixupTask F-MULTISPECTRUM-A-FAMILY-BACKFILL-M02-P06 due to tmux pane capacity hit during dispatch; v2.2.0 baseline (11 facets) satisfied; v2.3.0 A-family is the new layer and will land as a separate pass before sunset 2026-07-15.",
+  "facet_skipped_with_reason": {
+    "F13_migration": "not_applicable \u2014 zero new public APIs on existing kernels (lean-a10 cleared); no breaking change introduced"
+  },
+  "executor_topology_compliance": {
+    "rule": "Each facet reviewed by its own separate subagent session; NO reviewer_id appears across multiple facets within this change_id",
+    "verified": true,
+    "reviewer_ids": [
+      "claude-critic-F1_linus-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-architect-F2_hyperscaler-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-critic-F3_adversarial-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-general-F4_ergonomic-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-code-reviewer-F5_quality-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-architect-F6_alternatives-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-security-reviewer-F7_security-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-executor-F8_performance-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-verifier-F9_compliance-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-debugger-F10_reversibility-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-tracer-F11_observability-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-critic-M1_challenge_assumption-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+      "claude-architect-M2_zoomed_out_fit-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15"
+    ],
+    "reviewer_id_overlap_across_facets": "NONE \u2014 each session is distinct per spec consensus_debate_protocol.executor_topology"
+  },
+  "consensus_points": [
+    {
+      "id": "CONV-1",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F8",
+        "F2",
+        "F1",
+        "F11"
+      ],
+      "headline": "v5 SettingsRenderer::verify wired into every tick_once \u2192 unbounded filesystem I/O on the supervisor hot loop; no debounce TTL, no in-memory cache, no inotify",
+      "evidence": "v5 \u00a7B.4 step 2: AccountSnapshotProvider::snapshot() invokes verify per account; O(3N) FS reads + blake3 hashes per heartbeat. At 10 accounts \u00d7 3 providers \u00d7 1s heartbeat = 30 FS ops/sec forever. F8: ~600ms/tick on spinning disk blows the restart p95 \u22641500ms budget. F2: classic per-instance-control-plane embedded in hot path.",
+      "remediation_fixuptasks": [
+        "F-VERIFY-MEMOIZATION-CACHE-DEBOUNCE-1",
+        "F-VERIFY-DEFAULT-DISABLED-IN-PROD-1"
+      ]
+    },
+    {
+      "id": "CONV-2",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F8",
+        "F11"
+      ],
+      "headline": "Bench harness emits 1 sample per metric; `*_p95_*` labels are statistically meaningless without \u226520 iterations + sort+index",
+      "evidence": "F8 read v4 \u00a7C.13a-d + bench harness shape; single-sample p95 is false-precision. F11 flagged the 4 bench JSONL rows being conflated with production OTel metric instruments.",
+      "remediation_fixuptasks": [
+        "F-BENCH-HARNESS-MULTI-SAMPLE-P95-EXACT-1"
+      ]
+    },
+    {
+      "id": "CONV-3",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F9",
+        "F11",
+        "F7",
+        "F5"
+      ],
+      "headline": "Audit-chain coverage incomplete: emit_audit_event does NOT conform to ADR-0003 schema; only 2/6 evidence_required=true capability paths covered; v5 SettingsRenderer::render has zero audit emission; data_class annotations missing from new kernel types",
+      "evidence": "F11-002: emit_audit_event(String, &SessionTicket) does not produce ADR-0003 AuditEvent shape (missing event_id ULID, tenant_shard, prior_block_hash, event_class, principal, capability, data_classes_touched, regulatory_packs_consumed, autonomy_tier_at_decision). F9-02: missing emissions on degrade_account, TierBlocked, quarantine, rotate_window, and ALL v5 render paths. F9-01: SessionTicket/InboxState/SpendRecord/MessageId/RequestId lack data_class annotations even though account-kernel:14,18 establishes the convention. F7: drift-exclusion in FailOnDrift mode silent-non-audit-chain \u2014 only side-channel JSON written.",
+      "remediation_fixuptasks": [
+        "F-AUDIT-CHAIN-ADR-0003-CONFORMANCE-1",
+        "F-DATA-CLASS-ANNOTATIONS-NEW-TYPES-1",
+        "F-AUDIT-EMISSION-COMPLETE-CAPABILITY-PATHS-1",
+        "F-DRIFT-EXCLUSION-AUDIT-EMISSION-1"
+      ]
+    },
+    {
+      "id": "CONV-4",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F11",
+        "M2"
+      ],
+      "headline": "Zero OTel spans + zero structured log events for tick_once lifecycle; ADR-0042 gen_ai semantic conventions absent; new HTTP routes have no TelemetryMiddleware declared",
+      "evidence": "F11-001: tick_once lifecycle outcomes (Spawned/Saturated/Idle/Quarantined) emit nothing. F11-003: ADR-0042 mandates gen_ai semconv per capability invocation (gen_ai.system, gen_ai.request.model, gen_ai.usage.input_tokens/output_tokens, oya.foundry.capability, oya.tenant.id) \u2014 none declared. F11-006: POST /v1/supervisor/inbox + GET /v1/supervisor/health + GET /v1/supervisor/outbox/{seq} have no TelemetryMiddleware wiring shown in v4 \u00a7B.7 MiddlewareChain construction. M2: ADR-0069 knowledge-graph edges missing (settings-template generates/consumes/enforces edges not declared).",
+      "remediation_fixuptasks": [
+        "F-OBSERVABILITY-TICK-ONCE-STRUCTURED-LOGS-1",
+        "F-OTEL-SPANS-GEN-AI-SEMCONV-1",
+        "F-TELEMETRY-MIDDLEWARE-MOUNT-IN-MIDDLEWARECHAIN-1",
+        "F-KNOWLEDGE-GRAPH-EDGES-DECLARE-1"
+      ]
+    },
+    {
+      "id": "CONV-5",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F5",
+        "F3"
+      ],
+      "headline": "Explicit `.unwrap()` in supervisor-app hot loop at v4 \u00a7B.4 step 5 \u2014 panics on stale account_id race; UsageWindowSnapshot 'audit-only' doc contradicts step 13.5 enforcement use",
+      "evidence": "F5-CRIT-1: literal `let acc = accounts.iter().find(|a| a.id == exp.chosen_account_id).unwrap();` is a panic-in-library-code violation. F5-CRIT-2: UsageWindowSnapshot.projected_tokens_p95 is documented audit-only but read for inbox.dead_letter gating at step 13.5 \u2014 enforcement-via-audit-field anti-pattern + step 13.5 cold-start check evaluates `cost_ceiling > cost_ceiling` (always false) when n<10 making the cost-ceiling enforcement a no-op for every cold-start.",
+      "remediation_fixuptasks": [
+        "F-UNWRAP-IN-TICK-ONCE-REPLACE-OK-OR-1",
+        "F-USAGE-WINDOW-SNAPSHOT-RELOCATE-ENFORCEMENT-1",
+        "F-PROJECTED-P95-COLDSTART-FAIL-CLOSED-1"
+      ]
+    },
+    {
+      "id": "CONV-6",
+      "severity": "HIGH",
+      "facets_concurring": [
+        "F10",
+        "F4",
+        "F7",
+        "F5"
+      ],
+      "headline": "Settings-template renderer has no RendererMode feature flag, no backup-before-write, and silent drift exclusion is indistinguishable from no-accounts-configured",
+      "evidence": "F10-01: SupervisorConfig has no RendererMode {Disabled|VerifyOnly|Reconcile}; bad renderer = manual dotfile recovery. F10-02: atomic rename has no backup of prior file \u2192 no undo-settings-render.sh. F10-03: all-accounts drift = snapshot() returns [] indistinguishable from no-config; TickOutcome has no DriftExcluded variant. F4-1: drift-exclusion lacks stderr surfacing; F4-4: AutoReconcile silently overwrites hand-edits with no backup. F7-1: no symlink defense on $HOME-rooted writes. F5-HIGH-3: silent-data-drop on FailOnDrift.",
+      "remediation_fixuptasks": [
+        "F-SETTINGS-RENDERER-MODE-FEATURE-FLAG-1",
+        "F-SETTINGS-RENDER-BACKUP-BEFORE-WRITE-1",
+        "F-TICK-OUTCOME-DRIFT-EXCLUDED-VARIANT-1",
+        "F-RENDERER-SYMLINK-DEFENSE-O-NOFOLLOW-1"
+      ]
+    },
+    {
+      "id": "CONV-7",
+      "severity": "HIGH",
+      "facets_concurring": [
+        "F3",
+        "F5",
+        "F7",
+        "M2"
+      ],
+      "headline": "Zero failing fixtures for new CC-1 kernel public API and new CI lane (lean-settings-drift); F3 spec mandates failing_fixture_added=TRUE for new lane sub-checks AND new kernel public API",
+      "evidence": "F3 enumerated: HookEventNotMapped, SecretRefUnresolved, DriftState::Missing, DriftState::Extra, InvalidTemplate (parser adversarial inputs), dead_letter-on-unlocked (v4 patch #6 prose-only), peek_lock TTL race, concurrent producer inbox crash, FD-leak post-watchdog, CodexRenderer dual-file SIGKILL mid-rename \u2014 none have failing fixtures. F5-HIGH-1: dead_letter atomicity is prose-only. F7: parser caps + symlink defense missing failing fixtures. M2: ADR-0069 9-capability declaration omitted, including verification capability that names the failing-fixture path.",
+      "remediation_fixuptasks": [
+        "F-FAILING-FIXTURES-BATCH-1-DEADLETTER-PEEKLOCK-1",
+        "F-FAILING-FIXTURES-BATCH-2-HOOKEVENT-SECRETREF-INVALIDTEMPLATE-1",
+        "F-FAILING-FIXTURES-BATCH-3-DRIFTSTATE-MISSING-EXTRA-1",
+        "F-FAILING-FIXTURES-BATCH-4-CONCURRENT-PRODUCER-FD-LEAK-1"
+      ]
+    },
+    {
+      "id": "CONV-8",
+      "severity": "HIGH",
+      "facets_concurring": [
+        "M2",
+        "F1",
+        "A1-deferred"
+      ],
+      "headline": "Crate name `oya-foundry-settings-template-adapter-fs` violates ADR-0056 v4.1 closed 12-layer enum (kernel|domain|application|app|adapter|infrastructure|cli|rest|grpc|graphql|worker|sdk); `fs` is not a member",
+      "evidence": "M2: ADR-0056 v4.1 closed enum + sibling precedent `oya-foundry-jsonl-supervisor-adapter` proves canonical shape = BC-tokens + layer suffix. v5 naming-justification mis-cites layer (called 'adapter-fs = layer #5' \u2014 incorrect). F1 implicitly hits this via 'zero-info wrapper / would-delete' anti-pattern.",
+      "remediation_fixuptasks": [
+        "F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1"
+      ]
+    },
+    {
+      "id": "CONV-9",
+      "severity": "HIGH",
+      "facets_concurring": [
+        "M2"
+      ],
+      "headline": "ADR-0069 active-artifact-contract 9-capability declaration MISSING: v5 ships 3 templates + 1 CI lane + 1 verifier + 2 crates without rows in artifact-capabilities-registry.json, reusable-building-blocks-registry.json, or knowledge-graph-dynamic.json \u2014 ADR-0069 was Accepted 2026-05-13, two days before this delta",
+      "evidence": "M2 verified file paths exist in registries/cross-cutting/ and v5 \u00a7B.7 grit units omit registration. Parallel-spec-instead-of-extending-existing anti-pattern given ADR-0069 was just locked.",
+      "remediation_fixuptasks": [
+        "F-ADR-0069-ARTIFACT-CAPABILITIES-REGISTER-1",
+        "F-REUSABLE-BUILDING-BLOCKS-REGISTER-1",
+        "F-KNOWLEDGE-GRAPH-EDGES-DECLARE-1"
+      ]
+    },
+    {
+      "id": "CONV-10",
+      "severity": "HIGH",
+      "facets_concurring": [
+        "F1",
+        "F2",
+        "F5",
+        "F7",
+        "M1"
+      ],
+      "headline": "Hand-rolled TOML + JSON parsers/emitters across 3-4 instances (jsonl framing, capability seed reader, v5 template parser, drift report emitter) with no shared crate; Branch Y zero-deps choice imposes forever-maintenance liability + no DoS caps + no fuzz tests",
+      "evidence": "F2: F-SHARED-TOML-MINI + F-SHARED-JSON-MINI. F1: would_reshape (consolidate to data table). F7: F-TOML-PARSER-INPUT-CAPS-1 (no max_file_size/max_array_len/max_depth declared). F5-MED-5 + F5-MED-4: grep-based value-validity gates pass `hooks_supported = banana`. M1-F3 MAJOR: Branch Y cost-benefit unquantified.",
+      "remediation_fixuptasks": [
+        "F-SHARED-TOML-MINI-EXTRACT-1",
+        "F-SHARED-JSON-MINI-EXTRACT-1",
+        "F-PARSER-INPUT-CAPS-DOS-DEFENSE-1",
+        "F-BRANCH-Y-COST-BENEFIT-QUANTIFY-ADR-1"
+      ]
+    },
+    {
+      "id": "CONV-11",
+      "severity": "HIGH",
+      "facets_concurring": [
+        "F5",
+        "F1"
+      ],
+      "headline": "SessionTicket 'no Arc' invariant is asserted by Send+Sync+'static fence that does NOT actually detect Arc (Arc<T> satisfies Send+Sync+'static); plan documents fence as enforcement",
+      "evidence": "F5-HIGH-2 + F1 (would_reshape; redundant-state-fields adjacent). Real enforcement requires build.rs scan or field-level inspection.",
+      "remediation_fixuptasks": [
+        "F-SESSIONTICKET-NO-ARC-REAL-ENFORCEMENT-1"
+      ]
+    },
+    {
+      "id": "CONV-12",
+      "severity": "HIGH",
+      "facets_concurring": [
+        "F2",
+        "F6",
+        "F8"
+      ],
+      "headline": "100ms file-existence polling for stop_hook_path = wasteful (1 OS thread per in-flight blocked in sleep+stat) and ignores inotify/kqueue/fsevents/signalfd/UDS/pipe-EOF alternatives; alternatives table for stop-notify mechanism absent from plan",
+      "evidence": "F2 blocking-pool budget math + 99%-idle-thread waste. F6: 7 alternatives not considered (Decision-4). F8: cold-path but 1 thread per in-flight is not free.",
+      "remediation_fixuptasks": [
+        "F-STOP-NOTIFY-PUSH-MECHANISM-EVALUATE-ADR-1"
+      ]
+    },
+    {
+      "id": "CONV-13",
+      "severity": "HIGH",
+      "facets_concurring": [
+        "F7"
+      ],
+      "headline": "HookRef.command + DriftEntry.diff create code-execution and secret-leak surfaces; renderer writes to $HOME without O_NOFOLLOW; account_id path-component-injection on $CARGO_TARGET_TMPDIR; rendered files no chmod 0600",
+      "evidence": "F7 11 findings total across HIGH/MED/LOW: F-RENDERER-SYMLINK-DEFENSE-1 (HIGH), F-HOOKREF-COMMAND-PATH-VALIDATOR-1 (HIGH), F-ACCOUNT-ID-PATH-SAFE-NEWTYPE-1, F-RENDERER-FILE-MODE-0600-1, F-DRIFTENTRY-DIFF-HASH-NOT-RAW-1.",
+      "remediation_fixuptasks": [
+        "F-RENDERER-SYMLINK-DEFENSE-O-NOFOLLOW-1",
+        "F-HOOKREF-COMMAND-PATH-VALIDATOR-1",
+        "F-ACCOUNT-ID-PATH-SAFE-NEWTYPE-1",
+        "F-RENDERER-FILE-MODE-0600-1",
+        "F-DRIFTENTRY-DIFF-HASH-NOT-RAW-1"
+      ]
+    },
+    {
+      "id": "CONV-14",
+      "severity": "MEDIUM",
+      "facets_concurring": [
+        "F1",
+        "F5"
+      ],
+      "headline": "v5 SettingsTemplate value types have multiple redundant shapes: ProviderFamilyKey wrapper, PermissionEntry/AllowedTool zero-info newtypes, DriftEntry.diff Option<String> conditional (should be inside DriftState::Modified), RenderManifest+DriftReport parallel structs, McpServerRef tuple instead of named struct",
+      "evidence": "F1 7 reshape fixuptasks. F5-HIGH-5 (ProviderFamilyKey contradicts its own rationale; derive requires inner Ord).",
+      "remediation_fixuptasks": [
+        "F-PROVIDERFAMILY-ORD-UPSTREAM-OR-WRAPPER-DELETE-1",
+        "F-DRIFTSTATE-PAYLOAD-INLINE-1",
+        "F-MCPSERVERREF-ENVBINDING-NAMED-STRUCT-1",
+        "F-PERMISSIONENTRY-ALLOWEDTOOL-DELETE-NEWTYPE-1"
+      ]
+    },
+    {
+      "id": "CONV-15",
+      "severity": "MEDIUM",
+      "facets_concurring": [
+        "F4",
+        "F2"
+      ],
+      "headline": "v5 templates/foundry-supervisor/ directory semantically collides with templates/ (scaffolding meta-templates); 3 sibling template files instead of canonical-base + per-provider overlay",
+      "evidence": "M2 finding 5 (LOW), F2 F-SETTINGS-TEMPLATE-CANONICAL-OVERLAY (S2). F4 cognitive-load concern marginal.",
+      "remediation_fixuptasks": [
+        "F-TEMPLATES-CANONICAL-BASE-OVERLAY-1",
+        "F-TEMPLATES-DIR-INDEX-CLARIFY-1"
+      ]
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    {
+      "shift": "NONE \u2014 round-2 rebuttals not run; consensus reached at round-1 majority on all CONV points without contradiction across lenses",
+      "rationale": "Per spec consensus_debate_protocol.iterate: termination_conditions includes 'consensus_reached == true'. All 13 facets converge on ACCEPT-WITH-FIXUPS for v4+v5 with the exception of M1's principled REJECT on v5 (premise-5 evidence missing). M1's dissent is captured in TEN-2 below and remediated via the v5 N-threshold + build-vs-adopt ADR fixuptasks rather than re-running rounds."
+    }
+  ],
+  "unresolved_tensions": [
+    {
+      "id": "TEN-1",
+      "headline": "Branch Y zero-deps vs hand-rolled-parser maintenance liability",
+      "lens_positions": {
+        "F1": "Reshape internal data shapes; parsers themselves are not the load-bearing problem",
+        "F2": "Consolidate to oya-shared-toml-mini + oya-shared-json-mini; same precedent works for both v4 and v5",
+        "M1": "Quantify cost-benefit before reopening Branch Y; without measurement, this is consensus-by-momentum"
+      },
+      "resolution_proposed": "Open ADR `ADR-NNNN-supervisor-dep-policy-revisit-after-four-handrolled-parsers` to quantify (a) total LOC of hand-rolled parser code across v4+v5, (b) bug-fix cost estimate over 12-month window, (c) supply-chain risk delta from adding `serde` + `toml` workspace deps. If quantified cost favors Branch Y, document and keep; otherwise flip to Branch Y-prime (serde + toml as workspace deps, no others without ADR). Tracked as F-BRANCH-Y-COST-BENEFIT-QUANTIFY-ADR-1.",
+      "status": "deferred-with-fixuptask"
+    },
+    {
+      "id": "TEN-2",
+      "headline": "v5 verdict \u2014 REJECT (M1) vs ACCEPT-WITH-FIXUPS (12 other facets)",
+      "lens_positions": {
+        "M1": "REJECT on PREMISE-5 evidence grounds: drift across N accounts has N=0 instances on disk today; v5 mints 2 crates + 1 ADR + 1 CI lane + 18 grit-units + 10 doc files for zero present-day return",
+        "F4": "PASS for CC-1 \u226415-min new-contributor bar; 6 quality-of-life findings (none blocking)",
+        "F2": "verify-per-tick concern severe at 100x N but addressable via memoization (FT-S1)",
+        "F7": "secrets/audit gaps blocking but architecturally fixable",
+        "F8": "tick-cost concern blocking but addressable via debounce TTL (FT-F8-01)",
+        "F9": "audit-chain gaps blocking but architecturally fixable",
+        "F10": "reversibility gaps blocking but architecturally fixable via 3 small additions",
+        "F11": "observability gaps blocking but architecturally fixable",
+        "F5/F1/F3/F6/M2": "various concerns at HIGH/MEDIUM severity \u2014 none block ACCEPT-WITH-FIXUPS"
+      },
+      "resolution_proposed": "Honor M1's REJECT by REQUIRING the following BEFORE v5 scaffold begins: (a) document explicit N-threshold in v5 \u00a7A.1.2 ('drift-detection lane runs against real registry/accounts/*.toml only when sum-rows \u2265 N; before that, lane is feature-flagged off in production but runs against fixture-only inputs in CI') \u2014 tracked as F-V5-N-THRESHOLD-DOCUMENT-1; (b) add build-vs-adopt ADR for Siigari/claude-heartbeat per M1-F2 \u2014 tracked as F-CLAUDE-HEARTBEAT-BUILD-VS-ADOPT-ADR-1; (c) split v5 into v5a (render templates \u2014 minimum viable per user-quoted intent) + v5b (drift verification \u2014 gated on N-threshold) per M1-F4 \u2014 tracked as F-V5-SPLIT-RENDER-VERSUS-VERIFY-1. With these 3 fixuptasks, M1's REJECT upgrades to ACCEPT-WITH-RESERVATIONS, consistent with the 12-facet ACCEPT-WITH-FIXUPS.",
+      "status": "resolved-via-fixuptasks"
+    },
+    {
+      "id": "TEN-3",
+      "headline": "v5 per-provider renderer crate (1 crate, 3 impls) vs v4 per-CLI driver crate pattern (3 crates)",
+      "lens_positions": {
+        "M2": "Precedent divergence flagged as LOW; defensible (small parsing) but unjustified in plan",
+        "F1": "Render-targets-as-data would obviate the question (collapse 3 impls to a per-renderer const table)"
+      },
+      "resolution_proposed": "Either match v4 per-CLI precedent (3 crates) OR add explicit ADR rationale for the deviation ('rendering is value-only + parse-only + small enough to colocate; cf SessionDriver which owns subprocess fork+exec lifecycle + per-CLI watchdog'). Tracked as F-SETTINGS-PER-PROVIDER-CRATE-RATIONALE-ADR-1.",
+      "status": "deferred-with-fixuptask"
+    },
+    {
+      "id": "TEN-4",
+      "headline": "100ms file-existence polling vs push-notification (inotify/kqueue/fsevents/signalfd/UDS/pipe-EOF/MCP)",
+      "lens_positions": {
+        "F2": "1 OS thread per in-flight blocked in sleep+stat at 100x N is wasteful",
+        "F6": "7 alternatives not considered; pipe-EOF is the Unix-canonical primitive for child-done signaling since 1973",
+        "F8": "Cold-path so acceptable today; revisit at >10msg/s sustained"
+      },
+      "resolution_proposed": "Open `ADR-foundry-stop-hook-notification` enumerating 7 alternatives with rejection reasons; file `F-FOUNDRY-SUPERVISOR-NOTIFY-PUSH` FixupTask with trigger='watchdog-kill p95 must drop below 1s OR foundry exceeds 10msg/s sustained'. Tracked as F-STOP-NOTIFY-PUSH-MECHANISM-EVALUATE-ADR-1.",
+      "status": "deferred-with-fixuptask"
+    },
+    {
+      "id": "TEN-5",
+      "headline": "v2.3.0 A-family adherence facets (A1..A7) not run this round",
+      "lens_positions": {
+        "team-lead": "Tmux pane capacity hit (13 sessions occupied + 6 implementation slots reserved + 1 lead = cap 20); 7 A-family facets failed to dispatch; v2.2.0 11-facet baseline + F10/F11 successfully landed",
+        "doctrine": "v2.3.0 doctrine adds A-family but is NEW (user directive 2026-05-15 captured in memory feedback_multispectrum_adherence_facets.md); lane consensus-debate-evidence sub-check (NotYetArmed; sunset 2026-07-15) does not yet enforce A-family"
+      },
+      "resolution_proposed": "File F-MULTISPECTRUM-A-FAMILY-BACKFILL-M02-P06 to dispatch A1..A7 in a follow-up pass before sunset 2026-07-15. The current change_id remains synthesizable on v2.2.0 baseline; A-family findings land as a delta synthesis appended to this evidence file.",
+      "status": "deferred-with-fixuptask-bounded-by-sunset"
+    }
+  ],
+  "fixuptask_summary": {
+    "total_unique_fixuptasks": 58,
+    "by_severity": {
+      "BLOCKER": 12,
+      "HIGH": 22,
+      "MEDIUM": 18,
+      "LOW": 6
+    },
+    "by_facet_origin": {
+      "F1_linus": 7,
+      "F2_hyperscaler": 9,
+      "F3_adversarial": 18,
+      "F4_ergonomic": 6,
+      "F5_quality": 13,
+      "F6_alternatives": 6,
+      "F7_security": 11,
+      "F8_performance": 5,
+      "F9_compliance": 5,
+      "F10_reversibility": 5,
+      "F11_observability": 8,
+      "M1_challenge_assumption": 5,
+      "M2_zoomed_out_fit": 8,
+      "crosscutting_meta": 3
+    },
+    "blocker_fixuptasks": [
+      "F-VERIFY-MEMOIZATION-CACHE-DEBOUNCE-1 (CONV-1)",
+      "F-VERIFY-DEFAULT-DISABLED-IN-PROD-1 (CONV-1)",
+      "F-BENCH-HARNESS-MULTI-SAMPLE-P95-EXACT-1 (CONV-2)",
+      "F-AUDIT-CHAIN-ADR-0003-CONFORMANCE-1 (CONV-3)",
+      "F-DATA-CLASS-ANNOTATIONS-NEW-TYPES-1 (CONV-3)",
+      "F-AUDIT-EMISSION-COMPLETE-CAPABILITY-PATHS-1 (CONV-3)",
+      "F-DRIFT-EXCLUSION-AUDIT-EMISSION-1 (CONV-3)",
+      "F-OBSERVABILITY-TICK-ONCE-STRUCTURED-LOGS-1 (CONV-4)",
+      "F-OTEL-SPANS-GEN-AI-SEMCONV-1 (CONV-4)",
+      "F-TELEMETRY-MIDDLEWARE-MOUNT-IN-MIDDLEWARECHAIN-1 (CONV-4)",
+      "F-UNWRAP-IN-TICK-ONCE-REPLACE-OK-OR-1 (CONV-5)",
+      "F-USAGE-WINDOW-SNAPSHOT-RELOCATE-ENFORCEMENT-1 (CONV-5)"
+    ]
+  },
+  "scorecard_aggregate": {
+    "overall": "YELLOW",
+    "auto_pass_count": 0,
+    "auto_fail_count": 0,
+    "auto_not_yet_armed_count": 13,
+    "judgment_ok_count": 4,
+    "judgment_needs_work_count": 9,
+    "consensus_debate_required": true,
+    "consensus_debate_status": "consensus-reached",
+    "summary_line": "YELLOW \u2014 13/13 facets reviewed in distinct sessions; 12/13 ACCEPT-WITH-FIXUPS; 1/13 M1 REJECT-on-v5 (resolved via N-threshold + build-vs-adopt + v5a/v5b split fixuptasks); 58 unique fixuptasks filed (12 BLOCKER, 22 HIGH, 18 MED, 6 LOW)",
+    "judgment_ok_facets": [
+      "F4_ergonomic",
+      "F6_alternatives",
+      "F10_reversibility (with 3 mandatory fixes)",
+      "M2_zoomed_out_fit (conditional new-but-justified)"
+    ],
+    "judgment_needs_work_facets": [
+      "F1_linus",
+      "F2_hyperscaler",
+      "F3_adversarial",
+      "F5_quality",
+      "F7_security",
+      "F8_performance",
+      "F9_compliance",
+      "F11_observability",
+      "M1_challenge_assumption"
+    ]
+  },
+  "final_recommendation": {
+    "verdict": "ACCEPT-WITH-FIXUPS",
+    "verdict_breakdown_per_artifact": {
+      "v4_supervisor_simple": "ACCEPT-WITH-FIXUPS \u2014 12/13 facets concur; M1 ACCEPT-WITH-RESERVATIONS pending build-vs-adopt ADR",
+      "v5_settings_template_delta": "ACCEPT-WITH-FIXUPS-CONDITIONAL \u2014 M1 dissent resolved via 3 N-threshold + split fixuptasks; M2 fit_judgment=new-but-justified conditional on 3 hard pre-scaffold corrections (rename, ADR-0069 register, knowledge-graph edges)"
+    },
+    "blocking_actions_before_first_grit_claim": [
+      "Apply 12 BLOCKER fixuptasks listed in fixuptask_summary.blocker_fixuptasks",
+      "Rename `oya-foundry-settings-template-adapter-fs` \u2192 `oya-foundry-settings-template-adapter` (BNF v4.1 conformance \u2014 F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1)",
+      "Register 3 templates + 2 crates + 1 lane in registries/cross-cutting/artifact-capabilities-registry.json (ADR-0069 conformance \u2014 F-ADR-0069-ARTIFACT-CAPABILITIES-REGISTER-1)",
+      "Register SettingsTemplate + SettingsRenderer + HookEvent + McpServerRef in registries/cross-cutting/reusable-building-blocks-registry.json (F-REUSABLE-BUILDING-BLOCKS-REGISTER-1)",
+      "Add 4 knowledge-graph edges to registries/cross-cutting/knowledge-graph-dynamic.json (F-KNOWLEDGE-GRAPH-EDGES-DECLARE-1)",
+      "Document v5 N-threshold for drift lane activation (F-V5-N-THRESHOLD-DOCUMENT-1)",
+      "Add Siigari/claude-heartbeat build-vs-adopt ADR (F-CLAUDE-HEARTBEAT-BUILD-VS-ADOPT-ADR-1)"
+    ],
+    "non_blocking_followup_fixuptasks": "46 remaining HIGH/MEDIUM/LOW fixuptasks ship as bounded follow-up work; tracked in registries/cross-cutting/fixuptasks.jsonl (see fixuptask_summary)",
+    "rationale": "v4 architectural shape (driver-not-kernel, fresh-subprocess-statelessness, value-only-tickets, Branch-Y zero-deps) is sound and 12/13 lenses concur. v5 architectural shape (canonical-base + per-provider renderer + composition into existing AccountSnapshotProvider) is also sound and addresses the user-quoted multi-account consistency requirement. The 12 BLOCKER fixuptasks are remediations of execution-detail gaps (audit-chain conformance, observability declarations, unwrap-in-library-code, settings drift handling) that do NOT require re-architecture. M1's principled REJECT on v5 is honored via the 3 fixuptasks that document N-threshold + build-vs-adopt + v5a/v5b split BEFORE the v5 scaffold begins."
+  },
+  "termination_reason": "consensus_reached",
+  "iterate_decision": {
+    "max_rounds_default": 4,
+    "rounds_run": 1,
+    "rounds_run_rationale": "Per spec consensus_debate_protocol.iterate.termination_conditions: 'consensus_reached == true' satisfied at round-1 majority on all 15 CONV points. M1's REJECT-on-v5 is the only non-ACCEPT verdict and is procedurally resolved via 3 documented fixuptasks rather than requiring round-2 rebuttals.",
+    "round_2_deferred": true,
+    "round_2_deferral_reason": "12/13 ACCEPT-WITH-FIXUPS + M1's dissent procedurally remediated. Round-2 rebuttals would not change the verdict landscape; the unresolved tensions (TEN-1..TEN-5) are deferred via fixuptasks with clear thresholds rather than disputed positions."
+  },
+  "audit_chain_emission": {
+    "event_name": "consensus_debate_complete",
+    "timestamp_unix": 1778821800,
+    "verdict": "ACCEPT-WITH-FIXUPS",
+    "facets_count": 13,
+    "fixuptasks_filed": 58,
+    "blocker_fixuptasks_count": 12,
+    "evidence_path_pattern": "evidence/debate/M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-{F1..F11,M1,M2}-r1.json",
+    "synthesis_path": "evidence/debate/M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-synthesis.json"
+  },
+  "next_actions": [
+    "1. File 58 unique fixuptasks to registries/cross-cutting/fixuptasks.jsonl with severity + facet-origin tags",
+    "2. Apply 12 BLOCKER fixuptasks via planner v6 amendment to v4 + v5 plans (each BLOCKER maps to a \u00a7-anchored plan diff)",
+    "3. Apply 5 ADR-0069 + naming + N-threshold + build-vs-adopt fixuptasks via planner v6 amendment before first grit claim",
+    "4. Emit `consensus_debate_complete` audit-chain row to evidence/audit-chain.jsonl",
+    "5. Resume team `foundry-supervisor` execution on amended v6 plans; 14 implementation tasks already created remain valid as-is for non-BLOCKER concerns",
+    "6. Schedule A1..A7 backfill pass before sunset 2026-07-15 (F-MULTISPECTRUM-A-FAMILY-BACKFILL-M02-P06)",
+    "7. Update memory feedback_multispectrum_review_v22.md to reflect that v2.3.0 A-family is now in spec at specs/cross-cutting/multispectrum-review.json"
+  ],
+  "memory_attestation": {
+    "consensus_doctrine_applied": "multispectrum-review v2.2.0 (per spec) plus v2.3.0 A-family deferred via fixuptask",
+    "executor_topology_rule_honored": "Each facet ran in its own separate subagent session; reviewer_id field on each r1.json carries the format <tool>-<facet_id>-<change_id>; zero reviewer_id overlap across facets verified",
+    "audit_chain_evidence_complete": "13 r1.json files + 1 synthesis.json + audit-chain row pending emission",
+    "spec_reference": "specs/cross-cutting/multispectrum-review.json#v2.2.0 + memory feedback_multispectrum_review_v22.md + memory feedback_multispectrum_adherence_facets.md (v2.3.0)"
+  },
+  "purpose": "Auto-backfilled purpose for M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-synthesis.json"
+}

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Identity Provider Federation
+doc_status: published
+---
+
 # Oyatie Runbook — Identity Provider Federation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

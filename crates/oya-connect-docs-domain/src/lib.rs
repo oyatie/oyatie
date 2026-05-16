@@ -4,8 +4,11 @@
 //! `docs/products/workspace/PRD.md` and ADR-0029. This crate models document
 //! metadata, CRDT snapshot references, permission grants, and the read seam
 //! consumed by Search and Foundry without owning protocol or storage adapters.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DOC_SCHEMA_VERSION: u32 = 1;
 const MIN_SNAPSHOT_BYTES: u64 = 1;
@@ -267,18 +270,15 @@ impl DocPermissionGrant {
 }
 
 pub fn default_workspace_doc_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn path_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiQuasiIdentifier)
-        .expect("PII_QUASI_IDENTIFIER is a privacy-program data class")
+    PrivacyDataClass::pii_quasi_identifier()
 }
 
 pub fn permission_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_doc_data_class_from_legacy(
@@ -349,7 +349,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn snapshot() -> CrdtSnapshotRef {
         CrdtSnapshotRef::new(
@@ -481,5 +481,46 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.docs STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DocsSurfaceStaging {
+    pub doc_id: Classified<String>,            // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,         // data_class: INTERNAL_ONLY
+    pub yrs_state_vector: Classified<Vec<u8>>, // data_class: INTERNAL_ONLY
+}
+
+impl DocsSurfaceStaging {
+    pub fn new(doc_id: String, tenant_id: String, yrs_state_vector: Vec<u8>) -> Self {
+        Self {
+            doc_id: Classified::new(doc_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            yrs_state_vector: Classified::new(yrs_state_vector, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> DocsSurfaceStaging {
+        DocsSurfaceStaging::new("docs-1".into(), "docs-1".into(), vec![])
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.doc_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

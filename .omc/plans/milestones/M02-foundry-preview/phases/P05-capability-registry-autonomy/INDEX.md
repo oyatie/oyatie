@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M02-P05
 title: Capability Registry + Autonomy Ceiling + RAG Endpoint
-status: stub
+status: complete
 purpose: Ship the capability registry, Cedar-policy autonomy ceiling, audit-chain emission per invocation, and RAG endpoint exposure.
 ---
 
@@ -21,9 +21,9 @@ Per [`../../../../../docs/ROADMAP.md`](../../../../../docs/ROADMAP.md) §2.2 W-F
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Capability registry kernel + publish surface | stub | [`IP-001-capability-registry.md`](IP-001-capability-registry.md) |
-| IP-002 | Autonomy ceiling Cedar policy + runtime check | stub | [`IP-002-autonomy-ceiling.md`](IP-002-autonomy-ceiling.md) |
-| IP-003 | RAG endpoint exposed to Foundry-internal capabilities | stub | [`IP-003-rag-endpoint.md`](IP-003-rag-endpoint.md) |
+| IP-001 | Capability registry kernel + publish surface | complete | [`IP-001-capability-registry.md`](IP-001-capability-registry.md) |
+| IP-002 | Autonomy ceiling Cedar policy + runtime check | complete | [`IP-002-autonomy-ceiling.md`](IP-002-autonomy-ceiling.md) |
+| IP-003 | RAG endpoint exposed to Foundry-internal capabilities | complete | [`IP-003-rag-endpoint.md`](IP-003-rag-endpoint.md) |
 
 ## Estimated parallelism
 3 agents in parallel; disjoint crate suffix.

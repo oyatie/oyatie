@@ -5,12 +5,12 @@
 //! projection for the `cloud.observability.audit.read` surface before handing
 //! immutable reads to the Cloud observability kernel.
 
-use oya_cloud_observability_kernel::{
+use oya_audit_chain_domain::Plane;
+use oya_cloud_observability_domain::{
     AuditReadRequest, AuditReadScope, CloudAuditOperation, CloudAuditRecord, CloudAuditTopic,
     CloudObservabilityCatalog, CloudObservabilityError,
 };
-use oya_platform_audit_chain_kernel::Plane;
-use oya_platform_data_boundary_kernel::{OperationalDataClass, Purpose};
+use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
 
 pub const CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE: &str = "cloud.observability.audit.read";
 
@@ -629,18 +629,18 @@ fn audit_operation_label(operation: CloudAuditOperation) -> &'static str {
 }
 
 fn audit_record_class_label(
-    record_class: oya_cloud_observability_kernel::AuditRecordClass,
+    record_class: oya_cloud_observability_domain::AuditRecordClass,
 ) -> &'static str {
     match record_class {
-        oya_cloud_observability_kernel::AuditRecordClass::ControlPlaneMutation => {
+        oya_cloud_observability_domain::AuditRecordClass::ControlPlaneMutation => {
             "control_plane_mutation"
         }
-        oya_cloud_observability_kernel::AuditRecordClass::DataPlaneSecurity => {
+        oya_cloud_observability_domain::AuditRecordClass::DataPlaneSecurity => {
             "data_plane_security"
         }
-        oya_cloud_observability_kernel::AuditRecordClass::BillingAnalytics => "billing_analytics",
-        oya_cloud_observability_kernel::AuditRecordClass::Replication => "replication",
-        oya_cloud_observability_kernel::AuditRecordClass::CapacityOperations => {
+        oya_cloud_observability_domain::AuditRecordClass::BillingAnalytics => "billing_analytics",
+        oya_cloud_observability_domain::AuditRecordClass::Replication => "replication",
+        oya_cloud_observability_domain::AuditRecordClass::CapacityOperations => {
             "capacity_operations"
         }
     }

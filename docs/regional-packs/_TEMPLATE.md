@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Regional Pack: oya-pack-<region>
 
 > Template for every regional pack under [`regional-packs/`](.). Copy verbatim, then fill in. Status moves through `draft → preview → stable → GA` per ADR-0010-regional-pack-architecture.

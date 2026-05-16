@@ -18,6 +18,7 @@ extends_crates:
 companion_docs:
   - INDEX.md
   - ../../docs/GLOSSARY.md
+doc_status: published
 ---
 
 # Pipeline: GLOSSARY.md auto-derivation

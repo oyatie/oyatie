@@ -1,8 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_cohesion_fitness_kernel::validate_cohesion_fitness;
-use oya_foundry_slo_coverage_kernel::{validate_slo_coverage, SloCatalogRecord};
+use oya_check_cohesion::validate_cohesion_fitness;
+use oya_check_slo_coverage::{SloCatalogRecord, validate_slo_coverage};
 
 use crate::{read_cross_axis_contracts, read_workspace_member_crate_ids, usage};
 

@@ -1,16 +1,20 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_cloud_network_dns_api::{
-    create_cloud_network_dns_zone_from_api, CloudNetworkDnsApiAuthorization,
+    CLOUD_NETWORK_DNS_ZONE_CREATE_SURFACE, CloudNetworkDnsApiAuthorization,
     CloudNetworkDnsApiBoundaryContext, CloudNetworkDnsApiError, CloudNetworkDnsApiPrincipal,
     CloudNetworkDnsZoneCreateApiRequest, CloudNetworkDnsZoneCreateApiStatus,
     CloudNetworkDnsZoneCreateIdempotencyLedger, CloudNetworkDnsZoneCreateRequest,
-    CLOUD_NETWORK_DNS_ZONE_CREATE_SURFACE,
+    create_cloud_network_dns_zone_from_api,
 };
-use oya_cloud_network_kernel::{
+use oya_cloud_network_domain::{
     CloudNetworkCatalog, CloudNetworkError, IpProtocol, NetworkRepo, RouteCreate, RouteNextHopKind,
     RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule, VpcCreate, VpcState,
 };
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
+use oya_residency_domain::ResidencyClass;
 
 const PUBLIC_ZONE_ID: &str = "oya:cloud:kr-seoul:ten_kr:dns-zone:example-com";
 const PRIVATE_ZONE_ID: &str = "oya:cloud:kr-seoul:ten_kr:dns-zone:internal-example";
@@ -126,7 +130,7 @@ fn seed_vpc(catalog: &mut CloudNetworkCatalog) {
                     direction: RuleDirection::Ingress,
                     protocol: IpProtocol::Tcp,
                     port_range: Some((443, 443)),
-                    cidr: oya_cloud_network_kernel::RouteDestination::new("10.42.0.0/16")
+                    cidr: oya_cloud_network_domain::RouteDestination::new("10.42.0.0/16")
                         .expect("valid CIDR"),
                     description: "tenant https ingress".to_string(),
                 }],

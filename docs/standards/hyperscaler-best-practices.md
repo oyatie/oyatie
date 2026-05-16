@@ -1,3 +1,8 @@
+---
+purpose: "<!-- status: Accepted date: 2026-05-12 related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055 -->"
+doc_status: published
+---
+
 # Hyperscaler Best Practices — Research + oyatie Adoption Recommendation (2026-05-12)
 
 <!--
@@ -229,7 +234,7 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 | # | Practice | Effort | Impact |
 |---|---|---|---|
 | 1 | **Amazon-style PRFAQ for every new axis / cross-axis capability** (template under `docs/templates/`, mandatory for new product PRDs) | low | high |
-| 2 | **Tenets per axis** — 3–7 single-idea principles, referenced from per-axis design docs (already partially modeled in CONSTITUTION's "Do" list) | low | high |
+| 2 | **Tenets per axis** — 3–7 single-idea principles, referenced from per-axis design docs (already partially modeled in decision-principles.json DP-01..DP-10) | low | high |
 | 3 | **Single-Threaded Leader per axis** — one accountable owner per axis with veto on cross-axis contracts feeding into their surface (oyatie has axis-team-lead role; formalize STL semantics) | low | medium |
 | 4 | **Blameless-postmortem template + replay-as-eval gating** — already largely present via MISTAKES-LEDGER mechanical-prevention doctrine; tighten to enforce the *replay* property on every prevention | medium | high |
 | 5 | **SRE error-budget release gate** — codify per-axis SLOs in `SLO-CATALOG.md`, derive error budgets, gate cross-axis contract changes on burn-rate state | medium | high |

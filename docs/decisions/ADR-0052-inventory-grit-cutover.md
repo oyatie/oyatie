@@ -2,6 +2,7 @@
 id: ADR-0052
 title: "Canonical inventory ledger for the grit/icm cutover"
 status: Accepted
+doc_status: published
 date: 2026-05-12
 owners:
   - council-architecture
@@ -45,12 +46,12 @@ Enforced by: `oya-foundry-fitness-inventory-tracker` CI lane.
 
 The grit/icm cutover (per `.omc/plans/ralplan-oyatie-sst-consolidation.md`, Option A — strict-phased, archive-first) requires that **no artifact leaves the active path without a committed ADR row classifying it**. This is §Constraints item 3 of the plan, stated as: "Inventory precedes deletion."
 
-Before this ADR, no single authoritative ledger classified all 211 artifacts in scope. The `ultragoal/` orchestration glue (`ledger.jsonl`, `goals.json`, `codex-goal-*.json`, `G004-reconciliation-blocker.md`, `PAUSE.md`) was treated as live coordination state even though its semantic content is wholly absorbed by `grit claim`/`grit done`/`grit watch` state and `icm store -t goals-oyatie`. The absence of a committed classification ledger created two risks:
+Before this ADR, no single authoritative ledger classified all 223 artifact rows now in scope. The `ultragoal/` orchestration glue (`ledger.jsonl`, `goals.json`, `codex-goal-*.json`, `G004-reconciliation-blocker.md`, `PAUSE.md`) was treated as live coordination state even though its semantic content is wholly absorbed by `grit claim`/`grit done`/`grit watch` state and `icm store -t goals-oyatie`. The absence of a committed classification ledger created two risks:
 
 1. **Premature deletion** — an agent or human could remove an archive-class artifact before its function was confirmed to be replaced elsewhere.
 2. **Missing-boundary ambiguity** — seven cross-boundary artifacts between `bominal/` and `oyatie/` lacked a disposition ruling, leaving their authority-home undefined.
 
-The source data for this ledger was gathered in `.omc/specs/inventory-draft-oyatie-cutover.md` (READ-ONLY; that file is not modified by this ADR's lift).
+The source data for this ledger was gathered in `.omc/scratch/inventory-draft-oyatie-cutover.md` (READ-ONLY; that file is not modified by this ADR's lift).
 
 A Critic iter-2 finding corrected one phantom-path entry: `oyatie/.omx/ultragoal/` does not exist in the repository; the entry is noted as "phantom path; not present; no action" in the ledger below.
 
@@ -61,6 +62,8 @@ A Critic iter-2 finding corrected one phantom-path entry: `oyatie/.omx/ultragoal
 This ADR **IS** the inventory ledger. The table in the §Inventory Ledger section below is the canonical, authoritative, committed classification of every in-scope artifact. It uses only values from the closed action set:
 
 `KEEP` | `KEEP+ANNOTATE` | `REPLACE-WITH-GRIT` | `REPLACE-WITH-ICM` | `REPLACE-WITH-HELPER` | `ARCHIVE` | `DELETE` | `FLAG-FOR-USER`
+
+Each inventory row carries an `Archived at` column. The value remains `null` until P6 stamps ARCHIVE-class rows with the archive timestamp; planned future target rows that do not exist yet use `n/a`.
 
 Rules that follow from this ADR:
 
@@ -120,13 +123,14 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 
 ### Negative
 
-- The ledger covers 211 artifacts across two repositories; any future artifact added to either scope without a corresponding ledger update will trigger an `oya-foundry-fitness-inventory-tracker` gap warning. This requires process discipline on all contributors.
-- The 13 ARCHIVE-class rows cannot be moved until this ADR merges, which is a hard sequencing constraint that blocks P6 in the plan.
+- The ledger now covers 223 existing artifact rows across two repositories; any future artifact added to either scope without a corresponding ledger update will trigger an `oya-foundry-fitness-inventory-tracker` gap warning. This requires process discipline on all contributors.
+- The 15 ARCHIVE-class rows cannot be moved until this ADR merges, which is a hard sequencing constraint that blocks P6 in the plan.
 - Maintaining the ledger in a markdown table limits programmatic query ergonomics; the `oya-foundry-fitness-inventory-tracker` lane must implement its own markdown-table parser.
 
 ### Neutral
 
-- The classification counts (185 KEEP, 3 KEEP+ANNOTATE, 13 ARCHIVE, 8 DELETE, 2 FLAG-FOR-USER, 0 REPLACE-WITH-*) reflect the state of the repository on 2026-05-12. The 0-count REPLACE-WITH-* classes are correct: the grit/icm coordination layer is absorbed via ARCHIVE+DELETE of the old glue, not by in-place replacement of files.
+- The existing-artifact classification counts (201 KEEP, 5 KEEP+ANNOTATE, 15 ARCHIVE, 2 DELETE, 0 FLAG-FOR-USER, 0 REPLACE-WITH-*) reflect the reconciled ledger state after the 2026-05-14 archive move and exclude planned future target rows. The helper target `tools/oya-tooling-agent-read/` is recorded separately as a planned `REPLACE-WITH-HELPER` row because it is created in P2, after this inventory ADR lands.
+- The P7 review reconciled one stale file-specific KEEP row for an absent Bominal evidence log: the evidence directory is authoritative and KEEP, but that specific file was absent before P7 cleanup and is not counted as an existing artifact row.
 - All `oyatie/crates/` artifacts are KEEP; the flat-crates architecture per ADR-0015 is not disturbed by this cutover.
 
 ---
@@ -135,385 +139,390 @@ Sibling ADRs ADR-0053 (sanctioned primitives closed set) and ADR-0054 (grit scaf
 
 **Classification closed set:** `KEEP` | `KEEP+ANNOTATE` | `REPLACE-WITH-GRIT` | `REPLACE-WITH-ICM` | `REPLACE-WITH-HELPER` | `ARCHIVE` | `DELETE` | `FLAG-FOR-USER`
 
-**Summary counts:**
+**Existing-artifact summary counts** (excludes planned future target rows):
 
 | Classification | Count |
 |---|---|
-| KEEP | 185 |
-| KEEP+ANNOTATE | 3 |
+| KEEP | 201 |
+| KEEP+ANNOTATE | 5 |
 | REPLACE-WITH-GRIT | 0 |
 | REPLACE-WITH-ICM | 0 |
 | REPLACE-WITH-HELPER | 0 |
-| ARCHIVE | 13 |
-| DELETE | 8 |
-| FLAG-FOR-USER | 2 |
-| **TOTAL** | **211** |
+| ARCHIVE | 15 |
+| DELETE | 2 |
+| FLAG-FOR-USER | 0 |
+| **TOTAL** | **223** |
+
+**Planned target rows** (not included in the existing-artifact count):
+
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/tools/oya-tooling-agent-read/ | dir | REPLACE-WITH-HELPER | n/a | A4 | New read-only, audit-emitting helper target; scaffolded in P2 via ADR-0054; replaces agent read-side `git`/`gh` access with sanctioned `log`, `diff`, `pr-view`, and `pr-comments` verbs. |
 
 ---
 
 ### oyatie/ — Root-level files
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/Cargo.toml | file | KEEP | A8 | Workspace manifest; flat-crates architecture preserved per ADR-0015 |
-| oyatie/Cargo.lock | file | KEEP | A8 | Dependency lock file; authoritative |
-| oyatie/deny.toml | file | KEEP | A8 | Supply-chain policy per ADR-0039 |
-| oyatie/README.md | file | KEEP | A8 | Project summary |
-| oyatie/CLAUDE.md | file | KEEP+ANNOTATE | A5 | Agent-instruction home; needs rewrite to remove rtk git/gh references; add sanctioned-primitives section naming grit+icm+oya-agent-read |
-| oyatie/AGENTS.md | file | KEEP+ANNOTATE | A5 | Agent-instruction redirect to docs/AGENTS.md; same annotation needs as CLAUDE.md |
-| oyatie/.aider.conventions.md | file | KEEP | A8 | Code convention guidance |
-| oyatie/.gitignore | file | KEEP | A8 | Version-control housekeeping |
-| oyatie/.windsurfrules | file | KEEP | A8 | Windsurf IDE configuration |
-| oyatie/WINUI3_KOREAN_PAYROLL_MVP_PROMPT.md | file | KEEP | A8 | Product-context reference; not authoritative SoT |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/Cargo.toml | file | KEEP | null | A8 | Workspace manifest; flat-crates architecture preserved per ADR-0015 |
+| oyatie/Cargo.lock | file | KEEP | null | A8 | Dependency lock file; authoritative |
+| oyatie/deny.toml | file | KEEP | null | A8 | Supply-chain policy per ADR-0039 |
+| oyatie/README.md | file | KEEP | null | A8 | Project summary |
+| oyatie/CLAUDE.md | file | KEEP+ANNOTATE | null | A5 | Agent-instruction home; needs rewrite to remove rtk git/gh references; add sanctioned-primitives section naming grit+icm+oya-tooling-agent-read |
+| oyatie/AGENTS.md | file | KEEP+ANNOTATE | null | A5 | Agent-instruction redirect to docs/AGENTS.md; same annotation needs as CLAUDE.md |
+| oyatie/.aider.conventions.md | file | KEEP | null | A8 | Code convention guidance |
+| oyatie/.gitignore | file | KEEP | null | A8 | Version-control housekeeping |
+| oyatie/.windsurfrules | file | KEEP | null | A8 | Windsurf IDE configuration |
+| oyatie/WINUI3_KOREAN_PAYROLL_MVP_PROMPT.md | file | KEEP | null | A8 | Product-context reference; not authoritative SoT |
 
 ### oyatie/ — Root-level directories (core)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/crates/ | dir | KEEP | A8 | 142 crates including 7 suspect oya-foundry-*-kernel crates; all KEEP per Constraint 6 (fitness/policy kernels, not coordination kernels); flat-crates architecture per ADR-0015 |
-| oyatie/docs/ | dir | KEEP | A8 | Canonical product-content SoT per Layer 1; all subdirs + 140+ files KEEP |
-| oyatie/scripts/ | dir | KEEP | A8 | Build/lint/release helpers (5 scripts); humans + sanctioned CI only; KEEP |
-| oyatie/contracts/ | dir | KEEP | A8 | Cross-axis contract files (OpenAPI/Proto/AsyncAPI); 20+ files; KEEP |
-| oyatie/registry/ | dir | KEEP | A8 | Catalog + capability records; machine-readable registry; KEEP |
-| oyatie/product-control/ | dir | KEEP | A8 | Evaluation harness metadata (capabilities/eval-runs/eval-sets); KEEP |
-| oyatie/infra/ | dir | KEEP | A8 | Policy-as-code (kyverno); 1 file; KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/crates/ | dir | KEEP | null | A8 | 142 crates including 7 suspect oya-foundry-*-kernel crates; all KEEP per Constraint 6 (fitness/policy kernels, not coordination kernels); flat-crates architecture per ADR-0015 |
+| oyatie/docs/ | dir | KEEP | null | A8 | Canonical product-content SoT per Layer 1; all subdirs + 140+ files KEEP |
+| oyatie/scripts/ | dir | KEEP | null | A8 | Build/lint/release helpers (5 scripts); humans + sanctioned CI only; KEEP |
+| oyatie/contracts/ | dir | KEEP | null | A8 | Cross-axis contract files (OpenAPI/Proto/AsyncAPI); 20+ files; KEEP |
+| oyatie/registry/ | dir | KEEP | null | A8 | Catalog + capability records; machine-readable registry; KEEP |
+| oyatie/product-control/ | dir | KEEP | null | A8 | Evaluation harness metadata (capabilities/eval-runs/eval-sets); KEEP |
+| oyatie/infra/ | dir | KEEP | null | A8 | Policy-as-code (kyverno); 1 file; KEEP |
 
 ### oyatie/ — Hidden/session directories
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/.grit/ | dir | KEEP | A8 | grit local state (worktrees, locks, symbols); .gitignored session ephemera; KEEP (managed by grit itself) |
-| oyatie/.omc/ | dir | KEEP | A8 | OMC plans + state; .gitignored for state subdirs; non-authoritative; KEEP (session-scoped tooling) |
-| oyatie/.omx/ | dir | KEEP | A8 | Working state only (metrics.json, notepad.md); .gitignored; non-authoritative ephemera; KEEP |
-| oyatie/.omx/ultragoal/ | dir | — | — | **Phantom path; not present in repository; no action.** (Critic iter-2 finding: this path does not exist; DELETE if ever discovered.) |
-| oyatie/.rtk/ | dir | KEEP | A8 | RTK token filters (filters.toml); personal config; KEEP |
-| oyatie/.github/ | dir | KEEP | A8 | GitHub Actions + Copilot instructions; (1 file: copilot-instructions.md); KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/.grit/ | dir | KEEP | null | A8 | grit local state (worktrees, locks, symbols); .gitignored session ephemera; KEEP (managed by grit itself) |
+| oyatie/.omc/ | dir | KEEP | null | A8 | OMC plans + state; .gitignored for state subdirs; non-authoritative; KEEP (session-scoped tooling) |
+| oyatie/.omx/ | dir | KEEP | null | A8 | Working state only (metrics.json, notepad.md); .gitignored; non-authoritative ephemera; KEEP |
+| oyatie/.omx/ultragoal/ | dir | — | n/a | — | **Phantom path; not present in repository; no action.** (Critic iter-2 finding: this path does not exist.) |
+| oyatie/.rtk/ | dir | KEEP | null | A8 | RTK token filters (filters.toml); personal config; KEEP |
+| oyatie/.github/ | dir | KEEP | null | A8 | GitHub Actions + Copilot instructions; (1 file: copilot-instructions.md); KEEP |
 
 ---
 
 ### oyatie/docs/ — Top-level authority files
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/CONSTITUTION.md | file | KEEP | A1, A8 | Project frame; canonical product authority; declares authority chain per ADR-0001 |
-| oyatie/docs/PRD.md | file | KEEP+ANNOTATE | A1 | 33.4K; canonical product PRD (7 axes); KEEP+ANNOTATE: add bidirectional cite to bominal/docs/consolidated/PRD.md as portfolio parent |
-| oyatie/docs/DESIGN.md | file | KEEP | A8 | 72.6K; canonical architecture design |
-| oyatie/docs/SPEC.md | file | KEEP | A8 | 43.6K; product specification |
-| oyatie/docs/ROADMAP.md | file | KEEP | A8 | Product roadmap; gates Foundry on Foundation completion |
-| oyatie/docs/README.md | file | KEEP | A8 | Docs portal homepage |
-| oyatie/docs/ADR-INDEX.md | file | KEEP | A8 | Master index of all ADRs; must be updated with ADR-0052 (this ADR), ADR-0053, ADR-0054 |
-| oyatie/docs/ADR-CONSOLIDATION-PLAN.md | file | KEEP | A8 | ADR consolidation strategy |
-| oyatie/docs/ADR-LEGACY-REGRESSION-MAPPING.md | file | KEEP | A8 | Legacy-to-current mapping; 43.6K |
-| oyatie/docs/CHANGELOG.md | file | KEEP | A8 | Version history |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/CONSTITUTION.md | file | KEEP | null | A1, A8 | Project frame; canonical product authority; declares authority chain per ADR-0001 |
+| oyatie/docs/PRD.md | file | KEEP+ANNOTATE | null | A1 | 33.4K; canonical product PRD (7 axes); KEEP+ANNOTATE: add bidirectional cite to bominal/docs/consolidated/PRD.md as portfolio parent |
+| oyatie/docs/DESIGN.md | file | KEEP | null | A8 | 72.6K; canonical architecture design |
+| oyatie/docs/SPEC.md | file | KEEP | null | A8 | 43.6K; product specification |
+| oyatie/docs/ROADMAP.md | file | KEEP | null | A8 | Product roadmap; gates Foundry on Foundation completion |
+| oyatie/docs/README.md | file | KEEP | null | A8 | Docs portal homepage |
+| oyatie/docs/ADR-INDEX.md | file | KEEP | null | A8 | Master index of all ADRs; must be updated with ADR-0052 (this ADR), ADR-0053, ADR-0054 |
+| oyatie/docs/ADR-CONSOLIDATION-PLAN.md | file | KEEP | null | A8 | ADR consolidation strategy |
+| oyatie/docs/ADR-LEGACY-REGRESSION-MAPPING.md | file | KEEP | null | A8 | Legacy-to-current mapping; 43.6K |
+| oyatie/docs/CHANGELOG.md | file | KEEP | null | A8 | Version history |
 
 ### oyatie/docs/ — Quality machinery
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/CONTRADICTION-LEDGER.md | file | KEEP | A8 | 77 tracked contradictions; OPEN ledger entries (LEDG-008/017/021/024) remain open per Constraint 9 |
-| oyatie/docs/MISTAKES-LEDGER.md | file | KEEP | A8 | 13 active mistakes; each backed by CI fitness lane |
-| oyatie/docs/RACI-OWNERSHIP.md | file | KEEP | A8 | Ownership mapping; authority cohesion enforcement per ADR-0001 |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/CONTRADICTION-LEDGER.md | file | KEEP | null | A8 | 77 tracked contradictions; OPEN ledger entries (LEDG-008/017/021/024) remain open per Constraint 9 |
+| oyatie/docs/MISTAKES-LEDGER.md | file | KEEP | null | A8 | 13 active mistakes; each backed by CI fitness lane |
+| oyatie/docs/RACI-OWNERSHIP.md | file | KEEP | null | A8 | Ownership mapping; authority cohesion enforcement per ADR-0001 |
 
 ### oyatie/docs/ — Product-quality & governance
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/COMPLIANCE-MATRIX.md | file | KEEP | A8 | Compliance tracking |
-| oyatie/docs/COMPETITIVE-GAP-ANALYSIS.md | file | KEEP | A8 | Market position analysis |
-| oyatie/docs/DOC-CATALOG.md | file | KEEP | A8 | Documentation inventory per ADR-0019 |
-| oyatie/docs/DOC-UPDATE-PROTOCOL.md | file | KEEP | A8 | Doc maintenance protocol per ADR-0019 |
-| oyatie/docs/DOCUMENTATION.md | file | KEEP | A8 | Documentation guide |
-| oyatie/docs/FINOPS-PLAN.md | file | KEEP | A8 | Financial operations roadmap |
-| oyatie/docs/GLOSSARY.md | file | KEEP | A8 | Terminology canon per ADR-0018 |
-| oyatie/docs/GTM-PLAN.md | file | KEEP | A8 | Go-to-market strategy |
-| oyatie/docs/HIRING-CAPACITY-PLAN.md | file | KEEP | A8 | Staffing roadmap |
-| oyatie/docs/INCIDENT-MANAGEMENT.md | file | KEEP | A8 | Incident response policy |
-| oyatie/docs/INTERNATIONALIZATION.md | file | KEEP | A8 | i18n strategy; Korean morphology per ADR-0048 |
-| oyatie/docs/LEGAL-IP-LEDGER.md | file | KEEP | A8 | IP + legal tracking |
-| oyatie/docs/PRIVACY-PROGRAM.md | file | KEEP | A8 | Privacy governance; 25KB |
-| oyatie/docs/QA-TEST-STRATEGY.md | file | KEEP | A8 | Test strategy |
-| oyatie/docs/RELEASE-MANAGEMENT.md | file | KEEP | A8 | Release process per ADR-0041 |
-| oyatie/docs/RISK-REGISTER.md | file | KEEP | A8 | Risk ledger |
-| oyatie/docs/SECURITY-PROGRAM.md | file | KEEP | A8 | Security governance |
-| oyatie/docs/SLO-CATALOG.md | file | KEEP | A8 | Service-level objectives |
-| oyatie/docs/STANDARDS-AND-TEMPLATES.md | file | KEEP | A8 | Standards index |
-| oyatie/docs/TOOLCHAIN.md | file | KEEP | A8 | Engineering tooling guide |
-| oyatie/docs/VENDOR-PARTNER-LEDGER.md | file | KEEP | A8 | Vendor + partner tracking |
-| oyatie/docs/RUNBOOKS-INDEX.md | file | KEEP | A8 | Index to 200+ operational runbooks |
-| oyatie/docs/AGENTS.md | file | KEEP+ANNOTATE | A5 | Agent instruction home; redirect-class; same annotation needs as root AGENTS.md |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/COMPLIANCE-MATRIX.md | file | KEEP | null | A8 | Compliance tracking |
+| oyatie/docs/COMPETITIVE-GAP-ANALYSIS.md | file | KEEP | null | A8 | Market position analysis |
+| oyatie/docs/DOC-CATALOG.md | file | KEEP | null | A8 | Documentation inventory per ADR-0019 |
+| oyatie/docs/DOC-UPDATE-PROTOCOL.md | file | KEEP | null | A8 | Doc maintenance protocol per ADR-0019 |
+| oyatie/docs/DOCUMENTATION.md | file | KEEP | null | A8 | Documentation guide |
+| oyatie/docs/FINOPS-PLAN.md | file | KEEP | null | A8 | Financial operations roadmap |
+| oyatie/docs/GLOSSARY.md | file | KEEP | null | A8 | Terminology canon per ADR-0018 |
+| oyatie/docs/GTM-PLAN.md | file | KEEP | null | A8 | Go-to-market strategy |
+| oyatie/docs/HIRING-CAPACITY-PLAN.md | file | KEEP | null | A8 | Staffing roadmap |
+| oyatie/docs/INCIDENT-MANAGEMENT.md | file | KEEP | null | A8 | Incident response policy |
+| oyatie/docs/INTERNATIONALIZATION.md | file | KEEP | null | A8 | i18n strategy; Korean morphology per ADR-0048 |
+| oyatie/docs/LEGAL-IP-LEDGER.md | file | KEEP | null | A8 | IP + legal tracking |
+| oyatie/docs/PRIVACY-PROGRAM.md | file | KEEP | null | A8 | Privacy governance; 25KB |
+| oyatie/docs/QA-TEST-STRATEGY.md | file | KEEP | null | A8 | Test strategy |
+| oyatie/docs/RELEASE-MANAGEMENT.md | file | KEEP | null | A8 | Release process per ADR-0041 |
+| oyatie/docs/RISK-REGISTER.md | file | KEEP | null | A8 | Risk ledger |
+| oyatie/docs/SECURITY-PROGRAM.md | file | KEEP | null | A8 | Security governance |
+| oyatie/docs/SLO-CATALOG.md | file | KEEP | null | A8 | Service-level objectives |
+| oyatie/docs/STANDARDS-AND-TEMPLATES.md | file | KEEP | null | A8 | Standards index |
+| oyatie/docs/TOOLCHAIN.md | file | KEEP | null | A8 | Engineering tooling guide |
+| oyatie/docs/VENDOR-PARTNER-LEDGER.md | file | KEEP | null | A8 | Vendor + partner tracking |
+| oyatie/docs/RUNBOOKS-INDEX.md | file | KEEP | null | A8 | Index to 200+ operational runbooks |
+| oyatie/docs/AGENTS.md | file | KEEP+ANNOTATE | null | A5 | Agent instruction home; redirect-class; same annotation needs as root AGENTS.md |
 
 ### oyatie/docs/decisions/ — ADR files
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/decisions/ADR-0001 through ADR-0051 | files (51×) | KEEP | A8 | All accepted architectural decisions; KEEP unchanged |
-| oyatie/docs/decisions/RETIRED.md | file | KEEP | A8 | Retirement record for superseded ADRs |
-| oyatie/docs/decisions/README.md | file | KEEP | A8 | ADR README |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/decisions/ADR-0001 through ADR-0051 | files (51×) | KEEP | null | A8 | All accepted architectural decisions; KEEP unchanged |
+| oyatie/docs/decisions/RETIRED.md | file | KEEP | null | A8 | Retirement record for superseded ADRs |
+| oyatie/docs/decisions/README.md | file | KEEP | null | A8 | ADR README |
 
 ### oyatie/docs/checklists/ (24 files)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/checklists/ | dir | KEEP | A8 | Operational checklists (adr-promotion, audit-readiness, build-vs-buy, etc.); 24 files; all KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/checklists/ | dir | KEEP | null | A8 | Operational checklists (adr-promotion, audit-readiness, build-vs-buy, etc.); 24 files; all KEEP |
 
 ### oyatie/docs/products/ (axis PRDs)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/products/ | dir | KEEP | A8 | 7-axis + 14-vertical product family; 17 PRDs + 1 template + README; all KEEP |
-| oyatie/docs/products/_TEMPLATE.md | file | KEEP | A8 | Axis PRD template |
-| oyatie/docs/products/saas-platform/PRD.md | file | KEEP | A8 | SaaS Axis PRD |
-| oyatie/docs/products/foundry/PRD.md | file | KEEP | A8 | Foundry Axis PRD; engineering platform per ADR-0025 |
-| oyatie/docs/products/workspace/PRD.md | file | KEEP | A8 | Workspace Axis PRD (Axis 2 per 2026-05-09 reframing) |
-| oyatie/docs/products/cloud/PRD.md | file | KEEP | A8 | Cloud Axis PRD |
-| oyatie/docs/products/search/PRD.md | file | KEEP | A8 | Search Axis PRD |
-| oyatie/docs/products/ads-analytics/PRD.md | file | KEEP | A8 | Ads + Analytics Axis PRD |
-| oyatie/docs/products/vertical-*/PRD.md | files (14×) | KEEP | A8 | 14 vertical-industry PRDs (healthcare, fintech, agriculture, construction, etc.); all KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/products/ | dir | KEEP | null | A8 | 7-axis + 14-vertical product family; 17 PRDs + 1 template + README; all KEEP |
+| oyatie/docs/products/_TEMPLATE.md | file | KEEP | null | A8 | Axis PRD template |
+| oyatie/docs/products/saas-platform/PRD.md | file | KEEP | null | A8 | SaaS Axis PRD |
+| oyatie/docs/products/foundry/PRD.md | file | KEEP | null | A8 | Foundry Axis PRD; engineering platform per ADR-0025 |
+| oyatie/docs/products/workspace/PRD.md | file | KEEP | null | A8 | Workspace Axis PRD (Axis 2 per 2026-05-09 reframing) |
+| oyatie/docs/products/cloud/PRD.md | file | KEEP | null | A8 | Cloud Axis PRD |
+| oyatie/docs/products/search/PRD.md | file | KEEP | null | A8 | Search Axis PRD |
+| oyatie/docs/products/ads-analytics/PRD.md | file | KEEP | null | A8 | Ads + Analytics Axis PRD |
+| oyatie/docs/products/vertical-*/PRD.md | files (14×) | KEEP | null | A8 | 14 vertical-industry PRDs (healthcare, fintech, agriculture, construction, etc.); all KEEP |
 
 ### oyatie/docs/regional-packs/
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/regional-packs/ | dir | KEEP | A8 | Region-specific regulatory/compliance packs per ADR-0010 |
-| oyatie/docs/regional-packs/oya-pack-kr/PACK.md | file | KEEP | A8 | Korean regional pack (fintech regulatory, morphology ADR-0048) |
-| oyatie/docs/regional-packs/_TEMPLATE.md | file | KEEP | A8 | Regional pack template |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/regional-packs/ | dir | KEEP | null | A8 | Region-specific regulatory/compliance packs per ADR-0010 |
+| oyatie/docs/regional-packs/oya-pack-kr/PACK.md | file | KEEP | null | A8 | Korean regional pack (fintech regulatory, morphology ADR-0048) |
+| oyatie/docs/regional-packs/_TEMPLATE.md | file | KEEP | null | A8 | Regional pack template |
 
 ### oyatie/docs/raw/ (working drafts; non-authoritative)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/raw/ | dir | KEEP | A8 | Working-draft corpus; 5 files; non-authoritative until promoted; per Lane 3 of trace, agentic-delivery-fabric-executable-prd.md becomes ground-zero for new agentic-pipeline spec (promote in-place, do not move to bominal) |
-| oyatie/docs/raw/agentic-delivery-fabric-executable-prd.md | file | KEEP | A8 | Draft agentic-pipeline spec; cite bominal but promote in oyatie per trace finding |
-| oyatie/docs/raw/agentic-delivery-foundry-critical-challenge.md | file | KEEP | A8 | Foundry challenge analysis |
-| oyatie/docs/raw/agentic-delivery-vcs-cicd-report.md | file | KEEP | A8 | VCS/CI-CD assessment |
-| oyatie/docs/raw/big-tech-dev-cycle-agentic-optimization.md | file | KEEP | A8 | Optimization study |
-| oyatie/docs/raw/claude-code-backup-comprehensive-analysis.md | file | KEEP | A8 | Claude Code analysis |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/raw/ | dir | KEEP | null | A8 | Working-draft corpus; 5 files; non-authoritative until promoted; per Lane 3 of trace, agentic-delivery-fabric-executable-prd.md becomes ground-zero for new agentic-pipeline spec (promote in-place, do not move to bominal) |
+| oyatie/docs/raw/agentic-delivery-fabric-executable-prd.md | file | KEEP | null | A8 | Draft agentic-pipeline spec; cite bominal but promote in oyatie per trace finding |
+| oyatie/docs/raw/agentic-delivery-foundry-critical-challenge.md | file | KEEP | null | A8 | Foundry challenge analysis |
+| oyatie/docs/raw/agentic-delivery-vcs-cicd-report.md | file | KEEP | null | A8 | VCS/CI-CD assessment |
+| oyatie/docs/raw/big-tech-dev-cycle-agentic-optimization.md | file | KEEP | null | A8 | Optimization study |
+| oyatie/docs/raw/claude-code-backup-comprehensive-analysis.md | file | KEEP | null | A8 | Claude Code analysis |
 
 ### oyatie/docs/runbooks/ (200+ operational runbooks)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/runbooks/ | dir | KEEP | A8 | 200+ runbooks (incident response, operational playbooks); all KEEP; organized by axis + cross-microservice |
-| oyatie/docs/runbooks/*.md | files (200+) | KEEP | A8 | All incident/operational runbooks; list-only at depth 2 due to size (200+ files) |
-| oyatie/docs/runbooks/ads/ | subdir | KEEP | A8 | ads microservice runbooks (auction-engine, click-fraud, data-use-boundary) |
-| oyatie/docs/runbooks/cloud/ | subdir | KEEP | A8 | cloud microservice runbooks (billing, cell-isolation, DCops, IAM, KMS, region-failover) |
-| oyatie/docs/runbooks/foundry/ | subdir | KEEP | A8 | foundry runbooks (autonomy-ceiling, capability-eval, cost-ceiling, prompt-injection, sandbox-escape) |
-| oyatie/docs/runbooks/search/ | subdir | KEEP | A8 | search microservice runbooks (crawler, index-corruption, RTBF, SERP-quality) |
-| oyatie/docs/runbooks/workspace/ | subdir | KEEP | A8 | Connect microservice runbooks (doc-CRDT, drive-permission, mail, Meet SFU, recording) |
-| oyatie/docs/runbooks/vertical-fintech/ | subdir | KEEP | A8 | Fintech vertical runbooks (AML, CDE-isolation, PCI) |
-| oyatie/docs/runbooks/vertical-healthcare/ | subdir | KEEP | A8 | Healthcare vertical runbooks (clinical-safety, PHI-leak) |
-| oyatie/docs/runbooks/vertical-industrial/ | subdir | KEEP | A8 | Industrial vertical runbooks (OT-safety) |
-| oyatie/docs/runbooks/vertical-logistics/ | subdir | KEEP | A8 | Logistics vertical runbooks (EDI-counterparty) |
-| oyatie/docs/runbooks/cross-microservice/ | subdir | KEEP | A8 | Cross-axis coordination runbooks (audit-chain-integrity, cohesion-fitness, DSR-cascade, regional-pack) |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/runbooks/ | dir | KEEP | null | A8 | 200+ runbooks (incident response, operational playbooks); all KEEP; organized by axis + cross-microservice |
+| oyatie/docs/runbooks/*.md | files (200+) | KEEP | null | A8 | All incident/operational runbooks; list-only at depth 2 due to size (200+ files) |
+| oyatie/docs/runbooks/ads/ | subdir | KEEP | null | A8 | ads microservice runbooks (auction-engine, click-fraud, data-use-boundary) |
+| oyatie/docs/runbooks/cloud/ | subdir | KEEP | null | A8 | cloud microservice runbooks (billing, cell-isolation, DCops, IAM, KMS, region-failover) |
+| oyatie/docs/runbooks/foundry/ | subdir | KEEP | null | A8 | foundry runbooks (autonomy-ceiling, capability-eval, cost-ceiling, prompt-injection, sandbox-escape) |
+| oyatie/docs/runbooks/search/ | subdir | KEEP | null | A8 | search microservice runbooks (crawler, index-corruption, RTBF, SERP-quality) |
+| oyatie/docs/runbooks/workspace/ | subdir | KEEP | null | A8 | Connect microservice runbooks (doc-CRDT, drive-permission, mail, Meet SFU, recording) |
+| oyatie/docs/runbooks/vertical-fintech/ | subdir | KEEP | null | A8 | Fintech vertical runbooks (AML, CDE-isolation, PCI) |
+| oyatie/docs/runbooks/vertical-healthcare/ | subdir | KEEP | null | A8 | Healthcare vertical runbooks (clinical-safety, PHI-leak) |
+| oyatie/docs/runbooks/vertical-industrial/ | subdir | KEEP | null | A8 | Industrial vertical runbooks (OT-safety) |
+| oyatie/docs/runbooks/vertical-logistics/ | subdir | KEEP | null | A8 | Logistics vertical runbooks (EDI-counterparty) |
+| oyatie/docs/runbooks/cross-microservice/ | subdir | KEEP | null | A8 | Cross-axis coordination runbooks (audit-chain-integrity, cohesion-fitness, DSR-cascade, regional-pack) |
 
 ### oyatie/docs/site/ (public documentation site)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/site/ | dir | KEEP | A8 | Public docs site source (mdBook) |
-| oyatie/docs/site/src/SUMMARY.md | file | KEEP | A8 | Site navigation |
-| oyatie/docs/site/src/introduction.md | file | KEEP | A8 | Introduction |
-| oyatie/docs/site/src/concepts/cohesion-thesis.md | file | KEEP | A8 | Foundational concept |
-| oyatie/docs/site/src/guides/ | subdir | KEEP | A8 | Operator guides (operate-a-tenant, etc.) |
-| oyatie/docs/site/src/tutorials/ | subdir | KEEP | A8 | First-capability tutorial |
-| oyatie/docs/site/src/admin/ | subdir | KEEP | A8 | Tenant admin guide |
-| oyatie/docs/site/src/plugins/ | subdir | KEEP | A8 | Plugin authoring guide |
-| oyatie/docs/site/src/studio/ | subdir | KEEP | A8 | Workflow studio guide |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/site/ | dir | KEEP | null | A8 | Public docs site source (mdBook) |
+| oyatie/docs/site/src/SUMMARY.md | file | KEEP | null | A8 | Site navigation |
+| oyatie/docs/site/src/introduction.md | file | KEEP | null | A8 | Introduction |
+| oyatie/docs/site/src/concepts/cohesion-thesis.md | file | KEEP | null | A8 | Foundational concept |
+| oyatie/docs/site/src/guides/ | subdir | KEEP | null | A8 | Operator guides (operate-a-tenant, etc.) |
+| oyatie/docs/site/src/tutorials/ | subdir | KEEP | null | A8 | First-capability tutorial |
+| oyatie/docs/site/src/admin/ | subdir | KEEP | null | A8 | Tenant admin guide |
+| oyatie/docs/site/src/plugins/ | subdir | KEEP | null | A8 | Plugin authoring guide |
+| oyatie/docs/site/src/studio/ | subdir | KEEP | null | A8 | Workflow studio guide |
 
 ### oyatie/docs/standards/ (21 standard documents)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/standards/ | dir | KEEP | A8 | Engineering standards; all KEEP |
-| oyatie/docs/standards/api-design.md | file | KEEP | A8 | API design standard per ADR-0037 |
-| oyatie/docs/standards/code-style.md | file | KEEP | A8 | Rust/code style guide |
-| oyatie/docs/standards/code-review.md | file | KEEP | A8 | Code review process |
-| oyatie/docs/standards/commit-message.md | file | KEEP | A8 | Commit message convention |
-| oyatie/docs/standards/testing.md | file | KEEP | A8 | Testing standard |
-| oyatie/docs/standards/security-review.md | file | KEEP | A8 | Security review checklist |
-| oyatie/docs/standards/privacy-review.md | file | KEEP | A8 | Privacy review checklist |
-| oyatie/docs/standards/schema-migration.md | file | KEEP | A8 | DB migration playbook |
-| oyatie/docs/standards/release.md | file | KEEP | A8 | Release procedure per ADR-0041 |
-| oyatie/docs/standards/incident-severity.md | file | KEEP | A8 | Severity classification per incident-management |
-| oyatie/docs/standards/on-call.md | file | KEEP | A8 | On-call runbook |
-| oyatie/docs/standards/capability-authoring.md | file | KEEP | A8 | Foundry capability authoring per ADR-0021 |
-| oyatie/docs/standards/plugin-authoring.md | file | KEEP | A8 | Plugin substrate authoring per ADR-0036 |
-| oyatie/docs/standards/ci-lanes.md | file | KEEP | A8 | CI lane definitions (fitness lanes per ADR-0003) |
-| oyatie/docs/standards/doc-style.md | file | KEEP | A8 | Documentation style guide |
-| oyatie/docs/standards/error-handling.md | file | KEEP | A8 | Error handling convention |
-| oyatie/docs/standards/logging-tracing.md | file | KEEP | A8 | Observability standard per ADR-0042 |
-| oyatie/docs/standards/fintech-compliance.md | file | KEEP | A8 | Fintech regulatory compliance |
-| oyatie/docs/standards/prevention-doctrine.md | file | KEEP | A8 | Prevention-first operational philosophy |
-| oyatie/docs/standards/migration-playbook.md | file | KEEP | A8 | Schema/service migration |
-| oyatie/docs/standards/brand-voice.md | file | KEEP | A8 | Brand voice standard |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/standards/ | dir | KEEP | null | A8 | Engineering standards; all KEEP |
+| oyatie/docs/standards/api-design.md | file | KEEP | null | A8 | API design standard per ADR-0037 |
+| oyatie/docs/standards/code-style.md | file | KEEP | null | A8 | Rust/code style guide |
+| oyatie/docs/standards/code-review.md | file | KEEP | null | A8 | Code review process |
+| oyatie/docs/standards/commit-message.md | file | KEEP | null | A8 | Commit message convention |
+| oyatie/docs/standards/testing.md | file | KEEP | null | A8 | Testing standard |
+| oyatie/docs/standards/security-review.md | file | KEEP | null | A8 | Security review checklist |
+| oyatie/docs/standards/privacy-review.md | file | KEEP | null | A8 | Privacy review checklist |
+| oyatie/docs/standards/schema-migration.md | file | KEEP | null | A8 | DB migration playbook |
+| oyatie/docs/standards/release.md | file | KEEP | null | A8 | Release procedure per ADR-0041 |
+| oyatie/docs/standards/incident-severity.md | file | KEEP | null | A8 | Severity classification per incident-management |
+| oyatie/docs/standards/on-call.md | file | KEEP | null | A8 | On-call runbook |
+| oyatie/docs/standards/capability-authoring.md | file | KEEP | null | A8 | Foundry capability authoring per ADR-0021 |
+| oyatie/docs/standards/plugin-authoring.md | file | KEEP | null | A8 | Plugin substrate authoring per ADR-0036 |
+| oyatie/docs/standards/ci-lanes.md | file | KEEP | null | A8 | CI lane definitions (fitness lanes per ADR-0003) |
+| oyatie/docs/standards/doc-style.md | file | KEEP | null | A8 | Documentation style guide |
+| oyatie/docs/standards/error-handling.md | file | KEEP | null | A8 | Error handling convention |
+| oyatie/docs/standards/logging-tracing.md | file | KEEP | null | A8 | Observability standard per ADR-0042 |
+| oyatie/docs/standards/fintech-compliance.md | file | KEEP | null | A8 | Fintech regulatory compliance |
+| oyatie/docs/standards/prevention-doctrine.md | file | KEEP | null | A8 | Prevention-first operational philosophy |
+| oyatie/docs/standards/migration-playbook.md | file | KEEP | null | A8 | Schema/service migration |
+| oyatie/docs/standards/brand-voice.md | file | KEEP | null | A8 | Brand voice standard |
 
 ### oyatie/docs/teams/ (21 team charters)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/teams/ | dir | KEEP | A8 | Team ownership charters; all KEEP |
-| oyatie/docs/teams/README.md | file | KEEP | A8 | Teams index |
-| oyatie/docs/teams/axis-*/CHARTER.md | files (7×) | KEEP | A8 | 7-axis team charters (SaaS, Workspace, Foundry, Cloud, Search, Ads, vertical) |
-| oyatie/docs/teams/council-*/CHARTER.md | files (2×) | KEEP | A8 | Council charters (Architecture, Privacy) |
-| oyatie/docs/teams/platform-*/CHARTER.md | files (5×) | KEEP | A8 | Platform team charters (API/SDK, audit/evidence, eventing, privacy/DUB, tenancy/identity) |
-| oyatie/docs/teams/ops-*/CHARTER.md | files (5×) | KEEP | A8 | Ops team charters (compliance, DR, finops, security, SRE/reliability) |
-| oyatie/docs/teams/gtm-*/CHARTER.md | files (4×) | KEEP | A8 | GTM team charters (customer-success, marketing, partnerships, sales/SE) |
-| oyatie/docs/teams/crew-adr-promotion/CHARTER.md | file | KEEP | A8 | ADR promotion crew charter |
-| oyatie/docs/teams/tactical-first-vertical-pilot/CHARTER.md | file | KEEP | A8 | Vertical pilot team charter |
-| oyatie/docs/teams/regional-packs/CHARTER.md | file | KEEP | A8 | Regional packs team charter |
-| oyatie/docs/teams/vertical-*/CHARTER.md | files (14×) | KEEP | A8 | 14 vertical team charters (healthcare, fintech, agricultural, etc.) |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/teams/ | dir | KEEP | null | A8 | Team ownership charters; all KEEP |
+| oyatie/docs/teams/README.md | file | KEEP | null | A8 | Teams index |
+| oyatie/docs/teams/axis-*/CHARTER.md | files (7×) | KEEP | null | A8 | 7-axis team charters (SaaS, Workspace, Foundry, Cloud, Search, Ads, vertical) |
+| oyatie/docs/teams/council-*/CHARTER.md | files (2×) | KEEP | null | A8 | Council charters (Architecture, Privacy) |
+| oyatie/docs/teams/platform-*/CHARTER.md | files (5×) | KEEP | null | A8 | Platform team charters (API/SDK, audit/evidence, eventing, privacy/DUB, tenancy/identity) |
+| oyatie/docs/teams/ops-*/CHARTER.md | files (5×) | KEEP | null | A8 | Ops team charters (compliance, DR, finops, security, SRE/reliability) |
+| oyatie/docs/teams/gtm-*/CHARTER.md | files (4×) | KEEP | null | A8 | GTM team charters (customer-success, marketing, partnerships, sales/SE) |
+| oyatie/docs/teams/crew-adr-promotion/CHARTER.md | file | KEEP | null | A8 | ADR promotion crew charter |
+| oyatie/docs/teams/tactical-first-vertical-pilot/CHARTER.md | file | KEEP | null | A8 | Vertical pilot team charter |
+| oyatie/docs/teams/regional-packs/CHARTER.md | file | KEEP | null | A8 | Regional packs team charter |
+| oyatie/docs/teams/vertical-*/CHARTER.md | files (14×) | KEEP | null | A8 | 14 vertical team charters (healthcare, fintech, agricultural, etc.) |
 
 ### oyatie/docs/templates/ (9 templates)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/templates/ | dir | KEEP | A8 | Document templates; all KEEP |
-| oyatie/docs/templates/adr-template.md | file | KEEP | A8 | ADR template |
-| oyatie/docs/templates/adr-supersession-template.md | file | KEEP | A8 | ADR supersession template |
-| oyatie/docs/templates/dpia-template.md | file | KEEP | A8 | Data-protection impact assessment template |
-| oyatie/docs/templates/evidence-pack-template.md | file | KEEP | A8 | Regulatory evidence-pack template |
-| oyatie/docs/templates/incident-postmortem-template.md | file | KEEP | A8 | Incident postmortem template |
-| oyatie/docs/templates/migration-runbook-template.md | file | KEEP | A8 | Migration runbook template |
-| oyatie/docs/templates/pull-request-template.md | file | KEEP | A8 | PR template |
-| oyatie/docs/templates/regional-pack-template.md | file | KEEP | A8 | Regional pack template |
-| oyatie/docs/templates/runbook-template.md | file | KEEP | A8 | Runbook template |
-| oyatie/docs/templates/team-charter-template.md | file | KEEP | A8 | Team charter template |
-| oyatie/docs/templates/threat-model-template.md | file | KEEP | A8 | Threat model template |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/templates/ | dir | KEEP | null | A8 | Document templates; all KEEP |
+| oyatie/docs/templates/adr-template.md | file | KEEP | null | A8 | ADR template |
+| oyatie/docs/templates/adr-supersession-template.md | file | KEEP | null | A8 | ADR supersession template |
+| oyatie/docs/templates/dpia-template.md | file | KEEP | null | A8 | Data-protection impact assessment template |
+| oyatie/docs/templates/evidence-pack-template.md | file | KEEP | null | A8 | Regulatory evidence-pack template |
+| oyatie/docs/templates/incident-postmortem-template.md | file | KEEP | null | A8 | Incident postmortem template |
+| oyatie/docs/templates/migration-runbook-template.md | file | KEEP | null | A8 | Migration runbook template |
+| oyatie/docs/templates/pull-request-template.md | file | KEEP | null | A8 | PR template |
+| oyatie/docs/templates/regional-pack-template.md | file | KEEP | null | A8 | Regional pack template |
+| oyatie/docs/templates/runbook-template.md | file | KEEP | null | A8 | Runbook template |
+| oyatie/docs/templates/team-charter-template.md | file | KEEP | null | A8 | Team charter template |
+| oyatie/docs/templates/threat-model-template.md | file | KEEP | null | A8 | Threat model template |
 
 ### oyatie/docs/wiki/
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/wiki/quickref/README.md | file | KEEP | A8 | Quick reference index |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/wiki/quickref/README.md | file | KEEP | null | A8 | Quick reference index |
 
 ### oyatie/docs/machine-readable/
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| oyatie/docs/machine-readable/ | dir | KEEP | A8 | Machine-readable artifact mirrors (auto-generated); KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| oyatie/docs/machine-readable/ | dir | KEEP | null | A8 | Machine-readable artifact mirrors (auto-generated); KEEP |
 
 ---
 
 ### bominal/docs/consolidated/ (portfolio parent PRD + artifacts)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/docs/consolidated/PRD.md | file | KEEP+ANNOTATE | A1 | 97.2K; portfolio-parent PRD (7 axes, brand "Oyatie", oyatie.com); KEEP+ANNOTATE: add bidirectional cite to oyatie/docs/PRD.md as canonical implementation home |
-| bominal/docs/consolidated/CONSTITUTION.md | file | KEEP | A8 | Portfolio constitution; cross-cites oyatie authority chain |
-| bominal/docs/consolidated/README.md | file | KEEP | A8 | Portfolio docs README |
-| bominal/docs/consolidated/*.md | files (30×) | KEEP | A8 | All other consolidated docs (GLOSSARY, COMPLIANCE, ROADMAP, ADR-INDEX, standards, etc.); no modification needed; all KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/docs/consolidated/PRD.md | file | KEEP+ANNOTATE | null | A1 | 97.2K; portfolio-parent PRD (7 axes, brand "Oyatie", oyatie.com); KEEP+ANNOTATE: add bidirectional cite to oyatie/docs/PRD.md as canonical implementation home |
+| bominal/docs/consolidated/CONSTITUTION.md | file | KEEP | null | A8 | Portfolio constitution; cross-cites oyatie authority chain |
+| bominal/docs/consolidated/README.md | file | KEEP | null | A8 | Portfolio docs README |
+| bominal/docs/consolidated/*.md | files (30×) | KEEP | null | A8 | All other consolidated docs (GLOSSARY, COMPLIANCE, ROADMAP, ADR-INDEX, standards, etc.); no modification needed; all KEEP |
 
 ### bominal/docs/ (other subdirs — depth-2 listing)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/docs/agents/ | dir | KEEP | A8 | Agent-corpus docs; unchanged by cutover |
-| bominal/docs/architecture/ | dir | KEEP | A8 | Architecture decision lanes + templates |
-| bominal/docs/business/ | dir | KEEP | A8 | Business strategy + competitive analysis |
-| bominal/docs/design-system/ | dir | KEEP | A8 | Design system docs |
-| bominal/docs/domain-atlas/ | dir | KEEP | A8 | Domain knowledge organization |
-| bominal/docs/engineering/ | dir | KEEP | A8 | Engineering playbooks + audits |
-| bominal/docs/handbook/ | dir | KEEP | A8 | Company handbook |
-| bominal/docs/healthcare/ | dir | KEEP | A8 | Healthcare-specific corpus |
-| bominal/docs/integration/ | dir | KEEP | A8 | Integration guides |
-| bominal/docs/observability/ | dir | KEEP | A8 | Observability strategy |
-| bominal/docs/operations/ | dir | KEEP | A8 | Operational playbooks |
-| bominal/docs/platform/ | dir | KEEP | A8 | Platform architecture docs |
-| bominal/docs/products/ | dir | KEEP | A8 | Product strategy docs (other verticals) |
-| bominal/docs/raw/ | dir | KEEP | A8 | Raw research + drafts |
-| bominal/docs/rfcs/ | dir | KEEP | A8 | RFCs |
-| bominal/docs/roadmap/ | dir | KEEP | A8 | Roadmap lane definitions + slices |
-| bominal/docs/runbooks/ | dir | KEEP | A8 | Operational runbooks |
-| bominal/docs/security/ | dir | KEEP | A8 | Security guidance |
-| bominal/docs/status/ | dir | KEEP | A8 | Status tracking |
-| bominal/docs/superpowers/ | dir | KEEP | A8 | Agent superpowers corpus + plans/specs |
-| bominal/docs/wiki/ | dir | KEEP | A8 | Wiki knowledge base |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/docs/agents/ | dir | KEEP | null | A8 | Agent-corpus docs; unchanged by cutover |
+| bominal/docs/architecture/ | dir | KEEP | null | A8 | Architecture decision lanes + templates |
+| bominal/docs/business/ | dir | KEEP | null | A8 | Business strategy + competitive analysis |
+| bominal/docs/design-system/ | dir | KEEP | null | A8 | Design system docs |
+| bominal/docs/domain-atlas/ | dir | KEEP | null | A8 | Domain knowledge organization |
+| bominal/docs/engineering/ | dir | KEEP | null | A8 | Engineering playbooks + audits |
+| bominal/docs/handbook/ | dir | KEEP | null | A8 | Company handbook |
+| bominal/docs/healthcare/ | dir | KEEP | null | A8 | Healthcare-specific corpus |
+| bominal/docs/integration/ | dir | KEEP | null | A8 | Integration guides |
+| bominal/docs/observability/ | dir | KEEP | null | A8 | Observability strategy |
+| bominal/docs/operations/ | dir | KEEP | null | A8 | Operational playbooks |
+| bominal/docs/platform/ | dir | KEEP | null | A8 | Platform architecture docs |
+| bominal/docs/products/ | dir | KEEP | null | A8 | Product strategy docs (other verticals) |
+| bominal/docs/raw/ | dir | KEEP | null | A8 | Raw research + drafts |
+| bominal/docs/rfcs/ | dir | KEEP | null | A8 | RFCs |
+| bominal/docs/roadmap/ | dir | KEEP | null | A8 | Roadmap lane definitions + slices |
+| bominal/docs/runbooks/ | dir | KEEP | null | A8 | Operational runbooks |
+| bominal/docs/security/ | dir | KEEP | null | A8 | Security guidance |
+| bominal/docs/status/ | dir | KEEP | null | A8 | Status tracking |
+| bominal/docs/superpowers/ | dir | KEEP | null | A8 | Agent superpowers corpus + plans/specs |
+| bominal/docs/wiki/ | dir | KEEP | null | A8 | Wiki knowledge base |
 
 ### bominal/agents/ultragoal/ — Active orchestration glue (ARCHIVE targets)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/agents/ultragoal/ledger.jsonl | file | ARCHIVE | A3 | Orchestration ledger; moved to archive/pre-grit-cutover-2026-05-12/ then deleted; function absorbed by grit watch + lock state |
-| bominal/agents/ultragoal/goals.json | file | ARCHIVE | A3 | Goal state file; moved to archive/pre-grit-cutover-2026-05-12/ then deleted; function absorbed by grit claim --intent + icm store -t goals-oyatie |
-| bominal/agents/ultragoal/goals.before-stale-g001-recovery.20260509T015645Z.json | file | ARCHIVE | A3 | Backup goal state; moved to archive |
-| bominal/agents/ultragoal/codex-goal-G001-active.json | file | ARCHIVE | A3 | Codex goal G001; 9× goal state files total; all moved to archive then deleted; function absorbed by grit claim + icm store |
-| bominal/agents/ultragoal/codex-goal-G001-fresh-reconciliation.json | file | ARCHIVE | A3 | Codex goal variant |
-| bominal/agents/ultragoal/codex-goal-G001-stop-10-active.json | file | ARCHIVE | A3 | Codex goal variant |
-| bominal/agents/ultragoal/codex-goal-G001-stop-10-null.json | file | ARCHIVE | A3 | Codex goal variant |
-| bominal/agents/ultragoal/codex-goal-G001-stop-hook-retry.json | file | ARCHIVE | A3 | Codex goal variant |
-| bominal/agents/ultragoal/codex-goal-G002-active.json | file | ARCHIVE | A3 | Codex goal G002 |
-| bominal/agents/ultragoal/codex-goal-G002-final-complete.json | file | ARCHIVE | A3 | Codex goal G002 variant |
-| bominal/agents/ultragoal/codex-goal-G004-paused-mismatch.json | file | ARCHIVE | A3 | Codex goal G004 |
-| bominal/agents/ultragoal/codex-goal-implementation-run-blocked.json | file | ARCHIVE | A3 | Codex goal variant |
-| bominal/agents/ultragoal/G004-reconciliation-blocker.md | file | ARCHIVE | A3 | Objective-state mismatch marker; not needed under grit (no objective-state concept); moved to archive then deleted |
-| bominal/agents/ultragoal/PAUSE.md | file | ARCHIVE | A3 | Agent pause marker; not a grit verb; agents halt via release or TTL expiry under grit; moved to archive then deleted |
-| bominal/agents/ultragoal/ledger.before-stale-g001-recovery.20260509T015645Z.jsonl | file | ARCHIVE | A3 | Backup ledger state; moved to archive |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/agents/ultragoal/ledger.jsonl | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Orchestration ledger; moved to archive/pre-grit-cutover-2026-05-12/ then deleted; function absorbed by grit watch + lock state |
+| bominal/agents/ultragoal/goals.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Goal state file; moved to archive/pre-grit-cutover-2026-05-12/ then deleted; function absorbed by grit claim --intent + icm store -t goals-oyatie |
+| bominal/agents/ultragoal/goals.before-stale-g001-recovery.20260509T015645Z.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Backup goal state; moved to archive |
+| bominal/agents/ultragoal/codex-goal-G001-active.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal G001; 9× goal state files total; all moved to archive then deleted; function absorbed by grit claim + icm store |
+| bominal/agents/ultragoal/codex-goal-G001-fresh-reconciliation.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal variant |
+| bominal/agents/ultragoal/codex-goal-G001-stop-10-active.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal variant |
+| bominal/agents/ultragoal/codex-goal-G001-stop-10-null.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal variant |
+| bominal/agents/ultragoal/codex-goal-G001-stop-hook-retry.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal variant |
+| bominal/agents/ultragoal/codex-goal-G002-active.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal G002 |
+| bominal/agents/ultragoal/codex-goal-G002-final-complete.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal G002 variant |
+| bominal/agents/ultragoal/codex-goal-G004-paused-mismatch.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal G004 |
+| bominal/agents/ultragoal/codex-goal-implementation-run-blocked.json | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Codex goal variant |
+| bominal/agents/ultragoal/G004-reconciliation-blocker.md | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Objective-state mismatch marker; not needed under grit (no objective-state concept); moved to archive then deleted |
+| bominal/agents/ultragoal/PAUSE.md | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Agent pause marker; not a grit verb; agents halt via release or TTL expiry under grit; moved to archive then deleted |
+| bominal/agents/ultragoal/ledger.before-stale-g001-recovery.20260509T015645Z.jsonl | file | ARCHIVE | 2026-05-14T12:57:54Z | A3 | Backup ledger state; moved to archive |
 
 ### bominal/agents/ultragoal/ — Active planning documents (KEEP)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/agents/ultragoal/2026-05-12-foundry-ultragoal-mega-plan.md | file | KEEP | A8 | Mega-plan (97.2K); active planning document; canonically versioned 2026-05-12; KEEP; reference from grit session context |
-| bominal/agents/ultragoal/foundry-agentic-substrate-master.md | file | KEEP | A8 | Agentic substrate analysis (97.7K); active planning; KEEP |
-| bominal/agents/ultragoal/brief.md | file | KEEP | A8 | Planning brief; KEEP |
-| bominal/agents/ultragoal/oyatie-product-delivery-baseline.md | file | KEEP | A8 | Product baseline (pre-2026-05-09 reframing); KEEP as historical reference; note that axis count is now 7, not 6 |
-| bominal/agents/ultragoal/oyatie-product-delivery-implementation-plan.md | file | KEEP | A8 | Implementation plan (44.4K); cross-boundary candidate per trace Lane 2; per spec, KEEP-IN-PLACE in bominal (do not copy to oyatie); add forward-ref from oyatie/docs/README.md |
-| bominal/agents/ultragoal/latest-source-register.md | file | KEEP | A8 | Regulatory sourcing (23.7K); cross-boundary per trace; per spec, KEEP-IN-PLACE in bominal + compress to thin oyatie pointer; add cite from oyatie/docs/ |
-| bominal/agents/ultragoal/README.md | file | KEEP | A8 | Directory README |
-| bominal/agents/ultragoal/requirement-trace.md | file | KEEP | A8 | Requirement traceability |
-| bominal/agents/ultragoal/validator-inventory.md | file | KEEP | A8 | Validator inventory |
-| bominal/agents/ultragoal/ci-agentic-flow.json | file | KEEP | A8 | CI flow state (155.3K); active metadata; KEEP |
-| bominal/agents/ultragoal/ci-agentic-flow.md | file | KEEP | A8 | CI flow documentation |
-| bominal/agents/ultragoal/final-delivery-evidence.md | file | KEEP | A8 | Evidence summary; KEEP for audit trail |
-| bominal/agents/ultragoal/implementation-docs-final-evidence.md | file | KEEP | A8 | Implementation evidence; KEEP |
-| bominal/agents/ultragoal/implementation-docs-quality-gate.json | file | KEEP | A8 | Quality gate metadata; KEEP |
-| bominal/agents/ultragoal/final-readiness-20260512T034457Z.json | file | KEEP | A8 | Readiness metadata (timestamp-tagged); KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/agents/ultragoal/2026-05-12-foundry-ultragoal-mega-plan.md | file | KEEP | null | A8 | Mega-plan (97.2K); active planning document; canonically versioned 2026-05-12; KEEP; reference from grit session context |
+| bominal/agents/ultragoal/foundry-agentic-substrate-master.md | file | KEEP | null | A8 | Agentic substrate analysis (97.7K); active planning; KEEP |
+| bominal/agents/ultragoal/brief.md | file | KEEP | null | A8 | Planning brief; KEEP |
+| bominal/agents/ultragoal/oyatie-product-delivery-baseline.md | file | KEEP | null | A8 | Product baseline (pre-2026-05-09 reframing); KEEP as historical reference; note that axis count is now 7, not 6 |
+| bominal/agents/ultragoal/oyatie-product-delivery-implementation-plan.md | file | KEEP | null | A8 | Implementation plan (44.4K); cross-boundary candidate per trace Lane 2; per spec, KEEP-IN-PLACE in bominal (do not copy to oyatie); add forward-ref from oyatie/docs/README.md |
+| bominal/agents/ultragoal/latest-source-register.md | file | KEEP | null | A8 | Regulatory sourcing (23.7K); cross-boundary per trace; per spec, KEEP-IN-PLACE in bominal + compress to thin oyatie pointer; add cite from oyatie/docs/ |
+| bominal/agents/ultragoal/README.md | file | KEEP | null | A8 | Directory README |
+| bominal/agents/ultragoal/requirement-trace.md | file | KEEP | null | A8 | Requirement traceability |
+| bominal/agents/ultragoal/validator-inventory.md | file | KEEP | null | A8 | Validator inventory |
+| bominal/agents/ultragoal/ci-agentic-flow.json | file | KEEP | null | A8 | CI flow state (155.3K); active metadata; KEEP |
+| bominal/agents/ultragoal/ci-agentic-flow.md | file | KEEP | null | A8 | CI flow documentation |
+| bominal/agents/ultragoal/final-delivery-evidence.md | file | KEEP | null | A8 | Evidence summary; KEEP for audit trail |
+| bominal/agents/ultragoal/implementation-docs-final-evidence.md | file | KEEP | null | A8 | Implementation evidence; KEEP |
+| bominal/agents/ultragoal/implementation-docs-quality-gate.json | file | KEEP | null | A8 | Quality gate metadata; KEEP |
+| bominal/agents/ultragoal/final-readiness-20260512T034457Z.json | file | KEEP | null | A8 | Readiness metadata (timestamp-tagged); KEEP |
 
 ### bominal/agents/ultragoal/ — Evidence + subdirs
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/agents/ultragoal/evidence/ | dir | KEEP | A8 | Evidence trail (logs, analysis, decisions); KEEP for audit |
-| bominal/agents/ultragoal/evidence/G001-stop-hook-complete-attempt.err | file | KEEP | A8 | Evidence log |
-| bominal/agents/ultragoal/evidence/ | dir (contents) | KEEP | A8 | All evidence files; KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/agents/ultragoal/evidence/ | dir | KEEP | null | A8 | Evidence trail (logs, analysis, decisions); KEEP for audit |
+| bominal/agents/ultragoal/evidence/ | dir (contents) | KEEP | null | A8 | All evidence files; KEEP |
 
 ### bominal/agents/ultragoal/ — Error output files (DELETE)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/agents/ultragoal/G001-stop-hook-complete-attempt.err | file | DELETE | A3 | Error log output; operational ephemera; not committed; DELETE on cleanup |
-| bominal/agents/ultragoal/G001-stop-hook-complete-attempt.out | file | DELETE | A3 | Output log; ephemera; DELETE |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/agents/ultragoal/G001-stop-hook-complete-attempt.err | file | DELETE | null | A3 | Error log output; operational ephemera; removed during P7 cleanup at 2026-05-14T13:26:13Z |
+| bominal/agents/ultragoal/G001-stop-hook-complete-attempt.out | file | DELETE | null | A3 | Output log; ephemera; removed during P7 cleanup at 2026-05-14T13:26:13Z |
 
 ### bominal/agents/ultragoal/ — Archive subdirs (pre-existing)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/agents/ultragoal/archive/ | dir | KEEP | A8 | Pre-existing archive of earlier planning phases (pre-oyatie-delivery, pre-rust, planning-complete); KEEP; these are historical snapshots |
-| bominal/agents/ultragoal/archive/pre-oyatie-product-delivery-20260512T013650Z/ | dir | KEEP | A8 | Earlier snapshot; KEEP |
-| bominal/agents/ultragoal/archive/pre-rust-clean-architecture-20260512T091941Z/ | dir | KEEP | A8 | Earlier snapshot; KEEP |
-| bominal/agents/ultragoal/archive/planning-complete-20260512T160118Z/ | dir | KEEP | A8 | Earlier snapshot; KEEP |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/agents/ultragoal/archive/ | dir | KEEP | null | A8 | Pre-existing archive of earlier planning phases (pre-oyatie-delivery, pre-rust, planning-complete); KEEP; these are historical snapshots |
+| bominal/agents/ultragoal/archive/pre-oyatie-product-delivery-20260512T013650Z/ | dir | KEEP | null | A8 | Earlier snapshot; KEEP |
+| bominal/agents/ultragoal/archive/pre-rust-clean-architecture-20260512T091941Z/ | dir | KEEP | null | A8 | Earlier snapshot; KEEP |
+| bominal/agents/ultragoal/archive/planning-complete-20260512T160118Z/ | dir | KEEP | null | A8 | Earlier snapshot; KEEP |
 
 ### bominal/agents/ultragoal/ — Remaining subdirs
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/agents/ultragoal/issue-priority-pipeline/ | dir | KEEP | A8 | Issue pipeline data; KEEP as working reference |
-| bominal/agents/ultragoal/legacy/ | dir | KEEP | A8 | Legacy artifacts; KEEP as historical reference |
-| bominal/agents/ultragoal/proof-slices/ | dir | KEEP | A8 | Proof slices; KEEP as evidence trail |
-| bominal/agents/ultragoal/sub-plans/ | dir | KEEP | A8 | Sub-plan hierarchy; KEEP as planning reference |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/agents/ultragoal/issue-priority-pipeline/ | dir | KEEP | null | A8 | Issue pipeline data; KEEP as working reference |
+| bominal/agents/ultragoal/legacy/ | dir | KEEP | null | A8 | Legacy artifacts; KEEP as historical reference |
+| bominal/agents/ultragoal/proof-slices/ | dir | KEEP | null | A8 | Proof slices; KEEP as evidence trail |
+| bominal/agents/ultragoal/sub-plans/ | dir | KEEP | null | A8 | Sub-plan hierarchy; KEEP as planning reference |
 
 ### bominal/agents/ — Other subdirs (unchanged)
 
-| Path | Type | Classification | Maps to spec criterion | Notes |
-|---|---|---|---|---|
-| bominal/agents/compatibility/ | dir | KEEP | A8 | Compatibility tracking; unchanged |
-| bominal/agents/forks/ | dir | KEEP | A8 | Forked codebases; unchanged |
-| bominal/agents/hooks/ | dir | KEEP | A8 | Agent hook definitions; unchanged |
-| bominal/agents/memory/ | dir | KEEP | A8 | Agent memory corpus; unchanged |
-| bominal/agents/runtime/ | dir | KEEP | A8 | Agent runtime config; unchanged |
-| bominal/agents/settings/ | dir | KEEP | A8 | Agent settings; A6 audit required (any git/gh calls must route through grit+icm+oya-agent-read) |
-| bominal/agents/skills/ | dir | KEEP | A8 | Agent skills; A6 audit required |
-| bominal/agents/specs/ | dir | KEEP | A8 | Agent spec docs; unchanged |
+| Path | Type | Classification | Archived at | Maps to spec criterion | Notes |
+|---|---|---|---|---|---|
+| bominal/agents/compatibility/ | dir | KEEP | null | A8 | Compatibility tracking; unchanged |
+| bominal/agents/forks/ | dir | KEEP | null | A8 | Forked codebases; unchanged |
+| bominal/agents/hooks/ | dir | KEEP | null | A8 | Agent hook definitions; unchanged |
+| bominal/agents/memory/ | dir | KEEP | null | A8 | Agent memory corpus; unchanged |
+| bominal/agents/runtime/ | dir | KEEP | null | A8 | Agent runtime config; unchanged |
+| bominal/agents/settings/ | dir | KEEP | null | A8 | Agent settings; A6 audit required (any git/gh calls must route through grit+icm+oya-tooling-agent-read) |
+| bominal/agents/skills/ | dir | KEEP | null | A8 | Agent skills; A6 audit required |
+| bominal/agents/specs/ | dir | KEEP | null | A8 | Agent spec docs; unchanged |
 
 ---
 
@@ -548,9 +557,9 @@ Files currently in `.gitignored` paths that ANY part of the corpus treats as aut
 
 4. **P4 — Agent-instruction rewrite.** Owner: `foundry` (P4 executor). Apply `KEEP+ANNOTATE` to `oyatie/CLAUDE.md`, `oyatie/AGENTS.md`, `oyatie/docs/AGENTS.md`. Gate: ADR-0053 merged (sanctioned-primitives closed set must be committed before agent-instruction rewrites reference it).
 
-5. **P6 — Archive moves.** Owner: human orchestrator + `foundry`. Move all 13 `ARCHIVE`-class rows from `bominal/agents/ultragoal/` to `archive/pre-grit-cutover-2026-05-12/`. Gate: this ADR merged + `oya-foundry-fitness-archive-orphan` lane scaffolded.
+5. **P6 — Archive moves.** Owner: human orchestrator + `foundry`. Move all 15 `ARCHIVE`-class rows from `bominal/agents/ultragoal/` to `archive/pre-grit-cutover-2026-05-12/`. Gate: this ADR merged + `oya-foundry-fitness-archive-orphan` lane scaffolded.
 
-6. **P7 — Deletion.** Owner: human orchestrator. Remove 8 `DELETE`-class rows. Gate: three checks per RALPLAN pre-mortem item 2 — (a) banned-primitives lane green post-P6, (b) `oya-foundry-fitness-archive-orphan` lane confirms no living references to archived paths, (c) every ARCHIVE-class row has a non-null `archived_at` timestamp in icm.
+6. **P7 — Deletion.** Owner: human orchestrator. Remove 2 `DELETE`-class rows. Gate: three checks per RALPLAN pre-mortem item 2 — (a) banned-primitives lane green post-P6, (b) `oya-foundry-fitness-archive-orphan` lane confirms no living references to archived paths, (c) every ARCHIVE-class row has a non-null `Archived at` timestamp in this ADR's ledger.
 
 7. **FLAG-FOR-USER — Global RTK extension.** Owner: human principal. Decide whether to extend the agent-instruction grit/icm primitive ban to `~/.claude/CLAUDE.md`. Default per spec §Non-Goals: no; scope is `oyatie/` only until the user explicitly broadens it.
 
@@ -560,7 +569,7 @@ Files currently in `.gitignored` paths that ANY part of the corpus treats as aut
 
 ## References
 
-- Source spec (READ-ONLY): `.omc/specs/inventory-draft-oyatie-cutover.md`
+- Source spec (READ-ONLY): `.omc/scratch/inventory-draft-oyatie-cutover.md`
 - Plan: `.omc/plans/ralplan-oyatie-sst-consolidation.md` (acceptance criterion A2)
 - ADR-0001: cohesion thesis — authority chain declaration
 - ADR-0015: architectural flattening target — flat-crates; explains all `crates/` KEEP rows

@@ -1,4 +1,8 @@
-use oya_foundry_runbook_index_kernel::{validate_runbook_index_resolves, RunbookIndexError};
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_check_runbook_index::{RunbookIndexError, validate_runbook_index_resolves};
 
 #[test]
 fn runbook_index_resolves_when_every_indexed_path_exists() {

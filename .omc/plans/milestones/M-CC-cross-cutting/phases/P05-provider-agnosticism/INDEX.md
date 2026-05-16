@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P05
 title: Provider-Agnosticism + Adapter Discipline
-status: stub
+status: in-progress
 purpose: Provider-specific code lives in `oya-<context>-adapter-<provider>-*` crates only; kernels stay provider-neutral.
 ---
 
@@ -20,9 +20,12 @@ Per MASTERPLAN §2 Directive 4. The Foundry multi-provider adapter pattern (Clau
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Provider-coupling lane kernel | stub | [`IP-001-provider-coupling-lane.md`](IP-001-provider-coupling-lane.md) |
-| IP-002 | Multi-provider adapter audit + remediation across Cloud kernels | stub | [`IP-002-cloud-multi-provider-audit.md`](IP-002-cloud-multi-provider-audit.md) |
-| IP-003 | Adapter-substitution integration-test harness | stub | [`IP-003-adapter-substitution-harness.md`](IP-003-adapter-substitution-harness.md) |
+| IP-001 | Provider-coupling lane kernel | complete | [`IP-001-provider-coupling-lane.md`](IP-001-provider-coupling-lane.md) |
+| IP-002 | Multi-provider adapter audit + remediation across Cloud kernels | split-required-too-broad-for-single-changeset | [`IP-002-cloud-multi-provider-audit.md`](IP-002-cloud-multi-provider-audit.md) |
+| IP-002.1 | Multi-provider adapter audit (Part 1: Billing & Marketplace) | complete | [`IP-002.1-audit-billing-marketplace.md`](IP-002.1-audit-billing-marketplace.md) |
+| IP-002.2 | Multi-provider adapter audit (Part 2: Capacity & Data) | complete | [`IP-002.2-audit-capacity-data.md`](IP-002.2-audit-capacity-data.md) |
+| IP-002.3 | Multi-provider adapter audit (Part 3: Finops & Observability) | complete | [`IP-002.3-audit-finops-observability.md`](IP-002.3-audit-finops-observability.md) |
+| IP-003 | Adapter-substitution integration-test harness | complete | [`IP-003-adapter-substitution-harness.md`](IP-003-adapter-substitution-harness.md) |
 
 ## Estimated parallelism
 3 agents.

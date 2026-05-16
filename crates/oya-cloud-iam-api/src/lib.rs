@@ -5,10 +5,10 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_iam_kernel::{
+use oya_cloud_iam_domain::{
     AssumeRoleRequest, CloudIamError, IamDirectory, IamRole, IamRoleCreate, StsSession,
 };
-use oya_platform_data_boundary_kernel::parse_data_class_label;
+use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_IAM_ROLE_CREATE_SURFACE: &str = "cloud.iam.role.create";
 pub const CLOUD_IAM_STS_TOKEN_SURFACE: &str = "cloud.iam.sts.token";

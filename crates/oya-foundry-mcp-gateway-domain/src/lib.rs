@@ -6,10 +6,10 @@
 
 use std::collections::BTreeMap;
 
-use oya_foundry_capability_kernel::{AutonomyTier, Capability};
-use oya_platform_data_boundary_kernel::{
-    data_classes_from_privacy_data_classes, Classified, DataClass, PrivacyDataClass,
+use oya_data_boundary_kernel::{
+    Classified, DataClass, PrivacyDataClass, data_classes_from_privacy_data_classes,
 };
+use oya_foundry_capability_domain::{AutonomyTier, Capability};
 
 pub const MCP_PROTOCOL_VERSION: &str = "2025-11-25";
 pub const DISCOVER_SCOPE: &str = "foundry.capability.discover";

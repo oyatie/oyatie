@@ -4,9 +4,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{
+use oya_data_boundary_kernel::{
+    Classified, DataClass, OperationalDataClass, PrivacyDataClass,
     data_classes_from_privacy_data_classes, most_restrictive_privacy_data_class,
-    privacy_data_classes_from, Classified, DataClass, OperationalDataClass, PrivacyDataClass,
+    privacy_data_classes_from,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]

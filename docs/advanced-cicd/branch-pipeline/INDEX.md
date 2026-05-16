@@ -9,6 +9,7 @@ adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   File catalogue + lift targets + cross-references for the four-layer branch-pipeline
   composer. Sibling to .omc/advanced-cicd/progressive-delivery/.
+doc_status: published
 ---
 
 # Branch Pipeline Composer — INDEX

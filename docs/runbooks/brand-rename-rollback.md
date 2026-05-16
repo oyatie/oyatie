@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Brand Rename Rollback
+doc_status: published
+---
+
 # Oyatie Runbook — Brand Rename Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

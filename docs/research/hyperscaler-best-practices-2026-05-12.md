@@ -2,6 +2,7 @@
 status: Accepted
 date: 2026-05-12
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
+doc_status: published
 ---
 # Hyperscaler Best Practices — Research + oyatie Adoption Recommendation (2026-05-12)
 

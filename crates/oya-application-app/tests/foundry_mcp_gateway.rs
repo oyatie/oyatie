@@ -1,11 +1,15 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 mod support;
 
-use oya_foundation_app::{
-    scope_for_tool_name, AutonomyTier, CapabilityAction, CapabilityMcpContract,
-    CapabilityRegistration, CostBudgetRegistration, DataClass, Foundation, FoundationError,
+use oya_application_app::{
+    AutonomyTier, CapabilityAction, CapabilityMcpContract, CapabilityRegistration,
+    CostBudgetRegistration, DISCOVER_SCOPE, DataClass, Foundation, FoundationError,
     IdentityRegistration, McpAccessTokenClaims, McpDiscoveryRequest, McpRateLimitPolicy,
     McpToolCallRequest, Purpose, SubjectClass, TenantCapabilityGrant, TenantRegistration,
-    DISCOVER_SCOPE,
+    scope_for_tool_name,
 };
 
 #[test]
@@ -112,7 +116,7 @@ fn foundation_registration_projects_authored_mcp_contract_to_tenant_descriptor()
                 namespace: "demo".into(),
                 action: CapabilityAction::Other,
                 required_tier: AutonomyTier::T1ViewOnly,
-                touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+                touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                     DataClass::InternalOnly,
                 ])
                 .unwrap(),
@@ -145,12 +149,13 @@ fn foundation_registration_projects_authored_mcp_contract_to_tenant_descriptor()
         "Agent-authored release readiness check."
     );
     assert!(tool.input_schema.value.contains("release_id"));
-    assert!(tool
-        .output_schema
-        .as_ref()
-        .expect("output schema is projected")
-        .value
-        .contains("verdict"));
+    assert!(
+        tool.output_schema
+            .as_ref()
+            .expect("output schema is projected")
+            .value
+            .contains("verdict")
+    );
 }
 
 #[test]
@@ -231,16 +236,20 @@ fn mcp_tool_call_requires_scope_then_invokes_through_foundry_hot_path() {
             .invoke_capability_via_mcp(base_request(vec![scope_for_tool_name("cap.demo.invoke")])),
         Err(FoundationError::McpRateLimited)
     );
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| event.surface == "foundry.mcp.tool.call" && event.decision == "ALLOW"));
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| event.surface == "foundry.capability.invoke" && event.decision == "ALLOW"));
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| event.surface == "foundry.mcp.tool.call" && event.decision == "ALLOW")
+    );
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| event.surface == "foundry.capability.invoke" && event.decision == "ALLOW")
+    );
 }
 
 fn onboard_tenant(foundation: &mut Foundation, tenant_id: &str, autonomy_ceiling: AutonomyTier) {
@@ -284,7 +293,7 @@ fn register_internal_capability(
             namespace: "demo".into(),
             action: CapabilityAction::Other,
             required_tier,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),

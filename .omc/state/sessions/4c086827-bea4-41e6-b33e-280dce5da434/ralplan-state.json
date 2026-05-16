@@ -1,0 +1,12 @@
+{
+  "active": false,
+  "started_at": "2026-05-15T01:08:45.843Z",
+  "current_phase": "complete",
+  "original_prompt": "/ralplan for foundry we are going to implement someting like this for codex, claude, and gemini. write a system like this in rust\nhttps://github.com/Siigari/claude-heartbeat",
+  "session_id": "4c086827-bea4-41e6-b33e-280dce5da434",
+  "project_path": "/Users/jasonlee/oyatie",
+  "awaiting_confirmation_set_at": "2026-05-15T01:08:45.843Z",
+  "last_checked_at": "2026-05-15T01:08:45.843Z",
+  "completed_at": "2026-05-15T01:08:54.396Z",
+  "deactivated_reason": "skill_completed"
+}

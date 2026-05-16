@@ -19,6 +19,7 @@ adrs_cited:
   - ADR-0125  # domain naming canon (Tenant/Org/User/Person/Employee distinctions)
   - ADR-0106  # Ontology architecture
   - ADR-0103  # Workflow hexagonal
+doc_status: published
 ---
 
 # Bounded Context Registration: `<bc-name>`

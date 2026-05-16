@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M04-P03-IP-003
 title: Foundry agents activation under autonomy ceiling
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Activate Foundry capabilities for tenant under T1-T3 autonomy ceiling.

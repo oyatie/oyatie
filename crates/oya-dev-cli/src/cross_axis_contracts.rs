@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use oya_foundry_cohesion_fitness_kernel::CrossAxisContract;
+use oya_check_cohesion::CrossAxisContract;
 
 use crate::{
     extract_json_array_for_key, find_matching_json_delimiter, parse_json_string_array_field,

@@ -1,6 +1,10 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AuthorizationRequest, AutonomyTier, Foundation, FoundationError, IdentityRegistration,
     PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion, TenantRegistration,
 };
@@ -48,7 +52,7 @@ fn policy_publish_and_authorize_enforces_rbac_abac_by_tenant_scope() {
     let allowed = foundation
         .authorize(AuthorizationRequest {
             tenant_id: tenant.id.clone(),
-            user_id: user.id.clone(),
+            user_id: user.id.value.as_str().to_string(),
             action: "tenant.settings.update".into(),
             resource: "tenant:ten_policy:settings".into(),
             attributes: vec![("region".into(), "kr-seoul".into())],
@@ -59,7 +63,7 @@ fn policy_publish_and_authorize_enforces_rbac_abac_by_tenant_scope() {
     let denied = foundation
         .authorize(AuthorizationRequest {
             tenant_id: tenant.id.clone(),
-            user_id: user.id,
+            user_id: user.id.value.as_str().to_string(),
             action: "tenant.settings.update".into(),
             resource: "tenant:ten_policy:settings".into(),
             attributes: vec![("region".into(), "us-east".into())],

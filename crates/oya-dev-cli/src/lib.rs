@@ -1,25 +1,29 @@
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` to assert
+// invariants under the `cfg(test)` exemption (production code is Tier 1).
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_check_adr_citation::{validate_adr_citations, AdrCitationDocument};
-use oya_check_brand_residue::{validate_brand_residue, BrandResidueDocument};
+use oya_check_adr_citation::{AdrCitationDocument, validate_adr_citations};
+use oya_check_brand_residue::{BrandResidueDocument, validate_brand_residue};
 use oya_check_glossary_vocabulary::{
+    GlossaryVocabularyWarning, GlossaryVocabularyWarningKind, GlossaryVocabularyWarningSource,
+    IgnoredUppercaseWord, VocabularyDocument,
     validate_glossary_vocabulary_hygiene_with_baseline_and_ignored_words,
-    validate_glossary_vocabulary_hygiene_with_ignored_words, GlossaryVocabularyWarning,
-    GlossaryVocabularyWarningKind, GlossaryVocabularyWarningSource, IgnoredUppercaseWord,
-    VocabularyDocument,
+    validate_glossary_vocabulary_hygiene_with_ignored_words,
 };
 use oya_check_license_policy::LicensePolicy;
 use oya_check_mobile_native::{
-    validate_mobile_native, MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
-    MobileNativeProductRecord,
+    MobileNativeDiscoveryMarker, MobileNativeManifest, MobileNativePolicy,
+    MobileNativeProductRecord, validate_mobile_native,
 };
 use oya_check_vendor_recency::{
-    validate_vendor_contract_recency, VendorContractRecencyPolicy, VendorContractRecord,
+    VendorContractRecencyPolicy, VendorContractRecord, validate_vendor_contract_recency,
 };
 use oya_foundry_api_semver_domain::validate_api_semver;
-use oya_foundry_cargo_prefix_domain::{validate_cargo_prefix, CargoPrefixMember};
+use oya_foundry_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
 
 mod active_artifact_contract_gate;
 mod api_contract_registry;
@@ -47,8 +51,12 @@ mod json_scan;
 mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
+mod pre_push_contract_gate;
+mod protection_context_match_gate;
 mod quality_lane_gates;
+mod retired_vocabulary_gate;
 mod runbook_gates;
+mod scalability_gates;
 mod scalar_parse;
 mod supply_chain_gates;
 mod team_ownership_gates;
@@ -105,8 +113,7 @@ pub(crate) use glossary_cross_doc_gates::{
 };
 pub(crate) use governance_gates::{
     parse_authority_cohesion_validate_args, parse_claim_ceiling_validate_args,
-    parse_constitution_cite_validate_args, parse_plane_class_validate_args,
-    validate_authority_cohesion_gate, validate_claim_ceiling_gate, validate_constitution_cite_gate,
+    parse_plane_class_validate_args, validate_authority_cohesion_gate, validate_claim_ceiling_gate,
     validate_plane_class_gate,
 };
 pub(crate) use json_scan::{
@@ -122,16 +129,30 @@ pub(crate) use path_format::slash_path;
 pub(crate) use placeholder_debt_gates::{
     parse_placeholder_debt_validate_args, validate_placeholder_debt_gate,
 };
+pub(crate) use pre_push_contract_gate::{
+    parse_pre_push_contract_validate_args, validate_pre_push_contract_gate,
+};
+pub(crate) use protection_context_match_gate::{
+    parse_protection_context_match_validate_args, validate_protection_context_match_gate,
+};
 pub(crate) use quality_lane_gates::{
     parse_quality_lanes_validate_args, validate_quality_lanes_gate,
+};
+pub(crate) use retired_vocabulary_gate::{
+    parse_retired_vocabulary_validate_args, validate_retired_vocabulary_gate,
 };
 pub(crate) use runbook_gates::{
     parse_runbook_freshness_validate_args, parse_runbook_index_validate_args,
     validate_runbook_freshness_gate, validate_runbook_index_gate,
 };
+pub(crate) use scalability_gates::{
+    parse_benchmark_validate_args, parse_perf_budget_validate_args,
+    parse_shardability_validate_args, parse_statelessness_validate_args, validate_benchmark_gate,
+    validate_perf_budget_gate, validate_shardability_gate, validate_statelessness_gate,
+};
 pub(crate) use scalar_parse::{
-    clean_scalar_value, insert_scalar_field, parse_bool_field, parse_u32_field, parse_u64_field,
-    parse_u8_percent, required_field, required_scalar, scalar_value,
+    clean_scalar_value, insert_scalar_field, parse_bool_field, parse_u8_percent, parse_u32_field,
+    parse_u64_field, required_field, required_scalar, scalar_value,
 };
 pub(crate) use supply_chain_gates::{
     parse_release_evidence_pack_validate_args, parse_release_supply_chain_validate_args,
@@ -154,25 +175,17 @@ pub(crate) use yaml_scan::{clean_yaml_value, parse_yaml_inline_values};
 
 pub fn run_cli_from_env() -> ExitCode {
     let mut raw_args = std::env::args();
-    let program = raw_args.next().unwrap_or_default();
-    let args = raw_args.collect::<Vec<_>>();
-    if Path::new(&program)
-        .file_stem()
-        .and_then(|stem| stem.to_str())
-        == Some("repoctl")
-    {
-        return commands::repoctl::run(args, &usage());
-    }
-
-    let mut args = args.into_iter();
+    let _program = raw_args.next().unwrap_or_default();
+    let mut args = raw_args.collect::<Vec<_>>().into_iter();
     match args.next().as_deref() {
         Some("demo") => commands::demo::run(args.collect(), &usage()),
         Some("check") => commands::check::run(args.collect(), &usage()),
-        Some("dev") => commands::dev::run(args.collect(), &usage()),
         Some("doc") => commands::doc::run(args.collect(), &usage()),
-        Some("repoctl") => commands::repoctl::run(args.collect(), &usage()),
         Some("catalog") => commands::catalog::run(args.collect(), &usage()),
         Some("gate") => commands::gate::run(args.collect(), &usage()),
+        Some("submit") => commands::submit::run(args.collect(), &usage()),
+        Some("vcs") => commands::vcs::run(args.collect(), &usage()),
+        Some("verify") => commands::verify::run(args.collect(), &usage()),
         _ => {
             eprintln!("{}", usage());
             ExitCode::from(2)
@@ -181,8 +194,9 @@ pub fn run_cli_from_env() -> ExitCode {
 }
 
 pub(crate) fn usage() -> String {
-    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya dev check [--check-script <scripts/check.sh>] [--format <text|json>]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <product-control/capabilities>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       repoctl pre-push [--check-script <scripts/check.sh>] [--format <text|json>] [--verify-contract]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
+    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--include-deferred] [--gate-args …]   # canonical local pre-push entry; dispatches to `oya gate run-all`\n       oya submit [--no-verify] [--push-only] [--draft] [--title <text>] [--body <text>]   # verify → push → open/extend PR\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <product-control/capabilities>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
+        + "\n       oya vcs [--format <text|json>] [--policy <observe|warn|enforce>] [--evidence-command <shell-command>] <claim|work|verify|done|status|symbols|queue|watch|promote> [vcs-specific args]"
         + "\n       oya gate validate foundation-bypass [--ledger <registry/foundation-bypasses>] [--now-epoch-days <days>]"
         + "\n       oya gate validate audit-chain-replay [--shards-dir <registry/audit-chain/shards>]"
         + "\n       oya gate validate foundry-capability-schema [--capabilities-dir <product-control/capabilities>]"
@@ -199,16 +213,22 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate authority-cohesion [--docs-dir <docs>]"
         + "\n       oya gate validate cargo-prefix [--workspace <Cargo.toml>] [--prefix <oya->]"
         + "\n       oya gate validate claim-ceiling [--registry <registry/catalog>]"
-        + "\n       oya gate validate codeview-read-surface [--spec <.omc/specs/codeview-read-surface.json>]"
+        + "\n       oya gate validate codeview-read-surface [--spec <specs/cross-cutting/codeview-read-surface.json>]"
         + "\n       oya gate validate cohesion [--workspace <Cargo.toml>] [--registry <registry/catalog>] [--contracts <docs/machine-readable/contracts.json>]"
         + "\n       oya gate validate codeowners-mirror [--codeowners <.github/CODEOWNERS>] [--teams-dir <docs/teams>]"
-        + "\n       oya gate validate constitution-cite-coverage [--docs-dir <docs>]"
+        + "\n       oya gate validate statelessness [--workspace-root <.>] [--allow-empty]"
+        + "\n       oya gate validate shardability [--migrations-dir <migrations>] [--allow-empty]"
+        + "\n       oya gate validate perf-budget [--plans-dir <.omc/plans/milestones>] [--allow-empty]"
+        + "\n       oya gate validate benchmark [--prds-dir <docs/prds>] [--products-dir <docs/products>] [--competitor <name>] [--allow-empty]"
         + "\n       oya gate validate data-class [--workspace <Cargo.toml>] [--legacy <registry/data-class/legacy-unannotated-fields.tsv>]"
         + "\n       oya gate validate doc-catalog [--docs-dir <docs>] [--catalog <docs/machine-readable/catalog.json>]"
         + "\n       oya gate validate documentation-system [--documentation <docs/DOCUMENTATION.md>] [--pipeline <registry/docs/pipeline.tsv>] [--check-script <scripts/check.sh>] [--wiki-quickref <docs/wiki/quickref/README.md>] [--repo-root <.>]"
         + "\n       oya gate validate glossary-cross-doc-coverage [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--machine <docs/machine-readable/glossary.json>]"
         + "\n       oya gate validate glossary-vocabulary [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--baseline <registry/glossary-vocabulary/warning-baseline.tsv>] [--ignored-uppercase-words <registry/glossary-vocabulary/ignored-uppercase-words.tsv>] [--write-baseline <path>] [--write-warning-report <path>]"
         + "\n       oya gate validate placeholder-debt [--docs-dir <docs>] [--registry <registry/placeholder-debt/registry.tsv>] [--write-registry <path>] [--write-report <path>]"
+        + "\n       oya gate validate pre-push-contract [--done-definition <docs/checklists/done-definition-checklist.md>] [--cli-dispatch-source <crates/oya-dev-cli/src/lib.rs>] [--hook-script <scripts/hooks/pre-push.sh>]"
+        + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <main>]"
+        + "\n       oya gate validate retired-vocabulary [--registry <registry/vocabulary/retired.yaml>] [--corpus-root <path>] (repeatable) [--exclude-root <path>] (repeatable)"
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-contract-recency [--ledger <docs/VENDOR-PARTNER-LEDGER.md>] [--today <YYYY-MM-DD>] [--renewal-window-days <90>]"
@@ -221,6 +241,9 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate runbook-index-resolves [--docs-dir <docs>]"
         + "\n       oya gate validate runbook-freshness [--runbooks-dir <docs/runbooks>] [--today <YYYY-MM-DD>]"
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
+        + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
+        + "\n       oya gate run-all [--include-deferred]"
+        + "\n       oya verify [--include-deferred]   # local-developer fold of `gate run-all`; canonical pre-push entry"
 }
 
 pub(crate) fn path_has_component(path: &Path, component: &str) -> bool {
@@ -362,6 +385,7 @@ fn glossary_vocabulary_forensic_path(path: &str) -> bool {
     matches!(
         path,
         "docs/GLOSSARY.md"
+            | "docs/ADR-INDEX.md"
             | "docs/fitness-lanes/glossary-vocabulary.md"
             | "docs/MISTAKES-LEDGER.md"
             | "docs/ADR-CONSOLIDATION-PLAN.md"

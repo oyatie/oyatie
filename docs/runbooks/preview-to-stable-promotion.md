@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Preview To Stable Promotion
+doc_status: published
+---
+
 # Oyatie Runbook — Preview To Stable Promotion
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Forbidden License Rollback
+doc_status: published
+---
+
 # Oyatie Runbook — Forbidden License Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

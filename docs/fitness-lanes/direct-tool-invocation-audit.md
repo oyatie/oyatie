@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Fitness Lane: direct-tool-invocation-audit
 
 - status: Accepted

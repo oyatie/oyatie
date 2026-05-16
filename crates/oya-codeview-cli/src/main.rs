@@ -9,7 +9,10 @@ use std::fs;
 use walkdir::WalkDir;
 
 #[derive(Parser)]
-#[command(name = "oya-tooling-agent-read", about = "Sanctioned read primitive for agent file access")]
+#[command(
+    name = "oya-tooling-agent-read",
+    about = "Sanctioned read primitive for agent file access"
+)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -18,9 +21,7 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// Read a file, emit audit event, print contents
-    Read {
-        path: String,
-    },
+    Read { path: String },
     /// Regex search across files, emit audit, print matches grouped by file
     Search {
         pattern: String,
@@ -28,9 +29,7 @@ pub enum Commands {
         path: String,
     },
     /// List public Rust symbols in a file
-    Symbols {
-        path: String,
-    },
+    Symbols { path: String },
     /// Append a JSONL audit row to .audit/agent-read.jsonl
     AuditEmit {
         #[arg(long)]

@@ -5,30 +5,35 @@ milestone: M03-first-paying-tenant
 phase: P02-payroll
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M03/P01-hr complete; oya-hr-employee-kernel + oya-hr-employment-kernel ship;
+entry_gate: 'M03/P01-hr complete; oya-hr-employee-kernel + oya-hr-employment-kernel
+  ship;
+
   Employee/Employment Object Types registered in Ontology;
+
   oya-finance-library-domain ships (M02-P11 substrate);
+
   EmployeeHired Workflow event registered.
-exit_gate: |
-  All IP acceptance gates green; `cargo nextest run -p oya-payroll-*` 0 failures;
-  `oya gate validate lean-a2 --ms payroll` exits 0;
-  `oya gate validate audit-chain --ms payroll` exits 0;
-  4대보험 EDI format compliance test green;
-  연말정산 21-category test green;
-  k6 smoke payroll run 1k employees ≤30s; payslip p99 ≤50ms;
-  grit done on all P02 symbols; ICM phase-handoff row emitted.
+
+  '
+exit_gate: "All IP acceptance gates green; `cargo nextest run -p oya-payroll-*` 0\
+  \ failures;\n`oya gate validate lean-a2 --ms payroll` exits 0;\n`oya gate validate\
+  \ audit-chain --ms payroll` exits 0;\n4\uB300\uBCF4\uD5D8 EDI format compliance\
+  \ test green;\n\uC5F0\uB9D0\uC815\uC0B0 21-category test green;\nk6 smoke payroll\
+  \ run 1k employees \u226430s; payslip p99 \u226450ms;\ngrit done on all P02 symbols;\
+  \ ICM phase-handoff row emitted.\n"
 depends_on:
-  - milestone: M03
-    phase: P01-hr
-    reason: "Payroll reads Employee/Employment from Ontology; EmployeeHired event triggers payroll enrollment; requires HR to ship first."
-  - milestone: M02
-    phase: P11-finance-library
-    reason: "oya-finance-library-domain provides Money + KRW arithmetic used in gross-to-net engine."
+- milestone: M03
+  phase: P01-hr
+  reason: Payroll reads Employee/Employment from Ontology; EmployeeHired event triggers
+    payroll enrollment; requires HR to ship first.
+- milestone: M02
+  phase: P11-finance-library
+  reason: oya-finance-library-domain provides Money + KRW arithmetic used in gross-to-net
+    engine.
 parallel_wave: 2
 owner_team: council-enterprise
+purpose: "Delivers the `oya-payroll-*` µservice: monthly payroll computation (gross-to-net under Korean tax law), 4대보험 EDI electronic submission (NPS / NHIS / MOEL), 연말정산 year-end settlement, payslip generation (Typst PDF)."
 ---
-
 # P02-payroll: Payroll µservice — KR gross-to-net, 4대보험 EDI, 연말정산, disbursement
 
 ## Purpose

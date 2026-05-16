@@ -2,7 +2,7 @@ asyncapi: 3.0.0
 info:
   title: Oyatie Platform Audit Events
   version: 1.0.0
-  description: CloudEvents 1.0 envelope with Protobuf payload for platform audit-chain event emission.
+  description: CloudEvents 1.0 envelope with Protobuf payload for platform audit-chain event emission, including hash-chain, Merkle-root, and Ed25519 proof material.
 defaultContentType: application/cloudevents+protobuf
 channels:
   platformAuditEvents:
@@ -47,4 +47,4 @@ components:
       payload:
         schemaFormat: application/vnd.google.protobuf;version=3
         schema:
-          $ref: '../proto/platform/audit/v1/audit-event-v1.proto#/platform.audit.v1.AuditEventEmit'
+          $ref: '../../proto/platform/audit/v1/audit-event-v1.proto#/platform.audit.v1.AuditEvent'

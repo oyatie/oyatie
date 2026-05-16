@@ -3,7 +3,11 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-002
 title: Inventory pass + ADR-0052 (P1)
-status: stub
+status: complete
+migration_status: cleanup
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Land inventory ADR-0052 with archived_at column per row.
@@ -16,7 +20,7 @@ Land inventory ADR-0052 with archived_at column per row.
 
 ## Symbols-to-grit-claim
 ```
-docs/decisions/ADR-0052-grit-cutover-inventory.md::InventoryTable
+docs/decisions/ADR-0103-grit-cutover-inventory.md::InventoryTable
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 

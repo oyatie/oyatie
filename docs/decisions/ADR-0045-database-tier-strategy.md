@@ -1,3 +1,9 @@
+---
+id: ADR-0045
+status: proposed
+doc_status: published
+---
+
 # ADR-0045: Database tier strategy — PostgreSQL + Citus for OLTP, ClickHouse-fork for OLAP, Iceberg + DataFusion for lakehouse
 
 > **Status:** Proposed

@@ -8,17 +8,17 @@ status: pending
 owner: council-foundry
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: "Scaffolds all 10 foundry and check crates, implements 7 sub-commands on `oya-shared-architecture-check-cli` (dependency-direction, cross-product-refusal, port-location, layer-correctness, lib-name-parity, composition-root-only."
 ---
-
 # IP-P01-foundry-lean-checks: Scaffold 10 foundry/check crates implementing 14 CI fitness lanes
 
 ## Intent

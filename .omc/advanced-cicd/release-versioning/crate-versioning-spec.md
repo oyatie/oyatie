@@ -93,7 +93,7 @@ If the lane reports a SemVer violation, the PR author has two paths:
 
 1. **Fix the violation**: revert the API change, ship the additive equivalent.
 2. **Embrace the major bump**: open an ADR under
-   `.omc/templates/ADR-BREAKING-CHANGE.md` with:
+   `/templates/ADR-BREAKING-CHANGE.md` with:
    - Frontmatter `breaking_change: true`.
    - Justification (data-shape change, security, regulatory).
    - Migration path for downstream consumers.

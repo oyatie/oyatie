@@ -14,6 +14,7 @@ related:
   - docs/MASTERPLAN.md
   - docs/AGENTS.md
   - docs/CONSTITUTION.md
+doc_status: published
 ---
 
 # Agent Kickoff INDEX

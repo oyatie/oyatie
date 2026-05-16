@@ -1,0 +1,67 @@
+{
+  "$schema_ref": "/templates/evidence-bundle-template.json",
+  "_artifact_id": "M02-P02-IP-004-oauth-subscription-capture",
+  "_meta": {
+    "ip": "M02-P02-IP-004",
+    "milestone": "M02",
+    "phase": "P02-multi-subscription-pool",
+    "produced_at": "2026-05-14",
+    "auditor": "claude-a1-m02p02",
+    "scope": "crates/oya-foundry-oauth-subscription-kernel",
+    "purpose": "Auto-backfilled purpose for m02-p02-ip-004-oauth-subscription-capture.json"
+  },
+  "ip_id": "IP-004-oauth-subscription-capture",
+  "role": "kernel",
+  "crates_created": [
+    {
+      "name": "oya-foundry-oauth-subscription-kernel",
+      "role": "kernel",
+      "bnf_justification": "oya-<microservice:foundry>-<bc:oauth-subscription>-<layer:kernel>; v4.1 conformant; oauth-subscription is a discrete bounded context (PKCE + flow state) separable from oya-foundry-account-runtime; layer=kernel \u2014 pure value types + deterministic PKCE handshake + SHA-256, NO I/O (loopback server lives in adapter layer). Departs from the IP-001 plan (`oya-foundry-agent-runtime::foundry::auth.rs`) per ICM scaffold-lock 01KRMC1RRT3KKBPFWST64Q33TZ since no `oya-foundry-agent-runtime` crate exists today; new kernel is a final-shape replacement and avoids a placeholder agent-runtime crate.",
+      "purpose": "PKCE-pinned OAuth subscription-token capture flow. Pure-Rust SHA-256 + base64url-no-pad for kernel layer (avoids dep on sha2/0.10 in kernel \u2014 adapter layer can substitute). Tokens never enter the kernel \u2014 `record_capture` accepts only a pre-minted `SecretReference` from the secrets-store adapter.",
+      "linus_good_taste": "Eliminated parallel `import_api_key` helper by collapsing API-key import into a `FlowKind::ApiKeyImport` variant of the same entry point; one surface, one decision tree."
+    }
+  ],
+  "symbols_shipped": [
+    "capture_subscription_token",
+    "SubscriptionOAuthFlow, SubscriptionTokenCaptureRequest, SubscriptionTokenCaptureResponse",
+    "OAuthLoopbackServer (default port 35593, /callback)",
+    "FlowKind::{AnthropicSubscriptionOAuth, OpenAiOAuth, ApiKeyImport}",
+    "PkceVerifier, PkceChallenge",
+    "build_authorization_url, record_capture, anthropic_subscription_scopes",
+    "OAuthError::{InvalidVerifierLength, InvalidVerifierCharset, EmptyAuthorizationEndpoint, EmptyTokenEndpoint, EmptyScopes, EmptyStateNonce, ProviderRejected, LoopbackPortReserved}",
+    "constants: ANTHROPIC_AUTHORIZATION_ENDPOINT, ANTHROPIC_TOKEN_ENDPOINT"
+  ],
+  "secret_handling": {
+    "no_raw_secrets_in_kernel": true,
+    "secret_reference_only": true,
+    "pkce_verifier_debug_redacts": true,
+    "rfc7636_appendix_b_test_vector_passes": true,
+    "sha256_known_vector_passes": true
+  },
+  "verification": {
+    "test_count": 18,
+    "tests_passed": 18,
+    "tests_failed": 0,
+    "clippy_clean": true,
+    "data_class_annotated": true,
+    "rfc7636_compliance": true
+  },
+  "grit_claim": {
+    "agent": "claude-a1-m02p02",
+    "intent": "M02-P02-IP-004 \u2014 OAuth subscription kernel scaffold",
+    "fallback_mechanism": "ADR-0054 scaffold-lock",
+    "icm_lock_ulid": "01KRMC1RRT3KKBPFWST64Q33TZ"
+  },
+  "scripts_check_exit": null,
+  "ccproxy_parity": [
+    "plugins/oauth_claude PKCE flow",
+    "loopback port 35593 + /callback",
+    "scopes org:create_api_key + user:profile + user:inference",
+    "plugins/oauth_codex stub via FlowKind::OpenAiOAuth"
+  ],
+  "open_items": [
+    "Loopback HTTP server (the listener that receives the OAuth `code`) lives in adapter layer \u2014 not in this kernel. The kernel exposes the descriptor; the adapter binds the port.",
+    "Browser-open hand-off (operator-console UX) lives in app layer."
+  ],
+  "next_ip": "IP-005-upstream-api-drift-lane"
+}

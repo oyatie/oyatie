@@ -17,7 +17,7 @@ related:
   - .omc/agent-kickoff/ESCALATION-MATRIX.md
   - .omc/agent-kickoff/CROSS-REFERENCE-INDEX.md
   - .omc/standards/INDEX.md
-  - .omc/templates/INDEX.md
+  - /templates/INDEX.md
   - .omc/fitness-lanes/
 ---
 
@@ -56,7 +56,7 @@ flowchart TD
   DC & BP & ADR & DF & OTHER --> W
 
   W --> N{need new file?}
-  N -->|yes| TPL[copy from .omc/templates/*]
+  N -->|yes| TPL[copy from /templates/*]
   TPL --> W
 
   W --> M{modify existing file?}
@@ -125,21 +125,21 @@ Direct invocation is permitted ONLY when no grit/icm primitive exists AND invent
 
 ## D6 — Need to create a new file
 
-Pick the matching template under [`.omc/templates/`](../templates/):
+Pick the matching template under [`/templates/`](../templates/):
 
 | File class | Template ID | Source |
 |---|---|---|
-| Implementation plan | TPL-IP | `.omc/templates/implementation-plan-template.md` |
-| Phase INDEX | TPL-PHASE | `.omc/templates/phase-index-template.md` |
-| Milestone INDEX | TPL-MILE | `.omc/templates/milestone-index-template.md` |
-| ADR | TPL-ADR | `.omc/templates/adr-template.md` |
-| Runbook | TPL-RUNBOOK | `.omc/templates/runbook-template.md` |
-| Capability record | TPL-CAP | `.omc/templates/capability-record-template.yaml` |
-| Design doc | TPL-DD | `.omc/templates/design-doc-template.md` |
-| PRFAQ | TPL-PRFAQ | `.omc/templates/prfaq-template.md` |
-| Evidence bundle | TPL-EVB | `.omc/templates/evidence-bundle-template.json` |
-| Postmortem | TPL-PM | `.omc/templates/postmortem-template.md` |
-| MISTAKES-LEDGER row | TPL-MFL | `.omc/templates/mistakes-ledger-row-template.md` |
+| Implementation plan | TPL-IP | `/templates/implementation-plan-template.md` |
+| Phase INDEX | TPL-PHASE | `/templates/phase-index-template.md` |
+| Milestone INDEX | TPL-MILE | `/templates/milestone-index-template.md` |
+| ADR | TPL-ADR | `/templates/adr-template.md` |
+| Runbook | TPL-RUNBOOK | `/templates/runbook-template.md` |
+| Capability record | TPL-CAP | `/templates/capability-record-template.yaml` |
+| Design doc | TPL-DD | `/templates/design-doc-template.md` |
+| PRFAQ | TPL-PRFAQ | `/templates/prfaq-template.md` |
+| Evidence bundle | TPL-EVB | `/templates/evidence-bundle-template.json` |
+| Postmortem | TPL-PM | `/templates/postmortem-template.md` |
+| MISTAKES-LEDGER row | TPL-MFL | `/templates/mistakes-ledger-row-template.md` |
 
 Copy the template; fill every required frontmatter field; do not delete `status: pending approval` until lift.
 

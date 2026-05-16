@@ -13,6 +13,7 @@ enforced_by:
   - oya-foundry-fitness-canary-required
 related_adrs: [ADR-0031, ADR-0038, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
+doc_status: published
 ---
 
 # Playbook: Ads / Analytics Rollout

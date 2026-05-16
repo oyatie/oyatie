@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Api Gateway Rate Limit Incident
+doc_status: published
+---
+
 # Oyatie Runbook — Api Gateway Rate Limit Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

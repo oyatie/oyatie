@@ -19,6 +19,7 @@ companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
   - tech-stack-map-spec.md
+doc_status: published
 ---
 
 # Visualization spec: service map

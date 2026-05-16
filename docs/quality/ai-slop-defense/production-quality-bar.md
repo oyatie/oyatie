@@ -7,12 +7,13 @@ purpose: |
   dimensions. Each dimension binds to (a) a definition, (b) a
   verification method, and (c) the fitness lane that enforces it. The
   bar reflects the AWS / Google / MS / Oracle convergent practice as
-  documented in `.omc/specs/hyperscaler-best-practices-2026-05-12.md`.
+  documented in `.omc/scratch/hyperscaler-best-practices-2026-05-12.md`.
 owner: council-architecture
 date: 2026-05-12
 adr_citations:
   - ADR-0053
   - ADR-0055
+doc_status: published
 ---
 
 # Production Quality Bar — 38 Dimensions

@@ -15,4 +15,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate published regulator evidence packs
-        run: cargo run -p oya-tooling-cli-dev-runtime -- gate validate release-evidence-pack --require-records
+        run: cargo run -p oya-dev-cli -- gate validate release-evidence-pack --require-records

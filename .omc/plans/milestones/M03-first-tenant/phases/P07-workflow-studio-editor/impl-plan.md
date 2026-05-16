@@ -1,3 +1,8 @@
+---
+purpose: "P07 — Workflow Studio Visual Editor: Implementation Plan"
+status: in-progress
+---
+
 # P07 — Workflow Studio Visual Editor: Implementation Plan
 
 ## Metadata

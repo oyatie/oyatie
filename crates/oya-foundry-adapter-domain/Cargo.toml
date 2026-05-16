@@ -16,3 +16,6 @@ oya-secrets-domain = { path = "../oya-secrets-domain" }
 name = "oya_foundry_adapter_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

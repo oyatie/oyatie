@@ -4,9 +4,10 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{
+use oya_data_boundary_kernel::{
+    Classified, DataClass, OperationalDataClass, PrivacyDataClass,
     data_classes_from_privacy_data_classes, most_restrictive_privacy_data_class,
-    privacy_data_classes_from, Classified, DataClass, OperationalDataClass, PrivacyDataClass,
+    privacy_data_classes_from,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -353,10 +354,13 @@ fn validate_capability_id(capability_id: &str) -> Result<(), EvidenceError> {
 }
 
 fn extract_sequence(evidence_id: &str) -> Result<u64, EvidenceError> {
+    // ADR-0083 Tier 1: propagate the prefix-strip failure through the
+    // existing `EvidenceError::InvalidEvidenceId` variant instead of
+    // double-validating with `.expect()` after `validate_evidence_id`.
     validate_evidence_id(evidence_id)?;
     evidence_id
         .strip_prefix("ev_")
-        .expect("validated evidence IDs have ev_ prefix")
+        .ok_or(EvidenceError::InvalidEvidenceId)?
         .parse()
         .map_err(|_| EvidenceError::InvalidEvidenceId)
 }

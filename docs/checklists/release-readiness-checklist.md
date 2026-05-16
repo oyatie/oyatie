@@ -16,6 +16,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (wave-gate audit emission)
   - ADR-0053  # sanctioned primitives (agent release path)
   - ADR-0054  # scaffold-claim (capability scaffolding at release)
+doc_status: published
 ---
 
 # Release Readiness Checklist (wave-gate)
@@ -70,7 +71,7 @@ adrs_cited:
 
 - [ ] **RR27** Release notes drafted (customer-facing).
 - [ ] **RR28** Trust-portal page prepared (for surfaces with regulatory disclosure).
-- [ ] **RR29** Internal Slack `#oyatie-masterplan-status` notified.
+- [ ] **RR29** Internal Slack `#oya-masterplan-status` notified.
 - [ ] **RR30** Founder + Council-Architecture sign-off recorded.
 
 ## Post-gate

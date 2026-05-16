@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Design Partner Onboarding
+doc_status: published
+---
+
 # Oyatie Runbook — Design Partner Onboarding
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

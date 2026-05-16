@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-ops-docs-portal-application = { path = "../oya-ops-docs-portal-application" }
 oya-ops-docs-portal-adapter = { path = "../oya-ops-docs-portal-adapter" }
+oya-ops-docs-portal-usecase = { path = "../oya-ops-docs-portal-usecase" }
 oya-ops-docs-portal-kernel = { path = "../oya-ops-docs-portal-kernel" }
 
 
@@ -16,3 +16,6 @@ oya-ops-docs-portal-kernel = { path = "../oya-ops-docs-portal-kernel" }
 name = "oya_ops_docs_portal_rest"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

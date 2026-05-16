@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Axis Retire Consolidate
+doc_status: published
+---
+
 # Oyatie Runbook — Axis Retire Consolidate
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

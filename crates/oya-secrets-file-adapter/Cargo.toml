@@ -13,3 +13,6 @@ oya-secrets-domain = { path = "../oya-secrets-domain" }
 name = "oya_secrets_file_adapter"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

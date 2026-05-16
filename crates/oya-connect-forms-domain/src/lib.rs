@@ -5,10 +5,13 @@
 //! Object-Graph route references, field answers, submission validation, and
 //! conservative response data-class defaults without owning REST, storage, or
 //! Object-Graph adapter code.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const FORM_SCHEMA_VERSION: u32 = 1;
 const FORM_SUBMISSION_SCHEMA_VERSION: u32 = 1;
@@ -237,23 +240,19 @@ impl FormAnswer {
 }
 
 pub fn default_workspace_form_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn form_label_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiQuasiIdentifier)
-        .expect("PII_QUASI_IDENTIFIER is a privacy-program data class")
+    PrivacyDataClass::pii_quasi_identifier()
 }
 
 pub fn form_response_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn submitter_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_form_data_class_from_legacy(
@@ -357,7 +356,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn field(field_id: &str, kind: FormFieldKind, required: bool) -> FormField {
         FormField::new(FormFieldCreate {
@@ -518,5 +517,46 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.forms STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FormsSurfaceStaging {
+    pub form_id: Classified<String>,     // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,   // data_class: INTERNAL_ONLY
+    pub response_count: Classified<u64>, // data_class: INTERNAL_ONLY
+}
+
+impl FormsSurfaceStaging {
+    pub fn new(form_id: String, tenant_id: String, response_count: u64) -> Self {
+        Self {
+            form_id: Classified::new(form_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            response_count: Classified::new(response_count, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> FormsSurfaceStaging {
+        FormsSurfaceStaging::new("forms-1".into(), "forms-1".into(), 0u64)
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.form_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

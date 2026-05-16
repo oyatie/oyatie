@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Logistics (Shipment / Dock / EDI / Route)
 
 ## Mission

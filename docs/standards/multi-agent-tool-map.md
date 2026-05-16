@@ -1,4 +1,9 @@
 ---
+purpose: Cross-agent tool-name mapping for Claude Code, Codex (OpenAI Codex CLI), Gemini (Gemini CLI), and OMC subagents.
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: reference
 length_cap: 250
@@ -13,7 +18,7 @@ purpose: |
   hands off to another. Resolves the
   `standards/multi-agent-tool-map.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Gemini).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-tool-map-cohesion
 companion_docs:
   - docs/AGENTS.md
@@ -27,7 +32,7 @@ related_adrs:
 
 # Multi-Agent Tool Map
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 Multiple agent harnesses operate on this repository (Claude Code, Codex,
 Gemini, OMC subagents). Each harness exposes slightly different tool names
@@ -92,7 +97,7 @@ the agent MUST use only the triad + the canonical tool surface above:
 | Claude Code | `Read`, `Write`, `Edit`, `Bash` (rtk-rewritten), `Grep`, `Glob`, `grit`, `icm`, `oya-tooling-agent-read`, OMC subagent skills, MCP calls | Direct `git`/`gh` via `Bash` per Directive 12 (with icm-store rationale) | bypassing hooks; `~/.claude/` edits |
 | Codex CLI | `read_file`, `apply_patch`, `shell` (rtk-rewritten), `web_fetch`, `web_search` | Direct `git`/`gh` via `shell` per Directive 12 | network calls outside the sandboxed allow-list |
 | Gemini CLI | `read_file`, `write_file`, `replace`, `run_shell_command`, `glob`, `search_file_content` | Direct `git`/`gh` per Directive 12 | sandbox-escape commands |
-| OMC subagent | inherits Claude Code's surface | inherits Claude Code's exceptions | inherits Claude Code's bans |
+| OMC subagent | inherits Claude Code's surface | inherits Claude Code's Directive-12 extensions | inherits Claude Code's bans |
 
 The lane `oya-foundry-fitness-tool-map-cohesion` validates that the
 per-harness sanctioned set in each agent appendix matches this table.

@@ -1,6 +1,11 @@
+---
+purpose: Oyatie — Privacy Program
+doc_status: published
+---
+
 # Oyatie — Privacy Program
 
-> **Status:** Draft v0.1 — 2026-05-09. Embeds the Data Use Boundary ADR draft (the P0 prereq).
+> **Status:** Accepted boundary text — ADR-0008 ratified 2026-05-14; operating model remains monthly-maintained.
 > **Companion docs:** [PRD.md](PRD.md), [DESIGN.md](DESIGN.md), [SECURITY-PROGRAM.md](SECURITY-PROGRAM.md), [COMPLIANCE-MATRIX.md](COMPLIANCE-MATRIX.md).
 > **Owners:** Privacy & Legal council; Architecture council co-signs cross-axis flows; Founder is final arbiter on scope changes.
 
@@ -22,11 +27,11 @@ Failure modes are unrecoverable: a single PHI leak into the search index or as a
 
 ---
 
-## 2. The Data Use Boundary ADR (DRAFT — to land as the next ADR; this section is the proposed text)
+## 2. Data Use Boundary (ADR-0008 Accepted)
 
-> **Title:** ADR-0050 — Data Use Boundary across SaaS, Search, Ads, Analytics, Cloud, Agent Runtime
-> **Status:** DRAFT (becomes Accepted once council ratifies; *blocks substantive work in cloud / search / ads axes until Accepted*)
-> **Related ADRs:** ADR-0011 (audit event), ADR-0028 (audit-chain), ADR-0030 (object graph), ADR-0032 (eventing), ADR-0006 (object graph engine-enforced isolation), ADR-0017 (domain naming canon), ADR-0022 (persona tier), ADR-0008 (data-ownership pillars), ADR-0008 (DP gateway), ADR-0008 (mining exclusion zone), ADR-0008 (multi-jurisdiction policy), ADR-0003 (audit chain immutability).
+> **Title:** ADR-0008 — Data Use Boundary across Application, Search, Ads, Analytics, Cloud, and Agent Runtime
+> **Status:** Accepted via ADR-0008 (2026-05-14); blocks substantive data-plane work that lacks data-class and purpose-permission coverage.
+> **Related ADRs:** ADR-0001, ADR-0002, ADR-0003, ADR-0006, ADR-0007, ADR-0010, ADR-0011, ADR-0034, ADR-0038, ADR-0049.
 
 ### 2.1 Context
 
@@ -50,7 +55,7 @@ Every record in Oyatie's stores carries exactly one `data_class` annotation. The
 | 3 | `PII_IDENTIFYING` | name + phone + RRN + address + face image | DENY (consent required for analytics; never for ads) | DP-only |
 | 4 | `PII_QUASI_IDENTIFIER` | birthdate + ZIP + gender (k-anonymity threshold) | DENY without aggregation | k-anonymous (k≥10) |
 | 5 | `PCI` | card PAN, CVV, account number | **HARD DENY** | **HARD DENY** |
-| 6 | `FINANCIAL_KR_신용정보` | KR credit score, loan history | **HARD DENY** | DP-only with FSC consent flow |
+| 6 | `FINANCIAL_KR` | KR credit score, loan history (`신용정보`) | **HARD DENY** | DP-only with FSC consent flow |
 | 7 | `BEHAVIORAL_TENANT_PRODUCT` | which workflow tenant ran, which Connect feature | DENY for ads outside tenant; per-tenant analytics OK | per-tenant + cross-tenant DP |
 | 8 | `BEHAVIORAL_ADS` | impression / click / conversion (ads-axis-internal) | OK for first-party attribution; cross-tenant retargeting requires separate consent | OK |
 | 9 | `DECLARED_PREFERENCE` | tenant-declared interest categories, opted-in segments | OK for ad targeting | OK |
@@ -116,6 +121,24 @@ Each permission grant is:
 ##### Tier labels (UI shorthand only — NOT authoritative grants)
 
 Tier labels exist for UI ergonomics (e.g. tenant onboarding shows "Essential / Analytics / Personalization / Ads / Cross-tenant" buttons). Each button corresponds to a *bundle* of (purpose, data_class) permissions. The button is a convenience; the **stored grants** are the per-permission rows. A user MAY grant ANALYTICS but not PERSONALIZATION; a user MAY grant CROSS_DEVICE but not AD_TARGETING; the matrix is independently navigable.
+
+##### Consent-tier mapping (UI bundle projection)
+
+These tiers are UI presets only. The consent service expands each preset into explicit `(purpose, data_class)` grant rows, stamps every row into the audit chain, and evaluates the resulting rows against tenant class, geography, and subject class before use.
+
+| UI tier | Purpose rows emitted | Default data-class ceiling | Hard-deny floor | Revocation cascade |
+|---|---|---|---|---|
+| Essential | `service_operation`, `security_fraud_prevention`, `regulatory_compliance` | Minimum classes needed for subscribed service | PHI/PCI/PIPA-Art23/CHILDREN remain purpose-limited; never ads | Service stops or degrades to legal minimum; derived caches purged within 30 days |
+| Tenant analytics | `tenant_analytics_first_party` | Tenant-owned classes excluding HARD_DENY ad floors | PCI and raw HARD_DENY classes remain blocked from non-compliance analytics | Analytics aggregates invalidated; DP budgets closed |
+| Cross-tenant aggregate | `cross_tenant_aggregate_anonymous` | k-anonymous / DP aggregates only (`k≥10`, `k≥25` for PIPA Art 23) | No row-level export, no individual linking | Aggregate cohorts re-keyed or removed within 30 days |
+| Personalization | `personalization_in_oya_saas` | Per-user personalization inside Oyatie SaaS surfaces | Does not grant ads, model training, cross-device, or cross-tenant individual use | Profiles and derived recommendations purged within 30 days |
+| Declared ads | `ad_targeting_declared` | `DECLARED_PREFERENCE` only | PHI, PII identifying, PCI, FINANCIAL_KR, SEARCH_QUERY, PIPA Art 23, and minors always blocked | Audiences removed and active campaigns re-evaluated immediately |
+| First-party ads attribution | `ad_targeting_behavioral` | `BEHAVIORAL_ADS` first-party signal only | No tenant product behavior, PHI/PII/PCI/financial/sensitive classes | Attribution windows closed; future decisions denied |
+| Cross-device linking | `cross_device_linking` | Identity-link metadata needed for the declared service | Does not grant cross-tenant individual linking or ads | Link graph edge deleted; dependent caches purged |
+| Model training — Oyatie | `model_training_oya` | De-identified, lineage-tracked records allowed by class and tenant policy | No HARD_DENY classes; no minors; no raw regulated identifiers | Training corpus exclusion attestation emitted; derived artifacts quarantined if needed |
+| Model training — third party | `model_training_third_party` | Escalation-gated de-identified export only | Default DENY unless council-approved; no HARD_DENY classes | Provider deletion proof required; trust-portal evidence published |
+| DSR export/delete | `data_export_to_subject`, `data_deletion_cascade` | Subject-owned records required by law | N/A — legal-obligation path | Export or proof-of-erasure completed within SLA |
+
 
 ##### Four-pillar matrix (per Codex review 2026-05-09)
 

@@ -14,6 +14,7 @@ purpose: |
 enforced_by:
   - oya-foundry-fitness-capability-stage-binding
 related_adrs: [ADR-0020, ADR-0021, ADR-0022, ADR-0024]
+doc_status: published
 ---
 
 # Foundry Pipeline Mirror — Capability Stages in Lockstep with Branch Layers

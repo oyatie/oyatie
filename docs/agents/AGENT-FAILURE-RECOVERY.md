@@ -15,6 +15,7 @@ related:
   - docs/agents/AGENT-TOOL-PROTOCOL.md
   - docs/agents/ESCALATION-MATRIX.md
   - docs/standards/INDEX.md
+doc_status: published
 ---
 
 # Agent Failure Recovery

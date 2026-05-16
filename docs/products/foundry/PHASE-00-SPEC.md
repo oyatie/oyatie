@@ -1,3 +1,6 @@
+---
+doc_status: published
+---
 # Foundry Phase 00 Specification — Account-Auth Bootstrap
 
 <!--
@@ -6,9 +9,15 @@ date: 2026-05-12
 related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 -->
 
-**Source:** Salvaged from `/Users/jasonlee/bominal/agents/ultragoal/` (foundry-agentic-substrate-master.md, 2026-05-12-foundry-ultragoal-mega-plan.md, brief.md, oyatie-product-delivery-implementation-plan.md) — 2026-05-12.
+**Source:** Salvaged from `/Users/jasonlee/bominal/agents/ultragoal/` (foundry-agentic-substrate-master.md, 2026-05-12-foundry-ultragoal-mega-plan.md, brief.md, product-delivery-implementation-plan.md) — 2026-05-12.
 
 **Landing rationale:** `docs/products/foundry/PRD.md` is product-level (75.5KB); Phase 00 contracts land separately so phases 01–06 specs can follow. See §H of foundry-salvage source.
+
+**Source corpus cross-cites:** The canonical upstream planning corpus remains KEEP-classified in Bominal. This specification lands the Phase 00 contract surface from:
+- `bominal/agents/ultragoal/2026-05-12-foundry-ultragoal-mega-plan.md`
+- `bominal/agents/ultragoal/foundry-agentic-substrate-master.md`
+- `bominal/agents/ultragoal/product-delivery-implementation-plan.md`
+- `bominal/agents/ultragoal/brief.md` (supporting brief, not part of the P3.5 three-file PRD cite gate)
 
 **Cross-link from main SPEC.md:**
 > See [Foundry Phase 00 Specification](./PHASE-00-SPEC.md) for account-auth bootstrap contract, domain types, state machine, visibility surfaces, transport parity, and acceptance gates.
@@ -187,7 +196,7 @@ Acceptance:
   - All crates in workspace [members] glob
 
 Validation command:
-  bash scripts/check-architecture-boundaries.sh crates/oya-foundry-account-*
+  bash oya gate validate architecture-boundaries crates/oya-foundry-account-*
 ```
 
 **P00-02: Domain types + application commands + ports**
@@ -221,11 +230,24 @@ Validation command:
   node scripts/hooks/guard-secrets.mjs --scan crates/oya-foundry-account-*
 ```
 
-**P00-04..P00-06: Provider adapters, usage windows, account route policy**
+**P00-04: Provider adapters and provider-gateway parity**
 ```
 Tests required:
   - Codex, Claude, Gemini capability-detection contract tests
+  - Provider-gateway parity tests: each provider adapter exposes the same account route, capability, auth-status, and audit-event contract through the provider gateway
+  - No provider adapter bypasses ProviderAuthPort, UsageLedgerPort, SecretStorePort, or AuditEventPort
+```
+
+**P00-05: Usage windows and quotas**
+```
+Tests required:
   - Usage window tests: 5h/1wk/project windows, usage_limit_pct enforcement, reserve_remaining_pct validation
+  - Usage ledger evidence includes input, output, cache-hit, cost-estimate, and cooldown/failover counters
+```
+
+**P00-06: Account route policy and transport parity foundations**
+```
+Tests required:
   - Account route policy tests: budget ceilings, reserve budget, no silent account switch, privacy/residency constraints
   - Failover/cooldown tests: fallback order, rate-limit recovery, model degradation
 ```
@@ -244,13 +266,13 @@ Validation command:
 **P00-08: Phase E2E and CI gate**
 ```
 Acceptance:
-  - `scripts/validate_foundry_phase00_evidence.mjs` passes
+  - `scripts/validate-foundry-phase00-evidence.mjs` passes
   - Local fast: `cargo test --locked -p oya-foundry-account-*`
   - GitHub Actions Foundry lane: `cargo test --workspace`, secret scans, architecture boundary checks
   - Evidence bundle: account-auth slice delivered or exact gaps honestly stated
   - No stubs, placeholders, fake paths, TODO/TBD markers in acceptance paths
 
-Validator: `validate_foundry_phase00_evidence.mjs`
+Validator: `validate-foundry-phase00-evidence.mjs`
   Checks:
     - Files present: crates, tests, adapters
     - Executed local commands: cargo test results
@@ -271,6 +293,14 @@ Validator: `validate_foundry_phase00_evidence.mjs`
 **Phase 00 scope:** REST/GraphQL/SSE/WebSocket command input and status subscription foundations.
 
 **Phase 05 scope:** gRPC, Webhook, Kafka/MQ write-capable ops.
+
+### Provider-gateway parity — P00-04/P00-06
+
+**Requirement:** Codex, Claude, Gemini, and future provider adapters must enter through one provider gateway contract, with identical account-auth, route explanation, usage-window, SecretReference, and audit-event semantics.
+
+**Phase 00 scope:** provider gateway parity is validated for account registration, auth verification, activation, route explanation, status visibility, and account-route policy checks.
+
+**Non-goal:** provider-specific features may exist behind adapters, but they cannot bypass provider-gateway parity or write a separate authority path.
 
 ### Smart usage/token management (Phase 00 baseline)
 

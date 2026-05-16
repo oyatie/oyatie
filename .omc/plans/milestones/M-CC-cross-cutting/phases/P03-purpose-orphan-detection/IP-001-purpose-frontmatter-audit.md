@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P03-IP-001
 title: Purpose-frontmatter authoring (audit every existing doc/JSON)
-status: stub
+status: split-required-too-broad-for-single-changeset
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Audit every existing doc/JSON for purpose declaration; backfill where missing.

@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P04-IP-001
 title: Agentic-navigability lane kernel + parent-pointer validator
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Lane CI-blocks missing INDEX.md / missing parent-pointer / undeclared symbols / undeclared purpose.
@@ -49,4 +52,9 @@ icm store -t context-oyatie -c 'M-CC-P04-IP-001 Agentic-navigability lane kernel
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- `PlanNodeKind::requires_*` predicates replace N×M "if kind == X and field Y is missing" branches — the kernel walks one uniform loop.
+- `NavigabilityViolationKind` enumerates all violation kinds in one place — adding a rule means one variant + one match arm.
+- Empty/None purpose and empty/None parent-pointer are treated identically — runners cannot quietly skip the check by writing an empty string.
+- Duplicate path is an error, not a silent dedupe — a bad runner cannot hide repeated nodes that mask broken parent pointers.
+- The kernel is I/O-free; tree walkers, frontmatter parsers, and disk readers stay in runners.

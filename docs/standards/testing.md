@@ -1,4 +1,9 @@
 ---
+purpose: "Canonical testing standard for the oyatie workspace. Defines the Test Pyramid 2.0 (unit / integration / contract / e2e / property / fuzz), mandates `cargo nextest run --workspace --all-features --no-fail-fast` as the evidence run."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -14,7 +19,7 @@ purpose: |
   `cargo-llvm-cov` coverage budget, and codifies the 14-day flaky-test SLA. Resolves
   the `standards/testing.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-test-evidence
 companion_docs:
   - docs/QA-TEST-STRATEGY.md
@@ -29,7 +34,7 @@ related_adrs:
 
 # Testing
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 Tests are the executable evidence that the system meets its contracts. This
 standard governs how to write, organize, and run them across `oya-*` crates.
@@ -188,7 +193,7 @@ a comment with deltas; merge-blocking is reserved for the wave gate.
 
 ## 9. Flaky-test 14-day SLA
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 6:
+Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-06:
 
 1. A test MAY be `#[ignore = "flaky-NNNN"]` only after a `MISTAKES-LEDGER`
    row is filed (class: `mechanical` if there is a fix; `cultural`
@@ -231,7 +236,7 @@ This standard adds:
 
 ## 12. Sources scanned
 
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 2 "Testing" + Domain 3 (cargo-nextest, cargo-fuzz, Kani).
 - [Frontiers — Test Pyramid 2.0](https://www.frontiersin.org/journals/artificial-intelligence/articles/10.3389/frai.2025.1695965/full).
 - [nextest book](https://nexte.st/).

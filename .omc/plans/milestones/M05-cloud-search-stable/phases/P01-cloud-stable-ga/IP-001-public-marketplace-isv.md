@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M05-P01-IP-001
 title: Public-GA marketplace + ISV onboarding
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Promote marketplace to public + onboard ≥10 ISV listings.

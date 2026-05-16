@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Architect Review — ralplan-oyatie-sst-consolidation (Iteration 1)
 
 <!--

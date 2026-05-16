@@ -1,0 +1,49 @@
+name: oya-foundry-fitness-cohesion
+
+# Required-check workflow for the foundry cohesion-fitness lane.
+#
+# Branch-protection (`.github/branch-protection.yaml`) requires the status
+# check `oya-foundry-fitness-cohesion` on every PR + push to `main`. This
+# workflow produces that status by running the cohesion-kernel validator
+# via `oya-dev-cli gate validate cohesion`, which:
+#   - reads workspace member crate ids from `Cargo.toml`,
+#   - reads catalog crate ids from `registry/catalog/`,
+#   - reads cross-axis contracts from `docs/machine-readable/contracts.json`,
+#   - and validates the kernel in `crates/oya-check-cohesion`.
+#
+# Posture: surface-all-failures (M-CC-P02-IP-007). This is a single-job
+# workflow; the job ID matches the required-check name exactly so the
+# branch-protection ruleset resolves to this status one-for-one.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oya-foundry-fitness-cohesion-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  oya-foundry-fitness-cohesion:
+    name: oya-foundry-fitness-cohesion
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: pr-tests
+      - name: Validate cohesion fitness
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: cargo run -p oya-dev-cli -- gate validate cohesion

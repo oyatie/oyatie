@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Documentation System
+doc_status: published
+---
+
 # Oyatie — Documentation System
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored to answer "where does each kind of doc live, who owns it, when does it update, how is it generated?" The system is **Diátaxis-aligned** (tutorials / how-to guides / reference / explanation) with explicit per-audience surfaces.
@@ -16,7 +21,7 @@ The four Diátaxis quadrants:
 |---|---|---|
 | **Tutorials** | Learn-by-doing for a beginner | "Build your first Foundry capability in 30 minutes" |
 | **How-to guides** | Solve a specific task | "Add a new tenant to the Cloud control plane" |
-| **Reference** | Look up exact info | `oya dev check --help`; `Capability` Rust struct rustdoc |
+| **Reference** | Look up exact info | `oya verify --help`; `Capability` Rust struct rustdoc |
 | **Explanation** | Understand the *why* | "Why Foundry consolidates Foundry — DESIGN §3" |
 
 Plus a fifth, project-management quadrant for the consolidated docs themselves (PRD/ROADMAP/RISK-REGISTER/etc.). The consolidated docs are *project artifacts*, not user docs. They are exposed selectively to outside readers (trust portal mirrors).

@@ -1,9 +1,13 @@
-use oya_foundry_capability_kernel::{AutonomyTier, Capability, CapabilityAction};
-use oya_foundry_policy_kernel::{
-    agentic_ads_cap, subject_class_cap, vertical_pack_cap, AutonomyCapReason, AutonomyCapSource,
-    AutonomyCeilingInputs, AutonomyVerdict, TenantPolicy,
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_data_boundary_kernel::{AgeBand, DataClass, PrivacyDataClass, SubjectClass};
+use oya_foundry_capability_domain::{AutonomyTier, Capability, CapabilityAction};
+use oya_foundry_policy_domain::{
+    AutonomyCapReason, AutonomyCapSource, AutonomyCeilingInputs, AutonomyVerdict, TenantPolicy,
+    agentic_ads_cap, subject_class_cap, vertical_pack_cap,
 };
-use oya_platform_data_boundary_kernel::{AgeBand, DataClass, PrivacyDataClass, SubjectClass};
 
 #[test]
 fn tenant_policy_emits_replayable_autonomy_decision_inputs() {

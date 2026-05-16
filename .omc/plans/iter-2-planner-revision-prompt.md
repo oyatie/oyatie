@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for iter-2-planner-revision-prompt.md
+---
+
 # Iteration-2 Planner revision prompt — ralplan-oyatie-sst-consolidation
 
 Pre-drafted 2026-05-12 while Critic runs. Used when Critic returns ITERATE and the Planner must revise. Skip if Critic returns APPROVE.
@@ -26,9 +30,9 @@ You are the **Planner** in iteration 2 of the ralplan `--consensus --direct --de
 2. `/Users/jasonlee/oyatie/.omc/plans/architect-review-iter-1.md` — Architect's review (verdict ITERATE; 4 violations; 8 revision requests)
 3. `/Users/jasonlee/oyatie/.omc/plans/critic-review-iter-1.md` — Critic's evaluation (verdict {{CRITIC_VERDICT}}; load-bearing triage; new P3.5 requirement)
 4. `/Users/jasonlee/oyatie/.omc/plans/open-questions-resolutions-2026-05-12.md` — mechanical resolutions: ADR slots 0052/0053/0054; Rust helper named `oya-tooling-agent-read`; scaffold-claim fallback is icm-coordination-lock (Cargo.toml verified-not-indexed)
-5. `/Users/jasonlee/oyatie/.omc/specs/pre-cutover-drafts-2026-05-12.md` — Draft 2 (scaffold-claim) and Draft 3 (demo symbols) are lift-sources
-6. `/Users/jasonlee/oyatie/.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md` — foundry content extracted from both ultragoal dirs (per user mid-loop directive)
-7. `/Users/jasonlee/oyatie/.omc/specs/deep-dive-oyatie-sst-consolidation.md` — the spec (unchanged)
+5. `/Users/jasonlee/oyatie/.omc/scratch/pre-cutover-drafts-2026-05-12.md` — Draft 2 (scaffold-claim) and Draft 3 (demo symbols) are lift-sources
+6. `/Users/jasonlee/oyatie/.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md` — foundry content extracted from both ultragoal dirs (per user mid-loop directive)
+7. `/Users/jasonlee/oyatie/.omc/scratch/deep-dive-oyatie-sst-consolidation.md` — the spec (unchanged)
 
 ## REQUIRED REVISIONS (must land in iter-2)
 
@@ -46,11 +50,11 @@ You are the **Planner** in iteration 2 of the ralplan `--consensus --direct --de
 5. **Define "human orchestrator"** in ADR §Glossary: named in `oyatie/docs/RACI-OWNERSHIP.md`; each carve-out invocation `icm store -t cutover-orchestrator-actions -c '<action>' -i critical` BEFORE execution.
 6. **P8 pin demo symbols** to Draft 3: `oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus` + `::CloudBillingMeterUnitRecord`. Reuse Draft 3 script as runbook seed.
 7. **Add to P5 and P10 Linus-data-shape lines**: P5 = "scattered git/gh references in agent skills" → "single grit/icm/helper invocation pattern"; P10 = "authoritative state spread across tracked-and-ignored paths" → "authoritative ≡ tracked."
-8. **ADR single source of truth**: delete inline §3 ADR Block; reference `/Users/jasonlee/oyatie/.omc/specs/adr-draft-grit-icm-sanctioned-primitives.md` as canonical lift-source.
+8. **ADR single source of truth**: delete inline §3 ADR Block; reference `/Users/jasonlee/oyatie/.omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md` as canonical lift-source.
 
 ### New P3.5 phase (per user mid-loop directive)
 **Phase ID**: P3.5 — Salvage ultragoal foundry content into canonical SPEC.
-**Inputs/preconditions**: P1 (inventory ADR committed; foundry salvage draft exists at `.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md`).
+**Inputs/preconditions**: P1 (inventory ADR committed; foundry salvage draft exists at `.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md`).
 **Symbols to claim**: doc-only — coordinate via `icm-lock-P3.5` topic. Target file is `oyatie/docs/SPEC.md` §Foundry (existing section to expand) OR new `oyatie/docs/products/foundry/SPEC.md` (creation under scaffold-claim if Cargo.toml-equivalent-for-docs is not lockable).
 **Agents and parallelism**: 1 agent; serial gate before P6 (must land before archive/delete destroys ultragoal sources).
 **Outputs / acceptance evidence**: foundry SPEC content (Phase 00 ProviderAccount/AuthSession/UsageWindow/SecretReference contract surface, account-auth design, visibility surface, gates/validators/evidence template shape, transport parity manifest) committed to oyatie/docs/; inventory ledger row for `bominal/agents/ultragoal/2026-05-12-foundry-ultragoal-mega-plan.md` and `oyatie/.omx/ultragoal/**` updated from ARCHIVE/DELETE to ARCHIVE+SALVAGED (new classification, or annotated note); the cutover ADR cites the salvage as a precondition for P6.

@@ -12,6 +12,7 @@ enforced_by:
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0011, ADR-0012, ADR-0037, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
+doc_status: published
 ---
 
 # Playbook: Cross-Axis Contract Change

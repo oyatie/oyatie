@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — CI Lanes Catalog
+doc_status: published
+---
+
 # Oyatie — CI Lanes Catalog
 
 > **Owner:** `axis-foundry` + `ops-sre-reliability`.
@@ -6,17 +11,16 @@
 ## 1. Lane catalog
 
 Every CI gate is a named lane. Lanes are catalog-driven: `registry/quality/lanes.yaml` is the source of truth; this doc is the human-readable mirror.
-The registry carries each lane's owner team and `runtime_budget_seconds`; the `quality-lanes` gate rejects unknown owners, missing budgets, markdown drift, and active commands absent from `scripts/check.sh`.
+The registry carries each lane's owner team and `runtime_budget_seconds`; the `quality-lanes` gate rejects unknown owners, missing budgets, markdown drift, and active commands absent from the canonical wired-command catalog (`oya-foundry-gate-catalog-domain`).
 
 ### 1.1 Foundation gate catalog (W-Foundation; active lanes block any merge; planned lanes preserve roadmap contract)
 
 | Lane | Purpose | Source ADR |
 |---|---|---|
-| `oya-foundry-fitness-authority-cohesion` | authority-chain declarations in CONSTITUTION, AGENTS, and README stay identical | CONSTITUTION.md |
+| `oya-foundry-fitness-authority-cohesion` | authority-chain declarations in AGENTS and README stay identical | decision-principles.json |
 | `oya-foundry-fitness-claim-ceiling` | prevent unshipped stability, security, and supply-chain claims above foundation evidence | ADR-0037 / registry/catalog |
 | `oya-foundry-fitness-codeowners-mirror` | RACI per-surface owner matches CODEOWNERS team ownership | RACI-OWNERSHIP.md |
 | `oya-foundry-fitness-cohesion` | cross-axis contract review-class label | ADR-0011 |
-| `oya-foundry-fitness-constitution-cite-coverage` | tier-one docs cite constitutional authority at heading level | CONSTITUTION.md |
 | `oya-foundry-fitness-data-class` | enforce ADR-0008 data-class annotation | ADR-0008 |
 | `oya-foundry-fitness-doc-catalog` | every consolidated doc has a DOC-CATALOG row | DOC-CATALOG.md |
 | `oya-foundry-fitness-docs` | documentation-system pipeline registry and wiki quickref stay grounded | DOCUMENTATION.md / registry/docs/pipeline.tsv |
@@ -56,7 +60,20 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `traceability-validator` | PR template carries the 5 mandatory traceability H2 sections |
 | `oya-foundry-fitness-api-semver` | public-API stability tier per ADR-0037 |
 | `oya-foundry-fitness-cargo-prefix` | every workspace member starts with `oya-` |
-| `oya-foundry-fitness-pre-push` | repoctl pre-push command contract maps to the checked local verification bundle |
+| `oya-foundry-fitness-pre-push` | oya verify command contract maps to the checked local verification bundle |
+| `lean-a1-architecture` | layer-correctness — no dep-direction violations per ADR-0056 §2.2 |
+| `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
+| `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |
+| `lean-a4-semver` | API semver stability tier per ADR-0037 |
+| `lean-a5-documentation` | documentation suite coverage — every µservice has full canonical + per-pack suite per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22 |
+| `lean-a10-regression` | catch attempted silent regressions of public contracts (manifest.json schema bump without ADR; Cedar policy widening; Protobuf field reuse; fitness lane severity downgrade; µservice removal without retirement ADR; doc frontmatter schema downgrade; event topic schema regression); per feedback_no_silent_regression.md (Linus-style) |
+| `quality-statelessness` | no module-level mutable state in application/worker/presentation layers per ADR-0062 |
+| `quality-shardability` | all DB designs declare tenant_id partition key + RLS per ADR-0062 |
+| `quality-perf-budget` | impl plans include load-test results meeting declared perf targets per ADR-0062 |
+| `quality-benchmark` | PRDs include competitive-benchmark section before L4→L5 per ADR-0062 |
+| `lean-a-active-artifact-contract` | every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from `oya gate run-all`; emits evidence + graph-edges artifacts on every run |
+| `lean-a-cedar-fragment-coverage` | enforces invariants C01..C04 from /registries/cross-cutting/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all` |
+| `lean-a-openapi-rest-route-parity` | enforces 1:1 parity between `pub const *_ROUTE` constants in crates/oya-ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags |
 
 ### 1.3 Nightly gates
 
@@ -93,7 +110,7 @@ Per ADR-0050:
 
 1. Add or update the lane record in `registry/quality/lanes.yaml`.
 2. Mirror the lane row in this document under the matching stage table.
-3. If `status: active`, wire `check_command` into `scripts/check.sh`.
+3. If `status: active`, wire `check_command` into the `oya gate run-all` aggregator (`crates/oya-dev-cli/src/commands/gate/run_all.rs::AGGREGATED_VALIDATE_LANES`) — the canonical pre-merge gate runner that replaced the legacy bash check orchestrator (audit row B-1).
 4. Run `oya gate validate quality-lanes`.
 5. Open a PR; cite the source ADR in the PR body Verification section.
 6. After merge, `oya-foundry-fitness-cohesion` validates the lane is wired into the per-PR + nightly + release shapes appropriately.

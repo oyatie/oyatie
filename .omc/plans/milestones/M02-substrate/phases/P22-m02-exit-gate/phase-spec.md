@@ -5,27 +5,35 @@ milestone: M02-substrate
 phase: P22-m02-exit-gate
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  All Wave-A (P01–P11), Wave-B (P12–P16), Wave-C (P17–P19), Wave-D (P20) and
-  Wave-E/P21 complete; plane-verification-M02.md and wave-integration-report-M02.md
-  produced and accepted; all 14 CI lanes exit 0 in --report-only mode; oya gate
-  validate planes --all exit 0; grit done on all P21 symbols; ICM phase-handoff
-  rows emitted for all preceding phases.
-exit_gate: |
-  All 14 CI fitness lanes flipped from --report-only to BLOCKER in
-  .github/workflows/ci-fitness-lanes.yml; Application B2B shell (oya-application-shell-app)
-  deploys without error to OCI ARM64 Always Free (Stage 0); sibling team can scaffold
-  and ship any product vertical through grit claim/work/done with zero build-team
-  intervention; cargo check/nextest/deny all exit 0 across full workspace; oya gate
-  validate planes --all exit 0; oya gate validate wave-integration --milestone M02 exit 0;
-  grit done on all P22 symbols; ICM phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P21-architecture-planes-green
-    reason: "Exit gate requires all 9 architecture planes verified at L4-L5 before flipping lanes to BLOCKER or claiming M02 complete."
-owner_team: council-architecture
----
+entry_gate: "All Wave-A (P01\u2013P11), Wave-B (P12\u2013P16), Wave-C (P17\u2013P19),\
+  \ Wave-D (P20) and\nWave-E/P21 complete; plane-verification-M02.md and wave-integration-report-M02.md\n\
+  produced and accepted; all 14 CI lanes exit 0 in --report-only mode; oya gate\n\
+  validate planes --all exit 0; grit done on all P21 symbols; ICM phase-handoff\n\
+  rows emitted for all preceding phases.\n"
+exit_gate: 'All 14 CI fitness lanes flipped from --report-only to BLOCKER in
 
+  .github/workflows/ci-fitness-lanes.yml; Application B2B shell (oya-application-shell-app)
+
+  deploys without error to OCI ARM64 Always Free (Stage 0); sibling team can scaffold
+
+  and ship any product vertical through grit claim/work/done with zero build-team
+
+  intervention; cargo check/nextest/deny all exit 0 across full workspace; oya gate
+
+  validate planes --all exit 0; oya gate validate wave-integration --milestone M02
+  exit 0;
+
+  grit done on all P22 symbols; ICM phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P21-architecture-planes-green
+  reason: Exit gate requires all 9 architecture planes verified at L4-L5 before flipping
+    lanes to BLOCKER or claiming M02 complete.
+owner_team: council-architecture
+purpose: "P22 is the terminal phase of M02-substrate. It has three coordinated goals:"
+---
 # P22-m02-exit-gate: M02 Substrate Exit — Flip Lanes to BLOCKER + Deploy App Shell + Validate Sibling Onboarding
 
 ## Purpose

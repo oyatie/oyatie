@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Fhir Resource Dsr
+doc_status: published
+---
+
 # Oyatie Runbook — Fhir Resource Dsr
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -2,23 +2,26 @@
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P05-IP-001
-title: Cell-routing primitive (oya-platform-cell-kernel)
-status: stub
+title: Cell-routing primitive (oya-cell-domain)
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship cell-routing primitive per ADR-0009 cell architecture.
 ---
 
-# M01-P05-IP-001 — Cell-routing primitive (oya-platform-cell-kernel)
+# M01-P05-IP-001 — Cell-routing primitive (oya-cell-domain)
 
 ## Purpose
 Ship cell-routing primitive per ADR-0009 cell architecture.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-platform-cell-kernel/src/lib.rs::Cell
-crates/oya-platform-cell-kernel/src/lib.rs::CellId
-crates/oya-platform-cell-kernel/src/lib.rs::route_to_cell
+crates/oya-cell-domain/src/lib.rs::CellBinding
+crates/oya-cell-domain/src/lib.rs::CellRouter
+crates/oya-cell-domain/src/lib.rs::CellTier
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -27,8 +30,8 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 
 ## Acceptance-test-commands
 ```
-cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo test --locked -p oya-cell-domain
+cargo clippy --locked -p oya-cell-domain --all-targets -- -D warnings
 scripts/check.sh
 ```
 
@@ -48,7 +51,7 @@ Next IP in this phase's INDEX list (or first IP of next phase if phase complete)
 
 ## Icm-store-payload
 ```
-icm store -t context-oyatie -c 'M01-P05-IP-001 Cell-routing primitive (oya-platform-cell-kernel) shipped; acceptance commands green' -i high -k 'M01-P05-IP-001,complete'
+icm store -t context-oyatie -c 'M01-P05-IP-001 Cell-routing primitive (oya-cell-domain) shipped; acceptance commands green' -i high -k 'M01-P05-IP-001,complete'
 ```
 
 ## Decision-log (Linus good-taste row)

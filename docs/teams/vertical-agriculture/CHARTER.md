@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Agriculture (Traceability)
 
 ## Mission

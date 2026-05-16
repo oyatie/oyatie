@@ -5,16 +5,21 @@ status: Accepted
 version: v7
 date: 2026-05-13
 created_by: ralplan --consensus --architect codex --critic codex --deliberate
-canonical_authority: docs/CONSTITUTION.md
-authority_chain: docs/MASTERPLAN.md → ADR-0061 + ADR-0065 + ADR-0066 + ADR-0067 → this plan
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+authority_chain: "docs/MASTERPLAN.md \u2192 ADR-0061 + ADR-0065 + ADR-0066 + ADR-0067\
+  \ \u2192 this plan"
 companion_plans:
-  - .omc/plans/ralplan-docs-portal-2026-05-13.md (docs BC sub-plan v7; Accepted via critic r2 codex `br2nkyycu`; Wave 1)
+- .omc/plans/ralplan-docs-portal-2026-05-13.md (docs BC sub-plan v7; Accepted via
+  critic r2 codex `br2nkyycu`; Wave 1)
 codex_model: gpt-5.5 / xhigh
 parent_of:
-  - ralplan-docs-portal-2026-05-13 (docs BC)
-verification_round: critic r2 ✅ APPROVE (gpt-5.5 xhigh; codex `br2nkyycu`; 9/9 PASS — all 3 previously WEAK/FAIL criteria (3 Risk-mitigation / 8 Cross-plan composition / 9 User-mandated rules) promoted to PASS); status flipped pending approval → Accepted; ready for §8 follow-up dispatch
+- ralplan-docs-portal-2026-05-13 (docs BC)
+verification_round: "critic r2 \u2705 APPROVE (gpt-5.5 xhigh; codex `br2nkyycu`; 9/9\
+  \ PASS \u2014 all 3 previously WEAK/FAIL criteria (3 Risk-mitigation / 8 Cross-plan\
+  \ composition / 9 User-mandated rules) promoted to PASS); status flipped pending\
+  \ approval \u2192 Accepted; ready for \xA78 follow-up dispatch"
+purpose: Auto-backfilled purpose for ralplan-ops-portal-2026-05-13.md
 ---
-
 # Implementation Plan: `ops.oyatie.com` — Hyperscaler Operations Console (parent plan; 20 BCs)
 
 ## §1 Principles (RALPLAN-DR; 7 principles; v7 — closes architect r6 ITERATE: residual §4 Scenario 3 line 79 missed in v6 sweep — same Cedar-drift + Wave-7-example class as critic r1 fix 1+3; now fixed across §4 + §5 + §6(c) + §6(d') in v7)

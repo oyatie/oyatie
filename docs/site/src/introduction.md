@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Welcome
 
 Oyatie is one product across several product axes joined by shared platform substrates.

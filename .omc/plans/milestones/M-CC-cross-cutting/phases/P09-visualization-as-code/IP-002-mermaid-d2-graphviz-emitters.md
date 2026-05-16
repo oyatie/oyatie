@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P09-IP-002
 title: Mermaid + D2 + Graphviz emitters
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Emit diagrams in Mermaid + D2 + Graphviz formats.
@@ -51,4 +54,9 @@ icm store -t context-oyatie -c 'M-CC-P09-IP-002 Mermaid + D2 + Graphviz emitters
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- One `sanitize_id` helper used by Mermaid + Graphviz — three emitters don't redo the same `[^A-Za-z0-9_] → _` rule.
+- D2 uses quoted identifiers, sidestepping the sanitization step entirely — node ids with slashes stay human-readable.
+- Output ordering is deterministic (nodes sorted by id, edges insertion-order) — diffs of the rendered diagram remain reviewable.
+- Edge-label strings come from a single `match EdgeKind` per emitter — adding an edge variant flags every emitter at compile time.
+- Empty-input cases are explicit (Mermaid → just header line; D2 → empty string; Graphviz → opening + closing braces) — no panics, no surprise output.

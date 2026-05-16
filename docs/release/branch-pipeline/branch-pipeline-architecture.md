@@ -17,6 +17,7 @@ enforced_by:
 related_adrs: [ADR-0040, ADR-0041, ADR-0050, ADR-0053, ADR-0055]
 supersedes: [ADR-0041]
 adr_citations: [ADR-0053, ADR-0055]
+doc_status: published
 ---
 
 # Branch Pipeline Architecture — Four-Layer Auto-Promotion

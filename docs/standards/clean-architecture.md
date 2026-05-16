@@ -1,4 +1,9 @@
 ---
+purpose: "Canonical layered-architecture standard for every `oya-*` crate."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 500
@@ -12,7 +17,7 @@ purpose: |
   boundaries), the testing posture per layer, and the cross-reference to
   `crate-naming-convention.md` (a crate's `[package.metadata.oya].role`
   MUST match its actual layer behavior).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-architecture-conventions
 companion_docs:
   - docs/standards/crate-naming-convention.md
@@ -29,18 +34,19 @@ related_adrs:
   - ADR-0017
   - ADR-0053
   - ADR-0054
+  - ADR-0056
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > docs/AGENTS.md > docs/standards/code-style-rust.md
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
   > docs/standards/crate-naming-convention.md ≡ THIS DOC
   > .omc/fitness-lanes/architecture-conventions.md
 ---
 
 # Clean Architecture
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-This standard operates within the [`CONSTITUTION.md`](../CONSTITUTION.md)
-frame (§Architecture; ADR-0015 flat crates) and is the **peer** of
+This standard operates within the [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json)
+frame (architecture decision principles; ADR-0015 flat crates) and is the **peer** of
 [`crate-naming-convention.md`](crate-naming-convention.md): the naming
 standard binds the **role token** of every crate name; this standard binds
 the **layer semantics** the role represents. The pair is enforced as a
@@ -60,6 +66,8 @@ synthesis as practised by the major Rust hyperscalers (AWS smithy-rs,
 Azure SDK for Rust, Google Cloud Rust). See §8 for citations.
 
 ## 2. Layer definitions
+
+The **canonical 12-layer enum** lives in [ADR-0056](../decisions/ADR-0056-rust-clean-architecture-bnf.md)§Decision (BNF v4.1). This standard discusses **7 of the 12 layers** in semantic + testing + contract detail; the remaining 5 (`bindings`, `infrastructure`, `service`, `rest`, `cli`) are enumerated only in ADR-0056 and inherit the same inward-flow rule. **Do not redeclare the enum here — cite ADR-0056§Decision.**
 
 ```mermaid
 flowchart RL

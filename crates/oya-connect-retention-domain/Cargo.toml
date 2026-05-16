@@ -13,3 +13,6 @@ oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 name = "oya_connect_retention_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

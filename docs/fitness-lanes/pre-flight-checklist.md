@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Fitness Lane: pre-flight-checklist
 
 - status: Accepted

@@ -4,10 +4,13 @@
 //! `docs/products/workspace/PRD.md` and ADR-0029. The kernel owns channel,
 //! participant, message, attachment, thread, and bot identity invariants while
 //! WSS, REST, moderation, and storage remain adapter concerns.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const CHAT_CHANNEL_SCHEMA_VERSION: u32 = 1;
 const CHAT_MESSAGE_SCHEMA_VERSION: u32 = 1;
@@ -260,23 +263,19 @@ impl ChatMessage {
 }
 
 pub fn default_workspace_chat_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn participant_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn channel_name_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiQuasiIdentifier)
-        .expect("PII_QUASI_IDENTIFIER is a privacy-program data class")
+    PrivacyDataClass::pii_quasi_identifier()
 }
 
 pub fn message_body_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_chat_data_class_from_legacy(
@@ -332,10 +331,10 @@ fn validate_message_content(
     if body.is_none() && attachments.is_empty() {
         return Err(ChatError::EmptyMessageContent);
     }
-    if let Some(body) = body {
-        if body.trim().is_empty() || body.chars().any(char::is_control) {
-            return Err(ChatError::EmptyMessageBody);
-        }
+    if let Some(body) = body
+        && (body.trim().is_empty() || body.chars().any(char::is_control))
+    {
+        return Err(ChatError::EmptyMessageBody);
     }
     Ok(())
 }
@@ -395,7 +394,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn owner(actor_ref: &str) -> ChatParticipant {
         ChatParticipant::new(
@@ -559,5 +558,46 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.messenger STAGING surface markers (SPEC §4).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MessengerSurfaceStaging {
+    pub thread_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub message_count: Classified<u64>, // data_class: INTERNAL_ONLY
+}
+
+impl MessengerSurfaceStaging {
+    pub fn new(thread_id: String, tenant_id: String, message_count: u64) -> Self {
+        Self {
+            thread_id: Classified::new(thread_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            message_count: Classified::new(message_count, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> MessengerSurfaceStaging {
+        MessengerSurfaceStaging::new("t-1".into(), "tenant-1".into(), 0)
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.thread_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

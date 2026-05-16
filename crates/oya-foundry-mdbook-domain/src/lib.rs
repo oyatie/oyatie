@@ -6,6 +6,9 @@
 //! validates the book manifest, summary chapter graph, required chapter files,
 //! and local Markdown links before the site is allowed into the active docs
 //! pipeline.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -240,11 +243,27 @@ fn validate_chapter(path: &str, contents: &str) -> Result<(), MdbookSourceError>
     if contents.trim().is_empty() {
         return Err(MdbookSourceError::EmptyChapter { path: path.into() });
     }
-    let first_visible = contents.lines().find(|line| !line.trim().is_empty());
+    let first_visible = first_visible_chapter_line(contents);
     if !first_visible.is_some_and(|line| line.trim_start().starts_with("# ")) {
         return Err(MdbookSourceError::ChapterMissingHeading { path: path.into() });
     }
     Ok(())
+}
+
+fn first_visible_chapter_line(contents: &str) -> Option<&str> {
+    let mut lines = contents.lines().peekable();
+    while lines.peek().is_some_and(|line| line.trim().is_empty()) {
+        lines.next();
+    }
+    if lines.peek().is_some_and(|line| line.trim() == "---") {
+        lines.next();
+        for line in lines.by_ref() {
+            if line.trim() == "---" {
+                break;
+            }
+        }
+    }
+    lines.find(|line| !line.trim().is_empty())
 }
 
 fn markdown_link_targets(contents: &str) -> Vec<String> {
@@ -434,6 +453,25 @@ mod tests {
             ]),
             Err(MdbookSourceError::ChapterMissingHeading {
                 path: "src/start.md".into(),
+            })
+        );
+    }
+
+    #[test]
+    fn accepts_chapter_heading_after_frontmatter() {
+        assert_eq!(
+            validate_mdbook_source([
+                file("book.toml", "[book]\ntitle = \"Docs\"\n"),
+                file("src/SUMMARY.md", "# Summary\n\n- [Start](start.md)\n"),
+                file(
+                    "src/start.md",
+                    "---\ndoc_status: published\n---\n\n# Start\n",
+                ),
+            ]),
+            Ok(MdbookSourceReport {
+                source_files_checked: 3,
+                chapters_checked: 1,
+                local_links_checked: 1,
             })
         );
     }

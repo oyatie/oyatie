@@ -1,0 +1,63 @@
+{
+  "name": "adr-status",
+  "version": 1,
+  "stages": [
+    {
+      "id": "proposed",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "accepted",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "superseded",
+      "terminal": true,
+      "requires_supersession_edge": true
+    },
+    {
+      "id": "archived",
+      "terminal": true,
+      "requires_supersession_edge": false
+    }
+  ],
+  "transitions": [
+    {
+      "from": "proposed",
+      "to": "accepted"
+    },
+    {
+      "from": "proposed",
+      "to": "archived"
+    },
+    {
+      "from": "accepted",
+      "to": "superseded"
+    },
+    {
+      "from": "accepted",
+      "to": "archived"
+    },
+    {
+      "from": "superseded",
+      "to": "archived"
+    }
+  ],
+  "sources": [
+    {
+      "kind": "yaml_front_matter",
+      "glob": "docs/decisions/ADR-*.md",
+      "stage_field": "status",
+      "supersession_field": "superseded_by",
+      "deadline_field": null,
+      "milestone_field": null
+    }
+  ],
+  "defaults": {
+    "wave": "C",
+    "case_insensitive_stage_match": true
+  },
+  "purpose": "Lifecycle state machine for ADR status transitions and supersession requirements."
+}

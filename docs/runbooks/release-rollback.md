@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Release Rollback
+doc_status: published
+---
+
 # Oyatie Runbook — Release Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,15 +1,19 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_cloud_iam_api::{
-    create_cloud_iam_role_from_api, issue_cloud_iam_sts_token_from_api, CloudIamApiAuthorization,
+    CLOUD_IAM_ROLE_CREATE_SURFACE, CLOUD_IAM_STS_TOKEN_SURFACE, CloudIamApiAuthorization,
     CloudIamApiBoundaryContext, CloudIamApiError, CloudIamApiPrincipal, CloudIamPrincipalRef,
     CloudIamRoleCreateApiRequest, CloudIamRoleCreateApiStatus, CloudIamRoleCreateIdempotencyLedger,
     CloudIamRoleCreateRequest, CloudIamScopeRef, CloudIamStsTokenApiRequest,
     CloudIamStsTokenApiStatus, CloudIamStsTokenIdempotencyLedger, CloudIamStsTokenRequest,
-    CLOUD_IAM_ROLE_CREATE_SURFACE, CLOUD_IAM_STS_TOKEN_SURFACE,
+    create_cloud_iam_role_from_api, issue_cloud_iam_sts_token_from_api,
 };
-use oya_cloud_iam_kernel::{
+use oya_cloud_iam_domain::{
     CloudIamError, IamDirectory, IamPrincipalCreate, IamPrincipalKind, IamRoleCreate, MfaState,
 };
-use oya_platform_data_boundary_kernel::DataClass;
+use oya_data_boundary_kernel::DataClass;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudIamApiBoundaryContext {
     CloudIamApiBoundaryContext {
@@ -204,13 +208,15 @@ fn role_create_api_rejects_path_body_role_drift_before_directory_mutation() {
         })
     );
     assert!(ledger.is_empty());
-    assert!(directory
-        .create_role(role_create())
-        .expect("directory stayed mutable")
-        .id
-        .value
-        .value
-        .starts_with("role_"));
+    assert!(
+        directory
+            .create_role(role_create())
+            .expect("directory stayed mutable")
+            .id
+            .value
+            .value
+            .starts_with("role_")
+    );
 }
 
 #[test]

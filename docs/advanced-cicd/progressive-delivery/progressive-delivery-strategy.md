@@ -13,6 +13,7 @@ enforced_by:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0040, ADR-0041, ADR-0042, ADR-0044, ADR-0050]
+doc_status: published
 ---
 
 # Progressive-Delivery Strategy — Oyatie

@@ -5,22 +5,24 @@ milestone: M02-substrate
 phase: P02-ontology
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; cargo check --workspace exits 0; Postgres 16 available
-  in dev environment; oya-tenancy-kernel exists (tenancy RLS bootstrap function
-  oyatie.set_current_tenant must be callable).
-exit_gate: |
-  All ontology crates compile; migrations/V001__ontology_init.sql applied;
-  RLS policies verified; port traits compile with sealed marker; Cedar policy
-  fragment lints; Protobuf compiles; k6 smoke test passes p99≤50ms; grit done
-  on all symbols; ICM phase-handoff row emitted.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "workspace scaffold + tenancy kernel prerequisite"
-owner_team: council-architecture
----
+entry_gate: 'M01-P05 complete; cargo check --workspace exits 0; Postgres 16 available
 
+  in dev environment; oya-tenancy-kernel exists (tenancy RLS bootstrap function
+
+  oyatie.set_current_tenant must be callable).
+
+  '
+exit_gate: "All ontology crates compile; migrations/V001__ontology_init.sql applied;\n\
+  RLS policies verified; port traits compile with sealed marker; Cedar policy\nfragment\
+  \ lints; Protobuf compiles; k6 smoke test passes p99\u226450ms; grit done\non all\
+  \ symbols; ICM phase-handoff row emitted.\n"
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: workspace scaffold + tenancy kernel prerequisite
+owner_team: council-architecture
+purpose: This phase delivers the complete Ontology substrate, the information-plane adapter that all oyatie products use for typed-entity storage, link traversal, action execution, function evaluation, and LLM agent-gateway ingress.
+---
 # P02-ontology: Full Ontology substrate — typed entity/link/action/function/agent-gateway/audit-chain/pillar layers
 
 ## Purpose

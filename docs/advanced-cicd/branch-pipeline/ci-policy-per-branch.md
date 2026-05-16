@@ -15,6 +15,7 @@ enforced_by:
   - oya-foundry-fitness-promotion-gate-local-dev-to-origin-dev
   - oya-foundry-fitness-promotion-gate-staging-to-prod
 related_adrs: [ADR-0039, ADR-0040, ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # CI Policy Per Branch / Per Layer

@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Fitness Lane: cloud-mutation
 
 - status: Accepted

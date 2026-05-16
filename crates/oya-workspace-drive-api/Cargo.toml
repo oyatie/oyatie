@@ -14,3 +14,6 @@ oya-connect-drive-domain = { path = "../oya-connect-drive-domain" }
 name = "oya_workspace_drive_api"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

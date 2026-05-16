@@ -3,10 +3,13 @@
 //! This crate owns the ADR-0028 `oya-cloud-surface-kernel` contract: customers
 //! bind to one Cloud product surface while the fulfillment substrate moves from
 //! rented public-cloud capacity to Oyatie-operated colo to Oyatie-owned DCs.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const CLOUD_SURFACE_SCHEMA_VERSION: u32 = 1;
 const SURFACE_ID_PREFIX: &str = "csurf_";

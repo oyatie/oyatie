@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Fitness Lane: scaffold-claim-pattern
 
 - status: Accepted

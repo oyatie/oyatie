@@ -6,10 +6,13 @@
 //! path suffix, every document declares paths, and every operation carries an
 //! operation id plus at least one response. Adapters own filesystem discovery
 //! and semver metadata parsing.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::parse_data_class_label;
+use oya_data_boundary_kernel::parse_data_class_label;
 
 const OPENAPI_PREFIX: &str = "contracts/openapi/";
 const SUPPORTED_OPENAPI_MAJOR_MINOR: &str = "3.2.";
@@ -1026,12 +1029,12 @@ fn rust_identifier_at(code: &str, index: usize, identifier: &str) -> bool {
             || code[..index]
                 .chars()
                 .next_back()
-                .map_or(true, |character| !is_rust_identifier_character(character)))
+                .is_none_or(|character| !is_rust_identifier_character(character)))
         && (index + identifier.len() == code.len()
             || code[index + identifier.len()..]
                 .chars()
                 .next()
-                .map_or(true, |character| !is_rust_identifier_character(character)))
+                .is_none_or(|character| !is_rust_identifier_character(character)))
 }
 
 fn rust_identifier_end_at(code: &str, index: usize) -> Option<usize> {
@@ -1151,7 +1154,12 @@ fn rust_code_without_comments_and_literals(source: &str) -> String {
         }
         index += 1;
     }
-    String::from_utf8(output).expect("source was valid UTF-8 before masking ASCII bytes")
+    // ADR-0083 Tier 1: `mask_non_code_bytes` overwrites individual bytes
+    // inside comment/literal byte ranges, which can split multi-byte UTF-8
+    // sequences. Use `from_utf8_lossy` to keep the helper infallible
+    // without an `.expect()` and without panicking on inputs that contain
+    // non-ASCII characters inside literals or comments.
+    String::from_utf8_lossy(&output).into_owned()
 }
 
 fn mask_non_code_bytes(output: &mut [u8], start: usize, end: usize) {
@@ -1289,13 +1297,13 @@ fn find_rust_identifier(source: &str, identifier: &str, start: usize) -> Option<
             || source[..index]
                 .chars()
                 .next_back()
-                .map_or(true, |character| !is_rust_identifier_character(character));
+                .is_none_or(|character| !is_rust_identifier_character(character));
         let after_index = index + identifier.len();
         let after_is_boundary = after_index == source.len()
             || source[after_index..]
                 .chars()
                 .next()
-                .map_or(true, |character| !is_rust_identifier_character(character));
+                .is_none_or(|character| !is_rust_identifier_character(character));
         if before_is_boundary && after_is_boundary {
             return Some(index);
         }
@@ -1326,7 +1334,7 @@ fn find_rust_keyword_identifier(
             && code[cursor + identifier.len()..]
                 .chars()
                 .next()
-                .map_or(true, |character| !is_rust_identifier_character(character))
+                .is_none_or(|character| !is_rust_identifier_character(character))
         {
             return Some(keyword_index);
         }
@@ -1832,7 +1840,7 @@ fn statement_contains_response_status(statement: &str, status: &str) -> bool {
             || statement[..index]
                 .chars()
                 .next_back()
-                .map_or(true, |character| {
+                .is_none_or(|character| {
                     !is_rust_identifier_character(character) && character != '.'
                 });
         let after_index = index + status.len();
@@ -1840,7 +1848,7 @@ fn statement_contains_response_status(statement: &str, status: &str) -> bool {
             || statement[after_index..]
                 .chars()
                 .next()
-                .map_or(true, |character| {
+                .is_none_or(|character| {
                     !is_rust_identifier_character(character) && character != '.'
                 });
         if before_is_boundary && after_is_boundary {
@@ -4889,8 +4897,7 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
 
     #[test]
     fn rejects_runtime_binding_when_source_or_test_only_contain_substring_markers() {
-        let shadow_source =
-            "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
+        let shadow_source = "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
         pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden }\n\
         impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Forbidden => 403 } } }\n\
         pub fn invoke_capability_from_api_shadow() { let _surface = CAPABILITY_INVOKE_SURFACE; }";
@@ -4951,8 +4958,7 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
 
     #[test]
     fn rejects_runtime_binding_when_symbol_is_not_public_api_function() {
-        let private_source =
-            "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
+        let private_source = "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
         pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden }\n\
         impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Forbidden => 403 } } }\n\
         fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }";
@@ -4980,8 +4986,7 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
             })
         );
 
-        let restricted_source =
-            "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
+        let restricted_source = "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
         pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden }\n\
         impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Forbidden => 403 } } }\n\
         pub(crate) fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }";
@@ -5116,7 +5121,10 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
                     VALID,
                 )],
                 [runtime_binding()],
-                [runtime_source("crates/oya-foundry-api/src/lib.rs", RUNTIME_API)],
+                [runtime_source(
+                    "crates/oya-foundry-api/src/lib.rs",
+                    RUNTIME_API
+                )],
                 [runtime_source(
                     "crates/oya-foundry-api/tests/capability_invoke_api.rs",
                     "invoke_capability_from_api(foundation, request); assert_eq!(surface, \"foundry.capability.invoke\"); assert_eq!(CapabilityInvokeApiStatus::Accepted.code(), 202); assert_eq!(CapabilityInvokeApiStatus::BadRequest.code(), 400);",
@@ -5219,8 +5227,7 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
 
     #[test]
     fn rejects_invalid_runtime_status_type_mappings() {
-        let undeclared_variant =
-            "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
+        let undeclared_variant = "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden }\n\
 impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Teapot => 418 } } }\n\
 pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }";
@@ -5229,8 +5236,7 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
             "CapabilityInvokeApiStatus maps undeclared variant Teapot"
         );
 
-        let missing_variant =
-            "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
+        let missing_variant = "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden, NotFound }\n\
 impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Forbidden => 403 } } }\n\
 pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }";
@@ -5239,8 +5245,7 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
             "CapabilityInvokeApiStatus code mappings do not cover enum variants: missing=[\"NotFound\"], extra=[]"
         );
 
-        let wildcard_arm =
-            "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
+        let wildcard_arm = "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden }\n\
 impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, _ => 403 } } }\n\
 pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }";
@@ -5249,8 +5254,7 @@ pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; 
             "status code mappings must use explicit Self::Variant arms"
         );
 
-        let non_literal_status =
-            "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
+        let non_literal_status = "pub const CAPABILITY_INVOKE_SURFACE: &str = \"foundry.capability.invoke\";\n\
 pub enum CapabilityInvokeApiStatus { Accepted, BadRequest, Forbidden }\n\
 impl CapabilityInvokeApiStatus { pub const fn code(self) -> u16 { match self { Self::Accepted => 202, Self::BadRequest => 400, Self::Forbidden => FORBIDDEN } } }\n\
 pub fn invoke_capability_from_api() { let _surface = CAPABILITY_INVOKE_SURFACE; }";

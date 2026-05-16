@@ -25,10 +25,10 @@ pub(crate) fn extract_json_objects(array: &str) -> Vec<&str> {
             }
             '}' => {
                 depth -= 1;
-                if depth == 0 {
-                    if let Some(start) = start.take() {
-                        objects.push(&array[start..=index]);
-                    }
+                if depth == 0
+                    && let Some(start) = start.take()
+                {
+                    objects.push(&array[start..=index]);
                 }
             }
             _ => {}
@@ -72,13 +72,21 @@ pub(crate) fn parse_json_string_value(value: &str) -> Option<String> {
         return None;
     }
     let mut output = String::new();
-    let mut escaped = false;
-    for character in value[1..].chars() {
-        if escaped {
-            output.push(character);
-            escaped = false;
-        } else if character == '\\' {
-            escaped = true;
+    let mut characters = value[1..].chars();
+    while let Some(character) = characters.next() {
+        if character == '\\' {
+            match characters.next()? {
+                '"' => output.push('"'),
+                '\\' => output.push('\\'),
+                '/' => output.push('/'),
+                'b' => output.push('\u{0008}'),
+                'f' => output.push('\u{000c}'),
+                'n' => output.push('\n'),
+                'r' => output.push('\r'),
+                't' => output.push('\t'),
+                'u' => output.push(decode_json_unicode_escape(&mut characters)?),
+                _ => return None,
+            }
         } else if character == '"' {
             return Some(output);
         } else {
@@ -86,6 +94,14 @@ pub(crate) fn parse_json_string_value(value: &str) -> Option<String> {
         }
     }
     None
+}
+
+fn decode_json_unicode_escape(characters: &mut impl Iterator<Item = char>) -> Option<char> {
+    let mut value = 0_u32;
+    for _ in 0..4 {
+        value = (value << 4) + characters.next()?.to_digit(16)?;
+    }
+    char::from_u32(value)
 }
 
 pub(crate) fn quoted_json_len(value: &str) -> Option<usize> {
@@ -196,4 +212,21 @@ pub(crate) fn json_field_has_non_empty_value(object: &str, key: &str) -> bool {
         );
     }
     false
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_json_string_value_decodes_json_escapes() {
+        assert_eq!(
+            parse_json_string_value(r#""\uacf5\uacf5\uc815\ubcf4\ubc95""#),
+            Some("공공정보법".into())
+        );
+        assert_eq!(
+            parse_json_string_value(r#""quote: \" slash: \\ newline:\n""#),
+            Some("quote: \" slash: \\ newline:\n".into())
+        );
+    }
 }

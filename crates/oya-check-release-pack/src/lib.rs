@@ -3,6 +3,9 @@
 //! COMPLIANCE-MATRIX requires per-regulator evidence pack regeneration within
 //! four hours. The bootstrap state must be explicit, and any published release
 //! evidence pack must be signed, mirrored, notified, and audit-chain anchored.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 

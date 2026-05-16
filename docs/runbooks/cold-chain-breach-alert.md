@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cold Chain Breach Alert
+doc_status: published
+---
+
 # Oyatie Runbook — Cold Chain Breach Alert
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

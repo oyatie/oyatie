@@ -1,3 +1,6 @@
+---
+doc_status: published
+---
 # Deep Dive Trace: oyatie-sst-consolidation
 
 <!--

@@ -4,11 +4,14 @@
 //! `docs/products/workspace/PRD.md` and ADR-0029. The kernel owns task-store
 //! metadata, task graph validation, and the Foundry agent task-runtime binding
 //! without owning workflow execution, storage adapters, or UI dispatch.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_foundry_capability_kernel::AutonomyTier;
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_foundry_capability_domain::AutonomyTier;
 
 const TASK_STORE_SCHEMA_VERSION: u32 = 1;
 const TASK_SCHEMA_VERSION: u32 = 1;
@@ -339,10 +342,10 @@ impl TaskGraph {
             if !ids.insert(task.id.value.clone()) {
                 return Err(TaskError::DuplicateTaskId);
             }
-            if let Some(parent_task_id) = task.parent_task_id.value.as_deref() {
-                if parent_task_id == task.id.value {
-                    return Err(TaskError::SelfParentTask);
-                }
+            if let Some(parent_task_id) = task.parent_task_id.value.as_deref()
+                && parent_task_id == task.id.value
+            {
+                return Err(TaskError::SelfParentTask);
             }
             parent_by_id.insert(task.id.value.clone(), task.parent_task_id.value.clone());
         }
@@ -352,23 +355,19 @@ impl TaskGraph {
 }
 
 pub fn default_workspace_task_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn task_content_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn task_assignee_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn task_metadata_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiQuasiIdentifier)
-        .expect("PII_QUASI_IDENTIFIER is a privacy-program data class")
+    PrivacyDataClass::pii_quasi_identifier()
 }
 
 pub fn workspace_task_data_class_from_legacy(
@@ -560,7 +559,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn store() -> TaskStore {
         TaskStore::new(TaskStoreCreate {
@@ -667,10 +666,12 @@ mod tests {
             Err(TaskError::InvalidAutoExecuteGrant)
         );
 
-        assert!(binding(AutonomyTier::T4AutoExecute, Some("grant-1"))
-            .tenant_auto_execute_grant_id
-            .value
-            .is_some());
+        assert!(
+            binding(AutonomyTier::T4AutoExecute, Some("grant-1"))
+                .tenant_auto_execute_grant_id
+                .value
+                .is_some()
+        );
     }
 
     #[test]
@@ -735,5 +736,46 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.tasks STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TasksSurfaceStaging {
+    pub task_id: Classified<String>,   // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub status: Classified<String>,    // data_class: INTERNAL_ONLY
+}
+
+impl TasksSurfaceStaging {
+    pub fn new(task_id: String, tenant_id: String, status: String) -> Self {
+        Self {
+            task_id: Classified::new(task_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            status: Classified::new(status, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> TasksSurfaceStaging {
+        TasksSurfaceStaging::new("tasks-1".into(), "tasks-1".into(), "tasks-1".into())
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.task_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

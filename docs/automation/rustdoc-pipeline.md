@@ -17,6 +17,7 @@ extends_crates:
 companion_docs:
   - INDEX.md
   - ../../docs/DOC-CATALOG.md
+doc_status: published
 ---
 
 # Pipeline: rustdoc auto-publish

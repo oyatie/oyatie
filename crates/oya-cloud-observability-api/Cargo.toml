@@ -11,3 +11,6 @@ oya-cloud-observability-domain = { path = "../oya-cloud-observability-domain" }
 oya-audit-chain-domain = { path = "../oya-audit-chain-domain" }
 oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 oya-residency-domain = { path = "../oya-residency-domain" }
+
+[lints]
+workspace = true

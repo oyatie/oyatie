@@ -8,8 +8,8 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::parse_data_class_label;
-use oya_workspace_drive_kernel::{
+use oya_data_boundary_kernel::parse_data_class_label;
+use oya_connect_drive_domain::{
     workspace_drive_data_class_from_legacy, DriveError, DriveObject, DriveObjectCreate, DriveRole,
     PermissionGrant, PermissionSet,
 };

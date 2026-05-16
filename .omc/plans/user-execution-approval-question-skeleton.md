@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for user-execution-approval-question-skeleton.md
+---
+
 # User execution-approval question skeleton
 
 Used when Critic iter-N returns APPROVE on `.omc/plans/ralplan-oyatie-sst-consolidation.md`. Fires the structured AskUserQuestion that captures execution approval before any cutover phase runs.
@@ -47,7 +51,7 @@ AskUserQuestion(
   1. icm store the chosen execution route + iter-N consensus snapshot.
   2. Invoke the chosen Skill with `.omc/plans/ralplan-oyatie-sst-consolidation.md` as input.
   3. Update TaskList to move Phase 5 Execution Bridge → completed; create per-phase tasks owned by execution agents.
-  4. Update /goal with the post-execution success criteria (already drafted at `.omc/specs/post-consensus-autopilot-prompt.md`).
+  4. Update /goal with the post-execution success criteria (already drafted at `.omc/scratch/post-consensus-autopilot-prompt.md`).
 
 ## Open-questions to attach to the same Question call (optional)
 

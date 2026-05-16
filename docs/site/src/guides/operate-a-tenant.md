@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Operate a tenant
 
 Tenant operators manage identity, capability grants, cost ceilings, and evidence review from one

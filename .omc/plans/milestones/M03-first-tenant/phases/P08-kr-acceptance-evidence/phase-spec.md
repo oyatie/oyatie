@@ -5,29 +5,32 @@ milestone: M03-first-paying-tenant
 phase: P08-kr-acceptance-evidence
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M03/P06-application-b2b-live complete (B2B shell live; all µservices enabled);
-  M03/P07-workflow-studio-editor complete (Studio live; 10 domain templates loaded);
-  At least one KR group paying tenant signed and onboarded in production cell (OCI ap-seoul-1).
-exit_gate: |
-  1 KR group paying tenant has closed real payroll in production (Bominal ADR-0210 closure criterion);
-  4대보험 EDI monthly report green (NPS/NHIS/MOEL submissions acknowledged);
-  연말정산 audit-chain segment sealed (근로소득원천징수영수증 generated + Ed25519-sealed);
-  Legal hold initiated + eDiscovery export verified (PST/MBOX with chain of custody);
-  SLO burn-rate ≤ budget for 7 consecutive days (error budget: ≤0.1% per µservice);
-  Restore drill complete (tenant/entity-scoped; M03 load test for 3,000-person shape);
-  grit done on all P08 symbols; ICM M03-close row emitted.
+entry_gate: "M03/P06-application-b2b-live complete (B2B shell live; all \xB5services\
+  \ enabled);\nM03/P07-workflow-studio-editor complete (Studio live; 10 domain templates\
+  \ loaded);\nAt least one KR group paying tenant signed and onboarded in production\
+  \ cell (OCI ap-seoul-1).\n"
+exit_gate: "1 KR group paying tenant has closed real payroll in production (Bominal\
+  \ ADR-0210 closure criterion);\n4\uB300\uBCF4\uD5D8 EDI monthly report green (NPS/NHIS/MOEL\
+  \ submissions acknowledged);\n\uC5F0\uB9D0\uC815\uC0B0 audit-chain segment sealed\
+  \ (\uADFC\uB85C\uC18C\uB4DD\uC6D0\uCC9C\uC9D5\uC218\uC601\uC218\uC99D generated\
+  \ + Ed25519-sealed);\nLegal hold initiated + eDiscovery export verified (PST/MBOX\
+  \ with chain of custody);\nSLO burn-rate \u2264 budget for 7 consecutive days (error\
+  \ budget: \u22640.1% per \xB5service);\nRestore drill complete (tenant/entity-scoped;\
+  \ M03 load test for 3,000-person shape);\ngrit done on all P08 symbols; ICM M03-close\
+  \ row emitted.\n"
 depends_on:
-  - milestone: M03
-    phase: P06-application-b2b-live
-    reason: "Application B2B shell must be live for the KR group tenant to onboard and enable products."
-  - milestone: M03
-    phase: P07-workflow-studio-editor
-    reason: "Workflow Studio must be live for tenant to run payroll-close workflow and configure automations."
+- milestone: M03
+  phase: P06-application-b2b-live
+  reason: Application B2B shell must be live for the KR group tenant to onboard and
+    enable products.
+- milestone: M03
+  phase: P07-workflow-studio-editor
+  reason: Workflow Studio must be live for tenant to run payroll-close workflow and
+    configure automations.
 parallel_wave: 5
 owner_team: council-architecture
+purpose: "Closes the M03 milestone by producing the production evidence required by Bominal ADR-0210 §\"Launch-Blocking Client Bar\" and §\"M3 In Scope\": one paid KR group customer running real payroll in production, 4대보험 EDI submissions acknowledged."
 ---
-
 # P08-kr-acceptance-evidence: M3 KR group customer onboarding + acceptance evidence — payroll close, EDI green, 연말정산, legal hold, 7-day SLO
 
 ## Purpose

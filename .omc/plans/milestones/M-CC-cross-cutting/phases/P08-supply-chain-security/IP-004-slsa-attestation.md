@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-004
 title: SLSA level ≥3 attestation publishing
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Publish SLSA-3 attestation per release tag.
@@ -49,4 +52,7 @@ icm store -t context-oyatie -c 'M-CC-P08-IP-004 SLSA level ≥3 attestation publ
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- Reuses `slsa-framework/slsa-github-generator@v2.0.0` — provenance generation isn't reimplemented per-repo; we inherit L3 builder isolation guarantees from upstream.
+- Hash + provenance split into separate jobs — a hash failure surfaces immediately and the provenance job is skipped (`if: needs.hash-artifacts.outputs.digests != ''`) rather than producing an empty attestation.
+- One canonical output filename (`provenance.intoto.jsonl`) — verifiers don't need to discover or fuzzy-match attestation files.

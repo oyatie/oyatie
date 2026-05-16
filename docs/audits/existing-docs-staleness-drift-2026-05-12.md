@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Existing Oyatie Docs — Staleness + Drift Audit (2026-05-12)
 
 <!--

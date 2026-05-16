@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Partner Contract Renewal
+doc_status: published
+---
+
 # Oyatie Runbook — Partner Contract Renewal
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

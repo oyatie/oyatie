@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M04-P03-IP-001
 title: Tenant onboarding via Workflow Studio
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Onboard first KR Group design-partner tenant via tenant.create + KR pack binding.

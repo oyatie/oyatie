@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Council — Privacy
 
 ## Mission

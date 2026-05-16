@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Tenant administration guide
 
 Tenant administrators assign users, review capability grants, inspect evidence, and watch budget

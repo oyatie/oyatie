@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Fitness Lane: cutover-bootstrap-window
 
 - status: Accepted

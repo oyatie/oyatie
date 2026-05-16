@@ -5,9 +5,12 @@
 //! export-format vocabulary and fail-closed format compatibility checks for
 //! Docs, Sheets, and Slides while leaving renderer, storage, and protocol work
 //! to adapters.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_workspace_collab_runtime_kernel::CollabRuntime;
+use oya_connect_collab_runtime_domain::CollabRuntime;
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DOCUMENT_EXPORT_REQUEST_SCHEMA_VERSION: u32 = 1;
 const DOCUMENT_EXPORT_PAYLOAD_SCHEMA_VERSION: u32 = 1;
@@ -270,18 +273,16 @@ impl DocumentExportPayload {
 }
 
 pub fn default_workspace_document_export_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn actor_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn filename_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiQuasiIdentifier)
-        .expect("PII_QUASI_IDENTIFIER is a privacy-program data class")
+    // ADR-0083 Tier 1: use kernel's infallible `pii_quasi_identifier()` constructor.
+    PrivacyDataClass::pii_quasi_identifier()
 }
 
 pub fn workspace_document_export_data_class_from_legacy(
@@ -344,10 +345,10 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_workspace_collab_runtime_kernel::{
+    use oya_connect_collab_runtime_domain::{
         CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef, CollabSurface,
     };
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn runtime() -> CollabRuntime {
         CollabRuntime::new(CollabRuntimeCreate {

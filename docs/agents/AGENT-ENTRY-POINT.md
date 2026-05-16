@@ -24,6 +24,7 @@ related:
   - docs/AGENTS.md
 authority_chain_declaration: |
   docs/CONSTITUTION.md > docs/AGENTS.md > docs/MASTERPLAN.md > this file
+doc_status: published
 ---
 
 # Oyatie Agent Entry Point

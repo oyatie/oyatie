@@ -1,3 +1,9 @@
+---
+id: ADR-0055
+status: accepted
+doc_status: published
+---
+
 # ADR-0055: Object Graph renamed to Ontology
 
 > **Status:** Accepted
@@ -16,7 +22,7 @@ Oyatie's typed-entity information layer was previously called "Object Graph" (OG
 3. Oyatie's data layer matches Palantir Ontology semantics 1:1 (typed entities + links + actions + functions with audit-chain, RLS, jurisdiction overlays per Bominal ADR-0106).
 4. User instruction 2026-05-13: "lets rename object graph to ontology" + "object graph = ontology at palantir."
 
-This is an oyatie-specific override of Bominal ADR-0106 per `[[feedback-bominal-inheritance-precedence]]` override #2.
+This is an Oyatie-specific override of Bominal ADR-0106 per `[[feedback-bominal-inheritance-precedence]]` override #2.
 
 **Naming justification:** "Ontology" is the Palantir-established industry term for this concept; aligns with the data-layer space vocabulary. BNF v4.1 (ADR-0056) slot2 = `ontology` (registered µservice name).
 

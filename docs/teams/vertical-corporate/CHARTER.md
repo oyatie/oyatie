@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Corporate (HR / Payroll / GL / Mail / Comms)
 
 ## Mission

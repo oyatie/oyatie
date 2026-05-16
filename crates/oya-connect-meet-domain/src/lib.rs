@@ -5,8 +5,11 @@
 //! participant, recording, and transcript metadata with KMS-shred and
 //! trust-portal-only recording access invariants. WebRTC, SFU routing,
 //! transcription engines, and archive storage remain adapter concerns.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const MEET_SESSION_SCHEMA_VERSION: u32 = 1;
 const TRANSCRIPT_CHUNK_SCHEMA_VERSION: u32 = 1;
@@ -231,10 +234,10 @@ impl ParticipantRef {
     ) -> Result<Self, MeetError> {
         validate_non_empty(&actor_ref, MeetError::InvalidParticipantRef)?;
         validate_optional_display_name(display_name.as_deref())?;
-        if let (Some(joined), Some(left)) = (joined_at_epoch_seconds, left_at_epoch_seconds) {
-            if left < joined {
-                return Err(MeetError::InvalidParticipantTimeOrder);
-            }
+        if let (Some(joined), Some(left)) = (joined_at_epoch_seconds, left_at_epoch_seconds)
+            && left < joined
+        {
+            return Err(MeetError::InvalidParticipantTimeOrder);
         }
         Ok(Self {
             actor_ref: Classified::new(actor_ref, participant_data_class()),
@@ -316,28 +319,23 @@ impl TranscriptChunk {
 }
 
 pub fn default_workspace_meet_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn participant_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn display_name_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiQuasiIdentifier)
-        .expect("PII_QUASI_IDENTIFIER is a privacy-program data class")
+    PrivacyDataClass::pii_quasi_identifier()
 }
 
 pub fn recording_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn transcript_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_meet_data_class_from_legacy(
@@ -365,10 +363,9 @@ fn validate_participants(participants: &[ParticipantRef]) -> Result<(), MeetErro
         if let (Some(joined), Some(left)) = (
             participant.joined_at_epoch_seconds.value,
             participant.left_at_epoch_seconds.value,
-        ) {
-            if left < joined {
-                return Err(MeetError::InvalidParticipantTimeOrder);
-            }
+        ) && left < joined
+        {
+            return Err(MeetError::InvalidParticipantTimeOrder);
         }
     }
     Ok(())
@@ -436,7 +433,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn host() -> ParticipantRef {
         ParticipantRef::new(
@@ -617,5 +614,46 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.meet STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MeetSurfaceStaging {
+    pub session_id: Classified<String>,    // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,     // data_class: INTERNAL_ONLY
+    pub sfu_placement: Classified<String>, // data_class: INTERNAL_ONLY
+}
+
+impl MeetSurfaceStaging {
+    pub fn new(session_id: String, tenant_id: String, sfu_placement: String) -> Self {
+        Self {
+            session_id: Classified::new(session_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            sfu_placement: Classified::new(sfu_placement, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> MeetSurfaceStaging {
+        MeetSurfaceStaging::new("meet-1".into(), "meet-1".into(), "meet-1".into())
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.session_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

@@ -7,22 +7,22 @@ impl_plan_id: IP-001-application-kernel-scaffold
 status: pending
 owner: council-architecture
 blocked_by:
-  - impl_plan: P13-tenancy/IP-001
-    reason: "TenancyProductCatalogAdapter reads TenantProductRegistry from oya-tenancy-kernel"
-  - impl_plan: P03-identity/IP-001
-    reason: "SsoSessionPort uses identity SessionStore + AuthChallenger ports"
+- impl_plan: P13-tenancy/IP-001
+  reason: TenancyProductCatalogAdapter reads TenantProductRegistry from oya-tenancy-kernel
+- impl_plan: P03-identity/IP-001
+  reason: SsoSessionPort uses identity SessionStore + AuthChallenger ports
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Scaffolds all 13 application crates across 5 BCs, implements the Leptos SSR + WASM composition-root shell, wires the per-tenant product catalog from TenantProductRegistry, implements the SSO hub PKCE + nonce flow per Bominal ADR-0123.
 ---
-
 # IP-001-application-kernel-scaffold: Scaffold Application Shell — 13 Crates / 5 BCs + Leptos Shell + SSO Hub + DDL
 
 ## Intent

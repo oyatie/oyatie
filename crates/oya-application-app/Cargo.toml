@@ -39,3 +39,6 @@ doctest = false
 oya-observability-tracing-adapter = { path = "../oya-observability-tracing-adapter" }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+
+[lints]
+workspace = true

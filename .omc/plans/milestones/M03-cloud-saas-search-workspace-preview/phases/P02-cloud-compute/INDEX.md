@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P02
 title: Cloud Compute (VM / K8s / Functions / Capacity / DC-Ops)
-status: partial (in-flight)
+status: in-progress
 purpose: Bring managed VM/K8s/Functions + capacity + DC-Ops surfaces to W-Cloud-Preview readiness; provider-agnostic adapter pattern.
 ---
 

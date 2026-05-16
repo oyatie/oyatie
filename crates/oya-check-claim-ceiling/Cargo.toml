@@ -13,3 +13,6 @@ oya-foundry-catalog-domain = { path = "../oya-foundry-catalog-domain" }
 name = "oya_check_claim_ceiling"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

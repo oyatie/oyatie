@@ -17,6 +17,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (migration-class completion)
   - ADR-0053  # sanctioned primitives (grit done, icm store, oya-tooling-agent-read)
   - ADR-0054  # scaffold-claim (symbol release)
+doc_status: published
 ---
 
 # Agent Completion Checklist
@@ -38,7 +39,7 @@ Emit the IP's `§Icm-store-payload` **verbatim** (do not paraphrase):
 ```
 icm store \
   -t context-<project> \
-  -c "IP-NNN-<slug> merged at <git-sha>; grit symbols released: <list>; acceptance lanes green: <list>; next IP: <pointer>" \
+  -c "IP-NNN-<slug> merged at <changebundle-id>; grit symbols released: <list>; acceptance lanes green: <list>; next IP: <pointer>" \
   -i high \
   -k "M0N,P0N,IP-NNN,<axis>"
 ```

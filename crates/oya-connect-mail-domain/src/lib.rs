@@ -4,10 +4,11 @@
 //! `docs/products/workspace/PRD.md` and ADR-0029. The kernel keeps the first
 //! vertical slice deliberately small: mailbox and message aggregates, data-class
 //! defaults, and the read seam Foundry/Search consumers will build on.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_platform_data_boundary_kernel::{
-    Classified, DataClass, DataClassification, PrivacyDataClass,
-};
+use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, PrivacyDataClass};
 
 const MAILBOX_SCHEMA_VERSION: u32 = 1;
 const MESSAGE_SCHEMA_VERSION: u32 = 1;
@@ -304,8 +305,7 @@ impl Folder {
 }
 
 pub fn default_workspace_mail_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_mail_data_class_from_legacy(
@@ -345,10 +345,62 @@ fn internal<T>(value: T) -> Classified<T> {
     Classified::new(value, DataClass::InternalOnly)
 }
 
+// ---------------------------------------------------------------------------
+// M03-P06-IP-001 — workspace.mail.{smtp,imap,jmap} STAGING surface markers
+// (SPEC §4 rows; RFC 5321 / 3501 / 8620 compliance).
+// ---------------------------------------------------------------------------
+
+const SMTP_RFC: u32 = 5321;
+const IMAP_RFC: u32 = 3501;
+const JMAP_RFC: u32 = 8620;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum MailSurfaceProtocol {
+    SmtpReceive,
+    Imap,
+    Jmap,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MailSurfaceStaging {
+    pub mailbox_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub protocol: Classified<MailSurfaceProtocol>, // data_class: INTERNAL_ONLY
+    pub rfc_number: Classified<u32>,    // data_class: INTERNAL_ONLY
+    pub phishing_dlp_classify_before_store: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: INTERNAL_ONLY
+}
+
+impl MailSurfaceStaging {
+    pub fn new(
+        mailbox_id: String,
+        tenant_id: String,
+        protocol: MailSurfaceProtocol,
+    ) -> Result<Self, MailError> {
+        validate_non_empty(&mailbox_id, MailError::InvalidMailboxId)?;
+        validate_non_empty(&tenant_id, MailError::InvalidTenantId)?;
+        let rfc = match protocol {
+            MailSurfaceProtocol::SmtpReceive => SMTP_RFC,
+            MailSurfaceProtocol::Imap => IMAP_RFC,
+            MailSurfaceProtocol::Jmap => JMAP_RFC,
+        };
+        // SPEC §4: SMTP receive must run phishing+DLP+classify before store.
+        let must_classify_before_store = matches!(protocol, MailSurfaceProtocol::SmtpReceive);
+        Ok(Self {
+            mailbox_id: internal(mailbox_id),
+            tenant_id: internal(tenant_id),
+            protocol: internal(protocol),
+            rfc_number: internal(rfc),
+            phishing_dlp_classify_before_store: internal(must_classify_before_store),
+            schema_version: internal(MAILBOX_SCHEMA_VERSION),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::OperationalDataClass;
+    use oya_data_boundary_kernel::OperationalDataClass;
 
     fn valid_mailbox_input() -> MailboxCreate {
         MailboxCreate {
@@ -419,18 +471,57 @@ mod tests {
         );
         assert_eq!(
             message.headers.value[0].name.data_class,
-            DataClassification::Privacy(
-                PrivacyDataClass::new(DataClass::PiiQuasiIdentifier).unwrap()
-            )
+            DataClassification::Privacy(PrivacyDataClass::pii_quasi_identifier())
         );
     }
 
     #[test]
     fn message_rejects_body_class_that_does_not_match_message_class() {
         let mut input = valid_message_input();
-        input.data_class = Some(PrivacyDataClass::new(DataClass::InternalOnly).unwrap());
+        input.data_class = Some(PrivacyDataClass::internal_only());
 
         assert_eq!(Message::new(input), Err(MailError::InvalidDataClass));
+    }
+
+    #[test]
+    fn surface_staging_maps_protocol_to_rfc_and_smtp_requires_classify() {
+        let smtp = MailSurfaceStaging::new(
+            "mailbox-1".into(),
+            "tenant-1".into(),
+            MailSurfaceProtocol::SmtpReceive,
+        )
+        .unwrap();
+        assert_eq!(smtp.rfc_number.value, 5321);
+        assert!(smtp.phishing_dlp_classify_before_store.value);
+
+        let imap = MailSurfaceStaging::new(
+            "mailbox-1".into(),
+            "tenant-1".into(),
+            MailSurfaceProtocol::Imap,
+        )
+        .unwrap();
+        assert_eq!(imap.rfc_number.value, 3501);
+        assert!(!imap.phishing_dlp_classify_before_store.value);
+
+        let jmap = MailSurfaceStaging::new(
+            "mailbox-1".into(),
+            "tenant-1".into(),
+            MailSurfaceProtocol::Jmap,
+        )
+        .unwrap();
+        assert_eq!(jmap.rfc_number.value, 8620);
+    }
+
+    #[test]
+    fn surface_staging_rejects_empty_identifiers() {
+        assert_eq!(
+            MailSurfaceStaging::new("".into(), "t".into(), MailSurfaceProtocol::Imap),
+            Err(MailError::InvalidMailboxId)
+        );
+        assert_eq!(
+            MailSurfaceStaging::new("m".into(), "".into(), MailSurfaceProtocol::Imap),
+            Err(MailError::InvalidTenantId)
+        );
     }
 
     #[test]

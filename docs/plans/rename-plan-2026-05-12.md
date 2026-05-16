@@ -21,6 +21,7 @@ companion_docs:
 related_adrs:
   - ADR-0015
   - ADR-0017
+doc_status: published
 ---
 
 > **SUPERSEDED — 2026-05-12.** This v1 plan is **superseded by**

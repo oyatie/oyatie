@@ -1,12 +1,16 @@
-use oya_cloud_network_kernel::{CloudNetworkCatalog, CloudNetworkError};
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_cloud_network_domain::{CloudNetworkCatalog, CloudNetworkError};
 use oya_cloud_network_vpc_api::{
-    create_cloud_network_vpc_from_api, CloudNetworkVpcApiAuthorization,
+    CLOUD_NETWORK_VPC_CREATE_SURFACE, CloudNetworkVpcApiAuthorization,
     CloudNetworkVpcApiBoundaryContext, CloudNetworkVpcApiError, CloudNetworkVpcApiPrincipal,
     CloudNetworkVpcCreateApiRequest, CloudNetworkVpcCreateApiStatus,
     CloudNetworkVpcCreateIdempotencyLedger, CloudNetworkVpcCreateRequest,
     CloudNetworkVpcRouteCreateRequest, CloudNetworkVpcRouteTableCreateRequest,
     CloudNetworkVpcSecurityGroupCreateRequest, CloudNetworkVpcSecurityRuleCreateRequest,
-    CLOUD_NETWORK_VPC_CREATE_SURFACE,
+    create_cloud_network_vpc_from_api,
 };
 
 const VPC_ID: &str = "oya:cloud:kr-seoul:ten_kr:vpc:prod";

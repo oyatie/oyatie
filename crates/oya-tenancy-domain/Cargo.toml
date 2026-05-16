@@ -14,3 +14,6 @@ oya-residency-domain = { path = "../oya-residency-domain" }
 name = "oya_tenancy_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

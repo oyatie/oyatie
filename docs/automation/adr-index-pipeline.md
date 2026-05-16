@@ -17,6 +17,7 @@ extends_crates:
 companion_docs:
   - INDEX.md
   - ../../docs/ADR-INDEX.md
+doc_status: published
 ---
 
 # Pipeline: ADR-INDEX auto-generation

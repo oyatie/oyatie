@@ -20,6 +20,7 @@ companion_docs:
   - INDEX.md
   - product-map-spec.md
   - service-map-spec.md
+doc_status: published
 ---
 
 # Visualization spec: `oya-foundry-architecture-map-kernel`

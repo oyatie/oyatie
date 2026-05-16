@@ -1,4 +1,9 @@
 ---
+purpose: "Cross-cutting security-review standard. Names the OWASP control surfaces oyatie inherits, the supply-chain triad (`cargo-deny` + `cargo-audit` + `cargo-vet`), Sigstore signing + SBOM emission."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -11,7 +16,7 @@ purpose: |
   Sigstore signing + SBOM emission, the per-change-class threat-modeling
   obligation, the data-class boundary enforcement (per `data-class.md`), and the
   autonomy-ceiling guardrails (per `autonomy-ceiling.md`).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-supply-chain
 companion_docs:
   - docs/SECURITY-PROGRAM.md
@@ -27,7 +32,7 @@ related_adrs:
 
 # Security Review
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 This standard governs every PR that touches an auth, secret, payment,
 privacy, capability, or supply-chain surface. The change-class reviewer
@@ -83,13 +88,13 @@ Rules:
 1. All three (cargo-audit + cargo-deny + cargo-vet) MUST pass on every PR.
 2. The `deny.toml` allow-list is the authoritative license posture; the
    forbidden tiers (AGPL / GPL / SSPL / BUSL / RSAL) are enumerated per
-   [`CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 9.
+   [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-09.
 3. `cargo-vet` audits live under `supply-chain/audits.toml`; share-points
    for AWS / Mozilla-published audits are configured.
 4. New crate dependencies require a `cargo-vet` certification row OR an
    ADR-tracked exemption.
 
-Source: [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+Source: [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
 Domain 4 "Supply-chain: signing + SBOM + provenance".
 
 ## 3. Threat modeling per change class
@@ -122,7 +127,7 @@ Per [`image-discipline.md`](image-discipline.md) and
 4. Cluster-side admission control (Kyverno / policy-controller) verifies
    the signature + provenance before scheduling.
 5. Cosign pin: **≥ v3.0.6** (per
-   [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md));
+   [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md));
    the v3 `--bundle` contract is mandatory.
 
 Lane: `oya-foundry-fitness-supply-chain` validates signed + SBOM-attached +
@@ -193,7 +198,7 @@ When a finding cannot be fixed in the PR:
 4. **Skipping SBOM emission for a "one-off" binary** — every artifact
    has provenance.
 5. **Skipping `cargo-vet` certification for a new crate** — file the row
-   or an ADR exemption.
+   or an ADR-tracked extension.
 
 ## 11. Sources scanned
 
@@ -204,5 +209,5 @@ When a finding cannot be fixed in the PR:
 - [Sigstore](https://www.sigstore.dev/), [SLSA](https://slsa.dev/),
   [Syft](https://github.com/anchore/syft).
 - [Kyverno](https://kyverno.io/), [policy-controller](https://github.com/sigstore/policy-controller).
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 4 "Supply-chain".

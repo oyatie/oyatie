@@ -14,3 +14,6 @@ oya-connect-retention-domain = { path = "../oya-connect-retention-domain" }
 name = "oya_connect_dsr_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

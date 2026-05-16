@@ -5,23 +5,37 @@ milestone: M02-substrate
 phase: P16-records
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02/P02-ontology complete; oya-ontology-kernel ships with ObjectStore + ActionStore
-  port traits; cargo check clean; grit done on all P02 symbols; ICM phase-handoff emitted.
-exit_gate: |
-  All P16 impl-plan acceptance gates green; FHIR R5 canonical resource types declared
-  in kernel (Encounter, Observation, Medication, Condition, Procedure, DiagnosticReport,
-  AllergyIntolerance, Immunization); FhirResourceStore + ReleasedViewPort ports sealed;
-  2 BCs registered (records-fhir, records-released-view); all crates pass cargo check/
-  build/clippy/nextest/deny; oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on
-  all P16 symbols; ICM phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P02-ontology
-    reason: "Records substrate stores FHIR R5 resources as Ontology objects (object_type = 'records.Encounter' etc.); FhirResourceStore writes through ObjectStore port; linkage between clinical resources uses LinkStore."
-owner_team: council-architecture
----
+entry_gate: 'M02/P02-ontology complete; oya-ontology-kernel ships with ObjectStore
+  + ActionStore
 
+  port traits; cargo check clean; grit done on all P02 symbols; ICM phase-handoff
+  emitted.
+
+  '
+exit_gate: 'All P16 impl-plan acceptance gates green; FHIR R5 canonical resource types
+  declared
+
+  in kernel (Encounter, Observation, Medication, Condition, Procedure, DiagnosticReport,
+
+  AllergyIntolerance, Immunization); FhirResourceStore + ReleasedViewPort ports sealed;
+
+  2 BCs registered (records-fhir, records-released-view); all crates pass cargo check/
+
+  build/clippy/nextest/deny; oya gate validate lean-a1/a2/a3/a4 exit 0; grit done
+  on
+
+  all P16 symbols; ICM phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P02-ontology
+  reason: Records substrate stores FHIR R5 resources as Ontology objects (object_type
+    = 'records.Encounter' etc.); FhirResourceStore writes through ObjectStore port;
+    linkage between clinical resources uses LinkStore.
+owner_team: council-architecture
+purpose: Delivers the records substrate kernel and ports that the Healthcare expansion (M04+) will build on.
+---
 # P16-records: Records Substrate — FHIR R5 Canonical + Released-View Boundary (Healthcare Kernel + Ports for M04+)
 
 ## Purpose

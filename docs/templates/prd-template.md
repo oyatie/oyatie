@@ -19,6 +19,7 @@ adrs_cited:
   - ADR-0056  # BNF v4.1
   - ADR-0106  # Ontology architecture
   - ADR-0103  # Workflow hexagonal
+doc_status: published
 ---
 
 ```yaml
@@ -273,7 +274,7 @@ Sharding:
 | ADR | Title | Relation |
 |---|---|---|
 | Bominal ADR-NNNN | `<title>` | inherited |
-| oyatie ADR-XXXX | `<title>` | oyatie-specific |
+| oyatie ADR-XXXX | `<title>` | Oyatie-specific |
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0103 | Workflow hexagonal | integration plane |
 | ADR-0106 | Ontology architecture | information plane |

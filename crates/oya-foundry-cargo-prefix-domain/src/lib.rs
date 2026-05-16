@@ -111,8 +111,8 @@ mod tests {
                         package_name: "oya-foundry-capability-kernel".into(),
                     },
                     CargoPrefixMember {
-                        member_path: "crates/oya-tooling-cli-dev-runtime".into(),
-                        package_name: "oya-tooling-cli-dev-runtime".into(),
+                        member_path: "crates/oya-dev-cli".into(),
+                        package_name: "oya-dev-cli".into(),
                     },
                 ],
                 "oya-",

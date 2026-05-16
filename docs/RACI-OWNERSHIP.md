@@ -1,3 +1,8 @@
+---
+purpose: Ownership and accountability matrix for teams, decision classes, code ownership, and review responsibilities.
+doc_status: published
+---
+
 # Oyatie — RACI + Ownership Matrix
 
 > **Status:** Draft v0.1 — 2026-05-09.
@@ -123,6 +128,16 @@ This table is generated from `docs/teams/*/CHARTER.md` and validated by `oya gat
 | Sev 1 customer/regulator notification | IM + Comms Manager + Privacy lead + Founder | (none) |
 | Hiring per team lead | Per-team manager + skip-level + Founder | (none) |
 | Pricing | GTM lead + Founder |  |
+
+## 4.1 Cutover human-orchestrator row
+
+| Role / row id | Responsible | Accountable | Consulted | Informed | Authorized cutover actions | Required pre-execution evidence |
+|---|---|---|---|---|---|---|
+| `human-orchestrator-cutover` | Founder-designated human operator for the agentic-pipeline cutover | `council-architecture` | `ops-sre-reliability`, `ops-security`, `crew-adr-promotion` | Founder, affected axis owners | P6 `git mv` archive moves, P7 `git rm` active-path deletions, and P9 `gh issue create` for the upstream `rtk-ai/grit` session bug only | `icm store -t cutover-orchestrator-actions -c '<action>' -i critical` before every carve-out invocation |
+
+This row does not grant agents direct `git` or `gh` authority. Agents prepare
+manifests, verification evidence, and halt rows; the human orchestrator performs
+only the three named one-time carve-outs from ADR-0053.
 
 ## 5. Sources
 `teams/`, `.github/CODEOWNERS`, [DOC-CATALOG.md](DOC-CATALOG.md), [PRD.md](PRD.md), `CLAUDE.md`.

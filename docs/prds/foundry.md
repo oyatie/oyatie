@@ -14,6 +14,7 @@ adrs_cited:
   - ADR-0056  # BNF v4.1
   - ADR-0062  # quality/perf/scale bar
   - ADR-0063  # documentation suite coverage (LEAN-A5)
+doc_status: published
 ---
 
 # `oya-foundry-*` — Internal Engineering Engine PRD

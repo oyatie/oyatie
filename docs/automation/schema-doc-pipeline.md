@@ -19,6 +19,7 @@ companion_docs:
   - INDEX.md
   - ../../docs/PRIVACY-PROGRAM.md
   - ../../docs/decisions/ADR-0008-data-use-boundary.md
+doc_status: published
 ---
 
 # Pipeline: schema-doc / data-class catalogue auto-generation

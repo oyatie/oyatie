@@ -6,6 +6,7 @@ purpose: |
   Canonical index of all oyatie PRD files under docs/prds/.
   Every µservice has exactly one PRD. PRDs drive all downstream
   phase specs, impl plans, and µservice scaffolds.
+doc_status: published
 ---
 
 # PRD Index

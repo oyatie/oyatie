@@ -8,7 +8,7 @@ purpose: |
 enforcing_fitness_lane: (advisory) — Founder + Council-Architecture approval gate, not a CI lane
 owner_team: council-architecture + gtm-marketing
 related:
-  - .omc/specs/hyperscaler-best-practices-2026-05-12.md  # §Domain 1 AWS PRFAQ
+  - .omc/scratch/hyperscaler-best-practices-2026-05-12.md  # §Domain 1 AWS PRFAQ
   - docs/PRD.md
   - docs/GTM-PLAN.md
   - docs/templates/design-doc-template.md
@@ -22,6 +22,7 @@ authoring_rules:
   no_bullets_in_press_release: true     # full prose
   data_replaces_adjectives: true
   no_author_attribution_on_doc: true    # per Amazon convention
+doc_status: published
 ---
 
 ```yaml
@@ -122,10 +123,10 @@ authority_chain_declaration: |
 2. Discussion follows; the author **does NOT** present.
 3. Verdict: `proceed-to-design-doc` | `revise` | `kill`.
 4. On `proceed-to-design-doc`: author lifts to a Google-style design doc (`docs/templates/design-doc-template.md`) before any IP claim. Scaffold grit symbols per ADR-0054.
-5. On `kill`: archive at `.omc/specs/killed/PRFAQ-NNNN-<slug>.md` with the kill reason recorded. Inventory entry per ADR-0052.
+5. On `kill`: archive at `/specs/cross-cutting/killed/PRFAQ-NNNN-<slug>.md` with the kill reason recorded. Inventory entry per ADR-0052.
 
 ## Sources
 
 - AWS — Working Backwards / PRFAQ process (`workingbackwards.com`).
-- `.omc/specs/hyperscaler-best-practices-2026-05-12.md §Domain 1 AWS`.
+- `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 1 AWS`.
 - `docs/PRD.md`, `docs/GTM-PLAN.md`, `docs/ROADMAP.md`.

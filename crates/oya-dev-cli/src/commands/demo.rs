@@ -1,22 +1,22 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationPrincipal, CapabilityInvocationRequest,
-    CapabilityRegistration, CostBudgetRegistration, Foundation, IdentityRegistration,
-    McpAccessTokenClaims, McpDiscoveryRequest, OutboxPublish, Purpose, SubjectClass,
-    TenantCapabilityGrant, TenantRegistration, TokenRequest, DISCOVER_SCOPE,
+    CapabilityRegistration, CostBudgetRegistration, DISCOVER_SCOPE, Foundation,
+    IdentityRegistration, McpAccessTokenClaims, McpDiscoveryRequest, OutboxPublish, Purpose,
+    SubjectClass, TenantCapabilityGrant, TenantRegistration, TokenRequest,
 };
-use oya_foundry_evidence_adapter_file::FileEvidenceChainStore;
-use oya_foundry_run_adapter_file::FileRunLedgerStore;
-use oya_foundry_run_kernel::RunLedger;
-use oya_foundry_step_adapter_file::FileStepLedgerStore;
-use oya_foundry_step_kernel::StepLedger;
-use oya_platform_audit_chain_adapter_file::FileAuditLedger;
-use oya_platform_eventing_adapter_file::FileOutboxStore;
-use oya_platform_eventing_kernel::Outbox;
-use oya_platform_secrets_adapter_file::FileSecretStore;
-use oya_platform_secrets_kernel::{SecretMaterial, SecretRef, SecretVault};
+use oya_audit_chain_file_adapter::FileAuditLedger;
+use oya_eventing_domain::Outbox;
+use oya_eventing_file_adapter::FileOutboxStore;
+use oya_foundry_evidence_file_adapter::FileEvidenceChainStore;
+use oya_foundry_run_domain::RunLedger;
+use oya_foundry_run_file_adapter::FileRunLedgerStore;
+use oya_foundry_step_domain::StepLedger;
+use oya_foundry_step_file_adapter::FileStepLedgerStore;
+use oya_secrets_domain::{SecretMaterial, SecretRef, SecretVault};
+use oya_secrets_file_adapter::FileSecretStore;
 
 use crate::foundation_fixture::{
     internal_privacy_data_class, internal_privacy_data_classes,
@@ -24,31 +24,41 @@ use crate::foundation_fixture::{
 };
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
+    // ADR-0083 Tier 1: delegate to `run_inner` that returns `Result<ExitCode, String>`
+    // so each fallible `Foundation::*` / `secret_vault.*` call can use `?` propagation
+    // instead of `.expect(...)`. Any `Err` reaching here is printed and mapped to
+    // `ExitCode::FAILURE`; argument-parse errors keep their dedicated `ExitCode::from(2)`.
+    match run_inner(args, usage) {
+        Ok(code) => code,
+        Err(message) => {
+            eprintln!("{message}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn run_inner(args: Vec<String>, usage: &str) -> Result<ExitCode, String> {
     let demo_args = match parse_demo_args(args, usage) {
         Ok(args) => args,
         Err(message) => {
             eprintln!("{message}");
-            return ExitCode::from(2);
+            return Ok(ExitCode::from(2));
         }
     };
     let mut foundation = Foundation::default();
-    let tenant = match foundation.onboard_tenant(TenantRegistration {
-        tenant_id: "ten_demo".into(),
-        legal_name: "Oyatie Demo Tenant".into(),
-        home_region: "kr-seoul".into(),
-        residency_class: "strict_kr".into(),
-        regulatory_packs: vec!["oya-pack-kr".into()],
-        autonomy_ceiling: AutonomyTier::T2Advisory,
-    }) {
-        Ok(tenant) => tenant,
-        Err(error) => {
-            eprintln!("tenant onboarding failed: {error:?}");
-            return ExitCode::FAILURE;
-        }
-    };
+    let tenant = foundation
+        .onboard_tenant(TenantRegistration {
+            tenant_id: "ten_demo".into(),
+            legal_name: "Oyatie Demo Tenant".into(),
+            home_region: "kr-seoul".into(),
+            residency_class: "strict_kr".into(),
+            regulatory_packs: vec!["oya-pack-kr".into()],
+            autonomy_ceiling: AutonomyTier::T2Advisory,
+        })
+        .map_err(|error| format!("tenant onboarding failed: {error:?}"))?;
     let _cell = foundation
         .bind_cell(&tenant.id, "kr-seoul-a", "cell-control-a")
-        .expect("demo cell binding is valid");
+        .map_err(|error| format!("demo cell binding failed: {error:?}"))?;
     let user = foundation
         .upsert_identity(IdentityRegistration {
             tenant_id: tenant.id.clone(),
@@ -57,26 +67,28 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             display_name: "Demo Admin".into(),
             roles: vec!["tenant-admin".into()],
         })
-        .expect("demo identity is valid");
+        .map_err(|error| format!("demo identity failed: {error:?}"))?;
+    let user_id = user.user_id().as_str().to_string();
     publish_capability_invocation_policy(&mut foundation, &tenant.id, "tenant-admin")
-        .expect("demo capability invocation policy is valid");
+        .map_err(|error| format!("demo capability invocation policy failed: {error:?}"))?;
     let token = foundation
         .issue_token(TokenRequest {
             tenant_id: tenant.id.clone(),
-            user_id: user.id.clone(),
+            user_id: user_id.clone(),
             purpose: Purpose::CapabilityInvocation,
             ttl_seconds: 3_600,
             issued_at_epoch_seconds: 0,
         })
-        .expect("demo token is valid");
+        .map_err(|error| format!("demo token failed: {error:?}"))?;
     foundation
         .grant_data_use(
             &tenant.id,
             Purpose::CapabilityInvocation,
             internal_privacy_data_class(),
         )
-        .expect("demo data-use grant is valid");
-    seed_demo_eval(&mut foundation, "cap.demo.readiness");
+        .map_err(|error| format!("demo data-use grant failed: {error:?}"))?;
+    seed_demo_eval(&mut foundation, "cap.demo.readiness")
+        .map_err(|error| format!("demo eval seed failed: {error:?}"))?;
     let capability = foundation
         .register_capability(CapabilityRegistration {
             capability_id: "cap.demo.readiness".into(),
@@ -86,14 +98,14 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             touched_privacy_data_classes: internal_privacy_data_classes(),
             evidence_topic: "oya.foundry.capability.invoked".into(),
         })
-        .expect("demo capability is valid");
+        .map_err(|error| format!("demo capability failed: {error:?}"))?;
     foundation
         .grant_capability_to_tenant(TenantCapabilityGrant {
             tenant_id: tenant.id.clone(),
             capability_id: capability.id.clone(),
             mcp_visible: true,
         })
-        .expect("demo capability license is valid");
+        .map_err(|error| format!("demo capability license failed: {error:?}"))?;
     foundation
         .configure_tenant_cost_budget(CostBudgetRegistration {
             tenant_id: tenant.id.clone(),
@@ -103,13 +115,13 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             per_invocation_limit_micros: 1_000,
             warning_threshold_percent: 80,
         })
-        .expect("demo cost budget is valid");
+        .map_err(|error| format!("demo cost budget failed: {error:?}"))?;
     let mcp_descriptor = foundation
         .discover_mcp_gateway(McpDiscoveryRequest {
             tenant_id: tenant.id.clone(),
             access_token: McpAccessTokenClaims {
                 tenant_id: tenant.id.clone(),
-                subject_id: user.id.clone(),
+                subject_id: user_id.clone(),
                 issuer: "https://auth.oyatie.test/tenants/ten_demo".into(),
                 audience: "https://mcp.foundry.kr-seoul.oyatie.test/tenants/ten_demo".into(),
                 expires_at_epoch_seconds: 3_600,
@@ -119,17 +131,17 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             tld: "test".into(),
             authorization_server: "https://auth.oyatie.test/tenants/ten_demo".into(),
         })
-        .expect("demo MCP discovery is tenant-scoped");
+        .map_err(|error| format!("demo MCP discovery failed: {error:?}"))?;
     let receipt = foundation
         .invoke_capability_as_principal(
             CapabilityInvocationPrincipal {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user_id.clone(),
                 autonomy_ceiling: AutonomyTier::T2Advisory,
             },
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user_id.clone(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::CapabilityInvocation,
                 subject_class: SubjectClass::Adult,
@@ -138,34 +150,21 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 started_at_epoch_seconds: 1_000,
             },
         )
-        .expect("T1 demo capability is allowed by T2 ceiling");
+        .map_err(|error| format!("demo capability invocation failed: {error:?}"))?;
     let mut secret_vault = SecretVault::default();
-    let demo_secret_ref = match SecretRef::new(
+    let demo_secret_ref = SecretRef::new(
         tenant.id.clone(),
         capability.id.clone(),
         "provider-api-key".into(),
-    ) {
-        Ok(secret_ref) => secret_ref,
-        Err(error) => {
-            eprintln!("demo secret ref invalid: {error:?}");
-            return ExitCode::FAILURE;
-        }
-    };
-    let demo_secret_material = match SecretMaterial::from_bytes(b"sk-demo-provider-key".to_vec()) {
-        Ok(material) => material,
-        Err(error) => {
-            eprintln!("demo secret material invalid: {error:?}");
-            return ExitCode::FAILURE;
-        }
-    };
-    if let Err(error) = secret_vault.put(demo_secret_ref.clone(), demo_secret_material, Some(3_600))
-    {
-        eprintln!("demo secret persist failed: {error:?}");
-        return ExitCode::FAILURE;
-    }
+    )
+    .map_err(|error| format!("demo secret ref invalid: {error:?}"))?;
+    let demo_secret_material = SecretMaterial::from_bytes(b"sk-demo-provider-key".to_vec())
+        .map_err(|error| format!("demo secret material invalid: {error:?}"))?;
+    secret_vault
+        .put(demo_secret_ref.clone(), demo_secret_material, Some(3_600))
+        .map_err(|error| format!("demo secret persist failed: {error:?}"))?;
     if secret_vault.get(&demo_secret_ref, 0).is_err() {
-        eprintln!("demo secret could not be resolved through SecretProvider kernel");
-        return ExitCode::FAILURE;
+        return Err("demo secret could not be resolved through SecretProvider kernel".to_string());
     }
     foundation
         .publish_outbox(OutboxPublish {
@@ -174,65 +173,29 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             idempotency_key: "demo-readiness".into(),
             payload_ref: receipt.evidence_event_hash.clone(),
         })
-        .expect("demo outbox publish is valid");
+        .map_err(|error| format!("demo outbox publish failed: {error:?}"))?;
     let audit_persisted = match demo_args.audit_ledger_path {
-        Some(path) => match persist_audit_ledger(path, &foundation) {
-            Ok(persisted) => persisted,
-            Err(message) => {
-                eprintln!("{message}");
-                return ExitCode::FAILURE;
-            }
-        },
+        Some(path) => persist_audit_ledger(path, &foundation)?,
         None => false,
     };
     let evidence_persisted = match demo_args.evidence_store_path {
-        Some(path) => match persist_evidence_store(path, &foundation) {
-            Ok(persisted) => persisted,
-            Err(message) => {
-                eprintln!("{message}");
-                return ExitCode::FAILURE;
-            }
-        },
+        Some(path) => persist_evidence_store(path, &foundation)?,
         None => false,
     };
     let run_persisted = match demo_args.run_ledger_path {
-        Some(path) => match persist_run_ledger(path, &foundation) {
-            Ok(persisted) => persisted,
-            Err(message) => {
-                eprintln!("{message}");
-                return ExitCode::FAILURE;
-            }
-        },
+        Some(path) => persist_run_ledger(path, &foundation)?,
         None => false,
     };
     let step_persisted = match demo_args.step_ledger_path {
-        Some(path) => match persist_step_ledger(path, &foundation) {
-            Ok(persisted) => persisted,
-            Err(message) => {
-                eprintln!("{message}");
-                return ExitCode::FAILURE;
-            }
-        },
+        Some(path) => persist_step_ledger(path, &foundation)?,
         None => false,
     };
     let outbox_persisted = match demo_args.outbox_store_path {
-        Some(path) => match persist_outbox_store(path, &foundation) {
-            Ok(persisted) => persisted,
-            Err(message) => {
-                eprintln!("{message}");
-                return ExitCode::FAILURE;
-            }
-        },
+        Some(path) => persist_outbox_store(path, &foundation)?,
         None => false,
     };
     let secret_persisted = match demo_args.secret_store_path {
-        Some(path) => match persist_secret_store(path, &secret_vault) {
-            Ok(persisted) => persisted,
-            Err(message) => {
-                eprintln!("{message}");
-                return ExitCode::FAILURE;
-            }
-        },
+        Some(path) => persist_secret_store(path, &secret_vault)?,
         None => false,
     };
 
@@ -255,7 +218,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         secret_vault.records().len(),
         secret_persisted
     );
-    ExitCode::SUCCESS
+    Ok(ExitCode::SUCCESS)
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -294,7 +257,7 @@ fn persist_audit_ledger(path: PathBuf, foundation: &Foundation) -> Result<bool, 
         .append_chain(foundation.audit_chain())
         .map_err(|error| format!("audit ledger persist failed: {error:?}"))?;
     let replayed = ledger
-        .load()
+        .load_multi_tenant_shards()
         .map_err(|error| format!("audit ledger replay failed: {error:?}"))?;
     if replayed.events() == foundation.audit_chain().events() && replayed.verify() {
         Ok(true)

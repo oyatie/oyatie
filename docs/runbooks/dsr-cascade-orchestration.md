@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Dsr Cascade Orchestration
+doc_status: published
+---
+
 # Oyatie Runbook — Dsr Cascade Orchestration
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

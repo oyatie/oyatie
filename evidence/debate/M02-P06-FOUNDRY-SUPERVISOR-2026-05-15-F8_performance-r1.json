@@ -1,0 +1,150 @@
+{
+  "schema_version": "multispectrum-review-v2.2.0",
+  "reviewer_id": "claude-executor-F8_performance-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "change_id": "M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "change_class": "CC-1",
+  "lens": "F8_performance",
+  "artifacts_reviewed": [
+    "/Users/jasonlee/oyatie/.omc/plans/ralplan-foundry-supervisor-simple-v4-2026-05-14.md",
+    "/Users/jasonlee/oyatie/.omc/plans/ralplan-foundry-supervisor-simple-v5-delta-settings-template-2026-05-15.md"
+  ],
+  "review_date": "2026-05-15",
+  "perf_budget_class": "warm-path",
+  "perf_budget_class_justification": "tick_once is a periodic supervisor loop (cadence = heartbeat_interval_secs, not sub-millisecond). The four declared budgets (idle-tick p95 \u226425 tok, restart p95 \u22641500ms, RSS \u226464MiB, watchdog-kill p95 \u22645000ms) are consistent with warm-path characterisation. The watchdog-kill sub-path is cold-path (error recovery). v5 SettingsRenderer::verify introduces filesystem I/O into snapshot() which is called at step 2 of every tick_once \u2014 this threatens to push the snapshot() sub-path from warm toward cold, especially at N>1 accounts.",
+  "benchmark_attached": true,
+  "benchmark_id": "crates/oya-foundry-supervisor-app/benches/heartbeat.rs",
+  "benchmark_harness": "std::time::Instant (zero-dep, no criterion \u2014 Branch Y constraint, \u00a7B.1 + \u00a7A.5 note)",
+  "regression_baseline": "first-impl-baseline",
+  "regression_baseline_justification": "All four new crates (supervisor-kernel, supervisor-app, jsonl-supervisor-adapter, supervisor-conformance) are net-new scaffold artifacts \u2014 no prior implementation exists. The heartbeat.rs harness will produce first-run values that become the baseline. There is no claude-heartbeat-equivalent historical series to compare against; the 'reference shape' (Siigari/claude-heartbeat) is a behavioural reference, not a numeric perf baseline. The first cargo-bench run at branch-Y supervisor-v4 baseline establishes the floor.",
+  "verdict": "CONDITIONAL_PASS",
+  "verdict_summary": "v4 core warm-path is acceptably designed for the declared load profile. Two BLOCKER-grade gaps require fixup before merge: (1) v5 introduces unbounded filesystem I/O (file-reads + blake3) into AccountSnapshotProvider::snapshot(), which is called every tick_once, with no debounce TTL or latency budget declared for the verify path; (2) the bench harness (std::time::Instant, zero-dep) cannot compute statistically valid p95 values \u2014 C.13a-d p95 claims are unverifiable as specified. Three WARNING-grade findings also noted.",
+  "findings": [
+    {
+      "id": "F8-01",
+      "severity": "BLOCKER",
+      "summary": "v5 SettingsRenderer::verify introduces O(3N) filesystem I/O on every tick_once with no debounce TTL, no latency budget, and no bench coverage",
+      "detail": "v5 \u00a7B.4 wires CompositeAccountSnapshotProvider to call SettingsRenderer::verify for each ProviderAccount inside AccountSnapshotProvider::snapshot(). snapshot() is invoked at step 2 of every tick_once (\u00a7B.4 call chain). verify() reads each rendered file from disk and computes a blake3 hash per RenderedFile (\u00a7B.2.1 RenderedFile.content_blake3 [u8;32]). For N accounts \u00d7 3 providers this is O(3N) filesystem reads + O(3N) blake3 passes per tick. No debounce TTL, no cache, no last-verified timestamp is declared anywhere in v5. The existing C.13a (idle-tick p95 \u226425 tok) and C.13b (restart p95 \u22641500ms) budgets were declared in v4 before v5 existed; they do not cover the verify path. v5 \u00a7C.25\u2013C.30 adds only correctness rows (C.27 drift detection, C.28 idempotency) with no latency budget for verify(). At 10\u00d7 account count (30 accounts, 90 file reads per tick) this will silently blow the idle-tick budget and may violate restart latency. Anti-pattern: alloc-on-hot-path-without-bench + tail-latency-not-measured.",
+      "at_10x_load": "90 file reads + 90 blake3 hashes per tick. On a 7200rpm HDD (150 IOPS), this alone consumes ~600ms/tick \u2014 well past the restart p95 \u22641500ms budget. Even on NVMe (100\u00b5s/read) it adds ~9ms per tick, pushing idle-tick above 25-token proxy. The verify path is not bounded by the existing bench.",
+      "fixuptask_recommendation": "Add a VerifyDebounce mechanism: track last_verified_at per (ProviderAccount, ProviderFamily); skip verify() if elapsed < verify_ttl_secs (configurable, default 60s). Add acceptance row C.31: 'tick_once with 10 accounts \u00d7 3 providers completes snapshot() in \u226450ms p99 when no files have changed (debounce hot-path).' Add bench sub-metric verify_snapshot_p99_ms to heartbeat.rs.",
+      "fixuptask_id": "FT-F8-01-debounce-verify-path"
+    },
+    {
+      "id": "F8-02",
+      "severity": "BLOCKER",
+      "summary": "Bench harness (std::time::Instant, no criterion) cannot produce statistically valid p95 values; C.13a-d p95 claims are unverifiable as specified",
+      "detail": "v4 \u00a7B.1 and \u00a7A.5 note: 'harness uses std::time::Instant only; emits one JSONL row per metric per the schema declared in \u00a7C.13. Bench-bin is driven by cargo test --release --bench heartbeat to stay zero-dep.' A single Instant measurement per metric produces a single sample, not a distribution. p95 requires a minimum of ~20 samples (exact: ceil(1/(1-0.95)) = 20) for any meaningful quantile estimate; robust p95 needs \u2265100 samples with outlier handling. The JSONL schema emits {\"metric\":\"idle_tick_p95_tokens\",\"value\":<n>,\"p\":95} \u2014 but if value is from a single measurement or small fixed loop, the 'p':95 label is false precision. C.13a-d gate conditions (value \u226425, \u22641500, \u226465536, \u22645000) will pass based on a lucky single warm-cache run, not representative tail behaviour. Anti-pattern: perf-claim-without-benchmark.",
+      "fixuptask_recommendation": "Declare an explicit iteration count in heartbeat.rs: run each sub-bench \u2265200 iterations, collect all durations into a Vec<u64>, sort, emit true p50/p95/p99. Alternatively, declare the harness as 'best-effort latency sample' (not p95) and rename the JSONL fields accordingly (metric: idle_tick_sample_ms). Either path is acceptable under Branch Y; the false-precision p95 label is not. Update C.13a-d acceptance criteria to match the actual harness semantics.",
+      "fixuptask_id": "FT-F8-02-bench-harness-p95-validity"
+    },
+    {
+      "id": "F8-03",
+      "severity": "WARNING",
+      "summary": "SessionTicket and Vec<ProviderAccount> allocated fresh on every tick_once \u2014 no pooling declared",
+      "detail": "tick_once step 2 calls self.accounts.snapshot() returning Vec<ProviderAccount> \u2014 heap allocation per tick regardless of whether the account set has changed. Step 13 constructs a new SessionTicket (8 owned fields: MessageId(String), RequestId(String), AccountId(String), ProviderFamily(enum), AutonomyTier(enum), UsageWindowSnapshot(7 fields), cost_ceiling_tokens(u64), model_hint(String)) and passes it as SessionVerdict::Spawn { ticket: SessionTicket }. The ticket String fields (MessageId, RequestId, model_hint) require two heap allocations per tick minimum. For warm-path supervisor use (one tick per heartbeat) this is acceptable. At saturated mode (back-to-back ticks draining a deep inbox), allocations accumulate without a reclaim path. No pool or arena is declared.",
+      "allocation_count": 3,
+      "allocation_count_note": "minimum per tick: Vec<ProviderAccount> + MessageId(String) + RequestId(String)/model_hint(String). Actual count higher when UsageWindowSnapshot.kind_label String is populated.",
+      "latency_p99_ms": null,
+      "fixuptask_recommendation": "Not required for initial impl at declared load profile (single-supervisor, heartbeat cadence). Revisit when M02-P02 multi-subscription-pool drives back-to-back ticks. Document allocation profile in heartbeat.rs bench output as a tracking metric.",
+      "fixuptask_id": null
+    },
+    {
+      "id": "F8-04",
+      "severity": "WARNING",
+      "summary": "UsageWindow::clone() at step 7.5 is an unconditional pre-flight projection clone on every tick decision path",
+      "detail": "v4 \u00a7B.4 step 7.5: 'let mut projected: UsageWindow = window.clone()' runs unconditionally before the live check_limit call. UsageWindow is declared at account-domain:252 with 'fields all owned numeric/enum' (verified \u00a7B.0 row). The clone is cheap (no heap String fields visible in the plan description) but is performed even on the early-exit Saturated path \u2014 although Saturated returns before step 1's peek_lock, so the clone at 7.5 is only reached after a message is locked. Acceptable for warm-path. No concern at current load; flagged for awareness.",
+      "allocation_count": 1,
+      "allocation_count_note": "One UsageWindow stack/heap copy per non-saturated tick. Cost depends on UsageWindow field layout (account-domain:252 \u2014 plan says 'owned numeric/enum', implying stack-copyable or shallow heap).",
+      "fixuptask_id": null
+    },
+    {
+      "id": "F8-05",
+      "severity": "WARNING",
+      "summary": "projected_tokens_p95 rolling window reads and parses inbox/.../stats.jsonl on every non-saturated tick with no in-memory cache declared",
+      "detail": "v4 \u00a7B.6: 'projected_tokens_p95 is computed from a per-(provider, model_hint) rolling window of the last 100 observed tokens_in + tokens_out, persisted in inbox/.../stats.jsonl.' The plan does not specify whether this file is read and re-parsed on every tick_once or cached in memory. If re-read per tick, this adds a file read + hand-rolled parse pass (up to 100 JSONL lines \u00d7 ~80 bytes each = ~8KB) on every decision. The conservative seed (n<10: projected=cost_ceiling_tokens) avoids I/O on cold-start \u2014 correct. For warm operation (n\u226510) the I/O is on the critical path between steps 7 and 13. No acceptance row in C.1\u2013C.24 verifies the stats.jsonl read latency contribution. Should be declared as an in-memory cache with file-persistence for durability.",
+      "fixuptask_recommendation": "Declare in-memory cache for the rolling window (100-entry ring buffer per (provider, model_hint) key, persisted to stats.jsonl only on write, not on read). Add a note to C.19 or a new row specifying that projected_tokens_p95 is computed from the in-memory ring buffer, not a per-tick file parse.",
+      "fixuptask_id": "FT-F8-05-stats-jsonl-in-memory-cache"
+    }
+  ],
+  "perf_budget_coverage_matrix": {
+    "C13a_idle_tick_p95_tokens": {
+      "covered_by_bench": true,
+      "v5_impact": "UNCOVERED \u2014 v5 verify path adds filesystem I/O to snapshot() which is inside tick_once; C.13a budget was declared pre-v5 and does not account for verify latency",
+      "at_risk": true
+    },
+    "C13b_restart_latency_p95_ms": {
+      "covered_by_bench": true,
+      "v5_impact": "UNCOVERED \u2014 same as C.13a; verify() during snapshot() adds to restart path",
+      "at_risk": true
+    },
+    "C13c_rss_max_kib": {
+      "covered_by_bench": true,
+      "v5_impact": "LOW \u2014 v5 types (SettingsTemplate, DriftReport) are value types; no large in-memory buffers declared; blake3 is stack-computed",
+      "at_risk": false
+    },
+    "C13d_watchdog_kill_p95_ms": {
+      "covered_by_bench": true,
+      "v5_impact": "NONE \u2014 watchdog path does not traverse snapshot()",
+      "at_risk": false
+    },
+    "v5_verify_latency": {
+      "covered_by_bench": false,
+      "v5_impact": "NO BUDGET DECLARED \u2014 this is the primary gap",
+      "at_risk": true
+    }
+  },
+  "anti_patterns_triggered": [
+    {
+      "anti_pattern": "alloc-on-hot-path-without-bench",
+      "finding_id": "F8-01",
+      "location": "v5 \u00a7B.4 CompositeAccountSnapshotProvider::snapshot() \u2192 SettingsRenderer::verify()"
+    },
+    {
+      "anti_pattern": "tail-latency-not-measured",
+      "finding_id": "F8-01",
+      "location": "v5 verify path: no latency budget row in C.25\u2013C.30"
+    },
+    {
+      "anti_pattern": "perf-claim-without-benchmark",
+      "finding_id": "F8-02",
+      "location": "heartbeat.rs \u00a7C.13a-d p95 claims from std::time::Instant single-sample harness"
+    }
+  ],
+  "zero_copy_assessment": {
+    "verdict": "ACCEPTABLE_WITH_CAVEATS",
+    "detail": "v4 Principle 3 (value-only-tickets) is the right call for correctness and safety across blocking-pool boundaries. The clone cost is justified. No zero-copy opportunity was sacrificed unnecessarily in v4. v5 SettingsRenderer::verify does read file bytes into owned Vec<u8> buffers for blake3 \u2014 this is unavoidable for hash comparison but is unguarded by debounce."
+  },
+  "mutex_hot_path_assessment": {
+    "verdict": "ACCEPTABLE",
+    "detail": "tick_once Saturated fast-path: self.in_flight_permits.try_acquire() is a non-blocking tokio semaphore check (atomic CAS). At heartbeat cadence this is not contended. At 10\u00d7 load with concurrent tick_once invocations the semaphore is the correct back-pressure mechanism and its contention cost is dominated by I/O elsewhere. No mutex-on-hot-path-without-justification anti-pattern triggered."
+  },
+  "conditional_pass_conditions": [
+    "FT-F8-01: Add VerifyDebounce TTL (\u226560s configurable) to CompositeAccountSnapshotProvider; add C.31 bench row covering 10-account verify snapshot \u226450ms p99 no-change path",
+    "FT-F8-02: Either (a) add \u2265200-iteration loop in heartbeat.rs and compute true p50/p95/p99 from collected samples, OR (b) rename C.13a-d metrics from *_p95_* to *_sample_* and document the harness as best-effort \u2014 false-precision p95 label must be resolved before merge"
+  ],
+  "recommended_fixuptasks": [
+    {
+      "id": "FT-F8-01-debounce-verify-path",
+      "priority": "BLOCKER",
+      "owner_phase": "M02-P06",
+      "description": "Add per-(account, provider) debounce TTL to CompositeAccountSnapshotProvider::snapshot() verify path; declare C.31 latency budget row; add verify_snapshot_p99_ms metric to heartbeat.rs bench",
+      "sunset": "2026-06-01"
+    },
+    {
+      "id": "FT-F8-02-bench-harness-p95-validity",
+      "priority": "BLOCKER",
+      "owner_phase": "M02-P06",
+      "description": "Fix heartbeat.rs harness to produce statistically valid quantiles (\u2265200 iterations per metric) OR rename C.13a-d p95 labels to reflect single-sample semantics; resolve false-precision p95 claim before merge",
+      "sunset": "2026-06-01"
+    },
+    {
+      "id": "FT-F8-05-stats-jsonl-in-memory-cache",
+      "priority": "WARNING",
+      "owner_phase": "M02-P06",
+      "description": "Declare in-memory ring buffer (100-entry, per provider\u00d7model_hint key) for projected_tokens_p95 rolling window; persist to stats.jsonl on write only, not on every read",
+      "sunset": "2026-07-01"
+    }
+  ],
+  "confidence": 0.88,
+  "confidence_note": "High confidence on F8-01 (v5 adds filesystem I/O to tick path with no debounce \u2014 unambiguous) and F8-02 (harness shape explicitly described in plan; p95-from-single-sample is a known measurement error). Moderate uncertainty on allocation counts (F8-03, F8-04) because UsageWindow internal layout is referenced but not fully quoted in the plan; numeric/enum fields may be Copy and thus zero-cost clone.",
+  "purpose": "Auto-backfilled purpose for M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-F8_performance-r1.json"
+}

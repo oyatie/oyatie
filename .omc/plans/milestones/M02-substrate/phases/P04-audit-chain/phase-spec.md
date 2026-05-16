@@ -5,22 +5,25 @@ milestone: M02-substrate
 phase: P04-audit-chain
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; oya-tenancy-kernel ships (TenantId available);
-  oya-kms-kernel ships (KeyId, ChainSigner port available — co-deployed
-  with P08 or stubbed via in-process Ed25519 for dev); Postgres 16 available.
-exit_gate: |
-  All audit-chain crates compile; append-only triggers verified on
-  audit_chain.audit_events; Merkle/Ed25519 segment sealer worker runs
-  end-to-end for a test tenant+period; seal latency <1s measured;
-  Cedar policy lints; Protobuf compiles; grit done; ICM row emitted.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "workspace scaffold prerequisite"
-owner_team: council-architecture
----
+entry_gate: "M01-P05 complete; oya-tenancy-kernel ships (TenantId available);\noya-kms-kernel\
+  \ ships (KeyId, ChainSigner port available \u2014 co-deployed\nwith P08 or stubbed\
+  \ via in-process Ed25519 for dev); Postgres 16 available.\n"
+exit_gate: 'All audit-chain crates compile; append-only triggers verified on
 
+  audit_chain.audit_events; Merkle/Ed25519 segment sealer worker runs
+
+  end-to-end for a test tenant+period; seal latency <1s measured;
+
+  Cedar policy lints; Protobuf compiles; grit done; ICM row emitted.
+
+  '
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: workspace scaffold prerequisite
+owner_team: council-architecture
+purpose: "This phase delivers the complete Audit-chain substrate: an append-only, cryptographically verifiable ledger of all state-changing events across every product."
+---
 # P04-audit-chain: Full Audit-chain substrate — Merkle/Ed25519 segment sealer, append-only events, KMS-backed signing keys
 
 ## Purpose

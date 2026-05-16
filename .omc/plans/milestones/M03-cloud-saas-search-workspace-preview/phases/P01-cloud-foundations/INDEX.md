@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P01
 title: Cloud Foundations (KMS / Storage / Network / IAM / Region / Cell)
-status: partial (in-flight)
+status: in-progress
 purpose: Lift the in-flight cloud kernels to API+app+adapter+runtime completeness; provider-agnostic by default.
 ---
 

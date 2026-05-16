@@ -12,6 +12,7 @@ enforced_by:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0029, ADR-0040]
+doc_status: published
 ---
 
 # Playbook: Workspace Surface Rollout

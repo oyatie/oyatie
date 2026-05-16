@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-001
 title: Cosign + Rekor signing pipeline
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship Cosign signing + Rekor anchoring for every artifact.
@@ -50,4 +53,9 @@ icm store -t context-oyatie -c 'M-CC-P08-IP-001 Cosign + Rekor signing pipeline 
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- `Option<CosignSignature>` separates "no signature" from "signature failed verification" — the report cannot conflate the two failure modes.
+- Digest is parsed once via `is_sha256_hex` (length + char-class) — empty / wrong-length / uppercase / non-hex all surface as distinct violations, not as a single "bad digest" catchall.
+- Duplicate-artifact submission is an explicit `Err` — runners that double-feed cannot mask a missing-signature finding behind a "already passed" sibling.
+- The workflow YAML uses keyless OIDC signing — no long-lived key material in repo/CI secrets.
+- Verification (Rekor lookup) is separate from signing in the workflow — a failed verification step is observable, not hidden by signing success.

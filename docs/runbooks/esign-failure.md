@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Esign Failure
+doc_status: published
+---
+
 # Oyatie Runbook — Esign Failure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Analytics Warehouse Reconciliation
+doc_status: published
+---
+
 # Oyatie Runbook — Analytics Warehouse Reconciliation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -7,24 +7,26 @@ impl_plan_id: IP-001-cloud-tenancy-kernel-scaffold
 status: pending
 owner: council-cloud
 blocked_by:
-  - impl_plan: P13-tenancy/IP-001
-    reason: "CloudTenantAdapter reads TenantCellPlacer output; cloud.cells FK references tenancy.tenants"
-  - impl_plan: P08-kms/IP-001
-    reason: "CloudKmsAdapter wraps oya-kms-kernel KmsMasterKeyStore for per-cell DEK envelope"
-  - impl_plan: P06-secrets/IP-001
-    reason: "OCI Vault credentials stored via oya-secrets-kernel SecretReference port"
+- impl_plan: P13-tenancy/IP-001
+  reason: CloudTenantAdapter reads TenantCellPlacer output; cloud.cells FK references
+    tenancy.tenants
+- impl_plan: P08-kms/IP-001
+  reason: CloudKmsAdapter wraps oya-kms-kernel KmsMasterKeyStore for per-cell DEK
+    envelope
+- impl_plan: P06-secrets/IP-001
+  reason: OCI Vault credentials stored via oya-secrets-kernel SecretReference port
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Scaffolds all 21 cloud crates across 8 BCs, authors the complete Postgres DDL for cloud resource tracking tables, implements the cell lifecycle state machine (create → active → draining → decommissioned).
 ---
-
 # IP-001-cloud-tenancy-kernel-scaffold: Scaffold All 21 Cloud Crates — 8 BC Kernels + DDL + OCI ARM64 Manifests + Cell Lifecycle
 
 ## Intent
@@ -79,9 +81,9 @@ merges, the full cloud infrastructure substrate is ready for per-tenant provisio
 | `crates/oya-cloud-billing-adapter/src/lib.rs` | create | PgUsageMeterAdapter: records usage events to cloud.usage_events |
 | `crates/oya-cloud-cell-kernel/Cargo.toml` | create | CellLifecycleStore + CellHealthPort ports |
 | `crates/oya-cloud-cell-kernel/src/lib.rs` | create | Cell + CellState + CellSpec types; CellState enum: Creating/Active/Draining/Decommissioned |
-| `crates/oya-cloud-cell-application/Cargo.toml` | create | Depends on cell-kernel |
-| `crates/oya-cloud-cell-application/src/lib.rs` | create | CreateCellUseCase, DrainCellUseCase, DecommissionCellUseCase, CellHealthCheckUseCase |
-| `crates/oya-cloud-cell-adapter/Cargo.toml` | create | Depends on cell-application + kernel + oci-sdk + sqlx |
+| `crates/oya-cloud-cell-app/Cargo.toml` | create | Depends on cell-kernel. SUPERSEDED original target `oya-cloud-cell-application`: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical replacement is `-app` per ADR-0106 + ADR-0107. |
+| `crates/oya-cloud-cell-app/src/lib.rs` | create | CreateCellUseCase, DrainCellUseCase, DecommissionCellUseCase, CellHealthCheckUseCase. SUPERSEDED original target `oya-cloud-cell-application` per audit #6 follow-up. |
+| `crates/oya-cloud-cell-adapter/Cargo.toml` | create | Depends on cell-app + kernel + oci-sdk + sqlx |
 | `crates/oya-cloud-cell-adapter/src/lib.rs` | create | PgCellLifecycleStore + OciCellHealthAdapter |
 | `crates/oya-cloud-app/Cargo.toml` | create | Composition root; depends on all cloud layers |
 | `crates/oya-cloud-app/src/main.rs` | create | DI assembly for all 8 BCs |

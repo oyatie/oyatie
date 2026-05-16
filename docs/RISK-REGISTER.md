@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Risk Register
+doc_status: published
+---
+
 # Oyatie — Risk Register
 
 > **Status:** Draft v0.1 — 2026-05-09. Aggregates project-level risks from PRD §7, DESIGN §11, PRIVACY-PROGRAM, the 77 contradictions found by the rename+contradiction agent, and the 9 recon-file findings.

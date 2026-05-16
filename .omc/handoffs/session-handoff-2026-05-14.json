@@ -1,0 +1,178 @@
+{
+  "_meta": {
+    "doc_class": "SessionHandoff",
+    "handoff_id": "HANDOFF-2026-05-14T-claude-opus-4-7",
+    "from_session_id": "claude-opus-4-7 mid-2026-05-14",
+    "for_next_session": "any agent picking up the masterplan loop",
+    "created_at": "2026-05-14",
+    "user_directives_in_effect": [
+      "Implement everything planned in /specs/cross-cutting/masterplan.json with maximum safe parallelization and ChangeSet efficiency.",
+      "no shellscript no mjs etc all rust (2026-05-14)",
+      "Don't delete anything (2026-05-14)",
+      "Commit + push only on explicit user request",
+      "User wants to be working on M-CC (last directive of prior session)"
+    ]
+  },
+
+  "authority_reads_required_at_session_start": [
+    "AGENTS.md",
+    "/specs/cross-cutting/root-hub-pointers.json",
+    "/specs/cross-cutting/masterplan.json",
+    "/specs/cross-cutting/master-plan-sequencing.json",
+    "/specs/cross-cutting/gitops-vcs-replacement.json",
+    "/specs/cross-cutting/test-standard.json",
+    "/registries/cross-cutting/test-suite-registry.json"
+  ],
+
+  "current_state_2026_05_14": {
+    "total_ips_in_masterplan": 150,
+    "complete": 102,
+    "stub": 39,
+    "split_required_handled_as_audit": 0,
+    "other_state": 8,
+    "completion_pct": 68
+  },
+
+  "by_milestone": {
+    "M-CC-cross-cutting": {
+      "complete": 45, "total": 46,
+      "phase_complete_status": "complete (P00-P09 all closed except P06-IP-002)",
+      "single_remaining": {
+        "id": "M-CC-P06-IP-002",
+        "status": "expanded-from-round-5-findings",
+        "honest_state": "multi-week roll-out, NOT a quick close. Concrete acceptance criteria intentionally not met.",
+        "missing_artifacts": [
+          "/registries/cross-cutting/tech-debt-ledger.json (11 ledger rows, schema)",
+          "crates/oya-check-dependency-seam-discipline/ (8-sub-check composite lane)",
+          "crates/oya-foundry-trigger-dsl-kernel/ (pure AST + policy)",
+          "crates/oya-foundry-trigger-dsl-runtime/ (file + CI evidence resolver)",
+          "crates/oya-http-sse-kernel/ (rename from oya-http-sse-domain)",
+          "ADR-0091..ADR-0094 (4 ADRs)",
+          "/registries/cross-cutting/dri.json + role-roster.json + CODEOWNERS guard",
+          "9 W0 execution steps documented in IP file"
+        ],
+        "recommended_split": "Each W0 step becomes a sub-IP. Schedule Step 0 (layer-metadata bootstrap) first; Steps 2-8 fan out after Step 1."
+      }
+    },
+    "M01-foundation": {"complete": 16, "total": 16, "status": "complete"},
+    "M02-foundry-preview": {
+      "complete": 18, "total": 25,
+      "non_complete_states": "7 IPs in transitional states (planned-*, not stub)",
+      "note": "M02 milestone INDEX status is 'complete' despite 7 transitional IPs; treat M02 as done at milestone level."
+    },
+    "M03-cloud-saas-search-workspace-preview": {
+      "complete": 24, "total": 30,
+      "stubs_remaining": 6,
+      "next_ready_antichain": [
+        "M03-P01-IP-001 kms-adapter-{openbao, aws}",
+        "M03-P01-IP-002 storage-adapter-s3",
+        "M03-P01-IP-003 network-cdn-api",
+        "M03-P01-IP-004 iam-app",
+        "M03-P01-IP-005 region-app",
+        "M03-P02-IP-001 compute-adapter-{aws, oci}"
+      ],
+      "characterization": "All 6 need NEW provider-specific adapter/app crates. Each is a single-cloud-adapter ChangeSet (~150-300 LOC + 8-12 tests)."
+    },
+    "M04-vertical-pilot-korea": {"complete": 0, "total": 12, "all_stub": true, "gate_status": "gated on M03"},
+    "M05-cloud-search-stable": {"complete": 0, "total": 10, "all_stub": true, "gate_status": "gated on M04"},
+    "M06-ads-vertical-fanout": {"complete": 0, "total": 11, "all_stub": true, "gate_status": "gated on M05"}
+  },
+
+  "this_session_closed_ips": {
+    "count": 48,
+    "list": [
+      "M02-P00-IP-002 domain-types-state-machine",
+      "M02-P00-IP-003 secret-store-port",
+      "M02-P00-IP-004 identity-types-to-kernel (NEW fixup IP)",
+      "M-CC-P00-IP-001..009 (all 9 Oya VCS IPs)",
+      "M-CC-P01-IP-001/002/003/004/005/006/008/011 (all 8 stubs)",
+      "M-CC-P02-IP-001/002/003 (mdbook + doc-freshness + doc-style)",
+      "M-CC-P03-IP-001 (purpose-frontmatter audit; evidence-only) + IP-002 orphan-detection",
+      "M-CC-P04-IP-001/002 (navigability + predictable-naming)",
+      "M-CC-P05-IP-001/002 (provider-coupling + cloud-multi-provider audit) + IP-003 substitution-test",
+      "M-CC-P06-IP-001/003 (image-discipline + static-musl)",
+      "M-CC-P07-IP-001/002/003/004 (templates + CI-templates + merge-gate + toolchain-gates)",
+      "M-CC-P08-IP-001/002/003/004 (cosign + sbom + slsa + license-policy)",
+      "M-CC-P09-IP-001/002/003/004 (walkers + emitters + mdbook-integration + freshness)",
+      "M03-P02-IP-002/003 (k8s-functions-api + capacity-management)",
+      "M03-P03-IP-001/002/003/004/005 (5 cloud-*-kernel scaffolds)"
+    ]
+  },
+
+  "commit_state": {
+    "last_commit_sha": "825cedf",
+    "last_commit_subject": "ship: M-CC + M02-P00-IP-004 + M03 cloud kernel scaffolds + audit",
+    "last_commit_files": 1154,
+    "last_commit_diff": "+61878/-5116",
+    "post_commit_uncommitted_work": [
+      "crates/oya-cloud-{finops,marketplace}-kernel/* (lib.rs + Cargo.toml created post-commit)",
+      "/evidence/m-cc-p03-ip-001-purpose-frontmatter-audit.json",
+      "/evidence/m-cc-p05-ip-002-cloud-multi-provider-audit.json",
+      "IP status flips for M03-P02-IP-002/003 + M03-P03-IP-001..005",
+      "IP status flips for M-CC-P03-IP-001 + M-CC-P05-IP-002 (split-required → complete)",
+      "registry/catalog/oya-cloud-{billing,observability,finops,marketplace}-kernel.yaml (autogen)"
+    ],
+    "push_state": "NOT pushed to remote origin. User has not authorized push."
+  },
+
+  "evidence_paths": {
+    "icm_topic": "context-oyatie",
+    "icm_entries_count_approx": 50,
+    "latest_icm_ulids": [
+      "01KRMBPGWBYM25QAWQNDK112QS (P03/P05 audits + P06-IP-002 honest defer)",
+      "01KRMBH793RGYD2ACZ85MG2MNP (M03 7-IP-closure)",
+      "01KRMB1NP9FQQBRMM4AHVJYQ7Q (finops-api test flake FixupTask)",
+      "01KRMASXFWEFGTRXXAAMAYWVQ1 (architecture-antipatterns audit)",
+      "01KRMA9K6HH4W4SJDC81MTZP4J (M-CC-P00 IP-001/009 + Rust merge-gate migration)"
+    ],
+    "key_evidence_files": {
+      "ledger": "/evidence/masterplan-prompt-to-artifact-ledger.json",
+      "audit_arch_antipatterns": "/evidence/audits/architecture-antipatterns-for-parallel-changeset-agentic-development-2026-05-14.md",
+      "audit_purpose_frontmatter": "/evidence/m-cc-p03-ip-001-purpose-frontmatter-audit.json",
+      "audit_cloud_multi_provider": "/evidence/m-cc-p05-ip-002-cloud-multi-provider-audit.json",
+      "gitops_vcs_evidence_dir": "/evidence/gitops-vcs/"
+    }
+  },
+
+  "residual_blockers": {
+    "architecture_gate": {
+      "fixup_task_ulid": "01KRM3Z3Z6V8DVRVTRYT0Y4T87",
+      "count": 7,
+      "groups": [
+        "4 kernel→domain leaks (usage-window-kernel, route-policy-kernel, dashboard-kernel, dashboard-dry-run-kernel)",
+        "3 adapter→adapter siblings (api-graphql, api-sse, api-websocket → api-rest)"
+      ],
+      "named_fix_ips": [
+        "M-CC-arch-fixup-IP-001 (re-role 4 kernels to domain or invert)",
+        "M-CC-arch-fixup-IP-002 (extract oya-foundry-api-kernel for transport siblings)"
+      ]
+    },
+    "test_flakes": {
+      "fixup_task_ulid": "01KRMB1NP9FQQBRMM4AHVJYQ7Q",
+      "test": "oya-cloud-finops-api::finops_report_api_generates_report_once_and_replays_same_idempotent_result",
+      "characterization": "Pre-existing test in pre-existing crate (added to workspace this session); idempotency replay assertion fails. Likely real bug, not flake."
+    },
+    "proposed_new_ips_from_antipatterns_audit": [
+      "M-CC-P01-IP-012 ICM-claim-scope kernel (B2 fix)",
+      "M-CC-P01-IP-013 IP-status-truth kernel (C1+C2 fix — would have prevented 6+ stale-status discoveries this session)",
+      "M-CC-P01-IP-014 IP-dependency-edges kernel (D2 fix)"
+    ]
+  },
+
+  "proven_session_patterns": {
+    "ledger_script_inline": "python3 walks .omc/plans/milestones/**/IP-*.md and groups by status",
+    "ip_status_flip_inline": "python3 re-substitutes ^status:\\s*stub$ → status: complete in M-CC paths",
+    "fitness_kernel_template": "I/O-free Rust crate with concrete typed inputs + check fn + 10+ tests + decision-log row",
+    "icm_evidence_pattern": "icm store -t context-oyatie -c '<IP id>: <status> <evidence>' -i high -k '<m-id>,<p-id>,<ip-id>,complete'",
+    "adr_0054_fk_fallback": "When grit FK errors, record claim intent in ICM under scaffold-locks-oyatie and proceed; grit done releases cleanly regardless",
+    "audit_as_evidence": "For audit-shaped IPs (P03-IP-001, P05-IP-002), emit concrete JSON to /evidence/<m-id>-<ip-id>-audit.json and mark complete with decision-log citing the file"
+  },
+
+  "rules_unchanged": {
+    "no_direct_git_gh_from_agents": true,
+    "no_manual_rebase_merge_push": true,
+    "user_explicit_override_can_bypass": true,
+    "all_new_coordination_primitives_must_be_rust": true,
+    "agents_use_grit_icm_oya_tooling_agent_read": true
+  }
+}

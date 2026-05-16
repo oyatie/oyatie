@@ -4,8 +4,8 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-pub use oya_foundry_capability_kernel::AutonomyTier;
-use oya_platform_data_boundary_kernel::{Classified, DataClass};
+use oya_data_boundary_kernel::{Classified, DataClass};
+pub use oya_foundry_capability_domain::AutonomyTier;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum BypassGate {

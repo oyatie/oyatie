@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Sbom Regenerate
+doc_status: published
+---
+
 # Oyatie Runbook — Sbom Regenerate
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

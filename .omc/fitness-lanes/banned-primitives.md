@@ -1,14 +1,16 @@
 # Fitness Lane: banned-primitives
 
-- purpose: Verify agent-instruction sections only invoke sanctioned primitives (grit, icm) and any direct git/gh usage carries a documented-rationale via icm.
+- purpose: Verify fenced agent-instruction sections invoke the sanctioned primitive triad (`grit`, `icm`, `oya-tooling-agent-read`) and that any documented direct VCS / forge exception carries an icm rationale.
 - enforces: Directive 12 (MASTERPLAN) — sanctioned-primitives policy + ADR-0054 + ADR-0055.
+- activation: Defined/scaffolded in M-CC-P01-IP-006; enforcement activates at M-CC-P01-IP-007 / P5 merge per ADR-0053 bootstrap-window clause.
 - kernel_crate: `oya-foundry-fitness-banned-primitives-kernel` — `PrimitiveUsage { path, line, primitive, has_icm_rationale }`, verdict `BannedPrimitivesFitnessReport { usages_checked }`.
 - runner_path: `tools/oya-foundry-fitness-banned-primitives`
-- inputs: `docs/agents/**/*.md`, `AGENTS.md`, `.omc/sessions/**/*.md`, icm rationale store dump.
+- inputs: `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/agents/**/*.md`, `docs/standards/agent-instructions-discipline.md`, `.omc/**/*.md` files that contain `<!-- agent-instructions:start -->`, and icm rationale store dump.
 - failure_modes:
-  - agent doc says `Run: git commit ...` with no icm rationale id
-  - agent doc invokes `gh pr merge` (always banned)
+  - fenced agent block names a direct VCS / forge primitive without an icm rationale id
+  - fenced agent block invokes a hard-banned merge or hook-bypass primitive
   - rationale id not in icm store
+  - `AGENTS.md`, `CLAUDE.md`, or `docs/AGENTS.md` lacks an `agent-instructions` fence
 - ci_invocation: `cargo run -p oya-foundry-fitness-banned-primitives`
 - runtime_budget: 500 ms
 - severity: BLOCKER

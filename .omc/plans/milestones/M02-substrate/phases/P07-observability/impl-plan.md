@@ -8,17 +8,17 @@ status: pending
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: "Delivers the complete Observability substrate: 16 crates across 3 BCs (traces, metrics, logs), OpenTelemetry SDK wiring (traces + metrics + logs), VictoriaMetrics Prometheus-compatible adapter."
 ---
-
 # IP-P07-observability-substrate: Scaffold 16 observability crates with OTel SDK, VictoriaMetrics, structured JSON logs
 
 ## Intent

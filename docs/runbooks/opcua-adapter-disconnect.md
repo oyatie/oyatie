@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Opcua Adapter Disconnect
+doc_status: published
+---
+
 # Oyatie Runbook — Opcua Adapter Disconnect
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

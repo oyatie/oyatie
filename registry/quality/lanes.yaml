@@ -5,7 +5,7 @@ lanes:
     stage: foundation
     status: active
     owner_team: council-architecture
-    purpose: authority-chain declarations in CONSTITUTION, AGENTS, and README stay identical
+    purpose: authority-chain declarations in AGENTS and README stay identical
     source: CONSTITUTION.md
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate authority-cohesion
@@ -33,14 +33,6 @@ lanes:
     source: ADR-0011
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate cohesion
-  - id: oya-foundry-fitness-constitution-cite-coverage
-    stage: foundation
-    status: active
-    owner_team: council-architecture
-    purpose: tier-one docs cite constitutional authority at heading level
-    source: CONSTITUTION.md
-    runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli -- gate validate constitution-cite-coverage
   - id: oya-foundry-fitness-data-class
     stage: foundation
     status: active
@@ -168,7 +160,7 @@ lanes:
     purpose: per-PR flat-crates path, legacy-tree, and role-boundary check
     source: ADR-0015
     runtime_budget_seconds: 120
-    check_command: scripts/check-architecture-boundaries.sh
+    check_command: cargo run -p oya-dev-cli -- gate validate architecture-boundaries
   - id: oya-foundry-fitness-product-index
     stage: foundation
     status: active
@@ -176,7 +168,7 @@ lanes:
     purpose: product README index and machine-readable product catalog stay in sync
     source: products/README.md
     runtime_budget_seconds: 120
-    check_command: scripts/check-product-index.py
+    check_command: cargo run -p oya-dev-cli -- gate validate product-index
   - id: oya-foundry-fitness-adr-citation
     stage: foundation
     status: active
@@ -248,7 +240,7 @@ lanes:
     purpose: every docs/machine-readable JSON file parses before merge
     source: DOC-CATALOG.md
     runtime_budget_seconds: 60
-    check_command: json.loads(path.read_text())
+    check_command: cargo run -p oya-dev-cli -- gate validate active-artifact-contract
   - id: cargo-machete
     stage: per-pr
     status: active
@@ -317,10 +309,26 @@ lanes:
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: repoctl pre-push command contract maps to the checked local verification bundle
+    purpose: oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml)
     source: AGENTS.md D12
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract
+    check_command: cargo run -p oya-dev-cli -- gate validate pre-push-contract
+  - id: oya-foundry-fitness-retired-vocabulary
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: no live document mentions any retired CLI surface, retired crate, or retired script path (registry/vocabulary/retired.yaml is the canonical record)
+    source: feedback_no_silent_regression + feedback_no_exceptions_canonical
+    runtime_budget_seconds: 60
+    check_command: cargo run -p oya-dev-cli -- gate validate retired-vocabulary
+  - id: oya-foundry-fitness-protection-context-match
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts)
+    source: feedback_no_silent_regression + 2026-05-15 PR #3 merge-block incident
+    runtime_budget_seconds: 30
+    check_command: cargo run -p oya-dev-cli -- gate validate protection-context-match
   - id: foundry-eval-nightly
     stage: nightly
     status: active
@@ -394,7 +402,7 @@ lanes:
     purpose: layer-correctness — no dep-direction violations per ADR-0056 §2.2
     source: ADR-0056
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- check architecture
+    check_command: cargo run -p oya-dev-cli -- gate validate architecture-boundaries
   - id: lean-a2-bounded-contexts
     stage: per-pr
     status: active
@@ -403,7 +411,7 @@ lanes:
     purpose: microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override)
     source: ADR-0056
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- check bounded-context
+    check_command: cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage
   - id: lean-a3-supply-chain
     stage: per-pr
     status: active
@@ -412,7 +420,7 @@ lanes:
     purpose: supply-chain integrity — Trivy + RustSec + deny per ADR-0039
     source: ADR-0039
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-dev-cli -- check supply-chain
+    check_command: cargo run -p oya-dev-cli -- gate validate supply-chain
   - id: lean-a4-semver
     stage: per-pr
     status: active
@@ -421,7 +429,7 @@ lanes:
     purpose: API semver stability tier per ADR-0037
     source: ADR-0037
     runtime_budget_seconds: 300
-    check_command: cargo run -p oya-dev-cli -- check semver
+    check_command: cargo run -p oya-dev-cli -- gate validate api-semver
   - id: lean-a5-documentation
     stage: per-pr
     # crate oya-shared-documentation-check-cli is report-only until M02-P22.
@@ -431,7 +439,7 @@ lanes:
     purpose: documentation suite coverage — every µservice has full canonical + per-pack suite per ADR-0063; orphan-scan + masterplan↔workspace registry reconciliation; flips to BLOCKER at M02-P22
     source: ADR-0063
     runtime_budget_seconds: 600
-    check_command: cargo run -p oya-dev-cli -- check documentation
+    check_command: cargo run -p oya-dev-cli -- gate validate documentation-system
   - id: lean-a10-regression
     stage: per-pr
     # crate oya-check-regression is planned in M02-P21 IP-005.
@@ -479,7 +487,7 @@ lanes:
     status: active
     severity: report-only
     owner_team: council-architecture
-    purpose: every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from scripts/check.sh; emits evidence + graph-edges artifacts on every run
+    purpose: every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from `oya gate run-all`; emits evidence + graph-edges artifacts on every run
     source: ADR-0089
     check_command: cargo run -p oya-dev-cli -- gate validate active-artifact-contract
     runtime_budget_seconds: 60
@@ -488,7 +496,7 @@ lanes:
     status: active
     severity: report-only
     owner_team: council-architecture
-    purpose: enforces invariants C01..C04 from .omc/registries/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from scripts/check.sh
+    purpose: enforces invariants C01..C04 from /registries/cross-cutting/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all`
     source: cedar-fragments-registry (commit f00ec87)
     check_command: cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage
     runtime_budget_seconds: 30

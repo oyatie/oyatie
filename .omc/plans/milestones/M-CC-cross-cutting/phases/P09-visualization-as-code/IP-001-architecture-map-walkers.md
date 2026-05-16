@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P09-IP-001
 title: oya-foundry-architecture-map-kernel source walkers
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Walk Cargo metadata + contracts/ + docs/products/ + ROADMAP + ADR-INDEX + milestone frontmatter.
@@ -51,4 +54,9 @@ icm store -t context-oyatie -c 'M-CC-P09-IP-001 oya-foundry-architecture-map-ker
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- Walkers consume **pre-parsed** typed records (`CargoPackage`, `OpenApiContractMeta`, `FrontmatterRecord`) — file I/O / serde / YAML parsing stays in runners; the kernel is testable in pure-std without a filesystem.
+- `ArchitectureMap::merge` accepts exact-duplicate nodes — idempotent re-walks don't fail; only label/owning-team conflicts surface as errors.
+- `walk_cargo_metadata` filters dependencies to in-workspace names only — external crates don't pollute the map; self-loops are dropped.
+- `walk_openapi` synthesizes placeholder BC + Cedar-fragment nodes so its edges have valid endpoints in isolation; merge with the richer `walk_frontmatter` output is documented to use matching labels.
+- Symbols ship in `src/walk.rs` as a submodule (`oya_foundry_architecture_map_kernel::walk::walk_*`) rather than directly in `lib.rs` — keeps the existing `ArchitectureMap` model surface uncluttered.

@@ -1,12 +1,19 @@
+---
+purpose: Per ADR-0063 §3 every milestone has an acceptance-evidence directory.
+status: in-progress
+---
+
 # M01-foundation acceptance evidence
 
 Per ADR-0063 §3 every milestone has an acceptance-evidence directory.
 
-Contents (signed evidence artifacts):
-- Cargo gate transcripts (cargo check/build/clippy/nextest/deny exit 0)
-- Fitness lane reports (lean-a1..a5 green per the milestone's exit gate)
-- Ed25519-signed audit chain segment per (tenant, period) per Bominal ADR-0028
-- Load test results meeting Performance Targets per ADR-0062 / per impl-plan
-- Per-phase ICM phase-complete row excerpts
+## Current acceptance record
 
-This README serves as the manifest; evidence files land here as the milestone progresses.
+- Evidence JSON: `/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json`
+- Status: M01 Foundation acceptance complete for G1/G2 contracts.
+- G1: P01 data-use-boundary-tenancy, P02 identity-cedar, P03 audit-chain-evidence.
+- G2: P04 eventing+ontology, P05 cell+plane, P06 regional-pack+flattening.
+- Sequencing: G2 acceptance is valid because G1 contracts were already complete and usable.
+- M-CC-P01: foundation-cleared/P5+; banned-primitives, archive-orphan, and authoritative-tracked lanes pass.
+- M-CC-P00: accepted-for-masterplan-P00 but not ready. Waiver scope is acceptance reconciliation only; broad fanout, new foundation scaffolds, and M02/M03 implementation remain blocked until P00 readiness or an explicit waiver.
+- Validation: focused G1/G2 package tests pass 65/65; full `./scripts/check.sh` passes end-to-end after the Rust 1.95.0 / edition 2024 / rustfmt 2024 closeout.

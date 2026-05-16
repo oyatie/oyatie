@@ -4,6 +4,7 @@ shape: ~
 length_cap: 300
 authority_tier: 2
 status: Accepted
+doc_status: published
 date: 2026-05-13
 purpose: |
   Formalise the Hybrid C cutover topology for the v4 rename plan: Shard 0
@@ -26,6 +27,7 @@ companion_docs:
 # ADR-0057: Cutover Mechanics — Rename Plan v4 (Hybrid C)
 
 > **Status:** Accepted — 2026-05-13
+> **Date:** 2026-05-13
 > **Owner:** `council-architecture`
 > **Supersedes:** ADR-0055 (v3-era rename plan ADR; fitness/freeze/expedite primitives dropped)
 

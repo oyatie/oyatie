@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M03-P03-IP-004
 title: Cloud FinOps report + anomaly detection
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Per-tenant per-axis cost allocation + anomaly detection.

@@ -4,7 +4,7 @@
 - enforces: TEMPLATE/phase-00-evidence-template.
 - kernel_crate: `oya-foundry-fitness-evidence-bundle-shape-kernel` — `EvidenceBundle { pr_id, commands, hashes_present, timestamps_present }`, verdict `EvidenceBundleShapeFitnessReport { bundles_checked }`.
 - runner_path: `tools/oya-foundry-fitness-evidence-bundle-shape`
-- inputs: PR `.omc/evidence/<pr>.md`, evidence template.
+- inputs: PR `/evidence/<pr>.md`, evidence template.
 - failure_modes:
   - missing `cargo nextest run` row
   - row without output hash

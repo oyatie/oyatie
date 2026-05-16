@@ -14,7 +14,7 @@ related:
   - .omc/agent-kickoff/AGENT-ENTRY-POINT.md
   - .omc/agent-kickoff/AGENT-TOOL-PROTOCOL.md
   - .omc/agent-kickoff/AGENT-ICM-TOPIC-CONVENTIONS.md
-  - .omc/templates/checklists/agent-completion-checklist.md
+  - /templates/checklists/agent-completion-checklist.md
   - docs/AGENTS.md
 ---
 

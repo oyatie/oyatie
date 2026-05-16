@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M03-P03-IP-003
 title: Cloud Observability audit-read + OpenTelemetry
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Audit read + OTel-emitting kernel; per-region in-region telemetry storage.

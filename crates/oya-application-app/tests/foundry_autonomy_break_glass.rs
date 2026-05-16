@@ -1,6 +1,10 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyBreakGlassInput, AutonomyTier, CapabilityAction, CapabilityInvocationRequest,
     CapabilityRegistration, CostBudgetRegistration, DataClass, EvidenceKind, Foundation,
     FoundationError, IdentityRegistration, Purpose, RunState, SubjectClass, TenantCapabilityGrant,
@@ -219,7 +223,7 @@ fn foundation_with_t3_capability(tenant_id: &str, capability_id: &str) -> Founda
             namespace: "break_glass".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T3ExecuteWithApproval,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),
@@ -253,7 +257,7 @@ fn invocation(
     }
 }
 
-fn latest_autonomy_evidence(foundation: &Foundation) -> &oya_foundation_app::EvidenceRecord {
+fn latest_autonomy_evidence(foundation: &Foundation) -> &oya_application_app::EvidenceRecord {
     foundation
         .foundry_evidence_chain()
         .records()

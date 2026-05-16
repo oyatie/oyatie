@@ -3,13 +3,19 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M02-P02-IP-002
 title: SvelteKit dashboard (distroless image per Directive 5)
-status: stub
+status: deferred-to-followon-wave
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship the SvelteKit dashboard frontend shipped in distroless.
 ---
 
 # M02-P02-IP-002 — SvelteKit dashboard (distroless image per Directive 5)
+
+## Deferral note
+The SvelteKit frontend substrate is gated on a separate frontend ChangeSet (toolchain + distroless image budget + e2e harness) and is intentionally deferred to a follow-on wave; the read-only Rust kernel/app/api/dry-run substrate landed in this phase suffices to serve the dashboard once the frontend ChangeSet ships.
 
 ## Purpose
 Ship the SvelteKit dashboard frontend shipped in distroless.

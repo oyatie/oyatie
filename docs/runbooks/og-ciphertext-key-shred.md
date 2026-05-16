@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Og Ciphertext Key Shred
+doc_status: published
+---
+
 # Oyatie Runbook — Og Ciphertext Key Shred
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

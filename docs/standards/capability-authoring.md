@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Foundry Capability Authoring Standard
+doc_status: published
+---
+
 # Oyatie — Foundry Capability Authoring Standard
 
 > **Owner:** `axis-foundry`.

@@ -12,6 +12,7 @@ enforced_by:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0001, ADR-0033, ADR-0034, ADR-0037]
+doc_status: published
 ---
 
 # Playbook: SaaS Surface Rollout

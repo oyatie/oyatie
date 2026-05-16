@@ -4,7 +4,7 @@ parent: ../../MASTERPLAN.md
 id: M03
 title: Cloud + SaaS + Search + Workspace Preview (4-way parallel)
 wave: W-Cloud-Preview ∥ W-SaaS-Preview ∥ W-Search-Preview ∥ W-Workspace-Preview
-status: gated on M02
+status: partial-fanout-complete
 owner: axis-cloud + axis-saas + axis-search + axis-workspace
 purpose: Stand up four axis previews in parallel on the M01 foundation + M02 Foundry substrate so vertical pilots can run.
 acceptance_authority: docs/ROADMAP.md §2.3, §2.4, §2.5, plus §2-Axis-2 (workspace) gate criteria
@@ -54,7 +54,7 @@ P01 + P02 + P03 (Cloud track) run as 3-way parallel inside the cloud team; they 
 - Google Design Doc per phase.
 - Postmortem-blameless on any cross-axis contract violation.
 - Microsoft 1ES CI templates per axis.
-- Oracle Engineering-Excellence-Council merge gate for cross-axis contract changes (per [`docs/CONSTITUTION.md`](../../../docs/CONSTITUTION.md) §Decision rights "Cross-axis contract: Council-Architecture").
+- Oracle Engineering-Excellence-Council merge gate for cross-axis contract changes (per [`/specs/cross-cutting/decision-rights.json`](../../../specs/cross-cutting/decision-rights.json) "Cross-axis contract: Council-Architecture").
 - Rust toolchain gates inherited.
 
 ## Agent-navigability-pointer

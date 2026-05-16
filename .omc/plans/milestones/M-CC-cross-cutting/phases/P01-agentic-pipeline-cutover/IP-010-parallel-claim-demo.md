@@ -3,7 +3,11 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-010
 title: Parallel-claim demo runbook (P8)
-status: stub
+status: complete
+migration_status: cleanup
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Reproducible parallel-claim demo on pinned symbols.
@@ -50,4 +54,4 @@ icm store -t context-oyatie -c 'M-CC-P01-IP-010 Parallel-claim demo runbook (P8)
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP: the runbook records actual session-less `grit claim` behavior instead of assuming broad parallel expansion; the demo uses the current filesystem path `crates/oya-cloud-billing-application/src/lib.rs` while documenting the legacy planning alias.

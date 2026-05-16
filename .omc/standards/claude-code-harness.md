@@ -46,7 +46,7 @@ fence is the **triad**:
 | `oya-tooling-agent-read` | In-tree read primitives (Foundry-owned); composes grit + icm + Foundry indexes | this repo |
 
 Versions: per
-[`.omc/specs/lts-versions-verified-2026-05-12.md`](../specs/lts-versions-verified-2026-05-12.md)
+[`.omc/scratch/lts-versions-verified-2026-05-12.md`](../specs/lts-versions-verified-2026-05-12.md)
 — `grit v0.3.0`, `icm v0.10.39` (both Apache-2.0).
 
 ## 2. Directive-12 pragmatic-git rule

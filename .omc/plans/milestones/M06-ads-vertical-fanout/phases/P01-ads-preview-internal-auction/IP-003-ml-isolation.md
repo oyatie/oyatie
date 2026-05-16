@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M06-P01-IP-003
 title: ML training loop with cross-tenant isolation
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Auction ML loops train without cross-tenant data leakage; DP-bounded.

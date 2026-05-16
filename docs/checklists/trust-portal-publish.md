@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Checklist — Trust Portal Publish
 
 > **Trigger:** audit-evidence regen

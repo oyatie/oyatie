@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Kyc Review Queue
+doc_status: published
+---
+
 # Oyatie Runbook — Kyc Review Queue
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

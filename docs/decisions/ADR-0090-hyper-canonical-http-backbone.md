@@ -1,4 +1,19 @@
-# ADR-0090 — Hyper canonical HTTP backbone (LTS-exception for hyper 1.x)
+---
+id: ADR-0090
+status: accepted
+doc_status: published
+---
+
+# ADR-0090: Hyper canonical HTTP backbone (ADR-tracked LTS extension for hyper 1.x)
+
+> **Status:** Accepted
+> **Date:** 2026-05-14
+> **Owner:** `council-architecture`
+> **Supersedes:** —
+> **Superseded-by:** —
+> **Related:** ADR-0064
+
+---
 
 ## Status
 
@@ -14,9 +29,11 @@ The user issued a workspace-wide directive on 2026-05-14:
 > plan it out as building blocks are foundations."
 
 Prior REST scaffolds had referenced axum/router; that wording is retired.
-This ADR captures the chosen HTTP backbone + the LTS-exception that the
-LTS-dependency-enforcement directive (2026-05-12) requires for any new
-direct dependency.
+This ADR captures the chosen HTTP backbone + the ADR-tracked LTS
+extension that the LTS-dependency-enforcement directive (2026-05-12)
+requires for any new direct dependency. Hyper 1.x is the canonical
+backbone; the LTS extension is itself canonical (the ADR-tracked
+addition path), not an exception to the LTS policy.
 
 ## Decision
 

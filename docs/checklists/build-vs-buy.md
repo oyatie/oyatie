@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Build-vs-Buy Decision
 
 > **When:** New external dependency considered for adoption (Cargo crate / npm package / container image / managed service / SaaS as system-of-record).

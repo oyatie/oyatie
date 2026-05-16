@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — QA + Test Strategy
+doc_status: published
+---
+
 # Oyatie — QA + Test Strategy
 
 > **Status:** Draft v0.1 — 2026-05-09.
@@ -59,7 +64,7 @@ Test sharding via `--partition count:N/M`.
 - **`bacon`** — background watcher; auto re-runs the right `cargo` job (`check` / `clippy` / `nextest`) on file save. Engineer's primary feedback loop. Project ships curated `bacon.toml` with jobs covering check / clippy / nextest / doc / boundary-validator. Pairs with sccache for sub-30s incremental.
 - **`cargo-machete`** — finds unused dependencies; per-PR + per-quarter sweep. Surfaces accidental dep adoption that the [VENDOR-PARTNER-LEDGER.md](VENDOR-PARTNER-LEDGER.md) might otherwise carry forever.
 
-`oya dev check` (the persona-CLI per [TOOLCHAIN.md](TOOLCHAIN.md)) bundles `cargo fmt --check + cargo clippy + cargo nextest run + cargo machete + scripts/check-architecture-boundaries.sh + oya gate validate` into one pre-push gate.
+`oya verify` (the persona-CLI per [TOOLCHAIN.md](TOOLCHAIN.md)) bundles `cargo fmt --check + cargo clippy + cargo nextest run + cargo machete + oya gate validate architecture-boundaries + oya gate validate` into one pre-push gate.
 
 ## 5. Flaky-test policy
 

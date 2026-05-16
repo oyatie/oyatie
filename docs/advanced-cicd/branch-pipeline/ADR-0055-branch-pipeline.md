@@ -14,6 +14,7 @@ purpose: |
   No human-button at any transition. Reviewer-agent verdict gates shared-world entry.
 related_adrs: [ADR-0040, ADR-0041, ADR-0042, ADR-0050]
 supersedes: [ADR-0041]
+doc_status: published
 ---
 
 # ADR-DRAFT: Four-Layer Branch Pipeline with Reviewer-Agent-Gated Auto-Promotion (Supersedes ADR-0041)
@@ -24,7 +25,7 @@ supersedes: [ADR-0041]
 
 ## Context
 
-ADR-0041 pinned trunk-based development on `main` with short-lived feature branches, squash-merge, branch-protection-as-code, and merge-queue serialization for root-Cargo-touch PRs. The model is the hyperscaler default (Google, Microsoft per `.omc/specs/hyperscaler-best-practices-2026-05-12.md`).
+ADR-0041 pinned trunk-based development on `main` with short-lived feature branches, squash-merge, branch-protection-as-code, and merge-queue serialization for root-Cargo-touch PRs. The model is the hyperscaler default (Google, Microsoft per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md`).
 
 Three forces require revisiting:
 
@@ -162,7 +163,7 @@ Each gate sits where its input data is available; no gate is invoked before its 
 
 ## References
 
-- `.omc/specs/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy (the trunk-based default we deviate from)
+- `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy (the trunk-based default we deviate from)
 - [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) (canary + SLO mechanics inherited)
 - [ADR-0041](../../../docs/decisions/ADR-0041-gitops-trunk-based-and-release-branch-cut-at-tag.md) (superseded)
 - [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md) (Cosign + SLSA inherited)

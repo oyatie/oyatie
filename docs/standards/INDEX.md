@@ -1,4 +1,9 @@
 ---
+purpose: "Catalog of cross-cutting authoring standards under `docs/standards/`."
+doc_status: published
+---
+
+---
 doc_class: StandardsIndex
 shape: index
 length_cap: 250
@@ -8,16 +13,16 @@ date: 2026-05-12
 purpose: |
   Catalog of cross-cutting authoring standards under `docs/standards/`. Resolves every
   `<!-- forward-reference: wave-1 -->` and `<!-- forward-reference: wave-2 -->` sentinel
-  in `docs/AGENTS.md`, `docs/README.md`, and `docs/CONSTITUTION.md` that points at
+  in `docs/AGENTS.md` and `docs/README.md` that points at
   `standards/<file>.md`. Each row names the file, its enforcement lane, and its
   authority position.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 companion_docs:
   - docs/AGENTS.md
   - docs/DOC-CATALOG.md
   - docs/STANDARDS-AND-TEMPLATES.md
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class files > working drafts
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class files > working drafts
 related_adrs:
   - ADR-0053
   - ADR-0052
@@ -27,7 +32,7 @@ related_adrs:
 # Oyatie Standards Index
 
 This directory holds the cross-cutting **authoring standards** that operate within the
-[`docs/CONSTITUTION.md`](../CONSTITUTION.md) frame, downstream of the
+[`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) frame, downstream of the
 [`docs/AGENTS.md`](../AGENTS.md) operating contract, and managed under the
 [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md) lifecycle protocol.
 
@@ -64,20 +69,20 @@ that satisfies it.
 
 | Sentinel target | Source | Resolved by |
 |---|---|---|
-| `standards/doc-style.md` | CONSTITUTION §Documentation; AGENTS.md canonical doc map | `doc-style.md` |
+| `standards/doc-style.md` | decision-principles.json DP-02 (catalog-first authoring); AGENTS.md canonical doc map | `doc-style.md` |
 | `standards/error-handling.md` | AGENTS.md §During-change discipline | `error-handling.md` |
 | `standards/testing.md` | AGENTS.md §During-change discipline | `testing.md` |
 | `standards/on-call.md` | AGENTS.md canonical doc map | `on-call.md` |
 | `standards/claude-code-harness.md` | AGENTS.md §Per-agent appendices (Claude Code) | `claude-code-harness.md` |
 | `standards/multi-agent-tool-map.md` | AGENTS.md §Per-agent appendices (Gemini) | `multi-agent-tool-map.md` |
-| `standards/prevention-doctrine.md` | CONSTITUTION §Anti-overlap (separate standard; not in this batch) | deferred — see §Out-of-scope |
+| `standards/prevention-doctrine.md` | forbidden-operations.json (anti-overlap, separate standard; not in this batch) | deferred — see §Out-of-scope |
 
 ## Out-of-scope (this batch)
 
-- `prevention-doctrine.md` — referenced in CONSTITUTION but covers a different concern
+- `prevention-doctrine.md` — referenced in forbidden-operations.json but covers a different concern
   (the mechanical-prevention authoring guide); authored separately.
 - `commit-message.md`, `code-review.md` — referenced in
-  `.omc/specs/hyperscaler-best-practices-2026-05-12.md` adoption map; future ADR-PM
+  `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` adoption map; future ADR-PM
   rollout will produce these alongside the small-CL discipline rollout.
 
 ## Authoring rules for this directory
@@ -89,7 +94,7 @@ Every file in this directory:
    a stable back-reference.
 3. Is ≤ 250 lines (this index included).
 4. Cites the hyperscaler source by URL where it adopts an upstream practice.
-5. Does NOT duplicate content from `docs/CONSTITUTION.md`, `docs/AGENTS.md`,
+5. Does NOT duplicate content from `docs/AGENTS.md`,
    `docs/DOC-CATALOG.md`, or `docs/STANDARDS-AND-TEMPLATES.md`; it cross-links.
 
 ## Status footer
@@ -100,11 +105,11 @@ ADR-0052 (pre-grit artifact inventory), ADR-0054 (scaffold-claim pattern).
 
 ## Sources scanned
 
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md), [`docs/AGENTS.md`](../AGENTS.md),
+- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json), [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json), [`docs/AGENTS.md`](../AGENTS.md),
   [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md),
   [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md).
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Compound principles
   (Directives 1-12).
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   (Domain 2 + Domain 3).
-- [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md).
+- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md).

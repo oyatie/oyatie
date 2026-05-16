@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie wiki quick reference
 
 > **Owner:** `council-architecture`.

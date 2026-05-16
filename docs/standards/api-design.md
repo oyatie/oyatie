@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — API Design Standard
+doc_status: published
+---
+
 # Oyatie — API Design Standard
 
 > **Status:** Draft v0.1 — 2026-05-09. Standard for every public-API authored under the Oyatie new ADR pack.

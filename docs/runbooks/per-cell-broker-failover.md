@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Per Cell Broker Failover
+doc_status: published
+---
+
 # Oyatie Runbook — Per Cell Broker Failover
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

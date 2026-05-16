@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Competitive Gap Analysis
+doc_status: published
+---
+
 # Oyatie — Competitive Gap Analysis
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored per user directive: identify product/service areas where Oyatie lacks competitive edge or maturity, propose concrete expansion. Companion to [PRD.md](PRD.md), [DESIGN.md](DESIGN.md), [ROADMAP.md](ROADMAP.md), per-product PRDs.

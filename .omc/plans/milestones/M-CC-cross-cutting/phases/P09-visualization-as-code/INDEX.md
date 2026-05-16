@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P09
 title: Visualization-as-Code (Foundry-Owned Architecture / Product / Service / Tech-Stack Maps)
-status: stub
+status: complete
 purpose: Auto-generate architecture, product, service, tech-stack, roadmap, dependency-graph diagrams from canonical sources; publish via mdbook; CI lane catches drift.
 ---
 
@@ -21,10 +21,10 @@ Per MASTERPLAN §2 Directive 11. Hand-drawn diagrams age out of sync; the sustai
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | `oya-foundry-architecture-map-kernel` source walkers (Cargo metadata, OpenAPI parser, frontmatter parser) | stub | [`IP-001-architecture-map-walkers.md`](IP-001-architecture-map-walkers.md) |
-| IP-002 | Mermaid + D2 + Graphviz emitters | stub | [`IP-002-mermaid-d2-graphviz-emitters.md`](IP-002-mermaid-d2-graphviz-emitters.md) |
-| IP-003 | mdbook publishing integration | stub | [`IP-003-mdbook-publish-integration.md`](IP-003-mdbook-publish-integration.md) |
-| IP-004 | `oya-foundry-fitness-architecture-map-freshness` lane | stub | [`IP-004-architecture-map-freshness-lane.md`](IP-004-architecture-map-freshness-lane.md) |
+| IP-001 | `oya-foundry-architecture-map-kernel` source walkers (Cargo metadata, OpenAPI parser, frontmatter parser) | complete | [`IP-001-architecture-map-walkers.md`](IP-001-architecture-map-walkers.md) |
+| IP-002 | Mermaid + D2 + Graphviz emitters | complete | [`IP-002-mermaid-d2-graphviz-emitters.md`](IP-002-mermaid-d2-graphviz-emitters.md) |
+| IP-003 | mdbook publishing integration | complete | [`IP-003-mdbook-publish-integration.md`](IP-003-mdbook-publish-integration.md) |
+| IP-004 | `oya-foundry-fitness-architecture-map-freshness` lane | complete | [`IP-004-architecture-map-freshness-lane.md`](IP-004-architecture-map-freshness-lane.md) |
 
 ## Estimated parallelism
 4 agents.

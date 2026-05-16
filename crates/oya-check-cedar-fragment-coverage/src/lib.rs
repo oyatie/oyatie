@@ -1,5 +1,5 @@
 //! Cedar fragment coverage validator — enforces invariants C01..C04 from
-//! `.omc/registries/cedar-fragments.json`. Pure std-only kernel: takes
+//! `registries/cross-cutting/cedar-fragments.json`. Pure std-only kernel: takes
 //! parsed inputs as data, returns ValidationReport with violations.
 //!
 //! Closes the drift loop between OpenAPI contracts (which reference Cedar
@@ -7,7 +7,7 @@
 //! Without this, contracts can name fragments that nobody ever writes —
 //! the registry sits paper-only.
 //!
-//! Invariants (see `.omc/registries/cedar-fragments.json::drift_invariants`):
+//! Invariants (see `registries/cross-cutting/cedar-fragments.json::drift_invariants`):
 //!   C01: every `cedar_fragments[]` reference in `contracts/*.openapi.yaml`
 //!        must resolve to a `fragment_id` in the registry.
 //!   C02: every `cedar_fragments_planned[]` reference in `bounded-contexts.json`
@@ -50,7 +50,7 @@ pub struct CoverageInputs {
     pub registry_rows: Vec<FragmentRow>,
     /// Fragment IDs cited by contracts/*.openapi.yaml `cedar_fragments[]` arrays.
     pub openapi_references: BTreeSet<String>,
-    /// Fragment IDs cited by `.omc/registries/bounded-contexts.json`
+    /// Fragment IDs cited by `registries/cross-cutting/bounded-contexts.json`
     /// `cedar_fragments_planned[]` arrays (after `(M02-P20 …)` parens are stripped).
     pub bc_references: BTreeSet<String>,
     /// Paths of `.cedar` files under `.omc/cedar/` that are HEAD-tracked.

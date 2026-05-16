@@ -7,22 +7,23 @@ impl_plan_id: IP-P05-connect-pro-messenger-full-scaffold
 status: pending
 owner: council-connect
 blocked_by:
-  - impl_plan: IP-P04-connect-pro-mail-full-scaffold
-    reason: "oya-connect-app binary + dual-context Cedar policies + oya-connect-mail-kernel must exist before messenger BC can be wired into the composition root."
+- impl_plan: IP-P04-connect-pro-mail-full-scaffold
+  reason: oya-connect-app binary + dual-context Cedar policies + oya-connect-mail-kernel
+    must exist before messenger BC can be wired into the composition root.
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
-  - audit-chain
-  - k6-smoke
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+- audit-chain
+- k6-smoke
+purpose: "Extends `oya-connect-app` with the `messenger` BC: Rust kernel port traits (`MessengerStore`, `RatchetKeyStore`); domain entities (`Channel`, `DirectMessage`, `RatchetSession`, `ObjectReference` deep-links)."
 ---
-
 # IP-P05-connect-pro-messenger-full-scaffold: Connect Professional Messenger — PQXDH, Signal double-ratchet, InternalAuditable threads, WebSocket fan-out, Workflow deep-links
 
 ## Intent

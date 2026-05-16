@@ -5,7 +5,10 @@ ip_id: IP-001-provider-account-pool-kernel
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
   Ship the ProviderAccountPool pure-kernel crate that coordinates rotation across multiple
   ProviderAccount records (already owned by P00 account-auth). Pool is a thin coordination
@@ -23,8 +26,9 @@ agent_prerequisites:
   - .omc/plans/MASTERPLAN.md
   - ./INDEX.md
   - docs/AGENTS.md
-  - docs/CONSTITUTION.md
-  - .omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md
+  - /specs/cross-cutting/decision-principles.json
+  - /specs/cross-cutting/forbidden-operations.json
+  - .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md
   - .omc/standards/dependency-policy.md
 final_shape_compliance: true
 dependency_additions:
@@ -36,7 +40,7 @@ decision_log: |
   by representing single-account as a pool of size 1 with `RoundRobin`. The pick_account
   function therefore has no `if members.len() == 1` branch — the data shape removes it.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-001-provider-account-pool-kernel: ProviderAccountPool kernel + value types
@@ -106,9 +110,9 @@ Before `grit claim`, the agent **MUST**:
 1. `icm recall-context "P02 provider-account-pool-kernel ccproxy-api" --limit 5` and read.
 2. Read `.omc/plans/MASTERPLAN.md §2` Directives 3, 4, 7 (final-shape, provider-agnostic, Linus).
 3. Read `./INDEX.md` and the ccproxy-api parity matrix at `./ccproxy-api-parity-matrix.md`.
-4. Read `docs/AGENTS.md §Pre-flight checklist` and `docs/CONSTITUTION.md §Decision principles`.
+4. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/cross-cutting/decision-principles.json` (DP-01..DP-10).
 5. Confirm no other agent has claimed `crates/oya-foundry-provider-pool-kernel/src/lib.rs::*` via `oya-tooling-agent-read grit-status crates/oya-foundry-provider-pool-kernel`.
-6. Read `.omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md §B` to inherit the P00 state machine; pool kernel MUST NOT duplicate ProviderAccount-level state.
+6. Read `.omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md §B` to inherit the P00 state machine; pool kernel MUST NOT duplicate ProviderAccount-level state.
 <!-- agent-instructions:end -->
 
 **Human path:** read the same files; run `oya gate validate plan-hierarchy --ip IP-001-provider-account-pool-kernel` to confirm parent pointers + frontmatter.

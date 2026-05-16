@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M04-P01-IP-003
 title: Per-vertical workflows + entity definitions
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Author the vertical-specific workflows (e.g., payroll.close, kyc.onboard, fhir.read).

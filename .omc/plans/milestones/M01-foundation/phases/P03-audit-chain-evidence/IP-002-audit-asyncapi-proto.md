@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P03-IP-002
 title: Audit event AsyncAPI + Proto contract
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Publish AsyncAPI + Proto source contracts for audit events.
@@ -50,3 +53,9 @@ icm store -t context-oyatie -c 'audit AsyncAPI + Proto contracts published + lin
 
 ## Decision-log (Linus good-taste row)
 Single source contract for both REST and streaming consumers — eliminates 'two diverged audit schemas' failure class.
+
+## Completion-evidence
+- AsyncAPI `audit.event.emit.v1` now resolves to `platform.audit.v1.AuditEvent` via an existing relative Proto path.
+- Proto source includes tenant shard, sequence, SHA-256 hash-chain fields, Merkle root, and Ed25519 signature proof fields from M01-P03-IP-001.
+- Contract stability mirrors are promoted to stable for `audit.event.emit`.
+- Acceptance commands pass: `node scripts/asyncapi-lint.mjs contracts/asyncapi/platform/audit-events-v1.yaml` and `node scripts/proto-lint.mjs contracts/proto/platform/audit/v1/`.

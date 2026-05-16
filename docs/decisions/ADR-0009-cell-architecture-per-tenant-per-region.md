@@ -1,3 +1,9 @@
+---
+id: ADR-0009
+status: proposed
+doc_status: published
+---
+
 # ADR-0009: Cell architecture — per-tenant per-region blast-radius cells with cell-routing primitives at edge / mesh / store / event
 
 > **Status:** Proposed

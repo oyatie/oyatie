@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Foundry Mcp Gateway Incident
+doc_status: published
+---
+
 # Oyatie Runbook — Foundry Mcp Gateway Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

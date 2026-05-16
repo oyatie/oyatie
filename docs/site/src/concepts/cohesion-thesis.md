@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Cohesion thesis
 
 Oyatie avoids disconnected products by making every axis depend on the same identity, object graph,

@@ -1,6 +1,11 @@
+---
+purpose: Oyatie — Commit Message Standard
+doc_status: published
+---
+
 # Oyatie — Commit Message Standard
 
-> **Owner:** `council-architecture`. Validator: `oya dev check` pre-push hook + per-PR CI lane.
+> **Owner:** `council-architecture`. Validator: `oya verify` pre-push hook + per-PR CI lane.
 
 ## 1. Format (Conventional Commits)
 

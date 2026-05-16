@@ -11,13 +11,14 @@ related:
   - docs/AGENTS.md
   - docs/RACI-OWNERSHIP.md  # row: human-orchestrator-cutover + escalation contacts
   - docs/INCIDENT-MANAGEMENT.md
-  - .omc/specs/adr-draft-grit-icm-sanctioned-primitives.md  # §Glossary §Human orchestrator
+  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md  # §Glossary §Human orchestrator
   - docs/checklists/agent-kickoff-checklist.md
   - docs/checklists/agent-completion-checklist.md
 adrs_cited:
   - ADR-0052  # inventory ledger (cutover carve-out; E1)
   - ADR-0053  # sanctioned primitives (defines the primitive boundary that triggers halts)
   - ADR-0054  # scaffold-claim (E6 final_shape_compliance)
+doc_status: published
 ---
 
 # Escalation Checklist (BLOCKED_ON_HUMAN_ORCHESTRATOR)
@@ -53,7 +54,7 @@ The full list of sanctioned escalation classes (steady-state):
 **Trigger:** Consumer-axis team declines a cross-axis contract change without an alternative path. **Resolution:** Halt; council-architecture mediates per `cross-axis-contract-change-checklist.md`. *Target collapse: no — design conflict is human-mediated.*
 
 ### E9. Upstream tool bug blocking sanctioned primitive
-**Trigger:** `grit session start` bug (or analogous) blocks the sanctioned pipeline (ADR-0053). **Resolution:** Halt sanctioned flow; switch to documented workaround per `.omc/specs/pre-cutover-drafts-2026-05-12.md §Draft 1`; emit `icm store -t upstream-tool-bugs -c "<one line>" -i high`; human orchestrator files upstream issue. *Target collapse: yes (when upstream ships fix).*
+**Trigger:** `grit session start` bug (or analogous) blocks the sanctioned pipeline (ADR-0053). **Resolution:** Halt sanctioned flow; switch to documented workaround per `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 1`; emit `icm store -t upstream-tool-bugs -c "<one line>" -i high`; human orchestrator files upstream issue. *Target collapse: yes (when upstream ships fix).*
 
 ### E10. ICM / audit-chain unreachable
 **Trigger:** `icm store` fails repeatedly, OR audit-chain emission endpoint returns errors. **Resolution:** Halt all in-flight work; do not silently proceed without audit trail. Route to ops-sre-reliability. *Target collapse: no — by design.*

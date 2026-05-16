@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie — Per-Product PRD Index
 
 Each Oyatie product (an axis or a vertical) has its own PRD here. Every PRD follows [`_TEMPLATE.md`](_TEMPLATE.md). Per-product PRDs are intentionally **slice-level**: they name the bounded context, list the kernel entities + data structures, declare optimization practices, list regional-pack seams, declare in-house vs external dep posture, and define success metrics for that slice only. Cross-cutting concerns live in the consolidated docs one level up.

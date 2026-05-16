@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Vertical Onboarding
 
 > **When:** Onboarding a new vertical product (or an existing skeleton vertical promoting to draft / preview).

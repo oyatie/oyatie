@@ -1,7 +1,7 @@
 //! Foundry policy kernel: runtime autonomy ceiling checks.
 
-use oya_foundry_capability_kernel::{AutonomyTier, Capability, CapabilityAction};
-use oya_platform_data_boundary_kernel::{DataClass, PrivacyDataClass, SubjectClass};
+use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, SubjectClass};
+use oya_foundry_capability_domain::{AutonomyTier, Capability, CapabilityAction};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TenantPolicy {

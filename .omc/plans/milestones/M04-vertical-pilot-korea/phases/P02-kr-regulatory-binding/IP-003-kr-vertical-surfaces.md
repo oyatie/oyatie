@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M04-P02-IP-003
 title: KR vertical-specific surfaces (전자세금계산서 / 휴일·야간 근로 / 실명인증 / 사업자등록)
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Wire KR vertical surfaces into vertical-corporate (or elected) workflows.

@@ -7,9 +7,7 @@
 use std::collections::BTreeMap;
 use std::fmt;
 
-use oya_platform_data_boundary_kernel::{
-    Classified, DataClass, DataClassification, OperationalDataClass,
-};
+use oya_data_boundary_kernel::{Classified, DataClass, DataClassification, OperationalDataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct SecretRef {

@@ -4,7 +4,7 @@ parent: ../../MASTERPLAN.md
 id: M02
 title: Foundry-Preview
 wave: W-Foundry-Preview
-status: gated on M01
+status: complete
 owner: axis-foundry
 purpose: Stand up the Foundry agent runtime + control plane + engineering platform so every subsequent axis is force-multiplied.
 acceptance_authority: docs/ROADMAP.md §2.2

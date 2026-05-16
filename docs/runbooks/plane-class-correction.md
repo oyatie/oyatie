@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Plane Class Correction
+doc_status: published
+---
+
 # Oyatie Runbook — Plane Class Correction
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

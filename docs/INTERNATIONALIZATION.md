@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Internationalization (i18n)
+doc_status: published
+---
+
 # Oyatie — Internationalization (i18n)
 
 > **Status:** Draft v0.1 — 2026-05-09.

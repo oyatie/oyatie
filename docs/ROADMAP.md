@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Roadmap
+doc_status: published
+---
+
 # Oyatie — Roadmap
 
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)

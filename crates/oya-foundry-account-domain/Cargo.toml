@@ -1,0 +1,18 @@
+[package]
+name = "oya-foundry-account-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_foundry_account_domain"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-account-kernel = { path = "../oya-foundry-account-kernel" }
+
+[lints]
+workspace = true

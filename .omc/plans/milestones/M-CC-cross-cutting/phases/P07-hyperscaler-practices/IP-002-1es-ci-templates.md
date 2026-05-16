@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-002
 title: 1ES-templated CI pipelines
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Adopt Microsoft 1ES-style templated CI pipelines.
@@ -50,4 +53,8 @@ icm store -t context-oyatie -c 'M-CC-P07-IP-002 1ES-templated CI pipelines shipp
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- Toolchain + cache config + lane-runner setup live in `_template-ci-lane.yml` exactly once — adding a new lane is ~10 lines of caller YAML, not 50+ lines of duplicated boilerplate.
+- Release template defers signing/SBOM/SLSA to the M-CC-P08 workflows by convention — the release pipeline cannot accidentally ship without those gates running.
+- Inputs are explicit (lane-name, package-glob, acceptance-commands) so a caller can't silently inherit the wrong toolchain or cache key from the template.
+- `RUSTFLAGS: -D warnings` is baked into the lane template — a lane cannot quietly accept warnings by forgetting to set it.

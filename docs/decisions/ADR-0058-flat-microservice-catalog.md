@@ -1,3 +1,9 @@
+---
+id: ADR-0058
+status: accepted
+doc_status: published
+---
+
 # ADR-0058: Flat microservice catalog — Product Groups retired
 
 > **Status:** Accepted

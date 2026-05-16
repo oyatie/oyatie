@@ -12,6 +12,7 @@ purpose: |
 enforced_by:
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0040, ADR-0022, ADR-0034, ADR-0049]
+doc_status: published
 ---
 
 # Stable Cohort Specification

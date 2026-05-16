@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Iam Key Rotation
+doc_status: published
+---
+
 # Oyatie Runbook — Iam Key Rotation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

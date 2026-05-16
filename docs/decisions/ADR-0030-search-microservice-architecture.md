@@ -1,3 +1,9 @@
+---
+id: ADR-0030
+status: accepted
+doc_status: published
+---
+
 # ADR-0030: Search microservice — crawler / parser / index / ranker / SERP architecture with KR-first morphology and Data-Use-Boundary segregation
 
 > **Status:** Accepted
@@ -43,12 +49,13 @@ We adopt a **five-stage Search architecture** — Crawler → Parser → Indexer
 ### Indexer (`oya-search-indexer-*`)
 
 - **Inverted by term, sharded by region/locale.** Per-microservice shard map; per-tenant private shards isolated.
+- **HTAP boundary.** Search may project operational freshness counters into an HTAP store only when transactional writes and analytical scans remain separately governed by the Data Use Boundary.
 - **Vector index.** HNSW + IVF (ADR-0046); per-tenant private + public tiers segregated.
 - **Per-tier segregation.** Public crawl / tenant-public / tenant-private / regulated — each its own physical shard set; cross-tier query is a hard-fail without an explicit DUBO grant.
 
 ### Ranker (`oya-search-ranker-*`)
 
-- **First stage: BM25 (Tantivy-class).**
+- **First stage: BM25 (Tantivy-class), with TF-IDF fallback for sparse or low-resource corpora.**
 - **Second stage: semantic rerank.** Per-pack rerank model on top-k candidates.
 - **Korean signals.** KR-specific (어뷰징 penalty, Tistory/Brunch authority, 카페 vs 블로그 separation).
 

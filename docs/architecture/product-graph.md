@@ -10,6 +10,7 @@ companion_docs:
   - docs/DOC-COVERAGE.md (per-µservice doc status)
   - docs/localization-packs/kr/pack.yaml (KR pack scope)
   - .omc/plans/M01-M03-parallelization-manifest.md (dispatch DAG)
+doc_status: published
 ---
 
 # Oyatie Product Graph + Tech Stack + Schema Patterns

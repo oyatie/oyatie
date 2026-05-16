@@ -1,0 +1,283 @@
+{
+  "schema_version": "1",
+  "doc_class": "SessionHandoff",
+  "created_at": "2026-05-14",
+  "created_by": "claude-m02-m03-fanout",
+  "purpose": "Machine-actionable optimal-parallel-sequence plan for remaining masterplan execution (M02 closeout through M06). Hand off to new session.",
+  "current_state": {
+    "branch": "oya-m02-m03-fanout",
+    "branch_committed": false,
+    "branch_committer_handoff": true,
+    "working_tree_modified_files": 982,
+    "acceptance_gate_status": "scripts/check.sh exit 0 verified 2026-05-14",
+    "workspace_crate_count": 240,
+    "milestones": {
+      "M01-foundation": "complete",
+      "M02-foundry-preview": "complete (6 of 7 phases; P02-multi-subscription-pool not yet scaffolded)",
+      "M02-substrate": "indexed-from-existing-phases (22 consolidation sub-phases backlog)",
+      "M03-cloud-saas-search-workspace-preview": "partial-fanout-complete (P04+P05+P06+P07 done; P01-P03 partial-in-flight pre-existing; P08 deferred)",
+      "M03-first-tenant": "indexed-from-existing-phases (8 vertical sub-phases backlog)",
+      "M04-vertical-pilot-korea": "gated on M03",
+      "M05-cloud-search-stable": "gated on M04",
+      "M06-ads-vertical-fanout": "gated on M05",
+      "M-CC-cross-cutting": "parallel-track-excluded-from-this-handoff"
+    },
+    "deferred_items": [
+      "M03-P08 cross-axis contracts schema reconcile — entries reverted; need owner_axis/consumer_axes shape",
+      "Real provider HTTP integrations (currently mock AuthToken in 6 adapters)",
+      "OpenBao network adapter (currently in-memory)",
+      "M02-substrate P22 m02-exit-gate (depends on B1-B4 closure)"
+    ]
+  },
+  "critical_path": ["wave_a", "wave_c", "wave_d", "wave_e", "wave_f"],
+  "non_critical_parallel_tracks": ["wave_b", "cross_cutting"],
+  "waves": [
+    {
+      "id": "wave_a",
+      "name": "Close M02 + M03",
+      "parallel_session_count": 3,
+      "depends_on": [],
+      "sessions": [
+        {
+          "id": "A1",
+          "scope": "M02-P02-multi-subscription-pool",
+          "phase_index": ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/INDEX.md",
+          "ip_count": 6,
+          "ips": [
+            "IP-001-provider-account-pool-kernel",
+            "IP-002-anthropic-compat-adapter",
+            "IP-003-openai-compat-adapter",
+            "IP-004-oauth-subscription-capture",
+            "IP-005-upstream-api-drift-lane",
+            "IP-006-tos-policy-audit-chain"
+          ],
+          "intent": "Multi-subscription pool + ccproxy-api-compatible passthrough (/v1/messages, /v1/chat/completions); ProviderAccountPool rotation; ToS audit-chain.",
+          "parallel_with": ["A2", "A3"],
+          "agent_count_recommended": 2
+        },
+        {
+          "id": "A2",
+          "scope": "M03-P08 cross-axis contracts schema reconcile",
+          "phase_index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/INDEX.md",
+          "ip_count": 4,
+          "intent": "Re-add 11 cross-axis entries to docs/machine-readable/contracts.json using existing owner_axis/consumer_axes/location/change_review shape (NOT producer/consumer/tracked_artifact). Verify via `cargo run -p oya-dev-cli -- gate validate cohesion`.",
+          "parallel_with": ["A1", "A3"],
+          "agent_count_recommended": 1,
+          "size": "small (~30 min single session)"
+        },
+        {
+          "id": "A3",
+          "scope": "M03-P01..P03 Cloud audit + IP closures",
+          "phase_indexes": [
+            ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P01-cloud-foundations/INDEX.md",
+            ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P02-cloud-compute/INDEX.md",
+            ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P03-cloud-data-billing-observability/INDEX.md"
+          ],
+          "intent": "Read each phase IPs; mark complete where existing oya-cloud-*-domain crates already implement; leave open ones with real gaps. Update phase INDEX statuses.",
+          "parallel_with": ["A1", "A2"],
+          "agent_count_recommended": 3,
+          "size": "medium (1-2 sessions)"
+        }
+      ]
+    },
+    {
+      "id": "wave_b",
+      "name": "M02-substrate consolidation (non-critical)",
+      "parallel_session_count": 5,
+      "depends_on": ["wave_a"],
+      "note": "Audit/cleanup of existing crates against M02 framework. Many phases will be audit-only mark-complete. Does NOT block M03+M04+M05+M06 critical path. Can run as fill-work alongside C/D/E/F waves.",
+      "sessions": [
+        {
+          "id": "B1",
+          "phases": ["P01-foundry-engine-consolidation", "P02-ontology", "P03-identity", "P04-audit-chain", "P05-eventing"],
+          "agent_count": 5,
+          "parallel": true
+        },
+        {
+          "id": "B2",
+          "phases": ["P06-secrets", "P07-observability", "P08-kms", "P09-search", "P10-vector"],
+          "agent_count": 5,
+          "parallel": true
+        },
+        {
+          "id": "B3",
+          "phases": ["P11-finance-library", "P12-workflow-engine", "P13-tenancy", "P14-policy", "P15-data-boundary"],
+          "agent_count": 5,
+          "parallel": true
+        },
+        {
+          "id": "B4",
+          "phases": ["P16-records", "P17-capability-registry", "P18-cloud-tenancy", "P19-application", "P20-ci-lanes-operational"],
+          "agent_count": 5,
+          "parallel": true
+        },
+        {
+          "id": "B5",
+          "phases": ["P21-architecture-planes-green", "P22-m02-exit-gate"],
+          "agent_count": 2,
+          "parallel": false,
+          "note": "serial: depends on B1-B4 closure"
+        }
+      ]
+    },
+    {
+      "id": "wave_c",
+      "name": "M03-first-tenant verticals",
+      "parallel_session_count": 4,
+      "depends_on": ["wave_a"],
+      "sessions": [
+        {
+          "id": "C1",
+          "scope": "Financial verticals trio",
+          "phases": ["P01-hr", "P02-payroll", "P03-accounting"],
+          "milestone_root": ".omc/plans/milestones/M03-first-tenant/phases/",
+          "agent_count": 3,
+          "parallel": true
+        },
+        {
+          "id": "C2",
+          "scope": "Connect Pro suite",
+          "phases": ["P04-connect-pro-mail", "P05-connect-pro-messenger"],
+          "agent_count": 2,
+          "parallel": true
+        },
+        {
+          "id": "C3",
+          "scope": "Application + Editor",
+          "phases": ["P06-application-b2b-live", "P07-workflow-studio-editor"],
+          "agent_count": 2,
+          "parallel": true
+        },
+        {
+          "id": "C4",
+          "scope": "KR acceptance evidence",
+          "phases": ["P08-kr-acceptance-evidence"],
+          "agent_count": 1,
+          "parallel": false,
+          "note": "serial: depends on C1+C2+C3 closure"
+        }
+      ]
+    },
+    {
+      "id": "wave_d",
+      "name": "M04 Vertical-Pilot Korea",
+      "parallel_session_count": 2,
+      "depends_on": ["wave_a", "wave_c"],
+      "sessions": [
+        {
+          "id": "D1",
+          "phases": ["P01-vertical-capability-pack", "P02-kr-regulatory-binding"],
+          "milestone_root": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/",
+          "agent_count": 2,
+          "parallel": true
+        },
+        {
+          "id": "D2",
+          "phases": ["P03-design-partner-onboarding", "P04-evidence-retention-audit"],
+          "agent_count": 2,
+          "parallel": true
+        }
+      ]
+    },
+    {
+      "id": "wave_e",
+      "name": "M05 Cloud + Search GA",
+      "parallel_session_count": 2,
+      "depends_on": ["wave_d", "cross_cutting_x1"],
+      "blocker_note": "Cloud-stable-ga requires real provider HTTP working (X1). Cannot ship without live-smoke green.",
+      "sessions": [
+        {
+          "id": "E1",
+          "phases": ["P01-cloud-stable-ga", "P02-search-stable-ga"],
+          "milestone_root": ".omc/plans/milestones/M05-cloud-search-stable/phases/",
+          "agent_count": 2,
+          "parallel": true
+        },
+        {
+          "id": "E2",
+          "phases": ["P03-regulator-attestation", "P04-sla-slo-commitment"],
+          "agent_count": 2,
+          "parallel": true
+        }
+      ]
+    },
+    {
+      "id": "wave_f",
+      "name": "M06 Ads + Vertical Fan-out",
+      "parallel_session_count": 2,
+      "depends_on": ["wave_e"],
+      "sessions": [
+        {
+          "id": "F1",
+          "phases": ["P01-ads-preview-internal-auction", "P04-analytics-warehouse-streaming"],
+          "milestone_root": ".omc/plans/milestones/M06-ads-vertical-fanout/phases/",
+          "agent_count": 2,
+          "parallel": true
+        },
+        {
+          "id": "F2",
+          "phases": ["P02-vertical-fanout-13", "P03-per-vertical-regulatory"],
+          "agent_count": 2,
+          "parallel": true
+        }
+      ]
+    }
+  ],
+  "cross_cutting_tracks": [
+    {
+      "id": "X1",
+      "name": "Real provider HTTP integrations",
+      "intent": "Replace mock AuthToken with real Anthropic/OpenAI/Gemini HTTP API calls behind feature flags. Requires OpenBao real network adapter + live-smoke CI lane.",
+      "order": ["anthropic-first", "openai", "gemini"],
+      "gating_for": ["wave_e"],
+      "estimated_sessions": 3,
+      "secret_handling": "OpenBao only; sref:// references; no raw secrets in repo/chat/checkpoints"
+    },
+    {
+      "id": "X2",
+      "name": "M-CC-P01 remaining IPs (agentic pipeline hardening)",
+      "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/INDEX.md",
+      "ips_remaining": ["IP-001", "IP-002", "IP-003", "IP-004", "IP-005", "IP-006", "IP-008", "IP-011"],
+      "blocker_for": [],
+      "estimated_sessions": 3,
+      "note": "Excluded from M01-M06 scope per user; track separately."
+    },
+    {
+      "id": "X3",
+      "name": "M-CC-P00 Oya VCS implementation (long-horizon parallel)",
+      "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
+      "waiver_active": true,
+      "blocker_for": [],
+      "estimated_sessions": "10+",
+      "note": "Not on M01-M06 critical path; runs independently."
+    }
+  ],
+  "session_count_estimate": {
+    "serial_lower_bound": 18,
+    "with_max_parallelism": 11,
+    "with_max_parallelism_explanation": "Wave A x3 parallel = 1 session; Wave B B1-B4 parallel + B5 serial = 2 sessions; Wave C C1-C3 parallel + C4 serial = 2 sessions; D+E+F serial each = 2 each = 6 sessions; Total = 1+2+2+2+2+2 = 11"
+  },
+  "recommended_next_session": {
+    "wave": "wave_a",
+    "scope": "All 3 wave_a sessions in parallel (A1 + A2 + A3) — they share zero source files",
+    "priority_order": ["A2", "A1", "A3"],
+    "priority_rationale": "A2 is smallest (1 session, 30min), unblocks M03 acceptance gate fully; A1 closes M02 7-of-7; A3 measures actual M03 P01-P03 state for the gated chain.",
+    "hard_constraints_to_carry_into_next_session": [
+      "grit claim/work/done only; no direct git/gh (pragmatic-git-relaxation 2026-05-12 permits override with ICM rationale)",
+      "grit claim FK-errors on new crate paths: use ADR-0054 fallback (icm store to scaffold-locks-oyatie topic, proceed without lock, grit done at close)",
+      "No raw secrets in repo/chat/checkpoints — SecretReference(sref://...) only",
+      "BNF v4.1 crate names: oya-<bounded-context>-<layer>[-<qualifier>]",
+      "Workspace edition=2024, rust-version=1.95.0",
+      "Provider-specific code only in adapter crates (Directive 4)",
+      "Direct deps LTS or ADR-tracked exception (Directive 8)",
+      "cargo check + cargo test + scripts/check.sh exit 0 required before any IP marked complete",
+      "Pre-existing workspace strictness lanes: catalog roles use {kernel, domain, app|application, api|rest, worker, adapter, runtime}; cross-bc kernel→domain forbidden (use role=domain); adapter→adapter forbidden (move shared types to kernel); third-party GitHub Actions must be SHA-pinned; OpenAPI YAMLs trigger validators — avoid scaffold-only YAML",
+      "All pub fields in pub structs need same-line `// data_class: INTERNAL_ONLY` annotation"
+    ]
+  },
+  "verification_recipe": {
+    "per_ip": "cargo test -p <crate> + cargo clippy -p <crate> --all-targets -- -D warnings",
+    "per_session": "cargo fmt --all && ./scripts/check.sh exit 0",
+    "log_location_template": "/tmp/checkrun-<session-id>.log"
+  }
+}

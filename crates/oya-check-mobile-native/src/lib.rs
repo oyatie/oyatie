@@ -3,6 +3,9 @@
 //! The lane is allowed to be active during Foundry preview with an explicit
 //! web-canonical/no-native declaration. As soon as native project markers or
 //! product records appear, the ADR-0051 quality bar becomes fail-closed.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 

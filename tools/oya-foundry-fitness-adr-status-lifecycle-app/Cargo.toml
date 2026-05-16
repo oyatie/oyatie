@@ -1,0 +1,17 @@
+[package]
+name = "oya-foundry-fitness-adr-status-lifecycle-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "oya-foundry-fitness-adr-status-lifecycle-app"
+path = "src/main.rs"
+
+[dependencies]
+oya-foundry-fitness-lifecycle-kernel = { path = "../../crates/oya-foundry-fitness-lifecycle-kernel" }
+
+[lints]
+workspace = true

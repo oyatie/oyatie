@@ -5,11 +5,11 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_kms_kernel::{
+use oya_cloud_kms_domain::{
     CloudKmsDirectory, CloudKmsError, KmsDecryptRequest, KmsEncryptRequest, KmsOperation,
     KmsPurpose, KmsRepo, KmsUseReceipt,
 };
-use oya_platform_data_boundary_kernel::parse_data_class_label;
+use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_KMS_ENCRYPT_SURFACE: &str = "cloud.kms.encrypt";
 pub const CLOUD_KMS_DECRYPT_SURFACE: &str = "cloud.kms.decrypt";
@@ -710,7 +710,7 @@ fn decrypt_input(body: CloudKmsDecryptRequest) -> Result<KmsDecryptRequest, Clou
 
 fn parse_api_data_class(
     label: String,
-) -> Result<oya_platform_data_boundary_kernel::DataClass, CloudKmsApiError> {
+) -> Result<oya_data_boundary_kernel::DataClass, CloudKmsApiError> {
     parse_data_class_label(&label)
         .ok_or(CloudKmsApiError::InvalidDataClassLabel { data_class: label })
 }

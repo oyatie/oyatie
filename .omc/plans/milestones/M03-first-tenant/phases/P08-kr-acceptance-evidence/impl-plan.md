@@ -1,3 +1,8 @@
+---
+purpose: "P08 — KR Acceptance Evidence: Implementation Plan"
+status: in-progress
+---
+
 # P08 — KR Acceptance Evidence: Implementation Plan
 
 ## Metadata

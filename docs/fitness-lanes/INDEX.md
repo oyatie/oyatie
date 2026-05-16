@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Fitness-Lane Enforcement Catalogue (INDEX)
 
 - status: Accepted

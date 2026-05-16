@@ -8,17 +8,17 @@ status: pending
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: "Delivers the complete Secrets substrate: 12 crates across 2 BCs (refs, rotation), `secrets.refs` DDL storing only vault paths (never plaintext), OpenBao HTTP adapter (DAY-1 default), `ZeroizingSecret` type that zeroes memory on drop."
 ---
-
 # IP-P06-secrets-substrate: Scaffold 12 secrets crates with SecretReferencePort, OpenBao adapter, rotation worker
 
 ## Intent

@@ -5,17 +5,20 @@
 //! schedulers, registries, and function runtimes consume these typed contracts
 //! through adapters; this kernel stays adapter-free and keeps placement,
 //! quota, identity, image, and data-class invariants explicit.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_iam_kernel::IamRoleId;
-use oya_cloud_network_kernel::SecurityGroupId;
-use oya_cloud_region_kernel::{AzCode, CellId, RegionCode};
-use oya_cloud_resource_kernel::{
+use oya_cloud_iam_domain::IamRoleId;
+use oya_cloud_network_domain::SecurityGroupId;
+use oya_cloud_region_domain::{AzCode, CellId, RegionCode};
+use oya_cloud_resource_domain::{
     CloudResourceError, FunctionRuntime, InstanceFlavor, K8sFlavor, ResourceId, ResourceKind,
 };
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_residency_kernel::{residency_class_allows_home_region_label, ResidencyClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 
 const COMPUTE_SCHEMA_VERSION: u32 = 1;
 pub const MAX_FUNCTION_COLD_START_BUDGET_MS: u32 = 1_000;

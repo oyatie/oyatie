@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Marketplace Listing Takedown
+doc_status: published
+---
+
 # Oyatie Runbook — Marketplace Listing Takedown
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,11 +1,15 @@
-use oya_cloud_compute_kernel::{CloudComputeCatalog, CloudComputeError};
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_cloud_compute_domain::{CloudComputeCatalog, CloudComputeError};
 use oya_cloud_compute_vm_api::{
-    create_cloud_compute_vm_from_api, CloudComputeVmApiAuthorization,
+    CLOUD_COMPUTE_VM_CREATE_SURFACE, CloudComputeVmApiAuthorization,
     CloudComputeVmApiBoundaryContext, CloudComputeVmApiError, CloudComputeVmApiPrincipal,
     CloudComputeVmCreateApiRequest, CloudComputeVmCreateApiStatus,
     CloudComputeVmCreateIdempotencyLedger, CloudComputeVmCreateRequest, CloudComputeVmFlavorSpec,
     CloudComputeVmIamRoleRef, CloudComputeVmQuotaEnvelope, CloudComputeVmSecurityGroupRef,
-    CLOUD_COMPUTE_VM_CREATE_SURFACE,
+    create_cloud_compute_vm_from_api,
 };
 
 const INSTANCE_ID: &str = "oya:cloud:kr-seoul:ten_kr:instance:app-1";

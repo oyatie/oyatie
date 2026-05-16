@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Tenant Migration Playbook (from competitor stacks)
+doc_status: published
+---
+
 # Oyatie — Tenant Migration Playbook (from competitor stacks)
 
 > **Owner:** `gtm-customer-success` + per-vertical team.

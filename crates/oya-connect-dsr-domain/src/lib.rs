@@ -5,15 +5,18 @@
 //! owns Workspace impact planning, per-store proof validation, SLA evaluation,
 //! and exact proof coverage. Platform DSR orchestration, audit-chain append, and
 //! trust portal rendering remain outside this crate.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_workspace_retention_kernel::{
+use oya_connect_retention_domain::{
     EraseMethod, RetentionDecision, RetentionDecisionOutcome, RetentionDisposition,
     RetentionHorizon, RetentionLawfulBasis, RetentionPolicy, RetentionPolicyCreate,
     RetentionRequestKind, WorkspaceRetentionSurface,
 };
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DSR_REQUEST_SCHEMA_VERSION: u32 = 1;
 const DSR_STORE_REF_SCHEMA_VERSION: u32 = 1;
@@ -464,13 +467,11 @@ impl DsrCompletionRecord {
 }
 
 pub fn default_workspace_dsr_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn subject_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_dsr_data_class_from_legacy(
@@ -754,10 +755,10 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_workspace_retention_kernel::{
+    use oya_connect_retention_domain::{
         RetentionDecisionCreate, RetentionRecordRef, RetentionRecordRefCreate,
     };
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).unwrap()
@@ -956,12 +957,14 @@ mod tests {
             DsrCascadePlan::new(
                 DsrCascadePlanCreate {
                     plan_id: "plan-3".into(),
-                    capabilities: vec![DsrSurfaceCapability::new(DsrSurfaceCapabilityCreate {
-                        capability_id: "workspace-mail-dsr".into(),
-                        surface: WorkspaceRetentionSurface::Mail,
-                        supported_actions: vec![DsrAction::Export],
-                    })
-                    .unwrap()],
+                    capabilities: vec![
+                        DsrSurfaceCapability::new(DsrSurfaceCapabilityCreate {
+                            capability_id: "workspace-mail-dsr".into(),
+                            surface: WorkspaceRetentionSurface::Mail,
+                            supported_actions: vec![DsrAction::Export],
+                        })
+                        .unwrap()
+                    ],
                     items: vec![impact("message-1")],
                     planned_at_epoch_seconds: 1_700_000_010,
                 },

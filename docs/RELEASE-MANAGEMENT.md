@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Release Management
+doc_status: published
+---
+
 # Oyatie — Release Management
 
 > **Status:** Draft v0.1 — 2026-05-09.
@@ -22,7 +27,7 @@ Per `docs/standards/ci-lanes.md` (legacy authoritative) + new `oya-foundry-fitne
 | `cargo-nextest --workspace --all-features` | every PR | yes |
 | `cargo check --workspace --all-targets --all-features` | every PR (PM-2 mitigation) | yes |
 | `cargo deny check licenses` | every PR | yes (per License Policy ADR) |
-| `bash scripts/check-architecture-boundaries.sh` (PARTS A-G) | every PR | yes (post PG-1 per ADR-0015) |
+| `bash oya gate validate architecture-boundaries` (PARTS A-G) | every PR | yes (post PG-1 per ADR-0015) |
 | `oya catalog validate` | every PR | yes |
 | `oya gate validate claim-ceiling` | every PR | yes |
 | `oya gate validate foundation-bypass` | every PR | yes |
@@ -74,7 +79,7 @@ Per surface:
 
 ## 6. Pre-release verification (per ADR-0040 9-item readiness)
 
-Per release-candidate, run `/oya-release-verify` (formerly `/oyatie-release-verify`):
+Per release-candidate, run `/oya-release-verify` (formerly `/oya-release-verify`):
 1. All CI lanes green on the release tag SHA
 2. SBOM generated + Cosign-signed + Rekor-anchored
 3. Per-region SLO budget ≥ 50%

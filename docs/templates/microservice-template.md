@@ -20,6 +20,7 @@ adrs_cited:
   - ADR-0056  # BNF v4.1 + 12-enum layer
   - ADR-0057  # LEAN checks
   - ADR-0054  # scaffold-claim pattern
+doc_status: published
 ---
 
 # New µservice scaffold: `oya-<µservice-name>-*`

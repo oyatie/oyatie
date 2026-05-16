@@ -1,16 +1,20 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_cloud_kms_api::{
-    authorize_cloud_kms_decrypt_from_api, authorize_cloud_kms_encrypt_from_api,
-    CloudKmsApiAuthorization, CloudKmsApiBoundaryContext, CloudKmsApiError, CloudKmsApiPrincipal,
-    CloudKmsCryptoApiStatus, CloudKmsCryptoIdempotencyLedger, CloudKmsDecryptApiRequest,
-    CloudKmsDecryptRequest, CloudKmsEncryptApiRequest, CloudKmsEncryptRequest,
-    CLOUD_KMS_DECRYPT_SURFACE, CLOUD_KMS_ENCRYPT_SURFACE,
+    CLOUD_KMS_DECRYPT_SURFACE, CLOUD_KMS_ENCRYPT_SURFACE, CloudKmsApiAuthorization,
+    CloudKmsApiBoundaryContext, CloudKmsApiError, CloudKmsApiPrincipal, CloudKmsCryptoApiStatus,
+    CloudKmsCryptoIdempotencyLedger, CloudKmsDecryptApiRequest, CloudKmsDecryptRequest,
+    CloudKmsEncryptApiRequest, CloudKmsEncryptRequest, authorize_cloud_kms_decrypt_from_api,
+    authorize_cloud_kms_encrypt_from_api,
 };
-use oya_cloud_kms_kernel::{
+use oya_cloud_kms_domain::{
     CloudKmsDirectory, CloudKmsError, HsmValidation, KmsKeyCreate, KmsKeyOrigin, KmsKeyState,
     KmsKeyUsage, KmsRepo,
 };
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
+use oya_residency_domain::ResidencyClass;
 
 fn boundary_for(request_id: &str, idempotency_key: &str) -> CloudKmsApiBoundaryContext {
     CloudKmsApiBoundaryContext {

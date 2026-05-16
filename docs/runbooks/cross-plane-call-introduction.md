@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cross Plane Call Introduction
+doc_status: published
+---
+
 # Oyatie Runbook — Cross Plane Call Introduction
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

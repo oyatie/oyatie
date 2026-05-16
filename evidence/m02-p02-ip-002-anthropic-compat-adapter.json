@@ -1,0 +1,71 @@
+{
+  "$schema_ref": "/templates/evidence-bundle-template.json",
+  "_artifact_id": "M02-P02-IP-002-anthropic-compat-adapter",
+  "_meta": {
+    "ip": "M02-P02-IP-002",
+    "milestone": "M02",
+    "phase": "P02-multi-subscription-pool",
+    "produced_at": "2026-05-14",
+    "auditor": "claude-a1-m02p02",
+    "scope": "crates/oya-foundry-adapter-anthropic-compat-api",
+    "purpose": "Auto-backfilled purpose for m02-p02-ip-002-anthropic-compat-adapter.json"
+  },
+  "ip_id": "IP-002-anthropic-compat-adapter",
+  "role": "api",
+  "crates_created": [
+    {
+      "name": "oya-foundry-adapter-anthropic-compat-api",
+      "role": "api",
+      "bnf_justification": "oya-<microservice:foundry>-<bc:adapter-anthropic-compat>-<layer:api>; v4.1 conformant; bounded-context=adapter-anthropic-compat keeps Anthropic-shape passthrough isolated from upstream provider primitive adapters; layer=api per workspace 12-layer enum (HTTP route surface, request/response types, translator).",
+      "purpose": "Anthropic /v1/messages + /v1/messages/count_tokens passthrough. Translates Anthropic shape \u2194 internal CapabilityInvokeRequest, emits Anthropic-style SSE event sequence (message_start, content_block_start, \u2026, message_stop).",
+      "linus_good_taste": "Eliminated dual streaming/non-streaming code paths \u2014 non-streaming collapses to a single chunk on the same stream surface."
+    }
+  ],
+  "symbols_shipped": [
+    "messages_handler",
+    "count_tokens_handler",
+    "AnthropicMessagesRequest, AnthropicMessagesResponse",
+    "AnthropicMessage, AnthropicRole, AnthropicContentBlock, AnthropicStopReason, AnthropicUsage",
+    "to_internal_invoke, from_internal_invoke",
+    "sse_relay",
+    "route_request",
+    "build_routes"
+  ],
+  "http_backbone": "hyper via oya-http-router-kernel + oya-http-sse-domain (NO axum, NO tower-http per workspace directive 2026-05-14)",
+  "provider_isolation": "Anthropic-specific code only inside this crate; pool routing kernel (IP-001) stays provider-agnostic.",
+  "verification": {
+    "test_count": 24,
+    "tests_passed": 24,
+    "tests_failed": 0,
+    "clippy_clean": true,
+    "data_class_annotated": true,
+    "routes_registered": [
+      "POST /v1/messages",
+      "GET /v1/messages/count_tokens"
+    ],
+    "sse_event_order": [
+      "message_start",
+      "content_block_start",
+      "content_block_delta",
+      "content_block_stop",
+      "message_delta",
+      "message_stop"
+    ]
+  },
+  "grit_claim": {
+    "agent": "claude-a1-m02p02",
+    "intent": "M02-P02-IP-002 \u2014 Anthropic-compat adapter scaffold",
+    "fallback_mechanism": "ADR-0054 scaffold-lock",
+    "icm_lock_ulid": "01KRMC0YD48PKMXKPR4CAV3X3T"
+  },
+  "scripts_check_exit": null,
+  "ccproxy_parity": [
+    "plugins/claude_api \u2192 POST /v1/messages",
+    "plugins/claude_api \u2192 GET /v1/messages/count_tokens"
+  ],
+  "open_items": [
+    "Distroless image build deferred to runtime-adapter layer (this IP ships the pure API kernel surface; the hyper-backed runtime wires it via oya-http-runtime-hyper-adapter).",
+    "contracts/foundry-compat-anthropic-v1.openapi.yaml deferred \u2014 workspace validators reject incomplete OpenAPI YAMLs; the IP-005 drift kernel diffs JSON contract fingerprints instead."
+  ],
+  "next_ip": "IP-003-openai-compat-adapter"
+}

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Attribution Pipeline Lag
+doc_status: published
+---
+
 # Oyatie Runbook — Attribution Pipeline Lag
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

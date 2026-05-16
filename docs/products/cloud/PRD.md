@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie — Product PRD: Cloud Provider (AWS-class)
 
 > **Status:** draft → preview *(industry-standard labels per [GLOSSARY.md §11](../../GLOSSARY.md))*
@@ -77,7 +81,7 @@ runtime   — composition root (binary)
 | `oya-cloud-region-kernel` | kernel | Region / AZ / Cell taxonomy; residency class binding |
 | `oya-cloud-region-domain` | domain | Region register / decommission, AZ failover, cell-rebalance |
 | `oya-cloud-region-api` | api | Region / AZ listing REST API |
-| `oya-cloud-cell-app` | app | Tenant cell-binding REST surface |
+| `oya-cloud-cell-application` | application | (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M02-P18) Tenant cell-binding REST surface |
 | `oya-cloud-iam-kernel` | kernel | IAM principal, role, policy (Cedar-based), STS session, federation |
 | `oya-cloud-iam-domain` | domain | Identity federation, role assumption, key issuance |
 | `oya-cloud-iam-adapter` | adapter | OIDC, SAML, OAuth, regional-pack IdP impls (Login.gov, eIDAS, Aadhaar, etc.) |
@@ -110,7 +114,7 @@ runtime   — composition root (binary)
 | `oya-cloud-billing-adapter` | adapter | Postgres + ClickHouse billing aggregation; per-pack tax formatter |
 | `oya-cloud-billing-api` | api | Billing REST API + invoice surfaces |
 | `oya-cloud-billing-app` | app | Cloud billing event ingest CloudEvents/Protobuf surface + outbox publication |
-| `oya-cloud-billing-tax-app` | app | Regional tax invoice generation REST surface |
+| `oya-cloud-billing-tax-application` | application | (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M03 cloud-billing) Regional tax invoice generation REST surface |
 | `oya-cloud-observability-kernel` | kernel | Metric, LogStream, Trace, Alert, Dashboard |
 | `oya-cloud-observability-adapter` | adapter | VictoriaMetrics → Mimir (ADR-0045, ADR-0042); Loki; Tempo; OTel collector |
 | `oya-cloud-observability-api` | api | Observability REST API |
@@ -144,7 +148,7 @@ runtime   — composition root (binary)
 | `Observability API` (logs / metrics / traces / dashboards / audit read) | `contracts/openapi/cloud/cloud-observability-audit-v1.yaml` | analytics | per-stream class SLO; p99 ≤ 500 ms audit-read projection |
 | `Marketplace API` (cloud-app listing) | `contracts/cloud-marketplace-v1.openapi.yaml` | control | 99.9% |
 | `Foundry capability surface` (cloud.* mutators) | `product-control/capabilities/cloud.*.yaml` | control + audit | p99 ≤ 500 ms; every call audit-emits |
-| `Cloud Console (web)` | `apps/oyatie-cloud-console/` (Leptos, ADR-0033) | control | p95 ≤ 1 000 ms; 99.9% |
+| `Cloud Console (web)` | `apps/oya-cloud-console/` (Leptos, ADR-0033) | control | p95 ≤ 1 000 ms; 99.9% |
 | `Direct interconnect` | physical port + BGP | network | per-link SLA; 99.99% |
 | `Audit log export` | per-tenant signed S3 stream | audit | 100% emission completeness |
 

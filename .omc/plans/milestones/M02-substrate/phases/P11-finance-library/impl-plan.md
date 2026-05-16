@@ -5,8 +5,8 @@ milestone: M02-substrate
 phase: P11-finance-library
 status: Proposed
 depends_on_phase_spec: phase-spec.md
+purpose: "Implementation plan for P11-finance-library of M02-substrate: detailed code structure and acceptance lanes."
 ---
-
 # P11-finance-library Implementation Plan
 
 ## 0. Grit Claim

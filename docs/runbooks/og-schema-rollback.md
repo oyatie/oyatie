@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Og Schema Rollback
+doc_status: published
+---
+
 # Oyatie Runbook — Og Schema Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -18,6 +18,7 @@ bominal_source:
   - ADR-0132  # data ownership pillars (org-pillar / person-pillar)
   - ADR-0018  # tenancy RLS posture
   - ADR-0028  # audit chain Merkle/Ed25519
+doc_status: published
 ---
 
 # PRD-ontology: Ontology shared substrate

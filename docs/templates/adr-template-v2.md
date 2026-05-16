@@ -12,12 +12,13 @@ owner_team: crew-adr-promotion
 related:
   - docs/ADR-INDEX.md
   - docs/ADR-CONSOLIDATION-PLAN.md
-  - .omc/specs/adr-draft-grit-icm-sanctioned-primitives.md
+  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - docs/decisions/
 adrs_cited:
   - ADR-0052  # inventory ledger (traceability)
   - ADR-0053  # sanctioned primitives
   - ADR-0054  # scaffold-claim pattern
+doc_status: published
 ---
 
 <!-- Supersedes prior docs/templates/adr-template.md once reviewed. -->
@@ -96,4 +97,4 @@ Numbered list of items that need a future decision or implementation. Each gets 
 - Internal ADRs cited: ADR-0052 (inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim).
 - Codex / Claude / Gemini / external review feedback (if applicable).
 - Related issues (`Refs #N`, `Closes #N`).
-- Source spec / plan if lifted from a `.omc/specs/*` draft.
+- Source spec / plan if lifted from a `/specs/cross-cutting/*` draft.

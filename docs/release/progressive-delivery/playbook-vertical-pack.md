@@ -12,6 +12,7 @@ enforced_by:
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0033, ADR-0034, ADR-0038, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
+doc_status: published
 ---
 
 # Playbook: Vertical-Pack Update

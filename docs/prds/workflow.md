@@ -10,7 +10,7 @@ milestone_first_ship: M02-substrate-ready
 bominal_source:
   - ADR-0035   # Workflow engine (hybrid state machine + DAG)
   - ADR-0103   # Workflow hexagonal migration
-  - ADR-0121   # Workflow Studio Light scope (M3 launch presets)
+  - ADR-0121   # Workflow Studio Light scope (M03 launch presets)
   - ADR-0148   # Workflow engine (extended)
   - ADR-0028   # audit chain (every workflow run sealed)
   - ADR-0107   # agent gateway (agentic mode nodes)
@@ -19,6 +19,7 @@ bominal_source:
   - ADR-0018   # tenancy RLS posture
   - ADR-0009   # cell architecture
   - ADR-0019   # runtime target metadata model (active-active compatibility)
+doc_status: published
 ---
 
 # PRD-workflow: Workflow Studio (Shared Substrate + Hero Product)
@@ -50,7 +51,7 @@ Workflow is placed in the **shared substrate** (not Corporate-owned per
 Healthcare, Enterprise, FinTech, Connect, and every other µservice equally.
 
 Inherits Bominal ADR-0035 (hybrid state machine + DAG engine), ADR-0103
-(hexagonal migration), ADR-0121 (Studio Light M3 presets), ADR-0148
+(hexagonal migration), ADR-0121 (Studio Light M03 presets), ADR-0148
 (extended engine). Bominal's Corporate-ownership stance overridden: Workflow
 is shared/* per oyatie session decision.
 
@@ -124,7 +125,7 @@ is shared/* per oyatie session decision.
 |---|---|---|---|---|---|
 | FR-22 | Tenant admin | browse domain templates (Agentic / Developer / Business / Healthcare / Supply Chain / Delivery) | starting from a proven template is faster than from scratch | `studio` | Must |
 | FR-23 | Tenant admin | require workflow approval before activation in production | no unapproved automations run in prod | `studio` | Must |
-| FR-24 | Platform operator | publish curated templates to the tenant template library | tenants benefit from oyatie-maintained workflow patterns | `studio` | Should |
+| FR-24 | Platform operator | publish curated templates to the tenant template library | tenants benefit from Oyatie-maintained workflow patterns | `studio` | Should |
 
 ### Integrations (connector library)
 
@@ -293,7 +294,7 @@ tenant template library, authored and curated by oyatie. Tenants clone and custo
 |---|---|---|---|---|
 | **Agentic** | Agent Task Orchestrator | Manual / API | LLM-decide → Ontology-read → action-branch → human-review | Agent decides next step via LLM; routes to Ontology Action Types |
 | **Developer** | PR Review Pipeline | GitHub webhook | PR-opened → assign-reviewer → review-check → merge-gate | Automated PR assignment + merge enforcement |
-| **Developer** | Scaffold-Claim Release | API | grit-claim → build-check → grit-done → notify | oyatie-native release workflow using grit primitives |
+| **Developer** | Scaffold-Claim Release | API | grit-claim → build-check → grit-done → notify | Oyatie-native release workflow using grit primitives |
 | **Business** | Leave Request Approval | Manual | submit → manager-approve → HR-approve → calendar-block | 2-step approval; SLA timer; escalation on breach |
 | **Business** | Expense Approval | Ontology-event | expense-created → amount-branch → approver-chain → accounting-post | Amount-based routing; posts to Accounting on approval |
 | **Business** | Payroll Close | Cron (month-end) | payroll-run → review-gate → accounting-journal → payslip-distribute | End-to-end payroll close with approval gate |
@@ -353,7 +354,7 @@ Key parity gaps (ordered by M03 priority):
 2. **Node canvas UX** (n8n parity): drag-drop on Leptos canvas; edge routing; node configuration panel; zoom/pan; minimap — requires Leptos canvas component library decision.
 3. **Integration breadth** (Zapier/Make parity): 50+ connectors at M03; 200+ at M04; community plugin SDK at M04.
 4. **Approval workflows** (ServiceNow/Camunda parity): multi-step; four-eyes; SLA timers; escalation; delegation — required for HR/Payroll/Accounting use cases at M03.
-5. **Agentic nodes** (no direct competitor; oyatie-unique): LLM decision node via ADR-0107 agent gateway — differentiator, ship in M03 alpha.
+5. **Agentic nodes** (no direct competitor; Oyatie-unique): LLM decision node via ADR-0107 agent gateway — differentiator, ship in M03 alpha.
 
 ---
 
@@ -461,7 +462,7 @@ Sharding:
 |---|---|---|
 | Bominal ADR-0035 | Workflow engine (hybrid state machine + DAG) | inherited — engine architecture |
 | Bominal ADR-0103 | Workflow hexagonal migration | inherited — clean-arch placement |
-| Bominal ADR-0121 | Workflow Studio Light scope | inherited — M3 launch presets (template library) |
+| Bominal ADR-0121 | Workflow Studio Light scope | inherited — M03 launch presets (template library) |
 | Bominal ADR-0148 | Workflow engine (extended) | inherited |
 | Bominal ADR-0028 | Audit chain Merkle/Ed25519 | inherited |
 | Bominal ADR-0107 | Ontology agent gateway | inherited — agentic nodes |

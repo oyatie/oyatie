@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Evidence pack template (per regulator)
 
 > Per [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2 + ADR-0003. Lives at `audits/<regulator>/<year>/evidence-pack.md`. Validated by `compliance-evidence-recency`.

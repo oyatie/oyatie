@@ -16,6 +16,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (D17 migration rows)
   - ADR-0053  # sanctioned primitives (agent tool use)
   - ADR-0054  # scaffold-claim pattern (grit symbols)
+doc_status: published
 ---
 
 # Done-Definition Checklist
@@ -35,7 +36,7 @@ adrs_cited:
 - [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Verification:* output in `## Verification`.
 - [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Verification:* output.
 - [ ] **D11** `cargo deny check` passes. *Verification:* output.
-- [ ] **D12** `repoctl pre-push` passes. *Verification:* output.
+- [ ] **D12** `oya verify` passes. *Verification:* output.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress scenarios. *Lane:* `oya-foundry-fitness-perf-evidence`.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Lane:* `oya-foundry-fitness-schema-migration`.
 - [ ] **D15** PR has 5 canonical H2s; `## Code Review` at merge. *Lane:* `traceability-validator`.

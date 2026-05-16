@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Brand Rename Batch Execute
+doc_status: published
+---
+
 # Oyatie Runbook — Brand Rename Batch Execute
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

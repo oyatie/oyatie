@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M03-P02-IP-001
 title: Cloud Compute VM API + provider-agnostic adapters
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Bring cloud.compute.vm.create to stable; ≥2 provider adapters.

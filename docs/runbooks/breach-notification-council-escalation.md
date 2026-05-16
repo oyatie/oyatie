@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Breach Notification Council Escalation
+doc_status: published
+---
+
 # Oyatie Runbook — Breach Notification Council Escalation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

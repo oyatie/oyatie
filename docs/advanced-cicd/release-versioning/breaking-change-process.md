@@ -13,6 +13,7 @@ purpose: |
   next release cut. Calibrated between AWS (12 months) and Stripe (never-break).
 enforced_by: oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-api-version-stability
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Breaking Change Process — oyatie
@@ -62,7 +63,7 @@ migration_guide: docs/release/migrate-foundry-v1-to-v2.md
 Missing or inconsistent frontmatter → CI fails via
 `oya-foundry-fitness-deprecation-notice` (BLOCKER).
 
-## 4. ADR template (`.omc/templates/ADR-BREAKING-CHANGE.md`)
+## 4. ADR template (`/templates/ADR-BREAKING-CHANGE.md`)
 
 Sections required:
 

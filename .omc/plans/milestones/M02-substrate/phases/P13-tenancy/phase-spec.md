@@ -5,24 +5,36 @@ milestone: M02-substrate
 phase: P13-tenancy
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02/P03-identity complete; oya-identity-kernel ships with UserStore, PersonStore,
-  OrganizationStore, EmployeeStore, SessionStore, AuthChallenger port traits; cargo
-  check clean; grit done on all P03 symbols; ICM phase-handoff row emitted.
-exit_gate: |
-  All P13 impl-plan acceptance gates green; 4 BCs registered in
-  docs/standards/bounded-contexts.md (tenancy, tenant-products, tenant-cells,
-  tenant-admins); oyatie.set_current_tenant() RLS bootstrap function deployed;
-  TenantProductRegistry port wired and tested with isolation tests; all crates
-  pass cargo check/build/clippy/nextest/deny; oya gate validate lean-a1/a2/a3/a4
-  exit 0; grit done on all P13 symbols; ICM phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P03-identity
-    reason: "Tenancy references identity.users for tenant_admins FK; TenantStore.create() accepts owner_user_id: UserId from identity kernel; RLS bootstrap calls oyatie.set_current_tenant() which feeds into all identity.organizations + identity.employees queries."
-owner_team: council-architecture
----
+entry_gate: 'M02/P03-identity complete; oya-identity-kernel ships with UserStore,
+  PersonStore,
 
+  OrganizationStore, EmployeeStore, SessionStore, AuthChallenger port traits; cargo
+
+  check clean; grit done on all P03 symbols; ICM phase-handoff row emitted.
+
+  '
+exit_gate: 'All P13 impl-plan acceptance gates green; 4 BCs registered in
+
+  docs/standards/bounded-contexts.md (tenancy, tenant-products, tenant-cells,
+
+  tenant-admins); oyatie.set_current_tenant() RLS bootstrap function deployed;
+
+  TenantProductRegistry port wired and tested with isolation tests; all crates
+
+  pass cargo check/build/clippy/nextest/deny; oya gate validate lean-a1/a2/a3/a4
+
+  exit 0; grit done on all P13 symbols; ICM phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P03-identity
+  reason: 'Tenancy references identity.users for tenant_admins FK; TenantStore.create()
+    accepts owner_user_id: UserId from identity kernel; RLS bootstrap calls oyatie.set_current_tenant()
+    which feeds into all identity.organizations + identity.employees queries.'
+owner_team: council-architecture
+purpose: "Delivers the tenancy substrate: the SaaS contract layer that partitions every subsequent µservice's data by tenant_id and governs which products each tenant has enabled."
+---
 # P13-tenancy: Tenancy Substrate — Multi-Tenant SaaS Contract + Product-Enablement Registry + Cell Placement
 
 ## Purpose

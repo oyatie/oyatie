@@ -3,7 +3,7 @@ doc_class: FitnessLaneDelta
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
 purpose: |
   Delta-spec for new fitness lanes introduced by P02. This file is the *proposal*; the
   authoritative lane definitions land under `.omc/fitness-lanes/<lane>.md` once approved

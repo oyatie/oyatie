@@ -3,10 +3,10 @@
 //! This crate owns authenticated request normalization and public projection for
 //! the immutable Cloud region/AZ taxonomy before returning API records.
 
-use oya_cloud_region_kernel::{
+use oya_cloud_region_domain::{
     AzState, CloudAz, CloudRegion, CloudRegionCatalog, CloudRegionError, RegionCode, RegionState,
 };
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_residency_domain::ResidencyClass;
 
 pub const CLOUD_REGION_LIST_SURFACE: &str = "cloud.region.list";
 pub const CLOUD_AZ_LIST_SURFACE: &str = "cloud.az.list";

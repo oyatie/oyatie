@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cell Provision
+doc_status: published
+---
+
 # Oyatie Runbook — Cell Provision
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

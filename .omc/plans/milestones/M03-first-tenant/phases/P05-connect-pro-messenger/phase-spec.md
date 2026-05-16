@@ -5,25 +5,28 @@ milestone: M03-first-paying-tenant
 phase: P05-connect-pro-messenger
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M03/P04-connect-pro-mail complete; oya-connect-app binary ships;
+entry_gate: 'M03/P04-connect-pro-mail complete; oya-connect-app binary ships;
+
   oya-connect-mail-kernel + oya-connect-legal-hold-kernel crates exist;
+
   tenant DEK KMS operational; dual-context Cedar policies deployed.
-exit_gate: |
-  All IP acceptance gates green; messenger message round-trip test green;
-  PQXDH handshake test green; Signal double-ratchet forward-secrecy test green;
-  InternalAuditable thread mode enforced (org-pillar); deep-link to Workflow entity verified;
-  `oya gate validate lean-a2 --ms connect` exits 0 (incremental check);
-  k6 smoke messenger p99 ≤200ms at 5k concurrent WebSocket sessions;
-  grit done on all P05 symbols; ICM phase-handoff row emitted.
+
+  '
+exit_gate: "All IP acceptance gates green; messenger message round-trip test green;\n\
+  PQXDH handshake test green; Signal double-ratchet forward-secrecy test green;\n\
+  InternalAuditable thread mode enforced (org-pillar); deep-link to Workflow entity\
+  \ verified;\n`oya gate validate lean-a2 --ms connect` exits 0 (incremental check);\n\
+  k6 smoke messenger p99 \u2264200ms at 5k concurrent WebSocket sessions;\ngrit done\
+  \ on all P05 symbols; ICM phase-handoff row emitted.\n"
 depends_on:
-  - milestone: M03
-    phase: P04-connect-pro-mail
-    reason: "Messenger shares oya-connect-app binary and dual-context Cedar policies with Mail; P04 must ship first to avoid re-wiring the composition root."
+- milestone: M03
+  phase: P04-connect-pro-mail
+  reason: Messenger shares oya-connect-app binary and dual-context Cedar policies
+    with Mail; P04 must ship first to avoid re-wiring the composition root.
 parallel_wave: 3
 owner_team: council-connect
+purpose: "Extends the `oya-connect-*` µservice with Professional Messenger: real-time channels and direct messages using PQXDH key exchange and Signal double-ratchet for forward secrecy (per Bominal `platform/libs/ratchet/` port)."
 ---
-
 # P05-connect-pro-messenger: Connect Professional Messenger — E2E PQXDH, Signal double-ratchet, work-mode threads, Workflow deep-links
 
 ## Purpose

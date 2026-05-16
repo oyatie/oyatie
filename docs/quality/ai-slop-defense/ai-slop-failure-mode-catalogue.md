@@ -11,6 +11,7 @@ date: 2026-05-12
 adr_citations:
   - ADR-0053
   - ADR-0055
+doc_status: published
 ---
 
 # AI-Slop Failure Mode Catalogue

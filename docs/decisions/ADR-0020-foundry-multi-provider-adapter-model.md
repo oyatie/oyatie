@@ -1,3 +1,9 @@
+---
+id: ADR-0020
+status: proposed
+doc_status: published
+---
+
 # ADR-0020: Foundry multi-provider adapter model — `ProviderAdapter` trait, ProviderAuth, capability-level routing
 
 > **Status:** Proposed

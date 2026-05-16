@@ -18,6 +18,7 @@ related:
 adrs_cited:
   - ADR-0052  # inventory / audit chain (replay command)
   - ADR-0053  # sanctioned primitives (agent path in timeline)
+doc_status: published
 ---
 
 ```yaml

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Outbox Relay Lag
+doc_status: published
+---
+
 # Oyatie Runbook — Outbox Relay Lag
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

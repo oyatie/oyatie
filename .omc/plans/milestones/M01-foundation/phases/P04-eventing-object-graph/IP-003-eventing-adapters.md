@@ -2,23 +2,28 @@
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P04-IP-003
-title: Kafka / Redpanda / Pulsar provider-agnostic adapters
-status: stub
+title: Provider adapter matrix + file-adapter foundation smoke
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Ship 3 eventing adapters; kernels stay provider-neutral.
+purpose: Keep the provider-adapter matrix explicit while M01 proves the provider-neutral eventing boundary through the live file adapter.
 ---
 
-# M01-P04-IP-003 — Kafka / Redpanda / Pulsar provider-agnostic adapters
+# M01-P04-IP-003 — Provider adapter matrix + file-adapter foundation smoke
 
 ## Purpose
-Ship 3 eventing adapters; kernels stay provider-neutral.
+Keep the provider-adapter matrix explicit while M01 proves the provider-neutral eventing boundary through the live file adapter.
+
+> Sunset note (2026-05-15 audit #6 follow-up): `oya-eventing-application` stub orphan deleted per ADR-0106 §Consequences. Forward-looking references below are kept for plan-integrity continuity; on IP execution, scaffold the canonical replacement as `oya-eventing-app` per the ADR-0106 `application → usecase` rename + ADR-0107 `-app` binding.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-platform-eventing-adapter-kafka/src/lib.rs::KafkaAdapter
-crates/oya-platform-eventing-adapter-redpanda/src/lib.rs::RedpandaAdapter
-crates/oya-platform-eventing-adapter-pulsar/src/lib.rs::PulsarAdapter
+crates/oya-eventing-file-adapter/src/lib.rs::FileOutboxStore
+crates/oya-eventing-domain/src/lib.rs::OutboxRecord
+crates/oya-eventing-application/tests/eventing_outbox_publish.rs::outbox_publish_records_once_and_replays_same_idempotent_result
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -27,8 +32,8 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 
 ## Acceptance-test-commands
 ```
-cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo test --locked -p oya-eventing-file-adapter
+cargo test --locked -p oya-eventing-application --test eventing_outbox_publish
 scripts/check.sh
 ```
 
@@ -48,7 +53,7 @@ Next IP in this phase's INDEX list (or first IP of next phase if phase complete)
 
 ## Icm-store-payload
 ```
-icm store -t context-oyatie -c 'M01-P04-IP-003 Kafka / Redpanda / Pulsar provider-agnostic adapters shipped; acceptance commands green' -i high -k 'M01-P04-IP-003,complete'
+icm store -t context-oyatie -c 'M01-P04-IP-003 provider-adapter matrix tracked; live file-adapter foundation smoke green' -i high -k 'M01-P04-IP-003,eventing,file-adapter'
 ```
 
 ## Decision-log (Linus good-taste row)

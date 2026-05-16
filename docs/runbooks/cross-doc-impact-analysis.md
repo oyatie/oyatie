@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cross Doc Impact Analysis
+doc_status: published
+---
+
 # Oyatie Runbook — Cross Doc Impact Analysis
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

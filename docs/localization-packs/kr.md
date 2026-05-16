@@ -10,6 +10,7 @@ date: 2026-05-13
 owners: ["council-architecture", "gtm-customer-success-kr"]
 authority_chain: docs/MASTERPLAN.md §2.5, §5.5 → ADR-0064 → docs/localization-packs/INDEX.md → pack.yaml (authoritative) → this file
 manifest: docs/localization-packs/kr/pack.yaml
+doc_status: published
 ---
 
 # Korea Localization Pack (`kr`) — Pack #1 (planned, foundational)
@@ -173,5 +174,5 @@ Gate per phase (M01-P05 already green; M02-P22 / M03-P08 forthcoming):
 - [INDEX](INDEX.md)
 - Bominal ADR-0140 (inherited regional-pack pattern)
 - Bominal ADR-0190 (inherited versioned regulatory corpus.lock)
-- Bominal ADR-0210 (M3 KR group payroll + mail launch criteria)
+- Bominal ADR-0210 (M03 KR group payroll + mail launch criteria)
 - Bominal ADR-0215 (Connect retention / legal hold dual-context)

@@ -20,6 +20,7 @@ companion_docs:
   - orphan-detection-discipline.md
   - doc-freshness-discipline.md
   - ../../docs/DOC-CATALOG.md
+doc_status: published
 ---
 
 # Discipline: cross-reference index

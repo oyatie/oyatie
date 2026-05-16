@@ -1,11 +1,15 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_foundry_capability_kernel::AutonomyTier;
-use oya_foundry_run_adapter_file::{FileRunLedgerStore, FileRunLedgerStoreError};
-use oya_foundry_run_kernel::{RunDisposition, RunLedger, RunStart};
-use oya_platform_data_boundary_kernel::{privacy_data_classes_from, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
+use oya_foundry_capability_domain::AutonomyTier;
+use oya_foundry_run_domain::{RunDisposition, RunLedger, RunStart};
+use oya_foundry_run_file_adapter::{FileRunLedgerStore, FileRunLedgerStoreError};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {
     privacy_data_classes_from(&data_classes).expect("test fixture uses privacy data classes")

@@ -6,8 +6,11 @@
 //! operation-order checks, awareness presence metadata, and the persistence /
 //! access-control seams used by Docs, Sheets, Slides, Sites, and Notes without
 //! owning WebSocket, Redis, object-storage, or Yrs adapter code.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const COLLAB_RUNTIME_SCHEMA_VERSION: u32 = 1;
 const SUPPORTED_CRDT_FORMAT_VERSION: u32 = 1;
@@ -436,23 +439,23 @@ impl AwarenessState {
 }
 
 pub fn default_workspace_collab_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    // ADR-0083 Tier 1: use kernel's infallible `pii_identifying()` constructor
+    // (sibling of `internal_only`) instead of `PrivacyDataClass::new(...)
+    // .expect(...)`. `PII_IDENTIFYING` is statically guaranteed to be a
+    // privacy-program member; the kernel constructor encodes that invariant.
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn collab_state_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn actor_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn awareness_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_collab_data_class_from_legacy(
@@ -530,7 +533,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn snapshot() -> CollabSnapshotRef {
         CollabSnapshotRef::new(
@@ -681,18 +684,20 @@ mod tests {
         assert_eq!(invalid_awareness, Err(CollabError::InvalidAwarenessExpiry));
 
         let mut runtime = runtime_input();
-        runtime.active_awareness = vec![AwarenessState::new(AwarenessStateCreate {
-            document_id: "other-doc".into(),
-            tenant_id: "tenant-1".into(),
-            actor_ref: "user:writer@example.com".into(),
-            replica_id: "replica-1".into(),
-            session_id: "session-1".into(),
-            status: AwarenessStatus::Viewing,
-            cursor_anchor: None,
-            observed_at_epoch_millis: 1_700_000_000_000,
-            expires_at_epoch_millis: 1_700_000_030_000,
-        })
-        .unwrap()];
+        runtime.active_awareness = vec![
+            AwarenessState::new(AwarenessStateCreate {
+                document_id: "other-doc".into(),
+                tenant_id: "tenant-1".into(),
+                actor_ref: "user:writer@example.com".into(),
+                replica_id: "replica-1".into(),
+                session_id: "session-1".into(),
+                status: AwarenessStatus::Viewing,
+                cursor_anchor: None,
+                observed_at_epoch_millis: 1_700_000_000_000,
+                expires_at_epoch_millis: 1_700_000_030_000,
+            })
+            .unwrap(),
+        ];
         assert_eq!(
             CollabRuntime::new(runtime),
             Err(CollabError::AwarenessDocumentMismatch)

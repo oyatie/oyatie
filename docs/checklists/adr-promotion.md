@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Checklist — Adr Promotion
 
 > **Trigger:** Proposed → Accepted

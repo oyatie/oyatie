@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Cutover cross-cutting amendments — 2026-05-12
 
 <!--

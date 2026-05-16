@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Audit Chain Integrity Check
+doc_status: published
+---
+
 # Oyatie Runbook — Audit Chain Integrity Check
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -7,13 +7,13 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
-use oya_foundry_capability_kernel::Capability;
-use oya_foundry_cost_budget_kernel::BudgetSnapshot;
-use oya_platform_data_boundary_kernel::{
-    data_classes_from_privacy_data_classes, privacy_data_classes_from, Classified, DataClass,
-    PrivacyDataClass,
+use oya_check_cost_budget::BudgetSnapshot;
+use oya_data_boundary_kernel::{
+    Classified, DataClass, PrivacyDataClass, data_classes_from_privacy_data_classes,
+    privacy_data_classes_from,
 };
-use oya_platform_secrets_kernel::SecretRef;
+use oya_foundry_capability_domain::Capability;
+use oya_secrets_domain::SecretRef;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum AdapterError {

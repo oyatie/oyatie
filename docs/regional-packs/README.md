@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie — Regional Packs
 
 > Per [ADR-0010 regional-pack architecture](../../../docs/decisions/ADR-0010-regional-pack-architecture.md), every per-locale concern lives in a swappable pack that plugs into canonical seams. Korea, Japan, US, EU, India, Brazil, KSA, UAE, AU, SG can all onboard in parallel.

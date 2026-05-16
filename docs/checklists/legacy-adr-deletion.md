@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Legacy ADR Deletion (one-time, 2026-05-09)
 
 > **When:** ONLY after `docs/decisions/` is complete (50 ADRs target) AND regression-check passes.

@@ -1,3 +1,9 @@
+---
+id: ADR-0051
+status: accepted
+doc_status: published
+---
+
 # ADR-0051: Mobile and Native Client Strategy
 
 - **Status:** Accepted

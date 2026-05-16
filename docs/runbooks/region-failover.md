@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Region Failover
+doc_status: published
+---
+
 # Oyatie Runbook — Region Failover
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,20 +1,23 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::collections::BTreeSet;
 
-use oya_cloud_billing_kernel::Money;
+use oya_cloud_billing_domain::Money;
 use oya_cloud_finops_api::{
-    generate_cloud_finops_report_from_api, CloudFinopsApiAuthorization,
-    CloudFinopsApiBoundaryContext, CloudFinopsApiPrincipal, CloudFinopsAxisRef,
-    CloudFinopsMoneyRecord, CloudFinopsPeriodRequest, CloudFinopsReportAnomalyPolicyRequest,
-    CloudFinopsReportApiError, CloudFinopsReportApiRequest, CloudFinopsReportApiStatus,
-    CloudFinopsReportGenerateIdempotencyLedger, CloudFinopsReportGenerateRequest,
-    CLOUD_FINOPS_REPORT_SURFACE,
+    CLOUD_FINOPS_REPORT_SURFACE, CloudFinopsApiAuthorization, CloudFinopsApiBoundaryContext,
+    CloudFinopsApiPrincipal, CloudFinopsAxisRef, CloudFinopsMoneyRecord, CloudFinopsPeriodRequest,
+    CloudFinopsReportAnomalyPolicyRequest, CloudFinopsReportApiError, CloudFinopsReportApiRequest,
+    CloudFinopsReportApiStatus, CloudFinopsReportGenerateIdempotencyLedger,
+    CloudFinopsReportGenerateRequest, generate_cloud_finops_report_from_api,
 };
-use oya_cloud_finops_kernel::{
+use oya_cloud_finops_domain::{
     AxisBudgetCreate, CloudFinopsLedger, CostAllocationCreate, FinopsPeriod, RateCardLineCreate,
-    UnitRate, STABLE_GROSS_MARGIN_TARGET_BPS,
+    STABLE_GROSS_MARGIN_TARGET_BPS, UnitRate,
 };
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_metering_kernel::{
+use oya_data_boundary_kernel::DataClass;
+use oya_metering_domain::{
     AxisId, MeterEvent, MeterEventCreate, MeterUnit, MeterUnitKind, PlaneTag,
 };
 
@@ -251,7 +254,7 @@ fn finops_report_api_generates_report_once_and_replays_same_idempotent_result() 
     assert_eq!(first.data.axis_costs.len(), 2);
     assert_eq!(first.data.resource_costs.len(), 2);
     assert_eq!(first.data.recommendations.len(), first.data.anomalies.len());
-    assert_eq!(first.data.data_class, "FINANCIAL_KR_신용정보");
+    assert_eq!(first.data.data_class, "FINANCIAL_KR");
     assert_eq!(first.data.schema_version, 1);
     assert_eq!(
         first
@@ -414,7 +417,7 @@ fn finops_report_api_maps_kernel_duplicate_report_and_no_data_errors() {
     .expect_err("well-formed report with no allocations is unprocessable");
     assert_eq!(
         no_data,
-        CloudFinopsReportApiError::Finops(oya_cloud_finops_kernel::CloudFinopsError::NoReportData)
+        CloudFinopsReportApiError::Finops(oya_cloud_finops_domain::CloudFinopsError::NoReportData)
     );
     assert_eq!(no_data.finops_report_status_code(), 422);
 }

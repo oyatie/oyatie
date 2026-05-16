@@ -3,7 +3,11 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-011
 title: File upstream grit session bug (P9)
-status: stub
+status: complete
+migration_status: cleanup
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Author local artifact + file upstream rtk-ai/grit issue with documented genuine need.

@@ -11,6 +11,7 @@ purpose: |
   lift target, the standard(s) it updates, and the lane(s) that enforce it.
 enforced_by: oya-foundry-fitness-orphan-detection
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Release-Versioning Policy — Index

@@ -1,0 +1,19 @@
+[package]
+name = "oya-identity-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
+oya-identity-domain = { path = "../oya-identity-domain" }
+
+[lib]
+name = "oya_identity_usecase"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

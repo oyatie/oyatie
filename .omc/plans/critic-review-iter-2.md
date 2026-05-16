@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for critic-review-iter-2.md
+---
+
 # Critic Evaluation — ralplan-oyatie-sst-consolidation (Iteration 2 final)
 
 Captured 2026-05-12. Reviewer: oh-my-claudecode:critic. Verdict: **APPROVE**.

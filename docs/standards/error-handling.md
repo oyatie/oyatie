@@ -1,4 +1,9 @@
 ---
+purpose: Canonical error-handling discipline for the oyatie Rust workspace.
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -13,7 +18,7 @@ purpose: |
   per the `silent-failure-hunter` reviewer-agent role. Resolves the
   `standards/error-handling.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-error-boundary
 companion_docs:
   - docs/standards/code-style-rust.md
@@ -24,13 +29,14 @@ related_adrs:
   - ADR-0053
   - ADR-0052
   - ADR-0054
+  - ADR-0083
 ---
 
 # Error Handling
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 4 ("No untyped
+Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-04 ("No untyped
 values at API boundaries") and [`AGENTS.md`](../AGENTS.md) §During-change
 discipline, every Rust API boundary in `oya-*` crates MUST use typed errors.
 This standard names the libraries, the boundary rule, and the silent-failure
@@ -142,8 +148,10 @@ Forbidden patterns:
    on failure — refused at code review.
 3. Logging an error and returning `Ok` — see §6.
 
-Exception: pure parsing or validation helpers MAY return `Option<T>` when
-the "absence" is semantically meaningful (e.g., `find_first(...)`).
+Sub-rule (canonical): pure parsing or validation helpers MAY return
+`Option<T>` when the "absence" is semantically meaningful (e.g.,
+`find_first(...)`); this is a canonical sub-rule of the Result-returner
+contract, not an exception.
 
 ## 6. Silent-failure prevention
 
@@ -232,7 +240,7 @@ Source: [Markaicode — Rust Error Handling 2025](https://markaicode.com/rust-er
 - [Markaicode — Rust Error Handling 2025](https://markaicode.com/rust-error-handling-2025-guide/).
 - [eyre](https://github.com/eyre-rs/eyre).
 - [Momori — thiserror, anyhow](https://momori.dev/posts/rust-error-handling-thiserror-anyhow/).
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 3 "Error handling".
 - [`docs/AGENTS.md`](../AGENTS.md) §Per-change-class reviewer agents
   (`silent-failure-hunter`).

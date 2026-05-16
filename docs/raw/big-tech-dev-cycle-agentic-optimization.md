@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Big-Tech Dev Cycle and Project Management → Agentic Optimization
 
 **Date:** 2026-05-10

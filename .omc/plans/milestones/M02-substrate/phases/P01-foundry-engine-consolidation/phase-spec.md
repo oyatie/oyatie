@@ -5,20 +5,25 @@ milestone: M02-substrate
 phase: P01-foundry-engine-consolidation
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; oya-tooling-agent-read scaffold merged; grit v0.3.0
-  installed; icm CLI installed; cargo check --workspace exits 0 on main.
-exit_gate: |
-  All 4 LEAN check binaries compile and pass --report-only on workspace;
-  7 sub-commands each (28 total) implemented and exit 0; grit done called
-  on all phase symbols; ICM phase-handoff row emitted under context-oyatie.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "grit + icm CLI primitives must exist before Foundry consolidation"
-owner_team: council-foundry
----
+entry_gate: 'M01-P05 complete; oya-tooling-agent-read scaffold merged; grit v0.3.0
 
+  installed; icm CLI installed; cargo check --workspace exits 0 on main.
+
+  '
+exit_gate: 'All 4 LEAN check binaries compile and pass --report-only on workspace;
+
+  7 sub-commands each (28 total) implemented and exit 0; grit done called
+
+  on all phase symbols; ICM phase-handoff row emitted under context-oyatie.
+
+  '
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: grit + icm CLI primitives must exist before Foundry consolidation
+owner_team: council-foundry
+purpose: "This phase consolidates the grit/icm/oya-tooling-agent-read scaffolds into a coherent Foundry engine composed of 4 LEAN check binaries (`oya-shared-architecture-check-cli`, `oya-shared-bounded-contexts-check-cli`."
+---
 # P01-foundry-engine-consolidation: Consolidate Foundry engine into 4 LEAN check binaries with 7 sub-commands each
 
 ## Purpose

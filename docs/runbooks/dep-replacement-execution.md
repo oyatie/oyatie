@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Dep Replacement Execution
+doc_status: published
+---
+
 # Oyatie Runbook — Dep Replacement Execution
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

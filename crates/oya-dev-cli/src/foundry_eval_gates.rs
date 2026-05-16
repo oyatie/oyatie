@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundation_app::{
+use oya_application_app::{
     AdversarialKind, EvalCaseInput, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
 };
 

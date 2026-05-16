@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Doc Update Protocol
+doc_status: published
+---
+
 # Oyatie — Doc Update Protocol
 
 > **Status:** Draft v0.1 — 2026-05-09. The full step-by-step. [DOC-CATALOG.md §3](DOC-CATALOG.md) has the inline version; this doc is the canonical longer reference.

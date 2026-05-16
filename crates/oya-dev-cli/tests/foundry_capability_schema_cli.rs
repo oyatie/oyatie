@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -34,8 +38,10 @@ fn foundry_capability_schema_gate_rejects_missing_agent_description() {
     let output = run_gate(&temp);
 
     assert!(!output.status.success());
-    assert!(String::from_utf8_lossy(&output.stderr)
-        .contains("missing required field description.agent_readable"));
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("missing required field description.agent_readable")
+    );
 
     fs::remove_dir_all(temp).ok();
 }

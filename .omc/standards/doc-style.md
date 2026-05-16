@@ -188,5 +188,5 @@ surfaces violations as PR comments but does not block merge.
   (voice + tone reference).
 - [Linux kernel `Documentation/process/`](https://www.kernel.org/doc/html/latest/process/)
   precedent — terse, declarative, machine-friendly.
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../specs/hyperscaler-best-practices-2026-05-12.md)
   Domain 2 "Documentation" section.

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Workflow Engine Restart
+doc_status: published
+---
+
 # Oyatie Runbook — Workflow Engine Restart
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -191,6 +191,7 @@ fn normalize_dependency_reference(reference: &str) -> String {
         .map(|(path, _)| path)
         .unwrap_or_else(|| reference.trim())
         .trim()
+        .trim_start_matches('/')
         .to_string()
 }
 

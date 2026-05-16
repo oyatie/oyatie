@@ -14,3 +14,6 @@ oya-foundry-architecture-map-kernel = { path = "../oya-foundry-architecture-map-
 name = "oya_foundry_architecture_map_app"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

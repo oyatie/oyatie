@@ -7,13 +7,13 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_compute_kernel::{
+use oya_cloud_compute_domain::{
     CloudComputeCatalog, CloudComputeError, ComputeFlavorSpec, ComputeQuotaEnvelope, ComputeRepo,
     ImageRefKind, Instance, InstanceCreate, InstanceState,
 };
-use oya_cloud_resource_kernel::{InstanceFlavor, ResourceId};
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_platform_residency_kernel::{parse_residency_class_label, ResidencyClass};
+use oya_cloud_resource_domain::{InstanceFlavor, ResourceId};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
 
 pub const CLOUD_COMPUTE_VM_CREATE_SURFACE: &str = "cloud.compute.vm.create";
 

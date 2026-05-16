@@ -20,6 +20,7 @@ related:
   - docs/standards/INDEX.md
   - docs/templates/INDEX.md
   - docs/fitness-lanes/
+doc_status: published
 ---
 
 # Agent Decision Tree

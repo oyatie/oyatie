@@ -1,9 +1,13 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_platform_eventing_adapter_file::{FileOutboxStore, FileOutboxStoreError};
-use oya_platform_eventing_kernel::Outbox;
+use oya_eventing_domain::Outbox;
+use oya_eventing_file_adapter::{FileOutboxStore, FileOutboxStoreError};
 
 #[test]
 fn file_outbox_store_replays_records_and_appends_only_new_suffix() {
@@ -42,11 +46,43 @@ fn file_outbox_store_replays_records_and_appends_only_new_suffix() {
     outbox
         .mark_published("ten_alpha", second.sequence)
         .expect("published transition is valid");
-    assert_eq!(store.append_outbox(&outbox).expect("suffix append"), 1);
+    assert_eq!(store.append_outbox(&outbox).expect("suffix append"), 2);
 
     let restored = store.load().expect("outbox can be replayed");
     assert_eq!(restored.records(), outbox.records());
     assert!(restored.records()[1].published);
+
+    fs::remove_file(path).ok();
+}
+
+#[test]
+fn file_outbox_store_persists_published_state_transition_as_append_only_event() {
+    let path = temp_outbox_path("published-transition");
+    let store = FileOutboxStore::new(path.clone());
+    let mut outbox = Outbox::default();
+    let record = outbox
+        .publish(
+            "ten_alpha".into(),
+            "oya.object-graph.entity.upserted.v1".into(),
+            "idem-1".into(),
+            "ent-1".into(),
+        )
+        .expect("record is valid");
+
+    assert_eq!(store.append_outbox(&outbox).expect("initial append"), 1);
+    outbox
+        .mark_published("ten_alpha", record.sequence)
+        .expect("published transition is valid");
+    assert_eq!(
+        store
+            .append_outbox(&outbox)
+            .expect("published status event append"),
+        1
+    );
+
+    let restored = store.load().expect("outbox can be replayed");
+    assert_eq!(restored.records(), outbox.records());
+    assert!(restored.records()[0].published);
 
     fs::remove_file(path).ok();
 }
@@ -81,6 +117,17 @@ fn file_outbox_store_rejects_divergent_or_malformed_history() {
     );
 
     fs::write(&path, "not-an-outbox-record\n").expect("malform write");
+    assert_eq!(store.load(), Err(FileOutboxStoreError::MalformedRecord));
+
+    fs::remove_file(path).ok();
+}
+
+#[test]
+fn file_outbox_store_rejects_length_prefix_inside_utf8_boundary() {
+    let path = temp_outbox_path("utf8-boundary");
+    let store = FileOutboxStore::new(path.clone());
+    fs::write(&path, "v1|0|1:é|").expect("malformed utf8-boundary record written");
+
     assert_eq!(store.load(), Err(FileOutboxStoreError::MalformedRecord));
 
     fs::remove_file(path).ok();

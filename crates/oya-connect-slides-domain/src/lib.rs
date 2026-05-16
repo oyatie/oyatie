@@ -4,12 +4,15 @@
 //! `docs/products/workspace/PRD.md` and ADR-0029. The kernel owns deck metadata,
 //! CRDT binding to the shared collab runtime, template references, slide graph
 //! validation, and the export-format guardrail for PPTX/PDF/HTML.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_workspace_collab_runtime_kernel::{CollabRuntime, CollabSurface};
-use oya_workspace_document_format_kernel::{DocumentKind, ExportFormat};
+use oya_connect_collab_runtime_domain::{CollabRuntime, CollabSurface};
+use oya_connect_document_format_domain::{DocumentKind, ExportFormat};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const SLIDE_DECK_SCHEMA_VERSION: u32 = 1;
 const SLIDE_GRAPH_SCHEMA_VERSION: u32 = 1;
@@ -345,18 +348,15 @@ pub fn supports_slide_export(format: ExportFormat) -> bool {
 }
 
 pub fn default_workspace_slide_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn slide_content_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn title_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiQuasiIdentifier)
-        .expect("PII_QUASI_IDENTIFIER is a privacy-program data class")
+    PrivacyDataClass::pii_quasi_identifier()
 }
 
 pub fn workspace_slide_data_class_from_legacy(
@@ -485,10 +485,10 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
-    use oya_workspace_collab_runtime_kernel::{
+    use oya_connect_collab_runtime_domain::{
         CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef,
     };
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn runtime(surface: CollabSurface) -> CollabRuntime {
         CollabRuntime::new(CollabRuntimeCreate {
@@ -541,12 +541,14 @@ mod tests {
     fn graph() -> SlideGraph {
         SlideGraph::new(
             vec![slide("slide-1", 1), slide("slide-2", 2)],
-            vec![SlideTransition::new(
-                "slide-1".into(),
-                "slide-2".into(),
-                SlideTransitionKind::Fade,
-            )
-            .unwrap()],
+            vec![
+                SlideTransition::new(
+                    "slide-1".into(),
+                    "slide-2".into(),
+                    SlideTransitionKind::Fade,
+                )
+                .unwrap(),
+            ],
         )
         .unwrap()
     }
@@ -605,12 +607,10 @@ mod tests {
     fn slide_graph_rejects_dangling_self_and_duplicate_transitions() {
         let dangling = SlideGraph::new(
             vec![slide("slide-1", 1)],
-            vec![SlideTransition::new(
-                "slide-1".into(),
-                "slide-2".into(),
-                SlideTransitionKind::Cut,
-            )
-            .unwrap()],
+            vec![
+                SlideTransition::new("slide-1".into(), "slide-2".into(), SlideTransitionKind::Cut)
+                    .unwrap(),
+            ],
         );
         assert_eq!(dangling, Err(SlideError::MissingTransitionEndpoint));
 
@@ -660,5 +660,46 @@ mod tests {
             DataClassification::from(OperationalDataClass::Audit).privacy_data_class(),
             None
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// M03-P06-IP — workspace.slides STAGING surface markers (SPEC §4 rows).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SlidesSurfaceStaging {
+    pub deck_id: Classified<String>,   // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub yrs_state_vector: Classified<Vec<u8>>, // data_class: INTERNAL_ONLY
+}
+
+impl SlidesSurfaceStaging {
+    pub fn new(deck_id: String, tenant_id: String, yrs_state_vector: Vec<u8>) -> Self {
+        Self {
+            deck_id: Classified::new(deck_id, DataClass::InternalOnly),
+            tenant_id: Classified::new(tenant_id, DataClass::InternalOnly),
+            yrs_state_vector: Classified::new(yrs_state_vector, DataClass::InternalOnly),
+        }
+    }
+}
+
+#[cfg(test)]
+mod m03_p06_tests {
+    use super::*;
+
+    fn sample() -> SlidesSurfaceStaging {
+        SlidesSurfaceStaging::new("slides-1".into(), "slides-1".into(), vec![])
+    }
+
+    #[test]
+    fn surface_staging_constructor_sets_internal_only() {
+        let s = sample();
+        assert_eq!(s.deck_id.data_class, DataClass::InternalOnly.into());
+    }
+
+    #[test]
+    fn surface_staging_round_trip_equality() {
+        assert_eq!(sample(), sample());
     }
 }

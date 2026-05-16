@@ -6,7 +6,7 @@
 
 use std::fmt;
 
-use oya_platform_data_boundary_kernel::{
+use oya_data_boundary_kernel::{
     DataClass, DataClassification, OperationalDataClass, SubjectDataMarker,
 };
 
@@ -328,17 +328,16 @@ pub fn redact_for_telemetry(
 #[cfg(test)]
 mod tests {
     use super::{
-        classification_labels_are_safe, data_classifications_label,
+        CAPABILITY_INVOCATION_OPERATION_NAME, CapabilityInvocationTraceContext,
+        CapabilityInvocationTraceObserver, FORBIDDEN_DATA_CLASS_PRESENT_LABEL,
+        FOUNDRY_PROVIDER_NAME, InvocationTraceResult, NoopCapabilityInvocationTraceObserver,
+        TelemetryLogExposure, classification_labels_are_safe, data_classifications_label,
         legacy_data_class_labels_are_safe, legacy_data_classes_label,
         legacy_log_exposure_for_data_class, legacy_redact_for_telemetry,
         legacy_telemetry_data_classes_label, log_exposure_for_classification,
         redact_classification_for_telemetry, telemetry_data_classifications_label,
-        CapabilityInvocationTraceContext, CapabilityInvocationTraceObserver, InvocationTraceResult,
-        NoopCapabilityInvocationTraceObserver, TelemetryLogExposure,
-        CAPABILITY_INVOCATION_OPERATION_NAME, FORBIDDEN_DATA_CLASS_PRESENT_LABEL,
-        FOUNDRY_PROVIDER_NAME,
     };
-    use oya_platform_data_boundary_kernel::{
+    use oya_data_boundary_kernel::{
         DataClass, DataClassification, OperationalDataClass, SubjectDataMarker,
     };
 
@@ -375,7 +374,7 @@ mod tests {
                 DataClass::FinancialKrCredit,
                 DataClass::SensitivePipaArticle23,
             ]),
-            "PII_QUASI_IDENTIFIER,FINANCIAL_KR_신용정보,SENSITIVE_PIPA_ART23"
+            "PII_QUASI_IDENTIFIER,FINANCIAL_KR,SENSITIVE_PIPA_ART23"
         );
         #[allow(deprecated)]
         {

@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Healthcare (Clinical / Ambulatory / HL7-FHIR)
 
 ## Mission
@@ -21,6 +25,7 @@ This team owns the healthcare vertical: clinical workflows, ambulatory care, HL7
 
 ## In-scope work
 - FHIR R4/R5 resource model: Patient, Encounter, Observation, Condition, MedicationStatement, AllergyIntolerance, DiagnosticReport, Claim
+- Clinical terminology and e-prescribing mappings: ICD-10-CM, SNOMED CT, RxNorm, and NCPDP SCRIPT stay owned by the healthcare vertical with ops-compliance review.
 - Clinical workflow authoring: ambulatory visit, inpatient admission, discharge, e-prescribing, prior authorization
 - Break-glass: emergency access override with mandatory audit-chain emission and post-event review
 - Claims processing: KR NHIS claim submission (EDI 보건의료 format), US HIPAA 837/835, EU reimbursement formats

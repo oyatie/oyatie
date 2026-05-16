@@ -14,3 +14,6 @@ oya-connect-meet-domain = { path = "../oya-connect-meet-domain" }
 name = "oya_connect_recordings_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

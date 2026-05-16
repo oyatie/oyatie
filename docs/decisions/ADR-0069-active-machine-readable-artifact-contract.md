@@ -1,3 +1,9 @@
+---
+id: ADR-0069
+status: accepted
+doc_status: published
+---
+
 # ADR-0069: Active machine-readable artifact contract — 9-capability declaration, knowledge-graph substrate, registry-pattern control plane
 
 > **Status:** Accepted
@@ -42,11 +48,11 @@ Adopt the **active machine-readable artifact contract** v3.0.0 with three load-b
 
 | Component | Path | Role |
 |---|---|---|
-| Contract schema | `.omc/specs/active-machine-readable-artifact-contract.json` | Defines the 9 capabilities and their required fields. Applies as registry-row shape. |
-| Knowledge-graph schema | `.omc/specs/knowledge-graph-schema.json` | Pure meta-schema (post-r17 #3 split). |
-| Knowledge-graph catalog | `.omc/registries/knowledge-graph-catalog.json` | First-class catalog: 24 node types + 18 edge types + 14 graph-level invariants + 5 DRY query examples. |
-| Capability registry | `.omc/registries/artifact-capabilities-registry.json` | Control plane: one row per machine-readable artifact, listing its 9-capability statuses + anchors. |
-| Building-blocks registry | `.omc/registries/reusable-building-blocks-registry.json` | DRY enforcement: one row per reusable block, with canonical_path + consumers + version + deprecation. |
+| Contract schema | `/specs/cross-cutting/active-machine-readable-artifact-contract.json` | Defines the 9 capabilities and their required fields. Applies as registry-row shape. |
+| Knowledge-graph schema | `/specs/cross-cutting/knowledge-graph-schema.json` | Pure meta-schema (post-r17 #3 split). |
+| Knowledge-graph catalog | `/registries/cross-cutting/knowledge-graph-catalog.json` | First-class catalog: 24 node types + 18 edge types + 14 graph-level invariants + 5 DRY query examples. |
+| Capability registry | `/registries/cross-cutting/artifact-capabilities-registry.json` | Control plane: one row per machine-readable artifact, listing its 9-capability statuses + anchors. |
+| Building-blocks registry | `/registries/cross-cutting/reusable-building-blocks-registry.json` | DRY enforcement: one row per reusable block, with canonical_path + consumers + version + deprecation. |
 | Validator crate | `crates/oya-check-active-artifact-contract` | Pure-Rust kernel (std-only) that loads the capability registry, resolves HEAD-tracking, detects duplicate IDs, detects operational-without-evidence. Exposed via `oya check active-artifact-contract` once integrated with `oya-dev-cli`. |
 | CI lane | `lean-a-active-artifact-contract` in `registry/quality/lanes.yaml` | Enforces the contract at PR time. Status `planned` until validator integration completes. |
 
@@ -70,7 +76,7 @@ Every active machine-readable artifact in the repo MUST declare these 9 capabili
 
 ### Migration
 
-Existing canonical specs (`.omc/specs/master-plan-sequencing.json`, `hyperscaler-gates.json`, `evidence-taxonomy.json`, `stop-conditions.json`, `final-report-schema.json`) and the evidence-bundle template are retroactively registered in the capability registry with all-planned status pointing to validator-crate prerequisites. They do not require an immediate rewrite — registration is sufficient for baseline conformance.
+Existing canonical specs (`/specs/cross-cutting/master-plan-sequencing.json`, `hyperscaler-gates.json`, `evidence-taxonomy.json`, `stop-conditions.json`, `final-report-schema.json`) and the evidence-bundle template are retroactively registered in the capability registry with all-planned status pointing to validator-crate prerequisites. They do not require an immediate rewrite — registration is sufficient for baseline conformance.
 
 Grace period for retroactive conformance: 30 days from 2026-05-13 (i.e., 2026-06-12). After that, the lane (once `active`) blocks PRs that add new artifacts under `applicable_paths_glob` without a capability-registry row.
 
@@ -80,21 +86,21 @@ The current commit landing this ADR will use `rtk git commit` as documented hist
 
 ### Linus-style findings closed by this decision
 
-Per architect r17 review (`.omc/audits/consensus/2026-05-13/architect-r17-torvalds-artifact-contract.md`):
+Per architect r17 review (`/evidence/audits/consensus/2026-05-13/architect-r17-torvalds-artifact-contract.md`):
 
 - #1 (artifacts not in HEAD): this commit lands them.
 - #2 (no ADR for v3.0.0): this ADR closes it.
 - #4 (no validator crate exists): the validator crate (Phase C of this batch) closes it.
 - #5 (lanes named but not wired): one lane (`lean-a-active-artifact-contract`) wired in `registry/quality/lanes.yaml` with status `planned` until validator integration completes.
 - #9 (HG-RELIABILITY over-claim): inline downgrade to `documentation` evidence class.
-- #10 (evidence cites `/tmp` paths): 12 consensus outputs archived under `.omc/audits/consensus/2026-05-13/`; attestation updated.
+- #10 (evidence cites `/tmp` paths): 12 consensus outputs archived under `/evidence/audits/consensus/2026-05-13/`; attestation updated.
 
 ### Linus-style findings closed in follow-up commit `b0798b0` (per user "don't defer anything" 2026-05-13)
 
-- #3 (graph catalog hidden under `_canonical_*` keys): CLOSED — `.omc/specs/knowledge-graph-schema.json` reduced to pure meta-schema (199 lines); `.omc/registries/knowledge-graph-catalog.json` NEW with 24 node types + 18 edge types + 14 invariants + 5 DRY queries as first-class catalog data.
+- #3 (graph catalog hidden under `_canonical_*` keys): CLOSED — `/specs/cross-cutting/knowledge-graph-schema.json` reduced to pure meta-schema (199 lines); `/registries/cross-cutting/knowledge-graph-catalog.json` NEW with 24 node types + 18 edge types + 14 invariants + 5 DRY queries as first-class catalog data.
 - #6 (DRY counts contradictory): CLOSED inline — field renamed to `consumer_count_resolved_today_auto_computed` (auto-computed by validator); old name retired; the resolved-vs-listed split is documented in `_known_data_quality_gaps_per_architect_r17`.
 - #7 (consumer refs mix prose + paths): CLOSED — all 15 block rows split into `consumer_refs` (resolvable paths) + `consumer_selectors` (predicate strings); `consumer_count_listed` auto-computed per row.
-- #8 (9-capability contract too heavy to author manually): CLOSED — `.omc/specs/artifact-profile-defaults.json` NEW with 7 profiles (schema / registry / template / plan-attestation / ledger / claim-matrix / evidence-bundle); 10 capability-registry rows collapsed to `artifact_profile` + sparse `capability_overrides`; validator gains `ArtifactProfile` enum + 3 new tests (12 total pass).
+- #8 (9-capability contract too heavy to author manually): CLOSED — `/specs/cross-cutting/artifact-profile-defaults.json` NEW with 7 profiles (schema / registry / template / plan-attestation / ledger / claim-matrix / evidence-bundle); 10 capability-registry rows collapsed to `artifact_profile` + sparse `capability_overrides`; validator gains `ArtifactProfile` enum + 3 new tests (12 total pass).
 
 ---
 
@@ -124,7 +130,7 @@ JUSTIFICATION:
 
 ### Negative
 
-- 9-capability rows are heavy to author manually (architect r17 finding #8). Mitigation landed in commit `b0798b0`: `artifact_profile` defaults system at `.omc/specs/artifact-profile-defaults.json` with 7 profiles; per-row authoring reduced to `artifact_profile` + sparse `capability_overrides`.
+- 9-capability rows are heavy to author manually (architect r17 finding #8). Mitigation landed in commit `b0798b0`: `artifact_profile` defaults system at `/specs/cross-cutting/artifact-profile-defaults.json` with 7 profiles; per-row authoring reduced to `artifact_profile` + sparse `capability_overrides`.
 - Initial implementation is plan-stage only: the validator crate compiles but is not yet integrated with `oya-dev-cli`, the lane is `planned` not `active`, and the foundation prerequisites (cosign, trivy, audit-chain runtime) block some capability promotions to `operational`.
 - Knowledge-graph storage is monolithic registries today; a graph-storage adapter (Neo4j / Memgraph / Postgres recursive CTE) is needed before the design scales past ~10k artifacts.
 - Migration grace period (30 days) means most existing artifacts will not conform on day 1.
@@ -153,14 +159,14 @@ Wait for cosign/trivy/audit-chain runtime before authoring any of this. Rejected
 
 ## References
 
-- `.omc/specs/active-machine-readable-artifact-contract.json` (the v3.0.0 schema)
-- `.omc/specs/knowledge-graph-schema.json` (graph substrate)
-- `.omc/registries/artifact-capabilities-registry.json` (control plane)
-- `.omc/registries/reusable-building-blocks-registry.json` (DRY enforcement)
-- `.omc/audits/consensus/2026-05-13/architect-r17-torvalds-artifact-contract.md` (architect r17 Torvalds-lens findings)
-- `.omc/claim-matrix/ops-portal.json` (HG-* gate coverage; rule-iii honest-claims discipline)
-- `.omc/specs/master-plan-sequencing.json` (forbidden-primitive list; grit protocol)
-- `.omc/specs/hyperscaler-gates.json` (HG-* 10-gate registry)
+- `/specs/cross-cutting/active-machine-readable-artifact-contract.json` (the v3.0.0 schema)
+- `/specs/cross-cutting/knowledge-graph-schema.json` (graph substrate)
+- `/registries/cross-cutting/artifact-capabilities-registry.json` (control plane)
+- `/registries/cross-cutting/reusable-building-blocks-registry.json` (DRY enforcement)
+- `/evidence/audits/consensus/2026-05-13/architect-r17-torvalds-artifact-contract.md` (architect r17 Torvalds-lens findings)
+- `/registries/cross-cutting/claim-matrix/ops-portal.json` (HG-* gate coverage; rule-iii honest-claims discipline)
+- `/specs/cross-cutting/master-plan-sequencing.json` (forbidden-primitive list; grit protocol)
+- `/specs/cross-cutting/hyperscaler-gates.json` (HG-* 10-gate registry)
 - `docs/CONSTITUTION.md` (Decision principle 3: mechanical prevention over process)
 - `docs/decisions/ADR-0015-architectural-flattening-target.md` (registry pattern + flat crates)
 - `docs/decisions/ADR-0056-bnf-v4-1.md` (BNF v4.1 + 12-layer enum)

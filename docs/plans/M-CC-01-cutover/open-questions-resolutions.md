@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Open-questions resolutions — ralplan-oyatie-sst-consolidation
 
 <!--

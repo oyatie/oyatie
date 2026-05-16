@@ -1,13 +1,17 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_cloud_compute_domain::{CloudComputeCatalog, CloudComputeError};
 use oya_cloud_compute_k8s_api::{
-    create_cloud_compute_k8s_cluster_from_api, CloudComputeK8sApiAuthorization,
+    CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE, CloudComputeK8sApiAuthorization,
     CloudComputeK8sApiBoundaryContext, CloudComputeK8sApiError, CloudComputeK8sApiPrincipal,
     CloudComputeK8sClusterCreateApiRequest, CloudComputeK8sClusterCreateApiStatus,
     CloudComputeK8sClusterCreateRequest, CloudComputeK8sCreateIdempotencyLedger,
     CloudComputeK8sNodePoolCreateRequest, CloudComputeK8sNodePoolFlavorSpec,
     CloudComputeK8sQuotaEnvelope, CloudComputeK8sSecurityGroupRef,
-    CLOUD_COMPUTE_K8S_CLUSTER_CREATE_SURFACE,
+    create_cloud_compute_k8s_cluster_from_api,
 };
-use oya_cloud_compute_kernel::{CloudComputeCatalog, CloudComputeError};
 
 const CLUSTER_ID: &str = "oya:cloud:kr-seoul:ten_kr:k8s:prod";
 

@@ -1,6 +1,6 @@
 //! Foundry claim-ceiling kernel.
 
-use oya_foundry_catalog_kernel::{
+use oya_foundry_catalog_domain::{
     ApiStability, CatalogIndex, CatalogRecord, SecurityReview, SupplyChainAttestation,
 };
 

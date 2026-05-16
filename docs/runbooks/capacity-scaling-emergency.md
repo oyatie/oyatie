@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Capacity Scaling Emergency
+doc_status: published
+---
+
 # Oyatie Runbook — Capacity Scaling Emergency
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

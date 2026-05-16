@@ -7,7 +7,7 @@ purpose: |
   dimensions. Each dimension binds to (a) a definition, (b) a
   verification method, and (c) the fitness lane that enforces it. The
   bar reflects the AWS / Google / MS / Oracle convergent practice as
-  documented in `.omc/specs/hyperscaler-best-practices-2026-05-12.md`.
+  documented in `.omc/scratch/hyperscaler-best-practices-2026-05-12.md`.
 owner: council-architecture
 ---
 

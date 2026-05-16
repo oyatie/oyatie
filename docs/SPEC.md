@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — System Specification (SPEC)
+doc_status: published
+---
+
 # Oyatie — System Specification (SPEC)
 
 ## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
@@ -53,20 +58,20 @@ This table anchors active glossary terms to product-surface families for the `gl
 
 ## 2. Cross-cutting platform surfaces
 
-Owned by `platform-*` teams. Consumed by every axis.
+Owned by M01 foundation teams. Consumed by every axis; runtime crate names follow BNF v4.1 live workspace names, while external contract paths keep their stability-preserving platform URLs.
 
 | id | plane | kind | invariant | tier | crate |
 |---|---|---|---|---|---|
-| `tenant.create` | control | REST | tenant_id is globally unique; region binding immutable post-create; OpenAPI source `contracts/openapi/platform/platform-tenant-v1.yaml` | stable | `oya-platform-tenant-api` |
-| `tenant.dsr.cascade` | control | REST + event | DSR cascade completes ≤ 30d (preview) / 14d (stable) / 7d (GA); proof-of-erasure per affected store | stable | `oya-platform-tenant-app` |
+| `tenant.create` | control | REST | tenant_id is globally unique; region binding immutable post-create; OpenAPI source `contracts/openapi/platform/platform-tenant-v1.yaml` | stable | `oya-tenancy-kernel` |
+| `tenant.dsr.cascade` | control | REST + event | DSR cascade completes ≤ 30d (preview) / 14d (stable) / 7d (GA); proof-of-erasure per affected store | stable | `oya-dsr-application` |
 | `identity.user.upsert` | control | REST | per-tenant unique by primary identifier; per-region IdP binding; OpenAPI source `contracts/openapi/platform/platform-identity-user-v1.yaml` | stable | `oya-platform-identity-api` |
-| `identity.token.issue` (STS) | control | REST | short-lived (≤ 1h) per-purpose-bound credentials; never long-lived API key; OpenAPI source `contracts/openapi/platform/platform-identity-token-v1.yaml` | stable | `oya-platform-identity-app` |
+| `identity.token.issue` (STS) | control | REST | short-lived (≤ 1h) per-purpose-bound credentials; never long-lived API key; OpenAPI source `contracts/openapi/platform/platform-identity-token-v1.yaml` | stable | `oya-identity-application` |
 | `cedar.policy.publish` | control | REST | versioned; semver; per-tenant-or-global scope; superseded-by chain; OpenAPI source `contracts/openapi/platform/platform-policy-cedar-v1.yaml` | stable | `oya-platform-policy-cedar-api` |
-| `audit.event.emit` (per ADR-0003) | data | event | append-only; hash-chained; per-tenant-shard; AsyncAPI source `contracts/asyncapi/platform/audit-events-v1.yaml`; Protobuf source `contracts/proto/platform/audit/v1/audit-event-v1.proto` | stable | `oya-platform-audit-chain-app` |
-| `eventing.outbox.publish` | data | event | exactly-once via outbox + Kafka per ADR-0046; AsyncAPI source `contracts/asyncapi/platform/eventing-outbox-v1.yaml`; Protobuf source `contracts/proto/platform/eventing/v1/eventing-outbox-v1.proto` | stable | `oya-platform-eventing-app` |
-| `object-graph.entity.upsert` | data | REST + event | engine-enforced row-level isolation per ADR-0006; data_class annotated; OpenAPI source `contracts/openapi/platform/platform-object-graph-v1.yaml` | stable | `oya-platform-object-graph-api` |
-| `object-graph.property.{vector,timeseries,geo,ciphertext,struct}` | data | REST | per-property-tier semantics per ADR-0006..0112 | preview | `oya-platform-object-graph-{vector,timeseries,geo,ciphertext,struct}-*` |
-| `dsr.cascade.execute` | data | REST | ≤ 30d (preview); proof-of-erasure across all data-class-touching stores; OpenAPI source `contracts/openapi/platform/platform-dsr-v1.yaml` | stable | `oya-platform-dsr-app` |
+| `audit.event.emit` (per ADR-0003) | data | event | append-only; SHA-256 hash-chained; Merkle-rooted; Ed25519-signable; per-tenant-shard; AsyncAPI source `contracts/asyncapi/platform/audit-events-v1.yaml`; Protobuf source `contracts/proto/platform/audit/v1/audit-event-v1.proto` | stable | `oya-audit-chain-application` |
+| `eventing.outbox.publish` | data | event | exactly-once via outbox + Kafka per ADR-0046; AsyncAPI source `contracts/asyncapi/platform/eventing-outbox-v1.yaml`; Protobuf source `contracts/proto/platform/eventing/v1/eventing-outbox-v1.proto` | stable | `oya-eventing-domain` (superseded: `oya-eventing-application` stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M01-P04) |
+| `object-graph.entity.upsert` | data | REST + event | engine-enforced row-level isolation per ADR-0006; data_class annotated; OpenAPI source `contracts/openapi/platform/platform-object-graph-v1.yaml`; implemented by the Ontology domain per ADR-0055 | stable | `oya-ontology-domain` |
+| `object-graph.property.{vector,timeseries,geo,ciphertext,struct}` | data | REST | per-property-tier semantics per ADR-0006..0112; implemented by the Ontology domain per ADR-0055 | preview | `oya-ontology-domain` |
+| `dsr.cascade.execute` | data | REST | ≤ 30d (preview); proof-of-erasure across all data-class-touching stores; OpenAPI source `contracts/openapi/platform/platform-dsr-v1.yaml` | stable | `oya-dsr-application` |
 | `consent.receipt.emit` | control | event | per-purpose × per-data-class × per-tenant × per-subject grant; revocable; per [PRIVACY-PROGRAM §2.2.2](PRIVACY-PROGRAM.md) | stable | `oya-platform-consent-app` |
 | `webhook.delivery.signed` | data | webhook | rotating-key signed; retry-with-backoff; replay endpoint | stable | `oya-platform-webhook-app` |
 | `metering.event.ingest` | data | event | per-resource per-tenant; idempotency key; AsyncAPI source `contracts/asyncapi/platform/metering-events-v1.yaml`; Protobuf source `contracts/proto/platform/metering/v1/metering-event-v1.proto` | stable | `oya-platform-metering-app` |
@@ -130,7 +135,7 @@ Per-vertical surface set; each vertical's PRD §4.3 enumerates. Examples:
 | `foundry.policy.autonomy-ceiling.publish` | control | REST | Cedar-backed; per-tenant per-capability scope; OpenAPI source `contracts/openapi/foundry/policy-v1.yaml` | stable | `oya-foundry-policy-api` |
 | `foundry.evidence.emit` | data | event | every capability invocation emits to `oya.foundry.capability.invoked`; audit-chain anchored | stable | `oya-foundry-evidence-app` |
 | `foundry.rag.retrieve` | data | REST | per-tenant boundary; per-class allowlist; consent-receipt cited; OpenAPI source `contracts/openapi/foundry/rag-v1.yaml` | stable | `oya-foundry-rag-api` |
-| `foundry.eval.run` | analytics | REST | per-capability golden-set evaluation; pass-threshold per capability; OpenAPI source `contracts/openapi/foundry/eval-v1.yaml` | stable | `oya-foundry-eval-app` |
+| `foundry.eval.run` | analytics | REST | per-capability golden-set evaluation; pass-threshold per capability; OpenAPI source `contracts/openapi/foundry/eval-v1.yaml` | stable | `oya-foundry-eval-application` |
 | `foundry.sandbox.spawn` | data | REST | Wasmtime / Firecracker; per-tool resource caps; per-agent worktree | stable | `oya-foundry-sandbox-app` |
 | `foundry.cli` (`oya dev/admin/build/agent/ops/pack/catalog/gate`) | control | CLI + MCP | persona-split per [DESIGN §13.4.1](DESIGN.md) | stable | `oya-foundry-cli-{persona}-*` |
 | `foundry.mcp-server` | control | MCP | exposes every CLI subcommand as MCP tool per [TOOLCHAIN §4.A](TOOLCHAIN.md) | stable | `oya-foundry-mcp-server-app` |
@@ -150,7 +155,7 @@ Per-vertical surface set; each vertical's PRD §4.3 enumerates. Examples:
 | `cloud.kms.encrypt` / `cloud.kms.decrypt` | data | REST | KCMVP HSM (KR) / FIPS 140-3 (global); per-tenant key; OpenAPI source `contracts/openapi/cloud/cloud-kms-v1.yaml` | stable | `oya-cloud-kms-api` |
 | `cloud.region.list` | control | REST | provider-facing static regional pack list; immutable; OpenAPI source `contracts/openapi/cloud/cloud-region-v1.yaml` | stable | `oya-cloud-region-api` |
 | `cloud.az.list` | control | REST | per-region AZ enumeration; OpenAPI source `contracts/openapi/cloud/cloud-region-v1.yaml` | stable | `oya-cloud-region-api` |
-| `cloud.cell.bind` | control | REST | per-tenant cell-routing assignment; OpenAPI source `contracts/openapi/cloud/cloud-cell-bind-v1.yaml` | stable | `oya-cloud-cell-app` |
+| `cloud.cell.bind` | control | REST | per-tenant cell-routing assignment; OpenAPI source `contracts/openapi/cloud/cloud-cell-bind-v1.yaml` | preview | `oya-cloud-region-api` (superseded: `oya-cloud-cell-application` stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M02-P18) |
 | `cloud.compute.vm.create` | control | REST | per-region per-cell; per-tenant quota; OpenAPI source `contracts/openapi/cloud/cloud-compute-vm-v1.yaml` | stable | `oya-cloud-compute-vm-api` |
 | `cloud.compute.k8s.cluster.create` | control | REST | managed control plane; per-tenant; per-region; OpenAPI source `contracts/openapi/cloud/cloud-compute-k8s-v1.yaml` | stable | `oya-cloud-compute-k8s-api` |
 | `cloud.compute.functions.invoke` | data | REST | cold-start budget; per-tenant; per-region; OpenAPI source `contracts/openapi/cloud/cloud-compute-functions-v1.yaml` | stable | `oya-cloud-compute-functions-api` |
@@ -160,7 +165,7 @@ Per-vertical surface set; each vertical's PRD §4.3 enumerates. Examples:
 | `cloud.network.lb.create` | control | REST | L4 + L7; per-region; mTLS-supported; OpenAPI source `contracts/openapi/cloud/cloud-network-lb-v1.yaml` | stable | `oya-cloud-network-lb-api` |
 | `cloud.network.dns.zone.create` | control | REST | per-tenant; per-region; OpenAPI source `contracts/openapi/cloud/cloud-network-dns-v1.yaml` | stable | `oya-cloud-network-dns-api` |
 | `cloud.billing.event.ingest` | data | event | per-resource per-tenant; idempotent; AsyncAPI source `contracts/asyncapi/cloud/cloud-billing-events-v1.yaml`; Protobuf source `contracts/proto/cloud/billing/v1/cloud-billing-event-v1.proto` | stable | `oya-cloud-billing-app` |
-| `cloud.billing.invoice.generate` | analytics | REST | per-region tax-invoice format (KR 전자세금계산서, JP 適格請求書, EU per-country, IN GST, BR NF-e, KSA FATOORA, UAE); OpenAPI source `contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` | stable | `oya-cloud-billing-tax-app` |
+| `cloud.billing.invoice.generate` | analytics | REST | per-region tax-invoice format (KR 전자세금계산서, JP 適格請求書, EU per-country, IN GST, BR NF-e, KSA FATOORA, UAE); OpenAPI source `contracts/openapi/cloud/cloud-billing-invoice-v1.yaml` | preview | `oya-cloud-billing-kernel` (superseded: `oya-cloud-billing-tax-application` stub orphan deleted per ADR-0106 §Consequences + audit #6; canonical `-app` scaffold pending M03 cloud-billing) |
 | `cloud.observability.audit.read` | analytics | REST | per-tenant per-control-plane mutation log; CloudTrail-class; OpenAPI source `contracts/openapi/cloud/cloud-observability-audit-v1.yaml` | stable | `oya-cloud-observability-api` |
 | `cloud.finops.report` | analytics | REST | per-tenant per-axis cost; anomaly detection; OpenAPI source `contracts/openapi/cloud/cloud-finops-report-v1.yaml` | stable | `oya-cloud-finops-api` |
 | `cloud.dcops.{dcim,bms,power,cooling,network,security,asset,capacity,workorder,sustainability}` (long-horizon W-DataCenter-Operations) | control | REST + adapter | per-DC hierarchy; per-equipment lifecycle | preview | `oya-cloud-dcops-*` |

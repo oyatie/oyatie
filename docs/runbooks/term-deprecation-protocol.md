@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Term Deprecation Protocol
+doc_status: published
+---
+
 # Oyatie Runbook — Term Deprecation Protocol
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

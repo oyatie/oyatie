@@ -12,6 +12,7 @@ bominal_source:
   - ADR-0126  # employment classification (8 classes)
   - ADR-0132  # data ownership pillars (org-pillar / person-pillar)
   - ADR-0018  # tenancy RLS posture
+doc_status: published
 ---
 
 # PRD-hr: HR µservice

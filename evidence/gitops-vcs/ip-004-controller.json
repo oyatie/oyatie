@@ -1,0 +1,47 @@
+{
+  "$schema": "https://docs.oyatie.dev/schemas/evidence-bundle.schema.json",
+  "evidence_id": "EVT-IP004-CONTROLLER-20260514",
+  "slice_id": "M-CC-P00-IP-004",
+  "surface": "crates/oya-foundry-vcs-promotion-controller",
+  "summary": "Implemented a std-only GitOps promotion controller with typed fake provider seams for CI, GitHub Actions, Trivy, and Argo GitOps. The reducer owns admission, freshness, provider-outage fallback, release-train, reconciliation, idempotency, rollback, and environment-health transitions.",
+  "commands": [
+    {
+      "command": "rustfmt --edition 2021 --check crates/oya-foundry-vcs-promotion-controller/src/lib.rs crates/oya-foundry-vcs-promotion-controller/tests/gitops_vcs_ip_004.rs",
+      "result": "pass",
+      "notes": "No formatting diffs."
+    },
+    {
+      "command": "rustc --edition=2021 -D warnings --crate-type lib --crate-name oya_foundry_vcs_kernel crates/oya-foundry-vcs-kernel/src/lib.rs -o /tmp/.../liboya_foundry_vcs_kernel.rlib && rustc --edition=2021 -D warnings --crate-type lib --crate-name oya_foundry_vcs_changebundle_kernel crates/oya-foundry-vcs-changebundle-kernel/src/lib.rs --extern oya_foundry_vcs_kernel=/tmp/.../liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/... -o /tmp/.../liboya_foundry_vcs_changebundle_kernel.rlib && rustc --edition=2021 -D warnings --crate-type lib --crate-name oya_foundry_vcs_test_standard_gate crates/oya-foundry-vcs-test-standard-gate/src/lib.rs --extern oya_foundry_vcs_kernel=/tmp/.../liboya_foundry_vcs_kernel.rlib -L dependency=/tmp/... -o /tmp/.../liboya_foundry_vcs_test_standard_gate.rlib && rustc --edition=2021 -D warnings --crate-type lib --crate-name oya_foundry_vcs_promotion_controller crates/oya-foundry-vcs-promotion-controller/src/lib.rs --extern ... -L dependency=/tmp/... -o /tmp/.../liboya_foundry_vcs_promotion_controller.rlib",
+      "result": "pass",
+      "notes": "Manual targeted lib compile passed for path dependencies and IP-004 crate with -D warnings. Last temp dir: /tmp/oya-ip004-rustc.JwrMdZ."
+    },
+    {
+      "command": "rustc --edition=2021 -D warnings --test crates/oya-foundry-vcs-promotion-controller/tests/gitops_vcs_ip_004.rs --extern oya_foundry_vcs_kernel=/tmp/.../liboya_foundry_vcs_kernel.rlib --extern oya_foundry_vcs_changebundle_kernel=/tmp/.../liboya_foundry_vcs_changebundle_kernel.rlib --extern oya_foundry_vcs_test_standard_gate=/tmp/.../liboya_foundry_vcs_test_standard_gate.rlib --extern oya_foundry_vcs_promotion_controller=/tmp/.../liboya_foundry_vcs_promotion_controller.rlib -L dependency=/tmp/... -o /tmp/.../ip004_tests && /tmp/.../ip004_tests --nocapture",
+      "result": "pass",
+      "notes": "6 tests passed: transition reducer/release train, idempotency collapse, stale index rejection, provider outage fallback policy, rollback/readiness, unhealthy environment/admission fixup rejection."
+    },
+    {
+      "command": "cargo test -p oya-foundry-vcs-promotion-controller --no-default-features",
+      "result": "blocked_preexisting_workspace_manifest",
+      "notes": "Cargo failed before package resolution because workspace member /Users/jasonlee/oyatie/crates/oya-tenancy-kernel/Cargo.toml is missing, as expected by task constraints."
+    }
+  ],
+  "known_blockers": [
+    {
+      "id": "workspace-cargo-missing-oya-tenancy-kernel",
+      "description": "Workspace cargo commands fail because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml. This slice did not edit workspace membership or fix that pre-existing blocker."
+    }
+  ],
+  "external_effects": {
+    "network_calls": false,
+    "git_or_gh_commands": false,
+    "provider_network_implementations": false
+  },
+  "review_cycle_1_fixups": {
+    "timestamp": "2026-05-14T10:41:24.743682Z",
+    "issue": "ProviderEvidenceSet slots did not enforce CI/GHA/Trivy/Argo provider-kind alignment.",
+    "fix": "ProviderEvidenceSet::validate_slot_kinds rejects slot/provider mismatches with ProviderSlotMismatch; swapped-provider regression added.",
+    "verification": "rustfmt pass; targeted rustc -D warnings IP-004 tests pass: 7 passed; 0 failed"
+  },
+  "purpose": "Auto-backfilled purpose for ip-004-controller.json"
+}

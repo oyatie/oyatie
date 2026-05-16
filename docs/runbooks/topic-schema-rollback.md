@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Topic Schema Rollback
+doc_status: published
+---
+
 # Oyatie Runbook — Topic Schema Rollback
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

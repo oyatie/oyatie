@@ -1,0 +1,174 @@
+{
+  "schema_version": "multispectrum-review-v2.2.0",
+  "change_id": "M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "reviewer_id": "claude-verifier-F9_compliance-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "facet": "F9_compliance",
+  "round": 1,
+  "timestamp_iso": "2026-05-15T00:00:00Z",
+  "artifacts_reviewed": [
+    ".omc/plans/ralplan-foundry-supervisor-simple-v4-2026-05-14.md",
+    ".omc/plans/ralplan-foundry-supervisor-simple-v5-delta-settings-template-2026-05-15.md"
+  ],
+  "verdict": "ACCEPT-WITH-FINDINGS",
+  "blocker_count": 2,
+  "high_count": 2,
+  "medium_count": 1,
+  "low_count": 2,
+  "data_class_touched": [
+    "internal_only",
+    "tenant_scoped"
+  ],
+  "data_class_evidence": {
+    "internal_only": [
+      "AccountId \u2014 annotated `/// data_class: INTERNAL_ONLY` at account-kernel L14",
+      "SessionId \u2014 annotated `/// data_class: INTERNAL_ONLY` at account-kernel L18",
+      "RouteConstraints \u2014 noted `Public fields all INTERNAL_ONLY` in v4 \u00a7B.0 L82",
+      "SecretReference, SecretMaterial \u2014 credential bytes, INTERNAL_ONLY by nature; Debug redaction verified in account-kernel L81-85 and account-domain"
+    ],
+    "tenant_scoped": [
+      "SpendRecord \u00d7 UsageRecord \u2014 spend_to_usage_record carries tenant_id:&str (v4 \u00a7B.2.2 + \u00a7B.4 step 15); billing records are inherently tenant-scoped",
+      "CeilingPolicy::ceiling_for(&TenantId) \u2014 per-tenant autonomy ceiling (v4 \u00a7B.0 L97); verdict is tenant-scoped",
+      "v5 McpServerRef.env_secret_refs \u2014 per-account (tenant) MCP token refs scoped to sref://openbao/foundry/mcp-gateway/token",
+      "v5 SettingsTemplate rendered output \u2014 per-provider-account settings; effective data scope is per-tenant account"
+    ],
+    "NOT_present": [
+      "public",
+      "phi",
+      "pci",
+      "pipa",
+      "children"
+    ],
+    "NOT_present_rationale": "Supervisor is an internal infrastructure plane. No user health data, payment card data, children data, or PIPA-class personal information flows through inbox/outbox or settings rendering per plan review."
+  },
+  "audit_chain_emission_required": true,
+  "audit_chain_emission_required_rationale": "Multiple evidence_required=true capabilities registered: foundry.supervisor.spawn, foundry.supervisor.commit, foundry.supervisor.dead_letter, foundry.supervisor.degrade_account, foundry.supervisor.rotate_window, foundry.supervisor.quarantine (v4 \u00a7B.8). All 6 have evidence_required=true per capability seed table. State mutations to provider account state (degrade), tenant ceiling (rotate_window), and billing records (spend/commit) must be auditable per ADR-0069 active-artifact-contract.",
+  "audit_chain_emission_present": "partial",
+  "audit_chain_emission_coverage": {
+    "spawn_commit": {
+      "status": "PRESENT",
+      "evidence": "C.8: `every spawn/commit emits EvidenceRef linked to capability_id`. audit_chain.rs test declared at v4 \u00a7A.5 + \u00a7B.12 unit #35."
+    },
+    "cost_ceiling_usage_blocked": {
+      "status": "PRESENT",
+      "evidence": "v4 \u00a7B.4 step 13.5 explicitly: `emit_audit_event(\"UsageBlocked\", &ticket)` before dead_letter call."
+    },
+    "degrade_account_on_over_usage": {
+      "status": "MISSING",
+      "evidence": "v4 \u00a7B.4 steps 8-9: `acc.degrade(\"over usage limit\")` and `acc.degrade(\"reserve breached\")` \u2192 RETURN DemoteAndRetry. No `emit_audit_event` call present in plan pseudocode. foundry.supervisor.degrade_account has evidence_required=true (\u00a7B.8) but no emission wired for this path."
+    },
+    "tier_blocked": {
+      "status": "MISSING",
+      "evidence": "v4 \u00a7B.4 step 11: `Block{..} => RETURN TierBlocked`. No audit emission in plan pseudocode. foundry.supervisor.spawn has evidence_required=true and tier-block is a spawn-refusal \u2014 must audit."
+    },
+    "quarantine_verdict": {
+      "status": "MISSING",
+      "evidence": "v4 \u00a7B.4 pre-mortem (c): quarantine after MAX_PARSE_RETRIES. TickOutcome::Quarantined declared. foundry.supervisor.quarantine evidence_required=true. No emit_audit_event wired in plan pseudocode for this path."
+    },
+    "rotate_window": {
+      "status": "MISSING",
+      "evidence": "v4 \u00a7B.4 step 9 WindowExpired branch: `self.rotate_window(); recurse once`. foundry.supervisor.rotate_window T2Suggest evidence_required=true. No audit emission declared."
+    },
+    "v5_settings_render": {
+      "status": "MISSING",
+      "evidence": "v5 \u00a7B.2.2 SettingsRenderer::render writes to ~/.claude/settings.json, ~/.codex/config.toml, ~/.gemini/settings.json. v5 \u00a7B.4 CompositeAccountSnapshotProvider wraps render/verify. Zero audit chain emission requirement declared anywhere in v5 delta for render or verify operations. A compliance team cannot answer 'when was account X settings last rendered and by whom' from audit trail."
+    }
+  },
+  "secret_handling_path": "secret-reference",
+  "secret_handling_evidence": {
+    "scheme_enforcement": "SecretReference::new() enforces sref:// prefix; empty body rejected (account-kernel L69-78, verified via Read).",
+    "debug_redaction_secret_reference": "SecretReference::fmt (Debug) emits `SecretReference(sref://[REDACTED])` \u2014 verified account-kernel L81-85.",
+    "debug_redaction_secret_material": "SecretMaterial::fmt (Debug) emits `SecretMaterial([REDACTED; N bytes])` \u2014 verified account-domain grep output.",
+    "no_display_impl": "Neither SecretReference nor SecretMaterial implements Display \u2014 verified absence in account-kernel and account-domain.",
+    "expose_escape_hatch": "expose_for_provider_call() returns &[u8] only; no Serialize impl; not logged; scope limited to provider spawn call site.",
+    "openbao_adapter": "OpenBaoAdapter: SecretStorePort verified at account-adapter-openbao:26 (in-memory ref impl; 10 unit tests L88-164). Network OpenBao upgrade tracked separately.",
+    "v5_template_sref_only": "v5 \u00a7B.3 McpServerRef.env_secret_refs carries Vec<(String, SecretReference)> \u2014 reference only, never SecretMaterial. Renderer resolves sref at spawn-time env-var injection, never to disk.",
+    "c29_test": "C.29 acceptance criterion: grep for known-high-entropy token in rendered root MUST exit 1 (no match). Covers raw-secret-in-rendered-file anti-pattern.",
+    "inbox_outbox_no_secrets": "v4 \u00a7B.2.4 JsonlInbox/JsonlOutbox hand-rolled framing carries message body bytes only; plan explicitly states inbox/outbox never carries raw secrets.",
+    "verdict": "SOUND \u2014 full secret-reference chain verified across both v4 and v5."
+  },
+  "regulatory_packs_impacted": [],
+  "regulatory_packs_analysis": {
+    "oya-pack-kr": {
+      "status": "UNANALYZED",
+      "rationale": "Plan is silent on whether any ProviderAccount rows in registry/accounts/*.toml represent Korean-regulated tenants. If KR accounts exist, the credential-handling path (sref://openbao/... resolved at spawn) and billing record emission (spend_to_usage_record with tenant_id) should be audited for PIPA-class compliance under oya-pack-kr. The registry/accounts/ directory is a new scaffold artifact (v4 \u00a7B.10) \u2014 its schema carries no tenant-locale tag to enable pack routing."
+    },
+    "oya-pack-eu": {
+      "status": "UNANALYZED",
+      "rationale": "Similar concern if EU-regulated provider accounts exist. GDPR audit-log retention rules would apply to audit_chain entries carrying AccountId + SpendRecord."
+    },
+    "overall": "No regulatory pack analysis present in v4 or v5. For a pure internal infrastructure plane at current scope (single workspace, no real KR/EU account rows committed), risk is MEDIUM. Must be addressed before multi-tenant or multi-region account onboarding."
+  },
+  "rls_tenant_scoping": {
+    "status": "PARTIAL",
+    "evidence": [
+      "CeilingPolicy::ceiling_for(&TenantId) enforces per-tenant autonomy ceiling \u2014 present and composed (v4 \u00a7B.0 L97-99).",
+      "enforce_for_tenant wired (v4 \u00a7B.0 L98); supervisor uses this at tick_once step 11.",
+      "spend_to_usage_record carries tenant_id:&str parameter \u2014 billing records are tenant-tagged.",
+      "RISK: AccountSnapshotProvider::snapshot() returns Vec<ProviderAccount> globally with no tenant filter. In a multi-tenant deployment, RoutePolicy::select (v4 \u00a7B.4 step 4) operates over ALL accounts from snapshot(). Cross-tenant account visibility would be a boundary violation. registry/accounts/*.toml schema (new scaffold artifact) has no tenant_id field declared in either plan.",
+      "MITIGATION PRESENT: Current scope is single-workspace (all accounts belong to the same operator). The risk materializes only at multi-tenant onboarding, which is not in M02-P06 scope. Must be tracked as open question."
+    ]
+  },
+  "findings": [
+    {
+      "id": "F9-01",
+      "severity": "high",
+      "blocker": true,
+      "title": "New supervisor-kernel types carry no data_class annotation",
+      "description": "SessionTicket, InboxState, SpendRecord, UsageWindowSnapshot, MessageId, RequestId declared in v4 \u00a7B.2.1 have no `/// data_class:` annotation. Account-kernel already establishes this convention (AccountId L14, SessionId L18 both annotated `/// data_class: INTERNAL_ONLY`). SessionTicket wraps AccountId + UsageWindowSnapshot + AutonomyTier \u2014 INTERNAL_ONLY at minimum. SpendRecord + UsageRecord bridge to tenant_id \u2014 TENANT_SCOPED. Missing annotations break the data-class CI lane and make automated compliance scanning impossible.",
+      "anti_pattern": "data-class-undeclared",
+      "affected_artifacts": [
+        "crates/oya-foundry-supervisor-kernel/src/lib.rs (planned \u2014 grit units #8-15)"
+      ],
+      "remediation": "Add `/// data_class: INTERNAL_ONLY` to MessageId, RequestId, SessionTicket, InboxState, UsageWindowSnapshot. Add `/// data_class: TENANT_SCOPED` to SpendRecord (carries tenant_id in spend_to_usage_record). Add to grit unit #8 pre-condition before scaffold."
+    },
+    {
+      "id": "F9-02",
+      "severity": "high",
+      "blocker": true,
+      "title": "Audit chain emission missing for 4 state-changing verdict paths + all v5 render operations",
+      "description": "Six capabilities are registered with evidence_required=true (v4 \u00a7B.8). C.8 covers spawn/commit. Step 13.5 covers UsageBlocked. But four additional state-mutation paths in tick_once lack declared audit emission: (a) degrade_account on OverUsageLimit/ReserveBreached (step 8-9); (b) TierBlocked (step 11); (c) Quarantine after MAX_PARSE_RETRIES; (d) rotate_window on WindowExpired (step 9). Additionally, v5 SettingsRenderer::render is a credential-adjacent state mutation (rewrites ~/.claude/settings.json with sref-tagged MCP server env) with zero audit chain emission declared anywhere in v5 delta. A compliance team cannot reconstruct 'who caused account X to be degraded' or 'when were account X settings rendered' from the audit chain.",
+      "anti_pattern": "missing-audit-chain-emission-for-state-change",
+      "affected_artifacts": [
+        "crates/oya-foundry-supervisor-app/src/lib.rs::tick_once (v4 \u00a7B.4 steps 8-9, 11)",
+        "crates/oya-foundry-supervisor-app/tests/audit_chain.rs (C.8 \u2014 incomplete coverage declared)",
+        "crates/oya-foundry-settings-template-adapter-fs/src/lib.rs::ClaudeRenderer::render (v5 \u00a7B.2.2 \u2014 no emission)"
+      ],
+      "remediation": "1. In tick_once: add emit_audit_event calls at DemoteAndRetry (degrade_account path), TierBlocked, Quarantine, and rotate_window returns \u2014 matching the capability_id for each (foundry.supervisor.degrade_account, foundry.supervisor.spawn-refusal, foundry.supervisor.quarantine, foundry.supervisor.rotate_window). 2. Expand C.8 acceptance criterion to enumerate all 6 capability_id audit paths, not just spawn/commit. 3. v5: add emit_audit_event('SettingsRendered', account_id, provider, manifest_hash) to SettingsRenderer::render contract and wire a test in Wave 4d."
+    },
+    {
+      "id": "F9-03",
+      "severity": "medium",
+      "blocker": false,
+      "title": "No regulatory pack impact analysis for per-account credential handling",
+      "description": "v4 registry/accounts/*.toml (new scaffold artifact) will store per-account subscription credentials (referenced via sref://openbao paths). Neither v4 nor v5 contains any analysis of whether KR (oya-pack-kr / PIPA), EU (oya-pack-eu / GDPR), or US regulatory packs apply to this credential-handling pipeline. The audit-chain entries carrying AccountId + SpendRecord + tenant_id may trigger GDPR audit-log retention obligations for EU tenants. The plan is silent.",
+      "anti_pattern": "regulatory-pack-drift",
+      "remediation": "Add open-question to .omc/plans/open-questions.md: 'Regulatory pack scoping for foundry supervisor credential pipeline \u2014 analyze oya-pack-kr, oya-pack-eu applicability before multi-region account onboarding'. Gate multi-tenant Wave on this analysis. No blocking action required for M02-P06 single-workspace scope."
+    },
+    {
+      "id": "F9-04",
+      "severity": "low",
+      "blocker": false,
+      "title": "registry/accounts/*.toml schema lacks tenant_id \u2014 AccountSnapshotProvider returns global pool",
+      "description": "AccountSnapshotProvider::snapshot() returns Vec<ProviderAccount> with no tenant filter (v4 \u00a7B.2.3, \u00a7B.2.5). RoutePolicy::select operates over the full pool. For current single-workspace scope this is harmless. If registry/accounts/ ever holds rows for multiple tenants (multi-tenant onboarding), cross-tenant account visibility becomes a boundary violation. Schema declared in v4 \u00a7B.10 carries no tenant_id field.",
+      "anti_pattern": "rls-bypass-without-adr",
+      "remediation": "Add `tenant_id = \"...\"` field to registry/accounts/*.toml schema. Add tenant filter to AccountSnapshotProvider::snapshot() implementation gated on TenantId context. Document single-tenant constraint explicitly in ADR-NNNN-jsonl-best-effort-durability or a new ADR before multi-tenant onboarding. Not a blocker for M02-P06 scope."
+    },
+    {
+      "id": "F9-05",
+      "severity": "low",
+      "blocker": false,
+      "title": "v5 drift report JSON emitted to .omc/state/ \u2014 not declared as internal_only artifact",
+      "description": "v5 \u00a7B.5 CI lane emits DriftReport JSON to .omc/state/settings-drift-report.json. DriftReport.entries may contain target_path values that reveal account-specific filesystem layout and diff strings showing what changed in settings files. This artifact is not gitignored (plan does not declare it as runtime-only) and carries no data_class annotation. If committed, it leaks INTERNAL_ONLY config structure.",
+      "anti_pattern": "data-class-undeclared",
+      "remediation": "1. Add .omc/state/settings-drift-report.json to .gitignore. 2. Add `data_class: INTERNAL_ONLY` comment to drift report schema declaration in v5 \u00a7B.8. 3. Verify the file is already listed as a non-committed runtime artifact in v5 \u00a7B.8 (plan says 'CI report (runtime artifact, not committed)' \u2014 enforce this with gitignore rule)."
+    }
+  ],
+  "auditability_verdict": {
+    "who": "PARTIAL \u2014 spawn/commit linked to capability_id via EvidenceRef; but degrade_account, tier_blocked, quarantine, rotate_window, settings-render have no wired 'who' in audit chain",
+    "when": "PARTIAL \u2014 same gaps as 'who'; spawn/commit timestamped via EvidenceRef; other paths silent",
+    "what": "PARTIAL \u2014 SpendRecord captures what was consumed; DemoteAndRetry.reason and Quarantine.reason exist as struct fields but are not wired to audit emission for those paths",
+    "why": "PARTIAL \u2014 UsageBlocked path includes reason string in emit_audit_event call; other paths do not"
+  },
+  "summary": "Secret handling is sound and fully verified \u2014 SecretReference enforces sref:// scheme, both SecretReference and SecretMaterial Debug-redact, C.29 covers rendered-output secrets, and OpenBaoAdapter is present (10 unit tests verified). Two blockers require remediation before acceptance: (1) data_class annotations missing from all new supervisor-kernel types, breaking the data-class CI lane; (2) audit chain emission wired for only 2 of 6 evidence_required=true capability paths in v4, and zero emission declared for v5 settings-render operations. One medium gap: no regulatory pack impact analysis for the per-account credential pipeline. The plan is otherwise compliant with the SecretReference-only channel discipline, Cedar autonomy ceiling (T1-T4 tier enforcement verified), and the audit chain infrastructure (ADR-0069 gate, replay validation confirmed present in oya-dev-cli).",
+  "purpose": "Auto-backfilled purpose for M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-F9_compliance-r1.json"
+}

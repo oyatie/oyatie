@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Fintech (PG / Open-Banking / KYC / AML)
 
 ## Mission

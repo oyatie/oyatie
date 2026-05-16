@@ -1,19 +1,23 @@
-use oya_cloud_storage_kernel::{
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_cloud_storage_domain::{
     BucketCreate, BucketState, BucketTier, CloudStorageCatalog, CloudStorageError, EncryptionMode,
     ObjectLockMode, ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,
 };
 use oya_cloud_storage_object_api::{
-    get_cloud_storage_object_from_api, put_cloud_storage_object_from_api,
+    CLOUD_STORAGE_OBJECT_GET_SURFACE, CLOUD_STORAGE_OBJECT_PUT_SURFACE,
     CloudStorageObjectApiAuthorization, CloudStorageObjectApiError, CloudStorageObjectApiPrincipal,
     CloudStorageObjectEncryptionBindingRequest, CloudStorageObjectGetApiRequest,
     CloudStorageObjectGetApiStatus, CloudStorageObjectMutationBoundaryContext,
     CloudStorageObjectPutApiRequest, CloudStorageObjectPutApiStatus,
     CloudStorageObjectPutIdempotencyLedger, CloudStorageObjectPutRequest,
-    CloudStorageObjectReadBoundaryContext, CLOUD_STORAGE_OBJECT_GET_SURFACE,
-    CLOUD_STORAGE_OBJECT_PUT_SURFACE,
+    CloudStorageObjectReadBoundaryContext, get_cloud_storage_object_from_api,
+    put_cloud_storage_object_from_api,
 };
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_data_boundary_kernel::DataClass;
+use oya_residency_domain::ResidencyClass;
 
 const BUCKET_ID: &str = "oya:cloud:kr-seoul:ten_kr:bucket:tenant-assets";
 const OBJECT_KEY: &str = "workspace/report.pdf";

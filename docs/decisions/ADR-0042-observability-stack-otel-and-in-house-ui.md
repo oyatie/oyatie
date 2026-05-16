@@ -1,3 +1,9 @@
+---
+id: ADR-0042
+status: proposed
+doc_status: published
+---
+
 # ADR-0042: Observability stack — OpenTelemetry SDK + VictoriaMetrics, in-house Leptos portal long-horizon, gen_ai semconv per capability
 
 > **Status:** Proposed

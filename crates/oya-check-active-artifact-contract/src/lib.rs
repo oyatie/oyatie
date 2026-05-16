@@ -1,7 +1,7 @@
 //! Active machine-readable artifact contract validator kernel.
 //!
 //! Pure std-only kernel implementing the v3.0.0 artifact-capabilities-registry
-//! validation rules per ADR-0069 + `.omc/specs/active-machine-readable-artifact-contract.json`.
+//! validation rules per ADR-0069 + `specs/cross-cutting/active-machine-readable-artifact-contract.json`.
 //!
 //! The kernel is I/O-free: it takes pre-parsed `ArtifactRow` values and a set of
 //! HEAD-tracked paths (resolved by the runtime via `git ls-files`), and returns
@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-/// Closed enum of artifact profiles per `.omc/specs/artifact-profile-defaults.json`.
+/// Closed enum of artifact profiles per `specs/cross-cutting/artifact-profile-defaults.json`.
 /// Each profile bundles default capability declarations; registry rows declare
 /// `artifact_profile` + sparse `capability_overrides` rather than full 9-cap boilerplate.
 /// Closes architect r17 finding #8.
@@ -65,7 +65,7 @@ impl ArtifactProfile {
     }
 
     /// Profile defaults baked into the kernel for testability. The canonical
-    /// authority is `.omc/specs/artifact-profile-defaults.json`; runtimes
+    /// authority is `specs/cross-cutting/artifact-profile-defaults.json`; runtimes
     /// that load the JSON should use that file and MAY use this baseline only
     /// as a sanity-check fallback. The default for every capability in every
     /// profile is `Planned`; runtime is responsible for richer defaults.
@@ -144,10 +144,10 @@ pub struct CapabilityDeclaration {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ArtifactRow {
-    pub artifact_id: String,        // data_class: INTERNAL_ONLY
-    pub artifact_path: String,      // data_class: INTERNAL_ONLY
-    pub artifact_format: String,    // data_class: INTERNAL_ONLY
-    pub contract_version: String,   // data_class: INTERNAL_ONLY
+    pub artifact_id: String,      // data_class: INTERNAL_ONLY
+    pub artifact_path: String,    // data_class: INTERNAL_ONLY
+    pub artifact_format: String,  // data_class: INTERNAL_ONLY
+    pub contract_version: String, // data_class: INTERNAL_ONLY
     pub capabilities: BTreeMap<CapabilityKind, CapabilityDeclaration>, // data_class: INTERNAL_ONLY
 }
 
@@ -160,27 +160,30 @@ pub enum Severity {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Violation {
-    pub artifact_id: String,    // data_class: INTERNAL_ONLY
-    pub rule_id: &'static str,  // data_class: INTERNAL_ONLY
-    pub severity: Severity,     // data_class: INTERNAL_ONLY
-    pub message: String,        // data_class: INTERNAL_ONLY
+    pub artifact_id: String,   // data_class: INTERNAL_ONLY
+    pub rule_id: &'static str, // data_class: INTERNAL_ONLY
+    pub severity: Severity,    // data_class: INTERNAL_ONLY
+    pub message: String,       // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct ValidationReport {
-    pub violations: Vec<Violation>,             // data_class: INTERNAL_ONLY
-    pub artifact_ids_seen: BTreeSet<String>,    // data_class: INTERNAL_ONLY
-    pub head_tracked_count: usize,              // data_class: INTERNAL_ONLY
-    pub untracked_count: usize,                 // data_class: INTERNAL_ONLY
-    pub operational_caps: usize,                // data_class: INTERNAL_ONLY
-    pub planned_caps: usize,                    // data_class: INTERNAL_ONLY
-    pub blocked_caps: usize,                    // data_class: INTERNAL_ONLY
-    pub not_applicable_caps: usize,             // data_class: INTERNAL_ONLY
+    pub violations: Vec<Violation>,          // data_class: INTERNAL_ONLY
+    pub artifact_ids_seen: BTreeSet<String>, // data_class: INTERNAL_ONLY
+    pub head_tracked_count: usize,           // data_class: INTERNAL_ONLY
+    pub untracked_count: usize,              // data_class: INTERNAL_ONLY
+    pub operational_caps: usize,             // data_class: INTERNAL_ONLY
+    pub planned_caps: usize,                 // data_class: INTERNAL_ONLY
+    pub blocked_caps: usize,                 // data_class: INTERNAL_ONLY
+    pub not_applicable_caps: usize,          // data_class: INTERNAL_ONLY
 }
 
 impl ValidationReport {
     pub fn error_count(&self) -> usize {
-        self.violations.iter().filter(|v| v.severity == Severity::Error).count()
+        self.violations
+            .iter()
+            .filter(|v| v.severity == Severity::Error)
+            .count()
     }
 
     pub fn has_errors(&self) -> bool {
@@ -201,10 +204,7 @@ impl ValidationReport {
 /// - R05: every `status=Planned` capability has populated `prerequisite_for_operational`
 /// - R06: every `status=BlockedByFoundation` capability has populated `prerequisite_for_operational`
 /// - R07: every `status=NotApplicable` capability has populated `not_applicable_rationale`
-pub fn validate(
-    rows: &[ArtifactRow],
-    head_tracked_paths: &BTreeSet<String>,
-) -> ValidationReport {
+pub fn validate(rows: &[ArtifactRow], head_tracked_paths: &BTreeSet<String>) -> ValidationReport {
     let mut report = ValidationReport::default();
     let mut id_first_seen_index: BTreeMap<String, usize> = BTreeMap::new();
     report.head_tracked_count = head_tracked_paths.len();
@@ -360,7 +360,11 @@ mod tests {
         map
     }
 
-    fn row(id: &str, path: &str, caps: BTreeMap<CapabilityKind, CapabilityDeclaration>) -> ArtifactRow {
+    fn row(
+        id: &str,
+        path: &str,
+        caps: BTreeMap<CapabilityKind, CapabilityDeclaration>,
+    ) -> ArtifactRow {
         ArtifactRow {
             artifact_id: id.into(),
             artifact_path: path.into(),
@@ -384,7 +388,7 @@ mod tests {
         head.insert("docs/CONSTITUTION.md".into());
         let rows = vec![row(
             "ops-portal-ledger",
-            ".omc/ledger/ops-portal-ledger.json",
+            "evidence/ledger/ops-portal-ledger.json",
             full_caps(
                 CapabilityStatus::Planned,
                 None,
@@ -405,20 +409,19 @@ mod tests {
     #[test]
     fn r02_flags_duplicate_artifact_id() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
-        let caps = full_caps(
-            CapabilityStatus::Planned,
-            None,
-            &["validator-crate"],
-            None,
-        );
+        head.insert("specs/cross-cutting/x.json".into());
+        let caps = full_caps(CapabilityStatus::Planned, None, &["validator-crate"], None);
         let rows = vec![
-            row("dup", ".omc/specs/x.json", caps.clone()),
-            row("dup", ".omc/specs/x.json", caps),
+            row("dup", "specs/cross-cutting/x.json", caps.clone()),
+            row("dup", "specs/cross-cutting/x.json", caps),
         ];
         let report = validate(&rows, &head);
         assert_eq!(
-            report.violations.iter().filter(|v| v.rule_id == "R02-duplicate-artifact-id").count(),
+            report
+                .violations
+                .iter()
+                .filter(|v| v.rule_id == "R02-duplicate-artifact-id")
+                .count(),
             1
         );
     }
@@ -426,24 +429,28 @@ mod tests {
     #[test]
     fn r03_flags_missing_capabilities() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let mut caps = BTreeMap::new();
         caps.insert(
             CapabilityKind::Enforcement,
             cap(CapabilityStatus::Planned, None, &["x"], None),
         );
-        let rows = vec![row("partial", ".omc/specs/x.json", caps)];
+        let rows = vec![row("partial", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
-        let r03_count = report.violations.iter().filter(|v| v.rule_id == "R03-missing-capability").count();
+        let r03_count = report
+            .violations
+            .iter()
+            .filter(|v| v.rule_id == "R03-missing-capability")
+            .count();
         assert_eq!(r03_count, 8);
     }
 
     #[test]
     fn r04_flags_operational_without_evidence() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::Operational, None, &[], None);
-        let rows = vec![row("op", ".omc/specs/x.json", caps)];
+        let rows = vec![row("op", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r04 = report
             .violations
@@ -456,9 +463,9 @@ mod tests {
     #[test]
     fn r05_flags_planned_without_prerequisite() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::Planned, None, &[], None);
-        let rows = vec![row("p", ".omc/specs/x.json", caps)];
+        let rows = vec![row("p", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r05 = report
             .violations
@@ -471,9 +478,9 @@ mod tests {
     #[test]
     fn r06_flags_blocked_without_prerequisite() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::BlockedByFoundation, None, &[], None);
-        let rows = vec![row("b", ".omc/specs/x.json", caps)];
+        let rows = vec![row("b", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r06 = report
             .violations
@@ -486,9 +493,9 @@ mod tests {
     #[test]
     fn r07_warns_na_without_rationale() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(CapabilityStatus::NotApplicable, None, &[], None);
-        let rows = vec![row("n", ".omc/specs/x.json", caps)];
+        let rows = vec![row("n", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         let r07 = report
             .violations
@@ -501,7 +508,15 @@ mod tests {
 
     #[test]
     fn artifact_profile_parses_all_known_names() {
-        let names = ["schema", "registry", "template", "plan-attestation", "ledger", "claim-matrix", "evidence-bundle"];
+        let names = [
+            "schema",
+            "registry",
+            "template",
+            "plan-attestation",
+            "ledger",
+            "claim-matrix",
+            "evidence-bundle",
+        ];
         for n in names {
             assert!(ArtifactProfile::parse(n).is_some(), "should parse: {n}");
         }
@@ -519,9 +534,19 @@ mod tests {
     fn artifact_profile_default_capabilities_covers_all_9() {
         for p in ArtifactProfile::all() {
             let defaults = p.default_capabilities();
-            assert_eq!(defaults.len(), 9, "profile {} missing capabilities", p.name());
+            assert_eq!(
+                defaults.len(),
+                9,
+                "profile {} missing capabilities",
+                p.name()
+            );
             for kind in CapabilityKind::ALL {
-                assert!(defaults.contains_key(&kind), "profile {} missing {}", p.name(), kind.name());
+                assert!(
+                    defaults.contains_key(&kind),
+                    "profile {} missing {}",
+                    p.name(),
+                    kind.name()
+                );
             }
         }
     }
@@ -529,14 +554,14 @@ mod tests {
     #[test]
     fn happy_path_no_violations() {
         let mut head = BTreeSet::new();
-        head.insert(".omc/specs/x.json".into());
+        head.insert("specs/cross-cutting/x.json".into());
         let caps = full_caps(
             CapabilityStatus::Planned,
             None,
             &["crates/oya-check-active-artifact-contract"],
             None,
         );
-        let rows = vec![row("ok", ".omc/specs/x.json", caps)];
+        let rows = vec![row("ok", "specs/cross-cutting/x.json", caps)];
         let report = validate(&rows, &head);
         assert_eq!(report.violations.len(), 0);
         assert!(!report.has_errors());

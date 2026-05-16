@@ -1,3 +1,9 @@
+---
+id: ADR-0064
+status: accepted
+doc_status: published
+---
+
 # ADR-0064: Canonical base + localization packs — pack-pluggable µservice architecture, Korea is pack #1
 
 > **Status:** Accepted
@@ -69,7 +75,7 @@ A customer-facing µservice ships to a paying tenant only when:
 - (a) its canonical base passes the M02 substrate quality bar (per ADR-0062), **AND**
 - (b) at least one localization pack exists for it, **OR** an explicit ADR declares the µservice pack-neutral (e.g., `connect-messenger` core protocol is jurisdiction-neutral; only retention windows are pack-specific)
 
-The canonical base alone is **not** shippable to a paying tenant — a pack is mandatory unless explicitly exempted.
+The canonical base alone is **not** shippable to a paying tenant — a pack is mandatory. The canonical-base neutrality CI lane (per ADR-0064 §"Lane enforcement") refuses any paying-tenant deployment without a pack; pack-neutral µservices satisfy condition (b) above via the explicit `pack-neutral` ADR declaration, which is itself a canonical pack designation, not an exemption.
 
 ### 3. Pack composition
 

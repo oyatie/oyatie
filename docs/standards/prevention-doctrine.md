@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Prevention Doctrine
+doc_status: published
+---
+
 # Oyatie — Prevention Doctrine
 
 > **Owner:** `council-architecture`. The doctrine for how Oyatie responds to mistakes: fix the SYSTEM, not the symptom.

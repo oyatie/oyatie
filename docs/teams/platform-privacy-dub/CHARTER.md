@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Platform — Privacy & Data Use Boundary
 
 ## Mission

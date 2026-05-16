@@ -5,24 +5,22 @@ milestone: M01-foundation
 phase: P04-iter-4-src-inspection
 status: Complete
 acceptance_lanes: []
-entry_gate: |
-  P02-shard-1-atomic-rename complete; workspace compiles clean; all 114 renamed
-  crates present on disk. The 88 STUB-pending-iter-4-src-inspection cells in
-  §3 audit body are the work items for this phase.
-exit_gate: |
-  Every `layer_evidence` cell in §3.1–§3.5 audit body contains a concrete
-  file:line cite OR an explicit `PROTOCOL-UNKNOWN` deferral marker (the 26
-  deferred rows are correct). Zero `STUB-pending` markers remain. Layer
-  assignments confirmed or amended (with rationale). The §3 audit body is the
-  source of truth for the post-Shard-1 workspace state. Rename plan updated
-  in-place with evidence. ICM context-oyatie row emitted.
+entry_gate: "P02-shard-1-atomic-rename complete; workspace compiles clean; all 114\
+  \ renamed\ncrates present on disk. The 88 STUB-pending-iter-4-src-inspection cells\
+  \ in\n\xA73 audit body are the work items for this phase.\n"
+exit_gate: "Every `layer_evidence` cell in \xA73.1\u2013\xA73.5 audit body contains\
+  \ a concrete\nfile:line cite OR an explicit `PROTOCOL-UNKNOWN` deferral marker (the\
+  \ 26\ndeferred rows are correct). Zero `STUB-pending` markers remain. Layer\nassignments\
+  \ confirmed or amended (with rationale). The \xA73 audit body is the\nsource of\
+  \ truth for the post-Shard-1 workspace state. Rename plan updated\nin-place with\
+  \ evidence. ICM context-oyatie row emitted.\n"
 depends_on:
-  - milestone: M01
-    phase: P02-shard-1-atomic-rename
-    reason: "src-inspection operates on renamed crate dirs; must run post-Shard-1"
+- milestone: M01
+  phase: P02-shard-1-atomic-rename
+  reason: src-inspection operates on renamed crate dirs; must run post-Shard-1
 owner_team: council-architecture
+purpose: "The §3 audit body in `docs/plans/rename-plan-v4-clean-arch-2026-05-13.md` contains 88 rows marked `STUB-pending-iter-4-src-inspection` in the `layer_evidence` column."
 ---
-
 # P04-iter-4-src-inspection: Resolve STUB-pending-iter-4 layer evidence cells
 
 ## Purpose

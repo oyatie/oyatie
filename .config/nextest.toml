@@ -1,0 +1,25 @@
+# Nextest configuration.
+#
+# The `ci` profile is referenced by `.github/workflows/pr-tests.yml`
+# (env `NEXTEST_PROFILE: ci`). Without this file, nextest exits 96 with
+# `profile 'ci' not found`. See PR #3 CI re-trigger 2026-05-15.
+#
+# Profile shape: keep tests deterministic — no retries (a flaky test
+# under DENY is a real bug to fix, not a retry candidate), no fail-fast
+# (collect all failures in one run for triage), JUnit output for the CI
+# reporting lane.
+
+[profile.default]
+# Inherit default nextest behavior for local `cargo nextest run`.
+
+[profile.ci]
+# Run the full suite even if a test fails so the CI report shows every
+# failure, not just the first.
+fail-fast = false
+# No retries: under DENY + the ADR-0083 Tier 1 posture, a flaky test is
+# a bug to fix, not a transient to retry past.
+retries = 0
+# Emit JUnit-compatible XML for the CI reporting lane.
+
+[profile.ci.junit]
+path = "junit.xml"

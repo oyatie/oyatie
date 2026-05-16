@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Migration runbook template (per migrating tenant)
 
 > Per [`docs/STANDARDS-AND-TEMPLATES.md`](../STANDARDS-AND-TEMPLATES.md) §2. Lives at `runbooks/migration/<tenant-id>-<source>-to-oyatie.md`. Validated by `runbook-discoverability`.
