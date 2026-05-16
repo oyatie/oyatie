@@ -147,7 +147,7 @@ jobs:
         with:
           shared-key: oya-vcs-admission
       - name: Install Trivy
-        run: bash scripts/install-trivy-ci.sh
+        run: cargo run -p oya-dev-cli -- supply-chain install-trivy
       - name: Oya VCS admission
         env:
           CARGO_TERM_COLOR: always

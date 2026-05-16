@@ -1,8 +1,8 @@
 //! `oya supply-chain` — Rust-owned supply-chain execution surfaces.
 //!
-//! The ADR-0039 release runner replaces `scripts/supply-chain-adr0039.sh`
-//! hand-written orchestration. The shell path remains only as a compatibility
-//! shim while workflows and operators call this Rust surface directly.
+//! The ADR-0039 release runner and CI Trivy installer replace hand-written
+//! shell orchestration. Shell paths remain only as compatibility shims while
+//! workflows and operators call this Rust surface directly.
 
 use std::env;
 use std::fs;
@@ -18,6 +18,8 @@ const DEFAULT_ARTIFACTS_DIR: &str = "artifacts/supply-chain";
 const DEFAULT_REKOR_URL: &str = "https://rekor.sigstore.dev";
 const DEFAULT_ISSUER: &str = "https://token.actions.githubusercontent.com";
 const DEFAULT_IDENTITY_REGEXP: &str = "https://github.com/.+/.+/.github/workflows/.+@refs/tags/v.+";
+const DEFAULT_TRIVY_VERSION: &str = "0.70.0";
+const DEFAULT_TRIVY_INSTALL_DIR: &str = "/usr/local/bin";
 
 const ADR0039_WIRING_EVIDENCE: &str = r#"
 trivy fs --severity HIGH,CRITICAL --exit-code 1 .
@@ -45,8 +47,30 @@ struct Adr0039Args {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct Adr0039Step {
-    program: &'static str,
+struct InstallTrivyArgs {
+    version: String,
+    install_dir: PathBuf,
+    dry_run: bool,
+    output_format: OutputFormat,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct InstallTrivyPlan {
+    archive_name: String,
+    checksums_name: String,
+    base_url: String,
+    tmp_dir: PathBuf,
+    archive_path: PathBuf,
+    checksums_path: PathBuf,
+    selected_checksum_path: PathBuf,
+    extracted_trivy_path: PathBuf,
+    installed_trivy_path: PathBuf,
+    steps: Vec<CommandStep>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+struct CommandStep {
+    program: String,
     args: Vec<String>,
 }
 
@@ -54,6 +78,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
     let mut iter = args.into_iter();
     match iter.next().as_deref() {
         Some("adr0039") => run_adr0039(iter.collect(), usage),
+        Some("install-trivy") => run_install_trivy(iter.collect(), usage),
         _ => {
             eprintln!("{usage}");
             ExitCode::from(2)
@@ -93,6 +118,66 @@ fn run_adr0039(args: Vec<String>, usage: &str) -> ExitCode {
     }
 }
 
+fn run_install_trivy(args: Vec<String>, usage: &str) -> ExitCode {
+    let parsed = match parse_install_trivy_args(args, usage) {
+        Ok(parsed) => parsed,
+        Err(message) => {
+            eprintln!("{message}");
+            return ExitCode::from(2);
+        }
+    };
+    let plan = install_trivy_plan(&parsed);
+    if parsed.dry_run {
+        render_install_trivy_plan(&parsed, &plan);
+        return ExitCode::SUCCESS;
+    }
+    match execute_install_trivy(&parsed, &plan) {
+        Ok(()) => {
+            render_install_trivy_result(&parsed, &plan);
+            ExitCode::SUCCESS
+        }
+        Err(message) => {
+            eprintln!("trivy install failed: {message}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
+fn parse_install_trivy_args(args: Vec<String>, usage: &str) -> Result<InstallTrivyArgs, String> {
+    let mut parsed = InstallTrivyArgs {
+        version: env::var("TRIVY_VERSION").unwrap_or_else(|_| DEFAULT_TRIVY_VERSION.to_string()),
+        install_dir: env::var_os("TRIVY_INSTALL_DIR")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_TRIVY_INSTALL_DIR)),
+        dry_run: false,
+        output_format: OutputFormat::Text,
+    };
+    let mut iter = args.into_iter();
+    while let Some(flag) = iter.next() {
+        match flag.as_str() {
+            "--version" => {
+                parsed.version = next_value("oya supply-chain install-trivy", &mut iter, &flag)?
+            }
+            "--install-dir" => {
+                parsed.install_dir = PathBuf::from(next_value(
+                    "oya supply-chain install-trivy",
+                    &mut iter,
+                    &flag,
+                )?)
+            }
+            "--dry-run" => parsed.dry_run = true,
+            "--format" => {
+                let value = next_value("oya supply-chain install-trivy", &mut iter, &flag)?;
+                parsed.output_format = OutputFormat::parse(&value).ok_or_else(|| {
+                    "oya supply-chain install-trivy: --format must be text or json".to_string()
+                })?;
+            }
+            _ => return Err(usage.to_string()),
+        }
+    }
+    Ok(parsed)
+}
+
 fn parse_adr0039_args(args: Vec<String>, usage: &str) -> Result<Adr0039Args, String> {
     let mut parsed = Adr0039Args {
         manifest_path: PathBuf::from("registry/release/images.yaml"),
@@ -109,16 +194,26 @@ fn parse_adr0039_args(args: Vec<String>, usage: &str) -> Result<Adr0039Args, Str
     let mut iter = args.into_iter();
     while let Some(flag) = iter.next() {
         match flag.as_str() {
-            "--manifest" => parsed.manifest_path = PathBuf::from(next_value(&mut iter, &flag)?),
-            "--artifacts-dir" => {
-                parsed.artifacts_dir = PathBuf::from(next_value(&mut iter, &flag)?)
+            "--manifest" => {
+                parsed.manifest_path =
+                    PathBuf::from(next_value("oya supply-chain adr0039", &mut iter, &flag)?)
             }
-            "--rekor-url" => parsed.rekor_url = next_value(&mut iter, &flag)?,
-            "--issuer" | "--oidc-issuer" => parsed.issuer = next_value(&mut iter, &flag)?,
-            "--identity-regexp" => parsed.identity_regexp = next_value(&mut iter, &flag)?,
+            "--artifacts-dir" => {
+                parsed.artifacts_dir =
+                    PathBuf::from(next_value("oya supply-chain adr0039", &mut iter, &flag)?)
+            }
+            "--rekor-url" => {
+                parsed.rekor_url = next_value("oya supply-chain adr0039", &mut iter, &flag)?
+            }
+            "--issuer" | "--oidc-issuer" => {
+                parsed.issuer = next_value("oya supply-chain adr0039", &mut iter, &flag)?
+            }
+            "--identity-regexp" => {
+                parsed.identity_regexp = next_value("oya supply-chain adr0039", &mut iter, &flag)?
+            }
             "--dry-run" => parsed.dry_run = true,
             "--format" => {
-                let value = next_value(&mut iter, &flag)?;
+                let value = next_value("oya supply-chain adr0039", &mut iter, &flag)?;
                 parsed.output_format = OutputFormat::parse(&value).ok_or_else(|| {
                     "oya supply-chain adr0039: --format must be text or json".to_string()
                 })?;
@@ -129,12 +224,16 @@ fn parse_adr0039_args(args: Vec<String>, usage: &str) -> Result<Adr0039Args, Str
     Ok(parsed)
 }
 
-fn next_value(iter: &mut impl Iterator<Item = String>, flag: &str) -> Result<String, String> {
+fn next_value(
+    command: &str,
+    iter: &mut impl Iterator<Item = String>,
+    flag: &str,
+) -> Result<String, String> {
     iter.next()
-        .ok_or_else(|| format!("oya supply-chain adr0039: {flag} requires a value"))
+        .ok_or_else(|| format!("{command}: {flag} requires a value"))
 }
 
-fn adr0039_plan(args: &Adr0039Args) -> Result<(Vec<String>, Vec<Adr0039Step>), String> {
+fn adr0039_plan(args: &Adr0039Args) -> Result<(Vec<String>, Vec<CommandStep>), String> {
     let images = release_images(&args.manifest_path)?;
     if images.is_empty() {
         return Err(format!(
@@ -238,7 +337,84 @@ fn adr0039_plan(args: &Adr0039Args) -> Result<(Vec<String>, Vec<Adr0039Step>), S
     Ok((images, steps))
 }
 
-fn execute_adr0039(args: &Adr0039Args, steps: &[Adr0039Step]) -> Result<(), String> {
+fn install_trivy_plan(args: &InstallTrivyArgs) -> InstallTrivyPlan {
+    let archive_name = format!("trivy_{}_Linux-64bit.tar.gz", args.version);
+    let checksums_name = format!("trivy_{}_checksums.txt", args.version);
+    let base_url = format!(
+        "https://github.com/aquasecurity/trivy/releases/download/v{}",
+        args.version
+    );
+    let tmp_dir = unique_trivy_tmp_dir(&args.version);
+    let archive_path = tmp_dir.join(&archive_name);
+    let checksums_path = tmp_dir.join(&checksums_name);
+    let selected_checksum_path = tmp_dir.join("selected-checksum.txt");
+    let extracted_trivy_path = tmp_dir.join("trivy");
+    let installed_trivy_path = args.install_dir.join("trivy");
+    let steps = vec![
+        step_owned(
+            "curl",
+            vec![
+                "--fail".into(),
+                "--location".into(),
+                "--silent".into(),
+                "--show-error".into(),
+                "--output".into(),
+                path_string(&archive_path),
+                format!("{base_url}/{archive_name}"),
+            ],
+        ),
+        step_owned(
+            "curl",
+            vec![
+                "--fail".into(),
+                "--location".into(),
+                "--silent".into(),
+                "--show-error".into(),
+                "--output".into(),
+                path_string(&checksums_path),
+                format!("{base_url}/{checksums_name}"),
+            ],
+        ),
+        step_owned(
+            "sha256sum",
+            vec!["-c".into(), path_string(&selected_checksum_path)],
+        ),
+        step_owned(
+            "tar",
+            vec![
+                "-xzf".into(),
+                path_string(&archive_path),
+                "-C".into(),
+                path_string(&tmp_dir),
+                "trivy".into(),
+            ],
+        ),
+        step_owned(
+            "install",
+            vec![
+                "-m".into(),
+                "0755".into(),
+                path_string(&extracted_trivy_path),
+                path_string(&installed_trivy_path),
+            ],
+        ),
+        step_owned(path_string(&installed_trivy_path), vec!["--version".into()]),
+    ];
+    InstallTrivyPlan {
+        archive_name,
+        checksums_name,
+        base_url,
+        tmp_dir,
+        archive_path,
+        checksums_path,
+        selected_checksum_path,
+        extracted_trivy_path,
+        installed_trivy_path,
+        steps,
+    }
+}
+
+fn execute_adr0039(args: &Adr0039Args, steps: &[CommandStep]) -> Result<(), String> {
     require_tool("trivy")?;
     require_tool("cosign")?;
     fs::create_dir_all(args.artifacts_dir.join("sbom")).map_err(|error| {
@@ -248,23 +424,67 @@ fn execute_adr0039(args: &Adr0039Args, steps: &[Adr0039Step]) -> Result<(), Stri
         )
     })?;
     for step in steps {
-        eprintln!("+ {}", step.command_line());
-        let status = Command::new(step.program)
-            .args(&step.args)
-            .status()
-            .map_err(|error| format!("could not start {}: {error}", step.program))?;
-        if !status.success() {
-            return Err(format!(
-                "{} failed with {}",
-                step.command_line(),
-                process_status_label(&status)
-            ));
-        }
+        run_step(step)?;
     }
     Ok(())
 }
 
-fn render_adr0039_plan(args: &Adr0039Args, images: &[String], steps: &[Adr0039Step]) {
+fn execute_install_trivy(args: &InstallTrivyArgs, plan: &InstallTrivyPlan) -> Result<(), String> {
+    require_tool("curl")?;
+    require_tool("sha256sum")?;
+    require_tool("tar")?;
+    require_tool("install")?;
+    fs::create_dir_all(&plan.tmp_dir).map_err(|error| {
+        format!(
+            "could not create trivy installer temp dir {}: {error}",
+            plan.tmp_dir.display()
+        )
+    })?;
+    if let Err(error) = fs::create_dir_all(&args.install_dir) {
+        return Err(format!(
+            "could not create trivy install dir {}: {error}",
+            args.install_dir.display()
+        ));
+    }
+    run_step(&plan.steps[0])?;
+    run_step(&plan.steps[1])?;
+    write_selected_checksum(plan)?;
+    run_step(&plan.steps[2])?;
+    run_step(&plan.steps[3])?;
+    if directory_is_writable(&args.install_dir) {
+        run_step(&plan.steps[4])?;
+    } else {
+        let sudo_step = step_owned(
+            "sudo",
+            std::iter::once("install".to_string())
+                .chain(plan.steps[4].args.clone())
+                .collect(),
+        );
+        run_step(&sudo_step)?;
+    }
+    run_step(&plan.steps[5])?;
+    let _ = fs::remove_dir_all(&plan.tmp_dir);
+    Ok(())
+}
+
+fn run_step(step: &CommandStep) -> Result<(), String> {
+    eprintln!("+ {}", step.command_line());
+    let status = Command::new(&step.program)
+        .args(&step.args)
+        .status()
+        .map_err(|error| format!("could not start {}: {error}", step.program))?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "{} failed with {}",
+            step.command_line(),
+            process_status_label(&status)
+        ))
+    }
+}
+
+fn render_adr0039_plan(args: &Adr0039Args, images: &[String], steps: &[CommandStep]) {
     match args.output_format {
         OutputFormat::Text => {
             println!("ADR-0039 supply-chain Rust runner dry-run");
@@ -284,7 +504,7 @@ fn render_adr0039_plan(args: &Adr0039Args, images: &[String], steps: &[Adr0039St
                     "manifest": args.manifest_path,
                     "artifacts_dir": args.artifacts_dir,
                     "images": images,
-                    "steps": steps.iter().map(Adr0039Step::command_line).collect::<Vec<_>>(),
+                    "steps": steps.iter().map(CommandStep::command_line).collect::<Vec<_>>(),
                     "wiring_evidence": ADR0039_WIRING_EVIDENCE.trim()
                 })
             );
@@ -292,7 +512,7 @@ fn render_adr0039_plan(args: &Adr0039Args, images: &[String], steps: &[Adr0039St
     }
 }
 
-fn render_adr0039_result(args: &Adr0039Args, images: &[String], steps: &[Adr0039Step]) {
+fn render_adr0039_result(args: &Adr0039Args, images: &[String], steps: &[CommandStep]) {
     match args.output_format {
         OutputFormat::Text => println!(
             "ADR-0039 supply-chain Rust runner passed: {} images, {} steps, artifacts_dir={}",
@@ -308,6 +528,73 @@ fn render_adr0039_result(args: &Adr0039Args, images: &[String], steps: &[Adr0039
                 "images_checked": images.len(),
                 "steps_executed": steps.len(),
                 "artifacts_dir": args.artifacts_dir
+            })
+        ),
+    }
+}
+
+fn render_install_trivy_plan(args: &InstallTrivyArgs, plan: &InstallTrivyPlan) {
+    match args.output_format {
+        OutputFormat::Text => {
+            println!("Trivy CI installer Rust runner dry-run");
+            println!("version={}", args.version);
+            println!("install_dir={}", args.install_dir.display());
+            println!("tmp_dir={}", plan.tmp_dir.display());
+            println!("rust action: create temp dir");
+            println!("rust action: select checksum for {}", plan.archive_name);
+            for step in &plan.steps {
+                println!("{}", step.command_line());
+            }
+            println!(
+                "fallback when install_dir is not writable: sudo install -m 0755 {} {}",
+                plan.extracted_trivy_path.display(),
+                plan.installed_trivy_path.display()
+            );
+        }
+        OutputFormat::Json => {
+            println!(
+                "{}",
+                json!({
+                    "command": "oya supply-chain install-trivy",
+                    "mode": "dry-run",
+                    "version": args.version,
+                    "install_dir": args.install_dir,
+                    "tmp_dir": plan.tmp_dir,
+                    "archive": plan.archive_name,
+                    "checksums": plan.checksums_name,
+                    "base_url": plan.base_url,
+                    "steps": plan.steps.iter().map(CommandStep::command_line).collect::<Vec<_>>(),
+                    "rust_actions": [
+                        "create installer temp dir",
+                        "select checksum line for archive",
+                        "write selected-checksum.txt with absolute archive path",
+                        "remove temp dir after successful install"
+                    ],
+                    "sudo_fallback": format!(
+                        "sudo install -m 0755 {} {}",
+                        plan.extracted_trivy_path.display(),
+                        plan.installed_trivy_path.display()
+                    )
+                })
+            );
+        }
+    }
+}
+
+fn render_install_trivy_result(args: &InstallTrivyArgs, plan: &InstallTrivyPlan) {
+    match args.output_format {
+        OutputFormat::Text => println!(
+            "Trivy CI installer Rust runner passed: version={}, installed={}",
+            args.version,
+            plan.installed_trivy_path.display()
+        ),
+        OutputFormat::Json => println!(
+            "{}",
+            json!({
+                "command": "oya supply-chain install-trivy",
+                "status": "passed",
+                "version": args.version,
+                "installed_trivy": plan.installed_trivy_path
             })
         ),
     }
@@ -353,11 +640,49 @@ fn clean_manifest_value(value: &str) -> String {
         .to_string()
 }
 
+fn write_selected_checksum(plan: &InstallTrivyPlan) -> Result<(), String> {
+    let checksums = fs::read_to_string(&plan.checksums_path).map_err(|error| {
+        format!(
+            "could not read trivy checksums {}: {error}",
+            plan.checksums_path.display()
+        )
+    })?;
+    let selected = select_checksum_line(&checksums, &plan.archive_name, &plan.archive_path)?;
+    fs::write(&plan.selected_checksum_path, selected).map_err(|error| {
+        format!(
+            "could not write selected trivy checksum {}: {error}",
+            plan.selected_checksum_path.display()
+        )
+    })
+}
+
+fn select_checksum_line(
+    checksums: &str,
+    archive_name: &str,
+    archive_path: &Path,
+) -> Result<String, String> {
+    for line in checksums.lines() {
+        let mut parts = line.split_whitespace();
+        let Some(hash) = parts.next() else {
+            continue;
+        };
+        let Some(path) = parts.last() else {
+            continue;
+        };
+        if path.trim_start_matches('*') == archive_name {
+            return Ok(format!("{hash}  {}\n", archive_path.display()));
+        }
+    }
+    Err(format!(
+        "trivy checksum file does not contain archive {archive_name}"
+    ))
+}
+
 fn require_tool(tool: &str) -> Result<(), String> {
     if tool_on_path(tool) {
         Ok(())
     } else {
-        Err(format!("missing required ADR-0039 tool: {tool}"))
+        Err(format!("missing required supply-chain tool: {tool}"))
     }
 }
 
@@ -368,7 +693,35 @@ fn tool_on_path(tool: &str) -> bool {
     env::split_paths(&path).any(|dir| dir.join(tool).is_file())
 }
 
-fn attest_step(predicate: &Path, kind: &str, image: &str) -> Adr0039Step {
+fn directory_is_writable(dir: &Path) -> bool {
+    let probe = dir.join(format!(
+        ".oya-trivy-install-write-probe-{}",
+        std::process::id()
+    ));
+    let created = fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&probe)
+        .is_ok();
+    if created {
+        let _ = fs::remove_file(probe);
+    }
+    created
+}
+
+fn unique_trivy_tmp_dir(version: &str) -> PathBuf {
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_nanos())
+        .unwrap_or(0);
+    env::temp_dir().join(format!(
+        "oya-trivy-install-{}-{}-{nanos}",
+        version,
+        std::process::id()
+    ))
+}
+
+fn attest_step(predicate: &Path, kind: &str, image: &str) -> CommandStep {
     step_owned(
         "cosign",
         vec![
@@ -383,7 +736,7 @@ fn attest_step(predicate: &Path, kind: &str, image: &str) -> Adr0039Step {
     )
 }
 
-fn step<const N: usize>(program: &'static str, args: [&str; N]) -> Adr0039Step {
+fn step<const N: usize>(program: &'static str, args: [&str; N]) -> CommandStep {
     step_owned(
         program,
         args.into_iter()
@@ -392,15 +745,18 @@ fn step<const N: usize>(program: &'static str, args: [&str; N]) -> Adr0039Step {
     )
 }
 
-fn step_owned(program: &'static str, args: Vec<String>) -> Adr0039Step {
-    Adr0039Step { program, args }
+fn step_owned(program: impl Into<String>, args: Vec<String>) -> CommandStep {
+    CommandStep {
+        program: program.into(),
+        args,
+    }
 }
 
 fn path_string(path: &Path) -> String {
     path.to_string_lossy().into_owned()
 }
 
-impl Adr0039Step {
+impl CommandStep {
     fn command_line(&self) -> String {
         std::iter::once(self.program.to_string())
             .chain(self.args.iter().map(|arg| shell_token(arg)))
@@ -468,7 +824,7 @@ mod tests {
         let (_images, steps) = adr0039_plan(&args).expect("plan built");
         let rendered = steps
             .iter()
-            .map(Adr0039Step::command_line)
+            .map(CommandStep::command_line)
             .collect::<Vec<_>>()
             .join("\n");
 
@@ -478,5 +834,46 @@ mod tests {
         assert!(rendered.contains("cosign verify --rekor-url"));
         assert!(rendered.contains("cosign attest --yes"));
         let _ = fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn install_trivy_plan_contains_pinned_download_and_checksum_steps() {
+        let args = InstallTrivyArgs {
+            version: DEFAULT_TRIVY_VERSION.to_string(),
+            install_dir: PathBuf::from(DEFAULT_TRIVY_INSTALL_DIR),
+            dry_run: true,
+            output_format: OutputFormat::Json,
+        };
+
+        let plan = install_trivy_plan(&args);
+        let rendered = plan
+            .steps
+            .iter()
+            .map(CommandStep::command_line)
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(rendered.contains("trivy_0.70.0_Linux-64bit.tar.gz"));
+        assert!(rendered.contains("trivy_0.70.0_checksums.txt"));
+        assert!(rendered.contains("sha256sum -c"));
+        assert!(rendered.contains("tar -xzf"));
+        assert!(rendered.contains("install -m 0755"));
+    }
+
+    #[test]
+    fn install_trivy_checksum_selection_rewrites_archive_path() {
+        let archive_path = PathBuf::from("/tmp/oya/trivy_0.70.0_Linux-64bit.tar.gz");
+        let selected = select_checksum_line(
+            "abc123  trivy_0.70.0_Linux-64bit.tar.gz\n\
+             deadbeef  trivy_0.70.0_checksums.txt\n",
+            "trivy_0.70.0_Linux-64bit.tar.gz",
+            &archive_path,
+        )
+        .expect("checksum selected");
+
+        assert_eq!(
+            selected,
+            "abc123  /tmp/oya/trivy_0.70.0_Linux-64bit.tar.gz\n"
+        );
     }
 }
