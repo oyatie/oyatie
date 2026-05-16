@@ -2512,9 +2512,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "oya-foundry-vcs-merge-queue-conflict-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "oya-foundry-vcs-merge-queue-fix-loop-app"
 version = "0.1.0"
 dependencies = [
+ "oya-foundry-vcs-merge-queue-conflict-kernel",
  "oya-foundry-vcs-review-mergequeue-kernel",
 ]
 
