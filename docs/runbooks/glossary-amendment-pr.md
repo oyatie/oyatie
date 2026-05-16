@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Glossary Amendment Pr
+doc_status: published
+---
+
 # Oyatie Runbook — Glossary Amendment Pr
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

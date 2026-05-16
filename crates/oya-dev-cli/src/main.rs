@@ -1,5 +1,5 @@
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
-    oya_tooling_cli_dev_runtime::run_cli_from_env()
+    oya_dev_cli::run_cli_from_env()
 }

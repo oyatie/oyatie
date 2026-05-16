@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Agentic Delivery Fabric: Rust-first CI/CD and VCS report
 
 **Date:** 2026-05-10

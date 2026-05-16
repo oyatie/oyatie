@@ -1,3 +1,8 @@
+---
+purpose: Oyatie / oYa brand voice for KR + global
+doc_status: published
+---
+
 # Oyatie — Brand Voice Standard
 
 > **Owner:** TBD per RACI

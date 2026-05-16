@@ -1,0 +1,176 @@
+{
+  "change_id": "M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "change_class": "CC-1_kernel_public_api",
+  "rigor": "deep",
+  "reviewer_id": "claude-critic-M1_challenge_assumption-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "facet": "M1_challenge_assumption",
+  "round": 1,
+  "lens_only": true,
+  "verdict": "REJECT",
+  "verdict_target": "v5_delta_addendum",
+  "v4_verdict": "ACCEPT-WITH-RESERVATIONS",
+  "summary": "v5 delta is built on the SINGLE weakest premise in the entire plan stack (PREMISE-5: drift across N accounts is a real problem) at a moment when N==0 \u2014 the very directory the drift lane scans (`registry/accounts/`) does not yet exist on disk. v4 carries a separate fragile premise (PREMISE-1: a Rust supervisor is required vs. adopting the cited upstream `Siigari/claude-heartbeat` Node tool) that was never cost-benefit-analyzed. v5 should be rejected on premise-evidence grounds; v4 should ship with the PREMISE-1 build-vs-adopt analysis appended.",
+  "premise_stated": "v5 load-bearing premise: 'N accounts \u00d7 3 providers = 3N distinct settings files. Manual maintenance guarantees drift within one onboarding cycle. CI-enforced parity is the only stable answer.' (v5 \u00a7A.1.2 driver #1). Sub-premise: N is sufficiently large today that this drift is a real, observable, or imminently observable problem.",
+  "premise_evidence_ref": "none-cited",
+  "premise_evidence_details": {
+    "n_account_value": "UNSPECIFIED in v5",
+    "current_n_on_disk": 0,
+    "ground_truth_check": "ls /Users/jasonlee/oyatie/registry/ \u2192 adr/ audit-chain/ capabilities/ catalog/ data-class/ docs/ foundation-bypasses/ glossary-vocabulary/ mobile-native/ openapi/ placeholder-debt/ quality/ release/ \u2014 NO accounts/ subdirectory. v4 \u00a7B.10 confirms: `registry/accounts/` 'Directory does NOT yet exist; declared as scaffold artifact'.",
+    "claude_heartbeat_evidence_count": "v4 cites `Siigari/claude-heartbeat` as 'Reference shape' (v4:18) \u2014 explicit acknowledgement an upstream Node tool already solves restart-per-message + stop-hook + JSONL inbox/outbox; ZERO build-vs-adopt cost-benefit analysis appears in either v4 or v5 (grep across both plans: 0 occurrences of 'premise|cost.benefit|build.vs.buy|fork.upstream|adopt.upstream').",
+    "branch_y_evidence_count": "v4 \u00a7A.1 principle #4 commits to zero net-new external deps; both plans hand-roll TOML parsers + JSON emitters; no quantified cost-benefit cites how many crate-decades of maintenance this saves vs. one `serde + toml` workspace dep.",
+    "fresh_subprocess_evidence_count": "v4 \u00a7A.1 principle #2 cites fresh-subprocess statelessness; mirrors Siigari claude-heartbeat reference shape; no comparison to stateful-session models (pinned long-lived workers with idempotency keys) appears in \u00a7A.3 options."
+  },
+  "do_nothing_consequence": {
+    "v5_deferred": "If v5 is deferred until N \u2265 5 accounts per provider: NOTHING BREAKS for the current foundry trajectory (N=0). v4 supervisor still spawns/injects/drains/kills per-account; the drift problem the user voiced ('consistent skills/hooks/tools across accounts') is fully addressable at N \u2264 5 by (i) a single template-render shell script + (ii) `git diff registry/accounts/*.toml` at PR-review time + (iii) one paragraph in the onboarding doc. Investment trade: v5 ships 2 crates + 3 templates + 1 ADR + 1 CI lane + 18 grit-units + 10 doc-coverage files for a problem that has zero observable instances on disk today. Real-world worst case of deferral: at some unknown future N, a settings drift causes one supervisor `tick_once` to spawn against an account whose hooks were never installed; the existing capability-seed `stop_hook_supported` flag would already make the driver demote to a lower tier \u2014 failure is loud, not silent.",
+    "v4_deferred": "If v4 is deferred until claude-heartbeat is investigated as a direct upstream adoption: at minimum, the team avoids 4 new Rust crates (49+14 grit units, 24 acceptance rows, 1 conformance build.rs, hand-rolled TOML+JSON, bench harness, fitness lanes). The user's intent ('simple hook + inbox outbox setup ... still should be able to intelligently manage usage. all the features still have to come') does NOT mandate Rust as the implementation language. The unstated premise driving Rust here is workspace-language-purity (Cargo workspace; `oya-*` crate convention), which is a real but unstated architectural premise that deserves an explicit ADR rather than implicit adoption."
+  },
+  "upstream_fix_considered": false,
+  "upstream_fix_rejection_reason": "Neither plan considers, rejects, or even mentions the alternative of adopting `Siigari/claude-heartbeat` as a sibling Node process (the explicitly cited 'Reference shape' at v4:18) and having Rust crates only emit JSONL into its inbox / read its outbox. The 4 viable options in v4 \u00a7A.3 (Single daemon / Per-CLI binaries / In-process / Host-injected ports) are all internal Rust shapes \u2014 the comparison set never crosses the language boundary. Similarly for v5: the alternative of a single 200-line template-render shell script + a `git diff` checklist is never considered; v5 \u00a7A.1.3 compares only two Rust shapes (3 per-provider renderers vs. 1 multi-format renderer). The 'upstream fix' question \u2014 could we change something one level up (language choice, build-vs-adopt, manual-diff-at-current-scale) and avoid this entire change? \u2014 has not been asked.",
+  "findings": [
+    {
+      "id": "M1-F1",
+      "severity": "CRITICAL",
+      "confidence": "HIGH",
+      "premise_targeted": "PREMISE-5",
+      "title": "v5 mints a CI lane + 2 crates + ADR to detect drift in a directory that does not exist (N=0)",
+      "evidence_excerpt": "v5 \u00a7A.1.2 driver #1: `N accounts \u00d7 3 providers = 3N distinct settings files. Manual maintenance guarantees drift within one onboarding cycle.`",
+      "ground_truth": "`ls /Users/jasonlee/oyatie/registry/` returns 13 entries: adr/ audit-chain/ capabilities/ catalog/ data-class/ docs/ foundation-bypasses/ glossary-vocabulary/ mobile-native/ openapi/ placeholder-debt/ quality/ release/ \u2014 NO accounts/ subdirectory. v4 \u00a7B.10 confirms: `Directory does NOT yet exist; declared as scaffold artifact`. v5 \u00a7C.26 acceptance criterion runs the lane against `registry/accounts/{claude,codex,gemini}.example.toml` \u2014 example files, not real onboarded accounts.",
+      "why_this_matters": "Imagined-future-scale anti-pattern flagged in the M1 spec. v5's load-bearing driver is drift between N accounts; current N=0; the lane has zero real input to validate against. Investment-to-evidence ratio: 2 crates + 18 grit units + 10 doc files + 1 ADR + 1 CI lane + 6 acceptance rows \u2192 all to detect a problem with zero present-day instances. The whole premise depends on N being large enough that human review can't keep up; that threshold (N \u2248 5-10 accounts per provider) is never quoted, justified, or even named.",
+      "fix": "REJECT v5 in current form. Either: (a) add a documented N-threshold to v5 \u00a7A.1.2 (e.g. 'drift-detection lane activates when sum(rows across registry/accounts/*.toml) \u2265 10') and ship the lane in a deferred state with a feature flag until threshold is crossed; OR (b) demote v5 to a 30-line shell script `tools/render-foundry-settings.sh` + a paragraph in onboarding doc + a `git diff registry/accounts/*.toml` line in the PR-review checklist \u2014 total cost: ~2 grit-units, zero new crates, no ADR. Defer v5-as-currently-scoped until evidence of drift in production is captured.",
+      "self_audit": "Could author refute? Author could counter: 'foundry will have many accounts soon; building drift-detection BEFORE the problem appears is hyperscaler thinking (cited project memory directive)'. That counter is partially valid but does not survive the M1 lens: hyperscaler thinking is about scalability HEADROOM, not about building lanes for problems that have zero present-day instances. If the project memory's `Quality/Performance/Scalability bar` directive justified building any imagined-future-scale feature unconditionally, the gate would not exist. Keeping at CRITICAL."
+    },
+    {
+      "id": "M1-F2",
+      "severity": "MAJOR",
+      "confidence": "HIGH",
+      "premise_targeted": "PREMISE-1",
+      "title": "v4 cites `Siigari/claude-heartbeat` as 'Reference shape' but never analyzes adopt-as-dependency vs. reimplement-in-Rust",
+      "evidence_excerpt": "v4 line 18: `**Reference shape:** Siigari/claude-heartbeat \u2014 Node supervisor + stop-hook + JSONL inbox/outbox + restart-per-message + idle heartbeat tick.`",
+      "ground_truth": "v4 \u00a7A.3 Viable Options compares 4 INTERNAL Rust shapes: (A) single daemon, (B) per-CLI binaries, (C) in-process, (D) host-injected ports. None of the 4 options is 'adopt Siigari/claude-heartbeat as a sibling Node process and have Rust crates speak JSONL to its inbox/outbox'. Grep for 'premise|cost.benefit|build.vs.buy|fork.upstream|adopt.upstream' across v4+v5: zero occurrences.",
+      "why_this_matters": "PREMISE-1 (Rust supervisor required) is the most expensive premise in the entire stack: it justifies 4 new Rust crates, 49+14 grit units, 1 conformance build.rs, hand-rolled TOML+JSON, bench harness, 5 ADRs, capability seed file, and ~10+ doc-coverage files. The cited upstream tool already solves the same problem (Node implementation, identical shape). The plan's response to 'why not adopt upstream' is silence. Project doctrine ('workspace-language-purity', Rust-native `oya-*` crates) is a defensible architectural reason but it deserves an explicit ADR-grade decision, not implicit assumption \u2014 especially because subscription-mode autonomy is a self-contained sidecar that does not need to share Rust types with the rest of the workspace.",
+      "fix": "Append v4 \u00a7A.0.1 'Build-vs-adopt analysis' with: (a) explicit citation of Siigari/claude-heartbeat license + maintenance signal, (b) a 5-line cost/benefit table covering 'adopt-as-sibling-node', 'fork-and-port-incrementally', 'reimplement-in-Rust-from-spec' (the chosen path), (c) explicit ADR `ADR-NNNN-supervisor-language-rust-not-node` documenting why workspace-language-purity outweighs the upstream-adoption shortcut. If the analysis still concludes 'reimplement in Rust' that is fine \u2014 but the decision must be visible.",
+      "self_audit": "Could author refute? Author could counter: 'the cited upstream is a reference SHAPE, not a candidate implementation; their stop-hook semantics may not match our autonomy-ceiling + capability-tier integration'. That counter has some weight but it's exactly the analysis that needs to be IN the plan, not in the reviewer's imagination. Keeping at MAJOR (not CRITICAL because v4 was already accepted and this is a retrospective premise gap, not a v5-specific blocker)."
+    },
+    {
+      "id": "M1-F3",
+      "severity": "MAJOR",
+      "confidence": "HIGH",
+      "premise_targeted": "PREMISE-3",
+      "title": "Branch Y zero-new-deps now forces TWO hand-rolled TOML parsers + TWO hand-rolled JSON emitters across the supervisor stack",
+      "evidence_excerpt": "v4 \u00a7A.1 principle #4: `dep-branch-Y-commitment \u2014 Zero net-new external deps; sync SessionDriver trait; best-effort durability (no fsync(parent_dir))`. v5 \u00a7B.1: `Hand-rolled TOML + JSON parsers (no serde, no toml crate \u2014 Branch Y; reuses the precedent set by v4 oya-foundry-jsonl-supervisor-adapter hand-rolled framing and capability-registry-app:L96 hand-rolled JSON).` v5 \u00a7B.7 grit unit v5.14: `parse_template_toml + emit_drift_report_json` \u2014 Hand-rolled TOML parser + JSON emitter (no serde).",
+      "ground_truth": "v4 already hand-rolls one TOML parser (`registry/capabilities/foundry-supervisor.toml`), one JSON emitter (conformance build.rs), and one inbox-line framer. v5 ADDS a second hand-rolled TOML parser (template.toml \u00d7 3 providers) plus a second hand-rolled JSON emitter (DriftReport). That is FOUR hand-rolled parsers/emitters across two PRs justified by 'Branch Y commitment'. Real-world alternative: `serde = '1'` + `toml = '0.8'` \u2014 both are workspace-class Cargo deps used by millions of crates, transitive footprint is well-understood.",
+      "why_this_matters": "Branch Y was justified in v3/v4 as 'no surprise transitive deps + fast compile + zero supply-chain risk'. But each hand-rolled parser is a forever-maintenance liability: edge cases (multi-line strings, nested tables, unicode escapes, mixed-case keys) that `toml` crate handles for free become per-crate bug surface here. With 4 hand-rolled parsers/emitters, the cumulative maintenance cost likely exceeds the cost of one workspace dep addition. The premise was never quantified.",
+      "fix": "Open ADR `ADR-NNNN-supervisor-dep-policy-revisit-after-four-handrolled-parsers` to quantify: (a) lines of hand-rolled parser code across v4+v5, (b) bug-fix cost estimate over a 12-month window, (c) supply-chain risk delta if `serde + toml` are added as workspace deps (both already used by tens of thousands of crates; SLSA-style provenance available). If the quantified cost still favors hand-roll, document it. Otherwise, flip Branch Y to Branch Y-prime ('exactly two foundational deps: serde + toml; no others without ADR').",
+      "self_audit": "Could author refute? Author could counter: 'Branch Y is a workspace-wide policy, not v5-specific; reopening it is out of scope.' Valid scope objection but it's exactly the M1 challenge: a workspace-wide policy is being load-bearing for v5's design, and its evidentiary basis was never produced. Keeping at MAJOR."
+    },
+    {
+      "id": "M1-F4",
+      "severity": "MAJOR",
+      "confidence": "MEDIUM",
+      "premise_targeted": "PREMISE-5 (secondary aspect)",
+      "title": "v5 \u00a7A.0 user-quote does NOT specify drift-detection-via-CI-lane; user asked for consistency, not for a verifier",
+      "evidence_excerpt": "v5 \u00a7A.0 user-intent verbatim: `how are we patching the settings with the appropriate hooks / settings etc for each agent across accounts, so they are consistent and share the same skills, hooks, tools etc.`",
+      "ground_truth": "The user verb is 'patching' (write-side action). The user constraint is 'consistent'. The user has NOT asked for: (a) a verifier; (b) a CI lane; (c) a render-then-verify-at-snapshot-time port extension. v5 \u00a7A.0 leaps from 'user wants consistency' to 'we need 2 crates + 1 ADR + 1 CI lane + drift-detection at snapshot time'. That leap is the consensus-by-momentum anti-pattern the M1 lens flags.",
+      "why_this_matters": "The minimum viable answer to the user's actual question is 'one template file + a render script that writes the same hooks/skills/tools block into each per-account settings file'. The drift-detection apparatus is reviewer-added scope, not user-requested scope. The fact that v5 is presented as 'addendum, not modification' creates pressure to accept rather than question \u2014 exactly the momentum the M1 lens guards against.",
+      "fix": "Split v5 into two artifacts: (1) v5a 'render templates' = the minimum that satisfies the user-quoted question (1 crate, 1 template trio, 1 ADR, ~6 grit units); (2) v5b 'drift verification' = the addendum currently on offer, but gated on PREMISE-5 evidence per finding M1-F1 (N-threshold + actual on-disk evidence of drift). Ship v5a now; defer v5b until evidence materializes.",
+      "self_audit": "Could author refute? Author could counter: 'drift verification is the only way to make consistency stick at the workspace level'. Partially valid but proves too much: literally every config-drift problem in every codebase could justify a verifier; what's missing here is the EVIDENCE that the manual + review-time path has been tried and found insufficient. Keeping at MAJOR with MEDIUM confidence (the v5a/v5b split is one valid resolution among others)."
+    },
+    {
+      "id": "M1-F5",
+      "severity": "MINOR",
+      "confidence": "MEDIUM",
+      "premise_targeted": "PREMISE-4",
+      "title": "Fresh-subprocess-per-message premise is adopted from Siigari claude-heartbeat reference shape without comparison to stateful-session alternatives",
+      "evidence_excerpt": "v4 \u00a7A.1 principle #2: `fresh-subprocess-statelessness \u2014 Every message \u2192 spawn new CLI process; on stop-hook fire, the process exits. State lives only in JSONL on disk between turns.`",
+      "ground_truth": "v4 \u00a7A.3 options A/B/C/D all assume fresh-subprocess-per-message as a fixed input. No option compares a stateful-session model (pinned long-lived CLI worker with idempotency-key gating + watchdog). The MEMORY.md `Quality/Performance/Scalability bar` directive cites 'statelessness/shardability lanes' as a CI principle \u2014 but that doctrine is about HORIZONTAL shardability of the supervisor process itself, not necessarily about killing-and-respawning the CLI subprocess on every message.",
+      "why_this_matters": "Fork+exec of large CLI binaries (Claude Code is on the order of tens of MB; Codex CLI similarly bulky) on every inbox tick is a measurable perf tax: process startup + config reload + provider reconnect per message. v4 \u00a7A.5 bench `heartbeat.rs` measures supervisor-side latency but not per-message CLI startup cost. Premise could survive a benchmark but the benchmark is absent.",
+      "fix": "Add a 4th bench metric to v4 \u00a7A.5 / \u00a7C.13: `cli_cold_start_latency_p95` \u2014 measure each driver's fork+exec\u2192ready latency under realistic config. If p95 > some threshold (e.g. 500ms), reopen the premise. Cheap to instrument; one bench row.",
+      "self_audit": "Could author refute? Yes \u2014 fresh-subprocess is a defensible choice that matches the cited reference shape and avoids long-lived-process memory creep. Downgraded from MAJOR to MINOR after Realist Check: real-world worst case is sub-second per-message overhead, easily measured, not a blocker. Mitigated by: the audit-evidence pattern already requires per-spawn evidence rows, so per-spawn cost is observable in operations even without a dedicated bench."
+    }
+  ],
+  "what_is_missing": [
+    "An explicit N-account threshold that activates the v5 drift lane (currently undefined; lane runs against example files only)",
+    "Build-vs-adopt analysis for Siigari/claude-heartbeat (cited as reference shape, never evaluated as candidate dependency)",
+    "Cost-benefit quantification of Branch Y (zero new deps) vs. adding `serde + toml` as workspace deps, given the project will hand-roll 4 parsers/emitters across v4+v5",
+    "Per-driver cold-start latency bench (assumed acceptable; never measured)",
+    "Evidence that the manual + PR-review path for cross-account settings consistency has been tried at any N > 0",
+    "Explicit ADR for the workspace-language-purity premise (why subscription-autonomy sidecar must be Rust, not Node)"
+  ],
+  "ambiguity_risks": [
+    {
+      "quote": "N accounts \u00d7 3 providers = 3N distinct settings files. Manual maintenance guarantees drift within one onboarding cycle.",
+      "interpretation_a": "N is large enough that the drift-detection lane pays for itself today",
+      "interpretation_b": "N is currently 0-3 and the lane is built for an imagined future scale that has not yet materialized",
+      "risk_if_wrong": "If interpretation B is the truth, v5 ships 2 crates + 1 ADR + 1 CI lane + 18 grit-units + 10 doc files for zero present-day return \u2014 opportunity cost displaces investment in problems that DO have observable instances on disk today"
+    },
+    {
+      "quote": "Reference shape: Siigari/claude-heartbeat \u2014 Node supervisor + stop-hook + JSONL inbox/outbox + restart-per-message + idle heartbeat tick.",
+      "interpretation_a": "Cited as a SHAPE reference (we copy the architecture, build our own in Rust)",
+      "interpretation_b": "Cited as evidence that an upstream tool already solves the problem (we should evaluate adoption before reimplementing)",
+      "risk_if_wrong": "If interpretation B is the right reading, ~4 crates + 49+14 grit units could be replaced with `node sidecar + thin JSONL bridge` at a fraction of the cost"
+    }
+  ],
+  "multi_perspective_notes": {
+    "executor": "v5 executor will hand-roll a TOML parser AND a JSON emitter inside `oya-foundry-settings-template-adapter-fs`. v4 executor will hand-roll a different TOML parser (`registry/capabilities/foundry-supervisor.toml`) and a different JSON emitter (conformance build.rs). Four hand-rolled parsers; zero shared crate; high probability that round-trip bugs (multi-line strings, escapes, mixed-case keys) re-occur per parser. The Skeptic premise (zero deps cheaper than four parsers) compounds with execution friction.",
+    "stakeholder": "User asked for 'simple hook + inbox outbox setup ... still should be able to intelligently manage usage'. v4+v5 ship 6 crates + 5 ADRs + ~24 grit units beyond what 'simple' implies. The v5 delta amplifies this without surfacing the simplest version of the user-quoted question. Vanity-metric risk: lane passes against example files, not against real drift, so green-lane \u2192 false-confidence.",
+    "skeptic": "The strongest argument against v5 in its current form: NO premise-evidence link survives the M1 lens. PREMISE-5 has no N; PREMISE-1 has no build-vs-adopt; PREMISE-3 has no cost-benefit; the user-quoted intent is over-translated into infrastructure. The strongest argument FOR v5 (the rejection rationale a defender would muster): 'we're building for hyperscaler readiness per project doctrine'. That defence does not survive scrutiny: hyperscaler thinking is about HEADROOM, not about building lanes for problems that have zero present-day instances."
+  },
+  "verdict_justification": "v5 is REJECTED on PREMISE-5 evidence grounds (M1-F1 CRITICAL). v4 is downgraded from prior ACCEPT to ACCEPT-WITH-RESERVATIONS pending the appended PREMISE-1 build-vs-adopt analysis (M1-F2 MAJOR). The review STARTED in THOROUGH mode and ESCALATED to ADVERSARIAL mode after finding M1-F1 was CRITICAL plus 3 MAJOR findings \u2014 escalation triggered the per-premise sweep that surfaced M1-F3 (Branch Y) and M1-F5 (subprocess). Realist Check downgrades: M1-F5 was originally drafted MAJOR; downgraded to MINOR because per-spawn cost is observable in operations even without a dedicated bench (mitigated by audit-evidence rows already required by v4). No CRITICAL/MAJOR finding downgraded; the load-bearing failures stand. If the v5 author returns with: (a) a documented N-threshold + example files showing real drift, OR (b) a v5a/v5b split per M1-F4 fix, the verdict upgrades to REVISE. Without that evidence, the v5 plan is solving for imagined-future-scale on a directory that does not yet exist.",
+  "ralplan_gate_summary": {
+    "principle_option_consistency": {
+      "status": "FAIL",
+      "reason": "v5 \u00a7A.1.1 principle #3 (verify-before-spawn) directly drives an option set in \u00a7A.1.3 \u2014 but the option set considers only Rust internal shapes, never the upstream-adoption or manual-+-review baseline. Principle is enacted; alternatives are not fairly explored."
+    },
+    "alternatives_depth": {
+      "status": "FAIL",
+      "reason": "v5 \u00a7A.1.3 enumerates 2 options (per-provider renderers vs. multi-format renderer) \u2014 both Rust. v4 \u00a7A.3 enumerates 4 options \u2014 all Rust. Neither plan compares against upstream-adopt or manual-+-review. Comparison set is artificially narrow."
+    },
+    "risk_verification_rigor": {
+      "status": "PARTIAL",
+      "reason": "v5 \u00a7B.6 R1/R2/R3 risks are concrete (Codex hooks, Gemini surface, path divergence) and verifiable. But the FOUNDATIONAL risk \u2014 'what if drift is not actually happening at our N?' \u2014 is not in the risk table at all. Missing meta-risk: PREMISE-5 itself."
+    },
+    "deliberate_additions": {
+      "status": "FAIL",
+      "reason": "v5 \u00a7A.1.4 pre-mortem enumerates 2 scenarios (config-path divergence, hook-event mismatch) but does not include 'plan fails because the problem it solves does not exist at current scale'. Pre-mortem is technically sound but premise-blind."
+    }
+  },
+  "open_questions": [
+    "What is the actual current account count (sum of rows in registry/accounts/*.toml \u2014 which directory does not yet exist)?",
+    "Has Siigari/claude-heartbeat been evaluated as a candidate dependency in any prior ADR or planning artifact in this repo?",
+    "What is the licence + maintenance signal of Siigari/claude-heartbeat (relevant to build-vs-adopt)?",
+    "Is the workspace-language-purity premise (everything in `oya-*` must be Rust) captured in an ADR, or is it implicit project convention?",
+    "Would a per-account settings render-from-template happen at supervisor boot (one-shot) or at every tick_once snapshot? (v5 currently chooses snapshot-time; boot-time is cheaper and may suffice at the N we have today)"
+  ],
+  "common_fields": {
+    "artifacts_reviewed": [
+      "/Users/jasonlee/oyatie/.omc/plans/ralplan-foundry-supervisor-simple-v4-2026-05-14.md (read offsets 1-500)",
+      "/Users/jasonlee/oyatie/.omc/plans/ralplan-foundry-supervisor-simple-v5-delta-settings-template-2026-05-15.md (read in full)"
+    ],
+    "ground_truth_commands_run": [
+      "ls /Users/jasonlee/.codex/ /Users/jasonlee/.gemini/ /Users/jasonlee/.claude/",
+      "ls -la /Users/jasonlee/.codex/hooks.json /Users/jasonlee/.codex/config.toml /Users/jasonlee/.gemini/settings.json",
+      "ls /Users/jasonlee/oyatie/registry/accounts/  \u2192 no such directory",
+      "ls /Users/jasonlee/oyatie/registry/  \u2192 13 subdirs, no accounts/",
+      "grep -n 'claude-heartbeat|Siigari' on v4+v5",
+      "rg -n 'premise|cost.benefit|build.vs.buy|fork.upstream|adopt.upstream' on v4+v5 \u2192 0 matches",
+      "head -30 crates/oya-foundry-account-adapter-openbao/src/lib.rs",
+      "cat .omc/plans/open-questions.md (cross-reference)"
+    ],
+    "files_referenced_by_plan_that_were_verified_to_exist": [
+      "~/.codex/config.toml (3.2K real)",
+      "~/.codex/hooks.json (9.2K real)",
+      "~/.gemini/settings.json (1.0K real)",
+      "crates/oya-foundry-account-adapter-openbao/src/lib.rs (real, OpenBaoAdapter present)"
+    ],
+    "files_referenced_by_plan_that_DO_NOT_yet_exist": [
+      "registry/accounts/  (v4 \u00a7B.10 acknowledges; v5 lane targets this)",
+      "templates/foundry-supervisor/  (v5 scaffold)",
+      "tools/oya-foundry-fitness-predictable-naming/  (v4 \u00a7B.1 scaffold)",
+      ".omc/plans/milestones/M02-foundry-preview/phases/P06-foundry-supervisor/  (v4 \u00a7B.10 declared only)"
+    ],
+    "review_mode": "started THOROUGH, escalated to ADVERSARIAL after first CRITICAL + 3 MAJOR findings (per agent prompt escalation rule)",
+    "evidence_path": "/Users/jasonlee/oyatie/evidence/debate/M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-M1_challenge_assumption-r1.json",
+    "tool_constraint_note": "Critic agent prompt declares Write/Edit blocked (read-only); used Bash heredoc to persist the required JSON output to the agreed evidence path."
+  },
+  "purpose": "Auto-backfilled purpose for M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-M1_challenge_assumption-r1.json"
+}

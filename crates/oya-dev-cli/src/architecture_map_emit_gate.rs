@@ -4,7 +4,7 @@
 use std::path::PathBuf;
 use std::time::Instant;
 
-use oya_foundry_architecture_map_app::{build_map, emit_json, MapBuildError};
+use oya_foundry_architecture_map_app::{MapBuildError, build_map, emit_json};
 
 use crate::usage;
 
@@ -19,7 +19,7 @@ pub(crate) fn parse_architecture_map_emit_args(
 ) -> Result<ArchitectureMapEmitArgs, String> {
     let mut parsed = ArchitectureMapEmitArgs {
         workspace_root: PathBuf::from("."),
-        out_path: PathBuf::from(".omc/graph/architecture-map.json"),
+        out_path: PathBuf::from("registries/cross-cutting/graph/architecture-map.json"),
     };
     let mut iter = args.into_iter();
     while let Some(flag) = iter.next() {
@@ -86,7 +86,7 @@ mod tests {
         assert_eq!(args.workspace_root, PathBuf::from("."));
         assert_eq!(
             args.out_path,
-            PathBuf::from(".omc/graph/architecture-map.json")
+            PathBuf::from("registries/cross-cutting/graph/architecture-map.json")
         );
     }
 

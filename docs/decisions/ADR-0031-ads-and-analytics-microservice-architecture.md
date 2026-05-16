@@ -1,3 +1,9 @@
+---
+id: ADR-0031
+status: accepted
+doc_status: published
+---
+
 # ADR-0031: Ads + Analytics microservice — singleton tenant-ads-gate sourcing, sub-100ms auction, privacy-preserving attribution, Data-Use-Boundary at runtime
 
 > **Status:** Accepted
@@ -61,7 +67,8 @@ The gate is a singleton. Every ads-sourcing call in the ecosystem must go throug
 
 ### Attribution
 
-- Last-click default; multi-touch data-driven; server-API first-party attribution; offline-conversion upload.
+- Last-click default; MTA (multi-touch attribution) data-driven; server-API first-party attribution; offline-conversion upload.
+- **Viewability measurement.** Impression quality gates track viewability before attribution or billing signals can enter analytics.
 - **Privacy-preserving aggregation.** Per-campaign DP-budgeted aggregate reports; no per-user breakdown unless tenant has Art-22-2 consent.
 
 ### Analytics

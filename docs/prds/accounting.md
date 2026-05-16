@@ -12,6 +12,7 @@ bominal_source:
   - ADR-0018  # tenancy RLS posture
   - ADR-0028  # audit chain Merkle/Ed25519
   - ADR-0119  # data tier assignment matrix
+doc_status: published
 ---
 
 # PRD-accounting: Accounting µservice

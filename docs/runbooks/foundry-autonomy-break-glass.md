@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Foundry Autonomy Break Glass
+doc_status: published
+---
+
 # Oyatie Runbook — Foundry Autonomy Break Glass
 
 > **Status:** Active W-Foundation ledger procedure; runtime override execution remains gated by ADR-0022 follow-up implementation

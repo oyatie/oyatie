@@ -1,3 +1,9 @@
+---
+id: ADR-0046
+status: proposed
+doc_status: published
+---
+
 # ADR-0046: Vector store strategy — pgvector day-1, in-house Rust HNSW/IVF at billion-scale long-horizon, FAISS only as adapter
 
 > **Status:** Proposed

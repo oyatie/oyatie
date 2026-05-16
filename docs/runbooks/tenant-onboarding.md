@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Tenant Onboarding
+doc_status: published
+---
+
 # Oyatie Runbook — Tenant Onboarding
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

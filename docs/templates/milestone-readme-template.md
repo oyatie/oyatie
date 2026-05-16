@@ -21,6 +21,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives
   - ADR-0054  # scaffold-claim pattern
   - ADR-0056  # BNF v4.1
+doc_status: published
 ---
 
 ```yaml
@@ -44,7 +45,7 @@ owner_team: <team-id>
 bominal_adrs_inherited:
   - ADR-NNNN  # list Bominal ADRs this milestone inherits 1:1 (translated)
 oyatie_adrs_cited:
-  - ADR-XXXX  # oyatie-specific ADRs governing this milestone
+  - ADR-XXXX  # Oyatie-specific ADRs governing this milestone
 ---
 ```
 

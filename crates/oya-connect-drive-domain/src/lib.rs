@@ -4,8 +4,11 @@
 //! `docs/products/workspace/PRD.md` and ADR-0029. The kernel owns object/folder
 //! identities, permission grants, conservative data-class defaults, and the
 //! path-resolution seam consumed by Search and Foundry.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DRIVE_OBJECT_SCHEMA_VERSION: u32 = 1;
 const DRIVE_FOLDER_SCHEMA_VERSION: u32 = 1;
@@ -243,18 +246,15 @@ impl PermissionGrant {
 }
 
 pub fn default_workspace_drive_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn path_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiQuasiIdentifier)
-        .expect("PII_QUASI_IDENTIFIER is a privacy-program data class")
+    PrivacyDataClass::pii_quasi_identifier()
 }
 
 pub fn permission_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_drive_data_class_from_legacy(
@@ -299,10 +299,58 @@ fn internal<T>(value: T) -> Classified<T> {
     Classified::new(value, DataClass::InternalOnly)
 }
 
+// ---------------------------------------------------------------------------
+// M03-P06-IP-003 — workspace.drive.{put,get} STAGING surface (per-object
+// KMS-shred reference + per-tenant cell routing + per-permission ACL).
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
+pub enum DriveSurfaceOp {
+    Put,
+    Get,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct DriveSurfaceStaging {
+    pub object_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub tenant_id: Classified<String>,  // data_class: INTERNAL_ONLY
+    pub region: Classified<String>,     // data_class: INTERNAL_ONLY
+    pub op: Classified<DriveSurfaceOp>, // data_class: INTERNAL_ONLY
+    pub kms_shred_key_id: Classified<String>, // data_class: INTERNAL_ONLY
+    pub per_object_kms_shred: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub audit_emit_on_get: Classified<bool>, // data_class: INTERNAL_ONLY
+    pub schema_version: Classified<u32>, // data_class: INTERNAL_ONLY
+}
+
+impl DriveSurfaceStaging {
+    pub fn new(
+        object_id: String,
+        tenant_id: String,
+        region: String,
+        op: DriveSurfaceOp,
+        kms_shred_key_id: String,
+    ) -> Result<Self, DriveError> {
+        validate_non_empty(&object_id, DriveError::InvalidObjectId)?;
+        validate_non_empty(&tenant_id, DriveError::InvalidTenantId)?;
+        validate_non_empty(&region, DriveError::InvalidRegion)?;
+        validate_non_empty(&kms_shred_key_id, DriveError::InvalidKmsShredKeyId)?;
+        Ok(Self {
+            object_id: internal(object_id),
+            tenant_id: internal(tenant_id),
+            region: internal(region),
+            op: internal(op),
+            kms_shred_key_id: internal(kms_shred_key_id),
+            per_object_kms_shred: internal(true),
+            audit_emit_on_get: internal(matches!(op, DriveSurfaceOp::Get)),
+            schema_version: internal(DRIVE_OBJECT_SCHEMA_VERSION),
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn owner_grant() -> PermissionGrant {
         PermissionGrant::new(
@@ -405,6 +453,55 @@ mod tests {
 
         let missing_owner = PermissionSet::new(vec![viewer_grant()]);
         assert_eq!(missing_owner, Err(DriveError::MissingOwnerGrant));
+    }
+
+    #[test]
+    fn surface_staging_pins_per_object_kms_shred_and_audit_on_get() {
+        let put = DriveSurfaceStaging::new(
+            "obj-1".into(),
+            "tenant-1".into(),
+            "us-east-1".into(),
+            DriveSurfaceOp::Put,
+            "kms-key-1".into(),
+        )
+        .unwrap();
+        assert!(put.per_object_kms_shred.value);
+        assert!(!put.audit_emit_on_get.value);
+        assert_eq!(put.op.value, DriveSurfaceOp::Put);
+
+        let get = DriveSurfaceStaging::new(
+            "obj-1".into(),
+            "tenant-1".into(),
+            "us-east-1".into(),
+            DriveSurfaceOp::Get,
+            "kms-key-1".into(),
+        )
+        .unwrap();
+        assert!(get.audit_emit_on_get.value);
+    }
+
+    #[test]
+    fn surface_staging_rejects_empty_kms_or_tenant() {
+        assert_eq!(
+            DriveSurfaceStaging::new(
+                "obj-1".into(),
+                "".into(),
+                "us-east-1".into(),
+                DriveSurfaceOp::Put,
+                "kms-key-1".into(),
+            ),
+            Err(DriveError::InvalidTenantId)
+        );
+        assert_eq!(
+            DriveSurfaceStaging::new(
+                "obj-1".into(),
+                "tenant-1".into(),
+                "us-east-1".into(),
+                DriveSurfaceOp::Put,
+                "".into(),
+            ),
+            Err(DriveError::InvalidKmsShredKeyId)
+        );
     }
 
     #[test]

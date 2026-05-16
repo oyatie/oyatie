@@ -1,4 +1,10 @@
-# ADR-0019: Doc catalog and update protocol — every consolidated doc has owner / trigger / cadence / dependent-docs / validation; pre-flight + authoring + validation + review + publish stages; agent-authoring policy (agents propose; humans approve except for catalog-validated additions); machine-readable mirror at machine-readable/catalog.json
+---
+id: ADR-0019
+status: proposed
+doc_status: published
+---
+
+# ADR-0019: Doc catalog and update protocol — every consolidated doc has owner / trigger / cadence / dependent-docs / validation; pre-flight + authoring + validation + review + publish stages; agent-authoring policy (agents propose; humans approve; catalog-validated additions auto-approved by the catalog gate); machine-readable mirror at machine-readable/catalog.json
 
 > **Status:** Proposed
 > **Supersedes:** -
@@ -153,7 +159,7 @@ A doc's cadence is the *floor*, not the ceiling. Trigger events (regulator chang
 
 ## Open questions
 
-1. **Q1.** Per-doc cadence baseline — quarterly default, with exceptions? Or per-doc declared? Default: per-doc declared in the catalog row; quarterly is the safe minimum. → owner: `council-architecture`.
+1. **Q1.** Per-doc cadence baseline — quarterly default, or per-doc declared? Default: per-doc declared in the catalog row (canonical); quarterly is the safe minimum when no per-doc declaration is present. No grandfathered deviations; cadence changes are catalog-row edits, not exceptions. → owner: `council-architecture`.
 2. **Q2.** Agent-direct-write for catalog records — does this require a per-PR human approve, or is the validator + automated sign-off sufficient? Default: human approve initially; promote to validator-only when agent reliability proven via eval (ADR-0007 eval harness ancestry, owned by `foundry`). → owner: `foundry`.
 3. **Q3.** Machine-readable mirror format — JSON Schema versioned per mirror, or unified across mirrors? Default: per-mirror schema versioning. → owner: `foundry`.
 4. **Q4.** Per-pack doc cadence — does each pack have its own catalog or share this one? Default: shared catalog with `regional_pack:` field on per-pack rows. → ADR-0010.

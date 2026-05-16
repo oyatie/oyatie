@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Glossary, Vocabulary, Conventions
+doc_status: published
+---
+
 # Oyatie — Glossary, Vocabulary, Conventions
 
 > **Status:** Draft v0.1 — 2026-05-09. Single source of truth for terminology across all consolidated docs, per-product PRDs, ADRs, code comments, PR descriptions, and customer-facing material.
@@ -456,7 +461,7 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 | Redis 7.4+ (RSAL) | Valkey (BSD-3) or DragonflyDB (BSD-3) | ADR-0013 / ADR-0045 |
 | MVP / Milestone (M0..M3) | Wave per PRD §3.1 (W-Foundation, W-Foundry-Preview, ...) | Drawing-board reframing on 2026-05-09 |
 | postmortem long-form | mistakes-and-fixes-ledger entry | Per `docs/MISTAKES-LEDGER.md` and CLAUDE.md |
-| `repoctl pre-push` (slash command) | `repoctl check` (per recent CLAUDE.md sweep) | REV6 of ADR-0015 plan |
+| `oya verify` (slash command) | `repoctl check` (per recent CLAUDE.md sweep) | REV6 of ADR-0015 plan |
 | Foundry engineering platform axis (separate) | Foundry (consolidated; ADR-0025 foundry-as-engineering-platform) | Foundry axis consolidation on 2026-05-09 |
 
 ## 12. Conventions

@@ -10,12 +10,13 @@ owner_team: axis-foundry
 related:
   - .omc/plans/MASTERPLAN.md
   - docs/AGENTS.md
-  - .omc/specs/adr-draft-grit-icm-sanctioned-primitives.md
+  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - docs/checklists/agent-completion-checklist.md
 adrs_cited:
   - ADR-0052  # inventory ledger (migration-class claim prerequisites)
   - ADR-0053  # sanctioned primitives (grit claim, icm recall)
   - ADR-0054  # scaffold-claim pattern (symbol verification)
+doc_status: published
 ---
 
 # Agent Kickoff Checklist

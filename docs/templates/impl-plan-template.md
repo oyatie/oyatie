@@ -19,6 +19,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives (grit claim symbols)
   - ADR-0054  # scaffold-claim pattern
   - ADR-0056  # BNF v4.1 + layer enum
+doc_status: published
 ---
 
 ```yaml
@@ -30,6 +31,8 @@ milestone: M0X-<slug>
 phase: P0Y-<slug>
 impl_plan_id: <impl-plan-name>    # e.g. IP-001-hr-domain-scaffold
 status: pending | open | in-progress | merged | blocked
+execution_unit: ChangeSet      # every IP is a ChangeSet-sized execution unit
+changeset_contract: claimable-verifiable-bundleable-promotable
 owner: <team-id>
 blocked_by:
   - impl_plan: <impl-plan-name>   # or omit if unblocked
@@ -57,6 +60,11 @@ with Employment entity, EmployeeRepository port-trait, and unit tests. Establish
 the domain boundary for the HR µservice's Employee BC."
 
 ---
+
+
+## ChangeSet boundary
+
+State why this IP is one cohesive ChangeSet: exact issue-level scope, affected symbols/artifact pointers, affected crates/packages/deployables, required tests, evidence bundle, and promotion boundary. If the work cannot be claimed, verified, bundled, and promoted independently, split it before execution. Whole-tree locks or full-workspace cold builds require explicit graph-proven rationale.
 
 ## Concrete File Targets
 

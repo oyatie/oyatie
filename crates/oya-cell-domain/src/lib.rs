@@ -1,11 +1,12 @@
 //! Cell-routing kernel: immutable per-tenant per-region cell placement.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_residency_kernel::{
-    residency_class_allows_home_region_label, RegionRef, ResidencyClass,
-};
+use oya_data_boundary_kernel::{Classified, PrivacyDataClass};
+use oya_residency_domain::{RegionRef, ResidencyClass, residency_class_allows_home_region_label};
 
 const CELL_BINDING_SCHEMA_VERSION: u32 = 1;
 
@@ -132,14 +133,16 @@ fn internal<T>(value: T) -> Classified<T> {
 }
 
 fn internal_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::InternalOnly)
-        .expect("INTERNAL_ONLY is a privacy-program data class")
+    // ADR-0083 Tier 1: use the infallible kernel constructor; the previous
+    // `.expect()` proved a statically known invariant that the kernel now
+    // encodes at the type level.
+    PrivacyDataClass::internal_only()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_residency_kernel::{RegionJurisdiction, RegionRefCreate};
+    use oya_residency_domain::{RegionJurisdiction, RegionRefCreate};
 
     fn region(region_id: &str, jurisdiction: RegionJurisdiction) -> RegionRef {
         RegionRef::new(RegionRefCreate {

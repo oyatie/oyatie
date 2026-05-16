@@ -13,6 +13,7 @@ enforced_by:
   - oya-foundry-fitness-shadow-diff
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0030, ADR-0046, ADR-0047, ADR-0048]
+doc_status: published
 ---
 
 # Playbook: Search Rollout

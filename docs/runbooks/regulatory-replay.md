@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Regulatory Replay
+doc_status: published
+---
+
 # Oyatie Runbook — Regulatory Replay
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

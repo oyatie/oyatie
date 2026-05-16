@@ -1,3 +1,9 @@
+---
+id: ADR-0026
+status: proposed
+doc_status: published
+---
+
 # ADR-0026: In-house AI model substrate — long-horizon W-AI-Model-Substrate; consume providers until per-vertical eval suite favors in-house
 
 > **Status:** Proposed

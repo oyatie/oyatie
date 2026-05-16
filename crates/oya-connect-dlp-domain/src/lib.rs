@@ -5,10 +5,13 @@
 //! policy records, rule/finding validation, and admin-review hold decisions;
 //! mail, drive, chat, forms, sites, scanners, and regional-pack adapters remain
 //! outside this crate.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DLP_POLICY_SCHEMA_VERSION: u32 = 1;
 const DLP_SCAN_SCHEMA_VERSION: u32 = 1;
@@ -323,13 +326,11 @@ impl DlpScanVerdict {
 }
 
 pub fn default_workspace_dlp_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn dlp_actor_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn workspace_dlp_data_class_from_legacy(
@@ -483,7 +484,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn privacy_class(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).unwrap()

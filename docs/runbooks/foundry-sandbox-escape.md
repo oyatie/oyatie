@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Foundry Sandbox Escape
+doc_status: published
+---
+
 # Oyatie Runbook — Foundry Sandbox Escape
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

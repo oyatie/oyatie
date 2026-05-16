@@ -1,0 +1,19 @@
+[package]
+name = "oya-foundry-vcs-polyglot-indexer-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-foundry-vcs-kernel = { path = "../oya-foundry-vcs-kernel" }
+oya-foundry-vcs-ast-index-kernel = { path = "../oya-foundry-vcs-ast-index-kernel" }
+
+[lib]
+name = "oya_foundry_vcs_polyglot_indexer_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

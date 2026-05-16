@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Pre-merge
 
 > **When:** Before `gh pr merge`. After all CI lanes green + reviewer-agent verdict.
@@ -8,7 +12,7 @@
 
 1. ☐ All CI lanes green per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md):
    - cargo-fmt / cargo-clippy / cargo-nextest --all-features / cargo check --all-features
-   - cargo-deny licenses / scripts/check-architecture-boundaries.sh
+   - cargo-deny licenses / `oya gate validate architecture-boundaries`
    - oya catalog validate / oya gate validate (claim-ceiling, foundation-bypass, plane-class)
    - Trivy / Cosign / SBOM
    - oya-foundry-fitness-{license, data-class, cohesion, doc-catalog, slo-coverage, blast-radius}

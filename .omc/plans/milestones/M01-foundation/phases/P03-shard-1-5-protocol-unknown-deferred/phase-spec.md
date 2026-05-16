@@ -5,28 +5,33 @@ milestone: M01-foundation
 phase: P03-shard-1-5-protocol-unknown-deferred
 status: Complete
 acceptance_lanes: []
-entry_gate: |
-  P02-shard-1-atomic-rename complete (all 6 acceptance gates exit 0); P04
-  iter-4-src-inspection complete (all 26 PROTOCOL-UNKNOWN rows have protocol
-  classification evidence: rest|grpc|graphql|worker per canonical decision tree
-  §2.2.3); no freeze window required (Shard 1.5 is a follow-on, not a parallel
-  merge per ADR-0057 §"Shard 1.5").
-exit_gate: |
-  All 26 PROTOCOL-UNKNOWN rows renamed to final BNF v4.1 names; zero
-  `*-api` crates remain in workspace (or: any retained `-api` names carry
-  an explicit ADR amendment justifying retention); cargo check --workspace
-  exits 0; cargo clippy exits 0; ICM context-oyatie row emitted; grit done
-  or direct merge with ICM rationale.
-depends_on:
-  - milestone: M01
-    phase: P02-shard-1-atomic-rename
-    reason: "Shard 1.5 operates on crates already in v4.1-partially-renamed workspace"
-  - milestone: M01
-    phase: P04-iter-4-src-inspection
-    reason: "Protocol classification evidence from iter-4 src-inspection is the gate to enter Shard 1.5"
-owner_team: council-architecture
----
+entry_gate: "P02-shard-1-atomic-rename complete (all 6 acceptance gates exit 0); P04\n\
+  iter-4-src-inspection complete (all 26 PROTOCOL-UNKNOWN rows have protocol\nclassification\
+  \ evidence: rest|grpc|graphql|worker per canonical decision tree\n\xA72.2.3); no\
+  \ freeze window required (Shard 1.5 is a follow-on, not a parallel\nmerge per ADR-0057\
+  \ \xA7\"Shard 1.5\").\n"
+exit_gate: 'All 26 PROTOCOL-UNKNOWN rows renamed to final BNF v4.1 names; zero
 
+  `*-api` crates remain in workspace (or: any retained `-api` names carry
+
+  an explicit ADR amendment justifying retention); cargo check --workspace
+
+  exits 0; cargo clippy exits 0; ICM context-oyatie row emitted; grit done
+
+  or direct merge with ICM rationale.
+
+  '
+depends_on:
+- milestone: M01
+  phase: P02-shard-1-atomic-rename
+  reason: Shard 1.5 operates on crates already in v4.1-partially-renamed workspace
+- milestone: M01
+  phase: P04-iter-4-src-inspection
+  reason: Protocol classification evidence from iter-4 src-inspection is the gate
+    to enter Shard 1.5
+owner_team: council-architecture
+purpose: "Completes the reclassification of the 26 `*-api` crates whose protocol was marked `PROTOCOL-UNKNOWN` in the §3 audit body and deferred from Shard 1."
+---
 # P03-shard-1-5-protocol-unknown-deferred: Shard 1.5 — PROTOCOL-UNKNOWN 26-row reclassification
 
 ## Purpose

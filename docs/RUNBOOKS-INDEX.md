@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Runbooks Index
+doc_status: published
+---
+
 # Oyatie — Runbooks Index
 
 > **Status:** Draft v0.1 — 2026-05-09.
@@ -9,6 +14,9 @@
 Per-axis under [`runbooks/<axis>/<runbook-id>.md`](runbooks/) (inside `docs/`). Cross-axis runbooks under [`runbooks/cross-axis/`](runbooks/cross-axis/). Forty-nine P0 stubs were authored on 2026-05-09 and are listed below; full-procedure authoring lands at the W-Foundation gate per the per-runbook `Status:` field.
 
 ## 2. Critical runbooks (P0 must-have for W-Foundation gate)
+
+### Agentic pipeline
+- `agentic-pipeline/grit-parallel-claim-demo.md`
 
 ### Cross-axis
 - `cross-axis/audit-chain-integrity-failure.md`

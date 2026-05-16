@@ -5,25 +5,33 @@ milestone: M02-substrate
 phase: P08-kms
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; P06-secrets merged (OpenBao adapter available; KMS depends
-  on Secrets for key material storage references); oya-tenancy-kernel ships;
-  cargo check exits 0.
-exit_gate: |
-  All KMS crates compile; envelope encryption (AES-256-GCM + DEK + KEK)
-  round-trip test green; per-tenant DEK isolation verified; ML-DSA-87 signing
-  key generation test passes; key rotation integration test green (re-encrypt
-  envelope only, no ciphertext re-write); Cedar policy lints; grit done; ICM row emitted.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "workspace scaffold prerequisite"
-  - milestone: M02
-    phase: P06-secrets
-    reason: "KMS key references stored as SecretRefs in OpenBao via Secrets substrate"
-owner_team: council-architecture
----
+entry_gate: 'M01-P05 complete; P06-secrets merged (OpenBao adapter available; KMS
+  depends
 
+  on Secrets for key material storage references); oya-tenancy-kernel ships;
+
+  cargo check exits 0.
+
+  '
+exit_gate: 'All KMS crates compile; envelope encryption (AES-256-GCM + DEK + KEK)
+
+  round-trip test green; per-tenant DEK isolation verified; ML-DSA-87 signing
+
+  key generation test passes; key rotation integration test green (re-encrypt
+
+  envelope only, no ciphertext re-write); Cedar policy lints; grit done; ICM row emitted.
+
+  '
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: workspace scaffold prerequisite
+- milestone: M02
+  phase: P06-secrets
+  reason: KMS key references stored as SecretRefs in OpenBao via Secrets substrate
+owner_team: council-architecture
+purpose: "This phase delivers the complete KMS substrate: envelope encryption for data-at-rest field encryption (CipherText property type per Bominal ADR-0111), per-tenant DEK (Data Encryption Key) isolation with KMS-backed KEK (Key Encryption Key)."
+---
 # P08-kms: KMS substrate — envelope encryption, per-tenant DEK, per-cell HSM, ML-DSA-87 post-quantum signing
 
 ## Purpose

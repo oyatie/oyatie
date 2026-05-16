@@ -1,3 +1,9 @@
+---
+id: ADR-0040
+status: proposed
+doc_status: published
+---
+
 # ADR-0040: Progressive delivery — Argo Rollouts canary, blue-green for stateful surfaces, metric-gated rollback at SLO burn-rate ≥ 14.4×
 
 > **Status:** Proposed
@@ -113,7 +119,7 @@ If 1h burn-rate ≥ 14.4× during a rollout:
 
 ### Pre-release verification gate
 
-A release-candidate cut requires (per `/oyatie-release-verify`):
+A release-candidate cut requires (per `/oya-release-verify`):
 
 - `oya-foundry-fitness-cohesion` PASS (per ADR-0001).
 - `oya-foundry-fitness-supply-chain` PASS (per ADR-0039).
@@ -164,7 +170,7 @@ This ADR does not own the SLO catalog (per ADR-0042). Does not own the gitops br
 - Per-cell rollback runbook.
 - Argo Rollouts + Prometheus / VictoriaMetrics adapter (per ADR-0042) maintained per-cell.
 - Per-quarter rollback drill: deliberately deploy a faulty version to a preview cell and confirm auto-rollback fires.
-- Per-month review of any rollout that didn't follow stages (exceptions documented per ADR amendment).
+- Per-month review of any rollout that did not follow the canonical stages. Stage adherence is mandatory; a non-conforming rollout triggers an ADR-amendment proposal whose acceptance is the canonical extension path. No grandfathered deviations.
 
 ---
 

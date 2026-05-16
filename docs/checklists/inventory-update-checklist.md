@@ -4,17 +4,18 @@ checklist_id: CHK-INV
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Inventory ledger update at every cutover / migration phase. Records source → archive → tombstone transitions for files, crates, contracts, and capabilities. Lifts from `.omc/specs/inventory-draft-oyatie-cutover.md` shape.
+  Inventory ledger update at every cutover / migration phase. Records source → archive → tombstone transitions for files, crates, contracts, and capabilities. Lifts from `.omc/scratch/inventory-draft-oyatie-cutover.md` shape.
 enforcing_fitness_lane: oya-foundry-fitness-inventory-tracker
 owner_team: axis-foundry
 related:
-  - .omc/specs/inventory-draft-oyatie-cutover.md
-  - .omc/specs/adr-draft-grit-icm-sanctioned-primitives.md
+  - .omc/scratch/inventory-draft-oyatie-cutover.md
+  - .omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md
   - docs/templates/implementation-plan-template.md
 adrs_cited:
   - ADR-0052  # inventory ledger (this checklist IS the ADR-0052 operational procedure)
   - ADR-0053  # sanctioned primitives (primitive field in row schema)
   - ADR-0054  # scaffold-claim (symbol update when file moves)
+doc_status: published
 ---
 
 # Inventory Update Checklist
@@ -45,12 +46,13 @@ adrs_cited:
     forbid_recreation_lane: oya-foundry-fitness-legacy-path-recreation
   bootstrap_window: true | false
   invocation:
-    primitive: grit | icm | oya-tooling-agent-read | git | gh
-    command: "<exact command>"
+    primitive: grit | icm | oya-tooling-agent-read | human-orchestrator-carve-out
+    command: "<sanctioned command or human-only carve-out description>"
     purpose: "<one-line>"
     actor:
       kind: agent | human-orchestrator
       id: "<agent-id | role>"
+    agent_direct_vcs_or_forge: false
   audit_emission_id: EVT-INV-<ulid>
   rollback_path: "<exact reverse command, if applicable>"
   notes: "<optional one-paragraph>"
@@ -61,7 +63,7 @@ adrs_cited:
 - [ ] **I1** Identify action class (`keep | move | archive | delete | rename | recreate-forbidden`).
 - [ ] **I2** Determine `source_path`, `target_path`, `archive_path`.
 - [ ] **I3** Determine if action requires `bootstrap_window: true` (only during phases P0.5 / P1 / P2 of the agentic-pipeline cutover, or other explicit carve-outs per ADR-0053).
-- [ ] **I4** Identify actor (agent vs human-orchestrator); if human-orchestrator action, confirm authorization per `docs/RACI-OWNERSHIP.md` row `human-orchestrator-cutover`.
+- [ ] **I4** Identify actor (agent vs human-orchestrator); if human-orchestrator action, confirm authorization per `docs/RACI-OWNERSHIP.md` row `human-orchestrator-cutover`. Direct VCS/forge tools are never agent-callable inventory primitives; record any human-only carve-out as `primitive: human-orchestrator-carve-out`.
 - [ ] **I5** Draft the rollback command.
 
 ## During action
@@ -89,16 +91,16 @@ adrs_cited:
   phase: M-CC-P01
   ip_ref: IP-007-archive-omx-ultragoal
   action: archive
-  source_path: bominal/agents/ultragoal/ledger.jsonl
+  source_path: example/legacy/source-ledger.jsonl
   target_path: null
-  archive_path: archive/pre-grit-cutover-2026-05-12/bominal-agents-ultragoal/ledger.jsonl
+  archive_path: archive/pre-grit-cutover-2026-05-12/example-source-ledger.jsonl
   tombstone:
     enabled: true
     forbid_recreation_lane: oya-foundry-fitness-legacy-path-recreation
   bootstrap_window: false
   invocation:
     primitive: oya-tooling-agent-read
-    command: "oya-tooling-agent-read archive --from bominal/agents/ultragoal/ledger.jsonl --to archive/pre-grit-cutover-2026-05-12/bominal-agents-ultragoal/ledger.jsonl"
+    command: "oya-tooling-agent-read archive --from example/legacy/source-ledger.jsonl --to archive/pre-grit-cutover-2026-05-12/example-source-ledger.jsonl"
     purpose: "archive legacy ultragoal ledger per ADR-0053"
     actor:
       kind: agent

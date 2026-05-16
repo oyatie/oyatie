@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/specs/merge-queue-parked-pr.json",
+  "title": "MergeQueueParkedPrStateMachine",
+  "description": "State-machine spec for the merge-queue parked-PR + fix-loop integration shipped by M-CC-P10-IP-006. Companion to the kernel modules parked_state, pr_retry_budget, speculative_rebase, fairness, scheduler in crates/oya-foundry-vcs-review-mergequeue-kernel.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-MERGE-QUEUE-PARKED-PR",
+    "version": "1.0.0",
+    "status": "Scaffolded",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-15T00:00:00Z",
+    "ip_refs": [
+      "M-CC-P10-IP-006"
+    ],
+    "related_specs": [
+      "/specs/cross-cutting/iterative-fix-loop.json",
+      "/specs/cross-cutting/ci-fix-loop-context-bundle.json"
+    ],
+    "purpose": "Canonical state-machine spec for parked-PR semantics + bounded retry + fairness + speculative rebase. Companion to the kernel scheduler in oya-foundry-vcs-review-mergequeue-kernel."
+  },
+  "state_machine": {
+    "states": [
+      "admitted",
+      "parked",
+      "revalidating",
+      "merged",
+      "evicted"
+    ],
+    "transitions": [
+      {
+        "from": "admitted",
+        "trigger": "pr-review-approved",
+        "to": "admitted",
+        "note": "Initial admission via IP-004 pr-review-approved event."
+      },
+      {
+        "from": "admitted",
+        "trigger": "ci-failure-or-review-changes-requested",
+        "to": "parked",
+        "note": "Queue position preserved; other admissible PRs continue processing."
+      },
+      {
+        "from": "parked",
+        "trigger": "fix-loop-converged (new head sha on PR branch)",
+        "to": "revalidating",
+        "note": "Triggers speculative rebase against CURRENT queue head (which may have advanced)."
+      },
+      {
+        "from": "revalidating",
+        "trigger": "speculative-rebase-ok + budget-not-exhausted",
+        "to": "admitted",
+        "note": "Per-PR retry counter increments by 1 (one cycle = one increment regardless of how many failed jobs)."
+      },
+      {
+        "from": "revalidating",
+        "trigger": "speculative-rebase-conflict",
+        "to": "parked",
+        "note": "Stays parked; fix-loop must produce a fresh tip that resolves the conflict."
+      },
+      {
+        "from": "revalidating",
+        "trigger": "budget-exhausted (5th attempt)",
+        "to": "evicted",
+        "note": "Open stuck-PR issue with `human-escalation` label."
+      },
+      {
+        "from": "admitted",
+        "trigger": "scheduler-tick + first admissible position",
+        "to": "merged",
+        "note": "Head advances; per-PR retry counter cleared."
+      }
+    ]
+  },
+  "invariants": {
+    "queue_position_preservation": "A parked PR retains its admission_position; it is skipped on each tick but not removed.",
+    "fairness": "While one PR is parked, other admissible PRs continue processing. Parked PRs do NOT block head.",
+    "shared_retry_budget": "Per-PR retry budget is N=5 attempts; mirrors the shared-pool budget in IP-005 (the integration crate deduplicates the escalation issue by PR number, so a PR can never receive two stuck-PR issues for the same exhaustion).",
+    "convergence_proof": "Every scheduler tick appends a TickEntry to registries/cross-cutting/merge-queue-tick-log.json so an external observer can verify forward progress and detect deadlock/livelock.",
+    "no_agent_owned_rebase": "Inherits ADR-0083 / kernel invariant: agents NEVER own rebase/merge operations; the scheduler is controller-owned."
+  },
+  "kernel_module_map": {
+    "parked_state": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/parked_state.rs",
+    "pr_retry_budget": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/pr_retry_budget.rs",
+    "speculative_rebase": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/speculative_rebase.rs",
+    "fairness": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/fairness.rs",
+    "scheduler": "crates/oya-foundry-vcs-review-mergequeue-kernel/src/scheduler.rs"
+  },
+  "integration_crate": "tools/oya-foundry-vcs-merge-queue-fix-loop-app",
+  "concurrent_fix_loops": {
+    "allowed": true,
+    "convergence": "Multiple parked PRs may have fix-loop agents running in parallel. The scheduler serializes ONLY the final landing (one PR merges per tick); other parked PRs stay parked. Concurrent fix-loops do NOT deadlock — proof: see test `concurrent_fix_loops_converge_one_merges_other_re_parks` in scheduler.rs."
+  }
+}

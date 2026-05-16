@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Contradiction Ledger
+doc_status: published
+---
+
 # Oyatie — Contradiction Ledger
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored per Codex critic verdict §12 BLOCKER (cohesion check). Routes every known cross-axis contradiction through a single tracking surface so cohesion guarantees are auditable.

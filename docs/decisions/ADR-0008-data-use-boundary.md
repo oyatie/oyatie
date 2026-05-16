@@ -1,10 +1,16 @@
+---
+id: ADR-0008
+status: accepted
+doc_status: published
+---
+
 # ADR-0008: Data Use Boundary — twelve data classes with HARD_DENY for PHI/PCI/PIPA-Art23/CHILDREN, orthogonal subject_class, purpose-permission matrix, and four-pillar flow matrix
 
-> **Status:** Proposed
+> **Status:** Accepted
 > **Supersedes:** -
 > **Superseded-by:** -
 > **Owner:** `council-privacy`
-> **Date:** 2026-05-09
+> **Date:** 2026-05-09 (accepted 2026-05-14)
 > **Related:** ADR-0001, ADR-0002, ADR-0003, ADR-0006, ADR-0007, ADR-0010
 
 ---
@@ -20,6 +26,8 @@ The cohesion thesis (ADR-0001) compounds the risk. Without a structurally enforc
 ## Decision
 
 We adopt the **Data Use Boundary** as the contract that governs which tenant data may flow across axes under what consent, for what purpose, to what subject class, in what jurisdiction. The boundary is enforced at six structural layers (compile-time first), uses an *orthogonal* subject-class attribute (not a 13th data class), uses a *purpose-permission matrix* (not a linear ladder), and uses a *four-pillar flow matrix* (Org / Person / Public / Opt-in-Consumer).
+
+Ratification binds the companion operating text in [`PRIVACY-PROGRAM.md`](../PRIVACY-PROGRAM.md) §2.2.2 as the published consent-tier UI projection. Tier labels are non-authoritative bundles; only persisted purpose-permission rows are grants.
 
 ### 1. Twelve data classes (closed enumeration)
 

@@ -1,17 +1,21 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_audit_chain_domain::{AuditChain, Plane};
 use oya_cloud_observability_api::{
-    read_cloud_observability_audit_from_api, CloudObservabilityApiAuthorization,
+    CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE, CloudObservabilityApiAuthorization,
     CloudObservabilityApiBoundaryContext, CloudObservabilityApiError,
     CloudObservabilityApiPrincipal, CloudObservabilityAuditReadApiRequest,
     CloudObservabilityAuditReadApiStatus, CloudObservabilityAuditReadRequest,
-    CloudObservabilityAuditReadTopicRef, CLOUD_OBSERVABILITY_AUDIT_READ_SURFACE,
+    CloudObservabilityAuditReadTopicRef, read_cloud_observability_audit_from_api,
 };
-use oya_cloud_observability_kernel::{
+use oya_cloud_observability_domain::{
     CloudAuditEnvelopeCreate, CloudAuditOperation, CloudAuditTopic, CloudObservabilityCatalog,
     ObservabilityResidency, ObservabilityResidencyCreate, ObservabilityResidencyState,
 };
-use oya_platform_audit_chain_kernel::{AuditChain, Plane};
-use oya_platform_data_boundary_kernel::{DataClass, Purpose};
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_data_boundary_kernel::{DataClass, Purpose};
+use oya_residency_domain::ResidencyClass;
 
 const TENANT: &str = "ten_alpha";
 const REGION: &str = "kr-seoul";
@@ -59,30 +63,36 @@ fn residency() -> ObservabilityResidency {
 
 fn chain() -> AuditChain {
     let mut chain = AuditChain::default();
-    chain.append_classifications(
-        TENANT,
-        CloudAuditTopic::CloudResourceCreated.as_str(),
-        Plane::Control,
-        Purpose::CoreService,
-        [DataClass::InternalOnly, DataClass::Public, DataClass::Audit],
-        "ALLOW",
-    );
-    chain.append_classifications(
-        TENANT,
-        CloudAuditTopic::CloudIamPolicy.as_str(),
-        Plane::Control,
-        Purpose::CoreService,
-        [DataClass::InternalOnly, DataClass::Audit],
-        "ALLOW",
-    );
-    chain.append_classifications(
-        TENANT,
-        CloudAuditTopic::CloudKmsUse.as_str(),
-        Plane::Data,
-        Purpose::CoreService,
-        [DataClass::InternalOnly, DataClass::Audit],
-        "ALLOW",
-    );
+    chain
+        .append_classifications(
+            TENANT,
+            CloudAuditTopic::CloudResourceCreated.as_str(),
+            Plane::Control,
+            Purpose::CoreService,
+            [DataClass::InternalOnly, DataClass::Public, DataClass::Audit],
+            "ALLOW",
+        )
+        .unwrap();
+    chain
+        .append_classifications(
+            TENANT,
+            CloudAuditTopic::CloudIamPolicy.as_str(),
+            Plane::Control,
+            Purpose::CoreService,
+            [DataClass::InternalOnly, DataClass::Audit],
+            "ALLOW",
+        )
+        .unwrap();
+    chain
+        .append_classifications(
+            TENANT,
+            CloudAuditTopic::CloudKmsUse.as_str(),
+            Plane::Data,
+            Purpose::CoreService,
+            [DataClass::InternalOnly, DataClass::Audit],
+            "ALLOW",
+        )
+        .unwrap();
     assert!(chain.verify());
     chain
 }

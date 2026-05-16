@@ -1,4 +1,9 @@
 ---
+purpose: "Cross-cutting data-class standard. Mandates `oyatie.data_class` annotations on every kernel struct field, codifies the cross-pillar flow rules (which classes may cross which axis boundaries)."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -9,10 +14,10 @@ purpose: |
   Cross-cutting data-class standard. Mandates `oyatie.data_class` annotations on
   every kernel struct field, codifies the cross-pillar flow rules (which classes
   may cross which axis boundaries), and binds DSR (data subject request) cascade
-  hooks to each class. Implements `CONSTITUTION.md` §Avoid Item 5
+  hooks to each class. Implements `forbidden-operations.json` Item 5
   ("No new struct fields in kernel crates without `data_class`") and §Do Item 8
   (audit-chain emission on every cross-axis flow).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-data-class
 companion_docs:
   - docs/PRIVACY-PROGRAM.md
@@ -27,7 +32,7 @@ related_adrs:
 
 # Data Class
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 Every kernel struct field MUST carry a `data_class` annotation. The
 annotation gates cross-pillar flow, audit-chain emission, DSR cascade
@@ -213,7 +218,7 @@ reads the same `data_class` metadata at runtime. Rules:
 
 ## 11. Sources scanned
 
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Do Item 8, §Avoid Item 5.
+- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-08 + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-05.
 - [`docs/PRIVACY-PROGRAM.md`](../PRIVACY-PROGRAM.md) (program scope).
 - [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md) §4 lanes:
   `privacy-class-taxonomy-coverage`, `privacy-consent-flow-completeness`,

@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P07-IP-001
 title: PRFAQ + Design-Doc + Postmortem templates
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Land standard templates per AWS / Google / SRE.
@@ -51,4 +54,8 @@ icm store -t context-oyatie -c 'M-CC-P07-IP-001 PRFAQ + Design-Doc + Postmortem 
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- All three templates declare `(required)` sections explicitly — reviewers can't waive their way past empty rationale, alternatives, or action items.
+- Postmortem template names blameless wording out front and gives reviewers permission to call out blame-language during review.
+- Design-doc template forces ≥ 2 considered alternatives — single-option docs cannot be marked approved.
+- PRFAQ template requires a customer-readable press release **before** the design doc — prevents technically elegant work on features no customer asked for.

@@ -1,9 +1,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_typescript_workspace_kernel::{
-    validate_typescript_workspace, TypescriptWorkspaceEvidence, TypescriptWorkspaceLane,
-    TypescriptWorkspaceScript,
+use oya_check_typescript_workspace::{
+    TypescriptWorkspaceEvidence, TypescriptWorkspaceLane, TypescriptWorkspaceScript,
+    validate_typescript_workspace,
 };
 
 use crate::{

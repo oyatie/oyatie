@@ -5,7 +5,10 @@ ip_id: IP-003-openai-compat-adapter
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
   Ship `oya-foundry-adapter-openai-compat-api`: an Axum service that exposes the upstream
   OpenAI Chat-Completions / Embeddings / Models shape and translates incoming requests
@@ -24,7 +27,8 @@ agent_prerequisites:
   - ./INDEX.md
   - ./IP-001-provider-account-pool-kernel.md
   - docs/AGENTS.md
-  - docs/CONSTITUTION.md
+  - /specs/cross-cutting/decision-principles.json
+  - /specs/cross-cutting/forbidden-operations.json
   - .omc/standards/dependency-policy.md
 final_shape_compliance: true
 dependency_additions:
@@ -40,7 +44,7 @@ decision_log: |
   normalizing both into a single internal `ToolInvocation` record at the translator
   boundary; the handler sees one shape.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-003-openai-compat-adapter: `/v1/chat/completions` OpenAI-shape passthrough

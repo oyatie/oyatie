@@ -15,3 +15,6 @@ oya-connect-document-format-domain = { path = "../oya-connect-document-format-do
 name = "oya_connect_slides_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

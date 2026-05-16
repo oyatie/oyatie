@@ -1,3 +1,6 @@
+---
+doc_status: archived
+---
 # Legacy ADRs — RETIRED 2026-05-09
 
 > Per user directive 2026-05-09: "We are retiring all the old documents. make sure we have everything we need and I want you to write everything. just copy and paste is a no go."

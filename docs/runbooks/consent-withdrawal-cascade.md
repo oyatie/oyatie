@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Consent Withdrawal Cascade
+doc_status: published
+---
+
 # Oyatie Runbook — Consent Withdrawal Cascade
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # RALPLAN — oyatie Single Source of Truth + grit/icm Cutover
 
 <!--
@@ -84,7 +88,7 @@ Iteration: **Iteration 2 — incorporates Architect (4 violations + 8 revisions)
 - **Inputs/preconditions:** P0.5 merged.
 - **Symbols to claim:** doc-only — coordinate via `icm-lock-p1` topic.
 - **Agents and parallelism:** Up to 4 agents in parallel for inventory enumeration. Scope: `oyatie/**` excluding agents-config; `bominal/agents/`; `bominal/docs/`; and a fourth agent on agent-instruction scope inside the repo (`**/*.md`, `**/*.json`, `**/.claude/**`).
-- **Outputs / acceptance evidence:** `oyatie/docs/decisions/ADR-0052-grit-cutover-inventory.md` (verified next free slot per `open-questions-resolutions.md §Q2`). Every file/dir/script in scope has one row with classification ∈ closed set AND a `archived_at` timestamp column (null until P6 stamps it). Referenced from `ADR-INDEX.md`. **Phantom-path correction**: `oyatie/.omx/ultragoal/` row marked `phantom — not present, no action`. `.codex/worktree_init.sh` **dropped from deletion list entirely** (verified non-existent). Helper-crate-target row reads `tools/oya-tooling-agent-read/ — REPLACE-WITH-HELPER`.
+- **Outputs / acceptance evidence:** `oyatie/docs/decisions/ADR-0103-grit-cutover-inventory.md` (verified next free slot per `open-questions-resolutions.md §Q2`). Every file/dir/script in scope has one row with classification ∈ closed set AND a `archived_at` timestamp column (null until P6 stamps it). Referenced from `ADR-INDEX.md`. **Phantom-path correction**: `oyatie/.omx/ultragoal/` row marked `phantom — not present, no action`. `.codex/worktree_init.sh` **dropped from deletion list entirely** (verified non-existent). Helper-crate-target row reads `tools/oya-tooling-agent-read/ — REPLACE-WITH-HELPER`.
 - **Maps to spec criterion:** A2.
 
 ### P2 — Ship `tools/oya-tooling-agent-read/` (under scaffold-claim pattern per ADR-0054)
@@ -162,7 +166,7 @@ Iteration: **Iteration 2 — incorporates Architect (4 violations + 8 revisions)
 
 Per Architect revision #8 and Critic finding #1: the canonical ADR lift-sources are:
 
-- **ADR-0052 (inventory)** ← inventory enumeration; lands as `oyatie/docs/decisions/ADR-0052-grit-cutover-inventory.md` at P1.
+- **ADR-0052 (inventory)** ← inventory enumeration; lands as `oyatie/docs/decisions/ADR-0103-grit-cutover-inventory.md` at P1.
 - **ADR-0053 (sanctioned primitives + cutover direction)** ← lands as `oyatie/docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md` at P5 alongside banned-primitives lane activation. Required edits: add bootstrap-window clause to §Decision, add human-orchestrator definition to §Decision Drivers/§Glossary, add cutover-is-one-time-not-retroactive clause to §Consequences §Neutral, unify §Follow-ups.
 - **ADR-0054 (scaffold-claim pattern)** ← `pre-cutover-drafts.md §Draft 2`; lands as `oyatie/docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md` at P0.5. Document `Cargo.toml::workspace_members` as NOT viable; adopt icm-coordination-lock fallback as canonical.
 

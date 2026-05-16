@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Vertical — Industrial (MES / OEE / ISA-95 / OPC UA)
 
 ## Mission

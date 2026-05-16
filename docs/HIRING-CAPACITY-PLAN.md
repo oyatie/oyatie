@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Hiring + Capacity Plan
+doc_status: published
+---
+
 # Oyatie — Hiring + Capacity Plan
 
 > **Status:** Draft v0.1 skeleton — 2026-05-09. Founder + future COO/CFO finalize.

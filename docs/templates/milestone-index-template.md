@@ -15,6 +15,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives
   - ADR-0054  # scaffold-claim pattern
 length_cap: 100
+doc_status: published
 ---
 
 ```yaml
@@ -90,7 +91,7 @@ The first symbol/file a fresh agent **MUST** read after this INDEX to enter the 
 
 ## Inherited hyperscaler practices
 
-- Working-Backwards / PRFAQ (per `.omc/specs/hyperscaler-best-practices-2026-05-12.md §Domain 1 AWS`) — applied to: `<phase list>`
+- Working-Backwards / PRFAQ (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 1 AWS`) — applied to: `<phase list>`
 - Google Design Doc — applied to: `<phase list>`
 - Blameless Postmortem — every Sev-1/Sev-2 in milestone scope.
 - Trunk-Based Development + Feature Flags + Canary — release strategy per `docs/RELEASE-MANAGEMENT.md`.
@@ -111,5 +112,5 @@ Full register: `docs/RISK-REGISTER.md`.
 - `.omc/plans/MASTERPLAN.md`
 - `docs/ROADMAP.md §2`
 - `docs/RACI-OWNERSHIP.md`
-- `.omc/specs/hyperscaler-best-practices-2026-05-12.md`
+- `.omc/scratch/hyperscaler-best-practices-2026-05-12.md`
 - ADR-0052 (inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim).

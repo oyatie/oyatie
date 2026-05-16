@@ -1,5 +1,5 @@
 //! Ops workspace-shell adapter — projects kernel types onto the OpenAPI 3.2
-//! wire schema declared in `contracts/ops-workspace-shell.openapi.yaml`.
+//! wire schema declared in `contracts/ops-workspace-shell-v1.openapi.yaml`.
 //!
 //! Pure std-only adapter per ADR-0015: no framework dependencies, no I/O.
 //! Owns the kernel→wire projection; rest-layer crate owns transport binding.
@@ -7,13 +7,16 @@
 //! Wire DTOs mirror OpenAPI `#/components/schemas/*` 1:1 by name and shape
 //! so the contract is enforceable: changing the kernel type without changing
 //! the projection breaks the build.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use oya_ops_workspace_shell_kernel::{
     Surface, SurfaceCatalogPort, SurfaceId, SurfaceState, VisibilityTier,
 };
 
 /// Wire shape mirroring `#/components/schemas/Surface` in
-/// `contracts/ops-workspace-shell.openapi.yaml`.
+/// `contracts/ops-workspace-shell-v1.openapi.yaml`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct WireSurface {
     pub id: String,                           // data_class: INTERNAL_ONLY

@@ -5,8 +5,8 @@ milestone: M02-substrate
 phase: P09-search
 status: Proposed
 depends_on_phase_spec: phase-spec.md
+purpose: "Implementation plan for P09-search of M02-substrate: detailed code structure and acceptance lanes."
 ---
-
 # P09-search Implementation Plan
 
 ## 0. Grit Claim

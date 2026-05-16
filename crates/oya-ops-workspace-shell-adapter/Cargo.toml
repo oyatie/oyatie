@@ -14,3 +14,6 @@ oya-ops-workspace-shell-kernel = { path = "../oya-ops-workspace-shell-kernel" }
 name = "oya_ops_workspace_shell_adapter"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

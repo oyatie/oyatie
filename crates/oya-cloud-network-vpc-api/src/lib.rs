@@ -6,12 +6,12 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_network_kernel::{
+use oya_cloud_network_domain::{
     CloudNetworkCatalog, CloudNetworkError, IpProtocol, NetworkRepo, RouteCreate, RouteNextHopKind,
     RouteTableCreate, RuleDirection, SecurityGroupCreate, SecurityRule, Vpc, VpcCreate, VpcState,
 };
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
-use oya_platform_residency_kernel::{parse_residency_class_label, ResidencyClass};
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
 
 pub const CLOUD_NETWORK_VPC_CREATE_SURFACE: &str = "cloud.network.vpc.create";
 
@@ -752,7 +752,7 @@ fn security_rule_create_input(
         direction: parse_api_rule_direction(request.direction)?,
         protocol: parse_api_protocol(request.protocol)?,
         port_range: parse_api_port_range(request.port_start, request.port_end)?,
-        cidr: oya_cloud_network_kernel::RouteDestination::new(request.cidr)
+        cidr: oya_cloud_network_domain::RouteDestination::new(request.cidr)
             .map_err(CloudNetworkVpcApiError::Network)?,
         description: request.description,
     })

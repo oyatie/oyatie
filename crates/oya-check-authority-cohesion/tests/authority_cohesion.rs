@@ -1,5 +1,9 @@
-use oya_foundry_authority_cohesion_kernel::{
-    validate_authority_cohesion, AuthorityCohesionError, AuthorityDocument,
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_check_authority_cohesion::{
+    AuthorityCohesionError, AuthorityDocument, validate_authority_cohesion,
 };
 
 #[test]

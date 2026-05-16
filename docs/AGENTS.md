@@ -1,55 +1,86 @@
 ---
 doc_class: Operating-Contract
-shape: ~
+shape: null
 length_cap: 360
 authority_tier: 2
 excludes:
-  - path: docs/CONSTITUTION.md
-    reason: Mission, decision rights, prohibitions; the constitutional frame is upstream of this contract.
-  - path: docs/DOC-CATALOG.md
-    reason: Per-doc lifecycle protocol and trigger taxonomy.
-  - path: docs/templates/pull-request-template.md
-    reason: PR body shape; cited and not inlined.
-  - path: docs/decisions/
-    reason: Architectural rationale; ADRs are decision records, not operating contracts.
-  - path: docs/teams/
-    reason: Per-team norms and charters.
-  - path: docs/SPEC.md
-    reason: Surface enumeration; this contract operates on surfaces, does not enumerate them.
-  - path: docs/standards/
-    reason: Cross-cutting authoring norms (code style, testing, security review, etc.); this contract names them, does not inline them.
-  - path: docs/MISTAKES-LEDGER.md
-    reason: Failure-mode catalog; this contract operates the doctrine, does not catalog it.
+- path: /specs/cross-cutting/root-hub-pointers.json
+  reason: Machine-readable entry-point registry; this contract is discovered through
+    it.
+- path: /specs/cross-cutting/master-plan-sequencing.json
+  reason: Forbidden primitives, grit protocol, and ChangeSet sequencing; cited and
+    not duplicated fully.
+- path: /specs/cross-cutting/markdown-retirement-policy.json
+  reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
+    fully.
+- path: docs/DOC-CATALOG.md
+  reason: Per-doc lifecycle protocol and trigger taxonomy.
+- path: docs/templates/pull-request-template.md
+  reason: PR body shape; cited and not inlined.
+- path: docs/decisions/
+  reason: Architectural rationale; ADRs are decision records, not operating contracts.
+- path: docs/teams/
+  reason: Per-team norms and charters.
+- path: docs/SPEC.md
+  reason: Surface enumeration; this contract operates on surfaces, does not enumerate
+    them.
+- path: docs/standards/
+  reason: Cross-cutting authoring norms; this contract names them, does not inline
+    them.
+- path: docs/MISTAKES-LEDGER.md
+  reason: Failure-mode catalog; this contract operates the doctrine, does not catalog
+    it.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md
-    > rest of docs/
-    > catalog records (registry/catalog/, contracts/, machine-readable/)
+  system / developer / user instructions
+    > /specs/cross-cutting/root-hub-pointers.json
+    > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
+    > machine-readable specs and registries under .omc/
+    > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
     > working drafts (never authoritative)
+purpose: "Operating-Contract: Oyatie Agent Operating Contract."
+doc_status: published
 ---
-
 # Oyatie Agent Operating Contract
 
-## Constitutional authority — [CONSTITUTION.md](CONSTITUTION.md)
+## Machine-readable authority — [root hub pointers](..//specs/cross-cutting/root-hub-pointers.json)
 
+## Workspace doctrine — applies to every documentation / file / workflow
+
+Canonical doctrine: [`/specs/cross-cutting/oyatie-doctrine.json`](..//specs/cross-cutting/oyatie-doctrine.json) v1.0.0. **Principles P0..P9** (agentic-primary, machine-optimized, programmatic-where-possible, deterministic-where-it-matters, enforce-in-every-thing, iterate-until-consensus, no-silent-regression, Bominal-inheritance, canonical-base-+-localization, no-sprawl) bind every PR.
+
+Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first, SDK as enrichment). See `oyatie-doctrine.json#scope_clarifications`.
+
+## Multispectrum review bar — required on every change
+
+Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/cross-cutting/multispectrum-review.json`](..//specs/cross-cutting/multispectrum-review.json) v2.4.0 (`evidence_schema`). Oya VCS admission plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
+
+- evidence file absent OR
+- declared `change_class_id` not in {CC-1..CC-7} OR
+- required facets (F1..F13 except F12-reserved when applicable; A-family policy-adherence facets for policy-touching changes; plus `M1`/`M2` when `meta_review_triggered`) missing OR
+- mandatory artifacts per the rigor matrix missing.
+
+This applies to **foundry agentic flow** AND **dev flow**. Agentic flow is the primary consumer; the spec is read at Oya VCS claim time and re-evaluated each iterative-fix-loop cycle. See [`docs/standards/multispectrum-review.md`](standards/multispectrum-review.md) for the human gateway and [`/registries/cross-cutting/fixuptasks.jsonl`](..//registries/cross-cutting/fixuptasks.jsonl) for the bounded-deferral registry.
 
 This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
 
-If you read only one file before changing this repo, read this one. If you read two, read this one and [`CONSTITUTION.md`](CONSTITUTION.md).
+Before changing this repo, read `/specs/cross-cutting/root-hub-pointers.json` first, then this contract. The retired Constitution concept is redistributed through the root hub, master-plan specs, RACI ownership, and sanctioned-primitive specs.
 
 ## Authority precedence
 
 The higher source wins on conflict.
 
 ```
-docs/CONSTITUTION.md
-  > rest of docs/
-  > catalog records (registry/catalog/, contracts/, machine-readable/)
+system / developer / user instructions
+  > /specs/cross-cutting/root-hub-pointers.json
+  > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
+  > machine-readable specs and registries under .omc/
+  > docs/ authority files during markdown-retirement compatibility
   > repo-root Redirect-class files (non-authoritative; lane-thin)
   > working drafts (never authoritative)
 ```
 
-The chain appears verbatim in [`CONSTITUTION.md`](CONSTITUTION.md), in this file, and in [`README.md`](README.md). The `oya-foundry-fitness-authority-cohesion` lane validates the three declarations are character-identical.
+The chain is mirrored from `/specs/cross-cutting/root-hub-pointers.json` and the markdown-retirement policy. The `oya-foundry-fitness-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
 
 ## RFC-2119 normative-language statement
 
@@ -63,7 +94,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 
 | Question | Authority |
 |---|---|
-| Project mission, decision rights, prohibitions, amendments | [`CONSTITUTION.md`](CONSTITUTION.md) |
+| Project mission, decision rights, prohibited primitives, amendments | [`MASTERPLAN.md`](MASTERPLAN.md), [`/specs/cross-cutting/master-plan-sequencing.json`](..//specs/cross-cutting/master-plan-sequencing.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
 | Bootstrap routing for the canonical tree | [`README.md`](README.md) |
 | Architecture, planes, cross-axis contracts, cohesion thesis | [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> |
 | Surfaces (capabilities, APIs, events, indexes, ad slots, cloud resources) | [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 --> |
@@ -128,6 +159,29 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **No quarantining flaky tests without a 14-day fix SLA.** Quarantine assigns the test to the `flaky/` lane; the SLA is tracked.
 - **No editing legacy retired paths.** If a path was retired in a consolidation event, do not recreate it.
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
+## Sanctioned primitives
+
+Agent-callable coordination and state-transition primitives are a closed set: Oya VCS claim / verify / done / promote plus the `oya-vcs-admission` CI lane. Oya VCS owns claims, ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock release. ADR-0053/ADR-0054 remain historical compatibility records for scaffold-lock fallback paths that cannot yet be claimed as indexed symbols.
+
+The legacy primitives (`grit`, `icm`, `rtk`, `vox`, `omx`, `omc`, and `oya-tooling-agent-read`) are compatibility/provenance surfaces only while the Oya VCS command adapters finish landing. They do not satisfy forward closure authority; Oya VCS admission is the blocking gate for new Foundry agentic work.
+
+The fenced block below is the machine-readable agent surface for the banned-primitives lane. Human-facing terminal examples may live outside fences; fenced instructions use only the sanctioned primitive names.
+
+<!-- agent-instructions:start -->
+sanctioned_primitives:
+  - oya-vcs
+  - oya-vcs-admission
+  - legacy-grit-compat
+required_sequence:
+  - oya vcs claim --agent <id> --intent "<slice>" <file::Identifier>
+  - oya vcs verify --agent <id> --changeset <id>
+  - oya vcs done --agent <id> --changeset <id>
+  - oya vcs promote --changeset <id>
+scaffold_fallback:
+  topic: scaffold-locks-oyatie
+  adr: docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
+compatibility_note: legacy grit/icm/rtk/vox/omx/omc/oya-tooling-agent-read are read/provenance/fallback-only during cutover; Oya VCS ChangeBundle -> Promotion -> ReleaseTrain is the forward closure authority.
+<!-- agent-instructions:end -->
 
 ## PR shape
 
@@ -156,7 +210,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Test:* command output pasted in `## Verification`.
 - [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Test:* command output.
 - [ ] **D11** `cargo deny check` passes. *Test:* command output.
-- [ ] **D12** `repoctl pre-push` passes. *Test:* command output.
+- [ ] **D12** `oya verify` passes. *Test:* command output.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-foundry-fitness-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-foundry-fitness-schema-migration` lane.
 - [ ] **D15** PR body has all 5 canonical H2 sections; `## Code Review` added at merge time. *Test:* `traceability-validator` lane.
@@ -206,7 +260,7 @@ Always-loaded skills (project-level): `coding-standards`, `tdd-workflow`, `super
 
 Active hooks (PreToolUse / PostToolUse / Stop / SessionStart): merge-review gate (`scripts/hooks/guard-pr-merge-review.mjs`), pre-push gate, telemetry, loop-cancellation enforcement, memory bootstrap.
 
-OMC magic-keyword routing: `autopilot`, `ralph`, `ulw` / `ultrawork`, `team`, `ralplan`, `cancelomc`. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
+Legacy OMC magic-keyword routing remains compatibility-only while Oya VCS/Foundry-native command adapters finish landing. It does not own forward repo-state closure; Oya VCS admission does. Detail in [`standards/claude-code-harness.md`](standards/claude-code-harness.md) <!-- forward-reference: wave-2 -->.
 
 Cancellation: `/oh-my-claudecode:cancel` only after re-walking §"Done-Definition checklist."
 
@@ -220,7 +274,7 @@ The Codex CLI loads `AGENTS.md` at workspace creation, per the cross-tool [AGENT
 
 Build / test commands: `cargo build`, `cargo test`, `cargo nextest run --workspace --all-features --no-fail-fast`, `cargo clippy --all-features --all-targets -- -D warnings`, `pnpm build`, `pnpm test` (Node 20). Lint: `cargo clippy`, `pnpm lint`.
 
-Active integration: `.codex/skills/` holds project skills; `.codex/worktree_init.sh` initializes per-issue workspaces.
+Active integration: `.codex/skills/` holds project skills. Coordination follows §Sanctioned primitives; workspace setup is owned by the runtime and claim lifecycle, not by repo-local bootstrap scripts.
 
 Cancellation: terminate the Codex run; the orchestrator records the partial state for replay.
 
@@ -234,21 +288,21 @@ Build / test commands: same as Codex appendix.
 
 Cancellation: terminate the Gemini run; same orchestrator-replay semantics.
 
-### OMC (oh-my-claudecode subagents)
+### Legacy OMC (oh-my-claudecode subagents)
 
-OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls.
+OMC subagents run inside Claude Code via `Skill` / `Agent` tool calls. This surface is compatibility-only for existing sessions and historical evidence; new Foundry agentic closeout routes through Oya VCS.
 
 Subagent catalog: `executor`, `architect`, `verifier`, `code-reviewer`, `silent-failure-hunter`, `tdd-guide`, `doc-updater`, `planner`, `critic`, `debugger`, `tracer`, `explore`, `designer`, `writer`, `qa-tester`. Route per change class.
 
 Skill catalog: `/oh-my-claudecode:autopilot`, `/ralph`, `/team`, `/ultrawork`, `/verify`, `/cancel`, `/ralplan`, `/deep-interview`, `/trace`, `/plan`. Cancellation: see "Long-running loop rule" above.
 
-State: OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped; do not commit unless explicitly asked.
+State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memory.json`, `.omc/plans/`, `.omc/research/`, `.omc/logs/`. Treat as session-scoped/provenance unless an existing tracked milestone artifact is being superseded by Oya VCS evidence.
 
 ## Anti-overlap
 
 This contract does not cover:
 
-- **Constitutional frame** — see [`CONSTITUTION.md`](CONSTITUTION.md).
+- **Machine-readable authority registry** — see [`/specs/cross-cutting/root-hub-pointers.json`](..//specs/cross-cutting/root-hub-pointers.json).
 - **Per-doc lifecycle protocol** — see [`DOC-CATALOG.md`](DOC-CATALOG.md).
 - **PR template body** — see [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->.
 - **Architectural rationale per decision** — see [`decisions/`](decisions/) <!-- forward-reference: wave-1 --> indexed at [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 -->.

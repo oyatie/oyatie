@@ -8,17 +8,17 @@ status: pending
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: Delivers the complete Identity substrate across 8 BCs (users, persons, organizations, employees, employments, sessions, mfa, passkeys) — 32 BC-layer crates + 3 presentation + 1 app = 36 total.
 ---
-
 # IP-P03-identity-substrate: Scaffold 36 Identity crates with full DDL, port traits, auth flows, Cedar, Protobuf
 
 ## Intent

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Employee Dsr Cascade
+doc_status: published
+---
+
 # Oyatie Runbook — Employee Dsr Cascade
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

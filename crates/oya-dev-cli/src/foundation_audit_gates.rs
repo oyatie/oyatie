@@ -2,13 +2,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_foundry_bypass_kernel::{
+use oya_audit_chain_file_adapter::FileAuditLedger;
+use oya_check_pr_traceability::{
+    PrTraceabilityDocument, PrTraceabilityPolicy, validate_pr_traceability,
+};
+use oya_foundry_bypass_domain::{
     AutonomyBreakGlassInput, AutonomyTier, BypassLedger, BypassLedgerRecord, FoundationBypassInput,
 };
-use oya_foundry_pr_traceability_kernel::{
-    validate_pr_traceability, PrTraceabilityDocument, PrTraceabilityPolicy,
-};
-use oya_platform_audit_chain_adapter_file::FileAuditLedger;
 
 use crate::{current_epoch_days, parse_u32_field, parse_u64_field, usage};
 
@@ -326,7 +326,7 @@ pub(crate) fn validate_audit_chain_replay_gate(
     for path in &shard_paths {
         let ledger = FileAuditLedger::new(path.clone());
         let chain = ledger
-            .load()
+            .load_multi_tenant_shards()
             .map_err(|error| format!("audit shard replay failed {}: {error:?}", path.display()))?;
         if chain.events().is_empty() {
             return Err(format!(

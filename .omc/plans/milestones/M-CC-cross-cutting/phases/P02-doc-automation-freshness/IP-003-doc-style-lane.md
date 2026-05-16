@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P02-IP-003
 title: Doc-style enforcement lane + auto-format
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Enforce docs/standards/doc-style.md; auto-format on commit.
@@ -49,4 +52,8 @@ icm store -t context-oyatie -c 'M-CC-P02-IP-003 Doc-style enforcement lane + aut
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- One fence-tracking boolean (`in_fence`) suppresses width checks inside code blocks — no per-rule conditional knows about Markdown syntax.
+- H1 detection uses `starts_with("# ")` with explicit `!starts_with("## ")` guard — H2 cannot accidentally count as H1.
+- `MissingH1`, `MultipleH1`, `H1NotFirstContentLine` are distinct kinds — a document with two H1s, both not first, surfaces the underlying problems separately instead of one fuzzy "bad headings" error.
+- Violations are sorted by `(path, line, kind)` — output is diff-stable.

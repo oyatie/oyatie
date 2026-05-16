@@ -5,10 +5,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{
+use oya_data_boundary_kernel::{
+    Classified, DataClass, OperationalDataClass, PrivacyDataClass,
     data_classes_from_privacy_data_classes, parse_data_class_label,
-    parse_operational_data_class_label, Classified, DataClass, OperationalDataClass,
-    PrivacyDataClass,
+    parse_operational_data_class_label,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -20,6 +20,10 @@ pub enum CatalogRole {
     Worker,
     Adapter,
     Runtime,
+    Cli,
+    Test,
+    Infrastructure,
+    Bindings,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
@@ -66,7 +70,7 @@ pub enum CatalogError {
     InvalidSupplyChain,
     MissingDataClasses,
     DuplicateCrateRecord,
-    MissingCrateRecord,
+    MissingCrateRecord { crate_id: String },
     PlaneChanged,
 }
 
@@ -219,8 +223,11 @@ impl CatalogIndex {
         S: AsRef<str>,
     {
         for crate_id in crate_ids {
-            if !self.records.value.contains_key(crate_id.as_ref()) {
-                return Err(CatalogError::MissingCrateRecord);
+            let s = crate_id.as_ref();
+            if !self.records.value.contains_key(s) {
+                return Err(CatalogError::MissingCrateRecord {
+                    crate_id: s.to_string(),
+                });
             }
         }
         Ok(())
@@ -242,7 +249,9 @@ impl CatalogIndex {
         for crate_id in &reviewed_changes {
             validate_crate_id(crate_id)?;
             if !self.records.value.contains_key(crate_id) {
-                return Err(CatalogError::MissingCrateRecord);
+                return Err(CatalogError::MissingCrateRecord {
+                    crate_id: crate_id.clone(),
+                });
             }
         }
         for (crate_id, baseline_record) in &baseline.records.value {
@@ -276,11 +285,15 @@ fn parse_role(role: &str) -> Result<CatalogRole, CatalogError> {
     match role {
         "kernel" => Ok(CatalogRole::Kernel),
         "domain" => Ok(CatalogRole::Domain),
-        "app" => Ok(CatalogRole::App),
-        "api" => Ok(CatalogRole::Api),
+        "app" | "application" => Ok(CatalogRole::App),
+        "api" | "rest" | "grpc" | "graphql" => Ok(CatalogRole::Api),
         "worker" => Ok(CatalogRole::Worker),
         "adapter" => Ok(CatalogRole::Adapter),
         "runtime" => Ok(CatalogRole::Runtime),
+        "cli" => Ok(CatalogRole::Cli),
+        "test" => Ok(CatalogRole::Test),
+        "infrastructure" => Ok(CatalogRole::Infrastructure),
+        "bindings" => Ok(CatalogRole::Bindings),
         _ => Err(CatalogError::InvalidRole),
     }
 }

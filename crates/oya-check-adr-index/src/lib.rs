@@ -1,4 +1,7 @@
 //! Foundry ADR index generation fitness kernel.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -27,6 +30,7 @@ pub struct AdrIndexArtifacts {
 pub struct AdrIndexReport {
     pub records: usize,                         // data_class: INTERNAL_ONLY
     pub next_adr: String,                       // data_class: INTERNAL_ONLY
+    pub gaps: Vec<String>,                      // data_class: INTERNAL_ONLY
     pub status_counts: BTreeMap<String, usize>, // data_class: INTERNAL_ONLY
 }
 
@@ -45,14 +49,16 @@ where
     I: IntoIterator<Item = AdrDecisionRecord>,
 {
     let records = normalized_records(records)?;
-    if records.is_empty() {
+    let Some(last_record) = records.last() else {
         return Err(AdrIndexError::NoRecords);
-    }
+    };
     let status_counts = status_counts(&records);
-    let next_adr = format!("ADR-{:04}", records.len() + 1);
+    let gaps = adr_number_gaps(&records);
+    let next_adr = format!("ADR-{:04}", last_record.number + 1);
     let report = AdrIndexReport {
         records: records.len(),
         next_adr: next_adr.clone(),
+        gaps,
         status_counts,
     };
     Ok(AdrIndexArtifacts {
@@ -87,18 +93,11 @@ where
     let mut sorted = records.into_iter().collect::<Vec<_>>();
     sorted.sort_by_key(|record| record.number);
     let mut seen = BTreeSet::new();
-    for (index, record) in sorted.iter().enumerate() {
+    for record in &sorted {
         validate_record(record)?;
         if !seen.insert(record.id.clone()) {
             return Err(AdrIndexError::DuplicateAdr {
                 id: record.id.clone(),
-            });
-        }
-        let expected = (index + 1) as u16;
-        if record.number != expected {
-            return Err(AdrIndexError::NonContiguousNumber {
-                expected,
-                actual: record.number,
             });
         }
     }
@@ -151,9 +150,16 @@ fn status_counts(records: &[AdrDecisionRecord]) -> BTreeMap<String, usize> {
 }
 
 fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> String {
-    let first = records.first().expect("records non-empty");
-    let last = records.last().expect("records non-empty");
+    let (Some(first), Some(last)) = (records.first(), records.last()) else {
+        return String::new();
+    };
     let mut out = String::new();
+    out.push_str("---\n");
+    out.push_str(
+        "purpose: Generated ADR index and machine-readable mirror pointer for ADR freshness, numbering, owner, status, and supersession review.\n",
+    );
+    out.push_str("doc_status: published\n");
+    out.push_str("---\n\n");
     out.push_str("# Oyatie — ADR Index\n\n");
     out.push_str("> **Generated:** from [`decisions/`](decisions/) by `oya doc adr-index`. Do not hand-edit generated rows.\n");
     out.push_str("> **Authoritative:** `crew-adr-promotion` owns freshness per [DOC-CATALOG.md `doc.adr_index`](DOC-CATALOG.md).\n");
@@ -161,8 +167,13 @@ fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> St
     out.push_str("## At-a-glance\n\n");
     out.push_str(&format!("- **Total ADRs:** {}\n", report.records));
     out.push_str(&format!(
-        "- **Numbering:** contiguous {} .. {} (gap-free)\n",
-        first.id, last.id
+        "- **Numbering:** {}\n",
+        numbering_summary(
+            &first.id,
+            &last.id,
+            &report.gaps,
+            GapRenderMode::CitationSafe
+        )
     ));
     // ADR citation policy treats `ADR-NNNN` tokens in active docs as claims
     // that the decision file exists. The generated index therefore exposes the
@@ -195,13 +206,26 @@ fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> St
         "- Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).\n",
     );
     out.push_str(&format!(
-        "- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and contiguous numbering (next available number: {}).\n",
+        "- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number ({}), unless an explicit reserved-number ADR is being filled.\n",
         report.next_adr.trim_start_matches("ADR-")
     ));
     out.push_str("- Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.\n");
     out.push_str(
         "- Supersession is recorded in the per-ADR header and mirrored here on regeneration.\n\n",
     );
+    if !report.gaps.is_empty() {
+        out.push_str("## Deleted / unassigned ADR numbers\n\n");
+        out.push_str("The directory is intentionally non-contiguous. Every existing `docs/decisions/ADR-*.md` file is included in the table and machine-readable mirror; the following gaps are not counted as ADR files.\n\n");
+        out.push_str("| Number range | Reason |\n");
+        out.push_str("|---|---|\n");
+        for gap in &report.gaps {
+            let gap = citation_safe_gap(gap);
+            out.push_str(&format!(
+                "| {gap} | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |\n"
+            ));
+        }
+        out.push('\n');
+    }
     out.push_str("## Sources scanned\n\n");
     out.push_str(&format!(
         "- `decisions/` directory listing — {} ADR files (sorted ascending)\n",
@@ -213,8 +237,9 @@ fn render_markdown(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> St
 }
 
 fn render_json(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> String {
-    let first = records.first().expect("records non-empty");
-    let last = records.last().expect("records non-empty");
+    let (Some(first), Some(last)) = (records.first(), records.last()) else {
+        return String::new();
+    };
     let mut out = String::new();
     out.push_str("{\n");
     out.push_str("  \"_schema\": {\n");
@@ -226,10 +251,15 @@ fn render_json(records: &[AdrDecisionRecord], report: &AdrIndexReport) -> String
     out.push_str("    \"source\": \"docs/decisions\",\n");
     out.push_str(&format!("    \"total_adrs\": {},\n", report.records));
     out.push_str(&format!(
-        "    \"numbering\": \"contiguous {}..{} (gap-free)\",\n",
-        json_escape(&first.id),
-        json_escape(&last.id)
+        "    \"numbering\": \"{}\",\n",
+        json_escape(&numbering_summary(
+            &first.id,
+            &last.id,
+            &report.gaps,
+            GapRenderMode::Canonical
+        ))
     ));
+    out.push_str(&format!("    \"gaps\": {},\n", json_array(&report.gaps)));
     out.push_str(&format!(
         "    \"next_adr\": \"{}\",\n",
         json_escape(&report.next_adr)
@@ -308,6 +338,60 @@ fn render_status_counts(status_counts: &BTreeMap<String, usize>) -> String {
         .join(", ")
 }
 
+fn adr_number_gaps(records: &[AdrDecisionRecord]) -> Vec<String> {
+    let mut gaps = Vec::new();
+    let Some(first) = records.first() else {
+        return gaps;
+    };
+    let mut expected = first.number;
+    for record in records {
+        if record.number > expected {
+            gaps.push(render_adr_range(expected, record.number - 1));
+        }
+        expected = record.number.saturating_add(1);
+    }
+    gaps
+}
+
+fn render_adr_range(start: u16, end: u16) -> String {
+    if start == end {
+        format!("ADR-{start:04}")
+    } else {
+        format!("ADR-{start:04}..ADR-{end:04}")
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum GapRenderMode {
+    Canonical,
+    CitationSafe,
+}
+
+fn numbering_summary(
+    first_id: &str,
+    last_id: &str,
+    gaps: &[String],
+    gap_render_mode: GapRenderMode,
+) -> String {
+    if gaps.is_empty() {
+        format!("contiguous {first_id}..{last_id} (gap-free)")
+    } else {
+        let gaps = match gap_render_mode {
+            GapRenderMode::Canonical => gaps.join(", "),
+            GapRenderMode::CitationSafe => gaps
+                .iter()
+                .map(|gap| citation_safe_gap(gap))
+                .collect::<Vec<_>>()
+                .join(", "),
+        };
+        format!("{first_id}..{last_id} (non-contiguous; gaps: {})", gaps)
+    }
+}
+
+fn citation_safe_gap(gap: &str) -> String {
+    gap.replace("ADR-", "")
+}
+
 fn markdown_cell(value: &str) -> String {
     value.replace('|', "\\|").replace('\n', " ")
 }
@@ -349,10 +433,11 @@ fn code_span_forbidden_glossary_tokens(value: &str) -> String {
             output.push_str(&value[index..end]);
             output.push('`');
             index = end;
-        } else {
-            let character = value[index..].chars().next().expect("index in bounds");
+        } else if let Some(character) = value[index..].chars().next() {
             output.push(character);
             index += character.len_utf8();
+        } else {
+            break;
         }
     }
     output
@@ -422,9 +507,11 @@ mod tests {
         assert!(artifacts.markdown.contains("Accepted 1"));
         assert!(artifacts.markdown.contains("**Next ADR number:** 0003"));
         assert!(!artifacts.markdown.contains("**Next ADR:** ADR-0003"));
-        assert!(artifacts
-            .markdown
-            .contains("Decision 1 with `M0`/`M1`/`M2`/`M3`/`MVP` retired terms"));
+        assert!(
+            artifacts
+                .markdown
+                .contains("Decision 1 with `M0`/`M1`/`M2`/`M3`/`MVP` retired terms")
+        );
         assert!(artifacts.json.contains("\"total_adrs\": 2"));
         assert!(artifacts.json.contains("\"next_adr\": \"ADR-0003\""));
         assert_eq!(artifacts.report.records, 2);
@@ -464,12 +551,32 @@ mod tests {
                 id: "ADR-0001".into(),
             })
         );
+    }
+
+    #[test]
+    fn accepts_non_contiguous_deleted_or_reserved_numbers() {
+        let artifacts = generate_adr_index([record(1, "Proposed"), record(3, "Accepted")])
+            .expect("non-contiguous index generated");
+
+        assert_eq!(artifacts.report.gaps, vec!["ADR-0002"]);
+        assert_eq!(artifacts.report.next_adr, "ADR-0004");
+        assert!(artifacts.markdown.contains("non-contiguous"));
+        assert!(
+            artifacts
+                .markdown
+                .contains("| 0002 | Not represented by a `docs/decisions/ADR-*.md` file")
+        );
+        assert!(!artifacts.markdown.contains("gaps: ADR-0002"));
+        assert!(artifacts.json.contains("\"gaps\": [\"ADR-0002\"]"));
         assert_eq!(
-            generate_adr_index([record(1, "Proposed"), record(3, "Accepted")]),
-            Err(AdrIndexError::NonContiguousNumber {
-                expected: 2,
-                actual: 3,
-            })
+            validate_adr_index(
+                [record(1, "Proposed"), record(3, "Accepted")],
+                &artifacts.markdown,
+                &artifacts.json,
+            )
+            .expect("non-contiguous artifacts validate")
+            .gaps,
+            vec!["ADR-0002"]
         );
     }
 

@@ -1,3 +1,151 @@
+---
+purpose: Oyatie — Canonical Docs Changelog
+doc_status: published
+---
+
+## 2026-05-15 — Fitness lane `oya-foundry-fitness-sunset-lifecycle` scaffolded (ADR-0108 sunset → deprecation → removal automation)
+
+- Added `crates/oya-foundry-fitness-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/oya-foundry-fitness-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oya.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
+- Kernel exposes `Date`, `SunsetClause`, `LifecycleState` (5 variants: PRE_SUNSET / SUNSET_REACHED / DEPRECATED / REMOVAL_REACHED / MISSING_FIELDS), `Violation`, `evaluate(clauses, now, reached_milestones)`, `effective_deprecation_at`, `effective_removal_at`. Canonical sub-rule defaults: `deprecation_at = sunset_at + 30 days`, `removal_at = effective_deprecation_at + 90 days`. 11 kernel unit tests + 7 dev-CLI tests pass.
+- Workspace members updated (`crates/oya-foundry-fitness-sunset-lifecycle-kernel`, `tools/oya-foundry-fitness-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
+- ADR-0108 anchors the machine-readable schema (`sunset_at` OR `sunset_milestone`, plus optional `deprecation_at`, `removal_at`, `sunset_topic`); complements ADR-0037 (runtime-side per-tenant `DeprecationUsed` events) and ADR-0109 (generic lifecycle-automation framework). Scaffold-lock logged in `scaffold-locks-oyatie` per ADR-0054.
+
+## 2026-05-15 — Fitness lane `oya-foundry-fitness-adapter-with-no-importer` scaffolded (ADR-0104 audit-#7 mechanical-prevention)
+
+- Added `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` (I/O-free check) and `tools/oya-foundry-fitness-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
+- Kernel exposes `WorkspaceCrate`, `Violation`, `AdapterImporterReport`, and `check`; port-in-kernel per ADR-0056 (filesystem walking lives in the dev-CLI). 8 kernel unit tests + 3 dev-CLI parser tests pass.
+- Workspace members updated (`crates/oya-foundry-fitness-adapter-with-no-importer-kernel`, `tools/oya-foundry-fitness-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
+- Implements ADR-0104 Consequences §4 mechanical-prevention candidate; scaffold lock logged in `scaffold-locks-oyatie` per ADR-0054.
+
+## 2026-05-15 — M02-P06 Foundry Supervisor implementation complete
+
+- Implemented the Foundry Supervisor daemon with hyperscaler-grade safety: atomic configuration writes (tempfile + fchmod 0600 + rename), symlink defense (O_NOFOLLOW), and automatic timestamped backups.
+- Delivered the 4-crate core decomposition (supervisor-kernel, supervisor-app, jsonl-supervisor-adapter, supervisor-conformance) and the 2-crate settings-template expansion (settings-template-kernel, settings-template-adapter).
+- Hardened the supervisor orchestration loop with ADR-0003 audit paths, data_class annotations, zero-unwrap error handling, and a 17-step tick_once cycle including saturation checks and silent-switch guards.
+- Integrated real CLI drivers for Claude, Codex, and Gemini with template-driven settings drift detection and a minimum-eligible-account "blackhole" defense.
+- Established the full documentation suite (README, Architecture, Operations, Security, Sample Payloads) and a lifecycle management runbook (RB-SUPERVISOR-001).
+- Updated ADR-INDEX and DOC-CATALOG with 7 new ADRs (0096-0102) and 5 new doc surfaces; 2400/2400 workspace tests pass.
+
+## 2026-05-14 — P01 foundation full-check closeout
+
+- Promoted the P01 closeout evidence from standalone-gate green to full `./scripts/check.sh` green under Rust 1.95.0 / edition 2024 / rustfmt 2024.
+- Resolved the final shared gate blockers exposed during closeout: glossary cross-doc/vocabulary drift, quality-lane markdown mirror drift, repoctl pre-push manifest wiring, active-artifact/ADR-index drift, and architecture-boundary dependency direction.
+- Recorded IP-009, IP-010, and IP-012 as complete in the P01 index while preserving the P00 acceptance/waiver gate before broad master-plan fan-out.
+
+## 2026-05-14 — scripts/check helper-script blocker resolved
+
+- Restored the four helper scripts invoked at the start of `scripts/check.sh`: Stage 0 Application-shell prereq self-test, M02 exit-checklist renderer, master-plan ledger renderer, and master-plan completion honesty audit.
+- Verified all four helpers with Python compile checks and their check/self-test modes; `scripts/check.sh` now advances past the missing-script blocker and cargo fmt, then reaches the next real shared blocker: `cargo check --workspace --all-targets --all-features` stale connect-domain imports.
+
+## 2026-05-14 — M01-P04-IP-002 object graph property tiers probe
+
+- Added the ontology-domain `ObjectEntity::upsert_property` seam with explicit insert/update outcomes and no-mutation validation failure behavior.
+- Added a true `ObjectGraph::upsert_entity` seam keyed by tenant id + entity id so the stable entity-upsert contract is backed by create/update semantics rather than only property replacement.
+- Exposed the five Object Graph property tiers (`vector`, `timeseries`, `geo`, `ciphertext`, `struct`) as a stable domain set while retaining scalar compatibility for existing property paths.
+- Promoted the machine-readable `object-graph.entity.upsert` mirror to stable and recorded scoped ontology tests, clippy, nextest, metadata, cargo-deny, and content assertions; `scripts/check.sh` remains the shared acceptance blocker.
+
+## 2026-05-14 — M01-P04-IP-001 eventing review fixup
+
+- Made topic registration invariant-safe by keeping `Topic` fields private and revalidating axis/name/description rules inside `TopicRegistry::register`.
+- Added an append-only `v1-published` file-ledger event so published-state transitions for already-persisted outbox records can be durably replayed without rewriting the record prefix.
+- Added regressions for invalid topic revalidation and persist-mark-published-reload behavior; scoped eventing tests, clippy, nextest, cargo-deny, metadata, and content assertions are green while `scripts/check.sh` remains blocked at cargo-check stale connect-domain imports.
+
+## 2026-05-14 — M01-P04-IP-001 eventing outbox/topic registry probe
+
+- Strengthened the eventing outbox kernel so replaying the same tenant/topic/idempotency key with a different payload reference fails instead of silently returning the earlier record.
+- Added `data_class` annotations to eventing kernel struct fields and hardened the file outbox decoder against malformed UTF-8-boundary length prefixes.
+- Corrected the eventing AsyncAPI Proto `$ref` and promoted the machine-readable `eventing.outbox.publish` contract mirror to stable.
+- Scoped eventing tests, clippy, nextest, cargo-deny, metadata, and content assertions are green; repository-wide `scripts/check.sh` now reaches `cargo check --workspace --all-targets --all-features` and is blocked by stale connect-domain imports, so the IP is probe-green / acceptance-blocked rather than complete.
+
+## 2026-05-14 — M01-P03 audit-chain evidence complete
+
+- Promoted the cross-axis audit-chain integrity failure runbook from stub to active Sev-1 procedure with exact one-cycle tamper drill commands.
+- Verified the domain tamper drill and file-ledger divergent/tampered-history drill against the live audit-chain verification surfaces.
+- Marked M01-P03 complete after Merkle + Ed25519 kernel, stable AsyncAPI/Proto contract, and Sev-1 tamper-evidence drill all carried fresh evidence.
+
+## 2026-05-14 — M01-P03-IP-002 audit event AsyncAPI + Proto contract
+
+- Published the stable `audit.event.emit.v1` AsyncAPI/Protobuf source contract with an existing Proto `$ref` target.
+- Promoted the Proto payload to `platform.audit.v1.AuditEvent` and included tenant shard, sequence, SHA-256 hash-chain fields, Merkle root, and Ed25519 signature proof material.
+- Added no-dependency Node contract lint commands for the IP acceptance gate and aligned SPEC plus machine-readable contract stability to stable.
+
+## 2026-05-14 — M01-P03-IP-001 audit-chain Merkle + Ed25519 kernel
+
+- Added SHA-256 Merkle prefix roots and Ed25519 signature types/sign/verify support to `oya-audit-chain-domain` under the Rust 1.95.0 / edition 2024 / rustfmt 2024 stance.
+- Enforced per-tenant-shard append semantics and added regressions for hash-chain tamper, Merkle-root tamper, signature tamper, and missing-signature verification.
+- Updated the file ledger to persist v2 audit records carrying tenant shard, SHA-256 Merkle root, and optional Ed25519 signature fields, with malformed UTF-8 length prefixes rejected as parse errors.
+- Recorded `ed25519-dalek` 2.x stable and `sha2` 0.10.x as the new direct dependencies for the real Ed25519 + SHA-256 kernel; ed25519-dalek 3.x remains prerelease.
+
+## 2026-05-14 — M01-P02 foundation complete
+
+- Completed the identity/Cedar phase: identity user upsert, STS issue/rotation, and Cedar policy publish all have current crate/runtime evidence.
+- Added `oya-platform-policy-cedar-api` to the Rust 1.95.0 / edition 2024 workspace and aligned it to the current `oya-policy-cedar-domain` crate.
+- Strengthened Cedar policy versions with strict semver, tenant/global scope, same-scope older-version supersession, chain lookup, idempotent publish, and active-only authorization.
+- Recorded M01-P02 evidence for IP-001, IP-002, and IP-003; `scripts/check.sh` remains blocked by the pre-existing missing stage0 prereq script.
+
+## 2026-05-14 — M01-P02-IP-002 STS rotation
+
+- Added `rotate_identity_token_from_app` and `PurposeScope` so STS rotation preserves tenant, subject, credential kind, purpose, and scope while requiring the previous STS record to still be active.
+- Kept `identity.token.issue` idempotent and ≤1h, and rejected `long_lived_api_key` at the application parser before typed credential issuance.
+- Added rotation regressions for active re-issue, expired previous tokens, scope escalation, and subject drift under Rust 1.95.0 / edition 2024 / rustfmt 2024.
+
+## 2026-05-14 — M01-P02-IP-001 identity kernel
+
+- Promoted the identity user kernel to current flat-crate surfaces: `oya-identity-domain` now owns `User`, `UserId`, and required per-region `IdpBinding`.
+- Added domain regressions for tenant/user/idp binding validation and kept STS service-principal issuance compatible while preserving ≤1h token gates.
+- Brought `oya-platform-identity-api` into the Rust 1.95.0 / edition 2024 workspace and verified `identity.user.upsert` through its API regression suite.
+- Aligned SPEC and machine-readable contract mirrors to the current identity crates, with repo-root rustfmt `style_edition = "2024"` retained.
+
+## 2026-05-14 — M01-P01 foundation complete
+
+- Closed IP-003 by locking the DSR cascade preview SLA to 30 days with a regression that accepts exactly 30d and rejects `30d + 1s`.
+- Added API-boundary coverage proving `dsr.cascade.execute` emits proof-of-erasure ids for each affected store and rejects completed store acknowledgements missing proof fields.
+- Aligned SPEC and machine-readable contract rows to the current clean-architecture DSR crates: `oya-dsr-domain` and `oya-dsr-application`.
+- Marked M01-P01 complete with evidence, masterplan parity, repo-root `rustfmt.toml` style-edition 2024, and final code-review `APPROVE` / `CLEAR`.
+
+## 2026-05-14 — M01-P01-IP-002 tenancy kernel contracts
+
+- Added `oya-tenancy-kernel` as the final-shape tenancy kernel with `TenantId`, immutable `RegionBinding`, `ResidencyClass`, `TenantContext`, and `TenantScopedRecord` row-level isolation guard.
+- Registered the kernel in the workspace under Rust 1.95.0 / edition 2024, with rustfmt style edition 2024 inherited from repo config.
+- Aligned the data-boundary public privacy label for KR financial data to canonical `FINANCIAL_KR` while retaining the legacy `FINANCIAL_KR_신용정보` parser alias.
+
+## 2026-05-14 — M01-P01-IP-001 Data Use Boundary ADR accepted
+
+- Promoted ADR-0008 Data Use Boundary from Proposed to Accepted and regenerated the ADR index/machine-readable mirror from all 67 `docs/decisions/ADR-*.md` files (31 Accepted / 36 Proposed, next ADR number 0091).
+- Published the §2.2.2 consent-tier UI mapping in `docs/PRIVACY-PROGRAM.md`, preserving purpose-permission rows as the authoritative grant model.
+- Recorded the M01-P01-IP-001 scaffold-claim fallback after grit returned the known new/doc-symbol FK failure.
+- Added repo-root `rustfmt.toml` to pin both Rust parsing edition and rustfmt style edition to 2024 under the Rust 1.95.0 stance.
+
+## 2026-05-14 — M-CC-P01 foundation cleared
+
+- Closed the P01 foundation sequence: IP-009 delete-active-path cleanup, IP-010 parallel-claim demo, and IP-012 authoritative-tracked lane all received code-review APPROVE.
+- Marked the P01 phase index `foundation-cleared` with explicit evidence and remaining pre-existing workspace blockers.
+- Standalone P01 gates are green: banned-primitives, archive-orphan, authoritative-tracked, and parallel-claim demo regression.
+
+## 2026-05-14 — M-CC-P01-IP-012 authoritative-tracked lane
+
+- Added `oya-foundry-fitness-authoritative-tracked-kernel` and `tools/oya-foundry-fitness-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
+- The runner parses the canonical doc map, accepts tracked directories through tracked children, and fails on missing, ignored, or untracked authoritative artifacts.
+- Corrected `docs/AGENTS.md` masterplan authority pointer to current tracked `docs/MASTERPLAN.md` after the lane exposed an untracked future-target pointer.
+- Updated the IP-012 good-taste row with the single typed-list behavior.
+
+## 2026-05-14 — M-CC-P01-IP-010 parallel-claim demo runbook
+
+- Added `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` and executable script to prove two session-less `grit` agents can claim non-overlapping symbols in one file.
+- Recorded the 2026-05-14 transcript under `/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`, including the duplicate-claim negative case and final lock cleanup.
+- Updated the runbooks index with the agentic-pipeline demo entry.
+
+## 2026-05-14 — M-CC-P01-IP-009 removed DELETE-class Bominal ultragoal ephemera
+
+- Removed the two ADR-0052 DELETE-class active-path files from `bominal/agents/ultragoal/` after P7 gates passed: banned-primitives, archive-orphan, and non-null ARCHIVE timestamps.
+- Updated IP-009 to target the actual DELETE-class rows and avoid direct VCS wording in the agent-facing plan.
+- Stamped ADR-0052 DELETE-row notes with P7 cleanup time `2026-05-14T13:26:13Z`.
+
+## 2026-05-14 — M-CC-P01-IP-008 archive-orphan lane and Bominal ultragoal archive
+
+- Archived 15 Bominal ultragoal orchestration-glue files under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` and stamped ADR-0052 `Archived at` rows for the ARCHIVE class.
+- Added `oya-foundry-fitness-archive-orphan-kernel` and `tools/oya-foundry-fitness-archive-orphan` to verify archived copies exist, active originals are absent, and living references are zero outside authority/provenance docs.
+- Refined inventory checklist samples so they no longer cite a real archived Bominal runtime path as an active example.
 
 ## 2026-05-12 — Lifted 5 reference docs (deep-dive ×2, hyperscaler, LTS-versions, cutover-amendments) to canonical docs/{specs,research,plans}/ tree
 
@@ -22,7 +170,7 @@
 
 ## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + docs/checklists/ (25 files)
 
-- **doc.templates-index** (Tier 2): 13 template files lifted from `.omc/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `.omc/templates/checklists/` to `docs/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
+- **doc.templates-index** (Tier 2): 13 template files lifted from `/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `/templates/checklists/` to `docs/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
 - 4 templates renamed to `-v2` due to conflicts with existing `docs/templates/` files: `pull-request-template-v2.md`, `adr-template-v2.md`, `runbook-template-v2.md`, `capability-record-template-v2.yaml`. Each carries `header_note: "Supersedes prior docs/templates/<name>.md once reviewed."` and `supersedes:` frontmatter field.
 - 0 checklist conflicts (all 12 checklists are new additions; existing `docs/checklists/cross-axis-contract-change.md` preserved; new `cross-axis-contract-change-checklist.md` carries `extends:` pointer to the prior file).
 - Existing `docs/templates/` files preserved as-is: `migration-runbook-template.md`, `dpia-template.md`, `team-charter-template.md`, `threat-model-template.md`, `incident-postmortem-template.md`, and others out of scope of this delivery.
@@ -47,7 +195,7 @@
 ## 2026-05-12 — Stage 1 Wave 2: agent-kickoff layer lifted to docs/agents/ (11 files)
 
 - Lifted all 11 files from `.omc/agent-kickoff/` to `docs/agents/`: INDEX, AGENT-ENTRY-POINT, AGENT-DECISION-TREE, AGENT-TOOL-PROTOCOL, AGENT-COMPLETION-PROTOCOL, AGENT-FAILURE-RECOVERY, AGENT-ICM-TOPIC-CONVENTIONS, CROSS-REFERENCE-INDEX, AGENT-CHEAT-SHEET, HUMAN-OPERATOR-GUIDE, ESCALATION-MATRIX.
-- Per-file transforms: `status: pending approval` → `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; internal references updated from `.omc/standards/` → `docs/standards/`, `.omc/templates/` → `docs/templates/`, `.omc/fitness-lanes/` → `docs/fitness-lanes/`.
+- Per-file transforms: `status: pending approval` → `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; internal references updated from `.omc/standards/` → `docs/standards/`, `/templates/` → `docs/templates/`, `.omc/fitness-lanes/` → `docs/fitness-lanes/`.
 - Foundation ADRs ADR-0053 (sanctioned primitives) and ADR-0054 (scaffold-claim) cited in each file's frontmatter and body.
 
 ## 2026-05-12 — ADR-0052 Inventory ledger for grit/icm cutover landed

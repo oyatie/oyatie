@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Serp Sponsored Slot Failure
+doc_status: published
+---
+
 # Oyatie Runbook — Serp Sponsored Slot Failure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

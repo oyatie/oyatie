@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Postmortem: Incident <id> — <one-line title>
 
 > **Status:** draft / in-review / published

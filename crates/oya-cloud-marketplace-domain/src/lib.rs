@@ -4,13 +4,16 @@
 //! private offers, tenant entitlements, revenue share, and marketplace fee
 //! metering for the Cloud axis. The contracts are control-plane only and keep
 //! public listing metadata separated from seller, tenant, and financial fields.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_billing_kernel::{BillingAccountId, CloudBillingError, CurrencyCode, Money};
-use oya_cloud_region_kernel::RegionCode;
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_metering_kernel::{
+use oya_cloud_billing_domain::{BillingAccountId, CloudBillingError, CurrencyCode, Money};
+use oya_cloud_region_domain::RegionCode;
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_metering_domain::{
     AxisId, Meter, MeterEvent, MeterEventCreate, MeterUnit, MeteringError, PlaneTag,
 };
 
@@ -1108,7 +1111,7 @@ fn financial<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_metering_kernel::{MeterUnit, MeterUnitKind};
+    use oya_metering_domain::{MeterUnit, MeterUnitKind};
 
     fn seller_application() -> SellerApplicationCreate {
         SellerApplicationCreate {

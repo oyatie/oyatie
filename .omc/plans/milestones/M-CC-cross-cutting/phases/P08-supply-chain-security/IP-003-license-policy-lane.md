@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P08-IP-003
 title: License-policy lane (AGPL/GPL/SSPL/BUSL/RSAL hard-deny)
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Lane hard-denies AGPL/GPL/SSPL/BUSL/RSAL in product code.
@@ -49,4 +52,9 @@ icm store -t context-oyatie -c 'M-CC-P08-IP-003 License-policy lane (AGPL/GPL/SS
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- `denied` is checked before `allowed` in the OR branch — a license in both lists is still blocked (deny wins), removing a "which takes precedence" ambiguity.
+- Compound SPDX (`A OR B`, `A AND B`) is parsed once into one of three operators (`Single`/`Or`/`And`) — downstream logic is a single uniform iteration.
+- Mixed `OR` + `AND` without parens is `Unparseable` — refuses to guess precedence, so a malformed manifest fails closed.
+- Empty/whitespace license string is an explicit `EmptyLicense` violation — a missing field never reads as "anonymous OK".
+- Empty allowlist is `Err`, not `0 violations` — a misconfigured policy cannot silently let everything through.

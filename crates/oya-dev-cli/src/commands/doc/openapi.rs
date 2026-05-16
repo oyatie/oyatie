@@ -3,12 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_foundry_api_semver_kernel::validate_api_semver;
-use oya_foundry_openapi_kernel::{
-    validate_openapi_contract_mirror, validate_openapi_documents, validate_openapi_runtime_parity,
-    validate_openapi_schema_parity, OpenApiContractMirrorLocation, OpenApiContractMirrorReport,
-    OpenApiDocument, OpenApiRuntimeBinding, OpenApiRuntimeParityReport, OpenApiRuntimeSource,
-    OpenApiSchemaBinding, OpenApiSchemaParityReport, OpenApiSourceReport,
+use oya_foundry_api_semver_domain::validate_api_semver;
+use oya_foundry_openapi_domain::{
+    OpenApiContractMirrorLocation, OpenApiContractMirrorReport, OpenApiDocument,
+    OpenApiRuntimeBinding, OpenApiRuntimeParityReport, OpenApiRuntimeSource, OpenApiSchemaBinding,
+    OpenApiSchemaParityReport, OpenApiSourceReport, validate_openapi_contract_mirror,
+    validate_openapi_documents, validate_openapi_runtime_parity, validate_openapi_schema_parity,
 };
 
 use crate::command_output::OutputFormat as DevCheckOutputFormat;

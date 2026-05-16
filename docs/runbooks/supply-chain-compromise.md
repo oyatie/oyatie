@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Supply Chain Compromise
+doc_status: published
+---
+
 # Oyatie Runbook — Supply Chain Compromise
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -5,7 +5,10 @@ ip_id: IP-005-upstream-api-drift-lane
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
   Ship the nightly fitness lane `oya-foundry-fitness-upstream-api-drift` that fetches the
   canonical upstream OpenAPI specs for Anthropic / OpenAI / Gemini and diffs them against
@@ -27,7 +30,8 @@ agent_prerequisites:
   - ./IP-002-anthropic-compat-adapter.md
   - ./IP-003-openai-compat-adapter.md
   - docs/AGENTS.md
-  - docs/CONSTITUTION.md
+  - /specs/cross-cutting/decision-principles.json
+  - /specs/cross-cutting/forbidden-operations.json
 final_shape_compliance: true
 dependency_additions:
   - { crate: "openapiv3 2.2", lts: true, adr_exception: null }
@@ -41,7 +45,7 @@ decision_log: |
   that iterates the table. Adding Gemini, Mistral, Cohere, or a future provider is a row
   addition, not a code addition.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-005-upstream-api-drift-lane: Nightly upstream-OpenAPI drift detection

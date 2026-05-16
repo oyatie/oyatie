@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cross Pack Tenant Residency
+doc_status: published
+---
+
 # Oyatie Runbook — Cross Pack Tenant Residency
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

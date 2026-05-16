@@ -5,14 +5,17 @@
 //! API stability, SLA windows, override packs, consent receipts, subprocessors,
 //! residency declarations, and plugin trust tiers. Apps own rendering, storage,
 //! authorization, and audit-chain append.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
-use oya_platform_dsr_kernel::{
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_dsr_domain::{
     DsrAction, DsrAxis, DsrCompletionRecord, DsrRequest, DsrSlaStatus, DsrStoreKind, ErasureProof,
 };
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_residency_domain::ResidencyClass;
 
 const TRUST_PORTAL_SECTION_SCHEMA_VERSION: u32 = 1;
 const TRUST_PORTAL_LINEAGE_SCHEMA_VERSION: u32 = 1;
@@ -763,8 +766,7 @@ pub fn trust_portal_data_class_from_legacy(
 }
 
 pub fn default_trust_portal_subject_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 fn validate_queue_completion(
@@ -1199,14 +1201,16 @@ fn subject<T>(value: T) -> Classified<T> {
 }
 
 fn internal_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::InternalOnly)
-        .expect("INTERNAL_ONLY is a privacy-program data class")
+    // ADR-0083 Tier 1: use the infallible kernel constructor; the previous
+    // `.expect()` proved a statically known invariant that the kernel now
+    // encodes at the type level.
+    PrivacyDataClass::internal_only()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_dsr_kernel::{
+    use oya_dsr_domain::{
         DsrAckStatus, DsrCascadeAck, DsrCascadeAckCreate, DsrCompletionRecordCreate, DsrDispatch,
         DsrDispatchCreate, DsrProofMethod, DsrRequestCreate, DsrSlaTier, DsrStoreRef,
         DsrStoreRefCreate, ErasureProofCreate,

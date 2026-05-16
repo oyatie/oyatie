@@ -1,11 +1,15 @@
 ---
+purpose: Auto-backfilled purpose for ralplan-ops-wave-5-2026-05-13.md
+---
+
+---
 doc_class: RalplanConsensusPlan
 shape: anchor
 status: Accepted
 version: v18
 date: 2026-05-13
 created_by: ralplan --consensus --architect codex --critic codex --deliberate
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 authority_chain: docs/MASTERPLAN.md → ADR-0007 (Cedar authorization + persona tier) + ADR-0040 (progressive delivery) + ADR-0064 (canonical-base + localization packs) + ADR-0067 §5+§6 → ralplan-ops-portal-2026-05-13.md v7 Accepted → ralplan-ops-wave-{2,3,4}-* all Accepted → this plan
 parent_plan: .omc/plans/ralplan-ops-portal-2026-05-13.md (ops.oyatie.com 20-BC parent v7 Accepted; this plan is Wave 5 of 7)
 companion_plans:

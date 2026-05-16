@@ -5,23 +5,27 @@ milestone: M02-substrate
 phase: P11-finance-library
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; cargo check --workspace exits 0. Finance library has NO
-  Postgres dependency — it is a pure computation crate; no other substrate
-  phase is a hard prerequisite.
-exit_gate: |
-  oya-finance-library-kernel compiles with zero dependencies on any framework,
-  async runtime, or database crate; Money/CurrencyCode/JournalEntry types
-  compile; debits=credits invariant enforced at construction time (not audit
-  time); PV/FV/NPV/IRR/XIRR/WACC/depreciation/amortization all pass Excel
-  reference value round-trip tests; grit done; ICM row emitted.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "workspace scaffold prerequisite only"
-owner_team: council-architecture
----
+entry_gate: "M01-P05 complete; cargo check --workspace exits 0. Finance library has\
+  \ NO\nPostgres dependency \u2014 it is a pure computation crate; no other substrate\n\
+  phase is a hard prerequisite.\n"
+exit_gate: 'oya-finance-library-kernel compiles with zero dependencies on any framework,
 
+  async runtime, or database crate; Money/CurrencyCode/JournalEntry types
+
+  compile; debits=credits invariant enforced at construction time (not audit
+
+  time); PV/FV/NPV/IRR/XIRR/WACC/depreciation/amortization all pass Excel
+
+  reference value round-trip tests; grit done; ICM row emitted.
+
+  '
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: workspace scaffold prerequisite only
+owner_team: council-architecture
+purpose: "This phase delivers `oya-finance-library-kernel` and `oya-finance-library-domain`: a pure Rust computation crate with zero persistence, zero async dependencies, and zero HTTP dependencies."
+---
 # P11-finance-library: Finance library substrate — pure crate, Money/CurrencyCode/JournalEntry, time-value, depreciation, amortization
 
 ## Purpose

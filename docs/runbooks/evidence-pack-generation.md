@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Evidence Pack Generation
+doc_status: published
+---
+
 # Oyatie Runbook — Evidence Pack Generation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Pre-cutover drafts — oyatie SoT + grit/icm
 
 <!--
@@ -51,7 +55,7 @@ Independent bug, but worth documenting because the diagnostic path crossed it:
 
 ```
 $ grit claim --agent dd-orchestrator --intent "test" \
-    .omc/specs/deep-dive-oyatie-sst-consolidation.md::SPEC
+    .omc/scratch/deep-dive-oyatie-sst-consolidation.md::SPEC
 Error: FOREIGN KEY constraint failed
 Caused by: Error code 787: Foreign key constraint failed
 ```

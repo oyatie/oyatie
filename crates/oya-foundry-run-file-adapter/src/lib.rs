@@ -6,12 +6,12 @@
 use std::fs;
 use std::path::PathBuf;
 
-use oya_foundry_capability_kernel::AutonomyTier;
-use oya_foundry_run_kernel::{Run, RunDisposition, RunError, RunLedger, RunState};
-use oya_platform_data_boundary_kernel::{
-    parse_data_class_pascal_label, privacy_data_classes_from, Classified, DataClass,
-    PrivacyDataClass,
+use oya_data_boundary_kernel::{
+    Classified, DataClass, PrivacyDataClass, parse_data_class_pascal_label,
+    privacy_data_classes_from,
 };
+use oya_foundry_capability_domain::AutonomyTier;
+use oya_foundry_run_domain::{Run, RunDisposition, RunError, RunLedger, RunState};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FileRunLedgerStore {

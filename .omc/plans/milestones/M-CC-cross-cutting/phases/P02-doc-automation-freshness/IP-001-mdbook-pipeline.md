@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P02-IP-001
 title: mdbook publishing pipeline kernel + source walkers
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship mdbook kernel that walks rustdoc + OpenAPI + ADR-INDEX + frontmatter.
@@ -50,4 +53,8 @@ icm store -t context-oyatie -c 'M-CC-P02-IP-001 mdbook publishing pipeline kerne
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- One `SourceKind::chapter_prefix` predicate places each kind under a stable section — runners don't pick chapter paths.
+- `walk_sources` validates path + title + uniqueness before producing chapters — a malformed runner cannot leak invalid entries into the published book.
+- Chapters are sorted by `(kind, path)` — identical inputs always emit byte-identical `SUMMARY.md` (deterministic for diffs/CI).
+- `publish_site` is a pure function over the chapter tree; renderers (mdbook serializers) live in runners.

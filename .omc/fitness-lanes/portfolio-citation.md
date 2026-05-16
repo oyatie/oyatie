@@ -1,54 +1,42 @@
 # Fitness Lane: portfolio-citation
 
 - purpose: Verify bidirectional cross-citations between `bominal/` and `oyatie/` PRDs.
-- enforces: Directive A1 (MASTERPLAN) — bidirectional bominal<->oyatie PRD cite.
-- kernel_crate: `oya-foundry-fitness-portfolio-citation-kernel` — `PortfolioCitation { source_repo, source_prd, target_repo, target_prd }`, verdict `PortfolioCitationFitnessReport { citations_checked }`.
+- enforces: Directive A1 (MASTERPLAN) — bidirectional bominal<->oyatie PRD cite plus P3.5 Foundry corpus cross-cite.
+- kernel_crate: `oya-foundry-fitness-portfolio-citation-kernel` — `CitationBlock { target_path, role, anchor }`, verdicts `PortfolioCitationVerdict { oyatie_cites_bominal, bominal_cites_oyatie, citations_checked }` and `FoundryCorpusCitationVerdict { required_sources_present, required_sources_total, missing_sources }`.
 - runner_path: `tools/oya-foundry-fitness-portfolio-citation`
-- inputs: `bominal/docs/prd/**/*.md` (read-only mirror), `oyatie/docs/prd/**/*.md`.
+- inputs: `../bominal/docs/consolidated/PRD.md` (or `BOMINAL_PRD_PATH` / `--bominal-prd`), `docs/PRD.md` (or `OYATIE_PRD_PATH` / `--oyatie-prd`), and `docs/products/foundry/PRD.md` (or `FOUNDRY_PRD_PATH` / `--foundry-prd`).
 - failure_modes:
   - oyatie PRD references a bominal PRD that does not reciprocate
   - bominal PRD missing oyatie back-cite
   - cited PRD path unresolved
+  - Foundry PRD missing one of the KEEP-classified Bominal foundry corpus source citations
 - ci_invocation: `cargo run -p oya-foundry-fitness-portfolio-citation`
 - runtime_budget: 800 ms
 - severity: HIGH
 - kernel_sketch:
 ```rust
-pub struct PortfolioCitation {
-    pub source_repo: String,  // data_class: INTERNAL_ONLY
-    pub source_prd: String,   // data_class: INTERNAL_ONLY
-    pub target_repo: String,  // data_class: INTERNAL_ONLY
-    pub target_prd: String,   // data_class: INTERNAL_ONLY
+pub struct CitationBlock {
+    pub target_path: String,       // data_class: INTERNAL_ONLY
+    pub role: CitationRole,        // data_class: INTERNAL_ONLY
+    pub anchor: Option<String>,    // data_class: INTERNAL_ONLY
 }
 
-pub struct PortfolioCitationFitnessReport { pub citations_checked: usize }
+pub const REQUIRED_FOUNDRY_CORPUS_SOURCES: [&str; 3] = [/* Bominal Foundry corpus source paths */];
 
-pub enum PortfolioCitationFitnessError {
-    MissingReciprocal { source_prd: String, target_prd: String },
-    UnresolvedTarget { source_prd: String, target_prd: String },
+pub enum CitationRole { PortfolioParent, CanonicalImplHome, FoundryCorpusSource }
+
+pub struct PortfolioCitationVerdict {
+    pub oyatie_cites_bominal: bool, // data_class: INTERNAL_ONLY
+    pub bominal_cites_oyatie: bool, // data_class: INTERNAL_ONLY
+    pub citations_checked: usize,   // data_class: INTERNAL_ONLY
 }
 
-pub fn validate_portfolio_citation_fitness(
-    citations: &[PortfolioCitation],
-    known_prds: &[(String, String)], // (repo, prd)
-) -> Result<PortfolioCitationFitnessReport, PortfolioCitationFitnessError> {
-    let known: std::collections::BTreeSet<(&str, &str)> =
-        known_prds.iter().map(|(r, p)| (r.as_str(), p.as_str())).collect();
-    let set: std::collections::BTreeSet<(&str, &str, &str, &str)> =
-        citations.iter().map(|c| (c.source_repo.as_str(), c.source_prd.as_str(), c.target_repo.as_str(), c.target_prd.as_str())).collect();
-    for c in citations {
-        if !known.contains(&(c.target_repo.as_str(), c.target_prd.as_str())) {
-            return Err(PortfolioCitationFitnessError::UnresolvedTarget {
-                source_prd: c.source_prd.clone(), target_prd: c.target_prd.clone(),
-            });
-        }
-        let reciprocal = (c.target_repo.as_str(), c.target_prd.as_str(), c.source_repo.as_str(), c.source_prd.as_str());
-        if !set.contains(&reciprocal) {
-            return Err(PortfolioCitationFitnessError::MissingReciprocal {
-                source_prd: c.source_prd.clone(), target_prd: c.target_prd.clone(),
-            });
-        }
-    }
-    Ok(PortfolioCitationFitnessReport { citations_checked: citations.len() })
-}
+pub fn verify(
+    oyatie_prd_citations: &[CitationBlock],
+    bominal_prd_citations: &[CitationBlock],
+) -> PortfolioCitationVerdict { /* role-specific bidirectional check */ }
+
+pub fn verify_foundry_corpus(
+    foundry_prd_citations: &[CitationBlock],
+) -> FoundryCorpusCitationVerdict { /* required Foundry source corpus coverage */ }
 ```

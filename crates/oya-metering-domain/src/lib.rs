@@ -3,10 +3,13 @@
 //! One append-oriented metering shape is shared by SaaS, Cloud, Foundry,
 //! Search, Ads, Marketplace, and vertical products so downstream billing and
 //! FinOps do not need per-axis event dialects.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const METER_EVENT_SCHEMA_VERSION: u32 = 1;
 const METER_EVENT_ID_PREFIX: &str = "mtr_";
@@ -287,8 +290,10 @@ mod tests {
             tenant_id: "ten_kr".to_string(),
             capability_id: "cap.cloud.billing.resource-hour".to_string(),
             plane: PlaneTag::Data,
-            units: vec![MeterUnit::new(MeterUnitKind::ResourceSecond, 3_600_000_000)
-                .expect("unit fixture is valid")],
+            units: vec![
+                MeterUnit::new(MeterUnitKind::ResourceSecond, 3_600_000_000)
+                    .expect("unit fixture is valid"),
+            ],
             source_axis: AxisId::Cloud,
             recorded_at_epoch_seconds: 1_700_000_000,
             idempotency_key: "idem_ten_kr_resource_001".to_string(),

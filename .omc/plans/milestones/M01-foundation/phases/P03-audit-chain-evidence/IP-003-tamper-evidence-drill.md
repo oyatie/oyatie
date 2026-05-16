@@ -2,22 +2,27 @@
 doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P03-IP-003
-title: Tamper-evidence Sev-1 drill runbook
-status: stub
+title: Tamper-evidence verification drill runbook
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
-purpose: Author and execute the Sev-1 tamper-evidence drill runbook.
+purpose: Bind the Sev-1 tamper-evidence drill to the live audit-chain verification surfaces.
 ---
 
-# M01-P03-IP-003 — Tamper-evidence Sev-1 drill runbook
+# M01-P03-IP-003 — Tamper-evidence verification drill runbook
 
 ## Purpose
-Author and execute the Sev-1 tamper-evidence drill runbook.
+Bind the Sev-1 tamper-evidence drill to the live audit-chain verification surfaces.
 
 ## Symbols-to-grit-claim
 ```
-docs/runbooks/audit-chain-tamper-drill.md::Procedure
-crates/oya-platform-audit-chain-worker/src/lib.rs::detect_tampering
+docs/runbooks/cross-axis/audit-chain-integrity-failure.md::Verify-recovery
+crates/oya-audit-chain-domain/src/lib.rs::verify_chain
+crates/oya-audit-chain-domain/tests/merkle_chain.rs::merkle_root_advances_with_each_append_and_detects_payload_tamper
+crates/oya-audit-chain-file-adapter/tests/file_ledger.rs::file_audit_ledger_rejects_divergent_history_and_tampered_records
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -26,8 +31,8 @@ IP-001 + IP-002 merged.
 
 ## Acceptance-test-commands
 ```
-bash docs/runbooks/audit-chain-tamper-drill.sh
-cargo test -p oya-platform-audit-chain-worker --test detect_tampering
+cargo test -p oya-audit-chain-domain --test merkle_chain merkle_root_advances_with_each_append_and_detects_payload_tamper -- --exact
+cargo test -p oya-audit-chain-file-adapter --test file_ledger file_audit_ledger_rejects_divergent_history_and_tampered_records -- --exact
 ```
 
 ## Done-criteria
@@ -50,3 +55,9 @@ icm store -t context-oyatie -c 'audit-chain tamper-drill green; detection within
 
 ## Decision-log (Linus good-taste row)
 Tamper detection is a single verify_chain pass — eliminates per-store integrity-check special cases.
+
+## Completion-evidence
+- Sev-1 audit-chain integrity runbook is active and names the live one-cycle `verify_chain`/file-ledger replay drill.
+- Domain tamper drill passes: `cargo test -p oya-audit-chain-domain --test merkle_chain merkle_root_advances_with_each_append_and_detects_payload_tamper -- --exact`.
+- File-ledger tamper drill passes: `cargo test -p oya-audit-chain-file-adapter --test file_ledger file_audit_ledger_rejects_divergent_history_and_tampered_records -- --exact`.
+- M01-P03 phase acceptance is complete: stable audit event SPEC/contract, AsyncAPI/Proto source, and tamper-evidence drill evidence.

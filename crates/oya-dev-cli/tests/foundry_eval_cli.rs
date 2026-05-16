@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -16,8 +20,10 @@ fn foundry_eval_gate_accepts_signed_passing_eval_artifacts() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    assert!(String::from_utf8_lossy(&output.stdout)
-        .contains("foundry eval validation passed: 1 capabilities, 7 cases, 1 passing runs"));
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("foundry eval validation passed: 1 capabilities, 7 cases, 1 passing runs")
+    );
 
     fs::remove_dir_all(temp).ok();
 }

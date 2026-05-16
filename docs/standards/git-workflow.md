@@ -1,4 +1,9 @@
 ---
+purpose: Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first default, when direct git / gh is justified, the icm rationale-logging contract, the cutover-bootstrap window (time-bounded canonical extension with named sunset).
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -8,9 +13,10 @@ date: 2026-05-12
 purpose: |
   Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first
   default, when direct git / gh is justified, the icm rationale-logging contract,
-  the cutover-bootstrap-window exception window, and the revised
-  banned-primitives lane semantics (catch *undocumented* invocations only).
-canonical_authority: docs/CONSTITUTION.md
+  the cutover-bootstrap window (time-bounded canonical extension with named
+  sunset at M-CC-P01 sign-off), and the revised banned-primitives lane
+  semantics (catch *undocumented* invocations only).
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
 companion_docs:
   - docs/AGENTS.md
@@ -24,7 +30,7 @@ related_adrs:
 
 # Git Workflow
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 This standard codifies [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md)
 **Directive 12 — Pragmatic git/gh**: direct `git` / `gh` invocation is
@@ -64,7 +70,7 @@ Direct invocation is **permitted** by any operator (agent or human) when
 If any of (1), (2), (3) fails, the invocation is **not** permitted and
 the lane refuses.
 
-## 3. Cutover-bootstrap-window exception
+## 3. Cutover-bootstrap window (time-bounded canonical extension)
 
 During the grit/icm agentic-pipeline cutover (M-CC-P01 per MASTERPLAN
 §8), there is a documented **bootstrap window** during which raw git /
@@ -79,10 +85,13 @@ rationale:
   icm store -t direct-tool-invocations \
     -c "M-CC-P01 cutover bootstrap session" -i critical -k "cutover,bootstrap"
   ```
-- After M-CC-P01 sign-off, the exception expires and the per-invocation
-  rule (§2) applies.
+- After M-CC-P01 sign-off, the bootstrap window sunsets and the
+  per-invocation rule (§2) applies uniformly. No exception clause survives
+  the sunset; the bootstrap window is canonical because it is closed-form
+  (named milestone sunset + audit-emit on every session).
 
-The cutover window is the *only* multi-invocation exemption.
+The cutover bootstrap window is the only multi-invocation extension; it
+is canonical because of the sunset clause, not despite it.
 
 ## 4. Revised lane semantics
 
@@ -97,7 +106,7 @@ sections, **not all invocations**.
 | `git <cmd>` inside fence during cutover-bootstrap window with session-level store | **PASS** |
 | `git <cmd>` outside any fence (plain prose, human-facing) | **PASS** (advisory only) |
 | `gh <cmd>` — same rules as `git` | as above |
-| `git --no-verify <cmd>` | **FAIL** unconditionally (per CONSTITUTION §Avoid Item 2) |
+| `git --no-verify <cmd>` | **FAIL** unconditionally (per forbidden-operations.json FO-02) |
 | `gh pr merge` without `## Code Review` section | **FAIL** (per `guard-pr-merge-review.mjs` hook) |
 
 ## 5. Migration-candidate flow
@@ -137,9 +146,9 @@ These are **never** permitted, regardless of rationale:
 
 | Operation | Why forbidden |
 |---|---|
-| `git push --force` to `main` | CONSTITUTION §Avoid Item 3 |
-| `git reset --hard` on someone else's work | CONSTITUTION §Avoid Item 3 |
-| `git --no-verify` (skip hooks) | CONSTITUTION §Avoid Item 2 |
+| `git push --force` to `main` | forbidden-operations.json FO-03 |
+| `git reset --hard` on someone else's work | forbidden-operations.json FO-03 |
+| `git --no-verify` (skip hooks) | forbidden-operations.json FO-02 |
 | `gh pr merge` without `## Code Review` | merge-gate hook |
 | `git config user.email` mutation | CLAUDE.md / AGENTS.md user-machine guard |
 | Editing `~/.claude/` or `~/.codex/` from a project session | user-machine boundary |
@@ -186,12 +195,13 @@ scoped to the action.
 4. **Cargo-culting `git push --force-with-lease`** to dodge the lane.
    Both `--force` and `--force-with-lease` are caught.
 5. **Bypassing the merge-gate hook** via `gh pr merge --admin` or web UI.
-   Admin merges require an ADR-tracked exemption.
+   Admin merges require an ADR-tracked extension (named principal +
+   audit-emit on every invocation).
 
 ## 11. Sources scanned
 
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12.
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Decision principles + §Prohibitions.
+- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json).
 - [`docs/AGENTS.md`](../AGENTS.md) §Boundaries + §PR shape.
 - [`docs/standards/claude-code-harness.md`](claude-code-harness.md).
 - [rtk-ai/grit](https://github.com/rtk-ai/grit), [rtk-ai/icm](https://github.com/rtk-ai/icm).

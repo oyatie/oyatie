@@ -5,10 +5,13 @@
 //! ADR-0029, and ADR-0038. It owns typed policy records and deterministic
 //! purge decisions only; per-surface storage engines, audit emitters, trust
 //! portal UI, and DSR orchestration remain outside this crate.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const RETENTION_POLICY_SCHEMA_VERSION: u32 = 1;
 const RETENTION_RECORD_SCHEMA_VERSION: u32 = 1;
@@ -438,8 +441,8 @@ impl RetentionDecision {
 }
 
 pub fn default_workspace_retention_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::InternalOnly)
-        .expect("INTERNAL_ONLY is a privacy-program data class")
+    // ADR-0083 Tier 1: use kernel's infallible `internal_only()` constructor.
+    PrivacyDataClass::internal_only()
 }
 
 pub fn workspace_retention_data_class_from_legacy(
@@ -687,7 +690,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).unwrap()

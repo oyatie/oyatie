@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Kafka Topic Provisioning
+doc_status: published
+---
+
 # Oyatie Runbook — Kafka Topic Provisioning
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

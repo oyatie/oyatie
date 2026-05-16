@@ -3,11 +3,14 @@
 //! This crate owns the preview DC-ops control contract named by `cloud.dcops.*`:
 //! DCIM hierarchy, BMS points, power and cooling capacity, cable maps, physical
 //! security zones, asset lifecycle, work orders, and sustainability evidence.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_region_kernel::{AzCode, RegionCode};
-use oya_platform_data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
+use oya_cloud_region_domain::{AzCode, RegionCode};
+use oya_data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
 
 const DCOPS_SITE_SCHEMA_VERSION: u32 = 1;
 const DCOPS_FACILITY_ZONE_SCHEMA_VERSION: u32 = 1;
@@ -1900,15 +1903,14 @@ impl CloudDcopsCatalog {
         let mut used_heat_watts = 0u64;
         let mut used_weight_kg = 0u64;
         for equipment in self.equipment.values() {
-            if let Some(installation) = equipment.installation.value.as_ref() {
-                if installation.rack_id == *rack_id
-                    && equipment.lifecycle.value != EquipmentLifecycle::EwasteTransferred
-                {
-                    used_u = used_u.saturating_add(installation.height_u);
-                    used_power_watts = used_power_watts.saturating_add(installation.power_watts);
-                    used_heat_watts = used_heat_watts.saturating_add(installation.heat_watts);
-                    used_weight_kg = used_weight_kg.saturating_add(installation.weight_kg);
-                }
+            if let Some(installation) = equipment.installation.value.as_ref()
+                && installation.rack_id == *rack_id
+                && equipment.lifecycle.value != EquipmentLifecycle::EwasteTransferred
+            {
+                used_u = used_u.saturating_add(installation.height_u);
+                used_power_watts = used_power_watts.saturating_add(installation.power_watts);
+                used_heat_watts = used_heat_watts.saturating_add(installation.heat_watts);
+                used_weight_kg = used_weight_kg.saturating_add(installation.weight_kg);
             }
         }
         Ok(RackCapacitySnapshot {
@@ -2166,17 +2168,16 @@ impl CloudDcopsCatalog {
             if other_id == equipment_id {
                 continue;
             }
-            if let Some(other_installation) = other.installation.value.as_ref() {
-                if other_installation.rack_id == installation.rack_id
-                    && u_ranges_overlap(
-                        installation.start_u,
-                        end_u,
-                        other_installation.start_u,
-                        installation_end_u(other_installation)?,
-                    )
-                {
-                    return Err(CloudDcopsError::RackUnitOverlap);
-                }
+            if let Some(other_installation) = other.installation.value.as_ref()
+                && other_installation.rack_id == installation.rack_id
+                && u_ranges_overlap(
+                    installation.start_u,
+                    end_u,
+                    other_installation.start_u,
+                    installation_end_u(other_installation)?,
+                )
+            {
+                return Err(CloudDcopsError::RackUnitOverlap);
             }
         }
         let rack_capacity = self.rack_capacity_with(rack, equipment_id, Some(installation))?;
@@ -2215,13 +2216,13 @@ impl CloudDcopsCatalog {
             if current_id == equipment_id {
                 continue;
             }
-            if let Some(installation) = equipment.installation.value.as_ref() {
-                if installation.rack_id == rack.id.value {
-                    used_u = used_u.saturating_add(installation.height_u);
-                    used_power_watts = used_power_watts.saturating_add(installation.power_watts);
-                    used_heat_watts = used_heat_watts.saturating_add(installation.heat_watts);
-                    used_weight_kg = used_weight_kg.saturating_add(installation.weight_kg);
-                }
+            if let Some(installation) = equipment.installation.value.as_ref()
+                && installation.rack_id == rack.id.value
+            {
+                used_u = used_u.saturating_add(installation.height_u);
+                used_power_watts = used_power_watts.saturating_add(installation.power_watts);
+                used_heat_watts = used_heat_watts.saturating_add(installation.heat_watts);
+                used_weight_kg = used_weight_kg.saturating_add(installation.weight_kg);
             }
         }
         if let Some(installation) = proposed {

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Regulatory Change Response
+doc_status: published
+---
+
 # Oyatie Runbook — Regulatory Change Response
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,0 +1,119 @@
+# Static / musl-linked release build pipeline (M-CC-P06-IP-003).
+#
+# Cross-compiles workspace binaries to {x86_64,aarch64}-unknown-linux-musl
+# using `cross`, packages each as a tar.gz under releases/<tag>/, and
+# builds a Dockerfile.distroless image so the supply-chain workflows
+# (cosign, sbom, slsa) have artifacts to sign + attest.
+
+name: release-musl
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Override tag for manual runs (defaults to ref_name)."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-static:
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
+        binary:
+          - oya-foundry-runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+          targets: ${{ matrix.target }}
+
+      - name: Install cross
+        uses: taiki-e/install-action@184183c2401be73c3bf42c2e61268aa5855379c1
+        with:
+          tool: cross
+
+      - name: Build static binary
+        env:
+          RUSTFLAGS: "-C link-arg=-s"
+        run: |
+          set -euo pipefail
+          cross build --release --target "${{ matrix.target }}" --bin "${{ matrix.binary }}"
+          file "target/${{ matrix.target }}/release/${{ matrix.binary }}" | tee /tmp/file-output.txt
+          # Sanity: confirm the binary is statically linked (no NEEDED entries).
+          if file "target/${{ matrix.target }}/release/${{ matrix.binary }}" | grep -q "dynamically linked"; then
+            echo "FAIL: ${{ matrix.binary }} (${{ matrix.target }}) is dynamically linked" >&2
+            exit 1
+          fi
+
+      - name: Package release tarball
+        run: |
+          set -euo pipefail
+          tag="${{ inputs.tag != '' && inputs.tag || github.ref_name }}"
+          out="releases/${tag}"
+          mkdir -p "${out}"
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" \
+            "${out}/${{ matrix.binary }}-${{ matrix.target }}"
+          ( cd "${out}" && tar -czf "${{ matrix.binary }}-${{ matrix.target }}.tar.gz" \
+            "${{ matrix.binary }}-${{ matrix.target }}" )
+          rm "${out}/${{ matrix.binary }}-${{ matrix.target }}"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.binary }}-${{ matrix.target }}
+          path: releases/**/*.tar.gz
+
+  build-distroless-image:
+    needs: build-static
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        binary:
+          - oya-foundry-runtime
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2
+
+      - name: Build distroless image (linux/amd64)
+        uses: docker/build-push-action@1556e8e95e1d6234c5b6f78b5b1c8e7e35e6f1b3
+        with:
+          context: .
+          file: Dockerfile.distroless
+          platforms: linux/amd64
+          push: false
+          build-args: |
+            BIN_NAME=${{ matrix.binary }}
+            TARGET=x86_64-unknown-linux-musl
+          tags: ${{ matrix.binary }}:${{ github.ref_name }}
+          outputs: type=docker,dest=/tmp/${{ matrix.binary }}-image.tar
+
+      - name: Upload distroless image
+        uses: actions/upload-artifact@v4
+        with:
+          name: distroless-${{ matrix.binary }}
+          path: /tmp/${{ matrix.binary }}-image.tar

@@ -4,15 +4,18 @@
 //! agent-driven Cloud control-plane changes must prove a dry run, collect the
 //! declared approval quorum, carry an exercised rollback plan, and emit
 //! tamper-evident audit evidence before execution.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_foundry_capability_kernel::{AutonomyTier, Capability};
-use oya_foundry_policy_kernel::{AutonomyDecision, AutonomyVerdict};
-use oya_platform_audit_chain_kernel::{AuditChain, AuditEvent, Plane};
-use oya_platform_data_boundary_kernel::{
+use oya_audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
+use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
+use oya_foundry_capability_domain::{AutonomyTier, Capability};
+use oya_foundry_policy_domain::{AutonomyDecision, AutonomyVerdict};
 
 const MUTATION_SCHEMA_VERSION: u32 = 1;
 const MUTATION_ID_PREFIX: &str = "fcm_";
@@ -239,6 +242,16 @@ pub enum FoundryCloudMutationError {
     NotApproved,
     NotExecuted,
     EmergencyWindowExpired,
+    /// Wraps an upstream `AuditChainError` per ADR-0083 amendment 2026-05-15
+    /// (`append_classifications` Tier 1 conformance — `Result<&AuditEvent,
+    /// AuditChainError>`).
+    AuditChainEmissionFailed(AuditChainError),
+}
+
+impl From<AuditChainError> for FoundryCloudMutationError {
+    fn from(error: AuditChainError) -> Self {
+        Self::AuditChainEmissionFailed(error)
+    }
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -369,7 +382,7 @@ impl FoundryCloudMutationControl {
                 &input.tenant_id,
                 "foundry.cloud.mutation.propose",
                 format!("PROPOSED:{}:{}", id.value, input.target_surface),
-            )
+            )?
             .hash
             .clone();
         let mutation = CloudMutation {
@@ -432,7 +445,7 @@ impl FoundryCloudMutationControl {
                     "APPROVED:{}:{}",
                     mutation_id.value, input.approver_principal
                 ),
-            )
+            )?
             .hash
             .clone();
         let approval = CloudMutationApproval {
@@ -464,10 +477,10 @@ impl FoundryCloudMutationControl {
         if mutation.state.value != CloudMutationState::Approved {
             return Err(FoundryCloudMutationError::NotApproved);
         }
-        if let Some(break_glass) = &mutation.break_glass.value {
-            if now_epoch_seconds > break_glass.expires_at_epoch_seconds.value {
-                return Err(FoundryCloudMutationError::EmergencyWindowExpired);
-            }
+        if let Some(break_glass) = &mutation.break_glass.value
+            && now_epoch_seconds > break_glass.expires_at_epoch_seconds.value
+        {
+            return Err(FoundryCloudMutationError::EmergencyWindowExpired);
         }
         let approval_count = self.approval_count(&mutation_id);
         let audit_hash = self
@@ -475,7 +488,7 @@ impl FoundryCloudMutationControl {
                 &mutation.tenant_id.value,
                 "foundry.cloud.mutation.execute",
                 format!("EXECUTION_AUTHORIZED:{}", mutation_id.value),
-            )
+            )?
             .hash
             .clone();
         let stored = self
@@ -520,7 +533,7 @@ impl FoundryCloudMutationControl {
                 &mutation.tenant_id.value,
                 "foundry.cloud.mutation.rollback",
                 format!("ROLLED_BACK:{}", mutation_id.value),
-            )
+            )?
             .hash
             .clone();
         let stored = self
@@ -570,8 +583,17 @@ impl FoundryCloudMutationControl {
             .unwrap_or(0)
     }
 
-    fn append_audit(&mut self, tenant_id: &str, surface: &str, decision: String) -> &AuditEvent {
-        self.audit_chain.append_classifications(
+    fn append_audit(
+        &mut self,
+        tenant_id: &str,
+        surface: &str,
+        decision: String,
+    ) -> Result<&AuditEvent, FoundryCloudMutationError> {
+        // ADR-0083 Tier 1: `append_classifications` returns
+        // `Result<&AuditEvent, AuditChainError>`; propagate via `?` and the
+        // `From<AuditChainError>` impl so failure surfaces as a matchable
+        // `FoundryCloudMutationError::AuditChainEmissionFailed` variant.
+        Ok(self.audit_chain.append_classifications(
             tenant_id.to_string(),
             surface.to_string(),
             Plane::Audit,
@@ -581,7 +603,7 @@ impl FoundryCloudMutationControl {
                 DataClassification::from(OperationalDataClass::Audit),
             ],
             decision,
-        )
+        )?)
     }
 }
 
@@ -761,8 +783,8 @@ fn audit<T>(value: T) -> Classified<T> {
 
 #[cfg(test)]
 mod tests {
-    use oya_foundry_policy_kernel::{evaluate_autonomy_inputs, AutonomyCeilingInputs};
-    use oya_platform_data_boundary_kernel::SubjectClass;
+    use oya_data_boundary_kernel::SubjectClass;
+    use oya_foundry_policy_domain::{AutonomyCeilingInputs, evaluate_autonomy_inputs};
 
     use super::*;
 
@@ -1070,7 +1092,7 @@ mod tests {
                 data_class: DataClass::InternalOnly,
             })
             .expect("rollback");
-        assert!(receipt.audit_hash.value.starts_with("fnv1a64:"));
+        assert!(receipt.audit_hash.value.starts_with("sha256:"));
         let mutation_id = CloudMutationId::new("fcm_capacity_rebalance_001").expect("id");
         assert_eq!(
             control

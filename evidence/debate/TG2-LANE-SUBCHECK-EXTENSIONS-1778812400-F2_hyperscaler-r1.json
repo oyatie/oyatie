@@ -1,0 +1,41 @@
+{
+  "reviewer_id": "claude-architect-F2_hyperscaler-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
+  "round": 1,
+  "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
+  "facet": "F2_hyperscaler",
+  "lens": "Hyperscaler critique \u2014 horizontal scalability, single source of truth, control-plane shape, rate-limit/quota failure modes",
+  "answer": "All four sub-checks are single-process, single-threaded, full-directory `read_dir` + per-file `read_to_string` scans bounded only by current filesystem cardinality. At 10x crate/evidence growth this is still tolerable but already wastes IO by re-reading evidence files twice (scorecard-render and consensus-debate-evidence iterate the same `evidence/multispectrum` + `evidence/per-change` pair, each opening every JSON file independently); at 100x it becomes a serial bottleneck per CI run. More structurally, the extension list, canonical-home list, scorecard-required-keys, and meta-trigger predicate are N hand-authored copies of policy that lives canonically in `multispectrum-review.json#scorecard_schema` and P14/P15 specs \u2014 a classic n-source-of-truth-without-generator pattern. Failure mode at quota/rate-limit is not provider-shaped (no network), but the control-plane analog is real: a single mutated spec requires four edits across four pub fns instead of one regen.",
+  "key_claims": [
+    "Both check_scorecard_render (line 829) and check_consensus_debate_evidence (line 871) iterate the identical `[evidence_dir, per_change_dir]` pair and call `read_to_string` on every JSON file \u2014 at 100x evidence count this is 2x the file IO it needs to be; a single pass yielding parsed views to N predicates is the hyperscaler shape",
+    "The extension allow-list `[sh, py, mjs, rb, pl]` (line 738), canonical-home list `[specs/cross-cutting, registries/cross-cutting, evidence, templates]` (lines 771-774), scorecard required-keys `change_class_id` + `facets` (line 843), and meta-trigger key `meta_review_triggered` (line 884) are policy data inlined as code literals; the canonical source is `specs/cross-cutting/multispectrum-review.json` and P14/P15 specs \u2014 these sub-checks should be generated from those specs, not authored",
+    "Sequential `read_dir().filter_map(Result::ok)` with no parallelism: at 10x crate count + 10x evidence count (100x combined filesystem walk), the composite check becomes O(N) wall-time on a single core while the rest of CI runs sharded \u2014 this is a single-instance control-plane bottleneck embedded in a per-PR lane",
+    "`raw.contains(\"\\\"meta_review_triggered\\\": true\") || raw.contains(\"\\\"meta_review_triggered\\\":true\")` (lines 884-885) hardcodes JSON whitespace variants \u2014 at 100x file count this substring scan over `read_to_string` is both slower and less correct than a single parse-and-index pass; cache-eviction analog: no memoization of parsed evidence across the four sub-checks",
+    "`if violations.len() < 10` cap (line 792) hides scale behavior: at 10x repo size with real drift, the lane reports the same '10 violations' it reports today \u2014 observability does not scale with the workload, which is the canonical hyperscaler anti-signal",
+    "No reuse with Cargo / cargo-deny / cargo-public-api detected for these four \u2014 they are orthogonal (filesystem hygiene + evidence-shape gating), so the duplicate-existing-tooling risk is LOW; the duplication risk that does apply is internal: each new spec key will require a fifth/sixth hand-authored sub-check unless a generator lands"
+  ],
+  "uncertainty_areas": [
+    "Whether `evidence/multispectrum` + `evidence/per-change` cardinality is bounded by retention policy (would cap 100x growth) or unbounded append-only (would make the double-pass IO a real cliff)",
+    "Whether the four FixupTask IDs (F-LANE-RUST-DEFAULT-ENFORCE, F-NAMING-CONVENTION-ENFORCE, F-LANE-SCORECARD-RENDER, F-LANE-DEBATE-SUBCHECK) are scheduled to collapse into a single spec-driven generator or stay as four hand-authored arms",
+    "Whether `WorkspaceContext` is intended to expose a cached/indexed evidence iterator at the kernel layer or stay as a thin `workspace_root: PathBuf` wrapper (would determine where the single-pass refactor lands)",
+    "Whether the std-only kernel constraint precludes a `rayon`-style parallel directory walk at 100x or whether sharding belongs at the CI-orchestrator layer instead"
+  ],
+  "anti_patterns_detected": [
+    "n-source-of-truth-without-generator",
+    "per-instance-control-plane"
+  ],
+  "scale_concerns_at_10x": [
+    "Evidence dir double-scan (scorecard + debate-evidence both walking `evidence/multispectrum` + `evidence/per-change`) doubles IO on the growing surface \u2014 manageable at 10x but already wasteful",
+    "Silent `violations.len() < 10` cap in naming-convention means the signal saturates before the repo does; at 10x file count the reported violation count is decoupled from actual drift",
+    "Four hand-authored sub-checks become five/six/seven as more spec keys arrive \u2014 linear authoring cost per new policy field without a generator",
+    "Substring-match JSON scanning (`raw.contains`) re-walks every file's bytes per predicate; at 10x evidence count this is N * P byte scans where P = predicate count"
+  ],
+  "scale_concerns_at_100x": [
+    "Single-threaded serial `read_dir` + `read_to_string` over `evidence/multispectrum`, `evidence/per-change`, and `scripts/` becomes the wall-clock bottleneck of the composite lane; no sharding or parallelism hook exists",
+    "No memoization of parsed evidence across the four sub-checks \u2014 at 100x file count, the same JSON is read off disk and re-scanned by substring N times per CI run; cache-eviction analog: an in-memory parsed-evidence map shared across sub-checks does not exist",
+    "Policy drift between four hand-authored sub-checks and the canonical specs becomes inevitable at 100x policy-key count; without a generator from `specs/cross-cutting/multispectrum-review.json` the lane silently lies",
+    "Composite lane runtime grows O(roots * files * predicates) on one core while the rest of CI is horizontally sharded \u2014 the lane becomes the long pole and blocks per-PR throughput at 100x PR rate",
+    "`if violations.len() < 10` truncation makes the signal flat at 100x \u2014 operators cannot observe scale-induced drift because the cap was hardcoded for 1x"
+  ],
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "Auto-backfilled purpose for TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-F2_hyperscaler-r1.json"
+}

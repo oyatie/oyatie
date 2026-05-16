@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P05-IP-001
 title: Provider-coupling lane kernel
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Block provider-specific imports outside adapter crates.
@@ -49,4 +52,9 @@ icm store -t context-oyatie -c 'M-CC-P05-IP-001 Provider-coupling lane kernel sh
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- One `is_adapter_crate` predicate (single `contains("-adapter-")` check) replaces an enum of "which rings may name which providers" — adding a ring or adapter pattern is a one-line change.
+- `BANNED_PROVIDER_TOKENS` is a single `const` array — adding a provider family is a single edit; no scattered match arms.
+- Tokens are lower-cased once before comparison — case-evasion ("Anthropic_SDK") cannot bypass the check.
+- Empty crate-name / empty import surface as `Err`, not silent passes — a malformed runner cannot generate a false-green report.
+- The kernel is I/O-free; runners (cargo metadata, walkers) can change without touching the rule.

@@ -1,8 +1,12 @@
-use oya_foundry_capability_kernel::{
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+use oya_foundry_capability_domain::{
     AutonomyTier, Capability, CapabilityCostProfile, CapabilityError, CapabilityMcpContract,
     CapabilityRegistry,
 };
-use oya_platform_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 #[test]
 fn tenant_discovery_filters_by_license_mcp_visibility_and_autonomy_ceiling() {
@@ -165,16 +169,20 @@ fn capability_mcp_contract_carries_authored_descriptions_and_schemas() {
         capability.mcp_contract().agent_readable_description.value,
         "Agent: run readiness check with tenant-scoped evidence."
     );
-    assert!(capability
-        .mcp_contract()
-        .input_schema
-        .value
-        .contains("release_id"));
-    assert!(capability
-        .mcp_contract()
-        .output_schema
-        .value
-        .contains("status"));
+    assert!(
+        capability
+            .mcp_contract()
+            .input_schema
+            .value
+            .contains("release_id")
+    );
+    assert!(
+        capability
+            .mcp_contract()
+            .output_schema
+            .value
+            .contains("status")
+    );
 }
 
 #[test]

@@ -1,6 +1,10 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationRequest, CapabilityRegistration, DataClass,
     Foundation, FoundationError, IdentityRegistration, Purpose, SubjectClass,
     TenantCapabilityGrant, TenantRegistration, TokenRequest,
@@ -40,7 +44,7 @@ fn tenant_onboarding_invocation_and_audit_chain_obey_foundation_contracts() {
     let token = foundation
         .issue_token(TokenRequest {
             tenant_id: tenant.id.clone(),
-            user_id: user.id.clone(),
+            user_id: user.id.value.as_str().to_string(),
             purpose: Purpose::CapabilityInvocation,
             ttl_seconds: 3_600,
             issued_at_epoch_seconds: 1_000,
@@ -55,7 +59,7 @@ fn tenant_onboarding_invocation_and_audit_chain_obey_foundation_contracts() {
             namespace: "workflow".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T3ExecuteWithApproval,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::PiiIdentifying,
                 DataClass::FinancialKrCredit,
             ])
@@ -73,10 +77,10 @@ fn tenant_onboarding_invocation_and_audit_chain_obey_foundation_contracts() {
 
     let denied = foundation
         .invoke_capability_as_principal(
-            support::principal(&tenant.id, &user.id, AutonomyTier::T2Advisory),
+            support::principal(&tenant.id, user.id.value.as_str(), AutonomyTier::T2Advisory),
             CapabilityInvocationRequest {
                 tenant_id: tenant.id.clone(),
-                user_id: user.id.clone(),
+                user_id: user.id.value.as_str().to_string(),
                 capability_id: capability.id.clone(),
                 purpose: Purpose::CapabilityInvocation,
                 subject_class: SubjectClass::Adult,
@@ -92,11 +96,13 @@ fn tenant_onboarding_invocation_and_audit_chain_obey_foundation_contracts() {
         foundation.audit_chain().verify(),
         "audit hash chain verifies"
     );
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| event.surface == "foundry.capability.invoke" && event.decision == "DENY"));
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| event.surface == "foundry.capability.invoke" && event.decision == "DENY")
+    );
 }
 
 #[test]

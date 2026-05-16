@@ -7,25 +7,26 @@ impl_plan_id: IP-P03-accounting-full-scaffold
 status: pending
 owner: council-enterprise
 blocked_by:
-  - impl_plan: IP-P02-payroll-full-scaffold
-    reason: "PayrollRunCompleted Workflow event + PayrollEntry Ontology Object Type must be registered before accounting Workflow consumer can be wired."
+- impl_plan: IP-P02-payroll-full-scaffold
+  reason: PayrollRunCompleted Workflow event + PayrollEntry Ontology Object Type must
+    be registered before accounting Workflow consumer can be wired.
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
-  - ontology-type-registry
-  - workflow-event-registry
-  - audit-chain
-  - jurisdiction-overlay
-  - k6-smoke
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+- ontology-type-registry
+- workflow-event-registry
+- audit-chain
+- jurisdiction-overlay
+- k6-smoke
+purpose: "Scaffolds the complete `oya-accounting-*` µservice: Postgres DDL for chart-of-accounts + ledger (append-only) + period-close + reporting with Citus sharding + RLS + outbox; Rust kernel port traits."
 ---
-
 # IP-P03-accounting-full-scaffold: Accounting µservice — K-GAAP COA, double-entry ledger, auto-journal from PayrollRunCompleted, period-close, Typst financial statements
 
 ## Intent

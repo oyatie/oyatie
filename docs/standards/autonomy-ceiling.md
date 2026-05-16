@@ -1,4 +1,9 @@
 ---
+purpose: Cross-cutting autonomy-ceiling standard. Defines the T1 / T2 / T3 / T4 capability tiers, the Cedar-policy binding per capability, the per-capability autonomy record, and the explicit prohibition of config-flag uplift.
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -9,9 +14,9 @@ purpose: |
   Cross-cutting autonomy-ceiling standard. Defines the T1 / T2 / T3 / T4 capability
   tiers, the Cedar-policy binding per capability, the per-capability autonomy
   record, and the explicit prohibition of config-flag uplift. Implements
-  `CONSTITUTION.md` §Avoid Item 10 and the AGENTS.md §Pre-flight checklist
+  `forbidden-operations.json` FO-10 and the AGENTS.md §Pre-flight checklist
   Item 4 ("Confirm autonomy ceiling").
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-autonomy-ceiling
 companion_docs:
   - docs/standards/security-review.md
@@ -26,9 +31,9 @@ related_adrs:
 
 # Autonomy Ceiling
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 10:
+Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-10:
 
 > No autonomy-tier uplift without policy + runtime gate. Capability
 > bindings declare T1 / T2 / T3 / T4; uplift requires a Cedar policy and
@@ -232,7 +237,7 @@ proves cross-tenant access fails closed on T1/T2/T3 capabilities.
 
 ## 11. Sources scanned
 
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 10;
+- [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-10;
   [`docs/AGENTS.md`](../AGENTS.md) §Pre-flight Item 4 + D5;
   [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md) §4 (foundry-eval,
   cross-tenant-access-fuzz).

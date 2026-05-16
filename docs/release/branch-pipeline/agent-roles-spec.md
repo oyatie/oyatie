@@ -16,6 +16,7 @@ enforced_by:
   - oya-foundry-fitness-no-direct-prod-commit
 related_adrs: [ADR-0022, ADR-0039, ADR-0041, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
+doc_status: published
 ---
 
 # Agent Roles — Branch-Pipeline Promotion Workers

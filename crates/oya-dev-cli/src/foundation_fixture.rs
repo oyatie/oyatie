@@ -1,5 +1,5 @@
-use oya_foundation_app::{
-    AdversarialKind, DataClass, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput, Foundation,
+use oya_application_app::{
+    AdversarialKind, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput, Foundation,
     FoundationError, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion, PrivacyDataClass,
 };
 
@@ -8,25 +8,28 @@ pub(crate) fn internal_privacy_data_classes() -> Vec<PrivacyDataClass> {
 }
 
 pub(crate) fn internal_privacy_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::try_from(DataClass::InternalOnly)
-        .expect("InternalOnly is a privacy-program data class")
+    // ADR-0083 Tier 1: use kernel's infallible `internal_only()` constructor.
+    PrivacyDataClass::internal_only()
 }
 
-pub(crate) fn seed_demo_eval(foundation: &mut Foundation, capability_id: &str) {
-    foundation
-        .register_capability_eval_set(demo_eval_set(capability_id))
-        .expect("demo eval set is valid");
-    foundation
-        .record_capability_eval_run(EvalRunInput {
-            capability_id: capability_id.into(),
-            eval_set_version: "eval-v1".into(),
-            pass_rate_percent: 95,
-            p95_score_percent: 90,
-            adversarial_passed: true,
-            linguistic_passed: true,
-            signed: true,
-        })
-        .expect("demo eval run passes publish gate");
+pub(crate) fn seed_demo_eval(
+    foundation: &mut Foundation,
+    capability_id: &str,
+) -> Result<(), FoundationError> {
+    // ADR-0083 Tier 1: return `Result` and propagate the underlying
+    // `FoundationError` via `?` instead of masking `register_capability_eval_set`
+    // / `record_capability_eval_run` failures behind `.expect(...)`.
+    foundation.register_capability_eval_set(demo_eval_set(capability_id))?;
+    foundation.record_capability_eval_run(EvalRunInput {
+        capability_id: capability_id.into(),
+        eval_set_version: "eval-v1".into(),
+        pass_rate_percent: 95,
+        p95_score_percent: 90,
+        adversarial_passed: true,
+        linguistic_passed: true,
+        signed: true,
+    })?;
+    Ok(())
 }
 
 pub(crate) fn publish_capability_invocation_policy(
@@ -102,10 +105,12 @@ mod tests {
         assert_eq!(eval_set.capability_id, "cap.demo.readiness");
         assert_eq!(eval_set.cases.len(), 7);
         assert!(eval_set.cases.iter().any(|case| case.locale == "ko-KR"));
-        assert!(eval_set
-            .cases
-            .iter()
-            .any(|case| { case.adversarial_kind == Some(AdversarialKind::PromptInjection) }));
+        assert!(
+            eval_set
+                .cases
+                .iter()
+                .any(|case| { case.adversarial_kind == Some(AdversarialKind::PromptInjection) })
+        );
         assert!(eval_set.signed);
     }
 }

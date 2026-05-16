@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Incident Management
+doc_status: published
+---
+
 # Oyatie — Incident Management
 
 > **Status:** Draft v0.1 — 2026-05-09.

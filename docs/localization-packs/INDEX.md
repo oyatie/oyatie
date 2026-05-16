@@ -9,6 +9,7 @@ companion_docs:
   - docs/MASTERPLAN.md
   - docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
   - docs/decisions/ADR-0063-documentation-suite-coverage.md
+doc_status: published
 ---
 
 # Localization Pack Catalog

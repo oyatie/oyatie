@@ -13,6 +13,7 @@ purpose: |
   oya-foundry-fitness-api-version-stability as the BLOCKER gate.
 enforced_by: oya-foundry-fitness-api-version-stability
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # External API Versioning Spec — oyatie

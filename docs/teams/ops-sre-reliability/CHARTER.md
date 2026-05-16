@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Ops — SRE & Reliability
 
 ## Mission

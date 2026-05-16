@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Architect Review — ralplan-oyatie-sst-consolidation (Iteration 2)
 
 <!--
@@ -70,7 +74,7 @@ Net: 10 GREEN-or-GREEN-pending-ADR-edit. The single AMBER (A4) is downstream of 
 
 **ITERATE**
 
-iter-3 will land at APPROVE if the iter-2-prime Planner edits exactly one file: `.omc/specs/adr-draft-grit-icm-sanctioned-primitives.md`. Required edits, all named in the plan §3 pointer at lines 183-186:
+iter-3 will land at APPROVE if the iter-2-prime Planner edits exactly one file: `.omc/scratch/adr-draft-grit-icm-sanctioned-primitives.md`. Required edits, all named in the plan §3 pointer at lines 183-186:
 
 1. **§Decision** — replace the helper name `oya-agent-read` with `oya-tooling-agent-read` (all 5 occurrences). Add bootstrap-window clause naming P0.5-P2 inclusive: during this window the sanctioned set is `{grit, icm}` plus audited carve-outs for new-crate scaffolding (`icm-coordination-lock`) and human-orchestrator `git mv`/`git rm`/`gh issue create`. Banned-primitives lane activates at P5 merge.
 2. **§Decision Drivers (or new §Glossary)** — define "human orchestrator": named individuals listed in `oyatie/docs/RACI-OWNERSHIP.md`; each carve-out invocation recorded via `icm store -t cutover-orchestrator-actions -c '<action>' -i critical` BEFORE execution.

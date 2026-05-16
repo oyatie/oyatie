@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Checklist — Tenant Onboarding
 
 > **Trigger:** new tenant

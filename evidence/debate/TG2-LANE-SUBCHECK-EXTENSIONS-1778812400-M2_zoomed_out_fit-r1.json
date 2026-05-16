@@ -1,0 +1,49 @@
+{
+  "reviewer_id": "claude-code-architect-M2_zoomed_out_fit-TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
+  "round": 1,
+  "change_id": "TG2-LANE-SUBCHECK-EXTENSIONS-1778812400",
+  "facet": "M2_zoomed_out_fit",
+  "lens": "M2 \u2014 Zoomed-out fit: does this change belong in the system as architected, or is it parallel infrastructure that should be unified?",
+  "answer": "Three of the four sub-checks (scorecard-render, consensus-debate-evidence, rust-default-language) land in the correct crate with explicit charter from ADR-0092 D13 and multispectrum-review.json FixupTask IDs. The fourth (naming-convention) creates a zoom-level mismatch: it enforces P14 BNF kebab-case naming of durable homes, a naming-governance concern that belongs in a dedicated oya-check-naming crate per ADR-0056 flat check-namespace design. The placement is extends-existing for three sub-checks but introduces a risk-of-drift vector as the crate accumulates unrelated process-compliance concerns under the dependency-seam label \u2014 a name that no longer describes the full scope at 10 sub-checks.",
+  "key_claims": [
+    "ADR-0092 D13 explicitly charters oya-check-dependency-seam as the composite seam-discipline lane with 3+3 sub-checks; TG2 grows it to 10 \u2014 still within the lane's declared composite role per multispectrum-review.json#mandatory_subchecks_in_seam_lane and the enforced_by list in the spec.",
+    "multispectrum-review.json#consensus_debate_protocol#fixuptask_for_full_impl names F-LANE-DEBATE-SUBCHECK explicitly targeting oya-check-dependency-seam; check_consensus_debate_evidence is the correct home.",
+    "multispectrum-review.json#scorecard_schema#lane_implementation names F-LANE-SCORECARD-RENDER explicitly targeting oya-check-dependency-seam; check_scorecard_render is the correct home.",
+    "check_rust_default_language enforces P15 (rust-default-language policy) \u2014 a cross-cutting language-policy concern with no dedicated oya-check-language-policy crate yet; temporary placement here is acceptable under parallel-and-temporary classification, but FixupTask F-LANE-RUST-DEFAULT-ENFORCE should include crate-extraction as a deferred step.",
+    "check_naming_convention enforces P14 BNF kebab-case on durable homes (specs/, registries/, evidence/, templates/) \u2014 this is a naming-governance concern, not a dependency-seam concern. oya-check-naming or oya-check-adr-index are more natural homes per ADR-0056 flat check-namespace. This is the clearest zoom-level mismatch of the four.",
+    "ADR-0069 active-artifact-contract: all four sub-checks are consumers of ADR-0069 evidence bundle outputs. None implement a parallel artifact-contract capability model \u2014 fit is aligned, not parallel.",
+    "ADR-0056 12-layer enum + BNF: oya-check-dependency-seam is fully exempt from the 12-layer enum under the flat oya-check-rule-name namespace. No BNF violation in placing sub-checks here.",
+    "No industry primitive covers per-repo multispectrum sub-check composition at this granularity \u2014 no reinvention risk against AWS COE, Google Design Doc, Microsoft 1ES, or Oracle EngExc patterns.",
+    "At 1-year zoom: if oya-check-dependency-seam continues accumulating process-compliance sub-checks beyond seam-discipline, the crate name becomes a misleading catch-all. Correct long-term shape is to extract naming and language-policy checks to dedicated oya-check-* crates once they mature past NotYetArmed."
+  ],
+  "uncertainty_areas": [
+    "Whether future extraction of naming-convention and rust-default-language into dedicated crates would require breaking CompositeReport consumers that bind by sub-check id string.",
+    "Whether multispectrum-review.json will formally extend mandatory_subchecks_in_seam_lane to cover all 10 sub-checks or redirect naming/language-policy checks to dedicated lanes."
+  ],
+  "anti_patterns_detected": [
+    "wrong-zoom-level-for-the-system"
+  ],
+  "existing_primitives_surveyed": [
+    "oya-check-dependency-seam (ADR-0092 D13 charters composite seam-discipline lane)",
+    "oya-check-active-artifact-contract (ADR-0069 artifact capability model)",
+    "oya-check-adr-index (closer home for naming-convention)",
+    "oya-check-doc-catalog (adjacent home for scorecard concerns)",
+    "oya-check-supply-chain (closer home for rust-default-language)",
+    "multispectrum-review.json#mandatory_subchecks_in_seam_lane",
+    "multispectrum-review.json#consensus_debate_protocol#fixuptask_for_full_impl = F-LANE-DEBATE-SUBCHECK",
+    "multispectrum-review.json#scorecard_schema#lane_implementation = F-LANE-SCORECARD-RENDER",
+    "ADR-0056 flat oya-check-rule-name namespace",
+    "hyperscaler-gates.json HG-ARCH naming_justification prerequisite"
+  ],
+  "industry_primitives_surveyed": [
+    "AWS COE quality gate",
+    "Google Design Doc review",
+    "Microsoft 1ES pipeline gates (closest structural analog)",
+    "Oracle EngExc faceted scorecard",
+    "cargo-deny (partial overlap with seam-imports; not a substitute for dependency-rationales.json isolation contracts)"
+  ],
+  "fit_judgment": "extends-existing",
+  "fit_rationale": "Two of four (scorecard-render, consensus-debate-evidence) are explicitly called out in multispectrum-review.json FixupTask IDs targeting oya-check-dependency-seam \u2014 unambiguously correct placement. check_rust_default_language is acceptable as parallel-and-temporary pending dedicated oya-check-language-policy crate. check_naming_convention is weakest fit: P14 BNF naming-governance is orthogonal to dependency-seam discipline \u2014 at 1-year zoom should migrate to oya-check-naming when it graduates from NotYetArmed.",
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "Auto-backfilled purpose for TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-M2_zoomed_out_fit-r1.json"
+}

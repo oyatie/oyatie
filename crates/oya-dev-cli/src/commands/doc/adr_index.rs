@@ -3,9 +3,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_foundry_adr_index_kernel::{generate_adr_index, validate_adr_index, AdrDecisionRecord};
+use oya_check_adr_index::{AdrDecisionRecord, generate_adr_index, validate_adr_index};
 
-use crate::command_output::{json_escape, OutputFormat as DevCheckOutputFormat};
+use crate::command_output::{OutputFormat as DevCheckOutputFormat, json_escape};
 
 pub(super) fn run(args: Vec<String>, usage: &str) -> ExitCode {
     match parse_doc_adr_index_args(args, usage) {
@@ -107,7 +107,7 @@ fn run_doc_adr_index(args: DocAdrIndexArgs) -> ExitCode {
 
 fn run_doc_adr_index_result(
     args: &DocAdrIndexArgs,
-) -> Result<oya_foundry_adr_index_kernel::AdrIndexReport, String> {
+) -> Result<oya_check_adr_index::AdrIndexReport, String> {
     let records = read_adr_decision_records(&args.decisions_dir)?;
     if args.write {
         let artifacts =
@@ -223,6 +223,7 @@ fn read_adr_decision_record(path: &Path) -> Result<AdrDecisionRecord, String> {
 }
 
 fn parse_adr_title(contents: &str, expected_id: &str, path: &Path) -> Result<String, String> {
+    let contents = content_after_leading_frontmatter(contents);
     let first_line = contents
         .lines()
         .find(|line| !line.trim().is_empty())
@@ -253,8 +254,39 @@ fn parse_adr_title(contents: &str, expected_id: &str, path: &Path) -> Result<Str
     }
 }
 
+fn split_leading_frontmatter(contents: &str) -> (Option<&str>, &str) {
+    let mut lines = contents.split_inclusive('\n');
+    let Some(first_line) = lines.next() else {
+        return (None, contents);
+    };
+    if first_line.trim() != "---" {
+        return (None, contents);
+    }
+
+    let frontmatter_start = first_line.len();
+    let mut offset = first_line.len();
+    for line in lines {
+        let line_start = offset;
+        offset += line.len();
+        if line.trim() == "---" {
+            return (
+                Some(&contents[frontmatter_start..line_start]),
+                &contents[offset..],
+            );
+        }
+    }
+    (None, contents)
+}
+
+fn content_after_leading_frontmatter(contents: &str) -> &str {
+    split_leading_frontmatter(contents).1
+}
+
 fn parse_adr_metadata(contents: &str) -> BTreeMap<String, String> {
-    let mut metadata = BTreeMap::new();
+    let (frontmatter, contents) = split_leading_frontmatter(contents);
+    let mut metadata = frontmatter
+        .map(parse_frontmatter_metadata)
+        .unwrap_or_default();
     for line in contents.lines().take(30) {
         let mut trimmed = line.trim();
         if trimmed == "---" || trimmed.starts_with("## ") {
@@ -272,9 +304,117 @@ fn parse_adr_metadata(contents: &str) -> BTreeMap<String, String> {
         let Some((key, value)) = rest.split_once(":**") else {
             continue;
         };
-        metadata.insert(key.trim().into(), clean_adr_metadata_value(value));
+        metadata
+            .entry(key.trim().into())
+            .or_insert_with(|| clean_adr_metadata_value(value));
     }
     metadata
+}
+
+fn parse_frontmatter_metadata(frontmatter: &str) -> BTreeMap<String, String> {
+    let mut raw = BTreeMap::<String, Vec<String>>::new();
+    let mut current_key = None::<String>;
+    for line in frontmatter.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        if let Some(item) = trimmed.strip_prefix("- ") {
+            if let Some(key) = current_key.as_ref() {
+                raw.entry(key.clone())
+                    .or_default()
+                    .extend(clean_yaml_metadata_values(item));
+            }
+            continue;
+        }
+        let Some((key, value)) = trimmed.split_once(':') else {
+            current_key = None;
+            continue;
+        };
+        let key = key.trim().to_string();
+        current_key = Some(key.clone());
+        raw.entry(key)
+            .or_default()
+            .extend(clean_yaml_metadata_values(value));
+    }
+
+    let mut metadata = BTreeMap::new();
+    for (key, values) in raw {
+        let Some(mapped_key) = frontmatter_metadata_key(&key) else {
+            continue;
+        };
+        let values = values
+            .into_iter()
+            .map(|value| normalize_frontmatter_metadata_value(mapped_key, &value))
+            .filter(|value| !value.is_empty())
+            .collect::<Vec<_>>();
+        if !values.is_empty() {
+            metadata.insert(mapped_key.into(), values.join(", "));
+        }
+    }
+    metadata
+}
+
+fn frontmatter_metadata_key(key: &str) -> Option<&'static str> {
+    match key {
+        "status" => Some("Status"),
+        "date" => Some("Date"),
+        "owner" => Some("Owner"),
+        "owners" => Some("Owners"),
+        "supersedes" => Some("Supersedes"),
+        "superseded_by" => Some("Superseded-by"),
+        "related" | "related_adrs" => Some("Related"),
+        _ => None,
+    }
+}
+
+fn clean_yaml_metadata_values(value: &str) -> Vec<String> {
+    let value = value.trim();
+    if value.is_empty() || value == "~" || value == "[]" {
+        return Vec::new();
+    }
+    if let Some(inner) = value.strip_prefix('[').and_then(|v| v.strip_suffix(']')) {
+        return inner
+            .split(',')
+            .map(clean_yaml_scalar)
+            .filter(|value| !value.is_empty())
+            .collect();
+    }
+    let value = clean_yaml_scalar(value);
+    if value.is_empty() {
+        Vec::new()
+    } else {
+        vec![value]
+    }
+}
+
+fn clean_yaml_scalar(value: &str) -> String {
+    value
+        .trim()
+        .trim_matches('"')
+        .trim_matches('\'')
+        .trim()
+        .to_string()
+}
+
+fn normalize_frontmatter_metadata_value(key: &str, value: &str) -> String {
+    if matches!(key, "Supersedes" | "Superseded-by" | "Related")
+        && let Some(adr) = extract_adr_id(value)
+    {
+        return adr;
+    }
+    value.to_string()
+}
+
+fn extract_adr_id(value: &str) -> Option<String> {
+    let start = value.find("ADR-")?;
+    let candidate = value.get(start..start + 8)?;
+    let digits = candidate.strip_prefix("ADR-")?;
+    if digits.chars().all(|character| character.is_ascii_digit()) {
+        Some(candidate.to_string())
+    } else {
+        None
+    }
 }
 
 fn required_adr_metadata(
@@ -282,8 +422,14 @@ fn required_adr_metadata(
     key: &str,
     path: &Path,
 ) -> Result<String, String> {
-    metadata
-        .get(key)
+    let value = metadata.get(key).or_else(|| {
+        if key == "Owner" {
+            metadata.get("Owners")
+        } else {
+            None
+        }
+    });
+    value
         .filter(|value| !value.trim().is_empty() && value.trim() != "-")
         .cloned()
         .ok_or_else(|| format!("ADR metadata {key} missing in {}", path.display()))

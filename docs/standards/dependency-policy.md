@@ -1,4 +1,9 @@
 ---
+purpose: "Cross-cutting dependency policy. Defines LTS pinning (per the verified roster), license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code), `cargo-vet` + `cargo-deny` enforcement, the Renovate configuration baseline."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -12,13 +17,13 @@ purpose: |
   and the provider-SDK strategy: Anthropic / OpenAI / Gemini SDKs sit behind a
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
   MASTERPLAN Directive 4.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-lts-dependency
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/code-style-rust.md
   - docs/standards/image-discipline.md
-  - .omc/specs/lts-versions-verified-2026-05-12.md
+  - .omc/scratch/lts-versions-verified-2026-05-12.md
 related_adrs:
   - ADR-0053
   - ADR-0052
@@ -27,16 +32,16 @@ related_adrs:
 
 # Dependency Policy
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 Every direct runtime, framework, base image, and supply-chain tool the
 workspace depends on MUST be pinned, license-clean, and reviewed via the
 supply-chain triad. This standard codifies the policy; the program-level
-inventory lives in `.omc/specs/lts-versions-verified-YYYY-MM-DD.md`.
+inventory lives in `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
 
 ## 1. LTS pinning
 
-Per [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md)
+Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md)
 and MASTERPLAN §2 Directive 8:
 
 - Every direct dependency tracks the **current LTS** major.minor where the
@@ -46,7 +51,7 @@ and MASTERPLAN §2 Directive 8:
   pin (e.g., Canonical 1.32 LTS for K8s).
 - The LTS roster is refreshed **quarterly** and on any major upstream LTS
   announcement; the verified-as-of date is recorded in
-  `.omc/specs/lts-versions-verified-YYYY-MM-DD.md`.
+  `.omc/scratch/lts-versions-verified-YYYY-MM-DD.md`.
 - Lane: `oya-foundry-fitness-lts-dependency` checks every direct
   dependency against the roster on every PR.
 
@@ -57,7 +62,7 @@ Per the verified-LTS spec:
 | Component | Pin (≥) | Component | Pin (≥) |
 |---|---|---|---|
 | Rust toolchain | 1.95.0 stable | Debian / distroless base | trixie / static-debian13 |
-| Rust edition | 2024 new / 2021 legacy | OpenSSL | 3.5 LTS or 4.0 |
+| Rust edition / rustfmt style | 2024 | OpenSSL | 3.5 LTS or 4.0 |
 | Node.js | 24 Active LTS (or 22) | Prometheus | 3.11+ (3.5 EOS 2026-07-31) |
 | Python | 3.14 (or 3.13 maint.) | Cosign | v3.0.6 |
 | Go | 1.26 | Trivy | v0.70.0 (NOT v0.69.4) |
@@ -67,7 +72,7 @@ Per the verified-LTS spec:
 
 ## 2. License posture
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Prohibitions Item 9, the
+Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-09, the
 following licenses MUST NOT appear in product-code dependencies:
 
 - **AGPL** (Affero GPL).
@@ -108,13 +113,13 @@ Pinning rules:
 
 - `cargo-deny` MUST be at a version with MSRV ≤ workspace
   `rust-version`. Current target: cargo-deny **0.19.5** (MSRV 1.85),
-  conditional on the Rust toolchain bump to 1.95 (per §1.1).
+  compatible with the current Rust 1.95.0 workspace pin (per §1.1).
 - `cargo-vet` audits live under `supply-chain/audits.toml`; share-points
   imported from AWS and Mozilla published audits.
 
 ## 4. Renovate baseline
 
-Per [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+Per [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
 Domain 4: **Renovate** is the canonical dependency-update bot
 (supports 30+ ecosystems vs Dependabot's 14). Dependabot remains
 enabled for security-advisory fan-in only.
@@ -216,7 +221,7 @@ imports outside `oya-*-adapter-<provider>-*` crates. The `app` and
 
 ## 8. CI/CD platform
 
-Per `.omc/specs/hyperscaler-best-practices-2026-05-12.md` Domain 4: the
+Per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4: the
 default platform is **GitHub Actions**. Self-hosted runners under the
 Buildkite control plane are the cloud-portable analog for high-volume.
 Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
@@ -226,7 +231,8 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
 
 1. **Pinning a provider SDK in `app` or `domain`.** Move to an adapter.
 2. **Adding a crate that fails `cargo-deny licenses`.** Use the
-   substitute table; if none fits, file an ADR exemption.
+   substitute table; if none fits, file an ADR-tracked extension
+   (named license addition with sunset rationale).
 3. **Skipping `cargo-vet` certification for a new crate.**
 4. **Pinning to a non-LTS line when an LTS exists** (e.g., Node.js
    Current channel for production).
@@ -236,8 +242,8 @@ Bazel / Buck2 are **not adopted** at current scale (Cargo workspace +
 
 ## 10. Sources scanned
 
-- [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md);
-  [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md);
+  [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 3 + 4.
 - [Mozilla — cargo-vet](https://mozilla.github.io/cargo-vet/);
   [cargo-deny](https://embarkstudios.github.io/cargo-deny/);

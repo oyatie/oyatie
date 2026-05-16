@@ -5,25 +5,23 @@ milestone: M02-substrate
 phase: P10-vector
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; P02-ontology merged; Postgres 16 with pgvector extension
-  available (pgvector ≥0.7.0, supporting HNSW index); cargo check exits 0.
-exit_gate: |
-  All vector crates compile; pgvector HNSW index created on
-  vector.embeddings.vector column; per-tenant per-object-type embedding tables
-  verified (no cross-tenant query possible); cosine similarity search returns
-  top-k results with correct RLS enforcement; embedding upsert round-trip green;
-  k6 vector search p99≤200ms at 1k RPS; grit done; ICM row emitted.
+entry_gate: "M01-P05 complete; P02-ontology merged; Postgres 16 with pgvector extension\n\
+  available (pgvector \u22650.7.0, supporting HNSW index); cargo check exits 0.\n"
+exit_gate: "All vector crates compile; pgvector HNSW index created on\nvector.embeddings.vector\
+  \ column; per-tenant per-object-type embedding tables\nverified (no cross-tenant\
+  \ query possible); cosine similarity search returns\ntop-k results with correct\
+  \ RLS enforcement; embedding upsert round-trip green;\nk6 vector search p99\u2264\
+  200ms at 1k RPS; grit done; ICM row emitted.\n"
 depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "workspace scaffold prerequisite"
-  - milestone: M02
-    phase: P02-ontology
-    reason: "Ontology objects are the primary vector corpus; embeddings reference object_id"
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: workspace scaffold prerequisite
+- milestone: M02
+  phase: P02-ontology
+  reason: Ontology objects are the primary vector corpus; embeddings reference object_id
 owner_team: council-architecture
+purpose: "This phase delivers the complete Vector substrate. Day-1 implementation uses pgvector (Postgres extension, HNSW index with `lists=100, ef_construction=128."
 ---
-
 # P10-vector: Vector substrate — pgvector DAY-1, per-tenant per-object-type embedding tables, in-house HNSW/IVF long-horizon
 
 ## Purpose

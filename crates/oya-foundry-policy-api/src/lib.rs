@@ -8,12 +8,12 @@
 
 use std::collections::BTreeMap;
 
-use oya_foundry_capability_kernel::{AutonomyTier, Capability, CapabilityAction, CapabilityError};
-use oya_foundry_policy_kernel::{
-    AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
+use oya_data_boundary_kernel::{
+    AgeBand, DataClass, PrivacyDataClass, SubjectClass, parse_data_class_label,
 };
-use oya_platform_data_boundary_kernel::{
-    parse_data_class_label, AgeBand, DataClass, PrivacyDataClass, SubjectClass,
+use oya_foundry_capability_domain::{AutonomyTier, Capability, CapabilityAction, CapabilityError};
+use oya_foundry_policy_domain::{
+    AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
 };
 
 pub const FOUNDRY_POLICY_AUTONOMY_CEILING_PUBLISH_SURFACE: &str =
@@ -456,10 +456,15 @@ impl FoundryPolicyApiError {
         match self {
             Self::EmptyRequestId => vec![detail("header.X-Request-Id", "must be non-empty")],
             Self::EmptyTenantHeader => vec![detail("header.X-Tenant-Id", "must be non-empty")],
-            Self::EmptyIdempotencyKey => vec![detail("header.Idempotency-Key", "must be non-empty")],
+            Self::EmptyIdempotencyKey => {
+                vec![detail("header.Idempotency-Key", "must be non-empty")]
+            }
             Self::EmptyPrincipalId => vec![detail("principal.principal_id", "must be non-empty")],
             Self::InvalidPolicyId { .. } => vec![detail("path.policy_id", "must be non-empty")],
-            Self::PolicyIdMismatch { .. } => vec![detail("policy_id", "path policy_id and body policy_id must match")],
+            Self::PolicyIdMismatch { .. } => vec![detail(
+                "policy_id",
+                "path policy_id and body policy_id must match",
+            )],
             Self::TenantMismatch { .. } => vec![detail(
                 "tenant_id",
                 "header tenant, principal tenant, authorization tenant, and body tenant_id must match",
@@ -508,10 +513,9 @@ impl FoundryPolicyApiError {
                 "body.cedar_policy_refs",
                 "must include at least one non-empty Cedar policy ref",
             )],
-            Self::InvalidCapability(error) => vec![detail(
-                "foundry_capability",
-                capability_error_issue(error),
-            )],
+            Self::InvalidCapability(error) => {
+                vec![detail("foundry_capability", capability_error_issue(error))]
+            }
         }
     }
 }

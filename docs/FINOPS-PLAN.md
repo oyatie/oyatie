@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — FinOps Plan
+doc_status: published
+---
+
 # Oyatie — FinOps Plan
 
 > **Status:** Draft v0.1 skeleton — 2026-05-09.

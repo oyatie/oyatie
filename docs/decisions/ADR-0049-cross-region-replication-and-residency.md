@@ -1,3 +1,9 @@
+---
+id: ADR-0049
+status: proposed
+doc_status: published
+---
+
 # ADR-0049: Cross-region replication + residency — per-pack default residency class, opt-in cross-region per consent, immutable post-create
 
 > **Status:** Proposed

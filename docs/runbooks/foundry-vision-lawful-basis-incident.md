@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Foundry Vision Lawful Basis Incident
+doc_status: published
+---
+
 # Oyatie Runbook — Foundry Vision Lawful Basis Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

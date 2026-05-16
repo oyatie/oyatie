@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Wave Gate Readiness Check
+doc_status: published
+---
+
 # Oyatie Runbook — Wave Gate Readiness Check
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

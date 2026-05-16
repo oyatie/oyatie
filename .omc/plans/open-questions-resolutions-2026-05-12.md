@@ -1,3 +1,7 @@
+---
+purpose: Auto-backfilled purpose for open-questions-resolutions-2026-05-12.md
+---
+
 # Open-questions resolutions — ralplan-oyatie-sst-consolidation
 
 Resolved during Architect run, between Planner and Critic phases. The Critic SHOULD read this alongside the plan and open-questions.md.
@@ -42,7 +46,7 @@ The plan's P2 should be updated to enumerate Rust file claims rather than langua
 - `grit symbols | grep Cargo.toml` returns **zero** matches. grit at v0.3.0 does NOT index Cargo.toml at all.
 - Therefore the scaffold-claim pattern's PRIMARY option (`Cargo.toml::workspace_members`) is **not viable**.
 
-**Resolution:** The fallback from `.omc/specs/pre-cutover-drafts-2026-05-12.md §Draft 2` is the actual path:
+**Resolution:** The fallback from `.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 2` is the actual path:
 
 ```
 1. icm store -t scaffold-locks-oyatie \
@@ -74,7 +78,7 @@ The plan flags P6/P7/P9 as requiring `git mv` (archive), `git rm` (delete), `gh 
 
 **Defer to user confirmation** but proceed under the interpretation that human-orchestrator git invocations are permitted for the three flagged events. The `oya-agent-read` helper does NOT need a write counterpart for these — they are explicitly human steps.
 
-Mitigation: each carve-out emits `BLOCKED_ON_HUMAN_ORCHESTRATOR` in the autopilot worker prompt (see `.omc/specs/post-consensus-autopilot-prompt.md`).
+Mitigation: each carve-out emits `BLOCKED_ON_HUMAN_ORCHESTRATOR` in the autopilot worker prompt (see `.omc/scratch/post-consensus-autopilot-prompt.md`).
 
 ---
 
@@ -86,7 +90,7 @@ The banned-primitives lane already exists in the plan (§P5 / §P7). Extend its 
 
 ## Q5 — Demo symbol selection (RECOMMENDED — billing-app symbols)
 
-The pre-cutover demo script (`.omc/specs/pre-cutover-drafts-2026-05-12.md §Draft 3`) uses:
+The pre-cutover demo script (`.omc/scratch/pre-cutover-drafts-2026-05-12.md §Draft 3`) uses:
 - `crates/oya-cloud-billing-app/src/lib.rs::CloudBillingEventIngestAppStatus` (verified grit-indexed)
 - `crates/oya-cloud-billing-app/src/lib.rs::CloudBillingMeterUnitRecord` (verified grit-indexed)
 

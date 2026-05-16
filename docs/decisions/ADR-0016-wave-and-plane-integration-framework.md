@@ -1,3 +1,9 @@
+---
+id: ADR-0016
+status: proposed
+doc_status: published
+---
+
 # ADR-0016: Wave and plane integration framework — descriptive wave names (W-Foundation through W-Region-Fan-Out), per-wave gate criteria, status labels (preview / stable / GA), no M0/M1/M2/M3/MVP vocab
 
 > **Status:** Proposed

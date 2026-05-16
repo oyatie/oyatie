@@ -13,6 +13,7 @@ enforced_by:
   - oya-foundry-fitness-schema-migration
 related_adrs: [ADR-0040, ADR-0045, ADR-0049, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
+doc_status: published
 ---
 
 # Blue/Green Specification

@@ -250,7 +250,7 @@ where
                 return Err(SupplyChainError::UnknownAttestation {
                     subject: record.subject,
                     attestation: record.attestation,
-                })
+                });
             }
         }
     }

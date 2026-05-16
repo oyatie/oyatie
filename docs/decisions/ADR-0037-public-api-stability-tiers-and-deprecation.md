@@ -1,3 +1,11 @@
+---
+id: ADR-0037
+status: proposed
+doc_status: published
+sunset_topic: adr-0037-public-api-deprecation-doctrine
+sunset_milestone: doctrine-not-time-bounded
+---
+
 # ADR-0037: Public API stability tiers — preview / stable / GA with semver-diff PR gate, contract-first SDK generation, per-deprecation telemetry
 
 > **Status:** Proposed
@@ -88,7 +96,7 @@ Per language, an SDK is auto-generated from contracts:
 | Go | `oya-sdk-go` | `oapi-codegen` + `protoc-gen-go-grpc` |
 | Java | `oya-sdk-java` | `openapi-generator-cli` + `protoc` (J2 GA tier only) |
 
-SDK release cadence matches contract release cadence. SDKs at preview tier are published to a separate channel (e.g. npm `@oyatie-preview` scope).
+SDK release cadence matches contract release cadence. SDKs at preview tier are published to a separate channel (e.g. npm `@oya-preview` scope).
 
 ### Per-deprecation event emission
 

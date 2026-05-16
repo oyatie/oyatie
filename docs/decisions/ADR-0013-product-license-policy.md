@@ -1,3 +1,9 @@
+---
+id: ADR-0013
+status: proposed
+doc_status: published
+---
+
 # ADR-0013: Product license policy — allowed (Apache-2 / MIT / BSD-2/3 / ISC / 0BSD / MPL-2 / Unicode), forbidden in product code (AGPL / GPL), requires-review tier (LGPL / SSPL / BUSL / Elastic / RSAL / TSL / Confluent / AWS-FSL / Commons Clause), dev-only carve-out, oya-foundry-fitness-license CI lane, per-release SBOM
 
 > **Status:** Proposed

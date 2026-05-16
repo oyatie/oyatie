@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Sev1 Incident Response
+doc_status: published
+---
+
 # Oyatie Runbook — Sev1 Incident Response
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

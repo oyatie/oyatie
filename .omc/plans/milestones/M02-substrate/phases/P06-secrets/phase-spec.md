@@ -5,21 +5,22 @@ milestone: M02-substrate
 phase: P06-secrets
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M01-P05 complete; oya-tenancy-kernel ships; OpenBao reachable in dev
-  (docker: openbao/openbao); cargo check exits 0.
-exit_gate: |
-  All secrets crates compile; secrets.refs table verified (NO plaintext
-  values stored in Postgres — only references); OpenBao adapter retrieves
-  secret by reference in integration test; rotation workflow compiles; Cedar
-  policy lints; grit done; ICM row emitted.
-depends_on:
-  - milestone: M01
-    phase: P05-scaffold-locks
-    reason: "workspace scaffold prerequisite"
-owner_team: council-architecture
----
+entry_gate: 'M01-P05 complete; oya-tenancy-kernel ships; OpenBao reachable in dev
 
+  (docker: openbao/openbao); cargo check exits 0.
+
+  '
+exit_gate: "All secrets crates compile; secrets.refs table verified (NO plaintext\n\
+  values stored in Postgres \u2014 only references); OpenBao adapter retrieves\nsecret\
+  \ by reference in integration test; rotation workflow compiles; Cedar\npolicy lints;\
+  \ grit done; ICM row emitted.\n"
+depends_on:
+- milestone: M01
+  phase: P05-scaffold-locks
+  reason: workspace scaffold prerequisite
+owner_team: council-architecture
+purpose: "This phase delivers the complete Secrets substrate. The design principle is absolute: raw secrets NEVER enter Postgres."
+---
 # P06-secrets: Secrets substrate — SecretReference port, OpenBao adapter (DAY-1 DEFAULT), HSM-per-cell production path
 
 ## Purpose

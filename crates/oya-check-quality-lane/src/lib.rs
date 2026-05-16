@@ -1,4 +1,7 @@
 //! Foundry quality-lane catalog fitness kernel.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -124,11 +127,21 @@ pub enum QualityLaneError {
     },
 }
 
+/// Validate the quality-lane registry against its markdown mirror and
+/// the canonical wired-commands catalog.
+///
+/// `wired_commands` is the substring-tolerant catalog of canonical
+/// commands the gate aggregator wires (sourced from
+/// `oya-foundry-gate-catalog-domain::all_canonical_commands_rendered`).
+/// This replaces the legacy `check_script_contents: &str` parameter
+/// which read `scripts/check.sh`'s body verbatim — the canonical
+/// catalog crate now owns that data per the `.sh-removal` chain IP-C
+/// (audit `evidence/audits/shell-python-replacement-audit-2026-05-15.md`).
 pub fn validate_quality_lanes<R, D, O>(
     registry_records: R,
     markdown_rows: D,
     known_owner_teams: O,
-    check_script_contents: &str,
+    wired_commands: &str,
 ) -> Result<QualityLaneReport, QualityLaneError>
 where
     R: IntoIterator<Item = QualityLaneRecord>,
@@ -188,7 +201,7 @@ where
                 id: record.id.clone(),
             });
         }
-        if !check_script_contents.contains(command) {
+        if !wired_commands.contains(command) {
             return Err(QualityLaneError::CheckCommandNotWired {
                 id: record.id.clone(),
                 command: command.into(),

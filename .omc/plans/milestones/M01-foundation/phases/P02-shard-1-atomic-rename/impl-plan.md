@@ -5,17 +5,18 @@ milestone: M01-foundation
 phase: P02-shard-1-atomic-rename
 impl_plan_id: IP-001-shard-1-atomic-rename
 status: merged
+migration_status: done
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - cargo-doc
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- cargo-doc
+purpose: Renames all 114 Shard-1-scoped crate directories, package names, dep-edge references, root workspace members, and Cargo.lock entries from v3 names to BNF v4.1 names in a single atomic commit.
 ---
-
 # IP-001-shard-1-atomic-rename: Execute Shard 1 atomic 114-row rename
 
 ## Intent

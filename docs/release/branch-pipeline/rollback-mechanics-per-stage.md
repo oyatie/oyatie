@@ -14,6 +14,7 @@ enforced_by:
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0040, ADR-0041, ADR-0043, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
+doc_status: published
 ---
 
 # Rollback Mechanics Per Stage

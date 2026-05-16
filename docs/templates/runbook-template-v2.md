@@ -18,6 +18,7 @@ related:
 adrs_cited:
   - ADR-0053  # sanctioned primitives (agent path)
   - ADR-0052  # inventory (audit emission)
+doc_status: published
 ---
 
 <!-- Supersedes prior docs/templates/runbook-template.md once reviewed. -->
@@ -86,7 +87,7 @@ If any pre-check fails, **STOP** and route to a different runbook (cite which) o
 
 2. Inspect recent deploys — `oya-tooling-agent-read deploy-log --last 1h`
    Expected: <output shape>
-   If differs: suspect deploy; jump to Mitigation step M2.
+   If differs: suspect deploy; jump to Mitigation step `M2`.
 
 3. Inspect audit chain — `oya admin audit-chain replay --topic <topic> --last 10m`
    Expected: per-tenant emission cadence steady.

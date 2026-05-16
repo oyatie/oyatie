@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M06-P04-IP-002
 title: Streaming + DP-bounded reports
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship analytics.streaming.subscribe + analytics.report.dp-bounded.

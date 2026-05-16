@@ -1,4 +1,9 @@
 ---
+purpose: "Container-image discipline standard. Mandates `gcr.io/distroless/static-debian13` (or `cc-debian13` for FFI), `musl` static linking where feasible, per-binary CI image-size budgets, Cosign keyless OIDC signing, Syft-generated SBOM."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -11,7 +16,7 @@ purpose: |
   image-size budgets, Cosign keyless OIDC signing, Syft-generated SBOM, and SLSA
   Level 2 provenance attestation. Implements MASTERPLAN Directive 5 (distroless
   + smallest-image containers) and Directive 6 (hyperscaler-bar).
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-image-discipline
 companion_docs:
   - docs/standards/security-review.md
@@ -25,7 +30,7 @@ related_adrs:
 
 # Image Discipline
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 Per MASTERPLAN Directive 5, production binaries are statically-linked Rust
 artifacts shipped in **distroless** containers — no shells, no package
@@ -46,7 +51,7 @@ standard supplies the per-image authoring rules.
 | Build stage (multi-stage) | `clux/muslrust:1.95.0-stable` | digest-pinned | musl toolchain for static linking |
 | Build stage (FFI) | `rust:1.95.0-slim-trixie` | digest-pinned | when musl is incompatible |
 
-Per [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md):
+Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md):
 **debian13 is current**; debian12 is deprecated (EOL ~Sep 2026). All new
 image work targets debian13; legacy debian12 images carry a tracked
 migration ADR.
@@ -247,6 +252,6 @@ trivy image --severity HIGH,CRITICAL --exit-code 1 --no-progress \
 - [muslrust](https://github.com/clux/muslrust),
   [cargo-zigbuild](https://github.com/rust-cross/cargo-zigbuild).
 - [Trivy](https://trivy.dev/).
-- [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md).
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md).
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 4 "Container images" + "Supply-chain".

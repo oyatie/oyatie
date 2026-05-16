@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Industrial Ot Write Emergency Stop
+doc_status: published
+---
+
 # Oyatie Runbook — Industrial Ot Write Emergency Stop
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

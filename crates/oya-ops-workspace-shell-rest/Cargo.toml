@@ -7,8 +7,8 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-ops-workspace-shell-application = { path = "../oya-ops-workspace-shell-application" }
 oya-ops-workspace-shell-adapter = { path = "../oya-ops-workspace-shell-adapter" }
+oya-ops-workspace-shell-usecase = { path = "../oya-ops-workspace-shell-usecase" }
 oya-ops-workspace-shell-kernel = { path = "../oya-ops-workspace-shell-kernel" }
 
 
@@ -16,3 +16,6 @@ oya-ops-workspace-shell-kernel = { path = "../oya-ops-workspace-shell-kernel" }
 name = "oya_ops_workspace_shell_rest"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

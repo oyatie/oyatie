@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::{Duration, Instant, SystemTime};
 
-use crate::command_output::{json_escape, OutputFormat as DevCheckOutputFormat};
+use crate::command_output::{OutputFormat as DevCheckOutputFormat, json_escape};
 use crate::command_process::{process_status_label, replay_process_output};
 
 pub(super) fn run(args: Vec<String>, usage: &str) -> ExitCode {
@@ -86,11 +86,11 @@ fn run_doc_rustdoc(args: DocRustdocArgs) -> ExitCode {
         }
     };
 
-    if args.clean_target_dir {
-        if let Err(message) = clean_rustdoc_target_dir(&args.target_dir) {
-            eprintln!("rustdoc generation failed: {message}");
-            return ExitCode::FAILURE;
-        }
+    if args.clean_target_dir
+        && let Err(message) = clean_rustdoc_target_dir(&args.target_dir)
+    {
+        eprintln!("rustdoc generation failed: {message}");
+        return ExitCode::FAILURE;
     }
 
     let output = match std::process::Command::new(&args.cargo_path)

@@ -5,17 +5,19 @@ status: Accepted
 date: 2026-05-13
 accepted_at: 2026-05-13 (commit b4eb035 / iter-5i)
 created_by: ralplan --consensus --architect codex --critic codex --deliberate
-authority_chain: docs/MASTERPLAN.md → ADR-0063 → ADR-0064 → this plan
+authority_chain: "docs/MASTERPLAN.md \u2192 ADR-0063 \u2192 ADR-0064 \u2192 this plan"
 companion_docs:
-  - docs/MASTERPLAN.md (iteration 5+; canonical masterplan)
-  - docs/decisions/ADR-0063-documentation-suite-coverage.md
-  - docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
-  - .omc/plans/M01-M03-parallelization-manifest.md
-  - .omc/goals/implement-masterplan.md
-horizon: M02-substrate → M03-first-tenant → M04-healthcare-kr → M05-connect-personal → M06-fintech-kr → M07-industrial-kr → M08-enterprise-breadth → M09-us-expansion → M10-eu-expansion → M11-healthcare-intl → M12-hyperscaler-maturity
+- docs/MASTERPLAN.md (iteration 5+; canonical masterplan)
+- docs/decisions/ADR-0063-documentation-suite-coverage.md
+- docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
+- .omc/plans/M01-M03-parallelization-manifest.md
+- /evidence/goals/implement-masterplan.md
+horizon: "M02-substrate \u2192 M03-first-tenant \u2192 M04-healthcare-kr \u2192 M05-connect-personal\
+  \ \u2192 M06-fintech-kr \u2192 M07-industrial-kr \u2192 M08-enterprise-breadth \u2192\
+  \ M09-us-expansion \u2192 M10-eu-expansion \u2192 M11-healthcare-intl \u2192 M12-hyperscaler-maturity"
 codex_model: gpt-5.5 / xhigh
+purpose: Auto-backfilled purpose for consensus-masterplan-2026-05-13.md
 ---
-
 # Consensus Plan: Oyatie masterplan extension (M01 → M12+)
 
 ## §Decision
@@ -73,7 +75,7 @@ test -f docs/decisions/ADR-0064-canonical-base-and-localization-packs.md
 test -f docs/localization-packs/INDEX.md
 test -f docs/localization-packs/kr.md
 test -f docs/localization-packs/kr/pack.yaml
-test -f .omc/goals/implement-masterplan.md
+test -f /evidence/goals/implement-masterplan.md
 test -f .omc/plans/M01-M03-parallelization-manifest.md
 icm recall -t context-oyatie -q "ralplan masterplan consensus" --limit 3  # consensus rows present
 ```

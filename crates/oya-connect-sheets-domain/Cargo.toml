@@ -14,3 +14,6 @@ oya-connect-collab-runtime-domain = { path = "../oya-connect-collab-runtime-doma
 name = "oya_connect_sheets_domain"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Payroll Run Failure
+doc_status: published
+---
+
 # Oyatie Runbook — Payroll Run Failure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

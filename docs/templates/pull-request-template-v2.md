@@ -19,6 +19,7 @@ adrs_cited:
   - ADR-0053  # sanctioned primitives (agent path)
   - ADR-0054  # scaffold-claim pattern (grit-claim symbols)
 rfc_2119_active: true
+doc_status: published
 ---
 
 <!-- Supersedes prior docs/templates/pull-request-template.md once reviewed. -->
@@ -36,7 +37,7 @@ rfc_2119_active: true
 
 <!-- agent-instructions:start -->
 **Agent path** (read this fork if you are a Claude/Codex/Gemini/Foundry agent):
-- Authoring a PR **MUST** use only sanctioned primitives `{grit, icm, oya-tooling-agent-read}` per ADR-0053. Direct `git`/`gh` invocation requires the documented carve-out **AND** `icm store -t direct-tool-invocations -c "<rationale>" -i high -k "git|gh,<context>"` BEFORE execution.
+- Authoring a PR **MUST** use only sanctioned primitives `{grit, icm, oya-tooling-agent-read}` per ADR-0053. Direct VCS/forge invocation requires the documented carve-out **AND** `icm store -t direct-tool-invocations -c "<rationale>" -i high -k "direct-tool,<context>"` BEFORE execution.
 - The `## Verification` block **MUST** paste actual tool output, not a hand-wave. Use `oya-tooling-agent-read run-evidence <cmd>` and paste the captured stdout/stderr.
 - The `## Code Review` H2 **MUST NOT** be added by the worker agent; only the lead reviewer agent (per change-class table in `docs/AGENTS.md §Per-change-class reviewer agents`) signs it at merge time. Adding it as a worker is a `guard-pr-merge-review.mjs` violation.
 <!-- agent-instructions:end -->
@@ -50,7 +51,7 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 - `cargo nextest run --workspace --all-features --no-fail-fast` — `<PASS|FAIL>` — `<excerpt>`
 - `cargo clippy --workspace --all-features --all-targets -- -D warnings` — `<PASS|FAIL>` — `<excerpt>`
 - `cargo deny check` — `<PASS|FAIL>` — `<excerpt>`
-- `repoctl pre-push` — `<PASS|FAIL>` — `<excerpt>`
+- `oya verify` — `<PASS|FAIL>` — `<excerpt>`
 - `oya gate validate` — `<PASS|FAIL>` — `<excerpt>` (claim-ceiling, foundation-bypass, plane-class)
 - Per-change-class fitness lanes: `<list lanes + PASS|FAIL each>`
 - Per-change-class reviewer agent: `<agent-name>` — verdict `<APPROVE|REQUEST CHANGES>`

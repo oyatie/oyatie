@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Gl Reconciliation
+doc_status: published
+---
+
 # Oyatie Runbook — Gl Reconciliation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

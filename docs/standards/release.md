@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Release Standard
+doc_status: published
+---
+
 # Oyatie — Release Standard
 
 > **Owner:** `ops-sre-reliability` + `axis-foundry`.
@@ -13,7 +18,7 @@
 
 ## 2. Pre-release verification
 
-Per `/oya-release-verify` (formerly `/oyatie-release-verify`):
+Per `/oya-release-verify` (formerly `/oya-release-verify`):
 
 1. ☐ All CI lanes green on the release tag SHA per [RELEASE-MANAGEMENT.md §2](../RELEASE-MANAGEMENT.md)
 2. ☐ SBOM generated + Cosign-signed + Rekor-anchored per ADR-0039
@@ -41,7 +46,7 @@ Per `/oya-release-verify` (formerly `/oyatie-release-verify`):
 - Skip: weekly cadence
 - Cherry-pick to `main` post-merge
 
-## 5. Per-axis release exceptions
+## 5. Per-axis release extensions
 
 - **Foundry capabilities**: per-capability semver + sunset per ADR-0037; eval-set pass per release per ADR-0024
 - **Cloud control plane**: stricter API versioning per ADR-0037; major bumps with 12-month deprecation

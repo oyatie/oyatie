@@ -5,27 +5,27 @@ milestone: M03-first-paying-tenant
 phase: P06-application-b2b-live
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M03/P01-hr through P05-connect-pro-messenger complete (all µservices ship);
-  oya-tenancy-kernel + oya-identity-kernel ship (M02 substrate);
-  Cedar policy engine bootstrapped; Workflow event bus operational.
-exit_gate: |
-  All IP acceptance gates green; OIDC sign-in round-trip test green; two-cookie contract met (ADR-0123);
-  HR/Payroll/Connect-Pro product enable/disable triggers ProductEnabled/ProductDisabled Workflow events;
-  EmployeeHired → TenantUser created ≤5s;
-  tenant onboarding sub-5-min activation verified (end-to-end Playwright test);
-  shell frame p99 ≤100ms at 10k concurrent sessions;
-  `oya gate validate lean-a2 --ms application` exits 0;
-  `oya gate validate cedar-policy --ms application` exits 0;
-  grit done on all P06 symbols; ICM phase-handoff row emitted.
+entry_gate: "M03/P01-hr through P05-connect-pro-messenger complete (all \xB5services\
+  \ ship);\noya-tenancy-kernel + oya-identity-kernel ship (M02 substrate);\nCedar\
+  \ policy engine bootstrapped; Workflow event bus operational.\n"
+exit_gate: "All IP acceptance gates green; OIDC sign-in round-trip test green; two-cookie\
+  \ contract met (ADR-0123);\nHR/Payroll/Connect-Pro product enable/disable triggers\
+  \ ProductEnabled/ProductDisabled Workflow events;\nEmployeeHired \u2192 TenantUser\
+  \ created \u22645s;\ntenant onboarding sub-5-min activation verified (end-to-end\
+  \ Playwright test);\nshell frame p99 \u2264100ms at 10k concurrent sessions;\n`oya\
+  \ gate validate lean-a2 --ms application` exits 0;\n`oya gate validate cedar-policy\
+  \ --ms application` exits 0;\ngrit done on all P06 symbols; ICM phase-handoff row\
+  \ emitted.\n"
 depends_on:
-  - milestone: M03
-    phase: P05-connect-pro-messenger
-    reason: "Application shell enables the M03 µservices (HR/Payroll/Accounting/Connect-Pro); all µservice REST APIs must exist before product-enablement toggles can route to them."
+- milestone: M03
+  phase: P05-connect-pro-messenger
+  reason: "Application shell enables the M03 \xB5services (HR/Payroll/Accounting/Connect-Pro);\
+    \ all \xB5service REST APIs must exist before product-enablement toggles can route\
+    \ to them."
 parallel_wave: 4
 owner_team: council-architecture
+purpose: "Delivers the `oya-application-*` µservice: the B2B unified shell through which KR group tenants sign in (OIDC/SAML SSO."
 ---
-
 # P06-application-b2b-live: Application B2B shell — OIDC/SAML SSO, product-enablement console, tenant onboarding, Leptos SSR
 
 ## Purpose

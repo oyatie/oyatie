@@ -6,12 +6,12 @@
 
 use std::collections::BTreeMap;
 
-use oya_cloud_compute_kernel::{
+use oya_cloud_compute_domain::{
     CloudComputeCatalog, CloudComputeError, ComputeRepo, FunctionInvocationReceipt,
     FunctionInvocationRequest,
 };
-use oya_cloud_resource_kernel::ResourceId;
-use oya_platform_data_boundary_kernel::{parse_data_class_label, DataClass};
+use oya_cloud_resource_domain::ResourceId;
+use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE: &str = "cloud.compute.functions.invoke";
 

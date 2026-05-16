@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P09-IP-003
 title: mdbook publishing integration
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Wire architecture-map output into mdbook publishing pipeline.
@@ -49,4 +52,7 @@ icm store -t context-oyatie -c 'M-CC-P09-IP-003 mdbook publishing integration sh
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- `wire_architecture_map` returns a new site (consume + replace) — the published-site value cannot be partially mutated; either both chapters list AND kind counts update, or neither.
+- Empty `architecture_map_path` is `Err`, not "silently appends an empty chapter" — a misconfigured runner fails loudly.
+- Reuses the same `(kind, path)` sort key as `walk_sources` so wiring the map doesn't disturb the published order beyond inserting the new chapter.

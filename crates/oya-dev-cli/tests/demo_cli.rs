@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -45,24 +49,36 @@ fn demo_can_persist_and_replay_audit_ledger() {
     assert!(stdout.contains("step_persisted=true"));
     assert!(stdout.contains("outbox_persisted=true"));
     assert!(stdout.contains("secret_persisted=true"));
-    assert!(fs::read_to_string(&audit_path)
-        .expect("ledger written")
-        .contains("foundry.capability.invoke"));
-    assert!(fs::read_to_string(&audit_path)
-        .expect("ledger written")
-        .contains("foundry.mcp.tools.list"));
-    assert!(fs::read_to_string(&evidence_path)
-        .expect("evidence store written")
-        .contains("cap.demo.readiness"));
-    assert!(fs::read_to_string(&run_path)
-        .expect("run ledger written")
-        .contains("run_000000000001"));
-    assert!(fs::read_to_string(&step_path)
-        .expect("step ledger written")
-        .contains("step_000000000001_000001"));
-    assert!(fs::read_to_string(&outbox_path)
-        .expect("outbox store written")
-        .contains("oya.demo.readiness.v1"));
+    assert!(
+        fs::read_to_string(&audit_path)
+            .expect("ledger written")
+            .contains("foundry.capability.invoke")
+    );
+    assert!(
+        fs::read_to_string(&audit_path)
+            .expect("ledger written")
+            .contains("foundry.mcp.tools.list")
+    );
+    assert!(
+        fs::read_to_string(&evidence_path)
+            .expect("evidence store written")
+            .contains("cap.demo.readiness")
+    );
+    assert!(
+        fs::read_to_string(&run_path)
+            .expect("run ledger written")
+            .contains("run_000000000001")
+    );
+    assert!(
+        fs::read_to_string(&step_path)
+            .expect("step ledger written")
+            .contains("step_000000000001_000001")
+    );
+    assert!(
+        fs::read_to_string(&outbox_path)
+            .expect("outbox store written")
+            .contains("oya.demo.readiness.v1")
+    );
     let secret_store = fs::read_to_string(&secret_path).expect("secret store written");
     assert!(secret_store.contains("cap.demo.readiness"));
     assert!(!secret_store.contains("sk-demo-provider-key"));

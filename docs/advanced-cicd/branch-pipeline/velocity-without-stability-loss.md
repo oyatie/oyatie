@@ -15,6 +15,7 @@ enforced_by:
   - oya-foundry-fitness-canary-regression-sla
   - oya-foundry-fitness-promotion-gate-staging-to-prod
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Velocity Without Stability Loss — The Trade-Off Doc
@@ -23,7 +24,7 @@ related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 
 ## 1. The deliberate deviation
 
-Hyperscaler default (Google, Microsoft per `.omc/specs/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy) is **trunk-based development** — one long-lived branch, short-lived feature branches, every merge gated by reviewer + green CI. DORA research identifies TBD as an elite-engineering-org capability.
+Hyperscaler default (Google, Microsoft per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` §branch-merge-strategy) is **trunk-based development** — one long-lived branch, short-lived feature branches, every merge gated by reviewer + green CI. DORA research identifies TBD as an elite-engineering-org capability.
 
 Oyatie deliberately deviates by adopting a **four-layer** model and placing gates **asymmetrically**:
 

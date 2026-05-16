@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for M02-substrate-schema-foundation.md
+---
+
+---
 title: M02 Substrate Schema Foundation
 status: draft (will evolve through Wave 2 Phase SPEC authoring)
 authority: feedback_clean_architecture_requirements.md + feedback_workflow_objectgraph_adapter_layer.md

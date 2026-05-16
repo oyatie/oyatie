@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Regional Pack Onboarding
 
 > **When:** New regional pack onboarding (e.g. JP / US / EU / IN / BR / KSA / UAE / AU / SG / etc.) OR existing pack version bump.

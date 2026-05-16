@@ -11,6 +11,7 @@ purpose: |
 enforced_by: oya-foundry-fitness-orphan-detection
 related_adrs: [ADR-0040, ADR-0042, ADR-0044, ADR-0050, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
+doc_status: published
 ---
 
 # Progressive-Delivery + SLO-Burn-Rate-Rollback Architecture — Index

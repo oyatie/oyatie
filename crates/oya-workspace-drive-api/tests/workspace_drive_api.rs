@@ -1,3 +1,7 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_workspace_drive_api::{
     get_workspace_drive_object_from_api, put_workspace_drive_object_from_api,
     WorkspaceDriveApiAuthorization, WorkspaceDriveApiError, WorkspaceDriveApiPrincipal,

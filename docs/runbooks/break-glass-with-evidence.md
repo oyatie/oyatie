@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Break Glass With Evidence
+doc_status: published
+---
+
 # Oyatie Runbook — Break Glass With Evidence
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

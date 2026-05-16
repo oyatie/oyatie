@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: Wave-gate passing
 
 > **When:** When a wave-tactical team believes the wave's exit criteria are met. The gate is BLOCKING; no later wave starts until this passes.

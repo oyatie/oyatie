@@ -14,6 +14,7 @@ enforced_by:
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0040, ADR-0020, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
+doc_status: published
 ---
 
 # Feature-Flag Architecture — Oyatie

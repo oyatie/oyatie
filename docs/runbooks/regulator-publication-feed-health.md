@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Regulator Publication Feed Health
+doc_status: published
+---
+
 # Oyatie Runbook — Regulator Publication Feed Health
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

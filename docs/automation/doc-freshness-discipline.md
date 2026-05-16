@@ -20,6 +20,7 @@ companion_docs:
   - INDEX.md
   - runbook-freshness-pipeline.md
   - ../../docs/DOC-CATALOG.md
+doc_status: published
 ---
 
 # Discipline: doc freshness

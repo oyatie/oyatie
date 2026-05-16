@@ -1,4 +1,8 @@
 ---
+purpose: Auto-backfilled purpose for M01-M03-parallelization-manifest.md
+---
+
+---
 title: M01-M03 Parallelization Manifest
 status: canonical
 authority: feedback_autonomous_decision_principles.md + feedback_milestone_phase_hierarchy.md

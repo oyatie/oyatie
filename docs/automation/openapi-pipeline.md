@@ -18,6 +18,7 @@ extends_crates:
 companion_docs:
   - INDEX.md
   - rustdoc-pipeline.md
+doc_status: published
 ---
 
 # Pipeline: OpenAPI auto-publish

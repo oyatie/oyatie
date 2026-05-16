@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — External Dep Onboarding
+doc_status: published
+---
+
 # Oyatie Runbook — External Dep Onboarding
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

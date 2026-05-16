@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Fitness Lane: image-size-budget
 
 - status: Accepted

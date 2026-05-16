@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Checklist — New Team Onboarding
 
 > **Trigger:** new team formed

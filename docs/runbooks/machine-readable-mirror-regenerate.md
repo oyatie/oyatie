@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Machine Readable Mirror Regenerate
+doc_status: published
+---
+
 # Oyatie Runbook — Machine Readable Mirror Regenerate
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

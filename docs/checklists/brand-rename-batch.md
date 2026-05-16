@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Checklist — Brand Rename Batch
 
 > **Trigger:** per-batch (17 batches per ADR-0017)

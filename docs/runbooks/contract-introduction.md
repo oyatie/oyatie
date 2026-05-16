@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Contract Introduction
+doc_status: published
+---
+
 # Oyatie Runbook — Contract Introduction
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

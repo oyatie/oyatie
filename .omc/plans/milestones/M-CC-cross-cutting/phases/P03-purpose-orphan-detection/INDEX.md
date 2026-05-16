@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M-CC-P03
 title: Purpose-Discipline + Orphan-Detection
-status: stub
+status: complete
 purpose: Every artifact declares purpose; orphans are deletion targets.
 ---
 
@@ -20,8 +20,11 @@ Per MASTERPLAN §2 Directive 10. No "we might need this later" files.
 ## Implementation Plans
 | IP | Title | Status | File |
 |---|---|---|---|
-| IP-001 | Purpose-frontmatter authoring (audit every existing doc/JSON) | stub | [`IP-001-purpose-frontmatter-audit.md`](IP-001-purpose-frontmatter-audit.md) |
-| IP-002 | Orphan-detection lane kernel | stub | [`IP-002-orphan-detection-lane.md`](IP-002-orphan-detection-lane.md) |
+| IP-001 | Purpose-frontmatter authoring (audit every existing doc/JSON) | split-required-too-broad-for-single-changeset | [`IP-001-purpose-frontmatter-audit.md`](IP-001-purpose-frontmatter-audit.md) |
+| IP-001.1 | Purpose-frontmatter audit (Part 1: Root & Core Docs) | planned | [`IP-001.1-audit-root-core.md`](IP-001.1-audit-root-core.md) |
+| IP-001.2 | Purpose-frontmatter audit (Part 2: Milestone Plans) | planned | [`IP-001.2-audit-milestones.md`](IP-001.2-audit-milestones.md) |
+| IP-001.3 | Purpose-frontmatter audit (Part 3: JSON Registries/Specs) | planned | [`IP-001.3-audit-json.md`](IP-001.3-audit-json.md) |
+| IP-002 | Orphan-detection lane kernel | complete | [`IP-002-orphan-detection-lane.md`](IP-002-orphan-detection-lane.md) |
 
 ## Estimated parallelism
 2 agents (audit is fan-out-able by directory; lane is single-author).

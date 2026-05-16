@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Sdk Regen Failure
+doc_status: published
+---
+
 # Oyatie Runbook — Sdk Regen Failure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

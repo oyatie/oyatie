@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Claim Ceiling Bypass Expiry
+doc_status: published
+---
+
 # Oyatie Runbook — Claim Ceiling Bypass Expiry
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

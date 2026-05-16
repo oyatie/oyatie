@@ -16,6 +16,7 @@ adrs_cited:
   - ADR-0052  # inventory ledger (migration pre-flight)
   - ADR-0053  # sanctioned primitives (agent tool restrictions)
   - ADR-0054  # scaffold-claim (symbol pre-flight)
+doc_status: published
 ---
 
 # Pre-flight Checklist

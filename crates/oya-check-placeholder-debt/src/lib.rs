@@ -1,4 +1,7 @@
 //! Foundry placeholder-debt fitness kernel.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -81,12 +84,12 @@ where
                     record_id: key.id(),
                     expected: record.occurrences,
                     actual: *actual,
-                })
+                });
             }
             None => {
                 return Err(PlaceholderDebtError::NewPlaceholderOutsideRegistry {
                     record_id: key.id(),
-                })
+                });
             }
         }
     }

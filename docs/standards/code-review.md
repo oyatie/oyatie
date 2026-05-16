@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Code Review Standard
+doc_status: published
+---
+
 # Oyatie — Code Review Standard
 
 > **Status:** Draft v0.1 — 2026-05-09.

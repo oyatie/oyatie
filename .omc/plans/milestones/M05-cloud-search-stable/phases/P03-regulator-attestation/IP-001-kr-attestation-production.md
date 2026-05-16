@@ -4,6 +4,9 @@ parent: ./INDEX.md
 id: M05-P03-IP-001
 title: KR CSAP + K-ISMS-P + KCMVP production attestation
 status: stub
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Achieve full KR regulator attestation in production.

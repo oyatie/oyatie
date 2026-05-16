@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Dsr Cascade With Evidence
+doc_status: published
+---
+
 # Oyatie Runbook — Dsr Cascade With Evidence
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

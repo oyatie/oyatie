@@ -5,37 +5,52 @@ milestone: M02-substrate
 phase: P19-application
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02/P02-ontology complete; M02/P12-workflow-engine complete; M02/P03-identity
-  complete; M02/P13-tenancy complete (TenantProductRegistry live); M02/P14-policy
-  complete (Cedar engine live); cargo check clean across workspace; grit done on
-  all P02/P03/P12/P13/P14 symbols; ICM phase-handoff rows emitted.
-exit_gate: |
-  All P19 impl-plan acceptance gates green; 5 BCs registered (product-enablement,
-  tenant-navigation, branding, product-launchpad, sso-hub); Leptos web shell
-  compiles and serves; per-tenant product catalog rendered from TenantProductRegistry;
-  SSO hub wired per Bominal ADR-0123; all crates pass cargo check/build/clippy/
-  nextest/deny; oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on all P19
-  symbols; ICM phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P02-ontology
-    reason: "Application shell reads Ontology object types to build product navigation entries; tenant dashboard state stored as Ontology objects."
-  - milestone: M02
-    phase: P12-workflow-engine
-    reason: "Application shell integrates workflow run status into tenant navigation (active workflows visible from shell)."
-  - milestone: M02
-    phase: P03-identity
-    reason: "SSO hub wired through identity SessionStore + AuthChallenger ports; per-tenant admin user management."
-  - milestone: M02
-    phase: P13-tenancy
-    reason: "Product-enablement BC reads TenantProductRegistry to build the per-tenant product catalog; branding BC reads tenant tier."
-  - milestone: M02
-    phase: P14-policy
-    reason: "Every shell navigation action authorized through PolicyEvaluator; product-launchpad respects Cedar allow/deny per principal."
-owner_team: council-architecture
----
+entry_gate: 'M02/P02-ontology complete; M02/P12-workflow-engine complete; M02/P03-identity
 
+  complete; M02/P13-tenancy complete (TenantProductRegistry live); M02/P14-policy
+
+  complete (Cedar engine live); cargo check clean across workspace; grit done on
+
+  all P02/P03/P12/P13/P14 symbols; ICM phase-handoff rows emitted.
+
+  '
+exit_gate: 'All P19 impl-plan acceptance gates green; 5 BCs registered (product-enablement,
+
+  tenant-navigation, branding, product-launchpad, sso-hub); Leptos web shell
+
+  compiles and serves; per-tenant product catalog rendered from TenantProductRegistry;
+
+  SSO hub wired per Bominal ADR-0123; all crates pass cargo check/build/clippy/
+
+  nextest/deny; oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on all P19
+
+  symbols; ICM phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P02-ontology
+  reason: Application shell reads Ontology object types to build product navigation
+    entries; tenant dashboard state stored as Ontology objects.
+- milestone: M02
+  phase: P12-workflow-engine
+  reason: Application shell integrates workflow run status into tenant navigation
+    (active workflows visible from shell).
+- milestone: M02
+  phase: P03-identity
+  reason: SSO hub wired through identity SessionStore + AuthChallenger ports; per-tenant
+    admin user management.
+- milestone: M02
+  phase: P13-tenancy
+  reason: Product-enablement BC reads TenantProductRegistry to build the per-tenant
+    product catalog; branding BC reads tenant tier.
+- milestone: M02
+  phase: P14-policy
+  reason: Every shell navigation action authorized through PolicyEvaluator; product-launchpad
+    respects Cedar allow/deny per principal.
+owner_team: council-architecture
+purpose: "Delivers the Application B2B unified shell substrate: the Leptos web shell that serves as the single entry point for all B2B tenants."
+---
 # P19-application: Application B2B Unified Shell Substrate — Product-Enablement + Tenant Navigation + Branding + Launchpad + SSO Hub
 
 ## Purpose

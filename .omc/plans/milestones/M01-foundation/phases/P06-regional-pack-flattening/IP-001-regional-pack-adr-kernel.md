@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P06-IP-001
 title: Regional Pack ADR + kernel
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Author the regional-pack ADR + ship the kernel that pack contracts plug into.
@@ -16,9 +19,9 @@ Author the regional-pack ADR + ship the kernel that pack contracts plug into.
 
 ## Symbols-to-grit-claim
 ```
-docs/decisions/ADR-XXXX-regional-pack-architecture.md::Decision
-crates/oya-platform-regional-pack-kernel/src/lib.rs::RegionalPack
-crates/oya-platform-regional-pack-kernel/src/lib.rs::register_pack
+docs/decisions/ADR-0010-regional-pack-architecture.md::Decision
+crates/oya-regional-pack-domain/src/lib.rs::RegionalPack
+crates/oya-regional-pack-domain/src/lib.rs::RegionalPackError
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -27,8 +30,8 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 
 ## Acceptance-test-commands
 ```
-cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo test --locked -p oya-regional-pack-domain
+cargo clippy --locked -p oya-regional-pack-domain --all-targets -- -D warnings
 scripts/check.sh
 ```
 

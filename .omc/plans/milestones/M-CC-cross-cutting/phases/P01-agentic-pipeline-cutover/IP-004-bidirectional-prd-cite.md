@@ -3,7 +3,11 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-004
 title: Bidirectional PRD citation + portfolio-citation lane (P3)
-status: stub
+status: complete
+migration_status: cleanup
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Cross-cite oyatie/docs/PRD.md and bominal/docs/consolidated/PRD.md; ship portfolio-citation lane.

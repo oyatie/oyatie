@@ -4,9 +4,10 @@ shape: snapshot
 status: Living
 date: 2026-05-13
 auto_emitted_by: oya-check-documentation-cli (LEAN-A5)
-authority_chain: docs/MASTERPLAN.md §13.5 → ADR-0063 → this file
+authority_chain: "docs/MASTERPLAN.md \xA713.5 \u2192 ADR-0063 \u2192 this file"
+purpose: "This file is the canonical coverage snapshot for the oyatie documentation suite contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation suite."
+doc_status: published
 ---
-
 # Documentation Suite Coverage Matrix
 
 This file is the canonical coverage snapshot for the oyatie documentation suite contract. Per ADR-0063, every µservice in `[workspace.metadata.oya.microservices]` must have a complete documentation suite. This file is **auto-emitted by `oya-check-documentation-cli`** (LEAN-A5) on every PR; hand-edits get overwritten.

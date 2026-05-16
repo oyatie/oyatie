@@ -18,6 +18,7 @@ companion_docs:
   - INDEX.md
   - architecture-map-kernel-spec.md
   - roadmap-visualization-spec.md
+doc_status: published
 ---
 
 # Visualization spec: product map

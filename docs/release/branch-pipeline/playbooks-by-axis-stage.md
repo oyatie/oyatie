@@ -13,6 +13,7 @@ enforced_by:
   - oya-foundry-fitness-promotion-gate-staging-to-prod
 related_adrs: [ADR-0001, ADR-0040, ADR-0041, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
+doc_status: published
 ---
 
 # Playbooks By Axis × Stage

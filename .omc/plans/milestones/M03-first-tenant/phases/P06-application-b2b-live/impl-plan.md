@@ -1,3 +1,8 @@
+---
+purpose: "P06 — Application B2B Shell Live: Implementation Plan"
+status: in-progress
+---
+
 # P06 — Application B2B Shell Live: Implementation Plan
 
 ## Metadata

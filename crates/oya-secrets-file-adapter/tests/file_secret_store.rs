@@ -1,11 +1,13 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_platform_secrets_adapter_file::{
-    FileSecretMetadata, FileSecretStore, FileSecretStoreError,
-};
-use oya_platform_secrets_kernel::{SecretMaterial, SecretRef, SecretVault};
+use oya_secrets_domain::{SecretMaterial, SecretRef, SecretVault};
+use oya_secrets_file_adapter::{FileSecretMetadata, FileSecretStore, FileSecretStoreError};
 
 #[test]
 fn file_secret_store_persists_metadata_without_reversible_secret_material() {
@@ -60,9 +62,11 @@ fn file_secret_store_persists_metadata_without_reversible_secret_material() {
         store.load(),
         Err(FileSecretStoreError::SecretMaterialUnavailable)
     );
-    assert!(store
-        .matches_vault_metadata(&vault)
-        .expect("metadata comparison works"));
+    assert!(
+        store
+            .matches_vault_metadata(&vault)
+            .expect("metadata comparison works")
+    );
 
     fs::remove_file(path).ok();
 }

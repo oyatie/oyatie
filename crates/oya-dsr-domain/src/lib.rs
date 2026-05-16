@@ -5,10 +5,13 @@
 //! `docs/SPEC.md`, and `docs/machine-readable/contracts.json`. This kernel owns
 //! typed invariants only; platform apps own orchestration, audit-chain append,
 //! queueing, and trust portal publication.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const DSR_REQUEST_SCHEMA_VERSION: u32 = 1;
 const DSR_STORE_REF_SCHEMA_VERSION: u32 = 1;
@@ -530,13 +533,12 @@ impl DsrCompletionRecord {
 }
 
 pub fn subject_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    // ADR-0083 Tier 1: use kernel's infallible `pii_identifying()` constructor.
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn default_platform_dsr_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::PiiIdentifying)
-        .expect("PII_IDENTIFYING is a privacy-program data class")
+    PrivacyDataClass::pii_identifying()
 }
 
 pub fn platform_dsr_data_class_from_legacy(
@@ -842,7 +844,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_platform_data_boundary_kernel::{DataClassification, OperationalDataClass};
+    use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
         PrivacyDataClass::new(data_class).unwrap()
@@ -951,6 +953,38 @@ mod tests {
         assert_eq!(
             request.subject_ref.data_class,
             DataClassification::Privacy(subject_data_class())
+        );
+        assert_eq!(DsrSlaTier::Preview.max_seconds(), 30 * DAY_SECONDS);
+        assert_eq!(
+            DsrRequest::new(DsrRequestCreate {
+                dsr_id: "dsr-preview-max".into(),
+                tenant_id: "tenant-1".into(),
+                region: "us-east-1".into(),
+                subject_ref: "subject-1".into(),
+                action: DsrAction::Erase,
+                sla_tier: DsrSlaTier::Preview,
+                data_classes: vec![privacy(DataClass::PiiIdentifying)],
+                received_at_epoch_seconds: 1_700_000_000,
+                deadline_epoch_seconds: 1_700_000_000 + DsrSlaTier::Preview.max_seconds(),
+            })
+            .unwrap()
+            .deadline_epoch_seconds
+            .value,
+            1_700_000_000 + (30 * DAY_SECONDS)
+        );
+        assert_eq!(
+            DsrRequest::new(DsrRequestCreate {
+                dsr_id: "dsr-preview-late".into(),
+                tenant_id: "tenant-1".into(),
+                region: "us-east-1".into(),
+                subject_ref: "subject-1".into(),
+                action: DsrAction::Erase,
+                sla_tier: DsrSlaTier::Preview,
+                data_classes: vec![privacy(DataClass::PiiIdentifying)],
+                received_at_epoch_seconds: 1_700_000_000,
+                deadline_epoch_seconds: 1_700_000_000 + DsrSlaTier::Preview.max_seconds() + 1,
+            }),
+            Err(PlatformDsrError::DeadlineExceedsSla)
         );
 
         assert_eq!(

@@ -14,6 +14,7 @@ enforced_by:
   - oya-foundry-fitness-slo-coverage
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0040, ADR-0042, ADR-0037]
+doc_status: published
 ---
 
 # SLO Burn-Rate Rollback Specification

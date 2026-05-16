@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cell Failover Intra Region
+doc_status: published
+---
+
 # Oyatie Runbook — Cell Failover Intra Region
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

@@ -1,0 +1,127 @@
+{
+  "_schema_ref": "/specs/cross-cutting/active-machine-readable-artifact-contract.json#v3.0.0",
+  "_artifact_id": "microservices-registry",
+  "_meta": {
+    "doc_class": "Registry",
+    "purpose": "Machine-readable registry of all \u00b5services in the Oyatie ecosystem per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Replaces docs/microservices/*.md per markdown-retirement-policy PHASE-6. Each row declares \u00b5service id + owned BCs + canonical-base-only flag + product family. Consumers: workspace shell catalog-prelude (Wave 1 IP-X1), capability-registry coupling (HG-DOCS), DRY enforcement (block_id='microservice-catalog-row').",
+    "owner_team": "council-architecture + axis-foundry",
+    "version": "1.0.0",
+    "created_at": "2026-05-13T00:00:00Z",
+    "linus_critique_anchor": "Wave 1 IP-X1 catalog-prelude per ralplan-docs-portal v7 line 247 + M02-P19 + masterplan \u00a72.1 ops block",
+    "supersedes_markdown": [
+      "docs/microservices/ops.md (existing or planned; this row is canonical going forward)",
+      "docs/microservices/foundry.md (PHASE-6 migration target)",
+      "docs/microservices/connect.md (PHASE-6 migration target)",
+      "docs/microservices/application.md (PHASE-6 migration target)",
+      "docs/microservices/audit-chain.md + cloud-*.md + others (PHASE-6 batch)"
+    ]
+  },
+  "microservices": [
+    {
+      "microservice_id": "ops",
+      "purpose": "Hyperscaler operations console at ops.oyatie.com. 20 BCs across 7 Waves per ADR-0067 + ralplan-ops-portal v7 Accepted. Internal-foundry-facing with tenant-public overlays at Wave 5.",
+      "status": "planned-multi-wave",
+      "wave_inventory": {
+        "wave_1": "docs-portal + workspace (M03-P04..P06)",
+        "wave_2": "overview + dashboards + tech-stack + architecture (M03-P08)",
+        "wave_3": "database + schema (M03-P08)",
+        "wave_4": "observability-surface + health (M03-P12)",
+        "wave_5": "tenant-mgmt + user-mgmt + deployments + 12 Cedar fragments (M03-P08; v18 Accepted)",
+        "wave_5_5": "identity-mgmt expansion (M03-P10; planned)",
+        "wave_5_6": "deployments expansion (M03-P11; planned)",
+        "wave_5_7": "multi-region + DR (M04-P05; planned)",
+        "wave_6": "capacity + finops + on-call + incident (M04-P06; v1.0.0 JSON pending consensus)",
+        "wave_7": "audit-view + ICM-browser + grit-status + ci-runs + compliance + secrets + KMS + drift + flags + webhooks (M04-P07; planned)"
+      },
+      "canonical_base_only": false,
+      "owner_team": "council-foundry",
+      "consumer_facing_surface": "ops.oyatie.com (Leptos SSR per ADR-0065)",
+      "perf_authority": "ADR-0067 \u00a75 (SSR p99 \u2264500ms, SSE p99 \u22642s, 10k concurrent SSE)",
+      "cedar_visibility_tiers": [
+        "public",
+        "tenant-public",
+        "tenant-private",
+        "internal-public",
+        "internal-private",
+        "system-only"
+      ],
+      "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=ops)",
+      "plan_refs": [
+        ".omc/plans/ralplan-ops-portal-2026-05-13.md (parent v7 Accepted)",
+        ".omc/plans/ralplan-docs-portal-2026-05-13.md (Wave 1 v7 Accepted)",
+        ".omc/plans/ralplan-ops-wave-2-2026-05-13.md (v7)",
+        ".omc/plans/ralplan-ops-wave-3-2026-05-13.md (v5)",
+        ".omc/plans/ralplan-ops-wave-4-2026-05-13.md (v4)",
+        ".omc/plans/ralplan-ops-wave-5-2026-05-13.md (v18 Accepted)",
+        ".omc/plans/ralplan-ops-wave-6-2026-05-13.json (v1.0.0 pending)"
+      ]
+    },
+    {
+      "microservice_id": "foundry",
+      "purpose": "Internal engineering engine. Evidence + evaluation + capability registry + MCP gateway + run/step replay + catalog + policy + OpenAPI/mdBook validators + quality checks + agent-facing tooling.",
+      "status": "operational-partial (per existing crates + ADR-0088)",
+      "canonical_base_only": true,
+      "owner_team": "council-foundry",
+      "consumer_facing_surface": "internal-only via `oya check <name>` CLI",
+      "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=foundry)",
+      "plan_refs": [
+        "docs/decisions/ADR-0088-microservice-foundry.md"
+      ]
+    },
+    {
+      "microservice_id": "connect",
+      "purpose": "Dual-context communication and collaboration. Professional B2B + Personal B2C (deferred per crypto/privacy audit).",
+      "status": "scaffolded (per ADR-0087)",
+      "canonical_base_only": false,
+      "owner_team": "council-connect",
+      "consumer_facing_surface": "Connect Professional shell + Connect Personal (post-M03)",
+      "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=connect)",
+      "plan_refs": [
+        "docs/decisions/ADR-0087-microservice-connect.md"
+      ]
+    },
+    {
+      "microservice_id": "application",
+      "purpose": "B2B Application shell substrate per ADR-0061. Branding + product-enablement + tenant-navigation + SSO-hub + product-launchpad.",
+      "status": "operational-partial (per existing crates + ADR-0086)",
+      "canonical_base_only": false,
+      "owner_team": "council-architecture",
+      "consumer_facing_surface": "tenant-private workspace shell",
+      "owned_bounded_contexts_ref": "/registries/cross-cutting/bounded-contexts.json (filter microservice_id=application)",
+      "plan_refs": [
+        "docs/decisions/ADR-0086-microservice-application-scaffold.md"
+      ]
+    }
+  ],
+  "planned_backlog_microservices": [
+    "audit-chain (per ADR-0003)",
+    "tenancy",
+    "identity",
+    "data-boundary",
+    "policy",
+    "capability-registry",
+    "records",
+    "eventing",
+    "secrets",
+    "observability",
+    "kms",
+    "cloud-billing",
+    "cloud-cell",
+    "cloud-compute",
+    "cloud-iam",
+    "cloud-network",
+    "cloud-storage",
+    "cloud-tenancy",
+    "search",
+    "workflow-engine",
+    "ontology",
+    "ads-analytics",
+    "vertical-pack-kr"
+  ],
+  "honest_gaps": [
+    "Only 4 of ~27 microservices populated this slice (ops + foundry + connect + application). Remaining ~23 follow PHASE-6 migration when docs/microservices/<name>.md retire.",
+    "owned_bounded_contexts_ref is a SELECTOR (filter by microservice_id) \u2014 bounded-contexts.json registry must be queryable at validator runtime; today this is informational only.",
+    "Markdown retirement: docs/microservices/foundry.md / connect.md / application.md / others still exist in HEAD; PHASE-6 batches their migration with paired oya-check-doc-coverage check-crate refactor."
+  ],
+  "purpose": "Auto-backfilled purpose for microservices.json"
+}

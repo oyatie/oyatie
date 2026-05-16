@@ -1,4 +1,9 @@
 ---
+purpose: "Cross-cutting discipline for `<!-- agent-instructions:start -->` / `<!-- agent-instructions:end -->` fences in IPs, runbooks, ADRs, and standards."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -12,7 +17,7 @@ purpose: |
   inside fences unless the documented-rationale flow per Directive 12 is
   followed), and the dual-audience requirement (every fenced block has adjacent
   plain-English prose). Implements MASTERPLAN §7 dual-audience contract.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-agent-instructions-fence
 companion_docs:
   - docs/standards/doc-style.md
@@ -27,9 +32,9 @@ related_adrs:
 
 # Agent Instructions Discipline
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Do Item 4 (dual-audience for
+Per [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-04 (dual-audience for
 instructions) and MASTERPLAN §7, every artifact that contains agent-
 actionable instructions wraps them in a **stable HTML-comment fence**.
 The fence is machine-extractable and runs the banned-token grep narrowly
@@ -127,7 +132,7 @@ Lane: `oya-foundry-fitness-dual-audience` checks the adjacency rule.
 | Runbook | recommended for diagnostic / mitigation commands |
 | ADR | rare — fences are decision-execution artifacts, not decision records |
 | Standard (this directory) | rare — standards prescribe behavior, not direct execution |
-| Tier-1 strategy (CONSTITUTION, PRD, DESIGN) | forbidden — these are reading material, not execution |
+| Tier-1 strategy (PRD, DESIGN) | forbidden — these are reading material, not execution |
 | README, redirect files | forbidden |
 
 ## 6. Reviewer-agent inheritance
@@ -158,7 +163,7 @@ Per [`multi-agent-tool-map.md`](multi-agent-tool-map.md):
    Refused unconditionally.
 3. **Mixing rtk-prefixed and raw commands inside one fence.** Pick the
    harness target; mixing breaks the cross-harness portability rule.
-4. **Fence in a Tier-1 strategy doc** (CONSTITUTION, PRD, DESIGN).
+4. **Fence in a Tier-1 strategy doc** (PRD, DESIGN).
    Tier-1 docs are reading material. Move the directive to an IP /
    runbook and cite from the strategy doc.
 5. **Nested fences.** Refused by the shape lane.
@@ -213,8 +218,8 @@ The following block is a complete, conformant directive:
 
 - [`.omc/plans/MASTERPLAN.md`](../../.omc/plans/MASTERPLAN.md) §2 Directive 12 +
   §7 dual-audience contract.
-- [`docs/CONSTITUTION.md`](../CONSTITUTION.md) §Do Item 4 (dual audience).
+- [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-04 (dual audience).
 - [`docs/AGENTS.md`](../AGENTS.md) §PR shape, §Per-agent appendices.
 - [`docs/standards/doc-style.md`](doc-style.md) §3 (dual-audience rule).
 - [`docs/standards/git-workflow.md`](git-workflow.md) §4 (revised lane).
-- `ralplan-oyatie-sst-consolidation.md` §P4 (fence shape origin).
+- `SST consolidation ralplan` §P4 (fence shape origin).

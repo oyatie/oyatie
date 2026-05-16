@@ -1,0 +1,131 @@
+{
+  "audit_id": "m03-p01-audit-2026-05-14",
+  "phase": "M03-P01",
+  "phase_title": "Cloud Foundations (KMS / Storage / Network / IAM / Region / Cell)",
+  "auditor": "claude-a3-m03audit",
+  "date": "2026-05-14",
+  "branch": "oya-m02-m03-fanout",
+  "wave": "A",
+  "session": "A3",
+  "grit_claim_status": "FK_constraint_failed_ICM_fallback_per_ADR-0054",
+  "tally": {
+    "complete": 0,
+    "open": 5
+  },
+  "ips": [
+    {
+      "id": "M03-P01-IP-001",
+      "title": "Cloud KMS provider-agnostic API + adapter set",
+      "decision": "open",
+      "crates_audited": [
+        "oya-cloud-kms-api",
+        "oya-cloud-kms-domain"
+      ],
+      "test_exit": 0,
+      "clippy_exit": 0,
+      "implemented_symbols": [
+        "oya-cloud-kms-api::validate_cloud_kms_encrypt_request",
+        "oya-cloud-kms-api::validate_cloud_kms_decrypt_request",
+        "oya-cloud-kms-api::authorize_cloud_kms_encrypt_from_api",
+        "oya-cloud-kms-api::authorize_cloud_kms_decrypt_from_api",
+        "oya-cloud-kms-domain::KmsUseReceipt::encrypt",
+        "oya-cloud-kms-domain::KmsUseReceipt::decrypt"
+      ],
+      "missing_symbols": [
+        "oya-cloud-kms-adapter-openbao::OpenBaoKmsAdapter (crate does not exist)",
+        "oya-cloud-kms-adapter-aws::AwsKmsAdapter (crate does not exist)"
+      ],
+      "justification": "API surface implemented and green; the IP explicitly lists OpenBao + AWS adapter crates in symbols-to-grit-claim. Directive 4 (>=2 provider adapters per kernel) unmet. Real-gap."
+    },
+    {
+      "id": "M03-P01-IP-002",
+      "title": "Cloud Storage object + block API + adapter set",
+      "decision": "open",
+      "crates_audited": [
+        "oya-cloud-storage-object-api",
+        "oya-cloud-storage-block-api",
+        "oya-cloud-storage-domain"
+      ],
+      "test_exit": 0,
+      "clippy_exit": 0,
+      "implemented_symbols": [
+        "oya-cloud-storage-object-api::put_cloud_storage_object_from_api",
+        "oya-cloud-storage-object-api::get_cloud_storage_object_from_api",
+        "oya-cloud-storage-block-api::create_cloud_storage_block_volume_from_api"
+      ],
+      "missing_symbols": [
+        "oya-cloud-storage-adapter-s3::S3Adapter (crate does not exist)",
+        "oya-cloud-storage-adapter-gcs / -azure / -oci (none exist)"
+      ],
+      "justification": "Object + block API surfaces implemented and green. No provider adapter crates exist. Real-gap."
+    },
+    {
+      "id": "M03-P01-IP-003",
+      "title": "Cloud Network VPC + LB + DNS + CDN + interconnect API",
+      "decision": "open",
+      "crates_audited": [
+        "oya-cloud-network-vpc-api",
+        "oya-cloud-network-lb-api",
+        "oya-cloud-network-dns-api",
+        "oya-cloud-network-domain"
+      ],
+      "test_exit": 0,
+      "clippy_exit": 0,
+      "implemented_symbols": [
+        "oya-cloud-network-vpc-api::create_cloud_network_vpc_from_api",
+        "oya-cloud-network-lb-api::create_cloud_network_load_balancer_from_api",
+        "oya-cloud-network-dns-api::create_cloud_network_dns_zone_from_api"
+      ],
+      "missing_symbols": [
+        "oya-cloud-network-cdn-api::create_distribution (crate does not exist)",
+        "oya-cloud-network-interconnect-api::* (crate does not exist)",
+        "network provider adapter crates (none exist)"
+      ],
+      "justification": "Three of five network surfaces implemented; CDN + interconnect API crates absent. Real-gap."
+    },
+    {
+      "id": "M03-P01-IP-004",
+      "title": "Cloud IAM Cedar + SSO + STS API",
+      "decision": "open",
+      "crates_audited": [
+        "oya-cloud-iam-api",
+        "oya-cloud-iam-domain"
+      ],
+      "test_exit": 0,
+      "clippy_exit": 0,
+      "implemented_symbols": [
+        "oya-cloud-iam-api::create_cloud_iam_role_from_api",
+        "oya-cloud-iam-api::issue_cloud_iam_sts_token_from_api"
+      ],
+      "missing_symbols": [
+        "oya-cloud-iam-app::bind_cedar_policy (crate does not exist)",
+        "SSO/STS application-layer crate"
+      ],
+      "justification": "iam-api implements create_role and issue_sts_token. oya-cloud-iam-app crate not yet created; Cedar policy binding unimplemented at app layer. Real-gap."
+    },
+    {
+      "id": "M03-P01-IP-005",
+      "title": "Cloud region + AZ + cell taxonomy",
+      "decision": "open",
+      "crates_audited": [
+        "oya-cloud-region-api",
+        "oya-cloud-region-domain"
+      ],
+      "test_exit": 0,
+      "clippy_exit": 0,
+      "implemented_symbols": [
+        "oya-cloud-region-api::list_cloud_regions_from_api",
+        "oya-cloud-region-api::list_cloud_azs_from_api"
+      ],
+      "missing_symbols": [
+        "oya-cloud-region-app::cell_isolation_evidence (crate does not exist)"
+      ],
+      "justification": "list_regions + list_azs implemented and green. region-app crate (cell-isolation evidence emission) absent. Real-gap."
+    }
+  ],
+  "commands_executed": [
+    "cargo test -p oya-cloud-kms-api -p oya-cloud-kms-domain -p oya-cloud-storage-object-api -p oya-cloud-storage-block-api -p oya-cloud-network-vpc-api -p oya-cloud-network-lb-api -p oya-cloud-network-dns-api -p oya-cloud-iam-api -p oya-cloud-region-api  =>  exit 0 (92 tests passed across 17 suites)",
+    "cargo clippy -p <same set> --all-targets -- -D warnings  =>  exit 0 (no issues)"
+  ],
+  "purpose": "Auto-backfilled purpose for m03-p01-audit-2026-05-14.json"
+}

@@ -5,21 +5,23 @@ milestone: M01-foundation
 phase: P05-post-cutover-hardening
 impl_plan_id: IP-001-lean-flip-quality-scaffold
 status: pending
+migration_status: pre-cutover
 owner: council-architecture
 blocked_by:
-  - impl_plan: P02/IP-001-shard-1-atomic-rename
-    reason: "LEAN check crates must be at v4.1 names before flip to BLOCKER"
-  - impl_plan: P03/IP-001-shard-1-5-protocol-rename
-    reason: "All protocol layers must be final before LEAN-A1 layer-correctness goes BLOCKER"
-  - impl_plan: P04/IP-001-iter-4-src-inspection
-    reason: "layer-correctness evidence required before LEAN-A1 BLOCKER flip"
+- impl_plan: P02/IP-001-shard-1-atomic-rename
+  reason: LEAN check crates must be at v4.1 names before flip to BLOCKER
+- impl_plan: P03/IP-001-shard-1-5-protocol-rename
+  reason: All protocol layers must be final before LEAN-A1 layer-correctness goes
+    BLOCKER
+- impl_plan: P04/IP-001-iter-4-src-inspection
+  reason: layer-correctness evidence required before LEAN-A1 BLOCKER flip
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-deny
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-deny
+purpose: "Flips the 4 LEAN architecture check lanes from `--report-only` to `BLOCKER` in `registry/quality/lanes.yaml` and CI configuration."
 ---
-
 # IP-001-lean-flip-quality-scaffold: Flip 4 LEAN lanes to BLOCKER + scaffold 4 quality check crates
 
 ## Intent

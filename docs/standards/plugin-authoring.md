@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Plugin Authoring Standard
+doc_status: published
+---
+
 # Oyatie — Plugin Authoring Standard
 
 > **Owner:** `axis-saas` (marketplace) + `axis-foundry` (sandbox + signing) + `ops-security`.

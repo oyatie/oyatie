@@ -4,7 +4,7 @@ parent: ../../MASTERPLAN.md
 id: M05
 title: Cloud-Stable + Search-Stable
 wave: W-Cloud-Stable + W-Search-Stable
-status: gated on M04
+status: in-progress
 owner: axis-cloud + axis-search + ops-compliance + regional-packs
 purpose: Promote Cloud and Search from preview to public GA with marketplace, ISV onboarding, multi-AZ failover, FinOps surfaces, and regulator attestation.
 acceptance_authority: docs/ROADMAP.md §2.8

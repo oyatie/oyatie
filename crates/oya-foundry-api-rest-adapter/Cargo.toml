@@ -1,0 +1,18 @@
+[package]
+name = "oya-foundry-api-rest-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "oya_foundry_api_rest_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-foundry-api-rest-kernel = { path = "../oya-foundry-api-rest-kernel" }
+
+[lints]
+workspace = true

@@ -1,5 +1,7 @@
 # Oyatie glossary vocabulary ignored uppercase prose words. Format: <token>\t<rationale>
 # Use only for ordinary uppercase words, table/status values, or repository artifact names that are not acronyms.
+ADD	change-instruction verb used as uppercase review prose, not an acronym
+ADDITIVE	change-class adjective used as uppercase review prose, not an acronym
 AFTER	emphatic ordinary prose sequencing word, not an acronym
 AGENTS	repository artifact basename AGENTS.md, not an acronym
 ALL	emphatic ordinary prose word, not an acronym

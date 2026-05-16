@@ -72,13 +72,14 @@ pub fn validate_pr_traceability(
         let Some(index) = section_index(&sections, required) else {
             return Err(PrTraceabilityError::MissingSection { section: required });
         };
-        if let Some(previous_index) = previous_index {
-            if index <= previous_index {
-                return Err(PrTraceabilityError::SectionOutOfOrder {
-                    section: required,
-                    previous_section: previous_section.expect("previous section set"),
-                });
-            }
+        if let (Some(previous_index), Some(previous_section_id)) =
+            (previous_index, previous_section)
+            && index <= previous_index
+        {
+            return Err(PrTraceabilityError::SectionOutOfOrder {
+                section: required,
+                previous_section: previous_section_id,
+            });
         }
         if section_body(&document.body, &sections, required)
             .trim()
@@ -151,10 +152,10 @@ fn h2_sections(body: &str) -> Vec<H2Section<'_>> {
     let mut offset = 0usize;
     for line in body.split_inclusive('\n') {
         let trimmed = line.trim_end_matches(['\r', '\n']);
-        if let Some(title) = trimmed.strip_prefix("## ") {
-            if !title.starts_with('#') {
-                headers.push((title.trim(), offset + line.len()));
-            }
+        if let Some(title) = trimmed.strip_prefix("## ")
+            && !title.starts_with('#')
+        {
+            headers.push((title.trim(), offset + line.len()));
         }
         offset += line.len();
     }

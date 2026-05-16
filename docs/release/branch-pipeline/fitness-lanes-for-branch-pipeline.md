@@ -12,6 +12,7 @@ purpose: |
 enforced_by: self-describing
 related_adrs: [ADR-0041, ADR-0050, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]
+doc_status: published
 ---
 
 # Fitness Lanes for the Branch Pipeline

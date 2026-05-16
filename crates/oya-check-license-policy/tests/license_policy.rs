@@ -1,4 +1,4 @@
-use oya_foundry_license_policy_kernel::{LicensePolicy, LicensePolicyError};
+use oya_check_license_policy::{LicensePolicy, LicensePolicyError};
 
 #[test]
 fn product_license_policy_accepts_adr_allowed_spdx_identifiers() {

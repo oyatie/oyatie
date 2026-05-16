@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Healthcare Break Glass
+doc_status: published
+---
+
 # Oyatie Runbook — Healthcare Break Glass
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

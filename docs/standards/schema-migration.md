@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Schema Migration Standard
+doc_status: published
+---
+
 # Oyatie — Schema Migration Standard
 
 > **Owner:** `platform-eventing-og` + `axis-cloud` (per-store).

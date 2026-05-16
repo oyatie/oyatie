@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Regional Pack: oya-pack-kr (South Korea)
 
 > Initial KR pack content. Authored from `_TEMPLATE.md`. Status moves through `draft → preview → stable → GA` per ADR-0010-regional-pack-architecture.

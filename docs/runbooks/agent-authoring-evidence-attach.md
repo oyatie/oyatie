@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Agent Authoring Evidence Attach
+doc_status: published
+---
+
 # Oyatie Runbook — Agent Authoring Evidence Attach
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

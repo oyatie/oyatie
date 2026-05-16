@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Dsr Compliance Report
+doc_status: published
+---
+
 # Oyatie Runbook — Dsr Compliance Report
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

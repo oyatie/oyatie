@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Checklist: DSR Cascade Execution
 
 > **When:** A Data Subject Request (export / delete / restrict) or consent withdrawal is received per [PRIVACY-PROGRAM.md §2.2.9](../PRIVACY-PROGRAM.md).

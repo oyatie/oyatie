@@ -5,7 +5,10 @@ ip_id: IP-002-anthropic-compat-adapter
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
   Ship `oya-foundry-adapter-anthropic-compat-api`: an Axum-on-Hyper HTTP service that exposes
   the upstream Anthropic Messages-API shape (`POST /v1/messages`, `GET /v1/messages/count_tokens`)
@@ -26,7 +29,8 @@ agent_prerequisites:
   - ./INDEX.md
   - ./IP-001-provider-account-pool-kernel.md
   - docs/AGENTS.md
-  - docs/CONSTITUTION.md
+  - /specs/cross-cutting/decision-principles.json
+  - /specs/cross-cutting/forbidden-operations.json
   - .omc/standards/dependency-policy.md
 final_shape_compliance: true
 dependency_additions:
@@ -44,7 +48,7 @@ decision_log: |
   stream into a single buffered chunk at the egress boundary; the handler itself has one
   code path.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-002-anthropic-compat-adapter: `/v1/messages` Anthropic-shape passthrough
@@ -98,7 +102,7 @@ client req (Anthropic shape)
 Before `grit claim`, the agent **MUST**:
 1. `icm recall-context "P02 anthropic-compat adapter ccproxy-api claude_api" --limit 5`.
 2. Confirm IP-001 merged (`pick_account` available); read `./IP-001-provider-account-pool-kernel.md`.
-3. Read `docs/AGENTS.md §Pre-flight checklist` and `docs/CONSTITUTION.md §Prohibitions`.
+3. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/cross-cutting/forbidden-operations.json` (FO-01..FO-10).
 4. Confirm symbols unclaimed: `oya-tooling-agent-read grit-status crates/oya-foundry-adapter-anthropic-compat-api`.
 5. Read `.omc/standards/dependency-policy.md §5.1` — Anthropic has no official Rust SDK; this adapter uses in-tree `reqwest` + `rustls` for upstream calls.
 6. Read the parent INDEX `./INDEX.md` for fitness-lane scope.

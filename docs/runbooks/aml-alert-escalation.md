@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Aml Alert Escalation
+doc_status: published
+---
+
 # Oyatie Runbook — Aml Alert Escalation
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

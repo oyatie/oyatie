@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Axis Admission Proposal
+doc_status: published
+---
+
 # Oyatie Runbook — Axis Admission Proposal
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

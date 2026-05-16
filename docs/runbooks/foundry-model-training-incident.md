@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Foundry Model Training Incident
+doc_status: published
+---
+
 # Oyatie Runbook — Foundry Model Training Incident
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

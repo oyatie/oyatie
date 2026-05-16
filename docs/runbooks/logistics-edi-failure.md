@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Logistics Edi Failure
+doc_status: published
+---
+
 # Oyatie Runbook — Logistics Edi Failure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

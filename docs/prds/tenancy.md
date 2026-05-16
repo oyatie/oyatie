@@ -13,6 +13,7 @@ bominal_source:
   - ADR-0019  # runtime target metadata model
   - ADR-0117  # cloud-native infrastructure (OCI A1 → OKE stages)
   - ADR-0009  # cell architecture
+doc_status: published
 ---
 
 # PRD-tenancy: Tenancy shared substrate

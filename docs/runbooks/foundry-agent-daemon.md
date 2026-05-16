@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Foundry Agent Daemon
+doc_status: published
+---
+
 # Oyatie Runbook — Foundry Agent Daemon
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

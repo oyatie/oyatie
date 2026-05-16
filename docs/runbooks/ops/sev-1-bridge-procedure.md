@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Runbook — Sev-1 Incident Bridge Procedure
 
 > **Status:** Stub (P0 must-have for W-Foundation gate per [`RUNBOOKS-INDEX.md`](../../RUNBOOKS-INDEX.md))

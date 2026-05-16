@@ -14,3 +14,6 @@ oya-eventing-domain = { path = "../oya-eventing-domain" }
 name = "oya_eventing_file_adapter"
 path = "src/lib.rs"
 doctest = false
+
+[lints]
+workspace = true

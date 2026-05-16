@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Error Budget Exhaustion
+doc_status: published
+---
+
 # Oyatie Runbook — Error Budget Exhaustion
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

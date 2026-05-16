@@ -4,10 +4,13 @@
 //! tenant residency binding, cross-region transfer permits, and recreate-based
 //! residency change planning. This crate owns typed invariants only; tenant,
 //! cloud, Workspace, and trust-portal apps own persistence and orchestration.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const REGION_REF_SCHEMA_VERSION: u32 = 1;
 const REGULATOR_OVERLAY_SCHEMA_VERSION: u32 = 1;
@@ -754,8 +757,10 @@ fn internal<T>(value: T) -> Classified<T> {
 }
 
 fn internal_data_class() -> PrivacyDataClass {
-    PrivacyDataClass::new(DataClass::InternalOnly)
-        .expect("INTERNAL_ONLY is a privacy-program data class")
+    // ADR-0083 Tier 1: use the infallible kernel constructor; the previous
+    // `.expect()` proved a statically known invariant that the kernel now
+    // encodes at the type level.
+    PrivacyDataClass::internal_only()
 }
 
 #[cfg(test)]

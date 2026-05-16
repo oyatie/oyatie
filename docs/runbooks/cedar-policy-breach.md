@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cedar Policy Breach
+doc_status: published
+---
+
 # Oyatie Runbook — Cedar Policy Breach
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

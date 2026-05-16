@@ -1,0 +1,132 @@
+{
+  "review_id": "claude-debugger-F10_reversibility-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "change_id": "M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "change_class": "CC-1",
+  "facet": "F10",
+  "facet_label": "Reversibility / blast-radius",
+  "reviewer_id": "claude-debugger-F10_reversibility-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "iteration": "r1",
+  "timestamp_utc": "2026-05-15T00:00:00Z",
+  "artifacts_reviewed": [
+    ".omc/plans/ralplan-foundry-supervisor-simple-v4-2026-05-14.md",
+    ".omc/plans/ralplan-foundry-supervisor-simple-v5-delta-settings-template-2026-05-15.md"
+  ],
+  "rollback_cost_class": "per-tenant",
+  "feature_flag_id": null,
+  "migration_rollback_script_path": null,
+  "blast_radius": "workspace-wide",
+  "verdict": "CONDITIONAL_PASS",
+  "verdict_rationale": "The v4 crate additions (4 crates + 1 binary + Cedar + registry/accounts/) are trivially reversible \u2014 all additive, Branch Y, zero existing-kernel surface change. The F10 gap is entirely in v5's settings-template renderer: dotfile writes to ~/.claude/settings.json, ~/.codex/config.toml, ~/.codex/hooks.json, ~/.gemini/settings.json are NOT auto-reverted by a code rollback, and no kill-switch guards the render path. VerifyMode::FailOnDrift is hardwired at SupervisorApp::new() with no env-var bypass, creating a workspace-wide blackhole path if the canonical template drifts all accounts simultaneously. Three mandatory remediations (F10-01, F10-02, F10-03) must land before merge.",
+  "findings": [
+    {
+      "id": "F10-01",
+      "severity": "HIGH",
+      "anti_pattern": "feature-flag-less-rollout-of-risky-change",
+      "title": "Settings renderer hardwired into SupervisorApp::new \u2014 no kill-switch for dotfile writes",
+      "evidence": "v5 \u00a7B.4 shows CompositeAccountSnapshotProvider::with_verify(renderers, template_root, home_dir, VerifyMode::FailOnDrift) passed directly to SupervisorApp::new(...). No env-var, no SupervisorConfig field, no RendererMode enum guards this path. If the renderer writes malformed content to ~/.claude/settings.json after merge, reverting the code does not restore the dotfile. Every machine running the supervisor accumulates the damage until manual restoration. The VerifyMode::AutoReconcile variant (v5 \u00a7B.4) is an even higher-risk codepath \u2014 auto-writing settings on every snapshot() call \u2014 and it is equally ungated.",
+      "artifact_refs": [
+        "v5-\u00a7B.4: CompositeAccountSnapshotProvider::with_verify wiring",
+        "v5-\u00a7B.2.2: SettingsRenderer::render signature (no dry-run mode declared)",
+        "v4-\u00a7B.2.5: SupervisorConfig fields (watchdog_secs, heartbeat_interval_secs \u2014 no renderer_mode field)"
+      ],
+      "what_breaks_on_revert": "Code revert removes the renderer binary but leaves previously-written settings in ~/.claude/settings.json, ~/.codex/config.toml, ~/.codex/hooks.json, ~/.gemini/settings.json. Claude Code, Codex CLI, and Gemini CLI continue reading the renderer-written settings until manually restored. Hooks installed by the renderer continue firing even after supervisor is reverted.",
+      "remediation": "Add RendererMode { Disabled, VerifyOnly, Reconcile } to SupervisorConfig. Default = Disabled for first release cycle. Promote to VerifyOnly once C.25..C.30 are green in production for \u22651 sprint. Gate Reconcile behind an explicit env-var OYA_SETTINGS_RECONCILE=1. This ensures a no-op rollback path at any phase."
+    },
+    {
+      "id": "F10-02",
+      "severity": "HIGH",
+      "anti_pattern": "schema-change-without-shadow-write",
+      "title": "No backup-before-write; dotfile mutations survive code rollback with no recovery path",
+      "evidence": "v5 \u00a7B.2.2 describes atomic tempfile+rename(2) for each rendered file \u2014 this guarantees write atomicity but does NOT preserve the prior file content. Neither v4 nor v5 document a backup mechanism (e.g., target_path + '.omc-bak-<epoch>') before overwriting ~/.claude/settings.json or ~/.codex/hooks.json. Acceptance rows C.25..C.30 have no row testing 'renderer produces recoverable output; previous state restorable.' Compare: v4 \u00a7A.4 scenario (a) documents crash-injection + recovery for inbox/outbox (tests/crash_injection.rs), but no equivalent 'undo-render' recovery exists for the dotfile mutation path.",
+      "artifact_refs": [
+        "v5-\u00a7B.2.2: 'Atomic: tempfile + rename(2). Idempotent.' \u2014 idempotency covers repeated correct writes, not bad-content recovery",
+        "v5-\u00a7C.25..C.30: no acceptance row covering dotfile rollback or backup restoration",
+        "v4-\u00a7A.4 scenario (a): crash-injection precedent for inbox/outbox recovery (absent for settings)"
+      ],
+      "what_breaks_on_revert": "After code revert the supervisor stops rendering settings. But ~/.claude/settings.json (and equivalents) retain whatever the renderer last wrote. If the renderer had a bug (e.g., incorrect hook event names, wrong mcp_servers keys), all three CLIs continue reading bad settings indefinitely. The user has no documented path to restore the pre-render state.",
+      "remediation": "Before each render(target_path), check if the file exists and copy it to target_path + '.omc-settings-bak.' + epoch_secs. Provide tools/undo-settings-render.sh that finds .omc-settings-bak.* files per provider and restores them. Add acceptance row C.31: undo-settings-render.sh restores original content byte-for-byte (verified by sha256 comparison). This script is the migration_rollback_script_path that is currently null."
+    },
+    {
+      "id": "F10-03",
+      "severity": "HIGH",
+      "anti_pattern": "global-config-mutation-without-canary",
+      "title": "VerifyMode::FailOnDrift silently blackholes all accounts; failure indistinguishable from 'no accounts configured'",
+      "evidence": "v5 \u00a7B.4: 'If VerifyMode::FailOnDrift and any account's DriftReport.entries contains a non-Match state, the account is excluded from the returned Vec<ProviderAccount>.' If ALL accounts drift simultaneously (e.g., after a SettingsTemplate.version bump per v5 \u00a7B.2.1 without a preceding auto-reconcile pass), snapshot() returns []. This cascades: v4 \u00a7B.4 step 4 (RoutePolicy::select(&accounts, &constraints)) receives zero candidates and returns NoEligibleAccount. Every tick_once call fails. The v4 TickOutcome enum (v4 \u00a7B.2.5: Spawned/Saturated/Idle/Quarantined) has no DriftExcluded variant \u2014 callers cannot distinguish 'no accounts registered' from 'all accounts drift-excluded'. This is a workspace-wide silent outage.",
+      "artifact_refs": [
+        "v5-\u00a7B.4: 'account is excluded from the returned Vec<ProviderAccount>' \u2014 no minimum-eligible-accounts guard",
+        "v5-\u00a7B.2.1: SettingsTemplate.version u32 \u2014 a version bump is a forward step that causes global drift",
+        "v4-\u00a7B.2.5: TickOutcome enum lacks DriftExcluded variant",
+        "v4-\u00a7B.4 step 4: RoutePolicy::select fails on empty accounts slice"
+      ],
+      "what_breaks_on_revert": "Reverting v5 restores the old snapshot provider (which does not do drift verification) and unfreezes routing. However, the interval during which all accounts were drift-excluded produced no messages processed \u2014 those inbox messages are stuck in Locked state (TTL eventually releases them per v4 \u00a7B.3 recovery, but the dead-letter log will show a gap). Any audit trail entries in .omc/state/settings-drift-report.json also become stale artifacts referencing a reverted feature.",
+      "remediation": "(a) Add TickOutcome::DriftExcluded { excluded_accounts: Vec<(AccountId, DriftReport)>, eligible_count: usize } so the failure mode is observable. (b) Add a minimum_eligible_accounts: usize field to SupervisorConfig (default 1); if eligible_count < minimum_eligible_accounts after drift exclusion, emit a supervisor_drift_blackhole_total metric and return TickOutcome::DriftExcluded rather than silently passing an empty slice to RoutePolicy. (c) Add acceptance row C.32: if all accounts drift and VerifyMode::FailOnDrift, tick_once returns DriftExcluded (not Err(NoEligibleAccount)), and supervisor_drift_blackhole_total increments."
+    },
+    {
+      "id": "F10-04",
+      "severity": "MEDIUM",
+      "anti_pattern": "feature-flag-less-rollout-of-risky-change",
+      "title": "AccountSnapshotProvider empty-Vec is semantically ambiguous post-v5; no observable exclusion signal",
+      "evidence": "v5 \u00a7B.4 extends AccountSnapshotProvider::snapshot() semantics without changing the trait signature: 'The trait signature fn snapshot(&self) -> Vec<ProviderAccount> is unchanged.' Pre-v5, an empty Vec means no accounts are registered. Post-v5, an empty Vec can also mean 'all accounts drift-excluded.' Code that was written against the v4 contract (empty Vec = no accounts) silently gets the new semantics. If v5 is reverted, the old provider re-appears, which re-hides any drift that was being filtered \u2014 accounts that drifted during v5's deployment window are now silently eligible again without reconciliation.",
+      "artifact_refs": [
+        "v5-\u00a7B.4: 'trait signature unchanged' + exclusion-on-drift semantic extension",
+        "v4-\u00a7B.4 step 2: 'let accounts = self.accounts.snapshot()' \u2014 no empty-Vec guard downstream",
+        "v5-\u00a7B.5: settings-drift-report.json written to .omc/state/ \u2014 runtime artifact, not committed"
+      ],
+      "what_breaks_on_revert": "Reverting v5 means drift exclusion stops. Accounts that the renderer had identified as drifted are now silently eligible for routing again (their dotfiles may still have the bad/renderer-written settings). The .omc/state/settings-drift-report.json artifact remains but is no longer updated, creating a stale audit artifact.",
+      "remediation": "Add an optional companion method to AccountSnapshotProvider (default impl returns None) \u2014 fn last_exclusion_reasons(&self) -> Option<Vec<(AccountId, DriftReport)>>. SupervisorApp::tick_once calls this after snapshot() and emits supervisor_account_drift_excluded{account_id} gauge. This keeps observability without changing the trait contract and survives rollback gracefully (old impls return None, metric disappears cleanly)."
+    },
+    {
+      "id": "F10-05",
+      "severity": "LOW",
+      "anti_pattern": "none",
+      "title": "v4 crate additions + Cedar + registry/accounts/ + templates/ are fully reversible \u2014 not rollback concerns",
+      "evidence": "v4 \u00a7B.1: 4 new crates (supervisor-kernel, supervisor-app, jsonl-supervisor-adapter, supervisor-conformance). v5 \u00a7B.1: 2 new crates (settings-template-kernel, settings-template-adapter-fs). All are additive-only. Branch Y (v4 \u00a7A.1 principle 4): zero net-new external deps verified against Cargo.toml:481-492. v4 \u00a7B.2.6: lean-a10 declaration count = 0 new public APIs on existing kernels. docs/policies/foundry-supervisor.cedar (v4 \u00a7B.10): new file, rollback = delete. registry/accounts/ (v4 \u00a7B.10 patch #7): new directory, rollback = rm -rf. templates/foundry-supervisor/ (v5 \u00a7B.8): new directory, rollback = rm -rf. Phase M02-P06 carved (v4 \u00a7B.9): metadata only, does not block existing phase completion. SettingsTemplate.version u32 (v5 \u00a7B.2.1): applies only to new template files that do not yet exist on disk pre-merge.",
+      "artifact_refs": [
+        "v4-\u00a7B.2.6: 'Lean-a10 declaration count: 0 new public APIs on existing kernels'",
+        "v4-\u00a7A.1 principle 4: Branch Y commitment",
+        "v4-\u00a7B.10: registry/accounts/ + Cedar footprint",
+        "v5-\u00a7B.8: templates/foundry-supervisor/ footprint"
+      ],
+      "what_breaks_on_revert": "Nothing in existing code. Removal of 6 crates from Cargo.toml::members + deletion of their directories is the complete rollback. No downstream crate imports these new crates (they are leaves in the dependency graph as of v4+v5 scope). Cedar policy deletion removes supervisor-scoped rules; the umbrella autonomy-ceiling.cedar seed (3 lines, v4 \u00a7B.0) is untouched.",
+      "remediation": "No action required. Confirm v4 acceptance row C.15 (lean-a10 public-API snapshot byte-identical) is enforced in CI to catch any accidental existing-kernel surface mutation during execution."
+    }
+  ],
+  "rollback_playbook_gaps": [
+    {
+      "gap": "No documented 'undo-render' procedure for dotfile mutations (F10-02)",
+      "required_artifact": "tools/undo-settings-render.sh (restores .omc-settings-bak.* files per provider)"
+    },
+    {
+      "gap": "No RendererMode kill-switch in SupervisorConfig (F10-01)",
+      "required_artifact": "SupervisorConfig::settings_renderer_mode: RendererMode field + OYA_SETTINGS_RECONCILE env-var gate"
+    },
+    {
+      "gap": "No TickOutcome::DriftExcluded to distinguish drift-blackhole from no-accounts (F10-03)",
+      "required_artifact": "TickOutcome enum extension + acceptance row C.32"
+    }
+  ],
+  "forward_only_steps": [
+    {
+      "step": "SettingsTemplate.version u32 monotonic increment (v5 \u00a7B.2.1)",
+      "is_blocking": false,
+      "rationale": "Version field applies only to new template files in templates/foundry-supervisor/ which do not yet exist. No existing artifact tracks a previous version. A template version bump before any account is onboarded causes no forward-only lock. Becomes a concern after first production account is onboarded \u2014 document this boundary in the ADR."
+    },
+    {
+      "step": "InboxStore::dead_letter() atomic semantics (v4 \u00a7B.2.3 patch #6)",
+      "is_blocking": false,
+      "rationale": "InboxStore is a new trait in the new supervisor-kernel crate. No existing crate implements it. Adding dead_letter() is not a breaking change to any existing code. Rollback of supervisor-kernel removes the trait entirely."
+    }
+  ],
+  "f10_summary_scorecard": {
+    "crate_additions_reversible": true,
+    "cedar_extension_reversible": true,
+    "registry_accounts_reversible": true,
+    "templates_reversible": true,
+    "dotfile_mutations_auto_reverted_by_code_rollback": false,
+    "feature_flag_present": false,
+    "backup_before_write_present": false,
+    "drift_blackhole_observable": false,
+    "minimum_eligible_accounts_guard_present": false
+  },
+  "purpose": "Auto-backfilled purpose for M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-F10_reversibility-r1.json"
+}

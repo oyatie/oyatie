@@ -1,10 +1,14 @@
-use oya_foundry_capability_kernel::{AutonomyTier, Capability, CapabilityMcpContract};
-use oya_foundry_mcp_gateway_kernel::{
-    authorize_tool_call, validate_access_token, McpAccessTokenClaims, McpAuthorizationChallenge,
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_data_boundary_kernel::{DataClass, privacy_data_classes_from};
+use oya_foundry_capability_domain::{AutonomyTier, Capability, CapabilityMcpContract};
+use oya_foundry_mcp_gateway_domain::{
+    DISCOVER_SCOPE, MCP_PROTOCOL_VERSION, McpAccessTokenClaims, McpAuthorizationChallenge,
     McpGatewayDescriptor, McpGatewayError, McpPrincipal, McpRateLimitPolicy, McpRateLimiter,
-    McpTenantEndpoint, DISCOVER_SCOPE, MCP_PROTOCOL_VERSION,
+    McpTenantEndpoint, authorize_tool_call, validate_access_token,
 };
-use oya_platform_data_boundary_kernel::{privacy_data_classes_from, DataClass};
 
 #[test]
 fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {
@@ -51,10 +55,12 @@ fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {
         descriptor.tools[0].required_scope.value,
         "foundry.capability.invoke:cap.demo.readiness"
     );
-    assert!(descriptor.tools[0]
-        .input_schema
-        .value
-        .contains("additionalProperties"));
+    assert!(
+        descriptor.tools[0]
+            .input_schema
+            .value
+            .contains("additionalProperties")
+    );
     assert_eq!(
         descriptor.tools[0].legacy_data_classes(),
         vec![DataClass::InternalOnly, DataClass::PiiIdentifying]
@@ -72,10 +78,12 @@ fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {
             .unwrap()
             .as_slice()
     );
-    assert!(descriptor
-        .prompts
-        .iter()
-        .any(|prompt| prompt.name.value == "capability-publish"));
+    assert!(
+        descriptor
+            .prompts
+            .iter()
+            .any(|prompt| prompt.name.value == "capability-publish")
+    );
 }
 
 #[test]
@@ -117,12 +125,13 @@ fn gateway_projects_capability_authored_agent_description_and_schemas() {
         "Use this only for authored readiness evidence."
     );
     assert!(tool.input_schema.value.contains("release_id"));
-    assert!(tool
-        .output_schema
-        .as_ref()
-        .expect("output schema is projected")
-        .value
-        .contains("verdict"));
+    assert!(
+        tool.output_schema
+            .as_ref()
+            .expect("output schema is projected")
+            .value
+            .contains("verdict")
+    );
 }
 
 #[test]
@@ -246,9 +255,11 @@ fn authorization_challenges_follow_mcp_oauth_resource_metadata_shape() {
         vec!["foundry.capability.invoke:cap.demo.readiness".into()],
     );
     assert_eq!(insufficient.status_code, 403);
-    assert!(insufficient
-        .www_authenticate_header()
-        .contains(r#"error="insufficient_scope""#));
+    assert!(
+        insufficient
+            .www_authenticate_header()
+            .contains(r#"error="insufficient_scope""#)
+    );
 }
 
 #[test]

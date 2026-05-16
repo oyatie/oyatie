@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Regulator Evidence Pack Regen
+doc_status: published
+---
+
 # Oyatie Runbook — Regulator Evidence Pack Regen
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

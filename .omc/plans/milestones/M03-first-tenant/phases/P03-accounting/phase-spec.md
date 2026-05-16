@@ -5,30 +5,34 @@ milestone: M03-first-paying-tenant
 phase: P03-accounting
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M03/P02-payroll complete; PayrollRunCompleted Workflow event registered;
+entry_gate: 'M03/P02-payroll complete; PayrollRunCompleted Workflow event registered;
+
   PayrollEntry Object Type registered in Ontology;
+
   oya-finance-library-domain ships (M02-P11);
+
   oya-workflow-engine-kernel ships.
-exit_gate: |
-  All IP acceptance gates green; `cargo nextest run -p oya-accounting-*` 0 failures;
-  double-entry invariant test green; auto-journal from PayrollRunCompleted green;
-  period-close lock enforced; financial statements generated for closed period;
-  `oya gate validate lean-a2 --ms accounting` exits 0;
-  `oya gate validate audit-chain --ms accounting` exits 0;
-  k6 smoke trial balance p99 ≤500ms at 1k RPS;
-  grit done on all P03 symbols; ICM phase-handoff row emitted.
+
+  '
+exit_gate: "All IP acceptance gates green; `cargo nextest run -p oya-accounting-*`\
+  \ 0 failures;\ndouble-entry invariant test green; auto-journal from PayrollRunCompleted\
+  \ green;\nperiod-close lock enforced; financial statements generated for closed\
+  \ period;\n`oya gate validate lean-a2 --ms accounting` exits 0;\n`oya gate validate\
+  \ audit-chain --ms accounting` exits 0;\nk6 smoke trial balance p99 \u2264500ms\
+  \ at 1k RPS;\ngrit done on all P03 symbols; ICM phase-handoff row emitted.\n"
 depends_on:
-  - milestone: M03
-    phase: P02-payroll
-    reason: "Accounting primary event source is PayrollRunCompleted; PayrollEntry Ontology reads needed for journal-line generation."
-  - milestone: M02
-    phase: P11-finance-library
-    reason: "oya-finance-library-domain provides Money/KRW arithmetic + double-entry balance invariant primitives."
+- milestone: M03
+  phase: P02-payroll
+  reason: Accounting primary event source is PayrollRunCompleted; PayrollEntry Ontology
+    reads needed for journal-line generation.
+- milestone: M02
+  phase: P11-finance-library
+  reason: oya-finance-library-domain provides Money/KRW arithmetic + double-entry
+    balance invariant primitives.
 parallel_wave: 3
 owner_team: council-enterprise
+purpose: "Delivers the `oya-accounting-*` µservice: K-GAAP double-entry bookkeeping with automatic journal entry generation from Payroll events via Workflow, chart of accounts CRUD, period-end closing (월마감/연마감)."
 ---
-
 # P03-accounting: Accounting µservice — K-GAAP double-entry ledger, auto-journal from Payroll, financial statements
 
 ## Purpose

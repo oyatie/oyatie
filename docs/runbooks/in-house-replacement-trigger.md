@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — In House Replacement Trigger
+doc_status: published
+---
+
 # Oyatie Runbook — In House Replacement Trigger
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

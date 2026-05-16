@@ -1,3 +1,8 @@
+---
+purpose: Legacy ADR → New Pack Regression Mapping
+doc_status: published
+---
+
 # Legacy ADR → New Pack Regression Mapping
 
 > **Status:** auto-generated 2026-05-09 by regression-check agent

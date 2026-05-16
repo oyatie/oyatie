@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P06-IP-002
 title: Flat-crates guard ratchet
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship the flat-crates guard per ADR-0015.
@@ -16,8 +19,9 @@ Ship the flat-crates guard per ADR-0015.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-flat-crates-guard-kernel/src/lib.rs::validate_workspace
-crates/oya-foundry-fitness-flat-crates-guard-kernel/src/lib.rs::reject_retired_roots
+crates/oya-foundry-cargo-prefix-domain/src/lib.rs::validate_cargo_prefix
+crates/oya-dev-cli/src/commands/gate.rs::cargo-prefix
+crates/oya-shared-architecture-check-cli/src/main.rs::naming-collision
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -26,8 +30,8 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 
 ## Acceptance-test-commands
 ```
-cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo test --locked -p oya-foundry-cargo-prefix-domain
+cargo run --quiet -p oya-dev-cli -- gate validate cargo-prefix --workspace Cargo.toml --prefix oya-
 scripts/check.sh
 ```
 

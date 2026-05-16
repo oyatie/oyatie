@@ -1,6 +1,10 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 mod support;
 
-use oya_foundation_app::{
+use oya_application_app::{
     AutonomyTier, CapabilityAction, CapabilityCostProfile, CapabilityInvocationRequest,
     CapabilityRegistration, CostBudgetRegistration, DataClass, Foundation, FoundationError,
     IdentityRegistration, Purpose, RunState, SubjectClass, TenantCapabilityGrant,
@@ -280,11 +284,13 @@ fn capability_provider_preference_is_not_ignored_by_foundation_routing() {
         .expect_err("unsupported declared provider preference must not fall back to hardcoded local provider");
 
     assert_eq!(denied, FoundationError::CostBudgetExceeded);
-    assert!(foundation
-        .audit_chain()
-        .events()
-        .iter()
-        .any(|event| { event.surface == "foundry.provider.route" && event.decision == "DENY" }));
+    assert!(
+        foundation
+            .audit_chain()
+            .events()
+            .iter()
+            .any(|event| { event.surface == "foundry.provider.route" && event.decision == "DENY" })
+    );
     assert_eq!(
         allow_surface_count(&foundation, "foundry.provider.route"),
         0
@@ -313,7 +319,7 @@ fn foundation_with_profiled_capability(
                 namespace: "demo".into(),
                 action: CapabilityAction::Other,
                 required_tier: AutonomyTier::T2Advisory,
-                touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+                touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                     DataClass::InternalOnly,
                 ])
                 .unwrap(),
@@ -386,7 +392,7 @@ fn foundation_with_capability(capability_id: &str) -> Foundation {
             namespace: "demo".into(),
             action: CapabilityAction::Other,
             required_tier: AutonomyTier::T2Advisory,
-            touched_privacy_data_classes: oya_foundation_app::privacy_data_classes_from(&[
+            touched_privacy_data_classes: oya_application_app::privacy_data_classes_from(&[
                 DataClass::InternalOnly,
             ])
             .unwrap(),

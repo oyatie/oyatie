@@ -13,6 +13,7 @@ enforced_by:
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0028, ADR-0043, ADR-0045, ADR-0049, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
+doc_status: published
 ---
 
 # Playbook: Cloud-Axis Rollout

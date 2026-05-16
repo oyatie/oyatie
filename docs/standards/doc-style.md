@@ -1,4 +1,9 @@
 ---
+purpose: "Canonical house style for every doc under `docs/`. Defines the Diátaxis quadrants, RFC-2119 normative-language discipline, the dual-audience rule, frontmatter shapes per doc-class, heading hierarchy, and line-length guidance."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -10,9 +15,9 @@ purpose: |
   RFC-2119 normative-language discipline, the dual-audience rule, frontmatter shapes
   per doc-class, heading hierarchy, and line-length guidance. Resolves the
   `standards/doc-style.md` forward-reference sentinel in
-  `docs/CONSTITUTION.md` §Documentation, `docs/AGENTS.md` canonical doc map, and
+  `doc-catalog.md` + the post-2026-05-15 doctrinal substrate, `docs/AGENTS.md` canonical doc map, and
   `docs/README.md`.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-doc-style
 companion_docs:
   - docs/DOC-CATALOG.md
@@ -26,9 +31,9 @@ related_adrs:
 
 # Doc Style
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
-This standard operates within the [`CONSTITUTION.md`](../CONSTITUTION.md)
+This standard operates within the [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json)
 frame (§Documentation) and downstream of [`AGENTS.md`](../AGENTS.md). It
 defines *how* to write canonical docs; [`DOC-CATALOG.md`](../DOC-CATALOG.md)
 defines *when* and *why* to update them.
@@ -44,7 +49,7 @@ adopted by Python docs, Canonical, Cloudflare.)
 | **Tutorial** (learning-oriented) | "I am new, walk me through it." | imperative, hand-holding, complete | ≤ 500 lines | `README.md` quickstart, onboarding tracks |
 | **How-to** (task-oriented) | "I know the system; how do I do X?" | imperative, terse, goal-focused | ≤ 300 lines | runbooks, `RUNBOOKS-INDEX.md` rows, `checklists/` |
 | **Reference** (info-oriented) | "What is the exact contract?" | declarative, exhaustive, no narrative | ≤ 600 lines | `SPEC.md`, `ADR-INDEX.md`, `GLOSSARY.md`, `contracts/` |
-| **Explanation** (understanding-oriented) | "Why does it work this way?" | narrative, comparative, opinionated | ≤ 400 lines | `DESIGN.md`, `CONSTITUTION.md`, this file |
+| **Explanation** (understanding-oriented) | "Why does it work this way?" | narrative, comparative, opinionated | ≤ 400 lines | `DESIGN.md`, this file |
 
 A canonical doc MUST declare its quadrant in frontmatter `doc_class:` (one of
 `Tutorial`, `HowTo`, `Reference`, `Explanation`) OR a `doc_class` from the
@@ -80,7 +85,7 @@ positions and flags candidates for human review (advisory, not blocking).
 
 ## 3. Dual-audience rule
 
-Per [`CONSTITUTION.md`](../CONSTITUTION.md) §Decision principles — Do, Item 4:
+Per [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) DP-04:
 every directive read by an agent is also readable to a human, and vice versa.
 The mechanical contract:
 
@@ -112,18 +117,18 @@ status: <pending approval | accepted | superseded | retired>
 purpose: |
   One paragraph: what this doc answers; who reads it.
 lift_target: <path/under/docs/...>   # only for working drafts under .omc/
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: <ci-lane-name>          # standards/runbooks only
 companion_docs:
   - <path>
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class files > working drafts
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class files > working drafts
 ---
 ```
 
 Per-doc-class additions:
 
-- **Tier-1 strategy docs** (CONSTITUTION, AGENTS, PRD, DESIGN, SPEC, ROADMAP):
+- **Tier-1 strategy docs** (AGENTS, PRD, DESIGN, SPEC, ROADMAP):
   `excludes:` block (each row `path:` + `reason:`).
 - **Standards**: `enforced_by: <lane-name>` (REQUIRED).
 - **Runbooks**: `last_verified: <ISO-date>`, `severity_tier: <Sev-1|2|3|4>`,
@@ -149,7 +154,9 @@ required keys.
 ## 6. Line-length guidance
 
 - **Prose**: SHOULD wrap at 100 columns. MUST NOT exceed 120 columns. URLs
-  and code blocks are exempt.
+  render verbatim; code blocks follow §"Code blocks" below — the column
+  rule does not apply to either by definition (canonical sub-rule, not an
+  exemption).
 - **Tables**: MUST NOT wrap inside a cell; if a cell exceeds 120 cols, break
   into multiple rows or use a footnote.
 - **Code blocks**: SHOULD wrap at 100 cols; long shell pipelines MAY use
@@ -192,5 +199,5 @@ surfaces violations as PR comments but does not block merge.
   (voice + tone reference).
 - [Linux kernel `Documentation/process/`](https://www.kernel.org/doc/html/latest/process/)
   precedent — terse, declarative, machine-friendly.
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 2 "Documentation" section.

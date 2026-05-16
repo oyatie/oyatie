@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Vendor + Partner Ledger
+doc_status: published
+---
+
 # Oyatie — Vendor + Partner Ledger
 
 > **Status:** Draft v0.1 skeleton — 2026-05-09. Concrete entries populate as deps are adopted.

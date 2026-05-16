@@ -5,23 +5,35 @@ milestone: M02-substrate
 phase: P14-policy
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02/P03-identity complete; oya-identity-kernel ships with User, Person, Organization,
-  Employee types + sealed port traits; cargo check clean; grit done on all P03 symbols;
-  ICM phase-handoff row emitted.
-exit_gate: |
-  All P14 impl-plan acceptance gates green; Cedar engine integrated (cedar-policy crate);
-  per-tenant rule packs stored and loaded; evaluation log persisted; 2 BCs registered
-  (policy-engine, policy-rule-packs); all crates pass cargo check/build/clippy/nextest/
-  deny; oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on all P14 symbols;
-  ICM phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P03-identity
-    reason: "Policy engine evaluates Cedar principal types (User, Employee, Organization) from identity kernel; per-tenant rule packs reference identity entity types; AuthzRequest carries principal_id resolved from identity."
-owner_team: council-architecture
----
+entry_gate: 'M02/P03-identity complete; oya-identity-kernel ships with User, Person,
+  Organization,
 
+  Employee types + sealed port traits; cargo check clean; grit done on all P03 symbols;
+
+  ICM phase-handoff row emitted.
+
+  '
+exit_gate: 'All P14 impl-plan acceptance gates green; Cedar engine integrated (cedar-policy
+  crate);
+
+  per-tenant rule packs stored and loaded; evaluation log persisted; 2 BCs registered
+
+  (policy-engine, policy-rule-packs); all crates pass cargo check/build/clippy/nextest/
+
+  deny; oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on all P14 symbols;
+
+  ICM phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P03-identity
+  reason: Policy engine evaluates Cedar principal types (User, Employee, Organization)
+    from identity kernel; per-tenant rule packs reference identity entity types; AuthzRequest
+    carries principal_id resolved from identity.
+owner_team: council-architecture
+purpose: "Delivers the policy substrate: the Cedar authorization engine that enforces per-tenant rule packs across all µservices."
+---
 # P14-policy: Policy Substrate — Cedar Engine + Per-Tenant Rule Packs + Evaluation Audit Log
 
 ## Purpose

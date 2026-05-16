@@ -19,8 +19,8 @@ use crate::usage;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ActiveArtifactContractValidateArgs {
-    registry_path: PathBuf,            // data_class: INTERNAL_ONLY
-    emit_evidence_path: Option<PathBuf>, // data_class: INTERNAL_ONLY
+    registry_path: PathBuf,                 // data_class: INTERNAL_ONLY
+    emit_evidence_path: Option<PathBuf>,    // data_class: INTERNAL_ONLY
     emit_graph_edges_path: Option<PathBuf>, // data_class: INTERNAL_ONLY
 }
 
@@ -28,7 +28,9 @@ pub(crate) fn parse_active_artifact_contract_validate_args(
     args: Vec<String>,
 ) -> Result<ActiveArtifactContractValidateArgs, String> {
     let mut parsed = ActiveArtifactContractValidateArgs {
-        registry_path: PathBuf::from(".omc/registries/artifact-capabilities-registry.json"),
+        registry_path: PathBuf::from(
+            "registries/cross-cutting/artifact-capabilities-registry.json",
+        ),
         emit_evidence_path: None,
         emit_graph_edges_path: None,
     };
@@ -61,11 +63,11 @@ pub(crate) fn parse_active_artifact_contract_validate_args(
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct ActiveArtifactContractReport {
-    pub rows_seen: usize,                          // data_class: INTERNAL_ONLY
-    pub head_tracked_count: usize,                 // data_class: INTERNAL_ONLY
-    pub untracked_paths: Vec<String>,              // data_class: INTERNAL_ONLY
-    pub duplicate_ids: Vec<String>,                // data_class: INTERNAL_ONLY
-    pub validation_duration_ms: u64,               // data_class: INTERNAL_ONLY
+    pub rows_seen: usize,                           // data_class: INTERNAL_ONLY
+    pub head_tracked_count: usize,                  // data_class: INTERNAL_ONLY
+    pub untracked_paths: Vec<String>,               // data_class: INTERNAL_ONLY
+    pub duplicate_ids: Vec<String>,                 // data_class: INTERNAL_ONLY
+    pub validation_duration_ms: u64,                // data_class: INTERNAL_ONLY
     pub graph_edges: Vec<(String, String, String)>, // data_class: INTERNAL_ONLY (artifact_id, artifact_profile, edge_type)
 }
 
@@ -87,15 +89,17 @@ pub(crate) fn validate_active_artifact_contract_gate(
 
     let row_objects: Vec<&str> = match rows_section {
         Some(section) => extract_json_objects(section),
-        None => return Err(format!(
-            "active-artifact-contract registry missing top-level `rows` array in {}",
-            args.registry_path.display()
-        )),
+        None => {
+            return Err(format!(
+                "active-artifact-contract registry missing top-level `rows` array in {}",
+                args.registry_path.display()
+            ));
+        }
     };
 
     let mut rows_seen = 0usize;
     let mut artifact_ids: BTreeMap<String, usize> = BTreeMap::new();
-    let mut paths_seen: BTreeMap<String, String> = BTreeMap::new(); // path → artifact_id
+    let mut paths_seen: BTreeMap<String, String> = BTreeMap::new(); // normalized git path → registry artifact_path
     let mut duplicate_ids: Vec<String> = Vec::new();
     let mut graph_edges: Vec<(String, String, String)> = Vec::new();
 
@@ -121,7 +125,10 @@ pub(crate) fn validate_active_artifact_contract_gate(
             duplicate_ids.push(artifact_id.clone());
         }
 
-        paths_seen.insert(artifact_path.clone(), artifact_id.clone());
+        paths_seen.insert(
+            normalize_repo_root_artifact_path(&artifact_path),
+            artifact_path.clone(),
+        );
 
         // Emit one graph edge per row: artifact_id --declares--> artifact_profile
         graph_edges.push((
@@ -135,9 +142,9 @@ pub(crate) fn validate_active_artifact_contract_gate(
     let head_tracked = git_ls_files()?;
 
     let mut untracked_paths: Vec<String> = Vec::new();
-    for (path, _artifact_id) in &paths_seen {
-        if !head_tracked.contains(path) {
-            untracked_paths.push(path.clone());
+    for (path, registry_path) in &paths_seen {
+        if !is_head_tracked_artifact_path(path, &head_tracked) {
+            untracked_paths.push(registry_path.clone());
         }
     }
 
@@ -217,6 +224,24 @@ fn git_ls_files() -> Result<BTreeSet<String>, String> {
         .collect())
 }
 
+fn normalize_repo_root_artifact_path(path: &str) -> String {
+    path.strip_prefix('/').unwrap_or(path).to_string()
+}
+
+fn is_head_tracked_artifact_path(path: &str, head_tracked: &BTreeSet<String>) -> bool {
+    head_tracked.contains(path)
+        || head_tracked
+            .iter()
+            .any(|tracked| is_child_path(path, tracked))
+}
+
+fn is_child_path(parent: &str, child: &str) -> bool {
+    let Some(rest) = child.strip_prefix(parent) else {
+        return false;
+    };
+    rest.starts_with('/')
+}
+
 fn write_evidence_bundle(
     path: &Path,
     report: &ActiveArtifactContractReport,
@@ -224,7 +249,10 @@ fn write_evidence_bundle(
 ) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
-            format!("evidence bundle dir unwriteable {}: {error}", parent.display())
+            format!(
+                "evidence bundle dir unwriteable {}: {error}",
+                parent.display()
+            )
         })?;
     }
 
@@ -246,7 +274,7 @@ fn write_evidence_bundle(
         .collect::<Vec<_>>()
         .join(",");
     let body = format!(
-        "{{\n  \"$schema_ref\": \".omc/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"active-artifact-contract-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"registry_path\": \"{}\" }},\n  \"outcome\": \"{}\",\n  \"rows_seen\": {},\n  \"head_tracked_count\": {},\n  \"untracked_paths\": [{}],\n  \"duplicate_ids\": [{}],\n  \"validation_duration_ms\": {},\n  \"graph_edge_count\": {}\n}}\n",
+        "{{\n  \"$schema_ref\": \"/templates/evidence-bundle-template.json\",\n  \"_artifact_id\": \"active-artifact-contract-lane-run\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"registry_path\": \"{}\" }},\n  \"outcome\": \"{}\",\n  \"rows_seen\": {},\n  \"head_tracked_count\": {},\n  \"untracked_paths\": [{}],\n  \"duplicate_ids\": [{}],\n  \"validation_duration_ms\": {},\n  \"graph_edge_count\": {}\n}}\n",
         escape_json(&registry_path.display().to_string()),
         outcome,
         report.rows_seen,
@@ -256,16 +284,12 @@ fn write_evidence_bundle(
         report.validation_duration_ms,
         report.graph_edges.len()
     );
-    fs::write(path, body).map_err(|error| {
-        format!("evidence bundle write failed {}: {error}", path.display())
-    })?;
+    fs::write(path, body)
+        .map_err(|error| format!("evidence bundle write failed {}: {error}", path.display()))?;
     Ok(())
 }
 
-fn write_graph_edges(
-    path: &Path,
-    edges: &[(String, String, String)],
-) -> Result<(), String> {
+fn write_graph_edges(path: &Path, edges: &[(String, String, String)]) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| {
             format!("graph edges dir unwriteable {}: {error}", parent.display())
@@ -284,12 +308,11 @@ fn write_graph_edges(
         .collect::<Vec<_>>()
         .join(",\n");
     let body = format!(
-        "{{\n  \"$schema_ref\": \".omc/specs/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
+        "{{\n  \"$schema_ref\": \"specs/cross-cutting/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\", \"purpose\": \"Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers.\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
         edges_json
     );
-    fs::write(path, body).map_err(|error| {
-        format!("graph edges write failed {}: {error}", path.display())
-    })?;
+    fs::write(path, body)
+        .map_err(|error| format!("graph edges write failed {}: {error}", path.display()))?;
     Ok(())
 }
 
@@ -311,7 +334,7 @@ mod tests {
         let args = parse_active_artifact_contract_validate_args(vec![]).unwrap();
         assert_eq!(
             args.registry_path,
-            PathBuf::from(".omc/registries/artifact-capabilities-registry.json")
+            PathBuf::from("registries/cross-cutting/artifact-capabilities-registry.json")
         );
         assert!(args.emit_evidence_path.is_none());
         assert!(args.emit_graph_edges_path.is_none());
@@ -328,9 +351,18 @@ mod tests {
             "/tmp/edges.json".into(),
         ])
         .unwrap();
-        assert_eq!(args.registry_path.display().to_string(), "tests/fixtures/missing-row-registry.json");
-        assert_eq!(args.emit_evidence_path.unwrap().display().to_string(), "/tmp/evidence.json");
-        assert_eq!(args.emit_graph_edges_path.unwrap().display().to_string(), "/tmp/edges.json");
+        assert_eq!(
+            args.registry_path.display().to_string(),
+            "tests/fixtures/missing-row-registry.json"
+        );
+        assert_eq!(
+            args.emit_evidence_path.unwrap().display().to_string(),
+            "/tmp/evidence.json"
+        );
+        assert_eq!(
+            args.emit_graph_edges_path.unwrap().display().to_string(),
+            "/tmp/edges.json"
+        );
     }
 
     #[test]
@@ -350,5 +382,34 @@ mod tests {
     fn extract_rows_array_missing_returns_none() {
         let text = r#"{"foo": "bar"}"#;
         assert!(extract_rows_array(text).is_none());
+    }
+
+    #[test]
+    fn repo_root_artifact_paths_match_git_ls_files_shape() {
+        assert_eq!(
+            normalize_repo_root_artifact_path("/specs/cross-cutting/masterplan.json"),
+            "specs/cross-cutting/masterplan.json"
+        );
+        assert_eq!(
+            normalize_repo_root_artifact_path("registries/cross-cutting/test-suite-registry.json"),
+            "registries/cross-cutting/test-suite-registry.json"
+        );
+    }
+
+    #[test]
+    fn directory_artifact_paths_are_covered_by_tracked_children() {
+        let tracked = BTreeSet::from([
+            "crates/oya-foundry-settings-template-kernel/Cargo.toml".to_string(),
+            "crates/oya-foundry-settings-template-kernel/src/lib.rs".to_string(),
+        ]);
+
+        assert!(is_head_tracked_artifact_path(
+            "crates/oya-foundry-settings-template-kernel",
+            &tracked
+        ));
+        assert!(!is_head_tracked_artifact_path(
+            "crates/oya-foundry-settings-template",
+            &tracked
+        ));
     }
 }

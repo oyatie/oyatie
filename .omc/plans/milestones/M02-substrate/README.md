@@ -4,47 +4,48 @@ template_id: TPL-MILE-README
 milestone_id: M02-substrate
 parent: ../../../docs/MASTERPLAN.md
 status: Proposed
-entry_gate: |
-  M01-foundation Complete; commit 55058f6+8f86d4d+d942b3d on main.
+entry_gate: 'M01-foundation Complete; commit 55058f6+8f86d4d+d942b3d on main.
+
   cargo check --workspace --all-features exits 0.
+
   4 LEAN architecture lanes (lean-a1..a4) at BLOCKER severity.
-exit_gate: |
-  - All 22 M02 phases (P01-P22) Complete with grit done on each
-  - All 14+ CI fitness lanes flipped from --report-only to BLOCKER at P22:
-    lean-a1..a5 + statelessness + shardability + perf-budget + benchmark +
-    architecture sub-commands canonical-base-neutrality + cross-pack-refusal
-  - oya-check-doc-coverage --workspace exits 0 (no violations)
-  - Application B2B shell deployed to OCI ARM64 Stage 0 cell
-  - Sibling-team smoke test: external team scaffolds + ships a new µservice
-    end-to-end using grit claim → work → grit done, no build-team help
-  - 9 architecture planes assessed L4+ per Bominal ADR-0223..0231 inheritance
-  - ICM milestone-complete row emitted
+
+  '
+exit_gate: "- All 22 M02 phases (P01-P22) Complete with grit done on each\n- All 14+\
+  \ CI fitness lanes flipped from --report-only to BLOCKER at P22:\n  lean-a1..a5\
+  \ + statelessness + shardability + perf-budget + benchmark +\n  architecture sub-commands\
+  \ canonical-base-neutrality + cross-pack-refusal\n- oya-check-doc-coverage --workspace\
+  \ exits 0 (no violations)\n- Application B2B shell deployed to OCI ARM64 Stage 0\
+  \ cell\n- Sibling-team smoke test: external team scaffolds + ships a new \xB5service\n\
+  \  end-to-end using grit claim \u2192 work \u2192 grit done, no build-team help\n\
+  - 9 architecture planes assessed L4+ per Bominal ADR-0223..0231 inheritance\n- ICM\
+  \ milestone-complete row emitted\n"
 owner_team: council-architecture
 bominal_adrs_inherited:
-  - ADR-0009  # cell architecture
-  - ADR-0011  # isolation tests mandatory
-  - ADR-0018  # tenancy posture
-  - ADR-0028  # audit chain Merkle/Ed25519
-  - ADR-0107  # capability registry / agent gateway
-  - ADR-0111  # KMS + envelope encryption
-  - ADR-0116  # outbox → Kafka KRaft
-  - ADR-0117  # OCI A1 → OKE staged scaling
-  - ADR-0120  # platform finance library
-  - ADR-0132  # Cedar policy + pillars
-  - ADR-0140  # regional-pack pattern
-  - ADR-0190  # versioned regulatory corpus.lock
-  - ADR-0223  # Proof Ladder L0..L7
-  - ADR-0224  # 9 architecture planes (referenced individually 0224..0231)
-  - ADR-0232  # Wave integration framework
+- ADR-0009
+- ADR-0011
+- ADR-0018
+- ADR-0028
+- ADR-0107
+- ADR-0111
+- ADR-0116
+- ADR-0117
+- ADR-0120
+- ADR-0132
+- ADR-0140
+- ADR-0190
+- ADR-0223
+- ADR-0224
+- ADR-0232
 oyatie_adrs_cited:
-  - ADR-0056  # BNF v4.1
-  - ADR-0058  # flat µservice catalog
-  - ADR-0059  # Workflow + Ontology adapter layer
-  - ADR-0062  # quality/performance/scalability bar
-  - ADR-0063  # documentation suite coverage (LEAN-A5)
-  - ADR-0064  # canonical base + localization seams/adapters/packs
+- ADR-0056
+- ADR-0058
+- ADR-0059
+- ADR-0062
+- ADR-0063
+- ADR-0064
+purpose: "Substrate completion milestone: every always-on substrate µservice (Foundry, Ontology, Identity, Audit-chain, Eventing, Secrets, Observability, KMS, Search, Vector, Data-Boundary, Finance-library, Capability-registry, Records, Workflow."
 ---
-
 # M02-substrate — Foundry engine + Cloud-Tenancy + Ontology + Workflow + Application + 16 substrate µservices ready
 
 ## Intent

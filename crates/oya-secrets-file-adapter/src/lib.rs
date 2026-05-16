@@ -9,9 +9,7 @@ use std::fs::{self, OpenOptions};
 use std::io::Write;
 use std::path::PathBuf;
 
-use oya_platform_secrets_kernel::{
-    SecretError, SecretRef, SecretStatus, SecretVault, SecretVersion,
-};
+use oya_secrets_domain::{SecretError, SecretRef, SecretStatus, SecretVault, SecretVersion};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FileSecretStore {

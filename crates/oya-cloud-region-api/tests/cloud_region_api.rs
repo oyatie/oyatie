@@ -1,13 +1,17 @@
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
 use oya_cloud_region_api::{
-    list_cloud_azs_from_api, list_cloud_regions_from_api, CloudAzListApiRequest,
+    CLOUD_AZ_LIST_SURFACE, CLOUD_REGION_LIST_SURFACE, CloudAzListApiRequest,
     CloudRegionApiAuthorization, CloudRegionApiBoundaryContext, CloudRegionApiError,
     CloudRegionApiPrincipal, CloudRegionListApiRequest, CloudRegionListApiStatus,
-    CLOUD_AZ_LIST_SURFACE, CLOUD_REGION_LIST_SURFACE,
+    list_cloud_azs_from_api, list_cloud_regions_from_api,
 };
-use oya_cloud_region_kernel::{
+use oya_cloud_region_domain::{
     AzState, CloudAzCreate, CloudRegionCatalog, CloudRegionCreate, RegionState,
 };
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_residency_domain::ResidencyClass;
 
 #[test]
 fn openapi_runtime_binding_contracts_are_covered() {

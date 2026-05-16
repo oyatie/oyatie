@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cost Anomaly Response
+doc_status: published
+---
+
 # Oyatie Runbook — Cost Anomaly Response
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

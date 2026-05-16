@@ -15,6 +15,7 @@ related:
 adrs_cited:
   - ADR-0052  # inventory ledger (audit row contract parallels MFL row contract)
   - ADR-0053  # sanctioned primitives (mechanical-prevention examples)
+doc_status: published
 ---
 
 # MISTAKES-LEDGER row template

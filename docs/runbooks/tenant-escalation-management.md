@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Tenant Escalation Management
+doc_status: published
+---
+
 # Oyatie Runbook — Tenant Escalation Management
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

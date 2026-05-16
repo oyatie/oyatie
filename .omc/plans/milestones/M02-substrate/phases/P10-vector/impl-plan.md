@@ -5,8 +5,8 @@ milestone: M02-substrate
 phase: P10-vector
 status: Proposed
 depends_on_phase_spec: phase-spec.md
+purpose: "Implementation plan for P10-vector of M02-substrate: detailed code structure and acceptance lanes."
 ---
-
 # P10-vector Implementation Plan
 
 ## 0. Grit Claim

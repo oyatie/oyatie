@@ -1,9 +1,11 @@
-use oya_foundry_catalog_kernel::{
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
+use oya_foundry_catalog_domain::{
     ApiStability, CatalogError, CatalogIndex, CatalogRecordInput, CatalogRole, SecurityReview,
     SupplyChainAttestation,
-};
-use oya_platform_data_boundary_kernel::{
-    privacy_data_classes_from, DataClass, OperationalDataClass,
 };
 
 #[test]
@@ -135,25 +137,25 @@ fn catalog_index_rejects_duplicates_and_missing_workspace_records() {
     assert!(index.lookup("oya-foundry-capability-kernel").is_some());
     assert_eq!(
         index.validate_required_crates(["oya-foundry-capability-kernel", "oya-foundry-run-kernel"]),
-        Err(CatalogError::MissingCrateRecord)
+        Err(CatalogError::MissingCrateRecord {
+            crate_id: "oya-foundry-run-kernel".into(),
+        })
     );
 }
 
 #[test]
 fn catalog_index_requires_review_for_plane_class_changes() {
-    let baseline = CatalogIndex::from_records(vec![valid_record_with_plane(
-        "oya-foundry-capability-kernel",
-        "control",
-    )
-    .build()
-    .unwrap()])
+    let baseline = CatalogIndex::from_records(vec![
+        valid_record_with_plane("oya-foundry-capability-kernel", "control")
+            .build()
+            .unwrap(),
+    ])
     .expect("baseline index is valid");
-    let current = CatalogIndex::from_records(vec![valid_record_with_plane(
-        "oya-foundry-capability-kernel",
-        "data",
-    )
-    .build()
-    .unwrap()])
+    let current = CatalogIndex::from_records(vec![
+        valid_record_with_plane("oya-foundry-capability-kernel", "data")
+            .build()
+            .unwrap(),
+    ])
     .expect("current index is valid");
 
     assert_eq!(

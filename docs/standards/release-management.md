@@ -1,4 +1,9 @@
 ---
+purpose: Cross-cutting release-management standard. Codifies trunk-based development with short-lived branches, feature-flag + canary progressive delivery, the SLO-burn-rate auto-rollback rail, and the Sigstore-signed-release pipeline.
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -11,7 +16,7 @@ purpose: |
   SLO-burn-rate auto-rollback rail, and the Sigstore-signed-release pipeline.
   Operates downstream of `docs/RELEASE-MANAGEMENT.md` (program-level mechanics)
   and supplies the per-PR / per-release authoring rules.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-flag-debt
 companion_docs:
   - docs/RELEASE-MANAGEMENT.md
@@ -28,7 +33,7 @@ related_adrs:
 
 # Release Management
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 The program-level lifecycle (CI gates, lanes, rollout strategies) lives in
 [`docs/RELEASE-MANAGEMENT.md`](../RELEASE-MANAGEMENT.md). This standard
@@ -50,7 +55,7 @@ and Google / Microsoft consensus:
 - Branch protection: required reviews per `RACI-OWNERSHIP.md`, merge-gate
   hook (`scripts/hooks/guard-pr-merge-review.mjs`), green CI required.
 - Force-push to `main` is forbidden per
-  [`CONSTITUTION.md`](../CONSTITUTION.md) §Avoid Item 3.
+  [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-03.
 
 Sources: [DORA — Trunk-Based Development](https://dora.dev/capabilities/trunk-based-development/),
 [Aviator — What is Trunk-Based Development](https://www.aviator.co/blog/trunk-based-development/).
@@ -96,7 +101,7 @@ Default rollout shape for an `oya-*-runtime-*` deploy:
 Rails:
 
 - **Argo Rollouts** or **Flagger** for k8s-native progressive delivery
-  (per `.omc/specs/hyperscaler-best-practices-2026-05-12.md` Domain 2).
+  (per `.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 2).
 - The canary controller subscribes to the metric backend (per
   [`observability.md`](observability.md)) and computes burn rate per
   stage.
@@ -191,7 +196,7 @@ Every deploy emits per [`observability.md`](observability.md) §4:
 ## 9. CI lane summary
 
 Per the hyperscaler-quality CI gate set (per
-`.omc/specs/hyperscaler-best-practices-2026-05-12.md` Domain 4):
+`.omc/scratch/hyperscaler-best-practices-2026-05-12.md` Domain 4):
 
 1. `cargo fmt --check`.
 2. `cargo clippy --workspace --all-features --all-targets -- -D warnings`.
@@ -225,5 +230,5 @@ Per the hyperscaler-quality CI gate set (per
 - [Argo Rollouts](https://argoproj.github.io/argo-rollouts/), [Flagger](https://flagger.app/).
 - [SLSA Provenance v0.1](https://slsa.dev/spec/v0.1/provenance).
 - [Chainguard — Sign SBOM with Cosign](https://edu.chainguard.dev/open-source/sigstore/cosign/how-to-sign-an-sbom-with-cosign/).
-- [`.omc/specs/hyperscaler-best-practices-2026-05-12.md`](../../.omc/specs/hyperscaler-best-practices-2026-05-12.md)
+- [`.omc/scratch/hyperscaler-best-practices-2026-05-12.md`](../../.omc/scratch/hyperscaler-best-practices-2026-05-12.md)
   Domain 2 "Feature flags + progressive delivery" + Domain 4 CI gates.

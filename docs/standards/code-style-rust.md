@@ -1,4 +1,9 @@
 ---
+purpose: "Canonical Rust code style for the oyatie workspace. Defines clippy-pedantic with cherry-picked allow-list, `#![deny(unsafe_code)]` policy, the `[workspace.lints]` inheritance table."
+doc_status: published
+---
+
+---
 doc_class: Standard
 shape: ~
 length_cap: 250
@@ -13,7 +18,7 @@ purpose: |
   v4 `oya-<shared|vertical>-<bc>-<layer>` conventions),
   and the 12-value canonical layer enum (kernel, domain, application, app, adapter,
   infrastructure, cli, rest, grpc, graphql, worker, sdk) per ADR-0056.
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
 enforced_by: oya-foundry-fitness-clippy-pedantic
 companion_docs:
   - docs/standards/error-handling.md
@@ -28,7 +33,7 @@ related_adrs:
 
 # Code Style — Rust
 
-## Constitutional authority — [CONSTITUTION.md](../CONSTITUTION.md)
+## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
 
 The workspace ships in Rust. This standard governs every `oya-*` crate.
 [`error-handling.md`](error-handling.md) governs error types;
@@ -37,13 +42,13 @@ The workspace ships in Rust. This standard governs every `oya-*` crate.
 
 ## 1. Toolchain pin
 
-Per [`.omc/specs/lts-versions-verified-2026-05-12.md`](../../.omc/specs/lts-versions-verified-2026-05-12.md):
+Per [`.omc/scratch/lts-versions-verified-2026-05-12.md`](../../.omc/scratch/lts-versions-verified-2026-05-12.md):
 
 - The workspace MUST pin `rust-toolchain.toml` to the current stable channel
   rounded down to the latest minor live for ≥ 30 days (currently **1.95.0**).
 - `Cargo.toml [workspace.package] rust-version` MUST equal the toolchain pin.
-- Edition: **2024** for new crates; legacy crates MAY remain on 2021 until
-  ADR-tracked migration lands.
+- Edition: **2024** for every workspace crate; exceptions require an
+  ADR-tracked waiver.
 - `cargo-deny` MUST be pinned to a version whose MSRV ≤ the workspace
   `rust-version`.
 
@@ -105,8 +110,9 @@ per AGENTS.md D10. Source:
 ## 3. Formatting
 
 - `cargo fmt --all` MUST pass at commit time.
-- `rustfmt.toml` MUST be checked in at workspace root.
-- Recommended settings: `edition = "2024"`, `max_width = 100`,
+- `rustfmt.toml` MUST be checked in at workspace root and MUST pin both
+  `edition = "2024"` and `style_edition = "2024"`.
+- Recommended settings: `edition = "2024"`, `style_edition = "2024"`, `max_width = 100`,
   `imports_granularity = "Crate"`, `group_imports = "StdExternalCrate"`,
   `reorder_imports = true`, `use_field_init_shorthand = true`.
 

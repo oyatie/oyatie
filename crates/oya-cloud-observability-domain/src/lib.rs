@@ -5,18 +5,21 @@
 //! `cloud.observability.audit.read` CloudTrail-class read projection. It stays
 //! adapter-free: VictoriaMetrics, Loki, Tempo, object export, and REST/gRPC API
 //! crates consume these value objects through ports.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_cloud_iam_kernel::IamRoleId;
-use oya_cloud_region_kernel::{CellId, RegionCode};
-use oya_cloud_resource_kernel::{CloudResourceError, ResourceId};
-use oya_platform_audit_chain_kernel::{AuditChain, AuditEvent, Plane};
-use oya_platform_data_boundary_kernel::{
+use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
+use oya_cloud_iam_domain::IamRoleId;
+use oya_cloud_region_domain::{CellId, RegionCode};
+use oya_cloud_resource_domain::{CloudResourceError, ResourceId};
+use oya_data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
-use oya_platform_observability_kernel::{log_exposure_for_classification, TelemetryLogExposure};
-use oya_platform_residency_kernel::{residency_class_allows_home_region_label, ResidencyClass};
+use oya_observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
+use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 
 const OBSERVABILITY_SCHEMA_VERSION: u32 = 1;
 const AUDIT_RECORD_SCHEMA_VERSION: u32 = 1;
@@ -659,15 +662,13 @@ impl ActorRef {
     pub fn new(value: impl Into<String>) -> Result<Self, CloudObservabilityError> {
         let value = value.into();
         let allowed = ["usr_", "sp_", "role_", "agent_", "sts_"];
-        if allowed.iter().any(|prefix| value.starts_with(prefix))
-            && value.len()
-                > allowed
-                    .iter()
-                    .find(|prefix| value.starts_with(*prefix))
-                    .unwrap()
-                    .len()
-            && is_ascii_token(&value)
-        {
+        // ADR-0083 Tier 1: bind the matching prefix via `find` once instead of
+        // checking `any` then re-finding with `.unwrap()`. If no prefix matches,
+        // the `let-else` returns the canonical invalid-actor error.
+        let Some(matched_prefix) = allowed.iter().find(|prefix| value.starts_with(*prefix)) else {
+            return Err(CloudObservabilityError::InvalidActorRef);
+        };
+        if value.len() > matched_prefix.len() && is_ascii_token(&value) {
             Ok(Self { value })
         } else {
             Err(CloudObservabilityError::InvalidActorRef)
@@ -702,7 +703,7 @@ impl DigestRef {
 
     fn audit_hash(value: impl Into<String>) -> Result<Self, CloudObservabilityError> {
         let value = value.into();
-        if value == "GENESIS" || valid_fnv_hash_ref(&value) {
+        if value == "GENESIS" || valid_fnv_hash_ref(&value) || valid_sha256_ref(&value) {
             Ok(Self { value })
         } else {
             Err(CloudObservabilityError::InvalidAuditHash)
@@ -1293,10 +1294,10 @@ impl NormalizedAuditReadRequest {
         if record.tenant_id.value != self.tenant_id || record.region.value != self.region {
             return false;
         }
-        if let Some(cell_id) = &self.cell_id {
-            if record.cell_id.value.as_ref() != Some(cell_id) {
-                return false;
-            }
+        if let Some(cell_id) = &self.cell_id
+            && record.cell_id.value.as_ref() != Some(cell_id)
+        {
+            return false;
         }
         if record.occurred_at_epoch_seconds.value < self.start_epoch_seconds
             || record.occurred_at_epoch_seconds.value >= self.end_epoch_seconds
@@ -1311,15 +1312,15 @@ impl NormalizedAuditReadRequest {
         if !self.topics.is_empty() && !self.topics.contains(&record.topic.value) {
             return false;
         }
-        if let Some(actor) = &self.actor {
-            if &record.actor.value != actor {
-                return false;
-            }
+        if let Some(actor) = &self.actor
+            && &record.actor.value != actor
+        {
+            return false;
         }
-        if let Some(resource_id) = &self.resource_id {
-            if record.source_resource_id.value.as_ref() != Some(resource_id) {
-                return false;
-            }
+        if let Some(resource_id) = &self.resource_id
+            && record.source_resource_id.value.as_ref() != Some(resource_id)
+        {
+            return false;
         }
         true
     }
@@ -1598,8 +1599,8 @@ fn is_ascii_token_with_slash(value: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use oya_platform_audit_chain_kernel::Plane;
-    use oya_platform_data_boundary_kernel::{OperationalDataClass, Purpose};
+    use oya_audit_chain_domain::Plane;
+    use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
 
     use super::*;
 
@@ -1630,30 +1631,36 @@ mod tests {
 
     fn chain() -> AuditChain {
         let mut chain = AuditChain::default();
-        chain.append_classifications(
-            TENANT,
-            CloudAuditTopic::CloudResourceCreated.as_str(),
-            Plane::Control,
-            Purpose::CoreService,
-            [DataClass::InternalOnly, DataClass::Public, DataClass::Audit],
-            "ALLOW",
-        );
-        chain.append_classifications(
-            TENANT,
-            CloudAuditTopic::CloudIamPolicy.as_str(),
-            Plane::Control,
-            Purpose::CoreService,
-            [DataClass::InternalOnly, DataClass::Audit],
-            "ALLOW",
-        );
-        chain.append_classifications(
-            TENANT,
-            CloudAuditTopic::CloudKmsUse.as_str(),
-            Plane::Data,
-            Purpose::CoreService,
-            [DataClass::InternalOnly, DataClass::Audit],
-            "ALLOW",
-        );
+        chain
+            .append_classifications(
+                TENANT,
+                CloudAuditTopic::CloudResourceCreated.as_str(),
+                Plane::Control,
+                Purpose::CoreService,
+                [DataClass::InternalOnly, DataClass::Public, DataClass::Audit],
+                "ALLOW",
+            )
+            .expect("test fixture: append CloudResourceCreated must succeed for valid tenant");
+        chain
+            .append_classifications(
+                TENANT,
+                CloudAuditTopic::CloudIamPolicy.as_str(),
+                Plane::Control,
+                Purpose::CoreService,
+                [DataClass::InternalOnly, DataClass::Audit],
+                "ALLOW",
+            )
+            .expect("test fixture: append CloudIamPolicy must succeed for valid tenant");
+        chain
+            .append_classifications(
+                TENANT,
+                CloudAuditTopic::CloudKmsUse.as_str(),
+                Plane::Data,
+                Purpose::CoreService,
+                [DataClass::InternalOnly, DataClass::Audit],
+                "ALLOW",
+            )
+            .expect("test fixture: append CloudKmsUse must succeed for valid tenant");
         assert!(chain.verify());
         chain
     }
@@ -1838,10 +1845,12 @@ mod tests {
             })
             .expect("control read");
         assert_eq!(control.records.len(), 2);
-        assert!(control
-            .records
-            .iter()
-            .all(|record| record.topic.value.is_control_plane_mutation()));
+        assert!(
+            control
+                .records
+                .iter()
+                .all(|record| record.topic.value.is_control_plane_mutation())
+        );
 
         let err = catalog
             .read_audit(AuditReadRequest {
@@ -2039,14 +2048,16 @@ mod tests {
         );
 
         let mut secret_chain = AuditChain::default();
-        secret_chain.append_classifications(
-            TENANT,
-            CloudAuditTopic::CloudResourceCreated.as_str(),
-            Plane::Control,
-            Purpose::CoreService,
-            [DataClass::Secret],
-            "ALLOW",
-        );
+        secret_chain
+            .append_classifications(
+                TENANT,
+                CloudAuditTopic::CloudResourceCreated.as_str(),
+                Plane::Control,
+                Purpose::CoreService,
+                [DataClass::Secret],
+                "ALLOW",
+            )
+            .expect("test fixture: append secret_chain must succeed for valid tenant");
         assert_eq!(
             CloudObservabilityCatalog::default()
                 .ingest_verified_chain(&secret_chain, vec![envelopes().remove(0)], &residency)

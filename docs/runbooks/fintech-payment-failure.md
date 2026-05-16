@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Fintech Payment Failure
+doc_status: published
+---
+
 # Oyatie Runbook — Fintech Payment Failure
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

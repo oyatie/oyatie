@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Foundry Sandbox Warm Pool
+doc_status: published
+---
+
 # Oyatie Runbook — Foundry Sandbox Warm Pool
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

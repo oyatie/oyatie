@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Go-to-Market Plan
+doc_status: published
+---
+
 # Oyatie — Go-to-Market Plan
 
 > **Status:** Draft v0.1 — 2026-05-09.

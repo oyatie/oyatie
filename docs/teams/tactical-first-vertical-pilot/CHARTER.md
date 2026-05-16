@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Team: Tactical — First Vertical Pilot
 
 ## Mission

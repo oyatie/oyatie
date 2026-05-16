@@ -31,6 +31,13 @@
       "M2",
       "M3",
       "MVP"
+    ],
+    "constitutional_authority_retired_on": "2026-05-15",
+    "doctrinal_successors": [
+      "specs/cross-cutting/decision-principles.json",
+      "specs/cross-cutting/forbidden-operations.json",
+      "specs/cross-cutting/decision-rights.json",
+      "specs/cross-cutting/governance-amendment.json"
     ]
   },
   "docs": {
@@ -47,22 +54,27 @@
       "validation_check": "readme-doc-coverage",
       "agent_authoring_allowed": true
     },
-    "doc.constitution": {
-      "path": "docs/CONSTITUTION.md",
+    "doc.masterplan": {
+      "path": "docs/MASTERPLAN.md",
       "owner_team": "council-architecture",
-      "tier": 1,
+      "tier": 0,
       "update_trigger": [
-        "authority change",
-        "constitutional contract change"
+        "master-plan authority change",
+        "master-plan sequencing change",
+        "EVT-WAVE-GATE-PASSED"
       ],
-      "update_cadence": "quarterly",
+      "update_cadence": "per-change + quarterly",
       "dependent_docs": [
-        "doc.agents",
+        "doc.prd",
         "doc.design",
-        "doc.doc_catalog"
+        "doc.roadmap",
+        "doc.raci_ownership",
+        "doc.risk_register",
+        "doc.changelog"
       ],
       "validation_check": [
-        "authority-cohesion"
+        "master-plan-completion",
+        "doc-catalog-self-coverage"
       ],
       "agent_authoring_allowed": false
     },
@@ -74,11 +86,13 @@
       ],
       "tier": 1,
       "update_trigger": [
-        "agent operating-contract change"
+        "agent operating-contract change",
+        "doctrinal substrate change"
       ],
       "update_cadence": "quarterly",
       "dependent_docs": [
-        "doc.constitution",
+        "specs/cross-cutting/decision-principles.json",
+        "specs/cross-cutting/forbidden-operations.json",
         "doc.design",
         "doc.doc_catalog"
       ],
@@ -86,6 +100,28 @@
         "authority-cohesion"
       ],
       "agent_authoring_allowed": false
+    },
+    "doc.agent_instruction_sources": {
+      "path": "docs/AGENT-INSTRUCTION-SOURCES.md",
+      "owner_team": [
+        "axis-foundry",
+        "council-architecture"
+      ],
+      "tier": "cross-cutting",
+      "update_trigger": [
+        "agent-instruction source inventory changes",
+        "M-CC-P01 banned-primitives lane audit"
+      ],
+      "update_cadence": "per-change",
+      "dependent_docs": [
+        "doc.agents",
+        "doc.doc_catalog"
+      ],
+      "validation_check": [
+        "banned-primitives",
+        "doc-catalog-self-coverage"
+      ],
+      "agent_authoring_allowed": true
     },
     "doc.prd": {
       "path": "docs/PRD.md",
@@ -663,6 +699,27 @@
       ],
       "agent_authoring_allowed": false
     },
+    "doc.doc_coverage": {
+      "path": "docs/DOC-COVERAGE.md",
+      "owner_team": [
+        "axis-foundry",
+        "council-architecture"
+      ],
+      "tier": "cross-cutting",
+      "update_trigger": [
+        "documentation-suite coverage snapshot regeneration"
+      ],
+      "update_cadence": "per-change",
+      "dependent_docs": [
+        "doc.documentation",
+        "doc.doc_catalog"
+      ],
+      "validation_check": [
+        "documentation-system",
+        "doc-catalog-self-coverage"
+      ],
+      "agent_authoring_allowed": true
+    },
     "doc.standards_and_templates": {
       "path": "docs/STANDARDS-AND-TEMPLATES.md",
       "owner_team": [
@@ -724,16 +781,18 @@
   },
   "products": {
     "saas-platform": {
-      "prd_path": "docs/products/saas-platform/PRD.md",
+      "prd_path": null,
       "axis": "saas",
       "owner_team": "axis-saas",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/saas-platform/PRD.md"
     },
     "workspace": {
-      "prd_path": "docs/products/workspace/PRD.md",
+      "prd_path": null,
       "axis": "workspace",
       "owner_team": "axis-workspace",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/workspace/PRD.md"
     },
     "foundry": {
       "prd_path": "docs/products/foundry/PRD.md",
@@ -783,100 +842,116 @@
       "status": "draft"
     },
     "search": {
-      "prd_path": "docs/products/search/PRD.md",
+      "prd_path": null,
       "axis": "search",
       "owner_team": "axis-search",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/search/PRD.md"
     },
     "ads-analytics": {
-      "prd_path": "docs/products/ads-analytics/PRD.md",
+      "prd_path": null,
       "axis": "ads",
       "owner_team": "axis-ads-analytics",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/ads-analytics/PRD.md"
     },
     "vertical-agriculture": {
-      "prd_path": "docs/products/vertical-agriculture/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-agriculture",
-      "status": "skeleton"
+      "status": "skeleton",
+      "planned_prd_path": "docs/products/vertical-agriculture/PRD.md"
     },
     "vertical-construction": {
-      "prd_path": "docs/products/vertical-construction/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-construction",
-      "status": "skeleton"
+      "status": "skeleton",
+      "planned_prd_path": "docs/products/vertical-construction/PRD.md"
     },
     "vertical-corporate": {
-      "prd_path": "docs/products/vertical-corporate/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-corporate",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/vertical-corporate/PRD.md"
     },
     "vertical-education": {
-      "prd_path": "docs/products/vertical-education/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-education",
-      "status": "skeleton"
+      "status": "skeleton",
+      "planned_prd_path": "docs/products/vertical-education/PRD.md"
     },
     "vertical-fintech": {
-      "prd_path": "docs/products/vertical-fintech/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-fintech",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/vertical-fintech/PRD.md"
     },
     "vertical-food": {
-      "prd_path": "docs/products/vertical-food/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-food",
-      "status": "skeleton"
+      "status": "skeleton",
+      "planned_prd_path": "docs/products/vertical-food/PRD.md"
     },
     "vertical-healthcare": {
-      "prd_path": "docs/products/vertical-healthcare/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-healthcare",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/vertical-healthcare/PRD.md"
     },
     "vertical-hospitality": {
-      "prd_path": "docs/products/vertical-hospitality/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-hospitality",
-      "status": "skeleton"
+      "status": "skeleton",
+      "planned_prd_path": "docs/products/vertical-hospitality/PRD.md"
     },
     "vertical-industrial": {
-      "prd_path": "docs/products/vertical-industrial/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-industrial",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/vertical-industrial/PRD.md"
     },
     "vertical-legal": {
-      "prd_path": "docs/products/vertical-legal/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-legal",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/vertical-legal/PRD.md"
     },
     "vertical-logistics": {
-      "prd_path": "docs/products/vertical-logistics/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-logistics",
-      "status": "draft"
+      "status": "planned",
+      "planned_prd_path": "docs/products/vertical-logistics/PRD.md"
     },
     "vertical-public-sector": {
-      "prd_path": "docs/products/vertical-public-sector/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-public-sector",
-      "status": "skeleton"
+      "status": "skeleton",
+      "planned_prd_path": "docs/products/vertical-public-sector/PRD.md"
     },
     "vertical-real-estate": {
-      "prd_path": "docs/products/vertical-real-estate/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-real-estate",
-      "status": "skeleton"
+      "status": "skeleton",
+      "planned_prd_path": "docs/products/vertical-real-estate/PRD.md"
     },
     "vertical-retail": {
-      "prd_path": "docs/products/vertical-retail/PRD.md",
+      "prd_path": null,
       "axis": "vertical",
       "owner_team": "vertical-retail",
-      "status": "skeleton"
+      "status": "skeleton",
+      "planned_prd_path": "docs/products/vertical-retail/PRD.md"
     }
   },
   "regional_packs": {
@@ -932,5 +1007,6 @@
     }
   },
   "validation_lane": "oya-foundry-fitness-doc-catalog",
-  "validation_runs_on": "every PR touching docs/**"
+  "validation_runs_on": "every PR touching docs/**",
+  "purpose": "Machine-readable catalog of every consolidated doc + per-product PRD + team charter + regional pack. Mirrored from DOC-CATALOG.md."
 }

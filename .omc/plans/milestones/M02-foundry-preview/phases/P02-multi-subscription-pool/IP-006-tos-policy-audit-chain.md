@@ -5,7 +5,10 @@ ip_id: IP-006-tos-policy-audit-chain
 parent: ./INDEX.md
 milestone: M02
 phase: P02-multi-subscription-pool
-status: pending approval
+status: in-progress
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 purpose: |
   Extend `oya-foundry-policy-kernel` with the `ToSAcknowledgment` record + `PoolingPolicyCheck`
   function that gates pool-membership > 1 on an explicit per-(tenant, provider) ToS-ack.
@@ -26,9 +29,10 @@ agent_prerequisites:
   - ./INDEX.md
   - ./IP-001-provider-account-pool-kernel.md
   - docs/AGENTS.md
-  - docs/CONSTITUTION.md
+  - /specs/cross-cutting/decision-principles.json
+  - /specs/cross-cutting/forbidden-operations.json
   - .omc/standards/security-review.md
-  - .omc/specs/foundry-salvage-from-ultragoal-2026-05-12.md
+  - .omc/scratch/foundry-salvage-from-ultragoal-2026-05-12.md
 final_shape_compliance: true
 dependency_additions:
   - { crate: "cedar-policy 4.4", lts: true, adr_exception: null }
@@ -40,7 +44,7 @@ decision_log: |
   provider, version, accepted_at, accepted_by, evidence_hash) or pool-membership > 1 is
   refused. One predicate; no branching.
 authority_chain_declaration: |
-  docs/CONSTITUTION.md > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-006-tos-policy-audit-chain: ToS-acknowledgment policy + pool-routing audit emission

@@ -18,6 +18,15 @@
 //!   - placeholder segments match any non-empty segment and capture it
 //!   - longer templates beat shorter templates with the same prefix (FCFS
 //!     tie-break for routes registered in insertion order)
+//!
+//! ADR-0092 Phase 4 change: `match_route` returns the matched template as a
+//! third tuple element so consumers (telemetry middleware in particular) can
+//! use the static template as a metric label instead of reconstructing it
+//! from the raw path. Eliminates the F-MULTI-Q1 quality bug AND the S6
+//! metric-label-injection security class in one move.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeMap;
 
@@ -135,6 +144,12 @@ impl RouteTemplate {
 
     /// Attempt to match `path` against this template. Returns the captured
     /// placeholder values on match.
+    ///
+    /// Per ADR-0092 Phase 9 (S5 security): dot-segments (`.`, `..`) are
+    /// REJECTED as placeholder captures by default — a captured `..` would
+    /// open path-traversal vectors for downstream handlers that interpret
+    /// the capture as a filesystem name. Routes that legitimately need
+    /// dot-segments must accept them as literal templates, not placeholders.
     pub fn match_path(&self, path: &str) -> Option<BTreeMap<String, String>> {
         if !path.starts_with('/') {
             return None;
@@ -151,6 +166,10 @@ impl RouteTemplate {
                 }
                 Segment::Placeholder(name) => {
                     if actual.is_empty() {
+                        return None;
+                    }
+                    // S5 defense: reject dot-segments as captures.
+                    if actual == "." || actual == ".." {
                         return None;
                     }
                     captures.insert(name.clone(), actual.to_string());
@@ -202,17 +221,23 @@ impl<H> Router<H> {
     }
 
     /// Find the first registered handler matching `(method, path)`.
+    ///
+    /// Returns `(handler, captures, matched_template_str)`. The template
+    /// string is the raw template as registered (e.g. `/users/{user_id}`),
+    /// suitable as a low-cardinality metric label. Consumers MUST NOT use
+    /// the captured values themselves in labels — that re-introduces the
+    /// S6 metric-label-injection class.
     pub fn match_route(
         &self,
         method: HttpMethod,
         path: &str,
-    ) -> Option<(&H, BTreeMap<String, String>)> {
+    ) -> Option<(&H, BTreeMap<String, String>, &str)> {
         for (m, template, handler) in &self.routes {
             if *m != method {
                 continue;
             }
             if let Some(captures) = template.match_path(path) {
-                return Some((handler, captures));
+                return Some((handler, captures, template.as_str()));
             }
         }
         None
@@ -332,13 +357,16 @@ mod tests {
         router
             .route(HttpMethod::Get, "/workspace/api/v1/surfaces", "list_all")
             .unwrap();
-        let (handler, captures) = router.match_route(HttpMethod::Get, "/workspace").unwrap();
+        let (handler, captures, template) =
+            router.match_route(HttpMethod::Get, "/workspace").unwrap();
         assert_eq!(*handler, "list_live");
         assert!(captures.is_empty());
-        let (handler, _) = router
+        assert_eq!(template, "/workspace");
+        let (handler, _, template) = router
             .match_route(HttpMethod::Get, "/workspace/api/v1/surfaces")
             .unwrap();
         assert_eq!(*handler, "list_all");
+        assert_eq!(template, "/workspace/api/v1/surfaces");
     }
 
     #[test]
@@ -350,7 +378,7 @@ mod tests {
         router
             .route(HttpMethod::Post, "/workspace", "post_handler")
             .unwrap();
-        let (handler, _) = router.match_route(HttpMethod::Post, "/workspace").unwrap();
+        let (handler, _, _) = router.match_route(HttpMethod::Post, "/workspace").unwrap();
         assert_eq!(*handler, "post_handler");
     }
 
@@ -372,7 +400,7 @@ mod tests {
                 "refresh",
             )
             .unwrap();
-        let (handler, captures) = router
+        let (handler, captures, template) = router
             .match_route(
                 HttpMethod::Post,
                 "/workspace/docs/api/v1/extractors/foo-bar/refresh",
@@ -382,6 +410,10 @@ mod tests {
         assert_eq!(
             captures.get("extractor_id").map(String::as_str),
             Some("foo-bar")
+        );
+        assert_eq!(
+            template,
+            "/workspace/docs/api/v1/extractors/{extractor_id}/refresh"
         );
     }
 
@@ -400,5 +432,99 @@ mod tests {
         assert_eq!(routes.len(), 2);
         assert!(routes.contains(&(HttpMethod::Get, "/a")));
         assert!(routes.contains(&(HttpMethod::Post, "/b")));
+    }
+
+    // F3 adversarial: matched_template is the REGISTERED string, not the raw
+    // path. A captured value that happens to look like a literal segment of
+    // another route MUST NOT cause the matched_template to be the wrong one.
+    #[test]
+    fn matched_template_is_registered_template_not_raw_path() {
+        let mut router: Router<&'static str> = Router::new();
+        router
+            .route(
+                HttpMethod::Get,
+                "/users/{user_id}/posts/{post_id}",
+                "uid_pid",
+            )
+            .unwrap();
+        // Captured user_id = "5"; literal "5" never appears as a segment so
+        // both numerical captures stay isolated. The returned template must be
+        // the original `/users/{user_id}/posts/{post_id}`, NOT the raw path.
+        let (handler, captures, template) = router
+            .match_route(HttpMethod::Get, "/users/5/posts/5")
+            .unwrap();
+        assert_eq!(*handler, "uid_pid");
+        assert_eq!(captures.get("user_id").map(String::as_str), Some("5"));
+        assert_eq!(captures.get("post_id").map(String::as_str), Some("5"));
+        assert_eq!(template, "/users/{user_id}/posts/{post_id}");
+        // The raw path "/users/5/posts/5" MUST NOT appear as the template;
+        // that would re-introduce the S6 metric-label-injection class.
+        assert_ne!(template, "/users/5/posts/5");
+    }
+
+    // F3 adversarial + S5 security: dot-segments in placeholder captures
+    // are REJECTED at the router. `/users/..` MUST NOT match `/users/{id}`
+    // — that would open path traversal for handlers that pass user_id
+    // into a filesystem lookup.
+    #[test]
+    fn match_path_rejects_dot_dot_in_capture() {
+        let template = RouteTemplate::parse("/users/{id}").unwrap();
+        assert!(template.match_path("/users/..").is_none());
+    }
+
+    #[test]
+    fn match_path_rejects_single_dot_in_capture() {
+        let template = RouteTemplate::parse("/users/{id}").unwrap();
+        assert!(template.match_path("/users/.").is_none());
+    }
+
+    // F3 adversarial: dot-prefixed values that are NOT bare dots are fine
+    // — a user id like `.bashrc` (legit unusual case) still matches.
+    #[test]
+    fn match_path_accepts_dot_prefix_not_bare_dot() {
+        let template = RouteTemplate::parse("/users/{id}").unwrap();
+        let captures = template.match_path("/users/.bashrc").unwrap();
+        assert_eq!(captures.get("id").map(String::as_str), Some(".bashrc"));
+    }
+
+    #[test]
+    fn match_path_accepts_literal_dot_in_middle() {
+        let template = RouteTemplate::parse("/users/{id}").unwrap();
+        let captures = template.match_path("/users/foo.bar").unwrap();
+        assert_eq!(captures.get("id").map(String::as_str), Some("foo.bar"));
+    }
+
+    // F3 adversarial + S5: nested traversal attempts via multiple placeholders.
+    #[test]
+    fn match_path_rejects_dot_dot_in_first_capture() {
+        let template = RouteTemplate::parse("/{tenant}/posts/{id}").unwrap();
+        assert!(template.match_path("/../posts/7").is_none());
+    }
+
+    #[test]
+    fn match_path_rejects_dot_dot_in_second_capture() {
+        let template = RouteTemplate::parse("/{tenant}/posts/{id}").unwrap();
+        assert!(template.match_path("/acme/posts/..").is_none());
+    }
+
+    // F3 adversarial: sensitive capture value (looks like an API key) does
+    // NOT appear in the matched_template. Even if the value happens to
+    // contain template-delimiter chars, the template remains static.
+    #[test]
+    fn matched_template_excludes_sensitive_capture_values() {
+        let mut router: Router<&'static str> = Router::new();
+        router
+            .route(HttpMethod::Get, "/api/v1/keys/{key_id}", "lookup")
+            .unwrap();
+        let sensitive = "sk-live-abc123def456ghi789";
+        let (_, captures, template) = router
+            .match_route(HttpMethod::Get, &format!("/api/v1/keys/{}", sensitive))
+            .unwrap();
+        assert_eq!(captures.get("key_id").map(String::as_str), Some(sensitive));
+        assert_eq!(template, "/api/v1/keys/{key_id}");
+        assert!(
+            !template.contains(sensitive),
+            "matched_template MUST NOT contain the captured sensitive value"
+        );
     }
 }

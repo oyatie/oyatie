@@ -5,19 +5,26 @@ milestone: M01-foundation
 phase: P01-bnf-v4-adrs-finalized
 status: Complete
 acceptance_lanes: []
-entry_gate: |
-  None (first phase of M01). Pre-condition: workspace exists at main HEAD
+entry_gate: 'None (first phase of M01). Pre-condition: workspace exists at main HEAD
+
   with v3 crate names and Shard 0 tooling (xtask-metadata-augment + 4 LEAN
+
   check crate scaffolds) committed.
-exit_gate: |
-  ADR-0056 v4.1, ADR-0057, ADR-0058, ADR-0059, ADR-0060, ADR-0061, ADR-0062
+
+  '
+exit_gate: 'ADR-0056 v4.1, ADR-0057, ADR-0058, ADR-0059, ADR-0060, ADR-0061, ADR-0062
+
   all present in docs/decisions/ with status Accepted. Rename plan v4.1
+
   approved (frontmatter: execution: approved-by-user-2026-05-13). ICM
+
   context-oyatie row emitted.
+
+  '
 depends_on: []
 owner_team: council-architecture
+purpose: This phase is a retrospective capture of the Wave 1 work completed on 2026-05-13.
 ---
-
 # P01-bnf-v4-adrs-finalized: BNF v4.1 ADRs finalized and Wave 1 ADRs landed
 
 ## Purpose

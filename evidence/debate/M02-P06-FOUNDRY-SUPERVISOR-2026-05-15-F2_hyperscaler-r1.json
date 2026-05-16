@@ -1,0 +1,122 @@
+{
+  "reviewer_id": "claude-architect-F2_hyperscaler-M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "round": 1,
+  "change_id": "M02-P06-FOUNDRY-SUPERVISOR-2026-05-15",
+  "facet": "F2_hyperscaler",
+  "lens": "Hyperscaler critique \u2014 horizontal scalability, single source of truth, control-plane shape, blocking-pool/fan-out arithmetic, hot-lock candidates",
+  "answer": "Branch-Y commits to a sync `SessionDriver` trait (v4 \u00a7B.2.3:217-222) driving a Tokio blocking pool whose default (512 workers) divided across 3 provider families caps fan-out at ~170 concurrent in-flight messages while burning ONE full OS thread per in-flight on a 100 ms `stop_hook_path` existence poll (v4 \u00a7B.3:308-321) \u2014 at 100x message rate each blocking thread is 99% idle, the right shape is a tokio `interval` task on the async runtime, and the sync trait signature precludes that refactor without a public-API break. v5 layers `SettingsRenderer::verify` into the hot `tick_once` snapshot step (v5 \u00a7B.4:322-326 \u2014 every tick, for every `ProviderAccount` the snapshot would return, read+hash+diff the rendered settings) with NO memoization layer, NO inotify, NO cross-tick cache; at N accounts \u00d7 3 renderers \u00d7 `heartbeat_interval_secs` cadence this is O(N) filesystem reads per heartbeat on the supervisor's main loop \u2014 a classic per-instance control-plane embedded in the hot path. The three sibling templates `claude.toml`/`codex.toml`/`gemini.toml` (v5 \u00a7B.3 explicitly: \"identical schema\" except for `provider_family` + `provider_overrides`) plus a THIRD hand-rolled TOML parser (v5 \u00a7B.7 unit v5.14, after v4 jsonl-supervisor-adapter and capability-registry already each ship one) plus a THIRD hand-rolled JSON emitter (`emit_drift_report_json`, after `capability-registry-app:L96` and v4 supervisor-conformance `build.rs`) are textbook n-source-of-truth-without-generator \u2014 collapse to one canonical template + per-provider overlay + one shared `oya-shared-toml-mini` + `oya-shared-json-mini` crate.",
+  "key_claims": [
+    "Blocking-pool budget math: Tokio default `blocking_pool_size = 512` (v4 \u00a7B.2.5:274 declares the field; no default given in plan) \u00f7 3 provider families \u00d7 N accounts; each `spawn_blocking` thread is held for the FULL message lifetime including the 100 ms `stop_hook_path` existence poll (v4 \u00a7B.3:316). At 10x N this is acceptable; at 100x N the saturation semaphore (`TickOutcome::Saturated`, v4 \u00a7B.2.5:283) returns Saturated long before the blocking pool exhausts \u2014 but the underlying waste is that one OS thread per in-flight message spends 99% of its time in a sleep+stat loop. The hyperscaler shape is `tokio::time::interval` on the async runtime; the sync `SessionDriver` (v4 \u00a7B.2.3:217-222) is a public-API trap that blocks that migration.",
+    "Per-instance control plane: v5 \u00a7B.4:322-326 wires `SettingsRenderer::verify` into `AccountSnapshotProvider::snapshot()`, which is called at step 2 of EVERY `tick_once` (v4 \u00a7B.4:332). No memoization across ticks, no inotify-based invalidation, no `(account_id, template_blake3)` cache key. At default `heartbeat_interval_secs` (plan does NOT specify a default in v4 \u00a7B.2.5:271-278), N accounts \u00d7 3 renderers \u00d7 per-file `read_to_string + blake3 + diff` runs each heartbeat. At 1 s heartbeat \u00d7 100x N this is O(N) filesystem reads per second on the supervisor's hot loop forever.",
+    "n-source-of-truth-without-generator (templates): v5 \u00a7B.3 ships three sibling top-level TOML files with the prose \"identical schema\" except `provider_family` + `provider_overrides`. The 4th provider onboarding requires a 4th hand-authored file \u2014 linear authoring cost per provider. The canonical shape is one `canonical.toml` + per-provider overlay (which `provider_overrides` already half-implements at the field level but the file layout duplicates).",
+    "n-source-of-truth-without-generator (parsers): v5 \u00a7B.7 unit v5.14 adds `parse_template_toml` \u2014 a hand-rolled TOML parser. v4 \u00a7B.2.4:255-263 already ships `decode_inbox_line`/`encode_inbox_line` (hand-rolled framing) in `oya-foundry-jsonl-supervisor-adapter`; v4 \u00a7B.5 ships `registry/capabilities/foundry-supervisor.toml` with a TOML reader; v5 v5.14 adds a third parser. Branch Y (no `toml` crate) is correctly motivated, but the work should be ONE `oya-shared-toml-mini` crate, not three lookalike parsers.",
+    "n-source-of-truth-without-generator (JSON emitters): same v5 unit v5.14 adds `emit_drift_report_json`. Existing hand-rolled JSON emitters live at `capability-registry-app:L96` (cited in v5 \u00a7B.5 last paragraph as precedent) and v4 supervisor-conformance `build.rs`. Three hand-rolled JSON emitters in the workspace; consolidate to one `oya-shared-json-mini` crate.",
+    "`ProviderFamilyKey(pub ProviderFamily)` wrapper (v5 \u00a7B.2.1:109-110) exists because the kernel's `ProviderFamily` doesn't derive `Ord` (v4 \u00a7B.0 references account-kernel:23-29). The wrapper is a miniature n-source-of-truth pattern: when `ProviderFamily` gains a variant, the wrapper's `Ord` semantics must be re-reasoned about separately. Push `derive(Ord)` down onto the kernel; retire the wrapper. (Note: this touches a public kernel API \u2192 lean-a10 ceremony; cheaper than 12 grit units of compensating code.)",
+    "JSONL adapter best-effort durability acknowledged (v4 \u00a7B.3:323): \"lock file `std::fs::write` no fsync; outbox tmp\u2192rename only; commit unlinks lock AFTER outbox rename.\" No `fsync(parent_dir)` after rename means at 100x crash rate the parent-directory entry of `outbox/{seq}.jsonl` may not survive, requiring `JsonlOutbox::recover()` GC every restart. The trade-off is explicit in plan; F2 flags scale-bound recover-loop cost.",
+    "Single-directory JSONL fan-out: `inbox/` and `outbox/` are flat per v4 \u00a7B.3. At 100x message volume both directories accumulate N files; `read_dir` cost is O(N), and `tmp\u2192rename` enters ext4 htree pathologies at large N. No sharding by `MessageId` hex prefix or date partition. Canonical hyperscaler shape: `inbox/ab/cd/abcdef\u2026.jsonl` (2-byte prefix shard, S3 / GitHub objects pattern).",
+    "Multi-account fan-out (v4 \u00a7B.4:376) is `RoutePolicy::select(&accounts, &constraints)` walking `failover_order` linearly. At N=100x the per-tick scan is O(N) with no precomputed `provider_family \u2192 Vec<&ProviderAccount>` index. Combined with the snapshot-clones-Vec contract every tick (v4 \u00a7B.2.3:248 `fn snapshot(&self) -> Vec<ProviderAccount>`) and v5 verify-per-tick layered on top, the snapshot path becomes the dominant per-tick allocator.",
+    "`window_for(acc.id)` (v4 \u00a7B.4:337) is invoked synchronously inside `tick_once` between `spawn_blocking` workers reading windows. Backing storage is unspecified in plan. If implemented as a single `Mutex<HashMap<AccountId, UsageWindow>>`, this is a hot-lock candidate at fan-out (all blocking workers contending for one mutex on every spend record). The plan must specify sharded RwLock or per-account cell.",
+    "CI lane `lean-settings-drift` (v5 \u00a7B.5) walks (templates \u00d7 accounts) sequentially in `oya-dev-cli`. At 100x N this is 300x verify calls serially per PR \u2014 same single-instance-control-plane embedded in a per-PR lane as the TG2 precedent. No parallel iteration hook is sketched.",
+    "No duplicate-existing-tooling against Cargo / cargo-deny / cargo-public-api detected: the new surface is orthogonal (per-account settings rendering + drift verification + JSONL framing). Branch Y's commitment to skip `toml`/`serde`/`json` crates is correctly motivated. The duplication risk that DOES apply is internal: three hand-rolled TOML parsers, three hand-rolled JSON emitters, three sibling template files."
+  ],
+  "uncertainty_areas": [
+    "Default value of `heartbeat_interval_secs` (v4 \u00a7B.2.5:277 declares the field; no default in plan). At 1 s this makes verify-per-tick O(N) IO/sec; at 60 s the cost is amortized. Plan must specify a default and tie it to N-accounts fan-out arithmetic.",
+    "Backing storage of `window_for(acc.id)` (v4 \u00a7B.4:337 \u2014 single-mutex vs sharded RwLock vs per-account cell). Determines whether step 7 is a hot-lock candidate at fan-out.",
+    "Default `blocking_pool_size` value (v4 \u00a7B.2.5:274 declares the field; suggests caller-supplied via `SupervisorConfig`). If left at Tokio's default 512, fan-out arithmetic is 512 \u00f7 3 \u2248 170 concurrent in-flight \u00d7 3 providers across all N accounts.",
+    "Whether `tick_once` is intended to be parallel across drivers in `run_forever` or strictly sequential (one in-flight per tick). v4 \u00a7B.2.5:291 returns `TickOutcome` (singular); v4 \u00a7B.4 spawns inside the tick step 14. Plan doesn't say whether `run_forever` drives multiple `tick_once` invocations concurrently.",
+    "Whether `VerifyMode::AutoReconcile` (v5 \u00a7B.4) is intended as default or opt-in. AutoReconcile mode would amplify the verify-per-tick IO concern into write-per-tick filesystem mutations under drift.",
+    "Whether `AccountSnapshotProvider::snapshot()` is expected to be cheap (in-memory Vec clone) or to perform per-call IO under v5 (verify-per-tick). v4 \u00a7B.2.6 says \"no existing kernel signature changes\" but v5 \u00a7B.4 explicitly extends `snapshot()` semantics to invoke `verify` \u2014 the semantic change is documented but the cost profile is not capped.",
+    "Whether `oya-shared-toml-mini` / `oya-shared-json-mini` extraction crosses a phase boundary or could land inside M02-P06. The three hand-rolled parsers/emitters already exist in different crates; consolidation may need its own ralplan."
+  ],
+  "anti_patterns_detected": [
+    "n-source-of-truth-without-generator (3 sibling templates \u00d7 3 hand-rolled TOML parsers \u00d7 3 hand-rolled JSON emitters; `ProviderFamilyKey` wrapper duplicating `ProviderFamily` ordering responsibility)",
+    "per-instance-control-plane (single SupervisorApp; verify-per-tick on hot loop with no cache; flat `inbox/`/`outbox/` directories; serial CI lane)",
+    "single-mutex-hot-lock (latent, `window_for(acc.id)` storage unspecified)"
+  ],
+  "scaling_concerns": {
+    "blocking_pool_size_budget": [
+      "Tokio default 512 blocking workers \u00f7 3 provider families = ~170 concurrent in-flight messages headroom across all N accounts; at 100x N this is the wall-clock bottleneck",
+      "Each `spawn_blocking` thread is held for full message lifetime including 100 ms `stop_hook_path` existence poll (v4 \u00a7B.3:316) \u2014 99% of each thread's life is sleep+stat",
+      "Sync `SessionDriver` trait (v4 \u00a7B.2.3:217-222) blocks migration to `tokio::time::interval` on the async runtime without a public-API break",
+      "`max_in_flight` semaphore (v4 \u00a7B.2.5:273) is the user-facing back-pressure knob but does not solve the per-thread waste; `TickOutcome::Saturated` returns earlier on a tighter cap, not on the underlying poll inefficiency"
+    ],
+    "fan_out_arithmetic": [
+      "N accounts \u00d7 3 provider families = 3N `ProviderAccount` rows; `AccountSnapshotProvider::snapshot()` (v4 \u00a7B.2.3:248) clones the entire Vec every tick",
+      "v5 \u00a7B.4:322-326 layers `SettingsRenderer::verify` per account per tick: 3N file reads + 3N blake3 hashes + 3N diffs per heartbeat",
+      "At default heartbeat (likely 1 s; plan unspecified) \u00d7 100x N = 300 file-reads/sec on the supervisor's hot loop, forever",
+      "`RoutePolicy::select` (v4 \u00a7B.4 step 4) is a linear scan of the cloned Vec; no `provider_family \u2192 Vec<&ProviderAccount>` index",
+      "v5 CI lane `lean-settings-drift` (\u00a7B.5) walks (3 templates \u00d7 N accounts) sequentially = 3N verify calls per PR"
+    ],
+    "hot_lock_candidates": [
+      "`window_for(acc.id)` (v4 \u00a7B.4:337) \u2014 backing storage unspecified; if `Mutex<HashMap<AccountId, UsageWindow>>` then every blocking worker contends on a single mutex on every spend-record path",
+      "`AccountSnapshotProvider::snapshot()` if backed by a single `RwLock<Vec<ProviderAccount>>` becomes a writer-starvation candidate when v5 `AutoReconcile` writes the rendered files mid-tick",
+      "Outbox sequence-counter (`outbox/{seq}.jsonl` per v4 \u00a7B.3:320) \u2014 `seq` allocation must be globally monotonic; implementation likely uses a single mutex on the next-seq integer"
+    ],
+    "single_directory_jsonl_fanout": [
+      "`inbox/` and `outbox/` are flat directories per v4 \u00a7B.3:320; at 100x message volume `read_dir` cost is O(N) and ext4 htree degrades on rename storms",
+      "No sharding by `MessageId` hex prefix; canonical fix is 2-byte prefix (256 buckets) for headroom to 10M files"
+    ],
+    "settings_drift_lane": [
+      "v5 \u00a7B.5 sequential walk over (3 templates \u00d7 N accounts) in `oya-dev-cli`; not parallelized",
+      "Same per-instance-control-plane shape as TG2 lane-subcheck precedent (cited F2 anti-pattern there); becomes the long pole at 100x N PRs/week"
+    ]
+  },
+  "fixuptasks": [
+    {
+      "id": "F-SETTINGS-TEMPLATE-CANONICAL-OVERLAY",
+      "intent": "Collapse the three sibling templates `claude.toml`/`codex.toml`/`gemini.toml` (v5 \u00a7B.3, hand-authored with 'identical schema') into one `canonical.toml` + N per-provider overlay files. Overlays carry only the field deltas (`provider_family`, `provider_overrides`); base is shared. New provider onboarding becomes one overlay file, not a full template copy.",
+      "owner_phase": "M02-P06-settings-template",
+      "severity": "S2"
+    },
+    {
+      "id": "F-SHARED-TOML-MINI",
+      "intent": "Extract `oya-shared-toml-mini` crate from the three hand-rolled TOML parsers: jsonl-supervisor-adapter encode/decode (v4 \u00a7B.2.4:262-263), `registry/capabilities/foundry-supervisor.toml` reader (v4 \u00a7B.5), and v5 `parse_template_toml` (\u00a7B.7 unit v5.14). Single source of truth for Branch-Y minimal TOML; new \u00b5service imports it.",
+      "owner_phase": "M02-P06-settings-template (or follow-up cross-cutting phase)",
+      "severity": "S2"
+    },
+    {
+      "id": "F-SHARED-JSON-MINI",
+      "intent": "Extract `oya-shared-json-mini` crate from the three hand-rolled JSON emitters: `capability-registry-app:L96` (cited in v5 \u00a7B.5), v4 supervisor-conformance `build.rs`, and v5 `emit_drift_report_json` (\u00a7B.7 unit v5.14). Same single-source-of-truth motivation as F-SHARED-TOML-MINI.",
+      "owner_phase": "M02-P06-settings-template (or follow-up cross-cutting phase)",
+      "severity": "S2"
+    },
+    {
+      "id": "F-PROVIDER-FAMILY-ORD",
+      "intent": "Push `derive(Ord, PartialOrd)` onto `ProviderFamily` in `oya-foundry-account-kernel:23-29`; retire the `ProviderFamilyKey(pub ProviderFamily)` wrapper introduced in v5 \u00a7B.2.1:109-110. Single source of truth for variant ordering. Requires lean-a10 ceremony (public kernel API change + ADR + version bump), justified by the n-source-of-truth-without-generator removal.",
+      "owner_phase": "M02-P06-settings-template + lean-a10 row",
+      "severity": "S2"
+    },
+    {
+      "id": "F-VERIFY-MEMOIZATION",
+      "intent": "Memoize `SettingsRenderer::verify` per `(account_id, template_blake3)` with TTL OR move to inotify-driven invalidation. v5 \u00a7B.4:322-326 layers verify into every `tick_once` snapshot with no cache, producing O(N) IO/heartbeat. Cache invalidation is on template-file mtime change or explicit reconcile.",
+      "owner_phase": "M02-P06-settings-template",
+      "severity": "S1"
+    },
+    {
+      "id": "F-INBOX-OUTBOX-SHARDING",
+      "intent": "Shard `inbox/` and `outbox/` by `MessageId` hex prefix (2-byte \u2192 256 buckets) to bound `read_dir` cost and avoid ext4 htree rename pathologies at 100x message volume. Hand-rolled framing (v4 \u00a7B.2.4) updates to take a `shard_prefix` argument.",
+      "owner_phase": "M02-P06-foundry-supervisor (touches v4 \u00a7B.2.4 + \u00a7B.3)",
+      "severity": "S2"
+    },
+    {
+      "id": "F-DRIFT-LANE-PARALLEL",
+      "intent": "Parallelize the `lean-settings-drift` CI lane across (template, account) pairs using `std::thread::spawn` or a worker-pool inside `oya-dev-cli`. Same pattern that addresses the TG2 lane-subcheck precedent. Bound by `available_parallelism()` to keep CI runner-safe.",
+      "owner_phase": "M02-P06-settings-template (CI-lane subcommand v5.18)",
+      "severity": "S2"
+    },
+    {
+      "id": "F-BLOCKING-POOL-BUDGET",
+      "intent": "Declare default `blocking_pool_size` and `heartbeat_interval_secs` values in `SupervisorConfig` (v4 \u00a7B.2.5:272-278) doc-comment, with a fan-out arithmetic note: 'blocking_pool_size \u00f7 provider_family_count gives concurrent-in-flight headroom per family; tune `max_in_flight` to \u2264 that quotient.' Flag the migration path to async `SessionDriver` if N grows past a documented threshold (e.g. N=50 accounts).",
+      "owner_phase": "M02-P06-foundry-supervisor",
+      "severity": "S3"
+    },
+    {
+      "id": "F-WINDOW-FOR-STORAGE",
+      "intent": "Specify `window_for(acc.id)` backing storage in v4 \u00a7B.4 commentary: per-account `RwLock<UsageWindow>` map keyed by `AccountId`, OR sharded by `AccountId` hash. Reject single `Mutex<HashMap<\u2026>>` explicitly. Removes the latent single-mutex-hot-lock candidate at fan-out.",
+      "owner_phase": "M02-P06-foundry-supervisor",
+      "severity": "S1"
+    }
+  ],
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "Auto-backfilled purpose for M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-F2_hyperscaler-r1.json"
+}

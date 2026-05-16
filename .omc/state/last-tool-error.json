@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"cat > /Users/jasonlee/oyatie/.omc/audits/existing-docs-staleness-drift-2026-05-12.md << 'EOF'\\n# Existing Oyatie Docs — Staleness + Drift Audit (2026-05-12)\\n\\n## Executive summary\\n\\n**To...",
-  "error": "Exit code 1\n(eval):1: no such file or directory: /Users/jasonlee/oyatie/.omc/audits/existing-docs-staleness-drift-2026-05-12.md\ncat: /Users/jasonlee/oyatie/.omc/audits/existing-docs-staleness-drift-2026-05-12.md: No such file or directory",
-  "timestamp": "2026-05-13T01:01:22.392Z",
-  "retry_count": 1
+  "tool_input_preview": "{\"command\":\"/bin/grep -v 'docs/decisions/ADR-' /tmp/doc-paths.txt; echo --- COUNT_NON_ADR ---; /bin/grep -c -v 'docs/decisions/ADR-' /tmp/doc-paths.txt; echo --- COUNT_ADR ---; /bin/grep -c 'docs/deci...",
+  "error": "Exit code 127\n(eval):1: no such file or directory: /bin/grep\n--- COUNT_NON_ADR ---\n(eval):1: no such file or directory: /bin/grep\n--- COUNT_ADR ---\n(eval):1: no such file or directory: /bin/grep",
+  "timestamp": "2026-05-15T11:46:26.959Z",
+  "retry_count": 2
 }

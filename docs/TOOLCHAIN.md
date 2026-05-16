@@ -1,3 +1,8 @@
+---
+purpose: "Oyatie — Internal Tooling & Toolchain"
+doc_status: published
+---
+
 # Oyatie — Internal Tooling & Toolchain
 
 > **Status:** Draft v0.1 — 2026-05-09. Authored agnostic of what exists today; choices are made best-for-task. The fact that the current repo is mostly Rust is not the input — Rust wins by analysis here for ~70% of surfaces because the cohesion thesis rewards a single dominant stack, but other stacks are chosen where they're decisively better.
@@ -48,18 +53,21 @@ Many tools serve both — e.g. catalog browsing is human-and-agent. The toolchai
 | **Search parser** (HTML / PDF / DOCX / OCR) | **Rust** primary; **Python** for OCR via Tesseract bindings if Rust binding insufficient | OCR / PDF have native libs in C++; wrap | Memory safety + perf |
 | **Search indexer** (inverted index) | **Rust** (Tantivy or in-house) | when consuming Vespa / OpenSearch as gated-end-state per ADR-0047 | Tantivy is best-in-class for embedded inverted indexes; in-house extension feasible |
 | **Search vector index** (HNSW / IVF / PQ) | **Rust** (in-house implementation) + **C++ via FFI** for FAISS as initial seed | as in-house matures, drop FFI | Vector search is performance-critical and the algorithm is well-understood |
-| **Search ranker — lexical (BM25)** | **Rust** | none | In-house |
+| **Search ranker — lexical (BM25 / TF-IDF)** | **Rust** | none | In-house |
 | **Search ranker — semantic rerank** | **Rust** for serving; **Python** for model training | none | Standard ML serve/train split |
 | **Search query understanding** (parser, expansion, spelling) | **Rust** | per-language NLP libs may need bindings | Memory safety; performance |
 | **Search Korean morphology** | **Rust** port of mecab-ko or in-house kkma | initial: bind mecab-ko via FFI; port over time | Speed-critical, multilingual |
 | **Ads auction engine** | **Rust** | none | Sub-100ms requirement; latency budget too tight for GC |
+| **Ads measurement quality** | **Rust** services with privacy-budgeted aggregation | external MTA or viewability vendor only as audited adapter | Keeps MTA and viewability signals tenant-scoped and replayable |
 | **Ads ML — smart bidding** | **Python** training (PyTorch / xgboost / LightGBM); **Rust** inference (ort / candle) | training stays Python | Industry standard split |
 | **Analytics — streaming** | **Rust** (Arroyo-class or in-house) | when consuming Materialize / Flink as buy-not-build with strong reason | Avoid JVM GC in streaming hot paths |
 | **Analytics — OLAP store** | **DuckDB / DataFusion** (in-process columnar Rust); **ClickHouse** as buy if scale demands | self-hosted ClickHouse per ADR-0045 is acceptable interim | Rust DataFusion is maturing fast |
+| **Analytics — HTAP posture** | **Separate OLTP + OLAP paths** with explicit replication / CDC boundaries; no opaque HTAP database as a shortcut | HTAP claims without isolation, audit, and cost evidence | Keeps transactional safety and analytical scale independently governable |
 | **Analytics — warehouse** | **DataFusion / DuckDB** in-house; **Iceberg / Parquet** as the on-disk format (Apache 2 license) | Snowflake / BigQuery as buy is OK for ad-hoc analytics with strong cost justification | Open formats; license clean |
 | **Tenant SaaS backend** | **Rust** | none | Consistency |
 | **Tenant SaaS web UI — canonical** | **Rust + Leptos** (CSR + SSR); per-product PRD owns the concrete client choice | TypeScript + Svelte / Solid for prototypes that explicitly will be replaced | Type safety end-to-end; same lang as backend |
 | **Tenant SaaS — mobile clients (iOS / Android)** | **Swift** + **Kotlin** native | KMP for shared models if cost-justified | Best UX requires native |
+| **Vertical healthcare terminology** | **Rust** terminology adapters for NCPDP SCRIPT, ICD-10-CM, SNOMED CT, and RxNorm | raw code-system strings without versioned adapters | Clinical and pharmacy workflows need versioned code-system provenance |
 | **Workflow Studio (visual workflow editor)** | **Rust + Leptos** + **WASM-bound editor host** (in-house or fork of an Apache-2 editor like draw.io fork) | TypeScript for editor host until Leptos catches up | Same as SaaS UI |
 | **Plugin substrate runtime** | **Wasmtime + WASI Preview 2** per ADR-0023 | WASIX or component-model when stable | Industry direction; sandbox-first |
 | **Plugin authoring SDK** | **Rust → WASM** (canonical); **TS / AssemblyScript → WASM** (compatibility); **Python → WASM** (where Pyodide-class is acceptable) | Go is currently weak on WASM; not first-class | Multi-language support widens marketplace |
@@ -94,7 +102,7 @@ Many tools serve both — e.g. catalog browsing is human-and-agent. The toolchai
 | **Browser auth bridge** (for subscription-mode adapters) | **Rust + Chromiumoxide** (CDP wrapper) | Playwright (Apache-2) only as escape hatch | Headless browser in Rust |
 | **Local dev environment** | **Devcontainer (open spec)** + **`oya dev env`** that wraps it; **Leptos hot-reload via cargo-leptos**; **nextest watch** | none | Devcontainer is industry standard |
 | **Editor / IDE** | Engineer choice (VS Code / Cursor / Helix / Zed / Neovim); **rust-analyzer** is required; **leptos-language-server** when authoring Leptos UI | none | Editor-agnostic; require LSP support |
-| **Pre-commit + pre-push** | **`oya dev check`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `oya gate validate` + boundary validator | none | Already in the design |
+| **Pre-commit + pre-push** | **`oya verify`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `oya gate validate` + boundary validator | none | Already in the design |
 
 ---
 
@@ -320,7 +328,7 @@ CI lane `oya-foundry-fitness-license` runs `cargo deny` + per-language equivalen
 
 | Order | Tool | Why first |
 |---|---|---|
-| 1 | `oya dev check` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
+| 1 | `oya verify` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
 | 2 | `oya-foundry-adapter-kernel` + adapters for Anthropic / OpenAI / Gemini × API + subscription | Foundry preview gate |
 | 3 | `oya-foundry-capability-kernel` + MCP-compatible registry | Foundry preview gate |
 | 4 | `oya-foundry-router` (multi-provider routing + cost ceiling) | Production agent reliability |

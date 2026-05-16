@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Legal + IP Ledger
+doc_status: published
+---
+
 # Oyatie — Legal + IP Ledger
 
 > **Status:** Draft v0.1 skeleton — 2026-05-09.

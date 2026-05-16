@@ -52,6 +52,7 @@ related_adrs:
   - ADR-0054
   - ADR-0056
   - ADR-0057
+doc_status: published
 ---
 
 # Rename Plan v4.1 — Clean Architecture / Flat Catalog BNF (2026-05-13, Hybrid C: Shard 0 + atomic Shard 1)
@@ -868,7 +869,7 @@ to the flat `check` namespace.
 | 87 | `oya-foundry-claim-ceiling-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `claim-ceiling`) | `oya-check-claim-ceiling` | PROPOSED-NEW | 2 | est. 5 |
 | 88 | `oya-foundry-codeowners-mirror-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `codeowners-mirror`) | `oya-check-codeowners-mirror` | PROPOSED-NEW | 2 | est. 5 |
 | 89 | `oya-foundry-cohesion-fitness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cohesion`) | `oya-check-cohesion` | PROPOSED-NEW | 2 | est. 5 |
-| 90 | `oya-foundry-constitution-cite-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `constitution-cite`) | `oya-check-constitution-cite` | PROPOSED-NEW | 2 | est. 5 |
+| 90 | `oya-foundry-constitution-cite-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | ~~`NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `constitution-cite`)~~ SUNSET 2026-05-15 | ~~`oya-check-constitution-cite`~~ SUNSET — crate deleted in commit `526e4bf` (strike: retire docs/CONSTITUTION.md and its enforcement crate) | SUNSET | n/a | n/a |
 | 91 | `oya-foundry-cost-budget-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `cost-budget`) | `oya-check-cost-budget` | PROPOSED-NEW | 2 | est. 5 |
 | 92 | `oya-foundry-data-class-fitness-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `data-class`) | `oya-check-data-class` | PROPOSED-NEW | 2 | est. 5 |
 | 93 | `oya-foundry-doc-catalog-kernel` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `check-namespace-exempt` | `NEW-scaffold-shard-1-from-v3-fitness-crate` (rule-name `doc-catalog`) | `oya-check-doc-catalog` | PROPOSED-NEW | 2 | est. 5 |
@@ -2286,7 +2287,7 @@ window.
 
 **CI / scripts** (carried forward from v3 §12):
 - `.github/workflows/release-evidence-pack.yml` (1 site)
-- `.github/workflows/supply-chain.yml` (2 sites)
+- `.github/workflows/oya-foundry-fitness-supply-chain.yml` (2 sites)
 - `scripts/check.sh` (~29 sites)
 - `scripts/hooks/pre-push-repoctl.sh` (1 site)
 - `scripts/check-architecture-boundaries.sh` (3 sites + 1 new for

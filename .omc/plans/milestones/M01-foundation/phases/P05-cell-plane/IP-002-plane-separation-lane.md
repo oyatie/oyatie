@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M01-P05-IP-002
 title: Plane separation enforcement lane
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship the fitness lane that validates every catalog record declares plane.
@@ -16,8 +19,9 @@ Ship the fitness lane that validates every catalog record declares plane.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-foundry-fitness-plane-separation-kernel/src/lib.rs::check
-crates/oya-foundry-fitness-plane-separation-kernel/src/lib.rs::cross_plane_review_required
+crates/oya-dev-cli/src/governance_gates.rs::validate_plane_class_gate
+crates/oya-dev-cli/src/commands/gate.rs::plane-class
+registry/catalog/*.yaml::plane
 ```
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
@@ -26,8 +30,8 @@ Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles underst
 
 ## Acceptance-test-commands
 ```
-cargo test -p <owning-crate> --all-features
-cargo run -p oya-foundry-fitness-cohesion -- <owning-crate-glob>
+cargo test --locked -p oya-dev-cli --test gate_cli plane_class_gate_accepts_stable_catalog_planes -- --exact
+cargo run --quiet -p oya-dev-cli -- gate validate plane-class --registry registry/catalog
 scripts/check.sh
 ```
 

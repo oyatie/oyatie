@@ -1,17 +1,21 @@
-use oya_cloud_compute_functions_api::{
-    invoke_cloud_compute_function_from_api, CloudComputeFunctionsApiAuthorization,
-    CloudComputeFunctionsApiBoundaryContext, CloudComputeFunctionsApiError,
-    CloudComputeFunctionsApiPrincipal, CloudComputeFunctionsInvokeApiRequest,
-    CloudComputeFunctionsInvokeApiStatus, CloudComputeFunctionsInvokeIdempotencyLedger,
-    CloudComputeFunctionsInvokeRequest, CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE,
-};
-use oya_cloud_compute_kernel::{
+// ADR-0083 Tier 3: integration tests use `.unwrap()` / `.expect()` /
+// `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
+#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+
+use oya_cloud_compute_domain::{
     CloudComputeCatalog, CloudComputeError, ComputeRepo, FunctionDeploymentCreate,
     FunctionDeploymentState,
 };
-use oya_cloud_resource_kernel::FunctionRuntime;
-use oya_platform_data_boundary_kernel::DataClass;
-use oya_platform_residency_kernel::ResidencyClass;
+use oya_cloud_compute_functions_api::{
+    CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE, CloudComputeFunctionsApiAuthorization,
+    CloudComputeFunctionsApiBoundaryContext, CloudComputeFunctionsApiError,
+    CloudComputeFunctionsApiPrincipal, CloudComputeFunctionsInvokeApiRequest,
+    CloudComputeFunctionsInvokeApiStatus, CloudComputeFunctionsInvokeIdempotencyLedger,
+    CloudComputeFunctionsInvokeRequest, invoke_cloud_compute_function_from_api,
+};
+use oya_cloud_resource_domain::FunctionRuntime;
+use oya_data_boundary_kernel::DataClass;
+use oya_residency_domain::ResidencyClass;
 
 const FUNCTION_ID: &str = "oya:cloud:kr-seoul:ten_kr:function:image-resize";
 const DIGEST: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";

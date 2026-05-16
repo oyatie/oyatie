@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie Runbook — Auction Engine Overload
 
 > **Status:** Stub (P0 must-have for W-Foundation gate per [`RUNBOOKS-INDEX.md`](../../RUNBOOKS-INDEX.md))

@@ -12,6 +12,7 @@ purpose: |
   pipeline, and the cherry-pick rules. Aligns with Kubernetes release-X.Y model.
 enforced_by: oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-cherry-pick-trail
 related_adrs: [ADR-0041, ADR-0050]
+doc_status: published
 ---
 
 # Release Branch Cut Spec — oyatie
@@ -23,12 +24,12 @@ related_adrs: [ADR-0041, ADR-0050]
 ```
 origin/dev      → origin/staging → origin/prod
                                      │
-                                     ├─ tag oyatie-v3.4.0
+                                     ├─ tag oya-v3.4.0
                                      │
                                      └─ release/3.4 (cut from tag)
                                             │
-                                            ├─ tag oyatie-v3.4.1 (cherry-pick)
-                                            ├─ tag oyatie-v3.4.2 (cherry-pick)
+                                            ├─ tag oya-v3.4.1 (cherry-pick)
+                                            ├─ tag oya-v3.4.2 (cherry-pick)
                                             └─ ...
 ```
 
@@ -40,9 +41,9 @@ feature-complete and accumulates only cherry-picked fixes thereafter.
 | Object | Format | Example |
 |---|---|---|
 | Release branch | `release/X.Y` | `release/3.4` |
-| Cut tag | `oyatie-vX.Y.0` | `oyatie-v3.4.0` |
-| Patch tag | `oyatie-vX.Y.Z` (Z ≥ 1) | `oyatie-v3.4.7` |
-| Pre-release tag | `oyatie-vX.Y.0-rc.N` | `oyatie-v3.4.0-rc.2` |
+| Cut tag | `oya-vX.Y.0` | `oya-v3.4.0` |
+| Patch tag | `oya-vX.Y.Z` (Z ≥ 1) | `oya-v3.4.7` |
+| Pre-release tag | `oya-vX.Y.0-rc.N` | `oya-v3.4.0-rc.2` |
 
 Note the `/` separator (Atlassian Git Flow extension default). The `-` form is
 also tolerated but discouraged.
@@ -53,9 +54,9 @@ The cut is invoked ONLY by the `release-cherry-pick` agent (or a human operator
 with Directive 12 documentation). The protocol:
 
 1. **Pre-cut audit**: every fitness lane green on `origin/prod` HEAD.
-2. **Tag prod at HEAD**: `git tag -a oyatie-vX.Y.0 -m "..." <prod-sha>`.
-3. **Push the tag**: `git push origin oyatie-vX.Y.0`.
-4. **Create branch**: `git branch release/X.Y oyatie-vX.Y.0`.
+2. **Tag prod at HEAD**: `git tag -a oya-vX.Y.0 -m "..." <prod-sha>`.
+3. **Push the tag**: `git push origin oya-vX.Y.0`.
+4. **Create branch**: `git branch release/X.Y oya-vX.Y.0`.
 5. **Push the branch**: `git push origin release/X.Y`.
 6. **Protect the branch**: GH branch protection set to "release-cherry-pick agent only".
 7. **Stamp `Cargo.toml`** on the release branch: workspace version → `X.Y.0`.
@@ -88,7 +89,7 @@ A fix that needs to land on a release branch flows like this:
 2. PR merges through the four-layer pipeline (dev → staging → prod).
 3. Once on `origin/prod`, the `release-cherry-pick` agent reads the frontmatter
    and cherry-picks the commit to each named release branch.
-4. CI runs on the release branch; if green, the agent tags `oyatie-vX.Y.<Z+1>`.
+4. CI runs on the release branch; if green, the agent tags `oya-vX.Y.<Z+1>`.
 5. Per-axis playbook decides whether to roll a binary release.
 
 This guarantees every fix that ships on a release branch ALSO exists on
@@ -120,7 +121,7 @@ Refused cherry-picks emit `EVT-CHERRY-PICK-REFUSED` with the rejection reason.
 On the release branch, the workspace `Cargo.toml` version is `X.Y.Z`. On each
 cherry-pick that ships:
 - Patch increment `Z → Z+1`.
-- New tag `oyatie-vX.Y.<Z+1>`.
+- New tag `oya-vX.Y.<Z+1>`.
 - `CHANGELOG.md` entry on the release branch (cherry-pick agent appends).
 
 ## 9. EOL of a release branch

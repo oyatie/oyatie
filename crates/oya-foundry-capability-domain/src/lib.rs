@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum AutonomyTier {
@@ -394,12 +394,22 @@ impl CapabilityCostProfile {
     }
 
     pub fn foundation_local_default() -> Self {
-        Self::new(
-            u64::MAX,
-            u64::MAX,
-            vec![DEFAULT_FOUNDATION_LOCAL_PROVIDER_ID.to_string()],
-        )
-        .expect("foundation-local default provider id and ceilings are valid")
+        // ADR-0083 Tier 1: bypass the fallible `Self::new` validator for the
+        // statically known-valid foundation-local defaults. The values
+        // (`u64::MAX` ceilings + the single `DEFAULT_FOUNDATION_LOCAL_PROVIDER_ID`
+        // constant) trivially satisfy every check in `Self::new`
+        // (`per_invocation_limit_micros <= per_tenant_monthly_limit_micros`,
+        // non-empty provider preference, valid `cap.` / kebab-case provider id,
+        // no duplicates), so a direct struct construction is correct and
+        // removes the `.expect()` previously required at this site.
+        Self {
+            per_invocation_limit_micros: Classified::new(u64::MAX, DataClass::InternalOnly),
+            per_tenant_monthly_limit_micros: Classified::new(u64::MAX, DataClass::InternalOnly),
+            provider_preference: Classified::new(
+                vec![DEFAULT_FOUNDATION_LOCAL_PROVIDER_ID.to_string()],
+                DataClass::InternalOnly,
+            ),
+        }
     }
 }
 

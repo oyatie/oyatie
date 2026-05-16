@@ -7,15 +7,15 @@ impl_plan_id: IP-001-shard-1-5-protocol-rename
 status: pending
 owner: council-architecture
 blocked_by:
-  - impl_plan: P04/IP-001-iter-4-src-inspection
-    reason: "Protocol classification evidence must come from iter-4 src-inspection"
+- impl_plan: P04/IP-001-iter-4-src-inspection
+  reason: Protocol classification evidence must come from iter-4 src-inspection
 acceptance_lanes:
-  - cargo-check
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
+- cargo-check
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+purpose: "Inspects each of the 26 `*-api` crates deferred from Shard 1, determines the correct protocol layer (`rest`, `grpc`, `graphql`, or `worker`) via src-inspection, and executes the rename."
 ---
-
 # IP-001-shard-1-5-protocol-rename: Classify and rename 26 PROTOCOL-UNKNOWN crates
 
 ## Intent

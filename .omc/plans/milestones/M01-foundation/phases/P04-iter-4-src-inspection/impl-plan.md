@@ -7,12 +7,12 @@ impl_plan_id: IP-001-iter-4-src-inspection
 status: pending
 owner: council-architecture
 blocked_by:
-  - impl_plan: P02/IP-001-shard-1-atomic-rename
-    reason: "src-inspection runs on renamed crate dirs; requires P02 complete"
+- impl_plan: P02/IP-001-shard-1-atomic-rename
+  reason: src-inspection runs on renamed crate dirs; requires P02 complete
 acceptance_lanes:
-  - cargo-check
+- cargo-check
+purpose: "Inspects `src/` of each crate with `STUB-pending-iter-4-src-inspection` in its `layer_evidence` cell; fills the cell with a concrete `file:line — <pattern>` cite; confirms or amends the layer assignment."
 ---
-
 # IP-001-iter-4-src-inspection: Resolve 88 STUB-pending layer-evidence cells
 
 ## Intent

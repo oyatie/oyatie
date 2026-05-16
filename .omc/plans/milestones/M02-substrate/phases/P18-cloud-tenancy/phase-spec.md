@@ -5,31 +5,44 @@ milestone: M02-substrate
 phase: P18-cloud-tenancy
 status: Proposed
 acceptance_lanes: []
-entry_gate: |
-  M02/P13-tenancy complete (TenantProductRegistry live; oyatie.set_current_tenant()
-  deployed); M02/P08-kms complete (oya-kms-kernel ships with envelope encryption ports);
-  M02/P06-secrets complete (oya-secrets-kernel ships with SecretReference port);
-  cargo check clean; grit done on all P13/P08/P06 symbols; ICM phase-handoff emitted.
-exit_gate: |
-  All P18 impl-plan acceptance gates green; 8 BCs registered (cloud-tenancy,
-  cloud-iam, cloud-kms, cloud-compute, cloud-storage, cloud-network, cloud-billing,
-  cloud-cell); per-cell OCI ARM64 deployment manifest generated; KMS envelope
-  encryption wired; all crates pass cargo check/build/clippy/nextest/deny;
-  oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on all P18 symbols;
-  ICM phase-complete row emitted.
-depends_on:
-  - milestone: M02
-    phase: P13-tenancy
-    reason: "Cloud tenancy substrate reads TenantProductRegistry to determine which cloud resources to provision per tenant; cell assignment uses TenantCellPlacer output."
-  - milestone: M02
-    phase: P08-kms
-    reason: "Cloud KMS BC wraps oya-kms-kernel envelope encryption ports; per-cell DEK management extends P08 KMS kernel."
-  - milestone: M02
-    phase: P06-secrets
-    reason: "Cloud IAM credentials and OCI Vault references stored via oya-secrets-kernel SecretReference port; no plaintext credentials in cloud-tenancy tables."
-owner_team: council-cloud
----
+entry_gate: 'M02/P13-tenancy complete (TenantProductRegistry live; oyatie.set_current_tenant()
 
+  deployed); M02/P08-kms complete (oya-kms-kernel ships with envelope encryption ports);
+
+  M02/P06-secrets complete (oya-secrets-kernel ships with SecretReference port);
+
+  cargo check clean; grit done on all P13/P08/P06 symbols; ICM phase-handoff emitted.
+
+  '
+exit_gate: 'All P18 impl-plan acceptance gates green; 8 BCs registered (cloud-tenancy,
+
+  cloud-iam, cloud-kms, cloud-compute, cloud-storage, cloud-network, cloud-billing,
+
+  cloud-cell); per-cell OCI ARM64 deployment manifest generated; KMS envelope
+
+  encryption wired; all crates pass cargo check/build/clippy/nextest/deny;
+
+  oya gate validate lean-a1/a2/a3/a4 exit 0; grit done on all P18 symbols;
+
+  ICM phase-complete row emitted.
+
+  '
+depends_on:
+- milestone: M02
+  phase: P13-tenancy
+  reason: Cloud tenancy substrate reads TenantProductRegistry to determine which cloud
+    resources to provision per tenant; cell assignment uses TenantCellPlacer output.
+- milestone: M02
+  phase: P08-kms
+  reason: Cloud KMS BC wraps oya-kms-kernel envelope encryption ports; per-cell DEK
+    management extends P08 KMS kernel.
+- milestone: M02
+  phase: P06-secrets
+  reason: Cloud IAM credentials and OCI Vault references stored via oya-secrets-kernel
+    SecretReference port; no plaintext credentials in cloud-tenancy tables.
+owner_team: council-cloud
+purpose: "Delivers the cloud tenancy substrate: the multi-tenant runtime infrastructure layer that provisions and manages per-tenant OCI resources."
+---
 # P18-cloud-tenancy: Cloud Tenancy + IAM + KMS + Billing-Skeleton + Compute + Storage + Network — Multi-Tenant Runtime Substrate
 
 ## Purpose
@@ -77,7 +90,7 @@ without rearchitecting per ADR-0117 §1.
 | `cloud` | `billing` | `crates/oya-cloud-billing-kernel/` | `oya-cloud-billing-kernel` |
 | `cloud` | `billing` | `crates/oya-cloud-billing-adapter/` | `oya-cloud-billing-adapter` |
 | `cloud` | `cell` | `crates/oya-cloud-cell-kernel/` | `oya-cloud-cell-kernel` |
-| `cloud` | `cell` | `crates/oya-cloud-cell-application/` | `oya-cloud-cell-application` |
+| `cloud` | `cell` | `crates/oya-cloud-cell-application/` | `oya-cloud-cell-application` (SUPERSEDED: stub orphan deleted per ADR-0106 §Consequences + audit #6; on IP execution, scaffold canonical `oya-cloud-cell-app` per ADR-0106 + ADR-0107) |
 | `cloud` | `cell` | `crates/oya-cloud-cell-adapter/` | `oya-cloud-cell-adapter` |
 | `cloud` | all | `crates/oya-cloud-app/` | `oya-cloud-app` |
 | `cloud` | all | `contracts/cloud.openapi.yaml` | — |

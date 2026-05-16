@@ -13,6 +13,7 @@ bominal_source:
   - ADR-0209  # client architecture (Leptos web + 5 native tiers)
   - ADR-0018  # tenancy RLS posture
   - ADR-0019  # runtime target metadata model
+doc_status: published
 ---
 
 # PRD-application: Application µservice (B2B unified shell)

@@ -20,14 +20,17 @@ oya-check-brand-residue = { path = "../oya-check-brand-residue" }
 oya-foundry-bypass-domain = { path = "../oya-foundry-bypass-domain" }
 oya-foundry-cargo-prefix-domain = { path = "../oya-foundry-cargo-prefix-domain" }
 oya-foundry-catalog-domain = { path = "../oya-foundry-catalog-domain" }
+oya-foundry-gate-catalog-domain = { path = "../oya-foundry-gate-catalog-domain" }
 oya-check-claim-ceiling = { path = "../oya-check-claim-ceiling" }
 oya-check-codeowners-mirror = { path = "../oya-check-codeowners-mirror" }
 oya-check-cohesion = { path = "../oya-check-cohesion" }
-oya-check-constitution-cite = { path = "../oya-check-constitution-cite" }
+oya-check-statelessness = { path = "../oya-check-statelessness" }
+oya-check-shardability = { path = "../oya-check-shardability" }
+oya-check-perf-budget = { path = "../oya-check-perf-budget" }
+oya-check-benchmark = { path = "../oya-check-benchmark" }
 oya-check-data-class = { path = "../oya-check-data-class" }
 oya-check-doc-catalog = { path = "../oya-check-doc-catalog" }
 oya-check-documentation-system = { path = "../oya-check-documentation-system" }
-oya-check-benchmark = { path = "../oya-check-benchmark" }
 oya-foundry-evidence-file-adapter = { path = "../oya-foundry-evidence-file-adapter" }
 oya-check-glossary-coverage = { path = "../oya-check-glossary-coverage" }
 oya-check-glossary-vocabulary = { path = "../oya-check-glossary-vocabulary" }
@@ -37,37 +40,44 @@ oya-foundry-openapi-domain = { path = "../oya-foundry-openapi-domain" }
 oya-check-mobile-native = { path = "../oya-check-mobile-native" }
 oya-check-placeholder-debt = { path = "../oya-check-placeholder-debt" }
 oya-check-pre-push = { path = "../oya-check-pre-push" }
+oya-check-protection-context-match = { path = "../oya-check-protection-context-match" }
 oya-check-pr-traceability = { path = "../oya-check-pr-traceability" }
 oya-check-quality-lane = { path = "../oya-check-quality-lane" }
-oya-check-perf-budget = { path = "../oya-check-perf-budget" }
 oya-check-raci-coverage = { path = "../oya-check-raci-coverage" }
 oya-check-readme-coverage = { path = "../oya-check-readme-coverage" }
 oya-check-release-pack = { path = "../oya-check-release-pack" }
+oya-check-retired-vocabulary = { path = "../oya-check-retired-vocabulary" }
 oya-foundry-run-file-adapter = { path = "../oya-foundry-run-file-adapter" }
 oya-check-runbook-freshness = { path = "../oya-check-runbook-freshness" }
 oya-check-runbook-index = { path = "../oya-check-runbook-index" }
-oya-check-shardability = { path = "../oya-check-shardability" }
 oya-foundry-run-domain = { path = "../oya-foundry-run-domain" }
 oya-check-slo-coverage = { path = "../oya-check-slo-coverage" }
-oya-check-statelessness = { path = "../oya-check-statelessness" }
 oya-check-supply-chain = { path = "../oya-check-supply-chain" }
 oya-check-typescript-workspace = { path = "../oya-check-typescript-workspace" }
 oya-check-vendor-recency = { path = "../oya-check-vendor-recency" }
 oya-foundry-step-file-adapter = { path = "../oya-foundry-step-file-adapter" }
 oya-foundry-step-domain = { path = "../oya-foundry-step-domain" }
+oya-foundry-vcs-cli-ratchet-kernel = { path = "../oya-foundry-vcs-cli-ratchet-kernel" }
 oya-audit-chain-file-adapter = { path = "../oya-audit-chain-file-adapter" }
 oya-eventing-file-adapter = { path = "../oya-eventing-file-adapter" }
 oya-eventing-domain = { path = "../oya-eventing-domain" }
 oya-secrets-file-adapter = { path = "../oya-secrets-file-adapter" }
 oya-secrets-domain = { path = "../oya-secrets-domain" }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-toml = "0.8"
+serde_json = { workspace = true }
 
 [[bin]]
 name = "oya"
 path = "src/main.rs"
 
+# Test fixture binary: integration tests in tests/doc_cli.rs invoke this
+# as the `--cargo` executable to emulate cargo's behavior under control
+# of FAKE_CARGO_* env vars. Replaces the prior fake-cargo.sh shell-script
+# fixture per the no-shell-scripts canonical posture.
 [[bin]]
-name = "repoctl"
-path = "src/repoctl.rs"
+name = "fake-cargo"
+path = "src/bin/fake-cargo.rs"
+test = false
+doctest = false
+
+[lints]
+workspace = true

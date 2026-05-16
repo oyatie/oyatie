@@ -1,6 +1,9 @@
 //! Data Use Boundary kernel.
 //!
 //! Pure value types for classifying fields and checking purpose-bound use.
+// ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
+// `panic!()` to assert invariants under the `cfg(test)` exemption.
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::BTreeSet;
 
@@ -27,7 +30,7 @@ pub enum DataClass {
     /// `SubjectClass::Minor` model lands; treated as hard-denied for
     /// search/ads in this bootstrap slice.
     Children,
-    /// Compatibility label for `FINANCIAL_KR_신용정보`.
+    /// Compatibility label for `FINANCIAL_KR` (`신용정보`).
     Financial,
     /// Compatibility label for tenant-product behavioral usage.
     Usage,
@@ -147,7 +150,7 @@ pub const PRIVACY_PROGRAM_DATA_CLASS_LABELS: [&str; 12] = [
     "PII_IDENTIFYING",
     "PII_QUASI_IDENTIFIER",
     "PCI",
-    "FINANCIAL_KR_신용정보",
+    "FINANCIAL_KR",
     "BEHAVIORAL_TENANT_PRODUCT",
     "BEHAVIORAL_ADS",
     "DECLARED_PREFERENCE",
@@ -168,12 +171,12 @@ impl DataClass {
             Self::Pci => "PCI",
             Self::PipaArticle23 => "PIPA_ARTICLE_23",
             Self::Children => "CHILDREN",
-            Self::Financial => "FINANCIAL",
+            Self::Financial => "FINANCIAL_KR",
             Self::Usage => "USAGE",
             Self::Secret => "SECRET",
             Self::Audit => "AUDIT",
             Self::PiiQuasiIdentifier => "PII_QUASI_IDENTIFIER",
-            Self::FinancialKrCredit => "FINANCIAL_KR_신용정보",
+            Self::FinancialKrCredit => "FINANCIAL_KR",
             Self::BehavioralTenantProduct => "BEHAVIORAL_TENANT_PRODUCT",
             Self::BehavioralAds => "BEHAVIORAL_ADS",
             Self::DeclaredPreference => "DECLARED_PREFERENCE",
@@ -219,7 +222,7 @@ impl DataClass {
             Self::PiiIdentifying => Some("PII_IDENTIFYING"),
             Self::PiiSensitive | Self::PiiQuasiIdentifier => Some("PII_QUASI_IDENTIFIER"),
             Self::Pci => Some("PCI"),
-            Self::Financial | Self::FinancialKrCredit => Some("FINANCIAL_KR_신용정보"),
+            Self::Financial | Self::FinancialKrCredit => Some("FINANCIAL_KR"),
             Self::Usage | Self::BehavioralTenantProduct => Some("BEHAVIORAL_TENANT_PRODUCT"),
             Self::BehavioralAds => Some("BEHAVIORAL_ADS"),
             Self::DeclaredPreference => Some("DECLARED_PREFERENCE"),
@@ -257,6 +260,58 @@ impl PrivacyDataClass {
             Ok(Self { data_class })
         } else {
             Err(NonPrivacyDataClass { data_class })
+        }
+    }
+
+    /// Infallible constructor for the `INTERNAL_ONLY` privacy-program data
+    /// class.
+    ///
+    /// `INTERNAL_ONLY` is a statically known privacy-program member (see
+    /// [`PRIVACY_PROGRAM_DATA_CLASS_LABELS`]), so this constructor returns
+    /// [`Self`] directly without going through the fallible
+    /// [`PrivacyDataClass::new`] path. Use this at every site that previously
+    /// wrote `PrivacyDataClass::new(DataClass::InternalOnly).expect(...)` to
+    /// satisfy the ADR-0083 Tier 1 ban on `.expect()` / `.unwrap()` in
+    /// production code without `#[allow]` shortcuts.
+    ///
+    /// Naming justification (v4 BNF + 12-layer-enum):
+    /// `oya-data-boundary-kernel` is the canonical `kernel` layer that owns
+    /// the `PrivacyDataClass` value type; an infallible constructor belongs
+    /// here (not in a `domain` or `usecase` layer) because every caller in
+    /// `*-domain` crates depends on the kernel for the type itself. The
+    /// `internal_only` suffix matches the existing taxonomy label
+    /// (`INTERNAL_ONLY`) and the 12-layer-enum `kernel` slot.
+    pub const fn internal_only() -> Self {
+        Self {
+            data_class: DataClass::InternalOnly,
+        }
+    }
+
+    /// Infallible constructor for the `PII_IDENTIFYING` privacy-program data
+    /// class.
+    ///
+    /// Sibling of [`Self::internal_only`]; `PII_IDENTIFYING` is a statically
+    /// known privacy-program member (see [`PRIVACY_PROGRAM_DATA_CLASS_LABELS`]),
+    /// so this constructor returns [`Self`] directly without going through the
+    /// fallible [`PrivacyDataClass::new`] path. Use this at every site that
+    /// previously wrote `PrivacyDataClass::new(DataClass::PiiIdentifying)
+    /// .expect(...)` to satisfy the ADR-0083 Tier 1 ban on `.expect()` /
+    /// `.unwrap()` in production code without `#[allow]` shortcuts.
+    ///
+    /// Naming justification (v4 BNF + 12-layer-enum): identical to
+    /// [`Self::internal_only`] — kernel-layer infallible constructor named
+    /// after the privacy-program label (`PII_IDENTIFYING`).
+    pub const fn pii_identifying() -> Self {
+        Self {
+            data_class: DataClass::PiiIdentifying,
+        }
+    }
+
+    /// Infallible constructor for the `PII_QUASI_IDENTIFIER` privacy-program
+    /// data class. Sibling of [`Self::pii_identifying`].
+    pub const fn pii_quasi_identifier() -> Self {
+        Self {
+            data_class: DataClass::PiiQuasiIdentifier,
         }
     }
 
@@ -358,7 +413,9 @@ pub fn parse_data_class_label(label: &str) -> Option<DataClass> {
         "PIPA_ARTICLE_23" | "PIPA_ARTICLE23" => Some(DataClass::PipaArticle23),
         "SENSITIVE_PIPA_ART23" => Some(DataClass::SensitivePipaArticle23),
         "FINANCIAL" => Some(DataClass::Financial),
-        "FINANCIAL_KR_신용정보" | "FINANCIAL_KR_CREDIT" => Some(DataClass::FinancialKrCredit),
+        "FINANCIAL_KR" | "FINANCIAL_KR_신용정보" | "FINANCIAL_KR_CREDIT" => {
+            Some(DataClass::FinancialKrCredit)
+        }
         "USAGE" => Some(DataClass::Usage),
         "BEHAVIORAL_TENANT_PRODUCT" => Some(DataClass::BehavioralTenantProduct),
         "BEHAVIORAL_ADS" => Some(DataClass::BehavioralAds),
@@ -479,7 +536,7 @@ pub enum DataUseDenialReason {
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Classified<T> {
-    pub value: T,
+    pub value: T, // data_class: CARRIED_BY_CLASSIFIED_FIELD
     /// Field-level classification. Kept as `data_class` for source
     /// compatibility while the bootstrap code migrates operational labels out
     /// of the privacy [`DataClass`] taxonomy.
@@ -779,10 +836,10 @@ pub fn is_subject_hard_denied(purpose: Purpose, subject_class: SubjectClass) -> 
 #[cfg(test)]
 mod tests {
     use super::{
-        evaluate_data_use, evaluate_data_use_classification, evaluate_legacy_data_use, AgeBand,
-        Classified, DataClass, DataClassification, DataUseAttributes,
+        AgeBand, Classified, DataClass, DataClassification, DataUseAttributes,
         DataUseClassificationAttributes, DataUseDenialReason, LegacyDataUseAttributes,
         OperationalDataClass, PrivacyDataClass, Purpose, SubjectClass, SubjectDataMarker,
+        evaluate_data_use, evaluate_data_use_classification, evaluate_legacy_data_use,
     };
 
     fn privacy(data_class: DataClass) -> PrivacyDataClass {
@@ -797,9 +854,16 @@ mod tests {
                 "privacy-program label must parse: {label}"
             );
         }
+        assert_eq!(DataClass::Financial.label(), "FINANCIAL_KR");
         assert_eq!(
             DataClass::Financial.privacy_program_label(),
-            Some("FINANCIAL_KR_신용정보")
+            Some("FINANCIAL_KR")
+        );
+        assert_eq!(
+            super::PrivacyDataClass::new(DataClass::Financial)
+                .expect("financial compatibility class is a privacy class")
+                .label(),
+            "FINANCIAL_KR"
         );
         assert_eq!(DataClass::Audit.privacy_program_label(), None);
         for operational_or_subject_label in ["AUDIT", "SECRET", "CHILDREN"] {
@@ -1073,10 +1137,12 @@ mod tests {
                     Err(DataUseDenialReason::HardDeniedDataClass)
                 );
             }
-            assert!(scope
-                .clone()
-                .try_allow_legacy_data_class(purpose, DataClass::Audit)
-                .is_err());
+            assert!(
+                scope
+                    .clone()
+                    .try_allow_legacy_data_class(purpose, DataClass::Audit)
+                    .is_err()
+            );
             assert!(!scope.allows_legacy_data_class(purpose, DataClass::Audit));
         }
 
@@ -1158,10 +1224,12 @@ mod tests {
         let scope = super::ConsentScope::default()
             .allow(Purpose::Analytics, privacy(DataClass::InternalOnly));
 
-        assert!(scope
-            .clone()
-            .try_allow_legacy_data_class(Purpose::Analytics, DataClass::Audit)
-            .is_err());
+        assert!(
+            scope
+                .clone()
+                .try_allow_legacy_data_class(Purpose::Analytics, DataClass::Audit)
+                .is_err()
+        );
 
         assert!(scope.allows_classification(
             Purpose::Analytics,
@@ -1187,10 +1255,12 @@ mod tests {
             scope.allows_legacy_data_class(Purpose::CapabilityInvocation, DataClass::InternalOnly)
         );
         for data_class in [DataClass::Audit, DataClass::Secret, DataClass::Children] {
-            assert!(scope
-                .clone()
-                .try_allow_legacy_data_class(Purpose::CapabilityInvocation, data_class)
-                .is_err());
+            assert!(
+                scope
+                    .clone()
+                    .try_allow_legacy_data_class(Purpose::CapabilityInvocation, data_class)
+                    .is_err()
+            );
             assert!(!scope.allows_legacy_data_class(Purpose::CapabilityInvocation, data_class));
         }
     }

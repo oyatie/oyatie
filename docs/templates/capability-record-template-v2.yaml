@@ -7,7 +7,7 @@
 # Status: Accepted. Date: 2026-05-12.
 # Supersedes: docs/templates/capability-record-template.yaml (preserves existing schema; adds T1-T4 autonomy enum,
 #   data-class allowlist, eval-set ref, audit-chain topic, Cosign signing slot per Master Plan §2 principle 6 +
-#   .omc/specs/hyperscaler-best-practices-2026-05-12.md §Domain 4 supply chain).
+#   .omc/scratch/hyperscaler-best-practices-2026-05-12.md §Domain 4 supply chain).
 # Owner: axis-foundry.
 # header_note: Supersedes prior docs/templates/capability-record-template.yaml once reviewed.
 # adrs_cited: ADR-0052 (inventory/audit), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim).

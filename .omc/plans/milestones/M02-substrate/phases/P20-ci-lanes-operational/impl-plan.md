@@ -8,13 +8,13 @@ status: pending
 owner: council-foundry
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+purpose: "Implements the two scalability-enforcement fitness lane binaries: `oya-check-statelessness` (detects module-level mutable state in presentation/application/ worker crates) and `oya-check-shardability` (verifies every tenant-bound table decl."
 ---
-
 # IP-001-ci-lanes-statelessness-shardability: Implement oya-check-statelessness + oya-check-shardability CLI Binaries
 
 ## Intent

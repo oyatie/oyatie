@@ -4,7 +4,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_platform_data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
+use oya_data_boundary_kernel::{Classified, DataClass, OperationalDataClass};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub enum EvalMetric {

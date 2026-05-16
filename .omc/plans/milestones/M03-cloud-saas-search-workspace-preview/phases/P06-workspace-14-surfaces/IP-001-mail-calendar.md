@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M03-P06-IP-001
 title: Mail + Calendar (SMTP/IMAP/JMAP/CalDAV)
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship workspace.mail.{smtp,imap,jmap} + workspace.calendar.caldav per RFCs.

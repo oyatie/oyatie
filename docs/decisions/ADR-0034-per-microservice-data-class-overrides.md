@@ -1,3 +1,9 @@
+---
+id: ADR-0034
+status: accepted
+doc_status: published
+---
+
 # ADR-0034: Per-microservice data class overrides — microservice-side hard-deny pack that tenant admin cannot raise
 
 > **Status:** Accepted

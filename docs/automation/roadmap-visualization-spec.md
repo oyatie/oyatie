@@ -17,6 +17,7 @@ companion_docs:
   - INDEX.md
   - dependency-graph-spec.md
   - ../../docs/MASTERPLAN.md
+doc_status: published
 ---
 
 # Visualization spec: roadmap (Mermaid Gantt)

@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Alias Sunset Promotion
+doc_status: published
+---
+
 # Oyatie Runbook — Alias Sunset Promotion
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

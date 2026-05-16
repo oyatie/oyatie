@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Critical Challenge: The Foundry / Agentic Delivery Doc Stack
 
 **Date:** 2026-05-10

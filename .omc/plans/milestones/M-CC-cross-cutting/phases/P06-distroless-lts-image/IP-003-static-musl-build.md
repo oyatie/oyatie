@@ -3,7 +3,10 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P06-IP-003
 title: Static / musl-linked binary build pipeline
-status: stub
+status: complete
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship static / musl-linked release build pipeline.
@@ -50,4 +53,9 @@ icm store -t context-oyatie -c 'M-CC-P06-IP-003 Static / musl-linked binary buil
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP:
+- The build step asserts the binary is **not** dynamically linked (`grep -q "dynamically linked"` fail-fast) — a silently-glibc-linked artifact cannot pass as static.
+- Dockerfile.distroless uses `gcr.io/distroless/static-debian12:nonroot` — the image-discipline lane will already pass the resulting image (allowlist hit + no shell + no package manager).
+- Single multi-arch matrix (`x86_64-unknown-linux-musl` + `aarch64-unknown-linux-musl`) — adding a new arch is one row, not a duplicated workflow.
+- `RUSTFLAGS="-C link-arg=-s"` strips debug symbols at link time — release tarballs stay small without a separate `strip` step.
+- The musl build job runs first; the distroless image job depends on it — failed binary build short-circuits image build, never producing a bad image to sign.

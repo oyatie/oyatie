@@ -8,11 +8,12 @@ sales_segment: Enterprise
 tier: B2B
 milestone_first_ship: M03-first-paying-tenant
 bominal_source:
-  - ADR-0210  # M3 KR group payroll + mail launch
+  - ADR-0210  # M03 KR group payroll + mail launch
   - ADR-0126  # employment classification (8 classes)
   - ADR-0125  # domain naming canon
   - ADR-0028  # audit chain Merkle/Ed25519
   - ADR-0018  # tenancy RLS posture
+doc_status: published
 ---
 
 # PRD-payroll: Payroll µservice
@@ -27,7 +28,7 @@ ADR-0210: monthly payroll calculation, 4대보험 EDI submission, and 연말정�
 (year-end tax settlement). It consumes employee/employment data from HR via
 Ontology and emits payroll events to Accounting via Workflow.
 
-Inherits from Bominal ADR-0210 (M3 KR group payroll + mail launch) 1:1.
+Inherits from Bominal ADR-0210 (M03 KR group payroll + mail launch) 1:1.
 No Bominal overrides.
 
 ---
@@ -228,7 +229,7 @@ Cross-region: M03 KR only; post-M03 per `docs/ROADMAP.md`.
 
 | ADR | Title | Relation |
 |---|---|---|
-| Bominal ADR-0210 | M3 KR group payroll + mail launch | inherited — M03 scope definition |
+| Bominal ADR-0210 | M03 KR group payroll + mail launch | inherited — M03 scope definition |
 | Bominal ADR-0126 | Employment classification | inherited — 8-class enum maps to deduction rules |
 | Bominal ADR-0028 | Audit chain Merkle/Ed25519 | inherited |
 | Bominal ADR-0018 | Tenancy RLS posture | inherited |

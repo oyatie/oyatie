@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Security Program
+doc_status: published
+---
+
 # Oyatie — Security Program
 
 > **Status:** Draft v0.1 — 2026-05-09. Authoritative-deep.

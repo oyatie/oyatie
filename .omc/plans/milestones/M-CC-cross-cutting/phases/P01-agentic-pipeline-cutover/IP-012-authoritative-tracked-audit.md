@@ -3,7 +3,11 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M-CC-P01-IP-012
 title: Authoritative-tracked repo-walk audit (P10)
-status: stub
+status: complete
+migration_status: cleanup
+execution_unit: ChangeSet
+changeset_contract: claimable-verifiable-bundleable-promotable
+changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship authoritative-tracked lane that walks docs/AGENTS.md authoritative list and verifies all are tracked.
@@ -49,4 +53,4 @@ icm store -t context-oyatie -c 'M-CC-P01-IP-012 Authoritative-tracked repo-walk 
 ```
 
 ## Decision-log (Linus good-taste row)
-Special cases eliminated by this IP: (to be filled at PR time; empty section = fail).
+Special cases eliminated by this IP: authoritative tracking is checked from one typed path list parsed from `docs/AGENTS.md` rather than ad hoc per-doc exceptions; directories pass only when at least one tracked child exists.

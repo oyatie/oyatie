@@ -1,3 +1,7 @@
+---
+doc_status: published
+---
+
 # Oyatie — Product PRD Template
 
 > Use this template for every per-product PRD under `products/<product-id>/PRD.md`. Copy verbatim, then fill in. Sections marked **required** must be populated before the PRD can move from `draft` → `preview`.

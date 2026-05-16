@@ -1,3 +1,8 @@
+---
+purpose: Oyatie Runbook — Cell Isolation Breach
+doc_status: published
+---
+
 # Oyatie Runbook — Cell Isolation Breach
 
 > **Status:** Stub (deferred to W-Foundation gate per [`RUNBOOKS-INDEX.md`](../RUNBOOKS-INDEX.md))

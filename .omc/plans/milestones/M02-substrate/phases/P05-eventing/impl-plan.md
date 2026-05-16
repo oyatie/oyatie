@@ -8,17 +8,17 @@ status: pending
 owner: council-architecture
 blocked_by: []
 acceptance_lanes:
-  - cargo-check
-  - cargo-build
-  - cargo-clippy
-  - cargo-nextest
-  - cargo-deny
-  - lean-a1
-  - lean-a2
-  - lean-a3
-  - lean-a4
+- cargo-check
+- cargo-build
+- cargo-clippy
+- cargo-nextest
+- cargo-deny
+- lean-a1
+- lean-a2
+- lean-a3
+- lean-a4
+purpose: "Delivers the complete Eventing substrate: 16 crates across 3 BCs (outbox, topics, subscriptions), Postgres outbox table per µservice convention, LISTEN/NOTIFY poller, Kafka KRaft publisher adapter (Apache-2.0 `rdkafka` crate)."
 ---
-
 # IP-P05-eventing-substrate: Scaffold 16 eventing crates with outbox dispatcher, Kafka KRaft adapter, CloudEvents framing
 
 ## Intent

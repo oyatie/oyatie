@@ -1,3 +1,8 @@
+---
+purpose: Oyatie — Privacy Review Standard
+doc_status: published
+---
+
 # Oyatie — Privacy Review Standard
 
 > **Owner:** `council-privacy`.
