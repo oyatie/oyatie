@@ -4,6 +4,7 @@ mod architecture_boundaries;
 mod deployment_ops_contract;
 mod milestone_audit;
 mod product_index;
+mod product_prd_json;
 mod run_all;
 mod stage0_application_shell_prereqs;
 
@@ -670,6 +671,31 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             }
         }
         (Some("validate"), Some("product-index")) => product_index::run(args.collect()),
+        (Some("validate"), Some("product-prd-json")) => {
+            match product_prd_json::parse_product_prd_json_validate_args(args.collect()) {
+                Ok(parsed) => match product_prd_json::validate_product_prd_json_gate(parsed) {
+                    Ok(report) => {
+                        println!(
+                            "product-prd-json validation passed: {} products, {} acceptance criteria, {} metrics, {} root-hub links, {} ms",
+                            report.products_checked,
+                            report.acceptance_criteria_checked,
+                            report.metrics_checked,
+                            report.root_hub_links_checked,
+                            report.validation_duration_ms
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("product-prd-json validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("stage0-prereqs")) => {
             match stage0_application_shell_prereqs::parse_stage0_prereqs_validate_args(
                 args.collect(),

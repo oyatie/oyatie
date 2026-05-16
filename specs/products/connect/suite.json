@@ -1,0 +1,606 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/connect/suite.schema.json",
+  "title": "ProductPrd:ConnectSuite",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-CONNECT-SUITE",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "connect-product-council",
+    "created_at": "2026-05-16T14:30:00Z",
+    "purpose": "Connect suite PRD: dual-context native communications suite with mail, messenger, and calendar sub-products governed by Object Graph pillar boundaries, retention, legal hold, eDiscovery, and Workflow handoff contracts."
+  },
+  "identity": {
+    "product_id": "connect-suite",
+    "suite_id": "connect",
+    "owning_axis": "workspace-communications",
+    "product_class": "suite",
+    "user_facing_surface": true,
+    "context_model": [
+      "personal",
+      "work"
+    ],
+    "crate_refs_planned": [
+      "oya-connect-suite-kernel",
+      "oya-connect-suite-domain",
+      "oya-connect-suite-app",
+      "oya-connect-suite-rest"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
+    "children": [
+      "$ref:specs/products/connect/mail.json",
+      "$ref:specs/products/connect/messenger.json",
+      "$ref:specs/products/connect/calendar.json"
+    ],
+    "suite_boundary": "unified communications shell; each child owns domain runtime but shares persona, policy, search, notification, and audit seams"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+      "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+      "$ref:bominal/decisions/ADR-0132-data-ownership-pillars.md",
+      "$ref:bominal/decisions/ADR-0140-multi-jurisdiction-policy.md",
+      "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/products/workflow.json",
+      "$ref:specs/products/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "source_docs": [
+      "$ref:bominal/docs/products/connect/enterprise-readiness.md",
+      "$ref:bominal/docs/products/connect/messaging.md",
+      "$ref:bominal/docs/products/connect/internal-communications.md",
+      "$ref:bominal/docs/roadmap/family-connect.md"
+    ],
+    "user_decisions": [
+      "2026-05-16:D-13 one PRD per suite plus per-app sub-PRDs",
+      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/products/<id>.json"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0208#symmetric-product-model + $ref:bominal/decisions/ADR-0215#four-committed-contracts",
+  "target_users": [
+    {
+      "persona": "employee_end_user",
+      "interface": "Connect shell web/desktop/mobile",
+      "billing": "included in workspace/vertical seat"
+    },
+    {
+      "persona": "enterprise_it_admin",
+      "interface": "admin console + policy APIs",
+      "billing": "enterprise tenant control-plane subscription"
+    },
+    {
+      "persona": "compliance_officer",
+      "interface": "legal-hold/eDiscovery/audit console",
+      "billing": "compliance module entitlement"
+    },
+    {
+      "persona": "developer_integrator",
+      "interface": "REST/gRPC/Webhook/Workflow handoff APIs",
+      "billing": "API and workflow execution units"
+    },
+    {
+      "persona": "personal_user",
+      "interface": "personal context messenger/mail/calendar",
+      "billing": "personal account tier; never employer-visible"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a user has both personal and work persona grants",
+      "when": "they switch context in ConnectShellPersonaSwitcher",
+      "then": "every read/write carries immutable context_kind and ownership_pillar; cross-pillar joins are denied",
+      "test_ref": "crates/oya-connect-suite-domain/tests/context.rs::test_persona_switch_preserves_pillar"
+    },
+    {
+      "id": "AC-02",
+      "given": "mail, messenger, and calendar apps are enabled for a tenant",
+      "when": "the suite navigation renders",
+      "then": "the same policy, audit, search, and notification seams are reused without child apps bypassing the suite shell",
+      "test_ref": "crates/oya-connect-suite-app/tests/shell.rs::test_child_apps_share_suite_policy_seams"
+    },
+    {
+      "id": "AC-03",
+      "given": "an org admin requests personal-context data",
+      "when": "policy gateway evaluates the request",
+      "then": "the request returns 403 and emits a blocked-boundary audit event without exposing content",
+      "test_ref": "crates/oya-connect-suite-domain/tests/pillar.rs::test_org_admin_cannot_query_personal_context"
+    },
+    {
+      "id": "AC-04",
+      "given": "a professional artifact is under legal hold",
+      "when": "a deletion, retention expiry, export, or Workflow handoff touches it",
+      "then": "hold state wins, chain-of-custody is preserved, and the action is audit logged",
+      "test_ref": "crates/oya-connect-suite-domain/tests/legal_hold.rs::test_hold_blocks_deletion_and_preserves_chain"
+    },
+    {
+      "id": "AC-05",
+      "given": "OpenTofu has provisioned Connect infra",
+      "when": "ops runs bootstrap/install/status targets",
+      "then": "Connect runtime state is managed through Makefile/oya ops paths with no manual SSH troubleshooting contract",
+      "test_ref": "crates/oya-onprem-cli/tests/connect_ops.rs::test_connect_ops_contract_has_no_manual_ssh"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "unified Connect shell",
+        "personal/work context switch",
+        "shared policy gateway",
+        "mail/messenger/calendar launch contracts",
+        "audit event envelope"
+      ],
+      "stable": [
+        "legal-hold/eDiscovery console",
+        "cross-app search with pillar filters",
+        "offline-safe drafts",
+        "admin policy UX"
+      ],
+      "GA": [
+        "web/desktop/mobile parity",
+        "tenant migration/coexistence paths",
+        "regional retention overlays",
+        "SLO-certified ops runbooks through oya ops"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "third-party chat/email/calendar aggregation as core substrate",
+        "why": "Connect is native; adapters are coexistence/migration only"
+      },
+      {
+        "item": "manual SSH operational recovery",
+        "why": "deployment contract requires OpenTofu + Makefile/oya ops"
+      },
+      {
+        "item": "mixing personal and work data for analytics",
+        "why": "ADR-0215 pillar boundary forbids cross-pillar joins"
+      }
+    ]
+  },
+  "contracts": {
+    "consumes": [
+      "$ref:specs/products/ontology.json#typed-entity-layer",
+      "$ref:specs/products/workflow.json#handoff-runtime",
+      "$ref:specs/deployment-ops-contract.json#ops_entrypoints"
+    ],
+    "produces": [
+      "connect.context.v1",
+      "connect.artifact-policy.v1",
+      "connect.audit-disclosure.v1",
+      "connect.app-shell.v1"
+    ]
+  },
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "ConnectArtifact",
+        "fields": [
+          "artifact_id",
+          "tenant_id",
+          "context_kind",
+          "ownership_pillar",
+          "artifact_kind",
+          "data_class",
+          "created_at",
+          "schema_version"
+        ],
+        "invariants": [
+          "context_kind immutable",
+          "ownership_pillar immutable",
+          "tenant_id required for work context"
+        ]
+      },
+      {
+        "entity": "ConnectPolicyDecision",
+        "fields": [
+          "decision_id",
+          "principal",
+          "resource_ref",
+          "policy_result",
+          "reason_code",
+          "audit_topic"
+        ],
+        "invariants": [
+          "deny-by-default",
+          "no plaintext in decision log"
+        ]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "ConnectContextSwitched",
+        "topic": "audit.connect.context",
+        "idempotency_key": "session_id+context_kind+timestamp"
+      },
+      {
+        "event": "ConnectBoundaryDenied",
+        "topic": "audit.connect.policy",
+        "idempotency_key": "principal+resource+policy_hash"
+      },
+      {
+        "event": "ConnectLegalHoldChanged",
+        "topic": "audit.connect.legal_hold",
+        "idempotency_key": "hold_id+version"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "ConnectSuitePolicy",
+        "store": "Postgres/RLS",
+        "sharding_key": "tenant_id",
+        "retention": "policy lifetime + 7y audit"
+      },
+      {
+        "aggregate": "ConnectAuditEnvelope",
+        "store": "audit-chain/WORM",
+        "sharding_key": "tenant_id+region",
+        "retention": "jurisdiction bounded"
+      }
+    ],
+    "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003 + $ref:specs/agent-durable-goal.json#score_cards"
+  },
+  "optimization_practices": [
+    {
+      "practice": "cell routing",
+      "implementation": "tenant_id + region + context_kind; personal and work cells never share query execution"
+    },
+    {
+      "practice": "fanout backpressure",
+      "implementation": "per-tenant notification quotas; realtime queues expose throttle_state"
+    },
+    {
+      "practice": "search isolation",
+      "implementation": "pillar-filtered encrypted-token indexes; no plaintext professional index"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "Korea-first UX, PIPA retention bounds, work-mail retention floor, Korean input/search/calendar locale rules"
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "employment discovery, HIPAA/GLBA overlays when vertical data enters professional context"
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "GDPR storage limitation, lawful-basis disclosure, cross-border transfer controls"
+      }
+    ],
+    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+  },
+  "deps": {
+    "external_adopted": [
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "runtime primitive only"
+      },
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "rustls",
+        "maturity_tier": "kernel-grade",
+        "license": "Apache-2.0 OR ISC OR MIT",
+        "decision": "TLS primitive only"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "Slack/Teams/Google/Microsoft APIs as product substrate",
+        "reason": "Connect is native product; third-party platforms may be import/coexistence adapters only"
+      },
+      {
+        "name": "shell-script operational glue",
+        "reason": "deployment and validation authority belongs to OpenTofu, Makefile targets, and Rust oya gates"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "cross_pillar_denial_correctness_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "cargo nextest -p oya-connect-suite-domain -- pillar",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "suite_shell_p95_ms",
+      "targets": {
+        "preview": 250,
+        "stable": 180,
+        "GA": 120
+      },
+      "verification_ref": "cargo bench -p oya-connect-suite-app -- shell_nav_p95",
+      "lane_ref": "oya-foundry-fitness-perf-budget"
+    },
+    {
+      "name": "legal_hold_action_audit_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "oya gate validate connect-legal-hold-audit",
+      "lane_ref": "oya-foundry-fitness-audit-chain-emission"
+    },
+    {
+      "name": "ops_manual_ssh_paths",
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
+      "verification_ref": "oya gate validate deployment-ops-contract",
+      "lane_ref": "deployment-ops-contract"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-01",
+      "severity": "critical",
+      "risk": "personal/work context bleed via shared shell state",
+      "mitigation": "Cedar deny-by-default, immutable pillar fields, separate cache namespaces",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-02",
+      "severity": "high",
+      "risk": "legal-hold UX hides irreversible consequences",
+      "mitigation": "PolicyDisclosureBanner blocks destructive actions and records four-eyes approval",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-03",
+      "severity": "medium",
+      "risk": "third-party coexistence adapters become de facto core",
+      "mitigation": "adapter-only contract and anti-pattern lane reject core dependency on external suites",
+      "owner": "connect-product-council"
+    }
+  ],
+  "competitive": [
+    {
+      "competitor": "Slack + Microsoft Teams",
+      "observed_strengths": [
+        "workspace chat and integrations"
+      ],
+      "we_beat_on": [
+        "native mail/calendar/messenger bundle",
+        "strict personal/work isolation",
+        "Workflow-native action cards"
+      ],
+      "measurable_target": "zero cross-pillar leaks; action-card approval under 30s"
+    },
+    {
+      "competitor": "Google Workspace + Microsoft 365",
+      "observed_strengths": [
+        "mail/calendar/admin maturity"
+      ],
+      "we_beat_on": [
+        "privacy-preserving dual-context model",
+        "audit decrypt with four-eyes",
+        "native Workflow/Ontology integration"
+      ],
+      "measurable_target": "legal-hold activation < 60s; eDiscovery export chain-of-custody verified"
+    },
+    {
+      "competitor": "KakaoWork/KakaoTalk",
+      "observed_strengths": [
+        "Korea-first messaging ergonomics"
+      ],
+      "we_beat_on": [
+        "enterprise-grade compliance and dual-context separation"
+      ],
+      "measurable_target": "KR locale flows pass full UX parity and retention gates"
+    }
+  ],
+  "best_practices": [
+    {
+      "id": "BP-01",
+      "rule": "context_kind and ownership_pillar are immutable creation-time fields",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-pillar"
+    },
+    {
+      "id": "BP-02",
+      "rule": "all privileged professional content disclosure requires four-eyes audit",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-disclosure"
+    },
+    {
+      "id": "BP-03",
+      "rule": "ops state changes are OpenTofu/oya ops driven, not SSH runbooks",
+      "enforced_by_lane_ref": "deployment-ops-contract"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "dual_context_shell",
+      "when_to_use": "any surface showing personal/work data must route through suite shell policy seams",
+      "reference": "$ref:bominal/decisions/ADR-0208#dual-context-model"
+    },
+    {
+      "pattern": "legal_hold_first",
+      "when_to_use": "deletion/export/retention expiry checks legal hold before side effects",
+      "reference": "$ref:bominal/decisions/ADR-0215#contract-1"
+    },
+    {
+      "pattern": "native_workflow_handoff",
+      "when_to_use": "professional action cards route to Workflow with explicit consent/policy",
+      "reference": "$ref:specs/products/workflow.json"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "anti_pattern": "shared_cache_without_pillar_key",
+      "why_forbidden": "can leak personal/work state across context switch",
+      "detection_lane": "oya-foundry-fitness-connect-cache-namespace"
+    },
+    {
+      "anti_pattern": "manual_ssh_ops_remediation",
+      "why_forbidden": "violates deployment contract and is not repeatable",
+      "detection_lane": "deployment-ops-contract"
+    },
+    {
+      "anti_pattern": "third_party_platform_as_core",
+      "why_forbidden": "outsources product authority and weakens privacy/compliance guarantees",
+      "detection_lane": "oya-foundry-fitness-connect-native-substrate"
+    }
+  ],
+  "goals": {
+    "scalability": {
+      "target": "10M active Connect identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
+      "verification": "oya gate validate connect-scale-model --repo-root ."
+    },
+    "security": {
+      "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
+      "verification": "cargo nextest -p oya-connect-security-domain -- cross_pillar"
+    },
+    "performance": {
+      "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
+      "verification": "cargo bench -p oya-connect-bench -- connect_hot_paths"
+    },
+    "efficiency": {
+      "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
+      "verification": "oya gate validate connect-finops-unit-economics"
+    },
+    "reliability": {
+      "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
+      "verification": "oya gate validate connect-slo-coverage"
+    }
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/products/connect/suite.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard traversal 100% for inbox, thread, compose, calendar, legal-hold and approval flows",
+    "responsive_breakpoints": [
+      "mobile-portrait",
+      "mobile-landscape",
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic; KR and en-US are launch gates, EU locales follow regional-pack coverage",
+    "design_system_components_used": "$ref:specs/products/connect/suite.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "enterprise_it_admin",
+        "journeys": [
+          "configure retention policy",
+          "open legal hold",
+          "export eDiscovery package"
+        ],
+        "time_to_success_target": "< 5 minutes with policy warnings visible"
+      },
+      {
+        "persona": "employee_end_user",
+        "journeys": [
+          "switch personal/work persona",
+          "send message/mail/calendar invite",
+          "act on approval card"
+        ],
+        "time_to_success_target": "< 30 seconds for routine send or approve"
+      },
+      {
+        "persona": "compliance_officer",
+        "journeys": [
+          "search held artifacts",
+          "verify chain-of-custody",
+          "release or extend hold"
+        ],
+        "time_to_success_target": "< 10 minutes for scoped investigation packet"
+      }
+    ],
+    "error_state_coverage": {
+      "policy_denied": "inline plus audit-safe explanation",
+      "network_partition": "offline queue with explicit sync status",
+      "legal_hold_conflict": "blocking modal requiring authorized role",
+      "delivery_failure": "per-recipient retry/error card"
+    },
+    "offline_behavior": "read cached non-sensitive state, queue user-owned drafts locally, never expose unwrapped professional plaintext offline without session-bound policy token",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "skeleton for lists, progressive render for thread/calendar, no spinner-only critical paths"
+  },
+  "frontend_components": [
+    {
+      "component": "ConnectShellPersonaSwitcher",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
+      "variants": [
+        "personal",
+        "work",
+        "admin-audit"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "CommunicationThreadList",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/communication-thread-list.json",
+      "variants": [
+        "mail",
+        "messenger",
+        "calendar-agenda"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "legal-hold",
+        "retention",
+        "consent-required",
+        "audit-access"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "desktop"
+      ]
+    }
+  ],
+  "decision_log": [
+    {
+      "date": "2026-05-16",
+      "decision": "Canonical Connect PRDs are JSON under specs/products/connect; Markdown is projection only",
+      "drivers": [
+        "user directive: machine optimized PRDs",
+        "handoff F-PRD-CONNECT-SUITE-AUTHOR",
+        "shell-to-Rust consolidation"
+      ]
+    }
+  ],
+  "sources_scanned": [
+    "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+    "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+    "$ref:bominal/docs/roadmap/family-connect.md",
+    "$ref:bominal/docs/products/connect/enterprise-readiness.md",
+    "$ref:bominal/docs/products/connect/messaging.md",
+    "$ref:bominal/docs/products/connect/internal-communications.md"
+  ]
+}
