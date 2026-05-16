@@ -27,7 +27,9 @@
     "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/goals.before-stale-g001-recovery.20260509T015645Z.json",
     "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/goals.json",
     "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/ledger.before-stale-g001-recovery.20260509T015645Z.jsonl",
-    "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/ledger.jsonl"
+    "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/ledger.jsonl",
+    "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
+    ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md"
   ],
   "claim": {
     "agent": "codex-autopilot-p01-ip008",
@@ -102,13 +104,12 @@
   ],
   "milestone": "M-CC-cross-cutting",
   "next_steps": [
-    "Run grit done for codex-autopilot-p01-ip008.",
-    "Begin M-CC-P01-IP-009 delete active path after P6 is closed."
+    "No archive-orphan next step remains; new concurrent-work changes enter the Foundry pipeline (M-CC-P11) per ADR-0116."
   ],
   "phase": "P01-agentic-pipeline-cutover",
   "schema_version": "1.0.0",
   "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
-  "summary": "Bominal ultragoal orchestration glue was archived under the pre-grit cutover archive directory, ADR-0052 ARCHIVE rows were timestamped, and the archive-orphan lane now verifies copies, absent originals, and zero living references.",
+  "summary": "IP-008 is retired: the one-time archive-orphan lane and pre-grit archive payload have been removed after ADR-0116 made M-CC-P11 the canonical VCS substrate.",
   "validation": [
     {
       "command": "rustfmt --edition 2021 --check crates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs tools/oya-foundry-fitness-archive-orphan/src/main.rs",
@@ -186,5 +187,16 @@
       "status": "blocked_pre_existing"
     }
   ],
-  "purpose": "Auto-backfilled purpose for ip-008-archive-glue.json"
+  "purpose": "Auto-backfilled purpose for ip-008-archive-glue.json",
+  "retirement": {
+    "retired_on": "2026-05-16",
+    "retired_by": "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
+    "replacement": "Foundry pipeline (M-CC-P11) per ADR-0116",
+    "removed_workspace_members": [
+      "crates/oya-foundry-fitness-archive-orphan-kernel",
+      "tools/oya-foundry-fitness-archive-orphan-app"
+    ],
+    "removed_archive_payload": "bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/",
+    "naming_justification": "The retirement field names use explicit removed_* keys so this evidence distinguishes deleted artifacts from still-active lane assets."
+  }
 }
