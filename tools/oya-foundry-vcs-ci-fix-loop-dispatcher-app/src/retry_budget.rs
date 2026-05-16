@@ -7,7 +7,7 @@
 //!
 //! The counter is a pure value type so the kernel logic is testable
 //! without filesystem I/O; the binary entrypoint (in `main.rs`) wraps it
-//! around the registry file `registries/cross-cutting/ci-fix-loop-retry-budget.json`.
+//! around the registry file `registry/ci-fix-loop-retry-budget.json`.
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -149,7 +149,7 @@ impl Budget {
     }
 
     /// JSON serialization compatible with
-    /// `registries/cross-cutting/ci-fix-loop-retry-budget.json::entries`.
+    /// `registry/ci-fix-loop-retry-budget.json::entries`.
     pub fn render_entries_json_array(&self) -> String {
         let body = self
             .entries

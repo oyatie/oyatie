@@ -1,5 +1,5 @@
 //! Admission-event parser. Consumes
-//! `registries/cross-cutting/merge-queue-admission-log.json::entries`,
+//! `registry/merge-queue-admission-log.json::entries`,
 //! the schema co-defined with IP-004's dispatcher.
 //!
 //! The parser is intentionally serde-free (zero deps); it scans for the

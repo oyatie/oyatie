@@ -40,7 +40,7 @@ Both architect r1 and critic r1 returned ITERATE on planner v1, but converge on 
 
 Per architect r1 synthesis, the next accepted slice MUST hit all 8 hops:
 
-1. **Tracked registry row** in `/registries/cross-cutting/artifact-capabilities-registry.json` (already exists; ≥1 row)
+1. **Tracked registry row** in `/registry/artifact-capabilities-registry.json` (already exists; ≥1 row)
 2. **Schema validation** that fails on schema-violating rows
 3. **Validator runtime** = `crates/oya-check-active-artifact-contract::validate` (already exists; 12 unit tests pass)
 4. **`oya` command** = `oya-dev-cli gate validate active-artifact-contract` subcommand (NEW: write this)

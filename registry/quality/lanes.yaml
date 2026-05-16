@@ -512,7 +512,7 @@ lanes:
     status: active
     severity: report-only
     owner_team: council-architecture
-    purpose: enforces invariants C01..C04 from /registries/cross-cutting/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all`
+    purpose: enforces invariants C01..C04 from /registry/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all`
     source: cedar-fragments-registry (commit f00ec87)
     check_command: cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage
     runtime_budget_seconds: 30

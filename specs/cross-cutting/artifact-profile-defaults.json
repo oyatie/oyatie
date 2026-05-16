@@ -122,9 +122,9 @@
         "yaml"
       ],
       "examples": [
-        "/registries/cross-cutting/artifact-capabilities-registry.json",
-        "/registries/cross-cutting/reusable-building-blocks-registry.json",
-        "/registries/cross-cutting/knowledge-graph-catalog.json"
+        "/registry/artifact-capabilities-registry.json",
+        "/registry/reusable-building-blocks-registry.json",
+        "/registry/knowledge-graph-catalog.json"
       ],
       "default_capabilities": {
         "enforcement": {
@@ -536,7 +536,7 @@
         "json"
       ],
       "examples": [
-        "/registries/cross-cutting/claim-matrix/ops-portal.json"
+        "/registry/claim-matrix/ops-portal.json"
       ],
       "default_capabilities": {
         "enforcement": {

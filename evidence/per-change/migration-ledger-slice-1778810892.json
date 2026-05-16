@@ -46,22 +46,22 @@
       "kind": "leading-slash"
     },
     {
-      "file": "/registries/cross-cutting/artifact-capabilities-registry.json",
+      "file": "/registry/artifact-capabilities-registry.json",
       "form": "artifact_path",
       "kind": "leading-slash"
     },
     {
-      "file": "/registries/cross-cutting/knowledge-graph-dynamic.json",
+      "file": "/registry/knowledge-graph-dynamic.json",
       "form": "source_path (x2)",
       "kind": "leading-slash"
     },
     {
-      "file": "/registries/cross-cutting/knowledge-graph-semantic.json",
+      "file": "/registry/knowledge-graph-semantic.json",
       "form": "contributing_registries[]",
       "kind": "leading-slash"
     },
     {
-      "file": "/registries/cross-cutting/reusable-building-blocks-registry.json",
+      "file": "/registry/reusable-building-blocks-registry.json",
       "form": "consumer_refs[] free-text suffix",
       "kind": "leading-slash"
     },
@@ -152,7 +152,7 @@
     "F6_alternatives": {
       "considered": true,
       "alternatives_named": [
-        "Option A: move to /registries/cross-cutting/<name>.jsonl (treat ledgers as registries)",
+        "Option A: move to /registry/<name>.jsonl (treat ledgers as registries)",
         "Option B: move to /evidence/ledger/ (chosen \u2014 matches doctrine analogy with audit-chain.jsonl which already lives under /evidence/)",
         "Option C: defer and leave at .omc/ledger/ until full atomic cutover"
       ],

@@ -19,7 +19,7 @@ info:
     Purpose: declared per agentic-dev directive 2026-05-12 — this artifact
     answers "why does this exist" via this description block.
 
-    Registered in `/registries/cross-cutting/artifact-capabilities-registry.json` per
+    Registered in `/registry/artifact-capabilities-registry.json` per
     ADR-0069 v3.0.0. Validator: `oya gate validate active-artifact-contract`.
   contact:
     name: council-foundry
@@ -124,7 +124,7 @@ components:
           $ref: "#/components/schemas/SurfaceState"
         owning_bc_id:
           type: string
-          description: Bounded-context id from /registries/cross-cutting/bounded-contexts.json (e.g., "ops/docs-portal")
+          description: Bounded-context id from /registry/bounded-contexts.json (e.g., "ops/docs-portal")
           pattern: "^[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$"
         cedar_fragments:
           type: array

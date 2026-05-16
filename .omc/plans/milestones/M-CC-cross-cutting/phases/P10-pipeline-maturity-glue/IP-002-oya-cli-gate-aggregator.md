@@ -33,7 +33,7 @@ Kernels exist (`oya-foundry-vcs-cli-ratchet-kernel`, `-promotion-controller-kern
 ## Acceptance
 
 - `cargo install --path tools/oya-cli` succeeds; `oya --version` works.
-- `oya gate run-all` invokes every fitness kernel registered in `registries/cross-cutting/fitness-lane-registry.json`; output schema matches a new `/specs/cross-cutting/oya-gate-rollup.json`.
+- `oya gate run-all` invokes every fitness kernel registered in `registry/fitness-lane-registry.json`; output schema matches a new `/specs/cross-cutting/oya-gate-rollup.json`.
 - `oya claim --agent <id> --intent <text> <symbol>` is functionally equivalent to today's `grit claim` (compatibility shim documented in ADR-0054 extension note).
 - A test agent runs `oya claim → work → verify → done` end-to-end against a fake provider; no direct `git`/`gh` calls anywhere in the agent's command-log.
 - Evidence at `/evidence/pipeline-maturity-glue/ip-002-oya-cli.json`.
@@ -50,7 +50,7 @@ Kernels exist (`oya-foundry-vcs-cli-ratchet-kernel`, `-promotion-controller-kern
 - `tools/oya-cli/src/subcommands/done.rs::dispatch`
 - `tools/oya-cli/src/subcommands/promote.rs::dispatch`
 - `specs/cross-cutting/oya-gate-rollup.json::*`
-- `registries/cross-cutting/fitness-lane-registry.json::*` (extend with kernel-binding metadata if missing)
+- `registry/fitness-lane-registry.json::*` (extend with kernel-binding metadata if missing)
 
 ## Exit evidence
 

@@ -37,9 +37,9 @@
       "samples": [
         "/specs/cross-cutting/multispectrum-review.json (\u2192 /specs/cross-cutting/multispectrum-review-v2.1.0.json)",
         "/specs/cross-cutting/oyatie-doctrine.json (\u2192 /specs/cross-cutting/oyatie-doctrine-v1.0.0.json)",
-        "/registries/cross-cutting/fixuptasks.jsonl (\u2192 /registries/cross-cutting/fixuptasks.jsonl)",
-        "/registries/cross-cutting/test-suite-registry.json (\u2192 /registries/cross-cutting/test-suite-registry-v1.0.0.json)",
-        "/registries/cross-cutting/knowledge-graph-{semantic,kinetic,dynamic}.json (\u2192 /registries/cross-cutting/)",
+        "/registry/fixuptasks.jsonl (\u2192 /registry/fixuptasks.jsonl)",
+        "/registry/test-suite-registry.json (\u2192 /registry/test-suite-registry-v1.0.0.json)",
+        "/registry/knowledge-graph-{semantic,kinetic,dynamic}.json (\u2192 /registry/)",
         "/evidence/m-cc-p06-ip-002-final-1778801869.json (\u2192 /evidence/per-change/)"
       ]
     },
@@ -114,7 +114,7 @@
         "docs/standards/api-design.md \u2194 ADR-0037 (API stability) \u2014 check restatement",
         "docs/standards/agent-instructions-discipline.md \u2194 docs/AGENTS.md \u2014 likely heavy overlap",
         "docs/standards/data-class.md \u2194 Data Boundary engine specs",
-        "docs/standards/dependency-policy.md \u2194 /registries/cross-cutting/dependency-rationales.json (this session) \u2014 overlap",
+        "docs/standards/dependency-policy.md \u2194 /registry/dependency-rationales.json (this session) \u2014 overlap",
         "docs/standards/error-handling.md \u2194 ADR(s) \u2014 check"
       ],
       "remediation": "F-AUDIT-STANDARDS-SPRAWL \u2014 per-pair audit + slim to thin-pointer-gateway shape OR consolidate. Bounded follow-up."

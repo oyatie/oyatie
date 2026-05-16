@@ -138,7 +138,7 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane typecheck",
     "cargo run -p oya-dev-cli -- gate validate typescript-workspace --lane test",
     // Active-artifact + cedar-fragment + openapi-route emit-evidence lanes.
-    "cargo run -p oya-dev-cli -- gate validate active-artifact-contract --emit-evidence evidence/active-artifact-contract-lane-run.json --emit-graph-edges registries/cross-cutting/graph/active-artifact-contract-edges.json",
+    "cargo run -p oya-dev-cli -- gate validate active-artifact-contract --emit-evidence evidence/active-artifact-contract-lane-run.json --emit-graph-edges registry/graph/active-artifact-contract-edges.json",
     "cargo run -p oya-dev-cli -- gate validate cedar-fragment-coverage --emit-evidence evidence/cedar-fragment-coverage-lane-run.json",
     "cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity --emit-evidence evidence/openapi-rest-route-parity-lane-run.json",
     // Release-supply-chain phased lane (separate from default supply-chain).

@@ -50,9 +50,9 @@ Adopt the **active machine-readable artifact contract** v3.0.0 with three load-b
 |---|---|---|
 | Contract schema | `/specs/cross-cutting/active-machine-readable-artifact-contract.json` | Defines the 9 capabilities and their required fields. Applies as registry-row shape. |
 | Knowledge-graph schema | `/specs/cross-cutting/knowledge-graph-schema.json` | Pure meta-schema (post-r17 #3 split). |
-| Knowledge-graph catalog | `/registries/cross-cutting/knowledge-graph-catalog.json` | First-class catalog: 24 node types + 18 edge types + 14 graph-level invariants + 5 DRY query examples. |
-| Capability registry | `/registries/cross-cutting/artifact-capabilities-registry.json` | Control plane: one row per machine-readable artifact, listing its 9-capability statuses + anchors. |
-| Building-blocks registry | `/registries/cross-cutting/reusable-building-blocks-registry.json` | DRY enforcement: one row per reusable block, with canonical_path + consumers + version + deprecation. |
+| Knowledge-graph catalog | `/registry/knowledge-graph-catalog.json` | First-class catalog: 24 node types + 18 edge types + 14 graph-level invariants + 5 DRY query examples. |
+| Capability registry | `/registry/artifact-capabilities-registry.json` | Control plane: one row per machine-readable artifact, listing its 9-capability statuses + anchors. |
+| Building-blocks registry | `/registry/reusable-building-blocks-registry.json` | DRY enforcement: one row per reusable block, with canonical_path + consumers + version + deprecation. |
 | Validator crate | `crates/oya-check-active-artifact-contract` | Pure-Rust kernel (std-only) that loads the capability registry, resolves HEAD-tracking, detects duplicate IDs, detects operational-without-evidence. Exposed via `oya check active-artifact-contract` once integrated with `oya-dev-cli`. |
 | CI lane | `lean-a-active-artifact-contract` in `registry/quality/lanes.yaml` | Enforces the contract at PR time. Status `planned` until validator integration completes. |
 
@@ -97,7 +97,7 @@ Per architect r17 review (`/evidence/audits/consensus/2026-05-13/architect-r17-t
 
 ### Linus-style findings closed in follow-up commit `b0798b0` (per user "don't defer anything" 2026-05-13)
 
-- #3 (graph catalog hidden under `_canonical_*` keys): CLOSED — `/specs/cross-cutting/knowledge-graph-schema.json` reduced to pure meta-schema (199 lines); `/registries/cross-cutting/knowledge-graph-catalog.json` NEW with 24 node types + 18 edge types + 14 invariants + 5 DRY queries as first-class catalog data.
+- #3 (graph catalog hidden under `_canonical_*` keys): CLOSED — `/specs/cross-cutting/knowledge-graph-schema.json` reduced to pure meta-schema (199 lines); `/registry/knowledge-graph-catalog.json` NEW with 24 node types + 18 edge types + 14 invariants + 5 DRY queries as first-class catalog data.
 - #6 (DRY counts contradictory): CLOSED inline — field renamed to `consumer_count_resolved_today_auto_computed` (auto-computed by validator); old name retired; the resolved-vs-listed split is documented in `_known_data_quality_gaps_per_architect_r17`.
 - #7 (consumer refs mix prose + paths): CLOSED — all 15 block rows split into `consumer_refs` (resolvable paths) + `consumer_selectors` (predicate strings); `consumer_count_listed` auto-computed per row.
 - #8 (9-capability contract too heavy to author manually): CLOSED — `/specs/cross-cutting/artifact-profile-defaults.json` NEW with 7 profiles (schema / registry / template / plan-attestation / ledger / claim-matrix / evidence-bundle); 10 capability-registry rows collapsed to `artifact_profile` + sparse `capability_overrides`; validator gains `ArtifactProfile` enum + 3 new tests (12 total pass).
@@ -161,10 +161,10 @@ Wait for cosign/trivy/audit-chain runtime before authoring any of this. Rejected
 
 - `/specs/cross-cutting/active-machine-readable-artifact-contract.json` (the v3.0.0 schema)
 - `/specs/cross-cutting/knowledge-graph-schema.json` (graph substrate)
-- `/registries/cross-cutting/artifact-capabilities-registry.json` (control plane)
-- `/registries/cross-cutting/reusable-building-blocks-registry.json` (DRY enforcement)
+- `/registry/artifact-capabilities-registry.json` (control plane)
+- `/registry/reusable-building-blocks-registry.json` (DRY enforcement)
 - `/evidence/audits/consensus/2026-05-13/architect-r17-torvalds-artifact-contract.md` (architect r17 Torvalds-lens findings)
-- `/registries/cross-cutting/claim-matrix/ops-portal.json` (HG-* gate coverage; rule-iii honest-claims discipline)
+- `/registry/claim-matrix/ops-portal.json` (HG-* gate coverage; rule-iii honest-claims discipline)
 - `/specs/cross-cutting/master-plan-sequencing.json` (forbidden-primitive list; grit protocol)
 - `/specs/cross-cutting/hyperscaler-gates.json` (HG-* 10-gate registry)
 - `docs/CONSTITUTION.md` (Decision principle 3: mechanical prevention over process)

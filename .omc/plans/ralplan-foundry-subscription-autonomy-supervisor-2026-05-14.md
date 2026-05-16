@@ -305,7 +305,7 @@ Doc-coverage entries (lean-a5-doc-coverage gate):
 - `docs/products/foundry/supervisor/PERFORMANCE-BUDGET.md` (token + latency + RSS budgets w/ benchmark protocol)
 - `docs/products/foundry/supervisor/PROVIDER-MATRIX.md` (per-CLI capability + degradation table)
 - KR localization pack overlay under `docs/localization-packs/kr/foundry/supervisor/` (pack #1 per ADR-0064)
-- Capability rows documented in `/registries/cross-cutting/artifact-capabilities-registry.json`
+- Capability rows documented in `/registry/artifact-capabilities-registry.json`
 
 ### B.11 Verification gates (concrete commands)
 

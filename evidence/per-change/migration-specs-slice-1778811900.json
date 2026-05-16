@@ -84,7 +84,7 @@
     "F3_adversarial": {
       "considered": true,
       "findings": [
-        "root-hub-pointers.json (self-reference registry) successfully self-rewrote \u2014 all current_path fields now point at /specs/cross-cutting/, /registries/cross-cutting/, /evidence/ledger/"
+        "root-hub-pointers.json (self-reference registry) successfully self-rewrote \u2014 all current_path fields now point at /specs/cross-cutting/, /registry/, /evidence/ledger/"
       ],
       "failing_fixture_added": false,
       "passing_fixture_id": "n/a",

@@ -17,7 +17,7 @@ Per MASTERPLAN §6/§8 and `/specs/cross-cutting/masterplan.json` dependency-sea
 - `oya-foundry-fitness-image-discipline` lane CI-blocks: non-distroless base, shells/package-managers in production image, image size > budget (per binary).
 - `oya-foundry-fitness-lts-dependency` lane CI-blocks: any direct dep that drifts from current LTS without ADR-tracked exception.
 - `oya-check-dependency-seam-discipline` composite lane enforces layer metadata, seam import boundaries, tech-debt ledger coverage/freshness, vendor residue, CVE watch, review contract, and monotonic status transitions.
-- `/registries/cross-cutting/tech-debt-ledger.json` exists with 11 seed deps, top-level `default_evaluator_policies`, trigger DSL, DRI handles, replacement targets, CVE acceleration, and ADR citations.
+- `/registry/tech-debt-ledger.json` exists with 11 seed deps, top-level `default_evaluator_policies`, trigger DSL, DRI handles, replacement targets, CVE acceleration, and ADR citations.
 - ADR-0091..ADR-0094 are authored/indexed at the states required by round 5; ADR-0093 becomes Accepted only with CODEOWNERS + same-PR guard in Step 6.
 - Image size budget table published at `docs/standards/image-size-budgets.md`.
 
@@ -56,7 +56,7 @@ Phase-level exit-gate items NOT yet delivered (block P06 closure):
 5 agents: distroless/image lane, LTS roster, dependency-seam composite lane, trigger-DSL/ledger, and static-musl pipeline. Step 0→1 in IP-002 remains sequential; post-Step-1 work fans out.
 
 ## Symbols-touched
-`crates/oya-foundry-fitness-{image-discipline,lts-dependency}-kernel`, `crates/oya-check-dependency-seam-discipline`, `crates/oya-foundry-trigger-dsl-{kernel,runtime}`, `/registries/cross-cutting/tech-debt-ledger.json`, `Dockerfile.distroless`, `docs/standards/image-size-budgets.md`.
+`crates/oya-foundry-fitness-{image-discipline,lts-dependency}-kernel`, `crates/oya-check-dependency-seam-discipline`, `crates/oya-foundry-trigger-dsl-{kernel,runtime}`, `/registry/tech-debt-ledger.json`, `Dockerfile.distroless`, `docs/standards/image-size-budgets.md`.
 
 ## Agent-handoff
 ```
