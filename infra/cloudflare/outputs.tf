@@ -23,5 +23,6 @@ output "published_hostnames" {
     kms     = "https://kms.${var.cloudflare_domain}     → http://127.0.0.1:8200 (OpenBao)"
     foundry = "https://foundry.${var.cloudflare_domain} → http://127.0.0.1:8080 (workspace-shell API)"
     ops     = "https://ops.${var.cloudflare_domain}     → http://127.0.0.1:8080 (workspace-shell docs/ops surfaces)"
+    api     = "https://api.${var.cloudflare_domain}     → http://127.0.0.1:8080 (public REST gateway; repoints to OCI API GW at M3-P03)"
   }
 }
