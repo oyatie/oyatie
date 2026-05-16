@@ -1,14 +1,16 @@
 ---
 id: ADR-0054
-status: accepted
+status: deprecated
 doc_status: published
 ---
 
+> **Superseded by ADR-0116 (2026-05-16)** — external agent-coordination tooling (grit, rtk, icm, vox) is retired; the Foundry pipeline (M-CC-P11) is the canonical workflow. See `docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md`.
+
 # ADR-0054: Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback)
 
-> **Status:** Accepted
+> **Status:** Deprecated 2026-05-16
 > **Supersedes:** -
-> **Superseded-by:** -
+> **Superseded-by:** ADR-0116
 > **Owner:** `council-architecture` + `foundry`
 > **Date:** 2026-05-12
 > **doc_class:** DecisionRecord
@@ -20,7 +22,9 @@ doc_status: published
 
 ## Status
 
-Accepted — 2026-05-12. The icm-coordination-lock fallback is the **canonical** scaffold-claim path at grit v0.3.0. The `Cargo.toml::workspace_members` primary path is blocked pending a grit upstream fix (see Follow-ups §1).
+Deprecated 2026-05-16 — superseded by ADR-0116. The Foundry pipeline (M-CC-P11) replaces the grit/icm scaffold-claim pattern in its entirety; new-crate scaffolds now use plain `git mv` inside a per-agent `git worktree`, with the resulting PR entering the Foundry pipeline (admission-gate → merge-queue → auto-merge on review+CI green).
+
+Original status (historical): Accepted — 2026-05-12. The icm-coordination-lock fallback was the canonical scaffold-claim path at grit v0.3.0. The `Cargo.toml::workspace_members` primary path was blocked pending a grit upstream fix (see Follow-ups §1). Both of these are now retired per ADR-0116.
 
 ---
 
