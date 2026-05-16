@@ -1,7 +1,9 @@
 use std::process::ExitCode;
 
 mod architecture_boundaries;
+mod product_index;
 mod run_all;
+mod stage0_application_shell_prereqs;
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
     // `gate run-all` aggregator branch: replaces the legacy
@@ -659,6 +661,35 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                         ExitCode::FAILURE
                     }
                 },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("product-index")) => product_index::run(args.collect()),
+        (Some("validate"), Some("stage0-prereqs")) => {
+            match stage0_application_shell_prereqs::parse_stage0_prereqs_validate_args(
+                args.collect(),
+            ) {
+                Ok(parsed) => {
+                    match stage0_application_shell_prereqs::validate_stage0_prereqs_gate(parsed) {
+                        Ok(report) => {
+                            println!(
+                                "stage0-prereqs validation passed: {} required paths, workspace_member_present={}, edition={}, rust-version={}",
+                                report.required_paths_checked,
+                                report.workspace_member_present,
+                                report.package_edition,
+                                report.package_rust_version
+                            );
+                            ExitCode::SUCCESS
+                        }
+                        Err(message) => {
+                            eprintln!("stage0-prereqs validation failed: {message}");
+                            ExitCode::FAILURE
+                        }
+                    }
+                }
                 Err(message) => {
                     eprintln!("{message}");
                     ExitCode::from(2)

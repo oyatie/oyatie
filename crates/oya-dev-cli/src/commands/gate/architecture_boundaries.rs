@@ -26,21 +26,14 @@
 //! are parsed line-by-line (matching the legacy parser shape so that
 //! pre-existing fixtures keep working).
 //!
-//! The `ALLOWED_DEPENDENCY_ROLES` table is preserved verbatim from the
-//! Python source. It references legacy role names (`application`,
-//! `runtime`, `test`, `api`, `worker`) that are NOT all in the canonical
-//! 13-value layer enum at
-//! `crates/oya-foundry-fitness-predictable-naming-kernel::ALLOWED_ROLES`.
-//! Reconciliation is staged per ADR-0105 §"Amendment 2026-05-15 —
-//! `ALLOWED_DEPENDENCY_ROLES` reconciliation": migrate the 22 catalog
-//! `application` records → `usecase` (ADR-0106), 6 `runtime` → `app`
-//! (ADR-0056), and remove 4 `test` records (cfg(test) is the canonical
-//! exemption). The catalog still carries records with those roles as of
-//! 2026-05-15, so the matrix stays as-is here for behavioural parity;
-//! once the three follow-ups land, this table drops `application`/
-//! `runtime`/`test` and adds `cli`/`grpc`/`graphql`/`sdk`/`usecase`.
-//! Until that lands, this gate is the source of truth for inter-crate
-//! edges. Audit row B-2 in
+//! The `ALLOWED_DEPENDENCY_ROLES` table began as a verbatim port from the
+//! Python source, then adopted ADR-0106's `application` → `usecase`
+//! correction for new catalog records. Legacy `application`, `runtime`,
+//! and `test` rows remain transitional/grandfathered, but new shared
+//! orchestration crates MUST use `usecase`, and `app -> app` remains a
+//! forbidden edge. `app` may depend on `usecase` because the deployable
+//! composition root is allowed to call inward use-case orchestration;
+//! it must not compose another app crate. Audit row B-2 in
 //! `evidence/audits/shell-python-replacement-audit-2026-05-15.md` tracks
 //! the migration sequence.
 
@@ -65,9 +58,17 @@ fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> 
     insert("kernel", &["kernel", "domain"]);
     insert("domain", &["kernel", "domain"]);
     insert("application", &["kernel", "domain"]);
+    insert("usecase", &["kernel", "domain"]);
     insert(
         "app",
-        &["kernel", "domain", "application", "adapter", "rest"],
+        &[
+            "kernel",
+            "domain",
+            "application",
+            "usecase",
+            "adapter",
+            "rest",
+        ],
     );
     insert("api", &["kernel", "domain", "app"]);
     insert("worker", &["kernel", "domain", "app"]);
@@ -159,7 +160,7 @@ pub(crate) fn run(args: Vec<String>) -> ExitCode {
         Ok(parsed) => match validate_architecture_boundaries(&parsed) {
             Ok(report) => {
                 if parsed.self_test {
-                    println!("architecture-boundaries self-test passed: 8 cases");
+                    println!("architecture-boundaries self-test passed: 10 cases");
                 } else {
                     println!(
                         "architecture-boundaries validation passed: {} packages, {} catalog records, {} dependency edges",
@@ -447,6 +448,8 @@ fn run_self_test() -> Result<ArchitectureBoundariesReport, Vec<String>> {
     expect_self_test_happy_path()?;
     expect_self_test_missing_catalog()?;
     expect_self_test_forbidden_role_edge()?;
+    expect_self_test_app_can_depend_on_usecase()?;
+    expect_self_test_app_to_app_forbidden()?;
     expect_self_test_bad_prefix()?;
     expect_self_test_wrong_workspace_path()?;
     expect_self_test_legacy_top_level_dir()?;
@@ -580,6 +583,46 @@ fn expect_self_test_forbidden_role_edge() -> Result<(), Vec<String>> {
     let errors = run_fixture(packages, catalog, BTreeSet::new());
     assert_self_test(
         "forbidden role edge",
+        &errors,
+        Some("forbidden dependency edge"),
+    )
+}
+
+fn expect_self_test_app_can_depend_on_usecase() -> Result<(), Vec<String>> {
+    let (kernel_pkg, kernel_rec) =
+        fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+    let (usecase_pkg, usecase_rec) = fixture_package(
+        "oya-platform-tenant-usecase",
+        "usecase",
+        &["oya-platform-tenant-kernel"],
+        "crates",
+    );
+    let (app_pkg, app_rec) = fixture_package(
+        "oya-platform-tenant-app",
+        "app",
+        &["oya-platform-tenant-usecase"],
+        "crates",
+    );
+    let packages = vec![kernel_pkg, usecase_pkg, app_pkg];
+    let catalog: BTreeMap<_, _> = [kernel_rec, usecase_rec, app_rec].into_iter().collect();
+    let errors = run_fixture(packages, catalog, BTreeSet::new());
+    assert_self_test("app depends on usecase", &errors, None)
+}
+
+fn expect_self_test_app_to_app_forbidden() -> Result<(), Vec<String>> {
+    let (runtime_pkg, runtime_rec) = fixture_package(
+        "oya-foundry-review-app",
+        "app",
+        &["oya-foundry-subagent-app"],
+        "crates",
+    );
+    let (subagent_pkg, subagent_rec) =
+        fixture_package("oya-foundry-subagent-app", "app", &[], "crates");
+    let packages = vec![runtime_pkg, subagent_pkg];
+    let catalog: BTreeMap<_, _> = [runtime_rec, subagent_rec].into_iter().collect();
+    let errors = run_fixture(packages, catalog, BTreeSet::new());
+    assert_self_test(
+        "app to app forbidden",
         &errors,
         Some("forbidden dependency edge"),
     )
@@ -744,6 +787,51 @@ mod tests {
         let (errors, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(errors.is_empty(), "{errors:?}");
+    }
+
+    #[test]
+    fn app_depending_on_usecase_is_allowed() {
+        let (kernel_pkg, kernel_rec) =
+            fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+        let (usecase_pkg, usecase_rec) = fixture_package(
+            "oya-platform-tenant-usecase",
+            "usecase",
+            &["oya-platform-tenant-kernel"],
+            "crates",
+        );
+        let (app_pkg, app_rec) = fixture_package(
+            "oya-platform-tenant-app",
+            "app",
+            &["oya-platform-tenant-usecase"],
+            "crates",
+        );
+        let packages = vec![kernel_pkg, usecase_pkg, app_pkg];
+        let catalog = [kernel_rec, usecase_rec, app_rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(errors.is_empty(), "{errors:?}");
+    }
+
+    #[test]
+    fn app_depending_on_app_is_forbidden() {
+        let (left_pkg, left_rec) = fixture_package(
+            "oya-foundry-review-app",
+            "app",
+            &["oya-foundry-subagent-app"],
+            "crates",
+        );
+        let (right_pkg, right_rec) =
+            fixture_package("oya-foundry-subagent-app", "app", &[], "crates");
+        let packages = vec![left_pkg, right_pkg];
+        let catalog = [left_rec, right_rec].into_iter().collect();
+        let (errors, _) =
+            validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
+        assert!(
+            errors
+                .iter()
+                .any(|e| e.contains("forbidden dependency edge")),
+            "expected forbidden-edge error, got {errors:?}",
+        );
     }
 
     #[test]

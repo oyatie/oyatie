@@ -2184,8 +2184,8 @@ name = "oya-foundry-pr-review-dispatcher-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-account-kernel",
- "oya-foundry-subagent-runtime-app",
  "oya-foundry-subagent-runtime-kernel",
+ "oya-foundry-subagent-runtime-usecase",
  "tempfile",
 ]
 
@@ -2283,6 +2283,7 @@ version = "0.1.0"
 dependencies = [
  "oya-foundry-account-kernel",
  "oya-foundry-subagent-runtime-kernel",
+ "oya-foundry-subagent-runtime-usecase",
  "tempfile",
 ]
 
@@ -2291,6 +2292,13 @@ name = "oya-foundry-subagent-runtime-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-account-kernel",
+]
+
+[[package]]
+name = "oya-foundry-subagent-runtime-usecase"
+version = "0.1.0"
+dependencies = [
+ "oya-foundry-subagent-runtime-kernel",
 ]
 
 [[package]]
@@ -2386,8 +2394,8 @@ name = "oya-foundry-vcs-ci-fix-loop-dispatcher-app"
 version = "0.1.0"
 dependencies = [
  "oya-foundry-account-kernel",
- "oya-foundry-subagent-runtime-app",
  "oya-foundry-subagent-runtime-kernel",
+ "oya-foundry-subagent-runtime-usecase",
 ]
 
 [[package]]

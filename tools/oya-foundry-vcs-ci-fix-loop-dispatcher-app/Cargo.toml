@@ -44,7 +44,7 @@ doctest = false
 # implementation.
 oya-foundry-account-kernel = { path = "../../crates/oya-foundry-account-kernel" }
 oya-foundry-subagent-runtime-kernel = { path = "../../crates/oya-foundry-subagent-runtime-kernel" }
-oya-foundry-subagent-runtime-app = { path = "../oya-foundry-subagent-runtime-app" }
+oya-foundry-subagent-runtime-usecase = { path = "../../crates/oya-foundry-subagent-runtime-usecase" }
 
 [lints]
 workspace = true

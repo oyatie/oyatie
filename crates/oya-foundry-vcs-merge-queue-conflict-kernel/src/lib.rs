@@ -57,10 +57,14 @@ use std::fmt;
 /// before the path-overlap check.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct QueuedPr {
-    pub pr_number: u64,
-    pub head_sha: String,
-    pub base_sha: String,
-    pub touched_paths: Vec<String>,
+    /// data_class: INTERNAL_ONLY
+    pub pr_number: u64, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub head_sha: String, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub base_sha: String, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub touched_paths: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 /// The parsed verdict from the runner's `git merge-tree` invocation
@@ -96,10 +100,14 @@ pub enum MergeTreeOutcome {
 /// the rerun if it can prove identical base.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ProjectedStateReport {
-    pub candidate_pr_number: u64,
-    pub accumulated_path_count: usize,
-    pub queue_depth_at_admission: usize,
-    pub requires_test_rerun: bool,
+    /// data_class: INTERNAL_ONLY
+    pub candidate_pr_number: u64, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub accumulated_path_count: usize, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub queue_depth_at_admission: usize, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub requires_test_rerun: bool, // data_class: INTERNAL_ONLY
 }
 
 /// Closed enum of every reason `validate_projected_merge_state` can
@@ -177,8 +185,7 @@ fn is_well_formed_sha(s: &str) -> bool {
     if s.len() != 40 {
         return false;
     }
-    s.bytes()
-        .all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+    s.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
 }
 
 /// Validate the projected merge state for `candidate` against the
@@ -217,10 +224,14 @@ pub fn validate_projected_merge_state(
         return Err(ProjectedStateError::MalformedSha(dev_head.to_string()));
     }
     if !is_well_formed_sha(&candidate.head_sha) {
-        return Err(ProjectedStateError::MalformedSha(candidate.head_sha.clone()));
+        return Err(ProjectedStateError::MalformedSha(
+            candidate.head_sha.clone(),
+        ));
     }
     if !is_well_formed_sha(&candidate.base_sha) {
-        return Err(ProjectedStateError::MalformedSha(candidate.base_sha.clone()));
+        return Err(ProjectedStateError::MalformedSha(
+            candidate.base_sha.clone(),
+        ));
     }
     for queued in queued_prs {
         if !is_well_formed_sha(&queued.head_sha) {
@@ -293,7 +304,7 @@ mod tests {
     use super::*;
 
     fn sha(c: char) -> String {
-        std::iter::repeat(c).take(40).collect()
+        std::iter::repeat_n(c, 40).collect()
     }
 
     fn pr(number: u64, head_c: char, base_c: char, paths: &[&str]) -> QueuedPr {
@@ -313,14 +324,9 @@ mod tests {
         let dev = sha('0');
         let candidate = pr(101, 'a', '0', &["src/foo.rs"]);
         let safe: BTreeSet<String> = BTreeSet::new();
-        let rep = validate_projected_merge_state(
-            &dev,
-            &[],
-            &candidate,
-            &MergeTreeOutcome::Clean,
-            &safe,
-        )
-        .expect("clean admission must succeed");
+        let rep =
+            validate_projected_merge_state(&dev, &[], &candidate, &MergeTreeOutcome::Clean, &safe)
+                .expect("clean admission must succeed");
         assert_eq!(rep.candidate_pr_number, 101);
         assert_eq!(rep.accumulated_path_count, 0);
         assert_eq!(rep.queue_depth_at_admission, 0);
@@ -420,14 +426,9 @@ mod tests {
         let dev = sha('0');
         let candidate = pr(1, 'a', '0', &["src/x.rs"]);
         let safe: BTreeSet<String> = BTreeSet::new();
-        let rep = validate_projected_merge_state(
-            &dev,
-            &[],
-            &candidate,
-            &MergeTreeOutcome::Clean,
-            &safe,
-        )
-        .expect("empty queue happy path");
+        let rep =
+            validate_projected_merge_state(&dev, &[], &candidate, &MergeTreeOutcome::Clean, &safe)
+                .expect("empty queue happy path");
         assert_eq!(rep.queue_depth_at_admission, 0);
     }
 
@@ -438,14 +439,9 @@ mod tests {
         let dev = "deadbee".to_string(); // 7 chars
         let candidate = pr(1, 'a', '0', &["src/x.rs"]);
         let safe: BTreeSet<String> = BTreeSet::new();
-        let err = validate_projected_merge_state(
-            &dev,
-            &[],
-            &candidate,
-            &MergeTreeOutcome::Clean,
-            &safe,
-        )
-        .unwrap_err();
+        let err =
+            validate_projected_merge_state(&dev, &[], &candidate, &MergeTreeOutcome::Clean, &safe)
+                .unwrap_err();
         assert!(matches!(err, ProjectedStateError::MalformedSha(_)));
     }
 
@@ -457,14 +453,9 @@ mod tests {
         let mut candidate = pr(1, 'a', '0', &["src/x.rs"]);
         candidate.head_sha = "A".repeat(40);
         let safe: BTreeSet<String> = BTreeSet::new();
-        let err = validate_projected_merge_state(
-            &dev,
-            &[],
-            &candidate,
-            &MergeTreeOutcome::Clean,
-            &safe,
-        )
-        .unwrap_err();
+        let err =
+            validate_projected_merge_state(&dev, &[], &candidate, &MergeTreeOutcome::Clean, &safe)
+                .unwrap_err();
         assert!(matches!(err, ProjectedStateError::MalformedSha(_)));
     }
 

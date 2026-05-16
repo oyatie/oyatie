@@ -64,11 +64,11 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Date {
     // data_class: INTERNAL_ONLY
-    pub year: i32,
+    pub year: i32, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub month: u8,
+    pub month: u8, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub day: u8,
+    pub day: u8, // data_class: INTERNAL_ONLY
 }
 
 impl Date {
@@ -193,31 +193,31 @@ pub struct SunsetClause {
     /// `docs/decisions/ADR-0107.md#sunset` or
     /// `crates/foo/Cargo.toml#package.metadata.oya.sunset`).
     /// data_class: INTERNAL_ONLY
-    pub location: String,
+    pub location: String, // data_class: INTERNAL_ONLY
     /// Optional explicit sunset date (`YYYY-MM-DD`).
     // data_class: INTERNAL_ONLY
-    pub sunset_at: Option<Date>,
+    pub sunset_at: Option<Date>, // data_class: INTERNAL_ONLY
     /// Optional milestone-anchored sunset (e.g. `M-CC-P01-merge`).
     /// data_class: INTERNAL_ONLY
-    pub sunset_milestone: Option<String>,
+    pub sunset_milestone: Option<String>, // data_class: INTERNAL_ONLY
     /// Optional explicit deprecation date. When `None` and `sunset_at` is
     /// present, defaults to `sunset_at + 30 days` per ADR-0108
     /// §"Canonical sub-rule (defaulting)".
     // data_class: INTERNAL_ONLY
-    pub deprecation_at: Option<Date>,
+    pub deprecation_at: Option<Date>, // data_class: INTERNAL_ONLY
     /// Optional explicit removal date. When `None`, defaults to
     /// `deprecation_at + 90 days` (effective deprecation_at, including
     /// the 30-day default) per ADR-0108.
     // data_class: INTERNAL_ONLY
-    pub removal_at: Option<Date>,
+    pub removal_at: Option<Date>, // data_class: INTERNAL_ONLY
     /// Short slug used for cross-referencing the same sunset in multiple
     /// surfaces. data_class: INTERNAL_ONLY
-    pub sunset_topic: String,
+    pub sunset_topic: String, // data_class: INTERNAL_ONLY
     /// True when the surface carries a deprecation marker
     /// (`#[deprecated]`, `status: Deprecated`, `Deprecated:` doc-comment).
     /// Discovery layer is responsible for populating this honestly.
     // data_class: INTERNAL_ONLY
-    pub has_deprecation_marker: bool,
+    pub has_deprecation_marker: bool, // data_class: INTERNAL_ONLY
 }
 
 /// Lifecycle states per ADR-0108 §"State machine".
@@ -244,15 +244,15 @@ pub enum LifecycleState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Violation {
     /// data_class: INTERNAL_ONLY
-    pub clause_location: String,
+    pub clause_location: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub state: LifecycleState,
+    pub state: LifecycleState, // data_class: INTERNAL_ONLY
     /// data_class: INTERNAL_ONLY
-    pub expected_action: String,
+    pub expected_action: String, // data_class: INTERNAL_ONLY
     /// Days overdue. `None` for [`LifecycleState::MissingFields`] (no
     /// reference date to measure overdue against).
     // data_class: INTERNAL_ONLY
-    pub days_overdue: Option<i64>,
+    pub days_overdue: Option<i64>, // data_class: INTERNAL_ONLY
 }
 
 /// Days added between sunset and deprecation when `deprecation_at` is

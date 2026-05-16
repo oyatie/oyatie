@@ -42,12 +42,12 @@ pub struct Scheduler {
 /// proof".
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct TickEntry {
-    pub tick_number: u32,
-    pub action: TickAction,
-    pub current_head_sha: String,
-    pub epoch: u64,
-    pub queue_depth: u32,
-    pub parked_count: u32,
+    pub tick_number: u32,         // data_class: INTERNAL_ONLY
+    pub action: TickAction,       // data_class: INTERNAL_ONLY
+    pub current_head_sha: String, // data_class: INTERNAL_ONLY
+    pub epoch: u64,               // data_class: INTERNAL_ONLY
+    pub queue_depth: u32,         // data_class: INTERNAL_ONLY
+    pub parked_count: u32,        // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

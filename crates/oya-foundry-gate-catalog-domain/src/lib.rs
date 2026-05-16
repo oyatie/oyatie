@@ -65,6 +65,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "supply-chain",
     "pr-traceability",
     "cargo-prefix",
+    "pre-push-contract",
     "quality-lanes",
     "foundation-bypass",
     "audit-chain-replay",
@@ -76,6 +77,8 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "glossary-cross-doc-coverage",
     "glossary-vocabulary",
     "placeholder-debt",
+    "retired-vocabulary",
+    "protection-context-match",
     "license-policy",
     "plane-class",
     "raci-team-coverage",
@@ -87,6 +90,8 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "architecture-boundaries",
     "product-index",
     "stage0-prereqs",
+    "changeset-state-monotonicity",
+    "changeset-state-enum-closed",
 ];
 
 /// Catalog of non-`gate validate` commands the legacy `scripts/check.sh`
@@ -143,6 +148,7 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract",
     "cargo run -q -p oya-foundry-vcs-admission-gate-app",
     "cargo run -q -p oya-foundry-fitness-purpose-audit-app",
+    "cargo run -p oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600",
 ];
 
 /// Concatenated canonical command catalog. Provides downstream gates a

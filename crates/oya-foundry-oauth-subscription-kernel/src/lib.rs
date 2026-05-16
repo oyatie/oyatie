@@ -101,9 +101,9 @@ impl FlowKind {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct OAuthLoopbackServer {
     // data_class: INTERNAL_ONLY
-    pub port: u16,
+    pub port: u16, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub callback_path: String,
+    pub callback_path: String, // data_class: INTERNAL_ONLY
 }
 
 impl OAuthLoopbackServer {
@@ -139,14 +139,14 @@ pub struct SubscriptionOAuthFlow {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubscriptionTokenCaptureRequest {
     // data_class: INTERNAL_ONLY
-    pub flow_kind: FlowKind,
+    pub flow_kind: FlowKind, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub provider: ProviderFamily,
-    pub verifier: PkceVerifier, // data_class: INTERNAL_ONLY
+    pub provider: ProviderFamily, // data_class: INTERNAL_ONLY
+    pub verifier: PkceVerifier,   // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub state_nonce: String,
+    pub state_nonce: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub loopback: OAuthLoopbackServer,
+    pub loopback: OAuthLoopbackServer, // data_class: INTERNAL_ONLY
 }
 
 /// data_class: INTERNAL_ONLY — payload returned after a successful capture.
@@ -155,13 +155,13 @@ pub struct SubscriptionTokenCaptureRequest {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SubscriptionTokenCaptureResponse {
     // data_class: INTERNAL_ONLY
-    pub sref: SecretReference,
+    pub sref: SecretReference, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub flow_kind: FlowKind,
+    pub flow_kind: FlowKind, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub provider: ProviderFamily,
+    pub provider: ProviderFamily, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub captured_unix_secs: u64,
+    pub captured_unix_secs: u64, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

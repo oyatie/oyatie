@@ -25,11 +25,9 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub mod anthropic;
-pub mod fanout;
 
 pub use anthropic::AnthropicSubagentPort;
-pub use fanout::{FacetSlug, fanout_panel_v23};
-pub use oya_foundry_subagent_runtime_kernel::{
-    FacetFindingJson, FacetPromptTemplate, FacetRecommendation, MockSubagentPort, SubagentError,
-    SubagentPort, SubagentRequest, SubagentResponse,
+pub use oya_foundry_subagent_runtime_usecase::{
+    FacetFindingJson, FacetPromptTemplate, FacetRecommendation, FacetSlug, MockSubagentPort,
+    SubagentError, SubagentPort, SubagentRequest, SubagentResponse, fanout_panel_v23,
 };

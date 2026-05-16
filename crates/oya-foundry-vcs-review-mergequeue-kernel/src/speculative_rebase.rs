@@ -13,15 +13,15 @@ use std::fmt;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RebaseRequest {
     /// PR being revalidated.
-    pub pr_number: u64,
+    pub pr_number: u64, // data_class: INTERNAL_ONLY
     /// The SHA the fix-loop just pushed to the PR branch (pulled from the
     /// IP-005 dispatcher's bundle or the new workflow_run head_sha).
-    pub pr_new_head_sha: String,
+    pub pr_new_head_sha: String, // data_class: INTERNAL_ONLY
     /// What the merge-queue head pointed at when the PR was parked.
-    pub queue_head_at_park: String,
+    pub queue_head_at_park: String, // data_class: INTERNAL_ONLY
     /// What the merge-queue head points at NOW (may have advanced
     /// because other PRs landed while this one was parked).
-    pub current_queue_head_sha: String,
+    pub current_queue_head_sha: String, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

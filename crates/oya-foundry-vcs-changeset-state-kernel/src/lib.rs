@@ -141,9 +141,12 @@ impl fmt::Display for ChangesetState {
 /// guards. Any axis crossing zero forces a terminal-fail transition.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CostBudget {
-    pub usd_remaining: f64,
-    pub tokens_remaining: u64,
-    pub agent_invocations_remaining: u32,
+    /// data_class: INTERNAL_ONLY
+    pub usd_remaining: f64, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub tokens_remaining: u64, // data_class: SECRET
+    /// data_class: INTERNAL_ONLY
+    pub agent_invocations_remaining: u32, // data_class: INTERNAL_ONLY
 }
 
 impl CostBudget {
@@ -161,32 +164,42 @@ impl CostBudget {
 #[derive(Clone, Debug, PartialEq)]
 pub struct ChangesetEvent {
     /// ULID-shaped `cs_<RFC3339-Z>_<8-hex>` identifier.
-    pub changeset_id: String,
+    /// data_class: INTERNAL_ONLY
+    pub changeset_id: String, // data_class: INTERNAL_ONLY
     /// Idempotency anchor `<changeset_id>_<to_state>_<at>`. Webhook
     /// receivers MUST treat a repeated dedup_key as a no-op.
-    pub dedup_key: String,
+    /// data_class: INTERNAL_ONLY
+    pub dedup_key: String, // data_class: SECRET
     /// `None` only on the very first row (state `Opened`). All
     /// subsequent rows MUST carry the preceding `to_state`.
-    pub from_state: Option<ChangesetState>,
-    pub to_state: ChangesetState,
+    /// data_class: INTERNAL_ONLY
+    pub from_state: Option<ChangesetState>, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub to_state: ChangesetState, // data_class: INTERNAL_ONLY
     /// RFC3339 UTC timestamp string. The kernel does not parse this
     /// — the app layer is responsible for clock semantics. The kernel
     /// surfaces it as evidence in [`MonotonicityError`] reports.
-    pub at: String,
+    /// data_class: INTERNAL_ONLY
+    pub at: String, // data_class: INTERNAL_ONLY
     /// Emitting agent / dispatcher identifier. Free-form string;
     /// matches the agent's signing-key principal per ADR-0058.
-    pub emitted_by: String,
-    pub cost_budget_remaining: CostBudget,
+    /// data_class: INTERNAL_ONLY
+    pub emitted_by: String, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub cost_budget_remaining: CostBudget, // data_class: INTERNAL_ONLY
     /// Free-form key/value evidence map. BTreeMap for deterministic
     /// iteration order.
-    pub evidence: BTreeMap<String, String>,
+    /// data_class: INTERNAL_ONLY
+    pub evidence: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
     /// Rejected alternatives for non-deterministic transitions; empty
     /// for deterministic transitions. Persisted so audit can replay
     /// any branch.
-    pub alternates_considered: Vec<String>,
+    /// data_class: INTERNAL_ONLY
+    pub alternates_considered: Vec<String>, // data_class: INTERNAL_ONLY
     /// True when this row represents one of the three canonical
     /// skip-states from ADR-0110 §"Skip-states".
-    pub skipped: bool,
+    /// data_class: INTERNAL_ONLY
+    pub skipped: bool, // data_class: INTERNAL_ONLY
     /// Ed25519 signature placeholder. The kernel does NOT verify
     /// signatures — that is the adapter layer's job. The kernel
     /// surfaces the string so the app can stamp + verify it.
@@ -195,16 +208,19 @@ pub struct ChangesetEvent {
     /// per-agent signing-key infrastructure (ADR-0058) is online.
     /// The app currently stamps an `ed25519-stub:<base64>`
     /// placeholder.
-    pub signature: String,
+    /// data_class: INTERNAL_ONLY
+    pub signature: String, // data_class: INTERNAL_ONLY
 }
 
 /// Successful monotonicity report.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct MonotonicityReport {
-    pub events_checked: usize,
+    /// data_class: INTERNAL_ONLY
+    pub events_checked: usize, // data_class: INTERNAL_ONLY
     /// `Some(state)` if the log ended at a terminal state, `None` if
     /// the log is still mid-flight on the advancing axis.
-    pub terminal_state: Option<ChangesetState>,
+    /// data_class: INTERNAL_ONLY
+    pub terminal_state: Option<ChangesetState>, // data_class: INTERNAL_ONLY
 }
 
 /// Closed enum of monotonicity violations.

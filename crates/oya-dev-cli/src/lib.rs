@@ -250,6 +250,8 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate runbook-freshness [--runbooks-dir <docs/runbooks>] [--today <YYYY-MM-DD>]"
         + "\n       oya gate validate slo-coverage [--registry <registry/catalog>]"
         + "\n       oya gate validate architecture-boundaries [--repo-root <.>] [--registry <registry/catalog>] [--self-test]"
+        + "\n       oya gate validate product-index [--products-readme <docs/products/README.md>] [--catalog <docs/machine-readable/catalog.json>]"
+        + "\n       oya gate validate stage0-prereqs [--repo-root <.>] [--self-test]"
         + "\n       oya gate validate changeset-state-monotonicity [--log <registry/vcs/changeset-event-log.json>]"
         + "\n       oya gate validate changeset-state-enum-closed [--log <registry/vcs/changeset-event-log.json>]"
         + "\n       oya gate run-all [--include-deferred]"

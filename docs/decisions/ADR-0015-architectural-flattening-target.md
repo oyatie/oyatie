@@ -11,7 +11,9 @@ doc_status: published
 > **Superseded-by:** -
 > **Owner:** `council-architecture`
 > **Date:** 2026-05-09
-> **Related:** ADR-0001, ADR-0002, ADR-0006, ADR-0011, ADR-0014, ADR-0017
+> **Related:** ADR-0001, ADR-0002, ADR-0006, ADR-0011, ADR-0014, ADR-0017, ADR-0105, ADR-0106
+
+> **ADR-0106 amendment note (2026-05-16):** this older title/body uses the pre-ADR-0106 terms `application`/`runtime`. Current canonical roles are defined by ADR-0105 + ADR-0106: `usecase` replaces `application`, `app` is the deployable/composition-root layer, and `app -> app` remains forbidden. Shared orchestration belongs in `usecase`.
 
 ---
 

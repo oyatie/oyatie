@@ -136,16 +136,26 @@ fn lookup<'a>(value: &'a Value, path: &[&str]) -> Option<&'a Value> {
 /// Workspace + runner metadata for the evidence record.
 #[derive(Clone, Debug)]
 pub struct EvidenceContext<'a> {
-    pub workspace_ref: &'a str,
-    pub head_sha: &'a str,
-    pub run_url: &'a str,
-    pub workflow_name: &'a str,
-    pub mode: Mode,
-    pub trivy_sarif_path: &'a str,
-    pub trivy_sarif_digest: &'a str,
-    pub argo_manifest_path: &'a str,
-    pub argo_manifest_digest: &'a str,
-    pub created_at_iso: &'a str,
+    /// data_class: INTERNAL_ONLY
+    pub workspace_ref: &'a str, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub head_sha: &'a str, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub run_url: &'a str, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub workflow_name: &'a str, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub mode: Mode, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub trivy_sarif_path: &'a str, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub trivy_sarif_digest: &'a str, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub argo_manifest_path: &'a str, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub argo_manifest_digest: &'a str, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub created_at_iso: &'a str, // data_class: INTERNAL_ONLY
 }
 
 /// Returns true iff `run_url` looks like a live GitHub Actions run URL.

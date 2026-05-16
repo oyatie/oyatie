@@ -172,36 +172,24 @@ in the naming-convention fitness lane.
 
 ## 4. Role enum — semantic table
 
-The role taxonomy mirrors ADR-0015's
-`runtime ◀── { api │ worker │ adapter } ◀── app ◀── domain ◀── kernel`
-hierarchy and adds three terminal-binary roles (`cli`, `sdk`, `runtime`).
+The canonical role taxonomy follows ADR-0105 + ADR-0106. Current inward dependency shape:
+
+`kernel <- domain <- usecase <- app`, with `adapter`/`rest` as explicit ports/surfaces that an `app` may compose. `app -> app` is forbidden; shared orchestration belongs in `usecase`.
 
 | Role | Layer | Surface | Capability tail | Imports allowed |
 |---|---|---|---|---|
-| `kernel` | innermost; pure-domain types, no I/O, no async, no provider deps | library only (`[lib]`) | **forbidden** | nothing project-internal (only `oya-platform-data-boundary-kernel` per ADR-0015) |
+| `kernel` | innermost; pure-domain types, no I/O, no async, no provider deps | library only (`[lib]`) | **forbidden** | no project-internal crates except explicitly whitelisted base kernels |
 | `domain` | business invariants; pure functions on kernel types | library only | optional | `kernel` |
-| `app` | use-case orchestration; speaks to providers via traits | library only | optional | `kernel`, `domain` |
-| `api` | process-boundary inputs (HTTP/gRPC/queue handlers) bound to a feature | library + optional bin | optional | `kernel`, `domain`, `app` |
-| `worker` | scheduled / queue-driven process | library + bin | optional | `kernel`, `domain`, `app` |
-| `adapter` | provider implementations bound to one capability | library only | **REQUIRED** | `kernel`, `domain`, `app`; never another adapter |
-| `runtime` | runtime binary composing api/worker/adapter via DI | bin (and a thin library shim is permitted) | optional | every lower layer |
-| `cli` | developer/agent terminal tool (not deployed) | bin | optional | every lower layer |
-| `sdk` | externally-published client surface (consumer-facing) | library only | optional | `kernel`, `domain`, `app` |
+| `usecase` | application/use-case orchestration over domain ports; no concrete adapters | library only | optional | `kernel`, `domain` |
+| `app` | deployable/composition root wiring usecases, adapters, and surfaces | bin plus thin library shim when needed | optional | `kernel`, `domain`, `usecase`, `adapter`, `rest`; never another `app` |
+| `adapter` | provider implementations bound to one capability | library only | **REQUIRED** | `kernel`, `domain`, `usecase`; never another adapter |
+| `rest` / `grpc` / `graphql` / `api` | process-boundary inputs bound to a feature | library + optional bin | optional | `kernel`, `domain`, `usecase`, `app` only when the API intentionally calls the composition-root surface |
+| `worker` | scheduled / queue-driven process | library + bin | optional | `kernel`, `domain`, `usecase`, `app` only when the worker intentionally calls the composition-root surface |
+| `cli` | developer/agent terminal tool (not deployed) | bin | optional | lower layers plus explicit app surfaces when the CLI is an operator wrapper |
+| `sdk` | externally-published client surface (consumer-facing) | library only | optional | generated/contract types only; no server app imports |
+| `infrastructure` | framework/runtime support that is not a deployable app | library only | optional | `kernel`, `domain`, `usecase`, `adapter` as justified |
 
-The lane verifies (a) the role token is present, (b) capability-required
-adapters have a tail, (c) kernels do NOT have a tail.
-
-### 4.1 Why this enum and not AWS-style `sdk`-everywhere
-
-AWS uses `aws-sdk-<service>` because **every** crate it publishes is a
-consumer-facing SDK. Oyatie publishes near-zero crates publicly; the role
-enum optimizes for **layered-architecture clarity**, not consumer ergonomics.
-Google's Rust surface
-([`google-cloud-storage`](https://crates.io/crates/google-cloud-storage),
-[`google-cloud-pubsub`](https://crates.io/crates/google-cloud-pubsub)) makes
-the same trade for the same reason. When (if) oyatie starts publishing
-public client surfaces, those crates SHALL use `role = sdk`, matching the
-AWS / Azure / Google convention.
+Legacy `application`, `runtime`, and `test` role records are transitional compatibility rows only. New records use `usecase`/`app` per ADR-0106.
 
 ## 5. Capability tail — required-when, forbidden-when
 

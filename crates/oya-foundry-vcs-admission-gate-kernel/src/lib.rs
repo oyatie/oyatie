@@ -53,33 +53,47 @@ use std::collections::BTreeSet;
 #[derive(Clone, Debug)]
 pub struct AdmissionInputs<'a> {
     /// Parsed `specs/cross-cutting/root-hub-pointers.json`.
-    pub root_hub_pointers: &'a Value,
+    /// data_class: INTERNAL_ONLY
+    pub root_hub_pointers: &'a Value, // data_class: INTERNAL_ONLY
     /// Parsed `specs/cross-cutting/master-plan-sequencing.json`.
-    pub master_plan_sequencing: &'a Value,
+    /// data_class: INTERNAL_ONLY
+    pub master_plan_sequencing: &'a Value, // data_class: INTERNAL_ONLY
     /// Parsed `specs/cross-cutting/multispectrum-review.json`.
-    pub multispectrum_review: &'a Value,
+    /// data_class: INTERNAL_ONLY
+    pub multispectrum_review: &'a Value, // data_class: INTERNAL_ONLY
     /// Parsed `specs/cross-cutting/gitops-vcs-replacement.json`.
-    pub gitops_vcs_replacement: &'a Value,
+    /// data_class: INTERNAL_ONLY
+    pub gitops_vcs_replacement: &'a Value, // data_class: INTERNAL_ONLY
     /// Path written in `gitops_vcs_replacement.current_ci_admission_lane.provider_evidence_ref`.
-    pub provider_evidence_ref: &'a str,
+    /// data_class: INTERNAL_ONLY
+    pub provider_evidence_ref: &'a str, // data_class: INTERNAL_ONLY
     /// Parsed JSON file that `provider_evidence_ref` resolves to.
-    pub provider_evidence: &'a Value,
+    /// data_class: INTERNAL_ONLY
+    pub provider_evidence: &'a Value, // data_class: INTERNAL_ONLY
     /// Path written in `gitops_vcs_replacement.current_ci_admission_lane.provider_execution_proof_ref`.
-    pub provider_execution_proof_ref: &'a str,
+    /// data_class: INTERNAL_ONLY
+    pub provider_execution_proof_ref: &'a str, // data_class: INTERNAL_ONLY
     /// Parsed JSON file that `provider_execution_proof_ref` resolves to.
-    pub provider_execution_proof: &'a Value,
+    /// data_class: INTERNAL_ONLY
+    pub provider_execution_proof: &'a Value, // data_class: INTERNAL_ONLY
     /// Raw text of `.github/branch-protection.yaml`.
-    pub branch_protection_yaml: &'a str,
+    /// data_class: INTERNAL_ONLY
+    pub branch_protection_yaml: &'a str, // data_class: INTERNAL_ONLY
     /// Raw text of `.github/workflows/pr-tests.yml`.
-    pub pr_tests_workflow: &'a str,
+    /// data_class: INTERNAL_ONLY
+    pub pr_tests_workflow: &'a str, // data_class: INTERNAL_ONLY
     /// Raw text of `.github/workflows/oya-foundry-fitness-supply-chain.yml`.
-    pub supply_chain_workflow: &'a str,
+    /// data_class: INTERNAL_ONLY
+    pub supply_chain_workflow: &'a str, // data_class: INTERNAL_ONLY
     /// Crate names enumerated by `cargo metadata --no-deps`.
-    pub workspace_packages: &'a [String],
+    /// data_class: INTERNAL_ONLY
+    pub workspace_packages: &'a [String], // data_class: INTERNAL_ONLY
     /// Raw text of `evidence/audit-chain.jsonl`.
-    pub audit_chain_jsonl: &'a str,
+    /// data_class: INTERNAL_ONLY
+    pub audit_chain_jsonl: &'a str, // data_class: INTERNAL_ONLY
     /// One `(path, parsed_json)` per file under `evidence/multispectrum/*.json`.
-    pub multispectrum_evidence: &'a [(String, Value)],
+    /// data_class: INTERNAL_ONLY
+    pub multispectrum_evidence: &'a [(String, Value)], // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

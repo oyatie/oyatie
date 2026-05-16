@@ -48,29 +48,29 @@ pub enum RecommendationState {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CostReport {
     // data_class: INTERNAL_ONLY
-    pub report_id: String,
+    pub report_id: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub period: ReportPeriod,
+    pub period: ReportPeriod, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub period_start_unix_ms: u64,
+    pub period_start_unix_ms: u64, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub period_end_unix_ms: u64,
+    pub period_end_unix_ms: u64, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub total_spend_micros: u128,
+    pub total_spend_micros: u128, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Recommendation {
     // data_class: INTERNAL_ONLY
-    pub recommendation_id: String,
+    pub recommendation_id: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub kind: RecommendationKind,
+    pub kind: RecommendationKind, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub baseline_report_id: Option<String>,
+    pub baseline_report_id: Option<String>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub estimated_savings_micros: u128,
+    pub estimated_savings_micros: u128, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub state: RecommendationState,
+    pub state: RecommendationState, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
