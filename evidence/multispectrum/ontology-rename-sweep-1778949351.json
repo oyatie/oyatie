@@ -1,0 +1,197 @@
+{
+  "change_id": "ontology-rename-sweep-1778949351",
+  "change_class_id": "CC-1_kernel_public_api",
+  "freshness_unix": 1778949351,
+  "session_id": "codex-ontology-rename-sweep-2026-05-16",
+  "scope": [
+    "Cargo.toml",
+    "Cargo.lock",
+    "crates/oya-ontology-kernel",
+    "crates/oya-ontology-domain",
+    "registry/catalog/oya-ontology-kernel.yaml",
+    "registry/catalog/oya-foundry-webhook-receiver-kernel.yaml",
+    "registry/catalog/oya-foundry-webhook-receiver-app.yaml",
+    "specs/products/ontology.json",
+    "registry/milestone-audit/index.json"
+  ],
+  "summary": "Resolve F-CRATE-RENAME-ONTOLOGY-SWEEP by introducing a real oya-ontology-kernel workspace crate, keeping oya-ontology-domain as a re-export/domain surface, renaming the stale object-graph catalog row, and closing catalog coverage blockers surfaced by validation.",
+  "verification": [
+    {
+      "command": "python3 -m json.tool specs/products/ontology.json registry/milestone-audit/index.json",
+      "status": "passed",
+      "evidence": "changed JSON parsed"
+    },
+    {
+      "command": "cargo metadata --no-deps --format-version 1",
+      "status": "passed",
+      "evidence": "workspace contains oya-ontology-kernel, oya-ontology-domain depends on it, oya-ontology-api remains on the domain surface"
+    },
+    {
+      "command": "rg \"oya-platform-object-graph-kernel|oya_platform_object_graph_kernel\" Cargo.toml Cargo.lock crates registry specs",
+      "status": "passed",
+      "evidence": "no stale old kernel package/import token in active machine/code surfaces"
+    },
+    {
+      "command": "rustup-toolchain cargo-fmt --all --check",
+      "status": "passed",
+      "evidence": "changed Rust files formatted"
+    },
+    {
+      "command": "cargo check -p oya-ontology-kernel -p oya-ontology-domain -p oya-ontology-api",
+      "status": "passed",
+      "evidence": "ontology kernel/domain/api compile"
+    },
+    {
+      "command": "cargo test -p oya-ontology-kernel -p oya-ontology-domain -p oya-ontology-api",
+      "status": "passed",
+      "evidence": "14 tests passed including crates/oya-ontology-kernel/tests/types.rs::test_register_type"
+    },
+    {
+      "command": "cargo nextest run -p oya-ontology-kernel -p oya-ontology-domain -p oya-ontology-api --no-fail-fast",
+      "status": "passed",
+      "evidence": "14 tests run: 14 passed, 0 skipped"
+    },
+    {
+      "command": "PATH=$rust_toolbin:$PATH cargo clippy -p oya-ontology-kernel -p oya-ontology-domain -p oya-ontology-api --all-targets -- -D warnings",
+      "status": "passed",
+      "evidence": "targeted ontology clippy passed"
+    },
+    {
+      "command": "oya gate validate product-prd-json --repo-root . --product specs/products/ontology.json",
+      "status": "passed",
+      "evidence": "1 product, 10 acceptance criteria, 9 metrics, 1 root-hub link"
+    },
+    {
+      "command": "oya gate validate milestone-audit --repo-root . --audit registry/milestone-audit/index.json",
+      "status": "passed",
+      "evidence": "13 milestones, 95 phases, 149 IPs, 3 blocked transitions, 5 safe-parallel lanes"
+    },
+    {
+      "command": "oya catalog validate --workspace Cargo.toml --registry registry/catalog",
+      "status": "passed",
+      "evidence": "469 records"
+    },
+    {
+      "command": "oya gate validate architecture-boundaries --repo-root . --registry registry/catalog",
+      "status": "passed",
+      "evidence": "303 packages, 303 catalog records, 457 dependency edges"
+    },
+    {
+      "command": "oya gate validate product-prd-json --repo-root .",
+      "status": "passed",
+      "evidence": "11 products, 66 acceptance criteria, 52 metrics, 11 root-hub links"
+    },
+    {
+      "command": "oya gate validate cohesion --workspace Cargo.toml --registry registry/catalog --contracts docs/machine-readable/contracts.json",
+      "status": "passed",
+      "evidence": "26 contracts, 9 implemented sources"
+    },
+    {
+      "command": "oya gate validate retired-vocabulary",
+      "status": "passed",
+      "evidence": "1203 documents checked, 0 drift hits"
+    },
+    {
+      "command": "oya gate validate active-artifact-contract",
+      "status": "passed",
+      "evidence": "53 rows, 3533 HEAD-tracked, 53 graph edges after commit"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "status": "passed",
+      "evidence": "metadata and authority checks passed; cargo tests + CLI smoke passed"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Moved the existing typed-entity kernel implementation into the correctly named kernel crate instead of adding duplicate abstractions.",
+        "Domain is now a small re-export surface to keep existing API/application imports stable."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Catalog coverage now validates for 469 records; architecture-boundaries validates 303 packages and 457 dependency edges."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "passing_fixture_id": "crates/oya-ontology-kernel/tests/types.rs::test_register_type",
+      "diagnostic_asserted": "A typed Patient entity registers into the tenant-scoped ontology graph and is queryable by tenant/entity id."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Search for oya-ontology-kernel now lands on a real workspace package and catalog row.",
+        "Existing oya_ontology_domain imports continue to compile via re-export."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Targeted format, check, test, clippy, product, catalog, architecture, cohesion, retired-vocabulary, and diff checks passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "only edit product spec/catalog without a crate",
+        "rename oya-ontology-domain destructively",
+        "extract kernel and keep domain compatibility"
+      ],
+      "selected_rationale": "Extracting a kernel satisfies ADR-0122 and avoids breaking existing domain/API/application imports."
+    },
+    "F7_security": {
+      "considered": true,
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "findings": [
+        "No secret or live tenant data touched; kernel preserves data-classed property semantics."
+      ]
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Pure refactor/extraction; no runtime algorithm or allocation path changed."
+      ]
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "Ontology kernel catalog preserves sensitive data-class ownership including PII/PHI/PCI/financial KR classes."
+      ]
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "Rollback is a crate extraction revert plus catalog filename revert; public domain import surface remains compatible."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Audit-chain event links this change_id to the multispectrum evidence path."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "Resolved active machine/code references to the current ontology kernel name; ADR-0122 remains the historical decision record."
+      ]
+    },
+    "A_policy_adherence": {
+      "considered": true,
+      "findings": [
+        "Used Oya VCS claim/work lifecycle and machine-readable evidence; no manual SSH or deployment troubleshooting involved."
+      ]
+    }
+  }
+}
