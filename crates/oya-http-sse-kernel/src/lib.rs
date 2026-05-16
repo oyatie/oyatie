@@ -30,18 +30,18 @@
 pub struct SseEvent {
     /// `id:` field. Browser uses it for Last-Event-ID resume.
     // data_class: INTERNAL_ONLY
-    pub id: Option<String>,
+    pub id: Option<String>, // data_class: INTERNAL_ONLY
     /// `event:` field (event type name). When absent the client fires
     /// the default `message` event.
     // data_class: INTERNAL_ONLY
-    pub event: Option<String>,
+    pub event: Option<String>, // data_class: INTERNAL_ONLY
     /// `data:` field payload. Multi-line strings are emitted as one
     /// `data:` line per `\n`.
     // data_class: INTERNAL_ONLY
-    pub data: String,
+    pub data: String, // data_class: INTERNAL_ONLY
     /// `retry:` reconnection-delay hint in milliseconds (optional).
     // data_class: INTERNAL_ONLY
-    pub retry_ms: Option<u64>,
+    pub retry_ms: Option<u64>, // data_class: INTERNAL_ONLY
 }
 
 /// SSE construction / validation errors.

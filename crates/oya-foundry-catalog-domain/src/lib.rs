@@ -15,6 +15,7 @@ use oya_data_boundary_kernel::{
 pub enum CatalogRole {
     Kernel,
     Domain,
+    Usecase,
     App,
     Api,
     Worker,
@@ -285,6 +286,7 @@ fn parse_role(role: &str) -> Result<CatalogRole, CatalogError> {
     match role {
         "kernel" => Ok(CatalogRole::Kernel),
         "domain" => Ok(CatalogRole::Domain),
+        "usecase" => Ok(CatalogRole::Usecase),
         "app" | "application" => Ok(CatalogRole::App),
         "api" | "rest" | "grpc" | "graphql" => Ok(CatalogRole::Api),
         "worker" => Ok(CatalogRole::Worker),

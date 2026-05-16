@@ -34,6 +34,7 @@ doctest = false
 [dependencies]
 oya-foundry-account-kernel = { path = "../../crates/oya-foundry-account-kernel" }
 oya-foundry-subagent-runtime-kernel = { path = "../../crates/oya-foundry-subagent-runtime-kernel" }
+oya-foundry-subagent-runtime-usecase = { path = "../../crates/oya-foundry-subagent-runtime-usecase" }
 
 [dev-dependencies]
 tempfile = { workspace = true }

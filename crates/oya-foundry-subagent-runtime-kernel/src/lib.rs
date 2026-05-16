@@ -234,20 +234,27 @@ impl FacetPromptTemplate {
 #[derive(Debug, Clone)]
 pub struct SubagentRequest {
     /// e.g. `F1_linus`, `A3_structure_adherence`, etc.
-    pub facet_id: String,
+    /// data_class: INTERNAL_ONLY
+    pub facet_id: String, // data_class: INTERNAL_ONLY
     /// `<tool>-<facet_id>-<change_id>` per feedback_multispectrum_review_v22.
-    pub reviewer_id: String,
+    /// data_class: INTERNAL_ONLY
+    pub reviewer_id: String, // data_class: INTERNAL_ONLY
     /// `<pr-number>` or `M-CC-P10-IP-004-pr42` style id.
-    pub change_id: String,
+    /// data_class: INTERNAL_ONLY
+    pub change_id: String, // data_class: INTERNAL_ONLY
     /// System prompt (the rendered facet template).
-    pub system_prompt: String,
+    /// data_class: INTERNAL_ONLY
+    pub system_prompt: String, // data_class: INTERNAL_ONLY
     /// User message — typically the PR diff + commit-history summary.
-    pub user_message: String,
+    /// data_class: INTERNAL_ONLY
+    pub user_message: String, // data_class: INTERNAL_ONLY
     /// Opaque reference to the Anthropic API key, resolved by the
     /// adapter via OpenBao. The kernel never sees raw bytes.
-    pub api_key_ref: SecretReference,
+    /// data_class: SECRET
+    pub api_key_ref: SecretReference, // data_class: SECRET
     /// Model id (e.g. `claude-opus-4-7`).
-    pub model_id: String,
+    /// data_class: INTERNAL_ONLY
+    pub model_id: String, // data_class: INTERNAL_ONLY
 }
 
 /// Response from one subagent invocation. The free-text body is what
@@ -255,11 +262,15 @@ pub struct SubagentRequest {
 /// `final_recommendation: <wire>` sentinel on the last line.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SubagentResponse {
-    pub facet_id: String,
-    pub reviewer_id: String,
-    pub recommendation: FacetRecommendation,
+    /// data_class: INTERNAL_ONLY
+    pub facet_id: String, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub reviewer_id: String, // data_class: INTERNAL_ONLY
+    /// data_class: INTERNAL_ONLY
+    pub recommendation: FacetRecommendation, // data_class: INTERNAL_ONLY
     /// Full body (everything before the sentinel line). May be empty.
-    pub findings_body: String,
+    /// data_class: INTERNAL_ONLY
+    pub findings_body: String, // data_class: INTERNAL_ONLY
 }
 
 impl SubagentResponse {

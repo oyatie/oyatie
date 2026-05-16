@@ -1,0 +1,248 @@
+{
+  "architecture_drift_repairs": [
+    "Added oya-foundry-subagent-runtime-usecase and moved shared fanout orchestration there.",
+    "Updated dispatcher apps to depend on usecase, not subagent-runtime-app.",
+    "Kept app as composition/root role only; architecture-boundaries still forbids app -> app.",
+    "Updated architecture-boundaries to allow app -> usecase and usecase -> kernel/domain only.",
+    "Updated catalog-domain to accept usecase role so claim-ceiling, supply-chain, and plane-class agree with architecture-boundaries.",
+    "Updated ADR/standards/glossary/service-map docs to name usecase as canonical shared orchestration layer and warn that app -> app is forbidden."
+  ],
+  "change_class_id": "CC-2",
+  "change_id": "codex-m01-m02-exit",
+  "classification": {
+    "formal_exit_reason": "P22 is not active; m02 exit checklist output intentionally absent. No Stage 0 deploy + sibling-team smoke evidence was created or claimed.",
+    "m01_local_gate": "GREEN",
+    "m02_formal_exit": "BLOCKED_EXTERNAL",
+    "m02_local_gate": "GREEN"
+  },
+  "commands": {
+    "cargo_check_workspace": {
+      "status": "pass",
+      "summary": "cargo check --workspace --all-targets --all-features"
+    },
+    "cargo_clippy_workspace": {
+      "status": "pass",
+      "summary": "cargo-clippy clippy --workspace --all-targets --all-features -- -D warnings"
+    },
+    "cargo_deny_check": {
+      "status": "pass",
+      "summary": "advisories ok, bans ok, licenses ok, sources ok; warnings only for existing duplicate/wildcard notices"
+    },
+    "cargo_metadata": {
+      "status": "pass",
+      "summary": "cargo metadata --no-deps --format-version 1"
+    },
+    "cargo_nextest_workspace": {
+      "status": "pass",
+      "summary": "2735 tests across 399 binaries passed, 0 skipped"
+    },
+    "deferred_gates": {
+      "status": "pass",
+      "summary": "typescript typecheck/test, release-supply-chain pre-release, supply-chain --require-adr0039-evidence all passed"
+    },
+    "direct_nine_gates": {
+      "status": "pass",
+      "summary": [
+        "data-class: 1141 fields checked, 1141 annotated, 0 legacy unannotated",
+        "adr-citation: 715 documents, 7548 citations, 122 allowed ADRs",
+        "quality-lanes: 65 registry records, 65 markdown rows, 60 active commands, 39 owner teams",
+        "glossary-vocabulary: 715 documents, 463 casing warnings, 1026 uncited acronym warnings",
+        "placeholder-debt: 715 documents, 1083 open placeholders, 661 registry records",
+        "runbook-freshness: 193 runbooks, 54 severity-scoped, 139 unscoped",
+        "architecture-boundaries: 304 packages, 304 catalog records, 457 dependency edges",
+        "product-index: 7 axis rows, 20 catalog products",
+        "stage0-prereqs: 4 required paths, workspace_member_present=true, edition=2024, rust-version=1.95.0"
+      ]
+    },
+    "m02_exit_checklist": {
+      "status": "blocked_external",
+      "summary": "doc renderer reports output absent because P22 is not active; source inputs ok"
+    },
+    "oya_verify_include_deferred": {
+      "status": "pass",
+      "summary": "44/44 run-all lanes passed; deferred commands run separately and passed"
+    },
+    "planes": {
+      "status": "pass",
+      "summary": "1 plane, 9 lanes"
+    },
+    "rustfmt_modified_check": {
+      "status": "pass",
+      "summary": "rustup run stable rustfmt --check on modified Rust files"
+    },
+    "wave_integration": {
+      "status": "pass",
+      "summary": "M02: 22 phases, 89 dependencies"
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "resolution": "Scoped PR excludes unrelated work and claims only local gate remediation. Formal M02 remains blocked by inactive P22.",
+      "verdict": "BLOCK_FORMAL_M02_CLOSURE_AS_IS"
+    },
+    "code_reviewer": {
+      "resolution": "Critical/high findings were in excluded concurrent webhook/merge-queue files, not in scoped PR. Evidence refreshed for scoped PR.",
+      "verdict": "REQUEST_CHANGES_AS_DIRTY_WORKSPACE_REVIEWED"
+    },
+    "critic": {
+      "guardrails": [
+        "Do not claim formal M02 exit",
+        "Do not authorize M03",
+        "PR must be local gate remediation / honest readiness evidence"
+      ],
+      "verdict": "APPROVE_WITH_GUARDRAILS"
+    },
+    "verifier": {
+      "resolution": "M01 local pass, M02 local pass, M02 formal blocked by P22/Stage0/sibling evidence.",
+      "verdict": "PARTIAL"
+    }
+  },
+  "documentation_drift_repairs": [
+    "Replaced stale app/application role prose in crate naming, glossary, ADR-0105, ADR-0015 amendment note, and service-map spec.",
+    "Restored/wired product-index and stage0-prereqs CLI dispatch docs/tests.",
+    "Updated quality lane command catalog/mirror rows so active quality records are mechanically wired.",
+    "Updated glossary ignored-uppercase registry for new ADR prose enum/status words instead of weakening vocabulary gate.",
+    "Added ADR-0086 inherited citation and placeholder/runbook registry repairs surfaced by gates."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Deleted the accidental app->app dependency shape by moving shared fanout logic into usecase instead of widening app allowances."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Kept validators catalog-driven; repaired canonical role parser instead of adding one-off bypasses."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "architecture-boundaries rejects app -> app and stage0 parser covers inline workspace members",
+      "failing_fixture_added": true,
+      "failing_fixture_id": "app_depending_on_app_is_forbidden / architecture self-test app->app forbidden",
+      "findings": [],
+      "fixuptasks": [],
+      "passing_fixture_id": "app_depending_on_usecase_is_allowed / stage0_prereqs_gate_is_dispatched"
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Docs now point contributors to usecase for shared orchestration and app only for composition roots."
+      ],
+      "fixuptasks": [],
+      "new_contributor_minutes_estimate": 10
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "rustfmt modified check, cargo check workspace, clippy -D warnings, nextest, deny, and oya verify all green."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Allow app -> app in architecture gate",
+        "Move shared fanout orchestration to usecase and keep app composition only"
+      ],
+      "considered": true,
+      "findings": [],
+      "fixuptasks": [],
+      "rejected_reasons": [
+        "app -> app was explicitly rejected by user and violates composition-root boundary."
+      ],
+      "selected_rationale": "Usecase preserves inward dependency direction and matches the corrected architecture vocabulary."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": false,
+      "considered": true,
+      "findings": [
+        "No secret or tenant-data behavior changed; data-class gate remains green."
+      ],
+      "fixuptasks": [],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "No runtime hot path performance change beyond crate factoring; workspace checks passed."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "Oya verify 44/44 plus deferred gates passed; M02 formal exit correctly remains externally blocked by inactive P22."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "freshness_unix": 1778903088,
+  "git_sha": "e93cbfe115db62b986da7cd43c6e79c10df8a6d5",
+  "logs": {
+    "directory": "/tmp/oyatie-m01m02-verify",
+    "notable_files": [
+      "cargo-clippy-workspace.log",
+      "cargo-nextest-workspace.log",
+      "cargo-deny-check.log",
+      "oya-verify-include-deferred-rerun.log",
+      "m02-exit-checklist.log"
+    ]
+  },
+  "oya_vcs_closeout": {
+    "agent": "codex-m01-m02-exit",
+    "bundle": "codex-m01-m02-exit",
+    "environment": "local-verification",
+    "ratchet_sequence": [
+      "claim accepted",
+      "work accepted",
+      "verify accepted",
+      "done accepted with controller-promote",
+      "promote accepted"
+    ],
+    "syntax_note": "Forward-compatible Oya VCS CLI accepts --evidence, --bundle, and --environment; it does not accept --changeset or --evidence-ref."
+  },
+  "pr_scope": {
+    "base": "origin/dev",
+    "branch": "oya-m01-m02-gate-usecase-doc-drift-pr",
+    "excluded_concurrent_work": [
+      ".omc runtime/session state",
+      "webhook receiver ADR-0112 wave-A",
+      "canary signal emission lane",
+      "merge-queue fix-loop implementation files"
+    ],
+    "scope_rule": "Only files fixed for M01/M02 local gate remediation, usecase architecture drift, catalog/control-surface drift, data-class gate, and evidence are included.",
+    "staged_file_count": 70
+  },
+  "task": "M01/M02 local gate green sweep, usecase architecture drift repair, and documentation/control-surface drift repair",
+  "verification_refresh": {
+    "canonical_local_verify": "CARGO_TARGET_DIR=/tmp/oyatie-m01m02-pr-target cargo run -q -p oya-dev-cli -- verify --include-deferred: 44/44 lanes passed",
+    "deferred_direct_gates": [
+      "typescript-workspace --lane typecheck: passed",
+      "typescript-workspace --lane test: passed",
+      "release-supply-chain --phase pre-release: passed",
+      "supply-chain --require-adr0039-evidence: passed"
+    ],
+    "freshness_unix": 1778905931,
+    "m02_exit_probe": "doc render exit-checklist m02 --check: output absent because P22 is not active; source inputs ok",
+    "quality_security_hyperscaler_audit": [
+      "rustup run stable rustfmt --check on staged Rust files: passed",
+      "cargo check --workspace --all-targets --all-features: passed",
+      "cargo clippy --workspace --all-targets --all-features -- -D warnings: passed",
+      "cargo nextest run --workspace --all-features: 2683 passed, 0 skipped",
+      "cargo deny check: advisories/bans/licenses/sources ok; pre-existing warnings only",
+      "staged diff high-confidence secret-pattern scan: no matches",
+      "architecture-boundaries --self-test: passed; app->usecase allowed, app->app forbidden",
+      "architecture-boundaries --repo-root . --registry registry/catalog: passed",
+      "planes --all: passed",
+      "wave-integration --milestone M02: passed"
+    ],
+    "scope": "/tmp/oyatie-m01m02-pr-scope isolated worktree from origin/dev"
+  }
+}

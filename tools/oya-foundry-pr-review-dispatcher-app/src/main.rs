@@ -28,7 +28,7 @@ use oya_foundry_pr_review_dispatcher_app::fanout::FacetId;
 use oya_foundry_pr_review_dispatcher_app::rollup::{
     FacetFinding, FacetRecommendation, Verdict, audit_panel_completeness, rollup_verdict,
 };
-use oya_foundry_subagent_runtime_app::{
+use oya_foundry_subagent_runtime_usecase::{
     FacetFindingJson, FacetPromptTemplate, MockSubagentPort, SubagentPort, SubagentRequest,
     fanout_panel_v23,
 };

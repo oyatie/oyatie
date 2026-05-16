@@ -40,11 +40,11 @@ impl DriftSeverity {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DriftEntry {
     // data_class: INTERNAL_ONLY
-    pub operation_id: String,
+    pub operation_id: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub kind: DriftKind,
+    pub kind: DriftKind, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub severity: DriftSeverity,
+    pub severity: DriftSeverity, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -88,11 +88,11 @@ pub enum DriftKind {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DriftReport {
     // data_class: INTERNAL_ONLY
-    pub provider: ProviderFamily,
+    pub provider: ProviderFamily, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub contract_id: String,
+    pub contract_id: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub entries: Vec<DriftEntry>,
+    pub entries: Vec<DriftEntry>, // data_class: INTERNAL_ONLY
 }
 
 impl DriftReport {
@@ -123,50 +123,50 @@ impl DriftReport {
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct ContractFingerprint {
     // data_class: INTERNAL_ONLY
-    pub provider: Option<ProviderFamily>,
+    pub provider: Option<ProviderFamily>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub contract_id: String,
+    pub contract_id: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub operations: BTreeMap<String, OperationFingerprint>,
+    pub operations: BTreeMap<String, OperationFingerprint>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct OperationFingerprint {
     // data_class: INTERNAL_ONLY
-    pub method: String, // GET, POST, …
+    pub method: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub path: String, // /v1/messages
+    pub path: String, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub request_fields: BTreeMap<String, FieldDescriptor>, // name → descriptor
+    pub request_fields: BTreeMap<String, FieldDescriptor>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub response_fields: BTreeMap<String, FieldDescriptor>, // name → descriptor
+    pub response_fields: BTreeMap<String, FieldDescriptor>, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub status_codes: BTreeSet<u16>,
+    pub status_codes: BTreeSet<u16>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct FieldDescriptor {
     /// Logical type — `string`, `integer`, `array<string>`, `enum<a|b|c>`, etc.
     // data_class: INTERNAL_ONLY
-    pub type_marker: String,
+    pub type_marker: String, // data_class: INTERNAL_ONLY
     /// Enum values when `type_marker` starts with `enum<…>`. Parallel to
     /// `type_marker` so the diff can detect added/removed enum values without
     /// re-parsing.
     // data_class: INTERNAL_ONLY
-    pub enum_values: BTreeSet<String>,
+    pub enum_values: BTreeSet<String>, // data_class: INTERNAL_ONLY
 }
 
 /// Provider × adapter-contract row. Adding a provider = adding a row.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct UpstreamSpec {
     // data_class: INTERNAL_ONLY
-    pub provider: ProviderFamily,
+    pub provider: ProviderFamily, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub canonical_source_url: &'static str,
+    pub canonical_source_url: &'static str, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub pinned_version: &'static str,
+    pub pinned_version: &'static str, // data_class: INTERNAL_ONLY
     // data_class: INTERNAL_ONLY
-    pub adapter_contract_id: &'static str,
+    pub adapter_contract_id: &'static str, // data_class: INTERNAL_ONLY
 }
 
 pub fn upstream_registry() -> Vec<UpstreamSpec> {

@@ -332,7 +332,7 @@ lanes:
   - id: oya-foundry-fitness-changeset-state-monotonicity
     stage: per-pr
     status: active
-    owner_team: axis-foundry-vcs
+    owner_team: axis-foundry
     purpose: every changeset's event-log row sequence is a non-decreasing subsequence of the 13-value closed enum (per ADR-0110); detects backwards-transition bugs in dispatcher emitters
     source: ADR-0110 changeset state machine
     runtime_budget_seconds: 30
@@ -340,7 +340,7 @@ lanes:
   - id: oya-foundry-fitness-changeset-state-enum-closed
     stage: per-pr
     status: active
-    owner_team: axis-foundry-vcs
+    owner_team: axis-foundry
     purpose: every changeset-event-log row's to_state is in the closed 13-value enum (per ADR-0110); detects rogue state-name additions that bypass the design contract
     source: ADR-0110 changeset state machine
     runtime_budget_seconds: 30
@@ -525,3 +525,12 @@ lanes:
     source: slice-J (commit pending)
     check_command: cargo run -p oya-dev-cli -- gate validate openapi-rest-route-parity
     runtime_budget_seconds: 30
+  - id: oya-foundry-fitness-merge-queue-ref-hygiene
+    stage: nightly
+    status: active
+    severity: report-only
+    owner_team: axis-foundry
+    purpose: GC merge-queue-staging-i refs older than 1 hour per ADR-0111 §"Consequences"; transient projected-merge-state staging refs must not accumulate after each scheduler tick. Lane is the post-tick hygiene gate referenced by ADR-0111 wave-C.
+    source: ADR-0111
+    check_command: cargo run -p oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600
+    runtime_budget_seconds: 60

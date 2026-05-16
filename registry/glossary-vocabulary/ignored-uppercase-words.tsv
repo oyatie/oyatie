@@ -48,3 +48,20 @@ TOOLCHAIN	repository artifact basename TOOLCHAIN.md, not an acronym
 UNDER	ordinary uppercase preposition, not an acronym
 WILL	emphatic ordinary future-tense word, not an acronym
 YES	doc-catalog boolean table value, not an acronym
+BACK	ordinary uppercase word in rollback/back-pressure prose, not an acronym
+CONFIGURABLE	ordinary uppercase adjective in policy-cap prose, not an acronym
+ENTRY	ordinary navigation word in entry-point document titles, not an acronym
+ENUM	ordinary programming term for enumeration, not an acronym
+FUTURE	ordinary planning-status word in ADR prose, not an acronym
+IDEMPOTENT	ordinary protocol guarantee adjective, not an acronym
+IMMEDIATELY	ordinary timing adverb in ADR protocol prose, not an acronym
+MONOTONIC	ordinary state-machine property adjective in ADR prose, not an acronym
+OWN	ordinary ownership adjective in ADR prose, not an acronym
+POINT	ordinary sequence noun in ADR prose, not an acronym
+PROMOTE	canary verdict enum value, not an acronym
+PUSHED	ordinary state verb in ADR prose, not an acronym
+REJECT	protocol decision enum value, not an acronym
+ROLLBACK	canary verdict enum value, not an acronym
+THREE	ordinary count word in ADR prose, not an acronym
+UNCONDITIONAL	ordinary workflow policy adjective, not an acronym
+WHILE	ordinary conjunction in ADR prose, not an acronym

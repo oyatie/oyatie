@@ -139,9 +139,7 @@ fn validate_product_index_strings(
     let axis_rows: Vec<&str> = axis_section
         .lines()
         .filter(|line| {
-            line.starts_with("| ")
-                && !line.starts_with("| Product")
-                && !line.starts_with("|---")
+            line.starts_with("| ") && !line.starts_with("| Product") && !line.starts_with("|---")
         })
         .collect();
     if axis_rows.len() != 7 {
