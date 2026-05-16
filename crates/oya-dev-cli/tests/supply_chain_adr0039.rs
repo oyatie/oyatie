@@ -78,3 +78,30 @@ fn adr0039_runner_rejects_empty_release_manifest() {
     assert!(!output.status.success());
     assert!(String::from_utf8_lossy(&output.stderr).contains("has no image refs"));
 }
+
+#[test]
+fn install_trivy_dry_run_emits_rust_owned_plan() {
+    let root = repo_root();
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .current_dir(root)
+        .args([
+            "supply-chain",
+            "install-trivy",
+            "--dry-run",
+            "--format",
+            "json",
+        ])
+        .output()
+        .expect("install-trivy dry-run runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("\"command\":\"oya supply-chain install-trivy\""));
+    assert!(stdout.contains("trivy_0.70.0_Linux-64bit.tar.gz"));
+    assert!(stdout.contains("sha256sum -c"));
+}
