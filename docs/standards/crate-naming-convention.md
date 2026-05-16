@@ -15,7 +15,7 @@ purpose: |
   every `[package.metadata.oya]` block in the oyatie workspace. Resolves the
   forward-reference left by `docs/standards/code-style-rust.md` §5 (naming
   conventions) and binds the `oya-foundry-fitness-naming-convention` lane.
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-naming-convention
 companion_docs:
   - docs/standards/code-style-rust.md
@@ -30,15 +30,15 @@ related_adrs:
   - ADR-0053
   - ADR-0054
 authority_chain_declaration: |
-  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
+  /specs/decision-principles.json + /specs/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
   > THIS DOC > .omc/fitness-lanes/naming-convention.md
 ---
 
 # Crate Naming Convention
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
-This standard operates within the [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json)
+This standard operates within the [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json)
 frame (architecture decision principles, ADR-0015 flat crates, ADR-0017 `oya-` prefix) and
 downstream of [`docs/standards/code-style-rust.md`](code-style-rust.md) §5.
 Every `oya-*` crate path under `crates/` MUST conform to the grammar in §2.

@@ -1,8 +1,8 @@
 # Oyatie agent guidance
 
-Redirect-class root hub. Read `/specs/cross-cutting/root-hub-pointers.json` first; `docs/AGENTS.md` is the operating contract until PHASE-5 promotes `/specs/cross-cutting/agent-operating-contract.json`.
+Redirect-class root hub. Read `/specs/root-hub-pointers.json` first; `docs/AGENTS.md` is the operating contract until PHASE-5 promotes `/specs/agent-operating-contract.json`.
 
-Pointers: `/specs/cross-cutting/master-plan-sequencing.json`; `/specs/cross-cutting/markdown-retirement-policy.json`; `docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md`.
+Pointers: `/specs/master-plan-sequencing.json`; `/specs/markdown-retirement-policy.json`; `docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md`.
 
 Agent-executable instructions are fenced for the agent-coordination lane. Human terminal shortcuts belong outside this fenced agent surface.
 

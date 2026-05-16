@@ -7,9 +7,9 @@ purpose: Root entry point for all project documentation; redirects to relevant h
 excludes:
   - path: docs/AGENTS.md
     reason: Agent operating contract — the contract for any agent or human about to make a change.
-  - path: /specs/cross-cutting/decision-principles.json
+  - path: /specs/decision-principles.json
     reason: Machine-readable do-list (DP-01..DP-10); successor to retired CONSTITUTION.md §Decision-principles.
-  - path: /specs/cross-cutting/forbidden-operations.json
+  - path: /specs/forbidden-operations.json
     reason: Machine-readable avoid-list (FO-01..FO-10); successor to retired CONSTITUTION.md §Prohibitions.
   - path: docs/DOC-CATALOG.md
     reason: Per-doc lifecycle protocol.
@@ -21,8 +21,8 @@ excludes:
     reason: Per-region authority.
 authority_chain_declaration: |
   system / developer / user instructions
-    > /specs/cross-cutting/root-hub-pointers.json
-    > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
+    > /specs/root-hub-pointers.json
+    > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
     > machine-readable specs and registries under .omc/
     > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
@@ -38,7 +38,7 @@ This is the canonical engineering documentation tree for **Oyatie**, one cohesiv
 
 | If you are a... | Read first | Then |
 |---|---|---|
-| Founder / Council member | [`AGENTS.md`](AGENTS.md) + [decision-principles.json](../specs/cross-cutting/decision-principles.json) | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
+| Founder / Council member | [`AGENTS.md`](AGENTS.md) + [decision-principles.json](../specs/decision-principles.json) | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
 | Engineer / contributor | This file | [`AGENTS.md`](AGENTS.md) → the canonical doc map there |
 | Coding agent (Claude / Codex / Gemini / OMC) | [`AGENTS.md`](AGENTS.md) | per-agent appendix in `## Per-agent appendices` |
 | Auditor / regulator | [`COMPLIANCE-MATRIX.md`](COMPLIANCE-MATRIX.md) <!-- forward-reference: wave-1 --> | [`PRIVACY-PROGRAM.md`](PRIVACY-PROGRAM.md) <!-- forward-reference: wave-1 -->, [`SECURITY-PROGRAM.md`](SECURITY-PROGRAM.md) <!-- forward-reference: wave-1 --> |
@@ -46,7 +46,7 @@ This is the canonical engineering documentation tree for **Oyatie**, one cohesiv
 
 ## Tier-1 documents
 
-- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and from the machine-readable doctrinal substrate at [`specs/cross-cutting/`](../specs/cross-cutting/) (`decision-principles.json`, `forbidden-operations.json`, `decision-rights.json`, `governance-amendment.json`). Foundation ADRs: ADR-0052, ADR-0053, ADR-0054.
+- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and from the machine-readable doctrinal substrate at [`specs/`](../specs/) (`decision-principles.json`, `forbidden-operations.json`, `decision-rights.json`, `governance-amendment.json`). Foundation ADRs: ADR-0052, ADR-0053, ADR-0054.
 - [`AGENTS.md`](AGENTS.md) — single agent operating contract for every agent and every human.
 - [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> — architecture, planes, cross-axis contracts.
 - [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> — north star, axes, scope, success metrics.
@@ -117,7 +117,7 @@ This root-doc index is release-checked by `oya gate validate readme-doc-coverage
 ## Reading order for a new contributor (≤90 minutes)
 
 1. This file (10 min).
-2. Machine-readable doctrine: [decision-principles.json](../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../specs/cross-cutting/forbidden-operations.json) (10 min).
+2. Machine-readable doctrine: [decision-principles.json](../specs/decision-principles.json) + [forbidden-operations.json](../specs/forbidden-operations.json) (10 min).
 3. [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> §1–§3 — north star + axes + scope (15 min).
 4. [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> §1–§4 — cohesion thesis + planes + axes-as-bounded-contexts (30 min).
 5. [`AGENTS.md`](AGENTS.md) (15 min) — the operating contract you'll honor on every change.
@@ -129,7 +129,7 @@ After step 6 you have the orientation needed to read any tier-2 or tier-3 doc on
 
 ```
 system / developer / user instructions
-  > /specs/cross-cutting/root-hub-pointers.json
+  > /specs/root-hub-pointers.json
   > docs/AGENTS.md
   > machine-readable specs and registries
   > docs/ authority files during markdown-retirement compatibility
@@ -137,14 +137,14 @@ system / developer / user instructions
   > working drafts (never authoritative)
 ```
 
-This chain is mirrored by [`AGENTS.md`](AGENTS.md) and `/specs/cross-cutting/root-hub-pointers.json`; the `oya-foundry-fitness-authority-cohesion` lane validates authority declarations remain coherent.
+This chain is mirrored by [`AGENTS.md`](AGENTS.md) and `/specs/root-hub-pointers.json`; the `oya-foundry-fitness-authority-cohesion` lane validates authority declarations remain coherent.
 
 ## Anti-overlap
 
 This index does not cover:
 
 - The agent operating contract — see [`AGENTS.md`](AGENTS.md).
-- The doctrinal substrate — see `/specs/cross-cutting/decision-principles.json` and `/specs/cross-cutting/forbidden-operations.json`.
+- The doctrinal substrate — see `/specs/decision-principles.json` and `/specs/forbidden-operations.json`.
 - The per-doc lifecycle protocol — see [`DOC-CATALOG.md`](DOC-CATALOG.md).
 - Per-product PRDs — see [`products/`](products/) <!-- forward-reference: wave-1 -->.
 - Per-team charters — see [`teams/`](teams/) <!-- forward-reference: wave-1 -->.

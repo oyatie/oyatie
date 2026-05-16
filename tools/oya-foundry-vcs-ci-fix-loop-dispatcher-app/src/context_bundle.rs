@@ -1,6 +1,6 @@
 //! Context-bundle assembly — schema-conforming agent task payload.
 //!
-//! The bundle shape matches `/specs/cross-cutting/ci-fix-loop-context-bundle.json`
+//! The bundle shape matches `/specs/ci-fix-loop-context-bundle.json`
 //! exactly (schema version 1). Construction is fallible and bounded:
 //!
 //! - All sha fields are validated as 40- or 64-hex.
@@ -127,7 +127,7 @@ impl ContextBundle {
     /// Strict, fallible constructor.
     ///
     /// All invariants enforced here are also enforced by the JSON schema
-    /// in `/specs/cross-cutting/ci-fix-loop-context-bundle.json`; we duplicate
+    /// in `/specs/ci-fix-loop-context-bundle.json`; we duplicate
     /// the checks at the Rust boundary so the dispatcher never produces a
     /// bundle the agent-runtime would reject.
     #[allow(clippy::too_many_arguments)]
@@ -187,7 +187,7 @@ impl ContextBundle {
 
     /// Stable JSON serialization without pulling serde. Keys are
     /// alphabetical for diff-friendliness; the output validates against the
-    /// schema in `/specs/cross-cutting/ci-fix-loop-context-bundle.json`.
+    /// schema in `/specs/ci-fix-loop-context-bundle.json`.
     pub fn to_json(&self) -> String {
         let mut buf = String::new();
         buf.push('{');

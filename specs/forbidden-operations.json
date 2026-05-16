@@ -138,9 +138,9 @@
     "mechanical-deferred": "A spec file exists declaring the rule but the runtime enforcement (e.g., GitHub ruleset application, M02-P04 audit-chain) is not yet deployed. Honest distinction from `mechanical`."
   },
   "references": [
-    "specs/cross-cutting/master-plan-sequencing.json — forbidden_primitives (related but lower-level: tooling vs. doctrine)",
-    "specs/cross-cutting/decision-principles.json — companion do-list (DPs)",
-    "specs/cross-cutting/root-hub-pointers.json — migration source map",
+    "specs/master-plan-sequencing.json — forbidden_primitives (related but lower-level: tooling vs. doctrine)",
+    "specs/decision-principles.json — companion do-list (DPs)",
+    "specs/root-hub-pointers.json — migration source map",
     "docs/standards/dependency-policy.md — FO-09 license detail"
   ]
 }

@@ -8,7 +8,7 @@ migration_status: pre-cutover
 execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
-  - specs/cross-cutting/lifecycle-configs/migration-status-lifecycle.json
+  - specs/lifecycle-configs/migration-status-lifecycle.json
   - tools/oya-foundry-fitness-migration-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect cutover/migration plans whose stage hasn't advanced past its declared milestone gate.

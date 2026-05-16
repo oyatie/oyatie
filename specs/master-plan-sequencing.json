@@ -21,7 +21,7 @@
       "/templates/checklists/per-implementation-plan-checklist.md",
       "/templates/checklists/per-phase-completion-checklist.md",
       "/templates/evidence-bundle-template.json",
-      "/specs/cross-cutting/gitops-vcs-replacement.json"
+      "/specs/gitops-vcs-replacement.json"
     ],
     "deduplicates_existing": [
       "/evidence/goals/implement-masterplan.md",
@@ -35,7 +35,7 @@
   },
   "master_plan_discovery_order": [
     "docs/MASTERPLAN.md",
-    "/specs/cross-cutting/gitops-vcs-replacement.json",
+    "/specs/gitops-vcs-replacement.json",
     "/evidence/goals/implement-masterplan.md",
     ".omc/plans/consensus-masterplan-2026-05-13.md",
     ".omc/plans/M01-M03-parallelization-manifest.md",
@@ -125,7 +125,7 @@
   "early_prerequisites": [
     {
       "id": "M-CC-P00-gitops-vcs-replacement",
-      "source_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "source_path": "/specs/gitops-vcs-replacement.json",
       "must_complete_before": [
         "M-CC-P01",
         "broad M01/M02/M03 parallel fan-out"

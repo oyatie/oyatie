@@ -20,7 +20,7 @@
     "crates/oya-identity-application/tests/identity_token_issue.rs",
     ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/IP-002-sts-rotation.md",
     ".omc/plans/milestones/M01-foundation/phases/P02-identity-cedar/INDEX.md",
-    "/specs/cross-cutting/masterplan.json",
+    "/specs/masterplan.json",
     "docs/CHANGELOG.md"
   ],
   "acceptance": {
@@ -54,7 +54,7 @@
       "status": "pass"
     },
     {
-      "command": "python3 -m json.tool /specs/cross-cutting/masterplan.json",
+      "command": "python3 -m json.tool /specs/masterplan.json",
       "status": "pass"
     },
     {

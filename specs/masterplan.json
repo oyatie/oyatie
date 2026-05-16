@@ -10,16 +10,16 @@
     "updated_at": "2026-05-15T10:45:00Z",
     "owner_team": "council-architecture",
     "current_markdown_authority": "docs/MASTERPLAN.md",
-    "target_path_after_markdown_retirement": "/specs/cross-cutting/masterplan.json",
+    "target_path_after_markdown_retirement": "/specs/masterplan.json",
     "migration_note": "Seed machine-readable masterplan surface. docs/MASTERPLAN.md remains current authority per root-hub until PHASE-5 migration completes; this JSON carries active machine-readable deltas and must converge to full replacement.",
     "source_inputs": [
       "docs/MASTERPLAN.md",
       ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
-      "/specs/cross-cutting/root-hub-pointers.json",
-      "/specs/cross-cutting/markdown-retirement-policy.json",
-      "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "/specs/root-hub-pointers.json",
+      "/specs/markdown-retirement-policy.json",
+      "/specs/gitops-vcs-replacement.json",
       "https://github.com/rtk-ai/grit",
-      "/specs/cross-cutting/test-standard.json",
+      "/specs/test-standard.json",
       "/registry/test-suite-registry.json",
       ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md"
     ],
@@ -129,7 +129,7 @@
           "id": "P00-gitops-vcs-replacement",
           "title": "Polyglot GitOps-capable VCS replacement",
           "status": "complete",
-          "source_spec": "/specs/cross-cutting/gitops-vcs-replacement.json",
+          "source_spec": "/specs/gitops-vcs-replacement.json",
           "implementation_plans": [
             {
               "id": "IP-001-symbol-lock-domain",
@@ -234,51 +234,51 @@
       "freshness": "2026-05-14T06:53:11Z",
       "command_or_lane": "manual spec update + jq validation",
       "result": "pending validation",
-      "artifact_ref": "/specs/cross-cutting/masterplan.json",
+      "artifact_ref": "/specs/masterplan.json",
       "known_gap": "Full Markdown retirement to masterplan.json remains PHASE-5; this is a seed/delta, not complete replacement."
     },
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "source_path": "/specs/gitops-vcs-replacement.json",
       "summary": "GitOps-capable VCS replacement moved into masterplan JSON as M-CC-P00 first prerequisite.",
       "freshness": "2026-05-14T07:16:07Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/masterplan.json#gitops_vcs_replacement",
+      "artifact_ref": "/specs/masterplan.json#gitops_vcs_replacement",
       "known_gap": "Implementation crates and controller are planned by P00 IPs; this slice establishes masterplan priority/contract."
     },
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "source_path": "/specs/gitops-vcs-replacement.json",
       "summary": "Masterplan JSON now references polyglot indexers plus review/fix/rebase/merge-queue CI/CD loop for M-CC-P00.",
       "freshness": "2026-05-14T07:19:08Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/masterplan.json#gitops_vcs_replacement",
+      "artifact_ref": "/specs/masterplan.json#gitops_vcs_replacement",
       "known_gap": "Implementation remains planned in P00 IPs."
     },
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "source_path": "/specs/gitops-vcs-replacement.json",
       "summary": "Masterplan JSON now requires documented/enforced unit/integration/e2e standards and AST support in M-CC-P00.",
       "freshness": "2026-05-14T07:20:28Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/masterplan.json#gitops_vcs_replacement.test_standard_enforcement",
+      "artifact_ref": "/specs/masterplan.json#gitops_vcs_replacement.test_standard_enforcement",
       "known_gap": "Implementation artifacts for the standard are P00 planned deliverables."
     },
     {
       "class": "documentation",
       "status": "pass",
-      "source_path": "/specs/cross-cutting/test-standard.json",
+      "source_path": "/specs/test-standard.json",
       "summary": "Machine-readable test standard and test-suite registry added as concrete artifacts supporting M-CC-P00.",
       "freshness": "2026-05-14T07:22:20Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/masterplan.json#gitops_vcs_replacement.test_standard_enforcement",
+      "artifact_ref": "/specs/masterplan.json#gitops_vcs_replacement.test_standard_enforcement",
       "known_gap": "Controller enforcement implementation remains P00 planned work."
     },
     {
@@ -289,7 +289,7 @@
       "freshness": "2026-05-14T08:55:00Z",
       "command_or_lane": "manual masterplan fold-in + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/masterplan.json#implementation_plan_contract",
+      "artifact_ref": "/specs/masterplan.json#implementation_plan_contract",
       "known_gap": "Implementation crates/controllers remain planned by M-CC-P00 IP execution."
     },
     {
@@ -300,7 +300,7 @@
       "freshness": "2026-05-14T09:05:00Z",
       "command_or_lane": "python frontmatter/index inventory + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/masterplan.json#live_implementation_index",
+      "artifact_ref": "/specs/masterplan.json#live_implementation_index",
       "known_gap": "This indexes existing implementation plan files; executing every ChangeSet remains future masterplan work."
     },
     {
@@ -311,12 +311,12 @@
       "freshness": "2026-05-14T09:12:00Z",
       "command_or_lane": "python hierarchy inventory + jq validation",
       "result": "pending final validation",
-      "artifact_ref": "/specs/cross-cutting/masterplan.json#live_implementation_index",
+      "artifact_ref": "/specs/masterplan.json#live_implementation_index",
       "known_gap": "Executing every product ChangeSet remains future masterplan work; JSON control surface now indexes current tree."
     }
   ],
   "gitops_vcs_replacement": {
-    "source_spec": "/specs/cross-cutting/gitops-vcs-replacement.json",
+    "source_spec": "/specs/gitops-vcs-replacement.json",
     "status": "core-complete-ci-admission-wired-provider-adapters-followup",
     "milestone": "M-CC-cross-cutting",
     "phase": "P00-gitops-vcs-replacement",
@@ -402,15 +402,15 @@
       "review_fix_loop_terminal_state_recorded": "100%"
     },
     "review_fix_loop": {
-      "source_spec": "/specs/cross-cutting/gitops-vcs-replacement.json#review_fix_loop",
+      "source_spec": "/specs/gitops-vcs-replacement.json#review_fix_loop",
       "required": true
     },
     "rebase_and_merge_queue": {
-      "source_spec": "/specs/cross-cutting/gitops-vcs-replacement.json#rebase_and_merge_queue",
+      "source_spec": "/specs/gitops-vcs-replacement.json#rebase_and_merge_queue",
       "controller_owned": true
     },
     "polyglot_indexing": {
-      "source_spec": "/specs/cross-cutting/gitops-vcs-replacement.json#agentic_development_requirements",
+      "source_spec": "/specs/gitops-vcs-replacement.json#agentic_development_requirements",
       "required_languages": [
         "Rust",
         "TypeScript/JavaScript",
@@ -423,21 +423,21 @@
       ]
     },
     "test_standard_enforcement": {
-      "source_spec": "/specs/cross-cutting/gitops-vcs-replacement.json#test_standard_enforcement",
-      "machine_readable_standard_ref": "/specs/cross-cutting/test-standard.json",
+      "source_spec": "/specs/gitops-vcs-replacement.json#test_standard_enforcement",
+      "machine_readable_standard_ref": "/specs/test-standard.json",
       "test_suite_registry_ref": "/registry/test-suite-registry.json",
       "required": true
     },
     "ast_support": {
-      "source_spec": "/specs/cross-cutting/gitops-vcs-replacement.json#test_standard_enforcement.ast_support",
+      "source_spec": "/specs/gitops-vcs-replacement.json#test_standard_enforcement.ast_support",
       "required": true
     },
     "product_name": "Oya VCS",
-    "native_and_adapter_boundary_ref": "/specs/cross-cutting/gitops-vcs-replacement.json#native_and_adapter_boundary",
-    "rust_compile_latency_strategy_ref": "/specs/cross-cutting/gitops-vcs-replacement.json#rust_compile_latency_strategy",
-    "queue_model_ref": "/specs/cross-cutting/gitops-vcs-replacement.json#queue_model",
-    "high_throughput_agent_scheduler_ref": "/specs/cross-cutting/gitops-vcs-replacement.json#high_throughput_agent_scheduler",
-    "issue_tracker_integration_ref": "/specs/cross-cutting/gitops-vcs-replacement.json#issue_tracker_integration",
+    "native_and_adapter_boundary_ref": "/specs/gitops-vcs-replacement.json#native_and_adapter_boundary",
+    "rust_compile_latency_strategy_ref": "/specs/gitops-vcs-replacement.json#rust_compile_latency_strategy",
+    "queue_model_ref": "/specs/gitops-vcs-replacement.json#queue_model",
+    "high_throughput_agent_scheduler_ref": "/specs/gitops-vcs-replacement.json#high_throughput_agent_scheduler",
+    "issue_tracker_integration_ref": "/specs/gitops-vcs-replacement.json#issue_tracker_integration",
     "source_plan": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
     "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
     "phase_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/plan.md",

@@ -25,7 +25,7 @@
   },
   "m_cc_gates": {
     "M-CC-P00": {
-      "spec": "/specs/cross-cutting/gitops-vcs-replacement.json",
+      "spec": "/specs/gitops-vcs-replacement.json",
       "spec_status": "Accepted-for-masterplan-P00",
       "phase_status": "first-prerequisite-planned",
       "readiness": "not-ready",
@@ -118,7 +118,7 @@
     },
     {
       "requirement": "Verify M-CC-P00 readiness or waiver",
-      "artifact": "/specs/cross-cutting/gitops-vcs-replacement.json + this evidence",
+      "artifact": "/specs/gitops-vcs-replacement.json + this evidence",
       "evidence": "P00 spec accepted but phase remains first-prerequisite-planned; waiver is scoped to acceptance reconciliation only."
     },
     {
@@ -214,7 +214,7 @@
     ".omc/plans/milestones/M01-foundation/phases/P06-regional-pack-flattening/INDEX.md",
     ".omc/plans/milestones/M01-foundation/phases/P06-regional-pack-flattening/IP-001-regional-pack-adr-kernel.md",
     ".omc/plans/milestones/M01-foundation/phases/P06-regional-pack-flattening/IP-002-flat-crates-guard.md",
-    "/specs/cross-cutting/masterplan.json"
+    "/specs/masterplan.json"
   ],
   "known_limits": [
     "M-CC-P00 is not claimed ready; waiver is scoped to M01 acceptance reconciliation only.",

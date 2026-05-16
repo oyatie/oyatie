@@ -29,8 +29,8 @@ agent_prerequisites:
   - ./INDEX.md
   - ./IP-001-provider-account-pool-kernel.md
   - docs/AGENTS.md
-  - /specs/cross-cutting/decision-principles.json
-  - /specs/cross-cutting/forbidden-operations.json
+  - /specs/decision-principles.json
+  - /specs/forbidden-operations.json
   - .omc/standards/dependency-policy.md
 final_shape_compliance: true
 dependency_additions:
@@ -48,7 +48,7 @@ decision_log: |
   stream into a single buffered chunk at the egress boundary; the handler itself has one
   code path.
 authority_chain_declaration: |
-  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/decision-principles.json + /specs/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-002-anthropic-compat-adapter: `/v1/messages` Anthropic-shape passthrough
@@ -102,7 +102,7 @@ client req (Anthropic shape)
 Before `grit claim`, the agent **MUST**:
 1. `icm recall-context "P02 anthropic-compat adapter ccproxy-api claude_api" --limit 5`.
 2. Confirm IP-001 merged (`pick_account` available); read `./IP-001-provider-account-pool-kernel.md`.
-3. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/cross-cutting/forbidden-operations.json` (FO-01..FO-10).
+3. Read `docs/AGENTS.md §Pre-flight checklist` and `/specs/forbidden-operations.json` (FO-01..FO-10).
 4. Confirm symbols unclaimed: `oya-tooling-agent-read grit-status crates/oya-foundry-adapter-anthropic-compat-api`.
 5. Read `.omc/standards/dependency-policy.md §5.1` — Anthropic has no official Rust SDK; this adapter uses in-tree `reqwest` + `rustls` for upstream calls.
 6. Read the parent INDEX `./INDEX.md` for fitness-lane scope.

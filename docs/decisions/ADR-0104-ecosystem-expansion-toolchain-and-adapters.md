@@ -47,8 +47,8 @@ ecosystem-trigger, and what the trigger is for each deferral.
 
 If any condition fails, the crate is not shipped. Documentation of the
 trigger that would unblock the crate lives in this ADR, in
-`specs/cross-cutting/masterplan.json`, and in the
-`specs/cross-cutting/crate-naming-audit.json` audit row.
+`specs/masterplan.json`, and in the
+`specs/crate-naming-audit.json` audit row.
 
 **Toolchain (check-lane) family** — reintroduce when the check's
 target surface exists.
@@ -96,8 +96,8 @@ deleted form. The pair was never coherent.
 ## Consequences
 
 - **The 18-crate ledger is no longer a hidden defect.** Future audits run against the audit-named patterns and find no doc-stub residue.
-- **`specs/cross-cutting/crate-naming-audit.json` mast be amended** to reflect the new state: 4 check-lane reintroductions are now compliant; 14 deferred crates are tracked but not workspace.members.
-- **`specs/cross-cutting/masterplan.json` adds a new section** (or extends the M02-P18 phase descriptors) documenting that each cloud sub-µservice's adapter family ships in the same PR as its runtime.
+- **`specs/crate-naming-audit.json` mast be amended** to reflect the new state: 4 check-lane reintroductions are now compliant; 14 deferred crates are tracked but not workspace.members.
+- **`specs/masterplan.json` adds a new section** (or extends the M02-P18 phase descriptors) documenting that each cloud sub-µservice's adapter family ships in the same PR as its runtime.
 - **PR template gains a new check**: any new `*-adapter-*` crate must declare a consumer in the same PR. Mechanical-prevention candidate: extend `oya-foundry-fitness-archive-orphan-kernel` with an "adapter-with-no-importer" check.
 - **The "toolchain expands with the ecosystem" principle is now ADR-anchored** — agents and humans cite this ADR to refuse premature crate creation.
 
@@ -120,13 +120,13 @@ deleted form. The pair was never coherent.
 2. Drive `oya gate validate benchmark` to zero violations (currently 7 across `docs/prds/` + `docs/products/`).
 3. When M02-P18 cloud sub-µservice runtimes ship, reintroduce the relevant cloud-adapter families with real port impls + consumers in the same PR.
 4. Author `oya-foundry-fitness-adapter-with-no-importer` lane as a mechanical-prevention for premature adapter creation (per Consequences). **Scaffolded** in `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` + `tools/oya-foundry-fitness-adapter-with-no-importer` (ratchet plan in `.omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`); WARN-baseline = 29 violations on first run, BLOCK ratchet across Waves B/C.
-5. Amend `specs/cross-cutting/crate-naming-audit.json` to mark the 4 reintroduced check lanes as compliant + add deferral rows for the 14 unrestored crates.
+5. Amend `specs/crate-naming-audit.json` to mark the 4 reintroduced check lanes as compliant + add deferral rows for the 14 unrestored crates.
 
 ## References
 
 - audit findings (2026-05-15) — #7 (14 placeholder-shell crates) + #11 (4 stub check lanes)
 - commit `34c62f2` — the strike
 - commit `c7fda53` — the OpenBaoAdapter rename pattern (test-double with honest doc-comment)
-- specs/cross-cutting/decision-principles.json DP-03, DP-09
-- specs/cross-cutting/forbidden-operations.json FO-01
-- specs/cross-cutting/crate-naming-audit.json (will be amended)
+- specs/decision-principles.json DP-03, DP-09
+- specs/forbidden-operations.json FO-01
+- specs/crate-naming-audit.json (will be amended)

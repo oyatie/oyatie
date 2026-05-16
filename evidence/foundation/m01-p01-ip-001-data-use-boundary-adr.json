@@ -32,7 +32,7 @@
     "tools/oya-foundry-fitness-adr-shape/src/main.rs",
     ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-001-data-use-boundary-adr.md",
     ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/INDEX.md",
-    "/specs/cross-cutting/masterplan.json"
+    "/specs/masterplan.json"
   ],
   "acceptance": {
     "adr_0008_status": "Accepted",

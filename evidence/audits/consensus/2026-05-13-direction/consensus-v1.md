@@ -25,7 +25,7 @@ Both architect r1 and critic r1 returned ITERATE on planner v1, but converge on 
 ### What is ALLOWED during the freeze (critic r1 narrowing)
 
 - **Enforcement-loop work** (highest priority): wire `crates/oya-check-active-artifact-contract` into `oya-dev-cli`; flip `lean-a-active-artifact-contract` from `planned` to `active`; add failing fixture for unregistered machine-readable artifact; record green CI run URL.
-- **Stale-pointer repair**: e.g., the `/specs/cross-cutting/root-hub-pointers.json` stale `knowledge-graph-catalog.json` pointer (FIXED inline this batch per critic r1 finding #3).
+- **Stale-pointer repair**: e.g., the `/specs/root-hub-pointers.json` stale `knowledge-graph-catalog.json` pointer (FIXED inline this batch per critic r1 finding #3).
 - **Consumer rewiring**: when an artifact moves (e.g., catalog → 3-layer split), update all inbound references.
 - **Migration slices** (Constitution-content redistribution, Wave plan conversions, ADR migration): only when each slice **reduces drift** AND adds a failing fixture OR active lane.
 
@@ -53,7 +53,7 @@ A FAILING FIXTURE must exist: an artifact under `applicable_paths_glob` without 
 
 ### Critic r1 fixes addressed inline this batch
 
-- **#3 (stale pointer)**: `/specs/cross-cutting/root-hub-pointers.json` `knowledge_graph_catalog` row replaced with 3-layer split rows (`knowledge_graph_semantic` + `knowledge_graph_kinetic` + `knowledge_graph_dynamic`).
+- **#3 (stale pointer)**: `/specs/root-hub-pointers.json` `knowledge_graph_catalog` row replaced with 3-layer split rows (`knowledge_graph_semantic` + `knowledge_graph_kinetic` + `knowledge_graph_dynamic`).
 
 ### Critic r1 fixes deferred to next slice (the vertical enforcement loop will close them)
 

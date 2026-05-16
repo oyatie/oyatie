@@ -2841,12 +2841,8 @@ fn doc_catalog_gate_accepts_path_glob_adr_and_codeowners_dependencies() {
 fn doc_catalog_gate_accepts_workspace_spec_dependencies() {
     let temp = temp_dir("doc-catalog-spec-dependencies");
     write_doc_catalog_fixture(&temp, &["README.md"], &["README.md", "DOC-CATALOG.md"]);
-    fs::create_dir_all(temp.join("specs/cross-cutting")).expect("spec dir created");
-    fs::write(
-        temp.join("specs/cross-cutting/decision-principles.json"),
-        "{}\n",
-    )
-    .expect("spec written");
+    fs::create_dir_all(temp.join("specs")).expect("spec dir created");
+    fs::write(temp.join("specs/decision-principles.json"), "{}\n").expect("spec written");
 
     let catalog_path = temp.join("machine-readable/catalog.json");
     let catalog = fs::read_to_string(&catalog_path).expect("machine catalog read");
@@ -2854,7 +2850,7 @@ fn doc_catalog_gate_accepts_workspace_spec_dependencies() {
         &catalog_path,
         catalog.replacen(
             r#""dependent_docs": []"#,
-            r#""dependent_docs": ["/specs/cross-cutting/decision-principles.json"]"#,
+            r#""dependent_docs": ["/specs/decision-principles.json"]"#,
             1,
         ),
     )

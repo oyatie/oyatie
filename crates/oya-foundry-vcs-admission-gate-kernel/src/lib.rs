@@ -23,10 +23,10 @@
 //! # Algorithm (kernel — I/O-free)
 //!
 //! Runners load:
-//!   1. `specs/cross-cutting/root-hub-pointers.json`
-//!   2. `specs/cross-cutting/master-plan-sequencing.json`
-//!   3. `specs/cross-cutting/multispectrum-review.json`
-//!   4. `specs/cross-cutting/gitops-vcs-replacement.json`
+//!   1. `specs/root-hub-pointers.json`
+//!   2. `specs/master-plan-sequencing.json`
+//!   3. `specs/multispectrum-review.json`
+//!   4. `specs/gitops-vcs-replacement.json`
 //!   5. Provider-evidence JSON referenced from (4)
 //!   6. Provider-execution-proof JSON referenced from (4)
 //!   7. `.github/branch-protection.yaml` (read as text)
@@ -52,16 +52,16 @@ use std::collections::BTreeSet;
 /// the runner; the kernel does no filesystem or subprocess work.
 #[derive(Clone, Debug)]
 pub struct AdmissionInputs<'a> {
-    /// Parsed `specs/cross-cutting/root-hub-pointers.json`.
+    /// Parsed `specs/root-hub-pointers.json`.
     /// data_class: INTERNAL_ONLY
     pub root_hub_pointers: &'a Value, // data_class: INTERNAL_ONLY
-    /// Parsed `specs/cross-cutting/master-plan-sequencing.json`.
+    /// Parsed `specs/master-plan-sequencing.json`.
     /// data_class: INTERNAL_ONLY
     pub master_plan_sequencing: &'a Value, // data_class: INTERNAL_ONLY
-    /// Parsed `specs/cross-cutting/multispectrum-review.json`.
+    /// Parsed `specs/multispectrum-review.json`.
     /// data_class: INTERNAL_ONLY
     pub multispectrum_review: &'a Value, // data_class: INTERNAL_ONLY
-    /// Parsed `specs/cross-cutting/gitops-vcs-replacement.json`.
+    /// Parsed `specs/gitops-vcs-replacement.json`.
     /// data_class: INTERNAL_ONLY
     pub gitops_vcs_replacement: &'a Value, // data_class: INTERNAL_ONLY
     /// Path written in `gitops_vcs_replacement.current_ci_admission_lane.provider_evidence_ref`.
@@ -660,7 +660,7 @@ mod tests {
             master_plan_sequencing: seq,
             multispectrum_review: msr,
             gitops_vcs_replacement: vcs,
-            provider_evidence_ref: "specs/cross-cutting/provider-evidence.json",
+            provider_evidence_ref: "specs/provider-evidence.json",
             provider_evidence: pe,
             provider_execution_proof_ref: "evidence/gitops-vcs/provider-execution-proof.json",
             provider_execution_proof: pex,

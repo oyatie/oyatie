@@ -5,7 +5,7 @@ id: M-CC-P00
 title: Polyglot GitOps-capable VCS Replacement (Oya VCS)
 status: complete
 source_plan: ../../../../ralplan-gitops-vcs-replacement-20260514.md
-source_spec: ../../../../../specs/cross-cutting/gitops-vcs-replacement.json
+source_spec: ../../../../../specs/gitops-vcs-replacement.json
 purpose: Fold approved ralplan v5 into the cross-cutting master-plan tree as the first prerequisite before broad agent fan-out.
 ---
 
@@ -37,7 +37,7 @@ Oya VCS owns the authoritative agent/repo state transition for forward work: cla
 - VirtualHead is review/build projection only.
 - QueueAwareLease cannot override or release controller-owned locks outside terminal policy.
 - GitHub, GitHub Actions, GitHub Issues, Trivy, and Argo CD are replaceable adapters; native fixtures provide the same core states.
-- Unit/integration/e2e standards are enforced through `/specs/cross-cutting/test-standard.json` and `/registry/test-suite-registry.json`.
+- Unit/integration/e2e standards are enforced through `/specs/test-standard.json` and `/registry/test-suite-registry.json`.
 - `ops.oyatie.com` exposes queue, lock, issue digest, build/cache, package/deploy, promotion, blocker, evidence, and explainability views backed by fresh evidence.
 - Long Rust/polyglot compile paths rebuild only affected crates/packages/deployables cold unless a full-gate reason is recorded.
 

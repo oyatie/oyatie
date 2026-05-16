@@ -17,7 +17,7 @@ purpose: |
   boundaries), the testing posture per layer, and the cross-reference to
   `crate-naming-convention.md` (a crate's `[package.metadata.oya].role`
   MUST match its actual layer behavior).
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-architecture-conventions
 companion_docs:
   - docs/standards/crate-naming-convention.md
@@ -36,16 +36,16 @@ related_adrs:
   - ADR-0054
   - ADR-0056
 authority_chain_declaration: |
-  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
+  /specs/decision-principles.json + /specs/forbidden-operations.json > docs/AGENTS.md > docs/standards/code-style-rust.md
   > docs/standards/crate-naming-convention.md ≡ THIS DOC
   > .omc/fitness-lanes/architecture-conventions.md
 ---
 
 # Clean Architecture
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
-This standard operates within the [`decision-principles.json`](../../specs/cross-cutting/decision-principles.json) + [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json)
+This standard operates within the [`decision-principles.json`](../../specs/decision-principles.json) + [`forbidden-operations.json`](../../specs/forbidden-operations.json)
 frame (architecture decision principles; ADR-0015 flat crates) and is the **peer** of
 [`crate-naming-convention.md`](crate-naming-convention.md): the naming
 standard binds the **role token** of every crate name; this standard binds

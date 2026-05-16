@@ -16,7 +16,7 @@ purpose: |
   record, and the explicit prohibition of config-flag uplift. Implements
   `forbidden-operations.json` FO-10 and the AGENTS.md §Pre-flight checklist
   Item 4 ("Confirm autonomy ceiling").
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-autonomy-ceiling
 companion_docs:
   - docs/standards/security-review.md
@@ -31,9 +31,9 @@ related_adrs:
 
 # Autonomy Ceiling
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
-Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-10:
+Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-10:
 
 > No autonomy-tier uplift without policy + runtime gate. Capability
 > bindings declare T1 / T2 / T3 / T4; uplift requires a Cedar policy and
@@ -237,7 +237,7 @@ proves cross-tenant access fails closed on T1/T2/T3 capabilities.
 
 ## 11. Sources scanned
 
-- [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-10;
+- [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-10;
   [`docs/AGENTS.md`](../AGENTS.md) §Pre-flight Item 4 + D5;
   [`docs/DOC-CATALOG.md`](../DOC-CATALOG.md) §4 (foundry-eval,
   cross-tenant-access-fuzz).

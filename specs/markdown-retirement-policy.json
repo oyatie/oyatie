@@ -36,9 +36,9 @@
     ],
     "retire_via_json_migration": [
       "docs/CONSTITUTION.md \u2192 RETIRED (per user 2026-05-13 'i dont think constitution is necessary'; content redistributed: mission\u2192masterplan; principles\u2192agent-operating-contract; prohibitions\u2192forbidden-operations.json; decision rights\u2192RACI-OWNERSHIP)",
-      "docs/AGENTS.md \u2192 /specs/cross-cutting/agent-operating-contract.json",
+      "docs/AGENTS.md \u2192 /specs/agent-operating-contract.json",
       "docs/DOC-CATALOG.md \u2192 /registry/doc-catalog.json",
-      "docs/MASTERPLAN.md \u2192 /specs/cross-cutting/masterplan.json",
+      "docs/MASTERPLAN.md \u2192 /specs/masterplan.json",
       "docs/decisions/ADR-*.md \u2192 /registry/adrs.json + per-ADR content under /registry/adr-content/*.json",
       "docs/microservices/*.md \u2192 /registry/microservices.json",
       "docs/bounded-contexts/*.md \u2192 /registry/bounded-contexts.json",
@@ -46,9 +46,9 @@
       "docs/runbooks/*.md \u2192 /registry/runbooks.json",
       "docs/prds/*.md \u2192 /registry/prds.json",
       "docs/templates/*.md \u2192 /templates/*.json or *.yaml",
-      "docs/checklists/*.md \u2192 /specs/cross-cutting/checklists.json",
+      "docs/checklists/*.md \u2192 /specs/checklists.json",
       ".omc/plans/ralplan-*.md \u2192 .omc/plans/ralplan-*.json (instances of plan-schema.json)",
-      "/specs/cross-cutting/*.md \u2192 /specs/cross-cutting/*.json",
+      "/specs/*.md \u2192 /specs/*.json",
       "/evidence/goals/*.md \u2192 /registry/goals.json",
       "/templates/checklists/*.md \u2192 /templates/checklists/*.json"
     ]

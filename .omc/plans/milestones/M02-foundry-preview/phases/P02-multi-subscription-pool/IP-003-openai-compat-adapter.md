@@ -27,8 +27,8 @@ agent_prerequisites:
   - ./INDEX.md
   - ./IP-001-provider-account-pool-kernel.md
   - docs/AGENTS.md
-  - /specs/cross-cutting/decision-principles.json
-  - /specs/cross-cutting/forbidden-operations.json
+  - /specs/decision-principles.json
+  - /specs/forbidden-operations.json
   - .omc/standards/dependency-policy.md
 final_shape_compliance: true
 dependency_additions:
@@ -44,7 +44,7 @@ decision_log: |
   normalizing both into a single internal `ToolInvocation` record at the translator
   boundary; the handler sees one shape.
 authority_chain_declaration: |
-  /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
+  /specs/decision-principles.json + /specs/forbidden-operations.json > rest of docs/ > catalog records > Redirect-class > working drafts.
 ---
 
 # IP-003-openai-compat-adapter: `/v1/chat/completions` OpenAI-shape passthrough

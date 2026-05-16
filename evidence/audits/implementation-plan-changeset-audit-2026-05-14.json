@@ -3,7 +3,7 @@
   "audit_id": "implementation-plan-changeset-audit-2026-05-14",
   "created_at": "2026-05-14T08:55:00Z",
   "scope": "all .omc/plans/milestones/**/IP-*.md files present at audit time",
-  "rule": "Every ImplementationPlan is a ChangeSet-sized execution unit governed by /specs/cross-cutting/master-plan-sequencing.json#implementation_plan_changeset_contract.",
+  "rule": "Every ImplementationPlan is a ChangeSet-sized execution unit governed by /specs/master-plan-sequencing.json#implementation_plan_changeset_contract.",
   "count": 150,
   "p00_materialized_count": 9,
   "status": "complete-for-masterplan-json-control-surface",

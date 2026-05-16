@@ -96,7 +96,7 @@ Plus 7 importer files updated (Cargo.toml deps + Rust `use` statements). Cargo.t
 
 1. Update `docs/standards/clean-architecture.md` to use `usecase`.
 2. Update `ADR-0056` §"12-Value Layer Enum (closed)" + §Layer semantics text to use `usecase`. (ADR-0105 added `api`; ADR-0106 renames `application` to `usecase`.)
-3. Update `specs/cross-cutting/decision-principles.json` + `forbidden-operations.json` + `decision-rights.json` + `governance-amendment.json` if they reference `application` as a layer.
+3. Update `specs/decision-principles.json` + `forbidden-operations.json` + `decision-rights.json` + `governance-amendment.json` if they reference `application` as a layer.
 4. Update `oya-foundry-fitness-predictable-naming-kernel` to recognize `usecase` + reject `application` post-grace-period.
 5. Decide what to do with the 5 disk-but-not-workspace `*-application` crates (audit #6 follow-up).
 6. Update the cargo build/test scripts if any reference `application` by name.
@@ -106,5 +106,5 @@ Plus 7 importer files updated (Cargo.toml deps + Rust `use` statements). Cargo.t
 - ADR-0056-rust-clean-architecture-bnf.md (the 12-value enum being amended)
 - ADR-0105-13-layer-enum-and-check-family-patterns.md (added `api`)
 - ADR-0061-application-b2b-unified-shell.md (µservice "application", which keeps its name)
-- specs/cross-cutting/crate-naming-audit.json (will be amended)
+- specs/crate-naming-audit.json (will be amended)
 - User directive thread 2026-05-15

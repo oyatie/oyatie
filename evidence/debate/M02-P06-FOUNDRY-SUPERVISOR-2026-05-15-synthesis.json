@@ -463,13 +463,13 @@
     "4. Emit `consensus_debate_complete` audit-chain row to evidence/audit-chain.jsonl",
     "5. Resume team `foundry-supervisor` execution on amended v6 plans; 14 implementation tasks already created remain valid as-is for non-BLOCKER concerns",
     "6. Schedule A1..A7 backfill pass before sunset 2026-07-15 (F-MULTISPECTRUM-A-FAMILY-BACKFILL-M02-P06)",
-    "7. Update memory feedback_multispectrum_review_v22.md to reflect that v2.3.0 A-family is now in spec at specs/cross-cutting/multispectrum-review.json"
+    "7. Update memory feedback_multispectrum_review_v22.md to reflect that v2.3.0 A-family is now in spec at specs/multispectrum-review.json"
   ],
   "memory_attestation": {
     "consensus_doctrine_applied": "multispectrum-review v2.2.0 (per spec) plus v2.3.0 A-family deferred via fixuptask",
     "executor_topology_rule_honored": "Each facet ran in its own separate subagent session; reviewer_id field on each r1.json carries the format <tool>-<facet_id>-<change_id>; zero reviewer_id overlap across facets verified",
     "audit_chain_evidence_complete": "13 r1.json files + 1 synthesis.json + audit-chain row pending emission",
-    "spec_reference": "specs/cross-cutting/multispectrum-review.json#v2.2.0 + memory feedback_multispectrum_review_v22.md + memory feedback_multispectrum_adherence_facets.md (v2.3.0)"
+    "spec_reference": "specs/multispectrum-review.json#v2.2.0 + memory feedback_multispectrum_review_v22.md + memory feedback_multispectrum_adherence_facets.md (v2.3.0)"
   },
   "purpose": "Auto-backfilled purpose for M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-synthesis.json"
 }
