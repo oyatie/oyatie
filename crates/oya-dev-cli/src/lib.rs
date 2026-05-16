@@ -50,6 +50,7 @@ mod foundry_eval_gates;
 mod glossary_cross_doc_gates;
 mod governance_gates;
 mod json_scan;
+mod loop_recovery_patterns_gate;
 mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
@@ -129,6 +130,9 @@ pub(crate) use json_scan::{
     extract_json_objects, find_matching_json_delimiter, json_field_has_non_empty_value,
     parse_json_string_array_field, parse_json_string_field, parse_json_string_value,
     quoted_json_len,
+};
+pub(crate) use loop_recovery_patterns_gate::{
+    parse_loop_recovery_patterns_validate_args, validate_loop_recovery_patterns_gate,
 };
 pub(crate) use openapi_rest_route_parity_gate::{
     parse_openapi_rest_route_parity_validate_args, validate_openapi_rest_route_parity_gate,
@@ -240,6 +244,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate glossary-cross-doc-coverage [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--machine <docs/machine-readable/glossary.json>]"
         + "\n       oya gate validate glossary-vocabulary [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--baseline <registry/glossary-vocabulary/warning-baseline.tsv>] [--ignored-uppercase-words <registry/glossary-vocabulary/ignored-uppercase-words.tsv>] [--write-baseline <path>] [--write-warning-report <path>]"
         + "\n       oya gate validate placeholder-debt [--docs-dir <docs>] [--registry <registry/placeholder-debt/registry.tsv>] [--write-registry <path>] [--write-report <path>]"
+        + "\n       oya gate validate loop-recovery-patterns [--agent-durable-goal <specs/agent-durable-goal.json>] [--score-cards <specs/score-cards.json>] [--patterns-dir <registry/loop-recovery-patterns>] [--mistakes-ledger <registry/mistakes-ledger.json>]"
         + "\n       oya gate validate pre-push-contract [--done-definition <docs/checklists/done-definition-checklist.md>] [--cli-dispatch-source <crates/oya-dev-cli/src/lib.rs>] [--hook-script <scripts/hooks/pre-push.sh>]"
         + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <main>]"
         + "\n       oya gate validate retired-vocabulary [--registry <registry/vocabulary/retired.yaml>] [--corpus-root <path>] (repeatable) [--exclude-root <path>] (repeatable)"

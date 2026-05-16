@@ -1008,6 +1008,37 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // loop-recovery-patterns: Rust-owned autonomous-Foundry harness lane.
+        // Validates deterministic score_cards, concrete score-card inventory,
+        // and registry/loop-recovery-patterns records linked to the
+        // mistakes-ledger before `oya verify`/pre-push can pass.
+        (Some("validate"), Some("loop-recovery-patterns")) => {
+            match crate::parse_loop_recovery_patterns_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_loop_recovery_patterns_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "loop-recovery-patterns validation passed: {} score-schema fields, {} score cards, {} score-card commands, {} patterns, {} active blockers, {} mistakes refs, {} anomaly signals",
+                            report.score_card_schema_fields_checked,
+                            report.score_cards_checked,
+                            report.score_card_commands_executed,
+                            report.patterns_checked,
+                            report.active_blockers_checked,
+                            report.mistakes_ledger_refs_checked,
+                            report.anomaly_watch_signals_checked
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("loop-recovery-patterns validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("raci-team-coverage")) => {
             match crate::parse_raci_team_coverage_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_raci_team_coverage_gate(args) {

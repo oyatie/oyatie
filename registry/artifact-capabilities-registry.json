@@ -2063,6 +2063,141 @@
           "last_modified_at": "2026-05-16T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "score-cards",
+      "artifact_path": "/specs/score-cards.json",
+      "artifact_format": "json",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Deterministic score-card inventory for autonomous pre-push and review tier checks.",
+      "artifact_profile": "schema",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "oya-foundry-fitness-loop-recovery-patterns"
+        },
+        "verification": {
+          "checker_crate": "crates/oya-dev-cli",
+          "command": "oya gate validate loop-recovery-patterns"
+        },
+        "validation": {
+          "validator": "crates/oya-dev-cli::loop_recovery_patterns_gate"
+        },
+        "autogen": {
+          "generator": "manual-with-suggestion; future lane promotion protocol can emit candidate rows"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until autonomous lane emitter lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_score_cards_checked_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "severity_tier"
+              ],
+              "cardinality_budget": 20
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending pipeline-reviewer",
+          "last_modified_at": "2026-05-16T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "loop-recovery-patterns",
+      "artifact_path": "/registry/loop-recovery-patterns",
+      "artifact_format": "json-directory",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Append-only repeat-loop recovery patterns linked to score cards and mistakes-ledger rows.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "oya-foundry-fitness-loop-recovery-patterns"
+        },
+        "verification": {
+          "checker_crate": "crates/oya-dev-cli",
+          "command": "oya gate validate loop-recovery-patterns"
+        },
+        "validation": {
+          "validator": "crates/oya-dev-cli::loop_recovery_patterns_gate"
+        },
+        "autogen": {
+          "generator": "autonomous_foundry.stuck_loop_recovery step_3_if_resolves"
+        },
+        "selfheal": {
+          "healer": "fresh-context agent emits a normal PR with linked score-card and mistakes-ledger refs"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_loop_recovery_patterns_active_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "failure_mode"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending pipeline-reviewer",
+          "last_modified_at": "2026-05-16T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "check-empirical-evidence",
+      "artifact_path": "/registry/check-empirical-evidence",
+      "artifact_format": "json-directory",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Evidence records proving deterministic score cards caught or prevented real regressions before blocker promotion.",
+      "artifact_profile": "registry",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "oya-foundry-fitness-loop-recovery-patterns"
+        },
+        "verification": {
+          "checker_crate": "crates/oya-dev-cli",
+          "command": "oya gate validate loop-recovery-patterns"
+        },
+        "validation": {
+          "validator": "crates/oya-dev-cli::loop_recovery_patterns_gate"
+        },
+        "autogen": {
+          "generator": "autonomous_foundry.lane_promotion_protocol S3_empirical_evidence"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until lane promotion automation lands"
+        },
+        "telemetry": {
+          "metrics": [
+            {
+              "id": "oya_check_empirical_evidence_records_total",
+              "kind": "gauge",
+              "unit": "1",
+              "labels": [
+                "status"
+              ],
+              "cardinality_budget": 100
+            }
+          ]
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending pipeline-reviewer",
+          "last_modified_at": "2026-05-16T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"
