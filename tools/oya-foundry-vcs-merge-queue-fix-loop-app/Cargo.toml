@@ -38,6 +38,7 @@ doctest = false
 
 [dependencies]
 oya-foundry-vcs-review-mergequeue-kernel = { path = "../../crates/oya-foundry-vcs-review-mergequeue-kernel" }
+oya-foundry-vcs-merge-queue-conflict-kernel = { path = "../../crates/oya-foundry-vcs-merge-queue-conflict-kernel" }
 
 [lints]
 workspace = true
