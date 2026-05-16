@@ -1,0 +1,105 @@
+{
+  "change_id": "kg-blast-radius-1778950918",
+  "change_class_id": "CC-5_governance_registry",
+  "freshness_unix": 1778950918,
+  "session_id": "codex-kg-blast-radius-2026-05-16",
+  "scope": [
+    "registry/knowledge-graph-semantic.json",
+    "registry/kg-audit/index.json",
+    "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Close F-KG-03 by adding reachable_entity_types_for_diff read-side KG query aligned to agent-durable-goal review_tiering blast_radius_score signals, returning reachable entity types, downstream consumers, and deterministic signal evidence for candidate diff review dispatch.",
+  "verification": [
+    {
+      "command": "python3 -m json.tool registry/knowledge-graph-semantic.json registry/kg-audit/index.json",
+      "status": "passed",
+      "evidence": "changed KG registry JSON parsed"
+    },
+    {
+      "command": "jq semantic counts",
+      "status": "passed",
+      "evidence": "30 node types, 22 edge types, 16 invariants, 8 read-side queries"
+    },
+    {
+      "command": "jq F-KG-03 audit closure",
+      "status": "passed",
+      "evidence": "blast_radius_inference coverage 100%; F-KG-03 status resolved_2026_05_16"
+    },
+    {
+      "command": "PATH=$rust_toolbin:$PATH cargo fmt --all --check",
+      "status": "passed",
+      "evidence": "workspace formatting check passed"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli --test knowledge_graph_semantic",
+      "status": "passed",
+      "evidence": "4 tests passed including blast_radius_query_maps_diff_to_reachable_entities_and_review_signals"
+    },
+    {
+      "command": "PATH=$rust_toolbin:$PATH cargo clippy -p oya-dev-cli --test knowledge_graph_semantic -- -D warnings",
+      "status": "passed",
+      "evidence": "targeted clippy passed with warnings denied"
+    },
+    {
+      "command": "oya gate validate active-artifact-contract",
+      "status": "passed",
+      "evidence": "53 rows, 3536 HEAD-tracked, 53 graph edges"
+    },
+    {
+      "command": "oya gate validate retired-vocabulary",
+      "status": "passed",
+      "evidence": "1203 documents checked, 6 retired terms enforced, 0 drift hits"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "no whitespace errors"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Adds a single read-side query instead of a new runtime subsystem; blast-radius stays deterministic and graph-backed."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Candidate diffs can be mapped to touched KG nodes, downstream edges, consumers, and review-tier signals before dispatch."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "passing_fixture_id": "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::blast_radius_query_maps_diff_to_reachable_entities_and_review_signals",
+      "diagnostic_asserted": "Query references candidate_diff_files, reachable_entity_types, downstream_consumers, blast_radius_score, and all S1-S11 deterministic signal names."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Review automation gets a named query: reachable_entity_types_for_diff."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "JSON parse, count checks, fmt, targeted tests, targeted clippy, active artifact, retired vocabulary, and diff check passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "Leave blast-radius as PR-local heuristics only",
+        "Add runtime scoring code before graph query"
+      ],
+      "rejected": [
+        "Heuristics-only mode preserves the KG audit gap for downstream consumer traversal.",
+        "Runtime implementation is larger than the F-KG-03 closure contract and not needed for semantic readiness."
+      ]
+    }
+  },
+  "remaining_risks": [
+    "F-KG-04/F-KG-05/F-KG-06 remain as medium-low provenance and traceability chain improvements."
+  ]
+}

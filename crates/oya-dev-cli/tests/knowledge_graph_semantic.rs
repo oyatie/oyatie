@@ -137,6 +137,45 @@ fn close_incident_action_emits_root_cause_pr_chain() {
     }));
 }
 
+#[test]
+fn blast_radius_query_maps_diff_to_reachable_entities_and_review_signals() {
+    let graph = semantic_graph();
+    let queries = graph["read_side_query_examples"]
+        .as_array()
+        .expect("queries are an array");
+    let blast_radius_query = queries
+        .iter()
+        .find(|query| query["name"] == "reachable_entity_types_for_diff")
+        .expect("blast-radius query exists");
+    let query_sketch = blast_radius_query["query_sketch"]
+        .as_str()
+        .expect("query sketch is a string");
+
+    for required_term in [
+        "WITH RECURSIVE",
+        "candidate_diff_files",
+        "reachable_entity_types",
+        "downstream_consumers",
+        "blast_radius_score",
+        "public_api_touched",
+        "kernel_layer_touched",
+        "secret_or_admission_touched",
+        "audit_chain_schema_touched",
+        "ADR_introduced_or_amended_count",
+        "cargo_deps_changed_count",
+        "lines_touched",
+        "new_files_count",
+        "new_crates_count",
+        "breaking_change_marker",
+        "meta_review_triggered",
+    ] {
+        assert!(
+            query_sketch.contains(required_term),
+            "blast-radius query missing {required_term}"
+        );
+    }
+}
+
 fn assert_edge_allows(graph: &Value, edge: &str, source_type: &str, target_type: &str) {
     let edge_type = &graph["edge_types"][edge];
     assert_eq!(edge_type["direction"], "directed");
