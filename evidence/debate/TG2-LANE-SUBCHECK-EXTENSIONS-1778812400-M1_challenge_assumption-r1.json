@@ -15,11 +15,11 @@
   "facet": "M1_challenge_assumption",
   "lens": "Challenge the premise. Is the underlying assumption that motivated this change still true? Could an upstream change eliminate the need entirely? What hidden assumption is unstated? On what evidence was this declared the right problem? If we shipped nothing, what concrete breakage occurs?",
   "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
-  "premise_stated": "specs/cross-cutting/multispectrum-review.json v2.2.0 (a) elevates the multispectrum review bar to a mechanical enforcement vehicle whose only mechanical-enforcement vehicle named is `oya-check-dependency-seam`, and (b) names each of the four new sub-check IDs (`rust-default-language`, `naming-convention`, `scorecard-render`, `consensus-debate-evidence`) plus the four FixupTask IDs (F-LANE-RUST-DEFAULT-ENFORCE, F-NAMING-CONVENTION-ENFORCE, F-LANE-SCORECARD-RENDER, F-LANE-DEBATE-SUBCHECK) as the full-impl tickets. Therefore: extending the lane from 6 to 10 sub-checks as day-1 NotYetArmed/ReportOnly stubs is the canonical landing path for these enforcements.",
+  "premise_stated": "specs/multispectrum-review.json v2.2.0 (a) elevates the multispectrum review bar to a mechanical enforcement vehicle whose only mechanical-enforcement vehicle named is `oya-check-dependency-seam`, and (b) names each of the four new sub-check IDs (`rust-default-language`, `naming-convention`, `scorecard-render`, `consensus-debate-evidence`) plus the four FixupTask IDs (F-LANE-RUST-DEFAULT-ENFORCE, F-NAMING-CONVENTION-ENFORCE, F-LANE-SCORECARD-RENDER, F-LANE-DEBATE-SUBCHECK) as the full-impl tickets. Therefore: extending the lane from 6 to 10 sub-checks as day-1 NotYetArmed/ReportOnly stubs is the canonical landing path for these enforcements.",
   "premise_evidence_ref": [
-    "specs/cross-cutting/multispectrum-review.json#_meta.mechanical_enforcement (line 41)",
-    "specs/cross-cutting/multispectrum-review.json line 148 \u2014 F-LANE-SCORECARD-RENDER explicitly extends oya-check-dependency-seam",
-    "specs/cross-cutting/multispectrum-review.json line 205-208 \u2014 F-LANE-DEBATE-SUBCHECK names `consensus-debate-evidence` as the sub-check id",
+    "specs/multispectrum-review.json#_meta.mechanical_enforcement (line 41)",
+    "specs/multispectrum-review.json line 148 \u2014 F-LANE-SCORECARD-RENDER explicitly extends oya-check-dependency-seam",
+    "specs/multispectrum-review.json line 205-208 \u2014 F-LANE-DEBATE-SUBCHECK names `consensus-debate-evidence` as the sub-check id",
     "evidence/per-change/tg2-lane-subcheck-extensions-1778812400.json lines 18-21 \u2014 each sub-check maps 1:1 to a FixupTask",
     "crates/oya-check-dependency-seam/src/lib.rs lines 727-916 \u2014 four new pub fns land at canonical IDs in canonical run_composite order; test on line 994 asserts len==10"
   ],

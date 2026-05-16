@@ -21,8 +21,8 @@
       "class": "Constitutional amendment",
       "owner": "founder",
       "escalation": "council-architecture (>=2 members ratify)",
-      "applies_to": "amendments to specs/cross-cutting/decision-principles.json, forbidden-operations.json, decision-rights.json, governance-amendment.json (the post-CONSTITUTION-strike doctrinal substrate)",
-      "amendment_procedure": "specs/cross-cutting/governance-amendment.json"
+      "applies_to": "amendments to specs/decision-principles.json, forbidden-operations.json, decision-rights.json, governance-amendment.json (the post-CONSTITUTION-strike doctrinal substrate)",
+      "amendment_procedure": "specs/governance-amendment.json"
     },
     {
       "id": "DR-02-cross-axis-contract",
@@ -125,8 +125,8 @@
   "references": [
     "docs/RACI-OWNERSHIP.md — per-team RACI detail (sibling, not duplicate)",
     "docs/standards/incident-management.md — DR-11 incident commander role detail",
-    "specs/cross-cutting/governance-amendment.json — DR-01 amendment procedure",
-    "specs/cross-cutting/root-hub-pointers.json — migration source map",
+    "specs/governance-amendment.json — DR-01 amendment procedure",
+    "specs/root-hub-pointers.json — migration source map",
     "docs/decisions/ADR-0011-cross-axis-contract-registry.md — DR-02 contract registry"
   ]
 }

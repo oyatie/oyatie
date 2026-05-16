@@ -120,7 +120,7 @@ The dev-CLI walks three concrete surfaces:
    `sunset_at`, `sunset_milestone`, `deprecation_at`, `removal_at`,
    `sunset_topic`, OR a `sunset_note:` prose key OR body-level sunset
    prose (the prose case maps to `MISSING_FIELDS`).
-2. **Spec JSON `_sunset` object** — `specs/cross-cutting/*.json` files
+2. **Spec JSON `_sunset` object** — `specs/*.json` files
    containing a top-level `"_sunset": { "sunset_at": …, "sunset_topic":
    …, … }` object.
 3. **Cargo manifest** — `[package.metadata.oya.sunset]` section with
@@ -176,9 +176,9 @@ First run against the repo found **6 violations**, all `MISSING_FIELDS`:
 | ADR | `docs/decisions/ADR-0037-public-api-stability-tiers-and-deprecation.md` |
 | ADR | `docs/decisions/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md` |
 | ADR | `docs/decisions/ADR-0083-rust-error-handling-tier-decision.md` |
-| Spec | `specs/cross-cutting/markdown-retirement-policy.json` |
-| Spec | `specs/cross-cutting/multispectrum-review.json` |
-| Spec | `specs/cross-cutting/oyatie-doctrine.json` |
+| Spec | `specs/markdown-retirement-policy.json` |
+| Spec | `specs/multispectrum-review.json` |
+| Spec | `specs/oyatie-doctrine.json` |
 
 Wave-A authors WARN these in CI; Wave-B blocks NEW clauses without
 schema; Wave-C drives the 6 to zero by schema-upgrade authoring (per the

@@ -48,7 +48,7 @@ This IP owns the dependency-seam and phase-out control surface. It does **not** 
 | Path | Action | Description |
 |---|---|---|
 | `/registry/tech-debt-ledger.json` | create | Object-map ledger with 11 seed deps, DRI handles, statuses, replacement targets, trigger DSL, CVE acceleration, ADR citations, default evaluator policies. |
-| `.omc/schemas/tech-debt-ledger.schema.json` or `/specs/cross-cutting/tech-debt-ledger.schema.json` | create | Schema enforcing top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, and cross-row acyclicity. |
+| `.omc/schemas/tech-debt-ledger.schema.json` or `/specs/tech-debt-ledger.schema.json` | create | Schema enforcing top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, and cross-row acyclicity. |
 | `crates/oya-check-dependency-seam-discipline/` | create | Composite runtime lane with 8 sub-checks. |
 | `crates/oya-foundry-trigger-dsl-kernel/` | create | Pure AST parser, predicate registry types, evaluator policy enums, status-transition graph validator. Zero I/O. |
 | `crates/oya-foundry-trigger-dsl-runtime/` | create | Git-toplevel file URI resolver, CI evidence fetcher, composite evaluator; consumes kernel crate. |
@@ -234,7 +234,7 @@ fixtures + multispectrum-evidence-attached per the new bar.
 
 | Phase | Outcome | Evidence |
 |---|---|---|
-| 0 — protocol foundation | docs/standards/multispectrum-review.md + /specs/cross-cutting/multispectrum-review.json + pre-PR checklist + iterative-fix-loop spec authored; root-hub-pointers updated | files exist + cited by ADR-0092 |
+| 0 — protocol foundation | docs/standards/multispectrum-review.md + /specs/multispectrum-review.json + pre-PR checklist + iterative-fix-loop spec authored; root-hub-pointers updated | files exist + cited by ADR-0092 |
 | 1 — SSE → kernel rename | crate + 2 foundry consumer adapter Cargo.toml + .rs updates | cargo test green; doc-comment updated |
 | 2 — kernel type rename + body Vec<u8> + bytes drop | HyperRequest→HttpRequest, HyperResponse→HttpResponse, body bytes→Vec<u8>; bytes dep removed from middleware-kernel; cascade clean | 102 tests pass; seam audit 6→1 |
 | 3 — middleware crates renamed -domain → -infrastructure | 3 crate renames per canonical 12-layer enum | 22 tests pass on renamed crates |

@@ -7,7 +7,7 @@ status: scaffolded
 execution_unit: ChangeSet
 final_shape_compliance: true
 dependency_additions:
-  - specs/cross-cutting/lifecycle-configs/capability-status-lifecycle.json
+  - specs/lifecycle-configs/capability-status-lifecycle.json
   - tools/oya-foundry-fitness-capability-status-lifecycle-app
 framework_anchor: docs/decisions/ADR-0109-lifecycle-automation-framework.md
 purpose: Detect capability grants whose status/expiry is unknown or overdue.

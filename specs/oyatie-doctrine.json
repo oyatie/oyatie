@@ -127,7 +127,7 @@
         "ext": "see format_selection_rules"
       },
       "examples": {
-        "doctrine": "/specs/cross-cutting/oyatie-doctrine-v1.0.0.json (post-migration)",
+        "doctrine": "/specs/oyatie-doctrine-v1.0.0.json (post-migration)",
         "registry_stream": "/registry/fixuptasks.jsonl",
         "evidence_per_change": "/evidence/per-change/<change_id>-<unix_ts>.json",
         "adr": "docs/decisions/ADR-<NNNN>-<kebab-slug>.md (existing)"
@@ -174,18 +174,18 @@
   },
   "consolidation_policy": {
     "single_source_of_truth": "Every concept has ONE canonical artifact; everywhere else cites + 1-line summary.",
-    "narrative_in_markdown_data_in_json": "Spec data \u2192 /specs/cross-cutting/*.json (migration target: /specs/). Human narrative \u2192 docs/standards/*.md as thin gateway.",
+    "narrative_in_markdown_data_in_json": "Spec data \u2192 /specs/*.json (migration target: /specs/). Human narrative \u2192 docs/standards/*.md as thin gateway.",
     "canonical_homes": {
-      "doctrine_principles": "/specs/cross-cutting/oyatie-doctrine.json#principles (this file; migration: /specs/cross-cutting/oyatie-doctrine-v1.0.0.json)",
-      "multispectrum_facets_change_classes_evidence_schema_scorecard_consensus_debate": "/specs/cross-cutting/multispectrum-review.json",
-      "iterative_fix_loop": "/specs/cross-cutting/iterative-fix-loop.json",
+      "doctrine_principles": "/specs/oyatie-doctrine.json#principles (this file; migration: /specs/oyatie-doctrine-v1.0.0.json)",
+      "multispectrum_facets_change_classes_evidence_schema_scorecard_consensus_debate": "/specs/multispectrum-review.json",
+      "iterative_fix_loop": "/specs/iterative-fix-loop.json",
       "pre_pr_template": "/templates/checklists/pre-pr-multispectrum.json",
       "fixuptasks": "/registry/fixuptasks.jsonl",
       "audit_chain": "/evidence/audit-chain.jsonl",
       "dependency_rationales": "/registry/dependency-rationales.json",
       "12_layer_enum_BNF": "docs/decisions/ADR-0056",
-      "active_artifact_contract": "/specs/cross-cutting/active-machine-readable-artifact-contract.json (ADR-0069)",
-      "hyperscaler_gates": "/specs/cross-cutting/hyperscaler-gates.json"
+      "active_artifact_contract": "/specs/active-machine-readable-artifact-contract.json (ADR-0069)",
+      "hyperscaler_gates": "/specs/hyperscaler-gates.json"
     },
     "sprawl_violations_open": [
       "F-RECONCILE-MULTISPECTRUM-WITH-HYPERSCALER-GATES"
@@ -281,19 +281,19 @@
     "migration_2026_05_14": {
       "violation_count": "approximately 93 durables under .omc/* per /evidence/audits/doc-antipattern-audit-1778808000.json",
       "fixuptask": "F-MIGRATE-DURABLES-OUT-OF-OMC",
-      "policy_during_migration": "NO new durables in /specs/cross-cutting / /registry / .omc/templates / .omc/evidence. New durables land in canonical homes."
+      "policy_during_migration": "NO new durables in /specs / /registry / .omc/templates / .omc/evidence. New durables land in canonical homes."
     }
   },
   "agent_protocol": {
     "session_start": "Read doctrine \u2192 root-hub-pointers \u2192 task-specific specs.",
-    "per_change_emit": "Multispectrum evidence per /specs/cross-cutting/multispectrum-review.json#evidence_schema.",
-    "iteration": "Per /specs/cross-cutting/iterative-fix-loop.json.",
+    "per_change_emit": "Multispectrum evidence per /specs/multispectrum-review.json#evidence_schema.",
+    "iteration": "Per /specs/iterative-fix-loop.json.",
     "promotion": "oya vcs done + oya vcs promote after seam lane sub-checks, provider evidence, multispectrum evidence, and audit-chain coverage pass; grit done is legacy compatibility/provenance only."
   },
   "consumed_by": [
     "docs/AGENTS.md",
-    "/specs/cross-cutting/root-hub-pointers.json",
-    "/specs/cross-cutting/multispectrum-review.json (inherits P0..P16)",
+    "/specs/root-hub-pointers.json",
+    "/specs/multispectrum-review.json (inherits P0..P16)",
     "every ADR (cites applicable principles)",
     "oya-check-dependency-seam (mechanical enforcement)"
   ],

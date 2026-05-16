@@ -13,7 +13,7 @@ Not reject: the direction is right. One graph substrate + contributed registries
    Evidence: `git ls-files -- <7 reviewed paths>` returned 0 rows; `git status --short -- <7 paths>` shows all seven as `??`.
    Fix: land them through the sanctioned grit path, then rerun `git ls-files` and pin the resulting object/commit in provenance.
 2. Defect: public contract change lacks a tracked ADR/audit chain.
-   Evidence: contract claims v3.0.0 and supersedes v1/v2 at `/specs/cross-cutting/active-machine-readable-artifact-contract.json:9-15`, but no ADR for this contract was tracked; `git ls-files` only found `docs/standards/prevention-doctrine.md` among the queried new spec/ADR authorities.
+   Evidence: contract claims v3.0.0 and supersedes v1/v2 at `/specs/active-machine-readable-artifact-contract.json:9-15`, but no ADR for this contract was tracked; `git ls-files` only found `docs/standards/prevention-doctrine.md` among the queried new spec/ADR authorities.
    Fix: author an ADR for the control-plane/graph/registry split, cite migration impact, and attach an audit/evidence bundle before calling this Linus-grade.
 3. Defect: the graph schema is not actually a graph instance or enforceable catalog; core node/edge/invariant data is stashed under custom `_canonical_*` keys.
    Evidence: schema requires instance fields `node_types`, `edge_types`, `invariants`, `contributing_registry_protocol` at `knowledge-graph-schema.json:31-36`; the shipped catalogs live under `_canonical_node_types` and `_canonical_invariants` at `120` and `394` onward. Generic JSON Schema validators will ignore those custom keywords.
@@ -70,8 +70,8 @@ Not reject: the direction is right. One graph substrate + contributed registries
 8. Drift detector with structural hashes for schemas, Cedar, OpenAPI components, traits, lanes.
 
 ## Architectural critique (per-file)
-- `/specs/cross-cutting/active-machine-readable-artifact-contract.json`: strong vocabulary, too much manual payload; planned validators; related paths include untracked/missing specs.
-- `/specs/cross-cutting/knowledge-graph-schema.json`: right substrate idea; wrong enforceability shape. Catalogs live as ignored custom schema metadata; no storage/query model.
+- `/specs/active-machine-readable-artifact-contract.json`: strong vocabulary, too much manual payload; planned validators; related paths include untracked/missing specs.
+- `/specs/knowledge-graph-schema.json`: right substrate idea; wrong enforceability shape. Catalogs live as ignored custom schema metadata; no storage/query model.
 - `/registry/artifact-capabilities-registry.json`: useful control-plane seed; currently 10 rows of promises. Needs generated profiles and a failing lane.
 - `/registry/reusable-building-blocks-registry.json`: right DRY intent; current data is polluted by estimates, prose, future paths, and manual counts.
 - `.omc/ledger/ops-portal-ledger.json`: useful plan ledger; evidence refs include WT-only and `/tmp`; statuses are plan-level only.

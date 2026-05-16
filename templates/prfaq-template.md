@@ -118,7 +118,7 @@ authority_chain_declaration: |
 2. Discussion follows; the author **does NOT** present.
 3. Verdict: `proceed-to-design-doc` | `revise` | `kill`.
 4. On `proceed-to-design-doc`: author lifts to a Google-style design doc (`/templates/design-doc-template.md`) before any IP claim.
-5. On `kill`: archive at `/specs/cross-cutting/killed/PRFAQ-NNNN-<slug>.md` with the kill reason recorded.
+5. On `kill`: archive at `/specs/killed/PRFAQ-NNNN-<slug>.md` with the kill reason recorded.
 
 ## Sources
 

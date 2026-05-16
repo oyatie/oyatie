@@ -36,12 +36,12 @@
       "kind": "no-leading-slash"
     },
     {
-      "file": "/specs/cross-cutting/root-hub-pointers.json",
+      "file": "/specs/root-hub-pointers.json",
       "form": "current_path",
       "kind": "leading-slash"
     },
     {
-      "file": "/specs/cross-cutting/artifact-profile-defaults.json",
+      "file": "/specs/artifact-profile-defaults.json",
       "form": "examples[] + selfmaintain.destination",
       "kind": "leading-slash"
     },

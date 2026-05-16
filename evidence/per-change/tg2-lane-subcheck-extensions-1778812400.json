@@ -25,7 +25,7 @@
     {
       "id": "naming-convention",
       "fn_name": "check_naming_convention",
-      "day_1_logic": "walk specs/cross-cutting + registries/cross-cutting + evidence + templates; kebab-case violation detection (ASCII lowercase + digit + hyphen + dot only)",
+      "day_1_logic": "walk specs + registries/cross-cutting + evidence + templates; kebab-case violation detection (ASCII lowercase + digit + hyphen + dot only)",
       "full_impl_fixuptask": "F-NAMING-CONVENTION-ENFORCE",
       "live_enforcement_level": "kebab-only; version-suffix deferred"
     },

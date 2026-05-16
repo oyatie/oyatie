@@ -15,8 +15,8 @@
       "M-CC-P10-IP-006"
     ],
     "related_specs": [
-      "/specs/cross-cutting/iterative-fix-loop.json",
-      "/specs/cross-cutting/merge-queue-parked-pr.json"
+      "/specs/iterative-fix-loop.json",
+      "/specs/merge-queue-parked-pr.json"
     ],
     "purpose": "Canonical payload for fix-loop agent dispatch. Shared between CI-source (workflow_run failure) and review-source (pr-review-fix-requested) so retry-budget accounting can be unified across BOTH surfaces per IP-005 §Shared-pool retry budget."
   },

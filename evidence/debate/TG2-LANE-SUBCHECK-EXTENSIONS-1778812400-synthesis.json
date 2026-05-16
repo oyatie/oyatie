@@ -10,7 +10,7 @@
     "owner_team": "council-architecture",
     "created_at": "2026-05-14T23:55:00Z",
     "synthesis_owner": "claude-orchestrator (this Claude session, NOT one of the facet-lensed reviewers)",
-    "spec_governing_this_debate": "/specs/cross-cutting/multispectrum-review.json v2.2.0 consensus_debate_protocol",
+    "spec_governing_this_debate": "/specs/multispectrum-review.json v2.2.0 consensus_debate_protocol",
     "executor_topology_compliance": "VERIFIED \u2014 11 reviewer_ids in 11 separate subagent contexts; ZERO reviewer_id overlap across facets",
     "facet_coverage": "9 of 9 required (F1..F9) + 2 of 2 meta-facets (M1, M2) \u2014 FULL coverage per multispectrum-review.json#consensus_debate_protocol.required_when (meta_review_triggered=true because TG2 is CC-1 kernel public API)",
     "purpose": "Auto-backfilled purpose for TG2-LANE-SUBCHECK-EXTENSIONS-1778812400-synthesis.json"
@@ -177,7 +177,7 @@
         "F2_hyperscaler"
       ],
       "lens_count": 2,
-      "summary": "Extension allow-list, canonical-home list, scorecard required-keys, meta-trigger key \u2014 all are policy data inlined as code literals. Canonical source lives in specs/cross-cutting/multispectrum-review.json + P14/P15. Drift inevitable.",
+      "summary": "Extension allow-list, canonical-home list, scorecard required-keys, meta-trigger key \u2014 all are policy data inlined as code literals. Canonical source lives in specs/multispectrum-review.json + P14/P15. Drift inevitable.",
       "severity_blocking_for_ramp": "MEDIUM (refactor; not behavior)"
     },
     {

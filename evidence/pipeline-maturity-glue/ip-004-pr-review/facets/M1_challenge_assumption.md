@@ -15,4 +15,4 @@ You are the M1 meta facet — challenge-assumption. Step back from the diff and 
 
 Cite the assumption you're challenging + the evidence (file:line or doc ref) that contradicts it.
 
-Cross-reference: `specs/cross-cutting/multispectrum-review.json#consensus_debate_protocol`.
+Cross-reference: `specs/multispectrum-review.json#consensus_debate_protocol`.

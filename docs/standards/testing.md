@@ -19,7 +19,7 @@ purpose: |
   `cargo-llvm-cov` coverage budget, and codifies the 14-day flaky-test SLA. Resolves
   the `standards/testing.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
-canonical_authority: /specs/cross-cutting/decision-principles.json + /specs/cross-cutting/forbidden-operations.json
+canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-test-evidence
 companion_docs:
   - docs/QA-TEST-STRATEGY.md
@@ -34,7 +34,7 @@ related_adrs:
 
 # Testing
 
-## Doctrinal authority — [decision-principles.json](../../specs/cross-cutting/decision-principles.json) + [forbidden-operations.json](../../specs/cross-cutting/forbidden-operations.json)
+## Doctrinal authority — [decision-principles.json](../../specs/decision-principles.json) + [forbidden-operations.json](../../specs/forbidden-operations.json)
 
 Tests are the executable evidence that the system meets its contracts. This
 standard governs how to write, organize, and run them across `oya-*` crates.
@@ -193,7 +193,7 @@ a comment with deltas; merge-blocking is reserved for the wave gate.
 
 ## 9. Flaky-test 14-day SLA
 
-Per [`forbidden-operations.json`](../../specs/cross-cutting/forbidden-operations.json) FO-06:
+Per [`forbidden-operations.json`](../../specs/forbidden-operations.json) FO-06:
 
 1. A test MAY be `#[ignore = "flaky-NNNN"]` only after a `MISTAKES-LEDGER`
    row is filed (class: `mechanical` if there is a fix; `cultural`

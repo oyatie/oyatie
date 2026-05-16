@@ -54,7 +54,7 @@ P01 + P02 + P03 (Cloud track) run as 3-way parallel inside the cloud team; they 
 - Google Design Doc per phase.
 - Postmortem-blameless on any cross-axis contract violation.
 - Microsoft 1ES CI templates per axis.
-- Oracle Engineering-Excellence-Council merge gate for cross-axis contract changes (per [`/specs/cross-cutting/decision-rights.json`](../../../specs/cross-cutting/decision-rights.json) "Cross-axis contract: Council-Architecture").
+- Oracle Engineering-Excellence-Council merge gate for cross-axis contract changes (per [`/specs/decision-rights.json`](../../../specs/decision-rights.json) "Cross-axis contract: Council-Architecture").
 - Rust toolchain gates inherited.
 
 ## Agent-navigability-pointer

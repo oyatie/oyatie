@@ -306,7 +306,7 @@ fn write_graph_edges(path: &Path, edges: &[(String, String, String)]) -> Result<
         .collect::<Vec<_>>()
         .join(",\n");
     let body = format!(
-        "{{\n  \"$schema_ref\": \"specs/cross-cutting/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\", \"purpose\": \"Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers.\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
+        "{{\n  \"$schema_ref\": \"specs/knowledge-graph-schema.json\",\n  \"_artifact_id\": \"active-artifact-contract-edges\",\n  \"_meta\": {{ \"emitter\": \"oya-dev-cli gate validate active-artifact-contract\", \"layer\": \"semantic\", \"purpose\": \"Generated graph edges that connect active machine-readable artifacts to their declared schemas, registries, templates, and ledgers.\" }},\n  \"edges\": [\n{}\n  ]\n}}\n",
         edges_json
     );
     fs::write(path, body)
@@ -385,8 +385,8 @@ mod tests {
     #[test]
     fn repo_root_artifact_paths_match_git_ls_files_shape() {
         assert_eq!(
-            normalize_repo_root_artifact_path("/specs/cross-cutting/masterplan.json"),
-            "specs/cross-cutting/masterplan.json"
+            normalize_repo_root_artifact_path("/specs/masterplan.json"),
+            "specs/masterplan.json"
         );
         assert_eq!(
             normalize_repo_root_artifact_path("registry/test-suite-registry.json"),

@@ -4,13 +4,13 @@ shape: null
 length_cap: 360
 authority_tier: 2
 excludes:
-- path: /specs/cross-cutting/root-hub-pointers.json
+- path: /specs/root-hub-pointers.json
   reason: Machine-readable entry-point registry; this contract is discovered through
     it.
-- path: /specs/cross-cutting/master-plan-sequencing.json
+- path: /specs/master-plan-sequencing.json
   reason: Forbidden primitives, grit protocol, and ChangeSet sequencing; cited and
     not duplicated fully.
-- path: /specs/cross-cutting/markdown-retirement-policy.json
+- path: /specs/markdown-retirement-policy.json
   reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
     fully.
 - path: docs/DOC-CATALOG.md
@@ -32,8 +32,8 @@ excludes:
     it.
 authority_chain_declaration: |
   system / developer / user instructions
-    > /specs/cross-cutting/root-hub-pointers.json
-    > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
+    > /specs/root-hub-pointers.json
+    > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
     > machine-readable specs and registries under .omc/
     > docs/ authority files during markdown-retirement compatibility
     > repo-root Redirect-class files (non-authoritative; lane-thin)
@@ -43,17 +43,17 @@ doc_status: published
 ---
 # Oyatie Agent Operating Contract
 
-## Machine-readable authority — [root hub pointers](..//specs/cross-cutting/root-hub-pointers.json)
+## Machine-readable authority — [root hub pointers](..//specs/root-hub-pointers.json)
 
 ## Workspace doctrine — applies to every documentation / file / workflow
 
-Canonical doctrine: [`/specs/cross-cutting/oyatie-doctrine.json`](..//specs/cross-cutting/oyatie-doctrine.json) v1.0.0. **Principles P0..P9** (agentic-primary, machine-optimized, programmatic-where-possible, deterministic-where-it-matters, enforce-in-every-thing, iterate-until-consensus, no-silent-regression, Bominal-inheritance, canonical-base-+-localization, no-sprawl) bind every PR.
+Canonical doctrine: [`/specs/oyatie-doctrine.json`](..//specs/oyatie-doctrine.json) v1.0.0. **Principles P0..P9** (agentic-primary, machine-optimized, programmatic-where-possible, deterministic-where-it-matters, enforce-in-every-thing, iterate-until-consensus, no-silent-regression, Bominal-inheritance, canonical-base-+-localization, no-sprawl) bind every PR.
 
 Workflow Studio product surface inverts P0 (human-ergonomic-first, no-code-first, SDK as enrichment). See `oyatie-doctrine.json#scope_clarifications`.
 
 ## Multispectrum review bar — required on every change
 
-Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/cross-cutting/multispectrum-review.json`](..//specs/cross-cutting/multispectrum-review.json) v2.4.0 (`evidence_schema`). Oya VCS admission plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
+Every changeset (agentic OR human-authored) MUST emit a multispectrum evidence file at `/evidence/multispectrum/<change_id>-<unix_ts>.json` conforming to [`/specs/multispectrum-review.json`](..//specs/multispectrum-review.json) v2.4.0 (`evidence_schema`). Oya VCS admission plus the seam-discipline lane `oya-check-dependency-seam` REFUSE the changeset when:
 
 - evidence file absent OR
 - declared `change_class_id` not in {CC-1..CC-7} OR
@@ -64,7 +64,7 @@ This applies to **foundry agentic flow** AND **dev flow**. Agentic flow is the p
 
 This is the single contract every agent (Claude Code, Codex, Gemini, OMC subagents, Foundry capabilities) and every human contributor honors before changing the repository. It is dual-audience: every directive is simultaneously a human-readable instruction and a machine-extractable typed artifact (RFC-2119 keyword + named path / lane / validator).
 
-Before changing this repo, read `/specs/cross-cutting/root-hub-pointers.json` first, then this contract. The retired Constitution concept is redistributed through the root hub, master-plan specs, RACI ownership, and sanctioned-primitive specs.
+Before changing this repo, read `/specs/root-hub-pointers.json` first, then this contract. The retired Constitution concept is redistributed through the root hub, master-plan specs, RACI ownership, and sanctioned-primitive specs.
 
 ## Authority precedence
 
@@ -72,15 +72,15 @@ The higher source wins on conflict.
 
 ```
 system / developer / user instructions
-  > /specs/cross-cutting/root-hub-pointers.json
-  > docs/AGENTS.md (until /specs/cross-cutting/agent-operating-contract.json PHASE-5 promotion)
+  > /specs/root-hub-pointers.json
+  > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
   > machine-readable specs and registries under .omc/
   > docs/ authority files during markdown-retirement compatibility
   > repo-root Redirect-class files (non-authoritative; lane-thin)
   > working drafts (never authoritative)
 ```
 
-The chain is mirrored from `/specs/cross-cutting/root-hub-pointers.json` and the markdown-retirement policy. The `oya-foundry-fitness-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
+The chain is mirrored from `/specs/root-hub-pointers.json` and the markdown-retirement policy. The `oya-foundry-fitness-authority-cohesion` lane validates pointer cohesion during PHASE-5 migration.
 
 ## RFC-2119 normative-language statement
 
@@ -94,7 +94,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 
 | Question | Authority |
 |---|---|
-| Project mission, decision rights, prohibited primitives, amendments | [`MASTERPLAN.md`](MASTERPLAN.md), [`/specs/cross-cutting/master-plan-sequencing.json`](..//specs/cross-cutting/master-plan-sequencing.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
+| Project mission, decision rights, prohibited primitives, amendments | [`MASTERPLAN.md`](MASTERPLAN.md), [`/specs/master-plan-sequencing.json`](..//specs/master-plan-sequencing.json), [`RACI-OWNERSHIP.md`](RACI-OWNERSHIP.md) |
 | Bootstrap routing for the canonical tree | [`README.md`](README.md) |
 | Architecture, planes, cross-axis contracts, cohesion thesis | [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> |
 | Surfaces (capabilities, APIs, events, indexes, ad slots, cloud resources) | [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 --> |
@@ -301,7 +301,7 @@ State: legacy OMC writes to `.omc/state/`, `.omc/notepad.md`, `.omc/project-memo
 
 This contract does not cover:
 
-- **Machine-readable authority registry** — see [`/specs/cross-cutting/root-hub-pointers.json`](..//specs/cross-cutting/root-hub-pointers.json).
+- **Machine-readable authority registry** — see [`/specs/root-hub-pointers.json`](..//specs/root-hub-pointers.json).
 - **Per-doc lifecycle protocol** — see [`DOC-CATALOG.md`](DOC-CATALOG.md).
 - **PR template body** — see [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->.
 - **Architectural rationale per decision** — see [`decisions/`](decisions/) <!-- forward-reference: wave-1 --> indexed at [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 -->.

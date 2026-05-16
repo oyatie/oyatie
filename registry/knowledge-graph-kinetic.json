@@ -1,5 +1,5 @@
 {
-  "_schema_ref": "/specs/cross-cutting/knowledge-graph-schema.json#v1.0.0",
+  "_schema_ref": "/specs/knowledge-graph-schema.json#v1.0.0",
   "_artifact_id": "knowledge-graph-kinetic",
   "_layer": "kinetic",
   "_meta": {
@@ -13,7 +13,7 @@
       "/registry/knowledge-graph-dynamic.json (live state)"
     ],
     "palantir_analog": "Action Types + Workflows in Palantir Foundry Ontology",
-    "workflow_traceability_integration_anchor": "/specs/cross-cutting/workflow-task-traceability-schema.json (planned next slice)"
+    "workflow_traceability_integration_anchor": "/specs/workflow-task-traceability-schema.json (planned next slice)"
   },
   "action_types": {
     "CreateArtifact": {
@@ -216,7 +216,7 @@
         "LandConsensusVerdict (critic)",
         "if-both-APPROVE: AddRegistryRow status=Accepted else BumpPlanVersion + repeat"
       ],
-      "stop_condition": "S3a per /specs/cross-cutting/stop-conditions.json"
+      "stop_condition": "S3a per /specs/stop-conditions.json"
     },
     "markdown_retirement_per_file": {
       "purpose": "Migrate one Markdown file to JSON form.",

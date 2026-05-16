@@ -15,13 +15,13 @@
   "change_class_id": "CC-4",
   "git_sha": "825cedfbc106",
   "freshness_unix": 1778811900,
-  "summary": "Migrate .omc/specs/ to specs/cross-cutting/ + reclassify 10 MD drafts to .omc/scratch/ per doctrine P11. 18 JSON specs moved (incl. root-hub-pointers.json, masterplan.json 188K, multispectrum-review.json 46K). 10 .md drafts (deep-dive/inventory/lts-versions etc., all 2026-05-12/13 session ephemera) reclassified to .omc/scratch/. 3-pass sed: (a) reclassify .md draft refs to .omc/scratch/ via regex; (b) Rust no-slash; (c) non-Rust leading-slash. Stragglers: only .audit/agent-read.jsonl (ephemeral log; OK). Cargo verified: seam lane + dev-cli + active-artifact-contract + workspace check all pass.",
+  "summary": "Migrate .omc/specs/ to specs/ + reclassify 10 MD drafts to .omc/scratch/ per doctrine P11. 18 JSON specs moved (incl. root-hub-pointers.json, masterplan.json 188K, multispectrum-review.json 46K). 10 .md drafts (deep-dive/inventory/lts-versions etc., all 2026-05-12/13 session ephemera) reclassified to .omc/scratch/. 3-pass sed: (a) reclassify .md draft refs to .omc/scratch/ via regex; (b) Rust no-slash; (c) non-Rust leading-slash. Stragglers: only .audit/agent-read.jsonl (ephemeral log; OK). Cargo verified: seam lane + dev-cli + active-artifact-contract + workspace check all pass.",
   "path_rewrite_map": [
     {
       "from_prefix": ".omc/specs/*.json",
-      "to_prefix": "specs/cross-cutting/",
-      "ref_form_json": "/specs/cross-cutting/",
-      "ref_form_rust": "specs/cross-cutting/"
+      "to_prefix": "specs/",
+      "ref_form_json": "/specs/",
+      "ref_form_rust": "specs/"
     },
     {
       "from_prefix": ".omc/specs/*.md",
@@ -47,8 +47,8 @@
   ],
   "cross_reference_rewrite": {
     "pre_pass_md_drafts_to_scratch": "s|\\.omc/specs/([a-zA-Z0-9-]+\\.md)|.omc/scratch/\\1|g (regex extension match, captures basename)",
-    "pass_a_rust": "s|\\.omc/specs|specs/cross-cutting|g",
-    "pass_b_non_rust": "s|\\.omc/specs|/specs/cross-cutting|g",
+    "pass_a_rust": "s|\\.omc/specs|specs|g",
+    "pass_b_non_rust": "s|\\.omc/specs|/specs|g",
     "rust_files_affected": 8,
     "estimated_total_cross_refs": "~190"
   },
@@ -84,7 +84,7 @@
     "F3_adversarial": {
       "considered": true,
       "findings": [
-        "root-hub-pointers.json (self-reference registry) successfully self-rewrote \u2014 all current_path fields now point at /specs/cross-cutting/, /registry/, /evidence/ledger/"
+        "root-hub-pointers.json (self-reference registry) successfully self-rewrote \u2014 all current_path fields now point at /specs/, /registry/, /evidence/ledger/"
       ],
       "failing_fixture_added": false,
       "passing_fixture_id": "n/a",
@@ -94,7 +94,7 @@
     "F4_ergonomic": {
       "considered": true,
       "findings": [
-        "root-hub-pointers.json now at /specs/cross-cutting/ \u2014 canonical hub registry at canonical home"
+        "root-hub-pointers.json now at /specs/ \u2014 canonical hub registry at canonical home"
       ],
       "new_contributor_minutes_estimate": 3
     },
