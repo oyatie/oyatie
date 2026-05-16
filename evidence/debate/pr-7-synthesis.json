@@ -1,0 +1,210 @@
+{
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "change_id": "pr-7",
+  "pr_number": 7,
+  "pr_title": null,
+  "merge_commit_sha": null,
+  "round": "synthesis",
+  "rendered_at_unix": 1778917210,
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "facets_evaluated": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+  ],
+  "facet_count_total": 9,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-7-F1-r1.json",
+    "evidence/debate/pr-7-F2-r1.json",
+    "evidence/debate/pr-7-F3-r1.json",
+    "evidence/debate/pr-7-F4-r1.json",
+    "evidence/debate/pr-7-F5-r1.json",
+    "evidence/debate/pr-7-F6-r1.json",
+    "evidence/debate/pr-7-F7-r1.json",
+    "evidence/debate/pr-7-F8-r1.json",
+    "evidence/debate/pr-7-F9-r1.json"
+  ],
+  "executor_topology_compliance": {
+    "rule": "Each facet evidence has a unique reviewer_id for this change_id; small PRs use the single COMBINED reviewer exception.",
+    "verified": true,
+    "reviewer_ids": [
+      "codex-F1-pr-7-r1",
+      "codex-F2-pr-7-r1",
+      "codex-F3-pr-7-r1",
+      "codex-F4-pr-7-r1",
+      "codex-F5-pr-7-r1",
+      "codex-F6-pr-7-r1",
+      "codex-F7-pr-7-r1-security",
+      "codex-F8-pr-7-r1-ops",
+      "codex-F9-pr-7-r1-product"
+    ],
+    "reviewer_id_overlap_across_facets": "NONE"
+  },
+  "consensus_points": [
+    {
+      "id": "PR7-CONV-1",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F2",
+        "F6"
+      ],
+      "headline": "HTTP mode never appends the accepted/routing_failed/agent_invocation_failed outcome to the delivery log; it only reads the startup snapshot. Dedup therefore resets on restart and first deliveries are not durable.",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:378-425 and registry/vcs/webhook-delivery-log.json",
+      "recommended_remediation": "Append delivery outcome atomically before returning accepted/routing-failed, reload or lock the log per request, and add a redelivery-after-restart regression test.",
+      "remediation_fixuptasks": [
+        "F-PR7-01"
+      ]
+    },
+    {
+      "id": "PR7-CONV-2",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F4"
+      ],
+      "headline": "Secret loading is optional at startup. If the default `~/.openbao/...` file or `--secret-ref` resolution is missing, `from_paths_or_optional` retries with `secret_path: None`; then both simulated and HTTP paths skip HMAC verification whenever `skip_hmac` is f\u2026",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:101-115, 454-469; tools/oya-foundry-webhook-receiver-app/src/lib.rs:186-194",
+      "recommended_remediation": "Fail startup/HTTP readiness when `--skip-hmac` is false and no secret is loaded. Keep local ergonomics by requiring explicit `--skip-hmac` for dev, and print the resolved secret source or exact missing path in the startup log.",
+      "remediation_fixuptasks": [
+        "F-PR7-02"
+      ]
+    },
+    {
+      "id": "PR7-CONV-3",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F4"
+      ],
+      "headline": "The user-facing output says `accepted: routed to <agent>` but the app only returns a route decision; it does not append a delivery-log row or create a durable invocation request. For operators, this is a silent mismatch: the surface reads like work was handed\u2026",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:236-244, 390-396; registry/vcs/README.md webhook-delivery-log section",
+      "recommended_remediation": "Change the wave-A message to `accepted: route resolved; invocation not yet emitted` or emit a durable dispatch-request/delivery-log row. Add `agent_invocation_failed` evidence when dispatch cannot happen so retries and rollback are understandable.",
+      "remediation_fixuptasks": [
+        "F-PR7-03"
+      ]
+    },
+    {
+      "id": "PR7-CONV-4",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F5"
+      ],
+      "headline": "HMAC verification is fail-open when no secret is loaded. Both the HTTP handler and simulated dispatch only verify when `!skip_hmac` and `Some(secret)` are true; if the SecretReference/file fallback is missing, unsigned GitHub webhook payloads are accepted unl\u2026",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:362-366; tools/oya-foundry-webhook-receiver-app/src/lib.rs:190-198",
+      "recommended_remediation": "Make missing secret a startup/configuration error whenever skip_hmac is false. Add tests for HTTP and simulate modes proving missing secret + skip_hmac=false rejects, while missing secret + explicit skip_hmac=true remains local-test-only and visibly logged.",
+      "remediation_fixuptasks": [
+        "F-PR7-04"
+      ]
+    },
+    {
+      "id": "PR7-CONV-5",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F5"
+      ],
+      "headline": "HTTP mode checks the in-memory delivery log snapshot but never appends accepted, routing_failed, agent_invocation_failed, or deduplicated outcomes back to the canonical delivery log. Dedup state therefore resets on process restart and first deliveries are not\u2026",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:378-409; registry/vcs/webhook-delivery-log.json:1",
+      "recommended_remediation": "Append each delivery outcome atomically before returning the HTTP response, reload or lock the log per request, and add a redelivery-after-restart regression test proving a repeated GitHub delivery is deduplicated after process restart.",
+      "remediation_fixuptasks": [
+        "F-PR7-05"
+      ]
+    },
+    {
+      "id": "PR7-CONV-6",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F7"
+      ],
+      "headline": "HMAC verification only runs when a secret is present, and startup retries without the secret when the secret file is missing. A production misconfiguration therefore accepts unsigned webhooks instead of failing closed.",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:362-370,450-470; tools/oya-foundry-webhook-receiver-app/src/lib.rs:190-198",
+      "recommended_remediation": "Make a missing secret fatal unless an explicit local-only simulate/dev mode is active; in server mode require a loaded SecretReference and reject every delivery when the secret cannot be resolved.",
+      "remediation_fixuptasks": [
+        "F-PR7-06"
+      ]
+    },
+    {
+      "id": "PR7-CONV-7",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F7"
+      ],
+      "headline": "The receiver checks an in-memory delivery log but the HTTP path does not append accepted deliveries to durable storage. A repeated GitHub delivery ID remains first-delivery unless it was already in the startup log, so replay/dedup protection is not effective.",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:373-409; tools/oya-foundry-webhook-receiver-app/src/lib.rs:199-210",
+      "recommended_remediation": "Atomically append the accepted/routing-failed outcome before returning success, fsync or transactional-write the delivery log, and add a regression proving a second delivery with the same ID is deduplicated after the first accepted request.",
+      "remediation_fixuptasks": [
+        "F-PR7-07"
+      ]
+    },
+    {
+      "id": "PR7-CONV-8",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F8"
+      ],
+      "headline": "HMAC verification is skipped whenever skip_hmac is false but no secret is loaded; startup also retries without the secret after SecretIo. A missing/misconfigured webhook secret therefore accepts unsigned production webhooks.",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:362-365,450-470 and tools/oya-foundry-webhook-receiver-app/src/lib.rs:190-198",
+      "recommended_remediation": "Make missing secret a startup error unless --skip-hmac is explicitly set, and add tests for HTTP mode rejecting unsigned deliveries when the secret path/ref is absent.",
+      "remediation_fixuptasks": [
+        "F-PR7-08"
+      ]
+    },
+    {
+      "id": "PR7-CONV-9",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F9"
+      ],
+      "headline": "M-CC-P11-IP-003 acceptance requires the HTTP receiver to dedup against an append-only delivery log and route deliveries, but the HTTP path only reads the startup log and returns accepted/routing-failed without appending a delivery outcome. Operators cannot ad\u2026",
+      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:42-60 and tools/oya-foundry-webhook-receiver-app/src/main.rs:342-409",
+      "recommended_remediation": "Append each HTTP delivery outcome atomically to `registry/vcs/webhook-delivery-log.json` before returning, add restart/redelivery tests, and make PR #7 evidence distinguish simulate-only behavior from live HTTP behavior.",
+      "remediation_fixuptasks": [
+        "F-PR7-09"
+      ]
+    },
+    {
+      "id": "PR7-CONV-10",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F2",
+        "F3",
+        "F6"
+      ],
+      "headline": "`sref://openbao/...` is mapped to `$HOME/.openbao/...` by a local resolver while comments say production should use OpenBao. This is a compatibility shim, not a real SecretReference adapter.",
+      "evidence": "tools/oya-foundry-webhook-receiver-app/src/main.rs:16-20,148-177",
+      "recommended_remediation": "Wire the real OpenBao SecretReference resolver before production and clearly mark the file resolver local-only in config/ADR.",
+      "remediation_fixuptasks": [
+        "F-PR7-10"
+      ]
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass."
+  ],
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #7 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
+  ],
+  "final_recommendation": "ACCEPT_WITH_BLOCKING_FIXUPS",
+  "termination_reason": "consensus_reached",
+  "severity_counts": {
+    "BLOCKER": 10,
+    "MAJOR": 13,
+    "MINOR": 2
+  },
+  "fixuptasks": [
+    "F-PR7-01",
+    "F-PR7-02",
+    "F-PR7-03",
+    "F-PR7-04",
+    "F-PR7-05",
+    "F-PR7-06",
+    "F-PR7-07",
+    "F-PR7-08",
+    "F-PR7-09",
+    "F-PR7-10"
+  ]
+}

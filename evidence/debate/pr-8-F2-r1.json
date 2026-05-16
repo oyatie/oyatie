@@ -1,0 +1,27 @@
+{
+  "change_id": "pr-8",
+  "pr_number": 8,
+  "pr_title": "Keep M01/M02 local gates honest with usecase boundary",
+  "merge_commit_sha": "b7778056fd6bb4cb28ae1bef343ddb2477674588",
+  "facet_id": "F2",
+  "facet_name": "Hyperscaler scale review",
+  "reviewer_id": "codex-F2-pr-8-r1",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "Hyperscaler scale review for PR #8: reviewed merged diff metadata and current tree evidence; 2 actionable finding(s), highest severity MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": "docs/runbooks/sanctioned-primitives/preflight.md:28-44",
+      "issue": "PR #8 touched/validated gates while the sanctioned-primitives runbook still instructed grit/icm flows. ADR-0116 later retired them, but this PR still demonstrates doc/gate drift during the transition.",
+      "remediation": "Ensure retired-vocabulary gates cover runbooks and migrate preflight references to Foundry pipeline/plain git surfaces."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "evidence/multispectrum/codex-m01-m02-exit-1778903088.json",
+      "issue": "The PR adds M01/M02 gate evidence but the main worktree state shows many later untracked/dirty gate changes; completion claims need branch-local reproducibility rather than ambient workspace state.",
+      "remediation": "Tie each gate evidence file to a commit SHA and command output so reruns prove the exact branch, not a dirty workstation."
+    }
+  ],
+  "null_finding_reason": null
+}

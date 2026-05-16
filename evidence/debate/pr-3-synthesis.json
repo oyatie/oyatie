@@ -1,0 +1,196 @@
+{
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "change_id": "pr-3",
+  "pr_number": 3,
+  "pr_title": null,
+  "merge_commit_sha": null,
+  "round": "synthesis",
+  "rendered_at_unix": 1778917210,
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "facets_evaluated": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+  ],
+  "facet_count_total": 9,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-3-F1-r1.json",
+    "evidence/debate/pr-3-F2-r1.json",
+    "evidence/debate/pr-3-F3-r1.json",
+    "evidence/debate/pr-3-F4-r1.json",
+    "evidence/debate/pr-3-F5-r1.json",
+    "evidence/debate/pr-3-F6-r1.json",
+    "evidence/debate/pr-3-F7-r1.json",
+    "evidence/debate/pr-3-F8-r1.json",
+    "evidence/debate/pr-3-F9-r1.json"
+  ],
+  "executor_topology_compliance": {
+    "rule": "Each facet evidence has a unique reviewer_id for this change_id; small PRs use the single COMBINED reviewer exception.",
+    "verified": true,
+    "reviewer_ids": [
+      "codex-F1-pr-3-r1",
+      "codex-F2-pr-3-r1",
+      "codex-F3-pr-3-r1",
+      "codex-F4-pr-3-r1",
+      "codex-F5-pr-3-r1",
+      "codex-F6-pr-3-r1",
+      "codex-F7-pr-3-r1-security",
+      "codex-F8-pr-3-r1-ops",
+      "codex-F9-pr-3-r1-product"
+    ],
+    "reviewer_id_overlap_across_facets": "NONE"
+  },
+  "consensus_points": [
+    {
+      "id": "PR3-CONV-1",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F3",
+        "F6"
+      ],
+      "headline": "Temporary agent memory/audit files were committed in a 2712-file pipeline PR. That violates smallest-actionable artifact discipline and risks turning local session byproducts into canonical product state.",
+      "evidence": ".omc/.project-memory.json.tmp.* and .audit/agent-read.jsonl in PR #3 file list",
+      "recommended_remediation": "Delete committed temp/session byproducts, add deny/ignore coverage for `.omc/*.tmp.*` and `.audit/` where appropriate, and keep only smallest actionable evidence artifacts.",
+      "remediation_fixuptasks": [
+        "F-PR3-01"
+      ]
+    },
+    {
+      "id": "PR3-CONV-2",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F4"
+      ],
+      "headline": "Temporary agent memory, HUD, and audit scratch files were committed alongside canonical pipeline maturity work. For contributors, this blurs product evidence versus local session exhaust and creates a real risk that future agents cargo-cult transient state as\u2026",
+      "evidence": "GitHub PR #3 files: .audit/agent-read.jsonl; .omc/.project-memory.json.tmp.*; .omc/state/sessions/.../.hud-state.json.tmp.*",
+      "recommended_remediation": "Remove committed tmp/session byproducts from canonical history on the next cleanup PR, add deny/ignore coverage for `.omc/*.tmp.*`, `.omc/state/sessions/**/.hud-state.json.tmp.*`, and local `.audit/` scratch unless intentionally promoted, and document the pro\u2026",
+      "remediation_fixuptasks": [
+        "F-PR3-02"
+      ]
+    },
+    {
+      "id": "PR3-CONV-3",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F7"
+      ],
+      "headline": "The review workflow is triggered by workflow_run, checks out the PR head SHA, and runs cargo from that checkout while the job has checks:write/actions:read permissions. That executes untrusted PR-controlled code in a privileged workflow_run context.",
+      "evidence": ".github/workflows/pr-review.yml:34-47,64-104",
+      "recommended_remediation": "Do not run PR-head code in workflow_run with write permissions. Run analysis in a pull_request/read-only job, or have workflow_run execute only trusted default-branch code against downloaded artifacts, with a separate minimal status-poster step.",
+      "remediation_fixuptasks": [
+        "F-PR3-03"
+      ]
+    },
+    {
+      "id": "PR3-CONV-4",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F9"
+      ],
+      "headline": "PR #3 added/advanced M-CC-P10 implementation-plan content, but the current machine-readable masterplan live index still shows M-CC with phase_count 10 and has no M-CC-P10/P11 entries. Agents reading the canonical masterplan JSON cannot discover the pipeline-m\u2026",
+      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/INDEX.md:39-49 and specs/cross-cutting/masterplan.json:520-553",
+      "recommended_remediation": "Regenerate `/specs/cross-cutting/masterplan.json#live_implementation_index` after P10/P11 additions and add a lane assertion that every `.omc/plans/milestones/*/phases/*/INDEX.md` phase appears in the machine-readable hierarchy.",
+      "remediation_fixuptasks": [
+        "F-PR3-04"
+      ]
+    },
+    {
+      "id": "PR3-CONV-5",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F2",
+        "F3",
+        "F6"
+      ],
+      "headline": "Large plan hierarchy moves landed together with execution code, making it hard to distinguish canonical control-surface updates from historical narrative migration.",
+      "evidence": ".omc/plans/** and specs/cross-cutting/masterplan.json",
+      "recommended_remediation": "Use machine-readable masterplan diff checks to separate canonical state transitions from archival/documentation reshuffles.",
+      "remediation_fixuptasks": [
+        "F-PR3-05"
+      ]
+    },
+    {
+      "id": "PR3-CONV-6",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "The workflow invokes `oya-foundry-pr-review-dispatcher-app` without `--runtime-mode inline-deterministic-mock`. In the dispatcher code, default runtime mode is `External`, and `subagent_runtime_pending` remains true when no complete facet panel exists. That c\u2026",
+      "evidence": ".github/workflows/pr-review.yml:102-104",
+      "recommended_remediation": "Pass `--runtime-mode inline-deterministic-mock` with a deterministic user-message/change-id in CI, or stop claiming the gap is closed. Add a regression test/workflow assertion that produced rollup has `subagent_runtime_pending=false` before merge-queue admiss\u2026",
+      "remediation_fixuptasks": [
+        "F-PR3-06"
+      ]
+    },
+    {
+      "id": "PR3-CONV-7",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "`is_success(&ExitCode)` compares Debug-formatted strings to detect success. Debug output is not the stable contract of `std::process::ExitCode`; this is a brittle special case hidden inside the canonical shipping command.",
+      "evidence": "crates/oya-dev-cli/src/commands/submit.rs:145-151",
+      "recommended_remediation": "Have the verifier return `Result<(), i32>` or a concrete status enum and convert to `ExitCode` only at the CLI boundary. Delete the Debug-string comparison.",
+      "remediation_fixuptasks": [
+        "F-PR3-07"
+      ]
+    },
+    {
+      "id": "PR3-CONV-8",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "Runtime temp sidecars are committed into a PR that is supposedly consolidating canonical pipeline maturity. Temporary state files are not product state; they make the repository look dirtier and teach future agents that transient control-plane debris is accep\u2026",
+      "evidence": ".omc/.project-memory.json.tmp.* + .omc/state/**/*.tmp.*",
+      "recommended_remediation": "Delete the `.tmp.*` files and add/verify ignore rules or atomic-write cleanup so runtime temp files cannot enter review again.",
+      "remediation_fixuptasks": [
+        "F-PR3-08"
+      ]
+    },
+    {
+      "id": "PR3-CONV-9",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "The workflow parses JSON with grep/sed/awk to recover `verdict` and `subagent_runtime_pending`. That duplicates the dispatcher contract in shell text matching and will silently drift on formatting changes.",
+      "evidence": ".github/workflows/pr-review.yml:129",
+      "recommended_remediation": "Make the dispatcher emit the check-run conclusion directly or emit a stable single-line machine output. If the workflow must read JSON, use one canonical parser path owned by the repo tooling.",
+      "remediation_fixuptasks": [
+        "F-PR3-09"
+      ]
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass."
+  ],
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #3 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
+  ],
+  "final_recommendation": "ACCEPT_WITH_BLOCKING_FIXUPS",
+  "termination_reason": "consensus_reached",
+  "severity_counts": {
+    "BLOCKER": 5,
+    "MAJOR": 20,
+    "MINOR": 1
+  },
+  "fixuptasks": [
+    "F-PR3-01",
+    "F-PR3-02",
+    "F-PR3-03",
+    "F-PR3-04",
+    "F-PR3-05",
+    "F-PR3-06",
+    "F-PR3-07",
+    "F-PR3-08",
+    "F-PR3-09"
+  ]
+}

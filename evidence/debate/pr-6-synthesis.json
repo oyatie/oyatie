@@ -1,0 +1,71 @@
+{
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "change_id": "pr-6",
+  "pr_number": 6,
+  "pr_title": "fix: address Codex P2 \u2014 promote-dev-to-staging triggers downstream via PAT",
+  "merge_commit_sha": "b883d3bbdc862a5ad9e86afdd41a9efc79393c84",
+  "round": "synthesis",
+  "rendered_at_unix": 1778917210,
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "facets_evaluated": [
+    "COMBINED"
+  ],
+  "facet_count_total": 1,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-6-COMBINED-r1.json"
+  ],
+  "executor_topology_compliance": {
+    "rule": "Each facet evidence has a unique reviewer_id for this change_id; small PRs use the single COMBINED reviewer exception.",
+    "verified": true,
+    "reviewer_ids": [
+      "codex-COMBINED-pr-6-r1-small"
+    ],
+    "reviewer_id_overlap_across_facets": "NONE"
+  },
+  "consensus_points": [
+    {
+      "id": "PR6-CONV-1",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "COMBINED"
+      ],
+      "headline": "The PAT dispatch fires the downstream workflow without passing the staging SHA that was just promoted. The downstream job later reads the live staging ref and promotes whatever SHA is present at execution time, so replay or a closely spaced staging update can\u2026",
+      "evidence": ".github/workflows/promote-dev-to-staging.yml:74-92; .github/workflows/promote-staging-to-production.yml:44-60",
+      "recommended_remediation": "Add a workflow_dispatch input such as expected_staging_sha, pass the promoted SHA from the dev-to-staging step, and have promote-staging-to-production refuse to PATCH production unless the live staging ref still matches that expected SHA.",
+      "remediation_fixuptasks": [
+        "F-PR6-01"
+      ]
+    },
+    {
+      "id": "PR6-CONV-2",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "COMBINED"
+      ],
+      "headline": "Immediate downstream promotion is optional: when the PAT secret is absent, the step silently skips and only the hourly cron remains. For the Foundry pipeline (M-CC-P11), that leaves the documented dev\u2192staging\u2192production trigger guarantee dependent on out-of-b\u2026",
+      "evidence": ".github/workflows/promote-dev-to-staging.yml:16-25 and 79-83",
+      "recommended_remediation": "Make the degraded mode visible and gated: either fail the immediate-promotion lane when the secret is missing for environments that require trigger fidelity, or emit a recorded degraded verdict with a bounded cron-only SLO and documented secret owner/rotation\u2026",
+      "remediation_fixuptasks": [
+        "F-PR6-02"
+      ]
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass."
+  ],
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #6 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
+  ],
+  "final_recommendation": "ACCEPT_WITH_FIXUPS",
+  "termination_reason": "consensus_reached",
+  "severity_counts": {
+    "BLOCKER": 0,
+    "MAJOR": 2,
+    "MINOR": 0
+  },
+  "fixuptasks": [
+    "F-PR6-01",
+    "F-PR6-02"
+  ]
+}

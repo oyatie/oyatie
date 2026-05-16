@@ -1,0 +1,212 @@
+{
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "change_id": "pr-11",
+  "pr_number": 11,
+  "pr_title": null,
+  "merge_commit_sha": null,
+  "round": "synthesis",
+  "rendered_at_unix": 1778917211,
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "facets_evaluated": [
+    "F1",
+    "F2",
+    "F3",
+    "F4",
+    "F5",
+    "F6",
+    "F7",
+    "F8",
+    "F9"
+  ],
+  "facet_count_total": 9,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-11-F1-r1.json",
+    "evidence/debate/pr-11-F2-r1.json",
+    "evidence/debate/pr-11-F3-r1.json",
+    "evidence/debate/pr-11-F4-r1.json",
+    "evidence/debate/pr-11-F5-r1.json",
+    "evidence/debate/pr-11-F6-r1.json",
+    "evidence/debate/pr-11-F7-r1.json",
+    "evidence/debate/pr-11-F8-r1.json",
+    "evidence/debate/pr-11-F9-r1.json"
+  ],
+  "executor_topology_compliance": {
+    "rule": "Each facet evidence has a unique reviewer_id for this change_id; small PRs use the single COMBINED reviewer exception.",
+    "verified": true,
+    "reviewer_ids": [
+      "codex-F1-pr-11-r1",
+      "codex-F2-pr-11-r1",
+      "codex-F3-pr-11-r1",
+      "codex-F4-pr-11-r1",
+      "codex-F5-pr-11-r1",
+      "codex-F6-pr-11-r1",
+      "codex-F7-pr-11-r1-security",
+      "codex-F8-pr-11-r1-ops",
+      "codex-F9-pr-11-r1-product"
+    ],
+    "reviewer_id_overlap_across_facets": "NONE"
+  },
+  "consensus_points": [
+    {
+      "id": "PR11-CONV-1",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F3",
+        "F6",
+        "F7"
+      ],
+      "headline": "Projected merge-state invokes `run_merge_tree(dev_head, candidate.head_sha, dev_head)`: `dev_head` is both base and one side, and accumulated queued PRs are not represented in the merge-tree input. The path-overlap check sees queued_prs, but the actual confli\u2026",
+      "evidence": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:161-181",
+      "recommended_remediation": "Compute the accumulated projected head for queued PRs or pass the real projected-base/tree into merge-tree; add a regression where PR B conflicts only after PR A is applied.",
+      "remediation_fixuptasks": [
+        "F-PR11-01"
+      ]
+    },
+    {
+      "id": "PR11-CONV-2",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F4"
+      ],
+      "headline": "`run_projected_merge_state_check` invokes `run_merge_tree(dev_head, candidate.head_sha, dev_head)`: `dev_head` is both base and theirs, and queued PRs are only passed to the kernel after parsing. Operators are told this is projected merge-state against the qu\u2026",
+      "evidence": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:139-154",
+      "recommended_remediation": "Build or accept a real projected base/head that includes queued PRs, pass that into `git merge-tree`, and add a regression where candidate B only conflicts after queued PR A is applied.",
+      "remediation_fixuptasks": [
+        "F-PR11-02"
+      ]
+    },
+    {
+      "id": "PR11-CONV-3",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F5"
+      ],
+      "headline": "The projected merge-state runner calls `run_merge_tree(dev_head, candidate.head_sha, dev_head)`, matching the comment `git merge-tree dev_head pr.head dev_head`. In the three-tree form, using the same dev head as both base and one side means the merge has one\u2026",
+      "evidence": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:8,165-181",
+      "recommended_remediation": "Pass the correct merge base and projected target head into merge-tree, or use the appropriate two-commit/merge-base mode for the repository's Git version. Add an integration test with a real temporary git repository where candidate and projected head modify t\u2026",
+      "remediation_fixuptasks": [
+        "F-PR11-03"
+      ]
+    },
+    {
+      "id": "PR11-CONV-4",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F9"
+      ],
+      "headline": "IP-002 acceptance requires the three-invariant validator to be wired into the existing merge-queue app admit path, but main still parses admission events and calls `Scheduler::admit` directly. The new pre-admit/projected-state modules are exported, not adopte\u2026",
+      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:45-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs\u2026",
+      "recommended_remediation": "Call `conflict_avoidance_pre_admit::pre_admit_check` before `Scheduler::admit`, load candidate/queued PR metadata plus concurrent-safe paths, write refusal evidence/PR comment, and add a regression where overlapping PRs are refused before admission.",
+      "remediation_fixuptasks": [
+        "F-PR11-04"
+      ]
+    },
+    {
+      "id": "PR11-CONV-5",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "F9"
+      ],
+      "headline": "Fix-at-any-stage is implemented as a standalone module but the runner has no path for `pull_request.synchronize` events, no persisted reposition counts, and no invocation of `handle_synchronize_event`. The PR therefore does not advance the stated agentic merg\u2026",
+      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:52-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs\u2026",
+      "recommended_remediation": "Add a synchronize-event input path from the webhook router/admission log, persist reposition counts across runs, invoke the revalidation handler, and emit the required IP-002 fix-at-any-stage smoke evidence.",
+      "remediation_fixuptasks": [
+        "F-PR11-05"
+      ]
+    },
+    {
+      "id": "PR11-CONV-6",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F2",
+        "F3",
+        "F6"
+      ],
+      "headline": "The app reads/writes JSON registries directly per tick without file locking or compare-and-swap. Multiple webhook/fix-loop invocations can race and lose queue/tick updates.",
+      "evidence": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs:100-201",
+      "recommended_remediation": "Serialize merge-queue writes through a single runner or add lockfile/atomic compare-and-swap semantics with contention tests.",
+      "remediation_fixuptasks": [
+        "F-PR11-06"
+      ]
+    },
+    {
+      "id": "PR11-CONV-7",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "The PR adds a `GitMergeTreeRunner` trait, but `git grep` shows only test stubs implement `run_merge_tree`; the production app has no Command-backed runner and the existing admission loop does not call `pre_admit_check`. This is not runner-side wiring; it is d\u2026",
+      "evidence": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:34-38 + grep call sites",
+      "recommended_remediation": "Implement a production runner using `git merge-tree`, wire `pre_admit_check` into the app admission path, and add a test that the app refuses a conflicting candidate through the real seam.",
+      "remediation_fixuptasks": [
+        "F-PR11-07"
+      ]
+    },
+    {
+      "id": "PR11-CONV-8",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "`run_projected_merge_state_check` calls `run_merge_tree(dev_head, candidate.head_sha, dev_head)`. That compares the candidate against dev using dev as both base and theirs; it never builds a projected base including queued PRs. The function name promises proj\u2026",
+      "evidence": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:171-174",
+      "recommended_remediation": "Construct the projected queue head (or iterate queued PR merge-tree applications) and call merge-tree against that projected base. Rename the current function if it is only a candidate-vs-dev check.",
+      "remediation_fixuptasks": [
+        "F-PR11-08"
+      ]
+    },
+    {
+      "id": "PR11-CONV-9",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "An unreachable split branch is handled by fabricating a synthetic `QueuedPr { pr_number: 0, sha: 000... }`. That masks impossible control-flow evidence and can turn a logic bug into a misleading kernel refusal.",
+      "evidence": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/fix_at_any_stage_revalidate.rs:124-129 + 188-201",
+      "recommended_remediation": "Index safely without cloning through `unwrap_or_else`, or return an explicit internal error. Never invent PR #0 as a fallback for impossible state.",
+      "remediation_fixuptasks": [
+        "F-PR11-09"
+      ]
+    },
+    {
+      "id": "PR11-CONV-10",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "F2"
+      ],
+      "headline": "Conflict path extraction is a heuristic over merge-tree stdout. It fails closed on unknown markers, which is good, but evidence quality can be empty paths and no machine-readable git status.",
+      "evidence": "tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/projected_merge_state.rs:47-83",
+      "recommended_remediation": "Capture merge-tree exit/status plus raw conflict summary in evidence and add fixtures for rename/delete/binary conflict output shapes.",
+      "remediation_fixuptasks": [
+        "F-PR11-10"
+      ]
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass."
+  ],
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #11 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
+  ],
+  "final_recommendation": "ACCEPT_WITH_BLOCKING_FIXUPS",
+  "termination_reason": "consensus_reached",
+  "severity_counts": {
+    "BLOCKER": 7,
+    "MAJOR": 16,
+    "MINOR": 1,
+    "MEDIUM": 1
+  },
+  "fixuptasks": [
+    "F-PR11-01",
+    "F-PR11-02",
+    "F-PR11-03",
+    "F-PR11-04",
+    "F-PR11-05",
+    "F-PR11-06",
+    "F-PR11-07",
+    "F-PR11-08",
+    "F-PR11-09",
+    "F-PR11-10"
+  ]
+}

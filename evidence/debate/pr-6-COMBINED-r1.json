@@ -1,0 +1,27 @@
+{
+  "change_id": "pr-6",
+  "pr_number": 6,
+  "pr_title": "fix: address Codex P2 — promote-dev-to-staging triggers downstream via PAT",
+  "merge_commit_sha": "b883d3bbdc862a5ad9e86afdd41a9efc79393c84",
+  "facet_id": "COMBINED",
+  "facet_name": "Combined small-PR F1+F4+F7+F9 review",
+  "reviewer_id": "codex-COMBINED-pr-6-r1-small",
+  "considered": true,
+  "rigor": "YELLOW",
+  "summary": "Combined small-PR F1+F4+F7+F9 review for PR #6: reviewed gh PR metadata, branch-promotion workflows, actionlint, and current Foundry pipeline (M-CC-P11) tree evidence; 2 actionable findings, highest severity MAJOR.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/promote-dev-to-staging.yml:74-92; .github/workflows/promote-staging-to-production.yml:44-60",
+      "issue": "The PAT dispatch fires the downstream workflow without passing the staging SHA that was just promoted. The downstream job later reads the live staging ref and promotes whatever SHA is present at execution time, so replay or a closely spaced staging update can promote a different commit than the triggering update.",
+      "remediation": "Add a workflow_dispatch input such as expected_staging_sha, pass the promoted SHA from the dev-to-staging step, and have promote-staging-to-production refuse to PATCH production unless the live staging ref still matches that expected SHA."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/promote-dev-to-staging.yml:16-25 and 79-83",
+      "issue": "Immediate downstream promotion is optional: when the PAT secret is absent, the step silently skips and only the hourly cron remains. For the Foundry pipeline (M-CC-P11), that leaves the documented dev→staging→production trigger guarantee dependent on out-of-band secret provisioning rather than an explicit pipeline state.",
+      "remediation": "Make the degraded mode visible and gated: either fail the immediate-promotion lane when the secret is missing for environments that require trigger fidelity, or emit a recorded degraded verdict with a bounded cron-only SLO and documented secret owner/rotation scope."
+    }
+  ],
+  "null_finding_reason": null
+}

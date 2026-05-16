@@ -1,0 +1,27 @@
+{
+  "change_id": "pr-2",
+  "pr_number": 2,
+  "pr_title": "Gate Foundry RAG retrieve citations",
+  "merge_commit_sha": "498b3cef8f091ee900dd334a38155e1705317090",
+  "facet_id": "COMBINED",
+  "facet_name": "Combined small-PR F1+F4+F7+F9 review",
+  "reviewer_id": "codex-COMBINED-pr-2-r1-small",
+  "considered": true,
+  "rigor": "RED",
+  "summary": "Combined small-PR F1+F4+F7+F9 review for PR #2: reviewed gh PR metadata, current RAG contract bindings, and current tree package evidence; 2 actionable findings, highest severity BLOCKER.",
+  "findings": [
+    {
+      "severity": "BLOCKER",
+      "file": "docs/machine-readable/contracts.json:428; registry/openapi/runtime-bindings.tsv:37; registry/openapi/schema-bindings.tsv:282-290; Cargo.toml:128-130",
+      "issue": "The stable foundry.rag.retrieve contract still points at oya-foundry-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-foundry-rag-api --locked --offline` no longer resolves a package. That makes the PR #2 citation gate evidence stale against current tree validation.",
+      "remediation": "Either restore oya-foundry-rag-api as a checked workspace package or migrate the contract mirror, runtime binding, schema bindings, catalog row, and tests to the current oya-foundry-rag-endpoint-* crates in one bounded follow-up."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "crates/oya-foundry-rag-api/src/lib.rs:766-775",
+      "issue": "Authorization for citation retrieval only checks tenant/principal plus the generic foundry.rag.retrieve surface. It does not bind the authorization decision to namespace, capability_id, or search_index_id, so a broad surface grant can authorize citations for any capability/index in the tenant.",
+      "remediation": "Add decision-scope fields for namespace, capability_id, and search_index_id (or an equivalent signed authorization input hash), reject drift before retrieval, and add regression tests for cross-capability/index denial."
+    }
+  ],
+  "null_finding_reason": null
+}

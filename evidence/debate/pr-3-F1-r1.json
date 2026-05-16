@@ -1,0 +1,42 @@
+{
+  "change_id": "pr-3",
+  "facet_id": "F1",
+  "facet_name": "Linus critique",
+  "reviewer_id": "codex-F1-pr-3-r1",
+  "considered": true,
+  "rigor": "GREEN",
+  "summary": "PR #3 tries to promote many unrelated pipeline, vocabulary, gate, CLI, and runtime decisions at once. The biggest functional lie is that the subagent-runtime gap is claimed closed while the workflow still invokes the dispatcher in external mode, so approvals remain pending and the merge queue refuses them.",
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/pr-review.yml:102-104",
+      "issue": "The workflow invokes `oya-foundry-pr-review-dispatcher-app` without `--runtime-mode inline-deterministic-mock`. In the dispatcher code, default runtime mode is `External`, and `subagent_runtime_pending` remains true when no complete facet panel exists. That contradicts the PR body claim that IP-009 closes the pending-runtime scaffold gap.",
+      "remediation": "Pass `--runtime-mode inline-deterministic-mock` with a deterministic user-message/change-id in CI, or stop claiming the gap is closed. Add a regression test/workflow assertion that produced rollup has `subagent_runtime_pending=false` before merge-queue admission."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "crates/oya-dev-cli/src/commands/submit.rs:145-151",
+      "issue": "`is_success(&ExitCode)` compares Debug-formatted strings to detect success. Debug output is not the stable contract of `std::process::ExitCode`; this is a brittle special case hidden inside the canonical shipping command.",
+      "remediation": "Have the verifier return `Result<(), i32>` or a concrete status enum and convert to `ExitCode` only at the CLI boundary. Delete the Debug-string comparison."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".omc/.project-memory.json.tmp.* + .omc/state/**/*.tmp.*",
+      "issue": "Runtime temp sidecars are committed into a PR that is supposedly consolidating canonical pipeline maturity. Temporary state files are not product state; they make the repository look dirtier and teach future agents that transient control-plane debris is acceptable source.",
+      "remediation": "Delete the `.tmp.*` files and add/verify ignore rules or atomic-write cleanup so runtime temp files cannot enter review again."
+    },
+    {
+      "severity": "MAJOR",
+      "file": ".github/workflows/pr-review.yml:129",
+      "issue": "The workflow parses JSON with grep/sed/awk to recover `verdict` and `subagent_runtime_pending`. That duplicates the dispatcher contract in shell text matching and will silently drift on formatting changes.",
+      "remediation": "Make the dispatcher emit the check-run conclusion directly or emit a stable single-line machine output. If the workflow must read JSON, use one canonical parser path owned by the repo tooling."
+    },
+    {
+      "severity": "MAJOR",
+      "file": "PR #3 aggregate diff",
+      "issue": "2712 files, 151k insertions, and 19k deletions mix clippy policy, nine M-CC-P10 IPs, CLI canonicalization, lifecycle automation, vocabulary retirement, CI, and a new submit primitive. This is unreviewable by construction and makes rollback impossible without reverting unrelated decisions.",
+      "remediation": "Split policy hardening, dispatcher runtime, merge-queue, CLI retirement, vocabulary lane, and CI templates into separate PRs with one invariant per PR."
+    }
+  ],
+  "null_finding_reason": null
+}

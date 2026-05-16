@@ -1,0 +1,71 @@
+{
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "change_id": "pr-2",
+  "pr_number": 2,
+  "pr_title": "Gate Foundry RAG retrieve citations",
+  "merge_commit_sha": "498b3cef8f091ee900dd334a38155e1705317090",
+  "round": "synthesis",
+  "rendered_at_unix": 1778917210,
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "facets_evaluated": [
+    "COMBINED"
+  ],
+  "facet_count_total": 1,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-2-COMBINED-r1.json"
+  ],
+  "executor_topology_compliance": {
+    "rule": "Each facet evidence has a unique reviewer_id for this change_id; small PRs use the single COMBINED reviewer exception.",
+    "verified": true,
+    "reviewer_ids": [
+      "codex-COMBINED-pr-2-r1-small"
+    ],
+    "reviewer_id_overlap_across_facets": "NONE"
+  },
+  "consensus_points": [
+    {
+      "id": "PR2-CONV-1",
+      "severity": "BLOCKER",
+      "facets_concurring": [
+        "COMBINED"
+      ],
+      "headline": "The stable foundry.rag.retrieve contract still points at oya-foundry-rag-api, but the current workspace exposes the renamed oya-foundry-rag-endpoint-* crates and `cargo check -p oya-foundry-rag-api --locked --offline` no longer resolves a package. That makes\u2026",
+      "evidence": "docs/machine-readable/contracts.json:428; registry/openapi/runtime-bindings.tsv:37; registry/openapi/schema-bindings.tsv:282-290; Cargo.toml:128-130",
+      "recommended_remediation": "Either restore oya-foundry-rag-api as a checked workspace package or migrate the contract mirror, runtime binding, schema bindings, catalog row, and tests to the current oya-foundry-rag-endpoint-* crates in one bounded follow-up.",
+      "remediation_fixuptasks": [
+        "F-PR2-01"
+      ]
+    },
+    {
+      "id": "PR2-CONV-2",
+      "severity": "MAJOR",
+      "facets_concurring": [
+        "COMBINED"
+      ],
+      "headline": "Authorization for citation retrieval only checks tenant/principal plus the generic foundry.rag.retrieve surface. It does not bind the authorization decision to namespace, capability_id, or search_index_id, so a broad surface grant can authorize citations for\u2026",
+      "evidence": "crates/oya-foundry-rag-api/src/lib.rs:766-775",
+      "recommended_remediation": "Add decision-scope fields for namespace, capability_id, and search_index_id (or an equivalent signed authorization input hash), reject drift before retrieval, and add regression tests for cross-capability/index denial.",
+      "remediation_fixuptasks": [
+        "F-PR2-02"
+      ]
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass."
+  ],
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #2 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
+  ],
+  "final_recommendation": "ACCEPT_WITH_BLOCKING_FIXUPS",
+  "termination_reason": "consensus_reached",
+  "severity_counts": {
+    "BLOCKER": 1,
+    "MAJOR": 1,
+    "MINOR": 0
+  },
+  "fixuptasks": [
+    "F-PR2-01",
+    "F-PR2-02"
+  ]
+}
