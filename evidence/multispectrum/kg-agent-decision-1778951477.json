@@ -1,0 +1,83 @@
+{
+  "change_id": "kg-agent-decision-1778951477",
+  "change_class_id": "CC-5_governance_registry",
+  "freshness_unix": 1778951477,
+  "session_id": "codex-kg-agent-decision-2026-05-16",
+  "scope": [
+    "registry/knowledge-graph-semantic.json",
+    "registry/kg-audit/index.json",
+    "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Close F-KG-04 by declaring AgentDecision as a KG node, adding caused_by AgentDecision edge traversal, I17 decision-chain invariant, and trace_agent_decision_chain read-side query so decision provenance is graph-traversable instead of event-only.",
+  "verification": [
+    {
+      "command": "python3 -m json.tool registry/knowledge-graph-semantic.json registry/kg-audit/index.json",
+      "status": "passed",
+      "evidence": "changed JSON parsed"
+    },
+    {
+      "command": "jq semantic count and F-KG-04 closure",
+      "status": "passed",
+      "evidence": "31 node types, 23 edge types, 17 invariants, 9 queries; agent_decision_provenance coverage 100%"
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed",
+      "evidence": "workspace formatting check passed"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli --test knowledge_graph_semantic",
+      "status": "passed",
+      "evidence": "5 tests passed including agent_decision_provenance_chain_is_graph_traversable"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --test knowledge_graph_semantic -- -D warnings",
+      "status": "passed",
+      "evidence": "targeted clippy passed"
+    },
+    {
+      "command": "oya gate validate active-artifact-contract",
+      "status": "passed",
+      "evidence": "53 rows, 3538 HEAD-tracked, 53 graph edges"
+    },
+    {
+      "command": "oya gate validate retired-vocabulary",
+      "status": "passed",
+      "evidence": "1203 documents checked, 6 retired terms enforced, 0 drift hits"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "no whitespace errors"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Promotes the existing decision-event concept into one graph node and one recursive edge; no new runtime subsystem."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Decision provenance can be recursively traversed through caused_by edges with evidence refs."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "passing_fixture_id": "knowledge_graph_semantic::agent_decision_provenance_chain_is_graph_traversable",
+      "diagnostic_asserted": "AgentDecision node, caused_by edge, I17 invariant, and recursive query all exist."
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "JSON, fmt, test, clippy, active artifact, retired vocabulary, and diff checks passed."
+      ]
+    }
+  },
+  "remaining_risks": [
+    "F-KG-05/F-KG-06 remain as development traceability chain improvements."
+  ]
+}

@@ -323,6 +323,19 @@
         "registry/incidents/*.json (planned)"
       ]
     },
+    "AgentDecision": {
+      "purpose": "Durable agent decision node promoted from audit/event rows so decision provenance can be traversed as a chain.",
+      "id_pattern": "^decision:[a-z0-9][a-z0-9-]*:[0-9]{8}:[a-z0-9-]+$",
+      "examples": [
+        "decision:codex-kg-blast-radius:20260516:use-recursive-cte",
+        "decision:codex-kg-agent-decision:20260516:promote-event-node"
+      ],
+      "contributing_registries": [
+        "evidence/audit-chain.jsonl",
+        ".omx/project-memory.json",
+        ".omc/project-memory.json"
+      ]
+    },
     "Claim": {
       "purpose": "Hyperscaler claim per claim-matrix",
       "id_pattern": "^claim:[a-z0-9-]+$",
@@ -605,6 +618,17 @@
       "cardinality": "many-to-many",
       "semantics": "root-cause change join node links to the pull request that introduced, fixed, or mitigated the incident-relevant change."
     },
+    "caused_by": {
+      "direction": "directed",
+      "source_node_types": [
+        "AgentDecision"
+      ],
+      "target_node_types": [
+        "AgentDecision"
+      ],
+      "cardinality": "many-to-many",
+      "semantics": "agent decision was caused by, superseded by, or derived from a prior agent decision, enabling decision-chain traversal without relying on prose-only event logs."
+    },
     "blocks_on": {
       "direction": "directed",
       "source_node_types": [
@@ -794,6 +818,12 @@
       "rule": "Every closed Incident node has at least one caused_by_change edge to a CausedByChange node and each CausedByChange node has at least one change_from_pr edge to PullRequest.",
       "severity": "error",
       "remediation_hint": "On incident_close, emit the Incident -> CausedByChange -> PullRequest chain with evidence_ref and closeout timestamp."
+    },
+    {
+      "id": "I17-agent-decision-chain-is-traversable",
+      "rule": "Every AgentDecision node that declares caused_by_decision_ids has matching caused_by edges to AgentDecision nodes; cycles are rejected unless explicitly marked loop_closure=true.",
+      "severity": "error",
+      "remediation_hint": "When emitting agent_decision provenance, materialize AgentDecision nodes and caused_by edges for every upstream decision dependency."
     }
   ],
   "read_side_query_examples": [
@@ -826,6 +856,11 @@
       "name": "reachable_entity_types_for_diff",
       "description": "Given candidate diff files and deterministic review_tiering blast_radius_score signals, returns reachable KG entity types, downstream consumers, and tiering evidence before PR review dispatch.",
       "query_sketch": "WITH RECURSIVE candidate_diff_files AS (SELECT path, status, additions, deletions FROM :diff_name_status), diff_signals AS (SELECT bool_or(path ~ 'crates/.*/src/lib\\.rs|contracts/.*\\.yaml') AS public_api_touched, bool_or(path ~ 'crates/.*-kernel/src/') AS kernel_layer_touched, bool_or(path ~ 'OpenBao|SecretReference|infra/kyverno/|registry/secrets/') AS secret_or_admission_touched, bool_or(path ~ 'evidence/audit-chain\\.jsonl|oya-foundry-audit-chain-') AS audit_chain_schema_touched, count(*) FILTER (WHERE path ~ 'docs/decisions/ADR-.*\\.md') AS ADR_introduced_or_amended_count, count(*) FILTER (WHERE path ~ 'Cargo\\.toml') AS cargo_deps_changed_count, sum(additions + deletions) AS lines_touched, count(*) FILTER (WHERE status = 'A') AS new_files_count, count(*) FILTER (WHERE status = 'A' AND path ~ '^(crates|tools)/.*/Cargo\\.toml$') AS new_crates_count, bool_or(:pr_body ~ 'BREAKING:' OR path ~ 'breaking_change: true') AS breaking_change_marker, bool_or(path ~ '^(specs|docs/standards|registry/microservices|docs/decisions)/') AS meta_review_triggered FROM candidate_diff_files), touched_nodes AS (SELECT DISTINCT n.id, n.node_type FROM knowledge_graph_nodes n JOIN candidate_diff_files d ON n.source_path = d.path OR d.path LIKE n.source_path || '%'), reachable AS (SELECT id, node_type FROM touched_nodes UNION SELECT e.target, n.node_type FROM graph_edges e JOIN reachable r ON e.source = r.id JOIN knowledge_graph_nodes n ON n.id = e.target WHERE e.edge_type IN ('depends_on','exposes','consumes','validates','satisfies','prerequisite_for','owned_by')) SELECT reachable.node_type AS reachable_entity_types, array_agg(DISTINCT reachable.id) AS downstream_consumers, diff_signals.*, (:blast_radius_score) AS blast_radius_score FROM reachable CROSS JOIN diff_signals GROUP BY reachable.node_type, diff_signals.public_api_touched, diff_signals.kernel_layer_touched, diff_signals.secret_or_admission_touched, diff_signals.audit_chain_schema_touched, diff_signals.ADR_introduced_or_amended_count, diff_signals.cargo_deps_changed_count, diff_signals.lines_touched, diff_signals.new_files_count, diff_signals.new_crates_count, diff_signals.breaking_change_marker, diff_signals.meta_review_triggered ORDER BY blast_radius_score DESC, reachable.node_type"
+    },
+    {
+      "name": "trace_agent_decision_chain",
+      "description": "Recursively traverses AgentDecision caused_by edges to explain why an agent chose a plan, implementation path, or remediation.",
+      "query_sketch": "WITH RECURSIVE decision_chain AS (SELECT decision.id, decision.agent_id, decision.summary, decision.evidence_ref, 0 AS depth FROM agent_decisions decision WHERE decision.id = :decision_id UNION ALL SELECT prior.id, prior.agent_id, prior.summary, prior.evidence_ref, chain.depth + 1 FROM caused_by_edges edge JOIN decision_chain chain ON edge.source = chain.id JOIN agent_decisions prior ON prior.id = edge.target WHERE chain.depth < :max_depth) SELECT * FROM decision_chain ORDER BY depth, id"
     },
     {
       "name": "find_unreachable_features",
