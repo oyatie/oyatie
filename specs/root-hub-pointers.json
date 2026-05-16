@@ -327,6 +327,55 @@
       "current_path": "/evidence/audit-chain.jsonl",
       "migration_phase": "scaffold (F-EVIDENCE-AUDIT-CHAIN-WIRE pending for ADR-0069 cryptographic-immutability integration)",
       "purpose": "Append-only JSONL stream of changeset evidence emissions, lane runs, spec-version bumps, ADR acceptances, IP status flips, seam audit baselines. Schema: {event_type, change_id?, session_id, timestamp_unix, payload}."
+    },
+    "prd_connect_suite": {
+      "kind": "prd",
+      "current_path": "/specs/products/connect/suite.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Connect suite PRD — dual-context native communications shell binding Mail, Messenger, and Calendar under shared context, policy, audit, retention/legal-hold, and OpenTofu/oya-ops deployment constraints."
+    },
+    "prd_connect_mail": {
+      "kind": "prd",
+      "current_path": "/specs/products/connect/mail.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Connect Mail sub-PRD — work/personal mail, retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries."
+    },
+    "prd_connect_messenger": {
+      "kind": "prd",
+      "current_path": "/specs/products/connect/messenger.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Connect Messenger sub-PRD — personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict dual-context boundaries."
+    },
+    "prd_connect_calendar": {
+      "kind": "prd",
+      "current_path": "/specs/products/connect/calendar.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Connect Calendar sub-PRD — personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-pillar-safe availability projections."
+    },
+    "design_connect_shell_persona_switcher": {
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/connect-shell-persona-switcher.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Connect shell persona-switcher design-system component row: personal/work/admin-audit switching with pillar-safe cache and policy re-evaluation invariants."
+    },
+    "design_communication_thread_list": {
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/communication-thread-list.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Reusable mail/messenger/calendar thread-list component row with policy badges, retention/hold indicators, accessibility, and progressive loading states."
+    },
+    "design_policy_disclosure_banner": {
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/policy-disclosure-banner.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Policy disclosure banner component row for retention, legal hold, consent, audit access, and Workflow handoff consequences."
     }
   },
   "by_kind": {
