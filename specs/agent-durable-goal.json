@@ -572,6 +572,29 @@
       "protocol_step_4": "If quorum converges on root-cause: emit ADR + lane + regression test through normal pipeline",
       "protocol_step_5": "If quorum cannot converge after 48h wall-clock: leave the case OPEN in registry/incidents/open/; file F-OPEN-INCIDENT-COMPOUNDING for the next planning round to weight as priority input"
     },
+    "hermes_research_integration": {
+      "evidence_path": "evidence/autoresearch/hermes-integration-candidates.json",
+      "source_commit": "NousResearch/hermes-agent@a91a57fa5a13d516c38b07a141a9ce8a3daabeb0",
+      "adopted_patterns": [
+        "durable_agent_workboard",
+        "worker_liveness_reclaim_and_failure_circuit_breaker",
+        "persistent_goals_checkpoints_live_handoff",
+        "per_turn_file_mutation_verifier",
+        "curated_learning_loop_for_agent_created_procedures",
+        "progressive_disclosure_knowledge_surfaces",
+        "bounded_memory_plus_on_demand_session_search",
+        "scheduled_ops_jobs_with_loop_guard",
+        "hardline_forbidden_operations_floor",
+        "provider_capability_and_credential_registry"
+      ],
+      "rejected_or_constrained_patterns": [
+        "manual chat as control authority",
+        "remote shell/serverless terminal backends for deployment",
+        "yolo/off approval modes as autonomy mechanism",
+        "agent-managed canonical skill/spec mutation outside PR gates"
+      ],
+      "deployment_constraint": "Hermes shell/server patterns are rejected for deployment. Oyatie deployment remains OpenTofu + Makefile bootstrap/install + ops-managed day-2 only per specs/deployment-ops-contract.json; no manual SSH troubleshooting."
+    },
     "audit_chain_requirement": "Every autonomous_foundry decision emits one or more audit-chain rows with per-decision distinct session_id + timestamp + role attribution. PR17 anti-pattern (shared session_id) is forbidden per OP-08.",
     "references": ["agent-skills:idea-refine (user invocation 2026-05-16)", "feedback_consensus_debate_spectrum_lens_subagents", "feedback_multispectrum_review_v22", "feedback_no_silent_regression", "feedback_automate_everything", "feedback_quality_performance_scalability_bar"]
   },
@@ -605,7 +628,8 @@
       {"id": "V-05", "check": "multispectrum r1 evidence written for every required facet", "must_satisfy": "evidence/debate/<change_id>-<facet>-r1.json present with doctrine-required keys"},
       {"id": "V-06", "check": "audit-chain row emitted with distinct timestamp + session_id", "must_satisfy": "row appended to evidence/audit-chain.jsonl"},
       {"id": "V-07", "check": "FixupTasks for deferred findings filed", "must_satisfy": "rows in registry/fixuptasks.jsonl with stable F-* IDs"},
-      {"id": "V-08", "check": "PR body cites every fix back to its evidence/debate r1 source", "must_satisfy": "PR body human-traceable to findings"}
+      {"id": "V-08", "check": "PR body cites every fix back to its evidence/debate r1 source", "must_satisfy": "PR body human-traceable to findings"},
+      {"id": "V-09", "check": "mutation receipt coverage for every claimed changed file", "must_satisfy": "claimed paths are covered by git diff paths and deterministic mutation receipts for the ChangeSet", "skip_if": "no file mutation occurred in the session"}
     ]
   },
   "scope_discipline": {
