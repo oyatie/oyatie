@@ -1,0 +1,39 @@
+{
+  "change_id": "pr-7",
+  "consensus_delta": "round-2 evidence attached before consensus declaration; synthesis now cites both primary facet evidence and rebuttal evidence paths",
+  "considered": true,
+  "facet_id": "F6",
+  "facet_name": "Alternatives and simplification",
+  "inputs_reviewed": [
+    "evidence/debate/pr-7-F6-r1.json",
+    "evidence/debate/pr-7-synthesis.json"
+  ],
+  "merge_commit_sha": "5f1f83f7e6ab1fa7dbe846e01b807901e4e5ca11",
+  "naming_justification": "evidence/debate/pr-7-F6-r2.json follows the multispectrum evidence path contract and separates the rebuttal round from the primary facet review.",
+  "null_finding_reason": null,
+  "position": "concurs_with_synthesis_after_rebuttal",
+  "pr_number": 7,
+  "pr_title": "ADR-0112 wave-A: webhook-receiver kernel + app (HMAC + dedup + router)",
+  "rendered_at_unix": 1778920055,
+  "reviewer_id": "codex-F6-pr-7-r2-rebuttal",
+  "rigor": "GREEN",
+  "round": "r2_rebuttal",
+  "round_2_findings": [
+    {
+      "issue": "Round-2 F6 reconciliation preserved consensus finding: HTTP mode never appends the accepted/routing_failed/agent_invocation_failed outcome to the delivery log; it only reads the startup snapshot. Dedup therefore resets on restart and first deliveries are not durable.",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F6 reconciliation preserved consensus finding: Secret loading is optional at startup. If the default `~/.openbao/...` file or `--secret-ref` resolution is missing, `from_paths_or_optional` retries with `secret_path: None`; then both simulated and HTTP paths skip HMAC verification whenever `skip_hmac` is f…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    },
+    {
+      "issue": "Round-2 F6 reconciliation preserved consensus finding: The user-facing output says `accepted: routed to <agent>` but the app only returns a route decision; it does not append a delivery-log row or create a durable invocation request. For operators, this is a silent mismatch: the surface reads like work was handed…",
+      "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
+      "severity": "INFO"
+    }
+  ],
+  "summary": "F6 Alternatives and simplification round-2 rebuttal for PR #7 rechecked the primary facet evidence against the synthesis consensus points. This r2 artifact is the explicit consensus rebuttal round required before synthesis. No consensus contradiction or reviewer-id reuse was found; blockers remain represented as FixupTasks."
+}

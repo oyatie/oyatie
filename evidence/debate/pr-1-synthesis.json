@@ -1,13 +1,178 @@
 {
-  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
   "change_id": "pr-1",
-  "pr_number": 1,
-  "pr_title": null,
-  "merge_commit_sha": null,
-  "round": "synthesis",
-  "rendered_at_unix": 1778917210,
-  "spec_version": "2.3.0",
-  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "consensus_points": [
+    {
+      "evidence": "GitHub PR #1 statusCheckRollup / workflow oya-foundry-fitness-supply-chain",
+      "facets_concurring": [
+        "F3",
+        "F5",
+        "F6"
+      ],
+      "headline": "PR #1 was merged while the static ADR-0039 wiring gate reported FAILURE. That makes the initial verified API surface untrustworthy as a compliance baseline because the release evidence lane did not pass before merge.",
+      "id": "PR1-CONV-1",
+      "recommended_remediation": "Re-run the supply-chain/ADR-0039 lane on the current dev/staging/production SHA and file or fix any residual ADR-0039 wiring violations before treating PR #1 as a verified baseline.",
+      "remediation_fixuptasks": [
+        "F-PR1-01"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "GitHub PR #1 statusCheckRollup: static ADR-0039 wiring gate=FAILURE; release artifact Trivy/Cosign/SBOM lane=SKIPPED",
+      "facets_concurring": [
+        "F4"
+      ],
+      "headline": "The PR title promises a verified API contract surface, but the operator-visible check rollup says the wiring gate failed and release attestation was skipped. A contributor reading the merged PR has conflicting instructions: trust the baseline or stop on faile…",
+      "id": "PR1-CONV-2",
+      "recommended_remediation": "Replay the ADR-0039/supply-chain and release-attestation lanes against the current baseline SHA, publish the exact pass/fail artifact next to the PR evidence, and mark any still-failing contract group as not verified until fixed.",
+      "remediation_fixuptasks": [
+        "F-PR1-02"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "GitHub PR #1 statusCheckRollup; .github/workflows/supply-chain.yml@cdc53bf:18-36",
+      "facets_concurring": [
+        "F7"
+      ],
+      "headline": "The PR was merged even though the static ADR-0039 supply-chain gate concluded FAILURE and the release artifact Trivy/Cosign/SBOM lane was SKIPPED. A baseline described as verified cannot be trusted when its release/security evidence lane did not pass before m…",
+      "id": "PR1-CONV-3",
+      "recommended_remediation": "Treat PR #1 as an unverified bootstrap until the current target SHA reruns the supply-chain and release-attestation checks successfully; make the baseline gate fail closed on any failed or skipped security sub-lane.",
+      "remediation_fixuptasks": [
+        "F-PR1-03"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "GitHub PR #1 metadata + specs/cross-cutting/masterplan.json:491-516",
+      "facets_concurring": [
+        "F9"
+      ],
+      "headline": "PR #1 imported the repository as a 1070-file bootstrap instead of a ChangeSet-sized implementation packet. Current masterplan contract requires every ImplementationPlan to be independently claimable/verifiable/promotable and to split unrelated lock scopes; pr…",
+      "id": "PR1-CONV-4",
+      "recommended_remediation": "Backfill a machine-readable PR #1 decomposition map that groups each shipped contract/crate/doc cluster to the owning milestone/phase/IP and marks PR #1 as bootstrap-only, not a valid future PR template. Open bounded FixupTasks for any group without a current…",
+      "remediation_fixuptasks": [
+        "F-PR1-04"
+      ],
+      "severity": "BLOCKER"
+    },
+    {
+      "evidence": "contracts/openapi/** + contracts/asyncapi/** + contracts/proto/**",
+      "facets_concurring": [
+        "F2",
+        "F3",
+        "F6"
+      ],
+      "headline": "Large contract surface landed before a per-endpoint/accounted inventory existed. Review cannot prove every endpoint/schema has an owner, data-class, auth posture, and generated binding.",
+      "id": "PR1-CONV-5",
+      "recommended_remediation": "Generate/validate endpoint and schema inventory from the current tree and register missing owner/data-class/auth rows as bounded FixupTasks.",
+      "remediation_fixuptasks": [
+        "F-PR1-05"
+      ],
+      "severity": "MAJOR"
+    },
+    {
+      "evidence": ".github/workflows/supply-chain.yml:19-24",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "The PR advertises a verified API contract surface, but its own required supply-chain gate is red: statusCheckRollup reports `static ADR-0039 wiring gate` FAILURE. A bootstrap PR with a failing required control-plane check is not a shippable base; every later…",
+      "id": "PR1-CONV-6",
+      "recommended_remediation": "Fix the ADR-0039 evidence/script/registry contract until the required check passes, or remove the required check from branch protection until it is real. Do not merge a red foundation.",
+      "remediation_fixuptasks": [
+        "F-PR1-06"
+      ],
+      "severity": "MAJOR"
+    },
+    {
+      "evidence": "WINUI3_KOREAN_PAYROLL_MVP_PROMPT.md:1-33",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "Unrelated product prompt for a Windows Korean payroll MVP is committed at the repo root of a PR titled `Publish verified Oyatie API contract surface`. This is naming-that-lies and review-surface pollution: a reviewer cannot tell whether payroll prompt text is…",
+      "id": "PR1-CONV-7",
+      "recommended_remediation": "Delete it from this PR, or move it to a clearly scoped historical evidence/prompt archive with an owning plan reference. Do not ship unrelated prompt artifacts in the foundation/API surface.",
+      "remediation_fixuptasks": [
+        "F-PR1-07"
+      ],
+      "severity": "MAJOR"
+    },
+    {
+      "evidence": "scripts/check.sh:67-92 + scripts/hooks/pre-push-repoctl.sh:3",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "The bootstrap installs multiple overlapping local verification entry points (`scripts/check.sh`, `scripts/check-architecture-boundaries.sh`, and repoctl pre-push). That is control-plane sprawl before the repo even has a stable canonical path; later PRs had to…",
+      "id": "PR1-CONV-8",
+      "recommended_remediation": "Choose one canonical verifier now. Keep the shell shim only if it execs the canonical Rust command; delete parallel Python/shell gate bodies and repoctl hook paths from the bootstrap.",
+      "remediation_fixuptasks": [
+        "F-PR1-08"
+      ],
+      "severity": "MAJOR"
+    },
+    {
+      "evidence": "Cargo.toml + contracts/ + crates/ + docs/",
+      "facets_concurring": [
+        "F1"
+      ],
+      "headline": "1070 files / 214,313 insertions land as one PR. This prevents meaningful review and mixes contracts, runtime crates, docs, CI, prompts, registry data, and governance in one blast radius. Linus rule: if a change cannot be understood as one simple story, split…",
+      "id": "PR1-CONV-9",
+      "recommended_remediation": "Split into mechanical bootstrap, contract set, runtime crate families, CI/gates, and governance/docs PRs. Each slice should have its own passing evidence and rollback boundary.",
+      "remediation_fixuptasks": [
+        "F-PR1-09"
+      ],
+      "severity": "MAJOR"
+    }
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass.",
+    "Round 2 rebuttal evidence is now recorded for every F1-F9 facet before declaring consensus."
+  ],
+  "executor_topology_compliance": {
+    "reviewer_id_overlap_across_facets": "NONE",
+    "reviewer_ids": [
+      "codex-F1-pr-1-r1",
+      "codex-F1-pr-1-r2-rebuttal",
+      "codex-F2-pr-1-r1",
+      "codex-F2-pr-1-r2-rebuttal",
+      "codex-F3-pr-1-r1",
+      "codex-F3-pr-1-r2-rebuttal",
+      "codex-F4-pr-1-r1",
+      "codex-F4-pr-1-r2-rebuttal",
+      "codex-F5-pr-1-r1",
+      "codex-F5-pr-1-r2-rebuttal",
+      "codex-F6-pr-1-r1",
+      "codex-F6-pr-1-r2-rebuttal",
+      "codex-F7-pr-1-r1-security",
+      "codex-F7-pr-1-r2-rebuttal",
+      "codex-F8-pr-1-r1-ops",
+      "codex-F8-pr-1-r2-rebuttal",
+      "codex-F9-pr-1-r1-product",
+      "codex-F9-pr-1-r2-rebuttal"
+    ],
+    "rule": "Each F1-F9 facet has a distinct reviewer_id for primary evidence, and each round-2 rebuttal has a distinct round-specific reviewer_id; no reviewer_id is reused across facets within the change_id.",
+    "verified": true
+  },
+  "facet_count_total": 9,
+  "facet_evidence_paths": [
+    "evidence/debate/pr-1-F1-r1.json",
+    "evidence/debate/pr-1-F1-r2.json",
+    "evidence/debate/pr-1-F2-r1.json",
+    "evidence/debate/pr-1-F2-r2.json",
+    "evidence/debate/pr-1-F3-r1.json",
+    "evidence/debate/pr-1-F3-r2.json",
+    "evidence/debate/pr-1-F4-r1.json",
+    "evidence/debate/pr-1-F4-r2.json",
+    "evidence/debate/pr-1-F5-r1.json",
+    "evidence/debate/pr-1-F5-r2.json",
+    "evidence/debate/pr-1-F6-r1.json",
+    "evidence/debate/pr-1-F6-r2.json",
+    "evidence/debate/pr-1-F7-r1.json",
+    "evidence/debate/pr-1-F7-r2.json",
+    "evidence/debate/pr-1-F8-r1.json",
+    "evidence/debate/pr-1-F8-r2.json",
+    "evidence/debate/pr-1-F9-r1.json",
+    "evidence/debate/pr-1-F9-r2.json"
+  ],
   "facets_evaluated": [
     "F1",
     "F2",
@@ -19,170 +184,7 @@
     "F8",
     "F9"
   ],
-  "facet_count_total": 9,
-  "facet_evidence_paths": [
-    "evidence/debate/pr-1-F1-r1.json",
-    "evidence/debate/pr-1-F2-r1.json",
-    "evidence/debate/pr-1-F3-r1.json",
-    "evidence/debate/pr-1-F4-r1.json",
-    "evidence/debate/pr-1-F5-r1.json",
-    "evidence/debate/pr-1-F6-r1.json",
-    "evidence/debate/pr-1-F7-r1.json",
-    "evidence/debate/pr-1-F8-r1.json",
-    "evidence/debate/pr-1-F9-r1.json"
-  ],
-  "executor_topology_compliance": {
-    "rule": "Each facet evidence has a unique reviewer_id for this change_id; small PRs use the single COMBINED reviewer exception.",
-    "verified": true,
-    "reviewer_ids": [
-      "codex-F1-pr-1-r1",
-      "codex-F2-pr-1-r1",
-      "codex-F3-pr-1-r1",
-      "codex-F4-pr-1-r1",
-      "codex-F5-pr-1-r1",
-      "codex-F6-pr-1-r1",
-      "codex-F7-pr-1-r1-security",
-      "codex-F8-pr-1-r1-ops",
-      "codex-F9-pr-1-r1-product"
-    ],
-    "reviewer_id_overlap_across_facets": "NONE"
-  },
-  "consensus_points": [
-    {
-      "id": "PR1-CONV-1",
-      "severity": "BLOCKER",
-      "facets_concurring": [
-        "F3",
-        "F5",
-        "F6"
-      ],
-      "headline": "PR #1 was merged while the static ADR-0039 wiring gate reported FAILURE. That makes the initial verified API surface untrustworthy as a compliance baseline because the release evidence lane did not pass before merge.",
-      "evidence": "GitHub PR #1 statusCheckRollup / workflow oya-foundry-fitness-supply-chain",
-      "recommended_remediation": "Re-run the supply-chain/ADR-0039 lane on the current dev/staging/production SHA and file or fix any residual ADR-0039 wiring violations before treating PR #1 as a verified baseline.",
-      "remediation_fixuptasks": [
-        "F-PR1-01"
-      ]
-    },
-    {
-      "id": "PR1-CONV-2",
-      "severity": "BLOCKER",
-      "facets_concurring": [
-        "F4"
-      ],
-      "headline": "The PR title promises a verified API contract surface, but the operator-visible check rollup says the wiring gate failed and release attestation was skipped. A contributor reading the merged PR has conflicting instructions: trust the baseline or stop on faile\u2026",
-      "evidence": "GitHub PR #1 statusCheckRollup: static ADR-0039 wiring gate=FAILURE; release artifact Trivy/Cosign/SBOM lane=SKIPPED",
-      "recommended_remediation": "Replay the ADR-0039/supply-chain and release-attestation lanes against the current baseline SHA, publish the exact pass/fail artifact next to the PR evidence, and mark any still-failing contract group as not verified until fixed.",
-      "remediation_fixuptasks": [
-        "F-PR1-02"
-      ]
-    },
-    {
-      "id": "PR1-CONV-3",
-      "severity": "BLOCKER",
-      "facets_concurring": [
-        "F7"
-      ],
-      "headline": "The PR was merged even though the static ADR-0039 supply-chain gate concluded FAILURE and the release artifact Trivy/Cosign/SBOM lane was SKIPPED. A baseline described as verified cannot be trusted when its release/security evidence lane did not pass before m\u2026",
-      "evidence": "GitHub PR #1 statusCheckRollup; .github/workflows/supply-chain.yml@cdc53bf:18-36",
-      "recommended_remediation": "Treat PR #1 as an unverified bootstrap until the current target SHA reruns the supply-chain and release-attestation checks successfully; make the baseline gate fail closed on any failed or skipped security sub-lane.",
-      "remediation_fixuptasks": [
-        "F-PR1-03"
-      ]
-    },
-    {
-      "id": "PR1-CONV-4",
-      "severity": "BLOCKER",
-      "facets_concurring": [
-        "F9"
-      ],
-      "headline": "PR #1 imported the repository as a 1070-file bootstrap instead of a ChangeSet-sized implementation packet. Current masterplan contract requires every ImplementationPlan to be independently claimable/verifiable/promotable and to split unrelated lock scopes; pr\u2026",
-      "evidence": "GitHub PR #1 metadata + specs/cross-cutting/masterplan.json:491-516",
-      "recommended_remediation": "Backfill a machine-readable PR #1 decomposition map that groups each shipped contract/crate/doc cluster to the owning milestone/phase/IP and marks PR #1 as bootstrap-only, not a valid future PR template. Open bounded FixupTasks for any group without a current\u2026",
-      "remediation_fixuptasks": [
-        "F-PR1-04"
-      ]
-    },
-    {
-      "id": "PR1-CONV-5",
-      "severity": "MAJOR",
-      "facets_concurring": [
-        "F2",
-        "F3",
-        "F6"
-      ],
-      "headline": "Large contract surface landed before a per-endpoint/accounted inventory existed. Review cannot prove every endpoint/schema has an owner, data-class, auth posture, and generated binding.",
-      "evidence": "contracts/openapi/** + contracts/asyncapi/** + contracts/proto/**",
-      "recommended_remediation": "Generate/validate endpoint and schema inventory from the current tree and register missing owner/data-class/auth rows as bounded FixupTasks.",
-      "remediation_fixuptasks": [
-        "F-PR1-05"
-      ]
-    },
-    {
-      "id": "PR1-CONV-6",
-      "severity": "MAJOR",
-      "facets_concurring": [
-        "F1"
-      ],
-      "headline": "The PR advertises a verified API contract surface, but its own required supply-chain gate is red: statusCheckRollup reports `static ADR-0039 wiring gate` FAILURE. A bootstrap PR with a failing required control-plane check is not a shippable base; every later\u2026",
-      "evidence": ".github/workflows/supply-chain.yml:19-24",
-      "recommended_remediation": "Fix the ADR-0039 evidence/script/registry contract until the required check passes, or remove the required check from branch protection until it is real. Do not merge a red foundation.",
-      "remediation_fixuptasks": [
-        "F-PR1-06"
-      ]
-    },
-    {
-      "id": "PR1-CONV-7",
-      "severity": "MAJOR",
-      "facets_concurring": [
-        "F1"
-      ],
-      "headline": "Unrelated product prompt for a Windows Korean payroll MVP is committed at the repo root of a PR titled `Publish verified Oyatie API contract surface`. This is naming-that-lies and review-surface pollution: a reviewer cannot tell whether payroll prompt text is\u2026",
-      "evidence": "WINUI3_KOREAN_PAYROLL_MVP_PROMPT.md:1-33",
-      "recommended_remediation": "Delete it from this PR, or move it to a clearly scoped historical evidence/prompt archive with an owning plan reference. Do not ship unrelated prompt artifacts in the foundation/API surface.",
-      "remediation_fixuptasks": [
-        "F-PR1-07"
-      ]
-    },
-    {
-      "id": "PR1-CONV-8",
-      "severity": "MAJOR",
-      "facets_concurring": [
-        "F1"
-      ],
-      "headline": "The bootstrap installs multiple overlapping local verification entry points (`scripts/check.sh`, `scripts/check-architecture-boundaries.sh`, and repoctl pre-push). That is control-plane sprawl before the repo even has a stable canonical path; later PRs had to\u2026",
-      "evidence": "scripts/check.sh:67-92 + scripts/hooks/pre-push-repoctl.sh:3",
-      "recommended_remediation": "Choose one canonical verifier now. Keep the shell shim only if it execs the canonical Rust command; delete parallel Python/shell gate bodies and repoctl hook paths from the bootstrap.",
-      "remediation_fixuptasks": [
-        "F-PR1-08"
-      ]
-    },
-    {
-      "id": "PR1-CONV-9",
-      "severity": "MAJOR",
-      "facets_concurring": [
-        "F1"
-      ],
-      "headline": "1070 files / 214,313 insertions land as one PR. This prevents meaningful review and mixes contracts, runtime crates, docs, CI, prompts, registry data, and governance in one blast radius. Linus rule: if a change cannot be understood as one simple story, split\u2026",
-      "evidence": "Cargo.toml + contracts/ + crates/ + docs/",
-      "recommended_remediation": "Split into mechanical bootstrap, contract set, runtime crate families, CI/gates, and governance/docs PRs. Each slice should have its own passing evidence and rollback boundary.",
-      "remediation_fixuptasks": [
-        "F-PR1-09"
-      ]
-    }
-  ],
-  "consensus_shifts_from_round_1_to_round_2": [
-    "Final synthesis incorporates facet-specific reviewer evidence after the initial merged-PR inventory pass."
-  ],
-  "unresolved_tensions": [
-    "Retrospective review landed after PR #1 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
-  ],
   "final_recommendation": "ACCEPT_WITH_BLOCKING_FIXUPS",
-  "termination_reason": "consensus_reached",
-  "severity_counts": {
-    "BLOCKER": 6,
-    "MAJOR": 19,
-    "MINOR": 1
-  },
   "fixuptasks": [
     "F-PR1-01",
     "F-PR1-02",
@@ -193,5 +195,28 @@
     "F-PR1-07",
     "F-PR1-08",
     "F-PR1-09"
+  ],
+  "merge_commit_sha": "cdc53bf2d80274c33c000bd8cb299fbfb3c3c313",
+  "naming_justification": "evidence/debate/pr-1-synthesis.json is the canonical synthesis path for PR #1 under the multispectrum debate evidence naming contract.",
+  "pr_number": 1,
+  "pr_title": "Publish verified Oyatie API contract surface",
+  "rendered_at_unix": 1778920055,
+  "round": "synthesis",
+  "round_2_evidence_policy": {
+    "consensus_declaration_precondition": "Every synthesis facet_evidence_paths list includes each primary facet review and the matching rebuttal-round evidence before termination_reason=consensus_reached.",
+    "pr5_f5_note": "not_applicable",
+    "single_reviewer_shortcut_allowed": false
+  },
+  "schema": "multispectrum-review/v2.3.0-retrospective-pr-review",
+  "severity_counts": {
+    "BLOCKER": 6,
+    "MAJOR": 19,
+    "MINOR": 1
+  },
+  "spec_version": "2.3.0",
+  "synthesis_owner": "codex-lead@multispectrum-review-9-prs",
+  "termination_reason": "consensus_reached",
+  "unresolved_tensions": [
+    "Retrospective review landed after PR #1 was already merged; blockers are represented as FixupTasks rather than pre-merge holds."
   ]
 }

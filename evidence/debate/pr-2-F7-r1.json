@@ -1,0 +1,24 @@
+{
+  "change_id": "pr-2",
+  "considered": true,
+  "facet_id": "F7",
+  "facet_name": "Security and misuse resistance",
+  "findings": [
+    {
+      "file": "crates/oya-foundry-rag-api/src/lib.rs:766-775",
+      "issue": "F7 facet concurrence: Authorization for citation retrieval only checks tenant/principal plus the generic foundry.rag.retrieve surface. It does not bind the authorization decision to namespace, capability_id, or search_index_id, so a broad surface grant can authorize citations for…",
+      "remediation": "Add decision-scope fields for namespace, capability_id, and search_index_id (or an equivalent signed authorization input hash), reject drift before retrieval, and add regression tests for cross-capability/index denial.",
+      "severity": "MAJOR"
+    }
+  ],
+  "merge_commit_sha": "498b3cef8f091ee900dd334a38155e1705317090",
+  "naming_justification": "evidence/debate/pr-2-F7-r1.json follows the multispectrum evidence path contract: pr number, facet id, and round number are all explicit and machine-sortable.",
+  "null_finding_reason": null,
+  "pr_number": 2,
+  "pr_title": "Gate Foundry RAG retrieve citations",
+  "rendered_at_unix": 1778920055,
+  "reviewer_id": "codex-F7-pr-2-r1",
+  "rigor": "GREEN",
+  "round": "r1",
+  "summary": "F7 Security and misuse resistance independently reviewed PR #2 after the prior single-reviewer shortcut was rejected. It concurs that the synthesis must carry the recorded fixups while preserving a distinct facet reviewer_id."
+}
