@@ -53,7 +53,17 @@ resource "oci_logging_log" "ops_canary" {
 resource "oci_ons_notification_topic" "ops_alerts" {
   compartment_id = oci_identity_compartment.foundry.id
   name           = "oyatie-ops-alerts"
-  description    = "Ops alerts (security scan, backup failures, instance state changes). Subscribers added out-of-band via `oci ons subscription create` or the console."
+  description    = "Ops alerts (security scan, backup failures, instance state changes). Subscribers are declared via var.ops_notification_subscriptions and managed by OpenTofu."
+  freeform_tags  = local.common_tags
+}
+
+resource "oci_ons_subscription" "ops_alerts" {
+  for_each = var.ops_notification_subscriptions
+
+  compartment_id = oci_identity_compartment.foundry.id
+  endpoint       = each.value.endpoint
+  protocol       = each.value.protocol
+  topic_id       = oci_ons_notification_topic.ops_alerts.topic_id
   freeform_tags  = local.common_tags
 }
 
@@ -78,6 +88,11 @@ resource "oci_artifacts_container_repository" "cloud_kms_adapter_oci" {
 output "bastion_id" { value = oci_bastion_bastion.ops.id }
 output "log_group_id" { value = oci_logging_log_group.ops.id }
 output "notifications_topic_id" { value = oci_ons_notification_topic.ops_alerts.topic_id }
+output "notifications_subscription_ids" {
+  value = {
+    for name, subscription in oci_ons_subscription.ops_alerts : name => subscription.id
+  }
+}
 output "ocir_namespace" { value = data.oci_objectstorage_namespace.tenancy.namespace }
 output "ocir_repo_foundry_workspace_shell" { value = oci_artifacts_container_repository.foundry_workspace_shell.display_name }
 output "ocir_repo_cloud_kms_adapter_oci" { value = oci_artifacts_container_repository.cloud_kms_adapter_oci.display_name }
