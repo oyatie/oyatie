@@ -861,13 +861,6 @@ name = "oya-check-data-class"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-dependency-seam"
-version = "0.1.0"
-dependencies = [
- "oya-json-kernel",
-]
-
-[[package]]
 name = "oya-check-doc-catalog"
 version = "0.1.0"
 

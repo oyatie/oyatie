@@ -102,7 +102,7 @@ Many tools serve both — e.g. catalog browsing is human-and-agent. The toolchai
 | **Browser auth bridge** (for subscription-mode adapters) | **Rust + Chromiumoxide** (CDP wrapper) | Playwright (Apache-2) only as escape hatch | Headless browser in Rust |
 | **Local dev environment** | **Devcontainer (open spec)** + **`oya dev env`** that wraps it; **Leptos hot-reload via cargo-leptos**; **nextest watch** | none | Devcontainer is industry standard |
 | **Editor / IDE** | Engineer choice (VS Code / Cursor / Helix / Zed / Neovim); **rust-analyzer** is required; **leptos-language-server** when authoring Leptos UI | none | Editor-agnostic; require LSP support |
-| **Pre-commit + pre-push** | **`oya dev check`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `oya gate validate` + boundary validator | none | Already in the design |
+| **Pre-commit + pre-push** | **`oya verify`** wrapping `cargo fmt --check` + `cargo clippy` + `cargo nextest` + `oya gate validate` + boundary validator | none | Already in the design |
 
 ---
 
@@ -328,7 +328,7 @@ CI lane `oya-foundry-fitness-license` runs `cargo deny` + per-language equivalen
 
 | Order | Tool | Why first |
 |---|---|---|
-| 1 | `oya dev check` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
+| 1 | `oya verify` (the existing `repoctl check`, polished) | Engineer pre-push; foundation |
 | 2 | `oya-foundry-adapter-kernel` + adapters for Anthropic / OpenAI / Gemini × API + subscription | Foundry preview gate |
 | 3 | `oya-foundry-capability-kernel` + MCP-compatible registry | Foundry preview gate |
 | 4 | `oya-foundry-router` (multi-provider routing + cost ceiling) | Production agent reliability |

@@ -36,7 +36,7 @@ For each command listed in the IP `acceptance-test-commands:` array, run it in t
 cargo nextest run --workspace --all-features --no-fail-fast
 cargo clippy --workspace --all-features --all-targets -- -D warnings
 cargo deny check
-repoctl pre-push
+oya verify
 ```
 
 If the IP frontmatter adds lane-specific commands (e.g. `oya-foundry-fitness-data-class`, `-image-discipline`), run those too.

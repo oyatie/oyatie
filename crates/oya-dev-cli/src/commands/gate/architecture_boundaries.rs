@@ -646,7 +646,7 @@ fn expect_self_test_infrastructure_and_test_roles() -> Result<(), Vec<String>> {
         "crates",
     );
     let (check_pkg, check_rec) = fixture_package(
-        "oya-check-dependency-seam",
+        "oya-test-fixture-tenant-kernel-check",
         "test",
         &["oya-platform-tenant-kernel"],
         "crates",

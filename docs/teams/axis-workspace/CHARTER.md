@@ -93,7 +93,7 @@ Own the Oyatie Workspace / Productivity Suite (Axis 2): Mail, Calendar, Docs, Sh
 - Per-surface sub-team owns its Cargo crate family
 - All surfaces share the `oya-workspace-shared-kernel` for `WorkspaceTenantBinding`, `PermissionSet`, `RetentionPolicy`
 - Mandatory: every new surface ships with a DLP rule set + per-class allowlist before going to preview
-- Pre-push: `oya dev check` + `oya gate validate workspace`
+- Pre-push: `oya verify` + `oya gate validate workspace`
 - ADR proposal cadence: monthly batch
 
 ## Slice of risk register

@@ -51,7 +51,7 @@ Each line below **MUST** be present with a pass/fail token (`PASS` / `FAIL`) and
 - `cargo nextest run --workspace --all-features --no-fail-fast` — `<PASS|FAIL>` — `<excerpt>`
 - `cargo clippy --workspace --all-features --all-targets -- -D warnings` — `<PASS|FAIL>` — `<excerpt>`
 - `cargo deny check` — `<PASS|FAIL>` — `<excerpt>`
-- `repoctl pre-push` — `<PASS|FAIL>` — `<excerpt>`
+- `oya verify` — `<PASS|FAIL>` — `<excerpt>`
 - `oya gate validate` — `<PASS|FAIL>` — `<excerpt>` (claim-ceiling, foundation-bypass, plane-class)
 - Per-change-class fitness lanes: `<list lanes + PASS|FAIL each>`
 - Per-change-class reviewer agent: `<agent-name>` — verdict `<APPROVE|REQUEST CHANGES>`

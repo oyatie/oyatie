@@ -964,6 +964,33 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        // pre-push-contract: enforces the canonical `oya verify`
+        // local-developer entry point is wired consistently across
+        // Done-Definition, dev-CLI dispatch source, and the local
+        // pre-push git hook. Lane id: `oya-foundry-fitness-pre-push`.
+        // Kernel: `oya-check-pre-push` (port-in-kernel, ADR-0056).
+        (Some("validate"), Some("pre-push-contract")) => {
+            match crate::parse_pre_push_contract_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_pre_push_contract_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "pre-push-contract validation passed: command={}, \
+                             native-verify-dispatch-token={}, verify-subcommand=wired, hook=wired",
+                            report.canonical_command, report.native_verify_dispatch_token
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("pre-push-contract validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         _ => {
             eprintln!("{usage}");
             ExitCode::from(2)

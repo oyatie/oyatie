@@ -1,7 +1,0 @@
-{
-  "$id": "https://docs.oyatie.dev/specs/cross-cutting/no-schema.json",
-  "_meta": {
-    "purpose": "A6 failing: missing $schema declaration"
-  },
-  "purpose": "Auto-backfilled purpose for missing-schema.json"
-}

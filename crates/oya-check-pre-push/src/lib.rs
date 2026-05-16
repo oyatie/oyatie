@@ -1,91 +1,91 @@
-//! Foundry pre-push command contract fitness kernel.
+//! Foundry local-verify (pre-push) command contract fitness kernel.
 //!
-//! Asserts the CLI-surface invariant for the canonical `repoctl pre-push`
-//! command: the `repoctl` Rust source (canonical surface) and the
-//! supporting documents (Done-Definition, CLI manifest, local hook) all
-//! agree that `repoctl pre-push` is the canonical local-developer
-//! verification entry point AND that its implementation dispatches
-//! natively into the Rust `verify` / `gate run-all` surface — not into
-//! a transitional `.sh` subprocess.
+//! Asserts the CLI-surface invariant for the canonical `oya verify`
+//! command: the dev-CLI dispatch source, the Done-Definition, and the
+//! local git hook all agree that `oya verify` is the canonical
+//! local-developer verification entry point AND that it dispatches
+//! natively into the Rust `gate run-all` aggregator — not into a
+//! transitional `.sh` subprocess.
 //!
-//! Naming justification: type `PrePushContractEvidence` and function
-//! `validate_pre_push_contract` keep the existing canonical names so the
-//! external CLI-surface contract is stable across the .sh-removal
-//! transition (per `feedback_no_silent_regression`: the kernel's
-//! published API is a fitness-lane contract, and the lane id
-//! `oya-foundry-fitness-pre-push` stays the same). The renamed error
-//! variant `MissingNativeVerifyDispatchInRepoctlSource` describes the
-//! new positive scope — repoctl source must dispatch into the native
-//! verify surface — and replaces the legacy
-//! `MissingContractCheckInCheckScript` variant whose source-of-truth was
-//! the transitional `scripts/check.sh` body. Layer enum: this kernel
-//! sits on the `domain` layer (port-in-kernel, ADR-0056); it performs
-//! pure I/O-free static parsing of evidence strings handed in by a
-//! runner.
+//! Naming justification: the crate name `oya-check-pre-push` remains
+//! stable across the `repoctl` retirement so the fitness-lane id
+//! `oya-foundry-fitness-pre-push` (registered in
+//! `registry/quality/lanes.yaml`, the branch-protection required
+//! status check, and the IP-C extracted catalog) stays unchanged
+//! per `feedback_no_silent_regression`. The lane semantics (local-side
+//! pre-push gate) are preserved; only the canonical *command name*
+//! swaps from `repoctl pre-push` to `oya verify` because `repoctl` is
+//! retired as redundant with `oya verify` (both invoked
+//! `gate run-all`; the `repoctl` binary was a parallel entry point).
+//! Type `PrePushContractEvidence` retains its name to keep the
+//! lane-internal API stable. Layer enum: this kernel sits on the
+//! `domain` layer (port-in-kernel, ADR-0056); it performs pure
+//! I/O-free static parsing of evidence strings handed in by a runner.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 
-/// Canonical local-developer pre-push CLI surface name. The Done-Definition,
-/// local git hook, and aggregator dispatch all spell this command verbatim.
-pub const CANONICAL_PRE_PUSH_COMMAND: &str = "repoctl pre-push";
+/// Canonical local-developer pre-push CLI surface name. The
+/// Done-Definition and local git hook spell this command verbatim,
+/// and the dev-CLI top-level dispatch source must route the matching
+/// subcommand string to the native `commands::verify::run` handler.
+pub const CANONICAL_PRE_PUSH_COMMAND: &str = "oya verify";
 
-/// Token that must appear in the `repoctl` source as proof that the
-/// `pre-push` (non-`--verify-contract`) branch dispatches into the
-/// native Rust `verify` / `gate run-all` surface instead of subprocessing
-/// a transitional `scripts/check.sh`.
-///
-/// Naming justification: snake_case Rust identifier matches the public
-/// function on the `commands::verify` module (`run`) and stays stable
-/// across the .sh-removal sub-IPs (IP-B routes the call through it).
-pub const REPOCTL_NATIVE_VERIFY_DISPATCH_TOKEN: &str = "commands::verify::run";
+/// Subcommand-match-arm literal that the dev-CLI dispatch source must
+/// contain in its top-level command router, confirming that the
+/// `verify` subcommand is wired into the CLI surface.
+pub const VERIFY_SUBCOMMAND_MATCH_ARM: &str = "Some(\"verify\")";
 
-/// Marker that must appear in the CLI manifest to prove the `repoctl`
-/// binary is declared.
-pub const REPOCTL_BIN_NAME_DECLARATION: &str = "name = \"repoctl\"";
+/// Token that must appear in the dev-CLI dispatch source as proof
+/// that the `verify` subcommand routes to the native
+/// `commands::verify::run` handler (which forwards to
+/// `gate::run` with the `run-all` arg — the canonical Rust aggregator
+/// that replaces the transitional `scripts/check.sh`).
+pub const NATIVE_VERIFY_DISPATCH_TOKEN: &str = "commands::verify::run";
 
-/// Evidence bundle handed to the kernel by a runner (the dev-CLI invocation
-/// in `oya-dev-cli` reads files and forwards their text here). The kernel
+/// Evidence bundle handed to the kernel by a runner (the dev-CLI
+/// invocation reads files and forwards their text here). The kernel
 /// is pure: it performs no I/O of its own (port-in-kernel, ADR-0056).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PrePushContractEvidence<'a> {
-    /// Markdown contents of the Done-Definition checklist; must mention
-    /// `CANONICAL_PRE_PUSH_COMMAND` as a required check.
+    /// Markdown contents of the Done-Definition checklist; must
+    /// mention `CANONICAL_PRE_PUSH_COMMAND` as a required check.
     pub done_definition_doc: &'a str, // data_class: INTERNAL_ONLY
-    /// CLI manifest contents (e.g. `crates/oya-dev-cli/Cargo.toml`); must
-    /// declare the `repoctl` binary target.
-    pub cli_manifest: &'a str, // data_class: INTERNAL_ONLY
-    /// `crates/oya-dev-cli/src/commands/repoctl.rs` source; must contain
-    /// the native verify dispatch token AND must spell the canonical
-    /// command name in its dispatch table.
-    pub repoctl_source: &'a str, // data_class: INTERNAL_ONLY
-    /// Local git hook script contents (`scripts/hooks/pre-push-repoctl.sh`
-    /// during the transition; the in-binary `hook install` surface after
-    /// IP-E). Must invoke the full `CANONICAL_PRE_PUSH_COMMAND` (not the
-    /// `--verify-contract` short-circuit, which is the contract-fitness
-    /// check, not the local-verify entry).
+    /// Top-level dev-CLI dispatch source
+    /// (`crates/oya-dev-cli/src/lib.rs`); must contain
+    /// `VERIFY_SUBCOMMAND_MATCH_ARM` AND `NATIVE_VERIFY_DISPATCH_TOKEN`
+    /// so the canonical command is provably wired through to native
+    /// Rust dispatch with no `.sh` subprocess interposed.
+    pub cli_dispatch_source: &'a str, // data_class: INTERNAL_ONLY
+    /// Local git hook script contents (the pre-push hook installed
+    /// under `.git/hooks/pre-push`, or its source-of-truth file
+    /// during the transitional period). Must invoke the canonical
+    /// `oya verify` command, either by spelling
+    /// `CANONICAL_PRE_PUSH_COMMAND` directly or by invoking
+    /// `cargo run … -p oya-dev-cli -- verify` (the build-from-source
+    /// equivalent).
     pub hook_script: &'a str, // data_class: INTERNAL_ONLY
 }
 
-/// Successful contract report. Each boolean records the positive scope
-/// that the evidence satisfied; consumers may surface this as JSON
-/// evidence for fitness-lane audits.
+/// Successful contract report. Each boolean records the positive
+/// scope that the evidence satisfied; consumers may surface this as
+/// JSON evidence for fitness-lane audits.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PrePushContractReport {
     pub canonical_command: &'static str, // data_class: INTERNAL_ONLY
     pub native_verify_dispatch_token: &'static str, // data_class: INTERNAL_ONLY
     pub done_definition_mentions_command: bool, // data_class: INTERNAL_ONLY
-    pub repoctl_binary_declared: bool,   // data_class: INTERNAL_ONLY
-    pub repoctl_source_dispatches_native_verify: bool, // data_class: INTERNAL_ONLY
+    pub verify_subcommand_wired_in_cli: bool, // data_class: INTERNAL_ONLY
+    pub cli_dispatches_native_verify: bool, // data_class: INTERNAL_ONLY
     pub hook_wires_full_command: bool,   // data_class: INTERNAL_ONLY
 }
 
 /// Errors returned when evidence does not satisfy the contract.
 ///
-/// Naming justification: variants describe the missing positive scope
-/// in canonical terms (no "exception" / "exempt" phrasing per
+/// Naming justification: variants describe the missing positive
+/// scope in canonical terms (no "exception" / "exempt" phrasing per
 /// `feedback_no_exceptions_canonical`). Each variant is loud and
 /// CI-detectable per `feedback_no_silent_regression`. `Display` is
 /// implemented manually below to keep this kernel free of external
@@ -94,17 +94,15 @@ pub struct PrePushContractReport {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PrePushContractError {
     MissingDoneDefinitionCommand,
-    MissingRepoctlBinary,
-    MissingNativeVerifyDispatchInRepoctlSource,
-    MissingCanonicalCommandNameInRepoctlSource,
+    MissingVerifySubcommandWiringInCli,
+    MissingNativeVerifyDispatchInCli,
     MissingHookCommand,
-    HookUsesContractCheckInsteadOfFullCommand,
 }
 
-/// Validate the CLI-surface contract. Pure function: parses the supplied
-/// evidence strings and returns either a positive report or a typed
-/// error. Performs no I/O; the runner is responsible for reading source
-/// files into `PrePushContractEvidence`.
+/// Validate the CLI-surface contract. Pure function: parses the
+/// supplied evidence strings and returns either a positive report or
+/// a typed error. Performs no I/O; the runner is responsible for
+/// reading source files into `PrePushContractEvidence`.
 pub fn validate_pre_push_contract(
     evidence: PrePushContractEvidence<'_>,
 ) -> Result<PrePushContractReport, PrePushContractError> {
@@ -114,58 +112,49 @@ pub fn validate_pre_push_contract(
     {
         return Err(PrePushContractError::MissingDoneDefinitionCommand);
     }
-    if !evidence.cli_manifest.contains(REPOCTL_BIN_NAME_DECLARATION) {
-        return Err(PrePushContractError::MissingRepoctlBinary);
+    if !evidence
+        .cli_dispatch_source
+        .contains(VERIFY_SUBCOMMAND_MATCH_ARM)
+    {
+        return Err(PrePushContractError::MissingVerifySubcommandWiringInCli);
     }
     if !evidence
-        .repoctl_source
-        .contains(REPOCTL_NATIVE_VERIFY_DISPATCH_TOKEN)
+        .cli_dispatch_source
+        .contains(NATIVE_VERIFY_DISPATCH_TOKEN)
     {
-        return Err(PrePushContractError::MissingNativeVerifyDispatchInRepoctlSource);
-    }
-    if !repoctl_source_names_canonical_command(evidence.repoctl_source) {
-        return Err(PrePushContractError::MissingCanonicalCommandNameInRepoctlSource);
+        return Err(PrePushContractError::MissingNativeVerifyDispatchInCli);
     }
     if !hook_invokes_full_pre_push(evidence.hook_script) {
         return Err(PrePushContractError::MissingHookCommand);
     }
-    if evidence.hook_script.contains("--verify-contract") {
-        return Err(PrePushContractError::HookUsesContractCheckInsteadOfFullCommand);
-    }
 
     Ok(PrePushContractReport {
         canonical_command: CANONICAL_PRE_PUSH_COMMAND,
-        native_verify_dispatch_token: REPOCTL_NATIVE_VERIFY_DISPATCH_TOKEN,
+        native_verify_dispatch_token: NATIVE_VERIFY_DISPATCH_TOKEN,
         done_definition_mentions_command: true,
-        repoctl_binary_declared: true,
-        repoctl_source_dispatches_native_verify: true,
+        verify_subcommand_wired_in_cli: true,
+        cli_dispatches_native_verify: true,
         hook_wires_full_command: true,
     })
 }
 
-/// True iff the repoctl source spells the canonical `repoctl pre-push`
-/// command name in its dispatch surface (typically as the `"pre-push"`
-/// subcommand match arm). The two literal tokens that satisfy this scope
-/// are `"pre-push"` (the subcommand string match) and `repoctl pre-push`
-/// (any doc-comment or println that names the canonical command).
-///
-/// Naming justification: function name is snake_case; the predicate is
-/// stated positively (no "missing" / "exception" phrasing).
-fn repoctl_source_names_canonical_command(repoctl_source: &str) -> bool {
-    repoctl_source.contains("\"pre-push\"") || repoctl_source.contains(CANONICAL_PRE_PUSH_COMMAND)
-}
-
 /// True iff the hook script has a non-comment, non-empty line that
-/// invokes the full canonical `repoctl pre-push` command (i.e. not the
-/// `--verify-contract` short-circuit).
+/// invokes the canonical local-verify command. Accepts both the
+/// installed-binary form (`oya verify …`) and the build-from-source
+/// form (`cargo run … -p oya-dev-cli -- verify …`) so the same hook
+/// works in a workspace clone and in a system with `oya` on PATH.
+///
+/// Naming justification: function name is snake_case; the predicate
+/// is stated positively (no "missing" / "exception" phrasing).
 fn hook_invokes_full_pre_push(hook_script: &str) -> bool {
     hook_script.lines().any(|line| {
         let trimmed = line.trim();
-        !trimmed.is_empty()
-            && !trimmed.starts_with('#')
-            && !trimmed.contains("--verify-contract")
-            && (trimmed.contains(CANONICAL_PRE_PUSH_COMMAND)
-                || trimmed.contains("--bin repoctl -- pre-push"))
+        if trimmed.is_empty() || trimmed.starts_with('#') {
+            return false;
+        }
+        trimmed.contains(CANONICAL_PRE_PUSH_COMMAND)
+            || trimmed.contains("oya-dev-cli -- verify")
+            || trimmed.contains("oya-dev-cli --bin oya -- verify")
     })
 }
 
@@ -176,27 +165,19 @@ impl fmt::Display for PrePushContractError {
                 formatter,
                 "Done-Definition does not require `{CANONICAL_PRE_PUSH_COMMAND}`"
             ),
-            Self::MissingRepoctlBinary => write!(
+            Self::MissingVerifySubcommandWiringInCli => write!(
                 formatter,
-                "CLI manifest does not declare the repoctl binary"
+                "dev-CLI dispatch source does not contain the verify subcommand match arm \
+                 (missing token `{VERIFY_SUBCOMMAND_MATCH_ARM}`)"
             ),
-            Self::MissingNativeVerifyDispatchInRepoctlSource => write!(
+            Self::MissingNativeVerifyDispatchInCli => write!(
                 formatter,
-                "repoctl source does not dispatch into the native verify surface \
-                 (missing token `{REPOCTL_NATIVE_VERIFY_DISPATCH_TOKEN}`)"
-            ),
-            Self::MissingCanonicalCommandNameInRepoctlSource => write!(
-                formatter,
-                "repoctl source does not name the canonical command \
-                 `{CANONICAL_PRE_PUSH_COMMAND}` in its dispatch surface"
+                "dev-CLI dispatch source does not route to the native verify handler \
+                 (missing token `{NATIVE_VERIFY_DISPATCH_TOKEN}`)"
             ),
             Self::MissingHookCommand => write!(
                 formatter,
                 "pre-push hook script does not invoke `{CANONICAL_PRE_PUSH_COMMAND}`"
-            ),
-            Self::HookUsesContractCheckInsteadOfFullCommand => write!(
-                formatter,
-                "pre-push hook script must run the full command, not only --verify-contract"
             ),
         }
     }
@@ -212,11 +193,11 @@ mod tests {
     fn accepts_grounded_pre_push_contract() {
         let report = validate_pre_push_contract(valid_evidence()).expect("contract validates");
 
-        assert_eq!(report.canonical_command, "repoctl pre-push");
+        assert_eq!(report.canonical_command, "oya verify");
         assert_eq!(report.native_verify_dispatch_token, "commands::verify::run");
         assert!(report.done_definition_mentions_command);
-        assert!(report.repoctl_binary_declared);
-        assert!(report.repoctl_source_dispatches_native_verify);
+        assert!(report.verify_subcommand_wired_in_cli);
+        assert!(report.cli_dispatches_native_verify);
         assert!(report.hook_wires_full_command);
     }
 
@@ -232,46 +213,38 @@ mod tests {
     }
 
     #[test]
-    fn rejects_missing_repoctl_binary_declaration() {
+    fn rejects_missing_verify_subcommand_wiring() {
         let mut evidence = valid_evidence();
-        evidence.cli_manifest = "[[bin]]\nname = \"oya\"\n";
+        // The dispatch source routes a different subcommand but does
+        // not contain the `Some("verify")` match arm.
+        evidence.cli_dispatch_source =
+            "Some(\"check\") => commands::check::run(args.collect(), &usage()),\n";
 
         assert_eq!(
             validate_pre_push_contract(evidence),
-            Err(PrePushContractError::MissingRepoctlBinary)
+            Err(PrePushContractError::MissingVerifySubcommandWiringInCli)
         );
     }
 
     #[test]
-    fn rejects_repoctl_source_without_native_verify_dispatch() {
+    fn rejects_cli_without_native_verify_dispatch() {
         let mut evidence = valid_evidence();
-        evidence.repoctl_source = "match args.next().as_deref() {\n    \
-            Some(\"pre-push\") => some_subprocess_call(),\n}\n";
+        // The dispatch source wires the `Some("verify")` match arm
+        // but routes to a non-native handler (proves the predicate
+        // is independent of the subcommand wiring check).
+        evidence.cli_dispatch_source =
+            "Some(\"verify\") => some_subprocess_call(args, &usage()),\n";
 
         assert_eq!(
             validate_pre_push_contract(evidence),
-            Err(PrePushContractError::MissingNativeVerifyDispatchInRepoctlSource)
+            Err(PrePushContractError::MissingNativeVerifyDispatchInCli)
         );
     }
 
     #[test]
-    fn rejects_repoctl_source_without_canonical_command_name() {
+    fn rejects_hook_that_does_not_invoke_canonical_command() {
         let mut evidence = valid_evidence();
-        // dispatches into native verify but does not name the canonical
-        // `pre-push` subcommand — proves the predicate is independent.
-        evidence.repoctl_source = "commands::verify::run(args, &usage());\n";
-
-        assert_eq!(
-            validate_pre_push_contract(evidence),
-            Err(PrePushContractError::MissingCanonicalCommandNameInRepoctlSource)
-        );
-    }
-
-    #[test]
-    fn rejects_hook_that_only_runs_contract_check() {
-        let mut evidence = valid_evidence();
-        evidence.hook_script =
-            "cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract\n";
+        evidence.hook_script = "cargo run -p oya-dev-cli -- gate run-all\n";
 
         assert_eq!(
             validate_pre_push_contract(evidence),
@@ -280,29 +253,25 @@ mod tests {
     }
 
     #[test]
-    fn rejects_hook_that_invokes_only_verify_contract_alongside_other_lines() {
+    fn accepts_hook_that_uses_cargo_run_form() {
+        // Build-from-source form: the hook in a fresh clone calls
+        // `cargo run -p oya-dev-cli -- verify` because `oya` is not
+        // yet on PATH. Both forms must satisfy the contract.
         let mut evidence = valid_evidence();
-        // A hook with the `--verify-contract` flag anywhere (even on a
-        // line that also names the canonical command) is rejected per
-        // the CLI-surface invariant: the local-developer hook runs the
-        // full verify pass, not the contract short-circuit.
-        evidence.hook_script = "cargo run -p oya-dev-cli --bin repoctl -- \
-             pre-push --verify-contract\ncargo run -p oya-dev-cli --bin repoctl -- pre-push\n";
+        evidence.hook_script = "cargo run -q -p oya-dev-cli -- verify \"$@\" || exit 1\n";
 
-        assert_eq!(
-            validate_pre_push_contract(evidence),
-            Err(PrePushContractError::HookUsesContractCheckInsteadOfFullCommand)
-        );
+        let report =
+            validate_pre_push_contract(evidence).expect("cargo-run hook satisfies the contract");
+        assert!(report.hook_wires_full_command);
     }
 
     fn valid_evidence() -> PrePushContractEvidence<'static> {
         PrePushContractEvidence {
-            done_definition_doc: "- [ ] D12 `repoctl pre-push` passes.",
-            cli_manifest: "[[bin]]\nname = \"repoctl\"\npath = \"src/main.rs\"\n",
-            repoctl_source:
+            done_definition_doc: "- [ ] D12 `oya verify` passes.",
+            cli_dispatch_source:
                 "match args.next().as_deref() {\n    \
-                 Some(\"pre-push\") => commands::verify::run(args.collect(), &usage()),\n}\n",
-            hook_script: "cargo run -p oya-dev-cli --bin repoctl -- pre-push \"$@\"\n",
+                 Some(\"verify\") => commands::verify::run(args.collect(), &usage()),\n}\n",
+            hook_script: "oya verify \"$@\" || exit 1\n# canonical: oya verify\n",
         }
     }
 }

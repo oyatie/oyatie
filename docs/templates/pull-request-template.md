@@ -16,7 +16,7 @@ Closes #<n> (or Refs #<n> if not closing). One line.
 ## Verification
 - ☐ `cargo nextest run --workspace --all-features` (paste the pass/fail line)
 - ☐ `cargo clippy -D warnings` (pass)
-- ☐ `oya dev check` (pass)
+- ☐ `oya verify` (pass)
 - ☐ Per-change-class fitness lane(s): `<list>`
 - ☐ Per-change-class reviewer agent run (paste verdict)
 

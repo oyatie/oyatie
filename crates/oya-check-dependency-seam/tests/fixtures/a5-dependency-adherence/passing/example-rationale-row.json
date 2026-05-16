@@ -1,8 +1,0 @@
-{
-  "hyper": {
-    "version_pin": "1",
-    "rationale": "...",
-    "isolated_in_crate": "oya-http-runtime-hyper-adapter"
-  },
-  "purpose": "Auto-backfilled purpose for example-rationale-row.json"
-}

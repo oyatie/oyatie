@@ -178,7 +178,6 @@ members = [
   "crates/oya-cloud-marketplace-kernel",
   "crates/oya-check-active-artifact-contract",
   "crates/oya-check-cedar-fragment-coverage",
-  "crates/oya-check-dependency-seam",
   "crates/oya-check-openapi-rest-route-parity",
   "crates/oya-foundry-architecture-map-kernel",
   "crates/oya-foundry-architecture-map-app",

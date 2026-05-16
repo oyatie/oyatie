@@ -1,10 +1,13 @@
-//! `oya verify` — local-developer verification entry point.
+//! `oya verify` — single canonical local-developer verification entry
+//! point.
 //!
-//! Per user directive 2026-05-15 ("pre-push should really just be part of
-//! some other check/validate"), `pre-push` is not a distinct concept; it
-//! is the local-side mirror of the verification gate. This subcommand is
-//! the canonical fold of the legacy `scripts/hooks/pre-push-repoctl.sh`
-//! invocation into the Rust CLI surface.
+//! Per user directive 2026-05-15 ("pre-push should really just be part
+//! of some other check/validate") and the
+//! [[feedback_no_exceptions_canonical]] vocabulary registry,
+//! `oya verify` is the only local-side mirror of the CI verification
+//! gate; the redundant entry points `repoctl pre-push` (binary +
+//! subcommand) and `oya dev check` are retired (see
+//! `evidence/audits/shell-python-replacement-audit-2026-05-15.md`).
 //!
 //! Naming justification: top-level subcommand `verify` (kebab-case);
 //! module file `src/commands/verify.rs` (snake_case, no redundant
@@ -14,16 +17,16 @@
 //! `crates/oya-foundry-fitness-predictable-naming-kernel::ALLOWED_ROLES`.
 //!
 //! Behaviour: dispatches to `gate run-all`, the canonical pre-merge
-//! gate aggregator (Wave 2 replacement for `scripts/check.sh`, audit row
-//! B-1 in `evidence/audits/shell-python-replacement-audit-2026-05-15.md`).
-//! Optional `--fast` short-circuits the deferred gates list; default is
-//! the same lane set the aggregator runs in non-deferred mode.
+//! gate aggregator that replaced the legacy `scripts/check.sh`
+//! orchestrator. Optional `--fast` short-circuits the deferred gates
+//! list; default is the same lane set the aggregator runs in
+//! non-deferred mode. Positional/flag args are forwarded verbatim.
 //!
-//! This subcommand is the canonical replacement target for the local
-//! `pre-push` git hook (`scripts/hooks/pre-push-repoctl.sh`). The hook
-//! script is updated in the same change to invoke
-//! `cargo run -q -p oya-dev-cli -- verify`; full deletion of the .sh is
-//! tracked under the transitional-.sh-removal sweep (audit row B-12).
+//! Pre-push hook: this subcommand is the target of
+//! `scripts/hooks/pre-push.sh` (the source-of-truth file that the
+//! `oya-foundry-fitness-pre-push` lane asserts as evidence). The hook
+//! invokes the installed `oya` binary when available and falls back
+//! to `cargo run -q -p oya-dev-cli -- verify` in a fresh clone.
 
 use std::process::ExitCode;
 

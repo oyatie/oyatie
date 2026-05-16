@@ -51,6 +51,7 @@ mod json_scan;
 mod openapi_rest_route_parity_gate;
 mod path_format;
 mod placeholder_debt_gates;
+mod pre_push_contract_gate;
 mod quality_lane_gates;
 mod runbook_gates;
 mod scalability_gates;
@@ -126,6 +127,9 @@ pub(crate) use path_format::slash_path;
 pub(crate) use placeholder_debt_gates::{
     parse_placeholder_debt_validate_args, validate_placeholder_debt_gate,
 };
+pub(crate) use pre_push_contract_gate::{
+    parse_pre_push_contract_validate_args, validate_pre_push_contract_gate,
+};
 pub(crate) use quality_lane_gates::{
     parse_quality_lanes_validate_args, validate_quality_lanes_gate,
 };
@@ -163,23 +167,12 @@ pub(crate) use yaml_scan::{clean_yaml_value, parse_yaml_inline_values};
 
 pub fn run_cli_from_env() -> ExitCode {
     let mut raw_args = std::env::args();
-    let program = raw_args.next().unwrap_or_default();
-    let args = raw_args.collect::<Vec<_>>();
-    if Path::new(&program)
-        .file_stem()
-        .and_then(|stem| stem.to_str())
-        == Some("repoctl")
-    {
-        return commands::repoctl::run(args, &usage());
-    }
-
-    let mut args = args.into_iter();
+    let _program = raw_args.next().unwrap_or_default();
+    let mut args = raw_args.collect::<Vec<_>>().into_iter();
     match args.next().as_deref() {
         Some("demo") => commands::demo::run(args.collect(), &usage()),
         Some("check") => commands::check::run(args.collect(), &usage()),
-        Some("dev") => commands::dev::run(args.collect(), &usage()),
         Some("doc") => commands::doc::run(args.collect(), &usage()),
-        Some("repoctl") => commands::repoctl::run(args.collect(), &usage()),
         Some("catalog") => commands::catalog::run(args.collect(), &usage()),
         Some("gate") => commands::gate::run(args.collect(), &usage()),
         Some("vcs") => commands::vcs::run(args.collect(), &usage()),
@@ -192,7 +185,7 @@ pub fn run_cli_from_env() -> ExitCode {
 }
 
 pub(crate) fn usage() -> String {
-    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya dev check [--check-script <scripts/check.sh>] [--format <text|json>]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <product-control/capabilities>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       repoctl pre-push [--check-script <scripts/check.sh>] [--format <text|json>] [--verify-contract]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
+    "Usage: oya demo [--audit-ledger <path>] [--evidence-store <path>] [--run-ledger <path>] [--step-ledger <path>] [--outbox-store <path>] [--secret-store <path>]\n       oya verify [--include-deferred] [--gate-args …]   # canonical local pre-push entry; dispatches to `oya gate run-all`\n       oya check <architecture|bounded-context|supply-chain|semver|documentation|statelessness|shardability|perf-budget|benchmark> [check-specific args]\n       oya doc rustdoc [--target-dir <target/oya-rustdoc-check>] [--rustdoc <path>] [--cargo <path>] [--format <text|json>] [--keep-target-dir]\n       oya doc openapi [--contracts-dir <contracts>] [--spec <docs/SPEC.md>] [--contracts-mirror <docs/machine-readable/contracts.json>] [--runtime-bindings <registry/openapi/runtime-bindings.tsv>] [--schema-bindings <registry/openapi/schema-bindings.tsv>] [--runtime-root <.>] [--format <text|json>]\n       oya doc mdbook [--site-dir <docs/site>] [--format <text|json>]\n       oya doc adr-index [--decisions-dir <docs/decisions>] [--index <docs/ADR-INDEX.md>] [--machine <docs/machine-readable/decisions.json>] [--write] [--format <text|json>]\n       oya doc inventory [--repo-root <.>] [--workspace <Cargo.toml>] [--crate-registry <registry/catalog>] [--doc-catalog <docs/machine-readable/catalog.json>] [--contracts-dir <contracts>] [--products-dir <docs/products>] [--capabilities-dir <product-control/capabilities>] [--out <docs/machine-readable/documentation-inventory.json>] [--write] [--format <text|json>]\n       oya catalog validate [--workspace <Cargo.toml>] [--registry <registry/catalog>]"
         .to_string()
         + "\n       oya vcs [--format <text|json>] [--policy <observe|warn|enforce>] [--evidence-command <shell-command>] <claim|work|verify|done|status|symbols|queue|watch|promote> [vcs-specific args]"
         + "\n       oya gate validate foundation-bypass [--ledger <registry/foundation-bypasses>] [--now-epoch-days <days>]"
@@ -224,6 +217,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate glossary-cross-doc-coverage [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--machine <docs/machine-readable/glossary.json>]"
         + "\n       oya gate validate glossary-vocabulary [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--baseline <registry/glossary-vocabulary/warning-baseline.tsv>] [--ignored-uppercase-words <registry/glossary-vocabulary/ignored-uppercase-words.tsv>] [--write-baseline <path>] [--write-warning-report <path>]"
         + "\n       oya gate validate placeholder-debt [--docs-dir <docs>] [--registry <registry/placeholder-debt/registry.tsv>] [--write-registry <path>] [--write-report <path>]"
+        + "\n       oya gate validate pre-push-contract [--done-definition <docs/checklists/done-definition-checklist.md>] [--cli-dispatch-source <crates/oya-dev-cli/src/lib.rs>] [--hook-script <scripts/hooks/pre-push.sh>]"
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"
         + "\n       oya gate validate vendor-contract-recency [--ledger <docs/VENDOR-PARTNER-LEDGER.md>] [--today <YYYY-MM-DD>] [--renewal-window-days <90>]"

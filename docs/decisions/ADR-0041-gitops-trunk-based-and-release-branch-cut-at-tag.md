@@ -143,7 +143,7 @@ Substrate kernel changes (per ADR-0001) require ≥ 2 reviewers from `@council-a
 
 Authors run, before opening a PR:
 
-- `repoctl pre-push` (per repo CLAUDE.md).
+- `oya verify` (per repo CLAUDE.md).
 - `oya contract-diff` if any contract artifact changed (per ADR-0037).
 
 These are the same checks branch-protection runs; running them locally short-circuits PR-time iteration.

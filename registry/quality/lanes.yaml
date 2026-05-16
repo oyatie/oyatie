@@ -309,10 +309,10 @@ lanes:
     stage: per-pr
     status: active
     owner_team: axis-foundry
-    purpose: repoctl pre-push command contract maps to the checked local verification bundle
+    purpose: oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; replaces retired repoctl pre-push + oya dev check)
     source: AGENTS.md D12
     runtime_budget_seconds: 120
-    check_command: cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract
+    check_command: cargo run -p oya-dev-cli -- gate validate pre-push-contract
   - id: foundry-eval-nightly
     stage: nightly
     status: active

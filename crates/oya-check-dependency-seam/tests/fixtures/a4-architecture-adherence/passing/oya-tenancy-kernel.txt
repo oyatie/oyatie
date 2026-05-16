@@ -1,1 +1,0 @@
-# passing: BNF v4.1 compliant crate name (microservice=tenancy, layer=kernel)

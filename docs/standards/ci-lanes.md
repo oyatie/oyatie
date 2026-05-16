@@ -60,7 +60,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `traceability-validator` | PR template carries the 5 mandatory traceability H2 sections |
 | `oya-foundry-fitness-api-semver` | public-API stability tier per ADR-0037 |
 | `oya-foundry-fitness-cargo-prefix` | every workspace member starts with `oya-` |
-| `oya-foundry-fitness-pre-push` | repoctl pre-push command contract maps to the checked local verification bundle |
+| `oya-foundry-fitness-pre-push` | oya verify command contract maps to the checked local verification bundle |
 | `lean-a1-architecture` | layer-correctness — no dep-direction violations per ADR-0056 §2.2 |
 | `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
 | `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |

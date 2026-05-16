@@ -1,7 +1,0 @@
-{
-  "_meta": {
-    "doc_class": "Fixture",
-    "purpose": "FAILING fixture: PascalCase filename violates P14 BNF (kebab-case required)"
-  },
-  "purpose": "Auto-backfilled purpose for BadCaseSpec.json"
-}

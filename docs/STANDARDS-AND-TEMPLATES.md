@@ -55,7 +55,7 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Checklist | Path | Trigger | Owner | Validator |
 |---|---|---|---|---|
-| Pre-push | [`checklists/pre-push.md`](checklists/pre-push.md) | Before `git push` | Author | `oya dev check` |
+| Pre-push | [`checklists/pre-push.md`](checklists/pre-push.md) | Before `git push` | Author | `oya verify` |
 | Pre-merge | [`checklists/pre-merge.md`](checklists/pre-merge.md) | Before `gh pr merge` | Author + reviewer | `oya gate validate` |
 | Wave-gate passing | [`checklists/wave-gate.md`](checklists/wave-gate.md) | At wave boundary | Wave-tactical team | `wave-gate-readiness` (per ADR-0040) |
 | Vertical onboarding | [`checklists/vertical-onboarding.md`](checklists/vertical-onboarding.md) | New vertical Preview | Vertical team | per-vertical PRD §11 + COMPLIANCE-MATRIX |
@@ -87,7 +87,7 @@ Hooks are mechanical gates fired by harnesses or git. Defined under `.claude/hoo
 | `pre-commit-data-class-annotation` | git pre-commit | Refuses commits that add a struct field without a `data_class` annotation when the file is in a kernel crate | `scripts/hooks/pre-commit-data-class.sh` |
 | `pre-commit-yaml-date-quoted` | git pre-commit | Refuses unquoted YAML dates (per mistakes-and-fixes-ledger) | `scripts/hooks/pre-commit-yaml-date.sh` |
 | `pre-commit-forward-ref` | git pre-commit | Refuses markdown links to paths not yet on origin/main (per Issue #1433) | `scripts/hooks/pre-commit-forward-ref.sh` |
-| `pre-push` | git pre-push | Runs `oya dev check` (cargo fmt --check, cargo clippy, cargo nextest, oya gate validate, arch-boundary) | `.git/hooks/pre-push` |
+| `pre-push` | git pre-push | Runs `oya verify` (cargo fmt --check, cargo clippy, cargo nextest, oya gate validate, arch-boundary) | `.git/hooks/pre-push` |
 | `pre-tool-use-foundry-evidence` | Claude Code PreToolUse | Stamps every Foundry capability invocation with an evidence-emission event before tool runs | `.claude/hooks/pre-tool-use-foundry-evidence.sh` |
 | `post-tool-use-cohesion-fitness` | Claude Code PostToolUse | Runs cross-axis contract drift detection after edits | `.claude/hooks/post-tool-use-cohesion.sh` |
 | `session-start-doc-context` | Claude Code SessionStart | Loads consolidated docs into agent context | `.claude/hooks/session-start-doc-context.sh` |
@@ -106,7 +106,7 @@ Skills are agent-invocable workflows. Under `.claude/skills/<id>/SKILL.md`. Alia
 
 | Skill | Path | Purpose | Persona-CLI alias |
 |---|---|---|---|
-| `oya-dev-check` | `.claude/skills/oya-dev-check/SKILL.md` | Run pre-push checks | `oya dev check` |
+| `oya-dev-check` | `.claude/skills/oya-dev-check/SKILL.md` | Run pre-push checks | `oya verify` |
 | `oya-adr-author` | `.claude/skills/oya-adr-author/SKILL.md` | Draft a new ADR with all required sections | `oya catalog adr new` |
 | `oya-adr-promote` | `.claude/skills/oya-adr-promote/SKILL.md` | Promote a Proposed → Accepted ADR with shipped-evidence verification | `oya catalog adr promote` |
 | `oya-foundry-capability-author` | `.claude/skills/oya-foundry-capability-author/SKILL.md` | Scaffold a new capability YAML + eval set + adapter | `oya agent capability new` |
@@ -216,7 +216,7 @@ When you start a new piece of work:
 3. Find the matching checklist; do every step
 4. If you hit a hook block, fix it (don't `--no-verify`)
 5. Output the artifact in the canonical location with the canonical structure
-6. The `oya dev check` and CI lanes will validate
+6. The `oya verify` and CI lanes will validate
 
 This is the *contract*: zero bespoke artifacts. Standardization-first.
 

@@ -210,7 +210,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D9** `cargo nextest run --workspace --all-features --no-fail-fast` passes. *Test:* command output pasted in `## Verification`.
 - [ ] **D10** `cargo clippy --workspace --all-features --all-targets -- -D warnings` passes. *Test:* command output.
 - [ ] **D11** `cargo deny check` passes. *Test:* command output.
-- [ ] **D12** `repoctl pre-push` passes. *Test:* command output.
+- [ ] **D12** `oya verify` passes. *Test:* command output.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-foundry-fitness-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-foundry-fitness-schema-migration` lane.
 - [ ] **D15** PR body has all 5 canonical H2 sections; `## Code Review` added at merge time. *Test:* `traceability-validator` lane.

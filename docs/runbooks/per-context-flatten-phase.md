@@ -28,7 +28,7 @@ kernel    contracts  domain    app       api/worker/adapter  runtime  sweep
 
 ## Pre-checks (5 minutes max)
 
-- [ ] Confirm the previous phase is green for the same context — verify with the phase evidence bundle or `repoctl pre-push` output.
+- [ ] Confirm the previous phase is green for the same context — verify with the phase evidence bundle or `oya verify` output.
 - [ ] Confirm no PR ahead in the merge queue touches root `Cargo.toml [workspace.members]`.
 - [ ] Confirm no new top-level `modules/`, `services/`, or `platform/` tree exists.
 - [ ] Confirm every candidate crate has a catalog target and role from ADR-0015.

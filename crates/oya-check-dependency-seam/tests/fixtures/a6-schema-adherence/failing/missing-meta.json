@@ -1,5 +1,0 @@
-{
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/specs/cross-cutting/no-meta.json",
-  "purpose": "Auto-backfilled purpose for missing-meta.json"
-}
