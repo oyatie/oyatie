@@ -17,21 +17,21 @@
     "use_cases_audited": ["development_traceability", "governance_audit_trail", "compliance_attestation", "incident_root_cause_traversal", "blast_radius_inference", "agent_decision_provenance"]
   },
   "current_state": {
-    "semantic_layer": {"ref": "$ref:registry/knowledge-graph-semantic.json", "node_types_declared": 27, "edge_types_declared": 20, "invariants_declared": 15, "read_side_queries_declared": 6, "status": "PRODUCTION_READY"},
-    "kinetic_layer": {"ref": "$ref:registry/knowledge-graph-kinetic.json", "action_types_declared": 14, "workflows_declared": 4, "audit_topic_per_action": true, "idempotency_pattern_declared": true, "lock_pattern_declared": true, "status": "PRODUCTION_READY"},
+    "semantic_layer": {"ref": "$ref:registry/knowledge-graph-semantic.json", "node_types_declared": 30, "edge_types_declared": 22, "invariants_declared": 16, "read_side_queries_declared": 7, "status": "PRODUCTION_READY"},
+    "kinetic_layer": {"ref": "$ref:registry/knowledge-graph-kinetic.json", "action_types_declared": 15, "workflows_declared": 5, "audit_topic_per_action": true, "idempotency_pattern_declared": true, "lock_pattern_declared": true, "status": "PRODUCTION_READY"},
     "dynamic_layer": {"ref": "$ref:registry/knowledge-graph-dynamic.json", "live_state_sources_declared": 9, "otel_telemetry_pointers": true, "status": "PRODUCTION_READY"}
   },
   "use_case_coverage": [
     {"use_case": "development_traceability", "coverage_pct": 75, "gaps": ["no node_type for ChangeSet → PR → audit-chain-row provenance chain", "no edge_type linking AcceptanceCriterion → Test → CI-lane-run-id"]},
     {"use_case": "governance_audit_trail", "coverage_pct": 90, "gaps": ["action_invoked rows captured but no aggregate read-side query joins them across autonomy_tier hierarchy"]},
     {"use_case": "compliance_attestation", "coverage_pct": 100, "gaps": [], "closure_ref": "$ref:registry/knowledge-graph-semantic.json#read_side_query_examples/show_compliance_evidence_freshness"},
-    {"use_case": "incident_root_cause_traversal", "coverage_pct": 70, "gaps": ["no edge_type Incident → CausedByChange → PR; root-cause stored as prose in registry/incidents/ not as graph edge"]},
+    {"use_case": "incident_root_cause_traversal", "coverage_pct": 100, "gaps": [], "closure_ref": "$ref:registry/knowledge-graph-semantic.json#read_side_query_examples/trace_incident_root_cause_prs"},
     {"use_case": "blast_radius_inference", "coverage_pct": 65, "gaps": ["no read-side query for 'given a candidate diff, return reachable entity_types + downstream consumers'"]},
     {"use_case": "agent_decision_provenance", "coverage_pct": 80, "gaps": ["agent_decision is event but not a graph node; cannot traverse decision_a → caused_by → decision_b chains"]}
   ],
   "findings": [
     {"id": "F-KG-01", "severity": "high", "status": "resolved_2026_05_16", "summary": "ComplianceControl → SatisfiedByLane → EvidencePath chain is graph-declared; compliance-attestation 100%", "remediation": "Closed by registry/knowledge-graph-semantic.json node_types ComplianceControl/SatisfiedByLane/EvidencePath, edge_types satisfied_by_lane/evidence_path, invariant I15, and read-side query show_compliance_evidence_freshness."},
-    {"id": "F-KG-02", "severity": "high", "summary": "Incident root-cause not graph-traversable", "remediation": "Add Incident → CausedByChange → PR edge_type; emit on incident_close action"},
+    {"id": "F-KG-02", "severity": "high", "status": "resolved_2026_05_16", "summary": "Incident → CausedByChange → PullRequest chain is graph-declared and emitted by CloseIncident.", "remediation": "Closed by registry/knowledge-graph-semantic.json node_types Incident/CausedByChange/PullRequest, edge_types caused_by_change/change_from_pr, invariant I16, read-side query trace_incident_root_cause_prs, and kinetic action CloseIncident."},
     {"id": "F-KG-03", "severity": "high", "summary": "Blast-radius inference ad-hoc per PR", "remediation": "Add read-side query reachable_entity_types_for_diff aligned with $ref:specs/agent-durable-goal.json#review_tiering.blast_radius_score signals"},
     {"id": "F-KG-04", "severity": "medium", "summary": "AgentDecision is event-only, not node", "remediation": "Promote agent_decision to node_type + caused_by edge_type for decision-chain traversal"},
     {"id": "F-KG-05", "severity": "medium", "summary": "AcceptanceCriterion ↔ Test ↔ CILaneRun chain not in KG", "remediation": "Add AcceptanceCriterion + Test + CILaneRun node_types + chain edges; enables tdd_contract verification via KG query"},
@@ -41,14 +41,14 @@
     {"use_case": "development_traceability", "verdict": "ADEQUATE_WITH_GAPS", "blocker_for_user_goal": false},
     {"use_case": "governance_audit_trail", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false},
     {"use_case": "compliance_attestation", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false, "rationale": "Compliance controls now traverse to lane satisfaction and evidence paths through semantic KG edge types plus read-side freshness query."},
-    {"use_case": "incident_root_cause_traversal", "verdict": "ADEQUATE_WITH_GAPS", "blocker_for_user_goal": false},
+    {"use_case": "incident_root_cause_traversal", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false, "rationale": "Closed incidents now traverse mechanically to root-cause change nodes and PullRequest nodes, and CloseIncident declares audit-topic emission plus validator recheck of I16."},
     {"use_case": "blast_radius_inference", "verdict": "ADEQUATE_WITH_GAPS", "blocker_for_user_goal": false, "rationale": "review_tiering uses diff-signal heuristics; KG query would sharpen but signals already adequate per agent-durable-goal v1.4"},
     {"use_case": "agent_decision_provenance", "verdict": "ADEQUATE_WITH_GAPS", "blocker_for_user_goal": false}
   ],
   "overall_verdict": {
     "robust_enough_for_development": "YES (3-layer architecture sound; 6 gaps identified; all remediation additive — node/edge_type additions, no schema breaking change)",
-    "robust_enough_for_governance": "YES (F-KG-01 compliance-attestation blocker resolved; remaining high-severity gaps are non-blocking planning sharpeners for incident/root-cause and blast-radius traversal)",
-    "recommendation": "F-KG-01 is closed. Continue with F-KG-02/03 (incident + blast-radius) within the next planning round; F-KG-04/05/06 (provenance + chain) opportunistic.",
+    "robust_enough_for_governance": "YES (F-KG-01 compliance-attestation and F-KG-02 incident root-cause traversal resolved; remaining high-severity gap is F-KG-03 blast-radius traversal)",
+    "recommendation": "F-KG-01 and F-KG-02 are closed. Continue with F-KG-03 (blast-radius) in the next planning round; F-KG-04/05/06 (provenance + chain) opportunistic.",
     "doctrine_pointer": "$ref:specs/agent-durable-goal.json#autonomous_foundry.lane_promotion_protocol — each fix follows candidate → ≥3-prevented-incidents → BLOCKER cadence"
   },
   "sources_scanned": ["$ref:specs/knowledge-graph-schema.json", "$ref:registry/knowledge-graph-semantic.json", "$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json", "$ref:specs/products/ontology.json", "$ref:specs/agent-durable-goal.json", "$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0107", "$ref:bominal/decisions/ADR-0133"]
