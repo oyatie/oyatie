@@ -812,6 +812,31 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | Subscription-mode adapter breaks on provider UX change (e.g., ChatGPT Plus UI redesign) | Medium | Adapter health-check is monitored; per-adapter regression suite; vendor-change alerting (provider release-notes feed); fallback to API mode where tenant has alternate auth | Foundry + Provider-adapter team |
 | Vertical-pack capability authoring template drift | Medium | `VerticalPackAuthoringTemplate` versioned per pack; pack-changelog reviewed quarterly | Foundry + Per-pack |
 
+## 11f. User experience (required for user-facing surfaces)
+
+| Field | Content |
+|---|---|
+| `ux_personas_ref` | Agent operators, product engineers, verifier/reviewer roles, security/compliance reviewers from §2. |
+| `accessibility_coverage` | WCAG 2.2 AA; run timelines, score-card tables, evidence viewers, and failure drill-downs are keyboard-first. |
+| `responsive_breakpoints` | tablet / desktop / wide-desktop; mobile is read-only run status only. |
+| `internationalization_scope` | locale-aware-dynamic; ko-KR and en-US launch gates for gate failure copy and remediation. |
+| `design_system_components_used` | `FoundryAgentRunTimeline`, `ScoreCardResultTable`, `AuditEvidenceTimeline`, `OpsDeploymentStatusPanel`, `PolicyDisclosureBanner`. |
+| `journey_critical_paths` | inspect failed gate < 2m; verify evidence bundle < 5m; follow fix-loop state < 60s; inspect deployment handoff without SSH < 90s. |
+| `error_state_coverage` | gate failure, stale evidence, missing source citation, blocked secret, drift detected, rollback running. |
+| `offline_behavior` | no mutating offline runs; cached evidence/read-only logs marked stale with exact freshness. |
+| `keyboard_navigation_coverage_pct` | 100 for run timeline, score-card table, evidence preview, and rollback/action controls. |
+| `loading_state_coverage` | streaming timeline rows, skeleton score-card rows, determinate verification progress; spinner-only states forbidden. |
+
+## 11g. Frontend components (required for products with rendered UI)
+
+| Component | Source | Variants | Tested-at-breakpoint |
+|---|---|---|---|
+| `FoundryAgentRunTimeline` | `$ref:specs/design-system/foundry-agent-run-timeline.json` | single-agent / team-pipeline / verification-loop / deployment-rollout | tablet / desktop / wide-desktop |
+| `ScoreCardResultTable` | `$ref:specs/design-system/score-card-result-table.json` | prd-template-conformance / source-citation / doubt-review / deployment-ops | tablet / desktop / wide-desktop |
+| `AuditEvidenceTimeline` | `$ref:specs/design-system/audit-evidence-timeline.json` | changeset-provenance / agent-decision-chain / release-evidence | tablet / desktop |
+| `OpsDeploymentStatusPanel` | `$ref:specs/design-system/ops-deployment-status-panel.json` | plan-preview / canary / rollback / blocked-secret | tablet / desktop |
+| `PolicyDisclosureBanner` | `$ref:specs/design-system/policy-disclosure-banner.json` | audit-access / requires-second-approver / expired-policy | tablet / desktop |
+
 ## 11. Open questions
 
 1. **Subscription-mode disclosure surfacing**: at tenant onboarding (one-time), or per-capability-invocation (every time)? Default proposed: tenant onboarding + per-renewal record + audit-chain export; per-invocation disclosure only on demand.

@@ -17,7 +17,8 @@
     "paired_with": "$ref:specs/products/workflow.json (engine half — together they form n8n-class first hero product)",
     "crate_refs_planned": ["oya-saas-workflow-studio-kernel", "oya-saas-workflow-studio-domain", "oya-saas-workflow-studio-app", "oya-saas-workflow-studio-api"],
     "scaffolding_status": "PLANNED — crates to be authored in downstream IP"
-  },
+  ,
+    "user_facing_surface": true},
   "inherits": {
     "bominal_adrs": ["$ref:bominal/decisions/ADR-0164"],
     "oyatie_specs": ["$ref:specs/agent-durable-goal.json", "$ref:docs/decisions/ADR-0065 (Leptos for browser UI)"],
@@ -140,6 +141,150 @@
     "efficiency": {"target": "<$5 per-seat per-month at GA; CDN-cached static assets", "verification_ref": "$ref:crates/oya-cloud-finops-kernel"},
     "reliability": {"target": "99.95% availability + MTTR <60s (auto-rollback canary)", "verification_lane_ref": "canary-observability-rollback"}
   },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/products/workflow-studio.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; full canvas, node library, config panel, diff, replay, and save/conflict flows keyboard-operable",
+    "responsive_breakpoints": [
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic; ko-KR and en-US are launch gates for authoring, validation, and policy copy",
+    "design_system_components_used": "$ref:specs/products/workflow-studio.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "business_power_user",
+        "journeys": [
+          "draft workflow visually",
+          "fix validation errors",
+          "save canonical spec"
+        ],
+        "time_to_success_target": "< 15 minutes for first valid workflow"
+      },
+      {
+        "persona": "developer",
+        "journeys": [
+          "open DSL diff",
+          "round-trip visual to JSON",
+          "submit git-backed review"
+        ],
+        "time_to_success_target": "< 5 minutes from diff open to review-ready patch"
+      },
+      {
+        "persona": "vertical_specialist",
+        "journeys": [
+          "switch jurisdiction overlay",
+          "inspect changed nodes",
+          "export evidence"
+        ],
+        "time_to_success_target": "< 10 minutes per overlay review"
+      }
+    ],
+    "error_state_coverage": {
+      "invalid_spec": "node and diff hunk errors with stable code, pointer, and remediation",
+      "collaboration_conflict": "explicit conflict UI; never silent overwrite",
+      "network_partition": "offline buffer status with reconnect and unsynced-change count",
+      "policy_denied": "policy preview and blocking banner before save"
+    },
+    "offline_behavior": "local edit buffer persists pending changes; read-only descriptors may cache; saves require reconnect and policy re-evaluation",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "canvas/layout skeletons, descriptor progressive loading, determinate save/validation progress; no spinner-only critical path"
+  },
+  "frontend_components": [
+    {
+      "component": "WorkflowCanvas",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-canvas.json",
+      "variants": [
+        "authoring",
+        "read-only-review",
+        "debug-overlay",
+        "jurisdiction-overlay"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "WorkflowNodeConfigPanel",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-node-config-panel.json",
+      "variants": [
+        "http-step",
+        "transform-step",
+        "branch-step",
+        "join-step",
+        "capability-call",
+        "ontology-action"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "SpecDiffViewer",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/spec-diff-viewer.json",
+      "variants": [
+        "json-patch",
+        "workflow-round-trip",
+        "jurisdiction-overlay"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "WorkflowReplayTimeline",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-replay-timeline.json",
+      "variants": [
+        "live-run",
+        "historical-replay",
+        "failure-debug"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "EntityActionPolicyPreview",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/entity-action-policy-preview.json",
+      "variants": [
+        "allow",
+        "deny",
+        "requires-approval",
+        "autonomy-tier-ceiling"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "consent-required",
+        "audit-access",
+        "requires-second-approver"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    }
+  ],
   "decision_log": [
     {"date": "2026-05-16", "decision": "adopt Bominal-ADR-0164 canonical spec format verbatim"},
     {"date": "2026-05-16", "decision": "scaffold atop Leptos per ADR-0065"},
@@ -150,5 +295,8 @@
     "$ref:docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
     "$ref:specs/products/workflow.json",
     "$ref:memory/feedback_workflow_studio_scope"
-  ]
+  ,
+    "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
+    "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
+    "$ref:specs/design-system/catalog.json"]
 }

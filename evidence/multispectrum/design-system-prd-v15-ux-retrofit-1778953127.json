@@ -1,0 +1,85 @@
+{
+  "change_id": "design-system-prd-v15-ux-retrofit-1778953127",
+  "change_class_id": "CC-5_governance_registry",
+  "freshness_unix": 1778953127,
+  "session_id": "codex-prd-v15-ux-retrofit-2026-05-16",
+  "scope": [
+    "specs/design-system/*.json",
+    "specs/products/workflow.json",
+    "specs/products/workflow-studio.json",
+    "specs/products/ontology.json",
+    "docs/products/cloud/PRD.md",
+    "docs/products/foundry/PRD.md",
+    "specs/root-hub-pointers.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Close F-PRD-V1.5-UX-RETROFIT by adding a machine-readable design-system catalog, 12 new component rows, and PRD template v1.5 user_experience/frontend_components coverage for Workflow, Workflow Studio, Ontology, Cloud, and Foundry.",
+  "verification": [
+    {
+      "command": "json parse for specs/design-system/*.json, selected product PRDs, and root hub pointers",
+      "status": "passed",
+      "evidence": "all design-system rows, workflow/workflow-studio/ontology PRDs, and specs/root-hub-pointers.json parse as JSON"
+    },
+    {
+      "command": "component/root-hub pointer cross-check",
+      "status": "passed",
+      "evidence": "15 design-system JSON files have root-hub entries; all Workflow/Studio/Ontology frontend component refs resolve"
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed",
+      "evidence": "formatted"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli --test product_prd_json",
+      "status": "passed",
+      "evidence": "2 tests passed including product_prd_json_gate_accepts_repo_specs"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --test product_prd_json -- -D warnings",
+      "status": "passed",
+      "evidence": "targeted clippy passed"
+    },
+    {
+      "command": "oya gate validate product-prd-json",
+      "status": "passed",
+      "evidence": "11 products, 66 acceptance criteria, 52 metrics, 11 root-hub links"
+    },
+    {
+      "command": "oya gate validate active-artifact-contract",
+      "status": "passed",
+      "evidence": "53 rows, 3554 HEAD-tracked, 53 graph edges"
+    },
+    {
+      "command": "oya gate validate retired-vocabulary",
+      "status": "passed",
+      "evidence": "1203 documents checked, 6 retired terms enforced, 0 drift hits"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "no whitespace errors"
+    },
+    {
+      "command": "oya vcs verify/done/promote",
+      "status": "passed",
+      "evidence": "codex-prd-v15-ux-retrofit evidence verified, bundle emitted, and design-system-prd-v15-ux-retrofit-1778953127 promoted to dev"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Retrofitted existing PRDs with pointers to reusable component rows instead of one-off UI prose per product."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "passing_fixture_id": "product_prd_json::product_prd_json_gate_accepts_repo_specs"
+    }
+  },
+  "remaining_risks": [
+    "Cloud and Foundry remain markdown PRD projections until their canonical product PRDs are promoted to specs/products/*.json.",
+    "Component test_refs describe planned product UI crates; current verification covers registry shape and reference integrity."
+  ]
+}
