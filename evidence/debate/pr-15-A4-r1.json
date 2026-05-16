@@ -1,0 +1,68 @@
+{
+  "facet": "A4_architecture_adherence",
+  "pr": 15,
+  "round": "r1",
+  "verdict": "REVISE",
+  "lens": "ADR-0056 12-layer enum + clean-architecture inward flow",
+  "scope": "PR #15 'Centralize capability templates under registry' (merge 6b3262af on dev). Source touch = crates/oya-dev-cli/src/{foundry_capability_schema_gates.rs, foundry_eval_gates.rs, lib.rs}. Data move = product-control/capabilities/** -> registry/capability-templates/**.",
+  "drift_detected": true,
+  "layer_violations": [
+    {
+      "id": "A4-V1",
+      "severity": "MAJOR",
+      "kind": "cli_layer_owns_data_plane_io",
+      "evidence_file": "crates/oya-dev-cli/src/foundry_capability_schema_gates.rs",
+      "evidence_lines": "60-81",
+      "snippet": "for entry in fs::read_dir(capabilities_dir) ... let contents = fs::read_to_string(&path) ...",
+      "rule_cited": "ADR-0056 line 177: 'cli — CLI binary or CLI library (subcommand handlers + optional [[bin]])'. Lines 171-174: kernel owns ports+types, domain owns business logic, application owns use cases. fs::read_dir + YAML parse of capability templates is domain/usecase work, not cli work.",
+      "why": "The cli crate directly walks the filesystem and parses capability/eval template YAML. Equivalent kernel + domain crates already exist (oya-foundry-capability-registry-kernel, oya-foundry-capability-domain) — confirming the layer split is canonical, not aspirational. The dev-cli gate should depend on those kernels and call a usecase, not re-implement template-loading at the presentation layer.",
+      "fix": "Introduce/locate an oya-foundry-capability-template-application (or extend an existing usecase crate) that exposes load_capability_records(capabilities_dir) -> Result<Vec<CapabilityRecord>, _>. The cli gate then calls that usecase and only formats output. Keep the path-default flag in cli (presentation), keep the IO + parse in usecase/adapter."
+    },
+    {
+      "id": "A4-V2",
+      "severity": "MINOR",
+      "kind": "pre_existing_not_introduced",
+      "evidence": "The IO-in-cli pattern PRE-DATES PR #15. PR #15 only swaps the default string ('product-control/capabilities' -> 'registry/capability-templates') in lib.rs and the two gate files (1-line each, 3 source-line diff total).",
+      "why": "The architecture violation is the responsibility of the crate's original author, not this PR. PR #15 is a path-rename cleanup. Realist Check: downgrades A4-V1 actionability against this PR to OBSERVED-NOT-INTRODUCED; the merge does not worsen layer adherence. Mitigated by: pre-existing IO scope; PR diff is +3/-3 in source. The finding is logged for the next cleanup wave (LEAN-A series) rather than as a blocker for #15."
+    }
+  ],
+  "consolidation_collapsed_kernel_adapter_pair": false,
+  "consolidation_analysis": "PR #15 collapses ONLY a data-plane directory (product-control/capabilities -> registry/capability-templates). It does NOT merge any kernel + adapter crate, does NOT remove any port trait, does NOT erase a usecase boundary. Three .yaml fixtures were renamed; registry/artifact-capabilities-registry.json gained 105 rows registering them as control-plane artifacts. No Rust module boundary changed.",
+  "adr_amendment_weakens_inward_flow": false,
+  "adr_check": "PR adds zero new ADRs and amends zero existing ADRs. ADR-0056 untouched. ADR-0116 cited as cover, not amended. The deep-dive-oyatie-sst-consolidation.md spec (docs/specs/ + docs/decisions/specs/) shows only a 1-line path edit ('product-control/' removed from a comment); the spec's clean-architecture principle on line 24 ('kernel <- domain <- application <- {adapter, ...}') and the inward-flow diagram on line 75 are unchanged. Inward-flow rule is intact.",
+  "spec_coherence": {
+    "doc": "docs/specs/deep-dive-oyatie-sst-consolidation.md",
+    "verdict": "COHERENT",
+    "notes": "Spec retains kernel<-domain<-app<-adapter direction (line 24, 75). Path edit on line 78 ('registry/      # catalog + capability records' replacing 'registry/, product-control/      # catalog + capability records') is consistent with the data move and does not redefine the SoT layer model. Spec correctly treats registry/ as control-plane data, not code, so layer placement of consumers is unaffected by the move."
+  },
+  "right_layer_for_template_loading": {
+    "current": "cli (oya-dev-cli)",
+    "should_be": "usecase/application crate that depends on oya-foundry-capability-registry-kernel + oya-foundry-capability-domain",
+    "evidence_kernels_already_exist": [
+      "crates/oya-foundry-capability-registry-kernel (referenced by oya-foundry-rag-endpoint-app)",
+      "crates/oya-foundry-capability-domain (CapabilityRecord, AutonomyTier, etc.)"
+    ]
+  },
+  "pre_commitment_predictions_vs_actual": {
+    "predicted": [
+      "dev-cli may directly do template IO that should live in a kernel/usecase",
+      "Data-plane move may quietly amend an ADR or the SST spec",
+      "Path renames may leave dangling references in tests/docs"
+    ],
+    "actual": [
+      "Confirmed: dev-cli does direct fs::read_dir + YAML parse (A4-V1) — BUT pre-existing, not introduced by #15 (A4-V2)",
+      "Refuted: no ADR amendment; spec edit is path-only and inward-flow rule preserved",
+      "Out-of-scope for A4: did not enumerate doc/test dangling references"
+    ]
+  },
+  "realist_check": "A4-V1 is genuine architectural drift but the PR itself is a 3-line path swap. Treating #15 as REJECT would penalize a clean topology move for a flaw the merge did not introduce. Treating it as ACCEPT would silently bless the cli-owns-template-IO pattern. Verdict REVISE = accept the path move, file the layer fix as a follow-up gate task (LEAN-A family) so the violation is tracked, not ratified.",
+  "verdict_justification": "PR is architecturally NEUTRAL on the layer enum (no kernel/adapter collapse, no ADR weakening, spec coherent). Pre-existing IO-in-cli pattern surfaces during review and should be tracked but is not a #15 blocker. REVISE = land the path/registry move + open a follow-up to push capability-template loading down to a usecase that consumes the existing oya-foundry-capability-*-kernel crates.",
+  "follow_up_tasks": [
+    "Create oya-foundry-capability-template-application (or extend an existing usecase) that owns load_capability_records + load_eval_set + load_eval_run.",
+    "Reduce oya-dev-cli/src/foundry_capability_schema_gates.rs and foundry_eval_gates.rs to: parse-args -> call-usecase -> render-output.",
+    "Add lean-a* lane check: cli crates must not call fs::read_dir on registry/capability-templates/** directly."
+  ],
+  "open_questions": [
+    "Does an existing usecase crate already wrap registry/capability-templates loading that the cli could reuse without a new crate? (not enumerated in this round)"
+  ]
+}

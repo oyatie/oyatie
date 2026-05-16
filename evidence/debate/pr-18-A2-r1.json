@@ -1,0 +1,81 @@
+{
+  "reviewer_id": "claude-A2_documentation_adherence-pr-18",
+  "round": 1,
+  "change_id": "pr-18",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "A2_documentation_adherence",
+  "lens": "Documentation adherence — DOC-CATALOG + ADR-INDEX + CHANGELOG + machine-readable decisions/catalog + TPL-ADR conformance",
+  "policy_refs": ["docs/DOC-CATALOG.md", "docs/ADR-INDEX.md", "docs/CHANGELOG.md", "docs/machine-readable/decisions.json", "docs/machine-readable/catalog.json", "docs/templates/adr-template-v2.md", "docs/standards/doc-style.md"],
+  "answer": "PR #18 introduces docs/decisions/ADR-0119-specs-flat-root-topology.md (116 lines, well-formed body) and rewrites 222 references from /specs/cross-cutting/ to /specs/. Verified on origin/dev: ADR-0119 is ABSENT from all four canonical doc indexes — docs/ADR-INDEX.md (grep '0119' = 0 hits), docs/DOC-CATALOG.md (0 hits), docs/CHANGELOG.md (0 hits; CHANGELOG head dated 2026-05-16 only carries the archive-orphan retirement entry), and docs/machine-readable/decisions.json (only hit is an unrelated Bominal ADR-0117 reference). This is identical drift to pr-12-A2 (ADR-0117 not registered), pr-13/15/17 pattern — RECURRING CATALOG DRIFT across at least five consecutive ADR-introducing PRs. PR body explains supersession of #14 (unsigned commit) but contains ZERO mention of a two-PR split (#19 companion); reviewers reading only PR #18 cannot discover that references were rewritten here while moves happen elsewhere. Cross-check of the PR diff confirms no actual `git mv` paths to specs/* appear inside the 222-file change set — only reference rewrites — yet the ADR's Migration section explicitly states 'Move every file from the former nested spec scope directory to specs/ with git mv', creating an in-PR self-contradiction that only the unwritten companion PR resolves. ADR-0119 body is otherwise well-formed: Status (frontmatter Accepted), Context, Decision, Naming-justification (uses table instead of NAME/JUSTIFICATION fenced block — minor TPL drift), Migration, Consequences (Positive/Negative/Operational), Rejected alternatives, Verification, References. MISSING: explicit `## Sunset / Reversal` section (grep returns 0); the ADR is implicitly terminal but TPL-ADR-v2 requires the section, even if to declare 'Terminal — reversal = git revert + remove specs/lifecycle-configs/ regrouping'.",
+  "key_claims": [
+    "ADR-0119 file exists at docs/decisions/ADR-0119-specs-flat-root-topology.md on origin/dev (verified via git show origin/dev:...) but is absent from docs/ADR-INDEX.md (grep '0119' = 0 hits)",
+    "ADR-0119 is absent from docs/DOC-CATALOG.md on origin/dev (grep '0119' = 0 hits)",
+    "ADR-0119 is absent from docs/CHANGELOG.md on origin/dev (grep '0119|flat-root|topology' = 0 hits); CHANGELOG's only 2026-05-16 entry covers archive-orphan retirement, not the specs flattening",
+    "ADR-0119 is absent from docs/machine-readable/decisions.json on origin/dev (only '0119' hit is an unrelated Bominal ADR-0117 cross-ref string)",
+    "Same drift pattern was flagged in pr-12-A2 (ADR-0117 not registered) — this is a RECURRING multi-PR violation, not an isolated lapse",
+    "PR #18 body (Summary/Verification/Supersedes sections) does not mention companion PR #19 or any two-PR split; reader has no signal that file moves land elsewhere",
+    "PR #18 diff (37KB, 222 files) contains reference rewrites only; no `git mv` rename headers for specs/ paths appear in the diff truncation viewed — yet ADR-0119 Migration section declares 'Move every file ... with git mv', creating in-PR contradiction unless reader knows about #19",
+    "ADR-0119 frontmatter uses canonical TPL-ADR-v2 fields (status, deciders, date, owner, supersedes, superseded_by, related, purpose) — conforms",
+    "ADR-0119 has Status (in frontmatter), Context, Decision, Naming-justification, Migration, Consequences (Positive/Negative/Operational), Rejected alternatives, Verification, References sections",
+    "ADR-0119 LACKS explicit `## Sunset / Reversal` section required by TPL-ADR-v2 (grep 'Sunset|Reversal|Rollback' = 0 hits in ADR body)",
+    "ADR-0119 Naming-justification uses markdown TABLE format instead of TPL-ADR-v2 canonical NAME:/JUSTIFICATION: fenced-block format — minor stylistic drift but content is adequate",
+    "ADR-0119 `related:` correctly cites ADR-0115 (registry consolidation precedent) and ADR-0116 (Foundry pipeline substrate) — cite-the-rule discipline satisfied at the ADR level"
+  ],
+  "uncertainty_areas": [
+    "Whether oyatie has an automated regenerator that rebuilds ADR-INDEX/DOC-CATALOG/decisions.json from docs/decisions/*.md (would downgrade CRITICAL→MAJOR procedural miss); review brief implies manual maintenance because pr-12 had identical drift and the wave-A merge did not regenerate",
+    "Whether PR #19 (the file-move companion) actually exists in this repo or is hypothetical; A2 cannot validate forward across PRs and only flags the missing in-PR signal",
+    "Whether DOC-CATALOG requires per-ADR rows for every ADR or only those introducing new doc surfaces (current catalog selectively rows older ADRs); flagged as MAJOR not CRITICAL on that uncertainty",
+    "Whether the 'Next ADR number' counter in ADR-INDEX has been bumped past 0119 (the index itself appears stale and may not have been touched by PR #18)"
+  ],
+  "drift_detected": true,
+  "findings": [
+    {
+      "severity": "CRITICAL",
+      "summary": "ADR-0119 is not registered in docs/ADR-INDEX.md on origin/dev; this is the FIFTH consecutive PR (pr-12/13/15/17/18) with the same catalog-drift signature. Future consumers reading the canonical index cannot discover ADR-0119 exists.",
+      "recommended_action": "Append ADR-0119 row to ADR-INDEX.md table (mirroring ADR-0115 row format), bump 'Next ADR number' to 0120, and back-fill ADR-0116/0117/0118 rows in the same fix-up PR. Track the recurrence as a systemic doc-substrate bug, not a per-PR fluke.",
+      "fixuptask_id": "F-PR18-01"
+    },
+    {
+      "severity": "CRITICAL",
+      "summary": "ADR-0119 is not registered in docs/machine-readable/decisions.json. Any automation, agent, or downstream consumer reading the JSON substrate cannot see ADR-0119 exists, breaking the machine-readable contract the index is meant to provide.",
+      "recommended_action": "Add the ADR-0119 entry to decisions.json with status=Accepted, deciders, related=[ADR-0115, ADR-0116], purpose lifted verbatim from frontmatter. If a regenerator exists, run it; otherwise hand-append matching the ADR-0115 JSON object shape.",
+      "fixuptask_id": "F-PR18-02"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0119 is not registered in docs/DOC-CATALOG.md. Update-trigger machinery cannot route EVT-SPEC-PATH-CHANGE events to this ADR, and the per-ADR catalog convention is silently broken again.",
+      "recommended_action": "Add a `doc.adr_0119` row in DOC-CATALOG.md §2: owner_team=council-architecture, update_trigger=EVT-SPEC-PATH-CHANGE, validation_check=`test ! -d specs/cross-cutting && grep -rn 'specs/cross-cutting/' . | grep -v '^docs/decisions/ADR-0119' returns 0`, dependent_docs=[specs/*.json, specs/lifecycle-configs/*.json].",
+      "fixuptask_id": "F-PR18-03"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0119 has no CHANGELOG.md entry. The flat-root topology is a repo-wide reference rewrite affecting 222 files and is the canonical human-readable signal for spec consumers — its absence breaks the cite-by-date discipline used by every prior topology change (ADR-0115 has a CHANGELOG entry).",
+      "recommended_action": "Prepend a `## 2026-05-16 — Specs flat-root topology (ADR-0119): cross-cutting/ retired` section with bullets covering: (1) what moved, (2) ADR-0115 precedent, (3) 222-file rewrite scope, (4) verification (admission gate, cargo nextest 2725 passed).",
+      "fixuptask_id": "F-PR18-04"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "PR #18 body does NOT explain the two-PR split (references rewritten in #18, file moves in #19). A reader of #18 alone sees ADR-0119's Migration section declare `git mv` operations that do not appear in this PR's diff, creating an in-PR contradiction. Reviewers cannot reconstruct the cutover sequence without external context.",
+      "recommended_action": "Either (a) add a `Companion PRs` section to PR #18 body explicitly linking #19 and describing the split rationale (reference-rewrite first to keep CI green, mv second under the same ADR), or (b) merge the two PRs into one to eliminate the split entirely. Update ADR-0119 Migration section to note the two-step landing.",
+      "fixuptask_id": "F-PR18-05"
+    },
+    {
+      "severity": "MAJOR",
+      "summary": "ADR-0119 lacks the explicit `## Sunset / Reversal` section required by TPL-ADR-v2. The ADR is implicitly terminal (path-only move) but the template demands the section even to declare terminality + reversal procedure.",
+      "recommended_action": "Append `## Sunset / Reversal` with: `Terminal. No sunset clause. Reversal = git revert of the move commit (PR #19) + git revert of the rewrite commit (PR #18) + manually re-create specs/cross-cutting/ and specs/cross-cutting/lifecycle-configs/ if downstream consumers regress. No external consumers depend on the legacy path post-cutover.`",
+      "fixuptask_id": "F-PR18-06"
+    },
+    {
+      "severity": "MINOR",
+      "summary": "ADR-0119 Naming-justification uses a markdown table instead of the canonical NAME:/JUSTIFICATION: fenced-block format from TPL-ADR-v2 (docs/templates/adr-template-v2.md). Content is comprehensive (33 path justifications) but format drifts.",
+      "recommended_action": "Either (a) reformat the table as NAME:/JUSTIFICATION: blocks to match template literally, or (b) update TPL-ADR-v2 to permit a justification-table form for ADRs that justify ≥10 names at once. Table form is arguably superior at scale — codify the exception."
+    },
+    {
+      "severity": "MINOR",
+      "summary": "ADR-0119 frontmatter `superseded_by: []` is set but ADR-0119 itself supersedes the de-facto topology established by retired specs/cross-cutting; `supersedes:` is empty even though the ADR is functionally a topology successor to the pre-ADR layout.",
+      "recommended_action": "If oyatie convention is that `supersedes:` only references prior ADRs (not de-facto state), leave as-is. Otherwise add a Context note: `Supersedes the implicit pre-ADR topology established before ADR-0115; no formal ADR predecessor.`"
+    }
+  ],
+  "verdict": "block"
+}

@@ -13,7 +13,7 @@ related:
 purpose: Define the canary observability gate that conditions dev→staging→production auto-promotion + the rollback mechanism when canary fails.
 ---
 
-# ADR-0114 — Canary observability gate + rollback
+# ADR-0114: Canary observability gate + rollback
 
 ## Context
 

@@ -1,7 +1,7 @@
 {
   "evidence_id": "onprem-k8s-istio-stack-2026-05-16",
   "captured_at": "2026-05-16T07:08:00Z",
-  "authority": "ADR-0119 (kubeadm + containerd + Istio + Envoy)",
+  "authority": "ADR-0121 (kubeadm + containerd + Istio + Envoy)",
   "stack": {
     "containerd": {"version": "v2.3.0", "runc": "1.4.0", "cni_plugins": "1.6.0", "cgroup_driver": "systemd"},
     "kubernetes": {"distribution": "kubeadm", "version": "v1.35.0", "advertise_address": "220.84.203.169", "pod_cidr": "10.244.0.0/16"},

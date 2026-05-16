@@ -12,7 +12,7 @@ related:
 purpose: Promote `registry/` (flat, singular) as the canonical home for all machine-readable registry entries; retire `registries/cross-cutting/` (plural + nested).
 ---
 
-# ADR-0115 — Registry consolidation: flat singular `registry/`
+# ADR-0115: Registry consolidation: flat singular `registry/`
 
 ## Context
 

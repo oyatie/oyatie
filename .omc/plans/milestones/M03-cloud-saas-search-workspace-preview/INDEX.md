@@ -17,9 +17,9 @@ Run all four axis previews concurrently to compress build-out time. Each axis pr
 
 ## Status
 
-**Entry gate passed 2026-05-16.** M02 directive-side exit closed (`evidence/M02-EXIT-ONPREM-FOUNDRY-LIVE-2026-05-16.json`). M2 substrate spec-side also green (`cargo check/nextest/deny/oya verify` all 0; see `.omc/plans/milestones/M02-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json`).
+**Entry gate passed 2026-05-16.** M02 directive-side exit closed (`evidence/M02-EXIT-ONPREM-FOUNDRY-LIVE-2026-05-16.json`). M2 substrate spec-side also green (`cargo check/nextest/deny/oya verify` all 0; see `.omc/plans/milestones/M02b-substrate/acceptance-evidence/2026-05-16-m02-exit-spec-side.json`).
 
-**Live infrastructure ready for M3 fan-out (per ADR-0119 + ADR-0043):**
+**Live infrastructure ready for M3 fan-out (per ADR-0121 + ADR-0043):**
 - On-prem KR primary cell: kubeadm k8s 1.35 + containerd 2.3.0 LTS + Istio 1.29.2 + Envoy + OpenBao v2.5.3 + Cloudflare Tunnel ✓
 - OCI ap-chuncheon-1 KR secondary cell: 31 tofu-managed resources (4 compartments, VCN+NAT+SGW+NSGs+private subnet, KMS vault+master key, Object Storage bucket, 2× E2.1.Micro Always Free running) ✓
 - A1.Flex 4 OCPU/24 GB Always Free: scripted retry loop firing every 5 min, waiting on regional capacity ✓

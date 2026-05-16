@@ -1,0 +1,58 @@
+{
+  "schema_version": "multispectrum-review-v2.2.0",
+  "reviewer_id": "claude-executor-F8_performance-pr-17-r1",
+  "change_id": "pr-17",
+  "change_class": "CC-3",
+  "lens": "F8_performance",
+  "artifacts_reviewed": [
+    "/tmp/oya-msr-pr12-18/pr-17.diff",
+    "/tmp/oya-msr-pr12-18/pr-17-meta.json"
+  ],
+  "review_date": "2026-05-16",
+  "perf_budget_class": "cold-path",
+  "perf_budget_class_justification": "PR #17 adds 173 pure-data files (JSON/JSONL evidence artifacts) under evidence/debate/. These files are written once and read only for audit queries \u2014 never on any compile, test, or runtime hot path. No Rust crate, no benchmark harness, no application binary is modified.",
+  "benchmark_attached": false,
+  "benchmark_id": null,
+  "verdict": "PASS",
+  "verdict_summary": "No performance concern. PR #17 is 173 pure-data files (7,639 lines, ~448 KB text). git-pack compression reduces actual repo size delta to ~112 KB. At 100-PR scale, evidence accumulation reaches ~1.2 MB packed \u2014 negligible. No hot path (compile, test, runtime) is touched. Per-PR overhead of ~19 evidence files is proportionate to the 9-facet review doctrine and does not trigger any repo-size or CI-latency budget concern.",
+  "findings": [
+    {
+      "id": "F8-01",
+      "severity": "INFO",
+      "summary": "Repo size delta is ~112 KB packed for this PR; linear growth at 100 PRs projects to ~1.2 MB",
+      "detail": "173 files, 7,639 lines, avg 44 lines/file. Text content ~448 KB. JSON compresses ~4:1 under git-pack, yielding ~112 KB actual object store growth. At steady-state (100 reviewed PRs, ~19 evidence files each), total evidence/ growth is ~1,900 files / ~1.2 MB packed. Well within any reasonable git repo size budget. No concern.",
+      "stat_n_files": 173,
+      "stat_lines": 7639,
+      "stat_estimated_text_kb": 448,
+      "stat_estimated_packed_kb": 112,
+      "stat_projected_100prs_packed_mb": 1.2,
+      "fixuptask_id": null
+    },
+    {
+      "id": "F8-02",
+      "severity": "INFO",
+      "summary": "Per-PR overhead of ~19 files is proportionate; no evidence of file-count creep beyond doctrine",
+      "detail": "9 PRs reviewed; 173 files / 9 = 19.2 files/PR. This matches the expected 9-facet x2-round structure (18 facet files + 1 synthesis). One PR (pr-5) has an extra r3 round due to F5 re-dispatch, explaining the slight overage. No unexpected file proliferation detected.",
+      "files_per_pr": 19.2,
+      "expected_per_doctrine": 19,
+      "fixuptask_id": null
+    }
+  ],
+  "anti_patterns_triggered": [],
+  "hot_path_impact": {
+    "compile_path": "NONE",
+    "test_path": "NONE",
+    "runtime_path": "NONE",
+    "ci_latency_path": "NONE \u2014 evidence/ is not scanned by any gate identified in gate/mod.rs or gate CLI"
+  },
+  "repo_size_assessment": {
+    "verdict": "ACCEPTABLE",
+    "text_kb": 448,
+    "packed_kb_estimate": 112,
+    "projected_100prs_packed_mb": 1.2,
+    "detail": "JSON is highly compressible. Repeated field names (change_id, facet_id, severity, etc.) across 173 files yield excellent pack ratios. No binary blobs, no generated images, no lock-file churn."
+  },
+  "recommended_fixuptasks": [],
+  "confidence": 0.97,
+  "confidence_note": "High confidence. Content is pure-data JSON/JSONL with no runtime coupling. Size estimates use conservative 4:1 git-pack ratio for JSON; actual savings may be higher due to cross-file dictionary compression in pack v2."
+}

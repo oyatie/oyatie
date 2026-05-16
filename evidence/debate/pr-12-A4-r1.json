@@ -1,0 +1,39 @@
+{
+  "reviewer_id": "claude-A4_architecture_adherence-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "A4_architecture_adherence",
+  "lens": "Architecture adherence — ADR-0056 12-layer + clean-architecture inward flow",
+  "policy_refs": [
+    "docs/decisions/ADR-0056-*.md",
+    "docs/standards/clean-architecture.md",
+    "docs/decisions/ADR-0105-*.md (tools/ app-suffix binding)",
+    "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+  ],
+  "answer": "PR #12 preserves the kernel<-app boundary. The 3 kernel edits in crates/oya-foundry-vcs-provider-execution-gate-kernel/src/lib.rs are pure &'static str literal swaps inside the existing expected_scalar_fields array (lines 82-84 at merged head 1d30a9ec) plus two test-fixture rewrites. Kernel imports remain serde_json::{Value,json} + std::fmt only — no std::fs/io/process/env/net, no async runtime, no HTTP client. The kernel doc-header continues to assert '# Algorithm (kernel — I/O-free)' and explicitly defers filesystem and subprocess work to tools/. The ARGO_MANIFEST const in tools/oya-foundry-vcs-provider-execution-gate-app/src/main.rs:38 is correctly placed in the composition-root binary alongside TRIVY_OUT_DIR / TRIVY_SARIF — placing it in an adapter crate is not warranted for a single literal consumed only by this binary's run() path, and placing it in the kernel would violate the I/O-free invariant. ADR-0117 explicitly states 12-layer-enum conformance is unaffected and the move is path-only.",
+  "key_claims": [
+    "Kernel lib.rs at merged head 1d30a9ec imports only serde_json::{Value,json} and std::fmt — zero IO/process/net dependency introduced by the 3 path-string rewrites.",
+    "All 3 kernel edits are pure literal rewrites inside existing data structures (expected_scalar_fields array and two test fixtures), not new imports or new function signatures.",
+    "ARGO_MANIFEST const sits at app/src/main.rs:38 next to TRIVY_OUT_DIR/TRIVY_SARIF — this is the established composition-root pattern; a separate adapter crate is overkill for one literal.",
+    "ADR-0117 §'Naming justification' explicitly affirms 'v4 BNF + 12-layer-enum conformance is unaffected (the move is path-only, no crate or capability naming changes)'.",
+    "Inward-flow rule (kernel<-domain<-app<-{api,worker,adapter}) is intact: app depends on kernel via the existing use oya_foundry_vcs_provider_execution_gate_kernel::{...} statement; no reverse coupling introduced.",
+    "Pre-existing soft duplication of 'infra/kyverno/oya-vcs-admission/application.json' across kernel-test-fixtures + app-const + evidence JSONs + the manifest's self-referential path is not introduced by PR #12; it is a hygiene PR that preserves the same coupling pattern at a new path."
+  ],
+  "uncertainty_areas": [
+    "Whether the kernel ought to export a pub const ARGO_MANIFEST_REPO_PATH so the app and tests share a single source of truth — would be a DRY improvement but is out-of-scope for a hygiene PR and not required by ADR-0056.",
+    "Whether the on-disk working tree (which still shows 'deploy/gitops/oya-vcs-admission' in lib.rs:83 in the Read tool) reflects a different branch state than the merged head 1d30a9ec; git show against the merged SHA confirms the rewrite did land."
+  ],
+  "drift_detected": false,
+  "layer_violations": [],
+  "findings": [
+    {
+      "severity": "info",
+      "summary": "Soft duplication of the 'infra/kyverno/oya-vcs-admission/application.json' literal across kernel test fixtures, app ARGO_MANIFEST const, and 3 evidence JSONs persists at the new path. Not introduced by this PR (same pattern existed at the old path). Could be deduplicated by exporting a pub const from the kernel.",
+      "recommended_action": "Optional follow-up: in a future PR, export 'pub const ARGO_MANIFEST_REPO_PATH: &str' from the kernel and have the app + tests + evidence emitters consume it. Out-of-scope for PR #12.",
+      "fixuptask_id": "F-PR12-01"
+    }
+  ],
+  "verdict": "approve"
+}

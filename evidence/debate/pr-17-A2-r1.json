@@ -1,0 +1,48 @@
+{
+  "schema": "msr.review.r1",
+  "facet": "A2_documentation_adherence",
+  "lens": "doc-coverage policy + CHANGELOG protocol + DOC-CATALOG thin-gateway",
+  "pr": 17,
+  "round": 1,
+  "reviewer_agent": "critic",
+  "review_date": "2026-05-16",
+  "drift_detected": true,
+  "verdict": "REVISE",
+  "severity_summary": {"critical": 0, "major": 2, "minor": 1},
+  "findings": [
+    {
+      "id": "A2-PR17-M1",
+      "severity": "MAJOR",
+      "title": "docs/CHANGELOG.md not updated for the multispectrum evidence wave",
+      "evidence": "PR #17 adds 173 files (+7639 lines) — 74 evidence/debate/pr-*.json artifacts, 9 synthesis files, and 9 consensus_debate_complete audit-chain events — but the diff touches zero files under docs/. grep `multispectrum|PR #17|evidence/debate` in docs/CHANGELOG.md returns 0 hits; head shows entries dated 2026-05-15 for fitness-lane scaffolds, none for this wave.",
+      "why": "ADR-0019 doc-update protocol requires CHANGELOG entries for material additions to the doc/evidence surface. A 9-PR retrospective review wave with 83 new artifacts and audit-chain mutations is exactly the kind of programmatic event the changelog exists to record. Future readers reconstructing the audit chain will have no human-readable anchor.",
+      "fix": "Add a 2026-05-16 CHANGELOG.md entry: scope (9 PRs reviewed: #1/2/3/5/6/7/8/9/11), counts (74 facet evidence + 9 synthesis), audit-chain event family appended, doctrine version (msr v2.3.0), and link to evidence/debate/."
+    },
+    {
+      "id": "A2-PR17-M2",
+      "severity": "MAJOR",
+      "title": "DOC-CATALOG.md does not register evidence/debate/ as a cataloged doc class",
+      "evidence": "grep `evidence/debate|consensus_debate|multispectrum` over docs/DOC-CATALOG.md returns 0 matches. The catalog enumerates Tier 1-3 + cross-cutting + per-product + per-team doc classes (sections 2.1-2.6), but no row covers evidence/debate/pr-<N>-<facet>-r<R>.json or evidence/debate/pr-<N>-synthesis.json. Per [[feedback_multispectrum_review_v22]] the lane sunsets 2026-07-15, meaning these artifacts are first-class doctrinal evidence requiring catalog presence.",
+      "why": "Thin-gateway rule requires every published doc/evidence class to have a DOC-CATALOG entry naming canonical path + doc_class + shape + update_trigger + sunset. Without it, PR #17 establishes a 74-file evidence corpus with no gateway — exactly the sprawl pattern DOC-CATALOG prevents, and the class has a known sunset date that needs to be tracked in the catalog.",
+      "fix": "Add DOC-CATALOG row under §2.4 cross-cutting: id=`msr-evidence-debate`, path=`evidence/debate/`, doc_class=`per-change-review-evidence`, shape pointer to msr v2.3.0 spec, update_trigger=`per-PR multispectrum review`, sunset=2026-07-15 per doctrine."
+    },
+    {
+      "id": "A2-PR17-m1",
+      "severity": "MINOR",
+      "title": "evidence/debate/ has no README/INDEX to orient new readers",
+      "evidence": "ls evidence/debate/ shows no README, INDEX, or CATALOG file. A reader landing in the dir sees 74+ JSON files with no schema reference, no facet legend, no synthesis pointer.",
+      "why": "Discoverability gap; not a doc-coverage policy violation but a thin-gateway courtesy. Closing M2 obviates this once DOC-CATALOG points here, but a local README is the lower-friction fix.",
+      "fix": "Add evidence/debate/README.md with: file-naming convention (pr-<N>-<facet>-r<R>.json), facet legend (F1-F9 + M1/M2 + A1-A7 + F10/F11/F13), synthesis pattern, audit-chain linkage."
+    }
+  ],
+  "what_is_missing": [
+    "No per-PR docs/ summary required by [[feedback_doc_coverage_enforced]] — that policy targets µservice/BC introductions, NOT pure evidence emissions. Correctly absent.",
+    "CHANGELOG entry (M1).",
+    "DOC-CATALOG entry registering the doc class (M2)."
+  ],
+  "policy_clarifications": [
+    "feedback_doc_coverage_enforced applies to µservice doc suites (PRD + Microservice record + Naming ADR + BC + Phase-Spec + Impl-Plan). PR #17 introduces no µservice, so the suite-completeness gate does NOT fire. Reviewer explicitly verified this is not a doc-coverage lane violation.",
+    "DOC-UPDATE-PROTOCOL (ADR-0019) DOES apply: CHANGELOG must record material evidence-corpus additions."
+  ],
+  "verdict_justification": "Two real adherence gaps (CHANGELOG + DOC-CATALOG) — both fixable in <30 LOC of markdown. Not blocking because the evidence itself is well-formed (jq-validated per PR body) and the doc-coverage µservice gate does not fire on this PR. Realist check: gaps are silent-drift accelerators, not immediate breakage; MAJOR (not CRITICAL) is the correct severity."
+}

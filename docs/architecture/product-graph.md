@@ -355,7 +355,7 @@ Crate naming: `oya-<microservice>(-<bc-tokens>)?-<layer>` (ADR-0056).
 
 ## 6. Canonical schema patterns
 
-Every µservice composes these patterns. They are reproduced verbatim from canonical M02-substrate phase docs.
+Every µservice composes these patterns. They are reproduced verbatim from canonical M02b-substrate phase docs.
 
 ### 6.1 Tenancy + RLS (every tenant-bound table)
 

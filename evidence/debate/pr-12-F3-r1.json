@@ -1,0 +1,71 @@
+{
+  "reviewer_id": "claude-F3_adversarial-pr-12",
+  "round": 1,
+  "change_id": "pr-12",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "rigor": "deep",
+  "facet": "F3_adversarial",
+  "lens": "Adversarial — worst case, hostile fork, attacker model, missed failure mode",
+  "answer": "PR #12 is adversarially survivable but ships three unmitigated attack/regression surfaces. Verified at merge commit 70b83631. (1) HISTORY-LEAK ATTACK: .audit/agent-read.jsonl lived in git history across 7+ commits (ec0aee38 → 6ec13ed9 → 24c4f4f5 → d2f70185 → 27fe6705 → 54ba7733 → 70b83631) and is permanently retrievable via `git log --all --full-history -p -- .audit/agent-read.jsonl` by ANY clone of this public repo. PR #12 only does `git rm --cached` + .gitignore append; it does NOT scrub history. Audit-blob grep for secret/token/password/api_key/bearer/aws_/GITHUB_TOKEN returned zero hits in this scan, so impact is LOW today, but the threat model is: a future agent emits a stack trace, env var, or PAT into agent-read.jsonl during one bad session, that single commit becomes a permanent secret-leak forever. ADR-0117 does not document this residual-risk surface and does not even acknowledge that history was not rewritten. The compensating control (BFG/git-filter-repo + force-push to origin) was not run and may not be feasible post-public-release. (2) DOWNSTREAM CUTOVER WINDOW: PR was non-atomic across the deploy-system boundary. application.json self-referentially declares `spec.source.path` — at the moment Argo CD reconciles commit 70b83631, the path string flips from `deploy/gitops/oya-vcs-admission` to `infra/kyverno/oya-vcs-admission` AND the old tree disappears in the SAME commit. If Argo polls between fetch and apply with a partial tree view, OR if any cluster has the OLD revision cached (revisionHistoryLimit not set per F2 review), Argo could see 'path deploy/gitops/... not found in repo' and mark Application Unknown/OutOfSync. PR provides NO pre-flight `kubectl get application -n argocd oya-vcs-admission-preview -o yaml` snapshot, NO post-cutover sync verification evidence, and NO rollback runbook. Evidence files claim cutover-2026-05-15 but were rewritten by this PR — they document the new path, not the cluster cutover. (3) DOCTRINAL PRECEDENT ATTACK: ADR-0117 explicitly authorizes a 'collapse parallel root into existing root' move with NO migration window, NO cluster-state attestation, NO downstream-consumer enumeration. A bad-faith or careless future agent can cite ADR-0117 as precedent to mv `deploy/`, `services/`, `tools/`, `crates/` subtrees without coordinating cluster state — and the ADR's success-without-incident becomes a load-bearing justification. (4) RE-INTRODUCTION ATTACK: .gitignore protects against accidental `git add .audit/` but NOT against `git add -f .audit/` (force-add bypasses gitignore). No pre-commit hook, no CI lane, no kernel rejects re-introduction. A malicious or sloppy PR can re-add an even worse blob. (5) STALE DOC DRIFT (caught by sibling A3 too): docs/DESIGN.md:456 + :490 still describe `deploy/` as a canonical top-level extraction target — directly contradicting ADR-0117's collapse. A future architect reading DESIGN.md will rebuild the parallel root, undoing the consolidation.",
+  "key_claims": [
+    "audit history is unscrubbed and permanently world-readable (git log --all --full-history shows .audit/ across 7+ commits at merge); BFG/filter-repo was NOT run",
+    "secret-scan of historical .audit/agent-read.jsonl shows zero hits today for secret/token/password/api_key/bearer/aws_/GITHUB_TOKEN — impact LOW unless a future bad-session blob lands before someone wires a pre-commit guard",
+    "Argo cutover is non-atomic relative to cluster state; PR provides no live-cluster pre/post snapshot or rollback runbook; self-referential path: rewrite + tree-removal in same commit risks transient OutOfSync",
+    "ADR-0117 sets a precedent for path-only structural moves without cluster-state attestation; no doctrinal guardrail prevents abuse",
+    "git add -f bypasses the .audit/ gitignore; no defense-in-depth hook or CI lane prevents re-introduction",
+    "docs/DESIGN.md:456,490 still document deploy/ as a canonical root — contradicts ADR-0117 and will mislead future structure work"
+  ],
+  "uncertainty_areas": [
+    "Whether Argo CD actually reconciled cleanly across commit 70b83631 — no live-cluster attestation in evidence/",
+    "Whether external out-of-repo automation (ApplicationSet generators, Flux Kustomizations, deploy pipelines, dashboards, Grafana panels keyed by source.path label) still references the old path",
+    "Whether any past .audit/agent-read.jsonl commit (pre-grep) contained a transient token or fragment of an env var",
+    "Whether downstream forks/mirrors (if any) had already pulled the old path and now diverge"
+  ],
+  "attack_scenarios": [
+    "History-leak: future agent session emits PAT/secret into .audit/agent-read.jsonl, get committed once by a sloppy contributor before pre-commit hook exists, becomes permanent in git history; .gitignore does not protect what is already in history.",
+    "Force-add re-introduction: malicious or sloppy PR runs `git add -f .audit/` and gets blob back into tree; no CI lane rejects it.",
+    "Argo split-brain: ApplicationSet or out-of-band controller still resolves old path; cluster sees two competing reconcilers race and one wipes the namespace.",
+    "Doctrinal precedent abuse: future PR cites ADR-0117 to mv crates/foo to crates/bar with no consumer enumeration; ADR-0117 carve-out becomes the load-bearing justification.",
+    "DESIGN.md misdirection: new architect reads DESIGN.md:456, recreates deploy/, races with infra/kyverno/, half the services land in each, sprawl reintroduced and now the consolidation is worse than before.",
+    "Hostile fork: attacker forks the repo, finds the historical .audit/ blob, mines it for internal paths/agent-IDs/timing data to build a targeted social-engineering or reconnaissance payload against the project."
+  ],
+  "findings": [
+    {
+      "severity": "medium",
+      "summary": "History not rewritten — .audit/agent-read.jsonl remains in git history across 7+ commits and is permanently retrievable from any clone. Today's blob has no secret hits, but the regression-surface is unmitigated for future bad-session blobs.",
+      "recommended_action": "Add a follow-up PR that (a) installs a pre-commit hook / CI lane rejecting any path matching .audit/** (defense-in-depth even with .gitignore), and (b) document in ADR-0117 (or a new ADR) the explicit decision to NOT rewrite history with rationale (cost vs. risk), or schedule a one-shot BFG/git-filter-repo run with coordinated force-push.",
+      "fixuptask_id": "F-PR12-05"
+    },
+    {
+      "severity": "medium",
+      "summary": "Argo cutover non-atomic and unattested. PR rewrites self-referential spec.source.path AND deletes the old tree in the same commit, with no live-cluster pre/post snapshot, no rollback runbook, and no revisionHistoryLimit hardening.",
+      "recommended_action": "Attach `kubectl -n argocd get application oya-vcs-admission-preview -o yaml` pre- and post-cutover snapshots to evidence/gitops-vcs/; add a rollback runbook (`argocd app set ... --path deploy/gitops/oya-vcs-admission` reversion sequence + 'in case of OutOfSync, run X'); add revisionHistoryLimit to application.json per F2 review.",
+      "fixuptask_id": "F-PR12-06"
+    },
+    {
+      "severity": "low",
+      "summary": "git add -f bypasses .audit/ gitignore; no defense-in-depth prevents re-introduction.",
+      "recommended_action": "Add a CI lane (or pre-commit hook) that fails when any committed path matches `^\\.audit/`. Pair the gitignore with a kernel-level reject rule. Same pattern protects `.config/` partials if needed.",
+      "fixuptask_id": "F-PR12-07"
+    },
+    {
+      "severity": "low",
+      "summary": "ADR-0117 sets a precedent for path-only structural moves with no cluster-state attestation or downstream-consumer enumeration. Future agents can cite it to justify riskier moves.",
+      "recommended_action": "Amend ADR-0117 to add a 'Scope-boundary' clause: 'This precedent applies only to paths with (a) a single in-repo consumer set, (b) zero out-of-repo automation references confirmed via downstream enumeration, and (c) attestation of cluster reconciliation. Moves not meeting these conditions require a coordinated migration ADR.'",
+      "fixuptask_id": "F-PR12-08"
+    },
+    {
+      "severity": "low",
+      "summary": "docs/DESIGN.md:456,490 still document deploy/ as a canonical top-level extraction target — contradicts ADR-0117 and will mislead future structure work.",
+      "recommended_action": "Open a 1-line follow-up PR updating DESIGN.md:456 to either remove the deploy/ row or annotate it as 'consolidated under infra/ per ADR-0117'. Update :490 similarly. This was flagged by A3 sibling too; consolidate into one fixup.",
+      "fixuptask_id": "F-PR12-09"
+    },
+    {
+      "severity": "info",
+      "summary": "PR description Task 1 claims .config/ was added to .gitignore; merge ignored only .audit/. ADR-0117 has the correct story but PR body is stale (also flagged by F5).",
+      "recommended_action": "No code action; align future PR body to merged content before squash-merge.",
+      "fixuptask_id": "F-PR12-10"
+    }
+  ],
+  "verdict": "approve-with-fixups"
+}

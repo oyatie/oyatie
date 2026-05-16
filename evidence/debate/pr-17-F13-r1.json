@@ -1,0 +1,88 @@
+{
+  "pr": 17,
+  "facet": "F13_migration",
+  "round": 1,
+  "reviewer": "critic",
+  "title": "Record multispectrum review evidence for merged PR wave",
+  "change_class": "CC-1 docs_or_evidence_only",
+  "verdict": "approve-with-fixups",
+  "is_breaking_change": false,
+  "breaking_change_kinds": [],
+  "deprecation_window": {
+    "declared": "n/a",
+    "old_path_alias_or_symlink": "n/a",
+    "soft_fail_grace_period": "n/a",
+    "evidence": "PR #17 is pure additions (additions=7639, deletions=0) under evidence/debate/ plus 9 appended rows to evidence/audit-chain.jsonl. No code path, schema, CLI default, ADR path, or registry contract is modified. No runtime consumer can observe a behavior diff. Migration facet has no in-scope breakage to mitigate."
+  },
+  "cli_behavior": {
+    "deprecation_warning_printed": "n/a",
+    "hard_fail_on_old_path": "n/a",
+    "usage_text_updated": "n/a",
+    "old_usage_text_alias": "n/a"
+  },
+  "schema_precedent_risk": {
+    "is_breaking_change": false,
+    "precedent_concern_is_real": true,
+    "concern": "PR #17 encodes the shape `evidence/debate/pr-<N>-<facet>-r1.json` as the de-facto schema for retrospective per-PR multispectrum reviews. The naming-justification section of the PR body ratifies this shape with no schema doc, no JSON Schema file, no ADR, and no versioning marker. Per-file `round` / `reviewer_id` / `key_claims` / `findings[]` shapes diverge across the 74 files landed (compare pr-12-F13-r1 `reviewer_id: claude-F13_migration-pr-12` vs pr-15-F13-r1 `reviewer: critic`; compare pr-5-F5-r3 round numbering vs everywhere-else r1/r2). All future per-PR multispectrum evidence is now expected to follow this exact path glob, but the schema authority is the file set itself, not a contract.",
+    "broken_shape_examples": [
+      "Field naming drift: `reviewer` (pr-15) vs `reviewer_id` (pr-12) for the same role",
+      "Finding-id drift: `F13-PR15-1` (pr-15) vs `fixuptask_id: F-PR12-13` (pr-12)",
+      "Verdict-vocabulary drift: `REJECT` (pr-15) vs `approve-with-fixups` (pr-12) — no closed enum",
+      "Optional-block drift: `whats_missing`/`ambiguity_risks`/`open_questions` present in pr-15, absent in pr-12"
+    ],
+    "evidence": "`PR #17 body`: \"`evidence/debate/pr-<N>-<facet>-r1.json`: GitHub PR number + doctrine facet + review round.\" This locks the path shape across the repo without a corresponding JSON Schema in registry/ or docs/templates/. Future agents producing per-PR multispectrum evidence will silently inherit whichever neighbor file they grep for as a model — a classic schema-precedent migration trap."
+  },
+  "v2_template_breaking_schema": {
+    "v2_template_introduced": false,
+    "declared_as_breaking": false,
+    "changelog_entry": "absent (defensible — CC-1 evidence-only)",
+    "migration_doc": "n/a",
+    "adr_added": false
+  },
+  "in_flight_caller_impact": {
+    "runtime_consumers": "none — files under evidence/debate/ are read by humans and by `multispectrum_review` lane tooling only; no Rust build artifact, no CLI default, no CI gate currently parses this directory as authoritative",
+    "audit_chain_appends": "9 `consensus_debate_complete` rows appended to evidence/audit-chain.jsonl — additive, hash-chain preserved per the F1/F3 sibling reviewers"
+  },
+  "rollback_path": {
+    "documented": false,
+    "git_revert_reversible": true,
+    "registry_rows_reversible": "n/a — no registry rows touched"
+  },
+  "findings": [
+    {
+      "severity": "MAJOR",
+      "id": "F13-PR17-1",
+      "title": "Schema precedent locked without a JSON Schema or ADR",
+      "evidence": "PR #17 body ratifies `evidence/debate/pr-<N>-<facet>-r1.json` as the canonical shape, but neither registry/ nor docs/templates/ ships a corresponding schema. Existing siblings already diverge (`reviewer` vs `reviewer_id`, `F13-PR15-1` vs `F-PR12-13`, presence/absence of `whats_missing`).",
+      "impact": "Every future per-PR multispectrum review will be authored by grepping a neighbor file. The shape will drift further until the multispectrum_review lane consumes it programmatically and breaks.",
+      "fix": "Land a follow-up PR adding `docs/templates/multispectrum-pr-review-r1.schema.json` + an ADR pinning field names, finding-id format (`F<facet>-PR<N>-<seq>`), and the verdict enum. Cite from PR #17's audit-chain row retroactively."
+    },
+    {
+      "severity": "MINOR",
+      "id": "F13-PR17-2",
+      "title": "No migration breadcrumb for retrospective review backfill",
+      "evidence": "PR adds reviews for 9 already-merged PRs (#1, #2, #3, #5, #6, #7, #8, #9, #11) without a docs/migration/ or CHANGELOG.md row noting that the multispectrum_review lane now has retroactive coverage for these SHAs.",
+      "impact": "A reader scanning audit-chain for when retrospective coverage began will have to diff the file tree rather than read one canonical note.",
+      "fix": "Add a one-line entry to docs/CHANGELOG.md (or the evidence README) recording the backfill SHA window and the PR-17 merge SHA."
+    }
+  ],
+  "whats_missing": [
+    "JSON Schema file pinning the pr-<N>-<facet>-r1 shape",
+    "Closed enum for `verdict` (currently free-text across siblings)",
+    "Canonical mapping table from facet codes (F1..F13, M1, M2, A1..A7) to lens descriptions, referenceable by future per-PR files",
+    "Backfill cutoff note: which PR numbers are intentionally NOT covered (#4, #10 absent from the wave — silent gap)"
+  ],
+  "ambiguity_risks": [
+    {
+      "quote": "Adds 74 `evidence/debate/pr-*` artifacts and 9 synthesis artifacts.",
+      "interpretation_a": "The 74-file shape is illustrative and will be normalized by a later schema PR.",
+      "interpretation_b": "The 74-file shape IS the schema — future authors must mirror it verbatim including its internal drift.",
+      "risk": "Interpretation B is the realistic default given no schema doc exists; drift compounds with each new PR review."
+    }
+  ],
+  "verdict_justification": "Operating in THOROUGH mode (no CRITICAL findings; 1 MAJOR + 1 MINOR did not cross the ADVERSARIAL escalation threshold). PR #17 is correctly classified `is_breaking_change=false` for the runtime/CLI/schema axes the F13 facet normally guards — the diff is pure evidence-tree additions. The legitimate migration concern is one level up: the PR codifies a file-shape precedent without a schema contract, and existing siblings already drift. Approve-with-fixups, with F13-PR17-1 tracked as a follow-up so the next per-PR review wave has a contract to validate against.",
+  "open_questions": [
+    "Why are PRs #4 and #10 absent from the retrospective wave — intentional skip or oversight?",
+    "Does the multispectrum_review lane currently `jq` over evidence/debate/pr-*.json, and if so which fields does it require (de-facto schema)?"
+  ]
+}

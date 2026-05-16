@@ -59,7 +59,7 @@
     }
   },
   "compliance_summary": {
-    "total_workspace_members": 264,
+    "total_workspace_members": 281,
     "canonical_count": 245,
     "adopted_pattern_count": 49,
     "non_compliant_count": 41,

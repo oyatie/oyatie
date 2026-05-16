@@ -1,0 +1,32 @@
+{
+  "reviewer_id": "claude-critic-F1_linus-pr-18",
+  "round": 1,
+  "change_id": "pr-18",
+  "facet": "F1_linus",
+  "lens": "Linus critique — code shape, data structures, special cases",
+  "answer": "222 files of pure reference-rewriting plus one ADR (ADR-0119, +116/-0) and not a single git mv. The diff contains zero rename headers — confirmed by grep on the patch. So this PR teaches every consumer that paths have moved while the paths themselves haven't moved. That is the textbook 'data structure stayed the same, code lies about it' bug — except spread across the whole repo. Split-into-two-PRs is the worst possible shape here: between merging #18 and #19 the references point to a topology that does not exist on disk. The 'signed replacement' framing rebrands a process problem (an unsigned commit on #14) as a deliverable; a force-push with a signed commit, or a single PR that does the mv + the ref rewrite atomically, would have been the small change. Instead we get 222 file edits, a 116-line ADR, and a 2-PR window where HEAD is internally inconsistent. Bad taste: ceremony around git history dressed up as architectural work.",
+  "key_claims": [
+    "`grep -c '^rename\\|^similarity' pr-18.diff` returns 0 — no actual filesystem moves in a PR titled 'Flatten specs cross-cutting topology'",
+    "The flatten is split across PR #18 (rewrite refs) and PR #19 (do the mv); between the two merges, refs and reality disagree — any reader/CI/agent landing in that window sees a broken tree",
+    "ADR-0119 (+116 lines) documents the new topology before the topology exists on disk — the ADR is fiction until #19 lands",
+    "'Signed replacement of #14' is process noise, not engineering content; the PR title sells flattening but delivers reference churn",
+    "222 mechanically-identical path-substring edits across `.omc/`, `docs/`, `crates/`, `contracts/` are exactly the kind of work that should be one `sed` + one `git mv` in a single commit, not a hand-curated PR",
+    "The atomic operation `{mv + update refs}` was deliberately decomposed into two non-atomic operations; this is the opposite of how you ship a rename — Linus ships the rename and the call-site fixups in one patch series that bisects clean"
+  ],
+  "uncertainty_areas": [
+    "Whether PR #19 is already queued behind #18 with auto-merge, narrowing the inconsistency window to minutes rather than hours/days",
+    "Whether any CI lane actually fails when refs point to not-yet-moved paths (would prove the split is broken; absence proves the refs were cosmetic strings, not load-bearing)",
+    "Whether 'signed-commits required on dev' policy genuinely forbade a force-push fix on #14 — if yes, the split is policy-driven, not taste-driven",
+    "Whether ADR-0119 was authored before or after the rewrite — an ADR landing in the same PR as its mechanical consequences is a smell either way"
+  ],
+  "anti_patterns_detected": [
+    "non-atomic-rename",
+    "ceremony-over-substance",
+    "documentation-precedes-reality",
+    "mechanical-edits-masquerading-as-architecture"
+  ],
+  "would_delete": "PR #18 as a separate unit. The 222 ref-rewrite edits should not exist as a standalone changeset — they have no meaning without the move. Also delete the 'signed replacement' framing; if signing was the blocker on #14, fix the commit, don't open a new PR with a new title.",
+  "would_reshape": "Collapse PR #18 + PR #19 into one PR that does `git mv` for the actual directory flatten AND the 222 reference updates in the same commit (or same series with each commit bisect-clean). ADR-0119 ships in that same PR so the doc lands with the reality it describes. Net result: one PR, fewer commits, zero window of inconsistency, no 'signed replacement' theater.",
+  "spectrum_lens_directive_compliance": "single-facet-only-reviewed",
+  "purpose": "F1 Linus verdict on PR #18 — flatten-without-moving split across two PRs is bad taste"
+}

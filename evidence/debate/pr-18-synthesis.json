@@ -1,0 +1,63 @@
+{
+  "schema": "multispectrum-review/v2.3.0",
+  "change_id": "pr-18",
+  "pr_number": 18,
+  "pr_title": "Flatten specs cross-cutting topology (signed replacement)",
+  "merge_commit_sha": "743a6fe6 (per F5 — actually flatten-+-refs combined; F2's PR-19 framing wrong; PR #19 is unrelated KR cell bring-up)",
+  "change_class_id": "CC-3 application_or_domain",
+  "round": "synthesis",
+  "rendered_at_unix": 1779063300,
+  "spec_version": "2.3.0",
+  "synthesis_owner": "claude-msr-orchestrator-pr-12-18-wave-2026-05-16",
+  "facets_evaluated": ["F1_linus", "F2_hyperscaler", "F3_adversarial", "F4_ergonomic", "F5_quality", "F6_alternatives", "F7_security", "F8_performance", "F9_compliance", "F10_reversibility", "F13_migration", "M1_challenge_assumption", "M2_zoomed_out_fit", "A1_naming_adherence", "A2_documentation_adherence", "A3_structure_adherence", "A4_architecture_adherence", "A5_dependency_adherence", "A6_schema_adherence", "A7_algorithm_adherence"],
+  "facet_count_total": 20,
+  "executor_topology_compliance": {"rule": "one subagent per facet", "verified": true, "reviewer_id_overlap_across_facets": "NONE", "distinct_reviewer_ids": 20},
+  "round_1_verdicts": {
+    "F1_linus": "reject (split into 2 PRs critique — partly mooted by M1 finding renames present)",
+    "F2_hyperscaler": "approve-pair (with PR #19 — but PR #19 is unrelated; F2 wrong on companion PR)",
+    "F3_adversarial": "reject (claims later mooted by M1 — diff-tooling artifact)",
+    "F4_ergonomic": "red (3 BLOCKER — root-hub-pointers contradicts CLAUDE.md; ADR-0119 number-collision)",
+    "F5_quality": "request-changes-post-merge (renames preserved, but 285 stale refs)",
+    "F6_alternatives": "pass-with-reservations (atomic mv+refs path is correct)",
+    "F7_security": "approve (low — signed commit verified)",
+    "F8_performance": "neutral", "F9_compliance": "fail (3 blockers — same as F4)",
+    "F10_reversibility": "conditional-pass", "F13_migration": "approve-with-fixups",
+    "M1_challenge_assumption": "approve-with-fixups (resolved F3/F9 conflict)",
+    "M2_zoomed_out_fit": "plan-advancing", "A1_naming_adherence": "accept-with-reservations",
+    "A2_documentation_adherence": "block (5th-consecutive PR systemic drift)",
+    "A3_structure_adherence": "reject (M02/M03 milestone-id collision; lifecycle-configs/ exception undocumented)",
+    "A4_architecture_adherence": "approve", "A5_dependency_adherence": "pass",
+    "A6_schema_adherence": "reject (literal pointers to dead paths IF working-tree-branch view; M1 says ok on dev)", "A7_algorithm_adherence": "pass"
+  },
+  "consensus_points": [
+    "PR #18 IS a real flatten on origin/dev (M1 verified): 34 git renames, R088-R100 similarity, blame preserved",
+    "F3/F9/A6 'flat files don't exist' findings were tooling artifact (gh pr diff strips -M; working-tree branch behind dev)",
+    "ADR-0119 well-formed (35-row naming-justification table); explicitly cites ADR-0115 as precedent",
+    "Signed-commit replacement of unsigned PR #14 is process-correct (no force push, linear-additive)"
+  ],
+  "consensus_shifts_from_round_1_to_round_2": [
+    "M1 resolved F3/F9 vs F5/F6 conflict: F3/F9 misled by gh pr diff lacking -M flag + working-tree branch lag. Renames are real on dev; flat files exist; specs/cross-cutting/ depopulated."
+  ],
+  "unresolved_tensions": [
+    "ADR-0119 number collision: branch oya-followup-onprem-bringup-and-m3-entry-2026-05-16 (commit adf9a7c0) used 0119 internally for Cloudflare Access gate; will collide on rebase. Either rebase one or reserve via ADR-INDEX.md.",
+    "M02/M03 milestone-id duplication (M02-substrate vs M02-foundry-preview; M03-cloud-saas-search-workspace-preview vs M03-first-tenant) is real on dev — predates PR #18 but PR didn't surface or fix it."
+  ],
+  "fixuptasks": [
+    {"id": "F-PR18-01", "severity": "critical", "summary": "M02-substrate AND M02-foundry-preview both occupy M02 slot with different content; M03-cloud-saas-search-workspace-preview AND M03-first-tenant both occupy M03 — masterplan dependency walks non-deterministic (A3)", "lane": "milestone-id-collision-resolution"},
+    {"id": "F-PR18-02", "severity": "critical", "summary": "ADR-0119 number collision: PR #18 ratified 0119 for specs flat-root topology; branch adf9a7c0 used 0119 internally for Cloudflare Access gate; rebase will collide (M1 + F4)", "lane": "adr-number-reservation"},
+    {"id": "F-PR18-03", "severity": "critical", "summary": "ADR-0119 absent from docs/DOC-CATALOG.md, docs/ADR-INDEX.md, docs/machine-readable/decisions.json, docs/CHANGELOG.md — 5th consecutive PR with this systemic drift (A2)", "lane": "docs-catalog-drift-systemic"},
+    {"id": "F-PR18-04", "severity": "high", "summary": "CLAUDE.md still tells agents to read /specs/cross-cutting/root-hub-pointers.json (per F4 BLOCKER); needs update to flat path", "lane": "claude-md-pointer-update"},
+    {"id": "F-PR18-05", "severity": "high", "summary": "Public path rename ships with zero deprecation window — external consumers (forks, downstream agents reading raw URLs, sibling repo CI) get ENOENT immediately (F13)", "lane": "deprecation-window"},
+    {"id": "F-PR18-06", "severity": "high", "summary": "Audit-chain row missing for topology change (F9 + multispectrum doctrine)", "lane": "audit-chain-emission"},
+    {"id": "F-PR18-07", "severity": "medium", "summary": "ADR-0119 missing Sunset/Reversal section (F10 + A2 + F13)", "lane": "adr-template-conformance"},
+    {"id": "F-PR18-08", "severity": "medium", "summary": "MSR diff-capture tooling bug: gh pr diff without -M strips rename headers, misleading review of structural PRs (M1) — codify -M flag in evidence-capture protocol", "lane": "msr-tooling-fix"},
+    {"id": "F-PR18-09", "severity": "medium", "summary": "ADR-0119 omits explicit prohibition on re-introducing specs/<scope>/ patterns beyond lifecycle-configs/; lifecycle-configs/ exception undocumented (A1 + A3)", "lane": "adr-content-completeness"},
+    {"id": "F-PR18-10", "severity": "medium", "summary": "M02-substrate, M03-cloud-saas-search-workspace-preview, M03-first-tenant ship INDEX.md with IP Count = 0 across all phases — generated skeletons for masterplan validation, not real Milestone>Phase>IP content (A3 hierarchy laundering)", "lane": "milestone-skeleton-real-content"},
+    {"id": "F-PR18-11", "severity": "low", "summary": "Moved JSONs lack _migrated_from breadcrumb metadata (M2 + F13)", "lane": "migration-breadcrumb"},
+    {"id": "F-PR18-12", "severity": "low", "summary": "Codify two-PR-split pattern (signed replacement) in policy or retire the convention (F1 + F9)", "lane": "vcs-workflow-policy"},
+    {"id": "F-PR18-13", "severity": "low", "summary": "PR title noise: '(signed replacement)' is git-hygiene metadata not intent (F4)", "lane": "pr-title-style"}
+  ],
+  "final_recommendation": "approve-with-fixups (post-merge); ADR-0119 number-collision is the most urgent",
+  "termination_reason": "consensus_reached (with explicit reconciliation of F3/F9 vs F5/F6 via M1)",
+  "audit_chain_event_to_emit": "consensus_debate_complete"
+}

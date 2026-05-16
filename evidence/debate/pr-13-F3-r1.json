@@ -1,0 +1,120 @@
+{
+  "reviewer_id": "claude-F3_adversarial-pr-13",
+  "round": 1,
+  "change_id": "pr-13",
+  "change_class": "CC-2 adapter_or_infrastructure",
+  "facet": "F3_adversarial",
+  "answer": "PR #13 retires the one-time archive-orphan fitness lane (kernel + app + catalog + workspace members + pre-grit archive payload) and codifies the retirement in ADR-0118 with amendments to ADR-0104 and ADR-0107. On origin/dev, the deletions cleanly land: workspace members are gone, Cargo.lock entries removed, catalog YAML files deleted, and specs/cross-cutting/forbidden-operations.json is correctly rewired (one enforced_by drops archive-orphan-kernel, the other goes to null with an ADR-0118/ADR-0116 evidence pointer). However, an adversarial lens surfaces several real risks: (1) ADR-0118 declares supersedes:[ADR-0052] but ADR-0052 on dev still carries superseded_by:[] — asymmetric supersession that breaks bidirectional traceability and could let a future spec re-cite ADR-0052 as authoritative; (2) the archive-orphan kernel's invariant 'no living code references retired paths' is NOT yet replaced by an equivalent M-CC-P11 admission check — ADR-0118 hand-waves to projected-merge-state / conflict-kernel, but M-CC-P11 ADR-0110/0111/0112/0113 do not enforce 'no orphan reference to a retired path' as a distinct gate, leaving a gap window until M-CC-P11 is fully deployed; (3) the ADR-0107 amendment line `tools/oya-foundry-fitness-archive-orphan  # retired by ADR-0118` inside a fenced literal list is fragile — it's a code-block comment that future readers or scripts may strip, and the table row labels the entry 'retired' in a column that previously held layer enum values, polluting the closed enum; (4) Cargo metadata 'passed' is necessary but insufficient evidence — no full `cargo check --workspace` or `cargo test --workspace` was run, so a transitive consumer of the kernel (if one existed under unusual feature flags) would not be caught, and the dispatcher Cargo.toml comment still cites archive-orphan as a sibling pattern justification, which is now stale doctrinal text. The Foundry pipeline replacement is not yet load-bearing, so the retirement creates a coverage trough rather than a clean hand-off.",
+  "key_claims": [
+    "On origin/dev, archive-orphan workspace members, Cargo.lock entries, kernel source, app source, archive payload, and 3 catalog YAMLs are removed cleanly.",
+    "specs/cross-cutting/forbidden-operations.json correctly rewires one enforced_by to authoritative-tracked-only and sets the second to null with an ADR-0118/ADR-0116 evidence pointer.",
+    "ADR-0118 amends ADR-0104 (replacement landed separately as adapter-with-no-importer-kernel) and ADR-0107 (table row marked RETIRED).",
+    "Validation evidence is limited to cargo metadata + ADR shape + targeted cargo check on authoritative-tracked + JSON parse; no workspace-wide cargo check/test was run."
+  ],
+  "uncertainty_areas": [
+    "Whether any out-of-tree CI script, audit pipeline, or remote workflow still invokes `cargo run -p oya-foundry-fitness-archive-orphan` (the documented ci_invocation) — not enumerated by the PR.",
+    "Whether M-CC-P11 admission/conflict-kernel actually enforces the orphan-reference invariant that archive-orphan owned, or whether the invariant is silently dropped.",
+    "Whether the dispatcher Cargo.toml's sibling-pattern comment referencing archive-orphan was deliberately preserved or simply missed during the sweep."
+  ],
+  "attack_scenarios": [
+    {
+      "id": "AS-1",
+      "name": "Foundry pipeline coverage trough",
+      "scenario": "Archive-orphan's invariant — 'no living code/docs/configs reference an archived path outside authority docs' — is removed today. ADR-0118 asserts M-CC-P11 admission + projected-merge-state + conflict-kernel covers it, but M-CC-P11 ADRs (0110-0113) describe queue/admission/conflict semantics, not retired-path-reference scanning. Until M-CC-P11 is fully deployed AND extended with a retired-path scanner, a contributor can land a PR that re-introduces a reference to a retired path with no mechanical gate refusing it.",
+      "likelihood": "medium",
+      "blast_radius": "Stale-path drift sneaks back in; depends on how aggressively new retired-paths get declared post-cutover."
+    },
+    {
+      "id": "AS-2",
+      "name": "ADR retirement precedent abuse",
+      "scenario": "A future contributor cites ADR-0118 as precedent: 'we retired archive-orphan because it was a one-time lane and replacement exists'. They generalize this to retire other lanes that haven't fired in 30 days, even when those lanes guard ongoing (not one-time) invariants. ADR-0118 does not state the precedent boundary explicitly — it relies on the reader inferring 'one-time' from context.",
+      "likelihood": "medium",
+      "blast_radius": "Erosion of fitness-lane coverage by precedent drift."
+    },
+    {
+      "id": "AS-3",
+      "name": "Asymmetric ADR supersession",
+      "scenario": "ADR-0118 frontmatter declares `supersedes: [ADR-0052]`, but ADR-0052 on origin/dev still has `superseded_by: []`. A reader landing on ADR-0052 will see it as Accepted and active. Any spec validator that walks supersedes-by inversely will not flag ADR-0052 as superseded.",
+      "likelihood": "high",
+      "blast_radius": "Doctrinal divergence: two ADRs disagree about whether ADR-0052 is live."
+    },
+    {
+      "id": "AS-4",
+      "name": "Stale invocation in unenumerated tool",
+      "scenario": "The lane's documented CI invocation was `cargo run -p oya-foundry-fitness-archive-orphan`. The PR removes the package but does not grep CI workflows, scripts, hooks, or .omc orchestrators for that string. .github/workflows/* on dev do not currently call it (verified), but any out-of-tree caller (e.g., a local hook, a downstream Bominal cron, an internal ops script) would fail with `error: package ID specification ... did not match any packages`.",
+      "likelihood": "low",
+      "blast_radius": "Loud failure (cargo error), not silent, so detectable on first run."
+    },
+    {
+      "id": "AS-5",
+      "name": "ADR-0107 carve-out misread",
+      "scenario": "The amended ADR-0107 retains `tools/oya-foundry-fitness-archive-orphan  # retired by ADR-0118` inside a fenced canonical-suffix list. A future reader may interpret the comment as a precedent for adding `# retired by ...` exceptions to the closed `tools/ MUST end in canonical layer suffix` rule, weakening the no-exceptions doctrine. The amendment also leaves the table column 'app/retired' mixing a layer enum value with a lifecycle status — schema pollution on a column the predictable-naming lane reads.",
+      "likelihood": "low-medium",
+      "blast_radius": "Doctrinal carve-out drift; predictable-naming lane may need to handle 'retired' as a sentinel."
+    },
+    {
+      "id": "AS-6",
+      "name": "Insufficient validation rigor",
+      "scenario": "PR's validation only ran cargo metadata + ADR shape + cargo check on adjacent crate. No `cargo check --workspace`, no `cargo test --workspace`, no `cargo run` against the affected dispatcher whose Cargo.toml comment still cites archive-orphan as a sibling pattern. A transitive feature-flagged consumer would not be caught.",
+      "likelihood": "low",
+      "blast_radius": "Build break on next workspace CI run if any such consumer exists."
+    }
+  ],
+  "findings": [
+    {
+      "id": "F3-1",
+      "severity": "MAJOR",
+      "title": "Asymmetric ADR supersession — ADR-0052 not updated to reflect ADR-0118",
+      "evidence": "ADR-0118 frontmatter on dev: `supersedes: [ADR-0052]`. ADR-0052 frontmatter on dev: `superseded_by: []`. Verified via `git show origin/dev:docs/decisions/ADR-0052-inventory-grit-cutover.md`.",
+      "why_it_matters": "Bidirectional ADR traceability breaks. Validators that walk supersession in either direction will disagree. A future reader landing on ADR-0052 will not learn it is superseded.",
+      "fix": "Follow-up PR amends ADR-0052 frontmatter: `superseded_by: [ADR-0118]`, status: Superseded, and add an Amendment block pointing to ADR-0118.",
+      "confidence": "HIGH"
+    },
+    {
+      "id": "F3-2",
+      "severity": "MAJOR",
+      "title": "Replacement invariant not yet enforced by M-CC-P11 — coverage trough",
+      "evidence": "ADR-0118 claims `replacement: Foundry pipeline admission + projected-merge-state + conflict-kernel under M-CC-P11`. M-CC-P11 ADRs (0110/0111/0112/0113) describe queue, admission gate, projected merge state, and conflict kernel — none of which scan PRs for references to retired paths. The orphan-reference invariant is not in their scope.",
+      "why_it_matters": "Archive-orphan's distinct invariant ('no living code/docs/configs reference an archived path') is silently dropped today and only nominally re-homed. Until M-CC-P11 is deployed AND extended with a retired-path scanner, new PRs can re-introduce stale references with no mechanical gate.",
+      "fix": "Either (a) ADR-0118 explicitly accepts the temporary coverage gap and timestamps when M-CC-P11 will own the invariant, or (b) a small retired-path-reference check is folded into the adapter-with-no-importer lane or a sibling lane that is live today.",
+      "confidence": "MEDIUM"
+    },
+    {
+      "id": "F3-3",
+      "severity": "MINOR",
+      "title": "ADR-0118 lacks explicit retirement-precedent boundary",
+      "evidence": "ADR-0118 §Decision and §Consequences do not state when this retirement pattern may or may not be reused. The rationale relies on 'one-time' framing in §Context but does not codify it as a precondition.",
+      "why_it_matters": "Future contributors may cite ADR-0118 to retire lanes that guard ongoing (not one-time) invariants, eroding fitness coverage by precedent drift.",
+      "fix": "Add a short §Precedent-boundary clause: 'This retirement pattern applies only to lanes whose invariant has a documented one-time scope. Ongoing invariants require an equivalent replacement gate live before retirement.'",
+      "confidence": "HIGH"
+    },
+    {
+      "id": "F3-4",
+      "severity": "MINOR",
+      "title": "ADR-0107 amendment leaves a fragile inline carve-out comment",
+      "evidence": "On dev, ADR-0107 contains `tools/oya-foundry-fitness-archive-orphan  # retired by ADR-0118` inside a fenced canonical-suffix list, and a table row labels the layer column as 'retired' (mixing lifecycle with layer enum).",
+      "why_it_matters": "A future reader may misread `# retired by ...` as a generic carve-out pattern, weakening the 'no exceptions' tools/ canonical-suffix rule. Predictable-naming lane may need to handle 'retired' as a sentinel where it previously expected a closed-set layer value.",
+      "fix": "Delete the literal `tools/oya-foundry-fitness-archive-orphan` line from the canonical-suffix list rather than annotating it; in the table, move 'retired' status to a separate column or drop the row entirely with a citation footnote.",
+      "confidence": "MEDIUM"
+    },
+    {
+      "id": "F3-5",
+      "severity": "MINOR",
+      "title": "Validation evidence narrower than risk surface",
+      "evidence": "PR body §Validation lists `cargo metadata --no-deps`, ADR-shape validator, `cargo check -p oya-foundry-fitness-authoritative-tracked-kernel`, `cargo check -p oya-foundry-fitness-authoritative-tracked-app`, JSON parse, filesystem assertion, `git diff --check`. §Not tested: 'Full workspace check'.",
+      "why_it_matters": "Cargo metadata only confirms the workspace resolves, not that every member still builds. A transitive consumer (e.g., a tool with `[features] archive = ['oya-foundry-fitness-archive-orphan-kernel']`) would not be caught. The risk is low because no such consumer was found, but the validation did not prove it.",
+      "fix": "Run `cargo check --workspace --all-targets` and either include the result or document that workspace CI on dev passed post-merge.",
+      "confidence": "HIGH"
+    },
+    {
+      "id": "F3-6",
+      "severity": "MINOR",
+      "title": "Stale doctrinal text in dispatcher Cargo.toml comment",
+      "evidence": "`tools/oya-foundry-pr-review-dispatcher-app/Cargo.toml` Sibling pattern comment cites '(banned-primitives, archive-orphan, adr-shape, supply-chain gates, etc.)' as the BNF v4.1 conformance precedent. Archive-orphan is now retired.",
+      "why_it_matters": "Comments that cite retired primitives as living precedent confuse future contributors and weaken the naming-justification trail.",
+      "fix": "Replace `archive-orphan` in the sibling list with a still-living app (e.g., `authoritative-tracked`)."
+    }
+  ],
+  "verdict": "ACCEPT-WITH-RESERVATIONS",
+  "verdict_justification": "The deletion is mechanically clean on origin/dev: workspace, Cargo.lock, catalog YAMLs, kernel/app crates, and forbidden-operations.json enforced_by lists are correctly updated. ADR-0118 is well-formed and rejected alternatives are stated. However, two MAJOR adversarial concerns survive Realist Check: (F3-1) ADR-0052 was not updated to reflect ADR-0118's supersedes claim — asymmetric supersession is a doctrinal-integrity bug; (F3-2) the 'orphan reference to retired path' invariant is dropped today with only nominal replacement, since M-CC-P11 ADRs do not encode that specific scanner. Both are correctable in follow-up without reverting this PR. Realist check did not downgrade either: F3-1 is a verifiable spec inconsistency, and F3-2 is a real coverage gap acknowledged by ADR-0118's own hand-wave to a not-yet-deployed pipeline. Mode: THOROUGH (no escalation — failures are bounded and remediable)."
+}

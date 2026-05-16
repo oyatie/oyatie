@@ -156,7 +156,7 @@ Per RALPLAN-DR deliberate mode, three concrete failure scenarios with triggers, 
 
 - **Trigger**: M02-P22 exit gate slips; lane stays `--report-only` indefinitely.
 - **Blast radius**: New µservices land without docs; coverage erosion compounds; by M04+ the doc-debt is unrecoverable.
-- **Prevention**: M02-P22 phase-spec + impl-plan explicitly list `cargo run -p oya-check-documentation -- --workspace --blocker` in BLOCKER command list (per `.omc/plans/milestones/M02-substrate/phases/P22-m02-exit-gate/phase-spec.md` + `impl-plan.md`). The CLI exits nonzero only when `--blocker` is set (`crates/oya-check-documentation/src/main.rs:38`); removing `--report-only` alone leaves the lane permissive, so the explicit `--blocker` flag is the load-bearing invariant. M02-P22 cannot pass its exit gate without doc-coverage going green under `--blocker` or being explicitly waived per ADR.
+- **Prevention**: M02-P22 phase-spec + impl-plan explicitly list `cargo run -p oya-check-documentation -- --workspace --blocker` in BLOCKER command list (per `.omc/plans/milestones/M02b-substrate/phases/P22-m02-exit-gate/phase-spec.md` + `impl-plan.md`). The CLI exits nonzero only when `--blocker` is set (`crates/oya-check-documentation/src/main.rs:38`); removing `--report-only` alone leaves the lane permissive, so the explicit `--blocker` flag is the load-bearing invariant. M02-P22 cannot pass its exit gate without doc-coverage going green under `--blocker` or being explicitly waived per ADR.
 - **Detection**: Weekly report comparing previous-week violation count vs current; rising count = warning, doubled count = page.
 - **Rollback**: Flip lane back to `--report-only` and open a remediation phase before re-flipping.
 

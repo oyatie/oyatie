@@ -14,9 +14,9 @@
     "milestones": {
       "M01-foundation": "complete",
       "M02-foundry-preview": "complete (6 of 7 phases; P02-multi-subscription-pool not yet scaffolded)",
-      "M02-substrate": "indexed-from-existing-phases (22 consolidation sub-phases backlog)",
+      "M02b-substrate": "indexed-from-existing-phases (22 consolidation sub-phases backlog)",
       "M03-cloud-saas-search-workspace-preview": "partial-fanout-complete (P04+P05+P06+P07 done; P01-P03 partial-in-flight pre-existing; P08 deferred)",
-      "M03-first-tenant": "indexed-from-existing-phases (8 vertical sub-phases backlog)",
+      "M07-first-tenant": "indexed-from-existing-phases (8 vertical sub-phases backlog)",
       "M04-vertical-pilot-korea": "gated on M03",
       "M05-cloud-search-stable": "gated on M04",
       "M06-ads-vertical-fanout": "gated on M05",
@@ -26,7 +26,7 @@
       "M03-P08 cross-axis contracts schema reconcile — entries reverted; need owner_axis/consumer_axes shape",
       "Real provider HTTP integrations (currently mock AuthToken in 6 adapters)",
       "OpenBao network adapter (currently in-memory)",
-      "M02-substrate P22 m02-exit-gate (depends on B1-B4 closure)"
+      "M02b-substrate P22 m02-exit-gate (depends on B1-B4 closure)"
     ]
   },
   "critical_path": ["wave_a", "wave_c", "wave_d", "wave_e", "wave_f"],
@@ -82,7 +82,7 @@
     },
     {
       "id": "wave_b",
-      "name": "M02-substrate consolidation (non-critical)",
+      "name": "M02b-substrate consolidation (non-critical)",
       "parallel_session_count": 5,
       "depends_on": ["wave_a"],
       "note": "Audit/cleanup of existing crates against M02 framework. Many phases will be audit-only mark-complete. Does NOT block M03+M04+M05+M06 critical path. Can run as fill-work alongside C/D/E/F waves.",
@@ -122,7 +122,7 @@
     },
     {
       "id": "wave_c",
-      "name": "M03-first-tenant verticals",
+      "name": "M07-first-tenant verticals",
       "parallel_session_count": 4,
       "depends_on": ["wave_a"],
       "sessions": [
@@ -130,7 +130,7 @@
           "id": "C1",
           "scope": "Financial verticals trio",
           "phases": ["P01-hr", "P02-payroll", "P03-accounting"],
-          "milestone_root": ".omc/plans/milestones/M03-first-tenant/phases/",
+          "milestone_root": ".omc/plans/milestones/M07-first-tenant/phases/",
           "agent_count": 3,
           "parallel": true
         },

@@ -180,8 +180,8 @@ Status: `planned/foundational`. Flips to `active` when all promotion blockers in
 | Milestone | README | Acceptance evidence | Status |
 |---|---|---|---|
 | M01-foundation | 🔴 TBD | 🟡 partial (P05 hardening committed) | 🟡 |
-| M02-substrate | 🔴 TBD | 🔴 TBD | 🔴 |
-| M03-first-tenant | 🔴 TBD | 🔴 TBD (P08 evidence bundle planned) | 🔴 |
+| M02b-substrate | 🔴 TBD | 🔴 TBD | 🔴 |
+| M07-first-tenant | 🔴 TBD | 🔴 TBD (P08 evidence bundle planned) | 🔴 |
 | M04-healthcare-kr | 🔴 TBD | 🔴 TBD | ⚪ |
 | M05-connect-personal | 🔴 TBD | 🔴 TBD | ⚪ |
 | M06-fintech-kr | 🔴 TBD | 🔴 TBD | ⚪ |

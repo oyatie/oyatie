@@ -1,0 +1,48 @@
+{
+  "pr": 15,
+  "facet": "A7_algorithm_adherence",
+  "round": 1,
+  "lens": "P3 deterministic + complexity",
+  "verdict": "PASS",
+  "confidence": "HIGH",
+  "summary": "Path-rename only (product-control/ -> registry/capability-templates/); no new algorithm, heuristic, sort, comparator, or control-flow introduced.",
+  "evidence": [
+    {
+      "file": "crates/oya-dev-cli/src/foundry_capability_schema_gates.rs",
+      "change": "PathBuf::from default literal swapped product-control/capabilities -> registry/capability-templates",
+      "algorithmic_delta": "none"
+    },
+    {
+      "file": "crates/oya-dev-cli/src/foundry_eval_gates.rs",
+      "change": "PathBuf::from default literal swap, identical pattern",
+      "algorithmic_delta": "none"
+    },
+    {
+      "file": "crates/oya-dev-cli/src/lib.rs",
+      "change": "Usage help strings updated to new default path",
+      "algorithmic_delta": "none"
+    },
+    {
+      "file": "docs/**, ADR-0003/0007/0019/0050/0052, registry/artifact-capabilities-registry.json, evidence/**",
+      "change": "Documentation/registry/evidence rows for path move and multispectrum artifact",
+      "algorithmic_delta": "none"
+    }
+  ],
+  "checks": {
+    "new_sort_introduced": false,
+    "new_comparator_introduced": false,
+    "new_heuristic_introduced": false,
+    "non_determinism_introduced": false,
+    "iteration_order_change": false,
+    "complexity_class_change": false,
+    "side_effect_change": false
+  },
+  "findings": [],
+  "open_questions": [],
+  "ralplan_summary": {
+    "principle_option_consistency": "Pass — rename only, ADR-0116 already covers Foundry-pipeline topology move (A7 not implicated).",
+    "alternatives_depth": "n/a — no algorithmic choice made.",
+    "risk_verification_rigor": "Pass — defaults verified to be string-literal substitutions; existing foundry-capability-schema and foundry-eval gates exercise the new path.",
+    "deliberate_additions": "n/a"
+  }
+}

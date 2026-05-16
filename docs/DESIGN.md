@@ -451,11 +451,20 @@ Every consolidated doc and the v2 backlog assume the **flat target**, not the le
 
 ```
 crates/
-  oya-<context>-<role>[-<capability>]/   # live flat workspace; 64 crates on 2026-05-11
+  oya-<context>-<role>[-<capability>]/   # live flat workspace; 281 crates on 2026-05-16
 contracts/                                 # OpenAPI specs, gRPC protos, event schemas
-deploy/                                    # per-deployable Helm/IaC (split out of services/)
-registry/catalog/                          # live crate catalog source of truth
-crates/oya-tooling-cli-dev-runtime/         # current repoctl-compatible dev CLI runtime
+infra/                                     # admission policies (kyverno/), Argo Application
+                                           #   manifests, GitOps topology (per ADR-0117 +
+                                           #   per ADR-0119); replaces the prior deploy/gitops/
+                                           #   single-file root for admission concerns.
+deploy/                                    # per-deployable Helm/IaC (future use; not yet
+                                           #   populated. Admission-policy + GitOps-Application
+                                           #   moved to infra/kyverno/ per ADR-0117).
+registry/                                  # flat singular registry (per ADR-0115);
+                                           #   includes catalog/, capability-templates/,
+                                           #   quality/, fixuptasks.jsonl
+specs/                                     # flat-root machine-readable specs (per ADR-0119);
+                                           #   replaces former specs/cross-cutting/ nesting
 ```
 
 ### The 9 splits (per ADR-0015 plan §6.5 inventory)
@@ -487,8 +496,9 @@ Service runtime split (Axis E, ADR-0015 §6) is deferred until after all domain/
 
 - **No new `modules/` `services/` `platform/` work.** Every leaf in the v2 backlog cites a flat-crates target.
 - **Contracts (`contracts/`) get their own batch tag** because cross-axis contract changes touch this directory.
-- **`deploy/` extraction is mechanical** but per-service; sequenced after the source service's runtime crate moves.
-- **Catalog remains at `registry/catalog/`.** Any future `catalog/` relocation requires a new catalog protocol update; do not infer it from the historical phase plan.
+- **`infra/` is the canonical root for admission policies + GitOps Application manifests** (ADR-0117 consolidated `deploy/gitops/oya-vcs-admission/` under `infra/kyverno/oya-vcs-admission/`). `deploy/` is reserved for future per-deployable Helm/IaC that does not fit under `infra/`; the historical "split out of services/" rationale stands but admission concerns are now resolved.
+- **Catalog remains at `registry/catalog/`** (per ADR-0115 the `registry/` root is canonical, singular, flat; the prior `registries/cross-cutting/` is retired). Any future `catalog/` relocation requires a new catalog protocol update; do not infer it from the historical phase plan.
+- **Specs flattened** (per ADR-0119): machine-readable specs live at `specs/<basename>.json` (flat root). The former `specs/cross-cutting/` nesting is retired; `specs/cross-cutting/lifecycle-configs/` is retained as a documented typed-family exception.
 
 ### Risk-managed assumption
 

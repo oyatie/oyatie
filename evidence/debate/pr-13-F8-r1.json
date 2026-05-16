@@ -1,0 +1,55 @@
+{
+  "pr": 13,
+  "reviewer": "F8_performance",
+  "lens": "performance",
+  "review_round": "r1",
+  "generated_at": "2026-05-16T09:42:56.593605Z",
+  "verdict": "PASS",
+  "perf_delta_class": "improvement",
+  "summary": "Pure deletion PR with net-positive build and CI performance impact. No production code path affected; zero runtime regression risk.",
+  "findings": {
+    "build_time": {
+      "direction": "improvement",
+      "removed_workspace_members": 2,
+      "removed_compilation_units": 2,
+      "removed_rust_loc": 665,
+      "estimated_clean_build_delta_s": {
+        "low": 2,
+        "high": 5
+      },
+      "note": "Two crates removed from workspace.members on aarch64-apple-darwin. Kernel has 0 external deps (245 LOC); app depends only on kernel (420 LOC + binary link). Clean CI build saves roughly 2-5 s. Incremental local builds save near-zero (already cached)."
+    },
+    "ci_time": {
+      "direction": "improvement",
+      "lane_was_active_in_ci": true,
+      "ci_invocation": "cargo run -p oya-foundry-fitness-archive-orphan",
+      "runtime_budget_ms": 1200,
+      "estimated_total_ci_delta_s": {
+        "low": 3,
+        "high": 7
+      },
+      "note": "Lane was a BLOCKER-severity CI step with a 1200 ms runtime budget. Removing it eliminates: process spawn + cargo run recompile overhead + up to 1200 ms runtime = approximately 3-7 s per pipeline run."
+    },
+    "runtime_production": {
+      "direction": "neutral",
+      "delta": 0,
+      "note": "No production code path. Crates were dev/CI-only fitness tools."
+    },
+    "hot_path_impact": {
+      "direction": "neutral",
+      "note": "No hot path involved. Pure metadata/lane deletion."
+    },
+    "complexity": {
+      "direction": "improvement",
+      "workspace_members_removed": 2,
+      "cargo_lock_packages_removed": 2,
+      "catalog_yamls_removed": 3,
+      "note": "Reduces workspace member count by 2, cargo dependency graph by 2 leaf packages, and registry catalog by 3 YAML entries. Lower graph complexity speeds future cargo metadata and workspace resolution operations (marginal but real)."
+    }
+  },
+  "limitations": [
+    "Build-time estimate is based on LOC and dependency count heuristics; no measured wall-clock data available.",
+    "CI time delta is bounded by the documented 1200 ms runtime budget; actual run time may have been lower if the archive set was small.",
+    "Full workspace clean-build benchmark not run in this review; estimate is proportional to removed compilation units."
+  ]
+}

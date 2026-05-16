@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 87
-- **Numbering:** ADR-0001..ADR-0109 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089)
-- **Next ADR number:** 0110
-- **Status counts:** Accepted 14, Superseded 1, accepted 36, proposed 36
+- **Total ADRs:** 99
+- **Numbering:** ADR-0001..ADR-0121 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089)
+- **Next ADR number:** 0122
+- **Status counts:** Accepted 17, Proposed 5, Superseded 2, accepted 38, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -70,9 +70,9 @@ doc_status: published
 | ADR-0049 | proposed | Cross-region replication + residency — per-pack default residency class, opt-in cross-region per consent, immutable post-create | council-architecture | [`ADR-0049-cross-region-replication-and-residency.md`](decisions/ADR-0049-cross-region-replication-and-residency.md) |
 | ADR-0050 | proposed | Automation-first pipeline — Google + Amazon doctrine, sccache + remote execution, affected-graph testing, Foundry-driven PR triage | foundry | [`ADR-0050-automation-first-pipeline.md`](decisions/ADR-0050-automation-first-pipeline.md) |
 | ADR-0051 | accepted | Mobile and Native Client Strategy | axis-workspace (productivity native apps) + axis-saas (tenant-builder native apps) + council-architecture | [`ADR-0051-mobile-and-native-client-strategy.md`](decisions/ADR-0051-mobile-and-native-client-strategy.md) |
-| ADR-0052 | Accepted | Canonical Inventory Ledger for the grit/icm Cutover | council-architecture, foundry | [`ADR-0052-inventory-grit-cutover.md`](decisions/ADR-0052-inventory-grit-cutover.md) |
+| ADR-0052 | Superseded | Canonical Inventory Ledger for the grit/icm Cutover | council-architecture, foundry | [`ADR-0052-inventory-grit-cutover.md`](decisions/ADR-0052-inventory-grit-cutover.md) |
 | ADR-0053 | Accepted | grit + icm + oya-tooling-agent-read as sole sanctioned primitives for agentic work | council-architecture, foundry | [`ADR-0053-grit-icm-as-sanctioned-primitives.md`](decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) |
-| ADR-0054 | accepted | Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback) | council-architecture + foundry | [`ADR-0054-grit-scaffold-claim-pattern.md`](decisions/ADR-0054-grit-scaffold-claim-pattern.md) |
+| ADR-0054 | deprecated | Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback) | council-architecture + foundry | [`ADR-0054-grit-scaffold-claim-pattern.md`](decisions/ADR-0054-grit-scaffold-claim-pattern.md) |
 | ADR-0055 | accepted | Object Graph renamed to Ontology | council-architecture | [`ADR-0055-object-graph-renamed-to-ontology.md`](decisions/ADR-0055-object-graph-renamed-to-ontology.md) |
 | ADR-0056 | Accepted | Rust Clean Architecture BNF v4.1 — Flat Microservice Grammar + 12-Layer Enum | council-architecture | [`ADR-0056-rust-clean-architecture-bnf.md`](decisions/ADR-0056-rust-clean-architecture-bnf.md) |
 | ADR-0057 | Accepted | Cutover Mechanics — Rename Plan v4 (Hybrid C) | council-architecture | [`ADR-0057-cutover-mechanics-rename-plan-v4.md`](decisions/ADR-0057-cutover-mechanics-rename-plan-v4.md) |
@@ -108,11 +108,23 @@ doc_status: published
 | ADR-0107 | Superseded | `tools/` directory canonical-suffix binding (was: implicit `app` layer — superseded) | council-architecture | [`ADR-0107-tools-implicit-app-convention.md`](decisions/ADR-0107-tools-implicit-app-convention.md) |
 | ADR-0108 | Accepted | Sunset → deprecation → removal lifecycle automation schema (machine-readable) | council-architecture | [`ADR-0108-sunset-lifecycle-automation.md`](decisions/ADR-0108-sunset-lifecycle-automation.md) |
 | ADR-0109 | Accepted | Lifecycle-automation framework (generic kernel + per-lifecycle configs) | council-architecture | [`ADR-0109-lifecycle-automation-framework.md`](decisions/ADR-0109-lifecycle-automation-framework.md) |
+| ADR-0110 | Proposed | Changeset state machine | council-foundry-vcs | [`ADR-0110-changeset-state-machine.md`](decisions/ADR-0110-changeset-state-machine.md) |
+| ADR-0111 | Proposed | Merge queue: projected-merge-state + fix-at-any-stage | council-foundry-vcs | [`ADR-0111-merge-queue-projected-state-fix-at-any-stage.md`](decisions/ADR-0111-merge-queue-projected-state-fix-at-any-stage.md) |
+| ADR-0112 | Proposed | Webhook-driven Foundry agent invocation | council-foundry-vcs | [`ADR-0112-webhook-driven-foundry-agent-invocation.md`](decisions/ADR-0112-webhook-driven-foundry-agent-invocation.md) |
+| ADR-0113 | Proposed | VCS orchestrator (`oya vcs done`) end-to-end | council-foundry-vcs | [`ADR-0113-vcs-orchestrator-end-to-end.md`](decisions/ADR-0113-vcs-orchestrator-end-to-end.md) |
+| ADR-0114 | Proposed | Canary observability gate + rollback | council-foundry-vcs | [`ADR-0114-canary-observability-rollback.md`](decisions/ADR-0114-canary-observability-rollback.md) |
+| ADR-0115 | Accepted | Registry consolidation: flat singular `registry/` | council-architecture | [`ADR-0115-registry-consolidation-flat-singular.md`](decisions/ADR-0115-registry-consolidation-flat-singular.md) |
+| ADR-0116 | accepted | Retire external agent-coordination tooling (grit, rtk, icm, vox) in favour of the Foundry pipeline | council-architecture + foundry-vcs | [`ADR-0116-retire-external-agent-coordination-tooling.md`](decisions/ADR-0116-retire-external-agent-coordination-tooling.md) |
+| ADR-0117 | Accepted | Repo hygiene: gitignore .audit/, consolidate kyverno admission | council-developer-experience | [`ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md`](decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md) |
+| ADR-0118 | Accepted | Retire archive-orphan fitness lane | axis-foundry | [`ADR-0118-retire-archive-orphan-fitness-lane.md`](decisions/ADR-0118-retire-archive-orphan-fitness-lane.md) |
+| ADR-0119 | Accepted | Specs flat-root topology | council-architecture | [`ADR-0119-specs-flat-root-topology.md`](decisions/ADR-0119-specs-flat-root-topology.md) |
+| ADR-0120 | accepted | Rust-first on-prem tooling; every install paired with uninstall | axis-foundry + ops-sre | [`ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md`](decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md) |
+| ADR-0121 | accepted | On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy | axis-cloud + axis-foundry | [`ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`](decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0110), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0122), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -130,6 +142,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 87 ADR files (sorted ascending)
+- `decisions/` directory listing — 99 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
