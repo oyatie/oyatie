@@ -6,18 +6,19 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-AGENT-DURABLE-GOAL",
-    "version": "1.4.0",
+    "version": "1.5.0",
     "status": "Accepted",
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-16T11:30:00Z",
-    "updated_at": "2026-05-16T12:45:00Z",
+    "updated_at": "2026-05-16T13:45:00Z",
     "successor_of": null,
     "changelog": [
       {"version": "1.0.0", "date": "2026-05-16T11:30:00Z", "change": "initial draft — identity + persistent_goal + lifecycle (4 phases) + 10 operating_principles + confusion_management + verification_before_completion + scope_discipline + pattern_to_follow + stop_conditions + memory_pointers"},
       {"version": "1.1.0", "date": "2026-05-16T11:45:00Z", "change": "sharpened: lifecycle phases now carry entry_gate + exit_gate + back_edges; added iteration_loops; added spec_contract; added tdd_contract; added pipeline"},
       {"version": "1.2.0", "date": "2026-05-16T12:00:00Z", "change": "100% AUTONOMOUS FOUNDRY: added autonomous_foundry; REMOVED human-escalation paths. Per user directive 2026-05-16: target autonomy = 100%, quorum = 2 distinct vendors CC-1/CC-2 + 1 CC-3, lane promotion drift → ≥3 prevented incidents → BLOCKER."},
       {"version": "1.3.0", "date": "2026-05-16T12:30:00Z", "change": "TIERED REVIEW: added review_tiering + score_cards + source_driven_contract + doubt_driven_contract; rewrote OP-07; updated autonomous_foundry.quorum_rules. Per user 2026-05-16: multispectrum-on-every-PR is inefficient; tier deterministic; no LLM judgment in pass/fail."},
-      {"version": "1.4.0", "date": "2026-05-16T12:45:00Z", "change": "OP-11 NO-STUBS / NO-DEFER / 100-PRODUCTION-QUALITY: added per user directive 2026-05-16: 'Prevent drifts, prevent /documentation-and-adrs contradictions and drifts, make sure agents surface any tangent issues. Don't do stubs, placeholders, or defer issues for later. Address them there and then to 100% production quality. We are not building MVP, demo, or sample. We are building full hyperscaler production platform and ecosystem.' This SUPERSEDES the prior scope_discipline 'a bug fix doesn't need surrounding cleanup' rule when the cleanup is doctrinal drift — drift gets fixed in-PR, never deferred to FixupTask. FixupTasks remain valid ONLY for findings genuinely out of the PR's reachable scope (e.g., upstream-vendor change). Plus comprehensive sweep applied to this PR: 23 missing DOC-CATALOG rows for specs/*.json + 5 missing root-hub-pointers entry_points filled in-PR, not deferred."}
+      {"version": "1.4.0", "date": "2026-05-16T12:45:00Z", "change": "OP-11 NO-STUBS / NO-DEFER / 100-PRODUCTION-QUALITY: added per user directive 2026-05-16: 'Prevent drifts, prevent /documentation-and-adrs contradictions and drifts, make sure agents surface any tangent issues. Don't do stubs, placeholders, or defer issues for later. Address them there and then to 100% production quality. We are not building MVP, demo, or sample. We are building full hyperscaler production platform and ecosystem.' This SUPERSEDES the prior scope_discipline 'a bug fix doesn't need surrounding cleanup' rule when the cleanup is doctrinal drift — drift gets fixed in-PR, never deferred to FixupTask. FixupTasks remain valid ONLY for findings genuinely out of the PR's reachable scope (e.g., upstream-vendor change). Plus comprehensive sweep applied to this PR: 23 missing DOC-CATALOG rows for specs/*.json + 5 missing root-hub-pointers entry_points filled in-PR, not deferred."},
+      {"version": "1.5.0", "date": "2026-05-16T13:45:00Z", "change": "SHIPPING / LAUNCH MATURITY: added pipeline.slo_breach_playbooks, per-class rollback/triage/learn-loop actions, first-hour canary decision tree, and incident evidence contract. ADR-0114 emergency rewind is constrained by autonomous_foundry + deployment-ops authority: Argo/canonical rollback and OpenTofu/ops convergence are normal paths; pre-authorized autonomous break-glass is the only rewind exception."}
     ],
     "purpose": "Persistent across-session goal + load-bearing operating principles + lifecycle phase contract + iteration loop semantics + spec contract + TDD contract + CI/CD pipeline contract + confusion-management protocol + verification-before-completion checklist + scope-discipline rule. Single canonical source so every agent — Claude, codex, gemini, future — operates from the same durable contract.",
     "originating_directive": "User invocation 2026-05-16 of /agent-skills:context-engineering with argument 'Prompt for durable goal for entire lifecycle of hyperscaler product/service planning, development, ci/cd, and deployment.' Distilled from session-resident memory + multispectrum-review v2.3.0 doctrine + codex consultation 2026-05-16T10-38."
@@ -185,9 +186,10 @@
       "iteration_unit": "ongoing telemetry watch",
       "steps": [
         {"id": "D-1", "step": "canary_observe", "verb": "Per ADR-0114: canary observability gate watches error rate + latency + saturation for first N minutes post-promotion"},
-        {"id": "D-2", "step": "auto_rollback", "verb": "If canary fires: Argo rollback to previous revision; emit EVT-CANARY-ROLLBACK audit-chain row"},
-        {"id": "D-3", "step": "steady_state", "verb": "Once canary clears: shift to steady-state telemetry (OTel; Istio access logs)"},
-        {"id": "D-4", "step": "incident_response", "verb": "If incident: auto-rollback first; file in registry/incidents/; route code fixes to ci_cd_feedback via hotfix PR; route infra/config fixes through specs/deployment-ops-contract.json OpenTofu/ops surfaces; do not manually SSH-troubleshoot"}
+        {"id": "D-2", "step": "classify_slo_breach", "verb": "Classify any breach through pipeline.slo_breach_playbooks.error_classes before promotion can continue"},
+        {"id": "D-3", "step": "auto_rollback", "verb": "If canary fires or any security/data-integrity/audit-chain invariant breaches: Argo rollback to previous revision or quarantine; emit EVT-ROLLBACK-EXECUTED audit-chain row"},
+        {"id": "D-4", "step": "steady_state", "verb": "Once canary clears: shift to steady-state telemetry (OTel; Istio access logs)"},
+        {"id": "D-5", "step": "incident_response", "verb": "If incident: auto-rollback first; file in registry/incidents/ using pipeline.slo_breach_playbooks.evidence_contract; route code fixes to ci_cd_feedback via hotfix PR; route infra/config/capacity fixes through specs/deployment-ops-contract.json OpenTofu/ops surfaces; do not manually SSH-troubleshoot"}
       ],
       "back_edge_to_dev_outer": "Production incident with code root-cause → new dev_outer loop with hotfix-priority claim"
     }
@@ -434,7 +436,7 @@
       "post_deploy_observability": {
         "criticality": "BLOCKER if breached",
         "fail_policy": "auto-rollback via Argo revision history + autonomous incident-response quorum + ops/OpenTofu convergence; no human page",
-        "lanes": ["canary error-rate", "canary latency p99", "canary saturation", "mTLS posture (Istio strict)", "audit-chain row freshness"]
+        "lanes": ["canary error-rate", "canary latency p99", "canary saturation", "mTLS posture (Istio strict)", "audit-chain row freshness", "data-integrity sentinel", "dependency-regression sentinel", "config-drift desired-state check", "per-product KPI regression"]
       }
     },
     "parallelism_rule": "Independent lanes run in parallel. Sequential dependencies declared via workflow `needs:` field. Total wall-clock pre-merge ≤ 10 min on dev branch.",
@@ -444,7 +446,9 @@
       "mechanisms": [
         "git: revert the offending merge on dev → auto-propagates through staging on next cadence",
         "Argo: rollback to previous revision (per ADR-0114 canary-observability-rollback)",
-        "infra: kyverno admission policy can quarantine a bad image tag pending investigation"
+        "infra: kyverno admission policy can quarantine a bad image tag pending investigation",
+        "infra/config/capacity: converge only through specs/deployment-ops-contract.json OpenTofu roots and ops entrypoints",
+        "emergency rewind: allowed only when a pre-authorized autonomous break-glass key policy exists and emits rewind evidence; otherwise ADR-0114 human-signed force-rewind is replaced by canonical rollback PR or Argo rollback"
       ],
       "evidence_requirement": "Every rollback emits EVT-ROLLBACK-EXECUTED audit-chain row with root-cause + reverted-sha + decision-maker."
     },
@@ -461,7 +465,51 @@
       "root_cause_protocol": "incident_responder quorum dispatches per autonomous_foundry.vendor_disagreement_protocol; result must converge to one of {code-bug, config-drift, dependency-regression, capacity, first-of-kind-unknown}",
       "post_incident": "Per root-cause: code-bug → autonomous hotfix PR + regression test via tdd_contract.mode_bugfix; config-drift → Argo selfHeal will reconcile + audit; dependency-regression → pin or replace dep via autonomous PR; capacity → emit capacity-event for cloud-capacity-kernel; first-of-kind-unknown → service held in rolled-back state + F-INCIDENT-UNKNOWN-ROOT-CAUSE filed + compounding investigation across subsequent planning rounds. One F-INCIDENT-PREVENTION-NN FixupTask per causative gap regardless of root cause."
     },
-    "references": ["agent-skills:ci-cd-and-automation", "project_branch_pipeline_implemented", "ADR-0083", "ADR-0114"]
+    "slo_breach_playbooks": {
+      "evidence_path": "evidence/shipping-launch/autonomous-foundry-slo-playbooks.json",
+      "source_inputs": ["agent-skills:shipping-and-launch", "ADR-0114", "specs/deployment-ops-contract.json"],
+      "autonomy_constraints": {
+        "human_escalation_paths": 0,
+        "normal_recovery_surfaces": ["Argo rollback", "canonical rollback PR", "Kyverno quarantine", "OpenTofu/ops convergence", "autonomous hotfix PR"],
+        "forbidden_recovery_surfaces": ["interactive host login as troubleshooting path", "hand-clicked promotion retry/skip", "provider console mutation outside audited break-glass"]
+      },
+      "thresholds": {
+        "grace_period_seconds": 60,
+        "controller_tick_seconds": 30,
+        "promote_clean_window_seconds": 900,
+        "extend_observation_max_seconds": 3600,
+        "latency_canary_to_control_ratio_rollback": 1.20,
+        "error_rate_canary_to_control_ratio_rollback": 1.50,
+        "p95_latency_baseline_ratio_rollback": 1.50,
+        "critical_path_error_baseline_ratio_rollback": 2.00,
+        "slo_breach_count_rollback": 1
+      },
+      "decision_tree": [
+        {"when": "security_or_data_integrity_or_audit_freshness_breached", "verdict": "ROLLBACK_QUARANTINE", "action": "rollback exposed cells immediately, quarantine bad image/digest, freeze unsafe writes via ops policy when needed, open incident JSON"},
+        {"when": "canary_threshold_breach_inside_60s_grace", "verdict": "EXTEND_OBSERVATION_ONCE", "action": "emit EVT-CANARY-VERDICT, retain current exposure, re-evaluate at next controller tick"},
+        {"when": "canary_threshold_breach_after_grace", "verdict": "ROLLBACK", "action": "Argo rollback exposed cells, classify root cause, route code to hotfix PR or infra/config/capacity to OpenTofu/ops convergence"},
+        {"when": "yellow_threshold_only_before_max_window", "verdict": "HOLD_EXTEND", "action": "hold promotion and extend observation up to max window"},
+        {"when": "max_window_exhausted_without_known_class", "verdict": "FIRST_OF_KIND_QUORUM", "action": "hold safe state, dispatch autonomous first-of-kind quorum, do not page humans"},
+        {"when": "clean_window_elapsed", "verdict": "PROMOTE", "action": "advance to next canary stage and retain evidence bundle"}
+      ],
+      "error_classes": [
+        {"id": "SLO-LATENCY", "root_causes": ["code-bug", "capacity", "dependency-regression", "config-drift"], "signals": ["canary/control p99 ratio > 1.20", "p95 > 50% above baseline", "queue/dependency latency spike"], "rollback": "after grace if threshold persists or launch rollback threshold crossed", "triage": ["compare canary vs control traces", "inspect queue depth/saturation", "check dependency/cache spans"], "recovery": ["Argo rollback first if user impact", "OpenTofu/ops capacity convergence for capacity", "hotfix PR with performance regression test for code"]},
+        {"id": "SLO-ERROR-RATE", "root_causes": ["code-bug", "dependency-regression", "config-drift"], "signals": ["canary/control error-rate ratio > 1.50", "5xx > 2x baseline", "Rust panic events", "audit-chain Err returns"], "rollback": "after grace or immediately on critical path hard failure", "triage": ["bucket by route/cell/version", "read panic signatures", "compare dependency errors"], "recovery": ["Argo rollback", "canonical rollback PR", "prove-it hotfix regression"]},
+        {"id": "SLO-SATURATION-CAPACITY", "root_causes": ["capacity", "config-drift"], "signals": ["CPU/memory saturation", "DB pool exhaustion", "queue lag", "pod pending/throttling"], "rollback": "when saturation creates user-impacting latency/error", "triage": ["separate workload regression from capacity ceiling", "compare requested/actual resources", "check autoscaler/pool limits"], "recovery": ["rollback code-induced demand", "OpenTofu/ops capacity convergence", "capacity-event for cloud-capacity-kernel"]},
+        {"id": "SLO-MTLS-SECURITY", "root_causes": ["config-drift", "security"], "signals": ["Istio mTLS strict disabled", "certificate failures", "authorization denial spike", "security vulnerability signal"], "rollback": "immediate; no hold-only mode", "triage": ["verify desired policy from git", "check cert rotation", "map denied identities to release delta"], "recovery": ["quarantine digest", "rollback exposed cells", "policy convergence through gitops/OpenTofu"]},
+        {"id": "SLO-AUDIT-CHAIN-FRESHNESS", "root_causes": ["code-bug", "config-drift", "dependency-regression"], "signals": ["audit-chain emission halt", "row freshness breach", "event schema rejection", "missing decision-maker/session_id"], "rollback": "immediate on governance/provenance loss", "triage": ["check emitter health", "validate schema errors", "compare event sink availability"], "recovery": ["rollback/quarantine before analysis", "hotfix emitter", "backfill only from signed evidence bundles"]},
+        {"id": "SLO-DATA-INTEGRITY", "root_causes": ["code-bug", "config-drift", "first-of-kind-unknown"], "signals": ["migration checksum mismatch", "cross-tenant access", "data corruption sentinel", "idempotency violation"], "rollback": "immediate on integrity or tenant isolation breach", "triage": ["preserve forensic evidence", "identify affected tenant/cell range", "verify write idempotency/migration ordering"], "recovery": ["rollback/quarantine", "freeze unsafe writes via ops policy", "canonical repair PR with reversible migration proof"]},
+        {"id": "SLO-DEPENDENCY-REGRESSION", "root_causes": ["dependency-regression"], "signals": ["upstream API failures", "SDK behavior change", "CVE/advisory trigger", "dependency latency/error shift"], "rollback": "when dependency change causes latency/error/security/integrity breach", "triage": ["map failing version/digest", "compare lockfile delta", "read source-citation evidence"], "recovery": ["rollback image first", "pin/replace dependency by autonomous PR", "amend source-driven evidence"]},
+        {"id": "SLO-CONFIG-DRIFT", "root_causes": ["config-drift"], "signals": ["desired/actual infra mismatch", "Argo OutOfSync/Synced mismatch", "OpenTofu plan drift", "policy or SecretReference drift"], "rollback": "when drift causes service impact or policy breach", "triage": ["diff desired git state against live state", "verify Argo selfHeal", "verify OpenTofu plan convergence"], "recovery": ["Argo selfHeal for gitops", "OpenTofu/ops convergence for infra", "rollback only when current changeset introduced drift"]},
+        {"id": "SLO-FIRST-OF-KIND-UNKNOWN", "root_causes": ["first-of-kind-unknown"], "signals": ["no known incident signature", "quorum cannot classify", "conflicting telemetry across cells"], "rollback": "on user impact, safety risk, or governance uncertainty", "triage": ["hold rolled-back/null state", "preserve full evidence bundle", "dispatch 3-vendor investigation quorum"], "recovery": ["no promotion until spec amendment + regression gate + root-cause class exist", "conservative default if quorum does not converge"]}
+      ],
+      "evidence_contract": {
+        "audit_events": ["EVT-CANARY-VERDICT", "EVT-ROLLBACK-EXECUTED", "EVT-INCIDENT-CLASSIFIED", "EVT-LEARN-LOOP-CLOSED"],
+        "incident_json_required_keys": ["incident_id", "opened_at", "product", "cell", "release_sha", "slo_class", "signals", "verdict", "rollback_action", "root_cause_class", "evidence_paths", "learn_loop_actions", "closed_at"],
+        "promotion_resume_requires": ["incident closed or service held in conservative safe state", "root_cause_class assigned", "rollback evidence emitted", "regression or lane candidate recorded", "OpenTofu/ops convergence evidence for infra/config/capacity fixes"]
+      }
+    },
+    "references": ["agent-skills:ci-cd-and-automation", "agent-skills:shipping-and-launch", "project_branch_pipeline_implemented", "ADR-0083", "ADR-0114", "deployment_ops_contract", "evidence/shipping-launch/autonomous-foundry-slo-playbooks.json"]
   },
   "autonomous_foundry": {
     "description": "End-state: 100% of decisions made by agent quorum without human escalation path. Per user directive 2026-05-16. Quality preserved through anti-collusion + conservative-default + spec-contract enforcement + meta-agent anomaly watch + rate limits.",
