@@ -67,6 +67,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "cargo-prefix",
     "pre-push-contract",
     "quality-lanes",
+    "loop-recovery-patterns",
     "foundation-bypass",
     "audit-chain-replay",
     "foundry-capability-schema",
@@ -364,6 +365,14 @@ mod tests {
         // canonical local verification surface.
         let rendered = all_canonical_commands_rendered();
         assert!(rendered.contains("cargo run -p oya-dev-cli -- verify"));
+    }
+
+    #[test]
+    fn rendered_form_contains_loop_recovery_patterns_lane() {
+        let rendered = all_canonical_commands_rendered();
+        assert!(
+            rendered.contains("cargo run -p oya-dev-cli -- gate validate loop-recovery-patterns")
+        );
     }
 
     #[test]

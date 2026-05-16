@@ -1,0 +1,78 @@
+{
+  "change_id": "pipeline-foundry-harness-1778954193",
+  "change_class_id": "CC-3",
+  "freshness_unix": 1778954193,
+  "evidence_id": "pipeline-foundry-harness-1778954193",
+  "feature_id": "F-PIPELINE-FOUNDRY-HARNESS",
+  "created_at_epoch_seconds": 1778954193,
+  "status": "pass",
+  "user_constraints": [
+    "No manual SSH troubleshooting for deployment paths.",
+    "Deployment surfaces stay OpenTofu/ops-owned; no handrolled shell expansion.",
+    "Consolidate shell behavior into Rust where sensible."
+  ],
+  "implemented_surfaces": [
+    "oya gate validate loop-recovery-patterns",
+    "oya gate run-all aggregate catalog includes loop-recovery-patterns",
+    "oya verify/pre-push reaches the new Rust lane through the existing Rust aggregator",
+    "specs/score-cards.json deterministic score-card inventory",
+    "registry/loop-recovery-patterns/*.json repeat-mistake blocker records",
+    "registry/check-empirical-evidence/*.json blocker-promotion evidence records"
+  ],
+  "validation": [
+    {
+      "command": "cargo fmt --all --check",
+      "status": "pass"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli --test loop_recovery_patterns",
+      "status": "pass",
+      "summary": "2 passed"
+    },
+    {
+      "command": "cargo test -p oya-foundry-gate-catalog-domain",
+      "status": "pass",
+      "summary": "15 passed"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --test loop_recovery_patterns -- -D warnings",
+      "status": "pass"
+    },
+    {
+      "command": "oya gate validate loop-recovery-patterns",
+      "status": "pass",
+      "summary": "7 score-schema fields, 4 score cards, 3 score-card commands, 3 patterns, 3 active blockers, 3 mistakes refs, 6 anomaly signals"
+    },
+    {
+      "command": "oya gate validate quality-lanes",
+      "status": "pass",
+      "summary": "66 registry records, 66 markdown rows, 61 active commands, 39 owner teams"
+    },
+    {
+      "command": "oya gate validate active-artifact-contract",
+      "status": "pass",
+      "summary": "56 rows, 3565 HEAD-tracked, 56 graph edges"
+    },
+    {
+      "command": "oya gate validate retired-vocabulary",
+      "status": "pass",
+      "summary": "1210 documents checked, 6 retired terms enforced, 0 drift hits"
+    },
+    {
+      "command": "oya gate validate pre-push-contract",
+      "status": "pass",
+      "summary": "oya verify remains the canonical local pre-push entry"
+    },
+    {
+      "command": "cargo run -q -p oya-foundry-vcs-admission-gate-app",
+      "status": "pass",
+      "summary": "metadata and authority checks passed; cargo tests + CLI smoke passed"
+    },
+    {
+      "command": "git diff --cached --check",
+      "status": "pass"
+    }
+  ],
+  "no_new_shell_orchestration": true,
+  "normal_operator_path_after_setup": "ops/oya verify/OpenTofu-owned workflows; no manual SSH command troubleshooting"
+}

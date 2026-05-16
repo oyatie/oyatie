@@ -313,6 +313,14 @@ lanes:
     source: AGENTS.md D12
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate pre-push-contract
+  - id: oya-foundry-fitness-loop-recovery-patterns
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: pre-push repeat-mistake blocker joins deterministic score cards, loop-recovery patterns, and mistakes-ledger rows without shell hook expansion
+    source: specs/agent-durable-goal.json score_cards + autonomous_foundry.meta_agent_anomaly_watch
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-dev-cli -- gate validate loop-recovery-patterns
   - id: oya-foundry-fitness-retired-vocabulary
     stage: per-pr
     status: active
