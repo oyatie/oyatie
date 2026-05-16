@@ -648,8 +648,7 @@ mod tests {
             pr.to_string(),
             "--repo-root".to_string(),
             repo.display().to_string(),
-        ]
-        .into_iter())
+        ])
         .unwrap();
         assert_eq!(verdict, Verdict::Approve);
         let rollup = fs::read_to_string(repo.join(ROLLUP_PATH)).unwrap();
@@ -681,8 +680,7 @@ mod tests {
             pr.to_string(),
             "--repo-root".to_string(),
             repo.display().to_string(),
-        ]
-        .into_iter())
+        ])
         .unwrap();
         assert_eq!(verdict, Verdict::ChangesRequested);
         let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();
@@ -709,8 +707,7 @@ mod tests {
             pr.to_string(),
             "--repo-root".to_string(),
             repo.display().to_string(),
-        ]
-        .into_iter())
+        ])
         .unwrap();
         assert_eq!(verdict, Verdict::Reject);
     }
@@ -725,8 +722,7 @@ mod tests {
                 pr.to_string(),
                 "--repo-root".to_string(),
                 repo.display().to_string(),
-            ]
-            .into_iter())
+            ])
             .unwrap();
         }
         let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();
@@ -796,8 +792,7 @@ mod tests {
             "inline-deterministic-mock".to_string(),
             "--change-id".to_string(),
             "test-change".to_string(),
-        ]
-        .into_iter())
+        ])
         .unwrap();
         // The deterministic mock generates a mix of APPROVE / CHANGES_REQUESTED
         // / REJECT across the 21 facets, so the rollup verdict is one of
@@ -837,8 +832,7 @@ mod tests {
             pr.to_string(),
             "--repo-root".to_string(),
             repo.display().to_string(),
-        ]
-        .into_iter())
+        ])
         .unwrap();
         assert_eq!(verdict, Verdict::Approve);
         let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();
