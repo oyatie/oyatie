@@ -1,26 +1,50 @@
-# GitHub ruleset source for ADR-0039/ADR-0041. Applied by repository admins once
-# the GitHub org namespace exists; validated locally by the supply-chain gate.
+# Branch-protection canonical record — the deployed ruleset on
+# github.com/jason931225/oyatie reflects this file exactly. Drift is
+# caught by the `oya-foundry-fitness-protection-context-match` lane
+# (per-pr CI).
+#
+# Pipeline topology (per feedback_branch_pipeline_final_final,
+# 2026-05-12):
+#
+#   per-agent worktree → local main → dev → staging → production
+#
+# Branches in this file are the SHARED-WORLD branches (L2/L3/L4):
+#
+#   - dev        Shared-world entry point. PRs target here. 3-gate:
+#                signed-commits + linear-history + every required
+#                CI check green. Default branch on github.
+#   - staging    Auto-promoted from dev (workflow:
+#                .github/workflows/promote-dev-to-staging.yml).
+#                No PR review; signed-commits + linear-history;
+#                CANARY cohort exposure begins on this ref.
+#   - production Auto-promoted from staging (workflow:
+#                .github/workflows/promote-staging-to-production.yml).
+#                No PR review; signed-commits + linear-history;
+#                FULL ROLLOUT exposure on this ref.
+#
+# `main` is RETAINED for read-only legacy compatibility but has NO
+# protection and is not the default branch. PRs targeting `main` are
+# accepted only for emergency hotfixes that bypass the pipeline; new
+# work targets `dev`.
+
 branches:
-  main:
+  dev:
     require_pull_request: true
     require_linear_history: true
     disallow_force_push: true
     require_signed_commits: true
     require_signed_tags: true
-    # Interim: human-review gate dropped 2026-05-15 pending M-CC-P10-IP-004
-    # (multifacet reviewer-agent auto-dispatch on CI-green). The automated
-    # `oya-pr-review` required-check (added by IP-004) will gate merge instead
-    # of a human approval. Restore to ≥1 only if the auto-review channel is
-    # sunset and human review re-enters the pipeline.
+    # IP-004 + IP-009: reviewer-agent gate dropped TIME-BOUNDED until
+    # 2026-06-15 OR until 5 consecutive PRs have `oya-pr-review` post
+    # APPROVE via the live subagent runtime. See
+    # `feedback_branch_pipeline_final_final` for the canonical 3-gate
+    # specification (signed + linear + every required-check) that
+    # this transition narrows to.
     required_approving_reviews: 0
-    # Canonical contract: each entry below is BOTH the workflow
-    # YAML job-key AND the workflow's `name:` field. GitHub matches
-    # required checks by `name:`, so name ≡ job-key keeps the
-    # rule trivially equal to the running workflow and makes future
-    # display-name drift impossible. Asserted by the
-    # `oya-foundry-fitness-protection-context-match` CI lane:
-    # every entry here must be the `name:` of a job in some
-    # `.github/workflows/*.yml`.
+    # Canonical contract: each entry below is BOTH the workflow YAML
+    # job-key AND the workflow's `name:` field. The
+    # `oya-foundry-fitness-protection-context-match` lane enforces
+    # this invariant.
     required_status_checks:
       - cargo-fmt
       - cargo-check
@@ -31,16 +55,32 @@ branches:
       - oya-foundry-fitness-supply-chain
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver
-      # oya-pr-review — multispectrum reviewer-agent auto-dispatch
-      # (M-CC-P10-IP-004 + IP-009). TIME-BOUNDED REMOVAL FROM
-      # REQUIRED LIST until 2026-06-15 OR until 5 consecutive PRs
-      # have `oya-pr-review` post APPROVE via the live subagent
-      # runtime (whichever comes first). The dispatcher currently
-      # emits APPROVE with `subagent_runtime_pending=true` because
-      # IP-009 ships the runtime as a substrate-extension hook
-      # (Anthropic API transport seam pending). IP-006 admission
-      # gate already refuses to trust the pending shape, so making
-      # this rule required today blocks all merges with zero added
-      # safety. Restoring is a 1-line uncomment after the runtime
-      # consistently fires.
+      - oya-foundry-fitness-protection-context-match
+      # oya-pr-review — see comment above. 1-line uncomment to
+      # restore the multispectrum reviewer-agent gate.
       # - oya-pr-review
+
+  staging:
+    # Auto-promoted from dev by promote-dev-to-staging.yml; the
+    # fast-forward inherits dev's signature + CI state. No PR
+    # required, no review, no CI gate at THIS layer — those gates
+    # already fired on dev. What we do enforce: the ref must only
+    # move forward, the underlying commits must be signed, no
+    # force-push, no deletion.
+    require_pull_request: false
+    require_linear_history: true
+    disallow_force_push: true
+    require_signed_commits: true
+    require_signed_tags: true
+
+  production:
+    # Auto-promoted from staging by
+    # promote-staging-to-production.yml; same fast-forward inheritance
+    # as staging. FULL-rollout layer; canary observability gate (per
+    # FINAL-FINAL) is the future addition that conditions this
+    # promotion.
+    require_pull_request: false
+    require_linear_history: true
+    disallow_force_push: true
+    require_signed_commits: true
+    require_signed_tags: true
