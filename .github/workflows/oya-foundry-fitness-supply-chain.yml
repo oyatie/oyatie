@@ -70,8 +70,8 @@ jobs:
     if: always() && startsWith(github.ref, 'refs/tags/v')
     steps:
       - uses: actions/checkout@v4
-      - name: Execute ADR-0039 release supply-chain script
-        run: scripts/supply-chain-adr0039.sh registry/release/images.yaml
+      - name: Execute ADR-0039 release supply-chain runner
+        run: cargo run -p oya-dev-cli -- supply-chain adr0039 --manifest registry/release/images.yaml
       - name: Validate release supply-chain evidence records
         run: cargo run -p oya-dev-cli -- gate validate release-supply-chain --phase release
 
