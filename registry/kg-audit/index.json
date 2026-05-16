@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/kg-audit/index.schema.json",
+  "title": "KnowledgeGraphRobustnessAudit",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "AUDIT-KG-ROBUSTNESS",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture + ontology-team",
+    "created_at": "2026-05-16T13:20:00Z",
+    "purpose": "Robustness audit of the 3-layer KG (semantic + kinetic + dynamic) against dev + governance use-cases. Read-only audit; remediation PRs filed separately. Per user directive 2026-05-16: 'make sure our knowledge graph is robust enough to support our development and governance.'"
+  },
+  "scope": {
+    "audit_target_specs": ["$ref:specs/knowledge-graph-schema.json"],
+    "audit_target_registries": ["$ref:registry/knowledge-graph-semantic.json", "$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json"],
+    "use_cases_audited": ["development_traceability", "governance_audit_trail", "compliance_attestation", "incident_root_cause_traversal", "blast_radius_inference", "agent_decision_provenance"]
+  },
+  "current_state": {
+    "semantic_layer": {"ref": "$ref:registry/knowledge-graph-semantic.json", "node_types_declared": 24, "edge_types_declared": 18, "invariants_declared": 14, "read_side_queries_declared": 5, "status": "PRODUCTION_READY"},
+    "kinetic_layer": {"ref": "$ref:registry/knowledge-graph-kinetic.json", "action_types_declared": 14, "workflows_declared": 4, "audit_topic_per_action": true, "idempotency_pattern_declared": true, "lock_pattern_declared": true, "status": "PRODUCTION_READY"},
+    "dynamic_layer": {"ref": "$ref:registry/knowledge-graph-dynamic.json", "live_state_sources_declared": 9, "otel_telemetry_pointers": true, "status": "PRODUCTION_READY"}
+  },
+  "use_case_coverage": [
+    {"use_case": "development_traceability", "coverage_pct": 75, "gaps": ["no node_type for ChangeSet → PR → audit-chain-row provenance chain", "no edge_type linking AcceptanceCriterion → Test → CI-lane-run-id"]},
+    {"use_case": "governance_audit_trail", "coverage_pct": 90, "gaps": ["action_invoked rows captured but no aggregate read-side query joins them across autonomy_tier hierarchy"]},
+    {"use_case": "compliance_attestation", "coverage_pct": 60, "gaps": ["no node_type for ComplianceControl (e.g., SOC2-CC6.1)", "no edge_type linking ComplianceControl → SatisfiedByLane → EvidencePath", "no read-side query for 'show me every control + its current evidence freshness'"]},
+    {"use_case": "incident_root_cause_traversal", "coverage_pct": 70, "gaps": ["no edge_type Incident → CausedByChange → PR; root-cause stored as prose in registry/incidents/ not as graph edge"]},
+    {"use_case": "blast_radius_inference", "coverage_pct": 65, "gaps": ["no read-side query for 'given a candidate diff, return reachable entity_types + downstream consumers'"]},
+    {"use_case": "agent_decision_provenance", "coverage_pct": 80, "gaps": ["agent_decision is event but not a graph node; cannot traverse decision_a → caused_by → decision_b chains"]}
+  ],
+  "findings": [
+    {"id": "F-KG-01", "severity": "high", "summary": "ComplianceControl node-type missing; compliance-attestation 60%", "remediation": "Add ComplianceControl + SatisfiedByLane + EvidencePath edge_types to registry/knowledge-graph-semantic.json + read-side query show_compliance_evidence_freshness"},
+    {"id": "F-KG-02", "severity": "high", "summary": "Incident root-cause not graph-traversable", "remediation": "Add Incident → CausedByChange → PR edge_type; emit on incident_close action"},
+    {"id": "F-KG-03", "severity": "high", "summary": "Blast-radius inference ad-hoc per PR", "remediation": "Add read-side query reachable_entity_types_for_diff aligned with $ref:specs/agent-durable-goal.json#review_tiering.blast_radius_score signals"},
+    {"id": "F-KG-04", "severity": "medium", "summary": "AgentDecision is event-only, not node", "remediation": "Promote agent_decision to node_type + caused_by edge_type for decision-chain traversal"},
+    {"id": "F-KG-05", "severity": "medium", "summary": "AcceptanceCriterion ↔ Test ↔ CILaneRun chain not in KG", "remediation": "Add AcceptanceCriterion + Test + CILaneRun node_types + chain edges; enables tdd_contract verification via KG query"},
+    {"id": "F-KG-06", "severity": "low", "summary": "ChangeSet → PR → audit-chain-row provenance implicit via PR number, not graph edge", "remediation": "Add ChangeSet node + emitted_audit_row edge"}
+  ],
+  "verdict_per_use_case": [
+    {"use_case": "development_traceability", "verdict": "ADEQUATE_WITH_GAPS", "blocker_for_user_goal": false},
+    {"use_case": "governance_audit_trail", "verdict": "PRODUCTION_READY", "blocker_for_user_goal": false},
+    {"use_case": "compliance_attestation", "verdict": "INSUFFICIENT", "blocker_for_user_goal": true, "rationale": "Compliance named in $ref:specs/agent-durable-goal.json#operating_principles/OP-09 + $ref:docs/decisions/ADR-0007 Cedar; 60% coverage means agents cannot mechanically attest a control"},
+    {"use_case": "incident_root_cause_traversal", "verdict": "ADEQUATE_WITH_GAPS", "blocker_for_user_goal": false},
+    {"use_case": "blast_radius_inference", "verdict": "ADEQUATE_WITH_GAPS", "blocker_for_user_goal": false, "rationale": "review_tiering uses diff-signal heuristics; KG query would sharpen but signals already adequate per agent-durable-goal v1.4"},
+    {"use_case": "agent_decision_provenance", "verdict": "ADEQUATE_WITH_GAPS", "blocker_for_user_goal": false}
+  ],
+  "overall_verdict": {
+    "robust_enough_for_development": "YES (3-layer architecture sound; 6 gaps identified; all remediation additive — node/edge_type additions, no schema breaking change)",
+    "robust_enough_for_governance": "MOSTLY (1 high-severity blocker — F-KG-01 ComplianceControl gap)",
+    "recommendation": "Land $ref:specs/products/ontology.json + ADR-0122 (this PR sequence). Then file 6 follow-up issues per gap: F-KG-01 (compliance) FIRST per governance bar; F-KG-02/03 (incident + blast-radius) within next planning round; F-KG-04/05/06 (provenance + chain) opportunistic.",
+    "doctrine_pointer": "$ref:specs/agent-durable-goal.json#autonomous_foundry.lane_promotion_protocol — each fix follows candidate → ≥3-prevented-incidents → BLOCKER cadence"
+  },
+  "sources_scanned": ["$ref:specs/knowledge-graph-schema.json", "$ref:registry/knowledge-graph-semantic.json", "$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json", "$ref:specs/products/ontology.json", "$ref:specs/agent-durable-goal.json", "$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0107", "$ref:bominal/decisions/ADR-0133"]
+}

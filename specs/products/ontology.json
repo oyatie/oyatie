@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/ontology.schema.json",
+  "title": "ProductPrd:Ontology",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-ONTOLOGY",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture + ontology-team",
+    "created_at": "2026-05-16T13:10:00Z",
+    "covers": ["ontology", "knowledge-graph"],
+    "user_pick_2026_05_16": "merge — Ontology = full KG product",
+    "purpose": "Ontology + Knowledge Graph merged into one product PRD — machine-optimized. Ontology = typed entity/link/action schema layer. KG = runtime graph state (semantic+kinetic+dynamic 3-layer per $ref:specs/knowledge-graph-schema.json + $ref:registry/knowledge-graph-{semantic,kinetic,dynamic}.json)."
+  },
+  "identity": {
+    "product_id": "ontology",
+    "owning_axis": "ecosystem-infrastructure-backbone",
+    "backbone_pair": "$ref:specs/products/workflow.json (jointly form ecosystem-as-a-product backbone)",
+    "crate_refs_current": ["$ref:registry/catalog/oya-ontology-api.yaml", "$ref:registry/catalog/oya-ontology-domain.yaml"],
+    "crate_refs_pending_rename": [{"from": "$ref:registry/catalog/oya-platform-object-graph-kernel.yaml", "to": "oya-ontology-kernel", "via_adr": "ADR-0122 (in this PR sequence)", "ref": "$ref:memory/feedback_glossary_ontology_not_object_graph"}],
+    "crate_refs_planned": ["oya-ontology-kernel", "oya-ontology-usecase", "oya-ontology-adapter"]
+  },
+  "inherits": {
+    "bominal_adrs": ["$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0107", "$ref:bominal/decisions/ADR-0133"],
+    "oyatie_specs": ["$ref:specs/agent-durable-goal.json", "$ref:specs/knowledge-graph-schema.json"],
+    "oyatie_registries": ["$ref:registry/knowledge-graph-semantic.json", "$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json"],
+    "memory_pointers": ["feedback_glossary_ontology_not_object_graph", "feedback_workflow_objectgraph_adapter_layer", "feedback_bominal_inheritance_precedence"]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0106 (engine-enforced cryptographically-auditable typed-entity layer; Palantir-Foundry-style ontology pattern; platform value compounds when every surface speaks the same typed object)",
+  "target_users": [
+    {"persona": "product_team", "interface": "one typed schema across UI/API/automation/LLM", "billing": "internal cost-allocation per active entity-class"},
+    {"persona": "agentic_developer_role", "interface": "LLM-friendly type descriptors + tool-call binding", "billing": "internal Foundry"},
+    {"persona": "workflow_engine", "interface_ref": "$ref:specs/products/workflow.json (typed entity-refs in workflow steps; safe action invocation)", "billing": "internal"},
+    {"persona": "vertical_specialist", "interface": "per-vertical entity extensions overlaid on canonical types", "billing": "vertical-pack subscription"},
+    {"persona": "external_sdk_consumer", "interface": "typed entity+link+action SDK (Rust/TS/Python)", "billing": "per-entity-class per-month (post-GA)"}
+  ],
+  "acceptance_criteria": [
+    {"id": "AC-01", "given": "typed entity schema (e.g., Patient)", "when": "OntologyEngine::register_type()", "then": "EntityTypeId returned + queryable; conflicts rejected", "test_ref": "crates/oya-ontology-kernel/tests/types.rs::test_register_type"},
+    {"id": "AC-02", "given": "entity instance create with tier-classified properties", "when": "persisted", "then": "per-property tier enforced; data_class recorded; entity_created audit row emitted", "test_ref": "crates/oya-ontology-domain/tests/instance.rs::test_tier_enforcement", "doctrine_ref": "$ref:bominal/decisions/ADR-0133"},
+    {"id": "AC-03", "given": "typed link between entities", "when": "created", "then": "cardinality enforced (1:1/1:N/M:N); cross-tenant link refused unless explicit policy permits", "test_ref": "crates/oya-ontology-domain/tests/links.rs::test_no_cross_tenant_link_unless_policy"},
+    {"id": "AC-04", "given": "typed action invoked (e.g., dischargePatient)", "when": "Cedar policy + autonomy_tier check", "then": "executes only if policy permits; action_invoked row with provenance (caller, tier, refs)", "test_ref": "crates/oya-ontology-domain/tests/actions.rs::test_cedar_action_gate"},
+    {"id": "AC-05", "given": "workflow step references entity-type", "when": "workflow engine calls ontology adapter", "then": "type checked at workflow-deploy time, NOT runtime; deploy fails on unknown type", "test_ref": "crates/oya-saas-workflow-domain/tests/ontology_ref.rs::test_deploy_type_check"},
+    {"id": "AC-06", "given": "query for entities matching graph traversal (semantic+kinetic+dynamic)", "when": "submitted via API", "then": "returns within latency budget; cross-tier joins enforce tier ceiling", "test_ref": "crates/oya-ontology-api/tests/graph_traversal.rs::test_kg_3layer_join_perf"},
+    {"id": "AC-07", "given": "LLM tool-call invokes typed action", "when": "Foundry capability registry routes", "then": "Cedar autonomy_tier ceiling enforced; LLM input as data; audit row emitted", "test_ref": "crates/oya-ontology-adapter/tests/llm_tool_call.rs::test_autonomy_ceiling", "doctrine_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract"},
+    {"id": "AC-08", "given": "jurisdiction-overlay schema (e.g., kr-patient)", "when": "querying in kr cell", "then": "overlay fields available; base fields unchanged elsewhere", "test_ref": "crates/oya-ontology-domain/tests/overlay.rs::test_jurisdiction_overlay_query"},
+    {"id": "AC-09", "given": "KG dynamic-state read", "when": "OTel telemetry consulted", "then": "returns within freshness budget (<2s lag); never silent stale", "test_ref": "crates/oya-ontology-adapter/tests/dynamic_state.rs::test_freshness_budget", "ref": "$ref:registry/knowledge-graph-dynamic.json"},
+    {"id": "AC-10", "given": "graph mutation via kinetic layer", "when": "applied", "then": "audit topic emitted; idempotency_key honored; lock pattern engaged", "test_ref": "crates/oya-ontology-domain/tests/kinetic.rs::test_audit_idempotency_lock", "ref": "$ref:registry/knowledge-graph-kinetic.json"}
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": ["typed entity+link+action registration", "per-tenant isolation", "tier-classified properties ($ref:bominal/decisions/ADR-0133)", "semantic-layer graph queries", "Workflow ↔ Ontology adapter"],
+      "stable": ["kinetic + dynamic layer", "OTel-backed dynamic state", "jurisdiction overlay", "cryptographically signed audit-chain per action", "LLM tool-call binding via Foundry registry"],
+      "GA": ["external SDK (Rust+TS+Python)", "entity-schema-pack marketplace (e.g., FHIR-compatible Patient)", "cross-cell federation via Ontology adapter (not direct DB)", "multi-graph (per-tenant subgraphs)"]
+    },
+    "out_of_scope": [
+      {"item": "generic schema-less store", "why": "use a NoSQL DB; this is typed-only"},
+      {"item": "cross-tenant entity sharing without explicit Cedar policy", "why": "AC-03"},
+      {"item": "direct cross-cell DB access", "why": "$ref:memory/feedback_workflow_objectgraph_adapter_layer — must go through Ontology adapter"},
+      {"item": "LLM-as-judge for action permissions", "why": "Cedar is sole gate per AC-04"},
+      {"item": "untyped graph mutations", "why": "kinetic layer is typed per $ref:registry/knowledge-graph-kinetic.json"},
+      {"item": "eventual-consistency dynamic reads without freshness budget", "why": "AC-09"}
+    ]
+  },
+  "contracts": {
+    "produces": [
+      {"name": "entity_type.v1.json", "ref": "$ref:contracts/entity_type.v1.json", "consumers": ["all_products"]},
+      {"name": "entity_action.v1.proto", "ref": "$ref:contracts/entity_action.v1.proto", "consumers": ["$ref:specs/products/workflow.json", "Foundry"]},
+      {"name": "knowledge_graph_query.v1.proto", "ref": "$ref:contracts/knowledge_graph_query.v1.proto", "consumers": ["all_products"]},
+      {"name": "audit_chain_event.v1.json", "ref": "$ref:contracts/audit_chain_event.v1.json", "consumers": ["audit-chain kernel"]}
+    ],
+    "consumes": [
+      {"name": "cedar_policy.v1", "ref": "$ref:contracts/cedar_policy.v1", "producer": "$ref:docs/decisions/ADR-0007 tenancy-identity kernel"},
+      {"name": "otel_telemetry.v1", "ref": "per $ref:registry/knowledge-graph-dynamic.json", "producer": "observability kernel"}
+    ]
+  },
+  "data_model": {
+    "entities_ref": "$ref:crates/oya-ontology-kernel/src/lib.rs (planned: EntityType with PropertyDescriptor[Tier classification per $ref:bominal/decisions/ADR-0133], EntityInstance, ActionInvocation with autonomy_tier)",
+    "tier_enum": ["Tier1Sensitive", "Tier2Restricted", "Tier3Internal", "Tier4Public"],
+    "persistence": {"semantic": "postgres + jsonb + RLS per-tenant", "kinetic": "event-sourced via outbox per $ref:docs/decisions/ADR-0050", "dynamic": "OTel + Kafka stream"},
+    "events_emitted": ["entity_type_registered", "entity_created", "entity_updated", "entity_deleted", "link_created", "link_deleted", "action_invoked"],
+    "audit_chain_emission_rule_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"
+  },
+  "optimization_practices": [
+    {"practice": "per-tenant cell pinning + per-jurisdiction overlay at edge"},
+    {"practice": "type descriptors at CDN edge; instance reads in-memory + Redis"},
+    {"practice": "BulkEntityFetch 1000/call; cursor pagination"},
+    {"practice": "idempotency_key required on every action (AC-10)"},
+    {"practice": "Foundry ontology-optimizer capability tunes per-type cache TTL"}
+  ],
+  "regional_packs": [
+    {"seam": "JurisdictionOverlayResolver", "per_pack_impl": true, "tested_packs": ["kr@preview", "us@stable", "eu@GA"]},
+    {"seam": "KgDynamicTelemetrySink", "per_pack_impl": false, "rationale": "canonical OTel"},
+    {"seam": "EntitySchemaPack", "per_pack_impl": true, "tested_packs": ["healthcare-fhir@preview", "finance-fix@stable", "supply-chain-edi@GA"]}
+  ],
+  "deps": {
+    "external_adopted": [
+      {"crate": "postgres + jsonb", "tier": "kernel-grade"},
+      {"crate": "apache-kafka", "license": "Apache-2", "ref": "$ref:docs/decisions/ADR-0050 outbox pattern"},
+      {"crate": "cedar", "license": "Apache-2", "ref": "$ref:docs/decisions/ADR-0007"},
+      {"crate": "opentelemetry-collector", "license": "Apache-2"}
+    ],
+    "external_rejected": [
+      {"crate": "neo4j / anzograph / aws-neptune / stardog / terminusdb", "why": "build atop postgres RLS; per-tenant isolation easier; per-tier classification not native in graph DBs"}
+    ]
+  },
+  "metrics": [
+    {"name": "type_lookup_p99_ms", "targets": {"preview": 50, "stable": 10, "GA": 5}, "verification_ref": "cargo bench -p oya-ontology-kernel -- type_lookup_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "entity_read_p99_ms", "targets": {"preview": 100, "stable": 50, "GA": 20}, "verification_ref": "cargo bench -p oya-ontology-domain -- entity_read_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "action_p99_ms", "targets": {"preview": 200, "stable": 100, "GA": 50}, "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "kg_3layer_join_p99_ms", "targets": {"preview": 1000, "stable": 500, "GA": 200}, "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "cross_tenant_link_leak_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "cargo nextest -- test_no_cross_tenant_link", "lane_ref": "cargo-nextest"},
+    {"name": "tier_violation_count", "targets": {"preview": 0, "stable": 0, "GA": 0}, "verification_ref": "oya gate validate ontology-tier-enforcement --window 30d", "lane_ref": "oya-foundry-fitness-ontology-tier-enforcement"},
+    {"name": "dynamic_layer_freshness_lag_seconds", "targets": {"preview": 30, "stable": 5, "GA": 2}, "verification_ref": "cargo nextest -- test_freshness_budget"},
+    {"name": "action_audit_chain_completeness_pct", "targets": {"preview": 100, "stable": 100, "GA": 100}, "verification_ref": "jq cross-check audit-chain vs invocation count", "lane_ref": "oya-foundry-fitness-audit-chain-emission"},
+    {"name": "type_registry_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "lane_ref": "oya-foundry-fitness-canary-observability"}
+  ],
+  "risks": [
+    {"id": "R-01", "severity": "high", "risk": "schema-evolution breaks pinned callers", "mitigation": "schema_version field + per-type evolution policy (analogous to $ref:bominal/decisions/ADR-0149) + back-compat lane"},
+    {"id": "R-02", "severity": "critical", "risk": "cross-tenant link via policy mis-config", "mitigation": "default-deny Cedar + AC-03 + lane oya-foundry-fitness-ontology-tenancy-isolation"},
+    {"id": "R-03", "severity": "critical", "risk": "LLM tool-call escalates autonomy beyond tier", "mitigation_ref": "Cedar autonomy_tier ceiling AC-04 + AC-07 + $ref:specs/agent-durable-goal.json#source_driven_contract"},
+    {"id": "R-04", "severity": "high", "risk": "dynamic-layer staleness silently served", "mitigation": "AC-09 freshness budget enforced; never silent stale"},
+    {"id": "R-05", "severity": "high", "risk": "KG join latency at scale", "mitigation": "AC-06 + 3-layer index strategy + perf-budget lane"}
+  ],
+  "competitive": [
+    {"competitor": "Palantir_Foundry_Ontology", "we_beat_on": ["per-tenant isolation (Palantir is single-tenant per deployment)", "open spec", "LLM-native tool-call via Cedar"], "measurable": "10K tenants per cluster (Palantir: 1)"},
+    {"competitor": "Neo4j", "we_beat_on": ["tier-classified properties", "per-tenant cell isolation", "signed audit-chain per action"], "measurable": "cross-tenant leak = 0"},
+    {"competitor": "AWS_Neptune", "we_beat_on": ["multi-cloud + on-prem (Neptune is AWS-only)", "LLM-friendly typed-action layer"], "measurable": "multi-cell federation; cross-cloud"},
+    {"competitor": "Stardog", "we_beat_on": ["typed-action layer (Stardog focuses on query/reasoning)", "production-grade SLA"], "measurable": "action p99 <50ms (Stardog ~200ms reasoning)"},
+    {"competitor": "AnzoGraph", "we_beat_on": ["typed schema with tier classification", "per-tenant isolation", "signed audit"], "measurable": "1B+ edges per region; per-tenant isolation"},
+    {"competitor": "TerminusDB", "we_beat_on": ["Cedar policy at every action", "production-grade SLA"], "measurable": "tier-violation = 0; action audit completeness 100%"},
+    {"competitor": "Apollo_GraphQL_Federation", "we_beat_on": ["typed-entity model (Apollo is API-stitching)", "audit per action", "jurisdiction overlay"], "measurable": "per-action audit (Apollo: API-tracing only)"}
+  ],
+  "best_practices": [
+    {"id": "BP-01", "rule": "tier classification per property", "ref": "$ref:bominal/decisions/ADR-0133", "enforced_by_lane_ref": "oya-foundry-fitness-ontology-tier-enforcement"},
+    {"id": "BP-02", "rule": "default-deny cross-tenant links; Cedar required to permit", "ref": "AC-03"},
+    {"id": "BP-03", "rule": "type checking at workflow-deploy time, not runtime", "ref": "AC-05"},
+    {"id": "BP-04", "rule": "cryptographically signed audit chain per action (post-$ref:docs/decisions/ADR-0083 cryptographic chain)", "required_at": "GA"},
+    {"id": "BP-05", "rule": "Cedar autonomy_tier ceiling on LLM tool-calls", "ref": "AC-07"},
+    {"id": "BP-06", "rule": "per-tenant Postgres RLS at DB layer", "rationale": "physically impossible cross-tenant query without policy escalation"}
+  ],
+  "patterns": [
+    {"pattern": "schema_versioned_type_registration", "when": "every type change", "ref": "schema_version field + semver bump"},
+    {"pattern": "cross_cell_via_ontology_adapter", "when": "workflow needs entity in another cell", "ref": "$ref:memory/feedback_workflow_objectgraph_adapter_layer"},
+    {"pattern": "jurisdiction_overlay", "when": "per-jurisdiction property extension", "ref": "$ref:bominal/decisions/ADR-0149"},
+    {"pattern": "kinetic_mutation_with_audit_idempotency_lock", "when": "every write goes through kinetic layer", "ref": "$ref:registry/knowledge-graph-kinetic.json"},
+    {"pattern": "dynamic_layer_with_freshness_budget", "when": "live state reads", "ref": "AC-09 + $ref:registry/knowledge-graph-dynamic.json"}
+  ],
+  "anti_patterns": [
+    {"name": "cross_tenant_raw_sql_bypass_rls", "why_forbidden": "tenant-isolation violation", "detection_lane": "oya-foundry-fitness-no-raw-sql-cross-tenant"},
+    {"name": "untyped_entity_creation", "why_forbidden": "defeats type-system value", "detection": "type schema validation refuses"},
+    {"name": "tier_violating_query", "why_forbidden": "data-class violation", "detection_lane": "oya-foundry-fitness-ontology-tier-enforcement"},
+    {"name": "llm_tool_call_without_cedar_check", "why_forbidden": "privilege escalation", "detection_lane": "oya-foundry-fitness-cedar-coverage"},
+    {"name": "direct_cross_cell_db_access", "why_forbidden": "bypasses ontology adapter, breaks federation", "detection": "code review + cargo-deny on DB-driver crate visibility"},
+    {"name": "silent_stale_dynamic_layer_read", "why_forbidden": "hidden inconsistency", "detection_lane": "AC-09 test enforces freshness budget"},
+    {"name": "external_graph_db_dep", "why_forbidden": "cross-tenant isolation harder; we have Postgres RLS", "detection_lane": "cargo-deny denylist"},
+    {"name": "action_without_audit_chain_emission", "why_forbidden": "provenance gap", "detection_lane": "oya-foundry-fitness-audit-chain-emission"}
+  ],
+  "goals": {
+    "scalability": {"target": "10K tenants per cluster + 1B entities per region + 100M actions per day per region", "verification_ref": "bench + canary load-test pre-GA"},
+    "security": {"target": "per-tenant Postgres RLS + Cedar at every action + tier classification on every property + cryptographically-signed audit chain (post-ADR-0083)", "verification_lane_ref": "oya-foundry-fitness-ontology-tenancy-isolation + oya-foundry-fitness-cedar-coverage"},
+    "performance": {"target": "type-lookup p99 <5ms + entity-read p99 <20ms + action p99 <50ms + 3-layer KG join p99 <200ms", "verification_lane_ref": "oya-foundry-fitness-perf-budget"},
+    "efficiency": {"target": "<$0.001 per entity-read + <$0.01 per action + per-tenant overhead <$10/month", "verification_ref": "$ref:crates/oya-cloud-finops-kernel"},
+    "reliability": {"target": "type registry SLO 99.95% + instance store SLO 99.95% + MTTR <60s auto-rollback canary", "verification_lane_ref": "canary-observability-rollback"}
+  },
+  "decision_log": [
+    {"date": "2026-05-16", "decision": "adopt Bominal-ADR-0106/0107/0133 verbatim per OP-10"},
+    {"date": "2026-05-16", "decision": "Ontology and Knowledge Graph are ONE product per user pick (typed schema + 3-layer KG runtime)"},
+    {"date": "2026-05-16", "decision": "crate rename oya-platform-object-graph-kernel → oya-ontology-kernel via ADR-0122 (same PR sequence)"}
+  ],
+  "sources_scanned": [
+    "$ref:bominal/decisions/ADR-0106-object-graph-architecture.md",
+    "$ref:bominal/decisions/ADR-0107-object-graph-agent-gateway.md",
+    "$ref:bominal/decisions/ADR-0133-tier-classified-object-graph.md",
+    "$ref:specs/knowledge-graph-schema.json",
+    "$ref:registry/knowledge-graph-semantic.json",
+    "$ref:registry/knowledge-graph-kinetic.json",
+    "$ref:registry/knowledge-graph-dynamic.json",
+    "$ref:crates/oya-ontology-api",
+    "$ref:crates/oya-ontology-domain",
+    "$ref:memory/feedback_glossary_ontology_not_object_graph",
+    "$ref:memory/feedback_workflow_objectgraph_adapter_layer"
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/handoffs/2026-05-16-session.schema.json",
+  "title": "SessionHandoff-2026-05-16",
+  "_meta": {
+    "doc_class": "Machine-Readable-Handoff",
+    "spec_id": "HANDOFF-2026-05-16-PRD-AUTONOMOUS-FOUNDRY",
+    "version": "1.0.0",
+    "status": "Active",
+    "owner_team": "claude-opus-4-7-session",
+    "created_at": "2026-05-16T13:30:00Z",
+    "purpose": "Smallest-actionable session handoff. Next session reads this FIRST. Encodes locked decisions + concrete pickup commands + priority-ordered open work. Per user directive 'smallest-actionable: clear intent, well placed, no repeated memory dumps/raw logs/stale status unless it changes the next action.'"
+  },
+  "session_outcome": {
+    "summary": "Authored 3 backbone product PRDs (workflow, workflow-studio, ontology+KG-merged) as machine-optimized JSON-with-pointers; ratified ADR-0122 ontology crate rename; emitted KG robustness audit; extended PRD template with 8 new required sections (AC-IDs/verification-commands/competitive/best-practices/patterns/anti-patterns/goals/UX/frontend-components); shipped v1.4.0 of agent-durable-goal.json adding autonomous_foundry (100% autonomy, no human-escalation paths) + review_tiering (T0-T3 deterministic blast_radius_score) + score_cards (LLM-judgment forbidden in pass/fail) + source_driven_contract + doubt_driven_contract + OP-11 (no-stubs/no-defer); fixed PRs-12-18 systematic doc-catalog drift via PR #20 (merged).",
+    "prs_merged_this_session": [{"number": 20, "title": "PRs-12-18 multispectrum-review wave + consolidated drift-sweep fix-PR", "merge_commit": "a632aae8"}],
+    "prs_open_at_handoff": [
+      {"number": 21, "branch": "agent-durable-goal-spec", "title": "agent-durable-goal.json v1.4.0 + comprehensive spec sweep + OP-11", "state_at_handoff": "CI running on latest amend (1a6e4325); 1 codex review thread resolved; awaits user merge"},
+      {"number": 22, "branch": "product-prds-and-kg-polish", "title": "3 backbone PRDs + ADR-0122 ontology rename + KG audit", "state_at_handoff": "Just opened; CI not yet run; depends on PR #21 for clean DOC-CATALOG + root-hub-pointers merge"}
+    ]
+  },
+  "locked_decisions": [
+    {"id": "D-01", "decision": "100% autonomy ceiling — NO human-escalation paths", "ref": "$ref:specs/agent-durable-goal.json#autonomous_foundry.human_escalation_paths_removed"},
+    {"id": "D-02", "decision": "Multi-vendor quorum: 2 distinct vendors for CC-1/CC-2; 1 for CC-3", "ref": "$ref:specs/agent-durable-goal.json#autonomous_foundry.quorum_rules"},
+    {"id": "D-03", "decision": "Lane promotion: drift → candidate → ≥3 prevented incidents → BLOCKER", "ref": "$ref:specs/agent-durable-goal.json#autonomous_foundry.lane_promotion_protocol"},
+    {"id": "D-04", "decision": "Tiered review T0-T3 by deterministic blast_radius_score; supersedes always-20-facet multispectrum", "ref": "$ref:specs/agent-durable-goal.json#review_tiering"},
+    {"id": "D-05", "decision": "Score-cards are deterministic (jq/regex/cargo); LLM judgment FORBIDDEN in pass/fail; LLM only triages WHY a check failed", "ref": "$ref:specs/agent-durable-goal.json#score_cards"},
+    {"id": "D-06", "decision": "Source-driven-development enforced via oya-foundry-fitness-source-citation BLOCKER lane on public API touches", "ref": "$ref:specs/agent-durable-goal.json#source_driven_contract"},
+    {"id": "D-07", "decision": "Doubt-driven-development: fresh_context_required=true for T1+ PRs", "ref": "$ref:specs/agent-durable-goal.json#doubt_driven_contract"},
+    {"id": "D-08", "decision": "OP-11 no-stubs/no-defer/100-production-quality — drift is in-PR scope; FixupTasks valid ONLY for upstream-vendor / out-of-charter / multi-week migrations", "ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-11"},
+    {"id": "D-09", "decision": "Ontology + Knowledge Graph merged into ONE product PRD (user pick 2026-05-16)", "ref": "$ref:specs/products/ontology.json"},
+    {"id": "D-10", "decision": "Workflow + Workflow Studio are TWO products (engine ≠ editor) but bind to SAME canonical workflow_spec.v1.json", "ref": "$ref:specs/products/workflow.json + $ref:specs/products/workflow-studio.json"},
+    {"id": "D-11", "decision": "Workflow Studio target shape: multi-domain visual editor + DSL backbone (both shared engine AND end-user editor)", "ref": "$ref:specs/products/workflow-studio.json#user_pick_2026_05_16"},
+    {"id": "D-12", "decision": "Workflow Studio scaffolded atop Leptos per ADR-0065", "ref": "$ref:docs/decisions/ADR-0122 + $ref:specs/products/workflow-studio.json#deps"},
+    {"id": "D-13", "decision": "Connect-suite + Enterprise-suite framing: one PRD per suite + per-app sub-PRDs (hierarchical)", "user_pick": "2026-05-16", "ref": "F-PRD-CONNECT-SUITE-AUTHOR + F-PRD-ENTERPRISE-SUITE-AUTHOR follow-ups"},
+    {"id": "D-14", "decision": "Crate rename oya-platform-object-graph-kernel → oya-ontology-kernel via ADR-0122 (rename SWEEP is downstream IP separate from this ADR)", "ref": "$ref:docs/decisions/ADR-0122"},
+    {"id": "D-15", "decision": "Canonical PRD form is JSON-with-pointers at specs/products/<id>.json; markdown is projection only", "ref": "user directive 2026-05-16 'machine optimized' + 'use pointers where appropriate'"},
+    {"id": "D-16", "decision": "PRD template v1.5 adds §11f UX + §11g Frontend-Components for user-facing surfaces", "ref": "$ref:docs/products/_TEMPLATE.md"}
+  ],
+  "next_session_pickup_commands": [
+    {"step": 1, "command": "cd /Users/jasonlee/oyatie && git fetch origin dev && git log --oneline origin/dev -5", "purpose": "see current dev tip; confirm PR #21 + #22 merge status"},
+    {"step": 2, "command": "gh pr list --state open --json number,title,headRefName,statusCheckRollup", "purpose": "see what's still open"},
+    {"step": 3, "command": "gh pr view 21 --json mergeStateStatus,mergeable,statusCheckRollup,reviewDecision && gh pr view 22 --json mergeStateStatus,mergeable,statusCheckRollup,reviewDecision", "purpose": "check PR #21 and #22 readiness"},
+    {"step": 4, "command": "cat .omc/handoffs/2026-05-16-session-handoff.json | jq '.priority_followups'", "purpose": "load this handoff's priority queue"}
+  ],
+  "priority_followups": [
+    {"priority": 1, "id": "F-MERGE-PR-21-22", "title": "Merge PR #21 + #22 (the two open PRs from this session) IF clean", "blocker_for": "all subsequent work — these PRs introduce the durable-goal contract + backbone PRDs that downstream work cites", "commands": ["gh pr merge 21 --squash --delete-branch (verify CLEAN + MERGEABLE first)", "gh pr merge 22 --squash --delete-branch"], "estimated_session_time": "10 min", "decision_required": "user confirms merge or requests changes"},
+    {"priority": 2, "id": "F-AUTORESEARCH-HERMES-AGENT", "title": "/autoresearch nousresearch/hermes-agent capabilities", "blocker_for": "autonomous_foundry refinement; user explicitly asked to incorporate Hermes ideas", "commands": ["Use /oh-my-claudecode:autoresearch with mission: 'Identify Hermes Agent patterns adoptable into specs/agent-durable-goal.json#autonomous_foundry. Read github.com/nousresearch/hermes-agent README, source, ADR-equivalents. Output: evidence/autoresearch/hermes-integration-candidates.json with patterns + adopt-or-reject verdict per pattern + amendment plan for autonomous_foundry block.'"], "estimated_session_time": "1-2 hours (autoresearch loop)", "decision_required": "user reviews amendment plan before applying"},
+    {"priority": 3, "id": "F-AUTORESEARCH-WORKFLOW-COMPETITORS", "title": "/autoresearch workflow competitors (n8n + Temporal + Camunda + Argo)", "blocker_for": "specs/products/workflow.json#competitive deepening + patch-gap incorporation", "commands": ["Use /oh-my-claudecode:autoresearch with mission: 'For each competitor in {n8n, Temporal, Camunda, Argo}, identify strengths + where we lack + measurable patch. Output: evidence/autoresearch/workflow-competitive-map.json'"], "estimated_session_time": "1-2 hours"},
+    {"priority": 4, "id": "F-AUTORESEARCH-ONTOLOGY-COMPETITORS", "title": "/autoresearch ontology competitors (Palantir Foundry Ontology + Neo4j + AWS Neptune + Stardog)", "commands": ["Same autoresearch mission template as F-AUTORESEARCH-WORKFLOW-COMPETITORS but for ontology product"], "estimated_session_time": "1-2 hours"},
+    {"priority": 5, "id": "F-SHIPPING-AND-LAUNCH-MATURITY", "title": "Polish autonomous_foundry pipeline + canary + SLO-breach playbooks per agent-skills:shipping-and-launch", "blocker_for": "production readiness of autonomous_foundry — user flagged 'currently lacking maturity and depth'", "approach": "Read /Users/jasonlee/.claude/plugins/cache/addy-agent-skills/agent-skills/1.0.0/skills/shipping-and-launch + canary-observability-rollback ADR-0114 + autonomous_foundry.pipeline.post_deploy_observability. Identify concrete gaps. Amend agent-durable-goal.json with detailed SLO-breach playbooks (per-error-class triage + rollback decision tree + post-incident learn-loop integration).", "estimated_session_time": "2-3 hours"},
+    {"priority": 6, "id": "F-MILESTONE-AUDIT-COMPREHENSIVE", "title": "Comprehensive milestone audit (registry/milestone-audit/index.json — machine-readable per user pick)", "informs": ["F-MCC-DISSOLUTION (PR-A/B/C sequence)", "F-M01-M02-PHASE-ID-COLLISION-FIX", "F-MASTERPLAN-INITIAL-SHIP-ORDER"], "approach": "Walk every milestone × phase × IP. Per phase: current status, doctrine alignment, allocation correctness, honest-done verdict against agent-durable-goal.json#review_tiering thresholds + production-discipline bar. Output: registry/milestone-audit/index.json. Derive PR backlog from findings.", "estimated_session_time": "3-5 hours; auditor agent loop", "constraint": "Per user 2026-05-16 'we are not building MVP'; verdicts must be against production-quality bar"},
+    {"priority": 7, "id": "F-PRD-CONNECT-SUITE-AUTHOR", "title": "Author specs/products/connect/{suite,mail,messenger,calendar}.json", "approach": "Apply PRD template v1.5 (with §11f UX + §11g Frontend-Components since these are user-facing). Inherit from Bominal-ADR-0208 (connect-dual-context-unified-channel-hub) + Bominal-ADR-0215 (connect-retention-legal-hold). Per user pick 'one PRD per suite + per-app sub-PRDs'. Connect = mail + messenger + calendar (minimum); see /Users/jasonlee/bominal/docs/products/connect/ for inheritance.", "estimated_session_time": "3-4 hours"},
+    {"priority": 8, "id": "F-PRD-ENTERPRISE-SUITE-AUTHOR", "title": "Author specs/products/enterprise/{suite,hr,payroll,accounting,...}.json", "approach": "Same template. Per M07-first-tenant phases: HR (P01) + Payroll (P02) + Accounting (P03). Inherit from /Users/jasonlee/bominal/docs/products/corporate/ (hr-payroll-known-limits, corporate.md, etc.). User stated 'every single business related saas bundled' — scope may grow beyond HR/Payroll/Accounting.", "estimated_session_time": "4-6 hours; scope-clarify with user first"},
+    {"priority": 9, "id": "F-CRATE-RENAME-ONTOLOGY-SWEEP", "title": "Execute ADR-0122 ontology crate rename (oya-platform-object-graph-kernel → oya-ontology-kernel) + sweep all use-statements + Cargo.lock regen", "preconditions": "PR #22 must be merged (ADR-0122 must be on dev) before executing sweep", "approach": "git mv crate dir + Cargo.toml workspace.members update + sed sweep of all 'oya_platform_object_graph_kernel' use-statements + Cargo.lock regen via cargo metadata + cargo check + cargo nextest; emit ADR-0122 verification_plan checklist", "estimated_session_time": "1-2 hours"},
+    {"priority": 10, "id": "F-KG-01", "title": "Add ComplianceControl + SatisfiedByLane + EvidencePath edge_types to registry/knowledge-graph-semantic.json", "blocker_for": "compliance_attestation use case (currently 60% coverage per kg-audit/index.json)", "severity": "HIGH per kg-audit/index.json overall_verdict 'mostly robust for governance'", "approach": "Add 3 node/edge types + read-side query 'show_compliance_evidence_freshness'. Test that the chain ComplianceControl → SatisfiedByLane(lane_id) → EvidencePath(jsonl_path) is graph-traversable.", "estimated_session_time": "1 hour"},
+    {"priority": 11, "id": "F-KG-02-to-06", "title": "Remaining KG robustness gaps (5 findings; medium-low severity)", "ref": "$ref:registry/kg-audit/index.json#findings F-KG-02..06", "approach": "Sequence per finding severity; F-KG-02 + F-KG-03 (HIGH) next; F-KG-04/05/06 (medium-low) opportunistic"},
+    {"priority": 12, "id": "F-PRD-V1.5-UX-RETROFIT", "title": "Apply §11f UX + §11g Frontend-Components sections to existing PRDs", "preconditions": "Design-system catalog must exist at /specs/design-system/<component>.json — currently missing", "approach": "First: author /specs/design-system/ component catalog. Then: amend cloud/PRD.md + foundry/PRD.md + workflow.json + workflow-studio.json + ontology.json with §11f + §11g content (where applicable; backend products may have minimal UX scope).", "estimated_session_time": "4-6 hours (design system catalog is the big lift)"},
+    {"priority": 13, "id": "F-PIPELINE-FOUNDRY-HARNESS", "title": "Build pre-PR repeat-mistake checker hook (Step 4 from prior 'agent harness' user thread)", "approach": "Per user 'coming up with harness that helps agents make less mistakes is more important. repeated patterns that resurface needs to be addressed and reduced.' — write a pre-push hook that runs score_cards from agent-durable-goal v1.4 + scans for documented repeat-mistakes in registry/loop-recovery-patterns/. Block push if found. Maps to autonomous_foundry.meta_agent_anomaly_watch.", "estimated_session_time": "3-4 hours"}
+  ],
+  "deferred_questions_to_user": [
+    {"q": "What's the scope of enterprise-suite beyond HR + Payroll + Accounting? Workday/SAP equivalent (full ERP) or narrower?", "blocks": "F-PRD-ENTERPRISE-SUITE-AUTHOR"},
+    {"q": "Design-system catalog — author from scratch or inherit/adapt from /Users/jasonlee/bominal/docs/design-system/?", "blocks": "F-PRD-V1.5-UX-RETROFIT"},
+    {"q": "Crate rename sweep (F-CRATE-RENAME-ONTOLOGY-SWEEP) — execute IMMEDIATELY after PR #22 merges, or queue behind /autoresearch?", "blocks": "ADR-0122 verification_plan completion"}
+  ],
+  "automation_opportunities": [
+    {"opportunity": "PR backlog file maintenance", "current": "manual F-* IDs filed across PR bodies + handoff JSONs", "automate_to": "registry/fixuptasks.jsonl is canonical; agent reads via jq + filters by priority/severity; this handoff JSON points back to it for cross-session continuity"},
+    {"opportunity": "Worktree setup for next session", "current": "manual git fetch + worktree add", "automate_to": "`scripts/session-bootstrap.sh` that reads latest handoff JSON, fetches dev, creates worktree per next-priority IF unblocked"},
+    {"opportunity": "DOC-CATALOG row generation", "current": "hand-edited markdown table per PR", "automate_to": "`oya doc catalog regen` — generates DOC-CATALOG.md from specs/ + docs/ + registry/ inventory; matches the pattern of oya doc adr-index --write"},
+    {"opportunity": "Root-hub-pointers entry generation", "current": "hand-edited JSON additions per new spec", "automate_to": "Same — generate entry_points from specs/* + docs/* + registry/* with pointer rules"},
+    {"opportunity": "Repeat-mistake detection at push time", "current": "manual code review", "automate_to": "F-PIPELINE-FOUNDRY-HARNESS — pre-push hook scans loop-recovery-patterns + blocks known anti-patterns"},
+    {"opportunity": "PRD-template-section-compliance check", "current": "manual review during PR", "automate_to": "Lane `oya-foundry-fitness-prd-template-conformance` validates every PRD against template required sections + AC-IDs with test_id back-link + verification_commands present"},
+    {"opportunity": "FixupTask filing on finding", "current": "agent hand-writes jq-emit line to registry/fixuptasks.jsonl", "automate_to": "`oya fixup file --id <F-id> --title ... --severity ... --source-change-id ...` CLI subcommand"}
+  ],
+  "load_bearing_files_to_read_first": [
+    "$ref:specs/agent-durable-goal.json v1.4.0 — durable contract (READ FIRST)",
+    "$ref:specs/products/workflow.json + $ref:specs/products/workflow-studio.json + $ref:specs/products/ontology.json — backbone PRDs",
+    "$ref:registry/kg-audit/index.json — KG robustness findings",
+    "$ref:docs/decisions/ADR-0122-ontology-crate-rename-from-object-graph.md — pending crate rename sweep",
+    "$ref:specs/root-hub-pointers.json — canonical entry-point registry (every spec has a row)",
+    "$ref:docs/DOC-CATALOG.md — per-doc lifecycle protocol"
+  ],
+  "session_history_pointers": [
+    "git log --oneline a632aae8..HEAD on origin/dev — PRs since 2026-05-16",
+    "evidence/debate/pr-12-* + pr-13-* + pr-15-* + pr-17-* + pr-18-* — multispectrum review evidence from PRs-12-18 wave",
+    "evidence/debate/pr-N-synthesis.json — per-PR synthesis with consensus_reached termination"
+  ],
+  "what_not_to_redo": [
+    "Don't re-author backbone PRDs as markdown — canonical is JSON at specs/products/* per D-15",
+    "Don't replan multispectrum to be 'always full 20 facets' — tiered T0-T3 per D-04 is the decision",
+    "Don't add 'escalate to human' paths — 100% autonomy per D-01; resolve via vendor_disagreement_protocol → conservative_default",
+    "Don't reopen 'should ontology and KG be separate products' — merged per D-09",
+    "Don't reopen 'should review be subagent-per-facet on every PR' — tiered per D-04",
+    "Don't restate doctrine in new PRDs — use $ref pointers per D-15"
+  ]
+}

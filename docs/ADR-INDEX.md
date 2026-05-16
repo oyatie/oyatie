@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 99
-- **Numbering:** ADR-0001..ADR-0121 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089)
-- **Next ADR number:** 0122
-- **Status counts:** Accepted 17, Proposed 5, Superseded 2, accepted 38, deprecated 1, proposed 36
+- **Total ADRs:** 100
+- **Numbering:** ADR-0001..ADR-0122 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089)
+- **Next ADR number:** 0123
+- **Status counts:** Accepted 18, Proposed 5, Superseded 2, accepted 38, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -120,11 +120,12 @@ doc_status: published
 | ADR-0119 | Accepted | Specs flat-root topology | council-architecture | [`ADR-0119-specs-flat-root-topology.md`](decisions/ADR-0119-specs-flat-root-topology.md) |
 | ADR-0120 | accepted | Rust-first on-prem tooling; every install paired with uninstall | axis-foundry + ops-sre | [`ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md`](decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md) |
 | ADR-0121 | accepted | On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy | axis-cloud + axis-foundry | [`ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`](decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md) |
+| ADR-0122 | Accepted | Ontology crate rename — retire "object-graph" naming | council-architecture | [`ADR-0122-ontology-crate-rename-from-object-graph.md`](decisions/ADR-0122-ontology-crate-rename-from-object-graph.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0122), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0123), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -142,6 +143,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 99 ADR files (sorted ascending)
+- `decisions/` directory listing — 100 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
