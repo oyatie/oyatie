@@ -17,31 +17,55 @@ variable "access_allowed_emails" {
   default     = []
 }
 
+variable "access_auth_domain" {
+  description = "Cloudflare Zero Trust team subdomain (`<auth_domain>.cloudflareaccess.com`). Account-wide. Renaming invalidates active Access sessions."
+  type        = string
+  default     = "oyatie"
+}
+
+# ---- Zero Trust org / team domain (account-wide) ----
+# Auth domain controls `<auth_domain>.cloudflareaccess.com`. Renaming
+# (e.g., bominal -> oyatie) is account-wide and invalidates existing
+# session cookies. Per user directive 2026-05-16.
+# The org is auto-created by Cloudflare when the first Access app is
+# provisioned via the dashboard. Import before apply:
+#   tofu import cloudflare_access_organization.this <account_id>
+resource "cloudflare_access_organization" "this" {
+  account_id                         = var.cloudflare_account_id
+  name                               = "Oyatie"
+  auth_domain                        = var.access_auth_domain
+  is_ui_read_only                    = false
+  session_duration                   = "24h"
+  user_seat_expiration_inactive_time = "720h" // 30d
+  auto_redirect_to_identity          = false
+  allow_authenticate_via_warp        = false
+}
+
 # ---- Application: kms.oyatie.com (OpenBao UI + API) ----
 # Type=self_hosted so Access challenges all paths under this hostname.
 resource "cloudflare_zero_trust_access_application" "kms" {
-  account_id                = var.cloudflare_account_id
-  name                      = "oyatie-kms"
-  domain                    = "kms.${var.cloudflare_domain}"
-  type                      = "self_hosted"
-  session_duration          = "24h"
-  auto_redirect_to_identity = true
+  account_id                 = var.cloudflare_account_id
+  name                       = "oyatie-kms"
+  domain                     = "kms.${var.cloudflare_domain}"
+  type                       = "self_hosted"
+  session_duration           = "24h"
+  auto_redirect_to_identity  = true
   http_only_cookie_attribute = true
   same_site_cookie_attribute = "lax"
-  app_launcher_visible      = false
+  app_launcher_visible       = false
 }
 
 # ---- Application: foundry.oyatie.com (Foundry control plane API) ----
 resource "cloudflare_zero_trust_access_application" "foundry" {
-  account_id                = var.cloudflare_account_id
-  name                      = "oyatie-foundry"
-  domain                    = "foundry.${var.cloudflare_domain}"
-  type                      = "self_hosted"
-  session_duration          = "24h"
-  auto_redirect_to_identity = true
+  account_id                 = var.cloudflare_account_id
+  name                       = "oyatie-foundry"
+  domain                     = "foundry.${var.cloudflare_domain}"
+  type                       = "self_hosted"
+  session_duration           = "24h"
+  auto_redirect_to_identity  = true
   http_only_cookie_attribute = true
   same_site_cookie_attribute = "lax"
-  app_launcher_visible      = false
+  app_launcher_visible       = false
 }
 
 # ---- Application: api.oyatie.com (public REST API gateway) ----
@@ -74,15 +98,15 @@ resource "cloudflare_zero_trust_access_policy" "api_allow" {
 
 # ---- Application: ops.oyatie.com (ops portal) ----
 resource "cloudflare_zero_trust_access_application" "ops" {
-  account_id                = var.cloudflare_account_id
-  name                      = "oyatie-ops"
-  domain                    = "ops.${var.cloudflare_domain}"
-  type                      = "self_hosted"
-  session_duration          = "24h"
-  auto_redirect_to_identity = true
+  account_id                 = var.cloudflare_account_id
+  name                       = "oyatie-ops"
+  domain                     = "ops.${var.cloudflare_domain}"
+  type                       = "self_hosted"
+  session_duration           = "24h"
+  auto_redirect_to_identity  = true
   http_only_cookie_attribute = true
   same_site_cookie_attribute = "lax"
-  app_launcher_visible      = false
+  app_launcher_visible       = false
 }
 
 # ---- Allow policy: only the configured emails ----
