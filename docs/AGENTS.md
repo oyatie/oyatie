@@ -177,7 +177,7 @@ required_sequence:
   - oya vcs done --agent <id> --changeset <id>
   - oya vcs promote --changeset <id>
 scaffold_protocol:
-  mechanism: per-agent git worktree + admission-gate concurrent-safe-paths
+  mechanism: per-agent isolated worktree plus admission-gate concurrent-safe-paths
   adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
 retirement_note: legacy grit/icm/rtk/vox are retired per ADR-0116; omx/omc/oya-tooling-agent-read remain compatibility/provenance-only during the cutover window. Oya VCS ChangeBundle -> Promotion -> ReleaseTrain is the forward closure authority.
 <!-- agent-instructions:end -->
