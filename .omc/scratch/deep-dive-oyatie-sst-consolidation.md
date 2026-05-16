@@ -69,7 +69,7 @@ oyatie/
   crates/                          # kernel ← domain ← app ← {api, worker, adapter} ← runtime
   docs/                            # canonical product authority (CONSTITUTION, PRD, DESIGN, SPEC, ADRs)
   contracts/                       # per-cross-axis contract files (OpenAPI/Proto/AsyncAPI)
-  registry/, product-control/      # catalog + capability records
+  registry/      # catalog + capability records
   scripts/                         # build/lint/release helpers (humans + sanctioned CI)
   tools/oya-agent-read/            # NEW: sanctioned read-only helper CLI
   .grit/                           # grit local state (already exists)

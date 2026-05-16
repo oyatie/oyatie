@@ -1,0 +1,63 @@
+{
+  "change_id": "capability-template-registry-cleanup-1778915963",
+  "change_class_id": "CC-4",
+  "git_sha": "70b836312949",
+  "freshness_unix": 1778915963,
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Kept the move mechanical: git mv preserved the three capability/eval artifacts and no new abstraction was introduced."
+      ]
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Registry control-plane topology now owns capability templates; artifact-capabilities rows make each moved artifact discoverable."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "passing_fixture_id": "registry/capability-templates/cap.demo.readiness.yaml",
+      "diagnostic_asserted": "foundry-capability-schema and foundry-eval gates pass on the new default directory."
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "new_contributor_minutes_estimate": 5,
+      "findings": [
+        "CLI usage text and documentation references point at registry/capability-templates."
+      ]
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "JSON registry parses; moved artifact rows resolve to HEAD-tracked files; targeted cargo tests passed."
+      ]
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "alternatives_named": [
+        "keep the retired capability directory",
+        "move to registry/capability-templates",
+        "add a new ADR for the path move"
+      ],
+      "selected_rationale": "Use registry/capability-templates because A #4 explicitly scopes the topology move and existing ADR-0116 already covers Foundry-pipeline VCS/tooling cutover.",
+      "rejected_reasons": [
+        "Keeping the retired capability directory leaves the cleanup incomplete.",
+        "A new ADR would duplicate topology rationale already represented by the task and registry rows."
+      ]
+    },
+    "F7_security": {
+      "considered": true,
+      "owasp_class_review": "none_applicable",
+      "severity_max": "none",
+      "secrets_touched": false,
+      "tenant_data_touched": false,
+      "audit_chain_emission_required": false,
+      "findings": [
+        "No runtime secret, tenant data, auth, or network behavior changed."
+      ]
+    }
+  }
+}

@@ -1,4 +1,4 @@
-# Latest signed bootstrap eval run for cap.demo.readiness.
+# Latest signed bootstrap eval-run template for cap.demo.readiness.
 capability_id: cap.demo.readiness
 eval_set_version: eval-v1
 pass_rate_percent: 95
