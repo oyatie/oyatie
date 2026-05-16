@@ -36,7 +36,7 @@ purpose: Wire `.github/workflows/pr-review.yml` to dispatch the multispectrum su
 ## Acceptance
 
 - A test PR opened against `main` triggers `pr-review.yml` within 30s; the workflow completes and posts a single rollup Check Run.
-- APPROVE outcome emits a verifiable `pr-review-approved` event in `registries/cross-cutting/merge-queue-admission-log.json`.
+- APPROVE outcome emits a verifiable `pr-review-approved` event in `registry/merge-queue-admission-log.json`.
 - REJECT outcome blocks merge (gated via `.github/branch-protection.yaml` required-check `oya-pr-review`).
 - Per-facet subagent findings are stored at `/evidence/pipeline-maturity-glue/ip-004-pr-review/<pr-number>/<facet-id>.json`.
 - Evidence rollup at `/evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json`.
@@ -49,7 +49,7 @@ purpose: Wire `.github/workflows/pr-review.yml` to dispatch the multispectrum su
 - `tools/oya-pr-review-dispatcher/src/fanout.rs::fan_out_facets`
 - `tools/oya-pr-review-dispatcher/src/rollup.rs::rollup_verdict`
 - `.github/branch-protection.yaml::required_status_checks` (add `oya-pr-review`)
-- `registries/cross-cutting/merge-queue-admission-log.json::*` (new)
+- `registry/merge-queue-admission-log.json::*` (new)
 
 ## Exit evidence
 

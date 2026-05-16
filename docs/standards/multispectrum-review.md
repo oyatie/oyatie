@@ -19,7 +19,7 @@ related_specs:
   - /specs/cross-cutting/oyatie-doctrine.json (canonical P0..P9 principles)
   - /specs/cross-cutting/iterative-fix-loop.json (loop state machine)
   - /templates/checklists/pre-pr-multispectrum.json (evidence template)
-  - /registries/cross-cutting/fixuptasks.jsonl (FixupTask registry)
+  - /registry/fixuptasks.jsonl (FixupTask registry)
   - /evidence/audit-chain.jsonl (audit-chain stream)
 related_adrs:
   - ADR-0054 (grit protocol)
@@ -54,7 +54,7 @@ A multi-facet review bar applied to every changeset. The lane `oya-check-depende
 | Facets (F1..F13, `M1`/`M2`) + change_classes + evidence_schema + scorecard + consensus_debate | `/specs/cross-cutting/multispectrum-review.json` |
 | Loop state machine | `/specs/cross-cutting/iterative-fix-loop.json` |
 | Pre-PR template | `/templates/checklists/pre-pr-multispectrum.json` |
-| FixupTask registry | `/registries/cross-cutting/fixuptasks.jsonl` |
+| FixupTask registry | `/registry/fixuptasks.jsonl` |
 | Audit-chain stream | `/evidence/audit-chain.jsonl` |
 | Per-PR evidence files | `/evidence/multispectrum/<change_id>-<unix_ts>.json` |
 | 12-layer enum + BNF | `docs/decisions/ADR-0056` |

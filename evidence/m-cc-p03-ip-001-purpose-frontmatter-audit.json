@@ -125,7 +125,7 @@
     "omc_json": [
       "/evidence/audits/implementation-plan-changeset-audit-2026-05-14.json",
       "/evidence/audits/masterplan-json-implementation-audit-2026-05-14.json",
-      "/registries/cross-cutting/claim-matrix/ops-portal.json",
+      "/registry/claim-matrix/ops-portal.json",
       "/evidence/active-artifact-contract-lane-run-2026-05-13.json",
       "/evidence/active-artifact-contract-lane-run-2026-05-14.json",
       "/evidence/active-artifact-contract-lane-run.json",

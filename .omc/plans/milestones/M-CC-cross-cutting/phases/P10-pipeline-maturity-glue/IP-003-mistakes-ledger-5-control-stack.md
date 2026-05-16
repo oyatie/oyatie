@@ -33,7 +33,7 @@ Memory directive `feedback_repeat_mistake_prevention.md` mandates 5 permanent co
 - `tools/oya-foundry-fitness-mistakes-ledger-app` exists as the binary surface.
 - ICM hook: a small `tools/oya-icm-mistakes-ledger-hook` watches for PR-close events and posts a ledger-row template if the PR had ≥2 CI cycles.
 - Citation-probe: extends an existing citation lane to require `mistakes-ledger:<row-id>` citation on any commit that fixes a repeat-class failure.
-- All 5 controls are registered in `registries/cross-cutting/fitness-lane-registry.json` and visible from `oya gate run-all`.
+- All 5 controls are registered in `registry/fitness-lane-registry.json` and visible from `oya gate run-all`.
 - Backfill: today's 3 cascading CI-infrastructure regressions get retroactive ledger rows (commit SHA + class + control bindings).
 - Evidence at `/evidence/pipeline-maturity-glue/ip-003-mistakes-ledger.json`.
 
@@ -44,8 +44,8 @@ Memory directive `feedback_repeat_mistake_prevention.md` mandates 5 permanent co
 - `crates/oya-foundry-fitness-mistakes-ledger-kernel/src/lib.rs::evaluate`
 - `tools/oya-foundry-fitness-mistakes-ledger-app/src/main.rs::main`
 - `tools/oya-icm-mistakes-ledger-hook/src/main.rs::main`
-- `registries/cross-cutting/fitness-lane-registry.json::mistakes-ledger`
-- `registries/cross-cutting/mistakes-ledger.json::*` (new — the actual ledger data store)
+- `registry/fitness-lane-registry.json::mistakes-ledger`
+- `registry/mistakes-ledger.json::*` (new — the actual ledger data store)
 
 ## Exit evidence
 

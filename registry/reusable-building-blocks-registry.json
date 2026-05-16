@@ -26,12 +26,12 @@
   },
   "_self_row": {
     "artifact_id": "reusable-building-blocks-registry",
-    "artifact_path": "/registries/cross-cutting/reusable-building-blocks-registry.json",
+    "artifact_path": "/registry/reusable-building-blocks-registry.json",
     "artifact_format": "json",
     "contract_version": "v3.0.0",
     "owner_team": "council-architecture + axis-foundry",
     "purpose_short": "Single DRY registry for reusable building blocks across crates/specs/lanes/templates.",
-    "capabilities_ref": "/registries/cross-cutting/artifact-capabilities-registry.json#rows[artifact_id=reusable-building-blocks-registry] (TO BE ADDED by next selfupdate)"
+    "capabilities_ref": "/registry/artifact-capabilities-registry.json#rows[artifact_id=reusable-building-blocks-registry] (TO BE ADDED by next selfupdate)"
   },
   "block_kinds": {
     "rust-crate-kernel": "Sealed kernel crate exporting port traits (kernel layer per ADR-0015). Reusable by name across BCs.",
@@ -61,9 +61,9 @@
       "replacement_block_id": null,
       "owner_team": "council-architecture + axis-foundry",
       "consumer_refs": [
-        "/registries/cross-cutting/artifact-capabilities-registry.json",
+        "/registry/artifact-capabilities-registry.json",
         "/evidence/ledger/ops-portal-ledger.json (forward consumer when v3.0.0 _capabilities_ref adopted)",
-        "/registries/cross-cutting/claim-matrix/ops-portal.json (forward consumer)",
+        "/registry/claim-matrix/ops-portal.json (forward consumer)",
         "/evidence/ops-portal-plan-suite-accepted-2026-05-13.json (forward consumer)"
       ],
       "consumer_selectors": [],
@@ -101,7 +101,7 @@
       "replacement_block_id": null,
       "owner_team": "council-architecture + ops-sre-reliability + ops-security",
       "consumer_refs": [
-        "/registries/cross-cutting/claim-matrix/ops-portal.json"
+        "/registry/claim-matrix/ops-portal.json"
       ],
       "consumer_selectors": [
         "future per-product claim-matrices (foundry, connect, application, cloud, etc.)"
@@ -238,7 +238,7 @@
       "deprecation": "Interim \u2014 to be replaced by Oyatie-native agentic VCS per autonomous-prompt directive",
       "replacement_block_id": "oyatie-native-agentic-vcs (NOT YET AUTHORED)",
       "owner_team": "axis-foundry + council-architecture",
-      "drift_finding": "Commit 5880ce0 used rtk-git directly violating this protocol. Logged in /registries/cross-cutting/claim-matrix/ops-portal.json HG-GRIT row.",
+      "drift_finding": "Commit 5880ce0 used rtk-git directly violating this protocol. Logged in /registry/claim-matrix/ops-portal.json HG-GRIT row.",
       "consumer_refs": [],
       "consumer_selectors": [
         "every future agent commit (HG-GRIT operational requirement)",

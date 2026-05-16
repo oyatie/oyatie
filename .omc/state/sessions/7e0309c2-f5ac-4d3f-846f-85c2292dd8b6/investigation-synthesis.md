@@ -71,7 +71,7 @@ Per `ralplan-ops-portal-2026-05-13.md` §3 (Option α — RECOMMENDED) + compani
 - 4 CI lane binaries (zero; the 3 check kernels I shipped don't overlap lean-a5/a6/a7/a8)
 - pgroonga + pgvector adapters (zero)
 - 4 Cedar policy fragments at M02-P20 (declared in registry only; not authored)
-- M02-P19 IP-X1 `[workspace.metadata.oya.microservices]` registration for `ops` parent µservice + `ops.docs` BC (partial in `/registries/cross-cutting/microservices.json`; not in workspace metadata)
+- M02-P19 IP-X1 `[workspace.metadata.oya.microservices]` registration for `ops` parent µservice + `ops.docs` BC (partial in `/registry/microservices.json`; not in workspace metadata)
 
 ### BLOCKED
 - Parallel-session WIP: `Cargo.toml [workspace.members]` declares 440 entries; only 148 exist on disk. **292 missing crate dirs block any new code compile** (workspace metadata resolution fails).

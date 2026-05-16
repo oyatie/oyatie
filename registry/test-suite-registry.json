@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://docs.oyatie.dev/registries/test-suite-registry.json",
+  "$id": "https://docs.oyatie.dev/registry/test-suite-registry.json",
   "title": "TestSuiteRegistry",
   "description": "Registry-driven test commands by language/surface. Consumed by M-CC-P00 GitOps VCS admission to enforce unit/integration/e2e standards.",
   "_meta": {

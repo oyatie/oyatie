@@ -19,7 +19,7 @@ name: oya-foundry-fitness-pr-review
 #   - posts a single Check Run named `oya-pr-review` (matches the
 #     branch-protection required-check binding);
 #   - on APPROVE → emits `pr-review-approved` into
-#     `registries/cross-cutting/merge-queue-admission-log.json`
+#     `registry/merge-queue-admission-log.json`
 #     (consumed by IP-006 merge-queue);
 #   - on CHANGES_REQUESTED / REJECT → emits `pr-review-fix-requested`
 #     (consumed by IP-005 fix-loop).
@@ -111,7 +111,7 @@ jobs:
           path: |
             evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json
             evidence/pipeline-maturity-glue/ip-004-pr-review/${{ steps.pr.outputs.pr_number }}/
-            registries/cross-cutting/merge-queue-admission-log.json
+            registry/merge-queue-admission-log.json
           if-no-files-found: warn
 
       - name: Post rollup as Check Run conclusion

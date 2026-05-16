@@ -20,7 +20,7 @@
       "/specs/cross-cutting/gitops-vcs-replacement.json",
       "https://github.com/rtk-ai/grit",
       "/specs/cross-cutting/test-standard.json",
-      "/registries/cross-cutting/test-suite-registry.json",
+      "/registry/test-suite-registry.json",
       ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md"
     ],
     "icm_scaffold_lock_id": "01KRJM0QGGKVCMVS2FFVAHZBYS",
@@ -59,7 +59,7 @@
       },
       "rules": [
         "Public APIs expose Oyatie wrapper/newtype surfaces only; hyper/tokio/bytes/http-body types stay out of kernel/runtime public signatures except adapter-owned boundaries.",
-        "Every tracked dependency has an owner, allowed layer/crate regex, replacement target, trigger, CVE acceleration trigger, status, and ADR citation in /registries/cross-cutting/tech-debt-ledger.json.",
+        "Every tracked dependency has an owner, allowed layer/crate regex, replacement target, trigger, CVE acceleration trigger, status, and ADR citation in /registry/tech-debt-ledger.json.",
         "Phase-out is trigger-based: ontology stability, p99 budget history, replacement parity, CVE state, and dependent-wave status drive transitions.",
         "Do not remove hyper/tokio/serde/etc. from workspace dependencies in this phase; ship products first, phase out after Ontology v1 stable or CVE acceleration."
       ],
@@ -425,7 +425,7 @@
     "test_standard_enforcement": {
       "source_spec": "/specs/cross-cutting/gitops-vcs-replacement.json#test_standard_enforcement",
       "machine_readable_standard_ref": "/specs/cross-cutting/test-standard.json",
-      "test_suite_registry_ref": "/registries/cross-cutting/test-suite-registry.json",
+      "test_suite_registry_ref": "/registry/test-suite-registry.json",
       "required": true
     },
     "ast_support": {

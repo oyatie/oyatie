@@ -186,7 +186,7 @@
         "M2"
       ],
       "headline": "ADR-0069 active-artifact-contract 9-capability declaration MISSING: v5 ships 3 templates + 1 CI lane + 1 verifier + 2 crates without rows in artifact-capabilities-registry.json, reusable-building-blocks-registry.json, or knowledge-graph-dynamic.json \u2014 ADR-0069 was Accepted 2026-05-13, two days before this delta",
-      "evidence": "M2 verified file paths exist in registries/cross-cutting/ and v5 \u00a7B.7 grit units omit registration. Parallel-spec-instead-of-extending-existing anti-pattern given ADR-0069 was just locked.",
+      "evidence": "M2 verified file paths exist in registry/ and v5 \u00a7B.7 grit units omit registration. Parallel-spec-instead-of-extending-existing anti-pattern given ADR-0069 was just locked.",
       "remediation_fixuptasks": [
         "F-ADR-0069-ARTIFACT-CAPABILITIES-REGISTER-1",
         "F-REUSABLE-BUILDING-BLOCKS-REGISTER-1",
@@ -429,13 +429,13 @@
     "blocking_actions_before_first_grit_claim": [
       "Apply 12 BLOCKER fixuptasks listed in fixuptask_summary.blocker_fixuptasks",
       "Rename `oya-foundry-settings-template-adapter-fs` \u2192 `oya-foundry-settings-template-adapter` (BNF v4.1 conformance \u2014 F-SETTINGS-ADAPTER-RENAME-BNF-CONFORMANT-1)",
-      "Register 3 templates + 2 crates + 1 lane in registries/cross-cutting/artifact-capabilities-registry.json (ADR-0069 conformance \u2014 F-ADR-0069-ARTIFACT-CAPABILITIES-REGISTER-1)",
-      "Register SettingsTemplate + SettingsRenderer + HookEvent + McpServerRef in registries/cross-cutting/reusable-building-blocks-registry.json (F-REUSABLE-BUILDING-BLOCKS-REGISTER-1)",
-      "Add 4 knowledge-graph edges to registries/cross-cutting/knowledge-graph-dynamic.json (F-KNOWLEDGE-GRAPH-EDGES-DECLARE-1)",
+      "Register 3 templates + 2 crates + 1 lane in registry/artifact-capabilities-registry.json (ADR-0069 conformance \u2014 F-ADR-0069-ARTIFACT-CAPABILITIES-REGISTER-1)",
+      "Register SettingsTemplate + SettingsRenderer + HookEvent + McpServerRef in registry/reusable-building-blocks-registry.json (F-REUSABLE-BUILDING-BLOCKS-REGISTER-1)",
+      "Add 4 knowledge-graph edges to registry/knowledge-graph-dynamic.json (F-KNOWLEDGE-GRAPH-EDGES-DECLARE-1)",
       "Document v5 N-threshold for drift lane activation (F-V5-N-THRESHOLD-DOCUMENT-1)",
       "Add Siigari/claude-heartbeat build-vs-adopt ADR (F-CLAUDE-HEARTBEAT-BUILD-VS-ADOPT-ADR-1)"
     ],
-    "non_blocking_followup_fixuptasks": "46 remaining HIGH/MEDIUM/LOW fixuptasks ship as bounded follow-up work; tracked in registries/cross-cutting/fixuptasks.jsonl (see fixuptask_summary)",
+    "non_blocking_followup_fixuptasks": "46 remaining HIGH/MEDIUM/LOW fixuptasks ship as bounded follow-up work; tracked in registry/fixuptasks.jsonl (see fixuptask_summary)",
     "rationale": "v4 architectural shape (driver-not-kernel, fresh-subprocess-statelessness, value-only-tickets, Branch-Y zero-deps) is sound and 12/13 lenses concur. v5 architectural shape (canonical-base + per-provider renderer + composition into existing AccountSnapshotProvider) is also sound and addresses the user-quoted multi-account consistency requirement. The 12 BLOCKER fixuptasks are remediations of execution-detail gaps (audit-chain conformance, observability declarations, unwrap-in-library-code, settings drift handling) that do NOT require re-architecture. M1's principled REJECT on v5 is honored via the 3 fixuptasks that document N-threshold + build-vs-adopt + v5a/v5b split BEFORE the v5 scaffold begins."
   },
   "termination_reason": "consensus_reached",
@@ -457,7 +457,7 @@
     "synthesis_path": "evidence/debate/M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-synthesis.json"
   },
   "next_actions": [
-    "1. File 58 unique fixuptasks to registries/cross-cutting/fixuptasks.jsonl with severity + facet-origin tags",
+    "1. File 58 unique fixuptasks to registry/fixuptasks.jsonl with severity + facet-origin tags",
     "2. Apply 12 BLOCKER fixuptasks via planner v6 amendment to v4 + v5 plans (each BLOCKER maps to a \u00a7-anchored plan diff)",
     "3. Apply 5 ADR-0069 + naming + N-threshold + build-vs-adopt fixuptasks via planner v6 amendment before first grit claim",
     "4. Emit `consensus_debate_complete` audit-chain row to evidence/audit-chain.jsonl",

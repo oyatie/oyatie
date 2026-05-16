@@ -757,7 +757,7 @@
         "docs/standards/crate-naming-convention.md",
         "ADR-0056"
       ],
-      "triggers_when": "any new file added to /specs/, /registries/, /evidence/, /templates/, docs/decisions/, crates/, tools/ OR any rename touching these paths",
+      "triggers_when": "any new file added to /specs/, /registry/, /evidence/, /templates/, docs/decisions/, crates/, tools/ OR any rename touching these paths",
       "trigger_questions": [
         "Does the filename follow kebab-case (ASCII lowercase + digit + hyphen + dot)?",
         "If the artifact is versioned, does the filename carry -vMAJOR.MINOR.PATCH suffix?",
@@ -825,9 +825,9 @@
       ],
       "triggers_when": "any new file or directory added; any move/rename touching first-class durable homes",
       "trigger_questions": [
-        "Is the file placed in its canonical durable home (/specs/, /registries/, /evidence/, /templates/, docs/decisions/, docs/standards/)?",
+        "Is the file placed in its canonical durable home (/specs/, /registry/, /evidence/, /templates/, docs/decisions/, docs/standards/)?",
         "Does any new durable land in .omc/ (forbidden post-2026-05-14 migration)?",
-        "Does the placement match the artifact's <kind> per BNF (registries \u2192 /registries/, evidence \u2192 /evidence/, etc.)?",
+        "Does the placement match the artifact's <kind> per BNF (registry \u2192 /registry/, evidence \u2192 /evidence/, etc.)?",
         "Is the <scope> token correct (cross-cutting vs registered-microservice-name)?"
       ],
       "anti_patterns": [
@@ -889,11 +889,11 @@
       "external_authorities_cited": [
         "ADR-0092",
         "docs/standards/dependency-policy.md",
-        "/registries/cross-cutting/dependency-rationales.json"
+        "/registry/dependency-rationales.json"
       ],
       "triggers_when": "any change to Cargo.toml workspace.dependencies; any new direct dep; any version bump",
       "trigger_questions": [
-        "Does every new direct dep have a registry row in /registries/cross-cutting/dependency-rationales.json with rationale + owner + layer_seam + replacement_strategy?",
+        "Does every new direct dep have a registry row in /registry/dependency-rationales.json with rationale + owner + layer_seam + replacement_strategy?",
         "Does cargo-deny check pass (license posture: no AGPL/GPL/SSPL/BUSL/RSAL in product code)?",
         "Is the dep pinned to its LTS major.minor per the LTS roster?",
         "Is the dep's isolated_in_crate respected (no seam violations per ADR-0092)?",

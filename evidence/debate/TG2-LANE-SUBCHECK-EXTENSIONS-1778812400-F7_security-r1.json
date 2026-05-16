@@ -47,7 +47,7 @@
     },
     {
       "severity": "low",
-      "summary": "read_dir follows symlinks; a symlink committed under scripts/, specs/cross-cutting/, registries/cross-cutting/, evidence/multispectrum/, evidence/per-change/, or evidence/debate/ would redirect the scan to arbitrary repo paths (or outside the repo). Blast radius is bounded to counter-skewing today because content is never executed, but combined with the substring-bypass finding this becomes an amplification vector.",
+      "summary": "read_dir follows symlinks; a symlink committed under scripts/, specs/cross-cutting/, registry/, evidence/multispectrum/, evidence/per-change/, or evidence/debate/ would redirect the scan to arbitrary repo paths (or outside the repo). Blast radius is bounded to counter-skewing today because content is never executed, but combined with the substring-bypass finding this becomes an amplification vector.",
       "recommended_action": "Use entry.file_type()? and skip is_symlink() entries, or canonicalize and re-check that the path remains under ctx.workspace_root before reading. Add a sub-check finding that enumerates any skipped symlinks so they are auditable rather than silently ignored."
     },
     {
