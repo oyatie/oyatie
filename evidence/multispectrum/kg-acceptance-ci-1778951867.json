@@ -1,0 +1,65 @@
+{
+  "change_id": "kg-acceptance-ci-1778951867",
+  "change_class_id": "CC-5_governance_registry",
+  "freshness_unix": 1778951867,
+  "session_id": "codex-kg-acceptance-ci-2026-05-16",
+  "scope": [
+    "registry/knowledge-graph-semantic.json",
+    "registry/kg-audit/index.json",
+    "crates/oya-dev-cli/tests/knowledge_graph_semantic.rs",
+    "evidence/audit-chain.jsonl"
+  ],
+  "summary": "Close F-KG-05 by declaring AcceptanceCriterion/Test/CILaneRun nodes, covered_by_test/executed_by_ci_lane edges, I18 invariant, and trace_acceptance_test_ci_chain query for deterministic acceptance-to-test-to-CI traceability.",
+  "verification": [
+    {
+      "command": "json parse + jq counts",
+      "status": "passed",
+      "evidence": "34 nodes, 25 edges, 18 invariants, 10 queries; development_traceability 90%, F-KG-05 resolved"
+    },
+    {
+      "command": "cargo fmt --all --check",
+      "status": "passed",
+      "evidence": "formatted"
+    },
+    {
+      "command": "cargo test -p oya-dev-cli --test knowledge_graph_semantic",
+      "status": "passed",
+      "evidence": "6 tests passed including acceptance_criterion_test_ci_lane_chain_is_graph_traversable"
+    },
+    {
+      "command": "cargo clippy -p oya-dev-cli --test knowledge_graph_semantic -- -D warnings",
+      "status": "passed",
+      "evidence": "targeted clippy passed"
+    },
+    {
+      "command": "oya gate validate active-artifact-contract",
+      "status": "passed",
+      "evidence": "53 rows, 3539 HEAD-tracked, 53 graph edges"
+    },
+    {
+      "command": "oya gate validate retired-vocabulary",
+      "status": "passed",
+      "evidence": "1203 documents checked, 0 drift hits"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed",
+      "evidence": "no whitespace errors"
+    }
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Adds exact traceability chain instead of broad new tooling."
+      ]
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "passing_fixture_id": "knowledge_graph_semantic::acceptance_criterion_test_ci_lane_chain_is_graph_traversable"
+    }
+  },
+  "remaining_risks": [
+    "F-KG-06 remains for ChangeSet/PR/audit-row provenance."
+  ]
+}
