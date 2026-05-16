@@ -1,3 +1,19 @@
+<!--
+DEPRECATION NOTICE (added 2026-05-16 by PRs-12-18 multispectrum review):
+This file is in .omc/scratch/, which is for in-progress notes. The
+canonical spec was lifted to docs/specs/deep-dive-oyatie-sst-consolidation.md
+at the end of 2026-05-12. This scratch copy was retained but diverged
+(~115 lines added / ~121 removed / ~42 modified per pr-15-A2-r1.json).
+Per [[feedback_milestone_phase_hierarchy]] + P9 no-sprawl, scratch
+lifecycle is complete when canonical lifts. Filed as
+F-SST-TRIPLICATE-DEDUP-CONTENT-MERGE in registries/cross-cutting/
+fixuptasks.jsonl to merge unique content back to docs/specs/ and
+delete this copy.
+
+Until that closes: this file is read-only; canonical lives at
+docs/specs/deep-dive-oyatie-sst-consolidation.md.
+-->
+
 # Deep-Dive Spec: oyatie Single Source of Truth + grit/icm agentic pipeline
 
 Captured 2026-05-12. Output of `/deep-dive` Phase 4 crystallization. Feeds `/ralplan --consensus --direct` then `/autopilot` or `/team` under the grit `claim → work → done` lifecycle.

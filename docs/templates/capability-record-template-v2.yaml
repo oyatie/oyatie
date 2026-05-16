@@ -1,3 +1,15 @@
+# ====================================================================
+# RECONCILE-WITH-SIBLINGS (added 2026-05-16 by PRs-12-18 multispectrum review):
+# Three capability-record-template files exist with overlapping content +
+# conflicting status fields:
+#   - templates/capability-record-template.yaml      [root, Status: pending approval]
+#   - docs/templates/capability-record-template-v2.yaml  [THIS FILE, Status: Accepted]
+#   - docs/templates/capability-record-template.yaml     [DEPRECATED v1]
+# Canonical home is ambiguous. Filed as F-CAPABILITY-V1V2-CANONICAL-CLARIFY
+# in registries/cross-cutting/fixuptasks.jsonl. Until resolved, treat this
+# file (Accepted, breaking-schema v2 with metadata.* nesting) as the
+# functional canonical for NEW capability records.
+# ====================================================================
 # yaml-language-server: $schema=../../registry/quality/capability-record.schema.json
 # ---
 # Canonical Foundry capability record. Lives under registry/capability-templates/<id>.yaml.

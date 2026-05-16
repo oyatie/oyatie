@@ -1,3 +1,13 @@
+# ====================================================================
+# DEPRECATION NOTICE (added 2026-05-16 by PRs-12-18 multispectrum review):
+# This is the LEGACY v1 capability-record template (flat-field shape).
+# The canonical v2 lifted form lives at templates/capability-record-template.yaml
+# (root, Status: Accepted, metadata.* nested, T1-T4 autonomy enum, data-class
+# allowlist, audit-chain topic, Cosign signing slot). This file is retained
+# read-only pending consumer migration. New consumers MUST use root canonical.
+# Filed as F-CAPABILITY-V1-OLD-RETIRE in registries/cross-cutting/fixuptasks.jsonl.
+# ====================================================================
+#
 # Capability record template — copy to registry/capability-templates/<id>.yaml
 # Validates against schema at registry/quality/capability-record.schema.json
 # CI gate: capability-schema-validator (must pass before publish)
