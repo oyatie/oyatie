@@ -151,11 +151,94 @@ fn is_success(exit: &ExitCode) -> bool {
     format!("{exit:?}") == format!("{:?}", ExitCode::SUCCESS)
 }
 
+/// Path prefixes that are agent-harness sidecars — they get written
+/// mid-run by hooks/tooling and are never the intended scope of a
+/// PR. The submit-time clean-check IGNORES these so the harness
+/// noise doesn't trip the gate. If a real edit lands under one of
+/// these prefixes, the user can override by committing it
+/// explicitly.
+///
+/// History: surfaced 2026-05-16 when the dogfood `oya submit` of
+/// PR #4 was rejected by the clean-check because the .omc/state/
+/// hud-stdin-cache.json kept being rewritten by hook activity
+/// during the cargo-run of submit itself.
+const HARNESS_SIDECAR_PREFIXES: &[&str] = &[".omc/", ".omx/", ".grit/", "target/"];
+
 fn git_working_tree_is_clean() -> bool {
     let output = Command::new("git").args(["status", "--porcelain"]).output();
-    match output {
-        Ok(output) => output.status.success() && output.stdout.is_empty(),
-        Err(_) => false,
+    let output = match output {
+        Ok(output) => output,
+        Err(_) => return false,
+    };
+    if !output.status.success() {
+        return false;
+    }
+    let stdout = match std::str::from_utf8(&output.stdout) {
+        Ok(text) => text,
+        Err(_) => return false,
+    };
+    for line in stdout.lines() {
+        if line.is_empty() {
+            continue;
+        }
+        // Porcelain format: `XY <path>` (or `XY <old> -> <new>` for
+        // renames). Strip the 3-char status prefix to get the path.
+        let path = match line.get(3..) {
+            Some(rest) => rest,
+            None => return false,
+        };
+        let path = path.split(" -> ").next().unwrap_or(path).trim();
+        if HARNESS_SIDECAR_PREFIXES
+            .iter()
+            .any(|prefix| path.starts_with(prefix))
+        {
+            continue;
+        }
+        // Non-sidecar, non-empty entry → tree is dirty.
+        return false;
+    }
+    true
+}
+
+#[cfg(test)]
+mod working_tree_tests {
+    // Pure-Rust tests for the path-filter logic don't need a real
+    // git repo. We exercise the same parsing against synthetic
+    // porcelain output.
+
+    fn is_sidecar(path: &str) -> bool {
+        super::HARNESS_SIDECAR_PREFIXES
+            .iter()
+            .any(|prefix| path.starts_with(prefix))
+    }
+
+    #[test]
+    fn omc_state_files_are_sidecars() {
+        assert!(is_sidecar(".omc/state/mission-state.json"));
+        assert!(is_sidecar(".omc/sessions/123.json"));
+    }
+
+    #[test]
+    fn omx_and_grit_and_target_are_sidecars() {
+        assert!(is_sidecar(".omx/notepad.md"));
+        assert!(is_sidecar(".grit/worktrees/something/Cargo.toml"));
+        assert!(is_sidecar("target/debug/build.lock"));
+    }
+
+    #[test]
+    fn real_source_paths_are_not_sidecars() {
+        assert!(!is_sidecar("crates/oya-dev-cli/src/commands/submit.rs"));
+        assert!(!is_sidecar("docs/decisions/ADR-0110.md"));
+        assert!(!is_sidecar(".github/workflows/pr-tests.yml"));
+    }
+
+    #[test]
+    fn similarly_named_non_prefix_paths_are_not_sidecars() {
+        // `.omc-archived/...` is NOT under `.omc/` so it should
+        // still count as real (avoid accidental over-broad
+        // matching).
+        assert!(!is_sidecar(".omc-archived/old.json"));
+        assert!(!is_sidecar("docs/.omc-notes.md"));
     }
 }
 

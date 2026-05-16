@@ -1,0 +1,68 @@
+name: oya-foundry-fitness-changeset-state
+
+# Asserts the two ADR-0110 wave-A invariants over
+# `registry/vcs/changeset-event-log.json`:
+#
+# - oya-foundry-fitness-changeset-state-monotonicity:
+#   every row's `to_state` ordinal is non-decreasing on the advancing
+#   chain; dedup_keys unique; at most one terminal state.
+#
+# - oya-foundry-fitness-changeset-state-enum-closed:
+#   every `to_state` (and `from_state`, when present) is in the
+#   closed 13-value `ChangesetState` enum.
+#
+# Job-key MUST equal the `name:` field (protection-context-match
+# invariant — see .github/workflows/oya-foundry-fitness-protection-context-match.yml).
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: changeset-state-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  oya-foundry-fitness-changeset-state-monotonicity:
+    name: oya-foundry-fitness-changeset-state-monotonicity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: pr-tests
+      - name: oya gate validate changeset-state-monotonicity
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: cargo run -q -p oya-dev-cli -- gate validate changeset-state-monotonicity
+
+  oya-foundry-fitness-changeset-state-enum-closed:
+    name: oya-foundry-fitness-changeset-state-enum-closed
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: pr-tests
+      - name: oya gate validate changeset-state-enum-closed
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: cargo run -q -p oya-dev-cli -- gate validate changeset-state-enum-closed
