@@ -9,7 +9,7 @@ related: []
 purpose: Document the small hygiene PR that gitignores accidentally tracked session-scoped audit artifacts (.audit/) and consolidates the single-file deploy/gitops/oya-vcs-admission policy under the established infra/kyverno/ admission-policy root. The tracked .config/nextest.toml stays because CI requires [profile.ci].
 ---
 
-# ADR-0117 — Repo hygiene: gitignore .audit/, consolidate kyverno admission
+# ADR-0117: Repo hygiene: gitignore .audit/, consolidate kyverno admission
 
 ## Context
 

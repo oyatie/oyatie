@@ -12,7 +12,7 @@ related:
 purpose: Define the `oya vcs done` orchestrator that drives a changeset through the full agentic pipeline (PR-open → CI → review → merge → promote) and the agentic subscription contract for callers.
 ---
 
-# ADR-0113 — VCS orchestrator (`oya vcs done`) end-to-end
+# ADR-0113: VCS orchestrator (`oya vcs done`) end-to-end
 
 ## Context
 

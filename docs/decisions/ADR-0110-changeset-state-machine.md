@@ -12,7 +12,7 @@ related:
 purpose: Define the canonical changeset state machine and event log shape that the dev > staging > production pipeline orchestrates against.
 ---
 
-# ADR-0110 — Changeset state machine
+# ADR-0110: Changeset state machine
 
 ## Context
 

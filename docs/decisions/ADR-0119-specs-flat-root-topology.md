@@ -11,7 +11,7 @@ related:
 purpose: Retire the former nested spec scope directory by hoisting its machine-readable specifications to the flat `specs/` root, preserving history through git moves and aligning spec topology with the Foundry pipeline contribution substrate.
 ---
 
-# ADR-0119 — Specs flat-root topology
+# ADR-0119: Specs flat-root topology
 
 ## Context
 

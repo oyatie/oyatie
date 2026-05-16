@@ -4,9 +4,9 @@ status: deprecated
 doc_status: published
 ---
 
-> **Superseded by ADR-0116 (2026-05-16)** — external agent-coordination tooling (grit, rtk, icm, vox) is retired; the Foundry pipeline (M-CC-P11) is the canonical workflow. See `docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md`.
-
 # ADR-0054: Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback)
+
+> **Superseded by ADR-0116 (2026-05-16)** — external agent-coordination tooling (grit, rtk, icm, vox) is retired; the Foundry pipeline (M-CC-P11) is the canonical workflow. See `docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md`.
 
 > **Status:** Deprecated 2026-05-16
 > **Supersedes:** -
