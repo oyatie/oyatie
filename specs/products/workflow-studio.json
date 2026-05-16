@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/workflow-studio.schema.json",
+  "title": "ProductPrd:WorkflowStudio",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-WORKFLOW-STUDIO",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-design-system + workflow-team",
+    "created_at": "2026-05-16T13:05:00Z",
+    "purpose": "Workflow Studio (visual editor + DSL backbone) PRD — machine-optimized. Pair with $ref:specs/products/workflow.json (engine half)."
+  },
+  "identity": {
+    "product_id": "workflow-studio",
+    "owning_axis": "ecosystem-infrastructure-backbone",
+    "paired_with": "$ref:specs/products/workflow.json (engine half — together they form n8n-class first hero product)",
+    "crate_refs_planned": ["oya-saas-workflow-studio-kernel", "oya-saas-workflow-studio-domain", "oya-saas-workflow-studio-app", "oya-saas-workflow-studio-api"],
+    "scaffolding_status": "PLANNED — crates to be authored in downstream IP"
+  },
+  "inherits": {
+    "bominal_adrs": ["$ref:bominal/decisions/ADR-0164"],
+    "oyatie_specs": ["$ref:specs/agent-durable-goal.json", "$ref:docs/decisions/ADR-0065 (Leptos for browser UI)"],
+    "memory_pointers": ["feedback_workflow_studio_scope"]
+  },
+  "north_star_ref": "$ref:memory/feedback_workflow_studio_scope (n8n-class first hero; multi-domain visual editor + DSL backbone; both shared engine substrate AND end-user editor)",
+  "user_pick_2026_05_16": "Multi-domain visual editor + DSL backbone — both shared engine AND end-user editor in one product",
+  "target_users": [
+    {"persona": "business_power_user", "interface": "drag-drop canvas + preview + replay + jurisdiction overlay UI", "billing": "per-seat enterprise"},
+    {"persona": "developer", "interface": "DSL view (canonical JSON) + diff/PR review + git-backed", "billing": "per-seat developer (cheaper)"},
+    {"persona": "vertical_specialist", "interface": "per-pack node library + visual jurisdiction diff", "billing": "vertical-pack subscription"},
+    {"persona": "agentic_developer_role", "interface": "programmatic spec emission + LLM-friendly node descriptors + engine round-trip", "billing": "internal Foundry"},
+    {"persona": "external_customer", "interface": "self-serve authoring", "billing": "per-active-definition (post-GA)"}
+  ],
+  "acceptance_criteria": [
+    {"id": "AC-01", "given": "visually-built workflow", "when": "save action", "then": "editor emits canonical $ref:contracts/workflow_spec.v1.json", "test_ref": "crates/oya-saas-workflow-studio-domain/tests/spec_emit.rs::test_visual_round_trip"},
+    {"id": "AC-02", "given": "workflow_spec.v1.json document", "when": "loaded into editor", "then": "renders semantically identical visual; round-trip emit byte-equal to input", "test_ref": "crates/oya-saas-workflow-studio-domain/tests/spec_load.rs::test_load_emit_byte_equal"},
+    {"id": "AC-03", "given": "editor open with pending changes", "when": "network disconnect", "then": "local edit buffer persists; resume without loss on reconnect", "test_ref": "crates/oya-saas-workflow-studio-app/tests/durability.rs::test_offline_buffer"},
+    {"id": "AC-04", "given": "workflow with jurisdiction overlays", "when": "switch jurisdiction in editor", "then": "overlay-resolved view renders; base view also reachable", "test_ref": "crates/oya-saas-workflow-studio-domain/tests/overlay.rs::test_jurisdiction_view_switch"},
+    {"id": "AC-05", "given": "LLM-authored spec via API", "when": "validated against schema", "then": "valid: opens in editor; invalid: precise per-line error", "test_ref": "crates/oya-saas-workflow-studio-api/tests/llm_submission.rs::test_validation_error_precision", "doctrine_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract"},
+    {"id": "AC-06", "given": "two users editing same definition", "when": "concurrent saves", "then": "CRDT-merge OR explicit conflict UI; never silent loss", "test_ref": "crates/oya-saas-workflow-studio-domain/tests/collab.rs::test_no_silent_overwrite"},
+    {"id": "AC-07", "given": "editor in kr jurisdiction", "when": "author touches PII field", "then": "visual data_class marker + Cedar policy preview before save", "test_ref": "crates/oya-saas-workflow-studio-domain/tests/data_class.rs::test_pii_marker_visible"},
+    {"id": "AC-08", "given": "per-seat license check", "when": "editor opens", "then": "Cedar policy gate enforces seat; audit row emitted", "test_ref": "crates/oya-saas-workflow-studio-app/tests/licensing.rs::test_per_seat_cedar"}
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": ["visual canvas (nodes + edges)", "load/save canonical spec", "basic node library (HTTP, transform, branch, join, capability-call)", "jurisdiction-overlay view-switch"],
+      "stable": ["live debugger (step + state inspect)", "per-seat licensing", "collaborative edit (CRDT)", "diff/PR UI for git-backed definitions"],
+      "GA": ["multi-domain node libraries (6 domains)", "LLM-assist authoring (draft from prose)", "definition marketplace", "visual-diff over jurisdiction overlays"]
+    },
+    "out_of_scope": [
+      {"item": "engine execution in editor", "why": "editor sends to engine; preserves audit-chain integrity"},
+      {"item": "BPMN paradigm", "why": "$ref:specs/products/workflow.json anti-patterns"},
+      {"item": "embedded editor in tenant iframe", "why": "security boundary; editor at canonical URL only"},
+      {"item": "per-tenant branding pre-GA", "why": "post-GA marketplace concern"}
+    ]
+  },
+  "contracts": {
+    "produces": [
+      {"name": "workflow_spec.v1.json", "ref": "$ref:contracts/workflow_spec.v1.json", "bidirectional_with": "$ref:specs/products/workflow.json"},
+      {"name": "editor_event.v1.json", "ref": "$ref:contracts/editor_event.v1.json (live debug stream)", "consumers": ["workflow engine"]}
+    ],
+    "consumes": [
+      {"name": "ontology_type_descriptor.v1.json", "ref": "$ref:contracts/ontology_type_descriptor.v1.json", "producer": "$ref:specs/products/ontology.json"},
+      {"name": "capability_descriptor.v1.json", "ref": "$ref:contracts/capability_descriptor.v1.json", "producer": "Foundry capability registry"}
+    ]
+  },
+  "data_model": {
+    "entities_ref": "$ref:crates/oya-saas-workflow-studio-kernel (planned: EditorSession with local_buffer_blake3 + crdt_state; NodeLibrary keyed by closed-enum DomainTag {Agentic,Dev,Business,Healthcare,SupplyChain,Delivery})",
+    "persistence": {"editor_session": "per-tenant cell + Redis ephemeral", "definitions": "git-backed via $ref:specs/products/workflow.json store"},
+    "events_emitted": ["editor_session_opened", "definition_saved", "spec_round_trip_validated", "collab_merge_applied", "collab_conflict_surfaced", "license_gate_emitted"]
+  },
+  "optimization_practices": [
+    {"practice": "CDN edge cache for spec schema + node library", "rationale": "TTI < 2s GA"},
+    {"practice": "per-tenant cell pinning for editor sessions"},
+    {"practice": "cursor pagination over definition list"},
+    {"practice": "CRDT auto-merge for concurrent edits", "rationale": "never silent loss"}
+  ],
+  "regional_packs": [
+    {"seam": "NodeLibraryByDomain", "per_pack_impl": true, "tested_packs": ["Agentic", "Dev", "Business", "Healthcare", "SupplyChain", "Delivery"]},
+    {"seam": "JurisdictionViewResolver", "per_pack_impl": true, "tested_packs": ["kr@preview", "us@stable", "eu@GA"]}
+  ],
+  "deps": {
+    "external_adopted": [
+      {"crate": "leptos", "tier": "mature", "license": "MIT", "rationale": "$ref:docs/decisions/ADR-0065 Rust-WASM SSR"},
+      {"crate": "yrs (yjs port) OR loro", "tier": "mature", "license": "Apache-2/MIT", "rationale": "CRDT for collab"}
+    ],
+    "decision_pending": [
+      {"crate": "reactflow/xyflow (JS canvas) vs leptos-native Rust-WASM canvas", "status": "evaluate; JS for preview, Rust-WASM for stable+"}
+    ],
+    "external_rejected": [
+      {"crate": "retool/appsmith", "why": "low-code framework deps; we build atop Leptos primitives"}
+    ]
+  },
+  "metrics": [
+    {"name": "editor_tti_cold_p99_seconds", "targets": {"preview": 5, "stable": 3, "GA": 2}, "verification_ref": "synthetic Lighthouse-style budget via cargo nextest", "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "save_round_trip_p99_ms", "targets": {"preview": 500, "stable": 200, "GA": 100}, "verification_ref": "cargo nextest -p oya-saas-workflow-studio-domain -- test_save_p99", "lane_ref": "oya-foundry-fitness-perf-budget"},
+    {"name": "round_trip_byte_equality_rate_pct", "targets": {"preview": 99, "stable": 99.9, "GA": 100}, "verification_ref": "cargo nextest -- test_load_emit_byte_equal over corpus 100 specs", "lane_ref": "oya-foundry-fitness-workflow-spec-roundtrip"},
+    {"name": "editor_availability_slo_pct", "targets": {"preview": 99.5, "stable": 99.9, "GA": 99.95}, "verification_ref": "oya gate validate workflow-studio-availability --window 30d", "lane_ref": "oya-foundry-fitness-canary-observability"}
+  ],
+  "risks": [
+    {"id": "R-01", "severity": "high", "risk": "spec drift between editor and engine", "mitigation": "round-trip contract test on every PR via oya-foundry-fitness-workflow-spec-roundtrip lane (AC-02)"},
+    {"id": "R-02", "severity": "critical", "risk": "CRDT bugs cause silent edit loss", "mitigation": "AC-06 explicit conflict UI when CRDT cannot auto-merge"},
+    {"id": "R-03", "severity": "high", "risk": "LLM-authored spec injection at AC-05", "mitigation_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract + strict schema validation BEFORE editor render"},
+    {"id": "R-04", "severity": "medium", "risk": "browser perf ≠ server bench", "mitigation": "AC-01/AC-02/AC-03/AC-06 exercised with synthetic browser harness"}
+  ],
+  "competitive": [
+    {"competitor": "n8n", "we_beat_on": ["per-tenant isolation", "signed audit per step", "jurisdiction overlay UI", "Cedar policy preview"], "measurable": "editor availability 99.95% vs n8n cloud 99.9%; cross-tenant leak = 0"},
+    {"competitor": "Zapier", "we_beat_on": ["production-grade durability + per-step audit + SLA + per-tenant isolation + LLM-friendly DSL"], "measurable": "<100ms p99 save (Zapier ~300ms)"},
+    {"competitor": "Make.com", "we_beat_on": ["multi-domain (Make is integration-focused) + production observability per step"], "measurable": "6 domain libraries (Make: 1); GA TTI <2s (Make ~3.5s)"},
+    {"competitor": "Camunda Modeler", "we_beat_on": ["not BPMN + 10x faster save + LLM-friendly authoring"], "measurable": "<100ms save (Camunda ~1s)"},
+    {"competitor": "Retool", "we_beat_on": ["workflow first-class (Retool is app-first) + per-tenant audit + jurisdiction overlay"], "measurable": "n/a — different product class"}
+  ],
+  "best_practices": [
+    {"id": "BP-01", "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec", "enforced_by_lane_ref": "oya-foundry-fitness-workflow-spec-roundtrip"},
+    {"id": "BP-02", "rule": "canonical spec is source of truth; visual derives from spec", "ref": "$ref:bominal/decisions/ADR-0164"},
+    {"id": "BP-03", "rule": "local buffer with BLAKE3 hash; tamper-evident", "ref": "AC-03"},
+    {"id": "BP-04", "rule": "Cedar policy preview before save", "ref": "AC-07"},
+    {"id": "BP-05", "rule": "per-seat licensing via Cedar at edit time", "ref": "AC-08"},
+    {"id": "BP-06", "rule": "CRDT for collab; never last-writer-wins", "ref": "AC-06"}
+  ],
+  "patterns": [
+    {"pattern": "spec_first_authoring", "default": true, "ref": "$ref:bominal/decisions/ADR-0164"},
+    {"pattern": "llm_draft_human_review", "when": "LLM emits candidate → editor opens for review → human approves", "ref": "AC-05"},
+    {"pattern": "jurisdiction_view_switch", "ref": "AC-04"},
+    {"pattern": "visual_diff_over_jurisdictions", "wave_available": "GA"}
+  ],
+  "anti_patterns": [
+    {"name": "visual_model_above_spec_model", "why_forbidden": "reverses source-of-truth", "detection_lane": "oya-foundry-fitness-workflow-spec-roundtrip"},
+    {"name": "silent_merge_on_concurrent_edit", "why_forbidden": "data loss", "detection_lane": "test_no_silent_overwrite (AC-06)"},
+    {"name": "bypass_cedar_policy_preview", "why_forbidden": "author surprised by policy impact post-deploy", "detection_lane": "oya-foundry-fitness-cedar-preview-required"},
+    {"name": "embedded_execution_in_editor", "why_forbidden": "breaks audit-chain integrity", "detection_lane": "oya-foundry-fitness-editor-execution-forbidden"},
+    {"name": "per_tenant_branding_mid_render", "why_forbidden": "XSS surface + breaks CDN cache", "detection_lane": "code review"},
+    {"name": "non_deterministic_node_library_load", "why_forbidden": "confuses LLM authoring", "detection_lane": "oya-foundry-fitness-node-library-determinism (3x re-load assertion)"}
+  ],
+  "goals": {
+    "scalability": {"target": "100K active editor sessions per region + 10M definitions per cluster", "verification_ref": "bench + canary load-test"},
+    "security": {"target": "XSS-free + strict CSP + per-tenant CDN cache key + Cedar at every save + no LLM-content trust", "verification_lane_ref": "OWASP audit + oya-foundry-fitness-security-headers"},
+    "performance": {"target": "TTI <2s p99 cold + save <100ms p99 + round-trip 100% byte-equality", "verification_lane_ref": "oya-foundry-fitness-perf-budget + cargo-nextest"},
+    "efficiency": {"target": "<$5 per-seat per-month at GA; CDN-cached static assets", "verification_ref": "$ref:crates/oya-cloud-finops-kernel"},
+    "reliability": {"target": "99.95% availability + MTTR <60s (auto-rollback canary)", "verification_lane_ref": "canary-observability-rollback"}
+  },
+  "decision_log": [
+    {"date": "2026-05-16", "decision": "adopt Bominal-ADR-0164 canonical spec format verbatim"},
+    {"date": "2026-05-16", "decision": "scaffold atop Leptos per ADR-0065"},
+    {"date": "2026-05-16", "decision": "Workflow Studio is SEPARATE PRD from workflow but binds to same spec"}
+  ],
+  "sources_scanned": [
+    "$ref:bominal/decisions/ADR-0164-workflow-canonical-spec-format.md",
+    "$ref:docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
+    "$ref:specs/products/workflow.json",
+    "$ref:memory/feedback_workflow_studio_scope"
+  ]
+}

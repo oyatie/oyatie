@@ -127,6 +127,34 @@
       "migration_phase": "complete",
       "purpose": "JSON Schema for ralplan consensus plans. Markdown plans are projections (being retired)."
     },
+    "prd_workflow": {
+      "kind": "prd",
+      "current_path": "/specs/products/workflow.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Workflow product PRD — engine half of the ecosystem-backbone pair with prd_ontology. State-machine + DAG hybrid orchestration substrate per Bominal-ADR-0148. Canonical JSON spec via contracts/workflow_spec.v1.json."
+    },
+    "prd_workflow_studio": {
+      "kind": "prd",
+      "current_path": "/specs/products/workflow-studio.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Workflow Studio product PRD — visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec."
+    },
+    "prd_ontology": {
+      "kind": "prd",
+      "current_path": "/specs/products/ontology.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Ontology + Knowledge Graph merged product PRD. Typed-entity schema layer (Bominal-ADR-0106) + 3-layer KG runtime (semantic/kinetic/dynamic). Ontology+Workflow jointly form ecosystem-as-a-product backbone."
+    },
+    "audit_kg_robustness": {
+      "kind": "audit",
+      "current_path": "/registry/kg-audit/index.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Read-only robustness audit of the 3-layer KG against dev + governance use cases. Findings filed as F-KG-01..06 in registry/fixuptasks.jsonl. Refreshed quarterly OR after any knowledge-graph schema change."
+    },
     "artifact_profile_defaults": {
       "kind": "spec",
       "current_path": "/specs/artifact-profile-defaults.json",
