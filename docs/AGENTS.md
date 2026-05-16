@@ -161,26 +161,25 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
 ## Sanctioned primitives
 
-Agent-callable coordination and state-transition primitives are a closed set: Oya VCS claim / verify / done / promote plus the `oya-vcs-admission` CI lane. Oya VCS owns claims, ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock release. ADR-0053/ADR-0054 remain historical compatibility records for scaffold-lock fallback paths that cannot yet be claimed as indexed symbols.
+Agent-callable coordination and state-transition primitives are a closed set: Oya VCS claim / verify / done / promote plus the `oya-vcs-admission` CI lane, all delivered through the Foundry pipeline (M-CC-P11). Oya VCS owns claims, ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock release. ADR-0052/ADR-0053/ADR-0054 are historical records only; the external coordination tools they sanctioned (grit, icm, rtk, vox) are retired per ADR-0116 (2026-05-16).
 
-The legacy primitives (`grit`, `icm`, `rtk`, `vox`, `omx`, `omc`, and `oya-tooling-agent-read`) are compatibility/provenance surfaces only while the Oya VCS command adapters finish landing. They do not satisfy forward closure authority; Oya VCS admission is the blocking gate for new Foundry agentic work.
+External agent-coordination tooling (grit, rtk, icm, vox) is retired per ADR-0116. New crate scaffolds use plain `git mv` inside a per-agent `git worktree`; concurrent-file coordination happens at admission-gate time via `registry/vcs/concurrent-safe-paths.yaml` (ADR-0111 conflict-avoidance pre-admit gate). No external coordination tool participates in the prescribed surface.
 
-The fenced block below is the machine-readable agent surface for the banned-primitives lane. Human-facing terminal examples may live outside fences; fenced instructions use only the sanctioned primitive names.
+The fenced block below is the machine-readable agent surface. Human-facing terminal examples may live outside fences.
 
 <!-- agent-instructions:start -->
 sanctioned_primitives:
   - oya-vcs
   - oya-vcs-admission
-  - legacy-grit-compat
 required_sequence:
   - oya vcs claim --agent <id> --intent "<slice>" <file::Identifier>
   - oya vcs verify --agent <id> --changeset <id>
   - oya vcs done --agent <id> --changeset <id>
   - oya vcs promote --changeset <id>
-scaffold_fallback:
-  topic: scaffold-locks-oyatie
-  adr: docs/decisions/ADR-0054-grit-scaffold-claim-pattern.md
-compatibility_note: legacy grit/icm/rtk/vox/omx/omc/oya-tooling-agent-read are read/provenance/fallback-only during cutover; Oya VCS ChangeBundle -> Promotion -> ReleaseTrain is the forward closure authority.
+scaffold_protocol:
+  mechanism: per-agent git worktree + admission-gate concurrent-safe-paths
+  adr: docs/decisions/ADR-0116-retire-external-agent-coordination-tooling.md
+retirement_note: legacy grit/icm/rtk/vox are retired per ADR-0116; omx/omc/oya-tooling-agent-read remain compatibility/provenance-only during the cutover window. Oya VCS ChangeBundle -> Promotion -> ReleaseTrain is the forward closure authority.
 <!-- agent-instructions:end -->
 
 ## PR shape
