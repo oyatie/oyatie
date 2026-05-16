@@ -14,7 +14,7 @@ doc_status: published
 - **Total ADRs:** 99
 - **Numbering:** ADR-0001..ADR-0121 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089)
 - **Next ADR number:** 0122
-- **Status counts:** Accepted 18, Proposed 5, Superseded 1, accepted 38, deprecated 1, proposed 36
+- **Status counts:** Accepted 17, Proposed 5, Superseded 2, accepted 38, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -70,7 +70,7 @@ doc_status: published
 | ADR-0049 | proposed | Cross-region replication + residency — per-pack default residency class, opt-in cross-region per consent, immutable post-create | council-architecture | [`ADR-0049-cross-region-replication-and-residency.md`](decisions/ADR-0049-cross-region-replication-and-residency.md) |
 | ADR-0050 | proposed | Automation-first pipeline — Google + Amazon doctrine, sccache + remote execution, affected-graph testing, Foundry-driven PR triage | foundry | [`ADR-0050-automation-first-pipeline.md`](decisions/ADR-0050-automation-first-pipeline.md) |
 | ADR-0051 | accepted | Mobile and Native Client Strategy | axis-workspace (productivity native apps) + axis-saas (tenant-builder native apps) + council-architecture | [`ADR-0051-mobile-and-native-client-strategy.md`](decisions/ADR-0051-mobile-and-native-client-strategy.md) |
-| ADR-0052 | Accepted | Canonical Inventory Ledger for the grit/icm Cutover | council-architecture, foundry | [`ADR-0052-inventory-grit-cutover.md`](decisions/ADR-0052-inventory-grit-cutover.md) |
+| ADR-0052 | Superseded | Canonical Inventory Ledger for the grit/icm Cutover | council-architecture, foundry | [`ADR-0052-inventory-grit-cutover.md`](decisions/ADR-0052-inventory-grit-cutover.md) |
 | ADR-0053 | Accepted | grit + icm + oya-tooling-agent-read as sole sanctioned primitives for agentic work | council-architecture, foundry | [`ADR-0053-grit-icm-as-sanctioned-primitives.md`](decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md) |
 | ADR-0054 | deprecated | Resolve new-crate chicken-and-egg via grit scaffold-claim pattern (icm-coordination-lock fallback) | council-architecture + foundry | [`ADR-0054-grit-scaffold-claim-pattern.md`](decisions/ADR-0054-grit-scaffold-claim-pattern.md) |
 | ADR-0055 | accepted | Object Graph renamed to Ontology | council-architecture | [`ADR-0055-object-graph-renamed-to-ontology.md`](decisions/ADR-0055-object-graph-renamed-to-ontology.md) |

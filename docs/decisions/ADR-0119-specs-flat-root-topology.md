@@ -1,4 +1,5 @@
 ---
+id: ADR-0119
 status: Accepted
 deciders: council-architecture, council-foundry-vcs
 date: 2026-05-16
@@ -8,6 +9,7 @@ superseded_by: []
 related:
   - ADR-0115-registry-consolidation-flat-singular.md
   - ADR-0116-retire-external-agent-coordination-tooling.md
+  - ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md
 purpose: Retire the former nested spec scope directory by hoisting its machine-readable specifications to the flat `specs/` root, preserving history through git moves and aligning spec topology with the Foundry pipeline contribution substrate.
 ---
 

@@ -11,9 +11,9 @@
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089"],
     "next_adr": "ADR-0122",
     "status_counts": {
-      "Accepted": 18,
+      "Accepted": 17,
       "Proposed": 5,
-      "Superseded": 1,
+      "Superseded": 2,
       "accepted": 38,
       "deprecated": 1,
       "proposed": 36
@@ -612,12 +612,12 @@
       "adr": "ADR-0052",
       "number": 52,
       "title": "Canonical Inventory Ledger for the grit/icm Cutover",
-      "status": "Accepted",
+      "status": "Superseded",
       "owner": "council-architecture, foundry",
       "date": "2026-05-12",
       "path": "decisions/ADR-0052-inventory-grit-cutover.md",
       "supersedes": ["— **Superseded-by:** —"],
-      "superseded_by": [],
+      "superseded_by": ["ADR-0118"],
       "related": ["ADR-0053", "ADR-0054"]
     },
     {
@@ -1158,7 +1158,7 @@
       "path": "decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": []
+      "related": ["ADR-0039", "ADR-0041", "ADR-0052", "ADR-0115"]
     },
     {
       "adr": "ADR-0118",
@@ -1182,7 +1182,7 @@
       "path": "decisions/ADR-0119-specs-flat-root-topology.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0115", "ADR-0116"]
+      "related": ["ADR-0115", "ADR-0116", "ADR-0121"]
     },
     {
       "adr": "ADR-0120",

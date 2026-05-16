@@ -1,14 +1,14 @@
 ---
 id: ADR-0052
 title: "Canonical inventory ledger for the grit/icm cutover"
-status: Accepted
+status: Superseded
 doc_status: published
 date: 2026-05-12
 owners:
   - council-architecture
   - foundry
 supersedes: []
-superseded_by: []
+superseded_by: [ADR-0118]
 doc_class: DecisionRecord
 purpose: |
   Canonical inventory ledger for the grit/icm cutover; classifies every file/dir/script under oyatie/ and bominal/agents/ + bominal/docs/ scope by closed-set action (KEEP/KEEP+ANNOTATE/REPLACE-WITH-GRIT/REPLACE-WITH-ICM/REPLACE-WITH-HELPER/ARCHIVE/DELETE/FLAG-FOR-USER).
