@@ -1,0 +1,167 @@
+{
+  "change_id": "claude-durable-goal-master-plan-completion-wiring-1778974862",
+  "change_class_id": "CC-5_doc_only",
+  "change_class_rationale": "CC-5 doc_only: wires an existing gate (master_plan_completion_audit.rs already in AGGREGATED_VALIDATE_LANES line 92) to CI by adding (a) one new .github/workflows/ YAML file, (b) one row in registry/quality/lanes.yaml, (c) one row in docs/standards/ci-lanes.md mirror, (d) two FixupTask rows for follow-up scope. No Rust code, no public API, no kernel, no schema/contract touched.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778974862,
+  "git_sha_base": "40663c4a",
+  "branch": "agent/durable-goal-status-honesty",
+  "session_id": "claude-durable-goal-master-plan-completion-2026-05-16",
+  "agent_id": "claude-durable-goal-master-plan-completion",
+  "task": "Wire NEXT-004 status-honesty hard gate (master-plan-completion) as per-PR CI lane. Gate logic was already implemented at crates/oya-dev-cli/src/commands/gate/master_plan_completion_audit.rs and registered in crates/oya-foundry-gate-catalog-domain::AGGREGATED_VALIDATE_LANES (line 92), so `oya verify --include-deferred` already runs it locally. This slice adds: (1) per-PR workflow file, (2) lanes.yaml registry row, (3) ci-lanes.md human-readable mirror row. Branch-protection required_status_checks inclusion is admin-scope follow-up (F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION). Also files F-MASTERPLAN-INDEX-SYNC for the 22-IP drift between specs/masterplan.json (150 IPs) and .omc/plans/ source (172 IPs).",
+  "artifacts_touched": [
+    ".github/workflows/oya-foundry-fitness-master-plan-completion.yml (NEW; per-PR required-check workflow; mirrors oya-foundry-fitness-cohesion.yml shape)",
+    "registry/quality/lanes.yaml (one row added under per-pr stage after loop-recovery-patterns)",
+    "docs/standards/ci-lanes.md (one mirror row added in §1.2 Per-PR gates table)",
+    "registry/fixuptasks.jsonl (2 rows appended: F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION + F-MASTERPLAN-INDEX-SYNC)",
+    "evidence/audit-chain.jsonl (one row appended with this change_id + timestamp)",
+    "evidence/multispectrum/claude-durable-goal-master-plan-completion-wiring-1778974862.json (this file)"
+  ],
+  "classification": {
+    "local_gate": "GREEN",
+    "scope": "ci-wiring / surface-completion",
+    "blast_radius": "low — config-only; no executable behavior change beyond making an existing gate visible on every PR",
+    "reversibility": "fully reversible by `git revert <sha>` — no schema migration, no admission-chain replay impact"
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Wiring an existing gate is correct surgery. Gate logic is already implemented + tested + passing on the canonical surface (78 phases, 150 IPs); slice closes the visibility gap. No new abstractions, no new kernels, no parallel coordination."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Lane is catalog-driven via lanes.yaml + ci-lanes.md mirror; quality-lanes gate enforces mirror sync. Standard wiring per the existing pattern."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "diagnostic_asserted": "After this PR merges, every PR shows an `oya-foundry-fitness-master-plan-completion` check; a PR that flips a phase to Complete with incomplete children gets failed by this lane.",
+      "failing_fixture_added": false,
+      "passing_fixture_id": "master_plan_completion_audit tests in master_plan_completion_audit.rs: audit_passes_when_evidence_references_complete_ip + audit_rejects_complete_phase_with_incomplete_child + audit_rejects_complete_ip_without_evidence",
+      "findings": [
+        "Gate logic already carries passing+failing fixtures in #[cfg(test)] mod. Slice does not modify behavior; no new fixture needed."
+      ],
+      "fixuptasks": []
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Per-PR check name `oya-foundry-fitness-master-plan-completion` is discoverable + actionable (mirrors existing fitness-* naming)."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Local pre-push: cargo run -p oya-dev-cli -- gate validate master-plan-completion: PASS (78 phases, 150 IPs). admission-gate-app: PASS. No Rust code touched."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "alternatives_named": [
+        "Add to branch-protection.yaml required_status_checks immediately",
+        "Defer wiring entirely until branch-protection deployment is coordinated"
+      ],
+      "considered": true,
+      "rejected_reasons": [
+        "Adding to branch-protection.yaml without the deployed gh-api ruleset update would cause oya-foundry-fitness-protection-context-match to fail (drift detected). Deploying the ruleset update is admin-scope (gh api PUT branch-protection) and requires user authorization. Split: this slice lands the workflow + registry rows; branch-protection deployment is F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION follow-up.",
+        "Deferring entirely loses the surface-visibility gain: the lane runs locally via oya verify but doesn't post a check on PRs. Wiring it as a non-required check is still net-positive."
+      ],
+      "selected_rationale": "Two-step wiring: visibility now (workflow + mirror), required-check enforcement after admin authorization."
+    },
+    "F7_security": {
+      "audit_chain_emission_required": true,
+      "considered": true,
+      "findings": [
+        "No secret, tenant, or admission-policy surface touched. Workflow uses pinned action SHAs (actions/checkout@v4, dtolnay/rust-toolchain@21dc36fb..., Swatinem/rust-cache@9d47c6ad...). No new permissions beyond contents:read."
+      ],
+      "fixuptasks": [],
+      "owasp_class_review": "none_applicable",
+      "secrets_touched": false,
+      "severity_max": "none",
+      "tenant_data_touched": false
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "Adds ~30s budget (runtime_budget_seconds: 60) to per-PR CI fan-out. Runs in parallel with other fitness lanes per the workflow's `on: pull_request` trigger (no `needs:` chain). Total wall-clock pre-merge stays under the agent-durable-goal.json#pipeline.parallelism_rule 10-min cap."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "Closes NEXT-004 from evidence/goals/masterplan-actionability-durable-goal-2026-05-16.json. Closes GAP-STATUS-HONESTY (visibility on every PR; full blocking awaits F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION)."
+      ],
+      "fixuptasks": []
+    },
+    "F10_reversibility": {
+      "considered": true,
+      "findings": [
+        "Fully reversible via git revert. No state migration. Workflow file removal stops the per-PR check; lanes.yaml + ci-lanes.md rows reverted reverts mirror state."
+      ]
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Workflow posts a CheckRun named oya-foundry-fitness-master-plan-completion on every PR (visible in PR status checks UI + GitHub API). Audit-chain row emitted with this change_id."
+      ]
+    },
+    "F13_migration": {
+      "considered": true,
+      "findings": [
+        "No data migration. New workflow file activates on next pull_request event after merge (i.e., subsequent PRs see the check)."
+      ]
+    }
+  },
+  "A_family_facets": {
+    "applicable": true,
+    "rationale": "Policy-touching change (CI gate registration affects merge-gate policy).",
+    "A1_naming": {"considered": true, "findings": ["Lane id `oya-foundry-fitness-master-plan-completion` follows the `oya-foundry-fitness-<feature>` family convention used by every other fitness lane. Workflow job ID matches required-check name exactly per branch-protection canonical contract."]},
+    "A2_documentation": {"considered": true, "findings": ["docs/standards/ci-lanes.md mirror row added in §1.2; mirror sync enforced by oya-foundry-fitness-quality-lanes gate."]},
+    "A3_structure": {"considered": true, "findings": ["Workflow file follows the single-job-matches-required-check-name pattern shared by oya-foundry-fitness-cohesion.yml + every other foundry-fitness workflow."]},
+    "A4_architecture": {"considered": true, "findings": ["No architectural change. Lane consumes oya-dev-cli surface as every other lane does."]},
+    "A5_dependency": {"considered": true, "findings": ["Workflow uses the same pinned action SHAs as oya-foundry-fitness-cohesion.yml: actions/checkout@v4, dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17, Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6. Loop-recovery pattern broken-action-sha is satisfied."]},
+    "A6_schema": {"considered": true, "findings": ["No schema change. lanes.yaml row conforms to existing schema (id, stage, status, owner_team, purpose, source, runtime_budget_seconds, check_command). fixuptasks.jsonl rows conform to {id, title, priority, status, source_session, source_change_id, named_in, created_at, blocker_for}."]},
+    "A7_algorithm": {"considered": true, "findings": ["No algorithmic change. Lane uses the existing master_plan_completion_audit dispatcher with default args."]}
+  },
+  "commands": {
+    "master_plan_completion_local_run": {"status": "pass", "summary": "cargo run -p oya-dev-cli -- gate validate master-plan-completion: 78 phases, 150 implementation plans validated"},
+    "admission_gate_app_run": {"status": "pass", "summary": "cargo run -q -p oya-foundry-vcs-admission-gate-app: metadata + authority + cargo tests + CLI smoke PASS"},
+    "fixuptasks_appended": {"status": "pass", "summary": "F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION + F-MASTERPLAN-INDEX-SYNC appended to registry/fixuptasks.jsonl"}
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "Surgical wiring of an existing gate. Right blast radius for visibility gain. Branch-protection split is honest about admin-scope dependency."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT_WITH_GUARDRAILS",
+      "guardrails": [
+        "Do not silently expand to update branch-protection.yaml without separate user authorization (would fail protection-context-match if deployed ruleset diverges).",
+        "F-MASTERPLAN-INDEX-SYNC is a real concern but out-of-scope for this slice; tracked as separate FixupTask per OP-11 fixuptask_legitimacy (multi-week migrations / non-reachable scope = legitimate FixupTask).",
+        "Watch CI: if workflow YAML has syntax error, the new check posts nothing instead of FAIL — review pr-tests.yml shape vs the new workflow shape before reliance."
+      ]
+    }
+  },
+  "oya_vcs_closeout": {
+    "agent": "claude-durable-goal-master-plan-completion",
+    "claim_id": "claude-durable-goal-master-plan-completion-wiring",
+    "bundle": "claude-durable-goal-master-plan-completion-wiring-1778974862",
+    "environment": "dev",
+    "ratchet_sequence_planned": [
+      "claim accepted (implicit; CC-5_doc_only T0 tier)",
+      "work — workflow file authored + lanes.yaml row + ci-lanes.md mirror + fixuptasks appended",
+      "verify — master-plan-completion gate PASS locally + admission-gate-app PASS",
+      "done — bundle sealed via this multispectrum evidence + audit-chain row",
+      "promote — to dev branch via git push + gh pr create vs dev"
+    ]
+  }
+}
