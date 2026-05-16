@@ -103,8 +103,8 @@
       "lastAccessed": 1778836410847,
       "keyFiles": []
     },
-    "product-control": {
-      "path": "product-control",
+    "capability-templates": {
+      "path": "registry/capability-templates",
       "purpose": null,
       "fileCount": 0,
       "lastAccessed": 1778836410847,

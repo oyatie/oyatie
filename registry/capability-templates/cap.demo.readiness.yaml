@@ -1,4 +1,4 @@
-# Bootstrap published capability record for ADR-0024 eval gate validation.
+# Bootstrap published capability template record for ADR-0024 eval gate validation.
 id: cap.demo.readiness
 namespace: foundry.demo
 status: published

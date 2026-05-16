@@ -111,7 +111,7 @@ Lanes that exceed budget repeatedly are budget-reviewed at the monthly automatio
 ### Foundry-driven PR triage / labeling / changelog drafting / release-note authoring
 
 ```yaml
-# product-control/capabilities/workflow.builder.pr-triage.yaml
+# registry/capability-templates/workflow.builder.pr-triage.yaml
 capability_id: "workflow.builder.pr-triage"
 autonomy_tier_default: "coworker"
 description: "Triage incoming PRs: assign labels, suggest reviewers, draft changelog entry"

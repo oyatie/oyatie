@@ -1958,6 +1958,111 @@
           "last_modified_at": "2026-05-15T00:00:00Z"
         }
       }
+    },
+    {
+      "artifact_id": "cap-demo-readiness-capability-template",
+      "artifact_path": "/registry/capability-templates/cap.demo.readiness.yaml",
+      "artifact_format": "yaml",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Bootstrap Foundry capability template record used by capability schema and eval publish-readiness gates.",
+      "artifact_profile": "template",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-foundry-capability-template-registry"
+        },
+        "verification": {
+          "checker_crate": "crates/oya-dev-cli",
+          "command": "oya gate validate foundry-capability-schema --capabilities-dir registry/capability-templates"
+        },
+        "validation": {
+          "validator": "crates/oya-dev-cli::foundry_capability_schema_gates"
+        },
+        "autogen": {
+          "generator": "manual; capability templates are curated control-plane inputs"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until Foundry pipeline self-heal is active"
+        },
+        "telemetry": {
+          "metrics": []
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending capability-reviewer",
+          "last_modified_at": "2026-05-16T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "cap-demo-readiness-eval-set-template",
+      "artifact_path": "/registry/capability-templates/eval-sets/cap.demo.readiness.yaml",
+      "artifact_format": "yaml",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Bootstrap eval-set template for cap.demo.readiness, consumed by the Foundry eval publish gate.",
+      "artifact_profile": "template",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-foundry-capability-template-registry"
+        },
+        "verification": {
+          "checker_crate": "crates/oya-dev-cli",
+          "command": "oya gate validate foundry-eval --capabilities-dir registry/capability-templates"
+        },
+        "validation": {
+          "validator": "crates/oya-dev-cli::foundry_eval_gates"
+        },
+        "autogen": {
+          "generator": "manual; eval-set templates are curated test fixtures"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until Foundry pipeline self-heal is active"
+        },
+        "telemetry": {
+          "metrics": []
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending capability-reviewer",
+          "last_modified_at": "2026-05-16T00:00:00Z"
+        }
+      }
+    },
+    {
+      "artifact_id": "cap-demo-readiness-eval-run-template",
+      "artifact_path": "/registry/capability-templates/eval-runs/cap.demo.readiness.yaml",
+      "artifact_format": "yaml",
+      "contract_version": "v3.0.0",
+      "owner_team": "axis-foundry",
+      "purpose_short": "Bootstrap signed eval-run template for cap.demo.readiness, consumed by the Foundry eval publish gate.",
+      "artifact_profile": "template",
+      "capability_overrides": {
+        "enforcement": {
+          "lane_id": "lean-a-foundry-capability-template-registry"
+        },
+        "verification": {
+          "checker_crate": "crates/oya-dev-cli",
+          "command": "oya gate validate foundry-eval --capabilities-dir registry/capability-templates"
+        },
+        "validation": {
+          "validator": "crates/oya-dev-cli::foundry_eval_gates"
+        },
+        "autogen": {
+          "generator": "manual; eval-run templates are curated signed-readiness fixtures"
+        },
+        "selfheal": {
+          "healer": "manual-with-suggestion until Foundry pipeline self-heal is active"
+        },
+        "telemetry": {
+          "metrics": []
+        },
+        "provenance": {
+          "current_author": "codex",
+          "current_reviewed_by": "pending capability-reviewer",
+          "last_modified_at": "2026-05-16T00:00:00Z"
+        }
+      }
     }
   ],
   "purpose": "Auto-backfilled purpose for artifact-capabilities-registry.json"

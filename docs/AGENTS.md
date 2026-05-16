@@ -228,7 +228,7 @@ If any box is unchecked, the change is not complete. Loop back; do not declare s
 | [`crates/`](../crates/) <!-- forward-reference: wave-1 --> | Flat-crates target: `oya-<context>-<role>[-<capability>]/`. |
 | `infra/`, `scripts/`, `registry/` | Supporting implementation and governance tree; `registry/catalog/` is the live crate catalog. |
 | `modules/`, `services/`, `platform/`, `tools/` | Retired legacy implementation roots; do not recreate. |
-| `product-control/` | Capability records + metering events (Foundry-consumed). |
+| `registry/capability-templates/` | Capability records + metering events (Foundry-consumed). |
 | `contracts/` | Per-cross-axis contract spec files (OpenAPI, Protobuf, AsyncAPI). |
 | Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`) | Redirect-class discovery files. Non-authoritative. ≤25 lines each. Lane: `oya-foundry-fitness-redirect-thinness`. |
 

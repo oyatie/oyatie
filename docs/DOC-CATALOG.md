@@ -294,7 +294,7 @@ Each validation check below is a binary CI gate. Failing one blocks the merge.
 | `pr-traceability` | Pull-request bodies carry the five mandatory Issue / Summary / Verification / Traceability / Evidence H2 sections, and `## Code Review` stays merge-time lead-owned. |
 | `runbook-freshness` | Every runbook carries a parsable `Last verified` date and stays within the RUNBOOKS-INDEX freshness SLA by severity; unscoped deferred stubs use the Sev-4 / 365-day freshness ceiling. |
 | `audit-chain-replay` | Checked-in audit shard fixtures replay through the ADR-0003 hash-chain verifier; malformed, empty, or tampered shards fail the chain-replay drill. |
-| `foundry-eval` | Published capability records under `product-control/capabilities/` must point at signed eval-set and latest-run artifacts that pass ADR-0024 adversarial, linguistic, threshold, and publish-readiness checks. |
+| `foundry-eval` | Published capability records under `registry/capability-templates/` must point at signed eval-set and latest-run artifacts that pass ADR-0024 adversarial, linguistic, threshold, and publish-readiness checks. |
 | `cross-tenant-access-fuzz` | Deterministic tenant/cell isolation probes prove cross-tenant MCP discovery, tool invocation, capability grants, and cell rebinding fail closed while same-tenant control access still succeeds. |
 | `doc-catalog-self-coverage` | Every canonical doc has a row in this catalog (this is what saves us from drift). |
 | `documentation-system` | `docs/DOCUMENTATION.md`, `registry/docs/pipeline.tsv`, and `docs/wiki/quickref/README.md` stay mutually grounded. |
