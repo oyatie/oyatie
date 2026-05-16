@@ -41,7 +41,7 @@
       "provider_kind": "argo-gitops",
       "execution_mode": "credentialless-desired-state-dry-run",
       "decision": "passed",
-      "evidence_ref": "deploy/gitops/oya-vcs-admission/application.json",
+      "evidence_ref": "infra/kyverno/oya-vcs-admission/application.json",
       "evidence_digest": "sha256:6ab48fc7173edf213d332f2c169c0ba8645c2d660fd75000ebb028af2eae2ebe",
       "validated_fields": [
         "apiVersion",
