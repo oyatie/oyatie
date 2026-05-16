@@ -252,7 +252,7 @@ mod tests {
             PathBuf::from(".github/branch-protection.yaml")
         );
         assert_eq!(args.workflows_dir, PathBuf::from(".github/workflows"));
-        assert_eq!(args.branch_name, "main");
+        assert_eq!(args.branch_name, "dev");
     }
 
     #[test]
