@@ -547,11 +547,13 @@ fn check_pr_tests_workflow(text: &str, violations: &mut Vec<AdmissionViolation>)
             "pr-tests workflow must expose the oya-vcs-admission job invoking oya-foundry-vcs-admission-gate-app",
         );
     }
-    if !text.contains("scripts/install-trivy-ci.sh") {
+    let invokes_legacy_script = text.contains("scripts/install-trivy-ci.sh");
+    let invokes_rust_installer = text.contains("supply-chain install-trivy");
+    if !invokes_legacy_script && !invokes_rust_installer {
         push(
             violations,
             "PR_TESTS_WORKFLOW_MISSING_TRIVY_INSTALL",
-            "pr-tests workflow must install Trivy before Oya VCS admission",
+            "pr-tests workflow must install Trivy before Oya VCS admission via the Rust supply-chain installer or compatibility shim",
         );
     }
 }
@@ -801,7 +803,7 @@ mod tests {
         )];
         let chain = "CID-1\n".to_string();
         let bp = "required_status_checks:\n  - oya-vcs-admission\n  - oya-vcs-provider-execution\n";
-        let pr = "oya-vcs-admission ... cargo run -q -p oya-foundry-vcs-admission-gate-app ... scripts/install-trivy-ci.sh";
+        let pr = "oya-vcs-admission ... cargo run -q -p oya-foundry-vcs-admission-gate-app ... cargo run -p oya-dev-cli -- supply-chain install-trivy";
         let sc = "oya-vcs-provider-execution ... cargo run -q -p oya-foundry-vcs-provider-execution-gate-app --mode ci";
         let inputs = empty_inputs(
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, &chain, &ms,
@@ -821,7 +823,7 @@ mod tests {
         let pkgs = passing_packages();
         let ms: Vec<(String, Value)> = Vec::new();
         let bp = "required_status_checks:\n  - oya-vcs-admission\n  - oya-vcs-provider-execution\n";
-        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... scripts/install-trivy-ci.sh";
+        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... cargo run -p oya-dev-cli -- supply-chain install-trivy";
         let sc = "oya-vcs-provider-execution ... oya-foundry-vcs-provider-execution-gate-app";
         let inputs = empty_inputs(
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, "", &ms,
@@ -853,7 +855,7 @@ mod tests {
         let pkgs = passing_packages();
         let ms: Vec<(String, Value)> = Vec::new();
         let bp = "required_status_checks:\n  - oya-vcs-admission\n  - oya-vcs-provider-execution\n";
-        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... scripts/install-trivy-ci.sh";
+        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... cargo run -p oya-dev-cli -- supply-chain install-trivy";
         let sc = "oya-vcs-provider-execution ... oya-foundry-vcs-provider-execution-gate-app";
         let inputs = empty_inputs(
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, "", &ms,
@@ -879,7 +881,7 @@ mod tests {
         let pkgs = passing_packages();
         let ms: Vec<(String, Value)> = Vec::new();
         let bp = "required_status_checks:\n  - oya-vcs-admission\n  - oya-vcs-provider-execution\n";
-        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... scripts/install-trivy-ci.sh";
+        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... cargo run -p oya-dev-cli -- supply-chain install-trivy";
         let sc = "oya-vcs-provider-execution ... oya-foundry-vcs-provider-execution-gate-app";
         let inputs = empty_inputs(
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, "", &ms,
@@ -904,7 +906,7 @@ mod tests {
         let pkgs: Vec<String> = vec!["oya-dev-cli".into()];
         let ms: Vec<(String, Value)> = Vec::new();
         let bp = "required_status_checks:\n  - oya-vcs-admission\n  - oya-vcs-provider-execution\n";
-        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... scripts/install-trivy-ci.sh";
+        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... cargo run -p oya-dev-cli -- supply-chain install-trivy";
         let sc = "oya-vcs-provider-execution ... oya-foundry-vcs-provider-execution-gate-app";
         let inputs = empty_inputs(
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, "", &ms,
@@ -933,7 +935,7 @@ mod tests {
         )];
         let chain = "OTHER\n".to_string();
         let bp = "required_status_checks:\n  - oya-vcs-admission\n  - oya-vcs-provider-execution\n";
-        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... scripts/install-trivy-ci.sh";
+        let pr = "oya-vcs-admission ... oya-foundry-vcs-admission-gate-app ... cargo run -p oya-dev-cli -- supply-chain install-trivy";
         let sc = "oya-vcs-provider-execution ... oya-foundry-vcs-provider-execution-gate-app";
         let inputs = empty_inputs(
             &root, &seq, &msr, &vcs, &pe, &pex, bp, pr, sc, &pkgs, &chain, &ms,
