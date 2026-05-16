@@ -176,6 +176,50 @@ fn blast_radius_query_maps_diff_to_reachable_entities_and_review_signals() {
     }
 }
 
+#[test]
+fn agent_decision_provenance_chain_is_graph_traversable() {
+    let graph = semantic_graph();
+    let node_types = graph["node_types"]
+        .as_object()
+        .expect("node_types is an object");
+    assert!(node_types.contains_key("AgentDecision"));
+
+    assert_edge_allows(&graph, "caused_by", "AgentDecision", "AgentDecision");
+
+    let invariants = graph["invariants"]
+        .as_array()
+        .expect("invariants are an array");
+    assert!(invariants.iter().any(|invariant| {
+        invariant["id"] == "I17-agent-decision-chain-is-traversable"
+            && invariant["rule"]
+                .as_str()
+                .is_some_and(|rule| rule.contains("caused_by edges"))
+    }));
+
+    let queries = graph["read_side_query_examples"]
+        .as_array()
+        .expect("queries are an array");
+    let decision_query = queries
+        .iter()
+        .find(|query| query["name"] == "trace_agent_decision_chain")
+        .expect("agent decision chain query exists");
+    let query_sketch = decision_query["query_sketch"]
+        .as_str()
+        .expect("query sketch is a string");
+    for required_term in [
+        "WITH RECURSIVE",
+        "decision_chain",
+        "agent_decisions",
+        "caused_by_edges",
+        "evidence_ref",
+    ] {
+        assert!(
+            query_sketch.contains(required_term),
+            "agent decision query missing {required_term}"
+        );
+    }
+}
+
 fn assert_edge_allows(graph: &Value, edge: &str, source_type: &str, target_type: &str) {
     let edge_type = &graph["edge_types"][edge];
     assert_eq!(edge_type["direction"], "directed");
