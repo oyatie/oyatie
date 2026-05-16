@@ -1,0 +1,592 @@
+{
+  "adversarial_self_review": {
+    "findings": [
+      {
+        "id": "ADV-001",
+        "mitigation": "Adopt comments as evidence/handoff only; unblock authority stays agent quorum + deterministic gates.",
+        "risk": "Hermes human-in-the-loop board/comment semantics could conflict with Oyatie 100% autonomy."
+      },
+      {
+        "id": "ADV-002",
+        "mitigation": "Reject for deployment; allow only ephemeral CI/test runners with receipts and no runtime mutation authority.",
+        "risk": "Hermes shell/server backends could reintroduce deployment drift."
+      },
+      {
+        "id": "ADV-003",
+        "mitigation": "Only candidate artifacts are auto-managed; canonical specs/skills require PR/gates; delete is forbidden, archive is recoverable.",
+        "risk": "Agent-managed skills can become ungoverned mutable behavior."
+      }
+    ],
+    "mode": "degraded_self_review_no_subagent_spawn"
+  },
+  "amendment_plan": [
+    {
+      "action": "Add durable task/role workboard protocol with states, dependency links, comments, idempotency keys, isolation, and task ownership.",
+      "patterns": [
+        "HERMES-PATTERN-001",
+        "HERMES-PATTERN-003"
+      ],
+      "step": 1,
+      "target": "specs/agent-durable-goal.json#autonomous_foundry.durable_workboard_protocol",
+      "verification": [
+        "jq empty specs/agent-durable-goal.json",
+        "future gate validates each active autonomous task has owner/status/evidence and no duplicate idempotency key"
+      ]
+    },
+    {
+      "action": "Add heartbeat, claim TTL, reclaim, unified failure counter, max_retries, auto-block, and conservative-default linkage.",
+      "patterns": [
+        "HERMES-PATTERN-002"
+      ],
+      "step": 2,
+      "target": "specs/agent-durable-goal.json#autonomous_foundry.worker_liveness_protocol",
+      "verification": [
+        "future gate validates heartbeat/reclaim evidence for running tasks before completion claims"
+      ]
+    },
+    {
+      "action": "Add machine-readable goal/subgoal/checkpoint/handoff receipts and retention guardrails.",
+      "patterns": [
+        "HERMES-PATTERN-004"
+      ],
+      "step": 3,
+      "target": "specs/agent-durable-goal.json#autonomous_foundry.goal_handoff_protocol",
+      "verification": [
+        "future gate validates handoff receipt has from_session, to_session, goal_id, checkpoint_id, status"
+      ]
+    },
+    {
+      "action": "Add deterministic mutation receipts so agents cannot claim file edits without tool/git evidence.",
+      "patterns": [
+        "HERMES-PATTERN-005"
+      ],
+      "step": 4,
+      "target": "specs/agent-durable-goal.json#autonomous_foundry.mutation_receipt_protocol",
+      "verification": [
+        "future gate compares claimed files in PR body/evidence to git diff and mutation receipts"
+      ]
+    },
+    {
+      "action": "Constrain autonomous learning: candidate artifacts only, no deletion, archive recoverably, patch-first, protected canonical specs, empirical promotion.",
+      "patterns": [
+        "HERMES-PATTERN-006",
+        "HERMES-PATTERN-007",
+        "HERMES-PATTERN-008"
+      ],
+      "step": 5,
+      "target": "specs/agent-durable-goal.json#autonomous_foundry.curated_learning_loop",
+      "verification": [
+        "future gate denies auto-delete of canonical specs/skills and requires candidate/protected/pinned flags"
+      ]
+    },
+    {
+      "action": "Add scheduled ops job lifecycle with fresh sessions, no recursive scheduling, tick lock, and ops/audit-chain delivery.",
+      "patterns": [
+        "HERMES-PATTERN-009",
+        "HERMES-PATTERN-012"
+      ],
+      "step": 6,
+      "target": "specs/agent-durable-goal.json#pipeline.scheduled_ops",
+      "verification": [
+        "future gate validates scheduled jobs have lock_key, recursion_disabled=true, delivery=ops/audit-chain"
+      ]
+    },
+    {
+      "action": "Add non-overridable forbidden operations floor; explicitly reject yolo/off approval as an autonomy mechanism.",
+      "patterns": [
+        "HERMES-PATTERN-010",
+        "HERMES-PATTERN-013"
+      ],
+      "step": 7,
+      "target": "specs/agent-durable-goal.json#autonomous_foundry.hardline_forbidden_operations",
+      "verification": [
+        "future gate validates forbidden operations reference specs/forbidden-operations.json and deployment-ops-contract forbidden paths"
+      ]
+    },
+    {
+      "action": "Add provider capability and credential-presence registry for vendor-distinct quorum dispatch without exposing raw secrets.",
+      "patterns": [
+        "HERMES-PATTERN-011"
+      ],
+      "step": 8,
+      "target": "specs/agent-durable-goal.json#autonomous_foundry.provider_capability_protocol",
+      "verification": [
+        "future gate validates author/critic/tiebreaker providers are eligible, distinct where required, and within rate budget"
+      ]
+    }
+  ],
+  "completion_gate": {
+    "actual_candidate_count": 13,
+    "amendment_steps": 8,
+    "passed": true,
+    "required_candidate_count_min": 8,
+    "required_verdicts": [
+      "adopt",
+      "adopt_with_constraints",
+      "defer",
+      "reject_for_deployment_adopt_for_ephemeral_ci_only"
+    ]
+  },
+  "created_at": "2026-05-16T13:16:09+00:00",
+  "mission": "Identify Hermes Agent patterns adoptable into specs/agent-durable-goal.json#autonomous_foundry and produce adopt-or-reject verdicts plus an amendment plan.",
+  "oyatie_target": {
+    "deployment_constraint": "Do not import Hermes remote shell/manual server patterns into Oyatie deployment; deployment remains OpenTofu + ops-managed per specs/deployment-ops-contract.json.",
+    "existing_sections_used": [
+      "$.autonomous_foundry",
+      "$.pipeline",
+      "$.review_tiering",
+      "$.score_cards",
+      "$.source_driven_contract",
+      "$.doubt_driven_contract",
+      "$.verification_before_completion"
+    ],
+    "file": "specs/agent-durable-goal.json"
+  },
+  "patterns": [
+    {
+      "adopted_shape": [
+        "stateful rows per autonomous task",
+        "dependency links with ready promotion",
+        "comments as handoff channel",
+        "idempotency keys for automation",
+        "hard board/workspace/log isolation",
+        "task ownership on destructive operations"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.durable_workboard_protocol",
+      "confidence": "high",
+      "evidence_refs": [
+        "RELEASE_v0_13_0_md_70_115",
+        "website_docs_user-guide_features_kanban_md_11_20",
+        "website_docs_user-guide_features_kanban_md_36_52",
+        "website_docs_user-guide_features_kanban_md_62_70",
+        "website_docs_user-guide_features_kanban_md_80_89",
+        "website_docs_user-guide_features_kanban_md_209_218"
+      ],
+      "id": "HERMES-PATTERN-001",
+      "name": "durable_agent_workboard",
+      "oyatie_fit": "Oyatie already models ChangeSets and VCS events; Hermes adds a concrete queue/board shape for durable autonomous role handoffs instead of ephemeral subagent context.",
+      "reject_or_constrain": "Do not copy Hermes human-in-loop unblock semantics as authority; in Oyatie comments are evidence, and unblocking is by agent quorum + gates.",
+      "verdict": "adopt"
+    },
+    {
+      "adopted_shape": [
+        "heartbeat per active role",
+        "claim TTL",
+        "reclaim stale/crashed workers",
+        "unified failure counter across spawn/timeout/crash",
+        "per-task max_retries",
+        "auto-block to conservative_default"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.worker_liveness_protocol",
+      "confidence": "high",
+      "evidence_refs": [
+        "RELEASE_v0_13_0_md_70_115",
+        "website_docs_user-guide_features_kanban_md_62_70"
+      ],
+      "id": "HERMES-PATTERN-002",
+      "name": "worker_liveness_reclaim_and_failure_circuit_breaker",
+      "oyatie_fit": "Strengthens autonomous_foundry.stuck_loop_recovery with mechanical heartbeats, reclaim, zombie detection, per-task retry budgets, and failure auto-block instead of vague stuck detection.",
+      "reject_or_constrain": "No manual SSH/process poking; liveness recovery must be repo/ops mediated and recorded in evidence rows.",
+      "verdict": "adopt"
+    },
+    {
+      "adopted_shape": [
+        "single dispatcher authority per repo/stage",
+        "no competing standalone daemon",
+        "file/DB lock or compare-and-swap claim",
+        "gateway/ops ownership"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#pipeline.autonomous_dispatcher",
+      "confidence": "medium",
+      "evidence_refs": [
+        "website_docs_user-guide_features_kanban_md_182_207",
+        "website_docs_user-guide_features_cron_md_189_214"
+      ],
+      "id": "HERMES-PATTERN-003",
+      "name": "gateway_embedded_dispatcher_not_standalone_daemon",
+      "oyatie_fit": "The dispatcher belongs in the canonical ops/control-plane surface, not ad hoc scripts. This aligns with the OpenTofu + ops-only deployment directive.",
+      "reject_or_constrain": "Implement through Oyatie ops runtime and VCS controller, not a local Python daemon or manual service install.",
+      "verdict": "adopt_with_constraints"
+    },
+    {
+      "adopted_shape": [
+        "goal id carried into tools",
+        "append-only subgoal criteria",
+        "checkpoint pruning and disk guardrails",
+        "handoff receipt with from_session/to_session/status",
+        "resume after restart without losing pending prompts"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.goal_handoff_protocol",
+      "confidence": "high",
+      "evidence_refs": [
+        "RELEASE_v0_13_0_md_119_136",
+        "RELEASE_v0_14_0_md_142_155"
+      ],
+      "id": "HERMES-PATTERN-004",
+      "name": "persistent_goals_checkpoints_live_handoff",
+      "oyatie_fit": "Oyatie has persistent_goal and handoffs but lacks a codified checkpoint retention and live handoff receipt model for agent session transfer.",
+      "reject_or_constrain": "No Markdown-only handoffs as closure authority; canonical handoff receipts must be JSON/audit-chain rows.",
+      "verdict": "adopt"
+    },
+    {
+      "adopted_shape": [
+        "record intended file targets for mutating operations",
+        "record landed files independently of model summary",
+        "surface failed mutations in evidence",
+        "block completion if claimed file lacks receipt"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.mutation_receipt_protocol",
+      "confidence": "high",
+      "evidence_refs": [
+        "RELEASE_v0_14_0_md_142_155",
+        "tests_run_agent_test_file_mutation_verifier_py_1_17"
+      ],
+      "id": "HERMES-PATTERN-005",
+      "name": "per_turn_file_mutation_verifier",
+      "oyatie_fit": "Directly addresses no-silent-regression and over-claiming risk: every mutating tool turn should produce mutation receipts and failed-target evidence.",
+      "reject_or_constrain": "Do not rely on LLM self-report; receipts must be deterministic from tool outputs/git diff.",
+      "verdict": "adopt"
+    },
+    {
+      "adopted_shape": [
+        "only agent-created candidates auto-mutated",
+        "pinned/protected canonical specs never auto-deleted",
+        "archive not delete",
+        "patch-first updates",
+        "per-run report JSON",
+        "candidate-to-blocker promotion based on empirical prevented incidents"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.curated_learning_loop",
+      "confidence": "high",
+      "evidence_refs": [
+        "RELEASE_v0_12_0_md_12_14",
+        "agent_curator_py_1_20",
+        "website_docs_user-guide_features_skills_md_233_257"
+      ],
+      "id": "HERMES-PATTERN-006",
+      "name": "curated_learning_loop_for_agent_created_procedures",
+      "oyatie_fit": "Oyatie lane_promotion_protocol already promotes recurring drift; Hermes contributes recoverable archive, pinned/protected records, agent-created-only scope, and patch-first updates.",
+      "reject_or_constrain": "No free-form skill self-mutation can bypass PR, score-card, and audit-chain gates.",
+      "verdict": "adopt_with_constraints"
+    },
+    {
+      "adopted_shape": [
+        "level0 index only",
+        "level1 full record on demand",
+        "level2 referenced subfile/field only",
+        "tooling prefers JSON pointers over bulk prose"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.progressive_context_protocol",
+      "confidence": "medium",
+      "evidence_refs": [
+        "website_docs_user-guide_features_skills_md_44_55",
+        "website_docs_user-guide_features_skills_md_233_257"
+      ],
+      "id": "HERMES-PATTERN-007",
+      "name": "progressive_disclosure_knowledge_surfaces",
+      "oyatie_fit": "Useful for lowering agent context cost across masterplan/spec/product surfaces while keeping canonical machine-readable files authoritative.",
+      "reject_or_constrain": "Do not make Markdown skills authoritative for Oyatie product/spec truth; JSON specs remain closure authority.",
+      "verdict": "adopt_with_constraints"
+    },
+    {
+      "adopted_shape": [
+        "bounded startup memory",
+        "evidence/session search on demand",
+        "memory citations separate from verification evidence",
+        "session facts never outrank repo specs"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.recall_protocol",
+      "confidence": "high",
+      "evidence_refs": [
+        "website_docs_user-guide_features_memory_md_9_24",
+        "website_docs_user-guide_features_memory_md_175_198"
+      ],
+      "id": "HERMES-PATTERN-008",
+      "name": "bounded_memory_plus_on_demand_session_search",
+      "oyatie_fit": "Matches user preference: memory helps but live repo/spec truth wins. Separate tiny always-loaded memory from searchable evidence history.",
+      "reject_or_constrain": "Do not allow memory-derived facts to satisfy gates without fresh verification when drift-prone.",
+      "verdict": "adopt_with_constraints"
+    },
+    {
+      "adopted_shape": [
+        "create/pause/resume/edit/trigger/remove lifecycle",
+        "fresh isolated sessions",
+        "skill/lane injection",
+        "file/DB tick lock",
+        "no recursive job creation",
+        "delivery through ops event channels"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#pipeline.scheduled_ops",
+      "confidence": "medium",
+      "evidence_refs": [
+        "website_docs_user-guide_features_cron_md_13_26",
+        "website_docs_user-guide_features_cron_md_189_214"
+      ],
+      "id": "HERMES-PATTERN-009",
+      "name": "scheduled_ops_jobs_with_loop_guard",
+      "oyatie_fit": "Can power daily CI/PR/ops audits and release-readiness checks through ops. The no-recursive-scheduling and tick-lock patterns prevent runaway loops.",
+      "reject_or_constrain": "No direct Telegram/Slack as control authority; notifications are mirrors of ops/audit-chain state.",
+      "verdict": "adopt_with_constraints"
+    },
+    {
+      "adopted_shape": [
+        "non-overridable forbidden operations",
+        "fail closed on uncertainty/timeouts",
+        "remote-script-to-shell rejected",
+        "sensitive write targets blocked",
+        "manual SSH/deployment bypass blocked"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.hardline_forbidden_operations",
+      "confidence": "high",
+      "evidence_refs": [
+        "website_docs_user-guide_security_md_71_96",
+        "website_docs_user-guide_security_md_104_141",
+        "RELEASE_v0_14_0_md_371_383"
+      ],
+      "id": "HERMES-PATTERN-010",
+      "name": "hardline_forbidden_operations_floor",
+      "oyatie_fit": "Hermes hardline blocklist maps cleanly to Oyatie forbidden-operations and deployment-ops-contract: some actions are never allowed, even when autonomous.",
+      "reject_or_constrain": "Reject yolo/off approval modes as a governance primitive; autonomy means deterministic constraints, not unconstrained execution.",
+      "verdict": "adopt"
+    },
+    {
+      "adopted_shape": [
+        "provider capability matrix",
+        "credential availability without raw secrets",
+        "role eligibility",
+        "rate/budget metadata",
+        "fallback eligibility",
+        "audit every provider choice"
+      ],
+      "amendment_target": "specs/agent-durable-goal.json#autonomous_foundry.provider_capability_protocol",
+      "confidence": "medium",
+      "evidence_refs": [
+        "README_md_15_26",
+        "RELEASE_v0_14_0_md_322_333"
+      ],
+      "id": "HERMES-PATTERN-011",
+      "name": "provider_capability_and_credential_registry",
+      "oyatie_fit": "Oyatie requires vendor-distinct quorums; it needs a machine-readable registry of provider capabilities, credentials-present flags, rate budgets, and allowed roles.",
+      "reject_or_constrain": "No OAuth/provider proxy may bypass OpenBao SecretReference and audit-chain constraints.",
+      "verdict": "adopt_with_constraints"
+    },
+    {
+      "adopted_shape": [
+        "notification mirror only",
+        "delivery status audited",
+        "no channel as source of truth"
+      ],
+      "amendment_target": "future: specs/ops-notification-gateway.json",
+      "confidence": "medium",
+      "evidence_refs": [
+        "README_md_15_26",
+        "website_docs_user-guide_features_cron_md_13_26"
+      ],
+      "id": "HERMES-PATTERN-012",
+      "name": "multi_channel_gateway_presence",
+      "oyatie_fit": "Useful for ops notifications, but not core to autonomous_foundry until ops.oyatie.com owns channel policy and delivery audit.",
+      "reject_or_constrain": "Do not add direct chat-command control paths to deployment or incident response.",
+      "verdict": "defer"
+    },
+    {
+      "adopted_shape": [
+        "ephemeral isolated CI/test runners may be allowed with receipts",
+        "deployment/runtime mutation is OpenTofu/ops only"
+      ],
+      "amendment_target": "specs/deployment-ops-contract.json#forbidden_manual_drift_paths",
+      "confidence": "high",
+      "evidence_refs": [
+        "README_md_15_26",
+        "website_docs_user-guide_security_md_104_141"
+      ],
+      "id": "HERMES-PATTERN-013",
+      "name": "remote_shell_and_serverless_terminal_backends",
+      "oyatie_fit": "Hermes supports SSH/serverless terminal backends, but user directive forbids manual SSH troubleshooting and requires OpenTofu/ops-managed deployment.",
+      "reject_or_constrain": "Reject any manual SSH, scp, standalone daemon, or shell-runbook deployment path as closure authority.",
+      "verdict": "reject_for_deployment_adopt_for_ephemeral_ci_only"
+    }
+  ],
+  "schema": "oyatie.evidence.autoresearch.hermes_integration_candidates.v1",
+  "source_evidence": [
+    {
+      "claim": "Hermes positions itself as a self-improving, cross-session, multi-platform agent with closed learning loop, scheduled automations, delegation/parallelization, and trajectory tooling.",
+      "line_range": "15-26",
+      "path": "README.md",
+      "source_id": "README_md_15_26",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/README.md#L15-L26"
+    },
+    {
+      "claim": "Durable multi-agent Kanban introduced multi-profile boards, multi-project isolation, diagnostics, worker heartbeats/reclaim/retry caps, ownership enforcement, and handoff metadata.",
+      "line_range": "70-115",
+      "path": "RELEASE_v0.13.0.md",
+      "source_id": "RELEASE_v0_13_0_md_70_115",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/RELEASE_v0.13.0.md#L70-L115"
+    },
+    {
+      "claim": "Kanban is a durable SQLite task board where model-facing tools and human/automation CLI share one DB layer to prevent drift.",
+      "line_range": "11-20",
+      "path": "website/docs/user-guide/features/kanban.md",
+      "source_id": "website_docs_user-guide_features_kanban_md_11_20",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/kanban.md#L11-L20"
+    },
+    {
+      "claim": "Hermes distinguishes one-shot delegation from durable queue work: durable rows, resumability, comments, audit trail, and peer handoffs.",
+      "line_range": "36-52",
+      "path": "website/docs/user-guide/features/kanban.md",
+      "source_id": "website_docs_user-guide_features_kanban_md_36_52",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/kanban.md#L36-L52"
+    },
+    {
+      "claim": "Core Kanban entities include task states, dependency links, comments, workspaces, dispatcher, heartbeat/reclaim/crash handling, failure limits, and tenant scoping.",
+      "line_range": "62-70",
+      "path": "website/docs/user-guide/features/kanban.md",
+      "source_id": "website_docs_user-guide_features_kanban_md_62_70",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/kanban.md#L62-L70"
+    },
+    {
+      "claim": "Hermes boards have hard per-board SQLite/workspace/log isolation and prevent cross-board task links.",
+      "line_range": "80-89",
+      "path": "website/docs/user-guide/features/kanban.md",
+      "source_id": "website_docs_user-guide_features_kanban_md_80_89",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/kanban.md#L80-L89"
+    },
+    {
+      "claim": "Hermes runs the dispatcher inside the gateway by default and deprecates a standalone daemon to avoid claim races.",
+      "line_range": "182-207",
+      "path": "website/docs/user-guide/features/kanban.md",
+      "source_id": "website_docs_user-guide_features_kanban_md_182_207",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/kanban.md#L182-L207"
+    },
+    {
+      "claim": "Kanban create supports idempotency keys so repeated automation returns the existing task rather than duplicating work.",
+      "line_range": "209-218",
+      "path": "website/docs/user-guide/features/kanban.md",
+      "source_id": "website_docs_user-guide_features_kanban_md_209_218",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/kanban.md#L209-L218"
+    },
+    {
+      "claim": "Persistent goals, checkpoint pruning/disk guardrails, and auto-resume preserve long-running goals and session routing across restarts.",
+      "line_range": "119-136",
+      "path": "RELEASE_v0.13.0.md",
+      "source_id": "RELEASE_v0_13_0_md_119_136",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/RELEASE_v0.13.0.md#L119-L136"
+    },
+    {
+      "claim": "Hermes v0.14 added live handoff, session id exposure, subgoals, compression protection, and per-turn file mutation verification.",
+      "line_range": "142-155",
+      "path": "RELEASE_v0.14.0.md",
+      "source_id": "RELEASE_v0_14_0_md_142_155",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/RELEASE_v0.14.0.md#L142-L155"
+    },
+    {
+      "claim": "Hermes file mutation verifier prevents over-claiming by surfacing files that did not actually change after failed write/patch tool calls.",
+      "line_range": "1-17",
+      "path": "tests/run_agent/test_file_mutation_verifier.py",
+      "source_id": "tests_run_agent_test_file_mutation_verifier_py_1_17",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/tests/run_agent/test_file_mutation_verifier.py#L1-L17"
+    },
+    {
+      "claim": "Autonomous Curator grades, prunes, consolidates skill libraries and background review creates/updates memory/skills under constrained toolsets.",
+      "line_range": "12-14",
+      "path": "RELEASE_v0.12.0.md",
+      "source_id": "RELEASE_v0_12_0_md_12_14",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/RELEASE_v0.12.0.md#L12-L14"
+    },
+    {
+      "claim": "Curator code invariants: only agent-created skills, never auto-deletes, archive recoverable, pinned skills bypass transitions, auxiliary client preserves prompt cache.",
+      "line_range": "1-20",
+      "path": "agent/curator.py",
+      "source_id": "agent_curator_py_1_20",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/agent/curator.py#L1-L20"
+    },
+    {
+      "claim": "Hermes skills use progressive disclosure: list, full skill, specific reference file.",
+      "line_range": "44-55",
+      "path": "website/docs/user-guide/features/skills.md",
+      "source_id": "website_docs_user-guide_features_skills_md_44_55",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/skills.md#L44-L55"
+    },
+    {
+      "claim": "Hermes treats agent-managed skills as procedural memory created after complex tasks, errors, corrections, or discovered workflows; patch is preferred over full rewrite.",
+      "line_range": "233-257",
+      "path": "website/docs/user-guide/features/skills.md",
+      "source_id": "website_docs_user-guide_features_skills_md_233_257",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/skills.md#L233-L257"
+    },
+    {
+      "claim": "Hermes persistent memory is bounded and curated, injected at session start from MEMORY.md and USER.md.",
+      "line_range": "9-24",
+      "path": "website/docs/user-guide/features/memory.md",
+      "source_id": "website_docs_user-guide_features_memory_md_9_24",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/memory.md#L9-L24"
+    },
+    {
+      "claim": "Hermes separates small always-loaded memory from unbounded on-demand session search backed by SQLite FTS5 and summarization.",
+      "line_range": "175-198",
+      "path": "website/docs/user-guide/features/memory.md",
+      "source_id": "website_docs_user-guide_features_memory_md_175_198",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/memory.md#L175-L198"
+    },
+    {
+      "claim": "Cron can create, pause, resume, edit, trigger, remove jobs, attach skills, deliver to platforms/files, and disables cron management inside cron executions to avoid runaway loops.",
+      "line_range": "13-26",
+      "path": "website/docs/user-guide/features/cron.md",
+      "source_id": "website_docs_user-guide_features_cron_md_13_26",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/cron.md#L13-L26"
+    },
+    {
+      "claim": "Cron execution is gateway-owned, starts fresh sessions, injects skills, delivers outputs, updates metadata, and uses a file lock to prevent overlapping ticks.",
+      "line_range": "189-214",
+      "path": "website/docs/user-guide/features/cron.md",
+      "source_id": "website_docs_user-guide_features_cron_md_189_214",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/features/cron.md#L189-L214"
+    },
+    {
+      "claim": "Hermes has an always-on hardline blocklist that cannot be bypassed even by yolo/approval-off modes; dangerous approvals fail closed on timeout.",
+      "line_range": "71-96",
+      "path": "website/docs/user-guide/security.md",
+      "source_id": "website_docs_user-guide_security_md_71_96",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/security.md#L71-L96"
+    },
+    {
+      "claim": "Hermes dangerous-pattern list covers destructive filesystem, database, service, shell, remote-script, and sensitive-write operations, with container isolation as a boundary.",
+      "line_range": "104-141",
+      "path": "website/docs/user-guide/security.md",
+      "source_id": "website_docs_user-guide_security_md_104_141",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/website/docs/user-guide/security.md#L104-L141"
+    },
+    {
+      "claim": "Hermes added MCP parallel-tool-call support and per-turn verifier support.",
+      "line_range": "295-304",
+      "path": "RELEASE_v0.14.0.md",
+      "source_id": "RELEASE_v0_14_0_md_295_304",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/RELEASE_v0.14.0.md#L295-L304"
+    },
+    {
+      "claim": "Hermes plugin surface supports plugin LLM calls, tool override, out-of-process cron delivery, debug logs, and git-shareable profile distributions.",
+      "line_range": "322-333",
+      "path": "RELEASE_v0.14.0.md",
+      "source_id": "RELEASE_v0_14_0_md_322_333",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/RELEASE_v0.14.0.md#L322-L333"
+    },
+    {
+      "claim": "Hermes v0.14 security wave includes sudo brute-force blocking, comment author hardening, dashboard auth, output redaction, shell=True reduction, supply-chain advisory checks, and OS isolation boundary updates.",
+      "line_range": "371-383",
+      "path": "RELEASE_v0.14.0.md",
+      "source_id": "RELEASE_v0_14_0_md_371_383",
+      "url": "https://github.com/NousResearch/hermes-agent/blob/a91a57fa5a13d516c38b07a141a9ce8a3daabeb0/RELEASE_v0.14.0.md#L371-L383"
+    }
+  ],
+  "source_repo": {
+    "commit": "a91a57fa5a13d516c38b07a141a9ce8a3daabeb0",
+    "commit_summary": "a91a57f 2026-05-16 chore: release v0.14.0 (2026.5.16) (#26862)",
+    "name": "NousResearch/hermes-agent",
+    "release_window": [
+      "v0.12.0",
+      "v0.13.0",
+      "v0.14.0"
+    ],
+    "url": "https://github.com/NousResearch/hermes-agent"
+  },
+  "status": "complete"
+}
