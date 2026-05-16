@@ -28,7 +28,7 @@
     "scripts/check-oya-vcs-provider-execution.sh",
     "scripts/install-trivy-ci.sh",
     ".github/workflows/oya-foundry-fitness-supply-chain.yml",
-    "deploy/gitops/oya-vcs-admission/application.json",
+    "infra/kyverno/oya-vcs-admission/application.json",
     "evidence/gitops-vcs/provider-execution-proof-2026-05-15.json",
     "evidence/multispectrum/oya-vcs-provider-execution-proof-1778845600.json",
     "crates/oya-check-dependency-seam/tests/per_subcheck_unit_tests.rs"
@@ -171,7 +171,7 @@
         "availability": "available",
         "decision": "passed",
         "proof_kind": "credentialless-argo-application-desired-state-dry-run",
-        "evidence_ref": "deploy/gitops/oya-vcs-admission/application.json",
+        "evidence_ref": "infra/kyverno/oya-vcs-admission/application.json",
         "observed_generation": 7,
         "live_status": "Argo Application desired-state proof validated without production credentials; live sync is M03 environment promotion scope"
       }

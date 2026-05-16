@@ -114,7 +114,7 @@
     "A3_structure": {
       "considered": true,
       "findings": [
-        "The Argo desired state lives under deploy/gitops/oya-vcs-admission and CI installer logic stays in scripts/."
+        "The Argo desired state lives under infra/kyverno/oya-vcs-admission and CI installer logic stays in scripts/."
       ]
     },
     "A4_architecture": {

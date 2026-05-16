@@ -8,3 +8,6 @@
 # Python bytecode (per shell-python audit 2026-05-15)
 __pycache__/
 *.pyc
+
+# Transient session-scoped audit logs
+.audit/

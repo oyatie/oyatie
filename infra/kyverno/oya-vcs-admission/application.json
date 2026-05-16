@@ -15,7 +15,7 @@
     "source": {
       "repoURL": "https://github.com/jason931225/oyatie.git",
       "targetRevision": "HEAD",
-      "path": "deploy/gitops/oya-vcs-admission"
+      "path": "infra/kyverno/oya-vcs-admission"
     },
     "destination": {
       "server": "https://kubernetes.default.svc",

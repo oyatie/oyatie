@@ -35,7 +35,7 @@ use oya_foundry_vcs_provider_execution_gate_kernel::{
 };
 use serde_json::Value;
 
-const ARGO_MANIFEST: &str = "deploy/gitops/oya-vcs-admission/application.json";
+const ARGO_MANIFEST: &str = "infra/kyverno/oya-vcs-admission/application.json";
 const TRIVY_OUT_DIR: &str = "target/oya-vcs-provider-execution";
 const TRIVY_SARIF: &str = "target/oya-vcs-provider-execution/trivy.sarif";
 

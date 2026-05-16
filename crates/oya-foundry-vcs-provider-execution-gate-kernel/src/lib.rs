@@ -80,7 +80,7 @@ pub fn validate_argo_application(manifest: &Value) -> Vec<ArgoViolation> {
         ),
         (
             &["spec", "source", "path"],
-            "deploy/gitops/oya-vcs-admission",
+            "infra/kyverno/oya-vcs-admission",
         ),
         (
             &["spec", "destination", "server"],
@@ -244,7 +244,7 @@ mod tests {
             "spec": {
                 "source": {
                     "repoURL": "https://github.com/jason931225/oyatie.git",
-                    "path": "deploy/gitops/oya-vcs-admission"
+                    "path": "infra/kyverno/oya-vcs-admission"
                 },
                 "destination": {
                     "server": "https://kubernetes.default.svc"
@@ -318,7 +318,7 @@ mod tests {
             mode: Mode::Ci,
             trivy_sarif_path: "target/oya-vcs-provider-execution/trivy.sarif",
             trivy_sarif_digest: "sha256:trivy",
-            argo_manifest_path: "deploy/gitops/oya-vcs-admission/application.json",
+            argo_manifest_path: "infra/kyverno/oya-vcs-admission/application.json",
             argo_manifest_digest: "sha256:argo",
             created_at_iso: "2026-05-15T00:00:00Z",
         };
