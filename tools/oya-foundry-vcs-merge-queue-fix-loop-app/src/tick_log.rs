@@ -51,10 +51,9 @@ fn render_action(action: &TickAction) -> String {
             cs = json_string(changeset_id),
             pr = pr_number
         ),
-        TickAction::MergePr { pr_number } => format!(
-            "{{\"kind\":\"merge\",\"pr_number\":{pr}}}",
-            pr = pr_number
-        ),
+        TickAction::MergePr { pr_number } => {
+            format!("{{\"kind\":\"merge\",\"pr_number\":{pr}}}", pr = pr_number)
+        }
         TickAction::ParkPr { pr_number, reason } => format!(
             "{{\"kind\":\"park\",\"pr_number\":{pr},\"reason\":{r}}}",
             pr = pr_number,

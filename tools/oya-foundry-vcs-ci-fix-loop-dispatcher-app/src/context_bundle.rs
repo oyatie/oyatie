@@ -107,10 +107,7 @@ pub enum ContextBundleError {
     EmptyLogUri,
     EmptyFacetId,
     AttemptOutOfRange(u32),
-    AttemptsExceedBudget {
-        attempts_used: u32,
-        max: u32,
-    },
+    AttemptsExceedBudget { attempts_used: u32, max: u32 },
     EmptyFailureSurface,
     CommitHistoryTooLong(usize),
     EmptyCommitSubject,
@@ -210,7 +207,11 @@ impl ContextBundle {
                 subj = json_string(&entry.subject),
             )
         });
-        push_kv_raw(&mut buf, "diff_summary", &diff_summary_json(&self.diff_summary));
+        push_kv_raw(
+            &mut buf,
+            "diff_summary",
+            &diff_summary_json(&self.diff_summary),
+        );
         push_kv_u64(&mut buf, "emitted_at_epoch", self.emitted_at_epoch, false);
         push_kv_raw(
             &mut buf,
@@ -385,9 +386,7 @@ fn validate_commit_history(history: &[CommitHistoryEntry]) -> Result<(), Context
     Ok(())
 }
 
-fn validate_ledger_candidates(
-    candidates: &[LedgerCandidate],
-) -> Result<(), ContextBundleError> {
+fn validate_ledger_candidates(candidates: &[LedgerCandidate]) -> Result<(), ContextBundleError> {
     for candidate in candidates {
         if !candidate.row_id.starts_with("mistakes-ledger:")
             || candidate.row_id.len() == "mistakes-ledger:".len()

@@ -329,7 +329,10 @@ impl fmt::Display for SubagentError {
         match self {
             Self::TemplateEmpty => write!(f, "facet template is empty"),
             Self::TemplateMissingFrontmatter => {
-                write!(f, "facet template is missing the `---` frontmatter delimiters")
+                write!(
+                    f,
+                    "facet template is missing the `---` frontmatter delimiters"
+                )
             }
             Self::TemplateMissingField(field) => {
                 write!(f, "facet template is missing required field `{field}`")
@@ -597,8 +600,8 @@ mod tests {
 
     #[test]
     fn mock_port_respects_override() {
-        let port = MockSubagentPort::new()
-            .with_override("F7_security", FacetRecommendation::Reject);
+        let port =
+            MockSubagentPort::new().with_override("F7_security", FacetRecommendation::Reject);
         let sref = SecretReference::new("sref://k".into()).unwrap();
         let request = SubagentRequest {
             facet_id: "F7_security".into(),

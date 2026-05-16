@@ -268,8 +268,7 @@ mod tests {
     fn valid_evidence() -> PrePushContractEvidence<'static> {
         PrePushContractEvidence {
             done_definition_doc: "- [ ] D12 `oya verify` passes.",
-            cli_dispatch_source:
-                "match args.next().as_deref() {\n    \
+            cli_dispatch_source: "match args.next().as_deref() {\n    \
                  Some(\"verify\") => commands::verify::run(args.collect(), &usage()),\n}\n",
             hook_script: "oya verify \"$@\" || exit 1\n# canonical: oya verify\n",
         }

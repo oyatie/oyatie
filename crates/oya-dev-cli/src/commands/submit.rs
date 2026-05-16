@@ -47,25 +47,13 @@ const USAGE: &str = "oya submit \
                      [--title <text>] \
                      [--body <text>]";
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
 struct SubmitArgs {
     skip_verify: bool,
     push_only: bool,
     draft: bool,
     title: Option<String>,
     body: Option<String>,
-}
-
-impl Default for SubmitArgs {
-    fn default() -> Self {
-        Self {
-            skip_verify: false,
-            push_only: false,
-            draft: false,
-            title: None,
-            body: None,
-        }
-    }
 }
 
 pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
@@ -164,9 +152,7 @@ fn is_success(exit: &ExitCode) -> bool {
 }
 
 fn git_working_tree_is_clean() -> bool {
-    let output = Command::new("git")
-        .args(["status", "--porcelain"])
-        .output();
+    let output = Command::new("git").args(["status", "--porcelain"]).output();
     match output {
         Ok(output) => output.status.success() && output.stdout.is_empty(),
         Err(_) => false,
@@ -276,15 +262,13 @@ mod tests {
 
     #[test]
     fn parse_accepts_no_verify_flag() {
-        let args =
-            parse_submit_args(vec!["--no-verify".to_string()]).expect("--no-verify parses");
+        let args = parse_submit_args(vec!["--no-verify".to_string()]).expect("--no-verify parses");
         assert!(args.skip_verify);
     }
 
     #[test]
     fn parse_accepts_push_only_flag() {
-        let args = parse_submit_args(vec!["--push-only".to_string()])
-            .expect("--push-only parses");
+        let args = parse_submit_args(vec!["--push-only".to_string()]).expect("--push-only parses");
         assert!(args.push_only);
     }
 

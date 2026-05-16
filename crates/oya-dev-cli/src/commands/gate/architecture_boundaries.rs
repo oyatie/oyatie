@@ -65,7 +65,10 @@ fn allowed_dependency_roles() -> BTreeMap<&'static str, BTreeSet<&'static str>> 
     insert("kernel", &["kernel", "domain"]);
     insert("domain", &["kernel", "domain"]);
     insert("application", &["kernel", "domain"]);
-    insert("app", &["kernel", "domain", "application", "adapter", "rest"]);
+    insert(
+        "app",
+        &["kernel", "domain", "application", "adapter", "rest"],
+    );
     insert("api", &["kernel", "domain", "app"]);
     insert("worker", &["kernel", "domain", "app"]);
     insert("adapter", &["kernel", "domain"]);
@@ -362,7 +365,10 @@ fn validate_packages(
             ));
         }
 
-        let manifest_parent = package.manifest_path.parent().unwrap_or_else(|| Path::new(""));
+        let manifest_parent = package
+            .manifest_path
+            .parent()
+            .unwrap_or_else(|| Path::new(""));
         let relative_parent = relative_path(manifest_parent, repo_root);
         let crates_parent = PathBuf::from("crates").join(&package.name);
         let tools_parent = PathBuf::from("tools").join(&package.name);
@@ -469,7 +475,10 @@ fn fixture_package(
     deps: &[&str],
     layout_dir: &str,
 ) -> (WorkspacePackage, (String, CatalogRoleRecord)) {
-    let manifest_path = fixture_repo_root().join(layout_dir).join(name).join("Cargo.toml");
+    let manifest_path = fixture_repo_root()
+        .join(layout_dir)
+        .join(name)
+        .join("Cargo.toml");
     let package = WorkspacePackage {
         name: name.to_string(),
         manifest_path,
@@ -490,7 +499,11 @@ fn run_fixture(
     errors
 }
 
-fn assert_self_test(label: &str, errors: &[String], expected_fragment: Option<&str>) -> Result<(), Vec<String>> {
+fn assert_self_test(
+    label: &str,
+    errors: &[String],
+    expected_fragment: Option<&str>,
+) -> Result<(), Vec<String>> {
     match expected_fragment {
         None => {
             if !errors.is_empty() {
@@ -511,7 +524,8 @@ fn assert_self_test(label: &str, errors: &[String], expected_fragment: Option<&s
 }
 
 fn expect_self_test_happy_path() -> Result<(), Vec<String>> {
-    let (kernel_pkg, kernel_rec) = fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+    let (kernel_pkg, kernel_rec) =
+        fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
     let (domain_pkg, domain_rec) = fixture_package(
         "oya-platform-tenant-domain",
         "domain",
@@ -531,13 +545,16 @@ fn expect_self_test_happy_path() -> Result<(), Vec<String>> {
         "crates",
     );
     let packages = vec![kernel_pkg, domain_pkg, rest_pkg, app_pkg];
-    let catalog: BTreeMap<_, _> = [kernel_rec, domain_rec, rest_rec, app_rec].into_iter().collect();
+    let catalog: BTreeMap<_, _> = [kernel_rec, domain_rec, rest_rec, app_rec]
+        .into_iter()
+        .collect();
     let errors = run_fixture(packages, catalog, BTreeSet::new());
     assert_self_test("happy path", &errors, None)
 }
 
 fn expect_self_test_missing_catalog() -> Result<(), Vec<String>> {
-    let (kernel_pkg, kernel_rec) = fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+    let (kernel_pkg, kernel_rec) =
+        fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
     let (app_pkg, _app_rec) = fixture_package(
         "oya-foundation-app",
         "app",
@@ -561,7 +578,11 @@ fn expect_self_test_forbidden_role_edge() -> Result<(), Vec<String>> {
     let packages = vec![kernel_pkg, app_pkg];
     let catalog: BTreeMap<_, _> = [kernel_rec, app_rec].into_iter().collect();
     let errors = run_fixture(packages, catalog, BTreeSet::new());
-    assert_self_test("forbidden role edge", &errors, Some("forbidden dependency edge"))
+    assert_self_test(
+        "forbidden role edge",
+        &errors,
+        Some("forbidden dependency edge"),
+    )
 }
 
 fn expect_self_test_bad_prefix() -> Result<(), Vec<String>> {
@@ -573,8 +594,7 @@ fn expect_self_test_bad_prefix() -> Result<(), Vec<String>> {
 }
 
 fn expect_self_test_wrong_workspace_path() -> Result<(), Vec<String>> {
-    let (mut wrong_pkg, wrong_rec) =
-        fixture_package("oya-foundry-api", "api", &[], "crates");
+    let (mut wrong_pkg, wrong_rec) = fixture_package("oya-foundry-api", "api", &[], "crates");
     wrong_pkg.manifest_path = fixture_repo_root()
         .join("services")
         .join("oya-foundry-api")
@@ -590,7 +610,8 @@ fn expect_self_test_wrong_workspace_path() -> Result<(), Vec<String>> {
 }
 
 fn expect_self_test_legacy_top_level_dir() -> Result<(), Vec<String>> {
-    let (kernel_pkg, kernel_rec) = fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+    let (kernel_pkg, kernel_rec) =
+        fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
     let packages = vec![kernel_pkg];
     let catalog: BTreeMap<_, _> = [kernel_rec].into_iter().collect();
     let mut legacy = BTreeSet::new();
@@ -604,7 +625,8 @@ fn expect_self_test_legacy_top_level_dir() -> Result<(), Vec<String>> {
 }
 
 fn expect_self_test_extra_catalog_allowed() -> Result<(), Vec<String>> {
-    let (kernel_pkg, kernel_rec) = fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+    let (kernel_pkg, kernel_rec) =
+        fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
     let (domain_pkg, domain_rec) = fixture_package(
         "oya-platform-tenant-domain",
         "domain",
@@ -638,7 +660,8 @@ fn expect_self_test_extra_catalog_allowed() -> Result<(), Vec<String>> {
 }
 
 fn expect_self_test_infrastructure_and_test_roles() -> Result<(), Vec<String>> {
-    let (kernel_pkg, kernel_rec) = fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
+    let (kernel_pkg, kernel_rec) =
+        fixture_package("oya-platform-tenant-kernel", "kernel", &[], "crates");
     let (infra_pkg, infra_rec) = fixture_package(
         "oya-http-tenant-middleware-infrastructure",
         "infrastructure",
@@ -737,7 +760,9 @@ mod tests {
         let (errors, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
         assert!(
-            errors.iter().any(|e| e.contains("forbidden dependency edge")),
+            errors
+                .iter()
+                .any(|e| e.contains("forbidden dependency edge")),
             "expected forbidden-edge error, got {errors:?}",
         );
     }
@@ -749,7 +774,10 @@ mod tests {
         let catalog = [bad_rec].into_iter().collect();
         let (errors, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
-        assert!(errors.iter().any(|e| e.contains("oya- prefix")), "{errors:?}");
+        assert!(
+            errors.iter().any(|e| e.contains("oya- prefix")),
+            "{errors:?}"
+        );
     }
 
     #[test]
@@ -783,7 +811,10 @@ mod tests {
         .collect();
         let (errors, _) =
             validate_packages(&packages, &catalog, &fixture_repo_root(), &BTreeSet::new());
-        assert!(errors.iter().any(|e| e.contains("unknown role")), "{errors:?}");
+        assert!(
+            errors.iter().any(|e| e.contains("unknown role")),
+            "{errors:?}"
+        );
     }
 
     #[test]

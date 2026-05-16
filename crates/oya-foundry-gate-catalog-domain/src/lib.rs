@@ -202,14 +202,10 @@ pub fn all_canonical_commands_rendered() -> String {
 #[non_exhaustive]
 pub enum GateCatalogError {
     /// Returned by `assert_non_empty` if either constant list is empty.
-    EmptyCatalog {
-        list_name: &'static str,
-    },
+    EmptyCatalog { list_name: &'static str },
     /// Returned by `assert_unique` if a duplicate entry is detected
     /// (defensive: the unit tests guarantee uniqueness at build time).
-    DuplicateEntry {
-        entry: String,
-    },
+    DuplicateEntry { entry: String },
 }
 
 impl fmt::Display for GateCatalogError {
@@ -360,9 +356,8 @@ mod tests {
         // appears in the canonical surface.
         let rendered = all_canonical_commands_rendered();
         assert!(
-            rendered.contains(
-                "cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract"
-            )
+            rendered
+                .contains("cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract")
         );
     }
 

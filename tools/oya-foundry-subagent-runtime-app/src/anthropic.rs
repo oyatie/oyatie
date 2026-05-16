@@ -119,9 +119,7 @@ impl<T: HttpTransport, R: SecretResolver> AnthropicSubagentPort<T, R> {
     /// drive.
     fn extract_text_content(response_body: &str) -> Result<String, SubagentError> {
         let content_start = response_body.find("\"content\"").ok_or_else(|| {
-            SubagentError::ProviderRejected(
-                "response missing `content` key".to_owned(),
-            )
+            SubagentError::ProviderRejected("response missing `content` key".to_owned())
         })?;
         let after = &response_body[content_start..];
         // Find the first `"text"` token that is FOLLOWED by `:` (i.e.
@@ -131,9 +129,7 @@ impl<T: HttpTransport, R: SecretResolver> AnthropicSubagentPort<T, R> {
         let mut search_from = 0usize;
         let body_start_offset = loop {
             let rel = after[search_from..].find(needle).ok_or_else(|| {
-                SubagentError::ProviderRejected(
-                    "response missing `text` field".to_owned(),
-                )
+                SubagentError::ProviderRejected("response missing `text` field".to_owned())
             })?;
             let abs = search_from + rel;
             let trailing = &after[abs + needle.len()..];
@@ -301,10 +297,8 @@ mod tests {
     #[test]
     fn render_request_body_contains_model_and_messages_in_stable_order() {
         let transport = StubHttpTransport::new(String::new());
-        let port = AnthropicSubagentPort::new(
-            transport,
-            FixedSecretResolver::new("test-key".into()),
-        );
+        let port =
+            AnthropicSubagentPort::new(transport, FixedSecretResolver::new("test-key".into()));
         let body = port.render_request_body(&sample_request(), 1024);
         // Stable order: model → max_tokens → system → messages.
         let model_at = body.find("model").unwrap();
@@ -321,7 +315,11 @@ mod tests {
     #[test]
     fn extract_text_content_reads_first_text_block() {
         let envelope = r#"{"id":"msg_01","content":[{"type":"text","text":"hello\nworld"}],"stop_reason":"end_turn"}"#;
-        let text = AnthropicSubagentPort::<StubHttpTransport, FixedSecretResolver>::extract_text_content(envelope).unwrap();
+        let text =
+            AnthropicSubagentPort::<StubHttpTransport, FixedSecretResolver>::extract_text_content(
+                envelope,
+            )
+            .unwrap();
         assert_eq!(text, "hello\nworld");
     }
 
@@ -329,7 +327,9 @@ mod tests {
     fn extract_text_content_rejects_missing_content_key() {
         let envelope = r#"{"id":"msg_01"}"#;
         assert!(matches!(
-            AnthropicSubagentPort::<StubHttpTransport, FixedSecretResolver>::extract_text_content(envelope),
+            AnthropicSubagentPort::<StubHttpTransport, FixedSecretResolver>::extract_text_content(
+                envelope
+            ),
             Err(SubagentError::ProviderRejected(_))
         ));
     }

@@ -79,26 +79,20 @@ fn run(args: &[String], fs_io: &dyn FilesystemIo) -> Result<String, String> {
         .map_err(|e| format!("budget decision failed: {e}"))?;
 
     match decision {
-        BudgetDecision::DispatchAttempt(attempt) => {
-            dispatch_bundle(
-                &options,
-                attempt,
-                budget
-                    .entry(options.pr_number)
-                    .map(|e| e.attempts_used)
-                    .unwrap_or(attempt),
-                &budget,
-                &workspace_root,
-                fs_io,
-            )
-        }
-        BudgetDecision::Escalate { already_escalated } => escalate(
+        BudgetDecision::DispatchAttempt(attempt) => dispatch_bundle(
             &options,
-            already_escalated,
+            attempt,
+            budget
+                .entry(options.pr_number)
+                .map(|e| e.attempts_used)
+                .unwrap_or(attempt),
             &budget,
             &workspace_root,
             fs_io,
         ),
+        BudgetDecision::Escalate { already_escalated } => {
+            escalate(&options, already_escalated, &budget, &workspace_root, fs_io)
+        }
     }
 }
 
@@ -135,11 +129,7 @@ fn dispatch_bundle(
     );
     let bundle_abspath = workspace_root.join(&bundle_relpath);
     fs_io
-        .create_dir_all(
-            bundle_abspath
-                .parent()
-                .ok_or("bundle path has no parent")?,
-        )
+        .create_dir_all(bundle_abspath.parent().ok_or("bundle path has no parent")?)
         .map_err(|e| format!("mkdir {}: {e}", bundle_abspath.display()))?;
     fs_io
         .write(&bundle_abspath, bundle.to_json())
@@ -164,27 +154,22 @@ fn dispatch_bundle(
     // fix-agent response from the context bundle. The agent then
     // claims via `oya verify` (the canonical pre-merge gate) BEFORE
     // pushing the fix commit.
-    let runtime_pending = match invoke_fix_loop_runtime(
-        options,
-        attempt,
-        &bundle.to_json(),
-        workspace_root,
-        fs_io,
-    ) {
-        Ok(()) => false,
-        Err(error) => {
-            // We surface the runtime failure on stderr but DO NOT
-            // abort dispatch — the bundle is already in place, and a
-            // human / external agent can still consume it via the
-            // claim command. The pending flag stays true so IP-006
-            // refuses admission.
-            eprintln!(
-                "warn: fix-loop runtime invocation failed for pr={} attempt={attempt}: {error}",
-                options.pr_number
-            );
-            true
-        }
-    };
+    let runtime_pending =
+        match invoke_fix_loop_runtime(options, attempt, &bundle.to_json(), workspace_root, fs_io) {
+            Ok(()) => false,
+            Err(error) => {
+                // We surface the runtime failure on stderr but DO NOT
+                // abort dispatch — the bundle is already in place, and a
+                // human / external agent can still consume it via the
+                // claim command. The pending flag stays true so IP-006
+                // refuses admission.
+                eprintln!(
+                    "warn: fix-loop runtime invocation failed for pr={} attempt={attempt}: {error}",
+                    options.pr_number
+                );
+                true
+            }
+        };
 
     Ok(format!(
         "fix-loop dispatched: source={source} pr={pr} attempt={attempt}/{max} bundle={bundle} claim={claim} subagent_runtime_pending={pending} next_step='oya verify' then commit+push",
@@ -210,10 +195,9 @@ fn invoke_fix_loop_runtime(
     fs_io: &dyn FilesystemIo,
 ) -> Result<(), String> {
     let template = build_fix_loop_template();
-    let api_key_ref = SecretReference::new(
-        "sref://openbao/oya/foundry/anthropic-api-key".to_owned(),
-    )
-    .map_err(|e| format!("api-key-ref: {e}"))?;
+    let api_key_ref =
+        SecretReference::new("sref://openbao/oya/foundry/anthropic-api-key".to_owned())
+            .map_err(|e| format!("api-key-ref: {e}"))?;
     let request = SubagentRequest {
         facet_id: "fix_loop_agent".to_owned(),
         reviewer_id: format!(
@@ -347,16 +331,18 @@ impl Options {
             match arg.as_str() {
                 "--source" => {
                     let v = iter.next().ok_or("--source requires a value")?;
-                    source = Some(
-                        FixLoopSource::from_wire(v)
-                            .map_err(|e| format!("--source: {e}"))?,
-                    );
+                    source =
+                        Some(FixLoopSource::from_wire(v).map_err(|e| format!("--source: {e}"))?);
                 }
                 "--pr" => {
                     pr_number = Some(parse_u64(iter.next(), "--pr")?);
                 }
-                "--head-sha" => head_sha = Some(iter.next().ok_or("--head-sha requires a value")?.clone()),
-                "--base-sha" => base_sha = Some(iter.next().ok_or("--base-sha requires a value")?.clone()),
+                "--head-sha" => {
+                    head_sha = Some(iter.next().ok_or("--head-sha requires a value")?.clone())
+                }
+                "--base-sha" => {
+                    base_sha = Some(iter.next().ok_or("--base-sha requires a value")?.clone())
+                }
                 "--now-epoch" => now_epoch = Some(parse_u64(iter.next(), "--now-epoch")?),
                 "--workspace-root" => {
                     workspace_root = Some(PathBuf::from(
@@ -368,11 +354,15 @@ impl Options {
                     failed_jobs.push(parse_failed_job(v)?);
                 }
                 "--review-finding" => {
-                    let v = iter.next().ok_or("--review-finding requires FACET:VERDICT:SHA")?;
+                    let v = iter
+                        .next()
+                        .ok_or("--review-finding requires FACET:VERDICT:SHA")?;
                     review_findings.push(parse_review_finding(v)?);
                 }
                 "--diff-summary" => {
-                    let v = iter.next().ok_or("--diff-summary requires FILES:ADD:DEL:SHA")?;
+                    let v = iter
+                        .next()
+                        .ok_or("--diff-summary requires FILES:ADD:DEL:SHA")?;
                     diff_summary = Some(parse_diff_summary(v)?);
                 }
                 "--commit" => {
@@ -455,7 +445,9 @@ fn parse_diff_summary(value: &str) -> Result<DiffSummary, String> {
         return Err("--diff-summary expects FILES:ADD:DEL:SHA256".into());
     }
     Ok(DiffSummary {
-        files_changed: parts[0].parse().map_err(|e| format!("files_changed: {e}"))?,
+        files_changed: parts[0]
+            .parse()
+            .map_err(|e| format!("files_changed: {e}"))?,
         additions: parts[1].parse().map_err(|e| format!("additions: {e}"))?,
         deletions: parts[2].parse().map_err(|e| format!("deletions: {e}"))?,
         patch_sha256: parts[3].into(),
@@ -654,7 +646,9 @@ mod tests {
             .join("42")
             .join("escalation.json");
         let escalation_json = fs.get(&escalation_path).expect("escalation written");
-        assert!(escalation_json.contains("\"labels\":[\"human-escalation\",\"fix-loop-exhausted\"]"));
+        assert!(
+            escalation_json.contains("\"labels\":[\"human-escalation\",\"fix-loop-exhausted\"]")
+        );
 
         // Second invocation after escalation no-ops idempotently.
         let msg2 = run(&args, &fs).unwrap();

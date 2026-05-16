@@ -69,9 +69,8 @@ pub(crate) fn validate_quality_lanes_gate(
         })?,
         None => all_canonical_commands_rendered(),
     };
-    let report =
-        validate_quality_lanes(records, markdown_rows, owner_teams, &wired_commands)
-            .map_err(|error| format!("quality lanes invalid: {error:?}"))?;
+    let report = validate_quality_lanes(records, markdown_rows, owner_teams, &wired_commands)
+        .map_err(|error| format!("quality lanes invalid: {error:?}"))?;
     Ok((
         report.registry_records,
         report.markdown_rows,

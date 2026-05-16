@@ -131,8 +131,14 @@ mod tests {
             "fixtures/hook.sh".to_string(),
         ])
         .expect("explicit paths parse");
-        assert_eq!(args.done_definition_doc_path, PathBuf::from("fixtures/done.md"));
-        assert_eq!(args.cli_dispatch_source_path, PathBuf::from("fixtures/lib.rs"));
+        assert_eq!(
+            args.done_definition_doc_path,
+            PathBuf::from("fixtures/done.md")
+        );
+        assert_eq!(
+            args.cli_dispatch_source_path,
+            PathBuf::from("fixtures/lib.rs")
+        );
         assert_eq!(args.hook_script_path, PathBuf::from("fixtures/hook.sh"));
     }
 
@@ -145,8 +151,7 @@ mod tests {
 
     #[test]
     fn parse_rejects_dangling_value_flag() {
-        let result =
-            parse_pre_push_contract_validate_args(vec!["--done-definition".to_string()]);
+        let result = parse_pre_push_contract_validate_args(vec!["--done-definition".to_string()]);
         assert!(result.is_err());
     }
 }

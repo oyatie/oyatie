@@ -152,18 +152,10 @@ fn parse_fan_out_options(args: &[String]) -> Result<FanOutOptions, String> {
     while let Some(arg) = iter.next() {
         match arg.as_str() {
             "--pr-number" => {
-                pr_number = Some(
-                    iter.next()
-                        .ok_or("--pr-number requires a value")?
-                        .clone(),
-                );
+                pr_number = Some(iter.next().ok_or("--pr-number requires a value")?.clone());
             }
             "--change-id" => {
-                change_id = Some(
-                    iter.next()
-                        .ok_or("--change-id requires a value")?
-                        .clone(),
-                );
+                change_id = Some(iter.next().ok_or("--change-id requires a value")?.clone());
             }
             "--templates-dir" => {
                 templates_dir = Some(PathBuf::from(
@@ -181,28 +173,17 @@ fn parse_fan_out_options(args: &[String]) -> Result<FanOutOptions, String> {
                 ));
             }
             "--mode" => {
-                mode = RuntimeMode::from_wire(
-                    iter.next().ok_or("--mode requires a value")?,
-                )?;
+                mode = RuntimeMode::from_wire(iter.next().ok_or("--mode requires a value")?)?;
             }
             "--api-key-ref" => {
-                api_key_ref_raw = Some(
-                    iter.next()
-                        .ok_or("--api-key-ref requires a value")?
-                        .clone(),
-                );
+                api_key_ref_raw =
+                    Some(iter.next().ok_or("--api-key-ref requires a value")?.clone());
             }
             "--model-id" => {
-                model_id = iter
-                    .next()
-                    .ok_or("--model-id requires a value")?
-                    .clone();
+                model_id = iter.next().ok_or("--model-id requires a value")?.clone();
             }
             "--tool-tag" => {
-                tool_tag = iter
-                    .next()
-                    .ok_or("--tool-tag requires a value")?
-                    .clone();
+                tool_tag = iter.next().ok_or("--tool-tag requires a value")?.clone();
             }
             "--help" | "-h" => return Err(usage()),
             other => return Err(format!("unexpected argument `{other}`\n{}", usage())),
@@ -253,22 +234,14 @@ fn parse_fix_loop_options(args: &[String]) -> Result<FixLoopOptions, String> {
                 );
             }
             "--mode" => {
-                mode = RuntimeMode::from_wire(
-                    iter.next().ok_or("--mode requires a value")?,
-                )?;
+                mode = RuntimeMode::from_wire(iter.next().ok_or("--mode requires a value")?)?;
             }
             "--api-key-ref" => {
-                api_key_ref_raw = Some(
-                    iter.next()
-                        .ok_or("--api-key-ref requires a value")?
-                        .clone(),
-                );
+                api_key_ref_raw =
+                    Some(iter.next().ok_or("--api-key-ref requires a value")?.clone());
             }
             "--model-id" => {
-                model_id = iter
-                    .next()
-                    .ok_or("--model-id requires a value")?
-                    .clone();
+                model_id = iter.next().ok_or("--model-id requires a value")?.clone();
             }
             "--help" | "-h" => return Err(usage()),
             other => return Err(format!("unexpected argument `{other}`\n{}", usage())),
@@ -289,8 +262,9 @@ fn parse_fix_loop_options(args: &[String]) -> Result<FixLoopOptions, String> {
 
 fn run_fan_out(options: FanOutOptions) -> Result<String, String> {
     let user_message = match &options.user_message_file {
-        Some(path) => fs::read_to_string(path)
-            .map_err(|e| format!("read {}: {e}", path.display()))?,
+        Some(path) => {
+            fs::read_to_string(path).map_err(|e| format!("read {}: {e}", path.display()))?
+        }
         None => format!(
             "PR #{pr} (change-id {cid}) — diff bundle not attached; fan-out is being driven from CI with no diff file available.\n",
             pr = options.pr_number,
@@ -311,7 +285,14 @@ fn run_fan_out(options: FanOutOptions) -> Result<String, String> {
     match options.mode {
         RuntimeMode::DeterministicMock => {
             let port = MockSubagentPort::new();
-            execute_fan_out(&options, &user_message, &port, now, &panel, &evidence_pr_dir)
+            execute_fan_out(
+                &options,
+                &user_message,
+                &port,
+                now,
+                &panel,
+                &evidence_pr_dir,
+            )
         }
         RuntimeMode::AnthropicApi => {
             // The production binary must be invoked with a transport
@@ -347,21 +328,11 @@ fn execute_fan_out<P: SubagentPort>(
 ) -> Result<String, String> {
     let mut emitted = 0u32;
     for facet in panel {
-        let template_path = options
-            .templates_dir
-            .join(format!("{}.md", facet.as_str()));
-        let template_raw = fs::read_to_string(&template_path).map_err(|e| {
-            format!(
-                "read template {}: {e}",
-                template_path.display()
-            )
-        })?;
-        let template = FacetPromptTemplate::parse(&template_raw).map_err(|e| {
-            format!(
-                "parse template {}: {e}",
-                template_path.display()
-            )
-        })?;
+        let template_path = options.templates_dir.join(format!("{}.md", facet.as_str()));
+        let template_raw = fs::read_to_string(&template_path)
+            .map_err(|e| format!("read template {}: {e}", template_path.display()))?;
+        let template = FacetPromptTemplate::parse(&template_raw)
+            .map_err(|e| format!("parse template {}: {e}", template_path.display()))?;
         let reviewer_id = format!(
             "{tool}-{facet}-{change}",
             tool = options.tool_tag,
@@ -399,18 +370,10 @@ fn execute_fan_out<P: SubagentPort>(
 }
 
 fn run_fix_loop(options: FixLoopOptions) -> Result<String, String> {
-    let bundle_raw = fs::read_to_string(&options.bundle_path).map_err(|e| {
-        format!(
-            "read bundle {}: {e}",
-            options.bundle_path.display()
-        )
-    })?;
-    fs::create_dir_all(&options.output_dir).map_err(|e| {
-        format!(
-            "mkdir {}: {e}",
-            options.output_dir.display()
-        )
-    })?;
+    let bundle_raw = fs::read_to_string(&options.bundle_path)
+        .map_err(|e| format!("read bundle {}: {e}", options.bundle_path.display()))?;
+    fs::create_dir_all(&options.output_dir)
+        .map_err(|e| format!("mkdir {}: {e}", options.output_dir.display()))?;
 
     let now = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -446,8 +409,7 @@ fn run_fix_loop(options: FixLoopOptions) -> Result<String, String> {
     let output_path = options
         .output_dir
         .join(format!("{}-agent-response.json", options.attempt));
-    fs::write(&output_path, json)
-        .map_err(|e| format!("write {}: {e}", output_path.display()))?;
+    fs::write(&output_path, json).map_err(|e| format!("write {}: {e}", output_path.display()))?;
     Ok(format!(
         "fix-loop complete: attempt={attempt} output={output} mode={mode} subagent_runtime_pending=false next_step='oya verify' then commit+push",
         attempt = options.attempt,
@@ -559,11 +521,7 @@ mod tests {
         assert!(msg.contains("subagent_runtime_pending=false"));
 
         let pr_dir = evidence.join("pr-42");
-        for slug in [
-            "F1_linus",
-            "A7_algorithm_adherence",
-            "M2_zoomed_out_fit",
-        ] {
+        for slug in ["F1_linus", "A7_algorithm_adherence", "M2_zoomed_out_fit"] {
             let path = pr_dir.join(format!("{slug}.json"));
             let json = fs::read_to_string(&path).unwrap();
             assert!(json.contains(&format!("\"facet_id\": \"{slug}\"")));

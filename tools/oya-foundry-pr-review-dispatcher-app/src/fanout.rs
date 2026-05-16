@@ -200,8 +200,7 @@ mod tests {
     #[test]
     fn fan_out_produces_distinct_reviewer_ids_per_facet() {
         let plan = fan_out_facets("M-CC-P10-IP-004-pr42", "claude-critic");
-        let mut reviewer_ids: Vec<String> =
-            plan.iter().map(|d| d.reviewer_id.clone()).collect();
+        let mut reviewer_ids: Vec<String> = plan.iter().map(|d| d.reviewer_id.clone()).collect();
         reviewer_ids.sort();
         let original = reviewer_ids.len();
         reviewer_ids.dedup();

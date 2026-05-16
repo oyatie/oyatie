@@ -63,14 +63,15 @@ pub mod event;
 pub mod tick_log;
 
 pub use event::{
-    AdmissionEvent, AdmissionEventKind, EventParseError, parse_admission_log as parse_admission_log_str,
-};
-pub use oya_foundry_vcs_review_mergequeue_kernel::scheduler::{
-    Scheduler, SchedulerError, TickAction, TickEntry,
+    AdmissionEvent, AdmissionEventKind, EventParseError,
+    parse_admission_log as parse_admission_log_str,
 };
 pub use oya_foundry_vcs_review_mergequeue_kernel::parked_state::ParkedReason;
 pub use oya_foundry_vcs_review_mergequeue_kernel::pr_retry_budget::{
     BudgetVerdict, MAX_ATTEMPTS_PER_PR,
+};
+pub use oya_foundry_vcs_review_mergequeue_kernel::scheduler::{
+    Scheduler, SchedulerError, TickAction, TickEntry,
 };
 pub use tick_log::{TickLogEntry, render_tick_log_registry};
 

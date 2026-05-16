@@ -126,8 +126,8 @@ mod tests {
 
     #[test]
     fn open_stuck_pr_issue_requires_full_attempt_count() {
-        let err = EscalationRecord::open_stuck_pr_issue(7, FixLoopSource::CiFailure, 4, 1)
-            .unwrap_err();
+        let err =
+            EscalationRecord::open_stuck_pr_issue(7, FixLoopSource::CiFailure, 4, 1).unwrap_err();
         assert_eq!(
             err,
             EscalationError::AttemptsBelowEscalationThreshold {
@@ -140,23 +140,11 @@ mod tests {
     #[test]
     fn open_stuck_pr_issue_rejects_zero_pr_and_zero_epoch() {
         assert_eq!(
-            EscalationRecord::open_stuck_pr_issue(
-                0,
-                FixLoopSource::CiFailure,
-                5,
-                1,
-            )
-            .unwrap_err(),
+            EscalationRecord::open_stuck_pr_issue(0, FixLoopSource::CiFailure, 5, 1,).unwrap_err(),
             EscalationError::InvalidPrNumber
         );
         assert_eq!(
-            EscalationRecord::open_stuck_pr_issue(
-                1,
-                FixLoopSource::CiFailure,
-                5,
-                0,
-            )
-            .unwrap_err(),
+            EscalationRecord::open_stuck_pr_issue(1, FixLoopSource::CiFailure, 5, 0,).unwrap_err(),
             EscalationError::EpochZero
         );
     }

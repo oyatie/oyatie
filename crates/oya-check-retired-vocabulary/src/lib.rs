@@ -42,10 +42,10 @@ use std::fmt;
 /// `"scripts/check.sh"`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RetiredTerm {
-    pub term: String,                 // data_class: INTERNAL_ONLY
-    pub retired_at: String,           // data_class: INTERNAL_ONLY (YYYY-MM-DD)
+    pub term: String,                  // data_class: INTERNAL_ONLY
+    pub retired_at: String,            // data_class: INTERNAL_ONLY (YYYY-MM-DD)
     pub canonical_replacement: String, // data_class: INTERNAL_ONLY
-    pub adr: Option<String>,          // data_class: INTERNAL_ONLY (ADR-NNNN or None)
+    pub adr: Option<String>,           // data_class: INTERNAL_ONLY (ADR-NNNN or None)
 }
 
 /// One scanned document (path + contents). The kernel does no I/O;
@@ -69,8 +69,8 @@ pub struct RetiredVocabularyMatch {
 /// Per-run report. `violations.is_empty()` is the green condition.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RetiredVocabularyReport {
-    pub documents_checked: usize,             // data_class: INTERNAL_ONLY
-    pub terms_checked: usize,                 // data_class: INTERNAL_ONLY
+    pub documents_checked: usize,                // data_class: INTERNAL_ONLY
+    pub terms_checked: usize,                    // data_class: INTERNAL_ONLY
     pub violations: Vec<RetiredVocabularyMatch>, // data_class: INTERNAL_ONLY
 }
 
@@ -121,10 +121,7 @@ impl fmt::Display for RetiredVocabularyError {
                     writeln!(
                         formatter,
                         "  {}:{}: `{}` → use canonical `{}`",
-                        hit.document_path,
-                        hit.line_number,
-                        hit.term,
-                        hit.canonical_replacement
+                        hit.document_path, hit.line_number, hit.term, hit.canonical_replacement
                     )?;
                 }
                 Ok(())
@@ -221,8 +218,8 @@ mod tests {
             path: "docs/clean.md",
             contents: "Run `oya verify` before pushing.\n",
         };
-        let report = validate_retired_vocabulary(&terms, [doc])
-            .expect("clean document is accepted");
+        let report =
+            validate_retired_vocabulary(&terms, [doc]).expect("clean document is accepted");
         assert_eq!(report.documents_checked, 1);
         assert_eq!(report.terms_checked, 1);
         assert!(report.violations.is_empty());

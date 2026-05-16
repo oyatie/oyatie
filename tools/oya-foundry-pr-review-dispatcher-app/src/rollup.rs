@@ -263,7 +263,10 @@ mod tests {
         let required = vec![FacetId::F1Linus, FacetId::F2Hyperscaler];
         let report = audit_panel_completeness(&required, &findings);
         assert!(report.missing.is_empty());
-        assert_eq!(report.duplicate_reviewer_ids, vec!["claude-omnibus-changeX"]);
+        assert_eq!(
+            report.duplicate_reviewer_ids,
+            vec!["claude-omnibus-changeX"]
+        );
         assert!(!report.is_complete());
     }
 

@@ -38,13 +38,7 @@ const DEFAULT_REGISTRY_PATH: &str = "registry/vocabulary/retired.yaml";
 // `repoctl pre-push` to `oya verify`" is historical context, not drift
 // back to the retired surface). Callers who want code-comment coverage
 // can opt in via `--corpus-root crates --corpus-root tools`.
-const DEFAULT_CORPUS_ROOTS: &[&str] = &[
-    "docs",
-    "registry",
-    "templates",
-    "scripts",
-    ".github",
-];
+const DEFAULT_CORPUS_ROOTS: &[&str] = &["docs", "registry", "templates", "scripts", ".github"];
 
 // Historical-record paths: each subtree intentionally names retired
 // terms because its purpose IS to record past state. Excluding them
@@ -284,16 +278,7 @@ fn is_text_extension(path: &Path) -> bool {
     };
     matches!(
         extension,
-        "md" | "mdx"
-            | "rs"
-            | "toml"
-            | "yaml"
-            | "yml"
-            | "json"
-            | "tsv"
-            | "csv"
-            | "txt"
-            | "sh"
+        "md" | "mdx" | "rs" | "toml" | "yaml" | "yml" | "json" | "tsv" | "csv" | "txt" | "sh"
     )
 }
 
@@ -332,8 +317,7 @@ retired:
 
     #[test]
     fn parse_uses_canonical_defaults() {
-        let args =
-            parse_retired_vocabulary_validate_args(Vec::new()).expect("no flags is valid");
+        let args = parse_retired_vocabulary_validate_args(Vec::new()).expect("no flags is valid");
         assert_eq!(
             args.registry_path,
             PathBuf::from("registry/vocabulary/retired.yaml")

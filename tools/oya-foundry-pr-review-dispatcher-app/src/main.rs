@@ -169,9 +169,9 @@ impl Options {
             index += 1;
         }
         let api_key_ref = match api_key_ref_raw {
-            Some(raw) => Some(
-                SecretReference::new(raw).map_err(|e| format!("--api-key-ref: {e}"))?,
-            ),
+            Some(raw) => {
+                Some(SecretReference::new(raw).map_err(|e| format!("--api-key-ref: {e}"))?)
+            }
             None => None,
         };
         Ok(Self {
@@ -315,8 +315,8 @@ fn load_findings(dir: &Path) -> Result<Vec<FacetFinding>, String> {
     if !dir.exists() {
         return Ok(findings);
     }
-    let entries = fs::read_dir(dir)
-        .map_err(|error| format!("could not read {}: {error}", dir.display()))?;
+    let entries =
+        fs::read_dir(dir).map_err(|error| format!("could not read {}: {error}", dir.display()))?;
     for entry in entries {
         let entry = entry.map_err(|error| format!("could not read entry: {error}"))?;
         let path = entry.path();
@@ -422,7 +422,10 @@ fn render_rollup_json(
     let mut buf = String::new();
     buf.push_str("{\n");
     buf.push_str("  \"schema\": \"oya-pr-review-rollup/v1\",\n");
-    buf.push_str(&format!("  \"pr_number\": \"{}\",\n", json_escape(pr_number)));
+    buf.push_str(&format!(
+        "  \"pr_number\": \"{}\",\n",
+        json_escape(pr_number)
+    ));
     buf.push_str(&format!("  \"emitted_at_unix\": {now},\n"));
     buf.push_str(&format!("  \"verdict\": \"{}\",\n", verdict.label()));
     buf.push_str(&format!(
@@ -611,20 +614,15 @@ fn write_atomically(path: &Path, contents: &[u8]) -> Result<(), String> {
     }
     let tmp = path.with_extension("tmp");
     {
-        let mut file = fs::File::create(&tmp)
-            .map_err(|error| format!("create {}: {error}", tmp.display()))?;
+        let mut file =
+            fs::File::create(&tmp).map_err(|error| format!("create {}: {error}", tmp.display()))?;
         file.write_all(contents)
             .map_err(|error| format!("write {}: {error}", tmp.display()))?;
         file.sync_all()
             .map_err(|error| format!("fsync {}: {error}", tmp.display()))?;
     }
-    fs::rename(&tmp, path).map_err(|error| {
-        format!(
-            "rename {} -> {}: {error}",
-            tmp.display(),
-            path.display()
-        )
-    })?;
+    fs::rename(&tmp, path)
+        .map_err(|error| format!("rename {} -> {}: {error}", tmp.display(), path.display()))?;
     Ok(())
 }
 
@@ -645,15 +643,13 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let repo = tmp.path();
         let pr = "pr-1";
-        let verdict = run(
-            [
-                "--pr-number".to_string(),
-                pr.to_string(),
-                "--repo-root".to_string(),
-                repo.display().to_string(),
-            ]
-            .into_iter(),
-        )
+        let verdict = run([
+            "--pr-number".to_string(),
+            pr.to_string(),
+            "--repo-root".to_string(),
+            repo.display().to_string(),
+        ]
+        .into_iter())
         .unwrap();
         assert_eq!(verdict, Verdict::Approve);
         let rollup = fs::read_to_string(repo.join(ROLLUP_PATH)).unwrap();
@@ -680,15 +676,13 @@ mod tests {
             r#"{"reviewer_id": "claude-security-F7_security-pr-7", "final_recommendation": "CHANGES_REQUESTED"}"#,
         );
 
-        let verdict = run(
-            [
-                "--pr-number".to_string(),
-                pr.to_string(),
-                "--repo-root".to_string(),
-                repo.display().to_string(),
-            ]
-            .into_iter(),
-        )
+        let verdict = run([
+            "--pr-number".to_string(),
+            pr.to_string(),
+            "--repo-root".to_string(),
+            repo.display().to_string(),
+        ]
+        .into_iter())
         .unwrap();
         assert_eq!(verdict, Verdict::ChangesRequested);
         let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();
@@ -710,15 +704,13 @@ mod tests {
             &evidence_dir.join("F1_linus.json"),
             r#"{"reviewer_id": "claude-critic-F1_linus-pr-9", "final_recommendation": "APPROVE"}"#,
         );
-        let verdict = run(
-            [
-                "--pr-number".to_string(),
-                pr.to_string(),
-                "--repo-root".to_string(),
-                repo.display().to_string(),
-            ]
-            .into_iter(),
-        )
+        let verdict = run([
+            "--pr-number".to_string(),
+            pr.to_string(),
+            "--repo-root".to_string(),
+            repo.display().to_string(),
+        ]
+        .into_iter())
         .unwrap();
         assert_eq!(verdict, Verdict::Reject);
     }
@@ -728,15 +720,13 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let repo = tmp.path();
         for pr in ["pr-1", "pr-2"] {
-            let _ = run(
-                [
-                    "--pr-number".to_string(),
-                    pr.to_string(),
-                    "--repo-root".to_string(),
-                    repo.display().to_string(),
-                ]
-                .into_iter(),
-            )
+            let _ = run([
+                "--pr-number".to_string(),
+                pr.to_string(),
+                "--repo-root".to_string(),
+                repo.display().to_string(),
+            ]
+            .into_iter())
             .unwrap();
         }
         let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();
@@ -746,7 +736,8 @@ mod tests {
 
     #[test]
     fn json_string_field_extracts_simple_value() {
-        let s = r#"{"reviewer_id": "claude-critic-F1_linus-pr-7", "final_recommendation": "APPROVE"}"#;
+        let s =
+            r#"{"reviewer_id": "claude-critic-F1_linus-pr-7", "final_recommendation": "APPROVE"}"#;
         assert_eq!(
             json_string_field(s, "reviewer_id"),
             Some("claude-critic-F1_linus-pr-7".to_string())
@@ -796,19 +787,17 @@ mod tests {
         let repo = tmp.path();
         seed_facet_templates(repo);
         let pr = "pr-runtime-1";
-        let verdict = run(
-            [
-                "--pr-number".to_string(),
-                pr.to_string(),
-                "--repo-root".to_string(),
-                repo.display().to_string(),
-                "--runtime-mode".to_string(),
-                "inline-deterministic-mock".to_string(),
-                "--change-id".to_string(),
-                "test-change".to_string(),
-            ]
-            .into_iter(),
-        )
+        let verdict = run([
+            "--pr-number".to_string(),
+            pr.to_string(),
+            "--repo-root".to_string(),
+            repo.display().to_string(),
+            "--runtime-mode".to_string(),
+            "inline-deterministic-mock".to_string(),
+            "--change-id".to_string(),
+            "test-change".to_string(),
+        ]
+        .into_iter())
         .unwrap();
         // The deterministic mock generates a mix of APPROVE / CHANGES_REQUESTED
         // / REJECT across the 21 facets, so the rollup verdict is one of
@@ -843,15 +832,13 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let repo = tmp.path();
         let pr = "pr-no-runtime";
-        let verdict = run(
-            [
-                "--pr-number".to_string(),
-                pr.to_string(),
-                "--repo-root".to_string(),
-                repo.display().to_string(),
-            ]
-            .into_iter(),
-        )
+        let verdict = run([
+            "--pr-number".to_string(),
+            pr.to_string(),
+            "--repo-root".to_string(),
+            repo.display().to_string(),
+        ]
+        .into_iter())
         .unwrap();
         assert_eq!(verdict, Verdict::Approve);
         let admission = fs::read_to_string(repo.join(ADMISSION_LOG)).unwrap();

@@ -16,8 +16,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use oya_foundry_vcs_merge_queue_fix_loop_app::{
-    AdmissionEventKind, ParkedReason, Scheduler, parse_admission_log_str,
-    render_tick_log_registry,
+    AdmissionEventKind, ParkedReason, Scheduler, parse_admission_log_str, render_tick_log_registry,
 };
 
 const ADMISSION_LOG_PATH: &str = "registries/cross-cutting/merge-queue-admission-log.json";
@@ -89,8 +88,7 @@ impl Options {
         }
         Ok(Self {
             workspace_root: workspace_root.unwrap_or_else(|| PathBuf::from(".")),
-            initial_head_sha: initial_head_sha
-                .ok_or("--initial-head-sha is required (40-hex)")?,
+            initial_head_sha: initial_head_sha.ok_or("--initial-head-sha is required (40-hex)")?,
             now_epoch: now_epoch.ok_or("--now-epoch is required")?,
             max_ticks,
         })
@@ -106,8 +104,8 @@ pub fn run(args: &[String], fs_io: &dyn FilesystemIo) -> Result<String, String> 
     let events = parse_admission_log_str(&admission_json)
         .map_err(|e| format!("parse admission log: {e}"))?;
 
-    let mut scheduler = Scheduler::new(&opts.initial_head_sha)
-        .map_err(|e| format!("scheduler init: {e}"))?;
+    let mut scheduler =
+        Scheduler::new(&opts.initial_head_sha).map_err(|e| format!("scheduler init: {e}"))?;
     let now_epoch = opts.now_epoch;
     let mut summary = SchedulerSummary::default();
     for event in events {
@@ -138,7 +136,9 @@ pub fn run(args: &[String], fs_io: &dyn FilesystemIo) -> Result<String, String> 
                     // Already admitted is fine; other errors are real.
                     if !matches!(
                         e,
-                        oya_foundry_vcs_merge_queue_fix_loop_app::SchedulerError::PrAlreadyAdmitted(_)
+                        oya_foundry_vcs_merge_queue_fix_loop_app::SchedulerError::PrAlreadyAdmitted(
+                            _
+                        )
                     ) {
                         return Err(format!("pre-admit pr={}: {e}", event.pr_number));
                     }

@@ -88,6 +88,6 @@ pub use context_bundle::{
     LedgerCandidate, ReviewFinding, ReviewVerdict,
 };
 pub use event::{DispatchEvent, FixLoopSource};
-pub use retry_budget::{Budget, BudgetDecision, BudgetError, PrBudgetEntry, MAX_ATTEMPTS_PER_PR};
+pub use retry_budget::{Budget, BudgetDecision, BudgetError, MAX_ATTEMPTS_PER_PR, PrBudgetEntry};
 
 pub const SCHEMA_VERSION: u32 = 1;
