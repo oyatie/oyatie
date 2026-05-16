@@ -181,7 +181,7 @@ The full set Oyatie binds to via regional packs (initial v0.1 — expands as pac
 
 | Article | Title | Implementing surface | Evidence | Cadence |
 |---|---|---|---|---|
-| Art 6 | High-risk AI systems classification | Per-capability classification in `product-control/capabilities/` | per-capability | per-publish + quarterly |
+| Art 6 | High-risk AI systems classification | Per-capability classification in `registry/capability-templates/` | per-capability | per-publish + quarterly |
 | Art 9 | Risk management system | Foundry autonomy ceiling + eval harness | per-capability + monthly |
 | Art 10 | Data governance | Data Use Boundary + per-tenant evidence | continuous |
 | Art 11 | Technical documentation | Per-capability rustdoc + per-capability eval set | per-capability |

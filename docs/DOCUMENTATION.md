@@ -70,7 +70,7 @@ Plus a fifth, project-management quadrant for the consolidated docs themselves (
 | **Per-team charters** | `docs/teams/<team-id>/CHARTER.md` | per-team | Hand-authored using a fixed shape |
 | **Regional pack docs** | `docs/regional-packs/<pack-id>/PACK.md` | `regional-packs` team + per-pack maintainer | Hand-authored from a pack template |
 | **Machine-readable manifests** | `docs/machine-readable/*.json` | `council-architecture` (schema); per-doc-owner (content) | Hand-authored or programmatically emitted |
-| **Capability registry** | `product-control/capabilities/<capability-id>.yaml` | per-capability team | Hand-authored YAML; CI validation |
+| **Capability registry** | `registry/capability-templates/<capability-id>.yaml` | per-capability team | Hand-authored YAML; CI validation |
 | **Catalog records** | `registry/catalog/<crate>.yaml` | per-crate owner | Hand-authored YAML; `oya catalog scaffold` agent-assisted |
 | **Trust portal** | `trust.oyatie.com/` | `ops-compliance` + `council-privacy` | Generated from compliance evidence + audit-chain anchor proofs + DPIA / SOC2 / ISMS-P attestations |
 | **Status page** | `status.oyatie.com/` | `ops-sre-reliability` | Generated from SLO catalog + incident management |
@@ -89,7 +89,7 @@ The toolchain that produces docs:
 | **`oya-doc openapi`** | All `contracts/openapi/**/*.yaml` + proto schemas | Public API reference at `docs.oyatie.com/reference/` + per-language SDK docs |
 | **`oya-doc mdbook`** | Hand-authored `docs/site/**/*.md` | `docs.oyatie.com/{tutorials,guides,concepts,admin,studio,plugins}/` |
 | **`oya-doc adr-index`** | All `decisions/ADR-*.md` | `docs/ADR-INDEX.md` + `machine-readable/decisions.json` |
-| **`oya-doc catalog`** | All `registry/catalog/*.yaml` + `product-control/capabilities/*.yaml` | `dev.oyatie.com/` portal + `machine-readable/{products,catalog,contracts,batches}.json` |
+| **`oya-doc catalog`** | All `registry/catalog/*.yaml` + `registry/capability-templates/*.yaml` | `dev.oyatie.com/` portal + `machine-readable/{products,catalog,contracts,batches}.json` |
 
 All five live under `oya doc <subcommand>` (sub-CLI of the persona-split per [`TOOLCHAIN.md §3`](TOOLCHAIN.md)). Implementation language: Rust.
 

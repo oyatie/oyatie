@@ -25,7 +25,7 @@ pub(crate) fn parse_foundry_capability_schema_validate_args(
     args: Vec<String>,
 ) -> Result<FoundryCapabilitySchemaValidateArgs, String> {
     let mut parsed = FoundryCapabilitySchemaValidateArgs {
-        capabilities_dir: PathBuf::from("product-control/capabilities"),
+        capabilities_dir: PathBuf::from("registry/capability-templates"),
     };
     let mut iter = args.into_iter();
     while let Some(flag) = iter.next() {

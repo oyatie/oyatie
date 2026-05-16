@@ -244,7 +244,7 @@ These are terms we use that don't have a clean industry term, or that we've expl
 | **Claim ceiling** | Mechanical block preventing a preview slice from claiming a foundation guarantee that the foundation hasn't shipped. | "Capability gating" / "Feature flag with provenance" | (Oyatie); validator in `crates/oya-foundry-claim-ceiling-kernel` |
 | **Foundation bypass** | Tracked, expirable carve-out from a foundation gate. | "Tech-debt waiver" / "Exception ticket" | `registry/foundation-bypasses/` |
 | **Catalog record** | The YAML manifest describing a flat-crate. | "Service catalog entry" (Backstage) | `registry/catalog/` per ADR-0015/0222 |
-| **Capability record** | The YAML manifest declaring an agent capability. | "Tool manifest" / "Function spec" | `product-control/capabilities/` |
+| **Capability record** | The YAML manifest declaring an agent capability. | "Tool manifest" / "Function spec" | `registry/capability-templates/` |
 | **Repoctl** | The internal CLI for everyday engineering tasks (check, push, validate, etc.). | "Developer CLI" | `crates/oya-tooling-cli-dev-runtime/` compatibility binary; persona split planned under `crates/oya-tooling-cli-*` |
 | **Ecosystem-as-a-Service (EaaS)** | The thesis that Oyatie's 7 axes form one cohesive product. | (industry uses "Platform-as-a-Service" / "Vertical SaaS"; EaaS is Oyatie's framing) | PRD §1 |
 
@@ -506,7 +506,7 @@ Per [`registry/catalog/<crate>.yaml`](../registry/catalog/), the `plane:` field 
 
 ### 12.9 Capability labels (registry)
 
-Per `product-control/capabilities/`, every capability declares `category`, `data_classes_touched`, `autonomy_tier_required`, `evidence_emission_topic`, `regulatory_packs_consumed`.
+Per `registry/capability-templates/`, every capability declares `category`, `data_classes_touched`, `autonomy_tier_required`, `evidence_emission_topic`, `regulatory_packs_consumed`.
 
 ---
 

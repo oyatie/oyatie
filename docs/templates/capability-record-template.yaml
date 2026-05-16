@@ -1,4 +1,4 @@
-# Capability record template — copy to product-control/capabilities/<id>.yaml
+# Capability record template — copy to registry/capability-templates/<id>.yaml
 # Validates against schema at registry/quality/capability-record.schema.json
 # CI gate: capability-schema-validator (must pass before publish)
 
