@@ -196,6 +196,9 @@ fn validate_deployment_ops_contract(
         "oya onprem install",
         "oya onprem uninstall",
         "oya onprem doctor",
+        "oya ops oci-a1-capacity-retry",
+        "oya ops oci-readiness-probe",
+        "oya ops onprem-bring-up",
     ] {
         if !rust_surfaces.contains(surface) {
             errors.push(format!(
@@ -279,6 +282,38 @@ fn validate_deployment_ops_contract(
                 errors.push(format!(
                     "legacy onprem shell contains forbidden manual SSH/troubleshooting guidance {forbidden:?}: {}",
                     slash_path(path.strip_prefix(&repo_root).unwrap_or(&path))
+                ));
+            }
+        }
+    }
+
+    for (shim, command) in [
+        (
+            "scripts/oci-a1-capacity-retry.sh",
+            "ops oci-a1-capacity-retry",
+        ),
+        ("scripts/oci-readiness-probe.sh", "ops oci-readiness-probe"),
+        ("scripts/onprem-bring-up.sh", "ops onprem-bring-up"),
+    ] {
+        let path = repo_root.join(shim);
+        let text = fs::read_to_string(&path).unwrap_or_default();
+        if !text.contains(command) {
+            errors.push(format!(
+                "root deployment shim {shim} must dispatch to `oya {command}`"
+            ));
+        }
+        for forbidden in [
+            "apt-get",
+            "python3 -m venv",
+            "setup-oyatie-service.sh",
+            "tofu apply",
+            "oci iam",
+            "sudo bash",
+            "ssh ",
+        ] {
+            if text.contains(forbidden) {
+                errors.push(format!(
+                    "root deployment shim {shim} contains forbidden hand-rolled fragment {forbidden:?}"
                 ));
             }
         }

@@ -151,7 +151,10 @@
       "oya onprem plan",
       "oya onprem install",
       "oya onprem uninstall",
-      "oya onprem doctor"
+      "oya onprem doctor",
+      "oya ops oci-a1-capacity-retry",
+      "oya ops oci-readiness-probe",
+      "oya ops onprem-bring-up"
     ],
     "completed_consolidation": [
       {
@@ -171,6 +174,24 @@
         "replacement": "oya onprem uninstall",
         "mode": "compatibility_shim",
         "rule": "Destructive teardown is routed to Rust/ops planning instead of direct shell execution."
+      },
+      {
+        "legacy_path": "scripts/oci-a1-capacity-retry.sh",
+        "replacement": "oya ops oci-a1-capacity-retry",
+        "mode": "compatibility_shim",
+        "rule": "The retry loop is Rust-owned and invokes OpenTofu directly; shell may only locate the repo and exec the Rust command."
+      },
+      {
+        "legacy_path": "scripts/oci-readiness-probe.sh",
+        "replacement": "oya ops oci-readiness-probe",
+        "mode": "compatibility_shim",
+        "rule": "OCI readiness probes are Rust-owned read-only command executions with evidence output; shell must not embed probe logic."
+      },
+      {
+        "legacy_path": "scripts/onprem-bring-up.sh",
+        "replacement": "oya ops onprem-bring-up",
+        "mode": "compatibility_shim",
+        "rule": "On-prem bring-up routes through Makefile bootstrap/install plus OpenTofu and ops; shell must not run sudo package/service installation recipes."
       }
     ],
     "legacy_manual_guidance_forbidden_fragments": [
@@ -290,11 +311,19 @@
     {
       "id": "DEP-OPS-AC-005",
       "rule": "the deployment durable goal no longer routes incidents to page-on-call"
+    },
+    {
+      "id": "DEP-OPS-AC-006",
+      "rule": "root deployment helper scripts are compatibility shims that exec Rust ops commands"
     }
   ],
   "verification_commands": [
     "cargo test -p oya-dev-cli deployment_ops_contract --test deployment_ops_contract",
     "cargo test -p oya-dev-cli --test onprem_cli",
+    "cargo test -p oya-dev-cli --test ops_cli",
+    "cargo run -p oya-dev-cli -- ops oci-a1-capacity-retry --dry-run",
+    "cargo run -p oya-dev-cli -- ops oci-readiness-probe --dry-run",
+    "cargo run -p oya-dev-cli -- ops onprem-bring-up --dry-run",
     "cargo run -p oya-dev-cli -- onprem doctor",
     "cargo run -p oya-dev-cli -- gate validate deployment-ops-contract",
     "make help",
