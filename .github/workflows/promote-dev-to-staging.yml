@@ -13,6 +13,17 @@ name: promote-dev-to-staging
 #   - schedule (every 30 minutes, idempotent — re-points staging to
 #     dev if dev advanced; no-op if already at the same SHA)
 #
+# Downstream-trigger limitation (per Codex P2 finding 2026-05-16):
+#   GitHub Actions does NOT create new workflow runs for events
+#   caused by `GITHUB_TOKEN` (except dispatch events). So advancing
+#   `staging` via this workflow does NOT fire the `push` trigger on
+#   `promote-staging-to-production`. Two mitigations: (a) when a
+#   `WORKFLOW_PAT` repository secret is configured, the final step
+#   below explicitly invokes the downstream workflow via
+#   `gh workflow run`; (b) the downstream workflow's hourly cron is
+#   the safety-net fallback so production still promotes within ≤1
+#   hour of dev advancing even if `WORKFLOW_PAT` is absent.
+#
 # Canary gate (FUTURE — currently always-promote):
 #   Per FINAL-FINAL "canary cohort exposure begins here", a future
 #   amendment SHOULD add a step that queries the canary observability
@@ -60,3 +71,16 @@ jobs:
             -F sha="$dev_sha" \
             -F force=false
           echo "staging advanced to $dev_sha"
+      - name: Trigger downstream production promotion (PAT-only)
+        # GITHUB_TOKEN can't fire downstream workflow_runs (per the
+        # Codex P2 finding). If WORKFLOW_PAT is configured, use it to
+        # fire `promote-staging-to-production` immediately. If absent,
+        # the hourly cron on that workflow is the fallback.
+        if: success() && env.WORKFLOW_PAT != ''
+        env:
+          WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT }}
+          GH_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+        run: |
+          set -euo pipefail
+          gh workflow run promote-staging-to-production.yml --ref dev
+          echo "Triggered promote-staging-to-production via WORKFLOW_PAT"
