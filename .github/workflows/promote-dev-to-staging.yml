@@ -80,7 +80,13 @@ jobs:
         env:
           WORKFLOW_PAT: ${{ secrets.WORKFLOW_PAT }}
           GH_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          # `gh workflow run` needs to know which repo. Since this job
+          # never runs `actions/checkout`, there's no implicit
+          # repository context — pass it via `GH_REPO` env var (gh CLI
+          # convention) which is equivalent to `--repo <owner>/<repo>`
+          # on every gh invocation.
           gh workflow run promote-staging-to-production.yml --ref dev
-          echo "Triggered promote-staging-to-production via WORKFLOW_PAT"
+          echo "Triggered promote-staging-to-production via WORKFLOW_PAT (repo=$GH_REPO)"
