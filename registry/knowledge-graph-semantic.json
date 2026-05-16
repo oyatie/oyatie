@@ -286,6 +286,43 @@
         "evidence/multispectrum/*.json"
       ]
     },
+    "Incident": {
+      "purpose": "Operational incident record with severity, lifecycle status, and closeout/root-cause evidence.",
+      "id_pattern": "^incident:[a-z0-9][a-z0-9-]*-[0-9]{8}-[a-z0-9-]+$",
+      "examples": [
+        "incident:ops-20260516-ci-timeout",
+        "incident:deploy-20260516-origin-tls"
+      ],
+      "contributing_registries": [
+        "registry/incidents/*.json (planned)",
+        "evidence/audit-chain.jsonl"
+      ]
+    },
+    "CausedByChange": {
+      "purpose": "Typed root-cause join node that connects an incident closeout to the concrete change that caused or fixed it.",
+      "id_pattern": "^root-cause:[a-z0-9][a-z0-9-]*:[a-f0-9]{7,40}$",
+      "examples": [
+        "root-cause:incident-ops-20260516-ci-timeout:afb40fdb",
+        "root-cause:incident-deploy-20260516-origin-tls:a848f2b6"
+      ],
+      "contributing_registries": [
+        "registry/incidents/*.json (planned)",
+        "evidence/audit-chain.jsonl"
+      ]
+    },
+    "PullRequest": {
+      "purpose": "GitHub pull request node used to traverse review, CI, evidence, and incident root-cause chains.",
+      "id_pattern": "^pr:[0-9]+$",
+      "examples": [
+        "pr:39",
+        "pr:22"
+      ],
+      "contributing_registries": [
+        "GitHub PR metadata",
+        "evidence/audit-chain.jsonl",
+        "registry/incidents/*.json (planned)"
+      ]
+    },
     "Claim": {
       "purpose": "Hyperscaler claim per claim-matrix",
       "id_pattern": "^claim:[a-z0-9-]+$",
@@ -546,6 +583,28 @@
       "cardinality": "one-to-many",
       "semantics": "lane attestation points to machine-readable evidence path(s), usually JSONL rows or multispectrum evidence files, so freshness can be queried mechanically."
     },
+    "caused_by_change": {
+      "direction": "directed",
+      "source_node_types": [
+        "Incident"
+      ],
+      "target_node_types": [
+        "CausedByChange"
+      ],
+      "cardinality": "one-to-many",
+      "semantics": "incident closeout names the root-cause change join node, including change id, role (caused|fixed|mitigated), and confidence/evidence reference."
+    },
+    "change_from_pr": {
+      "direction": "directed",
+      "source_node_types": [
+        "CausedByChange"
+      ],
+      "target_node_types": [
+        "PullRequest"
+      ],
+      "cardinality": "many-to-many",
+      "semantics": "root-cause change join node links to the pull request that introduced, fixed, or mitigated the incident-relevant change."
+    },
     "blocks_on": {
       "direction": "directed",
       "source_node_types": [
@@ -729,6 +788,12 @@
       "rule": "Every ComplianceControl node has at least one satisfied_by_lane edge to a SatisfiedByLane node and every SatisfiedByLane node has at least one evidence_path edge to EvidencePath.",
       "severity": "error",
       "remediation_hint": "Attach a lane satisfaction node with lane_id/status/freshness policy and at least one JSONL or evidence-bundle path."
+    },
+    {
+      "id": "I16-incident-closeout-has-root-cause-pr-chain",
+      "rule": "Every closed Incident node has at least one caused_by_change edge to a CausedByChange node and each CausedByChange node has at least one change_from_pr edge to PullRequest.",
+      "severity": "error",
+      "remediation_hint": "On incident_close, emit the Incident -> CausedByChange -> PullRequest chain with evidence_ref and closeout timestamp."
     }
   ],
   "read_side_query_examples": [
@@ -751,6 +816,11 @@
       "name": "show_compliance_evidence_freshness",
       "description": "Returns every ComplianceControl with satisfying lane_id, latest evidence path, freshness status, and stale controls first.",
       "query_sketch": "SELECT control.id, lane.lane_id, evidence.jsonl_path, evidence.generated_at, CASE WHEN evidence.generated_at < NOW() - lane.freshness_window THEN 'STALE' ELSE 'FRESH' END AS freshness FROM compliance_controls control JOIN satisfied_by_lane_edges sbl ON sbl.source = control.id JOIN lane_satisfactions lane ON lane.id = sbl.target JOIN evidence_path_edges ep ON ep.source = lane.id JOIN evidence_paths evidence ON evidence.id = ep.target ORDER BY freshness DESC, control.id"
+    },
+    {
+      "name": "trace_incident_root_cause_prs",
+      "description": "Returns closed incidents with root-cause change nodes, linked PRs, evidence refs, and newest closeout first.",
+      "query_sketch": "SELECT incident.id, incident.severity, cause.change_id, cause.role, pr.id AS pull_request_id, cause.evidence_ref, incident.closed_at FROM incidents incident JOIN caused_by_change_edges cbc ON cbc.source = incident.id JOIN root_cause_changes cause ON cause.id = cbc.target JOIN change_from_pr_edges cfp ON cfp.source = cause.id JOIN pull_requests pr ON pr.id = cfp.target WHERE incident.status = 'closed' ORDER BY incident.closed_at DESC, incident.id"
     },
     {
       "name": "find_unreachable_features",

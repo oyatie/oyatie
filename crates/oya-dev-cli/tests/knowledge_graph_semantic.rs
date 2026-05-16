@@ -22,6 +22,12 @@ fn semantic_graph() -> Value {
         .expect("semantic KG registry is JSON")
 }
 
+fn kinetic_graph() -> Value {
+    let path = repo_root().join("registry/knowledge-graph-kinetic.json");
+    serde_json::from_str(&fs::read_to_string(path).expect("kinetic KG registry is readable"))
+        .expect("kinetic KG registry is JSON")
+}
+
 #[test]
 fn compliance_control_evidence_freshness_chain_is_graph_traversable() {
     let graph = semantic_graph();
@@ -56,6 +62,79 @@ fn compliance_control_evidence_freshness_chain_is_graph_traversable() {
     assert!(query_sketch.contains("satisfied_by_lane_edges"));
     assert!(query_sketch.contains("evidence_path_edges"));
     assert!(query_sketch.contains("freshness"));
+}
+
+#[test]
+fn incident_closeout_root_cause_pr_chain_is_graph_traversable() {
+    let graph = semantic_graph();
+    let node_types = graph["node_types"]
+        .as_object()
+        .expect("node_types is an object");
+    for node_type in ["Incident", "CausedByChange", "PullRequest"] {
+        assert!(
+            node_types.contains_key(node_type),
+            "missing node_type {node_type}"
+        );
+    }
+
+    assert_edge_allows(&graph, "caused_by_change", "Incident", "CausedByChange");
+    assert_edge_allows(&graph, "change_from_pr", "CausedByChange", "PullRequest");
+
+    let queries = graph["read_side_query_examples"]
+        .as_array()
+        .expect("queries are an array");
+    let root_cause_query = queries
+        .iter()
+        .find(|query| query["name"] == "trace_incident_root_cause_prs")
+        .expect("incident root-cause query exists");
+    let query_sketch = root_cause_query["query_sketch"]
+        .as_str()
+        .expect("query sketch is a string");
+    assert!(query_sketch.contains("caused_by_change_edges"));
+    assert!(query_sketch.contains("change_from_pr_edges"));
+    assert!(query_sketch.contains("pull_request_id"));
+}
+
+#[test]
+fn close_incident_action_emits_root_cause_pr_chain() {
+    let graph = kinetic_graph();
+    let close_incident = &graph["action_types"]["CloseIncident"];
+    assert_eq!(close_incident["input_node_type"], "Incident");
+    assert_eq!(close_incident["emits_audit_topic"], "oya.incident.closed");
+
+    let required_fields = close_incident["required_fields"]
+        .as_array()
+        .expect("required_fields is an array");
+    for field in [
+        "incident_id",
+        "root_cause_change_id",
+        "pull_request_id",
+        "evidence_ref",
+        "closed_at",
+    ] {
+        assert!(
+            required_fields.iter().any(|required| required == field),
+            "CloseIncident missing required field {field}"
+        );
+    }
+
+    let invariants = close_incident["validator_invariants_to_recheck"]
+        .as_array()
+        .expect("validator invariants are an array");
+    assert!(
+        invariants
+            .iter()
+            .any(|invariant| invariant == "I16-incident-closeout-has-root-cause-pr-chain")
+    );
+
+    let workflow_actions = graph["workflows"]["incident_closeout"]["actions_in_order"]
+        .as_array()
+        .expect("incident_closeout actions are an array");
+    assert!(workflow_actions.iter().any(|action| {
+        action
+            .as_str()
+            .is_some_and(|text| text.contains("CloseIncident"))
+    }));
 }
 
 fn assert_edge_allows(graph: &Value, edge: &str, source_type: &str, target_type: &str) {

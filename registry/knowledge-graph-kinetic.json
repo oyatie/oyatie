@@ -81,6 +81,24 @@
       "lock_pattern": "none (append-only)",
       "blocked_by_foundation": "cosign + rekor + audit-chain runtime"
     },
+    "CloseIncident": {
+      "purpose": "Close an operational incident and emit the graph-traversable root-cause chain Incident -> CausedByChange -> PullRequest.",
+      "input_node_type": "Incident",
+      "required_fields": [
+        "incident_id",
+        "severity",
+        "root_cause_change_id",
+        "pull_request_id",
+        "evidence_ref",
+        "closed_at"
+      ],
+      "emits_audit_topic": "oya.incident.closed",
+      "idempotency_class": "deterministic-by-(incident_id,root_cause_change_id,pull_request_id)",
+      "lock_pattern": "registry/incidents/<incident_id>.json + audit-chain append-only row",
+      "validator_invariants_to_recheck": [
+        "I16-incident-closeout-has-root-cause-pr-chain"
+      ]
+    },
     "LandConsensusVerdict": {
       "purpose": "Record codex consensus round verdict (APPROVE / ITERATE / REJECT) for a plan; updates plan verification_status.",
       "input_node_type": "Plan",
@@ -243,6 +261,15 @@
         "PromoteCapabilityStatus (capability planned\u2192operational)",
         "EmitEvidenceBundle (audit)"
       ]
+    },
+    "incident_closeout": {
+      "purpose": "Close incident records through a graph-traversable root-cause PR chain instead of prose-only troubleshooting notes.",
+      "actions_in_order": [
+        "AddRegistryRow (registry/incidents/<incident_id>.json)",
+        "CloseIncident (emits Incident -> CausedByChange -> PullRequest)",
+        "EmitEvidenceBundle (incident closeout attestation)"
+      ],
+      "stop_condition": "Incident status=closed, evidence_ref exists, and I16 root-cause PR chain validates."
     }
   },
   "purpose": "Auto-backfilled purpose for knowledge-graph-kinetic.json"
