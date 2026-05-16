@@ -146,8 +146,8 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     // Release-supply-chain phased lane (separate from default supply-chain).
     "cargo run -p oya-dev-cli -- gate validate release-supply-chain --phase pre-release",
     "cargo run -p oya-dev-cli -- gate validate supply-chain --require-adr0039-evidence",
-    // Pre-push contract check + dedicated foundry tool entry points.
-    "cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract",
+    // Local verification + dedicated foundry tool entry points.
+    "cargo run -p oya-dev-cli -- verify",
     "cargo run -q -p oya-foundry-vcs-admission-gate-app",
     "cargo run -q -p oya-foundry-fitness-purpose-audit-app",
     "cargo run -p oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600",
@@ -360,13 +360,10 @@ mod tests {
 
     #[test]
     fn rendered_form_contains_pre_push_contract_check() {
-        // oya-check-pre-push kernel asserts the literal contract check command
-        // appears in the canonical surface.
+        // oya-check-pre-push kernel asserts that `oya verify` is the
+        // canonical local verification surface.
         let rendered = all_canonical_commands_rendered();
-        assert!(
-            rendered
-                .contains("cargo run -p oya-dev-cli --bin repoctl -- pre-push --verify-contract")
-        );
+        assert!(rendered.contains("cargo run -p oya-dev-cli -- verify"));
     }
 
     #[test]
