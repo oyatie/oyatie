@@ -96,9 +96,9 @@ deleted form. The pair was never coherent.
 ## Consequences
 
 - **The 18-crate ledger is no longer a hidden defect.** Future audits run against the audit-named patterns and find no doc-stub residue.
-- **`specs/crate-naming-audit.json` mast be amended** to reflect the new state: 4 check-lane reintroductions are now compliant; 14 deferred crates are tracked but not workspace.members.
+- **`specs/crate-naming-audit.json` must be amended** to reflect the new state: 4 check-lane reintroductions are now compliant; 14 deferred crates are tracked but not workspace.members.
 - **`specs/masterplan.json` adds a new section** (or extends the M02-P18 phase descriptors) documenting that each cloud sub-µservice's adapter family ships in the same PR as its runtime.
-- **PR template gains a new check**: any new `*-adapter-*` crate must declare a consumer in the same PR. Mechanical-prevention candidate: extend `oya-foundry-fitness-archive-orphan-kernel` with an "adapter-with-no-importer" check.
+- **PR template gains a new check**: any new `*-adapter-*` crate must declare a consumer in the same PR. Mechanical-prevention candidate landed separately as `oya-foundry-fitness-adapter-with-no-importer-kernel`; do not extend the retired archive-orphan lane (ADR-0118).
 - **The "toolchain expands with the ecosystem" principle is now ADR-anchored** — agents and humans cite this ADR to refuse premature crate creation.
 
 ## Drivers

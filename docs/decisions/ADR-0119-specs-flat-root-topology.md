@@ -11,7 +11,7 @@ related:
 purpose: Retire the former nested spec scope directory by hoisting its machine-readable specifications to the flat `specs/` root, preserving history through git moves and aligning spec topology with the Foundry pipeline contribution substrate.
 ---
 
-# ADR-0118 — Specs flat-root topology
+# ADR-0119 — Specs flat-root topology
 
 ## Context
 
@@ -31,7 +31,7 @@ All live references to the retired nested path are rewritten to `specs/`. Histor
 |---|---|
 | `specs/` | Flat plural root because it houses many machine-readable specifications and matches ADR-0115's flat-root pattern without the redundant implicit scope token. |
 | `specs/lifecycle-configs/` | Lifecycle configs stay grouped because the child files are a typed family consumed together by lifecycle fitness lanes, while the group now hangs directly under `specs/`. |
-| `docs/decisions/ADR-0118-specs-flat-root-topology.md` | ADR filename uses the next free ADR number plus kebab summary `specs-flat-root-topology` to name the topology decision, not the mechanical move. |
+| `docs/decisions/ADR-0119-specs-flat-root-topology.md` | ADR filename uses the next free ADR number after the archive-orphan retirement ADR plus kebab summary `specs-flat-root-topology` to name the topology decision, not the mechanical move. |
 | `specs/active-machine-readable-artifact-contract.json` | Preserves the existing spec basename and hoists it under the canonical flat `specs/` root; cross-cutting is the omitted default scope. |
 | `specs/artifact-profile-defaults.json` | Preserves the existing spec basename and hoists it under the canonical flat `specs/` root; cross-cutting is the omitted default scope. |
 | `specs/ci-fix-loop-context-bundle.json` | Preserves the existing spec basename and hoists it under the canonical flat `specs/` root; cross-cutting is the omitted default scope. |
