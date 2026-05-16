@@ -55,7 +55,7 @@ impl Verdict {
     }
 
     /// Event name emitted into
-    /// `registries/cross-cutting/merge-queue-admission-log.json`.
+    /// `registry/merge-queue-admission-log.json`.
     /// APPROVE → admission; ChangesRequested / Reject → fix-requested
     /// (consumed by IP-005 fix-loop).
     #[must_use]

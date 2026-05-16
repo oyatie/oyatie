@@ -37,7 +37,7 @@ pub struct Scheduler {
 }
 
 /// One scheduler tick's audit record. Appended to
-/// `registries/cross-cutting/merge-queue-tick-log.json::entries` so an
+/// `registry/merge-queue-tick-log.json::entries` so an
 /// external observer can verify forward progress per IP-006 §"Convergence
 /// proof".
 #[derive(Clone, Debug, Eq, PartialEq)]

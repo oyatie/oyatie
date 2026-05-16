@@ -122,7 +122,7 @@
     },
     {
       "id": "C02",
-      "rule": "Every cedar_fragments_planned[] reference in /registries/cross-cutting/bounded-contexts.json MUST appear as a fragment_id in this registry."
+      "rule": "Every cedar_fragments_planned[] reference in /registry/bounded-contexts.json MUST appear as a fragment_id in this registry."
     },
     {
       "id": "C03",

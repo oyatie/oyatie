@@ -9,20 +9,20 @@
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
     "sibling_layers": [
-      "/registries/cross-cutting/knowledge-graph-semantic.json (type definitions)",
-      "/registries/cross-cutting/knowledge-graph-kinetic.json (action types + workflows)"
+      "/registry/knowledge-graph-semantic.json (type definitions)",
+      "/registry/knowledge-graph-kinetic.json (action types + workflows)"
     ],
     "palantir_analog": "Time-series + Streams + Live State in Palantir Foundry Ontology"
   },
   "live_state_sources": {
     "Artifact-current-capabilities": {
-      "source_path": "/registries/cross-cutting/artifact-capabilities-registry.json",
+      "source_path": "/registry/artifact-capabilities-registry.json",
       "shape": "rows[].artifact_profile + rows[].capability_overrides",
       "freshness": "manual-edit-on-state-change",
       "consumer": "oya-check-active-artifact-contract validator"
     },
     "Block-current-consumers": {
-      "source_path": "/registries/cross-cutting/reusable-building-blocks-registry.json",
+      "source_path": "/registry/reusable-building-blocks-registry.json",
       "shape": "blocks[].consumer_refs + blocks[].consumer_selectors + blocks[].consumer_count_listed",
       "freshness": "manual-edit-on-edge-change; auto-compute deferred to drift-detector",
       "consumer": "DRY drift detector (planned)"
@@ -81,7 +81,7 @@
   "real_time_observability": {
     "metric_naming_convention": "^oya_[a-z][a-z0-9_]*$",
     "observability_standard": "opentelemetry",
-    "cardinality_budgets_authority": "/registries/cross-cutting/artifact-capabilities-registry.json rows[].capability_overrides.telemetry.metrics[].cardinality_budget",
+    "cardinality_budgets_authority": "/registry/artifact-capabilities-registry.json rows[].capability_overrides.telemetry.metrics[].cardinality_budget",
     "dashboard_authority": "(planned; per-artifact capability_overrides.telemetry.dashboard)"
   },
   "honest_gaps": [

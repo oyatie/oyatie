@@ -20,7 +20,7 @@
 
 **HEAD-tracked load-bearing files:**
 - 7 canonical specs at `/specs/cross-cutting/` (active-artifact-contract v3.0.0 + 5 inherited + plan-schema + markdown-retirement-policy + artifact-profile-defaults + root-hub-pointers)
-- 5 registries at `/registries/cross-cutting/` (artifact-capabilities + reusable-building-blocks + knowledge-graph-{semantic/kinetic/dynamic})
+- 5 registries at `/registry/` (artifact-capabilities + reusable-building-blocks + knowledge-graph-{semantic/kinetic/dynamic})
 - 2 ledgers/attestations at `.omc/ledger/` + `/evidence/`
 - 1 ADR-0069 at `docs/decisions/`
 - 1 Rust validator crate (12 tests pass) at `crates/oya-check-active-artifact-contract/`
@@ -57,7 +57,7 @@
 
 ## §3 Standards now in force (kinetic actions + workflows)
 
-**14 kinetic action types** (per `/registries/cross-cutting/knowledge-graph-kinetic.json`):
+**14 kinetic action types** (per `/registry/knowledge-graph-kinetic.json`):
 CreateArtifact, PromoteCapabilityStatus, DeprecateBlock, EmitEvidenceBundle, LandConsensusVerdict, WireLane, ArchiveArtifact, BumpPlanVersion, AddRegistryRow, UpdateCapabilityOverride, RetireMarkdown, ClaimGrit, DoneGrit, RecordICMStore. Each declares audit topic + idempotency + lock pattern + invariants to recheck.
 
 **4 kinetic workflows:**

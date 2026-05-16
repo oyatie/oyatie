@@ -89,7 +89,7 @@
       "blocker": "pre-existing missing workspace member crates/oya-tenancy-kernel/Cargo.toml"
     },
     {
-      "command": "oya check test-standard --registry /registries/cross-cutting/test-suite-registry.json",
+      "command": "oya check test-standard --registry /registry/test-suite-registry.json",
       "result": "blocked",
       "blocker": "oya shell command absent; cargo-run fallback blocked by missing workspace member"
     }

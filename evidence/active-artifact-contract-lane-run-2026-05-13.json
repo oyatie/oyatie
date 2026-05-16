@@ -3,7 +3,7 @@
   "_artifact_id": "active-artifact-contract-lane-run",
   "_meta": {
     "emitter": "oya-dev-cli gate validate active-artifact-contract",
-    "registry_path": "/registries/cross-cutting/artifact-capabilities-registry.json",
+    "registry_path": "/registry/artifact-capabilities-registry.json",
     "purpose": "Auto-backfilled purpose for active-artifact-contract-lane-run-2026-05-13.json"
   },
   "outcome": "success",

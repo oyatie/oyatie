@@ -35,7 +35,7 @@
       "summary": "Workspace cargo cannot load missing member crates/oya-tenancy-kernel/Cargo.toml; this is outside IP-007 write scope and was not fixed."
     },
     {
-      "command": "oya check test-standard --registry /registries/cross-cutting/test-suite-registry.json",
+      "command": "oya check test-standard --registry /registry/test-suite-registry.json",
       "result": "blocked-pre-existing",
       "summary": "Local shell has no oya executable on PATH (zsh: command not found: oya); targeted rustc tests were used for executable evidence."
     }

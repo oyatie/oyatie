@@ -8,10 +8,10 @@
     "owner_team": "council-architecture + axis-foundry",
     "version": "1.0.0",
     "created_at": "2026-05-13T00:00:00Z",
-    "supersedes_artifact": "/registries/cross-cutting/knowledge-graph-catalog.json (unified; now split into 3 Palantir layers per user directive 'separate ontology into semantic, kinetic, dynamic layers')",
+    "supersedes_artifact": "/registry/knowledge-graph-catalog.json (unified; now split into 3 Palantir layers per user directive 'separate ontology into semantic, kinetic, dynamic layers')",
     "sibling_layers": [
-      "/registries/cross-cutting/knowledge-graph-kinetic.json (action types + workflows)",
-      "/registries/cross-cutting/knowledge-graph-dynamic.json (live state + telemetry pointers)"
+      "/registry/knowledge-graph-kinetic.json (action types + workflows)",
+      "/registry/knowledge-graph-dynamic.json (live state + telemetry pointers)"
     ],
     "palantir_analog": "Object Types + Link Types + Functions (read-side) in Palantir Foundry Ontology"
   },
@@ -25,7 +25,7 @@
         "evidence-bundle-template"
       ],
       "contributing_registries": [
-        "/registries/cross-cutting/artifact-capabilities-registry.json"
+        "/registry/artifact-capabilities-registry.json"
       ]
     },
     "Capability": {
@@ -47,7 +47,7 @@
         "secret-reference-openbao-pattern"
       ],
       "contributing_registries": [
-        "/registries/cross-cutting/reusable-building-blocks-registry.json"
+        "/registry/reusable-building-blocks-registry.json"
       ]
     },
     "Microservice": {
@@ -178,7 +178,7 @@
       ],
       "contributing_registries": [
         "crates/oya-gen-*",
-        "/registries/cross-cutting/reusable-building-blocks-registry.json"
+        "/registry/reusable-building-blocks-registry.json"
       ]
     },
     "Healer": {
@@ -238,7 +238,7 @@
         "oya_forbidden_primitive_invocation_total"
       ],
       "contributing_registries": [
-        "/registries/cross-cutting/artifact-capabilities-registry.json (rows[*].capabilities.telemetry.metrics)"
+        "/registry/artifact-capabilities-registry.json (rows[*].capabilities.telemetry.metrics)"
       ]
     },
     "EvidenceBundle": {
@@ -257,7 +257,7 @@
         "claim:OPS-PERF-MEASURED"
       ],
       "contributing_registries": [
-        "/registries/cross-cutting/claim-matrix/*.json"
+        "/registry/claim-matrix/*.json"
       ]
     },
     "Migration": {

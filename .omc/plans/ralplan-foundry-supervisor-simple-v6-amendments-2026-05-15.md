@@ -11,7 +11,7 @@ multispectrum_doctrine: v2.2.0 enforced; v2.3.0 A-family deferred via F-MULTISPE
   (sunset 2026-07-15)
 audit_chain_event: consensus_debate_complete @ 2026-05-15T03:30:00Z (event
 synthesis_evidence: evidence/debate/M02-P06-FOUNDRY-SUPERVISOR-2026-05-15-synthesis.json
-fixuptasks_filed: 58 (12 BLOCKER, 22 HIGH, 18 MED, 6 LOW) at registries/cross-cutting/fixuptasks.jsonl
+fixuptasks_filed: 58 (12 BLOCKER, 22 HIGH, 18 MED, 6 LOW) at registry/fixuptasks.jsonl
 verdict: ACCEPT-WITH-FIXUPS (12/13 facets concur; M1 REJECT-on-v5 procedurally resolved
   via 3 FixupTasks)
 purpose: Auto-backfilled purpose for ralplan-foundry-supervisor-simple-v6-amendments-2026-05-15.md
@@ -46,7 +46,7 @@ oya-foundry-settings-template-adapter
 **Source:** F-ADR-0069-ARTIFACT-CAPABILITIES-REGISTER-1 (CONV-9, M2)
 **Diff target:** Add Wave 4d grit unit `v5.19-register-artifact-capabilities` in v5 §B.7.
 
-**New rows to add to `/registries/cross-cutting/artifact-capabilities-registry.json`:**
+**New rows to add to `/registry/artifact-capabilities-registry.json`:**
 ```json
 {"artifact_id":"foundry-supervisor-template-claude","artifact_path":"templates/foundry-supervisor/claude.toml","artifact_profile":"template","capability_overrides":{...9 cap rows per ADR-0069...}},
 {"artifact_id":"foundry-supervisor-template-codex","artifact_path":"templates/foundry-supervisor/codex.toml","artifact_profile":"template",...},
@@ -65,7 +65,7 @@ Each `capability_overrides` declares Enforcement / Verification / Validation / A
 **Source:** F-REUSABLE-BUILDING-BLOCKS-REGISTER-1 (CONV-9, M2)
 **Diff target:** Add grit unit `v5.20-register-building-blocks` in v5 §B.7.
 
-**New rows in `/registries/cross-cutting/reusable-building-blocks-registry.json`:**
+**New rows in `/registry/reusable-building-blocks-registry.json`:**
 - `SettingsTemplate` @ `crates/oya-foundry-settings-template-kernel/src/lib.rs::SettingsTemplate` — consumers: [oya-foundry-supervisor-app], version: 1, deprecation: null
 - `SettingsRenderer` @ same crate — consumers: [oya-foundry-supervisor-app, oya-foundry-settings-template-adapter]
 - `HookEvent` @ same crate — consumers: [3 driver impls, settings-template-adapter]
@@ -79,7 +79,7 @@ Each `capability_overrides` declares Enforcement / Verification / Validation / A
 **Source:** F-KNOWLEDGE-GRAPH-EDGES-DECLARE-1 (CONV-4 + CONV-9, M2 + F11)
 **Diff target:** Add grit unit `v5.21-knowledge-graph-edges` in v5 §B.7.
 
-**New edges in `/registries/cross-cutting/knowledge-graph-dynamic.json`:**
+**New edges in `/registry/knowledge-graph-dynamic.json`:**
 ```
 (oya-foundry-settings-template-kernel) --generates--> (per-account on-disk settings files)
 (oya-foundry-settings-template-kernel) --consumes--> (registry/accounts/*.toml)
@@ -328,7 +328,7 @@ The remaining HIGH/MED/LOW FixupTasks (22 HIGH + 18 MED + 6 LOW = 46) ship as bo
 - **MEDIUM (18):** see synthesis fixuptask_summary
 - **LOW (6):** see synthesis fixuptask_summary
 
-All filed at `registries/cross-cutting/fixuptasks.jsonl` with `severity`, `facet_origin`, `conv`, `section_anchor`, and where applicable `sunset_at` / `trigger_to_arm` fields.
+All filed at `registry/fixuptasks.jsonl` with `severity`, `facet_origin`, `conv`, `section_anchor`, and where applicable `sunset_at` / `trigger_to_arm` fields.
 
 ## D. v2.3.0 A-family deferral
 

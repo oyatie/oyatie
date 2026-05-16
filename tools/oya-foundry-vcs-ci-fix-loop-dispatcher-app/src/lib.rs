@@ -41,7 +41,7 @@
 //!
 //! Per IP-005 §"Shared pool of N=5 across BOTH sources": a PR doesn't get
 //! N CI retries AND N review retries; total N=5 across both sources per
-//! PR. The counter file is `registries/cross-cutting/ci-fix-loop-retry-budget.json`
+//! PR. The counter file is `registry/ci-fix-loop-retry-budget.json`
 //! and is consulted/mutated by [`crate::retry_budget::Budget`]. On the
 //! 6th occurrence the dispatcher refuses to emit a bundle and instead
 //! invokes [`crate::escalation::open_stuck_pr_issue`] which opens a
@@ -60,7 +60,7 @@
 //!   `evidence/pipeline-maturity-glue/ip-005-fix-loop/<pr>/<attempt>.json`
 //!   (the per-attempt trace file).
 //! - It appends an event to the agent-dispatch-queue log
-//!   `registries/cross-cutting/ci-fix-loop-retry-budget.json::entries` with
+//!   `registry/ci-fix-loop-retry-budget.json::entries` with
 //!   the bundle path + attempt counter. When the agent runtime lands, it
 //!   tails that log and claims via `oya claim --agent ci-fix-loop ...`.
 //! - The dispatcher returns success deterministically (no panics, no

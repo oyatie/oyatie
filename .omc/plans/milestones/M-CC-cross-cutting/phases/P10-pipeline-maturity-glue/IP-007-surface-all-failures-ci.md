@@ -47,7 +47,7 @@ None at planning level — Wave-1 IP, can ship in parallel with IP-001. (Impleme
 - `.config/nextest.toml::profile.ci` (verify `fail-fast = false`, no change expected)
 - `crates/oya-foundry-fitness-workflow-surface-coverage-kernel/src/lib.rs::evaluate`
 - `tools/oya-foundry-fitness-workflow-surface-coverage-app/src/main.rs::main`
-- `registries/cross-cutting/fitness-lane-registry.json::workflow-surface-coverage`
+- `registry/fitness-lane-registry.json::workflow-surface-coverage`
 
 ## Exit evidence
 

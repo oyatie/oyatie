@@ -1,15 +1,15 @@
 //! Foundry architecture-map app — filesystem walker that builds an
 //! ArchitectureMap from the live workspace and emits it as JSON to
-//! `registries/cross-cutting/graph/architecture-map.json` (or any path).
+//! `registry/graph/architecture-map.json` (or any path).
 //!
 //! Sources walked:
 //!   - root Cargo.toml `members = [...]` → Crate nodes
-//!   - registries/cross-cutting/microservices.json → Microservice nodes
-//!   - registries/cross-cutting/bounded-contexts.json → BoundedContext nodes
+//!   - registry/microservices.json → Microservice nodes
+//!   - registry/bounded-contexts.json → BoundedContext nodes
 //!     (+ `Contains` edges from owning microservice)
 //!   - contracts/*.openapi.yaml → OpenApiContract nodes
 //!     (+ `Exposes` edges from BC if declared)
-//!   - registries/cross-cutting/cedar-fragments.json → CedarFragment nodes
+//!   - registry/cedar-fragments.json → CedarFragment nodes
 //!     (+ `Governs` edges to OpenAPI contracts they protect)
 //!
 //! Pure std-only: parses each input via small line-based extractors.
@@ -62,7 +62,7 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     }
 
     // Microservices.
-    let microservices_path = root.join("registries/cross-cutting/microservices.json");
+    let microservices_path = root.join("registry/microservices.json");
     if microservices_path.exists() {
         let text = read(&microservices_path)?;
         for ms in parse_json_string_array_values(&text, "microservice_id") {
@@ -76,7 +76,7 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     }
 
     // Bounded contexts (+ contains edges).
-    let bc_path = root.join("registries/cross-cutting/bounded-contexts.json");
+    let bc_path = root.join("registry/bounded-contexts.json");
     if bc_path.exists() {
         let text = read(&bc_path)?;
         for (bc_id, microservice_id) in parse_bc_pairs(&text) {
@@ -126,7 +126,7 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     }
 
     // Cedar fragments (+ Governs edges to contracts in consumed_by_openapi[]).
-    let cedar_path = root.join("registries/cross-cutting/cedar-fragments.json");
+    let cedar_path = root.join("registry/cedar-fragments.json");
     if cedar_path.exists() {
         let text = read(&cedar_path)?;
         for (fragment_id, consumed_by) in parse_fragment_consumed_pairs(&text) {

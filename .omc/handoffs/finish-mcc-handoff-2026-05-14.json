@@ -18,7 +18,7 @@
 
   "concrete_artifacts_to_ship": {
     "registries": [
-      "/registries/cross-cutting/tech-debt-ledger.json (object-map, 11 seed deps, top-level default_evaluator_policies, schema validation, quarterly review metadata)"
+      "/registry/tech-debt-ledger.json (object-map, 11 seed deps, top-level default_evaluator_policies, schema validation, quarterly review metadata)"
     ],
     "schemas": [
       "/specs/cross-cutting/tech-debt-ledger.schema.json OR .omc/schemas/tech-debt-ledger.schema.json (top-level defaults, optional per-row overrides, `never` trigger rules, monotonic status graph, cross-row acyclicity)"
@@ -112,7 +112,7 @@
   ],
 
   "symbols_to_grit_claim": [
-    "/registries/cross-cutting/tech-debt-ledger.json::entries",
+    "/registry/tech-debt-ledger.json::entries",
     "crates/oya-check-dependency-seam-discipline/src/lib.rs::check",
     "crates/oya-foundry-trigger-dsl-kernel/src/lib.rs::TriggerDslAst",
     "crates/oya-foundry-trigger-dsl-runtime/src/lib.rs::evaluate",

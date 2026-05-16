@@ -15,13 +15,13 @@
   "change_class_id": "CC-4",
   "git_sha": "825cedfbc106",
   "freshness_unix": 1778811650,
-  "summary": "Migrate .omc/registries/ to registries/cross-cutting/ per doctrine P11/P14. 13 files moved. Cross-ref rewrite via 2-pass sed: Rust = registries/cross-cutting/ (no leading slash, for Path::join), non-Rust = /registries/cross-cutting/ (leading slash, doctrine convention). Critical verification: seam lane reads registries/cross-cutting/dependency-rationales.json successfully \u2014 30 tests pass; oya-dev-cli pass; oya-check-cedar-fragment-coverage pass; workspace check clean.",
+  "summary": "Migrate .omc/registries/ to registry/ per doctrine P11/P14. 13 files moved. Cross-ref rewrite via 2-pass sed: Rust = registry/ (no leading slash, for Path::join), non-Rust = /registry/ (leading slash, doctrine convention). Critical verification: seam lane reads registry/dependency-rationales.json successfully \u2014 30 tests pass; oya-dev-cli pass; oya-check-cedar-fragment-coverage pass; workspace check clean.",
   "path_rewrite_map": [
     {
       "from_prefix": ".omc/registries/",
-      "to_prefix_filesystem": "registries/cross-cutting/",
-      "ref_form_json": "/registries/cross-cutting/",
-      "ref_form_rust": "registries/cross-cutting/"
+      "to_prefix_filesystem": "registry/",
+      "ref_form_json": "/registry/",
+      "ref_form_rust": "registry/"
     }
   ],
   "files_moved_count": 13,
@@ -50,7 +50,7 @@
       "status": "pass",
       "tests": 30,
       "suites": 4,
-      "summary": "lane successfully reads registries/cross-cutting/dependency-rationales.json \u2014 critical path resolution verified"
+      "summary": "lane successfully reads registry/dependency-rationales.json \u2014 critical path resolution verified"
     },
     "cargo_test_oya_dev_cli": {
       "status": "pass",
@@ -91,7 +91,7 @@
     "F4_ergonomic": {
       "considered": true,
       "findings": [
-        "registries now at canonical /registries/cross-cutting/; matches P14 BNF scope=cross-cutting"
+        "registries now at canonical /registry/; matches P14 BNF scope=cross-cutting"
       ],
       "new_contributor_minutes_estimate": 2
     },
