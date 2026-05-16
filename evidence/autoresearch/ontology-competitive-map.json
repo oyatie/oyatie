@@ -1,0 +1,367 @@
+{
+  "schema": "oyatie.evidence.autoresearch.ontology_competitive_map.v1",
+  "status": "complete",
+  "created_at": "2026-05-16T13:36:12Z",
+  "mission": "For each competitor in {Palantir Foundry Ontology, Neo4j, AWS Neptune, Stardog}, identify strengths, where Oyatie lacks, and measurable patches for specs/products/ontology.json.",
+  "oyatie_target": "specs/products/ontology.json#competitive",
+  "source_policy": {
+    "allowed_sources": [
+      "official product documentation",
+      "official cloud/vendor documentation"
+    ],
+    "excluded_sources": [
+      "reddit",
+      "unverifiable benchmark marketing",
+      "unsourced multi-tenant or latency claims"
+    ],
+    "claim_rule": "Competitor claims in this artifact must cite source_evidence ids; Oyatie target metrics are internal goals and must be bench-proven before launch."
+  },
+  "source_evidence": [
+    {
+      "source_id": "palantir_ontology_resources_537_550",
+      "competitor": "Palantir Foundry Ontology",
+      "url": "https://www.palantir.com/docs/foundry/ontologies/ontologies-overview",
+      "line_range": "537-550",
+      "claim": "Palantir ontologies contain object types, link types, action types, interfaces, shared properties, and groups; they can be private or shared across organizations, with ontology-space mapping."
+    },
+    {
+      "source_id": "palantir_operational_layer_538_557",
+      "competitor": "Palantir Foundry Ontology",
+      "url": "https://www.palantir.com/docs/foundry/object-backend/overview",
+      "line_range": "538-557",
+      "claim": "The Foundry Ontology is an operational/digital-twin layer with semantic elements, kinetic elements such as actions/functions/dynamic security, and backend services for datasource management, querying/searching/aggregating, and write orchestration."
+    },
+    {
+      "source_id": "palantir_action_transaction_540",
+      "competitor": "Palantir Foundry Ontology",
+      "url": "https://www.palantir.com/docs/foundry/object-edits/overview",
+      "line_range": "540",
+      "claim": "A Foundry Action is a single transaction changing properties of one or more objects based on user-defined logic and can be triggered from applications or APIs."
+    },
+    {
+      "source_id": "palantir_permission_layers_537_549",
+      "competitor": "Palantir Foundry Ontology",
+      "url": "https://www.palantir.com/docs/foundry/object-permissioning/overview",
+      "line_range": "537-549",
+      "claim": "Palantir object permissioning distinguishes ontology resources/schema from objects and links/data, with granular security controls over both levels."
+    },
+    {
+      "source_id": "neo4j_property_graph_212_229",
+      "competitor": "Neo4j",
+      "url": "https://neo4j.com/docs/getting-started/appendix/graphdb-concepts/",
+      "line_range": "212-229",
+      "claim": "Neo4j uses a property graph model with nodes, labels, directed typed relationships, and key-value properties on nodes/relationships."
+    },
+    {
+      "source_id": "neo4j_schema_indexes_constraints_430_441",
+      "competitor": "Neo4j",
+      "url": "https://neo4j.com/docs/getting-started/appendix/graphdb-concepts/",
+      "line_range": "430-441",
+      "claim": "Neo4j schema is optional, and indexes/constraints can be introduced for performance and modeling benefits."
+    },
+    {
+      "source_id": "neo4j_vector_indexes_353_384",
+      "competitor": "Neo4j",
+      "url": "https://neo4j.com/docs/cypher-manual/25/indexes/semantic-indexes/vector-indexes/",
+      "line_range": "353-384",
+      "claim": "Neo4j vector indexes retrieve neighborhoods by embedding similarity; explicit dimensions are recommended to fail mismatches clearly."
+    },
+    {
+      "source_id": "neo4j_vector_limitations_780_790",
+      "competitor": "Neo4j",
+      "url": "https://neo4j.com/docs/cypher-manual/25/indexes/semantic-indexes/vector-indexes/",
+      "line_range": "780-790",
+      "claim": "Neo4j vector search is approximate and has limitations such as transaction visibility behavior; it should not be treated as exact policy truth."
+    },
+    {
+      "source_id": "neptune_query_languages_5_19",
+      "competitor": "AWS Neptune",
+      "url": "https://docs.aws.amazon.com/neptune/latest/userguide/access-graph-queries.html",
+      "line_range": "5-19",
+      "claim": "Neptune supports Gremlin, openCypher, and SPARQL; Gremlin/openCypher query property graph data, while SPARQL queries RDF."
+    },
+    {
+      "source_id": "neptune_analytics_algorithms_5_111",
+      "competitor": "AWS Neptune",
+      "url": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/algorithms.html",
+      "line_range": "5-111",
+      "claim": "Neptune Analytics exposes optimized openCypher procedures for graph algorithms across pathfinding, centrality, similarity, community detection, vector similarity, and graph summary/statistics."
+    },
+    {
+      "source_id": "neptune_vector_index_non_atomic",
+      "competitor": "AWS Neptune",
+      "url": "https://docs.aws.amazon.com/neptune-analytics/latest/userguide/vector-index.html",
+      "line_range": "vector-index transaction support",
+      "claim": "Neptune Analytics vector index updates are not ACID atomic/isolated, so vector results must not be used as authoritative policy mutation truth without receipts."
+    },
+    {
+      "source_id": "stardog_virtual_graphs_422_440",
+      "competitor": "Stardog",
+      "url": "https://docs.stardog.com/virtual-graphs/",
+      "line_range": "422-440",
+      "claim": "Stardog Virtual Graphs declaratively map remote structured/semi-structured data into a knowledge graph and verify data source configuration/mappings when registered."
+    },
+    {
+      "source_id": "stardog_supported_sources",
+      "competitor": "Stardog",
+      "url": "https://docs.stardog.com/virtual-graphs/data-sources/supported-data-sources",
+      "line_range": "overview/source categories",
+      "claim": "Stardog supports many data source categories for virtual graphs, including relational databases, NoSQL databases, SPARQL services, files/unstructured data, cloud services, and CRM."
+    },
+    {
+      "source_id": "stardog_reasoning_420_426",
+      "competitor": "Stardog",
+      "url": "https://docs.stardog.com/inference-engine/",
+      "line_range": "420-426",
+      "claim": "Stardog supports query-time reasoning/inference over explicit data using schemas with RDFS/OWL axioms and user-defined rules, without materializing inferences."
+    },
+    {
+      "source_id": "stardog_virtual_security",
+      "competitor": "Stardog",
+      "url": "https://docs.stardog.com/operating-stardog/security/virtual-graph-security",
+      "line_range": "overview/accessing virtual graphs",
+      "claim": "Stardog virtual graphs require resource permissions and named graph security for sensitive virtual data; passthrough authentication can limit virtual graph access to backing datasource permissions."
+    }
+  ],
+  "competitor_assessments": [
+    {
+      "competitor": "Palantir Foundry Ontology",
+      "source_evidence_refs": [
+        "palantir_ontology_resources_537_550",
+        "palantir_operational_layer_538_557",
+        "palantir_action_transaction_540",
+        "palantir_permission_layers_537_549"
+      ],
+      "observed_strengths": [
+        "operational digital-twin framing",
+        "semantic + kinetic + dynamic security elements",
+        "object/link/action/interface resources",
+        "Action transaction model",
+        "two-layer ontology-resource vs object/link permissioning"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "ontology PRD has semantic/kinetic/dynamic layers but lacks explicit object-action transaction receipts",
+        "shared/private ontology-space model is not encoded",
+        "permission model does not explicitly separate schema resources from object/link data",
+        "materialized latest-state/export path is not first-class"
+      ],
+      "measurable_patches": [
+        {
+          "id": "ONT-PATCH-PALANTIR-01",
+          "target": "specs/products/ontology.json#patterns",
+          "patch": "Add object_action_transaction_receipt for every create/update/delete/link mutation.",
+          "measure": "each action emits action_id, object_ids, link_ids, rule_id, idempotency_key, actor_principal, permission_decision_ref, audit_chain_ref"
+        },
+        {
+          "id": "ONT-PATCH-PALANTIR-02",
+          "target": "specs/products/ontology.json#data_model",
+          "patch": "Add ontology_space_partition model for private/shared ontology projections.",
+          "measure": "schema distinguishes tenant_private, org_shared, and public_projection spaces with explicit allowed_org_marks"
+        },
+        {
+          "id": "ONT-PATCH-PALANTIR-03",
+          "target": "specs/products/ontology.json#best_practices",
+          "patch": "Split permission checks into ontology_resource and object_link_data tiers.",
+          "measure": "Cedar policy coverage proves both tiers evaluated before action execution"
+        }
+      ],
+      "adopt_patterns": [
+        "object_action_transaction_receipt",
+        "ontology_space_partition",
+        "two_layer_permission_model",
+        "materialized_latest_state_projection"
+      ],
+      "reject_or_constrain": [
+        "Do not copy Palantir closed-platform assumptions or unsourced single-tenant claims; Oyatie stays open-spec and multi-tenant by design."
+      ],
+      "verdict": "incorporate_patch_gap"
+    },
+    {
+      "competitor": "Neo4j",
+      "source_evidence_refs": [
+        "neo4j_property_graph_212_229",
+        "neo4j_schema_indexes_constraints_430_441",
+        "neo4j_vector_indexes_353_384",
+        "neo4j_vector_limitations_780_790"
+      ],
+      "observed_strengths": [
+        "mature property graph model",
+        "Cypher ergonomics",
+        "schema-optional modeling with indexes/constraints when needed",
+        "vector index and GraphRAG-friendly retrieval"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "ontology PRD lacks graph-query ergonomics acceptance tests",
+        "constraint/index declarations are not tied to ontology type registration",
+        "vector/semantic retrieval is not explicitly bounded away from policy truth",
+        "no source-backed stance on approximate vector limitations"
+      ],
+      "measurable_patches": [
+        {
+          "id": "ONT-PATCH-NEO4J-01",
+          "target": "specs/products/ontology.json#patterns",
+          "patch": "Add graph_query_projection adapter for Cypher-like traversal/read APIs without making Neo4j a runtime dependency.",
+          "measure": "read-side traversal tests cover node-label, typed-edge, property-filter, shortest-path, and explain-plan receipt"
+        },
+        {
+          "id": "ONT-PATCH-NEO4J-02",
+          "target": "specs/products/ontology.json#data_model",
+          "patch": "Require index_constraint_plan per ontology type/link registration.",
+          "measure": "every queryable property/link has explicit index/constraint status or no_index_reason"
+        },
+        {
+          "id": "ONT-PATCH-NEO4J-03",
+          "target": "specs/products/ontology.json#anti_patterns",
+          "patch": "Forbid approximate vector search as authorization or mutation truth.",
+          "measure": "policy/action gates reject vector_score_only decisions; require deterministic entity_id + permission proof"
+        }
+      ],
+      "adopt_patterns": [
+        "property_graph_projection",
+        "index_constraint_plan",
+        "vector_search_as_retrieval_only",
+        "explainable_traversal_receipts"
+      ],
+      "reject_or_constrain": [
+        "Do not adopt an external Neo4j runtime dependency; keep Postgres/RLS + Oyatie ontology kernel as authority."
+      ],
+      "verdict": "incorporate_patch_gap"
+    },
+    {
+      "competitor": "AWS Neptune",
+      "source_evidence_refs": [
+        "neptune_query_languages_5_19",
+        "neptune_analytics_algorithms_5_111",
+        "neptune_vector_index_non_atomic"
+      ],
+      "observed_strengths": [
+        "managed graph service",
+        "Gremlin/openCypher/SPARQL support",
+        "RDF and property-graph query surfaces",
+        "optimized graph analytics procedures",
+        "vector similarity/search for GraphRAG use cases"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "ontology PRD lacks RDF/SPARQL/openCypher interoperability adapters",
+        "graph analytics algorithms are not specified as read-only/derived evidence lanes",
+        "vector index atomicity/consistency limitations are not reflected in anti-patterns",
+        "AWS-only service dependency conflicts with multi-cloud/on-prem requirement if adopted as authority"
+      ],
+      "measurable_patches": [
+        {
+          "id": "ONT-PATCH-NEPTUNE-01",
+          "target": "specs/products/ontology.json#patterns",
+          "patch": "Add rdf_sparql_opencypher_interop adapters for import/export/query projection.",
+          "measure": "roundtrip fixtures preserve entity_id, edge_type, data_class, tenant_id, and audit provenance across RDF and property graph projections"
+        },
+        {
+          "id": "ONT-PATCH-NEPTUNE-02",
+          "target": "specs/products/ontology.json#best_practices",
+          "patch": "Model graph algorithms as read-only derived evidence with freshness and reproducibility receipts.",
+          "measure": "algorithm result has source_snapshot_digest, algorithm_id, params, generated_at, and cannot directly mutate canonical graph"
+        },
+        {
+          "id": "ONT-PATCH-NEPTUNE-03",
+          "target": "specs/products/ontology.json#anti_patterns",
+          "patch": "Forbid non-atomic vector-index updates from driving policy or canonical mutations.",
+          "measure": "mutation gate rejects vector-only evidence without canonical row/action receipt"
+        }
+      ],
+      "adopt_patterns": [
+        "rdf_sparql_openCypher_interop",
+        "read_only_graph_algorithm_receipts",
+        "managed_graph_import_export_adapter",
+        "vector_consistency_guardrail"
+      ],
+      "reject_or_constrain": [
+        "Do not make AWS Neptune required infrastructure; it can inform interop/analytics adapters only."
+      ],
+      "verdict": "incorporate_patch_gap"
+    },
+    {
+      "competitor": "Stardog",
+      "source_evidence_refs": [
+        "stardog_virtual_graphs_422_440",
+        "stardog_supported_sources",
+        "stardog_reasoning_420_426",
+        "stardog_virtual_security"
+      ],
+      "observed_strengths": [
+        "virtual graph data virtualization",
+        "remote data mapping to RDF",
+        "SPARQL query rewriting to native source syntax",
+        "query-time reasoning with OWL/RDFS/rules",
+        "virtual graph security and passthrough authentication concepts"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "ontology PRD lacks virtual-source mapping receipts for existing enterprise systems",
+        "reasoning/rule layer is not separated from canonical typed actions",
+        "pass-through identity/security requirements are not explicit for adapter reads",
+        "materialize-vs-virtualize decision is not measured"
+      ],
+      "measurable_patches": [
+        {
+          "id": "ONT-PATCH-STARDOG-01",
+          "target": "specs/products/ontology.json#patterns",
+          "patch": "Add virtual_source_mapping_receipt for every adapter-mapped external data source.",
+          "measure": "mapping receipt includes source_kind, schema_digest, mapping_digest, owner, credential_mode, data_class, freshness_budget, materialize_or_virtualize decision"
+        },
+        {
+          "id": "ONT-PATCH-STARDOG-02",
+          "target": "specs/products/ontology.json#best_practices",
+          "patch": "Add reasoning_rule_tier separating inferred read projections from canonical writes.",
+          "measure": "inferred edges have inference_rule_id + source_snapshot_digest and cannot satisfy mutation/audit obligations without canonical evidence"
+        },
+        {
+          "id": "ONT-PATCH-STARDOG-03",
+          "target": "specs/products/ontology.json#anti_patterns",
+          "patch": "Forbid virtual graph access without pass-through identity or named-graph-equivalent security.",
+          "measure": "adapter registration fails without credential_mode and named_scope_policy"
+        }
+      ],
+      "adopt_patterns": [
+        "virtual_source_mapping_receipt",
+        "reasoning_rule_tier",
+        "pass_through_identity_for_virtual_reads",
+        "materialize_vs_virtualize_policy"
+      ],
+      "reject_or_constrain": [
+        "Do not adopt Stardog as external graph DB dependency; use as source pattern for adapters/reasoning only."
+      ],
+      "verdict": "incorporate_patch_gap"
+    }
+  ],
+  "cross_competitor_patch_backlog": [
+    "Add source-backed ontology competitive_claim schema: competitor, evidence_refs, observed_strengths, oyatie_gap, patch_id, verification.",
+    "Add ontology action transaction receipts covering object/link/create/update/delete mutations.",
+    "Add interop adapters for RDF/SPARQL/openCypher/property-graph projections without changing canonical storage authority.",
+    "Add deterministic separation between retrieval/vector/reasoning outputs and policy or mutation truth.",
+    "Add virtual-source mapping receipts and pass-through/named-scope security checks for enterprise data-source adapters."
+  ],
+  "applied_to_spec": {
+    "path": "specs/products/ontology.json",
+    "changes": [
+      "competitive entries for Palantir, Neo4j, Neptune, and Stardog rewritten with source_evidence_refs, observed strengths, gaps, and measurable patch backlog",
+      "best practices extended for source-backed competitor claims, action receipts, interop adapters, deterministic retrieval/reasoning boundaries, and virtual-source security",
+      "patterns extended for object actions, space partitions, query projections, interop adapters, graph analytics receipts, and virtual mappings",
+      "anti-patterns extended for unsourced benchmarks, external graph authority, vector/reasoning policy truth, and unsecured virtual graphs"
+    ]
+  },
+  "completion_gate": {
+    "passed": true,
+    "competitors_required": [
+      "Palantir Foundry Ontology",
+      "Neo4j",
+      "AWS Neptune",
+      "Stardog"
+    ],
+    "competitors_assessed": 4,
+    "source_evidence_count": 15,
+    "patch_count": 12,
+    "verification_required": [
+      "jq empty evidence/autoresearch/ontology-competitive-map.json specs/products/ontology.json",
+      "artifact/spec shape validator",
+      "deployment-ops-contract regression gate"
+    ]
+  }
+}

@@ -122,11 +122,12 @@
     {"id": "R-04", "severity": "high", "risk": "dynamic-layer staleness silently served", "mitigation": "AC-09 freshness budget enforced; never silent stale"},
     {"id": "R-05", "severity": "high", "risk": "KG join latency at scale", "mitigation": "AC-06 + 3-layer index strategy + perf-budget lane"}
   ],
+  "competitive_research_ref": "$ref:evidence/autoresearch/ontology-competitive-map.json",
   "competitive": [
-    {"competitor": "Palantir_Foundry_Ontology", "we_beat_on": ["per-tenant isolation (Palantir is single-tenant per deployment)", "open spec", "LLM-native tool-call via Cedar"], "measurable": "10K tenants per cluster (Palantir: 1)"},
-    {"competitor": "Neo4j", "we_beat_on": ["tier-classified properties", "per-tenant cell isolation", "signed audit-chain per action"], "measurable": "cross-tenant leak = 0"},
-    {"competitor": "AWS_Neptune", "we_beat_on": ["multi-cloud + on-prem (Neptune is AWS-only)", "LLM-friendly typed-action layer"], "measurable": "multi-cell federation; cross-cloud"},
-    {"competitor": "Stardog", "we_beat_on": ["typed-action layer (Stardog focuses on query/reasoning)", "production-grade SLA"], "measurable": "action p99 <50ms (Stardog ~200ms reasoning)"},
+    {"competitor": "Palantir_Foundry_Ontology", "source_evidence_refs": ["palantir_ontology_resources_537_550", "palantir_operational_layer_538_557", "palantir_action_transaction_540", "palantir_permission_layers_537_549"], "observed_strengths": ["operational digital-twin framing", "semantic + kinetic + dynamic security elements", "object/link/action/interface resources", "Action transaction model", "two-layer permissioning"], "we_beat_on": ["open spec", "multi-tenant kernel", "LLM-native tool-call via Cedar"], "where_oyatie_lacks_or_is_underspecified": ["object-action transaction receipts", "private/shared ontology-space model", "schema-resource vs object/link-data permission split"], "measurable_patches": ["each action emits action_id, object_ids, link_ids, rule_id, idempotency_key, actor_principal, permission_decision_ref, audit_chain_ref", "schema distinguishes tenant_private, org_shared, public_projection spaces", "Cedar policy coverage proves ontology_resource and object_link_data tiers before action execution"], "measurable": "source-backed patch backlog must pass before GA; no unsourced single-tenant or latency claims"},
+    {"competitor": "Neo4j", "source_evidence_refs": ["neo4j_property_graph_212_229", "neo4j_schema_indexes_constraints_430_441", "neo4j_vector_indexes_353_384", "neo4j_vector_limitations_780_790"], "observed_strengths": ["mature property graph model", "Cypher ergonomics", "schema-optional indexes/constraints", "vector retrieval for GraphRAG"], "we_beat_on": ["tier-classified properties", "per-tenant cell isolation", "signed audit-chain per action"], "where_oyatie_lacks_or_is_underspecified": ["graph-query ergonomics tests", "index/constraint plan per type/link", "vector retrieval boundary away from policy truth"], "measurable_patches": ["traversal tests cover label, typed-edge, property-filter, shortest-path, explain-plan receipt", "every queryable property/link has explicit index/constraint status or no_index_reason", "policy/action gates reject vector_score_only decisions"], "measurable": "Neo4j informs projections only; external graph DB remains forbidden as authority"},
+    {"competitor": "AWS_Neptune", "source_evidence_refs": ["neptune_query_languages_5_19", "neptune_analytics_algorithms_5_111", "neptune_vector_index_non_atomic"], "observed_strengths": ["Gremlin/openCypher/SPARQL support", "RDF and property-graph surfaces", "openCypher graph analytics procedures", "vector similarity for GraphRAG"], "we_beat_on": ["multi-cloud + on-prem authority", "LLM-friendly typed-action layer", "deterministic policy/audit"], "where_oyatie_lacks_or_is_underspecified": ["RDF/SPARQL/openCypher adapters", "read-only graph algorithm evidence receipts", "vector consistency guardrail"], "measurable_patches": ["roundtrip fixtures preserve entity_id, edge_type, data_class, tenant_id, audit provenance", "algorithm result has source_snapshot_digest, algorithm_id, params, generated_at and cannot mutate canonical graph", "mutation gate rejects vector-only evidence without canonical row/action receipt"], "measurable": "Neptune is interop/analytics inspiration only; no AWS-only runtime authority"},
+    {"competitor": "Stardog", "source_evidence_refs": ["stardog_virtual_graphs_422_440", "stardog_supported_sources", "stardog_reasoning_420_426", "stardog_virtual_security"], "observed_strengths": ["virtual graph data virtualization", "remote data mapping to RDF", "SPARQL rewriting to native source syntax", "query-time OWL/RDFS/rule reasoning", "virtual graph security/pass-through concepts"], "we_beat_on": ["typed-action layer", "ops-owned SLA", "canonical mutation audit"], "where_oyatie_lacks_or_is_underspecified": ["virtual-source mapping receipts", "reasoning layer separated from canonical writes", "pass-through identity/named-scope security for adapters"], "measurable_patches": ["mapping receipt includes source_kind, schema_digest, mapping_digest, owner, credential_mode, data_class, freshness_budget, materialize_or_virtualize decision", "inferred edges carry inference_rule_id + source_snapshot_digest and cannot satisfy mutation/audit obligations alone", "adapter registration fails without credential_mode and named_scope_policy"], "measurable": "Stardog informs adapter/reasoning patterns only; no external graph DB dependency"},
     {"competitor": "AnzoGraph", "we_beat_on": ["typed schema with tier classification", "per-tenant isolation", "signed audit"], "measurable": "1B+ edges per region; per-tenant isolation"},
     {"competitor": "TerminusDB", "we_beat_on": ["Cedar policy at every action", "production-grade SLA"], "measurable": "tier-violation = 0; action audit completeness 100%"},
     {"competitor": "Apollo_GraphQL_Federation", "we_beat_on": ["typed-entity model (Apollo is API-stitching)", "audit per action", "jurisdiction overlay"], "measurable": "per-action audit (Apollo: API-tracing only)"}
@@ -137,14 +138,25 @@
     {"id": "BP-03", "rule": "type checking at workflow-deploy time, not runtime", "ref": "AC-05"},
     {"id": "BP-04", "rule": "cryptographically signed audit chain per action (post-$ref:docs/decisions/ADR-0083 cryptographic chain)", "required_at": "GA"},
     {"id": "BP-05", "rule": "Cedar autonomy_tier ceiling on LLM tool-calls", "ref": "AC-07"},
-    {"id": "BP-06", "rule": "per-tenant Postgres RLS at DB layer", "rationale": "physically impossible cross-tenant query without policy escalation"}
+    {"id": "BP-06", "rule": "per-tenant Postgres RLS at DB layer", "rationale": "physically impossible cross-tenant query without policy escalation"},
+    {"id": "BP-07", "rule": "competitive claims require official-source evidence_refs plus concrete patch/verification; unsourced benchmark deltas are forbidden", "enforced_by_ref": "$ref:evidence/autoresearch/ontology-competitive-map.json#source_policy"},
+    {"id": "BP-08", "rule": "every ontology action mutation emits transaction receipt + audit_chain_ref before canonical state changes", "source_evidence_refs": ["palantir_action_transaction_540"]},
+    {"id": "BP-09", "rule": "graph query/vector/reasoning outputs are retrieval or derived evidence only; policy and mutation truth require canonical entity/action receipts", "source_evidence_refs": ["neo4j_vector_limitations_780_790", "neptune_vector_index_non_atomic", "stardog_reasoning_420_426"]},
+    {"id": "BP-10", "rule": "virtual/external source adapters require mapping receipt, credential_mode, data_class, named_scope_policy, and freshness_budget", "source_evidence_refs": ["stardog_virtual_graphs_422_440", "stardog_virtual_security"]}
   ],
   "patterns": [
     {"pattern": "schema_versioned_type_registration", "when": "every type change", "ref": "schema_version field + semver bump"},
     {"pattern": "cross_cell_via_ontology_adapter", "when": "workflow needs entity in another cell", "ref": "$ref:memory/feedback_workflow_objectgraph_adapter_layer"},
     {"pattern": "jurisdiction_overlay", "when": "per-jurisdiction property extension", "ref": "$ref:bominal/decisions/ADR-0149"},
     {"pattern": "kinetic_mutation_with_audit_idempotency_lock", "when": "every write goes through kinetic layer", "ref": "$ref:registry/knowledge-graph-kinetic.json"},
-    {"pattern": "dynamic_layer_with_freshness_budget", "when": "live state reads", "ref": "AC-09 + $ref:registry/knowledge-graph-dynamic.json"}
+    {"pattern": "dynamic_layer_with_freshness_budget", "when": "live state reads", "ref": "AC-09 + $ref:registry/knowledge-graph-dynamic.json"},
+    {"pattern": "object_action_transaction_receipt", "when": "create/update/delete/link mutation", "source_evidence_refs": ["palantir_action_transaction_540"]},
+    {"pattern": "ontology_space_partition", "when": "private/shared/public ontology projections", "source_evidence_refs": ["palantir_ontology_resources_537_550"]},
+    {"pattern": "graph_query_projection_adapter", "when": "Cypher/openCypher-like traversal/read API", "source_evidence_refs": ["neo4j_property_graph_212_229", "neptune_query_languages_5_19"]},
+    {"pattern": "rdf_sparql_openCypher_interop_adapter", "when": "import/export/query projection across graph standards", "source_evidence_refs": ["neptune_query_languages_5_19"]},
+    {"pattern": "read_only_graph_algorithm_receipt", "when": "derived graph analytics output informs investigation", "source_evidence_refs": ["neptune_analytics_algorithms_5_111"]},
+    {"pattern": "virtual_source_mapping_receipt", "when": "external enterprise source is mapped into ontology", "source_evidence_refs": ["stardog_virtual_graphs_422_440"]},
+    {"pattern": "reasoning_rule_tier", "when": "inferred read projection is produced", "source_evidence_refs": ["stardog_reasoning_420_426"]}
   ],
   "anti_patterns": [
     {"name": "cross_tenant_raw_sql_bypass_rls", "why_forbidden": "tenant-isolation violation", "detection_lane": "oya-foundry-fitness-no-raw-sql-cross-tenant"},
@@ -154,7 +166,12 @@
     {"name": "direct_cross_cell_db_access", "why_forbidden": "bypasses ontology adapter, breaks federation", "detection": "code review + cargo-deny on DB-driver crate visibility"},
     {"name": "silent_stale_dynamic_layer_read", "why_forbidden": "hidden inconsistency", "detection_lane": "AC-09 test enforces freshness budget"},
     {"name": "external_graph_db_dep", "why_forbidden": "cross-tenant isolation harder; we have Postgres RLS", "detection_lane": "cargo-deny denylist"},
-    {"name": "action_without_audit_chain_emission", "why_forbidden": "provenance gap", "detection_lane": "oya-foundry-fitness-audit-chain-emission"}
+    {"name": "action_without_audit_chain_emission", "why_forbidden": "provenance gap", "detection_lane": "oya-foundry-fitness-audit-chain-emission"},
+    {"name": "unsourced_ontology_competitor_benchmark_claim", "why_forbidden": "competitive deltas must cite official source evidence and distinguish internal targets from measured external facts", "detection_lane": "future oya-foundry-fitness-source-backed-competitive-claims"},
+    {"name": "external_graph_engine_as_canonical_authority", "why_forbidden": "Neo4j/Neptune/Stardog may inform adapters, but Oyatie ontology kernel remains canonical", "detection_lane": "cargo-deny denylist + ontology adapter boundary validator"},
+    {"name": "vector_or_reasoning_output_as_policy_truth", "why_forbidden": "approximate retrieval and inferred projections cannot authorize or mutate canonical state", "detection_lane": "policy/action gate requires canonical entity_id + permission proof + action receipt"},
+    {"name": "virtual_graph_without_pass_through_or_named_scope_security", "why_forbidden": "external-source reads must preserve user/source permissions and data-class scope", "detection_lane": "virtual_source_mapping_receipt validator"},
+    {"name": "action_without_transaction_receipt", "why_forbidden": "object/link mutations need deterministic provenance before state change", "detection_lane": "ontology action receipt gate"}
   ],
   "goals": {
     "scalability": {"target": "10K tenants per cluster + 1B entities per region + 100M actions per day per region", "verification_ref": "bench + canary load-test pre-GA"},
@@ -178,6 +195,11 @@
     "$ref:registry/knowledge-graph-dynamic.json",
     "$ref:crates/oya-ontology-api",
     "$ref:crates/oya-ontology-domain",
+    "$ref:evidence/autoresearch/ontology-competitive-map.json",
+    "official:palantir-foundry-ontology-docs",
+    "official:neo4j-docs",
+    "official:aws-neptune-docs",
+    "official:stardog-docs",
     "$ref:memory/feedback_glossary_ontology_not_object_graph",
     "$ref:memory/feedback_workflow_objectgraph_adapter_layer"
   ]
