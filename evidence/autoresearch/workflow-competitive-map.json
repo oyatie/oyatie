@@ -1,0 +1,435 @@
+{
+  "schema": "oyatie.evidence.autoresearch.workflow_competitive_map.v1",
+  "status": "complete",
+  "created_at": "2026-05-16T13:27:51Z",
+  "mission": "For each competitor in {n8n, Temporal, Camunda, Argo}, identify strengths, where Oyatie lacks, and measurable patches for specs/products/workflow.json.",
+  "oyatie_target": "specs/products/workflow.json#competitive",
+  "source_policy": {
+    "allowed_sources": [
+      "official product documentation",
+      "official project documentation"
+    ],
+    "excluded_sources": [
+      "reddit",
+      "blog-only claims",
+      "unsourced benchmark claims"
+    ],
+    "claim_rule": "Competitor claims in this artifact must cite source_evidence ids; Oyatie target metrics are internal goals and must be bench-proven before launch."
+  },
+  "source_evidence": [
+    {
+      "source_id": "n8n_docs_overview_1453_1489",
+      "competitor": "n8n",
+      "url": "https://docs.n8n.io/",
+      "line_range": "1453-1489",
+      "claim": "n8n is a workflow automation tool combining AI capabilities with business process automation; it emphasizes app/API connection, customization, npm/Docker/cloud options, and self-host privacy."
+    },
+    {
+      "source_id": "n8n_queue_mode_1488_1607",
+      "competitor": "n8n",
+      "url": "https://docs.n8n.io/hosting/scaling/queue-mode/",
+      "line_range": "1488-1607",
+      "claim": "n8n queue mode splits main/webhook handling from workers through Redis and a database; workers execute jobs, write results, and can expose health/readiness/metrics endpoints; queue mode does not support filesystem binary data and recommends Postgres over SQLite."
+    },
+    {
+      "source_id": "n8n_concurrency_1463_1483",
+      "competitor": "n8n",
+      "url": "https://docs.n8n.io/hosting/scaling/concurrency-control/",
+      "line_range": "1463-1483",
+      "claim": "n8n supports production execution concurrency limits and FIFO queueing; in queue mode worker concurrency is controlled separately but can be bounded by the same production limit variable."
+    },
+    {
+      "source_id": "n8n_benchmark_1462_1502",
+      "competitor": "n8n",
+      "url": "https://docs.n8n.io/hosting/scaling/performance-benchmarking/",
+      "line_range": "1462-1502",
+      "claim": "n8n publishes a benchmark example with up to 220 executions/second on one instance and a multi-instance queue-mode benchmark using webhook workers, workers, database, main, and Redis; it notes performance varies by workflow, resources, and scaling configuration."
+    },
+    {
+      "source_id": "n8n_human_review_1478_1529",
+      "competitor": "n8n",
+      "url": "https://docs.n8n.io/advanced-ai/human-in-the-loop-tools/",
+      "line_range": "1478-1529",
+      "claim": "n8n AI tool calls can pause for human approval over configured channels, giving selective oversight for irreversible or compliance-sensitive actions."
+    },
+    {
+      "source_id": "n8n_memory_errors_1465_1509",
+      "competitor": "n8n",
+      "url": "https://docs.n8n.io/hosting/scaling/memory-errors/",
+      "line_range": "1465-1509",
+      "claim": "n8n warns that unbounded JSON/binary payloads, node count, Code nodes, manual executions, and concurrent workflows can cause memory errors; mitigation includes chunking, avoiding Code nodes, sub-workflows, and memory sizing."
+    },
+    {
+      "source_id": "n8n_evals_1479_1510",
+      "competitor": "n8n",
+      "url": "https://docs.n8n.io/advanced-ai/evaluations/overview/",
+      "line_range": "1479-1510",
+      "claim": "n8n AI workflow evaluation guidance distinguishes pre-deployment light evaluation from post-deployment metric-based evaluation and recommends regression datasets after bug fixes."
+    },
+    {
+      "source_id": "temporal_overview_67_107",
+      "competitor": "Temporal",
+      "url": "https://docs.temporal.io/temporal",
+      "line_range": "67-107",
+      "claim": "Temporal is a scalable durable-execution runtime; Event History records workflow state at each step so executions can resume, and applications can consist of millions to billions of workflow executions."
+    },
+    {
+      "source_id": "temporal_workflows_82_128",
+      "competitor": "Temporal",
+      "url": "https://docs.temporal.io/workflows",
+      "line_range": "82-128",
+      "claim": "Temporal workflows are code-defined, can run for years, use Event History as source of truth, replay history to resume, require deterministic decisions, and isolate non-deterministic external effects in Activities whose results are recorded."
+    },
+    {
+      "source_id": "temporal_activities_69_80",
+      "competitor": "Temporal",
+      "url": "https://docs.temporal.io/activities",
+      "line_range": "69-80",
+      "claim": "Temporal Activities are normal functions for single actions, may be non-deterministic, should be idempotent, and can use heartbeat details for checkpointing retries."
+    },
+    {
+      "source_id": "temporal_workers_107_157",
+      "competitor": "Temporal",
+      "url": "https://docs.temporal.io/workers",
+      "line_range": "107-157",
+      "claim": "Temporal worker entities poll task queues; workers are stateless and can handle many open executions with latency tradeoffs; worker identity should map to execution context/log streams; workers execute code outside the Temporal Service."
+    },
+    {
+      "source_id": "temporal_task_queues_76_157",
+      "competitor": "Temporal",
+      "url": "https://docs.temporal.io/task-queue",
+      "line_range": "76-157",
+      "claim": "Temporal task queues are lightweight on-demand queues polled by workers, support load balancing, task routing, throttling, persistence across worker outages, and guaranteed event ordering within a workflow history."
+    },
+    {
+      "source_id": "camunda_bpmn_modeler_92_112",
+      "competitor": "Camunda",
+      "url": "https://docs.camunda.io/docs/components/modeler/bpmn/",
+      "line_range": "92-112",
+      "claim": "Camunda uses BPMN as a graphical notation for complex processes; Modeler supports BPMN 2.0 modeling, and service tasks require task type plus job workers."
+    },
+    {
+      "source_id": "camunda_job_workers_91_121",
+      "competitor": "Camunda",
+      "url": "https://unsupported.docs.camunda.io/8.6/docs/components/concepts/job-workers/",
+      "line_range": "91-121",
+      "claim": "Zeebe queues jobs until workers request them, supports retries/backoff/incidents, can reassign timed-out jobs, and is at-least-once so worker code must be idempotent."
+    },
+    {
+      "source_id": "camunda_incidents_96_165",
+      "competitor": "Camunda",
+      "url": "https://docs.camunda.io/docs/components/concepts/incidents/",
+      "line_range": "96-165",
+      "claim": "Camunda incidents represent stuck process execution; resolution involves fixing data or retries and marking incident resolved so execution can continue."
+    },
+    {
+      "source_id": "camunda_data_flow_94_123",
+      "competitor": "Camunda",
+      "url": "https://docs.camunda.io/docs/components/modeler/bpmn/data-flow/",
+      "line_range": "94-123",
+      "claim": "Camunda process variables are global to the process instance by default; concurrent paths can race, so documentation recommends limited variable writes, output mappings, subprocess scopes, and minimum required variables."
+    },
+    {
+      "source_id": "camunda_operate_90_107",
+      "competitor": "Camunda",
+      "url": "https://docs.camunda.io/docs/components/operate/operate-introduction/",
+      "line_range": "90-107",
+      "claim": "Camunda Operate monitors and troubleshoots Zeebe process instances, resolves incidents, updates variables, retries/cancels many instances, and can modify active instances."
+    },
+    {
+      "source_id": "argo_home_13_30",
+      "competitor": "Argo Workflows",
+      "url": "https://argoproj.github.io/workflows/",
+      "line_range": "13-30",
+      "claim": "Argo Workflows is a Kubernetes-native, container-native workflow engine supporting DAG and step-based workflows, implemented as Kubernetes CRDs for parallel jobs, ML/data processing, and CI/CD on Kubernetes."
+    },
+    {
+      "source_id": "argo_templates_gitops",
+      "competitor": "Argo Workflows",
+      "url": "https://argo-workflows.readthedocs.io/en/latest/workflow-templates/",
+      "line_range": "introduction/managing-workflowtemplates",
+      "claim": "Argo WorkflowTemplates define reusable workflows in-cluster and can be managed by CLI, kubectl, GitOps via Argo CD, or UI."
+    },
+    {
+      "source_id": "argo_cron_2_40",
+      "competitor": "Argo Workflows",
+      "url": "https://argo-workflows.readthedocs.io/en/latest/cron-workflows/",
+      "line_range": "2-40",
+      "claim": "Argo CronWorkflows schedule Workflow objects and include cron-specific options such as concurrencyPolicy and workflowSpec templates."
+    },
+    {
+      "source_id": "argo_retries",
+      "competitor": "Argo Workflows",
+      "url": "https://argo-workflows.readthedocs.io/en/latest/retries/",
+      "line_range": "introduction/retry-policies",
+      "claim": "Argo supports retryStrategy with retry policies such as Always, OnFailure, OnError, and OnTransientError, plus expressions."
+    },
+    {
+      "source_id": "argo_artifacts",
+      "competitor": "Argo Workflows",
+      "url": "https://argo-workflows.readthedocs.io/en/latest/configure-artifact-repository/",
+      "line_range": "overview",
+      "claim": "Argo workflows that use artifacts require an artifact repository; supported repositories include S3-compatible stores, GCS, Azure Blob, Git, HDFS, HTTP, and others."
+    },
+    {
+      "source_id": "argo_sync",
+      "competitor": "Argo Workflows",
+      "url": "https://argo-workflows.readthedocs.io/en/release-3.7/synchronization/",
+      "line_range": "introduction/lock-types",
+      "claim": "Argo synchronization can limit parallel execution with mutexes, semaphores, and parallelism controls at workflow or template levels."
+    }
+  ],
+  "competitor_assessments": [
+    {
+      "competitor": "n8n",
+      "source_evidence_refs": [
+        "n8n_docs_overview_1453_1489",
+        "n8n_queue_mode_1488_1607",
+        "n8n_concurrency_1463_1483",
+        "n8n_benchmark_1462_1502",
+        "n8n_human_review_1478_1529",
+        "n8n_memory_errors_1465_1509",
+        "n8n_evals_1479_1510"
+      ],
+      "observed_strengths": [
+        "Large low/no-code app/API integration surface",
+        "Self-host/cloud packaging with privacy positioning",
+        "Queue-mode split of main/webhook/worker roles with Redis and DB persistence",
+        "AI tool human-review channels and AI evaluation guidance",
+        "Published benchmark framework and example throughput numbers"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "Workflow PRD claims audit/Cedar/tenant advantages but lacks connector-catalog breadth targets",
+        "No explicit memory/large-payload bounds or artifact offload rule for workflow steps",
+        "AI workflow regression datasets and metric-based eval gates are not named",
+        "Webhook/main/worker split and health/metrics readiness are not encoded as acceptance criteria"
+      ],
+      "measurable_patches": [
+        {
+          "id": "WF-PATCH-N8N-01",
+          "target": "specs/products/workflow.json#best_practices",
+          "patch": "Add connector catalog target with per-connector auth, quota, retry, and data-class metadata.",
+          "measure": "connector_catalog_min=100 GA connectors before public GA; every connector has auth/quota/retry/data_class metadata and source citation"
+        },
+        {
+          "id": "WF-PATCH-N8N-02",
+          "target": "specs/products/workflow.json#anti_patterns",
+          "patch": "Forbid unbounded in-memory JSON/binary payloads; require chunking or artifact references.",
+          "measure": "workflow_spec.v1 rejects steps without max_payload_bytes or artifact_ref for large payload classes"
+        },
+        {
+          "id": "WF-PATCH-N8N-03",
+          "target": "specs/products/workflow.json#metrics",
+          "patch": "Add AI-workflow eval dataset + post-bug regression loop.",
+          "measure": "each AI-enabled workflow has eval_dataset_ref and regression_run_id before production enablement"
+        }
+      ],
+      "adopt_patterns": [
+        "connector_catalog_metadata",
+        "worker_queue_health_readiness_metrics",
+        "payload_chunking_and_artifact_offload",
+        "ai_workflow_metric_regression_datasets"
+      ],
+      "reject_or_constrain": [
+        "Do not adopt human approval as a required autonomy authority path; Oyatie can model human-review only as optional tenant business policy, not as agent-control authority."
+      ],
+      "verdict": "incorporate_patch_gap"
+    },
+    {
+      "competitor": "Temporal",
+      "source_evidence_refs": [
+        "temporal_overview_67_107",
+        "temporal_workflows_82_128",
+        "temporal_activities_69_80",
+        "temporal_workers_107_157",
+        "temporal_task_queues_76_157"
+      ],
+      "observed_strengths": [
+        "Durable execution via Event History",
+        "Replay-safe deterministic workflow code with external effects isolated in Activities",
+        "Idempotent activity/checkpoint guidance",
+        "Task queues with worker polling, routing, throttling, persisted tasks, and event ordering",
+        "Worker identity guidance linked to execution context/log streams"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "Workflow PRD has saga/idempotency but lacks a replay-safety class for every step",
+        "No explicit event-history-as-source-of-truth invariant",
+        "Worker identity, task routing, throttling, and queue persistence are not first-class product contract fields",
+        "Activity checkpoint/heartbeat equivalent is not named for long-running steps"
+      ],
+      "measurable_patches": [
+        {
+          "id": "WF-PATCH-TEMPORAL-01",
+          "target": "contracts/workflow_spec.v1.json + specs/products/workflow.json#patterns",
+          "patch": "Add replay_safety_class and side_effect_boundary for each step.",
+          "measure": "schema rejects external I/O in deterministic step class; side-effect steps require idempotency_key and activity_checkpoint_policy"
+        },
+        {
+          "id": "WF-PATCH-TEMPORAL-02",
+          "target": "specs/products/workflow.json#data_model",
+          "patch": "Add event_history as the durable source of truth for workflow-instance resumption.",
+          "measure": "restart test proves zero lost progress and zero duplicate side effects across worker crash"
+        },
+        {
+          "id": "WF-PATCH-TEMPORAL-03",
+          "target": "specs/products/workflow.json#metrics",
+          "patch": "Add worker identity/routing/throttling metrics.",
+          "measure": "every worker poller exports worker_id, queue_id, registered_step_types, capacity, throttle_state, and log_stream_ref"
+        }
+      ],
+      "adopt_patterns": [
+        "event_history_source_of_truth",
+        "deterministic_replay_contract",
+        "activity_side_effect_boundary",
+        "worker_task_queue_identity_and_capacity"
+      ],
+      "reject_or_constrain": [
+        "Do not require user SDK code as the only workflow authoring path; Oyatie keeps canonical JSON spec plus generated adapters."
+      ],
+      "verdict": "incorporate_patch_gap"
+    },
+    {
+      "competitor": "Camunda",
+      "source_evidence_refs": [
+        "camunda_bpmn_modeler_92_112",
+        "camunda_job_workers_91_121",
+        "camunda_incidents_96_165",
+        "camunda_data_flow_94_123",
+        "camunda_operate_90_107"
+      ],
+      "observed_strengths": [
+        "BPMN-based business-readable modeling and Modeler UX",
+        "Zeebe job worker queue with retries/backoff/incidents",
+        "Incident lifecycle and Operate remediation UI",
+        "Variable-scope and concurrency guidance for parallel paths",
+        "Connectors/user tasks for human/business process integration"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "Workflow PRD forbids BPMN compatibility but does not preserve the business-readable process-view advantage",
+        "No incident lifecycle state machine for stuck execution",
+        "Variable race/scoping hazards are not explicit anti-patterns",
+        "Operate-like bulk retry/cancel/modify must be mapped to ops-managed safe controls, not manual troubleshooting"
+      ],
+      "measurable_patches": [
+        {
+          "id": "WF-PATCH-CAMUNDA-01",
+          "target": "specs/products/workflow.json#patterns",
+          "patch": "Add incident_resolution_state_machine for stuck workflow instances.",
+          "measure": "stuck execution emits incident_id, root_error_class, remediation_policy, retry_budget, and audit_chain row before retry/cancel"
+        },
+        {
+          "id": "WF-PATCH-CAMUNDA-02",
+          "target": "specs/products/workflow.json#anti_patterns",
+          "patch": "Forbid unscoped writes in parallel paths; require output mappings/minimum variable writes.",
+          "measure": "workflow_spec.v1 rejects parallel steps that write overlapping variables without merge_policy"
+        },
+        {
+          "id": "WF-PATCH-CAMUNDA-03",
+          "target": "specs/products/workflow-studio.json",
+          "patch": "Represent business-readable projection without making BPMN XML canonical.",
+          "measure": "roundtrip tests prove visual projection preserves canonical workflow_spec.v1 semantics"
+        }
+      ],
+      "adopt_patterns": [
+        "incident_resolution_state_machine",
+        "business_readable_projection",
+        "scoped_variable_writes",
+        "bulk_ops_with_audit"
+      ],
+      "reject_or_constrain": [
+        "Do not adopt BPMN XML as the canonical format; keep workflow_spec.v1 as source of truth.",
+        "Do not introduce manual incident SSH troubleshooting; remediation must be ops/API/audit-chain managed."
+      ],
+      "verdict": "incorporate_patch_gap"
+    },
+    {
+      "competitor": "Argo Workflows",
+      "source_evidence_refs": [
+        "argo_home_13_30",
+        "argo_templates_gitops",
+        "argo_cron_2_40",
+        "argo_retries",
+        "argo_artifacts",
+        "argo_sync"
+      ],
+      "observed_strengths": [
+        "Kubernetes-native CRD workflow engine",
+        "Container-native DAG/steps for parallel compute",
+        "Reusable WorkflowTemplates and GitOps management",
+        "CronWorkflow schedules/backfill patterns",
+        "RetryStrategy, artifact repository, and synchronization primitives"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "Workflow PRD says multi-domain and not K8s-only but lacks a clean container-job adapter boundary",
+        "Artifact repository and large output lifecycle are underspecified",
+        "Cron/backfill and schedule concurrency policies are not explicit",
+        "No semaphore/mutex/parallelism contract for shared external resources"
+      ],
+      "measurable_patches": [
+        {
+          "id": "WF-PATCH-ARGO-01",
+          "target": "specs/products/workflow.json#patterns",
+          "patch": "Add container_job_adapter as one executor target, isolated from core workflow semantics.",
+          "measure": "Kubernetes executor is optional adapter; core spec validates without Kubernetes fields"
+        },
+        {
+          "id": "WF-PATCH-ARGO-02",
+          "target": "specs/products/workflow.json#data_model",
+          "patch": "Add artifact_ref lifecycle for large inputs/outputs and retention/data-class metadata.",
+          "measure": "large payload steps require artifact_ref with repository_class, retention_policy, digest, and data_class"
+        },
+        {
+          "id": "WF-PATCH-ARGO-03",
+          "target": "contracts/workflow_spec.v1.json",
+          "patch": "Add schedule_backfill_policy and synchronization limits.",
+          "measure": "cron/backfill steps require concurrency_policy; shared resource steps require mutex/semaphore/parallelism cap"
+        }
+      ],
+      "adopt_patterns": [
+        "container_job_adapter_boundary",
+        "workflow_template_reuse",
+        "cron_backfill_policy",
+        "artifact_repository_ref",
+        "mutex_semaphore_parallelism_limits"
+      ],
+      "reject_or_constrain": [
+        "Do not make Kubernetes CRDs the product authority; they are an adapter projection only.",
+        "Do not require Argo CD/GitOps for every tenant runtime; Oyatie deployment authority remains OpenTofu/ops for infrastructure."
+      ],
+      "verdict": "incorporate_patch_gap"
+    }
+  ],
+  "cross_competitor_patch_backlog": [
+    "Add source-backed competitive_claim schema: competitor, evidence_refs, observed_strengths, oyatie_gap, patch_id, verification.",
+    "Add workflow_spec.v1 fields for replay_safety_class, side_effect_boundary, max_payload_bytes/artifact_ref, schedule_backfill_policy, and synchronization limits.",
+    "Add Rust validator that fails unsourced competitive claims and workflow steps with side effects but no idempotency/retry/checkpoint policy.",
+    "Add benchmark harness comparing Oyatie webhook/step throughput against n8n official benchmark shape without copying unsourced competitor claims.",
+    "Add incident lifecycle model with audit-chain remediation actions and no manual SSH troubleshooting path."
+  ],
+  "applied_to_spec": {
+    "path": "specs/products/workflow.json",
+    "changes": [
+      "competitive entries for n8n, Temporal, Camunda, and Argo rewritten with source_evidence_refs, observed strengths, Oyatie gaps, and measurable patch backlog",
+      "best practices extended for source-backed competitor claims, replay-safe side effects, and payload/artifact bounds",
+      "patterns extended for replay/event-history, incident state, artifact-backed payloads, cron/backfill, and synchronization",
+      "anti-patterns extended for unsourced benchmarks, unbounded payloads, BPMN-as-canonical, K8s-only core assumptions, and manual incident troubleshooting"
+    ]
+  },
+  "completion_gate": {
+    "passed": true,
+    "competitors_required": [
+      "n8n",
+      "Temporal",
+      "Camunda",
+      "Argo Workflows"
+    ],
+    "competitors_assessed": 4,
+    "source_evidence_count": 23,
+    "patch_count": 12,
+    "verification_required": [
+      "jq empty evidence/autoresearch/workflow-competitive-map.json specs/products/workflow.json",
+      "artifact/spec shape validator",
+      "deployment-ops-contract regression gate"
+    ]
+  }
+}
