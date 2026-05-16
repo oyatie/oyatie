@@ -1,15 +1,20 @@
 name: oya-foundry-fitness-supply-chain
 
 # Posture: surface-all-failures (M-CC-P02-IP-007).
-#   - `static-adr0039-wiring`, `oya-vcs-provider-execution`, and
-#     `release-artifact-attestation` each run INDEPENDENTLY. No cross-job
-#     `needs:` chains. One CI cycle exposes every gate's failure mode at
-#     once instead of one-per-retry.
-#   - `release-artifact-attestation` is still tag-gated via `if:` (only
-#     fires on `refs/tags/v*`), but with `if: always()` so a failure in
-#     the static gate does NOT skip it on a release tag.
-#   - Overall workflow conclusion is the AND of every job's conclusion
-#     (GitHub required-check semantics).
+#   - `oya-foundry-fitness-supply-chain-adr0039`,
+#     `oya-vcs-provider-execution`, and
+#     `oya-foundry-fitness-release-artifact-attestation` each run
+#     INDEPENDENTLY. No cross-job `needs:` chains (the rollup job at
+#     the bottom is the ONE permitted aggregator and only exists
+#     because branch-protection matches on a single context name).
+#     One CI cycle exposes every gate's failure mode at once instead
+#     of one-per-retry.
+#   - `oya-foundry-fitness-release-artifact-attestation` is still
+#     tag-gated via `if:` (only fires on `refs/tags/v*`), but with
+#     `if: always()` so a failure in the ADR-0039 sub-gate does NOT
+#     skip it on a release tag.
+#   - Overall workflow conclusion is the AND of every job's
+#     conclusion (GitHub required-check semantics).
 
 on:
   pull_request:
@@ -83,18 +88,18 @@ jobs:
     name: oya-foundry-fitness-supply-chain
     runs-on: ubuntu-latest
     needs:
-      - static-adr0039-wiring
+      - oya-foundry-fitness-supply-chain-adr0039
       - oya-vcs-provider-execution
     if: always()
     steps:
       - name: Rollup sub-job results
         env:
-          STATIC_RESULT: ${{ needs.static-adr0039-wiring.result }}
+          ADR0039_RESULT: ${{ needs.oya-foundry-fitness-supply-chain-adr0039.result }}
           PROVIDER_RESULT: ${{ needs.oya-vcs-provider-execution.result }}
         run: |
-          echo "static-adr0039-wiring=$STATIC_RESULT"
+          echo "oya-foundry-fitness-supply-chain-adr0039=$ADR0039_RESULT"
           echo "oya-vcs-provider-execution=$PROVIDER_RESULT"
-          if [ "$STATIC_RESULT" != "success" ] || [ "$PROVIDER_RESULT" != "success" ]; then
+          if [ "$ADR0039_RESULT" != "success" ] || [ "$PROVIDER_RESULT" != "success" ]; then
             echo "::error::supply-chain rollup failed: one or more sub-jobs did not succeed" >&2
             exit 1
           fi
