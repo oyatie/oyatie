@@ -1,0 +1,11 @@
+[Unit]
+Description=Oyatie host cleanup (apt autoremove + journal vacuum + image GC + ZFS snapshot accounting)
+Documentation=https://github.com/jason931225/oyatie/blob/dev/infra/onprem/cleanup/install.sh
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash /home/oyatie/projects/oyatie/infra/onprem/cleanup/install.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

@@ -3,7 +3,7 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M03-P01
 title: Cloud Foundations (KMS / Storage / Network / IAM / Region / Cell)
-status: in-progress
+status: in-progress (IP-001 unblocked 2026-05-16 — both adapters' live backends provisioned)
 purpose: Lift the in-flight cloud kernels to API+app+adapter+runtime completeness; provider-agnostic by default.
 ---
 
@@ -31,6 +31,16 @@ Continue the in-flight cloud bring-up per [`../../../../../.omx/notepad.md`](../
 
 ## Symbols-touched
 `crates/oya-cloud-{kms,storage,network,iam,region,surface,cell}-{api,app,adapter-aws,adapter-oci,adapter-gcp,adapter-azure}-*`.
+
+## Adapter ground-truth (2026-05-16)
+
+| Kernel | Status | Live backend(s) |
+|---|---|---|
+| KMS | `oya-cloud-kms-api` + `oya-cloud-kms-domain` complete; adapters not yet | OpenBao on-prem at `https://kms.oyatie.com` (Shamir 5/3, file storage on ZFS, audit log on `/srv/oyatie/audit-chain/openbao-audit.jsonl`); OCI KMS vault `bitween-default-vault` + AES-256 master key in `cloud` compartment |
+| Storage | crates not yet — IP-002 scaffolds | OCI Object Storage namespace `axdotp9iv3ua` + bucket `oyatie-audit-cold-backup` (Archive tier) |
+| Network | `oya-cloud-network-{dns,lb,vpc}-api` partial; adapters not yet — IP-003 | OCI nonprod VCN (10.0.0.0/16), IGW + NAT GW + Service GW + 3 NSGs + public/private subnets |
+| IAM | `oya-cloud-iam-{api,domain}` partial; adapters not yet — IP-004 | OCI tenancy `bitween` (ap-chuncheon-1) + 4 sub-compartments (foundry / cloud / prod / nonprod) |
+| Region/Cell | `oya-cloud-region-api` partial — IP-005 | KR-Chuncheon AD-1 + on-prem KR-Seoul (per ADR-0043) — 2 cells live |
 
 ## Agent-handoff
 ```

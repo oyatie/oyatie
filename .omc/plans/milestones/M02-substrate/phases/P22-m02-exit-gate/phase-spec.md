@@ -3,7 +3,7 @@ doc_class: PhaseSpec
 template_id: TPL-PHASE-SPEC
 milestone: M02-substrate
 phase: P22-m02-exit-gate
-status: Proposed
+status: partial-close-2026-05-16-directive-side-spec-side-pending-OCI-deploy
 acceptance_lanes: []
 entry_gate: "All Wave-A (P01\u2013P11), Wave-B (P12\u2013P16), Wave-C (P17\u2013P19),\
   \ Wave-D (P20) and\nWave-E/P21 complete; plane-verification-M02.md and wave-integration-report-M02.md\n\

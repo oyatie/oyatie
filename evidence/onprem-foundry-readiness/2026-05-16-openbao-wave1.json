@@ -1,0 +1,56 @@
+{
+  "evidence_id": "onprem-openbao-wave1-2026-05-16",
+  "captured_at": "2026-05-16T07:30:00Z",
+  "authority": "ADR-0043 (OpenBao + per-cell HSM)",
+  "wave": 1,
+  "cell": "KR-primary (on-prem)",
+  "branch": "dev",
+  "host": "oyatie",
+  "openbao": {
+    "version": "v2.5.3 (build 988c88d7ef54b4d4581629b229488dfba5e085ba 2026-04-20T19:28:29Z)",
+    "package": "openbao_2.5.3_linux_amd64.deb sha256 a01d4a5442216fd34b20eb3d9c9f3fd66ff6c10574e30a2bebd2c6e303233ef0",
+    "binary": "/usr/bin/bao",
+    "config": "/etc/openbao/openbao.hcl (0640 root:openbao)",
+    "service_unit": "/etc/systemd/system/openbao.service",
+    "data_path": "/srv/oyatie/openbao/data",
+    "data_zfs_dataset": "oyatie-bulk/srv/openbao (copies=2, compression=zstd, sanoid-snapshotted)",
+    "api_listener": "127.0.0.1:8200 (TLS disabled — behind cloudflared in next wave)",
+    "cluster_id": "0df78c73-4b8a-c96b-8644-803a26a52d6f",
+    "cluster_name": "vault-cluster-1f14fe68"
+  },
+  "seal": {
+    "type": "shamir",
+    "shares": 5,
+    "threshold": 3,
+    "status": "Sealed=false, Initialized=true after 3-key unseal"
+  },
+  "audit_device": {
+    "path": "audit_file/",
+    "type": "file",
+    "file_path": "/srv/oyatie/audit-chain/openbao-audit.jsonl",
+    "options": {"log_raw": "false", "hmac_accessor": "true"},
+    "declarative_in_config": true,
+    "note": "OpenBao 2.5 removed runtime `bao audit enable`; audit devices are now config-only."
+  },
+  "token_rotation": {
+    "init_root_token_status": "revoked",
+    "admin_token_in_cli": "policies=[root], ttl=719h58m, display_name=oyatie-admin, orphan=true",
+    "next_drill": "per ADR-0043 quarterly key rotation; renew admin token ≤30 days; rotate root every 90 days"
+  },
+  "secrets_handling": {
+    "init_output_file": "~/openbao-init-output.txt — chmod 0600 oyatie:oyatie",
+    "user_action_pending": "shred -u ~/openbao-init-output.txt after stashing keys offline (paper / password manager / USB)",
+    "compromised_init_keys_from_2026-05-16-prior-paste": "WIPED on re-init; previous data dir cleared via `find /srv/oyatie/openbao/data -mindepth 1 -delete`"
+  },
+  "wave_roadmap": {
+    "wave_1_done": ["single-node", "file storage on ZFS", "Shamir 5/3", "audit device declarative", "systemd hardened unit", "admin token rotation"],
+    "wave_2_pending": ["HA cluster 3-5 nodes per cell (Raft join)", "cloudflared tunnel for TLS to upstream API"],
+    "wave_3_pending": ["HSM auto-unseal (Thales Luna 7 KR / KCMVP + FIPS 140-3 Level 3)", "per-tenant per-cell HSM partition"],
+    "wave_4_pending": ["per-capability SecretProvider trait wiring", "session-token vault for Foundry subscription-mode adapters", "quarterly key-rotation drill automation"]
+  },
+  "directive_alignment": {
+    "user_first_priority_openbao": "satisfied",
+    "on_prem_storage_directive": "data on `oyatie-bulk` ZFS (3.5 TB available, copies=2)",
+    "everything_through_opentofu_directive": "partial — OpenBao install is a sudo-driven shell script (idempotent); full IaC wrap (tofu null_resource + local-file provisioners) deferred to wave 2"
+  }
+}
