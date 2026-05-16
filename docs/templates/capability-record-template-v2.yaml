@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=../../registry/quality/capability-record.schema.json
 # ---
-# Canonical Foundry capability record. Lives under product-control/capabilities/<id>.yaml.
+# Canonical Foundry capability record. Lives under registry/capability-templates/<id>.yaml.
 # Validates against registry/quality/capability-record.schema.json. Enforced by:
 #   - oya-foundry-fitness-capability-publish lane (publish gate)
 #   - capability-schema-validator (CI; must pass before publish)

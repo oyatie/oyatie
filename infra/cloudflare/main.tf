@@ -65,8 +65,20 @@ resource "cloudflare_zero_trust_tunnel_cloudflared_config" "onprem_kr" {
       hostname = "ops.${var.cloudflare_domain}"
       service  = "http://127.0.0.1:8080"
       origin_request {
-        connect_timeout = "30s"
+        connect_timeout  = "30s"
         http_host_header = "ops.${var.cloudflare_domain}"
+      }
+    }
+
+    # Public API gateway — api.oyatie.com is the canonical public REST surface.
+    # Today it terminates at the on-prem workspace-shell (/workspace/api/v1/*);
+    # when OCI API Gateway (M3-P03) goes live, repoint by changing `service`.
+    ingress_rule {
+      hostname = "api.${var.cloudflare_domain}"
+      service  = "http://127.0.0.1:8080"
+      origin_request {
+        connect_timeout  = "30s"
+        http_host_header = "api.${var.cloudflare_domain}"
       }
     }
 
@@ -94,6 +106,15 @@ resource "cloudflare_record" "foundry" {
   type    = "CNAME"
   proxied = true
   comment = "Foundry workspace-shell via Cloudflare Tunnel (managed-by: opentofu)"
+}
+
+resource "cloudflare_record" "api" {
+  zone_id = var.cloudflare_zone_id
+  name    = "api"
+  content = "${cloudflare_zero_trust_tunnel_cloudflared.onprem_kr.id}.cfargotunnel.com"
+  type    = "CNAME"
+  proxied = true
+  comment = "Public API gateway (canonical REST surface) — currently on-prem :8080; OCI API GW takes over at M3-P03"
 }
 
 resource "cloudflare_record" "ops" {
