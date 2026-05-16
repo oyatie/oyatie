@@ -5,5 +5,6 @@ pub(crate) mod doc;
 pub(crate) mod gate;
 pub(crate) mod onprem;
 pub(crate) mod submit;
+pub(crate) mod supply_chain;
 pub(crate) mod vcs;
 pub(crate) mod verify;
