@@ -1,0 +1,543 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/enterprise/suite.schema.json",
+  "title": "ProductPrd:EnterpriseSuite",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-ENTERPRISE-SUITE",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "enterprise-product-council",
+    "created_at": "2026-05-16T16:15:00Z",
+    "purpose": "Enterprise suite PRD: native business operating system bundling HR, Payroll, Accounting, compliance evidence, approvals, and operating intelligence under shared Workflow/Object Graph/ops contracts."
+  },
+  "identity": {
+    "product_id": "enterprise-suite",
+    "suite_id": "enterprise",
+    "owning_axis": "vertical-enterprise",
+    "product_class": "suite",
+    "user_facing_surface": true,
+    "context_model": [
+      "tenant-work",
+      "legal-entity-group"
+    ],
+    "crate_refs_planned": [
+      "oya-enterprise-suite-kernel",
+      "oya-enterprise-suite-domain",
+      "oya-enterprise-suite-app",
+      "oya-enterprise-suite-rest"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path",
+    "children": [
+      "$ref:specs/products/enterprise/hr.json",
+      "$ref:specs/products/enterprise/payroll.json",
+      "$ref:specs/products/enterprise/accounting.json"
+    ],
+    "suite_boundary": "business operating system shell; child products own runtime domains while sharing identity, policy, approval, Workflow, Object Graph, audit-chain, and ops seams"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/docs/products/corporate/corporate.md",
+      "$ref:bominal/docs/products/corporate/hr-payroll-known-limits.md",
+      "$ref:bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+      "$ref:bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
+      "$ref:bominal/docs/products/corporate/corp-compliance-vertical-design.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/products/workflow.json",
+      "$ref:specs/products/ontology.json",
+      "$ref:specs/deployment-ops-contract.json",
+      "$ref:specs/products/connect/suite.json"
+    ],
+    "source_docs": [
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/corporate.md",
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/hr-payroll-known-limits.md",
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
+      "$ref:/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md"
+    ],
+    "user_decisions": [
+      "2026-05-16:D-13 one PRD per suite plus per-app sub-PRDs",
+      "2026-05-16:D-15 canonical PRD form is JSON-with-pointers at specs/products/<id>.json",
+      "2026-05-16:enterprise scope starts with HR, Payroll, Accounting and remains extensible for every business SaaS module",
+      "2026-05-16:deployment must be OpenTofu + Makefile + oya ops; no manual SSH troubleshooting",
+      "2026-05-16:shell-script operations must move to Rust where logic exists"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/docs/products/corporate/corporate.md#target-shape + $ref:specs/agent-durable-goal.json#pipeline + $ref:specs/deployment-ops-contract.json",
+  "target_users": [
+    {
+      "persona": "employee_end_user",
+      "interface": "self-service web/mobile/desktop surfaces",
+      "billing": "workspace or enterprise seat"
+    },
+    {
+      "persona": "manager_operator",
+      "interface": "approval queue, team dashboard, exception handling",
+      "billing": "enterprise seat"
+    },
+    {
+      "persona": "hr_finance_admin",
+      "interface": "admin console, imports, policies, close workflow",
+      "billing": "tenant admin entitlement"
+    },
+    {
+      "persona": "compliance_officer",
+      "interface": "legal hold, audit evidence, statutory filing and control evidence",
+      "billing": "compliance module entitlement"
+    },
+    {
+      "persona": "developer_integrator",
+      "interface": "REST/gRPC/webhook/Workflow APIs",
+      "billing": "API and workflow execution units"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "a tenant activates Enterprise Suite",
+      "when": "HR, Payroll, and Accounting children are enabled",
+      "then": "all writes carry tenant_id, legal_entity_id, data_class, and audit-chain evidence without child apps bypassing the suite policy gateway",
+      "test_ref": "crates/oya-enterprise-suite-domain/tests/policy.rs::test_children_share_suite_policy_gateway"
+    },
+    {
+      "id": "AC-02",
+      "given": "a Korean group has multiple legal entities",
+      "when": "group status is rolled up",
+      "then": "each entity keeps an independent payroll/accounting close boundary and immutable evidence while group dashboards use projections only",
+      "test_ref": "crates/oya-enterprise-suite-domain/tests/group.rs::test_group_rollup_preserves_entity_boundaries"
+    },
+    {
+      "id": "AC-03",
+      "given": "OpenTofu has provisioned enterprise infra",
+      "when": "operators run bootstrap/install/ops flows",
+      "then": "all day-2 changes route through Makefile/oya ops/ops.oyatie.com and no SSH troubleshooting command is required",
+      "test_ref": "crates/oya-enterprise-suite-app/tests/ops.rs::test_enterprise_ops_contract_has_no_manual_ssh"
+    },
+    {
+      "id": "AC-04",
+      "given": "a workflow crosses HR, Payroll, and Accounting",
+      "when": "approval, evidence, or rollback is required",
+      "then": "Workflow owns routing and Object Graph owns typed relationships; AI suggestions cannot close deterministic gates",
+      "test_ref": "crates/oya-enterprise-suite-domain/tests/workflow.rs::test_cross_product_workflow_uses_deterministic_gates"
+    },
+    {
+      "id": "AC-05",
+      "given": "a production incident or canary SLO breach occurs",
+      "when": "enterprise runtime is unhealthy",
+      "then": "rollback/quarantine happens first, incident JSON/evidence is emitted, and infra/config fixes converge through OpenTofu/ops",
+      "test_ref": "crates/oya-enterprise-suite-domain/tests/incident.rs::test_rollback_first_no_manual_ssh"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "suite shell",
+        "legal-entity selector",
+        "shared policy gateway",
+        "HR/Payroll/Accounting launch contracts",
+        "audit event envelope"
+      ],
+      "stable": [
+        "group rollups",
+        "approval inbox",
+        "compliance evidence console",
+        "operating-intelligence projections"
+      ],
+      "GA": [
+        "KR production fidelity",
+        "multi-region SLO evidence",
+        "migration/coexistence adapters",
+        "ops-managed launch/rollback evidence"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "manual SSH operational recovery",
+        "why": "deployment-ops contract forbids troubleshooting through ad hoc SSH"
+      },
+      {
+        "item": "third-party ERP as core substrate",
+        "why": "external suites are import/coexistence adapters only"
+      },
+      {
+        "item": "AI as close authority",
+        "why": "deterministic Workflow, rulepack, and audit-chain evidence are closure authority"
+      }
+    ]
+  },
+  "contracts": {
+    "consumes": [
+      "$ref:specs/products/workflow.json#handoff-runtime",
+      "$ref:specs/products/ontology.json#typed-entity-layer",
+      "$ref:specs/deployment-ops-contract.json#ops_entrypoints"
+    ],
+    "produces": [
+      "enterprise.suite.policy.v1",
+      "enterprise.legal_entity_context.v1",
+      "enterprise.cross_product_workflow.v1",
+      "enterprise.close_evidence.v1"
+    ]
+  },
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "EnterpriseTenantProfile",
+        "fields": [
+          "tenant_id",
+          "legal_entity_ids",
+          "tenant_tier",
+          "jurisdiction_set",
+          "ops_cell",
+          "data_class",
+          "schema_version"
+        ],
+        "invariants": [
+          "legal_entity_id required for transactional work",
+          "tenant_tier drives KR compliance thresholds"
+        ]
+      },
+      {
+        "entity": "EnterpriseCloseEvidence",
+        "fields": [
+          "evidence_id",
+          "tenant_id",
+          "legal_entity_id",
+          "product_id",
+          "close_period",
+          "artifact_digests",
+          "audit_topic",
+          "created_at"
+        ],
+        "invariants": [
+          "append-only",
+          "digest required before close promotion"
+        ]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "EnterpriseSuiteActivated",
+        "topic": "audit.enterprise.suite",
+        "idempotency_key": "tenant_id+activation_version"
+      },
+      {
+        "event": "EnterpriseCloseEvidenceEmitted",
+        "topic": "audit.enterprise.close",
+        "idempotency_key": "tenant_id+legal_entity_id+period+product_id"
+      },
+      {
+        "event": "EnterpriseOpsConverged",
+        "topic": "audit.enterprise.ops",
+        "idempotency_key": "deployment_id+desired_state_hash"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "EnterpriseTenantProfile",
+        "store": "Postgres/RLS",
+        "sharding_key": "tenant_id+region",
+        "retention": "tenant lifecycle + statutory archive"
+      },
+      {
+        "aggregate": "EnterpriseEvidenceEnvelope",
+        "store": "audit-chain/WORM",
+        "sharding_key": "tenant_id+legal_entity_id+period",
+        "retention": "jurisdiction bounded"
+      }
+    ],
+    "audit_chain_emission_rule_ref": "$ref:docs/decisions/ADR-0003 + $ref:specs/agent-durable-goal.json#score_cards"
+  },
+  "optimization_practices": [
+    {
+      "practice": "legal-entity cell routing",
+      "implementation": "tenant_id + legal_entity_id + region route every transactional write; group rollups are projections, not shared mutable ledgers"
+    },
+    {
+      "practice": "approval backpressure",
+      "implementation": "Workflow queues expose SLA and exception budgets before operator inboxes overload"
+    },
+    {
+      "practice": "evidence-first close",
+      "implementation": "payroll, accounting, compliance, and incident workflows emit immutable evidence paths before promotion/resume"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "Korea-first HR/payroll/accounting fidelity: Labor Standards Act, 4대보험, HomeTax, K-GAAP/K-IFRS, PIPA, ISMS-P, SAPA, rules-of-employment and labor-management-council thresholds."
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "US expansion keeps payroll tax, benefits, FMLA/ADA/EEOC, GAAP, SOX-style controls, and multi-state employer obligations behind jurisdiction rulepacks."
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "EU expansion covers GDPR, works-council/local labor overlays, VAT, statutory accounting exports, and data-residency policy."
+      }
+    ],
+    "validation_lane_ref": "oya-foundry-fitness-regional-pack-contracts"
+  },
+  "deps": {
+    "external_adopted": [
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "async runtime primitive only"
+      },
+      {
+        "name": "rustls",
+        "maturity_tier": "kernel-grade",
+        "license": "Apache-2.0 OR ISC OR MIT",
+        "decision": "TLS primitive only"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "Workday/Oracle/SAP as product substrate",
+        "reason": "Enterprise suite is native; external suites are migration/coexistence adapters only"
+      },
+      {
+        "name": "manual shell/SSH operational glue",
+        "reason": "deployment and day-2 authority belongs to OpenTofu, Makefile targets, Rust oya gates, and ops-managed controllers"
+      },
+      {
+        "name": "AI-only compliance or close decisions",
+        "reason": "deterministic rulepacks and audit-chain evidence remain closure authority"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "suite_activation_minutes",
+      "targets": {
+        "preview": 60,
+        "stable": 30,
+        "GA": 15
+      },
+      "verification_ref": "oya gate validate enterprise-suite-activation",
+      "lane_ref": "slo-coverage"
+    },
+    {
+      "name": "cross_product_policy_bypass_count",
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
+      "verification_ref": "cargo nextest -p oya-enterprise-suite-domain -- policy_bypass",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "manual_ssh_troubleshooting_paths",
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
+      "verification_ref": "oya gate validate deployment-ops-contract",
+      "lane_ref": "deployment-ops-contract"
+    },
+    {
+      "name": "close_evidence_digest_coverage_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "oya gate validate enterprise-close-evidence",
+      "lane_ref": "audit-chain"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-01",
+      "severity": "critical",
+      "risk": "suite children diverge into separate policy/ops paths",
+      "mitigation": "shared suite policy gateway and deployment-ops contract gate",
+      "owner": "enterprise-product-council"
+    },
+    {
+      "id": "R-02",
+      "severity": "high",
+      "risk": "enterprise scope expands into unbounded business SaaS sprawl",
+      "mitigation": "suite child registry and PRD-per-module gate before implementation",
+      "owner": "enterprise-product-council"
+    },
+    {
+      "id": "R-03",
+      "severity": "high",
+      "risk": "KR production claims outpace rulepack certification",
+      "mitigation": "rulepack evidence and effective-date review required before close promotion",
+      "owner": "enterprise-product-council"
+    }
+  ],
+  "competitive": [
+    {
+      "competitor": "Workday",
+      "observed_strengths": [
+        "enterprise HCM/finance breadth",
+        "large account maturity"
+      ],
+      "we_beat_on": [
+        "OpenTofu/ops-native deployment",
+        "Workflow/Object Graph cohesion",
+        "Korea-first statutory fidelity"
+      ],
+      "measurable_target": "entity close evidence available within 5 minutes of close"
+    },
+    {
+      "competitor": "Rippling",
+      "observed_strengths": [
+        "HR/IT/finance automation",
+        "modular packaging"
+      ],
+      "we_beat_on": [
+        "deterministic audit-chain close",
+        "strict legal-entity boundaries"
+      ],
+      "measurable_target": "policy bypass count remains 0"
+    },
+    {
+      "competitor": "WEHAGO/더존",
+      "observed_strengths": [
+        "KR SME accounting/payroll footprint"
+      ],
+      "we_beat_on": [
+        "modern Workflow-native suite",
+        "group-ready audit/evidence model"
+      ],
+      "measurable_target": "KR group rollup preserves 100% entity evidence digests"
+    }
+  ],
+  "best_practices": [
+    "legal-entity isolation by default",
+    "deterministic rulepacks before AI assistance",
+    "rollback-first launch controls",
+    "suite-level policy gateway",
+    "PRD-per-child before implementation"
+  ],
+  "patterns": [
+    "shared policy gateway",
+    "append-only evidence ledger",
+    "Workflow-owned approvals",
+    "Object Graph typed relationships",
+    "OpenTofu/ops desired-state convergence"
+  ],
+  "anti_patterns": [
+    "child app bypassing shared policy",
+    "manual SSH runbooks",
+    "single global ledger for all legal entities",
+    "third-party ERP as source of truth",
+    "AI-only close decisions"
+  ],
+  "goals": {
+    "scalability": {
+      "target": "EnterpriseSuite supports SME self-serve through conglomerate legal-entity groups without forked code paths",
+      "verification": "oya gate validate enterprise-enterprisesuite-scale-model"
+    },
+    "security": {
+      "target": "tenant, legal-entity, payroll, accounting, and evidence data remain RLS/policy isolated; privileged disclosure is audit chained",
+      "verification": "cargo nextest -p oya-enterprise-security-domain -- cross_tenant"
+    },
+    "performance": {
+      "target": "operator hot paths p95 <= 200ms for preview and <= 150ms for GA under representative tenant shape",
+      "verification": "cargo bench -p oya-enterprise-bench -- enterprise_hot_paths"
+    },
+    "efficiency": {
+      "target": "unit economics tracked per employee, pay run, journal posting, evidence item, and workflow action",
+      "verification": "oya gate validate enterprise-finops-unit-economics"
+    },
+    "reliability": {
+      "target": "GA availability 99.95%; RPO <= 5m for professional data; rollback evidence emitted before root-cause analysis",
+      "verification": "oya gate validate enterprise-slo-coverage"
+    }
+  },
+  "user_experience": {
+    "primary_navigation": "suite shell with HR, Payroll, Accounting, approvals, evidence, and admin work queues; personal/work context boundaries inherited from the workspace shell where applicable",
+    "critical_flows": [
+      "tenant onboarding",
+      "employee lifecycle",
+      "payroll trial close",
+      "GL posting review",
+      "statutory filing evidence",
+      "incident/rollback evidence review"
+    ],
+    "accessibility": {
+      "baseline": "WCAG 2.1 AA",
+      "keyboard_required": true,
+      "screen_reader_required": true
+    },
+    "localization": {
+      "default_locale": "ko-KR",
+      "required_locales": [
+        "ko-KR",
+        "en-US"
+      ],
+      "currency_handling": [
+        "KRW",
+        "USD",
+        "EUR"
+      ]
+    }
+  },
+  "frontend_components": [
+    {
+      "component": "EnterprisePolicyDisclosureBanner",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "tested_at_breakpoints": [
+        "mobile-360",
+        "tablet-768",
+        "desktop-1440"
+      ]
+    },
+    {
+      "component": "EnterpriseWorkQueueList",
+      "design_system_ref": "$ref:specs/design-system/communication-thread-list.json",
+      "tested_at_breakpoints": [
+        "mobile-360",
+        "tablet-768",
+        "desktop-1440"
+      ]
+    }
+  ],
+  "decision_log": [
+    {
+      "id": "D-01",
+      "decision": "Machine-readable PRD JSON is canonical; no new Markdown PRD is introduced.",
+      "date": "2026-05-16"
+    },
+    {
+      "id": "D-02",
+      "decision": "OpenTofu + Makefile + oya ops are the deployment/ops path; manual SSH troubleshooting is explicitly out of scope.",
+      "date": "2026-05-16"
+    },
+    {
+      "id": "D-03",
+      "decision": "HR, Payroll, and Accounting are the first enterprise children; suite model remains extensible for procurement, compliance, assets, and corporate intelligence.",
+      "date": "2026-05-16"
+    }
+  ],
+  "sources_scanned": [
+    "/Users/jasonlee/bominal/docs/products/corporate/corporate.md",
+    "/Users/jasonlee/bominal/docs/products/corporate/hr-payroll-known-limits.md",
+    "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+    "/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
+    "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
+    "specs/products/connect/suite.json",
+    "specs/deployment-ops-contract.json"
+  ]
+}
