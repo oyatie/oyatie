@@ -1,0 +1,23 @@
+# Append-only JSONL files use git's built-in union merge driver so concurrent
+# branches that each append their own rows can be rebased without manual
+# conflict resolution.
+#
+# The `union` driver concatenates both sides of a conflict instead of marking
+# them. This is correct because:
+#   1. These files declare themselves append-only (per their `_meta` row).
+#   2. Each row is independent — order matters only by timestamp, not by
+#      adjacency.
+#   3. Deletions by either side would be silently lost, but our policy
+#      forbids deletions anyway (codex bot enforces this on review).
+#
+# Rationale: with 14+ parallel PRs all appending one row each, the previous
+# "default merge" behaviour produced a continuous merge-storm where every
+# advance of `dev` re-conflicted ~13 other branches against a single
+# append-only file. Switching to `merge=union` makes the conflict structural
+# noise disappear at the git layer.
+#
+# Scope: only files whose schema is genuinely append-only-list-of-rows.
+# Do NOT add `merge=union` for files with structural cross-line invariants
+# (e.g. registry indices keyed by id where duplicates would corrupt state).
+evidence/audit-chain.jsonl merge=union
+registry/fixuptasks.jsonl merge=union
