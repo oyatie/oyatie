@@ -3,9 +3,8 @@
 //!
 //! Every implementation plan markdown (`.omc/plans/milestones/**/IP-*.md`)
 //! MUST include a `## Load test` section that contains at least one concrete
-//! number (a digit) — empty placeholder sections are not enough. The presence
-//! of digits is the cheap heuristic for "this section has measurements, not
-//! a stub heading."
+//! performance measurement. Empty placeholder sections and digit-only filler
+//! such as "0 things to do" are not enough.
 //!
 //! Scope of this kernel: pure logic over typed [`ImplementationPlan`] nodes
 //! pre-harvested by a runner. No I/O.
@@ -35,7 +34,10 @@ impl fmt::Display for ViolationKind {
             Self::SectionMissing => write!(f, "no '## Load test' section"),
             Self::SectionEmpty => write!(f, "'## Load test' section is empty"),
             Self::SectionMissingNumbers => {
-                write!(f, "'## Load test' section contains no concrete numbers")
+                write!(
+                    f,
+                    "'## Load test' section contains no concrete performance measurements"
+                )
             }
         }
     }
@@ -71,6 +73,28 @@ impl fmt::Display for Error {
 impl std::error::Error for Error {}
 
 const SECTION_HEADING: &str = "## Load test";
+const PERFORMANCE_MEASUREMENT_TOKENS: &[&str] = &[
+    "p50",
+    "p95",
+    "p99",
+    "p999",
+    "latency",
+    "throughput",
+    "rps",
+    "qps",
+    "req/sec",
+    "requests/sec",
+    "ms",
+    "seconds",
+    "sec",
+    "users",
+    "concurrent",
+    "error budget",
+    "burn-rate",
+    "k6",
+    "locust",
+    "vegeta",
+];
 
 fn extract_section_body<'a>(content: &'a str, heading: &str) -> Option<&'a str> {
     let iter = content.split('\n');
@@ -93,8 +117,70 @@ fn extract_section_body<'a>(content: &'a str, heading: &str) -> Option<&'a str> 
     Some(&tail[..end])
 }
 
-fn body_has_digit(body: &str) -> bool {
-    body.chars().any(|c| c.is_ascii_digit())
+fn body_has_performance_measurement(body: &str) -> bool {
+    let tokens = tokenize_measurement_body(body);
+    tokens
+        .iter()
+        .enumerate()
+        .any(|(idx, token)| token_has_digit(token) && has_measurement_context(&tokens, idx))
+}
+
+fn tokenize_measurement_body(body: &str) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut current = String::new();
+
+    for ch in body.chars() {
+        if ch.is_ascii_alphanumeric() || ch == '/' || ch == '-' {
+            current.push(ch.to_ascii_lowercase());
+        } else if !current.is_empty() {
+            tokens.push(std::mem::take(&mut current));
+        }
+    }
+    if !current.is_empty() {
+        tokens.push(current);
+    }
+
+    tokens
+}
+
+fn token_has_digit(token: &str) -> bool {
+    token.chars().any(|c| c.is_ascii_digit())
+}
+
+fn has_measurement_context(tokens: &[String], number_idx: usize) -> bool {
+    if token_is_measurement(&tokens[number_idx]) {
+        return true;
+    }
+
+    let start = number_idx.saturating_sub(2);
+    let end = (number_idx + 3).min(tokens.len());
+    tokens[start..end]
+        .iter()
+        .enumerate()
+        .any(|(offset, token)| start + offset != number_idx && token_is_measurement(token))
+}
+
+fn token_is_measurement(token: &str) -> bool {
+    PERFORMANCE_MEASUREMENT_TOKENS.contains(&token) || token_has_numeric_measurement_suffix(token)
+}
+
+fn token_has_numeric_measurement_suffix(token: &str) -> bool {
+    let digit_end = token
+        .char_indices()
+        .take_while(|(_, ch)| ch.is_ascii_digit())
+        .last()
+        .map(|(idx, ch)| idx + ch.len_utf8());
+    let Some(digit_end) = digit_end else {
+        return false;
+    };
+    if digit_end == 0 || digit_end >= token.len() {
+        return false;
+    }
+
+    matches!(
+        &token[digit_end..],
+        "ms" | "sec" | "seconds" | "rps" | "qps" | "users"
+    )
 }
 
 pub fn check(plans: &[ImplementationPlan]) -> Result<Report, Error> {
@@ -123,7 +209,7 @@ pub fn check(plans: &[ImplementationPlan]) -> Result<Report, Error> {
                         path: plan.path.clone(),
                         kind: ViolationKind::SectionEmpty,
                     });
-                } else if !body_has_digit(body_trimmed) {
+                } else if !body_has_performance_measurement(body_trimmed) {
                     violations.push(Violation {
                         path: plan.path.clone(),
                         kind: ViolationKind::SectionMissingNumbers,
@@ -189,6 +275,47 @@ mod tests {
         .unwrap();
         assert_eq!(r.violations.len(), 1);
         assert_eq!(r.violations[0].kind, ViolationKind::SectionMissingNumbers);
+    }
+
+    #[test]
+    fn digit_only_placeholder_is_not_a_performance_measurement() {
+        let r = check(&[ip(
+            "IP-004b.md",
+            "# IP\n## Load test\n\n0 things to do before merge.\n",
+        )])
+        .unwrap();
+        assert_eq!(r.violations.len(), 1);
+        assert_eq!(r.violations[0].kind, ViolationKind::SectionMissingNumbers);
+    }
+
+    #[test]
+    fn ordinary_words_containing_measurement_substrings_are_not_measurements() {
+        for body in [
+            "0 items to do before merge.",
+            "1 section remains before merge.",
+            "2 teams signed off.",
+        ] {
+            let r = check(&[ip("IP-004c.md", &format!("# IP\n## Load test\n\n{body}\n"))]).unwrap();
+            assert_eq!(r.violations.len(), 1, "{body}");
+            assert_eq!(
+                r.violations[0].kind,
+                ViolationKind::SectionMissingNumbers,
+                "{body}"
+            );
+        }
+    }
+
+    #[test]
+    fn adjacent_metric_patterns_are_measurements() {
+        for body in [
+            "p99 < 250ms at 1000 rps.",
+            "Latency target 250ms.",
+            "Load generated with k6 for 60 seconds.",
+            "Supports 500 concurrent users.",
+        ] {
+            let r = check(&[ip("IP-004d.md", &format!("# IP\n## Load test\n\n{body}\n"))]).unwrap();
+            assert!(r.violations.is_empty(), "{body}");
+        }
     }
 
     #[test]

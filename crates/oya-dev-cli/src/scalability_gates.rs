@@ -295,7 +295,7 @@ pub(crate) fn validate_perf_budget_gate(
                 PerfBudgetViolationKind::SectionMissing => "missing `## Load test` section",
                 PerfBudgetViolationKind::SectionEmpty => "empty `## Load test` section",
                 PerfBudgetViolationKind::SectionMissingNumbers => {
-                    "`## Load test` section has no concrete numbers"
+                    "`## Load test` section has no concrete performance measurements"
                 }
             };
             msg.push_str(&format!("  {} — {}\n", v.path, label));

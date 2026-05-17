@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -4408,6 +4408,163 @@ fn write_catalog_record_with_claim(
     .expect("catalog record written");
 }
 
+// ─── perf-budget integration tests (M02b/P22 exit-gate lane 3) ──────────────
+
+/// Proves the perf-budget validator catches an IP-*.md file that is missing a
+/// `## Load test` section — the canonical synthetic-violation shape for the
+/// perf-budget gate (ADR-0062 §"performance budgets").
+#[test]
+fn perf_budget_gate_catches_missing_load_test_section() {
+    let temp = TempDirGuard::new("perf-budget-violation");
+    let plans_dir = temp.path().join("plans");
+    fs::create_dir_all(&plans_dir).expect("plans dir created");
+    fs::write(
+        plans_dir.join("IP-001-foo.md"),
+        // intentional violation: no `## Load test` section
+        "# IP-001 Foo\n\n## Summary\n\nImplement foo.\n\n## Acceptance criteria\n\n- Foo works.\n",
+    )
+    .expect("violation plan written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "perf-budget",
+            "--plans-dir",
+            plans_dir.to_str().expect("utf8 plans dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected failure for IP plan missing ## Load test section\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("perf-budget validation failed"),
+        "stderr must contain failure message; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("Load test"),
+        "stderr must name the violated section; got: {stderr}"
+    );
+}
+
+/// Proves the perf-budget validator catches a present but empty `## Load test`
+/// section instead of treating the heading alone as sufficient evidence.
+#[test]
+fn perf_budget_gate_catches_empty_load_test_section() {
+    let temp = TempDirGuard::new("perf-budget-empty");
+    let plans_dir = temp.path().join("plans");
+    fs::create_dir_all(&plans_dir).expect("plans dir created");
+    fs::write(
+        plans_dir.join("IP-002-empty.md"),
+        "# IP-002 Empty\n\n## Summary\n\nImplement empty.\n\n## Load test\n\n## Acceptance criteria\n\n- Done.\n",
+    )
+    .expect("empty-section plan written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "perf-budget",
+            "--plans-dir",
+            plans_dir.to_str().expect("utf8 plans dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected failure for empty ## Load test section\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("empty `## Load test` section"),
+        "stderr must name empty section violation; got: {stderr}"
+    );
+}
+
+/// Proves the perf-budget validator rejects digit-bearing filler that is not a
+/// concrete load-test measurement.
+#[test]
+fn perf_budget_gate_catches_load_test_without_concrete_measurements() {
+    let temp = TempDirGuard::new("perf-budget-no-measurement");
+    let plans_dir = temp.path().join("plans");
+    fs::create_dir_all(&plans_dir).expect("plans dir created");
+    fs::write(
+        plans_dir.join("IP-003-filler.md"),
+        "# IP-003 Filler\n\n## Summary\n\nImplement filler.\n\n## Load test\n\n0 things to do before merge.\n",
+    )
+    .expect("filler plan written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "perf-budget",
+            "--plans-dir",
+            plans_dir.to_str().expect("utf8 plans dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected failure for non-measurement filler\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("no concrete performance measurements"),
+        "stderr must reject digit-only filler; got: {stderr}"
+    );
+}
+
+/// Proves the perf-budget validator passes when an IP-*.md file contains a
+/// `## Load test` section with concrete performance measurements.
+#[test]
+fn perf_budget_gate_passes_clean_crate() {
+    let temp = TempDirGuard::new("perf-budget-clean");
+    let plans_dir = temp.path().join("plans");
+    fs::create_dir_all(&plans_dir).expect("plans dir created");
+    fs::write(
+        plans_dir.join("IP-004-bar.md"),
+        // well-formed: ## Load test section present with concrete p99 number
+        "# IP-004 Bar\n\n## Summary\n\nImplement bar.\n\n## Load test\n\nTarget: p99 < 50ms at 1000 rps sustained for 60s.\n",
+    )
+    .expect("clean plan written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "perf-budget",
+            "--plans-dir",
+            plans_dir.to_str().expect("utf8 plans dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected pass for IP plan with ## Load test section and concrete measurements\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("perf-budget validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+}
+
 #[test]
 fn benchmark_gate_catches_missing_competitive_benchmark_section() {
     let temp = temp_dir("benchmark-violation");
@@ -4495,6 +4652,28 @@ fn temp_dir(label: &str) -> std::path::PathBuf {
         .expect("clock after epoch")
         .as_nanos();
     std::env::temp_dir().join(format!("oya-{label}-{}-{nanos}", std::process::id()))
+}
+
+struct TempDirGuard {
+    path: PathBuf,
+}
+
+impl TempDirGuard {
+    fn new(label: &str) -> Self {
+        Self {
+            path: temp_dir(label),
+        }
+    }
+
+    fn path(&self) -> &Path {
+        &self.path
+    }
+}
+
+impl Drop for TempDirGuard {
+    fn drop(&mut self) {
+        fs::remove_dir_all(&self.path).ok();
+    }
 }
 
 // ─── documentation-system integration tests (M02b/P22 exit-gate lane 3) ─────
