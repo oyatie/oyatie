@@ -1,6 +1,7 @@
 //! Cloud FinOps kernel (M03-P03-IP-004 minimum viable kernel;
 //! M05-P01-IP-003 public-GA surface;
-//! M07-P02-payroll merge-variant delta-1 payroll period types).
+//! M07-P02-payroll merge-variant delta-1 payroll period types;
+//! M07-P03-accounting merge-variant delta-1 accounting-period close model).
 //!
 //! Pure I/O-free model for cost-report periods, savings recommendations,
 //! and the admission rule that a recommendation cannot be promoted to
@@ -13,9 +14,17 @@
 //! The `finance` sub-module provides ISO 4217 `Currency`, `JournalEntryStatus`,
 //! and `LedgerError` — merged here per user-directive-option-2 (2026-05-17)
 //! instead of new crate scaffolds.
+//!
+//! The `accounting_period` module adds K-GAAP period-close lifecycle.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
+pub mod accounting_period;
+pub use accounting_period::{
+    AccountingPeriod, AccountingPeriodKind, PeriodCloseError, PeriodCloseState,
+    assert_posting_allowed, begin_review, close_period, validate_accounting_period,
+};
 
 pub mod finops_public;
 pub use finops_public::{FINOPS_PUBLIC_SCHEMA_VERSION, PublicCostSummary, report_public};
