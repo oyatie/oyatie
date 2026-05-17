@@ -54,12 +54,15 @@ impl PackVersion {
 /// The `vertical_id` must match the elected vertical slug (`"vertical-corporate"`).
 /// `pack_ref` must start with `"oya-pack-"` to align with the `RegionalPack` id
 /// invariant.
+///
+/// All fields are private to enforce invariants through [`CapabilityPack::new`].
+/// Use the accessor methods to read field values.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CapabilityPack {
-    pub vertical_id: Classified<String>,
-    pub pack_ref: String, // data_class: INTERNAL_ONLY; references RegionalPack.id
-    pub version: PackVersion,
-    pub capabilities: Classified<Vec<String>>,
+    vertical_id: Classified<String>,
+    pack_ref: String, // data_class: INTERNAL_ONLY; references RegionalPack.id
+    version: PackVersion,
+    capabilities: Classified<Vec<String>>,
 }
 
 /// The elected vertical slug for M04 (council-resolution 2026-05-17).
@@ -79,6 +82,26 @@ pub enum CapabilityPackError {
 }
 
 impl CapabilityPack {
+    /// Returns the elected vertical ID.
+    pub fn vertical_id(&self) -> &str {
+        &self.vertical_id.value
+    }
+
+    /// Returns the pack reference (e.g. `"oya-pack-kr"`).
+    pub fn pack_ref(&self) -> &str {
+        &self.pack_ref
+    }
+
+    /// Returns the pack version.
+    pub fn version(&self) -> PackVersion {
+        self.version
+    }
+
+    /// Returns the capability list.
+    pub fn capabilities(&self) -> &[String] {
+        &self.capabilities.value
+    }
+
     /// Constructs and validates a new [`CapabilityPack`].
     ///
     /// # Errors
@@ -131,9 +154,9 @@ mod tests {
     #[test]
     fn accepts_canonical_corporate_pack() {
         let pack = corporate_pack();
-        assert_eq!(pack.pack_ref, "oya-pack-kr");
-        assert_eq!(pack.version.triplet(), (1, 0, 0));
-        assert_eq!(pack.version.display(), "1.0.0");
+        assert_eq!(pack.pack_ref(), "oya-pack-kr");
+        assert_eq!(pack.version().triplet(), (1, 0, 0));
+        assert_eq!(pack.version().display(), "1.0.0");
     }
 
     #[test]
