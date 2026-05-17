@@ -18,6 +18,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: "Delivers the complete Ontology substrate: 45 crates across 7 BCs (entity, link, action, function, agent-gateway, audit-chain, pillar), full Postgres DDL with RLS and outbox, sealed port traits in kernel, Cedar policy fragment."
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "User chose merge-variant 2026-05-17 — the 45-crate FROM-SCRATCH scaffold below is preserved as reference; deltas land incrementally into existing oya-ontology-{api,domain,kernel} crates. Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION. First delta landed: OntologyPillar + UnknownPillarLabel enum/error added to oya-ontology-kernel::pillar module (2026-05-17), encoding the org/person pillar-isolation contract (Bominal-ADR-0132). Remaining deltas (sealed port traits, Postgres DDL with RLS, Cedar policy fragment, outbox + Protobuf events, agent-gateway BC, REST/GraphQL surfaces) tracked under the reconciliation FixupTask as separate slices."
 ---
 # IP-P02-ontology-substrate: Scaffold 45 Ontology crates with full DDL, port traits, Cedar, Protobuf, REST/GraphQL
 
