@@ -65,22 +65,22 @@ pub struct CloudEvent {
     /// CloudEvents spec version — always `"1.0"`.
     pub spec_version: &'static str,
     /// Unique event identifier; serves as idempotency key.
-    pub id: String,           // data_class: INTERNAL_ONLY
+    pub id: String, // data_class: INTERNAL_ONLY
     /// Source URI: `//oyatie/{microservice}`.
-    pub source: String,       // data_class: INTERNAL_ONLY
+    pub source: String, // data_class: INTERNAL_ONLY
     /// Structured topic name (the CloudEvents `type` attribute).
     /// Format: `t.{tenant_id}.{microservice}.{event_type}.v{version}`
-    pub event_type: String,   // data_class: INTERNAL_ONLY
+    pub event_type: String, // data_class: INTERNAL_ONLY
     /// Always `"application/json"`.
     pub data_content_type: &'static str,
     /// ISO-8601 timestamp string supplied by the caller.
-    pub time: String,         // data_class: INTERNAL_ONLY
+    pub time: String, // data_class: INTERNAL_ONLY
     /// Raw JSON payload (opaque to the eventing substrate).
-    pub data: String,         // data_class: INTERNAL_ONLY
+    pub data: String, // data_class: INTERNAL_ONLY
     /// Oyatie extension: tenant that produced the event.
     pub oyatie_tenant_id: String, // data_class: INTERNAL_ONLY
     /// Oyatie extension: cell/region that produced the event.
-    pub oyatie_cell_id: String,   // data_class: INTERNAL_ONLY
+    pub oyatie_cell_id: String, // data_class: INTERNAL_ONLY
 }
 
 impl CloudEvent {
@@ -134,9 +134,7 @@ impl CloudEvent {
             return Err(CloudEventError::IllegalDotInComponent);
         }
 
-        let structured_type = format!(
-            "t.{tenant_id}.{microservice}.{event_type_str}.v{version}"
-        );
+        let structured_type = format!("t.{tenant_id}.{microservice}.{event_type_str}.v{version}");
         let source = format!("//oyatie/{microservice}");
 
         Ok(Self {
@@ -202,8 +200,7 @@ mod tests {
     #[test]
     fn cloud_event_parse_topic_roundtrips() {
         let ev = make_event();
-        let parsed = CloudEvent::parse_topic(&ev.event_type)
-            .expect("structured type is parseable");
+        let parsed = CloudEvent::parse_topic(&ev.event_type).expect("structured type is parseable");
         assert_eq!(parsed.0, "acme");
         assert_eq!(parsed.1, "eventing");
         assert_eq!(parsed.2, "outbox_dispatched");
@@ -228,44 +225,42 @@ mod tests {
 
     #[test]
     fn cloud_event_rejects_empty_tenant_id() {
-        let err = CloudEvent::new(
-            "id", "", "cell", "eventing", "dispatched", 1, "t", "{}",
-        )
-        .unwrap_err();
+        let err =
+            CloudEvent::new("id", "", "cell", "eventing", "dispatched", 1, "t", "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyTenantId);
     }
 
     #[test]
     fn cloud_event_rejects_empty_microservice() {
-        let err = CloudEvent::new(
-            "id", "acme", "cell", "", "dispatched", 1, "t", "{}",
-        )
-        .unwrap_err();
+        let err =
+            CloudEvent::new("id", "acme", "cell", "", "dispatched", 1, "t", "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyMicroservice);
     }
 
     #[test]
     fn cloud_event_rejects_empty_event_type() {
-        let err = CloudEvent::new(
-            "id", "acme", "cell", "eventing", "", 1, "t", "{}",
-        )
-        .unwrap_err();
+        let err = CloudEvent::new("id", "acme", "cell", "eventing", "", 1, "t", "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyEventType);
     }
 
     #[test]
     fn cloud_event_rejects_empty_cell_id() {
-        let err = CloudEvent::new(
-            "id", "acme", "", "eventing", "dispatched", 1, "t", "{}",
-        )
-        .unwrap_err();
+        let err =
+            CloudEvent::new("id", "acme", "", "eventing", "dispatched", 1, "t", "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyCellId);
     }
 
     #[test]
     fn cloud_event_rejects_dot_in_microservice() {
         let err = CloudEvent::new(
-            "id", "acme", "cell", "eventing.sub", "dispatched", 1, "t", "{}",
+            "id",
+            "acme",
+            "cell",
+            "eventing.sub",
+            "dispatched",
+            1,
+            "t",
+            "{}",
         )
         .unwrap_err();
         assert_eq!(err, CloudEventError::IllegalDotInComponent);
@@ -274,7 +269,14 @@ mod tests {
     #[test]
     fn cloud_event_rejects_dot_in_event_type() {
         let err = CloudEvent::new(
-            "id", "acme", "cell", "eventing", "out.dispatched", 1, "t", "{}",
+            "id",
+            "acme",
+            "cell",
+            "eventing",
+            "out.dispatched",
+            1,
+            "t",
+            "{}",
         )
         .unwrap_err();
         assert_eq!(err, CloudEventError::IllegalDotInComponent);
@@ -286,7 +288,11 @@ mod tests {
         assert!(!CloudEventError::EmptyMicroservice.to_string().is_empty());
         assert!(!CloudEventError::EmptyEventType.to_string().is_empty());
         assert!(!CloudEventError::EmptyCellId.to_string().is_empty());
-        assert!(!CloudEventError::IllegalDotInComponent.to_string().is_empty());
+        assert!(
+            !CloudEventError::IllegalDotInComponent
+                .to_string()
+                .is_empty()
+        );
     }
 
     #[test]
