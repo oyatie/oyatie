@@ -16,6 +16,25 @@ purpose: Ship the top-level `oya` CLI binary that wraps `claim/work/verify/done/
 
 # M01-P17-IP-002 — `oya` CLI binary + `oya gate run-all` aggregator
 
+## Acceptance Criteria
+
+- **AC-001**: `cargo install --path crates/oya-dev-cli` succeeds and `oya --version` exits 0.
+  - test_id: `oya --version`
+  - verification_command: `cargo install --path crates/oya-dev-cli && oya --version`
+- **AC-002**: `oya gate run-all` invokes every fitness lane registered in `registry/fitness-lane-registry.json` (≥38 lanes) and returns a JSON + human-readable rollup.
+  - test_id: `crates/oya-dev-cli::tests::aggregated_lane_count_nontrivial`
+  - verification_command: `cargo nextest run -p oya-dev-cli aggregated_lane_count_nontrivial`
+- **AC-003**: Output schema of `oya gate run-all` matches `/specs/oya-gate-rollup.json`.
+  - test_id: `oya gate validate foundry-capability-schema`
+  - verification_command: `cargo run -p oya-dev-cli -- gate validate foundry-capability-schema`
+  - status: pending-spec-author
+- **AC-004**: One failing lane does not short-circuit the rest (`--continue-on-failure` semantics enforced).
+  - test_id: `crates/oya-dev-cli::tests::is_success_recognizes_exit_code_success`
+  - verification_command: `cargo nextest run -p oya-dev-cli is_success_recognizes_exit_code_success`
+- **AC-005**: `oya gate run-all --include-deferred` prints the deferred-gate roster (≥3 documented deferrals).
+  - test_id: `crates/oya-dev-cli::tests::deferred_gates_documented`
+  - verification_command: `cargo nextest run -p oya-dev-cli deferred_gates_documented`
+
 ## Scope
 
 Kernels exist (`oya-foundry-vcs-cli-ratchet-kernel`, `-promotion-controller-kernel`, 30+ `oya-foundry-fitness-*-kernel` crates) but no top-level binary an agent can invoke. Today agents fall back to direct `git` + `gh`, which silently violates `CLAUDE.md::sanctioned_primitives`. This IP scaffolds `tools/oya-cli/` as a thin wrapper crate that:

@@ -15,6 +15,22 @@ purpose: Reproducible parallel-claim demo on pinned symbols.
 
 # M01-P08-IP-010 — Parallel-claim demo runbook (P8)
 
+## Acceptance Criteria
+
+- **AC-001**: The parallel-claim demo runbook file exists at `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` and the companion script at `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.sh`.
+  - test_id: `test -f docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md && test -f docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.sh`
+  - verification_command: `test -f docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md`
+- **AC-002**: The runbook script executes without errors against the pinned symbols listed in the Symbols-to-grit-claim section.
+  - test_id: `bash docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.sh --dry-run`
+  - verification_command: `bash docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.sh --dry-run`
+  - status: pending-spec-author
+- **AC-003**: Runbook freshness gate passes (runbook indexed and not stale).
+  - test_id: `oya gate validate runbook-freshness`
+  - verification_command: `cargo run -p oya-dev-cli -- gate validate runbook-freshness`
+- **AC-004**: Cohesion fitness lane passes for any crate touched by this IP.
+  - test_id: `oya gate validate cohesion`
+  - verification_command: `cargo run -p oya-dev-cli -- gate validate cohesion`
+
 ## Purpose
 Reproducible parallel-claim demo on pinned symbols.
 
