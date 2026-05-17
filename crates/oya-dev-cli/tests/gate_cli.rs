@@ -4676,6 +4676,418 @@ impl Drop for TempDirGuard {
     }
 }
 
+// --- active-artifact-contract integration tests (M02b/P22 exit-gate lane 5) ---
+
+fn write_aac_registry(dir: &Path, rows: serde_json::Value) -> PathBuf {
+    fs::create_dir_all(dir).expect("registry dir created");
+    let path = dir.join("artifact-capabilities-registry.json");
+    let registry = serde_json::json!({
+        "_meta": { "contract_version": "v3.0.0" },
+        "rows": rows
+    });
+    fs::write(
+        &path,
+        serde_json::to_string_pretty(&registry).expect("registry JSON serializes"),
+    )
+    .expect("registry written");
+    path
+}
+
+fn aac_capability(
+    status: &str,
+    evidence_ref: Option<&str>,
+    prerequisite_for_operational: &[&str],
+    not_applicable_rationale: Option<&str>,
+) -> serde_json::Value {
+    let mut declaration = serde_json::Map::new();
+    declaration.insert("status".to_string(), serde_json::json!(status));
+    if let Some(evidence_ref) = evidence_ref {
+        declaration.insert("evidence_ref".to_string(), serde_json::json!(evidence_ref));
+    }
+    if !prerequisite_for_operational.is_empty() {
+        declaration.insert(
+            "prerequisite_for_operational".to_string(),
+            serde_json::json!(prerequisite_for_operational),
+        );
+    }
+    if let Some(not_applicable_rationale) = not_applicable_rationale {
+        declaration.insert(
+            "not_applicable_rationale".to_string(),
+            serde_json::json!(not_applicable_rationale),
+        );
+    }
+    serde_json::Value::Object(declaration)
+}
+
+fn aac_capabilities(
+    status: &str,
+    evidence_ref: Option<&str>,
+    prerequisite_for_operational: &[&str],
+    not_applicable_rationale: Option<&str>,
+) -> serde_json::Value {
+    let mut capabilities = serde_json::Map::new();
+    for capability in [
+        "enforcement",
+        "verification",
+        "validation",
+        "autogen",
+        "selfheal",
+        "selfupdate",
+        "selfmaintain",
+        "telemetry",
+        "provenance",
+    ] {
+        capabilities.insert(
+            capability.to_string(),
+            aac_capability(
+                status,
+                evidence_ref,
+                prerequisite_for_operational,
+                not_applicable_rationale,
+            ),
+        );
+    }
+    serde_json::Value::Object(capabilities)
+}
+
+fn active_artifact_contract_repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(2)
+        .expect("repo root")
+        .to_path_buf()
+}
+
+fn run_active_artifact_contract_gate(registry: &Path) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_oya"))
+        .current_dir(active_artifact_contract_repo_root())
+        .args([
+            "gate",
+            "validate",
+            "active-artifact-contract",
+            "--registry",
+            registry.to_str().expect("utf8 registry path"),
+        ])
+        .output()
+        .expect("gate command runs")
+}
+
+fn run_active_artifact_contract_gate_with_evidence(
+    registry: &Path,
+    evidence: &Path,
+) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_oya"))
+        .current_dir(active_artifact_contract_repo_root())
+        .args([
+            "gate",
+            "validate",
+            "active-artifact-contract",
+            "--registry",
+            registry.to_str().expect("utf8 registry path"),
+            "--emit-evidence",
+            evidence.to_str().expect("utf8 evidence path"),
+        ])
+        .output()
+        .expect("gate command runs")
+}
+
+#[test]
+fn active_artifact_contract_gate_rejects_untracked_artifact_path() {
+    let temp = TempDirGuard::new("aac-untracked-path");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "missing-artifact",
+                "artifact_path": "specs/does-not-exist-for-aac-test.json",
+                "artifact_profile": "schema"
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate(&registry);
+
+    assert!(
+        !output.status.success(),
+        "expected failure for untracked artifact_path\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("active-artifact-contract validation failed"),
+        "stderr must contain failure message; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("R01"),
+        "stderr must cite R01; got: {stderr}"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_rejects_duplicate_artifact_id() {
+    let temp = TempDirGuard::new("aac-dup-id");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "dup-artifact",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "artifact_profile": "schema"
+            },
+            {
+                "artifact_id": "dup-artifact",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "artifact_profile": "schema"
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate(&registry);
+
+    assert!(
+        !output.status.success(),
+        "expected failure for duplicate artifact_id\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("active-artifact-contract validation failed"),
+        "stderr must contain failure message; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("R02"),
+        "stderr must cite R02; got: {stderr}"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_rejects_unknown_profile_without_capabilities() {
+    let temp = TempDirGuard::new("aac-unknown-profile");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "unknown-profile-row",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "artifact_profile": "definitely-not-a-canonical-profile"
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate(&registry);
+
+    assert!(
+        !output.status.success(),
+        "expected failure for unknown artifact_profile without full capabilities\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("unknown artifact_profile"),
+        "stderr must cite unknown profile; got: {stderr}"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_rejects_missing_capability() {
+    let temp = TempDirGuard::new("aac-missing-capability");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "partial-capability-row",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "capabilities": {
+                    "enforcement": aac_capability(
+                        "planned",
+                        None,
+                        &["fixture-prerequisite"],
+                        None
+                    )
+                }
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate(&registry);
+
+    assert!(
+        !output.status.success(),
+        "expected failure for missing capabilities\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("R03"),
+        "stderr must cite R03; got: {stderr}"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_rejects_operational_without_evidence() {
+    let temp = TempDirGuard::new("aac-operational-without-evidence");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "operational-without-evidence",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "capabilities": aac_capabilities("operational", None, &[], None)
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate(&registry);
+
+    assert!(
+        !output.status.success(),
+        "expected failure for operational capability without evidence\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("R04"),
+        "stderr must cite R04; got: {stderr}"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_rejects_planned_without_prerequisite() {
+    let temp = TempDirGuard::new("aac-planned-without-prerequisite");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "planned-without-prerequisite",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "capabilities": aac_capabilities("planned", None, &[], None)
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate(&registry);
+
+    assert!(
+        !output.status.success(),
+        "expected failure for planned capability without prerequisite\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("R05"),
+        "stderr must cite R05; got: {stderr}"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_rejects_blocked_without_foundation_prerequisite() {
+    let temp = TempDirGuard::new("aac-blocked-without-prerequisite");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "blocked-without-prerequisite",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "capabilities": aac_capabilities("blocked-by-foundation", None, &[], None)
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate(&registry);
+
+    assert!(
+        !output.status.success(),
+        "expected failure for blocked capability without prerequisite\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("R06"),
+        "stderr must cite R06; got: {stderr}"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_reports_not_applicable_without_rationale() {
+    let temp = TempDirGuard::new("aac-not-applicable-without-rationale");
+    let evidence = temp.path().join("aac-evidence.json");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "not-applicable-without-rationale",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "capabilities": aac_capabilities("not-applicable", None, &[], None)
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate_with_evidence(&registry, &evidence);
+
+    assert!(
+        output.status.success(),
+        "R07 is warning-only and must not fail the gate\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("9 warnings"),
+        "stdout must count warnings; got: {stdout}"
+    );
+    assert!(
+        stdout.contains("R07"),
+        "stdout must cite R07; got: {stdout}"
+    );
+
+    let evidence_json: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&evidence).expect("evidence readable"))
+            .expect("evidence JSON parses");
+    assert_eq!(evidence_json["outcome"], "success");
+    assert_eq!(evidence_json["warning_count"], 9);
+    assert_eq!(
+        evidence_json["violations"][0]["rule_id"],
+        "R07-not-applicable-without-rationale"
+    );
+}
+
+#[test]
+fn active_artifact_contract_gate_accepts_clean_registry() {
+    let temp = TempDirGuard::new("aac-clean");
+    let registry = write_aac_registry(
+        temp.path(),
+        serde_json::json!([
+            {
+                "artifact_id": "active-artifact-contract-spec",
+                "artifact_path": "specs/active-machine-readable-artifact-contract.json",
+                "artifact_profile": "schema"
+            }
+        ]),
+    );
+
+    let output = run_active_artifact_contract_gate(&registry);
+
+    assert!(
+        output.status.success(),
+        "expected pass for clean single-row registry\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("active-artifact-contract validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+}
+
 // ─── documentation-system integration tests (M02b/P22 exit-gate lane 3) ─────
 
 /// Proves the documentation-system validator catches an `active` pipeline record

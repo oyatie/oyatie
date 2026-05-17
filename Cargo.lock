@@ -1505,6 +1505,7 @@ version = "0.1.0"
 dependencies = [
  "oya-application-app",
  "oya-audit-chain-file-adapter",
+ "oya-check-active-artifact-contract",
  "oya-check-adr-citation",
  "oya-check-adr-index",
  "oya-check-authority-cohesion",

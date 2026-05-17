@@ -9,6 +9,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-application-app = { path = "../oya-application-app" }
+oya-check-active-artifact-contract = { path = "../oya-check-active-artifact-contract" }
 oya-check-adr-citation = { path = "../oya-check-adr-citation" }
 oya-check-adr-index = { path = "../oya-check-adr-index" }
 oya-check-cedar-fragment-coverage = { path = "../oya-check-cedar-fragment-coverage" }
