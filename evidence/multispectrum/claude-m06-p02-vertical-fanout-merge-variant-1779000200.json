@@ -1,0 +1,48 @@
+{
+  "change_id": "claude-m06-p02-vertical-fanout-merge-variant-1779000200",
+  "change_class_id": "CC-2_kernel_type_addition",
+  "change_class_rationale": "Pure additive surface in oya-saas-plugin-marketplace-kernel: new vertical_fanout module (FanoutVertical/FanoutTarget/FanoutRoster/FanoutError + version+count consts) with std-only dependencies and no public API removals.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779000200,
+  "branch": "agent/m06-p02-vfanout-mv-1778999800",
+  "session_id": "claude-durable-goal-2026-05-17-m06-p02-agent",
+  "agent_id": "claude-durable-goal-m06-p02",
+  "task": "M06-P02 merge-variant delta-1: smallest 13-vertical type surface (FanoutVertical closed enum + FanoutTarget pack-id+cosign + FanoutRoster preview-completeness check) into oya-saas-plugin-marketplace-kernel instead of scaffolding new vertical crates.",
+  "artifacts_touched": [
+    "crates/oya-saas-plugin-marketplace-kernel/src/vertical_fanout.rs (NEW)",
+    "crates/oya-saas-plugin-marketplace-kernel/src/lib.rs (re-export + doc-comment)",
+    ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P02-vertical-fanout-13/INDEX.md (frontmatter execution_variant)",
+    "evidence/multispectrum/claude-m06-p02-vertical-fanout-merge-variant-1779000200.json (this file)",
+    "evidence/audit-chain.jsonl (row appended)"
+  ],
+  "local_gates": [
+    "cargo nextest -p oya-saas-plugin-marketplace-kernel: 12/12 PASS (6 new vertical_fanout + 6 pre-existing)",
+    "rustfmt 1.95.0: clean"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": ["One new module, one re-export. Closed enum (13 variants, matches FANOUT_VERTICAL_COUNT). Pack-id and cosign signature both validated at construction. Korea intentionally absent (M04-elected vertical). No new workspace deps; std only."],
+      "fixuptasks": []
+    },
+    "F3_correctness": {
+      "considered": true,
+      "findings": ["FanoutVertical::all() returns ordered [Self; 13]; FANOUT_VERTICAL_COUNT == 13 is enforced by type-level array size. Roster::preview_complete() iff all 13 verticals registered. Duplicate-vertical rejection at insert time. Pack-id prefix + cosign prefix validation."],
+      "fixuptasks": []
+    },
+    "A1_naming": {
+      "considered": true,
+      "findings": ["FanoutVertical complements existing Vertical (6-variant in lib.rs); name disambiguates the M06-cohort. pack_slug() returns kebab-case matching docs/SPEC.md §5. Pascal/snake/SCREAMING conventions respected."],
+      "fixuptasks": []
+    },
+    "A3_structure": {
+      "considered": true,
+      "findings": ["Module added to existing crate; lib.rs re-export pattern matches PR #60..#90 cascade. No new workspace member; no Cargo.toml workspace touch."],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Mirrors PR #60..#90 merge-variant pattern; closed-enum + preview-roster check is the smallest meaningful delta from M06-P02 plan."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT", "rationale": "Cosign-prefix + pack-id-prefix validation at construct time. Duplicate rejection. preview_complete is monotonic — testable; tests cover all 4 invariants."}
+  }
+}
