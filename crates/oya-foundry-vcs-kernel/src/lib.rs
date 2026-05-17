@@ -10,6 +10,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod lock_holder;
+pub use lock_holder::LockHolderId;
+
 use std::collections::BTreeSet;
 use std::fmt;
 

@@ -1,0 +1,80 @@
+{
+  "event": "consensus_debate_complete",
+  "change_id": "M01-P07-SYMLOCK-MV1-LOCK-HOLDER-ID-1779002878",
+  "change_class": "CC-2",
+  "spec_version": "multispectrum-review/v2.3.0",
+  "timestamp_unix": 1779002878,
+  "verdict": "ACCEPT",
+  "facets_count": 4,
+  "facets_evaluated": ["F1_linus", "F5_quality", "A1_naming", "A4_architecture"],
+  "reviewer_id_overlap_across_facets": "NONE",
+  "executor_topology_compliant": true,
+  "termination_reason": "consensus_reached",
+  "scope": "LockHolderId merge-variant delta-1 into oya-foundry-vcs-kernel::lock_holder",
+  "crate": "oya-foundry-vcs-kernel",
+  "module": "lock_holder",
+  "new_types": ["LockHolderId"],
+  "tests_added": 8,
+  "no_new_crates": true,
+  "no_new_workspace_deps": true,
+  "std_only": true,
+  "execution_variant": "merge-into-existing-crates",
+  "decided_by": "user-directive-option-2",
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "LockHolderId is the smallest missing piece of the symbol-lock domain: it gives the scheduler a collision-resistant opaque key linking a claim to its holder without carrying a live Claim reference.",
+        "from_wire constructor name avoids the banned from_str name.",
+        "No vec![...].iter() pattern; no serde; no new workspace deps."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "22 unit tests + 8 integration tests pass under cargo test -p oya-foundry-vcs-kernel after rebase onto the #110 queue head.",
+        "cargo clippy -p oya-foundry-vcs-kernel --all-targets -- -D warnings clean on all targets.",
+        "rustfmt 1.95.0 --check passes on both modified files."
+      ],
+      "fixuptasks": []
+    },
+    "A1_naming": {
+      "considered": true,
+      "findings": [
+        "LockHolderId follows the <Domain><Role><Kind> BNF pattern consistent with SymbolId, ClaimState, LeaseState.",
+        "Module name lock_holder matches the snake_case file-per-module convention in oya-foundry-vcs-kernel.",
+        "from_wire constructor uses the project-canonical name (not the banned from_str)."
+      ],
+      "fixuptasks": []
+    },
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "LockHolderId is pure kernel: no I/O, no Git, no network, no serde — consistent with the crate's stated purity contract.",
+        "Merged into the existing oya-foundry-vcs-kernel crate per merge-into-existing-crates execution variant.",
+        "Re-exported at crate root so downstream consumers (changebundle-kernel, scheduler) get it without importing the sub-module."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "commands": {
+    "cargo_check": {
+      "status": "pass",
+      "summary": "cargo check -p oya-foundry-vcs-kernel — 1 crate compiled"
+    },
+    "cargo_clippy": {
+      "status": "pass",
+      "summary": "cargo clippy -p oya-foundry-vcs-kernel --all-targets -- -D warnings — clean after rebase"
+    },
+    "cargo_test": {
+      "status": "pass",
+      "summary": "22 unit tests + 8 integration tests passed, 0 failed"
+    },
+    "rustfmt_check": {
+      "status": "pass",
+      "summary": "rustfmt 1.95.0 --check on lock_holder.rs and lib.rs — no diff"
+    }
+  },
+  "git_sha": "ea9cdd3f762151cfcfc08e45bd1f359b972def96"
+}
