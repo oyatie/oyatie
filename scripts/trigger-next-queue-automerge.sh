@@ -9,6 +9,7 @@ limit="200"
 merge_method="squash"
 required_review_check="oya-pr-review"
 dry_run="0"
+require_verified_head="1"
 
 usage() {
   cat <<'USAGE'
@@ -25,12 +26,14 @@ Options:
   --limit <number>             Maximum open PRs to query from GitHub (default: 200)
   --merge-method <method>      squash, merge, or rebase (default: squash)
   --required-review-check <id> Required review check name (default: oya-pr-review)
+  --allow-unverified-head      Do not require GitHub-verified signed head commit
   --dry-run                    Print the selected PR and checks without enabling auto-merge
 
 This script advances only the bottom-most open PR in the active queue. It never
 force-pushes, never writes to the base branch, never skips a lower open queue PR,
-and only enables GitHub auto-merge after the review check has passed and the
-selected PR is conflict-clean against the current base.
+and only enables GitHub auto-merge after the review check has passed, the head
+commit is verified, and the selected PR is conflict-clean against the current
+base.
 USAGE
 }
 
@@ -63,6 +66,10 @@ while [ "$#" -gt 0 ]; do
     --required-review-check)
       required_review_check="${2:?missing --required-review-check value}"
       shift 2
+      ;;
+    --allow-unverified-head)
+      require_verified_head="0"
+      shift
       ;;
     --dry-run)
       dry_run="1"
@@ -107,6 +114,23 @@ if ! command -v jq >/dev/null 2>&1; then
   echo "jq is required" >&2
   exit 2
 fi
+
+check_verified_head() {
+  local head_oid="$1"
+  local repo verification_json verified reason
+
+  repo="$(gh repo view --json nameWithOwner --jq '.nameWithOwner')"
+  verification_json="$(gh api "repos/${repo}/commits/${head_oid}" --jq '.commit.verification')"
+  verified="$(printf '%s' "$verification_json" | jq -r '.verified // false')"
+  reason="$(printf '%s' "$verification_json" | jq -r '.reason // ""')"
+
+  if [ "$verified" != "true" ] || [ "$reason" != "valid" ]; then
+    echo "PR head ${head_oid:0:8} is not GitHub-verified (verified=${verified} reason=${reason:-unknown}); not enabling auto-merge"
+    return 1
+  fi
+
+  echo "PR head ${head_oid:0:8} signature verified by GitHub"
+}
 
 if [ -z "$base_ref" ]; then
   base_ref="origin/${base_branch}"
@@ -189,6 +213,12 @@ fi
 if [ "$review_decision" = "CHANGES_REQUESTED" ]; then
   echo "PR #${number} has CHANGES_REQUESTED; review fix-loop owns the next update"
   exit 0
+fi
+
+if [ "$require_verified_head" = "1" ]; then
+  if ! check_verified_head "$head_oid"; then
+    exit 0
+  fi
 fi
 
 checks_json="$tmp_dir/checks.json"
