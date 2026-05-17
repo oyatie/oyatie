@@ -1,0 +1,63 @@
+{
+  "change_id": "claude-runbook-freshness-tombstones-1778983432",
+  "change_class_id": "CC-5_doc_only",
+  "change_class_rationale": "Two 2-line markdown additions to retired Tombstone runbooks. Adds the canonical body-level **Status:** + **Last verified:** blockquote markers required by oya-check-runbook-freshness#parse_runbook_freshness_record. No source semantics changed.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778983432,
+  "git_sha_base": "d2e69ce4",
+  "branch": "agent/runbook-freshness-tombstones-1778983432",
+  "session_id": "claude-durable-goal-2026-05-17",
+  "agent_id": "claude-runbook-freshness-tombstones",
+  "task": "Resolve runbook-freshness gate failure surfaced by `oya verify --include-deferred`: MissingStatus on docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md. Root cause: the freshness kernel reads markdown body markers `**Status:**` and `**Last verified:**` (see crates/oya-check-runbook-freshness/src/lib.rs:60..76 and crates/oya-dev-cli/src/runbook_gates.rs:152..187), not YAML frontmatter. Both repo Tombstone runbooks had YAML `status: retired` but lacked the body-level markers. Add the canonical 2-line blockquote to both.",
+  "artifacts_touched": [
+    "docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md (2 lines added: `**Status:**` + `**Last verified:**`)",
+    "docs/runbooks/grit-session-bug-upstream.md (2 lines added: `**Status:**` + `**Last verified:**`)",
+    "evidence/multispectrum/claude-runbook-freshness-tombstones-1778983432.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "local_gates": [
+    "runbook-freshness: PASS (was failing pre-edit with MissingStatus on grit-parallel-claim-demo.md; now 193 runbooks / 52 severity-scoped / 141 unscoped all valid)",
+    "oya-foundry-vcs-admission-gate-app: PASS"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Two complete Tombstones share identical bug-shape. Fixed both in one slice rather than waiting for the gate to surface the second after the first lands — same change_id covers both. Kernel reads markdown prose, not YAML; the canonical sibling-runbook blockquote shape is reused verbatim (no new shape invented)."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Edit is minimal-surface (2 lines per file, 4 lines total). Markers match the canonical body format already in use across 191 other runbooks (e.g. docs/runbooks/ad-auction-latency-incident.md, docs/runbooks/adr-promotion-triage.md). `**Last verified:** 2026-05-16` matches the ADR-0116 retirement date already cited in both files."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "No data-class, no autonomy-ceiling, no licence surface touched. Tombstone semantics preserved — both runbooks still link to ADR-0116 as the authoritative replacement record."
+      ],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Audit-chain row appended with distinct timestamp_unix + session_id (OP-08). Resolves a `oya verify --include-deferred` aggregator failure that was preventing clean 47/47-lanes-green state on origin/dev."
+      ]
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "Smallest correct fix. Adds the canonical markers from sibling runbooks; no new convention introduced; tombstone semantics intact."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT",
+      "rationale": "Pre-edit: gate fails after 1 record. Post-edit: 193 records validate clean. Identical shape applied to both affected files; future Tombstone authors can copy from either."
+    }
+  }
+}
