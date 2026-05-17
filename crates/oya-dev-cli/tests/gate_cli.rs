@@ -4277,6 +4277,117 @@ fn shardability_gate_passes_clean_app_crate() {
     fs::remove_dir_all(temp).ok();
 }
 
+/// Proves the protection-context-match validator catches the canonical
+/// silent-bypass class: branch-protection lists a context name that no
+/// workflow job posts (data-class label mismatch between the protection
+/// config and the actual workflow `name:` fields). Gate must exit 1.
+#[test]
+fn protection_context_match_gate_catches_data_class_label_mismatch() {
+    let temp = temp_dir("pcm-mismatch");
+    let workflows_dir = temp.join("workflows");
+    fs::create_dir_all(&workflows_dir).expect("workflows dir created");
+
+    // branch-protection lists `oya-foundry-fitness-protection-context-match`
+    // but the workflow posts `pcm-check` (different label) — silent bypass.
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      \
+                             - oya-foundry-fitness-protection-context-match\n    \
+                             require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  pcm-check:\n    \
+                         name: pcm-check\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: echo hi\n";
+    fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            "--workflows-dir",
+            workflows_dir.to_str().expect("utf8 workflows dir"),
+            "--branch",
+            "dev",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected exit 1 for mismatched label\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("protection-context-match validation failed"),
+        "stderr must contain failure message; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("oya-foundry-fitness-protection-context-match"),
+        "stderr must name the missing context; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the protection-context-match validator passes when every required
+/// context in branch-protection is posted by a workflow job — clean path.
+#[test]
+fn protection_context_match_gate_passes_clean_crate() {
+    let temp = temp_dir("pcm-clean");
+    let workflows_dir = temp.join("workflows");
+    fs::create_dir_all(&workflows_dir).expect("workflows dir created");
+
+    let branch_protection = "branches:\n  dev:\n    require_pull_request: true\n    \
+                             required_status_checks:\n      - cargo-fmt\n      \
+                             - oya-foundry-fitness-protection-context-match\n    \
+                             require_signed_commits: true\n";
+    let protection_file = temp.join("branch-protection.yaml");
+    fs::write(&protection_file, branch_protection).expect("branch-protection written");
+
+    let workflow_yaml = "name: pr-tests\non:\n  pull_request:\njobs:\n  fmt:\n    \
+                         name: cargo-fmt\n    runs-on: ubuntu-latest\n    steps:\n      \
+                         - run: cargo fmt --check\n  pcm:\n    \
+                         name: oya-foundry-fitness-protection-context-match\n    \
+                         runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n";
+    fs::write(workflows_dir.join("pr-tests.yml"), workflow_yaml).expect("workflow written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "protection-context-match",
+            "--branch-protection",
+            protection_file.to_str().expect("utf8 protection path"),
+            "--workflows-dir",
+            workflows_dir.to_str().expect("utf8 workflows dir"),
+            "--branch",
+            "dev",
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected exit 0 for aligned contexts\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("protection-context-match validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn write_catalog_record(registry_dir: &Path, crate_id: &str, plane: &str) {
     write_catalog_record_with_claim(registry_dir, crate_id, plane, "preview");
 }
