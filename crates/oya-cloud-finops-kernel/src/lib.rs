@@ -1,11 +1,16 @@
-//! Cloud FinOps kernel (M03-P03-IP-004 minimum viable kernel).
+//! Cloud FinOps kernel (M03-P03-IP-004 minimum viable kernel;
+//! M05-P01-IP-003 public-GA surface).
 //!
 //! Pure I/O-free model for cost-report periods, savings recommendations,
 //! and the admission rule that a recommendation cannot be promoted to
 //! "active" without a baseline-period reference + estimated savings.
+//! The `finops_public` module adds the tenant-visible summary projection.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
+pub mod finops_public;
+pub use finops_public::{FINOPS_PUBLIC_SCHEMA_VERSION, PublicCostSummary, report_public};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum ReportPeriod {
