@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: messenger
+  namespace: messenger
+  labels:
+    app.kubernetes.io/name: messenger
+    release: prometheus  # discovered by Prometheus Operator
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: messenger
+  endpoints:
+    - port: metrics
+      interval: 30s
+      scrapeTimeout: 10s
+      relabelings:
+        - sourceLabels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+          targetLabel: bc
+      metricRelabelings:
+        # Drop high-cardinality message_id label before Mimir to control series count
+        - sourceLabels: [message_id]
+          action: labeldrop

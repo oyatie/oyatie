@@ -1,0 +1,44 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: messenger-voice-video-setup
+  displayName: "messenger: voice/video call setup p95 ≤ 1.5s"
+  labels:
+    microservice: messenger
+    bc: huddles
+    sli_class: latency
+    owner_team: axis-messenger
+spec:
+  description: |
+    Time from "create huddle / start call" request to first media frame
+    received by the initiating client. Spans:
+    - SDP offer/answer exchange,
+    - ICE gathering (with STUN; TURN if needed),
+    - LiveKit SFU room allocation + DTLS handshake.
+    Reference: RFC 8825 (WebRTC), RFC 8866 (SDP), RFC 8445 (ICE).
+  service: messenger
+  indicator:
+    metadata:
+      name: messenger-huddle-setup
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_messenger_huddle_setup_seconds_bucket{le="1.5"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_messenger_huddle_setup_seconds_count[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.95
+      displayName: "p95 voice/video setup ≤ 1.5s"

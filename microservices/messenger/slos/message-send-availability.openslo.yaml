@@ -1,0 +1,48 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: messenger-message-send-availability
+  displayName: "messenger: message-send availability"
+  labels:
+    microservice: messenger
+    bc: message-stream
+    sli_class: availability
+    tier: hero-product
+    owner_team: axis-messenger
+    pack_scope: all
+spec:
+  description: |
+    Availability SLO for the POST message → fanout-ack path. A request is "good"
+    when it returns 2xx from the channel-store-rest API AND the broadcast worker
+    has acked durable handoff to Redis Streams within the per-cell broadcast
+    window. Per Google SRE Workbook ch. 5 multi-window multi-burn-rate.
+  service: messenger
+  indicator:
+    metadata:
+      name: messenger-message-send-success-ratio
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_messenger_message_send_total{result="success",pack=~".+"}[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_messenger_message_send_total{pack=~".+"}[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.9995  # 99.95 % availability
+      displayName: "30d rolling availability ≥ 99.95 %"
+  alertPolicies:
+    - alertPolicyRef: messenger-fast-burn-1h-14x
+    - alertPolicyRef: messenger-slow-burn-6h-6x
+    - alertPolicyRef: messenger-ticket-burn-3d-1x

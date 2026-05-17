@@ -1,0 +1,14 @@
+{{- range tuple "websocketGateway" "channelStore" "messageStreamRest" "presence" }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: messenger-{{ . | kebabcase }}-pdb
+  namespace: messenger
+spec:
+  minAvailable: 50%
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: messenger
+      app.kubernetes.io/component: {{ . | kebabcase }}
+{{- end }}

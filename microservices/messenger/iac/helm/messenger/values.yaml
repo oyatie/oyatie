@@ -1,0 +1,153 @@
+global:
+  pack: kr  # overridden per-pack overlay
+  cluster: messenger
+  imageRegistry: ghcr.io/oyatie
+  imagePullPolicy: IfNotPresent
+
+image:
+  repository: oya-messenger-app
+  tag: "1.0.0"  # SHA-pinned at release-pointer advance per ADR-0130
+
+# ============================================================================
+# Per-BC deployment sizing (XS-tier baseline; HPA scales up)
+# ============================================================================
+
+websocketGateway:
+  replicas: 4
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits: {cpu: 2000m, memory: 2Gi}
+  hpa:
+    minReplicas: 4
+    maxReplicas: 200
+    targetCPUUtilizationPercentage: 70
+
+channelStore:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+messageStreamRest:
+  replicas: 6
+  resources:
+    requests: {cpu: 500m, memory: 512Mi}
+    limits: {cpu: 2000m, memory: 2Gi}
+  hpa:
+    minReplicas: 6
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 65
+
+messageStreamWorker:
+  replicas: 4
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+presence:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 256Mi}
+    limits: {cpu: 1000m, memory: 1Gi}
+
+fileAttachmentWorker:
+  replicas: 2
+  resources:
+    requests: {cpu: 500m, memory: 1Gi}
+    limits: {cpu: 2000m, memory: 4Gi}
+
+mentionRouter:
+  replicas: 3
+  resources:
+    requests: {cpu: 250m, memory: 512Mi}
+    limits: {cpu: 1000m, memory: 2Gi}
+
+# ============================================================================
+# Backing stores — references; provisioning lives in cloud-k8s + cloud-db
+# ============================================================================
+
+postgres:
+  host: messenger-pg.${global.pack}.svc.cluster.local
+  port: 5432
+  database: messenger
+  sslmode: require
+  username: "${openbao:secret/messenger/postgres/username}"
+  password: "${openbao:secret/messenger/postgres/password}"
+  partitionStrategy: "by_tenant_channel_yyyy_mm"
+  rls: enabled  # MANDATORY
+
+redisPresence:
+  host: messenger-redis-presence.${global.pack}.svc.cluster.local
+  port: 6379
+  authToken: "${openbao:secret/messenger/redis/presence-auth}"
+  fallback: keydb
+
+redisStreams:
+  host: messenger-redis-streams.${global.pack}.svc.cluster.local
+  port: 6379
+  authToken: "${openbao:secret/messenger/redis/streams-auth}"
+
+s3Attachments:
+  endpoint: "${OCI_OBJECTSTORAGE_ENDPOINT}"
+  bucket: oya-messenger-attachments-${global.pack}
+  quarantineBucket: oya-attachment-quarantine-${global.pack}
+  accessKeyId: "${openbao:secret/messenger/s3/access-key}"
+  secretAccessKey: "${openbao:secret/messenger/s3/secret-key}"
+  sseKms: tenant-DEK
+
+meilisearch:
+  enabled: true
+  host: messenger-meilisearch.${global.pack}.svc.cluster.local
+  port: 7700
+  apiKey: "${openbao:secret/messenger/meilisearch/master-key}"
+
+# ============================================================================
+# Voice + Video stack (LiveKit + coturn)
+# ============================================================================
+
+livekit:
+  enabled: true
+  apiKey: "${openbao:secret/messenger/livekit/api-key}"
+  apiSecret: "${openbao:secret/messenger/livekit/api-secret}"
+  rtcPortRange:
+    start: 50000
+    end: 60000
+
+coturn:
+  enabled: true
+  realm: oyatie.dev
+  authSecret: "${openbao:secret/messenger/coturn/auth-secret}"
+  externalIp: "${COTURN_EXTERNAL_IP}"
+
+# ============================================================================
+# Cedar policy + Authz
+# ============================================================================
+
+cedar:
+  policyConfigMap: messenger-cedar-policies
+  defaultDeny: true
+
+# ============================================================================
+# Attachment malware scan
+# ============================================================================
+
+opswat:
+  enabled: true
+  endpoint: "${openbao:secret/messenger/opswat/endpoint}"
+  apiKey: "${openbao:secret/messenger/opswat/api-key}"
+  fallback: clamav
+
+clamav:
+  enabled: true  # fallback only; primary is opswat
+
+# ============================================================================
+# Observability
+# ============================================================================
+
+observability:
+  otelEndpoint: alloy.observability.svc.cluster.local:4317
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+  prometheusRule:
+    enabled: true

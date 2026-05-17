@@ -1,0 +1,41 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: messenger-voice-video-quality
+  displayName: "messenger: voice/video media quality (MOS ≥ 4.0 + packet-loss < 1 %)"
+  labels:
+    microservice: messenger
+    bc: huddles
+    sli_class: correctness
+    owner_team: axis-messenger
+spec:
+  description: |
+    Composite correctness SLI for in-call media quality across LiveKit SFU
+    sessions. A "good" minute is one where the session has MOS ≥ 4.0,
+    packet-loss < 1 %, jitter < 30 ms. Reference: ITU-T G.107 (E-model).
+  service: messenger
+  indicator:
+    metadata:
+      name: messenger-media-quality
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_messenger_media_minute_good_total[5m]))
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: |
+                sum(rate(oya_messenger_media_minute_total[5m]))
+  timeWindow:
+    - duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - target: 0.97
+      displayName: "≥ 97 % of in-call minutes meet quality envelope"

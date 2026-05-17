@@ -1,0 +1,15 @@
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-visual-canvas-rest
+  namespace: workflow-studio
+  labels:
+    app.kubernetes.io/name: oya-workflow-studio-visual-canvas-rest
+    oyatie/microservice: workflow-studio
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: oya-workflow-studio-visual-canvas-rest
+{{- end }}
