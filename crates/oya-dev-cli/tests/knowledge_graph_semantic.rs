@@ -17,9 +17,17 @@ fn repo_root() -> PathBuf {
 }
 
 fn semantic_graph() -> Value {
-    let path = repo_root().join("registry/knowledge-graph-semantic.json");
-    serde_json::from_str(&fs::read_to_string(path).expect("semantic KG registry is readable"))
-        .expect("semantic KG registry is JSON")
+    // Migrated from registry/knowledge-graph-semantic.json per ADR-0130.
+    // Type system now lives in specs/products/ontology.json#type_system.
+    let path = repo_root().join("specs/products/ontology.json");
+    let ontology: Value =
+        serde_json::from_str(&fs::read_to_string(path).expect("ontology spec is readable"))
+            .expect("ontology spec is JSON");
+    ontology["type_system"]
+        .as_object()
+        .expect("type_system section exists in ontology.json")
+        .clone()
+        .into()
 }
 
 fn kinetic_graph() -> Value {
