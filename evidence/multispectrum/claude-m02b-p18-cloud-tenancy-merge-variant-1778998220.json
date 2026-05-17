@@ -1,0 +1,40 @@
+{
+  "event_type": "multispectrum_evidence_attached",
+  "change_id": "claude-m02b-p18-cloud-tenancy-merge-variant-1778998220",
+  "session_id": "claude-durable-goal-2026-05-17-p18-agent",
+  "timestamp_unix": 1778998220,
+  "evidence_path": "evidence/multispectrum/claude-m02b-p18-cloud-tenancy-merge-variant-1778998220.json",
+  "payload": {
+    "scope": "M02b/P18-cloud-tenancy merge-variant delta-1",
+    "spec_version": "2.3.0",
+    "change_class_id": "CC-2_type_addition",
+    "artifacts": [
+      "crates/oya-cloud-cell-app/src/cell_lifecycle.rs",
+      "crates/oya-cloud-cell-app/src/lib.rs",
+      ".omc/plans/milestones/M02b-substrate/phases/P18-cloud-tenancy/impl-plan.md",
+      "evidence/multispectrum/claude-m02b-p18-cloud-tenancy-merge-variant-1778998220.json",
+      "evidence/audit-chain.jsonl"
+    ],
+    "types_added": [
+      "CellState",
+      "CellLifecycleCommand",
+      "CellLifecycleError",
+      "apply_lifecycle_command",
+      "CELL_LIFECYCLE_SCHEMA_VERSION"
+    ],
+    "local_gates": [
+      "cargo nextest run -p oya-cloud-cell-app --all-features: 18/18 PASS",
+      "rustfmt 1.95.0 applied"
+    ],
+    "fsm_transitions": [
+      "Creating -> Active (Activate)",
+      "Active -> Draining (Drain)",
+      "Draining -> Decommissioned (Decommission)",
+      "Decommissioned -> * REJECTED (halt condition #2)"
+    ],
+    "execution_variant": "merge-into-existing-crates",
+    "decided_by": "user-directive-option-2",
+    "references_fixuptasks": ["F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"],
+    "closure": "M02b/P18-cloud-tenancy merge-variant delta-1: CellState FSM (4-state + halt condition) backported into oya-cloud-cell-app::cell_lifecycle. pub mod + re-exports wired into lib.rs. P18 impl-plan frontmatter amended with execution_variant=merge-into-existing-crates."
+  }
+}
