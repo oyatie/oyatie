@@ -24,7 +24,9 @@ Options:
 
 Default mode is dry-run. Apply mode never force-pushes, refuses fork PRs, refuses
 draft target PRs, stops on unresolved merge conflicts, and rechecks that the
-remote target head did not move before pushing.
+remote target head did not move before pushing. Apply mode also refuses to push
+an unsigned repair commit because queue auto-merge requires verified signed
+heads.
 USAGE
 }
 
@@ -206,6 +208,16 @@ scripts/check-sequential-pr-merge-conflicts.sh \
 if [ "$apply" != "1" ]; then
   echo "dry-run: would push ${new_head} to ${target_head_ref} for PR #${target_pr}"
   exit 0
+fi
+
+if [ "$new_head" = "$target_head_oid" ]; then
+  echo "target PR #${target_pr} already has repaired head ${new_head:0:8}; no push needed"
+  exit 0
+fi
+
+if ! git -C "$repair_worktree" cat-file -p "$new_head" | grep -q '^gpgsig '; then
+  echo "::error::queue repair produced unsigned commit ${new_head:0:8}; refusing push because queue auto-merge requires verified signed heads" >&2
+  exit 1
 fi
 
 latest_head="$(gh pr view "$target_pr" --json headRefOid --jq '.headRefOid')"
