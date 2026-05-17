@@ -15,6 +15,14 @@ pub use cell_budget::{
     CellBudget, CellBudgetError, CellId, CellReservationRequest, admit_cell_reservation,
 };
 
+pub mod committed_use;
+pub use committed_use::{
+    CommittedUseContract, CommittedUseContractId, CommittedUseError, ReservationTerm,
+    ReservedCapacity, ReservedCapacityError, ReservedCapacityId, SpotPool, SpotPoolError,
+    SpotPoolId, admit_spot_request, validate_committed_use_contract, validate_reserved_capacity,
+    validate_spot_pool,
+};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum CapacityClass {
     Cpu,
