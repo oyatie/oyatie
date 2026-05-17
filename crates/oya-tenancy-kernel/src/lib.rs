@@ -501,6 +501,133 @@ fn is_valid_pack_id(value: &str) -> bool {
             .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
 }
 
+/// B2B-tier primitives for M03-P06 (Application B2B Shell Live).
+///
+/// `B2bTenantTier` classifies the commercial arrangement under which a B2B
+/// tenant operates. The tier is set at onboarding and drives product-enablement
+/// limits enforced by the application-shell use-cases.
+///
+/// ADR-0056 layer: kernel (pure value-object, no I/O, no alloc beyond `String`).
+pub mod b2b_tenant_tier {
+    use std::fmt;
+
+    /// Commercial tier that governs which products and seat counts a B2B tenant
+    /// may activate.
+    ///
+    /// Variant ordering is intentional: `Trial < Starter < Growth < Enterprise`
+    /// so that `PartialOrd`-driven limit checks read naturally.
+    #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+    pub enum B2bTenantTier {
+        /// Time-limited evaluation; limited seat count, read-only integrations.
+        Trial,
+        /// Paid entry tier; up to 50 seats, core products only.
+        Starter,
+        /// Mid-market tier; up to 500 seats, all products enabled.
+        Growth,
+        /// Unlimited seats; dedicated support SLA, custom pack overlays allowed.
+        Enterprise,
+    }
+
+    impl B2bTenantTier {
+        /// Maximum seat count enforced by this tier (`None` = unlimited).
+        pub fn seat_limit(&self) -> Option<u32> {
+            match self {
+                Self::Trial => Some(10),
+                Self::Starter => Some(50),
+                Self::Growth => Some(500),
+                Self::Enterprise => None,
+            }
+        }
+
+        /// Whether custom regional-pack overlays are permitted for this tier.
+        pub fn allows_custom_pack_overlay(&self) -> bool {
+            matches!(self, Self::Enterprise)
+        }
+
+        /// Machine-readable label used in audit-chain events and Cedar policies.
+        pub fn label(&self) -> &'static str {
+            match self {
+                Self::Trial => "trial",
+                Self::Starter => "starter",
+                Self::Growth => "growth",
+                Self::Enterprise => "enterprise",
+            }
+        }
+
+        /// Parse from a canonical label string produced by [`Self::label`].
+        pub fn try_parse(s: &str) -> Option<Self> {
+            match s {
+                "trial" => Some(Self::Trial),
+                "starter" => Some(Self::Starter),
+                "growth" => Some(Self::Growth),
+                "enterprise" => Some(Self::Enterprise),
+                _ => None,
+            }
+        }
+    }
+
+    impl fmt::Display for B2bTenantTier {
+        fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+            formatter.write_str(self.label())
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn tier_ordering_is_trial_starter_growth_enterprise() {
+            assert!(B2bTenantTier::Trial < B2bTenantTier::Starter);
+            assert!(B2bTenantTier::Starter < B2bTenantTier::Growth);
+            assert!(B2bTenantTier::Growth < B2bTenantTier::Enterprise);
+        }
+
+        #[test]
+        fn seat_limits_match_spec() {
+            assert_eq!(B2bTenantTier::Trial.seat_limit(), Some(10));
+            assert_eq!(B2bTenantTier::Starter.seat_limit(), Some(50));
+            assert_eq!(B2bTenantTier::Growth.seat_limit(), Some(500));
+            assert_eq!(B2bTenantTier::Enterprise.seat_limit(), None);
+        }
+
+        #[test]
+        fn custom_pack_overlay_only_for_enterprise() {
+            assert!(!B2bTenantTier::Trial.allows_custom_pack_overlay());
+            assert!(!B2bTenantTier::Starter.allows_custom_pack_overlay());
+            assert!(!B2bTenantTier::Growth.allows_custom_pack_overlay());
+            assert!(B2bTenantTier::Enterprise.allows_custom_pack_overlay());
+        }
+
+        #[test]
+        fn label_round_trips_through_try_parse() {
+            let tiers = [
+                B2bTenantTier::Trial,
+                B2bTenantTier::Starter,
+                B2bTenantTier::Growth,
+                B2bTenantTier::Enterprise,
+            ];
+            for tier in &tiers {
+                assert_eq!(B2bTenantTier::try_parse(tier.label()), Some(tier.clone()));
+            }
+        }
+
+        #[test]
+        fn try_parse_rejects_unknown_labels() {
+            assert_eq!(B2bTenantTier::try_parse("premium"), None);
+            assert_eq!(B2bTenantTier::try_parse(""), None);
+            assert_eq!(B2bTenantTier::try_parse("ENTERPRISE"), None);
+        }
+
+        #[test]
+        fn display_matches_label() {
+            assert_eq!(B2bTenantTier::Growth.to_string(), "growth");
+        }
+    }
+}
+
+pub use b2b_tenant_tier::B2bTenantTier;
+
 #[cfg(test)]
 mod tests {
     use super::*;

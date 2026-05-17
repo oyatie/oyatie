@@ -1,6 +1,10 @@
 ---
 purpose: "P06 — Application B2B Shell Live: Implementation Plan"
 status: in-progress
+execution_variant: merge-into-existing-crates
+decided_at: 2026-05-17
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 backports B2bTenantTier 4-variant tier enum (Trial<Starter<Growth<Enterprise) into existing oya-tenancy-kernel::b2b_tenant_tier instead of scaffolding new b2b-tenant-domain. Honors no-over-scaffolding rule."
 ---
 
 # P06 — Application B2B Shell Live: Implementation Plan
