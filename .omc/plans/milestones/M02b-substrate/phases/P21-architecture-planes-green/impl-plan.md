@@ -15,6 +15,15 @@ acceptance_lanes:
 - cargo-nextest
 - cargo-deny
 purpose: "Runs all 9 architecture plane checks against the complete M02 workspace, produces the `docs/architecture/plane-verification-M02.md` evidence artifact with per-plane L4/L5 assessment and evidence citations."
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Delta-1 merge-variant: added `plane` module (ArchitecturePlane 9-plane enum,
+  ProofLevel L4/L5, PlaneVerdict, UnknownPlane) to the existing
+  oya-foundry-architecture-map-kernel crate. No new workspace crate scaffolded.
+  No new workspace-level deps added. 16 new tests; 65 total passing.
+  session_id: claude-durable-goal-2026-05-17-p21-agent
 ---
 # IP-001-plane-verification: Verify All 9 Architecture Planes L4-L5 + Produce Evidence Artifact
 

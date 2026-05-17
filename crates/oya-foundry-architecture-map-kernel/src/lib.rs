@@ -21,7 +21,10 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 pub mod emit;
+pub mod plane;
 pub mod walk;
+
+pub use plane::{ArchitecturePlane, PlaneVerdict, ProofLevel, UnknownPlane};
 
 /// Node kind taxonomy. Each variant maps to one row class in the
 /// underlying registries:
