@@ -171,7 +171,10 @@ mod tests {
 
     #[test]
     fn vault_path_error_display_renders_each_variant() {
-        assert_eq!(VaultPathError::Empty.to_string(), "vault path must not be empty");
+        assert_eq!(
+            VaultPathError::Empty.to_string(),
+            "vault path must not be empty"
+        );
         assert_eq!(
             VaultPathError::NotUnderSecretRoot.to_string(),
             "vault path must start with 'secret/'"
