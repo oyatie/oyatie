@@ -56,6 +56,7 @@ branches:
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver
       - oya-foundry-fitness-protection-context-match
+      - oya-foundry-fitness-sequential-pr-merge-conflicts
       # oya-pr-review — see comment above. 1-line uncomment to
       # restore the multispectrum reviewer-agent gate.
       # - oya-pr-review
