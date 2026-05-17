@@ -65,8 +65,7 @@ impl TryFrom<&str> for OntologyPillar {
     type Error = UnknownPillarLabel;
 
     fn try_from(label: &str) -> Result<Self, Self::Error> {
-        Self::from_wire_label(label)
-            .ok_or_else(|| UnknownPillarLabel(label.to_string()))
+        Self::from_wire_label(label).ok_or_else(|| UnknownPillarLabel(label.to_string()))
     }
 }
 
@@ -122,10 +121,7 @@ mod tests {
 
     #[test]
     fn try_from_str_returns_ok_for_valid_labels() {
-        assert_eq!(
-            OntologyPillar::try_from("org"),
-            Ok(OntologyPillar::Org)
-        );
+        assert_eq!(OntologyPillar::try_from("org"), Ok(OntologyPillar::Org));
         assert_eq!(
             OntologyPillar::try_from("person"),
             Ok(OntologyPillar::Person)
