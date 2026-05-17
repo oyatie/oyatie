@@ -1,0 +1,41 @@
+{
+  "event_type": "multispectrum_evidence_attached",
+  "change_id": "claude-m07-p01-hr-merge-variant-1778999262",
+  "session_id": "claude-durable-goal-2026-05-17-m07-p01-agent",
+  "timestamp_unix": 1778999262,
+  "evidence_path": "evidence/multispectrum/claude-m07-p01-hr-merge-variant-1778999262.json",
+  "payload": {
+    "scope": "M07-first-tenant/P01-hr merge-variant delta-1",
+    "spec_version": "2.3.0",
+    "change_class_id": "CC-2_type_addition",
+    "artifacts": [
+      "crates/oya-identity-domain/src/hr_employee_status.rs",
+      "crates/oya-identity-domain/src/lib.rs",
+      ".omc/plans/milestones/M07-first-tenant/phases/P01-hr/impl-plan.md",
+      "evidence/multispectrum/claude-m07-p01-hr-merge-variant-1778999262.json",
+      "evidence/audit-chain.jsonl"
+    ],
+    "types_added": [
+      "EmployeeStatus",
+      "UnknownEmployeeStatus"
+    ],
+    "host_crate": "oya-identity-domain",
+    "new_module": "hr_employee_status",
+    "wire_strings": ["active", "terminated", "on_leave"],
+    "ddl_source": "migrations/hr/001_hr_schema.sql — CREATE TYPE hr.employee_status AS ENUM ('active', 'terminated', 'on_leave')",
+    "local_gates": [
+      "cargo nextest run -p oya-identity-domain --all-features: 22/22 PASS (9 new + 13 pre-existing)",
+      "rustfmt 1.95.0 applied"
+    ],
+    "facet_verdicts": {
+      "F1_correctness": "ACCEPT — 3 variants match DDL ENUM exactly; round-trip from_wire/as_str symmetric; leave_accrual_eligibility matches 근로기준법 §60 (Terminated=false, Active/OnLeave=true)",
+      "F2_architecture": "ACCEPT — additive module in existing crate; no new crate scaffolds; no new workspace deps; inward-only dependency direction preserved; pattern mirrors identity_employment_classification exactly",
+      "A1_naming": "ACCEPT — module name hr_employee_status matches BNF v4.1 pattern; EmployeeStatus/UnknownEmployeeStatus match ADR-0056 naming canon; no exemptions needed",
+      "A3_documentation": "ACCEPT — module-level doc comment cites impl-plan path, DDL source, statute references, and execution_variant; all pub items have doc comments"
+    },
+    "execution_variant": "merge-into-existing-crates",
+    "decided_by": "user-directive-option-2",
+    "decided_at": "2026-05-17",
+    "closure": "M07-first-tenant/P01-hr merge-variant delta-1: EmployeeStatus (3-state lifecycle enum: Active/Terminated/OnLeave) + UnknownEmployeeStatus error backported into oya-identity-domain::hr_employee_status. Wire strings match hr.employee_status Postgres ENUM from 001_hr_schema.sql. pub mod + re-exports wired into lib.rs. P01-hr impl-plan frontmatter amended with execution_variant=merge-into-existing-crates. 22/22 nextest pass."
+  }
+}

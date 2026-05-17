@@ -23,6 +23,10 @@ acceptance_lanes:
 - jurisdiction-overlay
 - k6-smoke
 purpose: "Scaffolds the complete `oya-hr-*` µservice: Postgres DDL with Citus distribution + RLS + outbox tables for all 4 BCs; Rust kernel port traits."
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1: EmployeeStatus (3-variant enum: Active/Terminated/OnLeave) + UnknownEmployeeStatus error added to oya-identity-domain::hr_employee_status. Wire strings match hr.employee_status Postgres ENUM from 001_hr_schema.sql. No new crate scaffolds; no new workspace deps."
 ---
 # IP-P01-hr-full-scaffold: HR µservice — DDL, domain entities, port traits, adapters, REST API, Cedar policies, Workflow events, Ontology types, load tests
 
