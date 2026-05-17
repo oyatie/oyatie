@@ -9,6 +9,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod envelope_keys;
+pub use envelope_keys::{DekId, EnvelopeKeyError, KekId};
+
 use std::collections::BTreeMap;
 
 use oya_cloud_region_domain::{CellId, RegionCode};

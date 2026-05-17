@@ -20,6 +20,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: "Delivers the complete KMS substrate: 16 crates across 3 BCs (keys, envelope, signing), AES-256-GCM envelope encryption with CBOR envelope header, per-tenant DEK isolation, ML-DSA-87 (NIST FIPS 204) post-quantum signing."
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "User chose merge-variant 2026-05-17 — FROM-SCRATCH scaffold below preserved as reference; deltas land incrementally into existing crates. Unblocked by P06-secrets PR #60 (ZeroizingSecret/VaultPath). First delta landed: KekId + DekId (EnvelopeKeyError) in oya-cloud-kms-domain::envelope_keys (2026-05-17). Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION."
 ---
 # IP-P08-kms-substrate: Scaffold 16 KMS crates with envelope encryption, ML-DSA-87, per-tenant DEK, OCI Vault adapter
 
