@@ -1,23 +1,23 @@
-# Append-only JSONL files use git's built-in union merge driver so concurrent
-# branches that each append their own rows can be rebased without manual
-# conflict resolution.
+# evidence/audit-chain.jsonl is a strict append-only event log. Its `_meta`
+# row declares the append-only contract, and the codex review bot enforces
+# "no deleted rows" on every PR that touches it — the policy is verified
+# both by contract and by review.
 #
-# The `union` driver concatenates both sides of a conflict instead of marking
-# them. This is correct because:
-#   1. These files declare themselves append-only (per their `_meta` row).
-#   2. Each row is independent — order matters only by timestamp, not by
-#      adjacency.
-#   3. Deletions by either side would be silently lost, but our policy
-#      forbids deletions anyway (codex bot enforces this on review).
+# With 14+ parallel merge-variant PRs each appending one row, default merge
+# semantics produced a continuous merge-storm: every advance of `dev`
+# re-conflicted ~13 other branches against the trailing-line region. Git's
+# built-in `union` driver concatenates both sides of an appended-only hunk
+# instead of marking conflict, which is the correct semantic here.
 #
-# Rationale: with 14+ parallel PRs all appending one row each, the previous
-# "default merge" behaviour produced a continuous merge-storm where every
-# advance of `dev` re-conflicted ~13 other branches against a single
-# append-only file. Switching to `merge=union` makes the conflict structural
-# noise disappear at the git layer.
+# Trade-off acknowledged: if a future change ever DOES need to legitimately
+# delete a row (e.g. a hard-redact for compliance), `merge=union` will
+# silently keep the deleted row when re-merging across branches. That
+# scenario must be done as a single linearised commit on `dev`, not in a
+# parallel PR.
 #
-# Scope: only files whose schema is genuinely append-only-list-of-rows.
-# Do NOT add `merge=union` for files with structural cross-line invariants
-# (e.g. registry indices keyed by id where duplicates would corrupt state).
+# Scope is deliberately limited to this one file. `registry/fixuptasks.jsonl`
+# was considered but excluded: its history shows in-place row REPLACEMENTS
+# (status flips on existing rows) so `union` would silently keep stale +
+# updated variants of the same logical record, exactly the failure mode the
+# codex reviewer flagged on the initial PR.
 evidence/audit-chain.jsonl merge=union
-registry/fixuptasks.jsonl merge=union
