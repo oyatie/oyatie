@@ -11,7 +11,13 @@
 /// A pack progresses strictly forward through these phases; no phase may be
 /// skipped.  `Activated` is the terminal success state; `Withdrawn` is the
 /// terminal failure state.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+///
+/// `Ord`/`PartialOrd` are intentionally NOT derived: declaration order would
+/// make `Withdrawn` sort after `Activated`, implying `Withdrawn > Activated`.
+/// That is semantically wrong — `Withdrawn` is a terminal failure branch, not
+/// a successor to `Activated`.  Transitions are governed by
+/// [`PackOnboardingPhase::is_valid_next`], which encodes the correct FSM rules.
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum PackOnboardingPhase {
     /// Pack registered in the registry; contracts not yet validated.
     Registered,

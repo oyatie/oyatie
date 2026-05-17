@@ -22,7 +22,7 @@
   "facets": {
     "F1_linus": {
       "considered": true,
-      "findings": ["One new module, four re-exports. PackOnboardingPhase is strict-forward FSM (no skip), terminal states explicit (Activated success / Withdrawn failure). PackInstallStatus distinct from phase to allow per-step status without conflating with lifecycle position. RegionalRolloutGate validates region+pack pair at construct time."],
+      "findings": ["One new module, four re-exports. PackOnboardingPhase is strict-forward FSM (no skip), terminal states explicit (Activated success / Withdrawn failure). PackInstallStatus distinct from phase to allow per-step status without conflating with lifecycle position. RegionalRolloutGate is a value-object whose prerequisites are validated explicitly via check() — callers construct the gate with observed booleans and then call check() to produce a typed error if any prerequisite is unmet."],
       "fixuptasks": []
     },
     "F3_correctness": {
