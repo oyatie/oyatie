@@ -2,6 +2,11 @@
 //!
 //! Pure append-only evidence records for capability invocation proof.
 
+pub mod retention_policy;
+pub use retention_policy::{
+    RegulatorySchedule, RetentionDays, RetentionPolicy, RetentionPolicyError,
+};
+
 use std::collections::BTreeMap;
 
 use oya_data_boundary_kernel::{
