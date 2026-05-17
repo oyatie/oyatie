@@ -1504,6 +1504,7 @@ name = "oya-dev-cli"
 version = "0.1.0"
 dependencies = [
  "oya-application-app",
+ "oya-audit-chain-domain",
  "oya-audit-chain-file-adapter",
  "oya-check-active-artifact-contract",
  "oya-check-adr-citation",
@@ -1541,6 +1542,7 @@ dependencies = [
  "oya-check-supply-chain",
  "oya-check-typescript-workspace",
  "oya-check-vendor-recency",
+ "oya-data-boundary-kernel",
  "oya-eventing-domain",
  "oya-eventing-file-adapter",
  "oya-foundry-api-semver-domain",
