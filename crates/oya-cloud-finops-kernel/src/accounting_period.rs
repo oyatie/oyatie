@@ -110,8 +110,10 @@ pub fn validate_accounting_period(p: &AccountingPeriod) -> Result<(), PeriodClos
     Ok(())
 }
 
-/// Attempt to post to a period — returns `Err` if the period is not `Open`.
+/// Attempt to post to a period — returns `Err` if the period is not `Open`
+/// or if the period is structurally invalid (empty id or inverted boundaries).
 pub fn assert_posting_allowed(p: &AccountingPeriod) -> Result<(), PeriodCloseError> {
+    validate_accounting_period(p)?;
     if !p.state.allows_posting() {
         if matches!(p.state, PeriodCloseState::Closed) {
             return Err(PeriodCloseError::PeriodAlreadyClosed);
@@ -125,7 +127,9 @@ pub fn assert_posting_allowed(p: &AccountingPeriod) -> Result<(), PeriodCloseErr
 }
 
 /// Advance a period from `Open` → `PendingReview`.
+/// Returns `Err` if the period is structurally invalid or not in `Open` state.
 pub fn begin_review(p: &mut AccountingPeriod) -> Result<(), PeriodCloseError> {
+    validate_accounting_period(p)?;
     if p.state != PeriodCloseState::Open {
         return Err(PeriodCloseError::InvalidStateTransition {
             from: p.state,
@@ -137,7 +141,9 @@ pub fn begin_review(p: &mut AccountingPeriod) -> Result<(), PeriodCloseError> {
 }
 
 /// Advance a period from `PendingReview` → `Closed` (월마감/연마감 final close).
+/// Returns `Err` if the period is structurally invalid or not in `PendingReview` state.
 pub fn close_period(p: &mut AccountingPeriod) -> Result<(), PeriodCloseError> {
+    validate_accounting_period(p)?;
     if p.state != PeriodCloseState::PendingReview {
         return Err(PeriodCloseError::InvalidStateTransition {
             from: p.state,
