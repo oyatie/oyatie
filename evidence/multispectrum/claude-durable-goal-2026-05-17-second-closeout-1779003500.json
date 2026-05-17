@@ -1,0 +1,45 @@
+{
+  "change_id": "claude-durable-goal-2026-05-17-second-closeout-1779003500",
+  "change_class_id": "CC-5_doc_only",
+  "change_class_rationale": "Final session-closeout report for the 2026-05-17 /goal continuation. Supersedes the earlier 9-PR closeout (PR #66) by capturing the additional 20-PR follow-on cascade + 4 structural pipeline-prevention items.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779003500,
+  "branch": "agent/durable-goal-final-closeout-1779003500",
+  "session_id": "claude-durable-goal-2026-05-17",
+  "agent_id": "claude-durable-goal-final-closeout",
+  "task": "Emit goal.json#stop_condition B per-session PARTIAL closeout. Captures 20 additional PRs merged + 33 in-flight + 4 structural fixes shipped (PR #96 pre-push validator, PR #97 union-merge, PR #102 FixupTask for M02 exit-gate, PR #112 honest lane-1).",
+  "artifacts_touched": [
+    "evidence/goals/durable-goal-completion-report-1779003500.json (NEW; this slice's report)",
+    "evidence/multispectrum/claude-durable-goal-2026-05-17-second-closeout-1779003500.json (this file)",
+    "evidence/audit-chain.jsonl (row appended)"
+  ],
+  "local_gates": [
+    "JSON validates",
+    "supersedes-pointer cleanly references prior closeout"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": ["Two files under evidence/. References every merged PR + every in-flight PR + every FixupTask. supersedes_report pointer cleanly resolves the multi-closeout shape (3 closeouts shipped across this multi-prompt session as state evolved)."],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": ["20-PR scope captured with merge_sha + scope each. In-flight PR list categorised by milestone. Pipeline-improvement section captures the 4 structural fixes with shift-left impact each. Remaining-work pointers + external blockers explicit."],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": ["stop_condition_assessment=PARTIAL per goal.json#stop_condition B. Per OP-11 honoring: F-M02-EXIT-GATE-VALIDATORS-MISSING work routed to FixupTask rather than absorbed into stub PRs. PR #82 closure documented as the honest-completion-gate enforcement."],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": ["Audit-chain row appended with distinct timestamp_unix + session_id (OP-08). 23 newly discovered gotchas cross-referenced via the memory feedback file. Cascade-storm root cause documented (O(N²) before PR #97, O(1) after)."]
+    }
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Mirrors prior closeout shape (PR #66). The supersedes-pointer captures the multi-closeout reality (work continued after the first 'final' report)."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT", "rationale": "Captures both shipped artifacts AND in-flight state honestly. External blockers explicitly enumerated. Self-assessment includes what could be better (in-flight cap)."}
+  }
+}
