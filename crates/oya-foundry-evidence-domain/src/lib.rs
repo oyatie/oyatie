@@ -6,6 +6,8 @@ pub mod retention_policy;
 pub use retention_policy::{
     RegulatorySchedule, RetentionDays, RetentionPolicy, RetentionPolicyError,
 };
+pub mod kr_acceptance;
+pub use kr_acceptance::AcceptanceTestKind;
 
 use std::collections::BTreeMap;
 
