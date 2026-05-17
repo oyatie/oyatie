@@ -1,4 +1,4 @@
-//! Cloud capacity-management kernel (M03-P02-IP-003).
+//! Cloud capacity-management kernel (M03-P02-IP-003 / M03-P01-IP-005 delta-1).
 //!
 //! Pure I/O-free types + admission rules for reservation, quota, and
 //! per-region capacity envelopes. Provider-specific quota APIs live in
@@ -6,6 +6,14 @@
 //! - A reservation cannot exceed its region quota.
 //! - A region cannot accept more reservations than its declared cell budget.
 //! - Capacity classes (cpu / memory / disk / gpu) are tracked independently.
+//!
+//! The `cell_budget` module adds cell-level admission (`CellBudget` /
+//! `admit_cell_reservation`) required by M03-P01-IP-005 cell-isolation evidence.
+
+pub mod cell_budget;
+pub use cell_budget::{
+    CellBudget, CellBudgetError, CellId, CellReservationRequest, admit_cell_reservation,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum CapacityClass {
