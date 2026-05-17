@@ -5,7 +5,8 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "PRD-ENTERPRISE-ACCOUNTING",
-    "version": "1.0.0",
+    "version": "1.1.0",
+    "audit": "industry-audit-2026-05-17:OP-11",
     "status": "Accepted",
     "owner_team": "enterprise-product-council",
     "created_at": "2026-05-16T16:15:00Z",
@@ -398,37 +399,203 @@
   ],
   "competitive": [
     {
-      "competitor": "NetSuite",
+      "competitor": "NetSuite (Oracle)",
       "observed_strengths": [
-        "ERP accounting breadth",
-        "global close process"
+        "ERP accounting breadth: GL, AP, AR, fixed assets, revenue recognition",
+        "global close process with multi-subsidiary consolidation",
+        "ASC 606 / IFRS 15 revenue recognition engine",
+        "intercompany elimination workflows",
+        "dimension tagging for segment reporting",
+        "SOX control documentation",
+        "real-time dashboards and financial reporting"
+      ],
+      "gaps_vs_oyatie": [
+        "no native KR K-GAAP/K-IFRS statutory close (requires localization partner)",
+        "no evidence-first WORM audit chain; audit trail is mutable log",
+        "no ops-as-code deployment; manual Salesforce-style configuration",
+        "consolidation requires OneWorld module (extra cost)"
       ],
       "we_beat_on": [
         "Workflow/Object Graph-native close evidence",
-        "ops-managed deployment"
+        "ops-managed deployment",
+        "native KR K-GAAP/K-IFRS + VAT statutory depth",
+        "WORM immutable close evidence vs mutable audit log",
+        "legal-entity isolation by default (no add-on module)"
       ],
       "measurable_target": "0 missing-evidence close promotions"
     },
     {
-      "competitor": "QuickBooks/Xero",
+      "competitor": "Sage Intacct",
       "observed_strengths": [
-        "SME accounting UX",
-        "ecosystem integrations"
+        "dimension tagging: department, project, location, customer, item",
+        "multi-entity consolidation with intercompany eliminations",
+        "revenue recognition (ASC 606)",
+        "accounts payable automation",
+        "real-time financial reporting",
+        "SOC 2 Type II certified",
+        "API-first architecture"
+      ],
+      "gaps_vs_oyatie": [
+        "US-centric; KR statutory (K-GAAP/VAT) requires partner",
+        "no native payroll-to-GL bridge with source digest",
+        "no Workflow-native close checklist; relies on manual process",
+        "no WORM evidence chain"
       ],
       "we_beat_on": [
-        "enterprise legal-entity controls and KR statutory depth"
+        "native KR statutory accounting close",
+        "Workflow-native close checklist with evidence gates",
+        "payroll-to-GL bridge with source payroll digest requirement",
+        "WORM audit chain vs mutable audit log"
+      ],
+      "measurable_target": "VAT workflow coverage 100% by stable"
+    },
+    {
+      "competitor": "QuickBooks Online / Xero",
+      "observed_strengths": [
+        "SME accounting UX",
+        "bank feed reconciliation",
+        "ecosystem integrations (1000+ apps)",
+        "invoice and expense management",
+        "multi-currency (Xero: 160+ currencies)"
+      ],
+      "gaps_vs_oyatie": [
+        "no enterprise legal-entity isolation",
+        "no KR statutory K-GAAP/VAT statutory close evidence",
+        "no audit-chain WORM evidence",
+        "no workflow-gated close process"
+      ],
+      "we_beat_on": [
+        "enterprise legal-entity controls and KR statutory depth",
+        "evidence-gated close with WORM chain",
+        "payroll-to-GL source digest linkage"
       ],
       "measurable_target": "VAT workflow coverage 100% by stable"
     },
     {
       "competitor": "더존 iCUBE/WEHAGO accounting",
       "observed_strengths": [
-        "KR accounting/tax footprint"
+        "KR accounting/tax footprint",
+        "HomeTax VAT/CIT native integration",
+        "K-GAAP chart of accounts"
+      ],
+      "gaps_vs_oyatie": [
+        "no group legal-entity consolidation evidence model",
+        "no Workflow-native close checklist",
+        "no payroll-to-GL source digest linkage",
+        "no ops-as-code deployment"
       ],
       "we_beat_on": [
-        "payroll/accounting audit digest and rollback-first launch evidence"
+        "payroll/accounting audit digest and rollback-first launch evidence",
+        "group entity consolidation with intercompany projection",
+        "ops-managed deployment"
       ],
       "measurable_target": "payroll journal source digest coverage 100%"
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "fiscal year vs calendar year period model",
+      "source": "NetSuite, Sage Intacct — enterprise tenants may use non-calendar fiscal years (Apr–Mar, Jul–Jun)",
+      "implementation": "FiscalCalendar entity per legal_entity_id; period open/close state machine operates on fiscal periods, not calendar months; KR default is Jan–Dec"
+    },
+    {
+      "pattern": "fixed asset management: acquisition, depreciation, disposal",
+      "source": "NetSuite, Sage Intacct — fixed assets are a statutory accounting requirement for K-GAAP/K-IFRS",
+      "implementation": "FixedAsset entity with acquisition_cost, accumulated_depreciation, disposal_date; depreciation journal auto-generated per period close via rulepack (straight-line/declining balance)"
+    },
+    {
+      "pattern": "revenue recognition engine (ASC 606 / IFRS 15 / K-IFRS 1115)",
+      "source": "NetSuite, Sage Intacct — deferred revenue and multi-element arrangements require standards-compliant recognition",
+      "implementation": "RevenueArrangement entity with performance_obligation schedule; recognition journal auto-posted on obligation satisfaction event"
+    },
+    {
+      "pattern": "bank reconciliation with bank feed integration",
+      "source": "Xero, QuickBooks Online — bank feed auto-match reduces reconciliation effort and errors",
+      "implementation": "BankReconciliation entity per account per period; bank feed adapter consumes bank statement transactions; unmatched items surface in close checklist"
+    },
+    {
+      "pattern": "accounts aging report: AR aging (30/60/90/120+ days), AP aging",
+      "source": "NetSuite, QuickBooks, Sage Intacct — aging is required for credit risk and cash flow management",
+      "implementation": "AgingBucket projection computed from open Invoice entities; refreshed on-demand and at period close; aging breach triggers Workflow collection or payment escalation"
+    },
+    {
+      "pattern": "dimension tagging: department, project, location, cost center",
+      "source": "Sage Intacct, NetSuite — segment reporting requires multi-dimensional GL",
+      "implementation": "JournalVoucherLine carries dimension_tags map (department_id, project_id, location_id, cost_center_id); trial balance and reporting slice by dimension"
+    },
+    {
+      "pattern": "intercompany elimination at group consolidation",
+      "source": "NetSuite OneWorld, Sage Intacct — intercompany transactions must be eliminated to avoid double-counting in consolidated financials",
+      "implementation": "IntercompanyElimination projection computed during group close; elimination entries posted to consolidation-only journal; never mutates entity ledgers"
+    },
+    {
+      "pattern": "budget vs actuals tracking",
+      "source": "NetSuite, Sage Intacct — budget-to-actual variance is a standard management reporting requirement",
+      "implementation": "Budget entity per legal_entity_id per period; variance computed as projection from trial balance; budget breach triggers Workflow approval for over-spend"
+    },
+    {
+      "pattern": "auditor evidence pack export",
+      "source": "NetSuite, Sage Intacct — external auditors require structured export of journals, balances, and supporting documents",
+      "implementation": "AuditorEvidencePack entity produced at period close; includes trial balance, journal vouchers, statutory filing hashes, approval chains, and WORM digest manifest; SOC 2 control mapping included"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "anti_pattern": "manual spreadsheet close as production evidence",
+      "source_warning": "common SME/mid-market pattern: Excel close checklist accepted as audit evidence",
+      "mitigation": "close evidence must be typed, hashed, and WORM-chained; spreadsheet exports are read-only artifacts, not authority"
+    },
+    {
+      "anti_pattern": "posting to closed period without reversal workflow",
+      "source_warning": "NetSuite allows admin override of closed period posting without audit trail in some configurations",
+      "mitigation": "closed period posting requires Workflow-gated period reopening evidence; no admin override without audit chain entry"
+    },
+    {
+      "anti_pattern": "single mutable consolidated ledger",
+      "source_warning": "shared consolidated ledger across subsidiaries creates data integrity risk and compliance boundary violations",
+      "mitigation": "entity ledgers are immutable boundaries; consolidated view is projection-only, never mutated"
+    },
+    {
+      "anti_pattern": "payroll posting without source digest",
+      "source_warning": "payroll amounts posted to GL without linking to approved payroll run creates reconciliation dead ends",
+      "mitigation": "source payroll digest and approval evidence required on every payroll-origin journal voucher"
+    },
+    {
+      "anti_pattern": "revenue recognized without performance obligation schedule",
+      "source_warning": "ASC 606 / K-IFRS 1115 violations from recognizing revenue at invoice date rather than obligation satisfaction",
+      "mitigation": "RevenueArrangement entity enforces obligation schedule; recognition journal only posted on satisfaction event with evidence"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "dimension": "close_completeness",
+      "target": "0 missing-evidence close promotions; 100% of close checklist items carry WORM evidence digest",
+      "verification_ref": "oya gate validate enterprise-accounting-close-evidence"
+    },
+    {
+      "dimension": "fiscal_period_flexibility",
+      "target": "calendar and fiscal year periods supported per legal entity; KR Jan–Dec default; US/EU custom fiscal year",
+      "verification_ref": "oya gate validate enterprise-accounting-fiscal-calendar"
+    },
+    {
+      "dimension": "fixed_assets",
+      "target": "depreciation journal auto-generated every period close; 0 periods with missing depreciation evidence",
+      "verification_ref": "oya gate validate enterprise-accounting-fixed-asset-depreciation"
+    },
+    {
+      "dimension": "bank_reconciliation",
+      "target": "unreconciled items surface in close checklist; close blocked until reconciliation evidence or documented exception",
+      "verification_ref": "oya gate validate enterprise-accounting-bank-reconciliation"
+    },
+    {
+      "dimension": "auditor_evidence_pack",
+      "target": "AuditorEvidencePack produced within 24h of period close promotion; includes SOC 2 control mapping",
+      "verification_ref": "oya gate validate enterprise-accounting-auditor-evidence-pack"
+    },
+    {
+      "dimension": "multi_currency_fx",
+      "target": "FX rate snapshot on every JournalVoucherLine with foreign currency; revaluation journal at period close",
+      "verification_ref": "oya gate validate enterprise-accounting-multi-currency-revaluation"
     }
   ],
   "best_practices": [

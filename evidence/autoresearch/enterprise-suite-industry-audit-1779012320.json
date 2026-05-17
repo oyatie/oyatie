@@ -1,0 +1,205 @@
+{
+  "audit_id": "enterprise-suite-industry-audit-1779012320",
+  "op": "OP-11",
+  "date": "2026-05-17",
+  "auditor": "agent/audit-enterprise-1779012320",
+  "scope": "4 enterprise PRDs: suite, hr, payroll, accounting",
+  "industry_references_consulted": [
+    {
+      "vendor": "Workday HCM",
+      "url": "https://www.workday.com/en-us/products/human-capital-management/overview.html",
+      "fetch_status": "ok",
+      "key_signals": [
+        "unified data architecture across HCM and Finance",
+        "AI-driven scheduling and demand forecasting",
+        "global payroll with local compliance adaptation",
+        "Workday Extend API for custom apps",
+        "skills intelligence cloud",
+        "contingent worker management"
+      ]
+    },
+    {
+      "vendor": "ADP Workforce Now",
+      "url": "https://www.adp.com/what-we-offer/products/adp-workforce-now.aspx",
+      "fetch_status": "ok",
+      "key_signals": [
+        "continuous payroll calculation with AI anomaly detection",
+        "multi-state US employer compliance",
+        "flexible pay cycles (weekly, biweekly, semimonthly, monthly)",
+        "pay-anyone-anytime off-cycle capability",
+        "garnishment and deduction engine",
+        "ADP Marketplace integration ecosystem"
+      ]
+    },
+    {
+      "vendor": "NetSuite (Oracle)",
+      "url": "https://www.oracle.com/netsuite/products/",
+      "fetch_status": "blocked-403",
+      "key_signals_from_training": [
+        "ERP accounting breadth: GL, AP, AR, fixed assets, revenue recognition",
+        "global close process with multi-subsidiary consolidation",
+        "ASC 606 / IFRS 15 revenue recognition engine",
+        "intercompany elimination workflows",
+        "dimension tagging for segment reporting",
+        "SOX control documentation"
+      ]
+    },
+    {
+      "vendor": "QuickBooks Online",
+      "url": "https://quickbooks.intuit.com/accounting/",
+      "fetch_status": "timeout",
+      "key_signals_from_training": [
+        "SME accounting UX",
+        "bank feed reconciliation",
+        "1000+ ecosystem integrations",
+        "multi-currency support"
+      ]
+    },
+    {
+      "vendor": "SAP SuccessFactors",
+      "url": "https://www.sap.com/products/hcm/employee-experience-management.html",
+      "fetch_status": "blocked-403",
+      "key_signals_from_training": [
+        "global HCM: recruiting, onboarding, performance, compensation, succession, learning",
+        "multi-country payroll via partner network",
+        "100+ country compliance localization",
+        "equity and long-term incentive plan management"
+      ]
+    },
+    {
+      "vendor": "BambooHR",
+      "url": "https://www.bamboohr.com/platform/",
+      "fetch_status": "blocked-403",
+      "key_signals_from_training": [
+        "onboarding/offboarding checklists",
+        "e-signature for offer letters and contracts",
+        "self-service PTO/leave portal",
+        "performance review workflows",
+        "compensation bands"
+      ]
+    },
+    {
+      "vendor": "Gusto",
+      "url": "https://gusto.com/product/payroll",
+      "fetch_status": "blocked-403",
+      "key_signals_from_training": [
+        "SME-friendly payroll UX",
+        "automatic tax filing (federal, state, local)",
+        "contractor (1099) and employee payroll in one platform",
+        "benefits deductions integrated with payroll",
+        "multiple pay schedules per company",
+        "direct deposit and check disbursement"
+      ]
+    },
+    {
+      "vendor": "Xero",
+      "url": "https://www.xero.com/us/accounting-software/",
+      "fetch_status": "blocked-503",
+      "key_signals_from_training": [
+        "bank feed reconciliation",
+        "160+ currency support",
+        "SME accounting UX",
+        "ecosystem integrations"
+      ]
+    },
+    {
+      "vendor": "Sage Intacct",
+      "url": "https://www.sageintacct.com",
+      "fetch_status": "not-fetched",
+      "key_signals_from_training": [
+        "dimension tagging: department, project, location, customer, item",
+        "multi-entity consolidation with intercompany eliminations",
+        "revenue recognition (ASC 606)",
+        "SOC 2 Type II certified",
+        "API-first architecture"
+      ]
+    }
+  ],
+  "gap_analysis": {
+    "suite": {
+      "gaps_identified": [
+        "missing ISO 27001 / SOC 2 Type II compliance evidence binding",
+        "missing explicit data residency controls per region",
+        "missing SSO / SAML 2.0 / OIDC identity provider integration spec",
+        "multi-currency limited to KRW/USD/EUR (JPY, GBP, CNY, AUD absent)",
+        "competitive section missing SAP SuccessFactors (major HCM competitor)",
+        "no industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gap — expanded"
+    },
+    "hr": {
+      "gaps_identified": [
+        "missing onboarding/offboarding checklist pattern (BambooHR/Workday)",
+        "missing e-signature for offer letters/contracts",
+        "missing compensation bands with pay equity analysis (SAP SF/ADP)",
+        "missing performance review cycles enum (annual/semi-annual/continuous)",
+        "missing skills and competency framework (Workday Skills Cloud)",
+        "missing contractor/contingent worker class",
+        "missing succession planning",
+        "missing AI-assisted scheduling bounded by labor law rulepacks",
+        "competitive section missing SAP SuccessFactors and BambooHR",
+        "no industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gap — expanded"
+    },
+    "payroll": {
+      "gaps_identified": [
+        "missing explicit pay cycle type enum (biweekly/semimonthly/monthly/quarterly) — ADP/Gusto standard",
+        "missing off-cycle payroll run type",
+        "missing garnishment and deduction engine",
+        "missing contractor (프리랜서/1099) payment class",
+        "missing year-end settlement entity (연말정산/W-2)",
+        "missing retroactive pay adjustment with compensating entry",
+        "missing benefits deduction sync from HR enrollment",
+        "missing disbursement method tracking",
+        "competitive section missing ADP and Gusto (primary payroll competitors)",
+        "no industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gap — expanded"
+    },
+    "accounting": {
+      "gaps_identified": [
+        "missing fiscal year vs calendar year period model",
+        "missing fixed asset management (acquisition, depreciation, disposal)",
+        "missing revenue recognition engine (ASC 606 / IFRS 15 / K-IFRS 1115)",
+        "missing bank reconciliation with bank feed integration",
+        "missing accounts aging reports (AR/AP aging buckets)",
+        "missing dimension tagging (department, project, location, cost center)",
+        "missing intercompany elimination at group consolidation",
+        "missing budget vs actuals tracking",
+        "missing auditor evidence pack export",
+        "competitive section missing Sage Intacct (direct enterprise competitor)",
+        "no industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gap — expanded"
+    }
+  },
+  "changes_applied": {
+    "suite.json": {
+      "version": "1.0.0 -> 1.1.0",
+      "competitive_entries_added": ["SAP SuccessFactors"],
+      "competitive_entries_expanded": ["Workday", "Rippling", "WEHAGO/더존"],
+      "new_fields": ["industry_patterns_adopted (7)", "anti_patterns_avoided (5)", "hyperscaler_bar (6)"]
+    },
+    "hr.json": {
+      "version": "1.0.0 -> 1.1.0",
+      "competitive_entries_added": ["SAP SuccessFactors", "BambooHR"],
+      "competitive_entries_expanded": ["Workday HCM", "Rippling HRIS", "WEHAGO HR"],
+      "new_fields": ["industry_patterns_adopted (7)", "anti_patterns_avoided (5)", "hyperscaler_bar (5)"]
+    },
+    "payroll.json": {
+      "version": "1.0.0 -> 1.1.0",
+      "competitive_entries_added": ["ADP Workforce Now", "Gusto"],
+      "competitive_entries_expanded": ["Deel", "Rippling Payroll", "더존/WEHAGO payroll"],
+      "new_fields": ["industry_patterns_adopted (8)", "anti_patterns_avoided (5)", "hyperscaler_bar (5)"]
+    },
+    "accounting.json": {
+      "version": "1.0.0 -> 1.1.0",
+      "competitive_entries_added": ["Sage Intacct"],
+      "competitive_entries_expanded": ["NetSuite", "QuickBooks/Xero", "더존 iCUBE/WEHAGO accounting"],
+      "new_fields": ["industry_patterns_adopted (9)", "anti_patterns_avoided (5)", "hyperscaler_bar (6)"]
+    }
+  },
+  "no_op": false,
+  "conclusion": "All 4 PRDs had material gaps vs industry-leading SaaS. Expanded competitive sections, added industry_patterns_adopted, anti_patterns_avoided, and hyperscaler_bar arrays across all 4 PRDs. Version bumped 1.0.0 -> 1.1.0 in each."
+}
