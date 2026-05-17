@@ -71,6 +71,8 @@ impl fmt::Display for TenantTierParseError {
     }
 }
 
+impl std::error::Error for TenantTierParseError {}
+
 // ---------------------------------------------------------------------------
 // TenantStatus
 // ---------------------------------------------------------------------------
@@ -141,6 +143,8 @@ impl fmt::Display for TenantStatusParseError {
         write!(formatter, "unknown tenant status label: {:?}", self.0)
     }
 }
+
+impl std::error::Error for TenantStatusParseError {}
 
 // ---------------------------------------------------------------------------
 // SuspensionReason
