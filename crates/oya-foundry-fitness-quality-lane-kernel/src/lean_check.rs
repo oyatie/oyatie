@@ -207,7 +207,7 @@ mod tests {
 
     #[test]
     fn violations_are_sortable_by_check_then_location() {
-        let mut violations = vec![
+        let mut violations = [
             LeanViolation::new(LeanCheckId::LayerCorrectness, "z-crate", "layer mismatch"),
             LeanViolation::new(LeanCheckId::DependencyDirection, "a-crate", "outward dep"),
             LeanViolation::new(LeanCheckId::DependencyDirection, "b-crate", "outward dep"),
