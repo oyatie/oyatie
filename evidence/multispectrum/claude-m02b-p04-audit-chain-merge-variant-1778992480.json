@@ -17,16 +17,18 @@
     "evidence/multispectrum/claude-m02b-p04-audit-chain-merge-variant-1778992480.json (this file)",
     "evidence/audit-chain.jsonl (appended row)"
   ],
-  "fixuptasks_filed": ["F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"],
+  "references_fixuptasks": [
+    "F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"
+  ],
   "local_gates": [
-    "cargo nextest run -p oya-audit-chain-domain --all-features: 11/11 PASS (10 new in merkle_tree module + 1 pre-existing in lib)"
+    "cargo nextest run -p oya-audit-chain-domain --all-features: 20/20 PASS (12 unit tests in merkle_tree module + 6 pre-existing lib tests + 2 integration tests)"
   ],
   "facets": {
     "F1_linus": {
       "considered": true,
       "findings": [
         "Honors user's 'no over-scaffolding' rule explicitly: a from-scratch P04 plan would have scaffolded 16 new crates; instead this slice adds 1 type to 1 existing crate. The scaffold count delta is 0; the contract delta is +1 type + type alias. The remaining merge work is tracked under one FixupTask, not 16 speculative crate skeletons.",
-        "MerkleTree is strictly additive — zero changes to existing AuditChain append/verify code paths. The internal `merkle_root()` function in lib.rs is left untouched; MerkleTree replicates the algorithm under a testable public surface."
+        "MerkleTree is strictly additive \u2014 zero changes to existing AuditChain append/verify code paths. The internal `merkle_root()` function in lib.rs is left untouched; MerkleTree replicates the algorithm under a testable public surface."
       ],
       "fixuptasks": []
     },
@@ -42,7 +44,7 @@
     "F9_compliance": {
       "considered": true,
       "findings": [
-        "MerkleTree operates exclusively on opaque `[u8; 32]` hash arrays — no plaintext data enters the type. No secret material stored or exposed. Aligns with ADR-0028 (Merkle/Ed25519 audit chain) and ADR-0083 (test exemptions for unwrap/expect/panic).",
+        "MerkleTree operates exclusively on opaque `[u8; 32]` hash arrays \u2014 no plaintext data enters the type. No secret material stored or exposed. Aligns with ADR-0028 (Merkle/Ed25519 audit chain) and ADR-0083 (test exemptions for unwrap/expect/panic).",
         "The `#![cfg_attr(test, allow(...))]` attribute matches the existing pattern in lib.rs for the same crate, maintaining consistent ADR-0083 Tier 3 exemption coverage."
       ],
       "fixuptasks": []
@@ -50,7 +52,7 @@
     "F11_observability": {
       "considered": true,
       "findings": [
-        "Audit-chain row appended with distinct timestamp_unix=1778992480 + session_id=claude-durable-goal-2026-05-17-p04-agent (OP-08). The F-M02B-PLAN-LIVE-CRATE-RECONCILIATION FixupTask filed in this PR (was absent from dev branch — the secrets PR that originally filed it has not yet merged). Future agents reading any M02b foundation phase impl-plan will see execution_variant=merge-into-existing-crates once the analogous frontmatter amendment lands per phase."
+        "Audit-chain row appended with distinct timestamp_unix=1778992480 + session_id=claude-durable-goal-2026-05-17-p04-agent (OP-08). The F-M02B-PLAN-LIVE-CRATE-RECONCILIATION FixupTask filed in this PR (was absent from dev branch \u2014 the secrets PR that originally filed it has not yet merged). Future agents reading any M02b foundation phase impl-plan will see execution_variant=merge-into-existing-crates once the analogous frontmatter amendment lands per phase."
       ]
     }
   },
@@ -64,7 +66,7 @@
       "agent": "claude-self-critic-check",
       "verdict": "ACCEPT_WITH_GUARDRAILS",
       "guardrails": [
-        "4 more foundation phases (P02-ontology, P03-identity, P05-eventing, P07-observability) still need analogous merge-variant frontmatter + delta slices. Each is a distinct scope; do not batch — keep one FixupTask, one PR per phase reconciliation.",
+        "4 more foundation phases (P02-ontology, P03-identity, P05-eventing, P07-observability) still need analogous merge-variant frontmatter + delta slices. Each is a distinct scope; do not batch \u2014 keep one FixupTask, one PR per phase reconciliation.",
         "The internal merkle_root() in lib.rs and MerkleTree::build_root() now implement the same algorithm in two places. Future refactor should thread MerkleTree through AuditChain::append to eliminate duplication. Captured as a note in F-M02B-PLAN-LIVE-CRATE-RECONCILIATION rather than blocking this slice (additive-only constraint takes precedence).",
         "MerkleTree::new panics on empty input (matching the plan's code shape). Callers must guard emptiness before construction. Documented in rustdoc on the method."
       ]
