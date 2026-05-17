@@ -1,0 +1,64 @@
+{
+  "_meta": {
+    "doc_class": "AuditEvidence",
+    "audit_id": "workflow-studio-industry-audit-1779012314",
+    "spec_audited": "specs/products/workflow-studio.json",
+    "version_before": "1.0.0",
+    "version_after": "1.1.0",
+    "audited_at": "2026-05-17T00:00:00Z",
+    "auditor": "agent/audit-workflow-studio-1779012314",
+    "op": "OP-11"
+  },
+  "sources_fetched": [
+    {"url": "docs.n8n.io/workflows", "status": "fetched"},
+    {"url": "docs.n8n.io/workflows/executions", "status": "fetched"},
+    {"url": "docs.n8n.io/source-control-environments", "status": "fetched"},
+    {"url": "zapier.com/features", "status": "fetched"},
+    {"url": "help.make.com/scenarios", "status": "partial — navigation only"},
+    {"url": "help.make.com/create-your-first-scenario", "status": "partial — limited content"},
+    {"url": "retool.com/products/workflows", "status": "fetched"},
+    {"url": "learn.microsoft.com/en-us/power-automate/flow-types", "status": "fetched"},
+    {"url": "learn.microsoft.com/en-us/power-automate/getting-started", "status": "fetched"},
+    {"url": "airflow.apache.org/docs/apache-airflow/stable/ui.html", "status": "fetched"},
+    {"url": "docs.retool.com/workflows/concepts/overview", "status": "404 — used retool.com/products/workflows instead"}
+  ],
+  "verdict": "GAPS_FOUND — spec updated",
+  "gaps_identified": [
+    {
+      "gap": "competitive[] had only 5 entries, missing Retool and Power Automate feature-by-feature rows; existing rows lacked their_strengths and gaps_we_adopt fields",
+      "severity": "high",
+      "resolution": "expanded competitive[] to 6 entries with their_strengths, gaps_we_adopt, measurable, source citation per entry"
+    },
+    {
+      "gap": "no industry_patterns_adopted[] array — no traceability between competitor feature observations and adoption decisions",
+      "severity": "high",
+      "resolution": "added industry_patterns_adopted[] with 16 entries covering patterns from all 6 competitors with citation, adoption_status, impl_ref"
+    },
+    {
+      "gap": "no anti_patterns_avoided[] array — competitor anti-patterns (last-writer-wins collab, Python-as-spec, monitoring-only UI, ecosystem lock-in) not documented",
+      "severity": "high",
+      "resolution": "added anti_patterns_avoided[] with 9 entries covering observed anti-patterns with citation and avoidance_mechanism"
+    },
+    {
+      "gap": "no hyperscaler_bar[] array — no Stripe/Palantir/Linear-grade quantified requirements for canvas scale, concurrent sessions, CRDT merge, secrets handling, accessibility",
+      "severity": "critical",
+      "resolution": "added hyperscaler_bar[] with 10 entries covering: 10k-node canvas <100ms, canvas interaction <50ms p99, 10k concurrent sessions, CRDT merge <10ms, TTI <2s global, zero cross-tenant leak, secrets zero-plaintext, WCAG 2.2 AA 100%, definition load <200ms, availability 99.95%"
+    },
+    {
+      "gap": "missing UX patterns: sticky-note annotations, dirty-node indicator, environment switcher with role filter, dark/light theme, grid-view execution matrix, asset lineage overlay, approval as first-class node",
+      "severity": "medium",
+      "resolution": "captured in industry_patterns_adopted[] with adoption_status and impl_ref"
+    },
+    {
+      "gap": "missing anti-patterns: connector breadth without data_class metadata (Zapier/n8n), unredacted execution history (n8n), spinner-only loading (Make.com)",
+      "severity": "medium",
+      "resolution": "captured in anti_patterns_avoided[]"
+    }
+  ],
+  "patterns_adopted_count": 16,
+  "anti_patterns_documented_count": 9,
+  "hyperscaler_bar_requirements_count": 10,
+  "competitors_covered": ["n8n", "Zapier", "Make.com", "Retool Workflows", "Microsoft Power Automate", "Apache Airflow UI"],
+  "json_valid": true,
+  "abort_criteria_check": "NOT no-op — material gaps found across all 4 dimensions (competitive depth, industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar)"
+}
