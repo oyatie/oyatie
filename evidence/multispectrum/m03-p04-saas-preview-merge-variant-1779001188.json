@@ -1,0 +1,43 @@
+{
+  "audit_id": "m03-p04-saas-preview-merge-variant-1779001188",
+  "change_id": "m03-p04-saas-preview-merge-variant-1779001188",
+  "spec_version": "2.3.0",
+  "change_class_id": "CC-2_type_addition",
+  "scope": "M03-P04 SaaS Platform Preview merge-variant delta-1",
+  "crate": "oya-saas-workflow-kernel",
+  "module": "priority",
+  "types_added": ["WorkflowPriority"],
+  "fns_added": ["WorkflowPriority::label", "WorkflowPriority::from_label", "WorkflowPriority::is_expedited"],
+  "execution_variant": "merge-into-existing-crates",
+  "decided_by": "user-directive-option-2",
+  "decided_at": "2026-05-17",
+  "facets": [
+    {
+      "id": "F1",
+      "name": "correctness",
+      "verdict": "ACCEPT",
+      "evidence": "WorkflowPriority Ord derives Low<Normal<High<Critical per enum declaration order; label/from_label round-trip proven by test; is_expedited covers High+Critical only; Default=Normal aligns with preview SLA default."
+    },
+    {
+      "id": "F3",
+      "name": "architecture",
+      "verdict": "ACCEPT",
+      "evidence": "Kernel-layer type: no cross-crate deps, std-only, no serde. Placed in priority sub-module re-exported at crate root matching codebase flat-kernel pattern. ADR-0015 compliant."
+    },
+    {
+      "id": "A1",
+      "name": "naming-adherence",
+      "verdict": "ACCEPT",
+      "evidence": "WorkflowPriority follows v4 BNF domain-prefix + concept pattern. label() returns lowercase kebab matching existing SaaS envelope convention. Module name 'priority' is single-concept, no abbreviation."
+    },
+    {
+      "id": "A3",
+      "name": "structure-adherence",
+      "verdict": "ACCEPT",
+      "evidence": "Sub-module pattern matches existing codebase (single file, pub mod + pub use at crate root). No new crate scaffold, no new workspace dependency, no serde import. CI lanes: no-deps green."
+    }
+  ],
+  "council_verdict": "ACCEPT",
+  "test_result": "10/10 pass",
+  "notes": "Smallest net-new kernel type not present in any live saas crate. Priority scheduling primitive required by IP-001 SLA lane."
+}

@@ -8,6 +8,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod priority;
+pub use priority::WorkflowPriority;
+
 use std::fmt;
 
 const WORKFLOW_DEFINITION_ID_PREFIX: &str = "wfd_";
