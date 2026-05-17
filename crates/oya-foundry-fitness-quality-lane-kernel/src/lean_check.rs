@@ -45,9 +45,9 @@ impl LeanCheckId {
     /// Multiple architecture sub-checks share `lean-a1-architecture`.
     pub fn lane_tag(self) -> &'static str {
         match self {
-            Self::DependencyDirection
-            | Self::LayerCorrectness
-            | Self::PortLocation => "lean-a1-architecture",
+            Self::DependencyDirection | Self::LayerCorrectness | Self::PortLocation => {
+                "lean-a1-architecture"
+            }
             Self::CrossProductRefusal => "lean-a2-bounded-contexts",
         }
     }
@@ -61,9 +61,7 @@ impl LeanCheckId {
             Self::LayerCorrectness => {
                 "declared layer must match crate-name suffix (ADR-0056 BNF v4.1)"
             }
-            Self::PortLocation => {
-                "port traits must live in kernel-layer crates (ADR-0056 §207)"
-            }
+            Self::PortLocation => "port traits must live in kernel-layer crates (ADR-0056 §207)",
             Self::CrossProductRefusal => {
                 "no direct cross-µservice imports except via public_layers (ADR-0056 §2.2)"
             }
