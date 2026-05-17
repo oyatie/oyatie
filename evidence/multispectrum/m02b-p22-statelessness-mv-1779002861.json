@@ -1,0 +1,70 @@
+{
+  "change_id": "m02b-p22-statelessness-mv-1779002861",
+  "change_class_id": "CC-3_tooling_only",
+  "change_class_rationale": "Adds one integration test in gate_cli.rs (tooling/test) and one standards doc skeleton (doc). No kernel code changed. No new crates. No new workspace deps.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779002861,
+  "git_sha_base": "ea9cdd3f762151cfcfc08e45bd1f359b972def96",
+  "branch": "agent/m02b-p22-statelessness-mv-17232-1779002788",
+  "session_id": "claude-m02b-p22-statelessness-mv-17232",
+  "agent_id": "claude-executor-m02b-p22",
+  "task": "M02b-substrate/P22 exit-gate HONEST scaffolding: wire lane 1 (quality-statelessness) with a real synthetic-violation integration test + document the 14-lane binding map in docs/standards/m02-exit-gate-validators.md.",
+  "artifacts_touched": [
+    "docs/standards/m02-exit-gate-validators.md (NEW — 1-page doc enumerating 14 quality/scalability lanes with oya gate validate <lane> bindings; lane 1 statelessness marked wired+tested; lanes 2-14 marked wired/test-pending)",
+    "crates/oya-dev-cli/tests/gate_cli.rs (appended 2 integration tests: statelessness_gate_catches_static_mut_violation_in_app_crate + statelessness_gate_passes_clean_app_crate)",
+    "evidence/multispectrum/m02b-p22-statelessness-mv-1779002861.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "local_gates": [
+    "cargo nextest run -p oya-dev-cli --test gate_cli statelessness_gate: 2/2 PASS",
+    "rustfmt 1.95.0 --check: PASS (no .rs files changed except test append)"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The statelessness kernel (oya-check-statelessness) already existed and was fully tested at the unit level. The only gap was an end-to-end integration test through the CLI binary — which is the honest BLOCKER proof required by the exit-gate contract. Adding 2 integration tests is the minimum viable diff.",
+        "The doc skeleton uses a plain markdown table; no new machine-readable artifact added. The table is human-readable only — not consumed by any gate — so no active-artifact-contract registration is required.",
+        "No new crates, no new workspace deps, no serde. Constraint honored."
+      ],
+      "fixuptasks": [
+        "F-M02-EXIT-GATE-VALIDATORS-MISSING: lanes 2-14 in docs/standards/m02-exit-gate-validators.md need one integration test each before the BLOCKER workflow YAML flip lands."
+      ],
+      "null_finding_reason": null
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Violation test: creates a temp workspace with one `oya-foo-app` crate containing `static mut COUNTER`. The CLI binary must exit non-zero and print 'statelessness validation failed' + 'static mut'. Clean test: creates `oya-bar-app` with pure fn; CLI must exit 0 and print 'statelessness validation passed'.",
+        "Both tests follow the exact pattern established by `foundation_bypass_gate_allows_empty_or_fresh_ledgers` (uses CARGO_BIN_EXE_oya, temp_dir helper, fs::write, assert on status + message). No novel pattern introduced."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "No data-class annotations added (test fixtures are ephemeral temp dirs). No autonomy-ceiling surface touched. No license surface changed."
+      ],
+      "fixuptasks": []
+    },
+    "A5_doc_structure": {
+      "considered": true,
+      "findings": [
+        "docs/standards/m02-exit-gate-validators.md follows the thin-doc pattern established by other standards/ files: YAML frontmatter with purpose/doc_status/change_id, H1 title, concise table, BLOCKER policy note, Sources section. No sprawl per P9."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "The smallest honest change: 2 integration tests that prove the existing statelessness CLI dispatch works end-to-end, plus a doc skeleton that records the 14-lane binding map without lying about which lanes are tested. OP-11 (no YAML workflow flip) honored."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT",
+      "rationale": "No overengineering. No stub/placeholder in production code. The doc table explicitly marks lanes 2-14 as 'test pending' — honest, not falsely claiming 'wired + tested' for untested lanes."
+    }
+  }
+}

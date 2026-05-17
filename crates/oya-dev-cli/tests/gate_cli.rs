@@ -4107,6 +4107,90 @@ fn stage0_prereqs_gate_is_dispatched() {
     fs::remove_dir_all(temp).ok();
 }
 
+// ─── statelessness integration tests (M02b/P22 exit-gate lane 1) ────────────
+
+/// Proves the statelessness validator catches a `static mut` in an app-layer
+/// crate — the canonical synthetic-violation shape for ADR-0062 §"sharded state".
+#[test]
+fn statelessness_gate_catches_static_mut_violation_in_app_crate() {
+    let temp = temp_dir("stateless-violation");
+    let src_dir = temp.join("crates/oya-foo-app/src");
+    fs::create_dir_all(&src_dir).expect("app src dir created");
+    fs::write(
+        src_dir.join("lib.rs"),
+        "// intentional violation for test\nstatic mut COUNTER: usize = 0;\npub fn inc() { unsafe { COUNTER += 1; } }\n",
+    )
+    .expect("violation source written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "statelessness",
+            "--workspace-root",
+            temp.to_str().expect("utf8 temp"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected failure for static mut in app layer\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("statelessness validation failed"),
+        "stderr must contain failure message; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("static mut"),
+        "stderr must name the violation kind; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the statelessness validator passes when an app-layer crate contains
+/// no mutable globals — clean path smoke-test.
+#[test]
+fn statelessness_gate_passes_clean_app_crate() {
+    let temp = temp_dir("stateless-clean");
+    let src_dir = temp.join("crates/oya-bar-app/src");
+    fs::create_dir_all(&src_dir).expect("app src dir created");
+    fs::write(
+        src_dir.join("lib.rs"),
+        "pub fn add(a: u32, b: u32) -> u32 { a + b }\n",
+    )
+    .expect("clean source written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "statelessness",
+            "--workspace-root",
+            temp.to_str().expect("utf8 temp"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected pass for clean app layer\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("statelessness validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn write_catalog_record(registry_dir: &Path, crate_id: &str, plane: &str) {
     write_catalog_record_with_claim(registry_dir, crate_id, plane, "preview");
 }
