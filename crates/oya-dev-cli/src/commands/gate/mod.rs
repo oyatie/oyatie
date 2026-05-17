@@ -37,8 +37,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
         // oya-foundry-bypass-domain::foundation_bypass.
         // active-artifact-contract: ADR-0069 v3.0.0 vertical enforcement loop.
         // Validates that every row in registry/artifact-capabilities-registry.json
-        // (a) has its `artifact_path` HEAD-tracked per `git ls-files`, and
-        // (b) has a unique `artifact_id`.
+        // satisfies R01-R07: tracked path, unique artifact_id, all 9
+        // capabilities, and status-specific evidence/prerequisite/rationale
+        // requirements.
         // Optionally emits an evidence bundle and one graph-edge artifact per
         // full-consensus-planner-v3 amendments #4/#9/#10.
         (Some("validate"), Some("active-artifact-contract")) => {
@@ -46,12 +47,19 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 Ok(args) => match crate::validate_active_artifact_contract_gate(args) {
                     Ok(report) => {
                         println!(
-                            "active-artifact-contract validation passed: {} rows, {} HEAD-tracked, {} graph edges, {} ms",
+                            "active-artifact-contract validation passed: {} rows, {} HEAD-tracked, {} graph edges, {} warnings, {} ms",
                             report.rows_seen,
                             report.head_tracked_count,
                             report.graph_edges.len(),
+                            report.warning_count(),
                             report.validation_duration_ms
                         );
+                        if report.warning_count() > 0 {
+                            println!(
+                                "active-artifact-contract warnings: {}",
+                                report.warning_summary()
+                            );
+                        }
                         ExitCode::SUCCESS
                     }
                     Err(message) => {

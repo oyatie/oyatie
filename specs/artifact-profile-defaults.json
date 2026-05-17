@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-ARTIFACT-PROFILE-DEFAULTS",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "draft-sidecar",
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-13T00:00:00Z",
@@ -14,7 +14,9 @@
     "linus_critique_anchor": "architect r17 finding #8 — collapse 35KB/10-row boilerplate to profile + overrides; hyperscaler precedent K8s CRD + admission controllers + AWS Config managed-rules defaults",
     "merge_semantics": "Validator walks profiles[<row.artifact_profile>].capabilities then applies row.capability_overrides as a per-capability partial override. Override resolution rules: (a) capability.status override REPLACES profile default; (b) string fields (evidence_ref, validator path, generator path) override REPLACE profile default; (c) array fields (prerequisite_for_operational, blocks_on, verifies, validates) APPEND row-overrides to profile defaults unless override declares replace_mode=true.",
     "validator_crate": "crates/oya-check-active-artifact-contract",
-    "purpose": "Profile defaults for the 9-capability artifact contract. Reduces per-row authoring burden: each registry row declares `artifact_profile` + optional overrides."
+    "purpose": "Profile defaults for the 9-capability artifact contract. Reduces per-row authoring burden: each registry row declares `artifact_profile` + optional overrides.",
+    "updated_at": "2026-05-17T12:57:05Z",
+    "profile_contract_defaults_note": "Every profile default capability must satisfy the active R04-R07 contract shape: operational requires evidence_ref, planned/blocked-by-foundation require prerequisite_for_operational, and not-applicable requires not_applicable_rationale."
   },
   "profiles": {
     "schema": {
@@ -57,13 +59,17 @@
           "validates": [
             "JSON syntax",
             "schema self-consistency"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:schema:validation:operational-readiness"
           ]
         },
         "autogen": {
           "status": "not-applicable",
           "generator": "",
           "inputs": [],
-          "idempotency_class": "deterministic"
+          "idempotency_class": "deterministic",
+          "not_applicable_rationale": "autogen is not applicable to schema artifacts by profile default."
         },
         "selfheal": {
           "status": "planned",
@@ -76,6 +82,9 @@
           "requires_human_approval_for": [
             "version bump",
             "definitions removal"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:schema:selfheal:operational-readiness"
           ]
         },
         "selfupdate": {
@@ -84,7 +93,10 @@
             "new ADR mandates schema extension"
           ],
           "update_mechanism": "manual-with-suggestion",
-          "incremental_vs_full": "incremental-diff"
+          "incremental_vs_full": "incremental-diff",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:schema:selfupdate:operational-readiness"
+          ]
         },
         "selfmaintain": {
           "status": "planned",
@@ -96,12 +108,18 @@
               "destination": "/specs/archived/",
               "audit_emission_required": true
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:schema:selfmaintain:operational-readiness"
           ]
         },
         "telemetry": {
           "status": "planned",
           "observability_standard": "opentelemetry",
-          "metrics": []
+          "metrics": [],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:schema:telemetry:operational-readiness"
+          ]
         },
         "provenance": {
           "status": "planned",
@@ -111,7 +129,10 @@
             "last_modified_at"
           ],
           "slsa_level_target": "L3",
-          "grit_done_seal_event_id": null
+          "grit_done_seal_event_id": null,
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:schema:provenance:operational-readiness"
+          ]
         }
       }
     },
@@ -158,6 +179,9 @@
           "validates": [
             "schema conformance",
             "row uniqueness"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:registry:validation:operational-readiness"
           ]
         },
         "autogen": {
@@ -167,7 +191,10 @@
             "discovered repo artifacts via fs walk"
           ],
           "idempotency_class": "deterministic",
-          "regeneration_frequency": "nightly"
+          "regeneration_frequency": "nightly",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:registry:autogen:operational-readiness"
+          ]
         },
         "selfheal": {
           "status": "planned",
@@ -181,7 +208,10 @@
           "requires_human_approval_for": [
             "delete-row"
           ],
-          "recovery_path_for_destructive_heals": "audit-bundle restore"
+          "recovery_path_for_destructive_heals": "audit-bundle restore",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:registry:selfheal:operational-readiness"
+          ]
         },
         "selfupdate": {
           "status": "planned",
@@ -189,7 +219,10 @@
             "new artifact added under applicable_paths_glob"
           ],
           "update_mechanism": "post-grit-done-hook",
-          "incremental_vs_full": "incremental-diff"
+          "incremental_vs_full": "incremental-diff",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:registry:selfupdate:operational-readiness"
+          ]
         },
         "selfmaintain": {
           "status": "planned",
@@ -201,6 +234,9 @@
               "destination": "/evidence/audits/",
               "audit_emission_required": true
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:registry:selfmaintain:operational-readiness"
           ]
         },
         "telemetry": {
@@ -216,6 +252,9 @@
               ],
               "cardinality_budget": 50
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:registry:telemetry:operational-readiness"
           ]
         },
         "provenance": {
@@ -225,7 +264,10 @@
             "last_modified_at"
           ],
           "slsa_level_target": "L3",
-          "grit_done_seal_event_id": null
+          "grit_done_seal_event_id": null,
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:registry:provenance:operational-readiness"
+          ]
         }
       }
     },
@@ -256,6 +298,9 @@
           "status": "planned",
           "verifies": [
             "template instances valid"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:template:verification:operational-readiness"
           ]
         },
         "validation": {
@@ -263,13 +308,17 @@
           "trigger": "write-side-API-guard",
           "validates": [
             "template field shape"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:template:validation:operational-readiness"
           ]
         },
         "autogen": {
           "status": "not-applicable",
           "generator": "",
           "inputs": [],
-          "idempotency_class": "deterministic"
+          "idempotency_class": "deterministic",
+          "not_applicable_rationale": "autogen is not applicable to template artifacts by profile default."
         },
         "selfheal": {
           "status": "planned",
@@ -279,6 +328,9 @@
           "safe_unattended": [],
           "requires_human_approval_for": [
             "alter template structure"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:template:selfheal:operational-readiness"
           ]
         },
         "selfupdate": {
@@ -287,7 +339,10 @@
             "new field added by upstream schema"
           ],
           "update_mechanism": "manual-with-suggestion",
-          "incremental_vs_full": "incremental-diff"
+          "incremental_vs_full": "incremental-diff",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:template:selfupdate:operational-readiness"
+          ]
         },
         "selfmaintain": {
           "status": "planned",
@@ -299,12 +354,18 @@
               "destination": "/evidence/audits/",
               "audit_emission_required": true
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:template:selfmaintain:operational-readiness"
           ]
         },
         "telemetry": {
           "status": "planned",
           "observability_standard": "opentelemetry",
-          "metrics": []
+          "metrics": [],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:template:telemetry:operational-readiness"
+          ]
         },
         "provenance": {
           "status": "planned",
@@ -313,7 +374,10 @@
             "last_modified_at"
           ],
           "slsa_level_target": "L3",
-          "grit_done_seal_event_id": null
+          "grit_done_seal_event_id": null,
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:template:provenance:operational-readiness"
+          ]
         }
       }
     },
@@ -344,6 +408,9 @@
             "evidence_records valid per evidence-taxonomy.json",
             "honest_gap_acknowledgement populated when applicable",
             "vcs_completion_payload_id resolves"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:plan-attestation:verification:operational-readiness"
           ]
         },
         "validation": {
@@ -351,6 +418,9 @@
           "trigger": "pre-commit-hook",
           "validates": [
             "schema conformance"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:plan-attestation:validation:operational-readiness"
           ]
         },
         "autogen": {
@@ -362,7 +432,10 @@
             "ICM store events"
           ],
           "idempotency_class": "content-addressed-sha256",
-          "regeneration_frequency": "on-demand"
+          "regeneration_frequency": "on-demand",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:plan-attestation:autogen:operational-readiness"
+          ]
         },
         "selfheal": {
           "status": "planned",
@@ -374,6 +447,9 @@
           ],
           "requires_human_approval_for": [
             "modify outcome field"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:plan-attestation:selfheal:operational-readiness"
           ]
         },
         "selfupdate": {
@@ -382,7 +458,10 @@
             "new consensus round completed"
           ],
           "update_mechanism": "post-grit-done-hook",
-          "incremental_vs_full": "incremental-diff"
+          "incremental_vs_full": "incremental-diff",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:plan-attestation:selfupdate:operational-readiness"
+          ]
         },
         "selfmaintain": {
           "status": "planned",
@@ -394,6 +473,9 @@
               "destination": "/evidence/archived/",
               "audit_emission_required": true
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:plan-attestation:selfmaintain:operational-readiness"
           ]
         },
         "telemetry": {
@@ -410,6 +492,9 @@
               ],
               "cardinality_budget": 100
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:plan-attestation:telemetry:operational-readiness"
           ]
         },
         "provenance": {
@@ -419,7 +504,10 @@
             "last_modified_at"
           ],
           "slsa_level_target": "L3",
-          "grit_done_seal_event_id": null
+          "grit_done_seal_event_id": null,
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:plan-attestation:provenance:operational-readiness"
+          ]
         }
       }
     },
@@ -449,6 +537,9 @@
           "verifies": [
             "every row has required fields",
             "every evidence_ref resolves"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ledger:verification:operational-readiness"
           ]
         },
         "validation": {
@@ -457,6 +548,9 @@
           "validates": [
             "JSON syntax",
             "schema conformance"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ledger:validation:operational-readiness"
           ]
         },
         "autogen": {
@@ -467,7 +561,10 @@
             "git log"
           ],
           "idempotency_class": "deterministic",
-          "regeneration_frequency": "post-grit-done"
+          "regeneration_frequency": "post-grit-done",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ledger:autogen:operational-readiness"
+          ]
         },
         "selfheal": {
           "status": "planned",
@@ -480,6 +577,9 @@
           "requires_human_approval_for": [
             "row removal",
             "status downgrade"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ledger:selfheal:operational-readiness"
           ]
         },
         "selfupdate": {
@@ -489,7 +589,10 @@
             "wave acceptance"
           ],
           "update_mechanism": "post-grit-done-hook",
-          "incremental_vs_full": "incremental-diff"
+          "incremental_vs_full": "incremental-diff",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ledger:selfupdate:operational-readiness"
+          ]
         },
         "selfmaintain": {
           "status": "planned",
@@ -501,6 +604,9 @@
               "destination": "/evidence/ledger/archived/",
               "audit_emission_required": true
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ledger:selfmaintain:operational-readiness"
           ]
         },
         "telemetry": {
@@ -517,6 +623,9 @@
               ],
               "cardinality_budget": 100
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ledger:telemetry:operational-readiness"
           ]
         },
         "provenance": {
@@ -526,7 +635,10 @@
             "last_modified_at"
           ],
           "slsa_level_target": "L3",
-          "grit_done_seal_event_id": null
+          "grit_done_seal_event_id": null,
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ledger:provenance:operational-readiness"
+          ]
         }
       }
     },
@@ -556,6 +668,9 @@
           "verifies": [
             "claims_we_can_make / cannot_yet / evidence_required all populated",
             "gate_coverage rows match hyperscaler-gates.json"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:claim-matrix:verification:operational-readiness"
           ]
         },
         "validation": {
@@ -564,6 +679,9 @@
           "validates": [
             "schema conformance",
             "no operational without evidence"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:claim-matrix:validation:operational-readiness"
           ]
         },
         "autogen": {
@@ -574,7 +692,10 @@
             "hyperscaler-gates.json"
           ],
           "idempotency_class": "deterministic",
-          "regeneration_frequency": "post-grit-done"
+          "regeneration_frequency": "post-grit-done",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:claim-matrix:autogen:operational-readiness"
+          ]
         },
         "selfheal": {
           "status": "planned",
@@ -586,6 +707,9 @@
           ],
           "requires_human_approval_for": [
             "demote-claim"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:claim-matrix:selfheal:operational-readiness"
           ]
         },
         "selfupdate": {
@@ -595,7 +719,10 @@
             "lane status flip"
           ],
           "update_mechanism": "post-grit-done-hook",
-          "incremental_vs_full": "incremental-diff"
+          "incremental_vs_full": "incremental-diff",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:claim-matrix:selfupdate:operational-readiness"
+          ]
         },
         "selfmaintain": {
           "status": "planned",
@@ -607,6 +734,9 @@
               "destination": "/evidence/audits/",
               "audit_emission_required": true
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:claim-matrix:selfmaintain:operational-readiness"
           ]
         },
         "telemetry": {
@@ -622,6 +752,9 @@
               ],
               "cardinality_budget": 3
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:claim-matrix:telemetry:operational-readiness"
           ]
         },
         "provenance": {
@@ -631,7 +764,10 @@
             "last_modified_at"
           ],
           "slsa_level_target": "L3",
-          "grit_done_seal_event_id": null
+          "grit_done_seal_event_id": null,
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:claim-matrix:provenance:operational-readiness"
+          ]
         }
       }
     },
@@ -662,6 +798,9 @@
             "no raw PII",
             "cosign_signature valid",
             "rekor_log_index resolves"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:evidence-bundle:verification:operational-readiness"
           ]
         },
         "validation": {
@@ -670,13 +809,19 @@
           "validates": [
             "bundle_id ULID pattern",
             "tenant_id_hash never raw"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:evidence-bundle:validation:operational-readiness"
           ]
         },
         "autogen": {
           "status": "blocked-by-foundation",
           "generator": "audit-chain emitter (M01/M02)",
           "inputs": [],
-          "idempotency_class": "content-addressed-sha256"
+          "idempotency_class": "content-addressed-sha256",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:evidence-bundle:autogen:operational-readiness"
+          ]
         },
         "selfheal": {
           "status": "planned",
@@ -686,6 +831,9 @@
           "safe_unattended": [],
           "requires_human_approval_for": [
             "tampering investigation"
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:evidence-bundle:selfheal:operational-readiness"
           ]
         },
         "selfupdate": {
@@ -695,7 +843,10 @@
             "new regulator"
           ],
           "update_mechanism": "manual-with-suggestion",
-          "incremental_vs_full": "incremental-diff"
+          "incremental_vs_full": "incremental-diff",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:evidence-bundle:selfupdate:operational-readiness"
+          ]
         },
         "selfmaintain": {
           "status": "planned",
@@ -707,6 +858,9 @@
               "destination": "tenant-cold-storage",
               "audit_emission_required": true
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:evidence-bundle:selfmaintain:operational-readiness"
           ]
         },
         "telemetry": {
@@ -723,6 +877,9 @@
               ],
               "cardinality_budget": 1000
             }
+          ],
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:evidence-bundle:telemetry:operational-readiness"
           ]
         },
         "provenance": {
@@ -733,7 +890,209 @@
             "rekor_log_index"
           ],
           "slsa_level_target": "L3",
-          "grit_done_seal_event_id": null
+          "grit_done_seal_event_id": null,
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:evidence-bundle:provenance:operational-readiness"
+          ]
+        }
+      }
+    },
+    "kernel-crate": {
+      "purpose": "Rust kernel crate or crate root that defines domain types, invariants, or ports without adapter/runtime side effects.",
+      "applicable_formats": [
+        "rust-crate",
+        "toml"
+      ],
+      "examples": [
+        "crates/oya-foundry-supervisor-kernel",
+        "crates/oya-foundry-settings-template-kernel"
+      ],
+      "default_capabilities": {
+        "enforcement": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:enforcement:operational-readiness"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:verification:operational-readiness"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:validation:operational-readiness"
+          ]
+        },
+        "autogen": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:autogen:operational-readiness"
+          ]
+        },
+        "selfheal": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:selfheal:operational-readiness"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:selfupdate:operational-readiness"
+          ]
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:selfmaintain:operational-readiness"
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:telemetry:operational-readiness"
+          ]
+        },
+        "provenance": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:kernel-crate:provenance:operational-readiness"
+          ]
+        }
+      }
+    },
+    "ci-lane": {
+      "purpose": "Machine-readable CI lane or quality-lane control artifact that declares a check, trigger, threshold, or rollout state.",
+      "applicable_formats": [
+        "json",
+        "yaml"
+      ],
+      "examples": [
+        "registry/quality/lanes/lean-settings-drift.json"
+      ],
+      "default_capabilities": {
+        "enforcement": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:enforcement:operational-readiness"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:verification:operational-readiness"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:validation:operational-readiness"
+          ]
+        },
+        "autogen": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:autogen:operational-readiness"
+          ]
+        },
+        "selfheal": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:selfheal:operational-readiness"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:selfupdate:operational-readiness"
+          ]
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:selfmaintain:operational-readiness"
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:telemetry:operational-readiness"
+          ]
+        },
+        "provenance": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:ci-lane:provenance:operational-readiness"
+          ]
+        }
+      }
+    },
+    "verifier": {
+      "purpose": "Verifier implementation surface that checks drift, parity, policy, or contract conformance for another artifact.",
+      "applicable_formats": [
+        "rust-source",
+        "rust-crate"
+      ],
+      "examples": [
+        "crates/oya-foundry-settings-template-adapter/src/lib.rs"
+      ],
+      "default_capabilities": {
+        "enforcement": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:enforcement:operational-readiness"
+          ]
+        },
+        "verification": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:verification:operational-readiness"
+          ]
+        },
+        "validation": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:validation:operational-readiness"
+          ]
+        },
+        "autogen": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:autogen:operational-readiness"
+          ]
+        },
+        "selfheal": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:selfheal:operational-readiness"
+          ]
+        },
+        "selfupdate": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:selfupdate:operational-readiness"
+          ]
+        },
+        "selfmaintain": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:selfmaintain:operational-readiness"
+          ]
+        },
+        "telemetry": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:telemetry:operational-readiness"
+          ]
+        },
+        "provenance": {
+          "status": "planned",
+          "prerequisite_for_operational": [
+            "artifact-profile-defaults:verifier:provenance:operational-readiness"
+          ]
         }
       }
     }
