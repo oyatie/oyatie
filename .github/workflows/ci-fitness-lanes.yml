@@ -1,0 +1,251 @@
+name: ci-fitness-lanes
+
+# P22-m02-exit-gate: All 14 fitness lanes run in BLOCKER mode (no --report-only).
+# Any violation causes CI to fail hard, blocking merge.
+# History: P20 introduced lane binaries in report-only mode; P21 verified all planes
+# at L4+; P22 flips every lane to BLOCKER as M02-substrate exit gate.
+# ADR refs: ADR-0056 v4.1 (check-namespace), ADR-0062 (quality/perf bar),
+#            ADR-0063 (doc-coverage LEAN-A5), ADR-0064 §7/§8 (canonical-base-neutrality
+#            + cross-pack-refusal).
+
+on:
+  pull_request:
+  push:
+    branches: [dev, staging, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-fitness-lanes-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  # ── statelessness ─────────────────────────────────────────────────────────
+  statelessness-check:
+    name: statelessness-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: statelessness-check
+      - name: statelessness-check (BLOCKER)
+        run: cargo run -p oya-check-statelessness -- --workspace
+
+  # ── shardability ──────────────────────────────────────────────────────────
+  shardability-check:
+    name: shardability-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: shardability-check
+      - name: shardability-check (BLOCKER)
+        run: cargo run -p oya-check-shardability -- --migrations-dir migrations/
+
+  # ── doc-coverage (LEAN-A5; ADR-0063) ─────────────────────────────────────
+  doc-coverage-check:
+    name: doc-coverage-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: doc-coverage-check
+      - name: doc-coverage-check (BLOCKER; --blocker required — CLI exits 1 only with --blocker)
+        run: cargo run -p oya-check-documentation -- --workspace --blocker
+
+  # ── architecture: dependency-direction ────────────────────────────────────
+  architecture-dependency-direction:
+    name: architecture-dependency-direction
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-dependency-direction
+      - name: architecture-dependency-direction (BLOCKER)
+        run: cargo run -p oya-check-architecture -- dependency-direction --workspace
+
+  # ── architecture: layer-correctness ───────────────────────────────────────
+  architecture-layer-correctness:
+    name: architecture-layer-correctness
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-layer-correctness
+      - name: architecture-layer-correctness (BLOCKER)
+        run: cargo run -p oya-check-architecture -- layer-correctness --workspace
+
+  # ── architecture: lib-name-parity ─────────────────────────────────────────
+  architecture-lib-name-parity:
+    name: architecture-lib-name-parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-lib-name-parity
+      - name: architecture-lib-name-parity (BLOCKER)
+        run: cargo run -p oya-check-architecture -- lib-name-parity --workspace
+
+  # ── architecture: port-location ───────────────────────────────────────────
+  architecture-port-location:
+    name: architecture-port-location
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-port-location
+      - name: architecture-port-location (BLOCKER)
+        run: cargo run -p oya-check-architecture -- port-location --workspace
+
+  # ── architecture: cross-product-refusal ───────────────────────────────────
+  architecture-cross-product-refusal:
+    name: architecture-cross-product-refusal
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-cross-product-refusal
+      - name: architecture-cross-product-refusal (BLOCKER)
+        run: cargo run -p oya-check-architecture -- cross-product-refusal --workspace
+
+  # ── architecture: composition-root-only ───────────────────────────────────
+  architecture-composition-root-only:
+    name: architecture-composition-root-only
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-composition-root-only
+      - name: architecture-composition-root-only (BLOCKER)
+        run: cargo run -p oya-check-architecture -- composition-root-only --workspace
+
+  # ── architecture: sdk-kernel-only ─────────────────────────────────────────
+  architecture-sdk-kernel-only:
+    name: architecture-sdk-kernel-only
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-sdk-kernel-only
+      - name: architecture-sdk-kernel-only (BLOCKER)
+        run: cargo run -p oya-check-architecture -- sdk-kernel-only --workspace
+
+  # ── architecture: canonical-base-neutrality (ADR-0064 §8) ─────────────────
+  architecture-canonical-base-neutrality:
+    name: architecture-canonical-base-neutrality
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-canonical-base-neutrality
+      - name: architecture-canonical-base-neutrality (BLOCKER; ADR-0064 §8)
+        run: cargo run -p oya-check-architecture -- canonical-base-neutrality --workspace
+
+  # ── architecture: cross-pack-refusal (ADR-0064 §7) ────────────────────────
+  architecture-cross-pack-refusal:
+    name: architecture-cross-pack-refusal
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: architecture-cross-pack-refusal
+      - name: architecture-cross-pack-refusal (BLOCKER; ADR-0064 §7)
+        run: cargo run -p oya-check-architecture -- cross-pack-refusal --workspace
+
+  # ── perf-budget ───────────────────────────────────────────────────────────
+  perf-budget-check:
+    name: perf-budget-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: perf-budget-check
+      - name: perf-budget-check (BLOCKER)
+        run: cargo run -p oya-check-perf-budget -- --workspace
+
+  # ── benchmark ─────────────────────────────────────────────────────────────
+  benchmark-check:
+    name: benchmark-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: benchmark-check
+      - name: benchmark-check (BLOCKER)
+        run: cargo run -p oya-check-benchmark -- --workspace
