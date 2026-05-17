@@ -1,6 +1,7 @@
 ---
 doc_class: ImplementationPlan
 template_id: TPL-IP
+id: M02-P02-IP-006.2
 ip_id: IP-006-tos-policy-audit-chain
 parent: ./INDEX.md
 milestone: M02

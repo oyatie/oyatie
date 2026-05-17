@@ -4,10 +4,10 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-MASTERPLAN",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "implemented-masterplan-json-live-hierarchy-index",
     "created_at": "2026-05-14T06:53:11Z",
-    "updated_at": "2026-05-15T10:45:00Z",
+    "updated_at": "2026-05-17T18:36:54Z",
     "owner_team": "council-architecture",
     "current_markdown_authority": "docs/MASTERPLAN.md",
     "target_path_after_markdown_retirement": "/specs/masterplan.json",
@@ -585,12 +585,39 @@
       "review/fix task independent from original ChangeSet"
     ],
     "controller_mapping": "ImplementationPlan -> OyaWorkItem/IssuePlan -> ChangeSet -> ChangeBundle -> Promotion/ReleaseTrain",
-    "validation_lane": "oya-foundry-fitness-plan-hierarchy + oya-vcs-admission",
-    "current_tree_count": 150,
-    "explicit_frontmatter_coverage": "150/150 existing IP files as of 2026-05-14T09:12:00Z"
+    "validation_lane": "oya-foundry-fitness-plan-hierarchy + oya-vcs-admission + oya-foundry-fitness-honest-claims",
+    "identity_field": "id",
+    "required_frontmatter_fields": [
+      "doc_class",
+      "id",
+      "execution_unit",
+      "changeset_contract"
+    ],
+    "measured_frontmatter_fields": [
+      "changeset_split_rule"
+    ],
+    "optional_graph_fields": [
+      "depends_on_changesets",
+      "serializes_with_changesets",
+      "writes_global_artifacts"
+    ],
+    "graph_invariants_enforced_by_honest_claims": [
+      "duplicate ChangeSet IDs fail",
+      "unknown dependencies fail",
+      "self dependencies fail",
+      "dependency cycles fail",
+      "unknown serialization peers fail",
+      "asymmetric serialization edges fail",
+      "global artifact write conflicts require an ordering or serialization edge"
+    ],
+    "current_tree_count": 172,
+    "explicit_frontmatter_coverage": "172/172 existing IP files as of 2026-05-17T18:36:54Z"
   },
   "live_implementation_index": {
     "generated_at": "2026-05-14T09:12:00Z",
+    "snapshot_status": "historical-snapshot-not-current",
+    "current_runtime_index_source": "implementation_plan_contract.current_tree_count plus oya gate validate honest-claims runtime scan",
+    "current_runtime_implementation_plan_count": 172,
     "source_root": ".omc/plans/milestones",
     "milestone_count": 9,
     "phase_count": 78,

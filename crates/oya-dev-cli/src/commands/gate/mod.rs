@@ -1016,6 +1016,33 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("honest-claims")) => {
+            match crate::parse_honest_claims_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_honest_claims_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "honest-claims validation passed: {} documents, {} lines, {} implementation plans, {} dependency edges, {} serialization edges, {} global artifact writes, {} legacy missing split-rule rows",
+                            report.documents_checked,
+                            report.lines_checked,
+                            report.plans_checked,
+                            report.dependency_edges,
+                            report.serialization_edges,
+                            report.global_artifact_writes,
+                            report.legacy_missing_split_rule
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("honest-claims validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("hyperscaler-arch-invariants")) => {
             match crate::parse_hyperscaler_arch_invariants_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_hyperscaler_arch_invariants_gate(args) {
