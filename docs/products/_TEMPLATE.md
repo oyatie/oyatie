@@ -201,7 +201,7 @@ Per `agent-durable-goal.json#score_cards.design_principle`: deterministic checks
 |---|---|---|---|
 | (metric name) | `oya gate validate <lane>` OR `cargo nextest -p <crate> -- <test>` OR `jq '...' <evidence-path>` | `exit 0` / `count == 0` / `>= threshold` | `oya-foundry-fitness-<lane>` |
 
-Anti-pattern (forbidden): "TBD verification" or "manual check" — every metric MUST have a runnable command. If a metric can't be verified mechanically, it doesn't belong in this table (move to §11 open questions).
+Anti-pattern (forbidden): `TBD verification` or `manual check` — every metric MUST have a runnable command. If a metric can't be verified mechanically, it doesn't belong in this table (move to §11 open questions).
 
 ## 10. Risks + mitigations
 
