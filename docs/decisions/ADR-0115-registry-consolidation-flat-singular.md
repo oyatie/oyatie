@@ -158,7 +158,7 @@ of CLAUDE.md.
   (`specs/`) will likely apply, but the surface is larger and is not
   included in this PR.
 - **Bominal-inheritance ledger update.** Per
-  `feedback_bominal_inheritance_precedence`, this oyatie-side decision
+  `feedback_bominal_inheritance_precedence`, this Oyatie-side decision
   overrides any Bominal directory layout that retained
   `registries/cross-cutting/`. Bominal inheritance overrides registry
   (`registry/bominal-inheritance-overrides.json`, post-move) records

@@ -41,7 +41,7 @@ The on-prem Kubernetes stack on the KR primary cell is:
 | Container runtime | **containerd** (CRI) | Same runtime OCI OKE uses; canonical upstream choice. Aligns with ADR-0117. |
 | Kubernetes distribution | **kubeadm** (vanilla upstream) | Maximum OKE-parity; no Rancher-specific bits to unwind at M03 promotion; CNCF conformance by construction. |
 | Service mesh control plane | **Istio** (minimal profile initially) | Per ADR-0044 service-mesh + mTLS decision; canonical Envoy operator with strong ecosystem. |
-| Service mesh data plane | **Envoy** (Istio sidecars + ingress gateway) | Pulled forward from M3 (per ADR-0044 §timeline) so on-prem Foundry traffic immediately benefits from L7 access logs + mTLS hooks; portable to OCI OKE unchanged. |
+| Service mesh data plane | **Envoy** (Istio sidecars + ingress gateway) | Pulled forward from M03 (per ADR-0044 §timeline) so on-prem Foundry traffic immediately benefits from L7 access logs + mTLS hooks; portable to OCI OKE unchanged. |
 
 k3s and k0s are **explicitly rejected** for this cell. They remain valid options for **edge cells** (M07+ Industrial Suite KR satellite cells, retail kiosks) where RAM is constrained and full-upstream parity is not required; future ADRs may sanction k3s/k0s for those classes.
 
@@ -105,7 +105,7 @@ If the on-prem primary cell graduates to multi-node HA (planned for M04), the sa
 | Permission audit | bash `stat`/`find` | Auth files MUST be `0600`/`0700`; warns otherwise. |
 | Audit chain | `/srv/oyatie/audit-chain/security-scan-events.jsonl` | ZFS-backed append-only; mirrors OpenBao audit pattern. |
 
-The same toolchain is portable to OCI workloads in M3 (trivy + gitleaks run identically against OKE clusters; debsecan replaced by `dnf updateinfo` or equivalent on Oracle Linux nodes).
+The same toolchain is portable to OCI workloads in M03 (trivy + gitleaks run identically against OKE clusters; debsecan replaced by `dnf updateinfo` or equivalent on Oracle Linux nodes).
 
 ## Version pins (researched 2026-05-16; track LTS / current-supported)
 
