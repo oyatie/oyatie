@@ -1,18 +1,14 @@
-//! Cloud data-plane kernel (M03-P03-IP-001; M06-P04-IP-002).
+//! Cloud data-plane kernel (M03-P03-IP-001).
 //!
 //! Provider-neutral abstractions for OLTP/OLAP/object-store/queue
 //! data-services. Defines DataServiceKind, ResidencyClass, and a
 //! single `DataServicePlan` admission rule that residency + encryption
 //! requirements are satisfied before an adapter is allowed to provision.
-//!
-//! M06-P04 addition: `streaming_partition` — `StreamingPartitionStrategy`
-//! enum + `admit_streaming_partition` for analytics.streaming.subscribe.
+//! The `data_service` module adds the managed `DatabaseEngine` catalogue
+//! and `DataService` aggregate (M03-P03-IP-001 `DataService`/`DatabaseEngine`).
 
-pub mod streaming_partition;
-
-pub use streaming_partition::{
-    StreamingPartitionError, StreamingPartitionStrategy, admit_streaming_partition,
-};
+pub mod data_service;
+pub use data_service::{DataService, DataServiceError, DatabaseEngine, provision_data_service};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum DataServiceKind {
