@@ -15,7 +15,9 @@
   ],
   "local_gates": [
     "python3 syntax clean",
-    "GraphQL queries dry-run via `list` mode return correct counts"
+    "GraphQL queries dry-run via `list` mode return correct counts",
+    "author_login null-safe smoke covers normal, null, and missing author cases",
+    "`show PRRT_kwDOSbSl2s6CoIAe` renders without crashing"
   ],
   "facets": {
     "F1_linus": {
@@ -35,7 +37,7 @@
     },
     "F11_observability": {
       "considered": true,
-      "findings": ["Output format is grep-friendly (one line per thread with priority + path + title + id). Pipeline-integration section in docstring enumerates the workflow expectation."]
+      "findings": ["Output format is grep-friendly (one line per thread with priority + path + title + id). Pipeline-integration section in docstring enumerates the workflow expectation. `cmd_show` now uses a null-safe author formatter so historical comments from deleted or suspended accounts render as `unknown` instead of aborting the audit."]
     }
   },
   "council_consensus": {

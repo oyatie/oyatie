@@ -44,6 +44,10 @@ def gh(args):
     return r.stdout, r.returncode
 
 
+def author_login(comment):
+    return (comment.get("author") or {}).get("login") or "unknown"
+
+
 def fetch_threads(pr_filter=None):
     """Fetch unresolved codex review threads, paginating over PRs and threads."""
     threads_by_pr = {}
@@ -105,7 +109,7 @@ def fetch_threads(pr_filter=None):
                 comments = t["comments"]["nodes"]
                 if not comments:
                     continue
-                if (comments[0].get("author") or {}).get("login") != "chatgpt-codex-connector":
+                if author_login(comments[0]) != "chatgpt-codex-connector":
                     continue
                 body = comments[0]["body"]
                 priority = "P1" if "P1 Badge" in body else ("P2" if "P2 Badge" in body else "?")
@@ -199,7 +203,7 @@ def cmd_show(thread_id):
     print(f"path: {t.get('path')}")
     print(f"resolved: {t.get('isResolved')}")
     for c in t["comments"]["nodes"]:
-        print(f"\n--- [{c['author']['login']}]")
+        print(f"\n--- [{author_login(c)}]")
         print(c["body"])
 
 
