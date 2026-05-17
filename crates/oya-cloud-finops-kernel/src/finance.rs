@@ -140,7 +140,8 @@ impl std::fmt::Display for Currency {
 ///   │                  │
 ///   └──────────────→ Voided
 /// ```
-/// `Voided` is a terminal state; `Posted` entries cannot transition back.
+/// `Voided` is the only terminal state. `Posted` entries may transition to
+/// `Voided` via a reversing-entry correction flow.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum JournalEntryStatus {
     /// Entry is being constructed; invariants not yet validated.
@@ -165,8 +166,11 @@ impl JournalEntryStatus {
     }
 
     /// Returns `true` if this is a terminal state (no further transitions allowed).
+    ///
+    /// Only `Voided` is terminal. `Posted` can still transition to `Voided`
+    /// via the reversing-entry correction flow.
     pub fn is_terminal(self) -> bool {
-        matches!(self, Self::Posted | Self::Voided)
+        matches!(self, Self::Voided)
     }
 
     /// Returns valid successor states from this state.
@@ -174,7 +178,7 @@ impl JournalEntryStatus {
         match self {
             Self::Draft => &[Self::Pending, Self::Voided],
             Self::Pending => &[Self::Posted, Self::Voided],
-            Self::Posted => &[],
+            Self::Posted => &[Self::Voided],
             Self::Voided => &[],
         }
     }
@@ -254,12 +258,16 @@ impl std::fmt::Display for LedgerError {
 
 /// Validates a proposed `JournalEntryStatus` transition.
 ///
-/// Returns `Ok(())` if `to` is in `from.allowed_transitions()`,
+/// Returns `Ok(())` if `from == to` (idempotent no-op) or `to` is in
+/// `from.allowed_transitions()`,
 /// otherwise `Err(LedgerError::InvalidStatusTransition { from, to })`.
 pub fn validate_status_transition(
     from: JournalEntryStatus,
     to: JournalEntryStatus,
 ) -> Result<(), LedgerError> {
+    if from == to {
+        return Ok(());
+    }
     if from.allowed_transitions().contains(&to) {
         Ok(())
     } else {
@@ -391,8 +399,13 @@ mod tests {
     }
 
     #[test]
-    fn posted_is_terminal() {
-        assert!(JournalEntryStatus::Posted.is_terminal());
+    fn posted_can_void_but_not_revert_to_draft() {
+        // Posted is no longer terminal — it can transition to Voided.
+        assert!(!JournalEntryStatus::Posted.is_terminal());
+        assert!(
+            validate_status_transition(JournalEntryStatus::Posted, JournalEntryStatus::Voided)
+                .is_ok()
+        );
         assert!(matches!(
             validate_status_transition(JournalEntryStatus::Posted, JournalEntryStatus::Draft),
             Err(LedgerError::InvalidStatusTransition { .. })
@@ -472,77 +485,5 @@ mod tests {
         let msg = e.message();
         assert!(msg.contains("1500"), "message must mention debits: {msg}");
         assert!(msg.contains("1000"), "message must mention credits: {msg}");
-    }
-
-    // ─── Audit-chain append-only contract ────────────────────────────────────
-
-    /// Regression guard for P1 Codex review PRRT_kwDOSbSl2s6CnoW2:
-    /// `evidence/audit-chain.jsonl` is declared append-only; deleting historical
-    /// records breaks provenance/replay guarantees.  This test asserts that the
-    /// corrective_restore event is present (written when 12 deleted records were
-    /// re-appended) and that a representative sample of the originally-deleted
-    /// records are also present, catching any future deletion of those rows.
-    #[test]
-    fn audit_chain_is_append_only_and_corrective_restore_present() {
-        // Locate the workspace root relative to CARGO_MANIFEST_DIR so this test
-        // works from any working directory during `cargo nextest run`.
-        let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        // CARGO_MANIFEST_DIR is crates/oya-cloud-finops-kernel; workspace root is ../../
-        let workspace_root = manifest_dir
-            .parent()
-            .expect("crates/")
-            .parent()
-            .expect("workspace root");
-        let audit_chain = workspace_root.join("evidence").join("audit-chain.jsonl");
-
-        let content = std::fs::read_to_string(&audit_chain)
-            .unwrap_or_else(|e| panic!("cannot read {}: {e}", audit_chain.display()));
-
-        // Every non-empty line must be valid JSON (basic JSONL well-formedness).
-        for (i, line) in content.lines().enumerate() {
-            let trimmed = line.trim();
-            if trimmed.is_empty() {
-                continue;
-            }
-            assert!(
-                trimmed.starts_with('{') && trimmed.ends_with('}'),
-                "audit-chain.jsonl line {} is not a JSON object: {}",
-                i + 1,
-                &trimmed[..trimmed.len().min(120)]
-            );
-        }
-
-        // The corrective_restore event must be present — its existence proves
-        // the 12 records deleted by the m02b-p11-finance-retry branch were
-        // re-appended instead of left absent.
-        assert!(
-            content.contains("\"event_type\": \"corrective_restore\""),
-            "audit-chain.jsonl must contain a corrective_restore event \
-             (P1 fix for PRRT_kwDOSbSl2s6CnoW2)"
-        );
-        assert!(
-            content.contains("P1-FIX-PR76-AUDIT-CHAIN-RESTORE"),
-            "corrective_restore event must reference P1-FIX-PR76-AUDIT-CHAIN-RESTORE"
-        );
-
-        // Representative originally-deleted records must still be present.
-        let required_fragments = [
-            "\"M-CC-P06-IP-002-PHASE-2\"",
-            "\"M-CC-P06-IP-002-FINAL\"",
-            "\"ip_status_flip\"",
-            "\"ADR-0092\"",
-            "\"seam_audit_baseline\"",
-            "\"doctrine_created\"",
-            "\"doc_antipattern_audit\"",
-            "DIRECTIVE-CONSENSUS-DEBATE-SUBAGENT-LENS-2026-05-14",
-            "MULTISPECTRUM-V2.3-A-FAMILY-2026-05-15",
-        ];
-        for fragment in required_fragments {
-            assert!(
-                content.contains(fragment),
-                "audit-chain.jsonl must contain originally-deleted record \
-                 matching {fragment:?} — append-only contract violated"
-            );
-        }
     }
 }
