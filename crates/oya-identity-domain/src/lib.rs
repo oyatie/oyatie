@@ -1,5 +1,8 @@
 //! Identity kernel: user records and purpose-bound short-lived tokens.
 
+pub mod hr_employee_status;
+pub use hr_employee_status::{EmployeeStatus, UnknownEmployeeStatus};
+
 pub mod identity_employment_classification;
 pub use identity_employment_classification::{
     EmploymentClassification, UnknownEmploymentClassification,
