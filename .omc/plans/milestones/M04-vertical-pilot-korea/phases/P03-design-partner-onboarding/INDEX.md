@@ -4,6 +4,10 @@ parent: ../../INDEX.md
 id: M04-P03
 title: Design-Partner Tenant Onboarding + Workflow Authoring
 status: stub
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 adds DesignPartnerStatus+DesignPartnerStatusError into oya-tenancy-domain::design_partner_status. No new crate scaffolds; no new workspace deps."
 purpose: Onboard the first KR Group design-partner tenant; author tenant-specific workflows; activate Foundry agents on tenant data.
 ---
 
