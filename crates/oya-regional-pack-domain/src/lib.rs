@@ -13,6 +13,8 @@ pub use vertical_regulatory_profile::{
 };
 pub mod capability_pack;
 pub use capability_pack::{CapabilityPack, CapabilityPackError, PackVersion};
+pub mod kr_regulatory;
+pub use kr_regulatory::{KrRegulatoryBinding, KrRegulatoryBindingError, PipaDataClassification};
 
 use oya_data_boundary_kernel::{Classified, DataClass};
 use oya_residency_domain::{ResidencyClass, parse_residency_class_label};

@@ -5,6 +5,10 @@ id: M04-P02
 title: KR Regulatory Pack Binding (PIPA + CSAP + K-ISMS-P + KCMVP)
 status: stub
 purpose: Bind KR regional pack to the elected vertical's capability pack with full control evidence.
+execution_variant: merge-into-existing-crates
+decided_at: 2026-05-17
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 ships PipaDataClassification enum + KrRegulatoryBinding struct as a new kr_regulatory module inside oya-regional-pack-domain. No new crate scaffolding, no new workspace deps. Multispectrum evidence at evidence/multispectrum/m04-p02-kr-reg-mv-delta1-1778999979.json."
 ---
 
 # M04-P02 — KR Regulatory Binding
