@@ -1,6 +1,6 @@
 name: ci-failure-fix-loop
 
-# Dual-source fix-loop dispatcher (M-CC-P10-IP-005).
+# Dual-source fix-loop dispatcher (M01-P17-IP-005).
 #
 # Canonical state machine:
 #   push → CI → fix-loop until green → review → fix-loop until APPROVE → merge
@@ -14,30 +14,27 @@ name: ci-failure-fix-loop
 #   2. If budget remaining: writes a context-bundle to
 #      evidence/pipeline-maturity-glue/ip-005-fix-loop/<pr>/<attempt>.json
 #      and appends a dispatch event to the registry.
-#   3. If budget exhausted: writes an escalation record to
+#   3. If budget exhausted: writes a stuck-change record to
 #      evidence/pipeline-maturity-glue/ip-005-fix-loop/<pr>/escalation.json
-#      and this workflow then opens a stuck-PR GitHub issue with the
-#      `human-escalation` label.
+#      and this workflow then opens a stuck-PR GitHub issue for the next
+#      automated remediation lane. No human handoff label is used.
 #
 # Surface-all-failures: the dispatcher reads ALL failed jobs from the
 # upstream workflow_run (not just the first one) so one CI cycle ⇒ one
 # bundle ⇒ one retry-counter increment, regardless of how many jobs
 # failed. Matches IP-007's `surface-all-failures` posture.
 #
-# Subagent runtime caveat (subagent_runtime_pending): the actual
-# fix-loop agent runtime is TBD — the dispatcher posts to the agent
-# queue (writes the bundle file + appends the dispatch event) and
-# returns. When the agent runtime lands, it tails the registry and
-# claims via `oya claim --agent ci-fix-loop --intent fix-<source>-PR-<N>`
-# (or the grit-scaffold fallback per ADR-0054 during transition).
+# Fix-loop work is agent-owned. The dispatcher writes the bundle and retry
+# accounting, then the automated remediation lane consumes it; agents use
+# Oya VCS claim/verify/done/promote and do not own rebase, merge, or queue
+# mutation. Exhaustion creates another automated remediation issue rather than
+# a human handoff.
 
 on:
   workflow_run:
     workflows:
       - pr-tests
       - oya-foundry-fitness-supply-chain
-      - oya-foundry-fitness-sequential-pr-merge-conflicts
-      - oya-foundry-fitness-pr-review
     types: [completed]
   repository_dispatch:
     types: [pr-review-fix-requested]
@@ -104,12 +101,10 @@ jobs:
           gh api "repos/$REPO/actions/runs/$WORKFLOW_RUN_ID/jobs" --paginate \
             --jq '.jobs[] | select(.conclusion=="failure" or .conclusion=="cancelled" or .conclusion=="timed_out") | "\(.name)\t\(.conclusion)\t\(.url)"' \
             > failed-jobs.tsv || true
-          {
-            echo "pr=$PR"
-            echo "head=$HEAD_SHA"
-            echo "base=$BASE_SHA"
-            echo "source=ci-failure"
-          } >> "$GITHUB_OUTPUT"
+          echo "pr=$PR"        >> "$GITHUB_OUTPUT"
+          echo "head=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "source=ci-failure" >> "$GITHUB_OUTPUT"
 
       - name: Resolve PR + heads (review-source)
         if: github.event_name == 'repository_dispatch'
@@ -121,12 +116,10 @@ jobs:
         run: |
           set -euo pipefail
           : > failed-jobs.tsv
-          {
-            echo "pr=$PR"
-            echo "head=$HEAD_SHA"
-            echo "base=$BASE_SHA"
-            echo "source=pr-review-fix-requested"
-          } >> "$GITHUB_OUTPUT"
+          echo "pr=$PR" >> "$GITHUB_OUTPUT"
+          echo "head=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "source=pr-review-fix-requested" >> "$GITHUB_OUTPUT"
 
       - name: Build dispatcher
         run: cargo build -p oya-foundry-vcs-ci-fix-loop-dispatcher-app
@@ -167,7 +160,7 @@ jobs:
           done < <(git log -n 5 "$HEAD" --format='%H%x09%at%x09%s')
           cargo run -q -p oya-foundry-vcs-ci-fix-loop-dispatcher-app -- "${ARGS[@]}"
 
-      - name: Open stuck-PR issue on escalation
+      - name: Open stuck-PR issue for automated remediation
         if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -182,6 +175,6 @@ jobs:
             gh issue create --repo "$REPO" \
               --title "$TITLE" \
               --body "$BODY" \
-              --label human-escalation \
+              --label agent-remediation-required \
               --label fix-loop-exhausted
           fi

@@ -252,7 +252,7 @@
       "current_path": "/specs/hyperscaler-gates.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "10 HG-* gates (HG-ARCH..HG-GRIT) + claim_matrix_required (can/cannot/required)."
+      "purpose": "Hyperscaler maturity claim gates including plan, pipeline, toolchain, CI/CD, development cycle, guardrails, safety, UX, ease-of-use, competitor response, and HG-VCS claim authority."
     },
     "evidence_taxonomy": {
       "kind": "spec",
