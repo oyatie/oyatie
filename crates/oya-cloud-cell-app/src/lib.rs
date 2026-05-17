@@ -5,6 +5,13 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod cell_lifecycle;
+
+pub use cell_lifecycle::{
+    CELL_LIFECYCLE_SCHEMA_VERSION, CellLifecycleCommand, CellLifecycleError, CellState,
+    apply_lifecycle_command,
+};
+
 pub const CLOUD_CELL_BIND_EVIDENCE_SURFACE: &str = "cloud.cell.bind";
 pub const CLOUD_CELL_BINDING_SCHEMA_VERSION: u32 = 1;
 

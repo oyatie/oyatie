@@ -26,6 +26,13 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: Scaffolds all 21 cloud crates across 8 BCs, authors the complete Postgres DDL for cloud resource tracking tables, implements the cell lifecycle state machine (create → active → draining → decommissioned).
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Delta-1 backports CellState FSM into oya-cloud-cell-app::cell_lifecycle (existing
+  crate) rather than creating a new oya-cloud-cell-lifecycle-kernel. Honors the
+  no-over-scaffolding rule; additional BCs remain pending in future deltas.
 ---
 # IP-001-cloud-tenancy-kernel-scaffold: Scaffold All 21 Cloud Crates — 8 BC Kernels + DDL + OCI ARM64 Manifests + Cell Lifecycle
 
