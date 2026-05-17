@@ -21,6 +21,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: "Scaffolds all 8 data-boundary crates across 2 BCs, declares the 12-class DataClass enum, implements `DubEvaluator::evaluate()` with HARD_DENY semantics for PHI/PCI/PIPA/children."
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 merges ClassificationLevel, DataClassMatcher, RetentionPolicy into existing oya-data-boundary-kernel via new retention_policy.rs module. No new crates scaffolded. References F-M02B-PLAN-LIVE-CRATE-RECONCILIATION (filed P04). Adds 11 unit tests covering hard-deny tier mapping, matcher sets (HardDenySet/RegulatedFinancial/DirectPii/SearchIndexRestricted), and retention window/purge-action defaults."
 ---
 # IP-001-data-boundary-kernel-scaffold: Scaffold DUB Engine + Classification Kernel/Domain/Application/Adapter/gRPC/App — 12 DataClass + HARD_DENY DDL + Cedar Fragment
 
