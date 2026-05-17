@@ -1,0 +1,83 @@
+{
+  "change_id": "m02b-p22-lane7-orp-1779010641",
+  "change_class_id": "CC-3_tooling_only",
+  "change_class_rationale": "Adds three additive integration tests in gate_cli.rs (tooling/test). No standards-doc mutation remains after rebase because the current dev document already contains the queue-head status. No kernel code changed. No new crates. No new workspace deps.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779010641,
+  "git_sha_base": "d05f4c7af963a76d4e00d944c2c38de0c4412fa9",
+  "branch": "agent/m02b-p22-lane7-orp-1779010535",
+  "session_id": "claude-m02b-p22-lane7-orp-1779010641",
+  "agent_id": "claude-executor-m02b-p22-lane7-orp",
+  "task": "M02b-substrate/P22 exit-gate lane-7: wire openapi-rest-route-parity validator honestly — add both drift-direction synthetic violations plus a clean-path integration test without deleting existing gate coverage.",
+  "artifacts_touched": [
+    "crates/oya-dev-cli/tests/gate_cli.rs (appended 3 integration tests: openapi_rest_route_parity_gate_rejects_route_missing_from_openapi + openapi_rest_route_parity_gate_rejects_path_missing_from_rest + openapi_rest_route_parity_gate_accepts_clean_matched_routes)",
+    "docs/standards/m02-exit-gate-validators.md (preserved current dev queue-head content; original PR doc flip was stale after earlier ordered merges)",
+    "evidence/multispectrum/m02b-p22-lane7-orp-1779010641.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "local_gates": [
+    "rustfmt 1.95.0 --edition 2024 --check crates/oya-dev-cli/tests/gate_cli.rs: PASS",
+    "cargo test -p oya-dev-cli --test gate_cli openapi_rest_route_parity: 3/3 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli protection_context_match_gate: 2/2 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli benchmark_gate: 2/2 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli perf_budget_gate: 4/4 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli active_artifact_contract_gate: 9/9 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli api_semver_gate: 4/4 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli documentation_system_gate: 5/5 PASS",
+    "cargo check -p oya-dev-cli: PASS",
+    "cargo clippy -p oya-dev-cli --test gate_cli -- -D warnings: PASS",
+    "cargo clippy -p oya-check-openapi-rest-route-parity -- -D warnings: PASS"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The openapi-rest-route-parity kernel (oya-check-openapi-rest-route-parity) already existed with full unit test coverage. The remaining integration gap was end-to-end CLI coverage proving the validator catches drift in both directions between _ROUTE constants and OpenAPI paths. Adding 3 integration tests is the minimum honest diff.",
+        "Synthetic violation: REST crate declares /ops/api/v1/health + /ops/api/v1/orders but OpenAPI contract only declares /ops/api/v1/health. The validator must exit 1 and print 'openapi-rest-route-parity validation failed' + '/ops/api/v1/orders' to stderr.",
+        "Opposite synthetic violation: OpenAPI declares /ops/api/v1/orders but the REST crate omits it. The validator must exit 1 and print 'openapi-rest-route-parity validation failed' + '/ops/api/v1/orders' to stderr.",
+        "Clean path: REST crate and OpenAPI contract both declare /ops/api/v1/health. Gate must exit 0 and print 'openapi-rest-route-parity validation passed'.",
+        "No new crates, no new workspace deps, no serde. Constraint honored. No YAML workflow changes per OP-11."
+      ],
+      "fixuptasks": [
+        "F-M02-EXIT-GATE-VALIDATORS-MISSING: current docs/standards/m02-exit-gate-validators.md queue-head status still leaves lanes 6, 10, 11, and 12 pending before the BLOCKER workflow YAML flip lands."
+      ],
+      "null_finding_reason": null
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "REST-only violation test: creates temp crates_dir with oya-ops-orders-rest/src/lib.rs declaring HEALTH_ROUTE + ORDERS_ROUTE, and contracts_dir with ops-orders.openapi.yaml declaring only /ops/api/v1/health. Passes --crate-prefix oya-ops- and --contract-prefix ops- to scope the scan. CLI must exit non-zero and stderr must contain the failure message and the orphaned route.",
+        "OpenAPI-only violation test: creates a contract with /ops/api/v1/health + /ops/api/v1/orders while the REST crate declares only HEALTH_ROUTE. CLI must exit non-zero and stderr must contain the failure message and the orphaned path.",
+        "Clean test: crate and contract both declare /ops/api/v1/health only. CLI must exit 0 and stdout must contain 'openapi-rest-route-parity validation passed'.",
+        "All three tests follow exact pattern from existing gate tests: CARGO_BIN_EXE_oya, temp_dir helper, fs::write, explicit CLI flags, assert on status + message. No novel pattern introduced."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "No data-class annotations added (test fixtures are ephemeral temp dirs). No autonomy-ceiling surface touched. No license surface changed."
+      ],
+      "fixuptasks": []
+    },
+    "A5_doc_structure": {
+      "considered": true,
+      "findings": [
+        "No standards-doc claim is carried by the rebased diff: current dev already contains the queue-head validator status, so the PR evidence and body must not claim a doc flip."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "The smallest honest change: 3 additive integration tests that prove the existing openapi-rest-route-parity CLI dispatch works end-to-end for REST-only drift, OpenAPI-only drift, and the clean path. OP-11 (no YAML workflow flip) honored."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT",
+      "rationale": "No overengineering. No stub/placeholder in production code. Existing protection-context-match, perf-budget, benchmark, active-artifact-contract, api-semver, and documentation-system tests remain intact. The --crate-prefix and --contract-prefix flags match the actual CLI arg parser."
+    }
+  }
+}
