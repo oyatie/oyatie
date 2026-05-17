@@ -10,6 +10,10 @@ changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployab
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ads auction kernel + bidding engine internal-tenant only.
+execution_variant: merge-into-existing-crates
+decided_at: 2026-05-17
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 backports Auction + Bid + AuctionState + AuctionError + AuctionId + BidId into existing crates/oya-saas-plugin-marketplace-kernel/src/auction.rs instead of scaffolding a new oya-ads-auction-kernel. Honors no-over-scaffolding rule; tenant-isolation enforced at construct/submit time. Subsequent deltas track second-price settlement + advertiser console + ML isolation under same FixupTask F-M02B-PLAN-LIVE-CRATE-RECONCILIATION (extended scope to M06 phases)."
 ---
 
 # M06-P01-IP-001 — Auction kernel + bidding engine
@@ -19,10 +23,10 @@ Ads auction kernel + bidding engine internal-tenant only.
 
 ## Symbols-to-grit-claim
 ```
-crates/oya-ads-auction-kernel/src/lib.rs::Auction
-crates/oya-ads-auction-kernel/src/lib.rs::Bid
+crates/oya-saas-plugin-marketplace-kernel/src/auction.rs::Auction
+crates/oya-saas-plugin-marketplace-kernel/src/auction.rs::Bid
 ```
-(Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
+(execution_variant: merge-into-existing-crates; no scaffold needed — symbols live in the existing crate.)
 
 ## Agent-prerequisites
 Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles understood; M01-P08 ≥ P5 merged.

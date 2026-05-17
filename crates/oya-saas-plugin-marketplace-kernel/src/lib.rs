@@ -1,4 +1,4 @@
-//! SaaS plugin marketplace — manifest registry + trust-tier listing.
+//! SaaS plugin marketplace — manifest registry + trust-tier listing + ads auction kernel.
 //!
 //! Owns the public marketplace contracts required by M03-P04-IP-002 +
 //! M03-P04-IP-003:
@@ -6,10 +6,19 @@
 //! * [`TrustTier`] — per ADR-0036 (Verified / Reviewed / Community),
 //! * [`MarketplaceListing`] — per-vertical / per-region filterable index.
 //!
+//! M06-P01-IP-001 merge-variant delta-1 (2026-05-17):
+//! * [`auction::Auction`] — internal-tenant ad slot auction,
+//! * [`auction::Bid`] — single advertiser bid with tenant-isolation enforcement.
+//!
 //! No external Rust deps — std + workspace path deps only per ADR-0015.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
+pub mod auction;
+pub use auction::{
+    Auction, AuctionCreate, AuctionError, AuctionId, AuctionState, Bid, BidCreate, BidId,
+};
 
 use std::collections::BTreeMap;
 
