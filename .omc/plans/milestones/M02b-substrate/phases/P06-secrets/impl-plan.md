@@ -18,6 +18,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: "Delivers the complete Secrets substrate: 12 crates across 2 BCs (refs, rotation), `secrets.refs` DDL storing only vault paths (never plaintext), OpenBao HTTP adapter (DAY-1 default), `ZeroizingSecret` type that zeroes memory on drop."
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "The 12-crate scaffold described below is the FROM-SCRATCH variant. Live `dev` already ships `oya-secrets-domain` + `oya-secrets-file-adapter` with overlapping types (SecretRef / SecretMaterial / SecretVersion / SecretError / SecretVault). User chose merge-variant 2026-05-17 — backport this plan's deltas into the existing crates incrementally rather than scaffolding a parallel substrate. Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION. First delta landed: ZeroizingSecret + VaultPath added to oya-secrets-domain::zeroizing module (2026-05-17). Remaining deltas (SecretReferencePort + SecretStore async traits, OpenBao adapter, RotationSchedule, Cedar policy, k6 load test, DDL) tracked under the reconciliation fixuptask as separate slices."
 ---
 # IP-P06-secrets-substrate: Scaffold 12 secrets crates with SecretReferencePort, OpenBao adapter, rotation worker
 
