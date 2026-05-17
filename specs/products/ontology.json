@@ -5,13 +5,15 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "PRD-ONTOLOGY",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "status": "Accepted",
     "owner_team": "council-architecture + ontology-team",
     "created_at": "2026-05-16T13:10:00Z",
+    "updated_at": "2026-05-17T11:30:00Z",
     "covers": ["ontology", "knowledge-graph"],
     "user_pick_2026_05_16": "merge — Ontology = full KG product",
-    "purpose": "Ontology + Knowledge Graph merged into one product PRD — machine-optimized. Ontology = typed entity/link/action schema layer. KG = runtime graph state (semantic+kinetic+dynamic 3-layer per $ref:specs/knowledge-graph-schema.json + $ref:registry/knowledge-graph-{semantic,kinetic,dynamic}.json)."
+    "purpose": "Ontology + Knowledge Graph merged into one product PRD — machine-optimized. Ontology = typed entity/link/action schema layer. KG = runtime graph state (semantic+kinetic+dynamic 3-layer per $ref:specs/knowledge-graph-schema.json + $ref:registry/knowledge-graph-{kinetic,dynamic}.json). Semantic type-system content migrated from registry/knowledge-graph-semantic.json into type_system section per ADR-0130 (OP-11 no compat seams).",
+    "migration_note": "ADR-0130: registry/knowledge-graph-semantic.json deprecated and deleted 2026-05-17. All node_types, edge_types, invariants, and read_side_query_examples now live in type_system below. kinetic + dynamic layers remain in their registry files."
   },
   "identity": {
     "product_id": "ontology",
@@ -25,7 +27,8 @@
   "inherits": {
     "bominal_adrs": ["$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0107", "$ref:bominal/decisions/ADR-0133"],
     "oyatie_specs": ["$ref:specs/agent-durable-goal.json", "$ref:specs/knowledge-graph-schema.json"],
-    "oyatie_registries": ["$ref:registry/knowledge-graph-semantic.json", "$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json"],
+    "oyatie_registries": ["$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json"],
+    "migrated_from": "$ref:registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0130; content now in type_system below)",
     "memory_pointers": ["feedback_glossary_ontology_not_object_graph", "feedback_workflow_objectgraph_adapter_layer", "feedback_bominal_inheritance_precedence"]
   },
   "north_star_ref": "$ref:bominal/decisions/ADR-0106 (engine-enforced cryptographically-auditable typed-entity layer; Palantir-Foundry-style ontology pattern; platform value compounds when every surface speaks the same typed object)",
@@ -308,6 +311,454 @@
       ]
     }
   ],
+  "type_system": {
+    "_provenance": "Migrated from registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0130). Palantir-analog: Object Types + Link Types + Functions (read-side) in Palantir Foundry Ontology. SEMANTIC layer: static structure — WHAT THINGS ARE.",
+    "_layer": "semantic",
+    "_schema_ref": "/specs/knowledge-graph-schema.json#v1.0.0",
+    "node_types": {
+      "Artifact": {
+        "purpose": "Any machine-readable file in repo conforming to active-machine-readable-artifact-contract",
+        "id_pattern": "^[a-z][a-z0-9-]*$",
+        "examples": ["ops-portal-ledger", "hyperscaler-gates", "evidence-bundle-template"],
+        "contributing_registries": ["/registry/artifact-capabilities-registry.json"]
+      },
+      "Capability": {
+        "purpose": "One of the 9 capabilities (enforcement/verification/validation/autogen/selfheal/selfupdate/selfmaintain/telemetry/provenance)",
+        "id_pattern": "^cap:[a-z]+$",
+        "examples": ["cap:enforcement", "cap:verification"],
+        "contributing_registries": ["/specs/active-machine-readable-artifact-contract.json"]
+      },
+      "Block": {
+        "purpose": "Reusable building block (Rust crate kernel, Cedar fragment, JSON Schema defs, OpenAPI component, GitHub Actions composite, template, etc.)",
+        "id_pattern": "^[a-z][a-z0-9-]*$",
+        "examples": ["active-artifact-9-capability-contract", "secret-reference-openbao-pattern"],
+        "contributing_registries": ["/registry/reusable-building-blocks-registry.json"]
+      },
+      "Microservice": {
+        "purpose": "Top-level µservice per Oyatie taxonomy (foundry, connect, application, cloud-*, ops, etc.)",
+        "id_pattern": "^[a-z][a-z0-9-]*$",
+        "examples": ["foundry", "connect", "ops"],
+        "contributing_registries": ["docs/microservices/*.md (read frontmatter)", "registry/catalog/*.yaml"]
+      },
+      "BoundedContext": {
+        "purpose": "BC within a µservice per ADR-0015",
+        "id_pattern": "^[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$",
+        "examples": ["ops/docs-portal", "foundry/engine-substrate", "connect/messenger"],
+        "contributing_registries": ["docs/bounded-contexts/*.md (read frontmatter)", "registry/catalog/*.yaml"]
+      },
+      "Crate": {
+        "purpose": "Rust workspace member crate per ADR-0015 + ADR-0056 BNF v4.1",
+        "id_pattern": "^oya-[a-z0-9-]+$",
+        "examples": ["oya-foundry-evidence-domain", "oya-application-product-enablement-kernel"],
+        "contributing_registries": ["Cargo.toml [workspace.members]", "registry/catalog/<crate>.yaml"]
+      },
+      "Lane": {
+        "purpose": "CI fitness/quality lane in registry/quality/lanes.yaml",
+        "id_pattern": "^(lean-a-[a-z0-9-]+|oya-[a-z-]+-fitness-[a-z-]+)$",
+        "examples": ["lean-a10-regression", "lean-a-active-artifact-contract"],
+        "contributing_registries": ["registry/quality/lanes.yaml"]
+      },
+      "ADR": {
+        "purpose": "Architecture decision record",
+        "id_pattern": "^ADR-[0-9]{4}$",
+        "examples": ["ADR-0015", "ADR-0067", "ADR-0088"],
+        "contributing_registries": ["docs/decisions/ADR-*.md", "docs/decisions/index.json"]
+      },
+      "Plan": {
+        "purpose": "Implementation plan (ralplan sidecar or canonical milestone/phase/IP)",
+        "id_pattern": "^plan:[a-z0-9-]+$",
+        "examples": ["plan:ralplan-ops-wave-5", "plan:M03-P04-impl-plan"],
+        "contributing_registries": [".omc/plans/**/*"]
+      },
+      "Phase": {
+        "purpose": "Milestone phase",
+        "id_pattern": "^M[0-9]{2}-P[0-9]{2}(-[a-z0-9-]+)?$",
+        "examples": ["M03-P04", "M03-P08-cross-axis-contracts"],
+        "contributing_registries": [".omc/plans/milestones/*/phases/*/INDEX.md"]
+      },
+      "Wave": {
+        "purpose": "Sub-plan wave within a parent plan",
+        "id_pattern": "^wave:[a-z0-9-]+:(parent|[0-9]+(\\.[0-9]+)?)$",
+        "examples": ["wave:ops-portal:parent", "wave:ops-portal:5", "wave:ops-portal:5.5"],
+        "contributing_registries": ["/evidence/ledger/ops-portal-ledger.json"]
+      },
+      "ImplementationPlan": {
+        "purpose": "IP within a phase",
+        "id_pattern": "^IP-X?[0-9]+(-[a-z0-9-]+)?$",
+        "examples": ["IP-X10-ops-tenant-mgmt-bc", "IP-X1"],
+        "contributing_registries": [".omc/plans/milestones/*/phases/*/IP-*.md"]
+      },
+      "Hook": {
+        "purpose": "Git/grit/pre-commit/post-commit hook",
+        "id_pattern": "^hook:[a-z0-9-]+$",
+        "examples": ["hook:pre-commit-validate-artifact", "hook:grit-claim-state-on-stop"],
+        "contributing_registries": ["scripts/hooks/**", "agents/settings/claude.settings.json"]
+      },
+      "Generator": {
+        "purpose": "Code/artifact generator (autogen capability target)",
+        "id_pattern": "^gen:[a-z0-9-]+$",
+        "examples": ["gen:ops-portal-ledger", "gen:plan-acceptance-attestation"],
+        "contributing_registries": ["crates/oya-gen-*", "/registry/reusable-building-blocks-registry.json"]
+      },
+      "Healer": {
+        "purpose": "Self-healing module (selfheal capability target)",
+        "id_pattern": "^heal:[a-z0-9-]+$",
+        "examples": ["heal:ops-portal-ledger", "heal:artifact-capabilities-registry"],
+        "contributing_registries": ["crates/oya-heal-*"]
+      },
+      "OwnerTeam": {
+        "purpose": "Team accountable for an artifact/lane/crate/BC/µservice",
+        "id_pattern": "^team:[a-z][a-z0-9-]*(\\+[a-z][a-z0-9-]*)*$",
+        "examples": ["team:council-architecture", "team:council-foundry", "team:ops-sre-reliability"],
+        "contributing_registries": ["docs/RACI-OWNERSHIP.md", "all registries (owner_team field)"]
+      },
+      "Feature": {
+        "purpose": "Product feature exposed by a BC/Crate (Wave 5 deployments-rollback action, multi-party-approval, etc.)",
+        "id_pattern": "^feat:[a-z0-9-]+$",
+        "examples": ["feat:rollback-action", "feat:multi-party-approval", "feat:docs-portal-manifest-endpoint"],
+        "contributing_registries": [".omc/plans/**/*.md §6 (parsed from plan)", "docs/prds/*.md"]
+      },
+      "Schema": {
+        "purpose": "JSON Schema / OpenAPI schema / TOML schema / YAML schema declaring data shape",
+        "id_pattern": "^schema:[a-z0-9-]+$",
+        "examples": ["schema:active-artifact-contract", "schema:evidence-bundle"],
+        "contributing_registries": ["/specs/*.json", "contracts/*.yaml"]
+      },
+      "Metric": {
+        "purpose": "OpenTelemetry-aligned metric per cap_telemetry",
+        "id_pattern": "^oya_[a-z][a-z0-9_]*$",
+        "examples": ["oya_artifact_registry_row_count", "oya_forbidden_primitive_invocation_total"],
+        "contributing_registries": ["/registry/artifact-capabilities-registry.json (rows[*].capabilities.telemetry.metrics)"]
+      },
+      "EvidenceBundle": {
+        "purpose": "Capability invocation / runbook execution / IP merge evidence bundle",
+        "id_pattern": "^EVB-[0-9A-HJKMNP-TV-Z]{26}$",
+        "examples": [],
+        "contributing_registries": ["audit-chain runtime (M01/M02 prerequisite)"]
+      },
+      "ComplianceControl": {
+        "purpose": "Compliance control objective that must be mechanically attested by one or more quality/admission lanes.",
+        "id_pattern": "^control:[a-z0-9][a-z0-9-]*(\\.[a-z0-9-]+)*$",
+        "examples": ["control:soc2-cc6.1", "control:iso27001-a.8.15", "control:isms-p-2.10.1"],
+        "contributing_registries": ["registry/compliance/**/*.json (planned)", "registry/quality/lanes.yaml"]
+      },
+      "SatisfiedByLane": {
+        "purpose": "Typed compliance attestation join node: one control satisfied by a concrete lane_id with freshness policy.",
+        "id_pattern": "^lane-satisfaction:[a-z0-9-]+:[a-z0-9][a-z0-9.:-]*$",
+        "examples": ["lane-satisfaction:oya-foundry-fitness-supply-chain:control:soc2-cc6.1", "lane-satisfaction:oya-vcs-admission:control:isms-p-2.10.1"],
+        "contributing_registries": ["registry/quality/lanes.yaml", "evidence/audit-chain.jsonl"]
+      },
+      "EvidencePath": {
+        "purpose": "Machine-readable evidence location proving a lane satisfied a compliance control, including JSONL path and freshness window.",
+        "id_pattern": "^evidence:[a-z0-9_./:@#-]+$",
+        "examples": ["evidence:evidence/audit-chain.jsonl#oya-foundry-fitness-supply-chain", "evidence:evidence/multispectrum/ontology-rename-sweep-1778949351.json"],
+        "contributing_registries": ["evidence/audit-chain.jsonl", "evidence/multispectrum/*.json"]
+      },
+      "Incident": {
+        "purpose": "Operational incident record with severity, lifecycle status, and closeout/root-cause evidence.",
+        "id_pattern": "^incident:[a-z0-9][a-z0-9-]*-[0-9]{8}-[a-z0-9-]+$",
+        "examples": ["incident:ops-20260516-ci-timeout", "incident:deploy-20260516-origin-tls"],
+        "contributing_registries": ["registry/incidents/*.json (planned)", "evidence/audit-chain.jsonl"]
+      },
+      "CausedByChange": {
+        "purpose": "Typed root-cause join node that connects an incident closeout to the concrete change that caused or fixed it.",
+        "id_pattern": "^root-cause:[a-z0-9][a-z0-9-]*:[a-f0-9]{7,40}$",
+        "examples": ["root-cause:incident-ops-20260516-ci-timeout:afb40fdb", "root-cause:incident-deploy-20260516-origin-tls:a848f2b6"],
+        "contributing_registries": ["registry/incidents/*.json (planned)", "evidence/audit-chain.jsonl"]
+      },
+      "PullRequest": {
+        "purpose": "GitHub pull request node used to traverse review, CI, evidence, and incident root-cause chains.",
+        "id_pattern": "^pr:[0-9]+$",
+        "examples": ["pr:39", "pr:22"],
+        "contributing_registries": ["GitHub PR metadata", "evidence/audit-chain.jsonl", "registry/incidents/*.json (planned)"]
+      },
+      "AgentDecision": {
+        "purpose": "Durable agent decision node promoted from audit/event rows so decision provenance can be traversed as a chain.",
+        "id_pattern": "^decision:[a-z0-9][a-z0-9-]*:[0-9]{8}:[a-z0-9-]+$",
+        "examples": ["decision:codex-kg-blast-radius:20260516:use-recursive-cte", "decision:codex-kg-agent-decision:20260516:promote-event-node"],
+        "contributing_registries": ["evidence/audit-chain.jsonl", ".omx/project-memory.json", ".omc/project-memory.json"]
+      },
+      "AcceptanceCriterion": {
+        "purpose": "Machine-readable product or plan acceptance criterion with deterministic verification command linkage.",
+        "id_pattern": "^ac:[a-z0-9][a-z0-9-]*:[A-Z0-9-]+$",
+        "examples": ["ac:ontology:AC-KG-ROBUSTNESS", "ac:foundry:AC-VCS-ADMISSION"],
+        "contributing_registries": ["specs/products/*.json", "specs/agent-durable-goal.json"]
+      },
+      "Test": {
+        "purpose": "Unit, integration, nextest, gate, or smoke test that proves an acceptance criterion.",
+        "id_pattern": "^test:[a-z0-9_./:-]+$",
+        "examples": ["test:crates/oya-dev-cli/tests/knowledge_graph_semantic.rs::agent_decision_provenance_chain_is_graph_traversable", "test:cargo-nextest:oya-dev-cli"],
+        "contributing_registries": ["crates/**/tests/*.rs", "evidence/audit-chain.jsonl", "GitHub check runs"]
+      },
+      "CILaneRun": {
+        "purpose": "Concrete CI lane run/check result that executed a test or verification command.",
+        "id_pattern": "^ci-run:[a-z0-9_.:/#-]+$",
+        "examples": ["ci-run:github/pr-42/cargo-nextest", "ci-run:github/pr-42/oya-vcs-admission"],
+        "contributing_registries": ["GitHub Actions check runs", "evidence/audit-chain.jsonl"]
+      },
+      "ChangeSet": {
+        "purpose": "Oya VCS or PR-local change bundle with evidence, scope, and promotion lifecycle.",
+        "id_pattern": "^changeset:[a-z0-9][a-z0-9_.:-]*$",
+        "examples": ["changeset:kg-acceptance-ci-1778951867", "changeset:ontology-rename-sweep-1778949351"],
+        "contributing_registries": ["evidence/multispectrum/*.json", "evidence/audit-chain.jsonl", "Oya VCS bundle metadata"]
+      },
+      "AuditChainRow": {
+        "purpose": "Append-only audit-chain JSONL row proving that a change, PR, or evidence bundle was emitted and can be replayed.",
+        "id_pattern": "^audit-row:[a-z0-9_./:@#-]+$",
+        "examples": ["audit-row:evidence/audit-chain.jsonl#kg-acceptance-ci-1778951867", "audit-row:evidence/audit-chain.jsonl#pr-43"],
+        "contributing_registries": ["evidence/audit-chain.jsonl"]
+      },
+      "Claim": {
+        "purpose": "Hyperscaler claim per claim-matrix",
+        "id_pattern": "^claim:[a-z0-9-]+$",
+        "examples": ["claim:OPS-OPERATIONAL-DELIVERED", "claim:OPS-PERF-MEASURED"],
+        "contributing_registries": ["/registry/claim-matrix/*.json"]
+      },
+      "Migration": {
+        "purpose": "Atlas SQL migration or other schema-evolution unit",
+        "id_pattern": "^migration:[a-z0-9-]+$",
+        "examples": ["migration:2026XX_oya_shared_write_action_port_init"],
+        "contributing_registries": ["crates/*/migrations/*.sql"]
+      },
+      "CedarPolicy": {
+        "purpose": "Cedar 4.x policy file fragment",
+        "id_pattern": "^cedar:[a-z0-9-]+$",
+        "examples": ["cedar:ops-multi-party-approval", "cedar:ops-tenant-private"],
+        "contributing_registries": ["cedar-policies/**/*.cedar (planned)"]
+      },
+      "OpenAPIContract": {
+        "purpose": "OpenAPI YAML contract",
+        "id_pattern": "^openapi:[a-z0-9-]+$",
+        "examples": ["openapi:ops-workspace-shell", "openapi:workflow"],
+        "contributing_registries": ["contracts/*.yaml (planned in HEAD)"]
+      }
+    },
+    "edge_types": {
+      "consumes": {
+        "direction": "directed",
+        "source_node_types": ["Crate", "BoundedContext", "Microservice", "Plan", "Wave", "Artifact"],
+        "target_node_types": ["Block", "Schema", "Crate", "Artifact", "ADR"],
+        "cardinality": "many-to-many",
+        "semantics": "source uses target as input or dependency. DRY invariant: if N consumers reach same target, target IS reusable."
+      },
+      "supersedes": {
+        "direction": "directed",
+        "source_node_types": ["ADR", "Artifact", "Plan", "Schema", "Block"],
+        "target_node_types": ["ADR", "Artifact", "Plan", "Schema", "Block"],
+        "cardinality": "many-to-many",
+        "semantics": "source replaces target. Supersession chain must terminate (no cycles)."
+      },
+      "depends_on": {
+        "direction": "directed",
+        "source_node_types": ["Crate", "Plan", "Wave", "Phase", "ImplementationPlan", "ADR", "Lane"],
+        "target_node_types": ["Crate", "Plan", "Wave", "Phase", "ImplementationPlan", "ADR", "Lane", "Block", "Schema"],
+        "cardinality": "many-to-many",
+        "semantics": "source needs target to be operational. Dep graph must be DAG."
+      },
+      "owned_by": {
+        "direction": "directed",
+        "source_node_types": ["Artifact", "Crate", "BoundedContext", "Microservice", "Lane", "ADR", "Plan", "Block", "Generator", "Healer"],
+        "target_node_types": ["OwnerTeam"],
+        "cardinality": "many-to-many",
+        "semantics": "team accountable for source. RACI mapping."
+      },
+      "validates": {
+        "direction": "directed",
+        "source_node_types": ["Lane", "Hook", "Crate"],
+        "target_node_types": ["Artifact", "Schema", "Block"],
+        "cardinality": "many-to-many",
+        "semantics": "source enforces or verifies target."
+      },
+      "generates": {
+        "direction": "directed",
+        "source_node_types": ["Generator"],
+        "target_node_types": ["Artifact", "Schema"],
+        "cardinality": "many-to-many",
+        "semantics": "autogen capability link."
+      },
+      "heals": {
+        "direction": "directed",
+        "source_node_types": ["Healer"],
+        "target_node_types": ["Artifact"],
+        "cardinality": "many-to-many",
+        "semantics": "selfheal capability link."
+      },
+      "references": {
+        "direction": "directed",
+        "source_node_types": ["Artifact", "Plan", "ADR", "Crate"],
+        "target_node_types": ["Artifact", "Plan", "ADR", "Schema", "Block"],
+        "cardinality": "many-to-many",
+        "semantics": "non-binding pointer (citation, see-also)."
+      },
+      "located_at": {
+        "direction": "directed",
+        "source_node_types": ["Crate"],
+        "target_node_types": ["BoundedContext", "Microservice"],
+        "cardinality": "many-to-one",
+        "semantics": "crate's BC/µservice membership per ADR-0015 BNF v4.1."
+      },
+      "conforms_to": {
+        "direction": "directed",
+        "source_node_types": ["Artifact", "EvidenceBundle", "Claim"],
+        "target_node_types": ["Schema"],
+        "cardinality": "many-to-many",
+        "semantics": "source data shape conforms to target schema. Validator asserts."
+      },
+      "enforces": {
+        "direction": "directed",
+        "source_node_types": ["Lane"],
+        "target_node_types": ["Schema", "Artifact", "Block"],
+        "cardinality": "many-to-many",
+        "semantics": "CI lane enforces target conformance/state."
+      },
+      "satisfies": {
+        "direction": "directed",
+        "source_node_types": ["Artifact", "Crate", "Plan", "Wave"],
+        "target_node_types": ["Capability", "Claim"],
+        "cardinality": "many-to-many",
+        "semantics": "source provides evidence for target capability/claim being operational."
+      },
+      "satisfied_by_lane": {
+        "direction": "directed",
+        "source_node_types": ["ComplianceControl"],
+        "target_node_types": ["SatisfiedByLane"],
+        "cardinality": "one-to-many",
+        "semantics": "control is satisfied by a concrete lane-attestation join node carrying lane_id, status, freshness policy, and last_verified_at."
+      },
+      "evidence_path": {
+        "direction": "directed",
+        "source_node_types": ["SatisfiedByLane"],
+        "target_node_types": ["EvidencePath"],
+        "cardinality": "one-to-many",
+        "semantics": "lane attestation points to machine-readable evidence path(s), usually JSONL rows or multispectrum evidence files, so freshness can be queried mechanically."
+      },
+      "caused_by_change": {
+        "direction": "directed",
+        "source_node_types": ["Incident"],
+        "target_node_types": ["CausedByChange"],
+        "cardinality": "one-to-many",
+        "semantics": "incident closeout names the root-cause change join node, including change id, role (caused|fixed|mitigated), and confidence/evidence reference."
+      },
+      "change_from_pr": {
+        "direction": "directed",
+        "source_node_types": ["CausedByChange"],
+        "target_node_types": ["PullRequest"],
+        "cardinality": "many-to-many",
+        "semantics": "root-cause change join node links to the pull request that introduced, fixed, or mitigated the incident-relevant change."
+      },
+      "caused_by": {
+        "direction": "directed",
+        "source_node_types": ["AgentDecision"],
+        "target_node_types": ["AgentDecision"],
+        "cardinality": "many-to-many",
+        "semantics": "agent decision was caused by, superseded by, or derived from a prior agent decision, enabling decision-chain traversal without relying on prose-only event logs."
+      },
+      "covered_by_test": {
+        "direction": "directed",
+        "source_node_types": ["AcceptanceCriterion"],
+        "target_node_types": ["Test"],
+        "cardinality": "one-to-many",
+        "semantics": "acceptance criterion is proven by a deterministic test, gate, or verification command."
+      },
+      "executed_by_ci_lane": {
+        "direction": "directed",
+        "source_node_types": ["Test"],
+        "target_node_types": ["CILaneRun"],
+        "cardinality": "many-to-many",
+        "semantics": "test or gate was executed by a concrete CI lane run/check with status, URL, and run id."
+      },
+      "merged_as_pr": {
+        "direction": "directed",
+        "source_node_types": ["ChangeSet"],
+        "target_node_types": ["PullRequest"],
+        "cardinality": "many-to-many",
+        "semantics": "change bundle or Oya VCS changeset was reviewed/merged as a GitHub pull request."
+      },
+      "emitted_audit_row": {
+        "direction": "directed",
+        "source_node_types": ["PullRequest"],
+        "target_node_types": ["AuditChainRow"],
+        "cardinality": "one-to-many",
+        "semantics": "pull request or merge emitted an append-only audit-chain row that anchors evidence and replay provenance."
+      },
+      "blocks_on": {
+        "direction": "directed",
+        "source_node_types": ["Artifact", "Plan", "Wave", "Phase", "ImplementationPlan", "Capability"],
+        "target_node_types": ["Artifact", "Plan", "Wave", "Phase", "ImplementationPlan", "Capability", "Lane", "Crate"],
+        "cardinality": "many-to-many",
+        "semantics": "source cannot promote/complete until target landed."
+      },
+      "prerequisite_for": {
+        "direction": "directed",
+        "source_node_types": ["Capability", "Crate", "ADR"],
+        "target_node_types": ["Capability", "Plan", "Wave"],
+        "cardinality": "many-to-many",
+        "semantics": "inverse of blocks_on; source must land for target to progress."
+      },
+      "deprecates": {
+        "direction": "directed",
+        "source_node_types": ["ADR", "Block", "Crate"],
+        "target_node_types": ["Block", "Crate", "Lane"],
+        "cardinality": "many-to-many",
+        "semantics": "source declares target deprecated. Target must have replacement_block_id."
+      },
+      "replaces": {
+        "direction": "directed",
+        "source_node_types": ["Block", "Crate"],
+        "target_node_types": ["Block", "Crate"],
+        "cardinality": "many-to-many",
+        "semantics": "source is the replacement for target. Used to terminate deprecation chain."
+      },
+      "exposes": {
+        "direction": "directed",
+        "source_node_types": ["BoundedContext", "Crate"],
+        "target_node_types": ["Feature", "OpenAPIContract"],
+        "cardinality": "many-to-many",
+        "semantics": "source provides target as public-facing surface."
+      },
+      "audit_trail": {
+        "direction": "directed",
+        "source_node_types": ["Artifact", "Crate", "Capability"],
+        "target_node_types": ["EvidenceBundle"],
+        "cardinality": "many-to-many",
+        "semantics": "source's state change produced target audit bundle. Required for HG-OBS."
+      }
+    },
+    "invariants": [
+      {"id": "I01-DRY-no-duplicate-blocks", "rule": "Two Block nodes with identical canonical_path OR identical (block_kind + structural-hash) are a DRY violation; consumers must reference the canonical Block, not duplicate.", "severity": "error", "remediation_hint": "Mark one as deprecated + name replacement_block_id; migrate consumers."},
+      {"id": "I02-DAG-no-dependency-cycles", "rule": "depends_on edges form a DAG (no cycles). Includes Crate→Crate, Plan→Plan, Wave→Wave, Phase→Phase, ADR→ADR (no mutual supersession).", "severity": "error", "remediation_hint": "Break cycle by introducing a shared dependency or splitting one node."},
+      {"id": "I03-supersession-terminates", "rule": "supersedes chains terminate (no cycles, finite depth).", "severity": "error", "remediation_hint": "Audit supersedes chain via `oya check supersession-chain <node_id>`."},
+      {"id": "I04-every-artifact-owned", "rule": "Every Artifact, Crate, Lane, Block, ADR, Plan node has at least one owned_by edge to an OwnerTeam.", "severity": "error", "remediation_hint": "Add owner_team field; reference docs/RACI-OWNERSHIP.md."},
+      {"id": "I05-broken-ref-detection", "rule": "No edge target is a node that doesn't exist in the graph.", "severity": "error", "remediation_hint": "Either add the missing node OR remove the edge."},
+      {"id": "I06-orphan-block-detection", "rule": "Every Block node has at least one inbound consumes edge OR is marked _consumer_count_actual_today: 0 with rationale (e.g., 'new block, consumers pending').", "severity": "warn", "remediation_hint": "Unused blocks should be deleted or rationalized."},
+      {"id": "I07-operational-capability-has-evidence", "rule": "Every Capability node with status=operational has at least one inbound satisfies edge with non-null artifact_ref proving evidence.", "severity": "error", "remediation_hint": "Either downgrade status to planned OR add satisfies edge with crate path + lane id + run URL."},
+      {"id": "I08-planned-capability-has-prerequisites", "rule": "Every Capability node with status=planned has populated prerequisite_for_operational (non-empty array).", "severity": "error", "remediation_hint": "Add prerequisites OR mark not-applicable with rationale."},
+      {"id": "I09-blocked-cap-has-foundation-link", "rule": "Every Capability node with status=blocked-by-foundation has at least one blocks_on edge to a Capability/Crate/Phase node representing the foundation work.", "severity": "error", "remediation_hint": "Specify which foundation node blocks; if no foundation tracker exists, create one."},
+      {"id": "I10-canonical-path-uniqueness", "rule": "Every node id maps to exactly one canonical path; conversely, no two nodes claim the same canonical_path.", "severity": "error", "remediation_hint": "Collapse duplicates OR rename."},
+      {"id": "I11-grit-claim-coverage", "rule": "Every state-transition event (consumes/heals/generates) MUST be sealed by a grit_done_seal_event_id OR explicitly logged as protocol-violation in audit.", "severity": "warn", "remediation_hint": "Use grit claim/work/done; commit 5880ce0 is a known historical violation per HG-GRIT row."},
+      {"id": "I12-metric-cardinality-budget", "rule": "Every Metric node has cardinality_budget set; sum of cardinalities per label must not exceed budget.", "severity": "warn", "remediation_hint": "Either raise budget with rationale OR drop high-cardinality labels."},
+      {"id": "I13-feature-has-exposing-bc", "rule": "Every Feature node has at least one inbound exposes edge from a BoundedContext OR Crate.", "severity": "error", "remediation_hint": "Features without owning BC are orphan; assign or delete."},
+      {"id": "I14-claim-has-evidence-required-link", "rule": "Every Claim node in claims_we_cannot_make_yet category has at least one prerequisite_for edge.", "severity": "error", "remediation_hint": "Specify what evidence is required."},
+      {"id": "I15-compliance-control-has-fresh-evidence-chain", "rule": "Every ComplianceControl node has at least one satisfied_by_lane edge to a SatisfiedByLane node and every SatisfiedByLane node has at least one evidence_path edge to EvidencePath.", "severity": "error", "remediation_hint": "Attach a lane satisfaction node with lane_id/status/freshness policy and at least one JSONL or evidence-bundle path."},
+      {"id": "I16-incident-closeout-has-root-cause-pr-chain", "rule": "Every closed Incident node has at least one caused_by_change edge to a CausedByChange node and each CausedByChange node has at least one change_from_pr edge to PullRequest.", "severity": "error", "remediation_hint": "On incident_close, emit the Incident -> CausedByChange -> PullRequest chain with evidence_ref and closeout timestamp."},
+      {"id": "I17-agent-decision-chain-is-traversable", "rule": "Every AgentDecision node that declares caused_by_decision_ids has matching caused_by edges to AgentDecision nodes; cycles are rejected unless explicitly marked loop_closure=true.", "severity": "error", "remediation_hint": "When emitting agent_decision provenance, materialize AgentDecision nodes and caused_by edges for every upstream decision dependency."},
+      {"id": "I18-acceptance-criterion-has-test-ci-chain", "rule": "Every AcceptanceCriterion node with verification_required=true has at least one covered_by_test edge to Test and every blocking Test has at least one executed_by_ci_lane edge to CILaneRun.", "severity": "error", "remediation_hint": "Attach deterministic test/gate nodes and concrete CI lane run evidence for every acceptance criterion before claiming closure."},
+      {"id": "I19-changeset-pr-audit-row-provenance", "rule": "Every promoted ChangeSet node has at least one merged_as_pr edge to PullRequest and every merged PullRequest has at least one emitted_audit_row edge to AuditChainRow.", "severity": "error", "remediation_hint": "Attach PR metadata and audit-chain JSONL row ids before promoting the changeset bundle."}
+    ],
+    "read_side_query_examples": [
+      {"name": "find_duplicate_block_definitions", "description": "Returns Block pairs with identical canonical_path or identical structural-hash. Surfaces DRY violations.", "query_sketch": "SELECT b1.id, b2.id FROM blocks b1, blocks b2 WHERE b1.id < b2.id AND (b1.canonical_path = b2.canonical_path OR b1.structural_hash = b2.structural_hash)"},
+      {"name": "rank_blocks_by_reuse", "description": "Returns Block nodes ranked by inbound-consumes-edge count. Surfaces core primitives.", "query_sketch": "SELECT block.id, COUNT(*) AS reuse FROM consumes_edges JOIN blocks ON consumes.target = block.id GROUP BY block.id ORDER BY reuse DESC"},
+      {"name": "find_orphan_capabilities", "description": "Returns Capability nodes with status=operational but zero satisfies-edges.", "query_sketch": "SELECT cap.id FROM capabilities cap LEFT JOIN satisfies_edges ON satisfies.target = cap.id WHERE cap.status = 'operational' AND satisfies.id IS NULL"},
+      {"name": "show_compliance_evidence_freshness", "description": "Returns every ComplianceControl with satisfying lane_id, latest evidence path, freshness status, and stale controls first.", "query_sketch": "SELECT control.id, lane.lane_id, evidence.jsonl_path, evidence.generated_at, CASE WHEN evidence.generated_at < NOW() - lane.freshness_window THEN 'STALE' ELSE 'FRESH' END AS freshness FROM compliance_controls control JOIN satisfied_by_lane_edges sbl ON sbl.source = control.id JOIN lane_satisfactions lane ON lane.id = sbl.target JOIN evidence_path_edges ep ON ep.source = lane.id JOIN evidence_paths evidence ON evidence.id = ep.target ORDER BY freshness DESC, control.id"},
+      {"name": "trace_incident_root_cause_prs", "description": "Returns closed incidents with root-cause change nodes, linked PRs, evidence refs, and newest closeout first.", "query_sketch": "SELECT incident.id, incident.severity, cause.change_id, cause.role, pr.id AS pull_request_id, cause.evidence_ref, incident.closed_at FROM incidents incident JOIN caused_by_change_edges cbc ON cbc.source = incident.id JOIN root_cause_changes cause ON cause.id = cbc.target JOIN change_from_pr_edges cfp ON cfp.source = cause.id JOIN pull_requests pr ON pr.id = cfp.target WHERE incident.status = 'closed' ORDER BY incident.closed_at DESC, incident.id"},
+      {"name": "reachable_entity_types_for_diff", "description": "Given candidate diff files and deterministic review_tiering blast_radius_score signals, returns reachable KG entity types, downstream consumers, and tiering evidence before PR review dispatch.", "query_sketch": "WITH RECURSIVE candidate_diff_files AS (SELECT path, status, additions, deletions FROM :diff_name_status), diff_signals AS (SELECT bool_or(path ~ 'crates/.*/src/lib\\.rs|contracts/.*\\.yaml') AS public_api_touched, bool_or(path ~ 'crates/.*-kernel/src/') AS kernel_layer_touched, bool_or(path ~ 'OpenBao|SecretReference|infra/kyverno/|registry/secrets/') AS secret_or_admission_touched, bool_or(path ~ 'evidence/audit-chain\\.jsonl|oya-foundry-audit-chain-') AS audit_chain_schema_touched, count(*) FILTER (WHERE path ~ 'docs/decisions/ADR-.*\\.md') AS ADR_introduced_or_amended_count, count(*) FILTER (WHERE path ~ 'Cargo\\.toml') AS cargo_deps_changed_count, sum(additions + deletions) AS lines_touched, count(*) FILTER (WHERE status = 'A') AS new_files_count, count(*) FILTER (WHERE status = 'A' AND path ~ '^(crates|tools)/.*/Cargo\\.toml$') AS new_crates_count, bool_or(:pr_body ~ 'BREAKING:' OR path ~ 'breaking_change: true') AS breaking_change_marker, bool_or(path ~ '^(specs|docs/standards|registry/microservices|docs/decisions)/') AS meta_review_triggered FROM candidate_diff_files), touched_nodes AS (SELECT DISTINCT n.id, n.node_type FROM knowledge_graph_nodes n JOIN candidate_diff_files d ON n.source_path = d.path OR d.path LIKE n.source_path || '%'), reachable AS (SELECT id, node_type FROM touched_nodes UNION SELECT e.target, n.node_type FROM graph_edges e JOIN reachable r ON e.source = r.id JOIN knowledge_graph_nodes n ON n.id = e.target WHERE e.edge_type IN ('depends_on','exposes','consumes','validates','satisfies','prerequisite_for','owned_by')) SELECT reachable.node_type AS reachable_entity_types, array_agg(DISTINCT reachable.id) AS downstream_consumers, diff_signals.*, (:blast_radius_score) AS blast_radius_score FROM reachable CROSS JOIN diff_signals GROUP BY reachable.node_type, diff_signals.public_api_touched, diff_signals.kernel_layer_touched, diff_signals.secret_or_admission_touched, diff_signals.audit_chain_schema_touched, diff_signals.ADR_introduced_or_amended_count, diff_signals.cargo_deps_changed_count, diff_signals.lines_touched, diff_signals.new_files_count, diff_signals.new_crates_count, diff_signals.breaking_change_marker, diff_signals.meta_review_triggered ORDER BY blast_radius_score DESC, reachable.node_type"},
+      {"name": "trace_agent_decision_chain", "description": "Recursively traverses AgentDecision caused_by edges to explain why an agent chose a plan, implementation path, or remediation.", "query_sketch": "WITH RECURSIVE decision_chain AS (SELECT decision.id, decision.agent_id, decision.summary, decision.evidence_ref, 0 AS depth FROM agent_decisions decision WHERE decision.id = :decision_id UNION ALL SELECT prior.id, prior.agent_id, prior.summary, prior.evidence_ref, chain.depth + 1 FROM caused_by_edges edge JOIN decision_chain chain ON edge.source = chain.id JOIN agent_decisions prior ON prior.id = edge.target WHERE chain.depth < :max_depth) SELECT * FROM decision_chain ORDER BY depth, id"},
+      {"name": "trace_acceptance_test_ci_chain", "description": "Returns acceptance criteria, the deterministic tests that prove them, and the concrete CI lane runs that executed those tests.", "query_sketch": "SELECT ac.id AS acceptance_criterion_id, test.id AS test_id, ci.id AS ci_lane_run_id, ci.status, ci.url, ci.completed_at FROM acceptance_criteria ac JOIN covered_by_test_edges cbt ON cbt.source = ac.id JOIN tests test ON test.id = cbt.target JOIN executed_by_ci_lane_edges ecl ON ecl.source = test.id JOIN ci_lane_runs ci ON ci.id = ecl.target WHERE ac.verification_required = true ORDER BY ac.id, test.id, ci.completed_at DESC"},
+      {"name": "trace_changeset_pr_audit_row", "description": "Returns Oya VCS changesets with their merged PR and append-only audit-chain row provenance.", "query_sketch": "SELECT changeset.id AS changeset_id, pr.id AS pull_request_id, pr.merge_commit, audit_row.id AS audit_chain_row_id, audit_row.event_type, audit_row.evidence_path, audit_row.timestamp_unix FROM changesets changeset JOIN merged_as_pr_edges mapr ON mapr.source = changeset.id JOIN pull_requests pr ON pr.id = mapr.target JOIN emitted_audit_row_edges ear ON ear.source = pr.id JOIN audit_chain_rows audit_row ON audit_row.id = ear.target WHERE changeset.status IN ('promoted','merged') ORDER BY audit_row.timestamp_unix DESC, changeset.id"},
+      {"name": "find_unreachable_features", "description": "Returns Feature nodes with no exposing BC.", "query_sketch": "SELECT feat.id FROM features feat LEFT JOIN exposes_edges ON exposes.target = feat.id WHERE exposes.id IS NULL"},
+      {"name": "supersession_chain", "description": "Recursive traversal of supersedes chain from a given node; verifies termination.", "query_sketch": "WITH RECURSIVE chain AS (SELECT source, target FROM supersedes_edges WHERE source = :start_id UNION SELECT s.source, s.target FROM supersedes_edges s JOIN chain c ON s.source = c.target) SELECT * FROM chain"}
+    ]
+  },
   "decision_log": [
     {"date": "2026-05-16", "decision": "adopt Bominal-ADR-0106/0107/0133 verbatim per OP-10"},
     {"date": "2026-05-16", "decision": "Ontology and Knowledge Graph are ONE product per user pick (typed schema + 3-layer KG runtime)"},
@@ -319,7 +770,7 @@
     "$ref:bominal/decisions/ADR-0107-object-graph-agent-gateway.md",
     "$ref:bominal/decisions/ADR-0133-tier-classified-object-graph.md",
     "$ref:specs/knowledge-graph-schema.json",
-    "$ref:registry/knowledge-graph-semantic.json",
+    "$ref:specs/products/ontology.json#type_system (inlined from deleted registry/knowledge-graph-semantic.json per ADR-0130)",
     "$ref:registry/knowledge-graph-kinetic.json",
     "$ref:registry/knowledge-graph-dynamic.json",
     "$ref:crates/oya-ontology-kernel",
