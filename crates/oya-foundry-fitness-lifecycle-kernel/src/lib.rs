@@ -1466,14 +1466,14 @@ mod tests {
     #[test]
     fn flags_milestone_overdue_when_gate_reached() {
         let mut cfg = cfg_adr_status();
-        // Gate the `proposed` stage on milestone `M-CC-P00-merge`.
-        cfg.stages[0].gated_by_milestone = Some("M-CC-P00-merge".into());
+        // Gate the `proposed` stage on milestone `M01-P07-merge`.
+        cfg.stages[0].gated_by_milestone = Some("M01-P07-merge".into());
         let a = artifact("ADR-0011.md", Some("proposed"));
         let report = evaluate(
             &cfg,
             &[a],
             NaiveDate::ymd(2026, 5, 15),
-            &["M-CC-P00-merge".into()],
+            &["M01-P07-merge".into()],
         );
         assert_eq!(report.violations.len(), 1);
         assert_eq!(report.violations[0].kind, ViolationKind::MilestoneOverdue);

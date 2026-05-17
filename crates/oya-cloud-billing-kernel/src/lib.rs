@@ -1,4 +1,4 @@
-//! Cloud billing kernel (M-CC-M03-P03-IP-002 minimum viable kernel).
+//! Cloud billing kernel (M03-P03-IP-002 minimum viable kernel).
 //!
 //! Pure I/O-free model for usage records, billable line items, tax
 //! treatment, and the admission rule that line items cannot be

@@ -47,7 +47,7 @@
       "severity": "MAJOR",
       "claim": "ADR-0116 is cited in PR body as the governing decision for the topology move but no ADR is cited for the version-bump-via-v2-suffix decision. PR rationale `'no new ADR added because this is a mechanical topology move'` skips the naming-policy justification required by the project memory directive `feedback_naming_justification` (every new name must carry one-line justification proving v4 BNF + 12-layer-enum conformance at scaffold time).",
       "evidence": [
-        "PR #15 body: `ADRs cited: ADR-0116; Foundry pipeline M-CC-P11; no new ADR added because this is a mechanical topology move`",
+        "PR #15 body: `ADRs cited: ADR-0116; Foundry pipeline M01-P18; no new ADR added because this is a mechanical topology move`",
         "PR #15 body 'Naming justification' block covers `registry/capability-templates/` and four artifact-row ids -- does NOT justify the `-v2` template filename or the .tmp.<UUID> commits.",
         "MEMORY.md feedback_naming_justification: `Every new name must carry one-line justification proving v4 BNF + 12-layer-enum conformance at scaffold time`."
       ],

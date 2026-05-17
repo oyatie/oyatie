@@ -34,12 +34,12 @@
     },
     "oya_gate_validate_wave_integration_milestone_M02": {
       "required": "exit 0",
-      "result": "no `wave-integration` subcommand surfaced by `oya gate validate --help` on this build (b7778056); changeset-state-monotonicity + changeset-state-enum-closed (M-CC-P11 successor lanes) ran via run-all and passed",
+      "result": "no `wave-integration` subcommand surfaced by `oya gate validate --help` on this build (b7778056); changeset-state-monotonicity + changeset-state-enum-closed (M01-P18 successor lanes) ran via run-all and passed",
       "status": "GAP-ACCEPTED"
     },
     "ci_fitness_lanes_yml_flipped_to_blocker": {
       "required": ".github/workflows/ci-fitness-lanes.yml all 14 lanes off --report-only",
-      "result": "file does not exist on dev; replaced by per-lane workflows under .github/workflows/oya-foundry-fitness-*.yml (5 lanes) + .github/workflows/oya-foundry-fitness-changeset-state.yml (M-CC-P11)",
+      "result": "file does not exist on dev; replaced by per-lane workflows under .github/workflows/oya-foundry-fitness-*.yml (5 lanes) + .github/workflows/oya-foundry-fitness-changeset-state.yml (M01-P18)",
       "status": "SUPERSEDED — architecture changed; original criterion no longer maps 1:1 to live workflows"
     },
     "application_b2b_shell_deploys_oci_arm64_stage0": {

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "slice_id": "M-CC-P00-IP-007",
+  "slice_id": "M01-P07-IP-007",
   "artifact": "ip-007-review-mergequeue",
   "status": "implemented-targeted-verified",
   "generated_at": "2026-05-14T00:00:00-04:00",

@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "evidence_type": "implementation-packet",
-  "implementation_packet": "M-CC-P01-IP-010",
-  "milestone": "M-CC-cross-cutting",
+  "implementation_packet": "M01-P08-IP-010",
+  "milestone": "M01-foundation",
   "phase": "P01-agentic-pipeline-cutover",
-  "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
+  "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
   "generated_at": "2026-05-14T19:58:00Z",
   "summary": "P8 parallel-claim demo runbook shipped and executed: two session-less grit agents simultaneously claimed non-overlapping symbols in one file; a duplicate third claim was blocked; demo locks were released.",
   "changed_files": [
-    ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
+    ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
     "docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md",
     "docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.sh",
     "docs/RUNBOOKS-INDEX.md",
@@ -122,7 +122,7 @@
     "summary": "Code-review approved with no blocking findings; reviewer checked parallel grants, duplicate block, watch CLAIMED/RELEASED, final no locks, bash syntax, Python assertions, and known pre-existing blockers."
   },
   "next_steps": [
-    "M-CC-P01-IP-010 is complete; retain transcript as the regression proof for controlled parallel claims.",
+    "M01-P08-IP-010 is complete; retain transcript as the regression proof for controlled parallel claims.",
     "Defer broad master-plan parallel expansion until P00 acceptance/waiver is recorded."
   ],
   "completion_icm_id": "01KRKCB1SAN5CMGY4X0H4F5RNN",

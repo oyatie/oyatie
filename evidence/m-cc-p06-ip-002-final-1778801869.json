@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.oyatie.dev/specs/multispectrum-review.json#evidence_schema",
-  "change_id": "M-CC-P06-IP-002-FINAL",
-  "change_summary": "Closeout evidence for M-CC-P06-IP-002 'Dependency-seam discipline + tech-debt ledger + LTS roster' under amended scope (ADR-0092). 10 phases delivered: protocol foundation, kernel rename + body parameterization, 3 crate renames, matched_template + telemetry static label, LatencyBudgetReporter honest naming, Handler trait, TenantSlug centralization, S3 body cap + S4 timeouts, S5 path traversal + S7/S8 SSE injection defense, S1 + S2 + S10 header hardening. 189 tests pass across 12 suites. Seam audit reduced from 6 crates declaring hyper-family deps to exactly 1.",
+  "change_id": "M01-P13-IP-002-FINAL",
+  "change_summary": "Closeout evidence for M01-P13-IP-002 'Dependency-seam discipline + tech-debt ledger + LTS roster' under amended scope (ADR-0092). 10 phases delivered: protocol foundation, kernel rename + body parameterization, 3 crate renames, matched_template + telemetry static label, LatencyBudgetReporter honest naming, Handler trait, TenantSlug centralization, S3 body cap + S4 timeouts, S5 path traversal + S7/S8 SSE injection defense, S1 + S2 + S10 header hardening. 189 tests pass across 12 suites. Seam audit reduced from 6 crates declaring hyper-family deps to exactly 1.",
   "change_class_id": "CC-1_kernel_public_api",
   "git_sha": "825cedfbc106d7bfb222e3dcf4fabe0a40489818",
   "freshness_unix": 1778801869,
@@ -9,7 +9,7 @@
   "multispectrum_spec_version": "1.0.0",
   "schema_v2_backfill_note": "v2.0.0 added F8_performance + F9_compliance as required facets and M1 + M2 as optional meta-facets. This evidence file was authored against v1.0.0 (7 facets). Back-filled F8 + F9 + M1 + M2 below per the v1\u2192v2 migration policy.",
   "scope_amendment": {
-    "original_ip": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+    "original_ip": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
     "amended_via": "docs/decisions/ADR-0092-workspace-dependency-seam-policy.md",
     "user_directive": "2026-05-14: 'go with C \u2014 Full quality bar' + 'begin the multiday work now' + 'multispectrum quality bar, test, and review is durable and enforced by every session'",
     "amendments": [
@@ -417,10 +417,10 @@
     }
   ],
   "stop_condition_evaluation": {
-    "original_stop_condition": "All 14 acceptance criteria checklist items met; M-CC-P06-IP-002 status flipped to complete with concrete evidence file at /evidence/m-cc-p06-ip-002-final.json",
+    "original_stop_condition": "All 14 acceptance criteria checklist items met; M01-P13-IP-002 status flipped to complete with concrete evidence file at /evidence/m-cc-p06-ip-002-final.json",
     "amended_stop_condition_per_ADR_0092": "10 phases delivered; 189 tests pass across 12 suites; seam audit 6\u21921 crate; multispectrum bar codified + applied; bounded FixupTasks emitted for the 4 items intentionally out of scope (F-LANE-SEAM-IMPL, F-LANE-DISTROLESS, F-STEP8-READYZ, F-SOAK-FLIP-CRON)",
     "met": true
   },
-  "decision_log_row": "M-CC-P06-IP-002 closed under amended scope per ADR-0092 + multispectrum review bar. 10 phases of code work + 4 ADRs + 1 registry + 1 standard + 1 spec + 1 checklist + 1 loop protocol. 9 of 9 named security findings closed (or partial with FixupTask). 4 of 5 named quality findings closed; the 5th is a bounded FixupTask. Linus good-taste row in the IP markdown enumerates rejected antipatterns.",
+  "decision_log_row": "M01-P13-IP-002 closed under amended scope per ADR-0092 + multispectrum review bar. 10 phases of code work + 4 ADRs + 1 registry + 1 standard + 1 spec + 1 checklist + 1 loop protocol. 9 of 9 named security findings closed (or partial with FixupTask). 4 of 5 named quality findings closed; the 5th is a bounded FixupTask. Linus good-taste row in the IP markdown enumerates rejected antipatterns.",
   "purpose": "Auto-backfilled purpose for m-cc-p06-ip-002-final-1778801869.json"
 }

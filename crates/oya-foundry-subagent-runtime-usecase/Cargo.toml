@@ -23,7 +23,7 @@ kind = "shared"
 layer = "usecase"
 purpose = "Shared use-case orchestration for the subagent-runtime panel: canonical facet fan-out plus kernel type re-exports. No I/O and no deployable binary; dispatcher apps depend here instead of importing the subagent runtime app."
 lifecycle.stage = "scaffolded"
-introducing_ip = "M-CC-P10-IP-009"
+introducing_ip = "M01-P17-IP-009"
 
 [dependencies]
 oya-foundry-subagent-runtime-kernel = { path = "../oya-foundry-subagent-runtime-kernel" }

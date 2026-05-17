@@ -23,7 +23,7 @@ Council elects the vertical (likely `vertical-corporate` — HR/payroll/GL/mail 
 
 ## Dependencies
 - **Hard:** M03 acceptance gate passed.
-- **Hard:** M-CC-P07 hyperscaler-practice adoption ≥ Working-Backwards PRFAQ + Design Doc gates active.
+- **Hard:** M01-P14 hyperscaler-practice adoption ≥ Working-Backwards PRFAQ + Design Doc gates active.
 - **Council decision required:** vertical election per [`docs/PRD.md`](../../../docs/PRD.md) §8 question 4.
 
 ## Acceptance gate

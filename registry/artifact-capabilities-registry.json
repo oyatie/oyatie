@@ -1106,7 +1106,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture",
-      "purpose_short": "Machine-readable masterplan seed with M-CC-P00 GitOps-capable VCS replacement priority; target replacement for docs/MASTERPLAN.md after PHASE-5 Markdown retirement.",
+      "purpose_short": "Machine-readable masterplan seed with M01-P07 GitOps-capable VCS replacement priority; target replacement for docs/MASTERPLAN.md after PHASE-5 Markdown retirement.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "enforcement": {
@@ -1141,7 +1141,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "axis-foundry + ops-sre-reliability + council-architecture",
-      "purpose_short": "Early M-CC-P00 polyglot VCS replacement contract: AST/semantic conflict avoidance, enforced unit/integration/e2e standards, review/fix, rebase, merge queue, and GitOps CI/CD promotion.",
+      "purpose_short": "Early M01-P07 polyglot VCS replacement contract: AST/semantic conflict avoidance, enforced unit/integration/e2e standards, review/fix, rebase, merge queue, and GitOps CI/CD promotion.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "enforcement": {

@@ -14,7 +14,7 @@ purpose: |
   Pragmatic git/gh workflow per MASTERPLAN Directive 12. Defines the grit-first
   default, when direct git / gh is justified, the icm rationale-logging contract,
   the cutover-bootstrap window (time-bounded canonical extension with named
-  sunset at M-CC-P01 sign-off), and the revised banned-primitives lane
+  sunset at M01-P08 sign-off), and the revised banned-primitives lane
   semantics (catch *undocumented* invocations only).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
@@ -72,20 +72,20 @@ the lane refuses.
 
 ## 3. Cutover-bootstrap window (time-bounded canonical extension)
 
-During the grit/icm agentic-pipeline cutover (M-CC-P01 per MASTERPLAN
+During the grit/icm agentic-pipeline cutover (M01-P08 per MASTERPLAN
 §8), there is a documented **bootstrap window** during which raw git /
 gh is permitted *for the cutover work itself* without per-invocation
 rationale:
 
 - Window: from the cutover branch creation through the wave-gate sign-off
-  for M-CC-P01.
+  for M01-P08.
 - Operators MUST instead log a **once-per-session** rationale to icm at
   session start:
   ```sh
   icm store -t direct-tool-invocations \
-    -c "M-CC-P01 cutover bootstrap session" -i critical -k "cutover,bootstrap"
+    -c "M01-P08 cutover bootstrap session" -i critical -k "cutover,bootstrap"
   ```
-- After M-CC-P01 sign-off, the bootstrap window sunsets and the
+- After M01-P08 sign-off, the bootstrap window sunsets and the
   per-invocation rule (§2) applies uniformly. No exception clause survives
   the sunset; the bootstrap window is canonical because it is closed-form
   (named milestone sunset + audit-emit on every session).

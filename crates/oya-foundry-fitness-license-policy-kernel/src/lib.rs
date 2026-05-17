@@ -1,5 +1,5 @@
 //! License-policy fitness kernel — verifies third-party license
-//! identifiers against an allow/deny policy. Per M-CC-P08-IP-003.
+//! identifiers against an allow/deny policy. Per M01-P15-IP-003.
 //!
 //! I/O-free. Runners parse `Cargo.lock` / SBOM into typed
 //! [`CrateLicense`] records and call [`check`].

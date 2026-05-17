@@ -42,11 +42,11 @@
       "severity": "BLOCKER"
     },
     {
-      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/INDEX.md:39-49 and specs/cross-cutting/masterplan.json:520-553",
+      "evidence": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/INDEX.md:39-49 and specs/cross-cutting/masterplan.json:520-553",
       "facets_concurring": [
         "F9"
       ],
-      "headline": "PR #3 added/advanced M-CC-P10 implementation-plan content, but the current machine-readable masterplan live index still shows M-CC with phase_count 10 and has no M-CC-P10/P11 entries. Agents reading the canonical masterplan JSON cannot discover the pipeline-m…",
+      "headline": "PR #3 added/advanced M01-P17 implementation-plan content, but the current machine-readable masterplan live index still shows M-CC with phase_count 10 and has no M01-P17/P11 entries. Agents reading the canonical masterplan JSON cannot discover the pipeline-m…",
       "id": "PR3-CONV-4",
       "recommended_remediation": "Regenerate `/specs/cross-cutting/masterplan.json#live_implementation_index` after P10/P11 additions and add a lane assertion that every `.omc/plans/milestones/*/phases/*/INDEX.md` phase appears in the machine-readable hierarchy.",
       "remediation_fixuptasks": [
@@ -198,7 +198,7 @@
   "merge_commit_sha": "27fe6705519cebccc1cfb780f293e5b1619c6672",
   "naming_justification": "evidence/debate/pr-3-synthesis.json is the canonical synthesis path for PR #3 under the multispectrum debate evidence naming contract.",
   "pr_number": 3,
-  "pr_title": "ADR-0083 DENY + M-CC-P10 pipeline maturity + CLI canonicalization",
+  "pr_title": "ADR-0083 DENY + M01-P17 pipeline maturity + CLI canonicalization",
   "rendered_at_unix": 1778920055,
   "round": "synthesis",
   "round_2_evidence_policy": {

@@ -1,4 +1,4 @@
-//! Parked-PR state — M-CC-P10-IP-006 §"Parked-PR state".
+//! Parked-PR state — M01-P17-IP-006 §"Parked-PR state".
 //!
 //! A parked PR is a queue position that is RESERVED but SKIPPED on each
 //! cycle. Held by PR id, not branch SHA, so a new push to the PR branch

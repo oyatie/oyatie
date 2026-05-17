@@ -509,7 +509,7 @@ mod tests {
             "--pr-number".into(),
             "pr-42".into(),
             "--change-id".into(),
-            "M-CC-P10-IP-009-pr42".into(),
+            "M01-P17-IP-009-pr42".into(),
             "--templates-dir".into(),
             templates.display().to_string(),
             "--evidence-dir".into(),

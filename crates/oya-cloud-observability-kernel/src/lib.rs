@@ -1,4 +1,4 @@
-//! Cloud observability kernel (M-CC-M03-P03-IP-003 minimum viable kernel).
+//! Cloud observability kernel (M03-P03-IP-003 minimum viable kernel).
 //!
 //! Pure I/O-free model for OpenTelemetry signal kinds + cardinality
 //! envelopes. Adapters do the wire-level OTLP work; the kernel only

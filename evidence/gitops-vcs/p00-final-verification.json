@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "evidence_type": "phase-final-verification",
-  "milestone": "M-CC-P00",
+  "milestone": "M01-P07",
   "phase": "P00-gitops-vcs-replacement",
   "source_spec": "/specs/gitops-vcs-replacement.json",
   "created_at": "2026-05-14T11:02:41.660813Z",
@@ -77,7 +77,7 @@
       "notes": "Approved after lifecycle order and malformed option-value fixups."
     },
     {
-      "scope": "M-CC-P00-final-cross-slice",
+      "scope": "M01-P07-final-cross-slice",
       "status": "APPROVE",
       "notes": "Approved after final evidence count correction: 13 scoped P00 evidence JSON files and 102 targeted rustc tests; no cross-slice blockers remain.",
       "reviewed_at": "2026-05-14T11:16:01.376804Z"

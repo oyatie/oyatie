@@ -18,13 +18,13 @@ Every cross-axis contract correct from day one. Tenancy µservice kernel, identi
 ## Status
 **complete for M01 Foundation acceptance.** Product-surface implementation for M02/M03 remains gated, but the M01 foundation contracts are now accepted against live Cargo workspace metadata and BNF v4.1 package names.
 
-Current evidence checkpoint (2026-05-14): G1 = P01/P02/P03 is complete and usable; G2 = P04/P05/P06 is complete after the G1 contract surface. Fresh focused tests over the G1/G2 package set pass (65/65), M-CC-P01 is at or beyond P5 with banned-primitives/archive-orphan/authoritative-tracked lanes green, and the latest full workspace closeout passes `./scripts/check.sh` under Rust 1.95.0 / edition 2024 / rustfmt 2024. M-CC-P00 remains planned, not ready; this acceptance closeout uses a scoped waiver for evidence reconciliation only and does not authorize broad fanout or new foundation scaffolds until P00 is ready or explicitly waived.
+Current evidence checkpoint (2026-05-14): G1 = P01/P02/P03 is complete and usable; G2 = P04/P05/P06 is complete after the G1 contract surface. Fresh focused tests over the G1/G2 package set pass (65/65), M01-P08 is at or beyond P5 with banned-primitives/archive-orphan/authoritative-tracked lanes green, and the latest full workspace closeout passes `./scripts/check.sh` under Rust 1.95.0 / edition 2024 / rustfmt 2024. M01-P07 remains planned, not ready; this acceptance closeout uses a scoped waiver for evidence reconciliation only and does not authorize broad fanout or new foundation scaffolds until P00 is ready or explicitly waived.
 
 ## Scope
 Per [`docs/ROADMAP.md`](../../../../docs/ROADMAP.md) §2.1 W-Foundation gate criteria + the 10 compound principles from [`../../MASTERPLAN.md`](../../MASTERPLAN.md) §2. Foundation µservice crates target the BNF v4.1 names: `oya-tenancy-*`, `oya-identity-*`, `oya-audit-chain-*`, `oya-eventing-*`, `oya-cell-*`, `oya-regional-pack-*`, etc. (no `oya-platform-*` prefix).
 
 ## Dependencies
-None (M01 is the root of the dependency graph). Before broad fanout or new foundation scaffolds: M-CC-P01 must be at ≥P5 and M-CC-P00 must be ready or explicitly waived. Current evidence: M-CC-P01 is foundation-cleared/P5+ by live lane output; M-CC-P00 is only accepted-for-masterplan-P00/planned, so the only active waiver is for M01 acceptance reconciliation of already-implemented G1/G2 contracts.
+None (M01 is the root of the dependency graph). Before broad fanout or new foundation scaffolds: M01-P08 must be at ≥P5 and M01-P07 must be ready or explicitly waived. Current evidence: M01-P08 is foundation-cleared/P5+ by live lane output; M01-P07 is only accepted-for-masterplan-P00/planned, so the only active waiver is for M01 acceptance reconciliation of already-implemented G1/G2 contracts.
 
 ## Acceptance gate
 - All [`docs/ROADMAP.md`](../../../../docs/ROADMAP.md) §2.1 gate criteria met.
@@ -51,7 +51,7 @@ None (M01 is the root of the dependency graph). Before broad fanout or new found
 | P06 | Regional Pack Architecture + Flattening Ratchet | complete | [`phases/P06-regional-pack-flattening/INDEX.md`](phases/P06-regional-pack-flattening/INDEX.md) |
 
 ## Parallelism strategy
-P01..P06 partition by µservice with disjoint crate sets. Executed order: **G1** = {P01, P02, P03} (foundational µservice kernels: tenancy, identity, audit-chain) first; **G2** = {P04, P05, P06} (consume G1 ports: eventing+ontology, cell+plane, regional-pack+flattening) only after G1 contracts were usable. This milestone is not permission for M02/M03 implementation fanout; M02/M03 still require M-CC-P00 readiness or explicit waiver plus the usual wave gates.
+P01..P06 partition by µservice with disjoint crate sets. Executed order: **G1** = {P01, P02, P03} (foundational µservice kernels: tenancy, identity, audit-chain) first; **G2** = {P04, P05, P06} (consume G1 ports: eventing+ontology, cell+plane, regional-pack+flattening) only after G1 contracts were usable. This milestone is not permission for M02/M03 implementation fanout; M02/M03 still require M01-P07 readiness or explicit waiver plus the usual wave gates.
 
 ## Hyperscaler practices adopted (per [`../../MASTERPLAN.md`](../../MASTERPLAN.md) §2 principle 6, 9)
 - AWS Working-Backwards / PRFAQ for each phase entry.
@@ -60,7 +60,7 @@ P01..P06 partition by µservice with disjoint crate sets. Executed order: **G1**
 - Microsoft 1ES-templated pipelines for CI lanes.
 - Oracle Engineering-Excellence-Council–style merge gate (council-architecture signs every IP).
 - Rust toolchain: `cargo-deny`, `cargo-audit`, `cargo-nextest`, `cargo-semver-checks`, `sccache`, `cargo-llvm-cov`.
-- Sigstore/SLSA + OpenTelemetry + Distroless inherited from M-CC-P06/P08.
+- Sigstore/SLSA + OpenTelemetry + Distroless inherited from M01-P13/P08.
 
 ## Agent-navigability-pointer
 A fresh agent picks up M01 by:

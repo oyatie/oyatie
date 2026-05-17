@@ -29,7 +29,7 @@
     "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/ledger.before-stale-g001-recovery.20260509T015645Z.jsonl",
     "/Users/jasonlee/bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/ledger.jsonl",
     "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
-    ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md"
+    ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md"
   ],
   "claim": {
     "agent": "codex-autopilot-p01-ip008",
@@ -97,19 +97,19 @@
   ],
   "evidence_type": "implementation-packet",
   "generated_at": "2026-05-14T13:24:18Z",
-  "implementation_packet": "M-CC-P01-IP-008",
+  "implementation_packet": "M01-P08-IP-008",
   "known_blockers": [
     "Cargo workspace metadata fails before package discovery because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml.",
     "scripts/check.sh fails at line 36 because scripts/check-stage0-application-shell-prereqs.py is missing."
   ],
-  "milestone": "M-CC-cross-cutting",
+  "milestone": "M01-foundation",
   "next_steps": [
-    "No archive-orphan next step remains; new concurrent-work changes enter the Foundry pipeline (M-CC-P11) per ADR-0116."
+    "No archive-orphan next step remains; new concurrent-work changes enter the Foundry pipeline (M01-P18) per ADR-0116."
   ],
   "phase": "P01-agentic-pipeline-cutover",
   "schema_version": "1.0.0",
-  "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
-  "summary": "IP-008 is retired: the one-time archive-orphan lane and pre-grit archive payload have been removed after ADR-0116 made M-CC-P11 the canonical VCS substrate.",
+  "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
+  "summary": "IP-008 is retired: the one-time archive-orphan lane and pre-grit archive payload have been removed after ADR-0116 made M01-P18 the canonical VCS substrate.",
   "validation": [
     {
       "command": "rustfmt --edition 2021 --check crates/oya-foundry-fitness-archive-orphan-kernel/src/lib.rs tools/oya-foundry-fitness-archive-orphan/src/main.rs",
@@ -191,7 +191,7 @@
   "retirement": {
     "retired_on": "2026-05-16",
     "retired_by": "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
-    "replacement": "Foundry pipeline (M-CC-P11) per ADR-0116",
+    "replacement": "Foundry pipeline (M01-P18) per ADR-0116",
     "removed_workspace_members": [
       "crates/oya-foundry-fitness-archive-orphan-kernel",
       "tools/oya-foundry-fitness-archive-orphan-app"

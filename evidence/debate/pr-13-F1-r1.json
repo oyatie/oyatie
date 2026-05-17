@@ -11,7 +11,7 @@
     "ADR-0118 is 66 lines, not 100+ — context/decision/consequences/rejected-alternatives, no padding. Acceptable ceremony for a lane retirement that supersedes ADR-0052.",
     "Pre-grit archive payload (`bominal/.../pre-grit-cutover-2026-05-12/README.md`) deleted; the lane that policed it dies with it. Symmetric.",
     "Amendments to ADR-0104/0107 are one-line edits redirecting readers — not rewrites. ADR-0104 swaps a 'candidate extension' line for the actual landed crate name. ADR-0107 changes the table row from RENAME to RETIRED. This is the minimum viable forward-reference, not ceremony.",
-    "Lane retirement is justified in-text: ADR-0116 made M-CC-P11 the canonical VCS substrate; an always-empty runner would be 'false mechanical confidence' (their words, which Linus would endorse)."
+    "Lane retirement is justified in-text: ADR-0116 made M01-P18 the canonical VCS substrate; an always-empty runner would be 'false mechanical confidence' (their words, which Linus would endorse)."
   ],
   "uncertainty_areas": [
     "The dispatcher app dep edit was not fully visible in the diff tail (truncated at line 518) — relying on PR meta showing +2/-2.",

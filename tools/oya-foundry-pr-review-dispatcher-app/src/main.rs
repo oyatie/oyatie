@@ -487,10 +487,10 @@ fn render_rollup_json(
     }
     buf.push_str("\n  ],\n");
     buf.push_str("  \"audit_trail\": {\n");
-    buf.push_str("    \"plan_ref\": \".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md\",\n");
+    buf.push_str("    \"plan_ref\": \".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md\",\n");
     buf.push_str("    \"audit_ref\": \"evidence/audits/pipeline-maturity-audit-2026-05-15.md\",\n");
     buf.push_str("    \"upstream_kernel\": \"oya-foundry-vcs-review-mergequeue-kernel\",\n");
-    buf.push_str("    \"subagent_runtime_ref\": \"M-CC-P10-IP-009 — `oya-foundry-subagent-runtime-{kernel,app}` ships the per-facet subagent invocation; this dispatcher invokes it inline when `--runtime-mode inline-deterministic-mock` is passed, OR consumes the per-facet `<facet>.json` files written by an external runtime invocation. The pending flag flips to false once a complete 21-facet panel has landed without duplicate reviewer ids.\"\n");
+    buf.push_str("    \"subagent_runtime_ref\": \"M01-P17-IP-009 — `oya-foundry-subagent-runtime-{kernel,app}` ships the per-facet subagent invocation; this dispatcher invokes it inline when `--runtime-mode inline-deterministic-mock` is passed, OR consumes the per-facet `<facet>.json` files written by an external runtime invocation. The pending flag flips to false once a complete 21-facet panel has landed without duplicate reviewer ids.\"\n");
     buf.push_str("  }\n");
     buf.push_str("}\n");
     buf

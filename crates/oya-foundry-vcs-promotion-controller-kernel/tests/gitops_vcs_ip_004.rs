@@ -40,7 +40,7 @@ fn claim(sym: SymbolId) -> Claim {
     Claim::new(
         "claim_ip004",
         "agent-ip004",
-        "M-CC-P00-IP-004 promotion controller",
+        "M01-P07-IP-004 promotion controller",
         vec![sym],
         vec![],
         900,

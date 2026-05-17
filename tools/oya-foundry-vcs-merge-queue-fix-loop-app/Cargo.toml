@@ -11,7 +11,7 @@
 #                ADR-0107 amended 2026-05-15 "tools/ binding: binary tools
 #                SHALL use -app".
 #
-# IP plan symbol-claims (M-CC-P10-IP-006 §"Symbols to grit-claim") listed
+# IP plan symbol-claims (M01-P17-IP-006 §"Symbols to grit-claim") listed
 # `crates/oya-foundry-vcs-merge-queue-scheduler-kernel/...`. Per the
 # no-exceptions-canonical directive [[feedback_no_exceptions_canonical]] we
 # do NOT create a parallel kernel; instead we extend the existing
@@ -53,4 +53,4 @@ audit_chain = true
 
 [package.metadata.oya.lifecycle]
 stage = "scaffolded"
-introducing_ip = "M-CC-P10-IP-006"
+introducing_ip = "M01-P17-IP-006"

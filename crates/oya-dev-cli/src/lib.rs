@@ -424,7 +424,7 @@ fn glossary_vocabulary_forensic_path(path: &str) -> bool {
             | "docs/teams/tactical-first-vertical-pilot/CHARTER.md"
     ) || path.starts_with("docs/decisions/ADR-0016-")
         || path.starts_with("docs/decisions/ADR-0018-")
-        || path.starts_with("docs/plans/M-CC-01-cutover/")
+        || path.starts_with("docs/plans/M01-foundation-cc-01-cutover/")
         || path == "docs/plans/cutover-cross-cutting-amendments-2026-05-12.md"
         || path == "docs/plans/rename-plan-v4-clean-arch-2026-05-13.md"
         || path.starts_with("docs/specs/deep-dive-oyatie-sst-consolidation")

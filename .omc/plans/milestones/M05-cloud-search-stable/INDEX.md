@@ -23,8 +23,8 @@ Four phases: Cloud-Stable GA (marketplace + ISV + multi-AZ + FinOps), Search-Sta
 
 ## Dependencies
 - **Hard:** M04 pilot retention ≥ 80% over 8 weeks (proves the stack).
-- **Hard:** M-CC-P06 distroless + image-discipline lanes green on all production binaries.
-- **Hard:** M-CC-P08 supply-chain (Cosign+Rekor+SBOM+SLSA) lanes green.
+- **Hard:** M01-P13 distroless + image-discipline lanes green on all production binaries.
+- **Hard:** M01-P15 supply-chain (Cosign+Rekor+SBOM+SLSA) lanes green.
 
 ## Acceptance gate
 - Cloud SLA committed at 99.99% public-GA target.

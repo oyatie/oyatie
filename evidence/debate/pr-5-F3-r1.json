@@ -40,7 +40,7 @@
     {
       "severity": "MAJOR",
       "file": ".github/branch-protection.yaml:33-66",
-      "issue": "oya-pr-review is dropped from required_status_checks until 2026-06-15 OR 5 consecutive APPROVEs. The 5-consecutive-APPROVE counter is implicit - there is no automated mechanism shown to track or restore the rule. The TIME-BOUNDED comment is informational only; nothing prevents the deadline from silently slipping and the gate remaining permanently disabled. Combined with the unconditional promotion workflows (BLOCKER #2), this means the multispectrum reviewer-agent (the entire point of M-CC-P10) has zero blocking authority over what lands on production.",
+      "issue": "oya-pr-review is dropped from required_status_checks until 2026-06-15 OR 5 consecutive APPROVEs. The 5-consecutive-APPROVE counter is implicit - there is no automated mechanism shown to track or restore the rule. The TIME-BOUNDED comment is informational only; nothing prevents the deadline from silently slipping and the gate remaining permanently disabled. Combined with the unconditional promotion workflows (BLOCKER #2), this means the multispectrum reviewer-agent (the entire point of M01-P17) has zero blocking authority over what lands on production.",
       "remediation": "Add a fitness lane oya-foundry-fitness-protection-pr-review-restoration that hard-fails after 2026-06-15 if the rule is still commented out. Add a counter file registry/vcs/oya-pr-review-approve-streak.json that the dispatcher increments on each APPROVE and reset on REJECT; lane fails if streak >= 5 and rule still disabled."
     },
     {

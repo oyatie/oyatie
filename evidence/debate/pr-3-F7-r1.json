@@ -1,7 +1,7 @@
 {
   "change_id": "pr-3",
   "pr_number": 3,
-  "pr_title": "ADR-0083 DENY + M-CC-P10 pipeline maturity + CLI canonicalization",
+  "pr_title": "ADR-0083 DENY + M01-P17 pipeline maturity + CLI canonicalization",
   "merge_commit_sha": "27fe6705519cebccc1cfb780f293e5b1619c6672",
   "facet_id": "F7",
   "facet_name": "Security review",

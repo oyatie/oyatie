@@ -4,7 +4,7 @@ audit_id: AUDIT-ARCH-ANTIPATTERNS-PARALLEL-CHANGESET-2026-05-14
 title: Architecture antipatterns blocking parallel ChangeSet-driven agentic development
 status: Accepted-2026-05-14
 owner_team: council-architecture
-session_evidence: ICM topic context-oyatie keys "M-CC-P00-IP-001..009,M-CC-P01..P09,M02-P00,architecture-gate"
+session_evidence: ICM topic context-oyatie keys "M01-P07-IP-001..009,M01-P08..P09,M02-P00,architecture-gate"
 parent: ../INDEX.md
 purpose: Identify the current architecture's antipatterns that demonstrably blocked or slowed parallel ChangeSet-driven agentic development this session, with concrete repro evidence and bounded FixupTasks for each.
 ---
@@ -64,9 +64,9 @@ file/crate" — losing the per-symbol parallelism that the AST kernel
 read-locks every other symbol in that file for any contemporaneous
 agent. With 1000+ symbol crates (e.g., `oya-foundry-vcs-kernel` at 995 LOC), this is a serialization point.
 
-**Fix**: M-CC-P00 IP-001 + IP-009 already ship the contract (SymbolId
+**Fix**: M01-P07 IP-001 + IP-009 already ship the contract (SymbolId
 + AstIndex + claim_compatibility). The remaining work is the upstream
-grit FK bug (M-CC-P01-IP-011 runbook landed this session) — once grit
+grit FK bug (M01-P08-IP-011 runbook landed this session) — once grit
 stops FK-erroring on symbol-narrow claims, the existing per-symbol
 locking design takes effect without further code changes.
 
@@ -83,7 +83,7 @@ admission semantics.
 **Fix**: extend the ICM scaffold-claim template to require declared
 `SymbolId` values, not just paths. Lane-level enforcement via a new
 fitness kernel `oya-foundry-fitness-icm-claim-scope-kernel` (proposed
-M-CC-P01-IP-012, not yet split into the masterplan).
+M01-P08-IP-012, not yet split into the masterplan).
 
 ---
 
@@ -92,8 +92,8 @@ M-CC-P01-IP-012, not yet split into the masterplan).
 ### C1. IP `status:` fields drift from code reality
 **Evidence**: Multiple IPs this session had `status: stub` while their
 target crate already shipped production-quality code with passing
-tests (M-CC-P00 IP-001..009, M02-P00-IP-002, M02-P00-IP-003,
-M-CC-P02-IP-001..003, etc.). I had to ground-truth by running tests
+tests (M01-P07 IP-001..009, M02-P00-IP-002, M02-P00-IP-003,
+M01-P09-IP-001..003, etc.). I had to ground-truth by running tests
 against each crate, not by reading status.
 
 **Blast radius**: agents picking work by status alone end up
@@ -105,7 +105,7 @@ crates from scratch.
 that, for each `status: complete` IP, asserts (a) referenced crates
 exist, (b) targeted tests exist + pass, (c) decision-log row is
 non-empty. Status flips from any other state to `complete` should only
-land via this gate. *(Proposed new IP under M-CC-P01.)*
+land via this gate. *(Proposed new IP under M01-P08.)*
 
 ### C2. Evidence files pre-emitted before IP closure, then orphaned
 **Evidence**: `/evidence/gitops-vcs/ip-{001..009}-*.json` were all
@@ -123,12 +123,12 @@ should have caught the orphan.
 ## D. ChangeSet-boundary antipatterns
 
 ### D1. IPs that span "audit every file in the repo"
-**Evidence**: `M-CC-P03-IP-001` (purpose-frontmatter-audit) claims
+**Evidence**: `M01-P10-IP-001` (purpose-frontmatter-audit) claims
 `docs/**::purpose-frontmatter` and `**/*.json::purpose-field` — that's
 a tree-wide audit, not a ChangeSet. It cannot be claimed under
 `changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable`.
 
-`M-CC-P05-IP-002` (cloud-multi-provider-audit) has the same shape:
+`M01-P12-IP-002` (cloud-multi-provider-audit) has the same shape:
 glob over `crates/oya-cloud-*-adapter-{aws,oci,gcp,azure,naver,kt,kakao}-*`.
 
 **Blast radius**: any single agent claiming the IP write-locks the
@@ -143,7 +143,7 @@ them for splitting before next claim. Splitting recipe:
 - P05-IP-002 → per-provider audits (one IP per cloud provider).
 
 ### D2. IPs depending on other IPs without explicit `dependencies:` row
-**Evidence**: M-CC-P00 sequencing is encoded in a hard-coded prompt
+**Evidence**: M01-P07 sequencing is encoded in a hard-coded prompt
 ("IP-001 + IP-009 first, then IP-002/003/006/008, then IP-004/007,
 then IP-005"). The IP files themselves don't declare these edges, so a
 DAG scheduler can't extract them without parsing the prompt.
@@ -168,7 +168,7 @@ DAG is acyclic.
 
 **Why it was an antipattern**: shell/Node scripts can't participate
 in the cargo workspace test graph, semver checks, deny.toml policy,
-or the AST index. They are also opaque to the M-CC-P00 admission gate
+or the AST index. They are also opaque to the M01-P07 admission gate
 because they have no SymbolId.
 
 ---
@@ -177,9 +177,9 @@ because they have no SymbolId.
 
 | Proposed IP | Phase | Purpose | Estimated scope |
 |---|---|---|---|
-| M-CC-P01-IP-012 | agentic-pipeline-cutover | ICM-claim-scope kernel (B2 fix) | 1 new crate, ~150 LOC, ~10 tests |
-| M-CC-P01-IP-013 | agentic-pipeline-cutover | IP-status-truth kernel (C1 + C2 fix) | 1 new crate, ~200 LOC, ~12 tests |
-| M-CC-P01-IP-014 | agentic-pipeline-cutover | IP-dependency-edges kernel (D2 fix) | 1 new crate, ~150 LOC, ~10 tests |
+| M01-P08-IP-012 | agentic-pipeline-cutover | ICM-claim-scope kernel (B2 fix) | 1 new crate, ~150 LOC, ~10 tests |
+| M01-P08-IP-013 | agentic-pipeline-cutover | IP-status-truth kernel (C1 + C2 fix) | 1 new crate, ~200 LOC, ~12 tests |
+| M01-P08-IP-014 | agentic-pipeline-cutover | IP-dependency-edges kernel (D2 fix) | 1 new crate, ~150 LOC, ~10 tests |
 | M-CC-architecture-fixup-IP-001 | new arch-cleanup phase | Re-role usage-window/route-policy/dashboard kernels (A1 residual) | 4 catalog yaml edits + downstream import sweep, ~30 LOC churn |
 | M-CC-architecture-fixup-IP-002 | new arch-cleanup phase | Extract `oya-foundry-api-kernel` for shared transport types (A2 fix) | 1 new crate, ~200 LOC, plus 3 adapter Cargo.toml + import edits |
 

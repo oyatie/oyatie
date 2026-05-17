@@ -26,7 +26,7 @@ scripts/validate-foundry-phase00-evidence.mjs::check_no_raw_secrets
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
 ## Agent-prerequisites
-Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles understood; M-CC-P01 ≥ P5 merged.
+Phase INDEX read; parent milestone INDEX read; MASTERPLAN §2 principles understood; M01-P08 ≥ P5 merged.
 
 ## Acceptance-test-commands
 ```

@@ -293,7 +293,7 @@
       "current_path": "/specs/gitops-vcs-replacement.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "M-CC-P00 Oya VCS replacement contract: semantic symbol locks + ChangeBundle/GitOps promotion/controller integration for CI/CD-safe agent work."
+      "purpose": "M01-P07 Oya VCS replacement contract: semantic symbol locks + ChangeBundle/GitOps promotion/controller integration for CI/CD-safe agent work."
     },
     "test_standard": {
       "kind": "spec",

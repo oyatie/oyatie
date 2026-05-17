@@ -25,7 +25,7 @@
       "severity": "INFO"
     },
     {
-      "issue": "Round-2 F3 reconciliation preserved consensus finding: Immediate downstream promotion is optional: when the PAT secret is absent, the step silently skips and only the hourly cron remains. For the Foundry pipeline (M-CC-P11), that leaves the documented dev→staging→production trigger guarantee dependent on out-of-b…",
+      "issue": "Round-2 F3 reconciliation preserved consensus finding: Immediate downstream promotion is optional: when the PAT secret is absent, the step silently skips and only the hourly cron remains. For the Foundry pipeline (M01-P18), that leaves the documented dev→staging→production trigger guarantee dependent on out-of-b…",
       "remediation": "Keep the synthesis FixupTask and do not downgrade severity without a new facet-specific evidence file.",
       "severity": "INFO"
     }

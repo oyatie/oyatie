@@ -14,7 +14,7 @@
 #                      amended by ADR-0105+ADR-0106. ✓
 #   - Sibling pattern: every other `tools/oya-foundry-*-app` crate
 #                      (banned-primitives, pr-review-dispatcher, etc.).
-#   - Introducing IP:  M-CC-P10-IP-009 (subagent runtime).
+#   - Introducing IP:  M01-P17-IP-009 (subagent runtime).
 name = "oya-foundry-subagent-runtime-app"
 edition.workspace = true
 version.workspace = true
@@ -52,4 +52,4 @@ audit_chain = true
 
 [package.metadata.oya.lifecycle]
 stage = "scaffolded"
-introducing_ip = "M-CC-P10-IP-009"
+introducing_ip = "M01-P17-IP-009"

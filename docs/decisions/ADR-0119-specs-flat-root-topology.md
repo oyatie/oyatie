@@ -19,7 +19,7 @@ purpose: Retire the former nested spec scope directory by hoisting its machine-r
 
 ADR-0115 established the current topology cleanup pattern: use a flat canonical root, keep the semantic basename, and remove redundant `cross-cutting/` scope directories when the scope is already the omitted default. The same sprawl existed under the former nested spec scope directory: the repository had no sibling scoped spec roots, so every lookup paid a redundant path segment without adding routing information.
 
-ADR-0116 also changed the contribution substrate: the Foundry pipeline (M-CC-P11) is the canonical VCS substrate, and external coordination tools are retired. This cleanup therefore uses plain `git mv` in an isolated worktree branch and enters the Foundry path through a PR against `dev`; no retired coordination primitive participates in the topology decision.
+ADR-0116 also changed the contribution substrate: the Foundry pipeline (M01-P18) is the canonical VCS substrate, and external coordination tools are retired. This cleanup therefore uses plain `git mv` in an isolated worktree branch and enters the Foundry path through a PR against `dev`; no retired coordination primitive participates in the topology decision.
 
 ## Decision
 
@@ -92,7 +92,7 @@ All live references to the retired nested path are rewritten to `specs/`. Histor
 ### Operational
 
 - Future cross-cutting machine-readable specs are added at `specs/<concept>.json` unless they belong to an existing typed family such as `specs/lifecycle-configs/`.
-- PRs for this topology continue through the Foundry pipeline (M-CC-P11): isolated worktree branch, PR against `dev`, admission gate, review, CI, and merge queue.
+- PRs for this topology continue through the Foundry pipeline (M01-P18): isolated worktree branch, PR against `dev`, admission gate, review, CI, and merge queue.
 - Direct local validation uses `~/.rustup/toolchains/1.95.0-aarch64-apple-darwin/bin/cargo`; no external coordination shim is part of the workflow.
 
 ## Rejected alternatives
@@ -115,4 +115,4 @@ All live references to the retired nested path are rewritten to `specs/`. Histor
 - ADR-0115 — registry consolidation: flat singular `registry/`.
 - ADR-0116 — retire external agent-coordination tooling in favour of the Foundry pipeline.
 - ADR-0110/0111/0112/0113 — Foundry pipeline substrate for changeset state, projected merge state, webhook invocation, and end-to-end VCS orchestration.
-- M-CC-P11 — Foundry pipeline canonical VCS substrate.
+- M01-P18 — Foundry pipeline canonical VCS substrate.

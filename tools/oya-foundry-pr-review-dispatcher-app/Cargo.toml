@@ -21,7 +21,7 @@
 #                         supply-chain gates, etc.; archive-orphan retired by ADR-0118).
 #
 # IP plan symbol-claims listed `tools/oya-pr-review-dispatcher` literally
-# (.omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/
+# (.omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/
 # IP-004-reviewer-agent-auto-dispatch.md §"Symbols to grit-claim"). That
 # literal predates the BNF v4.1 finalization and would fail constraint 1
 # (segment count ≥ 3, microservice + layer minimum) AND constraint 2

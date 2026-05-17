@@ -1,4 +1,4 @@
-//! Cloud FinOps kernel (M-CC-M03-P03-IP-004 minimum viable kernel).
+//! Cloud FinOps kernel (M03-P03-IP-004 minimum viable kernel).
 //!
 //! Pure I/O-free model for cost-report periods, savings recommendations,
 //! and the admission rule that a recommendation cannot be promoted to

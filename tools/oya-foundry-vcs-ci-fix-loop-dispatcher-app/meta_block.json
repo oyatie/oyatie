@@ -6,8 +6,8 @@
   "owner_team": "council-architecture",
   "created_at": "2026-05-15T00:00:00Z",
   "ip_refs": [
-    "M-CC-P10-IP-005",
-    "M-CC-P10-IP-006"
+    "M01-P17-IP-005",
+    "M01-P17-IP-006"
   ],
   "schema": {
     "max_attempts_per_pr": 5,

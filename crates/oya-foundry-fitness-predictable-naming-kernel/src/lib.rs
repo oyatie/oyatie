@@ -1,4 +1,4 @@
-//! Predictable-naming fitness kernel (M-CC-P04-IP-002).
+//! Predictable-naming fitness kernel (M01-P11-IP-002).
 //!
 //! Validates workspace crate names against the
 //! `<context>-<bounded-context>-<capability>-<role>` convention so that
