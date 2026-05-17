@@ -8,6 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-search-parser-domain = { path = "../oya-search-parser-domain" }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 oya-search-crawler-domain = { path = "../oya-search-crawler-domain" }

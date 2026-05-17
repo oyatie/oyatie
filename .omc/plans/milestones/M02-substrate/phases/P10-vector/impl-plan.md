@@ -4,8 +4,8 @@ template_id: TPL-IMPL-PLAN
 milestone: M02b-substrate
 phase: P10-vector
 status: Proposed
-depends_on_phase_spec: phase-spec.md
-purpose: "Implementation plan for P10-vector of M02b-substrate: detailed code structure and acceptance lanes."
+depends_on_phase_spec: ../../M02b-substrate/phases/P10-vector/phase-spec.md
+purpose: "Implementation plan for P10-vector of M02-substrate: detailed code structure and acceptance lanes."
 execution_variant: merge-into-existing-crates
 execution_variant_decided_at: 2026-05-17
 execution_variant_decided_by: user-directive-option-2
@@ -17,13 +17,13 @@ execution_variant_note: "Delta 1: DistanceMetric enum + SearchHit value-object b
 
 ```bash
 cargo run -p oya-dev-cli -- vcs claim \
-  --agent agent/m02b-p10-vector-merge-variant \
   --intent "P10-vector: 12 crates; pgvector HNSW day-1; per-tenant per-object-type tables; RLS" \
-  crates/oya-vector-embeddings-kernel/src/ports.rs \
-  crates/oya-vector-similarity-kernel/src/ports.rs \
-  crates/oya-vector-embeddings-adapter/src/pgvector.rs \
-  crates/oya-vector-similarity-adapter/src/pgvector_hnsw.rs \
-  migrations/vector/V001__vector_init.sql
+  --paths \
+    crates/oya-vector-embeddings-kernel/src/ports.rs \
+    crates/oya-vector-similarity-kernel/src/ports.rs \
+    crates/oya-vector-embeddings-adapter/src/pgvector.rs \
+    crates/oya-vector-similarity-adapter/src/pgvector_hnsw.rs \
+    migrations/vector/V001__vector_init.sql
 ```
 
 ---
@@ -80,65 +80,90 @@ INSERT INTO vector.embedding_models (id, dimensions, distance_metric, descriptio
     ('bge-m3',                  1024, 'cosine',     'BAAI/bge-m3 multilingual, Korean-strong'),
     ('gte-qwen2-1.5b-instruct', 1536, 'cosine',     'Qwen2 1.5B GTE multilingual');
 
--- Per-tenant per-object-type embeddings table
--- DESIGN DECISION: One physical table for all embeddings, with (tenant_id, object_type)
--- as partition discriminator, rather than one table per (tenant_id, object_type) pair.
--- Rationale:
---   - Dynamic DDL per-tenant/per-object-type creates operational risk (thousands of tables).
---   - Citus sharding on tenant_id works correctly with a single table + RLS.
---   - HNSW index filters via WHERE tenant_id = ? + object_type = ? before ANN scan
---     (pgvector 0.7+ supports partial indexes for per-class ANN).
---   - Per-class partial HNSW indexes (see below) restore query performance.
-CREATE TABLE vector.embeddings (
+-- Per-model-dimension embedding tables.
+-- DESIGN DECISION: one table per distinct dimension count so pgvector's fixed-width
+-- vector() column exactly matches the model's output dimension, enabling correct
+-- inserts and efficient HNSW indexing without padding or normalization.
+-- The PgVectorAdapter selects the target table by looking up `dimensions` in
+-- vector.embedding_models at runtime.
+
+-- 1024-dim table (bge-m3)
+CREATE TABLE vector.embeddings_1024 (
     id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id        uuid        NOT NULL,
-    object_id        uuid        NOT NULL,    -- references ontology.objects.id (not FK; cross-schema)
-    object_type      text        NOT NULL,    -- 'entity' | 'person' | 'product' | ...
+    object_id        uuid        NOT NULL,
+    object_type      text        NOT NULL,
     model_id         text        NOT NULL REFERENCES vector.embedding_models(id),
-    embedding        vector(4096),            -- max dims; NULL if dims < 4096 for this model
-    --  For models with dim < 4096, actual vector stored using partial column hack:
-    --  see note below about model-specific sub-tables.
-    dims             int         NOT NULL,    -- actual dimension count for this embedding
+    embedding        vector(1024) NOT NULL,
     metadata         jsonb       NOT NULL DEFAULT '{}'::jsonb,
     created_at       timestamptz NOT NULL DEFAULT now(),
     updated_at       timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (tenant_id, object_id, model_id)  -- one embedding per (object, model) pair
+    UNIQUE (tenant_id, object_id, model_id)
 );
 
--- NOTE on variable dimension storage:
--- pgvector requires a fixed vector() dimension column per table.
--- We use vector(4096) as the max dimension column and store actual dims in the `dims` column.
--- For production, the recommendation is to create per-model-dimension sub-tables
--- (e.g., vector.embeddings_1536 for 1536-dim models) to enable efficient HNSW indexing
--- without wasting storage. This migration creates the base table; product migrations
--- add model-specific tables as needed.
--- The PgVectorAdapter routes to the correct table based on model_id dimensions.
+-- 1536-dim table (text-embedding-3-small, text-embedding-ada-002, gte-qwen2-1.5b-instruct)
+CREATE TABLE vector.embeddings_1536 (
+    id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id        uuid        NOT NULL,
+    object_id        uuid        NOT NULL,
+    object_type      text        NOT NULL,
+    model_id         text        NOT NULL REFERENCES vector.embedding_models(id),
+    embedding        vector(1536) NOT NULL,
+    metadata         jsonb       NOT NULL DEFAULT '{}'::jsonb,
+    created_at       timestamptz NOT NULL DEFAULT now(),
+    updated_at       timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (tenant_id, object_id, model_id)
+);
 
--- RLS: strict per-tenant isolation
-ALTER TABLE vector.embeddings ENABLE ROW LEVEL SECURITY;
-FORCE ROW LEVEL SECURITY ON vector.embeddings;
-CREATE POLICY tenant_isolation ON vector.embeddings
+-- 3072-dim table (text-embedding-3-large)
+CREATE TABLE vector.embeddings_3072 (
+    id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id        uuid        NOT NULL,
+    object_id        uuid        NOT NULL,
+    object_type      text        NOT NULL,
+    model_id         text        NOT NULL REFERENCES vector.embedding_models(id),
+    embedding        vector(3072) NOT NULL,
+    metadata         jsonb       NOT NULL DEFAULT '{}'::jsonb,
+    created_at       timestamptz NOT NULL DEFAULT now(),
+    updated_at       timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (tenant_id, object_id, model_id)
+);
+
+-- Convenience alias used by existing SQL references (view over all dim tables)
+CREATE VIEW vector.embeddings AS
+    SELECT id, tenant_id, object_id, object_type, model_id,
+           embedding::vector AS embedding, metadata, created_at, updated_at
+    FROM vector.embeddings_1024
+    UNION ALL
+    SELECT id, tenant_id, object_id, object_type, model_id,
+           embedding::vector AS embedding, metadata, created_at, updated_at
+    FROM vector.embeddings_1536
+    UNION ALL
+    SELECT id, tenant_id, object_id, object_type, model_id,
+           embedding::vector AS embedding, metadata, created_at, updated_at
+    FROM vector.embeddings_3072;
+
+-- RLS: strict per-tenant isolation on each concrete dimension table.
+-- (RLS cannot be applied to views; must be applied to the underlying tables.)
+ALTER TABLE vector.embeddings_1024 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vector.embeddings_1024 FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON vector.embeddings_1024
     USING (tenant_id = current_setting('oyatie.tenant_id')::uuid);
 
--- HNSW index (pgvector 0.7+): per-object-type partial indexes for ANN search
--- These are created for the most common object types; additional types added via product migrations.
--- HNSW parameters: m=16 (max connections per layer), ef_construction=128 (index-time beam search),
--- equivalent to lists=100 in IVFFlat (but HNSW has better recall/latency trade-off)
-CREATE INDEX CONCURRENTLY IF NOT EXISTS
-    embeddings_hnsw_entity_cosine_idx
-    ON vector.embeddings USING hnsw ((embedding::vector(1536)) vector_cosine_ops)
-    WITH (m = 16, ef_construction = 128)
-    WHERE object_type = 'entity' AND model_id = 'text-embedding-3-small';
+ALTER TABLE vector.embeddings_1536 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vector.embeddings_1536 FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON vector.embeddings_1536
+    USING (tenant_id = current_setting('oyatie.tenant_id')::uuid);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS
-    embeddings_hnsw_person_cosine_idx
-    ON vector.embeddings USING hnsw ((embedding::vector(1536)) vector_cosine_ops)
-    WITH (m = 16, ef_construction = 128)
-    WHERE object_type = 'person' AND model_id = 'text-embedding-3-small';
+ALTER TABLE vector.embeddings_3072 ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vector.embeddings_3072 FORCE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON vector.embeddings_3072
+    USING (tenant_id = current_setting('oyatie.tenant_id')::uuid);
 
--- B-tree index for point-lookup: given (tenant, object, model) → embedding
-CREATE INDEX embeddings_lookup_idx
-    ON vector.embeddings (tenant_id, object_id, model_id);
+-- B-tree indexes for point-lookup: given (tenant, object, model) → embedding
+CREATE INDEX embeddings_1024_lookup_idx ON vector.embeddings_1024 (tenant_id, object_id, model_id);
+CREATE INDEX embeddings_1536_lookup_idx ON vector.embeddings_1536 (tenant_id, object_id, model_id);
+CREATE INDEX embeddings_3072_lookup_idx ON vector.embeddings_3072 (tenant_id, object_id, model_id);
 
 -- Outbox for vector events
 CREATE TABLE vector.outbox (
@@ -157,11 +182,27 @@ CREATE INDEX vector_outbox_unpublished_idx
     ON vector.outbox (created_at) WHERE published = false;
 
 ALTER TABLE vector.outbox ENABLE ROW LEVEL SECURITY;
-FORCE ROW LEVEL SECURITY ON vector.outbox;
+ALTER TABLE vector.outbox FORCE ROW LEVEL SECURITY;
 CREATE POLICY tenant_isolation ON vector.outbox
     USING (tenant_id = current_setting('oyatie.tenant_id')::uuid);
 
 COMMIT;
+
+-- HNSW indexes must run OUTSIDE a transaction block (CREATE INDEX CONCURRENTLY
+-- is rejected inside an explicit transaction by PostgreSQL).
+-- Run these statements after the migration transaction above has committed.
+-- HNSW parameters: m=16 (max connections per layer), ef_construction=128 (index-time beam search).
+CREATE INDEX CONCURRENTLY IF NOT EXISTS
+    embeddings_hnsw_entity_cosine_idx
+    ON vector.embeddings USING hnsw ((embedding::vector(1536)) vector_cosine_ops)
+    WITH (m = 16, ef_construction = 128)
+    WHERE object_type = 'entity' AND model_id = 'text-embedding-3-small';
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS
+    embeddings_hnsw_person_cosine_idx
+    ON vector.embeddings USING hnsw ((embedding::vector(1536)) vector_cosine_ops)
+    WITH (m = 16, ef_construction = 128)
+    WHERE object_type = 'person' AND model_id = 'text-embedding-3-small';
 ```
 
 ---
@@ -484,8 +525,10 @@ impl EmbeddingStorePort for PgVectorAdapter {
         let mut updated = 0u64;
         let mut failed = 0u64;
 
-        // Validate all dims before any writes
-        for e in &embeddings {
+        // Validate all dims BEFORE opening the write transaction.
+        // Collect valid embeddings; mark dimension mismatches as failed immediately.
+        let mut valid_embeddings = Vec::with_capacity(embeddings.len());
+        for e in embeddings {
             let expected: Option<i32> = sqlx::query_scalar(
                 "SELECT dimensions FROM vector.embedding_models WHERE id = $1",
             )
@@ -496,42 +539,56 @@ impl EmbeddingStorePort for PgVectorAdapter {
             if let Some(exp) = expected {
                 if e.vector.len() != exp as usize {
                     failed += 1;
-                    continue;
+                    continue; // skip — do NOT add to valid_embeddings
                 }
             }
+            valid_embeddings.push(e);
+        }
+
+        // Only enter the transaction if there is something to write.
+        if valid_embeddings.is_empty() {
+            return Ok(BatchUpsertResult { inserted: 0, updated: 0, failed });
         }
 
         let mut tx = self.pool.begin().await?;
         self.set_tenant(&mut tx, tenant_id).await?;
 
-        for e in embeddings {
-            let vec = Vector::from(e.vector.clone());
-            let result = sqlx::query(
+        for e in valid_embeddings {
+            let table = match e.vector.len() {
+                1024 => "vector.embeddings_1024",
+                1536 => "vector.embeddings_1536",
+                3072 => "vector.embeddings_3072",
+                _ => { failed += 1; continue; }
+            };
+            // Use xmax to detect insert vs update: xmax = 0 means fresh insert.
+            let sql = format!(
                 r#"
-                INSERT INTO vector.embeddings
-                    (tenant_id, object_id, object_type, model_id, embedding, dims, metadata)
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                INSERT INTO {table}
+                    (tenant_id, object_id, object_type, model_id, embedding, metadata)
+                VALUES ($1, $2, $3, $4, $5, $6)
                 ON CONFLICT (tenant_id, object_id, model_id) DO UPDATE
-                    SET embedding = EXCLUDED.embedding,
-                        dims = EXCLUDED.dims,
-                        metadata = EXCLUDED.metadata,
+                    SET embedding  = EXCLUDED.embedding,
+                        metadata   = EXCLUDED.metadata,
                         updated_at = now()
+                RETURNING (xmax = 0) AS is_insert
                 "#,
-            )
-            .bind(tenant_id)
-            .bind(e.object_id)
-            .bind(&e.object_type)
-            .bind(&e.model_id)
-            .bind(vec)
-            .bind(e.vector.len() as i32)
-            .bind(e.metadata)
-            .execute(tx.as_mut())
-            .await;
+            );
+            let vec = Vector::from(e.vector.clone());
+            let result: Result<Option<bool>, _> = sqlx::query_scalar(&sql)
+                .bind(tenant_id)
+                .bind(e.object_id)
+                .bind(&e.object_type)
+                .bind(&e.model_id)
+                .bind(vec)
+                .bind(e.metadata)
+                .fetch_optional(tx.as_mut())
+                .await;
 
             match result {
-                Ok(r) if r.rows_affected() == 1 => inserted += 1,
-                Ok(_) => updated += 1,
-                Err(_) => failed += 1,
+                Ok(Some(true))  => inserted += 1,
+                Ok(Some(false)) => updated += 1,
+                Ok(None)        => updated += 1,
+                Err(_)          => failed += 1,
             }
         }
 
@@ -577,9 +634,9 @@ impl PgVectorHnswAdapter {
             .bind(tenant_id.to_string())
             .execute(tx.as_mut())
             .await?;
-        // Set HNSW ef_search for this transaction
-        sqlx::query("SET LOCAL hnsw.ef_search = $1")
-            .bind(ef_search as i32)
+        // SET LOCAL does not accept bind placeholders in PostgreSQL; use set_config instead.
+        sqlx::query("SELECT set_config('hnsw.ef_search', $1, true)")
+            .bind(ef_search.to_string())
             .execute(tx.as_mut())
             .await?;
         Ok(())
@@ -602,11 +659,15 @@ impl SimilaritySearchPort for PgVectorHnswAdapter {
         let ef_search = query.ef_search.unwrap_or(DEFAULT_EF_SEARCH);
         let vec = Vector::from(query.vector.clone());
 
-        // Select distance operator based on metric
-        let distance_expr = match query.metric {
-            DistanceMetric::Cosine     => "embedding <=> $1",
-            DistanceMetric::DotProduct => "-(embedding <#> $1)",  // negate: higher dot = closer
-            DistanceMetric::L2         => "embedding <-> $1",
+        // Select distance operator and sort direction based on metric.
+        // For Cosine and L2: lower score = closer → ORDER BY ASC.
+        // For DotProduct: pgvector's <#> operator already returns the negated inner product
+        // (lower = closer), so ORDER BY ASC on `embedding <#> $1` returns highest dot-product
+        // hits first without any manual negation.
+        let (distance_expr, order_dir) = match query.metric {
+            DistanceMetric::Cosine     => ("embedding <=> $1", "ASC"),
+            DistanceMetric::DotProduct => ("embedding <#> $1",  "ASC"), // <#> = negated IP; ASC = highest IP first
+            DistanceMetric::L2         => ("embedding <-> $1", "ASC"),
         };
 
         let sql = if let Some(ref ot) = query.object_type {
@@ -619,10 +680,11 @@ impl SimilaritySearchPort for PgVectorHnswAdapter {
                 WHERE tenant_id = $2
                   AND model_id = $3
                   AND object_type = $4
-                ORDER BY {distance_expr}
+                ORDER BY {distance_expr} {order_dir}
                 LIMIT $5
                 "#,
-                distance_expr = distance_expr
+                distance_expr = distance_expr,
+                order_dir = order_dir,
             )
         } else {
             format!(
@@ -633,10 +695,11 @@ impl SimilaritySearchPort for PgVectorHnswAdapter {
                 FROM vector.embeddings
                 WHERE tenant_id = $2
                   AND model_id = $3
-                ORDER BY {distance_expr}
+                ORDER BY {distance_expr} {order_dir}
                 LIMIT $4
                 "#,
-                distance_expr = distance_expr
+                distance_expr = distance_expr,
+                order_dir = order_dir,
             )
         };
 
@@ -1083,16 +1146,9 @@ k6 run tests/load/smoke-vector-search.js --env BASE_URL=http://localhost:8088
 # Pass criteria: p99 ≤200ms at 1k RPS, 1536-dim cosine, top-10
 
 # 8. oya vcs closeout
-cargo run -p oya-dev-cli -- vcs verify \
-  --agent agent/m02b-p10-vector-merge-variant \
-  --evidence evidence/audit-chain.jsonl \
-  --evidence evidence/multispectrum/claude-m02b-p10-vector-merge-variant-1778997483.json
-cargo run -p oya-dev-cli -- vcs done \
-  --agent agent/m02b-p10-vector-merge-variant
-cargo run -p oya-dev-cli -- vcs promote \
-  --agent agent/m02b-p10-vector-merge-variant \
-  --bundle dist/m02b-p10-vector-merge-variant.tar.gz \
-  --environment staging
+cargo run -p oya-dev-cli -- vcs verify --agent <agent-id> --evidence evidence/multispectrum/
+cargo run -p oya-dev-cli -- vcs done --agent <agent-id>
+cargo run -p oya-dev-cli -- vcs promote --agent <agent-id> --bundle <bundle-id> --environment dev
 ```
 
 ---

@@ -9,6 +9,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod similarity;
+pub use similarity::{DistanceMetric, SearchHit, SearchHitError};
+
 use std::collections::BTreeMap;
 
 use oya_search_parser_domain::ParsedDocument;
