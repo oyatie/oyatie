@@ -1,6 +1,7 @@
 # Oyatie glossary vocabulary warning baseline. Format: <kind>\t<token>
 casing-variant	oyatie
 uncited-acronym	AA
+uncited-acronym	AAA
 uncited-acronym	ABB
 uncited-acronym	ACA
 uncited-acronym	ACH
@@ -90,6 +91,7 @@ uncited-acronym	BOK
 uncited-acronym	BOM
 uncited-acronym	BPM
 uncited-acronym	BPOM
+uncited-acronym	BREAKING
 uncited-acronym	BRL
 uncited-acronym	BSA
 uncited-acronym	BSL
@@ -139,6 +141,7 @@ uncited-acronym	CLOSED
 uncited-acronym	CMS
 uncited-acronym	CNBV
 uncited-acronym	CNCF
+uncited-acronym	CNI
 uncited-acronym	CNPJ
 uncited-acronym	CNS
 uncited-acronym	CO
@@ -162,6 +165,7 @@ uncited-acronym	CRA
 uncited-acronym	CRAC
 uncited-acronym	CRAH
 uncited-acronym	CRD
+uncited-acronym	CRI
 uncited-acronym	CRITICAL
 uncited-acronym	CRLF
 uncited-acronym	CRM
@@ -562,6 +566,7 @@ uncited-acronym	MODERATE
 uncited-acronym	MOEL
 uncited-acronym	MOH
 uncited-acronym	MOVE
+uncited-acronym	MPR
 uncited-acronym	MQ
 uncited-acronym	MRR
 uncited-acronym	MS
@@ -744,6 +749,7 @@ uncited-acronym	QU
 uncited-acronym	QUASI
 uncited-acronym	RAII
 uncited-acronym	RALPLAN
+uncited-acronym	RAM
 uncited-acronym	RB
 uncited-acronym	RBA
 uncited-acronym	RBD
@@ -825,6 +831,7 @@ uncited-acronym	SARB
 uncited-acronym	SARIF
 uncited-acronym	SATISFIED
 uncited-acronym	SBV
+uncited-acronym	SC
 uncited-acronym	SCA
 uncited-acronym	SCC
 uncited-acronym	SCF
@@ -1023,6 +1030,7 @@ uncited-acronym	YAGNI
 uncited-acronym	YY
 uncited-acronym	ZA
 uncited-acronym	ZERO
+uncited-acronym	ZFS
 uncited-acronym	ZH
 uncited-acronym	ZIP
 uncited-acronym	ZK

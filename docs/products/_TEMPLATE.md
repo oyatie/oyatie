@@ -227,7 +227,7 @@ Per `agent-durable-goal.json#identity.quality_bar`: Stripe + Palantir + Linear. 
 
 Bulleted list. Each item: a positive pattern + why it's load-bearing + how it's mechanically enforced (which CI lane / fitness check / kernel-level guard).
 
-Per `agent-durable-goal.json#OP-11`: NO "good enough for MVP" framing. Every practice is hyperscaler-target.
+Per `agent-durable-goal.json#OP-11`: NO "good enough for `MVP`" framing. Every practice is hyperscaler-target.
 
 ## 11d. Patterns + anti-patterns (required) — *what to do, what to never do*
 
@@ -269,9 +269,9 @@ Per `agent-skills:frontend-ui-engineering`: production-quality UIs, not AI-gener
 
 Components must be sourced from `/specs/design-system/` catalog. Custom one-off components require a design-system-promotion ADR before merge per `agent-durable-goal.json#OP-11` no-stubs (one-off custom = stub of "should have promoted to design-system but didn't").
 
-## 11e. Goals (required) — *production-quality, hyperscaler-grade targets, not MVP*
+## 11e. Goals (required) — *production-quality, hyperscaler-grade targets, not `MVP`*
 
-Per user directive 2026-05-16 captured in `agent-durable-goal.json#OP-11.user_directive_verbatim`: "We are not building MVP, demo, or sample. We are building full hyperscaler production platform and ecosystem. That is scalable, secure, performant, and efficient."
+Per user directive 2026-05-16 captured in `agent-durable-goal.json#OP-11.user_directive_verbatim`: "We are not building `MVP`, demo, or sample. We are building full hyperscaler production platform and ecosystem. That is scalable, secure, performant, and efficient."
 
 | Dimension | Target | Verification |
 |---|---|---|
@@ -281,7 +281,7 @@ Per user directive 2026-05-16 captured in `agent-durable-goal.json#OP-11.user_di
 | Efficiency | (cost per tenant per month, per call, per GB) | (FinOps unit-economics dashboard) |
 | Reliability | (SLO targets — availability, MTTR, error budget) | (canary-observability + post-deploy lanes per agent-durable-goal.json#pipeline.lane_categories.post_deploy_observability) |
 
-NO "MVP-shape" targets. NO "we'll improve in v2" caveats. If a target can't be met in initial GA, the product doesn't ship to GA.
+NO "`MVP-shape`" targets. NO "we'll improve in v2" caveats. If a target can't be met in initial GA, the product doesn't ship to GA.
 
 ## 12. Decision log
 
