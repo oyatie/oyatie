@@ -45,67 +45,133 @@ def gh(args):
 
 
 def fetch_threads(pr_filter=None):
-    query = (
-        "query { repository(owner:\"%s\", name:\"%s\") { "
-        "pullRequests(first:50, states:OPEN) { nodes { number "
-        "reviewThreads(first:30) { nodes { id isResolved path "
-        "comments(first:1) { nodes { author { login } body } } } } } } } }"
-        % (OWNER, NAME)
-    )
-    out, rc = gh(["api", "graphql", "-f", f"query={query}"])
-    if rc != 0:
-        print(f"error: gh api graphql failed (exit {rc}):\n{out}", file=sys.stderr)
-        sys.exit(rc or 1)
-    try:
-        d = json.loads(out)
-    except Exception as exc:
-        print(f"error: failed to parse gh output as JSON: {exc}\nraw output:\n{out}", file=sys.stderr)
-        sys.exit(1)
+    """Fetch unresolved codex review threads, paginating over PRs and threads."""
     threads_by_pr = {}
-    for p in d["data"]["repository"]["pullRequests"]["nodes"]:
-        pr = p["number"]
-        if pr_filter is not None and pr != pr_filter:
-            continue
-        for t in p["reviewThreads"]["nodes"]:
-            if t["isResolved"]:
+    pr_cursor = None
+    while True:
+        after_clause = f', after: "{pr_cursor}"' if pr_cursor else ""
+        query = (
+            "query { repository(owner:\"%s\", name:\"%s\") { "
+            "pullRequests(first:50, states:OPEN%s) { pageInfo { hasNextPage endCursor } "
+            "nodes { number "
+            "reviewThreads(first:100) { pageInfo { hasNextPage endCursor } "
+            "nodes { id isResolved path "
+            "comments(first:1) { nodes { author { login } body } } } } } } } }"
+            % (OWNER, NAME, after_clause)
+        )
+        out, rc = gh(["api", "graphql", "-f", f"query={query}"])
+        if rc != 0:
+            print(f"error: gh api graphql failed (exit {rc}):\n{out}", file=sys.stderr)
+            sys.exit(rc or 1)
+        try:
+            d = json.loads(out)
+        except Exception as exc:
+            print(f"error: failed to parse gh output as JSON: {exc}\nraw output:\n{out}", file=sys.stderr)
+            sys.exit(1)
+        pr_page = d["data"]["repository"]["pullRequests"]
+        for p in pr_page["nodes"]:
+            pr = p["number"]
+            if pr_filter is not None and pr != pr_filter:
                 continue
-            comments = t["comments"]["nodes"]
-            if not comments:
-                continue
-            if comments[0]["author"]["login"] != "chatgpt-codex-connector":
-                continue
-            body = comments[0]["body"]
-            priority = "P1" if "P1 Badge" in body else ("P2" if "P2 Badge" in body else "?")
-            # Extract first-line title after the badge image
-            title = ""
-            for line in body.splitlines():
-                line = line.strip()
-                if line.startswith("**") and "Badge" not in line:
-                    title = line.strip("* ").strip()
-                    break
-                if "Badge" in line and line.endswith("**"):
-                    title = line.split("</sub></sub>")[-1].strip("* ").strip()
-                    break
-            threads_by_pr.setdefault(pr, []).append({
-                "id": t["id"],
-                "priority": priority,
-                "path": t.get("path", "?"),
-                "title": title or body[:80].replace("\n", " "),
-            })
+            # Paginate review threads within the PR
+            thread_nodes = p["reviewThreads"]["nodes"]
+            thread_page_info = p["reviewThreads"]["pageInfo"]
+            thread_cursor = thread_page_info["endCursor"] if thread_page_info["hasNextPage"] else None
+            while thread_cursor:
+                tq = (
+                    "query { repository(owner:\"%s\", name:\"%s\") { "
+                    "pullRequest(number:%d) { "
+                    "reviewThreads(first:100, after:\"%s\") { pageInfo { hasNextPage endCursor } "
+                    "nodes { id isResolved path "
+                    "comments(first:1) { nodes { author { login } body } } } } } } }"
+                    % (OWNER, NAME, pr, thread_cursor)
+                )
+                tout, trc = gh(["api", "graphql", "-f", f"query={tq}"])
+                if trc != 0:
+                    print(f"error: gh api graphql failed (exit {trc}) paginating threads for PR {pr}:\n{tout}", file=sys.stderr)
+                    sys.exit(trc or 1)
+                try:
+                    td = json.loads(tout)
+                    tp = td["data"]["repository"]["pullRequest"]["reviewThreads"]
+                    thread_nodes.extend(tp["nodes"])
+                    thread_cursor = tp["pageInfo"]["endCursor"] if tp["pageInfo"]["hasNextPage"] else None
+                except Exception as exc:
+                    print(f"error: failed to parse thread pagination for PR {pr}: {exc}\nraw: {tout}", file=sys.stderr)
+                    sys.exit(1)
+
+            for t in thread_nodes:
+                if t["isResolved"]:
+                    continue
+                comments = t["comments"]["nodes"]
+                if not comments:
+                    continue
+                if (comments[0].get("author") or {}).get("login") != "chatgpt-codex-connector":
+                    continue
+                body = comments[0]["body"]
+                priority = "P1" if "P1 Badge" in body else ("P2" if "P2 Badge" in body else "?")
+                # Extract first-line title after the badge image
+                title = ""
+                for line in body.splitlines():
+                    line = line.strip()
+                    if line.startswith("**") and "Badge" not in line:
+                        title = line.strip("* ").strip()
+                        break
+                    if "Badge" in line and line.endswith("**"):
+                        title = line.split("</sub></sub>")[-1].strip("* ").strip()
+                        break
+                threads_by_pr.setdefault(pr, []).append({
+                    "id": t["id"],
+                    "priority": priority,
+                    "path": t.get("path", "?"),
+                    "title": title or body[:80].replace("\n", " "),
+                })
+        if not pr_page["pageInfo"]["hasNextPage"]:
+            break
+        pr_cursor = pr_page["pageInfo"]["endCursor"]
     return threads_by_pr
 
 
 def fetch_thread_body(thread_id):
+    """Fetch the full body of a single review thread, paginating comments."""
     query = (
         "query { node(id:\"%s\") { ... on PullRequestReviewThread { "
         "id isResolved path "
-        "comments(first:5) { nodes { author { login } body } } } } }" % thread_id
+        "comments(first:100) { pageInfo { hasNextPage endCursor } "
+        "nodes { author { login } body } } } } }" % thread_id
     )
-    out, _ = gh(["api", "graphql", "-f", f"query={query}"])
+    out, rc = gh(["api", "graphql", "-f", f"query={query}"])
+    if rc != 0:
+        print(f"error: gh api graphql failed (exit {rc}) for thread {thread_id}:\n{out}", file=sys.stderr)
+        sys.exit(rc or 1)
     try:
-        return json.loads(out)["data"]["node"]
-    except Exception:
-        return None
+        node = json.loads(out)["data"]["node"]
+    except Exception as exc:
+        print(f"error: failed to parse gh output for thread {thread_id}: {exc}\nraw: {out}", file=sys.stderr)
+        sys.exit(1)
+    if node is None:
+        print(f"error: thread {thread_id!r} not found in GraphQL response", file=sys.stderr)
+        sys.exit(1)
+    # Paginate remaining comments if needed
+    page_info = node["comments"]["pageInfo"]
+    cursor = page_info["endCursor"] if page_info["hasNextPage"] else None
+    while cursor:
+        cq = (
+            "query { node(id:\"%s\") { ... on PullRequestReviewThread { "
+            "comments(first:100, after:\"%s\") { pageInfo { hasNextPage endCursor } "
+            "nodes { author { login } body } } } } }" % (thread_id, cursor)
+        )
+        cout, crc = gh(["api", "graphql", "-f", f"query={cq}"])
+        if crc != 0:
+            print(f"error: gh api graphql failed (exit {crc}) paginating thread {thread_id}:\n{cout}", file=sys.stderr)
+            sys.exit(crc or 1)
+        try:
+            cp = json.loads(cout)["data"]["node"]["comments"]
+            node["comments"]["nodes"].extend(cp["nodes"])
+            cursor = cp["pageInfo"]["endCursor"] if cp["pageInfo"]["hasNextPage"] else None
+        except Exception as exc:
+            print(f"error: failed to parse pagination response for thread {thread_id}: {exc}\nraw: {cout}", file=sys.stderr)
+            sys.exit(1)
+    return node
 
 
 def cmd_list(p1_only, pr_filter):
@@ -147,7 +213,14 @@ def main():
         pr_filter = None
         if "--pr" in sys.argv:
             i = sys.argv.index("--pr")
-            pr_filter = int(sys.argv[i + 1])
+            if i + 1 >= len(sys.argv):
+                print("error: --pr requires a PR number argument (e.g. --pr 96)", file=sys.stderr)
+                sys.exit(1)
+            try:
+                pr_filter = int(sys.argv[i + 1])
+            except ValueError:
+                print(f"error: --pr argument must be an integer, got: {sys.argv[i + 1]!r}", file=sys.stderr)
+                sys.exit(1)
         cmd_list(p1_only, pr_filter)
     elif mode == "show" and len(sys.argv) >= 3:
         cmd_show(sys.argv[2])
