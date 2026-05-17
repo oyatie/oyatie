@@ -18,6 +18,10 @@ purpose: |
   semantics (catch *undocumented* invocations only).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
+enforcement_status:
+  oya-foundry-fitness-banned-primitives: existing
+  F-FORBIDDEN-PRIMITIVES-CI-GUARD: pending Wave-B webhook receiver (ADR-0116)
+meta_policy: ADR-0125 (chained-enforcement, pending)
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/claude-code-harness.md
@@ -95,16 +99,27 @@ is canonical because of the sunset clause, not despite it.
 
 ## 4. Revised lane semantics
 
-Lane: `oya-foundry-fitness-banned-primitives` (revised). It catches
+> **Wave-A bootstrap (ADR-0116):** `git` and `gh` are **permitted in agent
+> workflow** during the Wave-A bootstrap period while the webhook receiver is
+> not yet deployed. This is the documented fallback per
+> [ADR-0116](../decisions/ADR-0116-retire-external-agent-coordination-tooling.md)
+> §Temporary seam. CI guard `F-FORBIDDEN-PRIMITIVES-CI-GUARD` is **pending
+> Wave-B webhook receiver** deployment; until then, the per-invocation
+> icm-store rationale contract below is the enforcement mechanism.
+
+Lane: `oya-foundry-fitness-banned-primitives` (existing; Wave-A: catches
 **undocumented** `git` / `gh` invocations inside agent-instruction
-sections, **not all invocations**.
+sections; Wave-B: `F-FORBIDDEN-PRIMITIVES-CI-GUARD` will add CI-level
+blocking once webhook receiver is deployed per ADR-0116).
+Meta-policy: ADR-0125 (chained-enforcement, pending).
 
 | Pattern | Verdict |
 |---|---|
 | `git <cmd>` inside `<!-- agent-instructions -->` fence, no prior icm-store of the same session | **FAIL** |
 | `git <cmd>` inside fence, with matching icm-store row | **PASS** |
 | `git <cmd>` inside fence during cutover-bootstrap window with session-level store | **PASS** |
-| `git <cmd>` outside any fence (plain prose, human-facing) | **PASS** (advisory only) |
+| `git <cmd>` inside fence during Wave-A bootstrap per ADR-0116 fallback note | **PASS** (with session-level rationale) |
+| `git <cmd>` outside any fence (plain prose, human-facing) | **PASS** |
 | `gh <cmd>` — same rules as `git` | as above |
 | `git --no-verify <cmd>` | **FAIL** unconditionally (per forbidden-operations.json FO-02) |
 | `gh pr merge` without `## Code Review` section | **FAIL** (per `guard-pr-merge-review.mjs` hook) |

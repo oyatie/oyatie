@@ -18,6 +18,10 @@ purpose: |
   + smallest-image containers) and Directive 6 (hyperscaler-bar).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-image-discipline
+enforcement_status:
+  oya-foundry-fitness-image-discipline: F-PENDING-IMAGE-DISCIPLINE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  oya-foundry-fitness-container-base: F-PENDING-CONTAINER-BASE (crate missing)
+meta_policy: ADR-0125 (chained-enforcement, pending)
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/release-management.md

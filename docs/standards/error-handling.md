@@ -20,6 +20,14 @@ purpose: |
   `docs/AGENTS.md` §During-change discipline.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-error-boundary
+enforcement_status:
+  oya-foundry-fitness-error-boundary: existing
+  oya-foundry-fitness-no-unwrap-prod: existing
+  oya-foundry-fitness-silent-failure: F-PENDING-SILENT-FAILURE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  oya-foundry-fitness-audit-emission: existing
+  F-FITNESS-ERROR-HANDLING-LANES: meta-lane per OP-11 audit
+  F-FITNESS-ASPIRATIONAL-ENFORCEMENT-DETECTION: meta-lane per OP-11
+meta_policy: ADR-0125 (chained-enforcement, pending)
 companion_docs:
   - docs/standards/code-style-rust.md
   - docs/standards/testing.md
@@ -173,8 +181,10 @@ PR that touches error paths and refuses:
 6. **Error returned but not surfaced to the audit chain** at cross-pillar
    boundaries — see §7.
 
-Lane: `oya-foundry-fitness-silent-failure` (advisory; clippy-driven; full
-gate is the reviewer-agent verdict).
+Lane: `oya-foundry-fitness-silent-failure` (F-PENDING-SILENT-FAILURE; clippy-driven;
+full gate is the reviewer-agent verdict; crate creation tracked in
+registry/stub-audit/2026-05-17/missing-fitness-crates.json; enforced at PR review
+until crate lands; meta-policy ADR-0125 chained-enforcement).
 
 ## 7. Audit-chain integration
 

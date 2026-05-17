@@ -20,6 +20,10 @@ purpose: |
   `docs/AGENTS.md` §Per-agent appendices (Claude Code).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-banned-primitives
+enforcement_status:
+  oya-foundry-fitness-banned-primitives: existing
+  oya-foundry-fitness-user-machine-guard: existing (§8)
+meta_policy: ADR-0125 (chained-enforcement, pending)
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/multi-agent-tool-map.md
