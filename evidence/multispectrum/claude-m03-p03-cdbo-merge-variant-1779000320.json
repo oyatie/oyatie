@@ -19,7 +19,7 @@
     {
       "facet": "F1-correctness",
       "verdict": "ACCEPT",
-      "evidence": "provision_data_service enforces non-empty service_id and plan_id, then checks engine.kind() == plan.kind. EngineFamilyMismatch captures both sides for diagnostics. All 12 data_service tests pass covering every engine variant, both empty-id paths, mismatch, and name/kind invariants. Existing 8 lib-level tests unchanged (20/20 total pass)."
+      "evidence": "provision_data_service enforces non-empty service_id and plan_id, then checks engine.kind() == plan.kind. EngineFamilyMismatch captures both sides for diagnostics. All 12 data_service tests pass covering every engine variant, both empty-id paths, mismatch, and name/kind invariants. Existing 9 lib-level tests unchanged (21/21 total pass)."
     },
     {
       "facet": "F3-architecture",
@@ -45,7 +45,7 @@
     "net_new_types": ["DatabaseEngine", "DataService", "DataServiceError"],
     "net_new_fns": ["provision_data_service"],
     "tests_added": 12,
-    "tests_total": 20,
+    "tests_total": 21,
     "no_new_crates": true,
     "no_new_workspace_deps": true,
     "ip_reference": "M03-P03-IP-001"
@@ -54,7 +54,7 @@
     {
       "command": "CARGO_TARGET_DIR=/Users/jasonlee/oyatie/target-m03-p03 cargo nextest run -p oya-cloud-data-kernel",
       "status": "pass",
-      "summary": "20 passed, 0 skipped"
+      "summary": "21 passed, 0 skipped"
     },
     {
       "command": "rustfmt --edition 2024 (1.95.0-aarch64-apple-darwin)",
