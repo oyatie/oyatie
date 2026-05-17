@@ -1,6 +1,11 @@
 name: oya-foundry-sequential-pr-queue-repair
 
 on:
+  workflow_run:
+    workflows:
+      - oya-foundry-fitness-sequential-pr-merge-conflicts
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       base_branch:
@@ -23,10 +28,11 @@ on:
 
 permissions:
   contents: write
-  pull-requests: read
+  pull-requests: write
+  actions: read
 
 concurrency:
-  group: sequential-pr-queue-repair-${{ github.event.inputs.target_pr }}
+  group: sequential-pr-queue-repair-${{ github.event.inputs.target_pr || github.event.workflow_run.pull_requests[0].number || 'unknown' }}
   cancel-in-progress: false
 
 jobs:
@@ -34,20 +40,86 @@ jobs:
     name: sequential-pr-queue-repair
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'failure' &&
+       github.event.workflow_run.event == 'pull_request')
     steps:
+      - name: Resolve repair target
+        id: repair
+        env:
+          OYA_QUEUE_AUTO_REPAIR_MODE: ${{ vars.OYA_QUEUE_AUTO_REPAIR_MODE || 'plan' }}
+          OYA_QUEUE_REPAIR_SSH_SIGNING_KEY: ${{ secrets.OYA_QUEUE_REPAIR_SSH_SIGNING_KEY }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            base_branch="$(jq -r '.inputs.base_branch // "dev"' "$GITHUB_EVENT_PATH")"
+            start_pr="$(jq -r '.inputs.start_pr // "111"' "$GITHUB_EVENT_PATH")"
+            target_pr="$(jq -r '.inputs.target_pr // ""' "$GITHUB_EVENT_PATH")"
+            repair_mode="$(jq -r '.inputs.repair_mode // "plan"' "$GITHUB_EVENT_PATH")"
+          else
+            base_branch="$(jq -r '.workflow_run.pull_requests[0].base.ref // "dev"' "$GITHUB_EVENT_PATH")"
+            start_pr="${{ vars.OYA_MERGE_QUEUE_START_PR || '111' }}"
+            target_pr="$(jq -r '.workflow_run.pull_requests[0].number // ""' "$GITHUB_EVENT_PATH")"
+            repair_mode="${OYA_QUEUE_AUTO_REPAIR_MODE}"
+          fi
+
+          if [ -z "$target_pr" ] || [ "$target_pr" = "null" ]; then
+            echo "::error::could not resolve queue repair target PR" >&2
+            exit 1
+          fi
+
+          if [ "$repair_mode" = "apply" ] && [ -z "${OYA_QUEUE_REPAIR_SSH_SIGNING_KEY:-}" ]; then
+            echo "::notice::OYA_QUEUE_AUTO_REPAIR_MODE=apply requested but no signing key secret is configured; downgrading to plan"
+            repair_mode="plan"
+          fi
+
+          {
+            echo "base_branch=$base_branch"
+            echo "start_pr=$start_pr"
+            echo "target_pr=$target_pr"
+            echo "repair_mode=$repair_mode"
+          } >> "$GITHUB_OUTPUT"
+          echo "queue repair target: PR #${target_pr} base=${base_branch} start=${start_pr} mode=${repair_mode}"
+
       - name: Checkout base branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.base_branch || 'dev' }}
+          ref: ${{ steps.repair.outputs.base_branch }}
           fetch-depth: 0
 
+      - name: Configure optional queue-repair signing
+        if: steps.repair.outputs.repair_mode == 'apply'
+        env:
+          OYA_QUEUE_REPAIR_SSH_SIGNING_KEY: ${{ secrets.OYA_QUEUE_REPAIR_SSH_SIGNING_KEY }}
+          OYA_QUEUE_REPAIR_SSH_SIGNING_KEY_PUB: ${{ secrets.OYA_QUEUE_REPAIR_SSH_SIGNING_KEY_PUB }}
+        run: |
+          set -euo pipefail
+          if [ -z "${OYA_QUEUE_REPAIR_SSH_SIGNING_KEY:-}" ] || [ -z "${OYA_QUEUE_REPAIR_SSH_SIGNING_KEY_PUB:-}" ]; then
+            echo "::error::apply mode requires OYA_QUEUE_REPAIR_SSH_SIGNING_KEY and OYA_QUEUE_REPAIR_SSH_SIGNING_KEY_PUB" >&2
+            exit 1
+          fi
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$OYA_QUEUE_REPAIR_SSH_SIGNING_KEY" > "$HOME/.ssh/queue-repair-signing-key"
+          printf '%s\n' "$OYA_QUEUE_REPAIR_SSH_SIGNING_KEY_PUB" > "$HOME/.ssh/queue-repair-signing-key.pub"
+          chmod 600 "$HOME/.ssh/queue-repair-signing-key"
+          chmod 644 "$HOME/.ssh/queue-repair-signing-key.pub"
+          git config --global gpg.format ssh
+          git config --global user.signingkey "$HOME/.ssh/queue-repair-signing-key.pub"
+          git config --global commit.gpgsign true
+          git config --global user.name "oyatie-queue-repair"
+          git config --global user.email "queue-repair@users.noreply.github.com"
+
       - name: Repair target PR against earlier queue heads
+        id: repair-run
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
-          BASE_BRANCH: ${{ github.event.inputs.base_branch || 'dev' }}
-          START_PR: ${{ github.event.inputs.start_pr || vars.OYA_MERGE_QUEUE_START_PR || '111' }}
-          TARGET_PR: ${{ github.event.inputs.target_pr }}
-          REPAIR_MODE: ${{ github.event.inputs.repair_mode || 'plan' }}
+          BASE_BRANCH: ${{ steps.repair.outputs.base_branch }}
+          START_PR: ${{ steps.repair.outputs.start_pr }}
+          TARGET_PR: ${{ steps.repair.outputs.target_pr }}
+          REPAIR_MODE: ${{ steps.repair.outputs.repair_mode }}
         run: |
           set -euo pipefail
           args=(
@@ -59,4 +131,31 @@ jobs:
           if [ "$REPAIR_MODE" = "apply" ]; then
             args+=(--apply)
           fi
-          scripts/repair-sequential-pr-queue.sh "${args[@]}"
+          set -o pipefail
+          scripts/repair-sequential-pr-queue.sh "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/queue-repair.log"
+
+      - name: Comment automatic repair result
+        if: always() && github.event_name == 'workflow_run'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_PR: ${{ steps.repair.outputs.target_pr }}
+          REPAIR_MODE: ${{ steps.repair.outputs.repair_mode }}
+        run: |
+          set -euo pipefail
+          status="${{ steps.repair-run.outcome }}"
+          {
+            echo "Automatic sequential queue repair (${REPAIR_MODE}) completed with status: ${status}."
+            echo
+            echo '```text'
+            if [ -f "$RUNNER_TEMP/queue-repair.log" ]; then
+              tail -c 12000 "$RUNNER_TEMP/queue-repair.log"
+            else
+              echo "queue-repair.log missing"
+            fi
+            echo '```'
+          } > "$RUNNER_TEMP/queue-repair-comment.md"
+          gh pr comment "$TARGET_PR" --body-file "$RUNNER_TEMP/queue-repair-comment.md"
+
+      - name: Fail if repair did not complete
+        if: steps.repair-run.outcome != 'success'
+        run: exit 1

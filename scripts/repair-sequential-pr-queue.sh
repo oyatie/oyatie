@@ -135,7 +135,7 @@ if ! awk -F'\t' -v target="$target_pr" '$1 == target { found=1 } END { exit foun
 fi
 
 target_row="$(awk -F'\t' -v target="$target_pr" '$1 == target { print; exit }' "$ordered_file")"
-IFS=$'\t' read -r _target_number target_head_ref target_head_oid target_is_draft target_is_cross target_title <<< "$target_row"
+IFS=$'\t' read -r _target_number target_head_ref target_head_oid target_is_draft target_is_cross _target_title <<< "$target_row"
 
 if [ "$target_is_draft" = "true" ]; then
   echo "target PR #${target_pr} is draft; refusing queue repair"
@@ -148,11 +148,6 @@ if [ "$target_is_cross" = "true" ]; then
 fi
 
 prior_count="$(awk -F'\t' -v target="$target_pr" '$1 < target { count++ } END { print count + 0 }' "$ordered_file")"
-if [ "$prior_count" -eq 0 ]; then
-  echo "target PR #${target_pr} is already the queue floor; no earlier open PR heads to merge"
-  exit 0
-fi
-
 while IFS=$'\t' read -r number _head_ref _head_oid _is_draft _is_cross _title; do
   git fetch --no-tags origin "+refs/pull/${number}/head:refs/remotes/pr/${number}" >/dev/null 2>&1
 done < "$ordered_file"
@@ -161,6 +156,30 @@ repair_worktree="$tmp_dir/worktree"
 git worktree add --detach "$repair_worktree" "refs/remotes/pr/${target_pr}" >/dev/null
 git -C "$repair_worktree" config user.name "oyatie-queue-repair"
 git -C "$repair_worktree" config user.email "queue-repair@users.noreply.github.com"
+
+base_head="$(git rev-parse "$base_ref^{commit}")"
+if git -C "$repair_worktree" merge-base --is-ancestor "$base_head" HEAD; then
+  echo "PR #${target_pr} already contains base ${base_ref} (${base_head:0:8})"
+else
+  echo "merging base ${base_ref} (${base_head:0:8}) into PR #${target_pr}: ${target_head_ref} (${target_head_oid:0:8})"
+  if ! git -C "$repair_worktree" merge --no-ff "$base_head" \
+    -m "Refresh PR ${target_pr} after base ${base_branch}" \
+    -m "Constraint: PR #${target_pr} must be modeled after current ${base_branch} before sequential queue simulation can be trusted.
+Rejected: Leaving the queue-floor PR stale after base advanced | it causes predictable merge conflict failures and wastes CI/review cycles.
+Confidence: high
+Scope-risk: narrow
+Directive: Do not force-push; stop and route to fix-loop if this base refresh conflicts.
+Tested: automated queue repair will run sequential simulation through PR #${target_pr} before pushing.
+Not-tested: full repository test suite."; then
+    echo "::error::queue repair conflict while merging base ${base_ref} into PR #${target_pr}" >&2
+    git -C "$repair_worktree" diff --name-only --diff-filter=U >&2 || true
+    exit 1
+  fi
+fi
+
+if [ "$prior_count" -eq 0 ]; then
+  echo "target PR #${target_pr} is the queue floor; no earlier open PR heads to merge"
+fi
 
 while IFS=$'\t' read -r number head_ref head_oid is_draft _is_cross title; do
   if [ "$number" -ge "$target_pr" ]; then
@@ -205,13 +224,13 @@ scripts/check-sequential-pr-merge-conflicts.sh \
   --pr-json "$repaired_prs" \
   --no-fetch
 
-if [ "$apply" != "1" ]; then
-  echo "dry-run: would push ${new_head} to ${target_head_ref} for PR #${target_pr}"
+if [ "$new_head" = "$target_head_oid" ]; then
+  echo "target PR #${target_pr} already has repaired head ${new_head:0:8}; no push needed"
   exit 0
 fi
 
-if [ "$new_head" = "$target_head_oid" ]; then
-  echo "target PR #${target_pr} already has repaired head ${new_head:0:8}; no push needed"
+if [ "$apply" != "1" ]; then
+  echo "dry-run: would push ${new_head} to ${target_head_ref} for PR #${target_pr}"
   exit 0
 fi
 
