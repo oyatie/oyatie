@@ -1,0 +1,35 @@
+{
+  "change_id": "m03-p06-ws14-surface-kind-1779002119",
+  "change_class_id": "CC-2_type_addition",
+  "freshness_unix": 1779002119,
+  "evidence_id": "m03-p06-ws14-surface-kind-1779002119",
+  "feature_id": "M03-P06-workspace-14-surfaces",
+  "created_at_epoch_seconds": 1779002119,
+  "status": "pass",
+  "scope": "M03-P06 workspace-14-surfaces merge-variant delta-1",
+  "spec_version": "2.3.0",
+  "artifacts": [
+    "crates/oya-workspace-chat-api/src/surface_kind.rs",
+    "crates/oya-workspace-chat-api/src/lib.rs",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/IP-005-forms-address-tasks-notes-translate.md"
+  ],
+  "local_gates": [
+    "cargo nextest run -p oya-workspace-chat-api: 11/11 PASS (4 new surface_kind tests + 7 pre-existing)",
+    "rustfmt 1.95.0 --check: clean"
+  ],
+  "facets": {
+    "F1_correctness": "WorkspaceSurfaceKind has exactly 14 variants matching SPEC.md §4 rows; ALL const array verified by test; surface_tag uniqueness and prefix enforced by test.",
+    "F2_naming": "WorkspaceSurfaceKind follows codebase CamelCase enum pattern; surface_tag uses lowercase dot-separated routing key consistent with existing WORKSPACE_CHAT_MESSAGE_SEND_SURFACE constant pattern.",
+    "F3_architecture": "New type lives in oya-workspace-chat-api (existing crate); no new crate scaffolded; no new workspace deps; std-only (BTreeSet in test cfg only).",
+    "F4_dependency": "Zero new dependencies added; no workspace dep additions; std-only.",
+    "F5_test_coverage": "4 new unit tests: all_array_has_exactly_14_variants, surface_tags_are_unique_and_prefixed, surface_tags_match_spec_rows, ordering_is_deterministic_and_spec_row_order.",
+    "F6_doc": "Module-level doc comment explains purpose and routing contract; each variant has doc comment; surface_tag doc explains stability contract.",
+    "F7_good_taste": "const fn surface_tag eliminates runtime dispatch; ALL const array eliminates vec![...].iter() pattern; no from_str method name used.",
+    "F8_security": "No auth surface touched; type is PUBLIC routing metadata; no PII.",
+    "F9_performance": "All methods are const fn; zero heap allocation in hot path.",
+    "M1_merge_variant": "Merge-variant delta-1 per user-directive-option-2; no new crates; IP-005 frontmatter amended with execution_variant + decided_at + decided_by + execution_variant_note.",
+    "M2_plan_adherence": "P06 INDEX lists 14 surfaces across 5 IPs; delta-1 adds the unifying WorkspaceSurfaceKind enum covering all 14; mirrors PR #60-#101 pattern."
+  },
+  "closure": "M03-P06 merge-variant delta-1: WorkspaceSurfaceKind (14-variant enum, all SPEC §4 surfaces) added to oya-workspace-chat-api::surface_kind. IP-005 frontmatter amended. 11/11 nextest pass; rustfmt 1.95.0 clean; 0 new deps.",
+  "references_fixuptasks": []
+}
