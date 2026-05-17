@@ -1,12 +1,12 @@
 ---
-purpose: "M02b/P22 exit-gate — enumeration of the 14 quality/scalability validator lanes and their oya-dev-cli bindings"
+purpose: "M02b/P22 exit-gate — enumeration of the quality/scalability validator lanes and their oya-dev-cli bindings"
 doc_status: published
-change_id: m02b-p22-shardability-mv-19733-1779003546
+change_id: m02b-p22-pcm-mv-41670-1779009612
 ---
 
 # M02b/P22 Exit-Gate Validators
 
-> **Status:** two lanes wired + tested (statelessness, shardability). Remaining lanes are wired in the CLI but lack integration tests; each follow-on PR adds one test per lane until all 14 are covered, at which point the BLOCKER workflow YAML flip lands.
+> **Status:** three lanes wired + tested (statelessness, shardability, protection-context-match). Remaining lanes are wired in the CLI but lack integration tests; each follow-on PR adds one test per lane until all are covered, at which point the BLOCKER workflow YAML flip lands.
 
 ## What "wired" means
 
@@ -38,14 +38,17 @@ The "14 quality/scalability lanes" tracked for M02b/P22 exit gate are the lanes 
 | 12 | `cross-tenant-access-fuzz` | `cross-tenant-access-fuzz` | `oya-check-cross-tenant-access-fuzz` | wired; test pending |
 | 13 | `lean-a4-semver` | `api-semver` | `oya-check-api-semver` | wired; test pending |
 | 14 | `lean-a5-documentation` | `documentation` | `oya-check-documentation` | wired; test pending |
+| 15 | `oya-foundry-fitness-protection-context-match` | `protection-context-match` | `oya-check-protection-context-match` | **wired + tested** (M02b/P22) |
 
 ## Lanes that do NOT map to `oya gate validate`
 
 The following lanes in ci-lanes.md run via other mechanisms (cargo toolchain, external scripts, or Foundry fitness crates) and are **out of scope** for this document:
 
 - `cargo-fmt`, `cargo-check`, `cargo-clippy`, `cargo-nextest`, `cargo-deny`, `cargo-machete`
-- All `oya-foundry-fitness-*` lanes (dispatched by their own fitness crate binary, not via `gate validate`)
+- `oya-foundry-fitness-*` lanes that lack a `gate validate` subcommand (dispatched by their own fitness crate binary only)
 - `pnpm-typecheck`, `pnpm-test`
+
+Note: `oya-foundry-fitness-protection-context-match` is an exception — it has BOTH a fitness crate binary AND a `gate validate protection-context-match` subcommand backed by `oya-check-protection-context-match`; it is therefore tracked in lane 15 above.
 
 ## BLOCKER workflow flip policy
 
@@ -56,4 +59,6 @@ Per OP-11, the BLOCKER workflow YAML (`.github/workflows/`) is **not** wired unt
 - `docs/standards/ci-lanes.md` — authoritative lane catalog
 - `crates/oya-dev-cli/src/scalability_gates.rs` — statelessness/shardability/perf-budget/benchmark runners
 - `crates/oya-check-statelessness/src/lib.rs` — statelessness kernel (ADR-0062)
+- `crates/oya-check-protection-context-match/src/lib.rs` — protection-context-match kernel (ADR-0056)
+- `crates/oya-dev-cli/src/protection_context_match_gate.rs` — PCM runner (parse + validate)
 - `crates/oya-dev-cli/tests/gate_cli.rs` — integration tests
