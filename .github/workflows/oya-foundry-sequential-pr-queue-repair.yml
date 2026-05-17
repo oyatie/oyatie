@@ -49,7 +49,6 @@ jobs:
       - name: Resolve repair target
         id: repair
         env:
-          OYA_QUEUE_AUTO_REPAIR_MODE: ${{ vars.OYA_QUEUE_AUTO_REPAIR_MODE || 'plan' }}
           OYA_QUEUE_REPAIR_SSH_SIGNING_KEY: ${{ secrets.OYA_QUEUE_REPAIR_SSH_SIGNING_KEY }}
         run: |
           set -euo pipefail
@@ -62,7 +61,7 @@ jobs:
             base_branch="$(jq -r '.workflow_run.pull_requests[0].base.ref // "dev"' "$GITHUB_EVENT_PATH")"
             start_pr="${{ vars.OYA_MERGE_QUEUE_START_PR || '111' }}"
             target_pr="$(jq -r '.workflow_run.pull_requests[0].number // ""' "$GITHUB_EVENT_PATH")"
-            repair_mode="${OYA_QUEUE_AUTO_REPAIR_MODE}"
+            repair_mode="plan"
           fi
 
           if [ -z "$target_pr" ] || [ "$target_pr" = "null" ]; then
@@ -71,7 +70,7 @@ jobs:
           fi
 
           if [ "$repair_mode" = "apply" ] && [ -z "${OYA_QUEUE_REPAIR_SSH_SIGNING_KEY:-}" ]; then
-            echo "::notice::OYA_QUEUE_AUTO_REPAIR_MODE=apply requested but no signing key secret is configured; downgrading to plan"
+            echo "::notice::repair_mode=apply requested but no signing key secret is configured; downgrading to plan"
             repair_mode="plan"
           fi
 

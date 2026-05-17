@@ -148,8 +148,17 @@ if [ "$target_is_cross" = "true" ]; then
 fi
 
 prior_count="$(awk -F'\t' -v target="$target_pr" '$1 < target { count++ } END { print count + 0 }' "$ordered_file")"
-while IFS=$'\t' read -r number _head_ref _head_oid _is_draft _is_cross _title; do
+while IFS=$'\t' read -r number _head_ref head_oid _is_draft is_cross _title; do
+  if [ "$apply" = "1" ] && [ "$number" -lt "$target_pr" ] && [ "$is_cross" = "true" ]; then
+    echo "::error::prior PR #${number} is from a fork; refusing apply-mode queue repair into same-repo target" >&2
+    exit 1
+  fi
   git fetch --no-tags origin "+refs/pull/${number}/head:refs/remotes/pr/${number}" >/dev/null 2>&1
+  fetched_head="$(git rev-parse "refs/remotes/pr/${number}^{commit}")"
+  if [ "$fetched_head" != "$head_oid" ]; then
+    echo "::error::PR #${number} moved while fetching (${head_oid} -> ${fetched_head}); refusing stale queue repair" >&2
+    exit 1
+  fi
 done < "$ordered_file"
 
 repair_worktree="$tmp_dir/worktree"
@@ -239,11 +248,19 @@ if ! git -C "$repair_worktree" cat-file -p "$new_head" | grep -q '^gpgsig '; the
   exit 1
 fi
 
-latest_head="$(gh pr view "$target_pr" --json headRefOid --jq '.headRefOid')"
-if [ "$latest_head" != "$target_head_oid" ]; then
-  echo "::error::target PR #${target_pr} moved while repairing (${target_head_oid} -> ${latest_head}); refusing push" >&2
-  exit 1
-fi
+while IFS=$'\t' read -r number _head_ref head_oid _is_draft _is_cross _title; do
+  latest_state="$(gh pr view "$number" --json headRefOid,state)"
+  latest_head="$(printf '%s' "$latest_state" | jq -r '.headRefOid')"
+  latest_pr_state="$(printf '%s' "$latest_state" | jq -r '.state')"
+  if [ "$latest_pr_state" != "OPEN" ]; then
+    echo "::error::PR #${number} changed state while repairing (${latest_pr_state}); refusing push" >&2
+    exit 1
+  fi
+  if [ "$latest_head" != "$head_oid" ]; then
+    echo "::error::PR #${number} moved while repairing (${head_oid} -> ${latest_head}); refusing push" >&2
+    exit 1
+  fi
+done < "$ordered_file"
 
 git -C "$repair_worktree" push origin "HEAD:refs/heads/${target_head_ref}"
 echo "queue repair pushed for PR #${target_pr}: ${target_head_ref} ${target_head_oid:0:8} -> ${new_head:0:8}"
