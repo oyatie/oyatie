@@ -1599,6 +1599,93 @@ fn hyperscaler_maturity_claims_gate_accepts_repo_control_surfaces() {
 }
 
 #[test]
+fn hyperscaler_arch_invariants_gate_accepts_repo_spec() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(["gate", "validate", "hyperscaler-arch-invariants"])
+        .current_dir(repo_root())
+        .output()
+        .expect("hyperscaler architecture invariant gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("hyperscaler architecture invariant validation passed"));
+    assert!(stdout.contains("35 invariants, 11 products"));
+}
+
+#[test]
+fn hyperscaler_arch_invariants_gate_rejects_active_enforcement_fields() {
+    let temp = temp_dir("hyperscaler-arch-invariants-active-field");
+    fs::create_dir_all(&temp).expect("fixture dir created");
+    let fixture_path = temp.join("hyperscaler-architecture-invariants.json");
+    let mut fixture =
+        fs::read_to_string(repo_root().join("specs/hyperscaler-architecture-invariants.json"))
+            .expect("repo invariant spec read");
+    fixture = fixture.replacen("\"planned_enforced_by\"", "\"enforced_by\"", 1);
+    fs::write(&fixture_path, fixture).expect("bad invariant fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "hyperscaler-arch-invariants",
+            "--spec",
+            fixture_path.to_str().expect("utf8 fixture path"),
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("hyperscaler architecture invariant gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("must not use active field `enforced_by`"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn hyperscaler_arch_invariants_gate_rejects_omitted_applicable_product_ref() {
+    let temp = temp_dir("hyperscaler-arch-invariants-omitted-ref");
+    fs::create_dir_all(&temp).expect("fixture dir created");
+    let fixture_path = temp.join("hyperscaler-architecture-invariants.json");
+    let fixture =
+        fs::read_to_string(repo_root().join("specs/hyperscaler-architecture-invariants.json"))
+            .expect("repo invariant spec read");
+    let marker = "\"ads\": [\n      \"INV-AUDIT-CHAIN-EMIT\",";
+    let fixture = fixture.replace(marker, "\"ads\": [");
+    fs::write(&fixture_path, fixture).expect("bad invariant fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "hyperscaler-arch-invariants",
+            "--spec",
+            fixture_path.to_str().expect("utf8 fixture path"),
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("hyperscaler architecture invariant gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("product ads omits applicable invariant INV-AUDIT-CHAIN-EMIT"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn hyperscaler_maturity_claims_gate_rejects_unsourced_workflow_studio_claims() {
     let temp = temp_dir("hyperscaler-maturity-claims");
     fs::create_dir_all(temp.join("specs/products")).expect("spec dirs created");

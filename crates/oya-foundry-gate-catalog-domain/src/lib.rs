@@ -68,6 +68,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "pre-push-contract",
     "quality-lanes",
     "workspace-hygiene",
+    "hyperscaler-arch-invariants",
     "hyperscaler-maturity-claims",
     "loop-recovery-patterns",
     "foundation-bypass",
@@ -381,9 +382,13 @@ mod tests {
     }
 
     #[test]
-    fn rendered_form_contains_hyperscaler_maturity_lanes() {
+    fn rendered_form_contains_hyperscaler_architecture_and_maturity_lanes() {
         let rendered = all_canonical_commands_rendered();
         assert!(rendered.contains("cargo run -p oya-dev-cli -- gate validate workspace-hygiene"));
+        assert!(
+            rendered
+                .contains("cargo run -p oya-dev-cli -- gate validate hyperscaler-arch-invariants")
+        );
         assert!(
             rendered
                 .contains("cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims")
