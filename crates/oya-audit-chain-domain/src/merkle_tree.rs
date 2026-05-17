@@ -102,9 +102,6 @@ fn node_domain_hash(left: &DomainHash, right: &DomainHash) -> DomainHash {
 #[derive(Clone, Debug)]
 pub struct MerkleTree {
     leaves: Vec<Sha256Hash>,
-    /// Leaf count recorded at construction; used by `verify_proof` to
-    /// detect out-of-range `leaf_index` values even for untrusted proofs.
-    leaf_count: usize,
 }
 
 impl MerkleTree {
@@ -115,8 +112,7 @@ impl MerkleTree {
     /// Panics when `leaves` is empty.
     pub fn new(leaves: Vec<Sha256Hash>) -> Self {
         assert!(!leaves.is_empty(), "MerkleTree requires at least one leaf");
-        let leaf_count = leaves.len();
-        Self { leaves, leaf_count }
+        Self { leaves }
     }
 
     /// Return the number of leaf hashes.
