@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 105
-- **Numbering:** ADR-0001..ADR-0132 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0129)
-- **Next ADR number:** 0133
-- **Status counts:** Accepted 22, Proposed 5, Superseded 2, accepted 39, deprecated 1, proposed 36
+- **Total ADRs:** 107
+- **Numbering:** ADR-0001..ADR-0134 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0129)
+- **Next ADR number:** 0135
+- **Status counts:** Accepted 22, Proposed 7, Superseded 2, accepted 39, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -126,11 +126,13 @@ doc_status: published
 | ADR-0130 | Accepted | Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System | council-architecture + ontology-team | [`ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md`](decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md) |
 | ADR-0131 | Accepted | Connect Social Expansion Planning Contract | connect-product-council | [`ADR-0131-connect-social-expansion-planning-contract.md`](decisions/ADR-0131-connect-social-expansion-planning-contract.md) |
 | ADR-0132 | Accepted | Connect Core Public Contracts | connect-product-council | [`ADR-0132-connect-core-public-contracts.md`](decisions/ADR-0132-connect-core-public-contracts.md) |
+| ADR-0133 | Proposed | OP-11 Corpus Remediation Planning Contract | council-architecture | [`ADR-0133-op11-corpus-remediation-planning-contract.md`](decisions/ADR-0133-op11-corpus-remediation-planning-contract.md) |
+| ADR-0134 | Proposed | Portfolio Hyperscaler Pattern Remediation Backlog | ops-sre-reliability | [`ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md`](decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0133), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0135), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -149,6 +151,6 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 
 ## Sources scanned
 
-- `decisions/` directory listing — 105 ADR files (sorted ascending)
+- `decisions/` directory listing — 107 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

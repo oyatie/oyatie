@@ -21,7 +21,7 @@ enforced_by: oya-foundry-fitness-autonomy-ceiling
 enforcement_status:
   oya-foundry-fitness-autonomy-ceiling: F-PENDING-AUTONOMY-CEILING (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-foundry-fitness-capability-publish: F-PENDING-CAPABILITY-PUBLISH (crate missing)
-meta_policy: ADR-0125 (chained-enforcement, pending)
+meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/data-class.md

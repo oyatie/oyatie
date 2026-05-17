@@ -842,13 +842,13 @@ The 4 new sub-products (`social`, `shorts`, `network`, `anonymous`) are added to
 
 ## 17. 2026-05-17 OP-11 audit findings
 
-The 2026-05-17 OP-11 stub audit (`registry/stub-audit/2026-05-17/CONSOLIDATED.md`) surfaced **847 findings** across the codebase: 67 critical (blocking promotability), 12 fixuptasks filed to `registry/fixuptasks.jsonl`. Key themes: aspirational-enforcement gaps (fitness lanes specified but not implemented), doc-coverage drift, milestone skeleton laundering, and forbidden-primitive enforcement absence. See ADR-0125 for the chained-enforcement response: every gap now triggers an automatic fixuptask and blocks promotion until resolved. The `oya-foundry-fitness-banned-primitives` lane is the first priority deliverable from this audit; its absence is itself tracked as `F-FORBIDDEN-PRIMITIVES-CI-GUARD`.
+The 2026-05-17 OP-11 stub audit summary surfaced **847 findings** across the codebase: 67 critical (blocking promotability), 12 fixuptasks filed to `registry/fixuptasks.jsonl`. Key themes: aspirational-enforcement gaps (fitness lanes specified but not implemented), doc-coverage drift, milestone skeleton laundering, and forbidden-primitive enforcement absence. See ADR-0133 for the planning contract: missing detectors, workflows, branch-protection rows, and source-corpus artifacts remain advisory until they exist on the branch. The `oya-foundry-fitness-banned-primitives` lane is the first priority deliverable from this audit; its absence is itself tracked as `F-FORBIDDEN-PRIMITIVES-CI-GUARD`.
 
 ---
 
 ## 18. Portfolio hyperscaler patterns
 
-Five hyperscaler-grade patterns were identified as portfolio gaps and added as implementation items to the relevant milestones (see ADR-0127):
+Five hyperscaler-grade patterns were identified as portfolio gaps and added as implementation items to the relevant milestones (see ADR-0134):
 
 | Pattern | Target milestone | Fixuptask / IP |
 |---|---|---|

@@ -23,7 +23,7 @@ enforcement_status:
   oya-foundry-fitness-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-foundry-fitness-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)
   oya-foundry-fitness-banned-primitives: existing (via claude-code-harness.md)
-meta_policy: ADR-0125 (chained-enforcement, pending)
+meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/doc-style.md
   - docs/standards/claude-code-harness.md

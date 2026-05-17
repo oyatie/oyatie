@@ -6,13 +6,13 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 105,
-    "numbering": "ADR-0001..ADR-0132 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0129)",
+    "total_adrs": 107,
+    "numbering": "ADR-0001..ADR-0134 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0129)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0129"],
-    "next_adr": "ADR-0133",
+    "next_adr": "ADR-0135",
     "status_counts": {
       "Accepted": 22,
-      "Proposed": 5,
+      "Proposed": 7,
       "Superseded": 2,
       "accepted": 39,
       "deprecated": 1,
@@ -1279,6 +1279,30 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0001", "ADR-0003", "ADR-0008", "ADR-0059", "ADR-0131"]
+    },
+    {
+      "adr": "ADR-0133",
+      "number": 133,
+      "title": "OP-11 Corpus Remediation Planning Contract",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0133-op11-corpus-remediation-planning-contract.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0116", "ADR-0123"]
+    },
+    {
+      "adr": "ADR-0134",
+      "number": 134,
+      "title": "Portfolio Hyperscaler Pattern Remediation Backlog",
+      "status": "Proposed",
+      "owner": "ops-sre-reliability",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0114", "ADR-0123", "ADR-0133"]
     }
   ]
 }

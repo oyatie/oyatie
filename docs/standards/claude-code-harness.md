@@ -23,7 +23,7 @@ enforced_by: oya-foundry-fitness-banned-primitives
 enforcement_status:
   oya-foundry-fitness-banned-primitives: existing
   oya-foundry-fitness-user-machine-guard: existing (§8)
-meta_policy: ADR-0125 (chained-enforcement, pending)
+meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/multi-agent-tool-map.md

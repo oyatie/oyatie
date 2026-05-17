@@ -2,7 +2,7 @@
 purpose: "M02b/P22 exit-gate — enumeration of the 14 quality/scalability validator lanes and their oya-dev-cli bindings"
 doc_status: published
 change_id: claude-m02b-p22-doc-coverage-mv-1779009579
-meta_policy: ADR-0125 (chained-enforcement, pending)
+meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 ---
 
 # M02b/P22 Exit-Gate Validators
