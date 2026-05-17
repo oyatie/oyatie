@@ -1,9 +1,14 @@
 ---
 purpose: "<!-- status: Accepted date: 2026-05-12 related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055 -->"
-doc_status: published
+doc_status: research-context
+canonical_spec: specs/hyperscaler-architecture-invariants.json
 ---
 
 # Hyperscaler Best Practices — Research + oyatie Adoption Recommendation (2026-05-12)
+
+Canonical binding surface: `specs/hyperscaler-architecture-invariants.json`.
+This document remains research context and rationale; validators and claim
+surfaces must use the machine-readable spec.
 
 <!--
 status: Accepted
@@ -296,26 +301,26 @@ Pattern that hyperscalers converge on: **fast checks (formatters, simple linters
 
 | Practice | Milestone / Workstream | CI lane / process gate | ADR target |
 |---|---|---|---|
-| PRFAQ template + mandate | M-CC-01 Hyperscaler-PM-adoption | `oya-foundry-fitness-prfaq-on-new-axis` | ADR-PM-001 Adopt PRFAQ for new-axis intake |
-| Tenets per axis | M-CC-01 | `oya-foundry-fitness-tenets-cite` (axis design docs cite tenets) | ADR-PM-002 Tenet structure + cardinality |
-| STL semantics formalized | M-CC-01 | `oya-foundry-fitness-stl-decl` (RACI declares STL per axis) | ADR-PM-003 STL per axis |
-| Postmortem replay-as-eval | M-CC-02 Engineering-excellence-rollout | `oya-foundry-fitness-mistakes-ledger-replay` (every `mechanical` prevention has a replay harness) | ADR-EE-001 Replay-as-eval discipline |
-| SRE error-budget release gate | M-CC-02 | `oya-foundry-fitness-error-budget-gate` | ADR-EE-002 SLO-derived release gate |
-| Median-review-latency SLO | M-CC-02 | `oya-foundry-fitness-review-latency` | (extend `standards/code-review.md`) |
-| Coverage-guided fuzzing | M-CC-03 Test-evidence-floor | `oya-foundry-fitness-fuzz-coverage` (parser/serializer/FFI surfaces) | ADR-TST-001 Fuzz-on-boundary |
-| Feature flags + canary rail | M-CC-04 Progressive-delivery | `oya-foundry-fitness-flag-debt` + canary automation in RELEASE-MANAGEMENT | ADR-REL-001 Feature-flag substrate |
-| Trunk-based branch SLO | M-CC-02 | `oya-foundry-fitness-branch-age` | (extend `standards/commit-message.md`) |
-| Diátaxis content types | M-CC-05 Doc-style-evolution | `oya-foundry-fitness-doc-class-diataxis` | (extend `standards/doc-style.md`) |
-| `cargo-vet` adoption | M-CC-06 Supply-chain-floor | `oya-foundry-fitness-cargo-vet` | ADR-SUP-001 cargo-vet baseline |
-| `rust-toolchain.toml` pin + 2024 edition | M-CC-06 | `oya-foundry-fitness-toolchain-pin` | ADR-RST-001 Toolchain pin policy |
-| Workspace lint inheritance (clippy::pedantic warn + ban-list) | M-CC-06 | `oya-foundry-fitness-workspace-lints-inherit` | ADR-RST-002 Workspace-lint policy |
-| Kani for unsafe verification | M-CC-06 | `oya-foundry-fitness-unsafe-kani` (every `unsafe` block in kernel crates has a Kani harness or `SAFETY:` rationale of a documented class) | ADR-RST-003 Unsafe verification policy |
-| thiserror/anyhow boundary rule | M-CC-06 | `oya-foundry-fitness-error-boundary` (lib crates ban `anyhow`; bin crates ban exposed `thiserror` enums in internal-lib public APIs) | (extend `standards/error-handling.md`) |
-| Cosign + Syft + SLSA L2 | M-CC-07 Supply-chain-attestation | `oya-foundry-fitness-supply-chain` (signed + SBOM-attached + provenance-attested) | ADR-SUP-002 Sigstore + SLSA L2 |
-| Chainguard/distroless-static images | M-CC-07 | `oya-foundry-fitness-container-base` (ban Debian/Alpine in product crates) | ADR-INF-001 Container base policy |
-| Renovate adoption | M-CC-07 | `oya-foundry-fitness-renovate-config` (renovate.json under repo root, grouped + scheduled) | ADR-INF-002 Dep-update bot |
-| OTel collector agent+gateway | M-CC-08 Observability-fabric | `oya-foundry-fitness-otel-emit` (every service emits OTLP via a documented exporter) | ADR-OBS-001 OpenTelemetry as canonical fabric |
-| `SecretProvider` trait + OpenBao primary | M-CC-09 Secret-fabric | `oya-foundry-fitness-secret-provider` (no direct AWS SM / GSM / Azure KV calls in product code; all via trait) | ADR-SEC-001 Secret abstraction |
+| PRFAQ template + mandate | M01-P14 Hyperscaler-Practice Adoption | `oya-foundry-fitness-prfaq-on-new-axis` | ADR-PM-001 Adopt PRFAQ for new-axis intake |
+| Tenets per axis | M01-P14 | `oya-foundry-fitness-tenets-cite` (axis design docs cite tenets) | ADR-PM-002 Tenet structure + cardinality |
+| STL semantics formalized | M01-P14 | `oya-foundry-fitness-stl-decl` (RACI declares STL per axis) | ADR-PM-003 STL per axis |
+| Postmortem replay-as-eval | M01-P14 Engineering-excellence rollout | `oya-foundry-fitness-mistakes-ledger-replay` (every `mechanical` prevention has a replay harness) | ADR-EE-001 Replay-as-eval discipline |
+| SRE error-budget release gate | M01-P14 | `oya-foundry-fitness-error-budget-gate` | ADR-EE-002 SLO-derived release gate |
+| Median-review-latency SLO | M01-P17 | `oya-foundry-fitness-review-latency` | (extend `standards/code-review.md`) |
+| Coverage-guided fuzzing | M01-P17 Test-evidence floor | `oya-foundry-fitness-fuzz-coverage` (parser/serializer/FFI surfaces) | ADR-TST-001 Fuzz-on-boundary |
+| Feature flags + canary rail | M01-P17 Progressive delivery | `oya-foundry-fitness-flag-debt` + canary automation in RELEASE-MANAGEMENT | ADR-REL-001 Feature-flag substrate |
+| Trunk-based branch SLO | M01-P17 | `oya-foundry-fitness-branch-age` | (extend `standards/commit-message.md`) |
+| Diátaxis content types | M01-P09 Doc auto-generation + freshness | `oya-foundry-fitness-doc-class-diataxis` | (extend `standards/doc-style.md`) |
+| `cargo-vet` adoption | M01-P15 Supply-chain security | `oya-foundry-fitness-cargo-vet` | ADR-SUP-001 cargo-vet baseline |
+| `rust-toolchain.toml` pin + 2024 edition | M01-P15 | `oya-foundry-fitness-toolchain-pin` | ADR-RST-001 Toolchain pin policy |
+| Workspace lint inheritance (clippy::pedantic warn + ban-list) | M01-P15 | `oya-foundry-fitness-workspace-lints-inherit` | ADR-RST-002 Workspace-lint policy |
+| Kani for unsafe verification | M01-P15 | `oya-foundry-fitness-unsafe-kani` (every `unsafe` block in kernel crates has a Kani harness or `SAFETY:` rationale of a documented class) | ADR-RST-003 Unsafe verification policy |
+| thiserror/anyhow boundary rule | M01-P15 | `oya-foundry-fitness-error-boundary` (lib crates ban `anyhow`; bin crates ban exposed `thiserror` enums in internal-lib public APIs) | (extend `standards/error-handling.md`) |
+| Cosign + Syft + SLSA L2 | M01-P15 | `oya-foundry-fitness-supply-chain` (signed + SBOM-attached + provenance-attested) | ADR-SUP-002 Sigstore + SLSA L2 |
+| Chainguard/distroless-static images | M01-P13 Distroless + image discipline | `oya-foundry-fitness-container-base` (ban Debian/Alpine in product crates) | ADR-INF-001 Container base policy |
+| Renovate adoption | M01-P15 | `oya-foundry-fitness-renovate-config` (renovate.json under repo root, grouped + scheduled) | ADR-INF-002 Dep-update bot |
+| OTel collector agent+gateway | M01-P17 Pipeline maturity glue | `oya-foundry-fitness-otel-emit` (every service emits OTLP via a documented exporter) | ADR-OBS-001 OpenTelemetry as canonical fabric |
+| `SecretProvider` trait + OpenBao primary | M01-P15 | `oya-foundry-fitness-secret-provider` (no direct AWS SM / GSM / Azure KV calls in product code; all via trait) | ADR-SEC-001 Secret abstraction |
 
 ---
 

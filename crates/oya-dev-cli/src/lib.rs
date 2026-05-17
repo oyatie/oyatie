@@ -49,6 +49,7 @@ mod foundry_capability_schema_gates;
 mod foundry_eval_gates;
 mod glossary_cross_doc_gates;
 mod governance_gates;
+mod hyperscaler_arch_invariants_gate;
 mod hyperscaler_maturity_claims_gate;
 mod json_scan;
 mod loop_recovery_patterns_gate;
@@ -126,6 +127,9 @@ pub(crate) use governance_gates::{
     parse_authority_cohesion_validate_args, parse_claim_ceiling_validate_args,
     parse_plane_class_validate_args, validate_authority_cohesion_gate, validate_claim_ceiling_gate,
     validate_plane_class_gate,
+};
+pub(crate) use hyperscaler_arch_invariants_gate::{
+    parse_hyperscaler_arch_invariants_validate_args, validate_hyperscaler_arch_invariants_gate,
 };
 pub(crate) use hyperscaler_maturity_claims_gate::{
     parse_hyperscaler_maturity_claims_validate_args, validate_hyperscaler_maturity_claims_gate,
@@ -258,6 +262,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <main>]"
         + "\n       oya gate validate retired-vocabulary [--registry <registry/vocabulary/retired.yaml>] [--corpus-root <path>] (repeatable) [--exclude-root <path>] (repeatable)"
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"
+        + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/products/workflow-studio.json>] [--workflow <specs/products/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"
         + "\n       oya gate validate workspace-hygiene [--policy <specs/workspace-hygiene.json>] [--no-scan] [--strict] [--clean-build-artifacts] [--clean-temp-artifacts]"
         + "\n       oya gate validate license-policy [--workspace <Cargo.toml>]"

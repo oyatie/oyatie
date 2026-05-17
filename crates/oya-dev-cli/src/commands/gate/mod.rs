@@ -1016,6 +1016,29 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("hyperscaler-arch-invariants")) => {
+            match crate::parse_hyperscaler_arch_invariants_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_hyperscaler_arch_invariants_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "hyperscaler architecture invariant validation passed: {} invariants, {} products, {} planned lanes",
+                            report.invariant_count, report.product_count, report.planned_lane_count
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!(
+                            "hyperscaler architecture invariant validation failed: {message}"
+                        );
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("hyperscaler-maturity-claims")) => {
             match crate::parse_hyperscaler_maturity_claims_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_hyperscaler_maturity_claims_gate(args) {
