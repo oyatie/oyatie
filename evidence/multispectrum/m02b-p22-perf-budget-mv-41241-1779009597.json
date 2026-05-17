@@ -1,0 +1,86 @@
+{
+  "change_id": "m02b-p22-perf-budget-mv-41241-1779009597",
+  "change_class_id": "CC-3_tooling_only",
+  "change_class_rationale": "Adds perf-budget CLI integration coverage and hardens the kernel measurement predicate so digit-only filler such as '0 things to do' fails. The standards doc was preserved from the current queue head and has no remaining origin/dev...HEAD diff. No new crates. No new workspace deps.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779019614,
+  "git_sha_base": "3f7f0ddc1a1ef6cfe936ad5aeaf7f66c400485db",
+  "branch": "agent/m02b-p22-perf-budget-mv-41241-1779009597",
+  "session_id": "claude-m02b-p22-perf-budget-mv-41241",
+  "agent_id": "claude-executor-m02b-p22-perf-budget",
+  "task": "M02b/P22 exit-gate lane-3: add and harden perf-budget integration tests for missing, empty, non-measurement, and clean load-test sections.",
+  "artifacts_touched": [
+    "crates/oya-check-perf-budget/src/lib.rs (boundary-aware performance measurement parser; rejects digit-only filler and metric-substring words like items/section)",
+    "crates/oya-dev-cli/src/scalability_gates.rs (error label updated to concrete performance measurements)",
+    "crates/oya-dev-cli/tests/gate_cli.rs (appended 4 integration tests covering missing, empty, non-measurement, and clean perf-budget paths with Drop cleanup)",
+    "evidence/multispectrum/m02b-p22-perf-budget-mv-41241-1779009597.json (this file; queue-rebase evidence refresh)",
+    "evidence/audit-chain.jsonl (appended correction rows only)"
+  ],
+  "local_gates": [
+    "cargo test -p oya-check-perf-budget: 11/11 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli perf_budget_gate: 4/4 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli benchmark_gate: 2/2 PASS",
+    "cargo test -p oya-dev-cli --test gate_cli protection_context_match_gate: 2/2 PASS",
+    "cargo check -p oya-dev-cli: PASS",
+    "cargo clippy -p oya-check-perf-budget -- -D warnings: PASS",
+    "cargo clippy -p oya-dev-cli --test gate_cli -- -D warnings: PASS",
+    "rustfmt 1.95.0 --check crates/oya-dev-cli/tests/gate_cli.rs: PASS",
+    "jq evidence validation: PASS",
+    "git diff --check origin/dev...HEAD: PASS",
+    "git merge-tree --write-tree origin/dev HEAD: PASS"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The perf-budget kernel (oya-check-perf-budget) already existed and was fully tested at the unit level, but imported review 118-M01 found the digit-only heuristic could accept non-measurement filler. The kernel now uses boundary-aware token parsing and requires a number tied to concrete performance/load-test vocabulary.",
+        "The CLI synthetic violations cover missing section, empty section, and digit-bearing non-measurement filler. The clean path requires p99/rps-style measurement content.",
+        "No new crates, no new workspace deps, no serde. Constraint honored. No YAML workflow changes per OP-11."
+      ],
+      "fixuptasks": [
+        "F-M02-EXIT-GATE-VALIDATORS-MISSING: current queue-head docs leave lanes 6, 10, 11, and 12 test-pending before the BLOCKER workflow YAML flip lands."
+      ],
+      "null_finding_reason": null
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Violation tests create temp plan dirs for missing `## Load test`, empty `## Load test`, and `0 things to do` non-measurement filler. CLI must exit non-zero and print the specific failure label. Clean test uses concrete p99/rps measurements and must exit 0.",
+        "Perf-budget tests follow the established CARGO_BIN_EXE_oya/temp fixture pattern while using a local Drop guard so temp dirs are removed even when assertions fail."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "No data-class annotations added (test fixtures are ephemeral temp dirs). No autonomy-ceiling surface touched. No license surface changed."
+      ],
+      "fixuptasks": []
+    },
+    "A5_doc_structure": {
+      "considered": true,
+      "findings": [
+        "During queue rebase, docs/standards/m02-exit-gate-validators.md was preserved from current origin/dev; origin/dev...HEAD now has no standards-doc diff. Current queue-head docs already record lane-3 perf-budget as wired + tested and preserve later lane state."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "review_findings_addressed": [
+    "118-M01: kernel rejects digit-only filler and metric-substring words like `0 items` / `1 section` by requiring boundary-aware measurement tokens near numbers; full registry target comparison is not wired because registry/quality/lanes.yaml carries lane metadata, not per-plan thresholds.",
+    "118-M02: CLI integration tests now cover SectionMissing, SectionEmpty, SectionMissingNumbers/non-measurement filler, and clean path.",
+    "118-S01: PR title updated to 'test(gate): M02b/P22 exit-gate lane-3 — add perf-budget integration tests'.",
+    "118-S02: new perf-budget CLI tests use Drop-based temp-dir cleanup instead of remove_dir_all after assertions."
+  ],
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "The smallest honest current change: harden the existing perf-budget kernel against digit-only filler and add CLI integration tests proving missing, empty, non-measurement, and clean load-test sections through the real dispatch path. OP-11 (no YAML workflow flip) honored."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT",
+      "rationale": "No overengineering. No stub/placeholder in production code. The current queue-head doc table is preserved and only lanes 6, 10, 11, and 12 remain test-pending before the workflow flip. The --plans-dir flag path matches the actual CLI arg parser."
+    }
+  }
+}
