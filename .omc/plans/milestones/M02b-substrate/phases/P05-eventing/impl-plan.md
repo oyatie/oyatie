@@ -18,6 +18,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: "Delivers the complete Eventing substrate: 16 crates across 3 BCs (outbox, topics, subscriptions), Postgres outbox table per µservice convention, LISTEN/NOTIFY poller, Kafka KRaft publisher adapter (Apache-2.0 `rdkafka` crate)."
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "User chose merge-variant 2026-05-17 — the 16-crate FROM-SCRATCH scaffold below is preserved as reference; deltas land incrementally into existing oya-eventing-{domain,file-adapter} crates. Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION. First delta landed: CloudEvent + CloudEventError added to oya-eventing-domain::cloud_event module (2026-05-17), encoding the CloudEvents 1.0 spec required-attribute set + tenant-id classification. Remaining deltas (sealed Outbox port traits, Postgres outbox DDL with LISTEN/NOTIFY, Kafka KRaft adapter, topic registry BC, subscription BC, Protobuf event schemas) tracked under the reconciliation FixupTask as separate slices."
 ---
 # IP-P05-eventing-substrate: Scaffold 16 eventing crates with outbox dispatcher, Kafka KRaft adapter, CloudEvents framing
 

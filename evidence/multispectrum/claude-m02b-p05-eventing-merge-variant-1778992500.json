@@ -1,0 +1,48 @@
+{
+  "change_id": "claude-m02b-p05-eventing-merge-variant-1778992500",
+  "change_class_id": "CC-2_adapter_or_infrastructure",
+  "change_class_rationale": "Adds 2 new public types (CloudEvent + CloudEventError) + a new module file (cloud_event.rs) to an existing live domain crate (oya-eventing-domain). Additive only; encodes CloudEvents 1.0 spec required-attribute set.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778992500,
+  "git_sha_base": "586abb85",
+  "branch": "agent/m02b-p05-eventing-merge-variant-1778992500",
+  "session_id": "claude-durable-goal-2026-05-17-p05-agent",
+  "agent_id": "claude-m02b-p05-eventing-merge-variant",
+  "task": "First merge-variant delta from M02b/P05-eventing impl-plan into the existing live oya-eventing-* crates. Parent claude-durable-goal session per user directive 2026-05-17 (option 2: merge-into-existing-crates). 16-crate FROM-SCRATCH scaffold from the impl-plan NOT executed; instead one canonical type (CloudEvent) added to existing domain crate.",
+  "artifacts_touched": [
+    "crates/oya-eventing-domain/src/cloud_event.rs (NEW; ~280 lines: CloudEvent struct + CloudEventError + helpers + tests)",
+    "crates/oya-eventing-domain/src/lib.rs (added `pub mod cloud_event` + re-exports for CloudEvent, CloudEventError)",
+    ".omc/plans/milestones/M02b-substrate/phases/P05-eventing/impl-plan.md (frontmatter: execution_variant=merge-into-existing-crates + execution_variant_note pointing to F-M02B-PLAN-LIVE-CRATE-RECONCILIATION)",
+    "evidence/multispectrum/claude-m02b-p05-eventing-merge-variant-1778992500.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "references_fixuptasks": ["F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"],
+  "local_gates": [
+    "cargo nextest run -p oya-eventing-domain --all-features: PASS"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": ["Honors no-over-scaffolding: 16-crate plan → 1 type into existing domain. CloudEvent is the foundational contract because every downstream eventing surface (outbox, Kafka, subscriptions) serializes through it."],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": ["CloudEvent encodes the CloudEvents 1.0 spec required attributes (id, source, specversion, type) plus optional attributes (subject, time, datacontenttype, dataschema). Tests cover construction, missing-attribute errors, and serialization round-trip."],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": ["CloudEvent.tenant_id wrapped in Classified<String> for data-class propagation. No raw secret material in tests; aligns with user's persistent 'raw secrets must not enter repo/chat/checkpoints' directive."],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": ["Audit-chain row appended with distinct timestamp_unix + session_id (OP-08). References the same F-M02B-PLAN-LIVE-CRATE-RECONCILIATION FixupTask as P02/P03/P04/P06 — one cross-phase tracker."]
+    }
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "CloudEvent is the right first delta — every downstream eventing surface needs it."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT_WITH_GUARDRAILS", "guardrails": ["Remaining foundation phase P07-observability still needs analogous merge-variant frontmatter + delta slice.", "CloudEvents spec evolves; tie this type to a pinned spec version when the wire-format starts shipping over the network."]}
+  }
+}
