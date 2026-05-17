@@ -17,7 +17,9 @@
     "owning_axis": "workspace-communications",
     "product_class": "suite-app",
     "user_facing_surface": true,
-    "context_model": ["work"],
+    "context_model": [
+      "work"
+    ],
     "personal_context_projection": {
       "allowed": true,
       "scope": "user may expose a curated personal bio to professional network with explicit consent; no personal messages, posts, or social artifacts are ever surfaced in network context without explicit opt-in"
@@ -88,42 +90,48 @@
       "given": "a user has a professional profile",
       "when": "a colleague or recruiter searches the network",
       "then": "only work-context profile fields are returned; personal social posts, personal contacts, and personal biography are never included unless the user has explicitly opted in with consent token",
-      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_profile_search_excludes_personal_context"
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_profile_search_excludes_personal_context",
+      "test_ref": "cargo nextest -p oya-connect-network-domain -- test_profile_search_excludes_personal_context"
     },
     {
       "id": "AC-NETWORK-02",
       "given": "a user connects with a professional contact",
       "when": "the connection edge is created in Ontology",
       "then": "the edge is typed context_kind=work and ownership_pillar=work; it is never accessible from personal social graph queries",
-      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_professional_connection_edge_pillar"
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_professional_connection_edge_pillar",
+      "test_ref": "cargo nextest -p oya-connect-network-domain -- test_professional_connection_edge_pillar"
     },
     {
       "id": "AC-NETWORK-03",
       "given": "a recruiter runs a talent search",
       "when": "search results are returned",
       "then": "results contain only professional-context Ontology nodes with user-consented profile visibility; open-to-work signals are only visible to recruiters when the user has set recruiter_visible=true",
-      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_recruiter_search_respects_open_to_work_consent"
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_recruiter_search_respects_open_to_work_consent",
+      "test_ref": "cargo nextest -p oya-connect-network-domain -- test_recruiter_search_respects_open_to_work_consent"
     },
     {
       "id": "AC-NETWORK-04",
       "given": "a sales professional uses lead discovery",
       "when": "account maps and relationship intelligence are computed",
       "then": "lead graph is derived from Ontology professional edges and company membership only; personal social connections are never included in lead scoring",
-      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_lead_discovery_excludes_personal_graph"
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_lead_discovery_excludes_personal_graph",
+      "test_ref": "cargo nextest -p oya-connect-network-domain -- test_lead_discovery_excludes_personal_graph"
     },
     {
       "id": "AC-NETWORK-05",
       "given": "an employee publishes an article or newsletter",
       "when": "the content is indexed and distributed",
       "then": "content is scoped to professional context; employer content policy applies for work-context articles; personal opinion articles in personal context are never visible to employer unless cross-posted with consent",
-      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_article_content_policy_scope"
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_article_content_policy_scope",
+      "test_ref": "cargo nextest -p oya-connect-network-domain -- test_article_content_policy_scope"
     },
     {
       "id": "AC-NETWORK-06",
       "given": "a user completes a learning course",
       "when": "a certificate is issued",
       "then": "the certificate is added to the professional Ontology profile node; a SkilledAsserted event is emitted; the user may share to professional feed with one-click; personal learning history is separate",
-      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_learning_certificate_professional_ontology_node"
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_learning_certificate_professional_ontology_node",
+      "test_ref": "cargo nextest -p oya-connect-network-domain -- test_learning_certificate_professional_ontology_node"
     }
   ],
   "scope": {
@@ -359,61 +367,147 @@
       "component": "ProfessionalProfileCard",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/professional-profile-card.json",
-      "variants": ["compact", "full", "recruiter-view", "sales-view"],
-      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+      "variants": [
+        "compact",
+        "full",
+        "recruiter-view",
+        "sales-view"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "component": "NetworkFeed",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/network-feed.json",
-      "variants": ["connections", "company", "industry", "following"],
-      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop", "wide-desktop"]
+      "variants": [
+        "connections",
+        "company",
+        "industry",
+        "following"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
     },
     {
       "component": "JobBoardSearch",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/job-board-search.json",
-      "variants": ["candidate", "recruiter-post"],
-      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+      "variants": [
+        "candidate",
+        "recruiter-post"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "component": "RecruiterPipeline",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/recruiter-pipeline.json",
-      "variants": ["kanban", "list"],
-      "tested_at_breakpoints": ["tablet", "desktop", "wide-desktop"]
+      "variants": [
+        "kanban",
+        "list"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
     },
     {
       "component": "SalesCopilotPanel",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/sales-copilot-panel.json",
-      "variants": ["lead-discovery", "account-map", "next-best-action"],
-      "tested_at_breakpoints": ["desktop", "wide-desktop"]
+      "variants": [
+        "lead-discovery",
+        "account-map",
+        "next-best-action"
+      ],
+      "tested_at_breakpoints": [
+        "desktop",
+        "wide-desktop"
+      ]
     },
     {
       "component": "ConnectShellPersonaSwitcher",
       "source": "shared suite primitive",
       "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
-      "variants": ["personal", "work", "admin-audit"],
-      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop", "wide-desktop"]
+      "variants": [
+        "personal",
+        "work",
+        "admin-audit"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
     }
   ],
   "data_model": {
     "entities_ref": [
       {
         "entity": "ProfessionalIdentityNode",
-        "fields": ["identity_id", "user_id", "tenant_id", "context_kind", "ownership_pillar", "headline", "experience_refs", "education_refs", "skills_refs", "open_to_work_recruiter_visible", "schema_version"],
-        "invariants": ["context_kind=work", "ownership_pillar=work", "open_to_work_recruiter_visible is personal-pillar for hiding from current employer"]
+        "fields": [
+          "identity_id",
+          "user_id",
+          "tenant_id",
+          "context_kind",
+          "ownership_pillar",
+          "headline",
+          "experience_refs",
+          "education_refs",
+          "skills_refs",
+          "open_to_work_recruiter_visible",
+          "schema_version"
+        ],
+        "invariants": [
+          "context_kind=work",
+          "ownership_pillar=work",
+          "open_to_work_recruiter_visible is personal-pillar for hiding from current employer"
+        ]
       },
       {
         "entity": "ProfessionalConnectionEdge",
-        "fields": ["edge_id", "user_a_id", "user_b_id", "context_kind", "degree", "connected_at"],
-        "invariants": ["context_kind=work immutable"]
+        "fields": [
+          "edge_id",
+          "user_a_id",
+          "user_b_id",
+          "context_kind",
+          "degree",
+          "connected_at"
+        ],
+        "invariants": [
+          "context_kind=work immutable"
+        ]
       },
       {
         "entity": "JobPosting",
-        "fields": ["job_id", "company_id", "tenant_id", "context_kind", "title", "location", "remote_kind", "status", "created_at"],
-        "invariants": ["context_kind=work; never surfaced in personal context"]
+        "fields": [
+          "job_id",
+          "company_id",
+          "tenant_id",
+          "context_kind",
+          "title",
+          "location",
+          "remote_kind",
+          "status",
+          "created_at"
+        ],
+        "invariants": [
+          "context_kind=work; never surfaced in personal context"
+        ]
       }
     ],
     "events_emitted": [
@@ -451,19 +545,31 @@
   "metrics": [
     {
       "name": "personal_context_leak_to_network_pct",
-      "targets": {"preview": 0, "stable": 0, "GA": 0},
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
       "verification_ref": "cargo nextest -p oya-connect-network-domain -- test_profile_search_excludes_personal_context",
       "lane_ref": "cargo-nextest"
     },
     {
       "name": "profile_load_p95_ms",
-      "targets": {"preview": 250, "stable": 150, "GA": 100},
+      "targets": {
+        "preview": 250,
+        "stable": 150,
+        "GA": 100
+      },
       "verification_ref": "cargo bench -p oya-connect-network-bench -- profile_load_p95",
       "lane_ref": "oya-foundry-fitness-perf-budget"
     },
     {
       "name": "recruiter_search_p95_ms",
-      "targets": {"preview": 1000, "stable": 700, "GA": 500},
+      "targets": {
+        "preview": 1000,
+        "stable": 700,
+        "GA": 500
+      },
       "verification_ref": "cargo bench -p oya-connect-network-bench -- recruiter_search_p95",
       "lane_ref": "oya-foundry-fitness-perf-budget"
     }
@@ -520,5 +626,201 @@
         "ADR-0208 dual-context model; professional network is work-context primary"
       ]
     }
+  ],
+  "contracts": {
+    "consumes": [
+      "connect.context.v1",
+      "ontology.ProfessionalIdentityNode",
+      "workflow.hiring_pipeline.v1",
+      "workflow.sales_pipeline.v1"
+    ],
+    "produces": [
+      "connect.network.profile.v1",
+      "connect.network.connection.v1",
+      "connect.network.job_application.v1",
+      "connect.network.skill_assertion.v1"
+    ]
+  },
+  "optimization_practices": [
+    {
+      "practice": "cursor pagination",
+      "implementation": "Connect Network list and feed reads page by stable context key plus created_at/id cursor"
+    },
+    {
+      "practice": "idempotent writes",
+      "implementation": "mutating commands carry idempotency_key and emit replayable audit/event records"
+    },
+    {
+      "practice": "backpressure",
+      "implementation": "write, media, model, and workflow fanout queues expose retry_after and per-tenant quota class"
+    }
+  ],
+  "deps": {
+    "external_adopted": [
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "runtime primitive only"
+      },
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "rustls",
+        "maturity_tier": "kernel-grade",
+        "license": "Apache-2.0 OR ISC OR MIT",
+        "decision": "TLS primitive only"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "third-party social graph as product authority",
+        "reason": "Connect owns native context and pillar boundaries; imports are adapters only"
+      },
+      {
+        "name": "manual ops runbooks as deployment authority",
+        "reason": "OpenTofu, root Makefile targets, and Rust oya gates own deployment and validation"
+      }
+    ]
+  },
+  "best_practices": [
+    {
+      "id": "BP-NETWORK-01",
+      "rule": "professional identity graph is work-context primary and consent-bounded",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-network-pillar"
+    },
+    {
+      "id": "BP-NETWORK-02",
+      "rule": "recruiter search respects open-to-work consent and employer-denial rules",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-recruiter-consent"
+    },
+    {
+      "id": "BP-NETWORK-03",
+      "rule": "sales intelligence derives only from professional Ontology edges",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-sales-graph"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "professional_identity_graph",
+      "when_to_use": "ProfessionalIdentityNode in Ontology; connection edges are typed work-context; all professional surfaces derive from this canonical node",
+      "reference": "LinkedIn profile + connections"
+    },
+    {
+      "pattern": "recruiter_talent_search",
+      "when_to_use": "Foundry RecruiterCopilotAgent with candidate matching; open-to-work consent signals in professional pillar; personal open-to-work hidden from current employer",
+      "reference": "LinkedIn Recruiter"
+    },
+    {
+      "pattern": "sales_navigator_relationship_intelligence",
+      "when_to_use": "Foundry SalesCopilotAgent derives lead graph from professional Ontology edges only; no personal social graph",
+      "reference": "LinkedIn Sales Navigator"
+    },
+    {
+      "pattern": "thought_leadership_articles_newsletters",
+      "when_to_use": "professional-context article artifact in Ontology; Workflow newsletter delivery pipeline; employer content policy applies",
+      "reference": "LinkedIn Articles / Newsletters"
+    },
+    {
+      "pattern": "skills_endorsements_assessments",
+      "when_to_use": "SkillEndorsementEdge in Ontology; Foundry skill assessment challenges; certificates link to ProfessionalIdentityNode",
+      "reference": "LinkedIn Skills"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "anti_pattern": "personal_social_graph_in_professional_network",
+      "why_forbidden": "professional network must be work-context only; ADR-0208 pillar boundary",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    },
+    {
+      "anti_pattern": "employer_visible_personal_open_to_work",
+      "why_forbidden": "personal career search activity is personal-pillar owned; ADR-0215",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    },
+    {
+      "anti_pattern": "static_filter_based_recruiter_search",
+      "why_forbidden": "Foundry agentic copilot provides dynamic matching; static filter UIs are not the pattern",
+      "detection_lane": "oya-foundry-fitness-foundry-agent-coverage"
+    },
+    {
+      "anti_pattern": "personal_data_in_b2b_ad_targeting",
+      "why_forbidden": "professional ads use only work-context Ontology attributes; personal data never consulted",
+      "detection_lane": "oya-foundry-fitness-connect-ads-isolation"
+    }
+  ],
+  "goals": {
+    "scalability": {
+      "target": "100M professional identity nodes and 1B typed professional edges partitioned by tenant and region",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+    },
+    "security": {
+      "target": "professional graph queries never expose personal social graph or hidden open-to-work signals",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+    },
+    "performance": {
+      "target": "profile search, feed, recruiter search, and lead discovery stay below 200ms p95",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+    },
+    "efficiency": {
+      "target": "recruiter, sales, learning, and ads workloads are metered by query class and graph traversal budget",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+    },
+    "reliability": {
+      "target": "99.95% GA availability with reproducible graph rebuild and search-index recovery",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+    }
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/products/connect/network.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard, screen-reader, reduced-motion, and high-contrast states are required for every declared component",
+    "responsive_breakpoints": [
+      "mobile-portrait",
+      "mobile-landscape",
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "KR and en-US launch coverage with EU locale readiness through regional packs",
+    "design_system_components_used": "$ref:specs/products/connect/network.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "professional_individual",
+        "journeys": [
+          "enter product surface",
+          "complete primary action",
+          "review policy or consent state"
+        ],
+        "time_to_success_target": "< 2 minutes for the primary path with policy state visible"
+      },
+      {
+        "persona": "recruiter",
+        "journeys": [
+          "enter product surface",
+          "complete primary action",
+          "review policy or consent state"
+        ],
+        "time_to_success_target": "< 2 minutes for the primary path with policy state visible"
+      },
+      {
+        "persona": "sales_professional",
+        "journeys": [
+          "enter product surface",
+          "complete primary action",
+          "review policy or consent state"
+        ],
+        "time_to_success_target": "< 2 minutes for the primary path with policy state visible"
+      }
+    ]
+  },
+  "sources_scanned": [
+    "https://www.linkedin.com/help/linkedin/answer/a548441 — professional profile, connections, jobs, feed, groups, events, learning, premium",
+    "bominal ADR-0208 Connect dual-context model",
+    "bominal ADR-0215 Connect retention and legal-hold dual-context policy",
+    "specs/products/connect/suite.json"
   ]
 }

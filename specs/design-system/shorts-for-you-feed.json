@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/design-system/shorts-for-you-feed.schema.json",
+  "title": "DesignSystem:Shorts For You Feed",
+  "doc_class": "Machine-Readable-Spec",
+  "component_id": "shorts-for-you-feed",
+  "owner_team": "connect-product-council",
+  "product_ref": "$ref:specs/products/connect/shorts.json",
+  "component_name": "ShortsForYouFeed",
+  "status": "planned-contract",
+  "variants": [
+    "personal",
+    "professional",
+    "following"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": true,
+    "screen_reader": true,
+    "reduced_motion": true
+  },
+  "responsive_breakpoints": [
+    "mobile-portrait",
+    "mobile-landscape",
+    "tablet"
+  ],
+  "contract": {
+    "purpose": "ShortsForYouFeed is a declared Connect Shorts UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
+    "state_model_ref": "$ref:specs/products/connect/shorts.json#frontend_components"
+  }
+}

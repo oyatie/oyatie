@@ -17,7 +17,9 @@
     "owning_axis": "workspace-communications",
     "product_class": "suite-app",
     "user_facing_surface": true,
-    "context_model": ["work"],
+    "context_model": [
+      "work"
+    ],
     "crate_refs_planned": [
       "oya-connect-anonymous-kernel",
       "oya-connect-anonymous-domain",
@@ -74,42 +76,48 @@
       "given": "a verified employee posts in the anonymous company channel",
       "when": "the post is stored",
       "then": "the stored artifact contains only an anonymous_author_token (a one-way hash unlinkable without the salt held in a separate HSM-backed vault); real user_id is never stored in the anonymous post table or search index",
-      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_anonymous_post_stores_no_real_identity"
+      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
+      "test_ref": "cargo nextest -p oya-connect-anonymous-domain -- test_anonymous_post_stores_no_real_identity"
     },
     {
       "id": "AC-ANON-02",
       "given": "an employer admin queries the company anonymous channel",
       "when": "posts are returned",
       "then": "only aggregate stats (post count, topic distribution, sentiment trend) are returned; individual posts are NOT attributable to any employee; the API returns 403 for any individual-attribution query from an employer role",
-      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_employer_admin_sees_only_aggregates"
+      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_employer_admin_sees_only_aggregates",
+      "test_ref": "cargo nextest -p oya-connect-anonymous-domain -- test_employer_admin_sees_only_aggregates"
     },
     {
       "id": "AC-ANON-03",
       "given": "a court order is received requiring identity disclosure",
       "when": "the legal hold four-eyes procedure is executed",
       "then": "two authorized compliance officers must approve; the HSM-backed salt vault is accessed; real identity is disclosed in a sealed audit package; the event is permanently recorded in the immutable audit chain",
-      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes"
+      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes",
+      "test_ref": "cargo nextest -p oya-connect-anonymous-domain -- test_legal_hold_identity_reveal_requires_four_eyes"
     },
     {
       "id": "AC-ANON-04",
       "given": "a user verifies their work email for anonymous posting",
       "when": "verification completes",
       "then": "the verification link is one-time-use; the verified credential is stored in a separate verification vault that does NOT share a foreign key with the anonymous posts table; verification tokens expire after 24h",
-      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_verification_vault_isolation"
+      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_verification_vault_isolation",
+      "test_ref": "cargo nextest -p oya-connect-anonymous-domain -- test_verification_vault_isolation"
     },
     {
       "id": "AC-ANON-05",
       "given": "a user shares salary or compensation data",
       "when": "the data is stored and queried",
       "then": "individual salary entries are stored with anonymous_author_token only; aggregate compensation data is returned for peer comparison; individual entry is never linkable to real identity in query path",
-      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_salary_data_anonymous_storage"
+      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_salary_data_anonymous_storage",
+      "test_ref": "cargo nextest -p oya-connect-anonymous-domain -- test_salary_data_anonymous_storage"
     },
     {
       "id": "AC-ANON-06",
       "given": "a content moderation action is taken on an anonymous post",
       "when": "the moderator reviews the post",
       "then": "the moderator sees the anonymous_author_token (not real identity) for appeal processing; moderation decision is audit logged with anonymous_author_token; real identity is not surfaced to moderator",
-      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_moderation_preserves_anonymity"
+      "verification_command": "cargo nextest -p oya-connect-anonymous-domain -- test_moderation_preserves_anonymity",
+      "test_ref": "cargo nextest -p oya-connect-anonymous-domain -- test_moderation_preserves_anonymity"
     }
   ],
   "scope": {
@@ -152,6 +160,22 @@
         "item": "real-name-linked salary disclosure",
         "why": "salary data is anonymous_author_token only; real identity never stored alongside compensation data"
       }
+    ]
+  },
+  "contracts": {
+    "consumes": [
+      "connect.context.v1",
+      "identity.verified_employee.v1",
+      "workflow.legal_hold.v1",
+      "ontology.CompanyAnonChannel",
+      "regional.retention_policy.v1"
+    ],
+    "produces": [
+      "connect.anonymous.post.v1",
+      "connect.anonymous.salary_benchmark.v1",
+      "connect.anonymous.topic_trend.v1",
+      "connect.anonymous.legal_hold_identity_reveal.v1",
+      "audit.connect.anonymous.policy.v1"
     ]
   },
   "dual_context_isolation": {
@@ -340,68 +364,154 @@
       "component": "AnonChannelFeed",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/anon-channel-feed.json",
-      "variants": ["company-channel", "public-board", "topic-board"],
-      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+      "variants": [
+        "company-channel",
+        "public-board",
+        "topic-board"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "component": "AnonPostComposer",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/anon-post-composer.json",
-      "variants": ["text-post", "salary-share", "poll", "ama-question"],
-      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+      "variants": [
+        "text-post",
+        "salary-share",
+        "poll",
+        "ama-question"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "component": "SalaryBenchmarkWidget",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/salary-benchmark-widget.json",
-      "variants": ["peer-range", "submit-own"],
-      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+      "variants": [
+        "peer-range",
+        "submit-own"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop"
+      ]
     },
     {
       "component": "HRAggregateInsightsDashboard",
       "source": "planned design-system primitive",
       "design_system_ref": "$ref:specs/design-system/hr-aggregate-insights-dashboard.json",
-      "variants": ["sentiment-trend", "topic-distribution", "participation-rate"],
+      "variants": [
+        "sentiment-trend",
+        "topic-distribution",
+        "participation-rate"
+      ],
       "note": "employer-facing; individual attribution is NEVER rendered; component enforces this at render layer",
-      "tested_at_breakpoints": ["desktop", "wide-desktop"]
+      "tested_at_breakpoints": [
+        "desktop",
+        "wide-desktop"
+      ]
     },
     {
       "component": "PolicyDisclosureBanner",
       "source": "shared suite primitive",
       "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
-      "variants": ["legal-hold", "anonymity-guarantee", "verification-required"],
-      "tested_at_breakpoints": ["mobile-portrait", "desktop"]
+      "variants": [
+        "legal-hold",
+        "anonymity-guarantee",
+        "verification-required"
+      ],
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "desktop"
+      ]
     },
     {
       "component": "ConnectShellPersonaSwitcher",
       "source": "shared suite primitive",
       "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
-      "variants": ["work"],
+      "variants": [
+        "work"
+      ],
       "note": "work context only; personal context not rendered in ConnectAnonymous",
-      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop", "wide-desktop"]
+      "tested_at_breakpoints": [
+        "mobile-portrait",
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
     }
   ],
   "data_model": {
     "entities_ref": [
       {
         "entity": "AnonPost",
-        "fields": ["post_id", "channel_id", "anonymous_author_token", "content_encrypted", "topic_tags", "post_kind", "created_at", "schema_version"],
-        "invariants": ["NO user_id field; NO tenant_id field in this table; anonymous_author_token is BLAKE3(user_id + per_tenant_salt + epoch_bucket); no FK to any identity table"]
+        "fields": [
+          "post_id",
+          "channel_id",
+          "anonymous_author_token",
+          "content_encrypted",
+          "topic_tags",
+          "post_kind",
+          "created_at",
+          "schema_version"
+        ],
+        "invariants": [
+          "NO user_id field; NO tenant_id field in this table; anonymous_author_token is BLAKE3(user_id + per_tenant_salt + epoch_bucket); no FK to any identity table"
+        ]
       },
       {
         "entity": "VerificationToken",
-        "fields": ["token_id", "user_id", "tenant_id", "expires_at", "consumed_at"],
-        "invariants": ["stored in isolated verification vault database; NO FK to AnonPost table; one-time-use; expires in 24h"]
+        "fields": [
+          "token_id",
+          "user_id",
+          "tenant_id",
+          "expires_at",
+          "consumed_at"
+        ],
+        "invariants": [
+          "stored in isolated verification vault database; NO FK to AnonPost table; one-time-use; expires in 24h"
+        ]
       },
       {
         "entity": "AnonSalaryEntry",
-        "fields": ["entry_id", "anonymous_author_token", "role_level", "total_comp_usd", "company_tier", "yoe_bucket", "region_bucket", "created_at"],
-        "invariants": ["NO user_id; anonymous_author_token only; no FK to identity tables"]
+        "fields": [
+          "entry_id",
+          "anonymous_author_token",
+          "role_level",
+          "total_comp_usd",
+          "company_tier",
+          "yoe_bucket",
+          "region_bucket",
+          "created_at"
+        ],
+        "invariants": [
+          "NO user_id; anonymous_author_token only; no FK to identity tables"
+        ]
       },
       {
         "entity": "LegalHoldIdentityRevealRequest",
-        "fields": ["request_id", "court_order_ref", "requesting_officer_id", "approving_officer_id", "anonymous_author_token", "status", "sealed_audit_ref", "created_at"],
-        "invariants": ["requires two distinct compliance officer approvals; HSM vault access logged; real identity returned only in sealed audit package"]
+        "fields": [
+          "request_id",
+          "court_order_ref",
+          "requesting_officer_id",
+          "approving_officer_id",
+          "anonymous_author_token",
+          "status",
+          "sealed_audit_ref",
+          "created_at"
+        ],
+        "invariants": [
+          "requires two distinct compliance officer approvals; HSM vault access logged; real identity returned only in sealed audit package"
+        ]
       }
     ],
     "events_emitted": [
@@ -445,19 +555,31 @@
   "metrics": [
     {
       "name": "identity_leak_to_anonymous_post_table_count",
-      "targets": {"preview": 0, "stable": 0, "GA": 0},
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
       "verification_ref": "cargo nextest -p oya-connect-anonymous-domain -- test_anonymous_post_stores_no_real_identity",
       "lane_ref": "cargo-nextest"
     },
     {
       "name": "employer_individual_attribution_denial_pct",
-      "targets": {"preview": 100, "stable": 100, "GA": 100},
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
       "verification_ref": "cargo nextest -p oya-connect-anonymous-domain -- test_employer_admin_sees_only_aggregates",
       "lane_ref": "cargo-nextest"
     },
     {
       "name": "anonymous_post_write_p95_ms",
-      "targets": {"preview": 250, "stable": 150, "GA": 100},
+      "targets": {
+        "preview": 250,
+        "stable": 150,
+        "GA": 100
+      },
       "verification_ref": "cargo bench -p oya-connect-anonymous-bench -- anonymous_post_write_p95",
       "lane_ref": "oya-foundry-fitness-perf-budget"
     }
@@ -521,5 +643,187 @@
         "ADR-0208 dual-context model; work-context only; psychological safety requires cryptographic anonymity guarantee"
       ]
     }
+  ],
+  "optimization_practices": [
+    {
+      "practice": "cursor pagination",
+      "implementation": "Connect Anonymous list and feed reads page by stable context key plus created_at/id cursor"
+    },
+    {
+      "practice": "idempotent writes",
+      "implementation": "mutating commands carry idempotency_key and emit replayable audit/event records"
+    },
+    {
+      "practice": "backpressure",
+      "implementation": "write, media, model, and workflow fanout queues expose retry_after and per-tenant quota class"
+    }
+  ],
+  "deps": {
+    "external_adopted": [
+      {
+        "name": "tokio",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT",
+        "decision": "runtime primitive only"
+      },
+      {
+        "name": "serde",
+        "maturity_tier": "kernel-grade",
+        "license": "MIT OR Apache-2.0",
+        "decision": "wire-format primitive only"
+      },
+      {
+        "name": "rustls",
+        "maturity_tier": "kernel-grade",
+        "license": "Apache-2.0 OR ISC OR MIT",
+        "decision": "TLS primitive only"
+      }
+    ],
+    "external_rejected": [
+      {
+        "name": "third-party social graph as product authority",
+        "reason": "Connect owns native context and pillar boundaries; imports are adapters only"
+      },
+      {
+        "name": "manual ops runbooks as deployment authority",
+        "reason": "OpenTofu, root Makefile targets, and Rust oya gates own deployment and validation"
+      }
+    ]
+  },
+  "best_practices": [
+    {
+      "id": "BP-ANON-01",
+      "rule": "anonymous posts store anonymous_author_token only",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anon-identity-isolation"
+    },
+    {
+      "id": "BP-ANON-02",
+      "rule": "employer-facing views expose aggregate stats only",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anon-aggregate-only"
+    },
+    {
+      "id": "BP-ANON-03",
+      "rule": "legal identity reveal requires two compliance officers and HSM vault access",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anon-legal-hold"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "work_email_verification_for_anonymity",
+      "when_to_use": "one-time-use expiring verification token; verification vault is isolated from anonymous posts table; verification proves company membership without linking identity to posts",
+      "reference": "Blind/TeamBlind"
+    },
+    {
+      "pattern": "company_scoped_private_channel",
+      "when_to_use": "CompanyAnonChannel is a work-context Ontology node; only VerifiedEmployee edges to same tenant are admitted; channel membership stored with anonymous_author_token only",
+      "reference": "Blind company channels"
+    },
+    {
+      "pattern": "salary_compensation_transparency",
+      "when_to_use": "compensation entries stored with anonymous_author_token; AnonSalaryBenchmarkModel aggregates into peer ranges; individual entries never queryable by role/identity",
+      "reference": "Blind salary data"
+    },
+    {
+      "pattern": "anonymous_polls_and_amas",
+      "when_to_use": "poll ballots stored with anonymous_author_token; AMA questions are anonymous; aggregate results only surfaced to HR dashboard",
+      "reference": "Blind polls, TeamBlind AMAs"
+    },
+    {
+      "pattern": "cryptographic_anonymity_architecture",
+      "when_to_use": "BLAKE3 keyed hash with HSM-backed per-tenant salt; no FK to identity tables; physical join impossibility in query path; legal reveal requires HSM vault access with four-eyes approval",
+      "reference": "Blind patented encryption"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "anti_pattern": "policy_only_anonymity_without_cryptographic_enforcement",
+      "why_forbidden": "policy can be bypassed; cryptographic separation (no FK, keyed hash, HSM vault) is the only trustworthy guarantee",
+      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation"
+    },
+    {
+      "anti_pattern": "employer_individual_attribution",
+      "why_forbidden": "destroys psychological safety; ADR-0208/0215; employers receive aggregate stats only",
+      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation"
+    },
+    {
+      "anti_pattern": "moderator_identity_reveal_without_legal_hold",
+      "why_forbidden": "moderators must see anonymous_author_token only; real identity is HSM-gated four-eyes procedure",
+      "detection_lane": "oya-foundry-fitness-connect-anon-identity-isolation"
+    },
+    {
+      "anti_pattern": "personal_context_anonymous_boards",
+      "why_forbidden": "ConnectAnonymous is work-context only; mixing personal anonymous discussion with professional is out of scope and a pillar violation",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    }
+  ],
+  "goals": {
+    "scalability": {
+      "target": "10M verified professionals, tenant-scoped anonymous channels, and public boards without identity joins",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/anonymous.json"
+    },
+    "security": {
+      "target": "real identity never co-resides with anonymous posts; legal reveal is HSM-gated four-eyes only",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/anonymous.json"
+    },
+    "performance": {
+      "target": "anonymous post and feed hot paths stay under 150ms p95 in-region",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/anonymous.json"
+    },
+    "efficiency": {
+      "target": "anonymous feed, salary benchmark, and moderation workloads are metered per tenant and board",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/anonymous.json"
+    },
+    "reliability": {
+      "target": "99.95% GA availability with immutable audit-chain evidence for legal hold and moderation events",
+      "verification": "oya gate validate product-prd-json --product specs/products/connect/anonymous.json"
+    }
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/products/connect/anonymous.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard, screen-reader, reduced-motion, and high-contrast states are required for every declared component",
+    "responsive_breakpoints": [
+      "mobile-portrait",
+      "mobile-landscape",
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "KR and en-US launch coverage with EU locale readiness through regional packs",
+    "design_system_components_used": "$ref:specs/products/connect/anonymous.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "verified_employee",
+        "journeys": [
+          "enter product surface",
+          "complete primary action",
+          "review policy or consent state"
+        ],
+        "time_to_success_target": "< 2 minutes for the primary path with policy state visible"
+      },
+      {
+        "persona": "moderator",
+        "journeys": [
+          "enter product surface",
+          "complete primary action",
+          "review policy or consent state"
+        ],
+        "time_to_success_target": "< 2 minutes for the primary path with policy state visible"
+      },
+      {
+        "persona": "enterprise_hr_admin",
+        "journeys": [
+          "enter product surface",
+          "complete primary action",
+          "review policy or consent state"
+        ],
+        "time_to_success_target": "< 2 minutes for the primary path with policy state visible"
+      }
+    ]
+  },
+  "sources_scanned": [
+    "https://www.teamblind.com/about — anonymous community, work email verification, salary data, company channels, polls, patented encryption",
+    "bominal ADR-0208 Connect dual-context model",
+    "bominal ADR-0215 Connect retention and legal-hold dual-context policy",
+    "specs/products/connect/suite.json"
   ]
 }
