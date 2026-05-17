@@ -4297,6 +4297,87 @@ fn write_catalog_record_with_claim(
     .expect("catalog record written");
 }
 
+#[test]
+fn benchmark_gate_catches_missing_competitive_benchmark_section() {
+    let temp = temp_dir("benchmark-violation");
+    let prds_dir = temp.join("prds");
+    fs::create_dir_all(&prds_dir).expect("prds dir created");
+    fs::write(
+        prds_dir.join("PRD-missing-bench.md"),
+        "# My Product\n\n## Overview\n\nThis product does things.\n\n## Load test\n\nP99 latency < 10ms at 10k rps.\n",
+    )
+    .expect("PRD written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "benchmark",
+            "--prds-dir",
+            prds_dir.to_str().expect("utf8 prds dir"),
+            "--products-dir",
+            temp.join("products").to_str().expect("utf8 products dir"),
+        ])
+        .output()
+        .expect("benchmark gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("benchmark validation failed"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("SectionMissing")
+            || String::from_utf8_lossy(&output.stderr)
+                .contains("missing `## Competitive benchmark` section"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn benchmark_gate_passes_clean_crate() {
+    let temp = temp_dir("benchmark-clean");
+    let prds_dir = temp.join("prds");
+    fs::create_dir_all(&prds_dir).expect("prds dir created");
+    fs::write(
+        prds_dir.join("PRD-workflow.md"),
+        "# Workflow Studio\n\n## Overview\n\nDrag-and-drop automation engine.\n\n## Competitive benchmark\n\nStripe Sigma: 200ms P99 query latency at 50k tenants. Linear: sub-100ms issue create at 1M issues. n8n: 10k workflow executions/sec on a single node. Oyatie targets <80ms P99 at 100k tenants.\n",
+    )
+    .expect("PRD written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "benchmark",
+            "--prds-dir",
+            prds_dir.to_str().expect("utf8 prds dir"),
+            "--products-dir",
+            temp.join("products").to_str().expect("utf8 products dir"),
+        ])
+        .output()
+        .expect("benchmark gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("benchmark validation passed: 1 PRDs checked"),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn temp_dir(label: &str) -> std::path::PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
