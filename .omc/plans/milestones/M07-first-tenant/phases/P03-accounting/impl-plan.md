@@ -6,6 +6,10 @@ phase: P03-accounting
 impl_plan_id: IP-P03-accounting-full-scaffold
 status: pending
 owner: council-enterprise
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Full-scaffold (16-crate oya-accounting-* family) deferred per user directive 2026-05-17 option-2. Delta-1 merges AccountingPeriod + PeriodCloseState + K-GAAP period-close lifecycle into existing oya-cloud-finops-kernel::accounting_period. No new workspace crates; std-only; complementary to existing ReportPeriod / PublicCostSummary surface."
 blocked_by:
 - impl_plan: IP-P02-payroll-full-scaffold
   reason: PayrollRunCompleted Workflow event + PayrollEntry Ontology Object Type must
