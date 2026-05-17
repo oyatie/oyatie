@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-13
 owners:
 - council-architecture
-canonical_authority: docs/CONSTITUTION.md
+canonical_authority: /specs/root-hub-pointers.json
 companion_docs:
 - docs/PRD.md
 - docs/DESIGN.md
@@ -15,23 +15,26 @@ companion_docs:
 - docs/RACI-OWNERSHIP.md
 - docs/RISK-REGISTER.md
 - docs/CHANGELOG.md
-authority_chain_declaration: 'docs/CONSTITUTION.md > rest of docs/ > catalog records
-  > Redirect-class files > working drafts
-
-  '
+authority_chain_declaration: |
+  system / developer / user instructions
+    > /specs/root-hub-pointers.json
+    > docs/AGENTS.md (until /specs/agent-operating-contract.json PHASE-5 promotion)
+    > machine-readable specs and registries under .omc/
+    > docs/ authority files during markdown-retirement compatibility
+    > repo-root Redirect-class files (non-authoritative; lane-thin)
+    > working drafts (never authoritative)
 foundation_adrs:
-- ADR-0052
-- ADR-0053
-- ADR-0054
 - ADR-0056
+- ADR-0062
+- ADR-0116
 purpose: "MasterPlan: Oyatie — MASTERPLAN."
 doc_status: published
 ---
 # Oyatie — MASTERPLAN
 
-## §Authority-anchor — [CONSTITUTION.md](CONSTITUTION.md)
+## §Authority-anchor — root hub + agent contract
 
-This is the canonical Master Plan for oyatie. All milestone INDEXes / phase INDEXes / Implementation Plans under `.omc/plans/milestones/M*/` derive their authority chain from this document and ultimately from `docs/CONSTITUTION.md`.
+This is the canonical product/architecture Master Plan for oyatie during the markdown-retirement compatibility window. All milestone INDEXes / phase INDEXes / Implementation Plans under `.omc/plans/milestones/M*/` derive their authority from `/specs/root-hub-pointers.json`, `docs/AGENTS.md`, and the current machine-readable specs/registries. `docs/CONSTITUTION.md` is retired per `/specs/markdown-retirement-policy.json`.
 
 The planning implementation tree lives at `.omc/plans/milestones/`. `docs/MASTERPLAN.md` (this file) is the canonical product/architecture masterplan; `.omc/plans/MASTERPLAN.md` is deleted — this file is the single source.
 
@@ -206,7 +209,7 @@ Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR
 
 **Scope:** Foundry engine + Cloud-Tenancy substrate + Ontology µservice + Workflow µservice + Application B2B shell + all substrate µservices (tenancy, identity, audit-chain, eventing, secrets, observability, kms, policy, search, vector, data-boundary, finance-library, capability-registry, records, ads, analytics).
 
-**Exit criteria:** Sibling team scaffolds + ships any µservice via the polyglot GitOps-capable, grit-compatible `claim/work/done/promote` path with review/fix, controller-owned rebase, and merge-queue handling with zero build-team help; 9 architecture planes green at L4-L5; all `--report-only` lanes flipped to BLOCKER; Application deployable.
+**Exit criteria:** Sibling team scaffolds + ships any µservice via the polyglot GitOps-capable Oya VCS `claim/verify/done/promote` path with review/fix, controller-owned rebase, and merge-queue handling with zero build-team help; 9 architecture planes green at L4-L5; all `--report-only` lanes flipped to BLOCKER; Application deployable.
 
 **Phases:** See §7 Implementation-Plan Index for full phase + IP breakdown.
 
@@ -337,7 +340,7 @@ All compliance traits pluggable per Bominal ADR-0140 regional-pack pattern; oyat
 | Proof Ladder L0..L7 | Bominal ADR-0223 |
 | 9 architecture planes | Bominal ADR-0224..ADR-0231 |
 | Wave integration framework | Bominal ADR-0232 |
-| Sanctioned primitives | oyatie ADR-0053 (grit/icm/oya-tooling-agent-read) |
+| Sanctioned primitives | `docs/AGENTS.md` + ADR-0116 (Oya VCS / Foundry pipeline; grit/icm/rtk/vox historical only) |
 | Agent VCS replacement + GitOps promotion | `/specs/gitops-vcs-replacement.json` + M01-P07 |
 | Naming justification CI | feedback-naming-justification |
 | Milestone > Phase > Impl-plan hierarchy | feedback-milestone-phase-hierarchy |
@@ -348,9 +351,9 @@ All compliance traits pluggable per Bominal ADR-0140 regional-pack pattern; oyat
 
 **ImplementationPlan-as-ChangeSet rule:** Every Implementation Plan under `.omc/plans/milestones/*/phases/*/IP-*.md` is a ChangeSet-sized execution unit: claimable, independently verifiable, bundleable, promotable, and small enough to avoid locking an entire tree without graph-proven rationale. Milestones own outcomes; phases own delivery gates; IPs own the actual atomic work slice that Oyatie VCS can schedule, validate, bundle, and promote. Any IP that cannot meet this shape must be split before execution.
 
-**GitOps-capable VCS replacement (moved earlier per 2026-05-14 directive):** M01-P07 is now the first cross-cutting prerequisite before broad agent fan-out. It preserves grit's good parts — AST/semantic locks, isolated workspaces, `claim → work → done`, queues, watch events — but is not Rust-only: Rust AST claims are first-class, and Swift, Kotlin, C#, C++/WinUI/XAML, TypeScript, schemas, contracts, and config all get language/artifact-specific AST/parser-backed semantic indexers. It also establishes, documents, machine-encodes, and enforces unit/integration/e2e testing standards as CI/CD admission gates. It upgrades `done` from local merge serialization to a GitOps promotion request: signed change bundle, policy/CI admission, typed review/fix loop, controller-owned rebase, merge-queue enrollment, environment reconciliation, and audited release of locks only after the promotion reaches an accepted terminal state. Agents still do not call `git` or `gh`; they call the grit-compatible interface until the successor binary is ready, then the successor interface. Canonical machine-readable contract: `/specs/gitops-vcs-replacement.json`.
+**GitOps-capable VCS replacement (moved earlier per 2026-05-14 directive):** M01-P07 is now the first cross-cutting prerequisite before broad agent fan-out. It preserves the useful coordination properties from the retired tooling era — semantic claims, isolated workspaces, bounded work units, queues, and watch events — without keeping retired external tools in the prescribed surface. Oya VCS supports Rust AST claims first-class, and Swift, Kotlin, C#, C++/WinUI/XAML, TypeScript, schemas, contracts, and config all get language/artifact-specific AST/parser-backed semantic indexers. It also establishes, documents, machine-encodes, and enforces unit/integration/e2e testing standards as CI/CD admission gates. It upgrades `done` from local merge serialization to a GitOps promotion request: signed change bundle, policy/CI admission, typed review/fix loop, controller-owned rebase, merge-queue enrollment, environment reconciliation, and audited release of locks only after the promotion reaches an accepted terminal state. ADR-0116 documents the temporary Wave-B manual PR-entry seam; that seam is not closure authority and does not restore grit/icm/rtk/vox. Canonical machine-readable contract: `/specs/gitops-vcs-replacement.json`.
 
-**RALPLAN v5 fold-in (2026-05-14):** The approved object chain is `OyaWorkItem → IssuePlan → ChangeSet → VirtualHead / QueueAwareLease / FixupTask → ChangeBundle → Promotion / ReleaseTrain`. Grit remains the authoritative repo-transition and lock primitive during cutover; Oyatie VCS consumes/projects grit state through ports and owns scheduling, affected-build closure, evidence bundles, promotion, issue digestion, package/deploy lineage, and `ops.oyatie.com` explainability. The master-plan packet home is `.omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/`; execution starts with IP-001 + IP-009 before queue/controller fan-out.
+**RALPLAN v5 fold-in (2026-05-14), superseded where needed by ADR-0116:** The approved object chain remains `OyaWorkItem → IssuePlan → ChangeSet → VirtualHead / QueueAwareLease / FixupTask → ChangeBundle → Promotion / ReleaseTrain`. Oya VCS is the forward repo-transition, evidence-bundle, promotion, issue-digestion, package/deploy-lineage, and `ops.oyatie.com` explainability authority. Legacy grit/icm/rtk/vox references in earlier ralplan material are historical context only. The master-plan packet home is `.omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/`; execution starts with IP-001 + IP-009 before queue/controller fan-out.
 
 **Dependency seam + phase-out discipline (round-5 folded):** release-critical products may ship on Hyper/Tokio/Serde-family dependencies first, but every such dependency is conscious debt: layer-contained behind Oyatie wrapper/newtypes, registered in `/registry/tech-debt-ledger.json`, owned by DRI, tied to trigger-based replacement criteria, and guarded by `oya-check-dependency-seam-discipline`. Public APIs expose Oyatie types only; `hyper::*`, `tokio::*`, `bytes::*`, and `http_body::*` do not leak outside adapter-owned boundaries. Phase-out is triggered by ontology stability, parity evidence, p99 budget history, CVE acceleration, and dependent-wave state — not calendar wish-casting. Canonical implementation home: M-CC → P06 → `IP-002-lts-dependency-lane.md`; machine-readable masterplan seed: `/specs/masterplan.json`.
 
@@ -862,4 +865,4 @@ These patterns are pre-conditions for Proof Ladder L5 graduation of any µservic
 ## 15. Status footer
 
 Status: **Accepted** (canonical at `docs/MASTERPLAN.md`).
-Iteration: 10 — enforced ImplementationPlan-as-ChangeSet semantics for all IPs and materialized M01-P07 Oyatie VCS phase/IP packet files from approved ralplan v5. Iteration: 9 — added documented/enforced unit/integration/e2e test standard plus explicit AST handling to M01-P07. Iteration: 8 — expanded M01-P07 to cover polyglot semantic indexing plus CI/CD review-fix loop, controller-owned rebase, and merge queue handling. Iteration: 7 — moved the grit-compatible VCS replacement ahead of other cross-cutting work as M01-P07 and upgraded its target from local merge serialization to GitOps promotion/reconciliation per 2026-05-14 user directive. Iteration: 6 — folded dependency-seam phaseout round-5 into §6/§8/M-CC hierarchy and seeded `/specs/masterplan.json` per Markdown-retirement target. Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-documentation-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.
+Iteration: 10 — enforced ImplementationPlan-as-ChangeSet semantics for all IPs and materialized M01-P07 Oyatie VCS phase/IP packet files from approved ralplan v5. Iteration: 9 — added documented/enforced unit/integration/e2e test standard plus explicit AST handling to M01-P07. Iteration: 8 — expanded M01-P07 to cover polyglot semantic indexing plus CI/CD review-fix loop, controller-owned rebase, and merge queue handling. Iteration: 7 — moved the legacy-compatible VCS replacement ahead of other cross-cutting work as M01-P07 and upgraded its target from local merge serialization to GitOps promotion/reconciliation per 2026-05-14 user directive. Iteration: 6 — folded dependency-seam phaseout round-5 into §6/§8/M-CC hierarchy and seeded `/specs/masterplan.json` per Markdown-retirement target. Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-documentation-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.

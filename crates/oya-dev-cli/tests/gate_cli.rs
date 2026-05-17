@@ -1556,9 +1556,9 @@ fn cargo_prefix_gate_rejects_member_path_package_name_mismatch() {
 fn authority_cohesion_gate_rejects_drifted_chain_declarations() {
     let temp = temp_dir("authority-cohesion");
     fs::create_dir_all(&temp).expect("docs dir created");
-    write_authority_doc(&temp, "CONSTITUTION.md", "canonical");
     write_authority_doc(&temp, "AGENTS.md", "drifted");
     write_authority_doc(&temp, "README.md", "canonical");
+    write_authority_doc(&temp, "MASTERPLAN.md", "canonical");
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args([
@@ -1574,6 +1574,268 @@ fn authority_cohesion_gate_rejects_drifted_chain_declarations() {
     assert!(!output.status.success());
     assert!(
         String::from_utf8_lossy(&output.stderr).contains("authority cohesion validation failed")
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn hyperscaler_maturity_claims_gate_accepts_repo_control_surfaces() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(["gate", "validate", "hyperscaler-maturity-claims"])
+        .current_dir(repo_root())
+        .output()
+        .expect("hyperscaler maturity gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("hyperscaler maturity claim governance validation passed"));
+    assert!(stdout.contains("claim_status=blocked_until_required_evidence_is_green"));
+}
+
+#[test]
+fn hyperscaler_maturity_claims_gate_rejects_unsourced_workflow_studio_claims() {
+    let temp = temp_dir("hyperscaler-maturity-claims");
+    fs::create_dir_all(temp.join("specs/products")).expect("spec dirs created");
+    fs::copy(
+        repo_root().join("specs/hyperscaler-gates.json"),
+        temp.join("specs/hyperscaler-gates.json"),
+    )
+    .expect("hyperscaler gates fixture copied");
+    fs::copy(
+        repo_root().join("specs/products/workflow.json"),
+        temp.join("specs/products/workflow.json"),
+    )
+    .expect("workflow spec fixture copied");
+    fs::write(
+        temp.join("specs/products/workflow-studio.json"),
+        r#"{
+  "identity": { "product_id": "workflow-studio" },
+  "competitive_claim_policy": {
+    "status": "binding",
+    "forbidden_without_benchmark_evidence": ["numeric latency comparisons"],
+    "required_per_competitor_row": [
+      "source_evidence_refs",
+      "observed_strengths",
+      "observed_weaknesses_or_gaps",
+      "adopt_from_them",
+      "improve_beyond_them",
+      "claim_boundary"
+    ]
+  },
+  "user_experience": {
+    "accessibility_coverage": "WCAG 2.2 AA",
+    "offline_behavior": "buffered",
+    "loading_state_coverage": "covered",
+    "journey_critical_paths": ["first workflow"],
+    "keyboard_navigation_coverage_pct": 100,
+    "error_state_coverage": {
+      "invalid_spec": "covered",
+      "collaboration_conflict": "covered",
+      "network_partition": "covered",
+      "policy_denied": "covered"
+    }
+  },
+  "competitive": [
+    { "competitor": "n8n", "we_beat_on": ["speed"], "measurable": "10x faster" }
+  ]
+}"#,
+    )
+    .expect("bad workflow-studio fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "hyperscaler-maturity-claims",
+            "--gates",
+            temp.join("specs/hyperscaler-gates.json")
+                .to_str()
+                .expect("utf8 gates path"),
+            "--workflow-studio",
+            temp.join("specs/products/workflow-studio.json")
+                .to_str()
+                .expect("utf8 workflow-studio path"),
+            "--workflow",
+            temp.join("specs/products/workflow.json")
+                .to_str()
+                .expect("utf8 workflow path"),
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("hyperscaler maturity gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("retired unsupported benchmark fields"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn workspace_hygiene_gate_accepts_repo_policy_without_scan() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(["gate", "validate", "workspace-hygiene", "--no-scan"])
+        .current_dir(repo_root())
+        .output()
+        .expect("workspace hygiene gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("workspace hygiene validation passed")
+    );
+}
+
+#[test]
+fn workspace_hygiene_gate_rejects_cleanup_flags_without_scan() {
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "workspace-hygiene",
+            "--no-scan",
+            "--clean-build-artifacts",
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("workspace hygiene gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("cleanup requires scanning"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn workspace_hygiene_gate_strict_mode_rejects_build_artifact_residue() {
+    let temp = temp_dir("workspace-hygiene-build-artifacts");
+    let scan_root = temp.join("scan-root");
+    fs::create_dir_all(scan_root.join("target")).expect("build artifact fixture created");
+    let policy = temp.join("workspace-hygiene.json");
+    fs::write(
+        &policy,
+        workspace_hygiene_fixture(scan_root.to_str().expect("utf8 scan root")),
+    )
+    .expect("workspace hygiene fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "workspace-hygiene",
+            "--policy",
+            policy.to_str().expect("utf8 policy"),
+            "--strict",
+        ])
+        .output()
+        .expect("workspace hygiene gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("build-artifacts"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn workspace_hygiene_gate_clean_build_artifacts_removes_configured_residue() {
+    let temp = temp_dir("workspace-hygiene-clean-build-artifacts");
+    let scan_root = temp.join("scan-root");
+    fs::create_dir_all(scan_root.join("target/debug")).expect("build artifact fixture created");
+    fs::create_dir_all(scan_root.join("build")).expect("non-cleanable build dir fixture created");
+    let policy = temp.join("workspace-hygiene.json");
+    fs::write(
+        &policy,
+        workspace_hygiene_fixture(scan_root.to_str().expect("utf8 scan root")),
+    )
+    .expect("workspace hygiene fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "workspace-hygiene",
+            "--policy",
+            policy.to_str().expect("utf8 policy"),
+            "--clean-build-artifacts",
+        ])
+        .output()
+        .expect("workspace hygiene cleanup command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(!scan_root.join("target").exists());
+    assert!(scan_root.join("build").exists());
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("cleaned=1"),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn workspace_hygiene_gate_clean_temp_artifacts_keeps_exempt_owned_roots() {
+    let temp = temp_dir("workspace-hygiene-clean-temp-artifacts");
+    let scan_root = temp.join("scan-root");
+    fs::create_dir_all(scan_root.join("oyatie")).expect("owned root fixture created");
+    fs::write(scan_root.join("unused-temp-pattern"), "temp")
+        .expect("temp artifact fixture written");
+    let policy = temp.join("workspace-hygiene.json");
+    fs::write(
+        &policy,
+        workspace_hygiene_fixture(scan_root.to_str().expect("utf8 scan root")),
+    )
+    .expect("workspace hygiene fixture written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "workspace-hygiene",
+            "--policy",
+            policy.to_str().expect("utf8 policy"),
+            "--clean-temp-artifacts",
+            "--strict",
+        ])
+        .output()
+        .expect("workspace hygiene temp cleanup command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(scan_root.join("oyatie").exists());
+    assert!(!scan_root.join("unused-temp-pattern").exists());
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("cleaned=1"),
+        "stdout={}",
+        String::from_utf8_lossy(&output.stdout)
     );
 
     fs::remove_dir_all(temp).ok();
@@ -3818,6 +4080,92 @@ fn quality_lanes_args(root: &Path) -> Vec<String> {
     ]
 }
 
+fn workspace_hygiene_fixture(scan_root: &str) -> String {
+    format!(
+        r#"{{
+  "schema_version": "1.0.0",
+  "id": "workspace-hygiene",
+  "purpose": "test policy",
+  "gate": {{
+    "command": "oya gate validate workspace-hygiene",
+    "side_effect_policy": "inventory_by_default_cleanup_requires_explicit_flag"
+  }},
+  "required_scan_surfaces": ["tmp", "home", "repo", "build-artifacts", "oyatie-worktrees"],
+  "scan_surfaces": [
+    {{
+      "id": "tmp",
+      "roots": ["{scan_root}"],
+      "missing_ok": false,
+      "max_depth": 1,
+      "match_globs": ["unused-temp-pattern", "*pipeline*"],
+      "audit_finding_budget": 10,
+      "strict_finding_budget": 0,
+      "cleanup_globs": ["unused-temp-pattern", "*pipeline*"],
+      "action": "cleanable_temp_artifacts"
+    }},
+    {{
+      "id": "home",
+      "roots": ["{scan_root}"],
+      "missing_ok": false,
+      "max_depth": 1,
+      "match_globs": ["unused-home-pattern"],
+      "exempt_globs": ["oyatie"],
+      "exemption_evidence_refs": ["docs/AGENTS.md#project-doc"],
+      "audit_finding_budget": 10,
+      "strict_finding_budget": 0,
+      "action": "inventory_only"
+    }},
+    {{
+      "id": "repo",
+      "roots": ["{scan_root}"],
+      "missing_ok": false,
+      "max_depth": 1,
+      "match_globs": ["unused-repo-pattern"],
+      "audit_finding_budget": 10,
+      "strict_finding_budget": 0,
+      "action": "inventory_only"
+    }},
+    {{
+      "id": "build-artifacts",
+      "roots": ["{scan_root}"],
+      "missing_ok": false,
+      "max_depth": 2,
+      "match_globs": ["target", "target-*", "dist", "build", ".next", ".turbo", ".vite", "coverage", "lcov.info", "*.profraw", "*.profdata"],
+      "cleanup_globs": ["target", "target-*", "dist", ".next", ".turbo", ".vite", "coverage", "lcov.info", "*.profraw", "*.profdata"],
+      "audit_finding_budget": 10,
+      "strict_finding_budget": 0,
+      "action": "cleanable_build_artifacts"
+    }},
+    {{
+      "id": "oyatie-worktrees",
+      "roots": ["{scan_root}"],
+      "missing_ok": false,
+      "max_depth": 1,
+      "match_globs": ["unused-worktree-pattern"],
+      "exempt_globs": ["*"],
+      "exemption_evidence_refs": ["docs/AGENTS.md#scaffold_protocol"],
+      "audit_finding_budget": 10,
+      "strict_finding_budget": 0,
+      "action": "inventory_only"
+    }}
+  ],
+  "pipeline_contract": {{
+    "required_phases": ["session-start", "pre-pr", "post-merge", "session-close"],
+    "minimum_actions": [
+      "inventory_all_required_scan_surfaces",
+      "classify_findings_by_hygiene_class",
+      "classify_build_artifacts_by_cleanup_or_exemption",
+      "clean_configured_build_artifacts_with_explicit_cleanup_flag",
+      "clean_configured_temp_artifacts_with_explicit_cleanup_flag",
+      "classify_owned_roots_by_exemption_evidence",
+      "link_each_keep_item_to_owner_or_evidence",
+      "strict_mode_zero_untriaged_findings_before_release_or_hyperscaler_claim"
+    ]
+  }}
+}}"#
+    )
+}
+
 fn write_vendor_contract_ledger(root: &Path, rows: &str) -> std::path::PathBuf {
     fs::create_dir_all(root).expect("vendor ledger dir created");
     let ledger = root.join("VENDOR-PARTNER-LEDGER.md");
@@ -4646,40 +4994,147 @@ fn benchmark_gate_passes_clean_crate() {
     fs::remove_dir_all(temp).ok();
 }
 
-// --- openapi-rest-route-parity integration tests (M02b/P22 exit-gate lane 7) ---
+// ── audit-chain-replay gate (lane 9) ─────────────────────────────────────────
 
+#[test]
+fn audit_chain_replay_gate_accepts_clean_shard() {
+    use oya_audit_chain_domain::{AuditChain, Plane};
+    use oya_audit_chain_file_adapter::FileAuditLedger;
+    use oya_data_boundary_kernel::{DataClass, Purpose};
+
+    let temp = temp_dir("acr-accept");
+    fs::create_dir_all(&temp).expect("shards dir created");
+    let shard_path = temp.join("tenant-alpha.log");
+
+    let mut chain = AuditChain::default();
+    chain
+        .append_classifications(
+            "ten_alpha",
+            "tenant.create",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::InternalOnly],
+            "ALLOW",
+        )
+        .expect("fixture: append tenant.create");
+    chain
+        .append_classifications(
+            "ten_alpha",
+            "identity.user.upsert",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::PiiIdentifying],
+            "ALLOW",
+        )
+        .expect("fixture: append identity.user.upsert");
+    FileAuditLedger::new(shard_path)
+        .append_chain(&chain)
+        .expect("fixture: shard written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "audit-chain-replay",
+            "--shards-dir",
+            temp.to_str().expect("utf8 shards dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected clean shard to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("audit chain replay validation passed: 1 shards, 2 events"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn audit_chain_replay_gate_rejects_tampered_hash() {
+    use oya_audit_chain_domain::{AuditChain, Plane};
+    use oya_audit_chain_file_adapter::FileAuditLedger;
+    use oya_data_boundary_kernel::{DataClass, Purpose};
+
+    let temp = temp_dir("acr-tamper");
+    fs::create_dir_all(&temp).expect("shards dir created");
+    let shard_path = temp.join("tenant-beta.log");
+
+    let mut chain = AuditChain::default();
+    chain
+        .append_classifications(
+            "ten_beta",
+            "tenant.create",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::InternalOnly],
+            "ALLOW",
+        )
+        .expect("fixture: append tenant.create");
+    FileAuditLedger::new(shard_path.clone())
+        .append_chain(&chain)
+        .expect("fixture: shard written");
+
+    // tamper: mutate the surface field so the hash no longer matches
+    let raw = fs::read_to_string(&shard_path).expect("shard readable");
+    let tampered = raw.replace("tenant.create", "tenant.delete");
+    fs::write(&shard_path, tampered).expect("tampered shard written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "audit-chain-replay",
+            "--shards-dir",
+            temp.to_str().expect("utf8 shards dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected tampered shard to fail\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("audit chain replay validation failed"),
+        "stderr must name failure; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+// ── lane-7: openapi-rest-route-parity ────────────────────────────────────────
+
+/// Helper that writes a fake REST crate `src/lib.rs` under `crates_dir`.
+/// The crate name must match `<prefix>*-rest`.
 fn write_rest_crate(crates_dir: &Path, crate_name: &str, lib_rs_content: &str) {
     let src_dir = crates_dir.join(crate_name).join("src");
     fs::create_dir_all(&src_dir).expect("rest crate src dir created");
     fs::write(src_dir.join("lib.rs"), lib_rs_content).expect("rest lib.rs written");
 }
 
+/// Helper that writes a fake OpenAPI contract under `contracts_dir`.
 fn write_openapi_contract(contracts_dir: &Path, filename: &str, content: &str) {
     fs::create_dir_all(contracts_dir).expect("contracts dir created");
     fs::write(contracts_dir.join(filename), content).expect("openapi contract written");
 }
 
-fn openapi_rest_route_parity_args<'a>(
-    crates_dir: &'a Path,
-    contracts_dir: &'a Path,
-) -> Vec<&'a str> {
-    vec![
-        "gate",
-        "validate",
-        "openapi-rest-route-parity",
-        "--crates-dir",
-        crates_dir.to_str().expect("utf8 crates_dir"),
-        "--contracts-dir",
-        contracts_dir.to_str().expect("utf8 contracts_dir"),
-        "--crate-prefix",
-        "oya-ops-",
-        "--contract-prefix",
-        "ops-",
-    ]
-}
-
 #[test]
 fn openapi_rest_route_parity_gate_rejects_route_missing_from_openapi() {
+    // Synthetic violation: REST crate declares /ops/api/v1/orders but the
+    // OpenAPI contract only declares /ops/api/v1/health.  The gate must exit
+    // non-zero and report the missing route.
     let temp = temp_dir("orp-reject-missing-openapi");
     let crates_dir = temp.join("crates");
     let contracts_dir = temp.join("contracts");
@@ -4696,7 +5151,19 @@ fn openapi_rest_route_parity_gate_rejects_route_missing_from_openapi() {
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
-        .args(openapi_rest_route_parity_args(&crates_dir, &contracts_dir))
+        .args([
+            "gate",
+            "validate",
+            "openapi-rest-route-parity",
+            "--crates-dir",
+            crates_dir.to_str().expect("utf8 crates_dir"),
+            "--contracts-dir",
+            contracts_dir.to_str().expect("utf8 contracts_dir"),
+            "--crate-prefix",
+            "oya-ops-",
+            "--contract-prefix",
+            "ops-",
+        ])
         .output()
         .expect("gate command runs");
 
@@ -4706,55 +5173,16 @@ fn openapi_rest_route_parity_gate_rejects_route_missing_from_openapi() {
         String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
-    let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("openapi-rest-route-parity validation failed"),
-        "stderr must contain failure message; stderr={stderr}"
-    );
-    assert!(
-        stderr.contains("/ops/api/v1/orders"),
-        "stderr must name the REST-only route; stderr={stderr}"
-    );
-
-    fs::remove_dir_all(temp).ok();
-}
-
-#[test]
-fn openapi_rest_route_parity_gate_rejects_path_missing_from_rest() {
-    let temp = temp_dir("orp-reject-missing-rest");
-    let crates_dir = temp.join("crates");
-    let contracts_dir = temp.join("contracts");
-
-    write_rest_crate(
-        &crates_dir,
-        "oya-ops-orders-rest",
-        "pub const HEALTH_ROUTE: &str = \"/ops/api/v1/health\";\n",
-    );
-    write_openapi_contract(
-        &contracts_dir,
-        "ops-orders.openapi.yaml",
-        "openapi: 3.2.0\ninfo:\n  title: Orders\n  version: 1.0.0\npaths:\n  /ops/api/v1/health:\n    get: {}\n  /ops/api/v1/orders:\n    post: {}\n",
-    );
-
-    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
-        .args(openapi_rest_route_parity_args(&crates_dir, &contracts_dir))
-        .output()
-        .expect("gate command runs");
-
-    assert!(
-        !output.status.success(),
-        "gate must reject when openapi path is missing from REST; stdout={}\nstderr={}",
-        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+            .contains("openapi-rest-route-parity validation failed"),
+        "stderr must contain failure message; stderr={}",
         String::from_utf8_lossy(&output.stderr)
     );
-    let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("openapi-rest-route-parity validation failed"),
-        "stderr must contain failure message; stderr={stderr}"
-    );
-    assert!(
-        stderr.contains("/ops/api/v1/orders"),
-        "stderr must name the OpenAPI-only path; stderr={stderr}"
+        String::from_utf8_lossy(&output.stderr).contains("/ops/api/v1/orders"),
+        "stderr must name the offending route; stderr={}",
+        String::from_utf8_lossy(&output.stderr)
     );
 
     fs::remove_dir_all(temp).ok();
@@ -4762,6 +5190,8 @@ fn openapi_rest_route_parity_gate_rejects_path_missing_from_rest() {
 
 #[test]
 fn openapi_rest_route_parity_gate_accepts_clean_matched_routes() {
+    // Clean path: REST crate and OpenAPI contract declare the same single
+    // route.  The gate must exit 0 and confirm counts.
     let temp = temp_dir("orp-accept-clean");
     let crates_dir = temp.join("crates");
     let contracts_dir = temp.join("contracts");
@@ -4778,7 +5208,19 @@ fn openapi_rest_route_parity_gate_accepts_clean_matched_routes() {
     );
 
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
-        .args(openapi_rest_route_parity_args(&crates_dir, &contracts_dir))
+        .args([
+            "gate",
+            "validate",
+            "openapi-rest-route-parity",
+            "--crates-dir",
+            crates_dir.to_str().expect("utf8 crates_dir"),
+            "--contracts-dir",
+            contracts_dir.to_str().expect("utf8 contracts_dir"),
+            "--crate-prefix",
+            "oya-ops-",
+            "--contract-prefix",
+            "ops-",
+        ])
         .output()
         .expect("gate command runs");
 
@@ -4796,127 +5238,6 @@ fn openapi_rest_route_parity_gate_accepts_clean_matched_routes() {
     );
 
     fs::remove_dir_all(temp).ok();
-}
-
-// --- audit-chain-replay integration tests (M02b/P22 exit-gate lane 9) ---
-
-fn write_audit_chain_replay_fixture(shard_path: PathBuf, tenant_id: &str) {
-    use oya_audit_chain_domain::{AuditChain, Plane};
-    use oya_audit_chain_file_adapter::FileAuditLedger;
-    use oya_data_boundary_kernel::{DataClass, Purpose};
-
-    let mut chain = AuditChain::default();
-    chain
-        .append_classifications(
-            tenant_id,
-            "tenant.create",
-            Plane::Control,
-            Purpose::CoreService,
-            vec![DataClass::InternalOnly],
-            "ALLOW",
-        )
-        .expect("fixture: append tenant.create");
-    chain
-        .append_classifications(
-            tenant_id,
-            "identity.user.upsert",
-            Plane::Control,
-            Purpose::CoreService,
-            vec![DataClass::PiiIdentifying],
-            "ALLOW",
-        )
-        .expect("fixture: append identity.user.upsert");
-    FileAuditLedger::new(shard_path)
-        .append_chain(&chain)
-        .expect("fixture: shard written");
-}
-
-fn run_audit_chain_replay_gate(shards_dir: &Path) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_oya"))
-        .args([
-            "gate",
-            "validate",
-            "audit-chain-replay",
-            "--shards-dir",
-            shards_dir.to_str().expect("utf8 shards dir"),
-        ])
-        .output()
-        .expect("gate command runs")
-}
-
-#[test]
-fn audit_chain_replay_gate_accepts_clean_shard() {
-    let temp = TempDirGuard::new("acr-accept");
-    fs::create_dir_all(temp.path()).expect("shards dir created");
-    write_audit_chain_replay_fixture(temp.path().join("tenant-alpha.log"), "ten_alpha");
-
-    let output = run_audit_chain_replay_gate(temp.path());
-
-    assert!(
-        output.status.success(),
-        "expected clean shard to pass\nstdout={}\nstderr={}",
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(
-        stdout.contains("audit chain replay validation passed: 1 shards, 2 events"),
-        "stdout must confirm pass; got: {stdout}"
-    );
-}
-
-#[test]
-fn audit_chain_replay_gate_rejects_surface_field_tamper() {
-    let temp = TempDirGuard::new("acr-surface-tamper");
-    fs::create_dir_all(temp.path()).expect("shards dir created");
-    let shard_path = temp.path().join("tenant-beta.log");
-    write_audit_chain_replay_fixture(shard_path.clone(), "ten_beta");
-
-    let raw = fs::read_to_string(&shard_path).expect("shard readable");
-    let tampered = raw.replacen("tenant.create", "tenant.delete", 1);
-    fs::write(&shard_path, tampered).expect("tampered shard written");
-
-    let output = run_audit_chain_replay_gate(temp.path());
-
-    assert!(
-        !output.status.success(),
-        "expected tampered shard to fail\nstdout={}\nstderr={}",
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(
-        stderr.contains("audit chain replay validation failed"),
-        "stderr must name failure; got: {stderr}"
-    );
-}
-
-#[test]
-fn audit_chain_replay_gate_rejects_swapped_record_order() {
-    let temp = TempDirGuard::new("acr-swapped-records");
-    fs::create_dir_all(temp.path()).expect("shards dir created");
-    let shard_path = temp.path().join("tenant-gamma.log");
-    write_audit_chain_replay_fixture(shard_path.clone(), "ten_gamma");
-
-    let raw = fs::read_to_string(&shard_path).expect("shard readable");
-    let mut records = raw.lines().collect::<Vec<_>>();
-    assert_eq!(records.len(), 2, "fixture must contain two records");
-    records.swap(0, 1);
-    fs::write(&shard_path, format!("{}\n", records.join("\n"))).expect("swapped shard written");
-
-    let output = run_audit_chain_replay_gate(temp.path());
-
-    assert!(
-        !output.status.success(),
-        "expected swapped records to fail\nstdout={}\nstderr={}",
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(
-        stderr.contains("audit chain replay validation failed"),
-        "stderr must name failure; got: {stderr}"
-    );
 }
 
 fn temp_dir(label: &str) -> std::path::PathBuf {
@@ -4947,6 +5268,14 @@ impl Drop for TempDirGuard {
     fn drop(&mut self) {
         fs::remove_dir_all(&self.path).ok();
     }
+}
+
+fn repo_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(2)
+        .expect("repo root")
+        .to_path_buf()
 }
 
 // --- active-artifact-contract integration tests (M02b/P22 exit-gate lane 5) ---

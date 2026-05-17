@@ -184,7 +184,7 @@ retirement_note: legacy grit/icm/rtk/vox are retired per ADR-0116; omx/omc/oya-t
 
 ## PR shape
 
-Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 H2 sections, CI-enforced by `traceability-validator`:
+Every PR uses [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->. The template prescribes 5 traceability H2 sections plus the automated reviewer-agent `## Code Review` section, CI-enforced by `traceability-validator` and `oya-pr-review`:
 
 1. `## Issue` — `Closes #<n>` or `Refs #<n>`.
 2. `## Summary` — 1–3 bullets on what + why.
@@ -192,7 +192,7 @@ Every PR uses [`templates/pull-request-template.md`](templates/pull-request-temp
 4. `## Traceability` — catalog records touched, cross-axis contracts touched, ADRs cited.
 5. `## Evidence` — audit-chain emission ID; foundation-bypass (if any); per-pack regulator-watch impact (if any).
 
-At merge time the lead author adds `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items. The merge-gate hook refuses any merge without this section.
+The automated reviewer pipeline supplies `## Code Review` with the reviewer-agent name, verdict, and resolved + deferred items. The merge gate refuses any merge without this section.
 
 ## Done-Definition checklist
 
@@ -212,7 +212,7 @@ Before declaring any change complete, every agent and every human MUST re-walk t
 - [ ] **D12** `oya verify` passes. *Test:* command output.
 - [ ] **D13** Performance changes carry benchmark + ≥2 stress-scenario evidence. *Test:* `oya-foundry-fitness-perf-evidence` lane.
 - [ ] **D14** Schema migrations ship up + down + dry-run + per-tenant + per-cell rollback. *Test:* `oya-foundry-fitness-schema-migration` lane.
-- [ ] **D15** PR body has all 5 canonical H2 sections; `## Code Review` added at merge time. *Test:* `traceability-validator` lane.
+- [ ] **D15** PR body has all 5 canonical traceability H2 sections plus automated `## Code Review`. *Test:* `traceability-validator` + `oya-pr-review` lanes.
 - [ ] **D16** Audit-chain emission `EVT-*` ID referenced in `## Evidence`. *Test:* `oya-foundry-fitness-audit-emission` lane.
 - [ ] **D17** [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> row added if this change is a mechanical prevention shipped for a prior failure. *Test:* `oya-foundry-fitness-mistakes-ledger-cite` lane.
 - [ ] **D18** [`CHANGELOG.md`](CHANGELOG.md) <!-- forward-reference: wave-1 --> row added if this change touches a canonical doc. *Test:* `oya-foundry-fitness-changelog-row` lane.

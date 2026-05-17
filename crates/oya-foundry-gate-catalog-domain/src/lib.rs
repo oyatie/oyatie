@@ -67,6 +67,8 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "cargo-prefix",
     "pre-push-contract",
     "quality-lanes",
+    "workspace-hygiene",
+    "hyperscaler-maturity-claims",
     "loop-recovery-patterns",
     "foundation-bypass",
     "audit-chain-replay",
@@ -375,6 +377,16 @@ mod tests {
         let rendered = all_canonical_commands_rendered();
         assert!(
             rendered.contains("cargo run -p oya-dev-cli -- gate validate loop-recovery-patterns")
+        );
+    }
+
+    #[test]
+    fn rendered_form_contains_hyperscaler_maturity_lanes() {
+        let rendered = all_canonical_commands_rendered();
+        assert!(rendered.contains("cargo run -p oya-dev-cli -- gate validate workspace-hygiene"));
+        assert!(
+            rendered
+                .contains("cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims")
         );
     }
 

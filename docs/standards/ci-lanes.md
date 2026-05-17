@@ -17,7 +17,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 
 | Lane | Purpose | Source ADR |
 |---|---|---|
-| `oya-foundry-fitness-authority-cohesion` | authority-chain declarations in AGENTS and README stay identical | decision-principles.json |
+| `oya-foundry-fitness-authority-cohesion` | authority-chain declarations in AGENTS, README, and MASTERPLAN stay identical and avoid retired prescribed authorities | root-hub-pointers.json / docs/AGENTS.md / ADR-0116 |
 | `oya-foundry-fitness-claim-ceiling` | prevent unshipped stability, security, and supply-chain claims above foundation evidence | ADR-0037 / registry/catalog |
 | `oya-foundry-fitness-codeowners-mirror` | RACI per-surface owner matches CODEOWNERS team ownership | RACI-OWNERSHIP.md |
 | `oya-foundry-fitness-cohesion` | cross-axis contract review-class label | ADR-0011 |
@@ -25,6 +25,8 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-doc-catalog` | every consolidated doc has a DOC-CATALOG row | DOC-CATALOG.md |
 | `oya-foundry-fitness-docs` | documentation-system pipeline registry and wiki quickref stay grounded | DOCUMENTATION.md / registry/docs/pipeline.tsv |
 | `oya-foundry-fitness-quality-lanes` | registry/quality/lanes.yaml and this CI-lanes doc mirror stay in sync | standards/ci-lanes.md |
+| `oya-foundry-fitness-workspace-hygiene` | inventory temp, home, repo-root, build-artifact, and oyatie-worktrees residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions | specs/workspace-hygiene.json / ADR-0123 |
+| `oya-foundry-fitness-hyperscaler-maturity-claims` | block unsupported hyperscaler maturity claims unless product depth, pipeline, hygiene, UX, safety, guardrail, and competitor evidence are green | specs/hyperscaler-gates.json / ADR-0123 |
 | `oya-foundry-fitness-foundation-bypass` | foundation-bypass expiry monitor | ADR-0040 |
 | `oya-foundry-fitness-glossary-cross-doc-coverage` | every glossary term appears outside GLOSSARY when active | GLOSSARY.md §11 / ADR-0018 |
 | `oya-foundry-fitness-glossary-vocabulary` | retired-vocab hard-fail plus casing/acronym warning baseline ratchet | GLOSSARY.md §11 / ADR-0018 |
@@ -67,7 +69,6 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
 | `oya-foundry-fitness-changeset-state-monotonicity` | every changeset's event-log row sequence is a non-decreasing subsequence of the 13-value closed enum (per ADR-0110); detects backwards-transition bugs in dispatcher emitters |
 | `oya-foundry-fitness-changeset-state-enum-closed` | every changeset-event-log row's to_state is in the closed 13-value enum (per ADR-0110); detects rogue state-name additions that bypass the design contract |
-| `oya-foundry-fitness-sequential-pr-merge-conflicts` | simulate numeric open-PR merge order against dev and fail before projected merge conflicts reach manual merge time; PR checks model through the current PR, scheduled/manual checks may model the full queue |
 | `lean-a1-architecture` | layer-correctness — no dep-direction violations per ADR-0056 §2.2 |
 | `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
 | `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |
@@ -81,8 +82,6 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `lean-a-active-artifact-contract` | every machine-readable artifact under applicable_paths_glob conforms to v3.0.0 9-capability contract per ADR-0089; invoked from `oya gate run-all`; emits evidence + graph-edges artifacts on every run |
 | `lean-a-cedar-fragment-coverage` | enforces invariants C01..C04 from /registry/cedar-fragments.json — no orphan .cedar files, no dangling cedar_fragments[] references in OpenAPI contracts or bounded-contexts.json, status↔path consistency; invoked from `oya gate run-all` |
 | `lean-a-openapi-rest-route-parity` | enforces 1:1 parity between `pub const *_ROUTE` constants in crates/oya-ops-*-rest/src/lib.rs and `paths:` keys in contracts/ops-*.openapi.yaml; default scope ops-only via --crate-prefix/--contract-prefix flags |
-
-Review is a separate protected check, not a quality-lane row: `oya-pr-review` must pass before the next-queue auto-merge controller can enable auto-merge, and CHANGES_REQUESTED / REJECT stays in the shared review/CI fix-loop.
 
 ### 1.3 Nightly gates
 

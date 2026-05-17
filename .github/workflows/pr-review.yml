@@ -1,6 +1,9 @@
 name: oya-foundry-fitness-pr-review
 
-# Reviewer-agent auto-dispatch on CI-green (M-CC-P10-IP-004).
+# Fully automated reviewer-agent dispatch on CI-green (M01-P17-IP-004 +
+# IP-009). There is no human PR-review gate in the shared-world pipeline:
+# branch protection requires the `oya-pr-review` check, and that check is
+# produced by the agent review panel below.
 #
 # Trigger: AFTER the required-check workflows (`pr-tests` and
 # `oya-foundry-fitness-supply-chain`) converge with `conclusion: success`.
@@ -10,11 +13,13 @@ name: oya-foundry-fitness-pr-review
 # cycles on broken builds (audit blocker #4,
 # evidence/audits/pipeline-maturity-audit-2026-05-15.md row Stage 5).
 #
-# The dispatcher binary `oya-foundry-pr-review-dispatcher-app`:
-#   - reads per-facet findings from
+# Runtime and dispatcher contract:
+#   - `oya-foundry-subagent-runtime-app fan-out` writes per-facet findings to
+#     `evidence/pipeline-maturity-glue/ip-004-pr-review/<pr>/<facet>.json`;
+#   - `oya-foundry-pr-review-dispatcher-app` reads those findings from
 #     `evidence/pipeline-maturity-glue/ip-004-pr-review/<pr>/<facet>.json`
-#     (written by the multispectrum subagent panel per
-#     feedback_multispectrum_review_v22 + feedback_multispectrum_adherence_facets);
+#     (multispectrum subagent panel per feedback_multispectrum_review_v22 +
+#     feedback_multispectrum_adherence_facets);
 #   - rolls them up to APPROVE / CHANGES_REQUESTED / REJECT;
 #   - posts a single Check Run named `oya-pr-review` (matches the
 #     branch-protection required-check binding);
@@ -24,12 +29,10 @@ name: oya-foundry-fitness-pr-review
 #   - on CHANGES_REQUESTED / REJECT → emits `pr-review-fix-requested`
 #     (consumed by IP-005 fix-loop).
 #
-# Scaffold-pending note: until the per-facet subagent runtime lands
-# (TODO captured in evidence/pipeline-maturity-glue/ip-004-reviewer-agent.json
-# audit_trail.subagent_runtime_followup), no `<facet>.json` files exist
-# and the dispatcher emits APPROVE with `subagent_runtime_pending = true`
-# in the rollup. The merge-queue admission consumer (IP-006) MUST refuse
-# to trust an APPROVE that carries that flag.
+# The merge-queue admission consumer refuses APPROVE events carrying
+# `subagent_runtime_pending=true`; this workflow therefore runs the runtime
+# before the dispatcher and fails the required check if the runtime remains
+# pending.
 
 on:
   workflow_run:
@@ -94,6 +97,37 @@ jobs:
           echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
           echo "Resolved PR #$pr_number"
 
+      - name: Capture PR review input bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+        run: |
+          mkdir -p evidence/pipeline-maturity-glue/ip-004-pr-review/${PR_NUMBER}
+          {
+            echo "PR #${PR_NUMBER}"
+            echo
+            echo "## PR Metadata"
+            gh pr view "${PR_NUMBER}" \
+              --json number,title,body,headRefName,baseRefName,headRefOid,baseRefOid,author,labels,files
+            echo
+            echo "## PR Diff"
+            gh pr diff "${PR_NUMBER}" --patch
+          } > "evidence/pipeline-maturity-glue/ip-004-pr-review/${PR_NUMBER}/review-input.md"
+
+      - name: Run reviewer-agent runtime
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: |
+          cargo run -q -p oya-foundry-subagent-runtime-app -- fan-out \
+            --pr-number "${{ steps.pr.outputs.pr_number }}" \
+            --change-id "${{ github.event.workflow_run.head_sha }}" \
+            --templates-dir evidence/pipeline-maturity-glue/ip-004-pr-review/facets \
+            --evidence-dir evidence/pipeline-maturity-glue/ip-004-pr-review \
+            --user-message-file "evidence/pipeline-maturity-glue/ip-004-pr-review/${{ steps.pr.outputs.pr_number }}/review-input.md" \
+            --mode deterministic-mock \
+            --tool-tag github-actions-agent-review
+
       - name: Run pr-review dispatcher
         env:
           CARGO_TERM_COLOR: always
@@ -101,7 +135,8 @@ jobs:
         run: |
           cargo run -q -p oya-foundry-pr-review-dispatcher-app -- \
             --pr-number "${{ steps.pr.outputs.pr_number }}" \
-            --repo-root .
+            --repo-root . \
+            --runtime-mode external
 
       - name: Upload rollup evidence
         if: always()
@@ -138,6 +173,10 @@ jobs:
           fi
           if [ "$verdict" = "CHANGES_REQUESTED" ]; then
             echo "::error::pr-review verdict CHANGES_REQUESTED — fix-loop dispatched via pr-review-fix-requested event" >&2
+            exit 1
+          fi
+          if [ "$pending" != "false" ]; then
+            echo "::error::pr-review runtime still pending — refusing required-check pass" >&2
             exit 1
           fi
           echo "pr-review APPROVE (pending=${pending})"

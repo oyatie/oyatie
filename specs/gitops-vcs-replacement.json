@@ -109,7 +109,7 @@
         "manual-merge",
         "manual-push"
       ],
-      "compatibility_note": "CLI may accept grit-compatible aliases while implementation moves to oya-foundry-vcs-* crates."
+      "compatibility_note": "ADR-0116 retires grit/icm/rtk/vox as agent transition authorities; any legacy aliases are import/migration compatibility only and cannot be closure authority."
     },
     "ports": [
       {
@@ -267,7 +267,7 @@
         "crate": "oya-foundry-vcs-cli",
         "layer": "cli",
         "owns": [
-          "grit-compatible command surface",
+          "Oya VCS claim/verify/done/promote command surface",
           "agent UX",
           "JSON status/watch"
         ]

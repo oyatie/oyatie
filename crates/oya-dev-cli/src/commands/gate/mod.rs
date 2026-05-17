@@ -1016,6 +1016,54 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("hyperscaler-maturity-claims")) => {
+            match crate::parse_hyperscaler_maturity_claims_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_hyperscaler_maturity_claims_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "hyperscaler maturity claim governance validation passed: {} gates, {} workflow-studio competitors, claim_status={}",
+                            report.gate_count, report.competitor_count, report.claim_status
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!(
+                            "hyperscaler maturity claim governance validation failed: {message}"
+                        );
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
+        (Some("validate"), Some("workspace-hygiene")) => {
+            match crate::parse_workspace_hygiene_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_workspace_hygiene_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "workspace hygiene validation passed: {} surfaces, {} roots scanned, {} findings, strict={}, cleaned={}",
+                            report.surfaces_checked,
+                            report.roots_scanned,
+                            report.findings,
+                            report.strict,
+                            report.cleaned
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("workspace hygiene validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         // loop-recovery-patterns: Rust-owned autonomous-Foundry harness lane.
         // Validates deterministic score_cards, concrete score-card inventory,
         // and registry/loop-recovery-patterns records linked to the

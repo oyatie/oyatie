@@ -33,7 +33,7 @@ The whole catalog is mirrored at `machine-readable/standards.json` for agent con
 
 | Template | Path | Used when | Required sections | Validator |
 |---|---|---|---|---|
-| Pull request | [`templates/pull-request-template.md`](templates/pull-request-template.md) | Every PR | Issue / Summary / Verification / Traceability / Evidence (5 H2; PR template enforced per CLAUDE.md) | `traceability-validator` CI lane |
+| Pull request | [`templates/pull-request-template.md`](templates/pull-request-template.md) | Every PR | Issue / Summary / Verification / Traceability / Evidence plus automated `## Code Review` verdict | `traceability-validator` + `oya-pr-review` CI lanes |
 | ADR | [`templates/adr-template.md`](templates/adr-template.md) | New decision | Status / Supersedes / Superseded-by / Context / Decision / Consequences / Alternatives / Open-questions / References | `adr-template-coverage` CI lane |
 | Capability record | [`templates/capability-record-template.yaml`](templates/capability-record-template.yaml) | Foundry capability publish | id / namespace / inputs / outputs / autonomy_tier / data_classes / evidence_topic / regulatory_packs / cost_profile / sunset | `capability-schema-validator` |
 | Catalog record (per crate) | [`templates/catalog-record-template.yaml`](templates/catalog-record-template.yaml) | Every flat-crate | name (=package) / role / context / plane / contracts_consumed / contracts_exposed / regulatory_packs_consumed / lifecycle.state / traceability.github_issue / allowed_dependency_edges | `oya catalog validate` |

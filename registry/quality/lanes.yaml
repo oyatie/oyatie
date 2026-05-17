@@ -5,8 +5,8 @@ lanes:
     stage: foundation
     status: active
     owner_team: council-architecture
-    purpose: authority-chain declarations in AGENTS and README stay identical
-    source: CONSTITUTION.md
+    purpose: authority-chain declarations in AGENTS, README, and MASTERPLAN stay identical and avoid retired prescribed authorities
+    source: root-hub-pointers.json / docs/AGENTS.md / ADR-0116
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate authority-cohesion
   - id: oya-foundry-fitness-claim-ceiling
@@ -65,6 +65,22 @@ lanes:
     source: standards/ci-lanes.md
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate quality-lanes
+  - id: oya-foundry-fitness-workspace-hygiene
+    stage: foundation
+    status: active
+    owner_team: axis-foundry
+    purpose: inventory temp, home, repo-root, build-artifact, and oyatie-worktrees residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions
+    source: specs/workspace-hygiene.json / ADR-0123
+    runtime_budget_seconds: 120
+    check_command: cargo run -p oya-dev-cli -- gate validate workspace-hygiene
+  - id: oya-foundry-fitness-hyperscaler-maturity-claims
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: block unsupported hyperscaler maturity claims unless product depth, pipeline, hygiene, UX, safety, guardrail, and competitor evidence are green
+    source: specs/hyperscaler-gates.json / ADR-0123
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
   - id: oya-foundry-fitness-foundation-bypass
     stage: foundation
     status: active
@@ -185,14 +201,6 @@ lanes:
     source: ADR-0017 / MFL-0011
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate brand-residue
-  - id: oya-foundry-fitness-sequential-pr-merge-conflicts
-    stage: per-pr
-    status: active
-    owner_team: axis-foundry
-    purpose: simulate numeric open-PR merge order against dev and fail before projected merge conflicts reach manual merge time; PR checks model through the current PR, scheduled/manual checks may model the full queue
-    source: specs/gitops-vcs-replacement.json / merge-queue conflict-avoidance directive / safe next-queue auto-merge directive
-    runtime_budget_seconds: 1200
-    check_command: scripts/check-sequential-pr-merge-conflicts.sh --base-branch dev --start-pr 111
   - id: cargo-fmt
     stage: per-pr
     status: active

@@ -35,7 +35,7 @@ Per CLAUDE.md (5 H2s):
 - `## Traceability` — flat-crates targets touched + cross-axis contract impact
 - `## Evidence` — links to CI runs, eval-set output, audit-chain emission
 
-Optional: `## Code Review` — added at merge time by reviewer agent verdict (lead-only). NEVER add as worker (CLAUDE.md violations fail traceability CI).
+Required for merge-ready PRs: `## Code Review` — supplied by the automated reviewer-agent verdict. Author-only drafts may omit it only when running the traceability gate with the explicit author policy.
 
 ## 3. Per-class review requirements
 

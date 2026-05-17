@@ -24,7 +24,7 @@
       ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md"
     ],
     "icm_scaffold_lock_id": "01KRJM0QGGKVCMVS2FFVAHZBYS",
-    "gitops_vcs_directive_2026_05_14": "Move the grit-compatible VCS replacement earlier and upgrade it for polyglot AST/semantic claims, enforced unit/integration/e2e standards, CI/CD review-fix loops, controller-owned rebase/merge queue, and GitOps promotion.",
+    "gitops_vcs_directive_2026_05_14": "Move the Oya VCS replacement earlier and upgrade it for polyglot AST/semantic claims, enforced unit/integration/e2e standards, CI/CD review-fix loops, controller-owned rebase/merge queue, and GitOps promotion. ADR-0116 retires grit/icm/rtk/vox as transition authorities.",
     "scaffold_lock_ids": [
       "01KRJM0QGGKVCMVS2FFVAHZBYS",
       "01KRJMSR5EPNN0E1ATR6QYTGEE",
