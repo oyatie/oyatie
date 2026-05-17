@@ -2872,6 +2872,7 @@ version = "0.1.0"
 dependencies = [
  "oya-search-crawler-domain",
  "oya-search-parser-domain",
+ "serde_json",
 ]
 
 [[package]]
