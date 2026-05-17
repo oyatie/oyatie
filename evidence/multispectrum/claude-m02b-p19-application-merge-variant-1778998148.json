@@ -4,7 +4,7 @@
   "change_class_rationale": "Adds ProductId, ProductMetadata, ProductEntry, and ProductCatalogError into the existing oya-application-app crate via new product_catalog.rs module. No new crates scaffolded; additive merge-into-existing-crates execution variant. No new workspace dependencies.",
   "spec_version": "2.3.0",
   "freshness_unix": 1778998148,
-  "git_sha": "b83952e1028cd62a32d5fd0cd55e31759d56cca6",
+  "git_sha": "2f7155b53db2df9525fd6ab686c0babdc07411c9",
   "branch": "agent/m02b-p19-application-merge-variant-1778998148",
   "session_id": "claude-durable-goal-2026-05-17-p19-agent",
   "agent_id": "claude-m02b-p19-application-merge-variant",
