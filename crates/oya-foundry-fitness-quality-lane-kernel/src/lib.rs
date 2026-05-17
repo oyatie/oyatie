@@ -2,11 +2,18 @@
 //!
 //! Pure validator (no I/O) that asserts the standard quality lanes ran and
 //! returned green. Per CI lanes contract: clippy, fmt, doc, deny.
+//!
+//! Also exports lean architecture check vocabulary (`lean-a1..lean-a4`) from
+//! [`lean_check`] — the typed contracts consumed by
+//! `oya-shared-architecture-check-cli` (M02-substrate/P01-foundry-engine-consolidation).
 
 #![forbid(unsafe_code)]
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
+pub mod lean_check;
+pub use lean_check::{LeanCheckId, LeanViolation};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum LanePhase {
