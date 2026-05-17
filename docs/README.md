@@ -46,7 +46,7 @@ This is the canonical engineering documentation tree for **Oyatie**, one cohesiv
 
 ## Tier-1 documents
 
-- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `docs/plans/milestones/M*/` derive their authority chain from this document and from the machine-readable doctrinal substrate at [`specs/`](../specs/) (`decision-principles.json`, `forbidden-operations.json`, `decision-rights.json`, `governance-amendment.json`). Foundation ADRs: ADR-0052, ADR-0053, ADR-0054.
+- [`MASTERPLAN.md`](MASTERPLAN.md) — **canonical Master Plan anchor**. All milestone INDEXes / phase INDEXes / Implementation Plans under `.omc/plans/milestones/M*/` derive their authority from `/specs/root-hub-pointers.json`, `docs/AGENTS.md`, and the current machine-readable specs/registries. Foundation ADRs: ADR-0056, ADR-0062, ADR-0116. Hyperscaler-maturity claims are gated by ADR-0123 and [`hyperscaler-gates.json`](../specs/hyperscaler-gates.json).
 - [`AGENTS.md`](AGENTS.md) — single agent operating contract for every agent and every human.
 - [`DESIGN.md`](DESIGN.md) <!-- forward-reference: wave-1 --> — architecture, planes, cross-axis contracts.
 - [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> — north star, axes, scope, success metrics.

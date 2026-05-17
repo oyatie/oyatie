@@ -181,8 +181,8 @@ per INDEX.md §Out-of-scope), the **floor** rules below apply:
    work (use the harness's documented co-author trailer convention).
 4. Branch names: `<type>/<short-slug>-<issue-num>` (e.g.,
    `feat/foundry-rag-tenant-gate-1245`).
-5. PR shape follows [`docs/AGENTS.md`](../AGENTS.md) §PR shape (5 H2
-   sections, `## Code Review` at merge time).
+5. PR shape follows [`docs/AGENTS.md`](../AGENTS.md) §PR shape (5 traceability
+   H2 sections plus automated `## Code Review` verdict for merge-ready PRs).
 
 ## 9. Risky actions — confirmation contract
 

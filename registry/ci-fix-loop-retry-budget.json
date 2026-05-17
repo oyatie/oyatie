@@ -16,7 +16,7 @@
         "ci-failure",
         "pr-review-fix-requested"
       ],
-      "escalation_action": "open-stuck-pr-issue + label human-escalation"
+      "escalation_action": "open-stuck-pr-issue + labels agent-remediation-required, fix-loop-exhausted"
     },
     "purpose": "Per-PR shared retry counter consulted by oya-foundry-vcs-ci-fix-loop-dispatcher-app on every fix-loop dispatch. Counter increments once per emitted bundle (one cycle = one increment, regardless of how many failed jobs the bundle contains, per surface-all-failures posture). Sixth occurrence triggers escalation, NOT dispatch."
   },
