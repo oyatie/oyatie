@@ -9,7 +9,7 @@
     "status": "Active",
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-16T14:05:00Z",
-    "updated_at": "2026-05-16T14:05:00Z",
+    "updated_at": "2026-05-17T17:32:00Z",
     "purpose": "Comprehensive milestone x phase x implementation-plan audit against current masterplan, live .omc hierarchy, and agent-durable-goal production discipline."
   },
   "source_inputs": [
@@ -19,6 +19,20 @@
     "specs/deployment-ops-contract.json",
     ".omc/handoffs/2026-05-16-session-handoff.json",
     ".omc/plans/milestones"
+  ],
+  "audits_completed": [
+    {
+      "id": "2026-05-17-op11-advisory-summary",
+      "date": "2026-05-17",
+      "citation": "specs/masterplan.json#_meta.session_directives_2026_05_17.op11_audit",
+      "summary": "OP-11 and portfolio hyperscaler findings are tracked as advisory remediation inventory until ADR-0133/ADR-0134 activation requirements land on branch.",
+      "source_evidence": "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json",
+      "prs_referenced": [126, 127, 128, 129, 130, 131, 135]
+    }
+  ],
+  "adr_references_current": [
+    "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md",
+    "docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md"
   ],
   "quality_bar": {
     "production_bar": "hyperscaler production bar only; no demo/sample carve-out; every done claim requires fresh evidence",
@@ -36,8 +50,13 @@
     "primary_blockers": [
       "M02 spec-side exit gaps remain unresolved or supersession-unratified",
       "current masterplan M04-M07 diverges from actual .omc legacy directories",
-      "Connect/Enterprise suite PRDs required by handoff are not authored yet",
-      "specs/masterplan.json indexes only M-CC and is not yet full docs/MASTERPLAN replacement"
+      "Connect/Enterprise suite PRDs required by handoff are not fully authored and validated yet",
+      "specs/masterplan.json is not yet a full docs/MASTERPLAN machine-readable replacement",
+      "Portfolio advisory gap: capability circuit-breaker inventory exists, but validator/workflow/branch-protection activation is not landed",
+      "Portfolio advisory gap: per-tenant rate-limit inventory exists, but validator/workflow/branch-protection activation is not landed",
+      "Portfolio advisory gap: provider-degraded shed inventory exists, but validator/workflow/branch-protection activation is not landed",
+      "Portfolio advisory gap: Workflow Studio golden-signal inventory exists, but validator/workflow/branch-protection activation is not landed",
+      "Portfolio advisory gap: error-budget burn-rate inventory exists, but validator/workflow/branch-protection activation is not landed"
     ]
   },
   "blocked_transitions": [
@@ -65,7 +84,7 @@
       "to": "specs/masterplan.json replacement authority",
       "verdict": "NO_GO",
       "reasons": [
-        "specs/masterplan.json currently carries only M-CC machine-readable milestone rows",
+        "specs/masterplan.json currently carries an incomplete machine-readable milestone hierarchy",
         "full M01-M12 current hierarchy not yet encoded in JSON"
       ]
     }
@@ -87,7 +106,7 @@
       "title": "specs/masterplan.json is not yet a full machine-readable replacement",
       "evidence": [
         "specs/masterplan.json .milestones length is 1",
-        "docs/MASTERPLAN.md lists M-CC plus M01-M12+"
+        "docs/MASTERPLAN.md lists the current M01-M12+ numeric hierarchy"
       ],
       "required_action": "encode current milestone hierarchy into specs/masterplan.json or add generated registry source of truth with validation"
     },
@@ -198,10 +217,10 @@
   ],
   "milestones": [
     {
-      "id": "M-CC",
-      "title": "Cross-cutting workstreams",
+      "id": "M01",
+      "title": "Foundation prerequisite workstreams",
       "verdict": "in_progress_blocking_control_surface",
-      "verdict_rationale": "Cross-cutting control surfaces are actively landing; P00 is complete in specs/masterplan.json, but P11 canary/controller wave and full dissolution evidence are not yet terminal.",
+      "verdict_rationale": "Foundation control surfaces are actively landing under M01; P00 is complete in specs/masterplan.json, but P11 canary/controller wave and full dissolution evidence are not yet terminal.",
       "repo_directories": [
         "M01-foundation"
       ],

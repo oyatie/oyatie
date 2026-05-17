@@ -722,6 +722,27 @@
         "target_node_types": ["EvidenceBundle"],
         "cardinality": "many-to-many",
         "semantics": "source's state change produced target audit bundle. Required for HG-OBS."
+      },
+      "child_of": {
+        "direction": "directed",
+        "source_node_types": ["Microservice", "BoundedContext"],
+        "target_node_types": ["Microservice"],
+        "cardinality": "many-to-one",
+        "semantics": "source is a sub-product or child suite member of target parent product."
+      },
+      "ecosystem_integration": {
+        "direction": "directed",
+        "source_node_types": ["Microservice", "BoundedContext"],
+        "target_node_types": ["Microservice"],
+        "cardinality": "many-to-many",
+        "semantics": "source integrates with target through Workflow orchestration and Ontology information boundaries; products do not call each other directly."
+      },
+      "dual_context_isolation": {
+        "direction": "directed",
+        "source_node_types": ["Microservice", "BoundedContext"],
+        "target_node_types": ["Microservice", "BoundedContext"],
+        "cardinality": "many-to-many",
+        "semantics": "source and target remain cell-isolated with no cross-context identity or data linkage."
       }
     },
     "invariants": [
@@ -757,6 +778,36 @@
       {"name": "trace_changeset_pr_audit_row", "description": "Returns Oya VCS changesets with their merged PR and append-only audit-chain row provenance.", "query_sketch": "SELECT changeset.id AS changeset_id, pr.id AS pull_request_id, pr.merge_commit, audit_row.id AS audit_chain_row_id, audit_row.event_type, audit_row.evidence_path, audit_row.timestamp_unix FROM changesets changeset JOIN merged_as_pr_edges mapr ON mapr.source = changeset.id JOIN pull_requests pr ON pr.id = mapr.target JOIN emitted_audit_row_edges ear ON ear.source = pr.id JOIN audit_chain_rows audit_row ON audit_row.id = ear.target WHERE changeset.status IN ('promoted','merged') ORDER BY audit_row.timestamp_unix DESC, changeset.id"},
       {"name": "find_unreachable_features", "description": "Returns Feature nodes with no exposing BC.", "query_sketch": "SELECT feat.id FROM features feat LEFT JOIN exposes_edges ON exposes.target = feat.id WHERE exposes.id IS NULL"},
       {"name": "supersession_chain", "description": "Recursive traversal of supersedes chain from a given node; verifies termination.", "query_sketch": "WITH RECURSIVE chain AS (SELECT source, target FROM supersedes_edges WHERE source = :start_id UNION SELECT s.source, s.target FROM supersedes_edges s JOIN chain c ON s.source = c.target) SELECT * FROM chain"}
+    ],
+    "product_nodes": [
+      {"id": "foundry", "node_type": "Microservice", "label": "Foundry", "status": "active", "owner_team": "team:axis-foundry", "adr_reference": "ADR-0114"},
+      {"id": "workflow", "node_type": "Microservice", "label": "Workflow", "status": "active", "owner_team": "team:axis-workflow", "adr_reference": "ADR-0114"},
+      {"id": "ontology", "node_type": "Microservice", "label": "Ontology", "status": "active", "owner_team": "team:axis-ontology", "adr_reference": "ADR-0130"},
+      {"id": "connect", "node_type": "Microservice", "label": "Connect Suite", "status": "planned", "owner_team": "team:axis-connect", "adr_reference": "ADR-0131"},
+      {"id": "connect-social", "node_type": "Microservice", "label": "Connect Social", "status": "planned", "owner_team": "team:axis-connect", "adr_reference": "ADR-0131"},
+      {"id": "connect-shorts", "node_type": "Microservice", "label": "Connect Shorts", "status": "planned", "owner_team": "team:axis-connect", "adr_reference": "ADR-0131"},
+      {"id": "connect-network", "node_type": "Microservice", "label": "Connect Network", "status": "planned", "owner_team": "team:axis-connect", "adr_reference": "ADR-0131"},
+      {"id": "connect-anonymous", "node_type": "Microservice", "label": "Connect Anonymous", "status": "planned", "owner_team": "team:axis-connect", "adr_reference": "ADR-0132"}
+    ],
+    "product_edges": [
+      {"source": "connect-social", "edge_type": "child_of", "target": "connect", "adr_reference": "ADR-0131"},
+      {"source": "connect-shorts", "edge_type": "child_of", "target": "connect", "adr_reference": "ADR-0131"},
+      {"source": "connect-network", "edge_type": "child_of", "target": "connect", "adr_reference": "ADR-0131"},
+      {"source": "connect-anonymous", "edge_type": "child_of", "target": "connect", "adr_reference": "ADR-0132"},
+      {"source": "connect-social", "edge_type": "ecosystem_integration", "target": "workflow", "adr_reference": "ADR-0131"},
+      {"source": "connect-social", "edge_type": "ecosystem_integration", "target": "ontology", "adr_reference": "ADR-0131"},
+      {"source": "connect-social", "edge_type": "ecosystem_integration", "target": "foundry", "adr_reference": "ADR-0131"},
+      {"source": "connect-shorts", "edge_type": "ecosystem_integration", "target": "workflow", "adr_reference": "ADR-0131"},
+      {"source": "connect-shorts", "edge_type": "ecosystem_integration", "target": "ontology", "adr_reference": "ADR-0131"},
+      {"source": "connect-shorts", "edge_type": "ecosystem_integration", "target": "foundry", "adr_reference": "ADR-0131"},
+      {"source": "connect-network", "edge_type": "ecosystem_integration", "target": "workflow", "adr_reference": "ADR-0131"},
+      {"source": "connect-network", "edge_type": "ecosystem_integration", "target": "ontology", "adr_reference": "ADR-0131"},
+      {"source": "connect-network", "edge_type": "ecosystem_integration", "target": "foundry", "adr_reference": "ADR-0131"},
+      {"source": "connect-anonymous", "edge_type": "ecosystem_integration", "target": "workflow", "adr_reference": "ADR-0132"},
+      {"source": "connect-anonymous", "edge_type": "ecosystem_integration", "target": "ontology", "adr_reference": "ADR-0132"},
+      {"source": "connect-anonymous", "edge_type": "ecosystem_integration", "target": "foundry", "adr_reference": "ADR-0132"},
+      {"source": "connect-social", "edge_type": "dual_context_isolation", "target": "connect-anonymous", "adr_reference": "ADR-0132"},
+      {"source": "connect-network", "edge_type": "dual_context_isolation", "target": "connect-anonymous", "adr_reference": "ADR-0132"}
     ]
   },
   "decision_log": [

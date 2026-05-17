@@ -327,6 +327,52 @@ fn changeset_pr_audit_row_provenance_chain_is_graph_traversable() {
     }
 }
 
+#[test]
+fn ontology_product_edges_have_declared_sources_and_targets() {
+    let graph = semantic_graph();
+    let product_nodes = graph["product_nodes"]
+        .as_array()
+        .expect("product_nodes are an array");
+    let product_node_ids: std::collections::BTreeSet<&str> = product_nodes
+        .iter()
+        .map(|node| node["id"].as_str().expect("product node id is a string"))
+        .collect();
+    for required_node in ["connect", "workflow", "ontology", "foundry"] {
+        assert!(
+            product_node_ids.contains(required_node),
+            "missing product node {required_node}"
+        );
+    }
+
+    for edge_type in [
+        "child_of",
+        "ecosystem_integration",
+        "dual_context_isolation",
+    ] {
+        assert!(
+            graph["edge_types"].get(edge_type).is_some(),
+            "missing edge_type {edge_type}"
+        );
+    }
+
+    let product_edges = graph["product_edges"]
+        .as_array()
+        .expect("product_edges are an array");
+    assert!(!product_edges.is_empty());
+    for edge in product_edges {
+        let source = edge["source"].as_str().expect("edge source is a string");
+        assert!(
+            product_node_ids.contains(source),
+            "edge source {source} is dangling"
+        );
+        let target = edge["target"].as_str().expect("edge target is a string");
+        assert!(
+            product_node_ids.contains(target),
+            "edge target {target} is dangling"
+        );
+    }
+}
+
 fn assert_edge_allows(graph: &Value, edge: &str, source_type: &str, target_type: &str) {
     let edge_type = &graph["edge_types"][edge];
     assert_eq!(edge_type["direction"], "directed");
