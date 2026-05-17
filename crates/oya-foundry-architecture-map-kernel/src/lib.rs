@@ -20,9 +20,12 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+pub mod cross_axis;
 pub mod emit;
 pub mod plane;
 pub mod walk;
+
+pub use cross_axis::{AxisBinding, AxisKind, CrossAxisContract, StabilityTier, UnknownAxis};
 
 pub use plane::{ArchitecturePlane, PlaneVerdict, ProofLevel, UnknownPlane};
 
