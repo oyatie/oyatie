@@ -3,6 +3,10 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod cloud_event;
+
+pub use cloud_event::{CloudEvent, CloudEventError};
+
 use std::collections::BTreeMap;
 
 use oya_data_boundary_kernel::{Classified, DataClass};
