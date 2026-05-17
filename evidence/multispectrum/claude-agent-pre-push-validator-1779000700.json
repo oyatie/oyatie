@@ -15,7 +15,8 @@
   ],
   "local_gates": [
     "shellcheck-compatible bash; no external deps beyond rustfmt/cargo/python3/git/gh that agents already have",
-    "exit code 0 = safe to push; exit code 1 = at least one gate failed"
+    "exit code 0 = safe to push; exit code 1 = at least one gate failed",
+    "clippy/nextest capture preserves non-zero exit statuses; no cmd || true masking"
   ],
   "facets": {
     "F1_linus": {
@@ -25,7 +26,7 @@
     },
     "F5_quality": {
       "considered": true,
-      "findings": ["Mirrors the CI required-check set so dev/CI parity is enforced at the agent's local edge. Reduces CI cycle time from minutes to seconds for the failure modes seen this session. Idempotent — safe to invoke any number of times."],
+      "findings": ["Mirrors the CI required-check set so dev/CI parity is enforced at the agent's local edge. Reduces CI cycle time from minutes to seconds for the failure modes seen this session. Idempotent — safe to invoke any number of times.", "Corrective review fixed non-zero status capture for clippy and nextest so failed local gates cannot be reported as clean."],
       "fixuptasks": []
     },
     "A1_naming": {

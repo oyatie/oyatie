@@ -43,6 +43,18 @@ FAIL=0
 fail() { echo "::FAIL:: $*" >&2; FAIL=1; }
 pass() { echo "::PASS:: $*"; }
 warn() { echo "::WARN:: $*" >&2; }
+capture_cmd() {
+    local __out_var="$1"
+    shift
+    local __output __rc
+    if __output="$("$@" 2>&1)"; then
+        __rc=0
+    else
+        __rc=$?
+    fi
+    printf -v "$__out_var" '%s' "$__output"
+    return "$__rc"
+}
 
 # ── Baseline: verify origin/dev is resolvable ──────────────────────────
 if ! git rev-parse --verify origin/dev >/dev/null 2>&1; then
@@ -127,24 +139,30 @@ fi
 # ── Gate 4: clippy ─────────────────────────────────────────────────────
 # Mirrors CI: cargo clippy --workspace --all-targets --keep-going -- -D warnings
 # Run per-crate when TOUCHED_CRATES is known; fall back to --workspace.
-# The `|| true` prevents set -e from firing on a non-zero exit so CLIPPY_RC
-# is always captured correctly.
+# Capture non-zero statuses explicitly so set -e does not mask failed gates.
 echo "Running cargo clippy..."
 if [ "${#TOUCHED_CRATES[@]}" -gt 0 ]; then
     CLIPPY_OUT=""
     CLIPPY_RC=0
     for crate in "${TOUCHED_CRATES[@]}"; do
-        _OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" cargo clippy -p "$crate" --all-targets --keep-going -- -D warnings 2>&1) || true
-        _RC=$?
+        if capture_cmd _OUT env CARGO_TARGET_DIR="$TARGET_DIR" cargo clippy -p "$crate" --all-targets --keep-going -- -D warnings; then
+            _RC=0
+        else
+            _RC=$?
+        fi
         CLIPPY_OUT="${CLIPPY_OUT}${_OUT}"$'\n'
         [ $_RC -ne 0 ] && CLIPPY_RC=$_RC
     done
 else
-    CLIPPY_OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" cargo clippy --workspace --all-targets --keep-going -- -D warnings 2>&1) || true
-    CLIPPY_RC=$?
+    if capture_cmd CLIPPY_OUT env CARGO_TARGET_DIR="$TARGET_DIR" cargo clippy --workspace --all-targets --keep-going -- -D warnings; then
+        CLIPPY_RC=0
+    else
+        CLIPPY_RC=$?
+    fi
 fi
 if [ $CLIPPY_RC -ne 0 ]; then
-    ERR=$(echo "$CLIPPY_OUT" | grep -E '^error' | head -5)
+    ERR=$(printf '%s\n' "$CLIPPY_OUT" | grep -E '^error' | head -5 || true)
+    [ -z "$ERR" ] && ERR=$(printf '%s\n' "$CLIPPY_OUT" | tail -20)
     fail "clippy: $ERR"
 else
     pass "clippy clean"
@@ -154,21 +172,26 @@ fi
 # Mirrors CI: cargo nextest run --workspace --no-fail-fast with ci profile
 # (pr-tests.yml sets NEXTEST_PROFILE=ci; .config/nextest.toml [profile.ci]
 # sets fail-fast=false and junit output — omitting the profile diverges from CI).
-# The `|| true` prevents set -e from firing on a non-zero exit so NEXTEST_RC
-# is always captured correctly.
+# Capture non-zero statuses explicitly so set -e does not mask failed gates.
 echo "Running cargo nextest run..."
 if [ "${#TOUCHED_CRATES[@]}" -gt 0 ]; then
     NEXTEST_OUT=""
     NEXTEST_RC=0
     for crate in "${TOUCHED_CRATES[@]}"; do
-        _OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" NEXTEST_PROFILE=ci cargo nextest run -p "$crate" --no-fail-fast 2>&1) || true
-        _RC=$?
+        if capture_cmd _OUT env CARGO_TARGET_DIR="$TARGET_DIR" NEXTEST_PROFILE=ci cargo nextest run -p "$crate" --no-fail-fast; then
+            _RC=0
+        else
+            _RC=$?
+        fi
         NEXTEST_OUT="${NEXTEST_OUT}${_OUT}"$'\n'
         [ $_RC -ne 0 ] && NEXTEST_RC=$_RC
     done
 else
-    NEXTEST_OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" NEXTEST_PROFILE=ci cargo nextest run --workspace --no-fail-fast 2>&1) || true
-    NEXTEST_RC=$?
+    if capture_cmd NEXTEST_OUT env CARGO_TARGET_DIR="$TARGET_DIR" NEXTEST_PROFILE=ci cargo nextest run --workspace --no-fail-fast; then
+        NEXTEST_RC=0
+    else
+        NEXTEST_RC=$?
+    fi
 fi
 if [ $NEXTEST_RC -ne 0 ]; then
     fail "nextest failed: $(echo "$NEXTEST_OUT" | tail -5)"
