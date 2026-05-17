@@ -5,6 +5,10 @@ id: M03-P04
 title: SaaS Platform Preview (Workflow Engine + Plugin Substrate + Marketplace)
 status: complete
 purpose: Ship workflow engine, Object Graph property tiers consumption, plugin substrate, public REST API stability tier.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "delta-1 merge-variant: WorkflowPriority enum added to oya-saas-workflow-kernel::priority; no new crate scaffolds, no new workspace deps, std-only."
 ---
 
 # M03-P04 — SaaS Platform Preview
