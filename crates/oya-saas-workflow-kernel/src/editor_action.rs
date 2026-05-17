@@ -42,14 +42,26 @@ pub enum EditorActionKind {
 
 impl EditorActionKind {
     /// Returns `true` when the action mutates canvas topology (nodes/edges).
+    ///
+    /// `Undo` and `Redo` are included because they can replay or revert
+    /// `AddNode`/`RemoveNode`/`ConnectNodes`/`DisconnectNodes` actions,
+    /// making them topology-mutating in effect.
     pub fn is_topology_mutation(self) -> bool {
         matches!(
             self,
-            Self::AddNode | Self::RemoveNode | Self::ConnectNodes | Self::DisconnectNodes
+            Self::AddNode
+                | Self::RemoveNode
+                | Self::ConnectNodes
+                | Self::DisconnectNodes
+                | Self::Undo
+                | Self::Redo
         )
     }
 
     /// Returns `true` when the action is reversible via Undo/Redo.
+    ///
+    /// `Undo` and `Redo` are themselves reversible: `Undo` can be undone by
+    /// `Redo` and vice-versa, so they belong in the reversible set.
     pub fn is_reversible(self) -> bool {
         matches!(
             self,
@@ -58,6 +70,8 @@ impl EditorActionKind {
                 | Self::ConnectNodes
                 | Self::DisconnectNodes
                 | Self::MoveNode
+                | Self::Undo
+                | Self::Redo
         )
     }
 }
@@ -107,7 +121,8 @@ mod tests {
         assert!(EditorActionKind::ConnectNodes.is_topology_mutation());
         assert!(EditorActionKind::DisconnectNodes.is_topology_mutation());
         assert!(!EditorActionKind::MoveNode.is_topology_mutation());
-        assert!(!EditorActionKind::Undo.is_topology_mutation());
+        assert!(EditorActionKind::Undo.is_topology_mutation());
+        assert!(EditorActionKind::Redo.is_topology_mutation());
         assert!(!EditorActionKind::SaveDraft.is_topology_mutation());
         assert!(!EditorActionKind::Publish.is_topology_mutation());
     }
@@ -120,8 +135,8 @@ mod tests {
         assert!(EditorActionKind::DisconnectNodes.is_reversible());
         assert!(EditorActionKind::MoveNode.is_reversible());
         assert!(!EditorActionKind::OpenProperties.is_reversible());
-        assert!(!EditorActionKind::Undo.is_reversible());
-        assert!(!EditorActionKind::Redo.is_reversible());
+        assert!(EditorActionKind::Undo.is_reversible());
+        assert!(EditorActionKind::Redo.is_reversible());
         assert!(!EditorActionKind::SaveDraft.is_reversible());
         assert!(!EditorActionKind::Publish.is_reversible());
     }

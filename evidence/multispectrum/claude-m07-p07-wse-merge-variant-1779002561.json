@@ -16,7 +16,7 @@
     "evidence/audit-chain.jsonl (row appended)"
   ],
   "local_gates": [
-    "cargo test -p oya-saas-workflow-kernel: 11/11 PASS (6 new editor_action + 5 pre-existing)",
+    "cargo test -p oya-saas-workflow-kernel: 22/22 PASS (6 new editor_action + 16 pre-existing)",
     "rustfmt 1.95.0: clean"
   ],
   "facets": {
@@ -31,8 +31,8 @@
     "F3_correctness": {
       "considered": true,
       "findings": [
-        "is_topology_mutation covers AddNode/RemoveNode/ConnectNodes/DisconnectNodes only — MoveNode, Undo, Redo, OpenProperties, SaveDraft, Publish excluded correctly.",
-        "is_reversible adds MoveNode to the topology-mutation set — consistent with undo/redo semantics.",
+        "is_topology_mutation covers AddNode/RemoveNode/ConnectNodes/DisconnectNodes plus Undo/Redo because replaying or reverting topology actions mutates topology in effect. MoveNode, OpenProperties, SaveDraft, and Publish are excluded.",
+        "is_reversible covers topology actions, MoveNode, Undo, and Redo — consistent with editor undo/redo semantics.",
         "NodeKind::requires_human matches Approval only; introduces_delay matches Timer only — both minimal and precise."
       ],
       "fixuptasks": []
