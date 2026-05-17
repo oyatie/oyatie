@@ -1,0 +1,91 @@
+{
+  "change_id": "codex-cloud-hyperscaler-audit-repair-1779030267",
+  "change_class_id": "CC-5_doc_only",
+  "change_class_rationale": "Reviewer-requested repair to Cloud PRD markdown and JSON evidence. No source code, schema, runtime contract, or workflow changes.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779030267,
+  "git_sha_base": "af6bcffb993704ab9d79c6baf67061d57030ad84",
+  "branch": "agent/audit-cloud-hyperscaler-1779012370",
+  "session_id": "codex-merge-queue-pr128-review-fix",
+  "agent_id": "codex",
+  "task": "Resolve PR #128 review findings for Cloud hyperscaler audit honesty, portfolio scope, stale Foundry gaps, source traceability, and benchmark-heading compatibility.",
+  "artifacts_touched": [
+    "docs/products/cloud/PRD.md",
+    "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json",
+    "evidence/multispectrum/codex-cloud-hyperscaler-audit-repair-1779030267.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "review_findings_addressed": [
+    "128-H01-core-product-subset-scope",
+    "128-H02-strong-score-enforcement-honesty",
+    "128-M01-foundry-current-dev-staleness",
+    "128-N01-cloud-sources-scanned",
+    "current-head-benchmark-heading-exactness",
+    "current-head-missing-multispectrum-evidence"
+  ],
+  "local_gates": [
+    "jq empty evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json evidence/multispectrum/codex-cloud-hyperscaler-audit-repair-1779030267.json: PASS",
+    "rg benchmark/source/scope checks: PASS",
+    "scripts/evidence-secret-scan.sh evidence/multispectrum evidence/audit-chain.jsonl: PASS",
+    "cargo run -p oya-dev-cli -- gate validate product-index: PASS (7 axis rows, 20 catalog products)",
+    "cargo run -p oya-dev-cli -- gate validate quality-lanes: PASS (69 registry records, 69 markdown rows, 64 active commands, 39 owner teams)",
+    "cargo fmt --check: PASS",
+    "git diff --check: PASS"
+  ],
+  "verification_limitations": [
+    "cargo run -p oya-dev-cli -- gate validate benchmark --products-dir docs/products was run and improved from 12 to 11 failures after Cloud gained the exact `## Competitive benchmark` heading. Remaining failures are pre-existing non-Cloud PRDs: docs/prds/{ontology,application,payroll,tenancy,foundry,workflow,accounting,connect,INDEX,hr}.md and docs/products/foundry/PRD.md.",
+    "Full GitHub CI must be re-run after push because this repair rebases PR #128 onto the #126 merge head."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The repair scopes the audit instead of pretending it scored every product family. Excluded Connect and Enterprise specs are listed explicitly."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Cloud prose-only Strong scores were downgraded to Adequate in both the JSON scorecard and the PRD adoption summary where no CI/test or concrete enforcement mechanism is cited."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Foundry gaps were reconciled against current dev after PR #126: queue-depth shedding and p99 capability SLOs are no longer listed as missing; the remaining all-providers-degraded terminal shed state is still tracked."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "No retired registries/cross-cutting path is introduced. The repair adds only doc/evidence artifacts."
+      ],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Audit-chain row and multispectrum repair evidence make the review/fix loop traceable."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "codex-self-architect-check",
+      "verdict": "ACCEPT_WITH_VERIFICATION",
+      "rationale": "The audit remains useful while no longer claiming portfolio-wide or enforcement-backed maturity that the evidence does not prove."
+    },
+    "critic": {
+      "agent": "codex-self-critic-check",
+      "verdict": "ACCEPT_WITH_GUARDRAILS",
+      "guardrails": [
+        "Do not promote this core-subset scorecard to portfolio-wide status until Connect and Enterprise product specs are scored.",
+        "Do not use Strong for prose-only commitments unless the artifact names a CI lane, test, or concrete kernel/domain enforcement path."
+      ]
+    }
+  }
+}

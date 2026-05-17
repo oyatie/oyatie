@@ -670,6 +670,85 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 - [`docs/GLOSSARY.md`](../../GLOSSARY.md) §1-7
 - `/Users/jasonlee/oyatie/docs/raw/greenfield-cloud.md` (299 leaves: A.1 VM, A.2 K8s, A.3 Functions, A.4 Bare-metal, A.5 GPU, A.6 Edge; B.1 Object, B.2 Block, B.3 File, B.4 Archive, B.5 Database, B.6 Backup; C.1 VPC, C.2 LB, C.3 DNS, C.4 CDN, C.5 Interconnect, C.6 DDoS, C.7 Mesh; D IAM; E Regions; F Billing+Marketplace; G Observability; H FinOps; I Clean-arch; J KR-launch)
 - ADR-0021 (OCI A1 launch), ADR-0022 (GitOps), ADR-0044 (Cloud-native infra), ADR-0044 (Data tier matrix), ADR-0013 (Envoy gateway), ADR-0045 (ClickHouse), ADR-0044 (Harbor), ADR-0043 (OpenBao), ADR-0045 (VictoriaMetrics), ADR-0046 (Kafka eventing), ADR-0045 (Cassandra gated), ADR-0045 (Citus), ADR-0047 (Vector store gated), ADR-0042 (Mimir gated), ADR-0035 (Temporal gated), ADR-0045 (Iceberg gated), ADR-0044 (OCI Always Free inventory), ADR-0044 (Istio Ambient), ADR-0050 (Argo Rollouts), ADR-0039 (Supply chain Trivy/Cosign/SBOM), ADR-0012 (Enterprise cloud readiness), ADR-0042 (GitOps baseline), ADR-0015 (Flat crates), ADR-0003 (Trust framework), ADR-0021 (Product control plane), ADR-0050 (Data + AI governance), ADR-0040 (Portfolio + capital allocation), ADR-0017 (Roadmap wave integration), ADR-0050 (Multi-cloud + on-prem IaC + air-gap)
+- Hyperscaler benchmark references: AWS Well-Architected Framework, AWS Builders Library fallback guidance, AWS shuffle-sharding / cell isolation patterns, AWS S3 Replication Time Control, AWS IAM data-perimeter resource policies, Azure Well-Architected Framework, Google SRE 4 golden signals, Google SRE error-budget burn-rate alerting.
+- Detailed audit artifact: [`evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json`](../../../evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json)
+
+---
+
+## Competitive benchmark
+
+The detailed Cloud benchmark is in §14 and in `evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json`. It compares AWS, Azure, Google SRE/GCP, and adjacent Oyatie core-product patterns against cell isolation, idempotency, backpressure, observability, hot-key resilience, stuck-loop circuit breakers, insecure-by-default avoidance, and vendor lock-in avoidance.
+
+## 14. Hyperscaler pattern audit (2026-05-17)
+
+> Auditor: agent/audit-cloud-hyperscaler — cross-referenced against AWS Well-Architected Framework (6 pillars), Google SRE 4 golden signals, Azure Well-Architected Framework (5 pillars), and AWS Builders Library cell-isolation / fallback-avoidance patterns.
+
+Score honesty note: this section is a design benchmark. `Strong` requires a named enforcement mechanism such as a CI lane, test, or concrete kernel/domain contract; prose-only architecture is capped at `Adequate` until an enforcement lane lands.
+
+### 14.1 Patterns confirmed present (adopt with evidence)
+
+| Pattern | Where it lives in this PRD | Hyperscaler reference |
+|---|---|---|
+| **Cell isolation / blast radius** | §4.2 `Cell` aggregate; `tenant_density: TenantDensityClass`; per-cell Postgres cluster; cell-local Envoy header `x-oya-cell`; per-cell chaos drills monthly (§10) | AWS shuffle-sharding + cell-based failure isolation; Azure mission-critical zone segmentation |
+| **Multi-region active / active** | §3.1 W-Cloud-Preview: KR-Seoul1 + JP-Tokyo1 + US-Virginia1 + EU-Frankfurt1 in parallel; §5.3 streaming replication 3-AZ + cross-region read-only mirror | AWS multi-AZ + multi-region; Azure reliability pillar — zone + region redundancy |
+| **Capacity reservation** | §6 `cloud.capacity.rebalance` Foundry capability (≤ T2 autonomy); per-cell utilization struct; batch rebalance every 5 s | AWS Reserved Instances / capacity reservations pattern; GCP committed-use contracts |
+| **IAM least-privilege** | §4.2 Cedar policies; §5.1 `IamRole.max_session_duration_sec`; `cloud.iam.audit-narrow` capability proposes narrowing from access logs; per-mutator scoped capability schema; default-deny cross-cell IAM | AWS IAM least-privilege pillar; Azure zero-trust IAM |
+| **FinOps: cost reporting + right-sizing** | §4.2 `oya-cloud-finops-api`; `cloud.cost.recommend` (≤ T1) identifies idle resources; per-tenant cost breakdown in Cloud Console; per-region gross-margin gate ≥ 50% at GA | AWS Cost Explorer + Trusted Advisor; Azure Cost Management + Advisor |
+| **4 golden signals observability** | §4.2 `oya-cloud-observability-kernel` + `MetricStream`, `LogStream`, `TraceStream`; §4.3 SLO targets on every API surface (latency p99 + availability %); §6 hot-path benchmarks for STS / Cedar / object GET | Google SRE 4 golden signals: latency + traffic + errors + saturation |
+| **Data perimeter / residency** | §5.1 `ResidencyClass` on every `Resource` + `Bucket`; per-bucket `allowed_data_classes`; per-cell `allowed_residency`; cross-region replication blocked unless residency policy explicitly permits | AWS data-perimeter controls; Azure data residency commitments |
+| **KMS / BYOK / HYOK** | §3.1 W-Cloud-Preview BYOK/HYOK KMS; §4.2 `oya-cloud-kms-api`; `EncryptionMode: sse | sse-kms | byok | hyok`; per-pack HSM (KCMVP / FIPS-140-3 / Common Criteria EAL-4+); `cloud.kms_key_used.v1` audit event (indefinite retention) | AWS KMS + CloudHSM; Azure Key Vault + Managed HSM; GCP Cloud KMS + Cloud HSM |
+| **Supply-chain attestation** | §4.2 `oya-cloud-supply-chain-app` (Cosign + Trivy + SBOM per ADR-0039); `oya-foundry-fitness-license` hard-gate; per-host image supply-chain attestation (§10) | AWS SLSA / Sigstore; Google Binary Authorization; Azure Defender for DevOps |
+| **Idempotency on every mutation** | §6 `Idempotency-Key` header on every mutating REST + gRPC; outbox deduplication 24 h; cloud-init deduped on `instance_id`; `idempotency_key` on every billing event | AWS SDK retry-with-idempotency; Temporal idempotent activities |
+| **Backpressure / rate limiting** | §6 capacity-bound 429 + `Retry-After` at cell; observability ingest sheds at 95% lag; LB control loop slows under metric pressure | AWS throttling + token-bucket; Azure APIM throttling; Google SRE saturation signal |
+| **Audit chain on every mutation** | §5.6 full audit-chain emission contract (10 regulated operations); `prev_hash` chained; per-tenant signed S3 stream; indefinite KMS-use retention | AWS CloudTrail immutable logs; Azure Monitor audit logs; GCP Cloud Audit Logs |
+| **Vendor lock-in avoidance** | §8 every external dep behind adapter trait (`KVM`, `Firecracker`, `Ceph/SeaweedFS`, `OVN`, `FRR`, `OpenTofu`) — never imported directly into product crates; `oya-foundry-fitness-license` enforces boundaries | AWS portability via IaC; Azure WAF vendor-neutrality |
+| **Fallback-as-failover (not silent fallback)** | §6 Argo Rollouts metric-gated rollback; Istio Ambient with Linkerd as exercised fallback (ADR-0044) — both paths continuously exercised | AWS Builders Library: avoid fallback; convert to failover via continuous exercise |
+
+### 14.2 Anti-patterns explicitly avoided
+
+| Anti-pattern | How the PRD avoids it | Hyperscaler reference |
+|---|---|---|
+| **Shared global mutable state across tenants** | Per-tenant Postgres RLS + per-cell Postgres cluster; STS sessions in Redis sharded by `session_id`; `allowed_data_classes` enforced at replication ingress | AWS shuffle-sharding avoids noisy-neighbor; Azure mission-critical bulkhead |
+| **Silent fallback to slower path** | §10 risk: Ceph/Seaweed EC 3+1 by default; forced AZ-isolation drill quarterly; Argo Rollouts blocks auto-merge on metric regression | AWS Builders Library: fallback causes amplified outages (2001 retail example) |
+| **Unbounded fanout on single tenant** | §6 bulk endpoint max 1 000 resources / 100 000 objects; cursor pagination max 10 000; batch dispatch windows (5 s / 60 s / 1 s) | AWS SQS backpressure; GCP Pub/Sub flow control |
+| **Insecure by default** | IMDSv2-only per greenfield A11 (§3.1); TLS everywhere via `rustls`; IPv6 from day 1; OpenBao for secrets; per-cell host hardening (§10) | AWS security pillar: secure by default; Azure zero-trust |
+| **No retry budget** | `Retry-After` in 429 responses; observability dead-letter at 95% lag; `max_session_duration_sec` on STS | AWS retry with exponential backoff; Google SRE error budget |
+| **Vendor lock-in via direct dependency** | MinIO REJECTED (AGPL-3); every hypervisor/network/storage dep at process boundary only; `cargo-deny` enforces denylist | AWS portability; Azure multi-cloud guidance |
+| **Opaque cost allocation** | Per-resource-hour metering via `MeterEvent`; per-tenant breakdown in FinOps console; per-region gross-margin gate | AWS Cost Allocation Tags; Azure cost management per resource group |
+| **Manual operational runbooks** | Foundry `cloud.capacity.rebalance` + `cloud.cost.recommend` + `cloud.iam.audit-narrow` automate repetitive ops; Argo Rollouts automates canary/rollback | AWS operational excellence: automate runbooks; Azure OE: automation over manual |
+
+### 14.3 Gaps identified — recommended additions
+
+The following patterns from hyperscaler frameworks are partially or entirely absent from the current PRD and should be added in the next revision:
+
+| Gap | Severity | Recommended addition | Reference |
+|---|---|---|---|
+| **Explicit error-budget policy** | High | Add an error-budget burn-rate alert contract: per-SLO burn-rate thresholds (fast burn: 5× in 1 h triggers page; slow burn: 1× in 6 h triggers ticket); link to `oya-cloud-observability-kernel` | Google SRE error-budget burn-rate alerting |
+| **Hot-key / hot-partition resilience** | High | Add per-tenant request-rate quotas at the cell-routing layer (not just bulk endpoint caps); add shuffle-sharding on `(tenant_id, resource_kind)` for IAM STS hot paths | AWS shuffle-sharding; DynamoDB adaptive capacity |
+| **Structured chaos engineering programme** | Medium | §10 mentions "monthly AZ-isolation drill" and "quarterly forced AZ-failover" but does not specify the blast-radius assertion framework. Add: per-cell chaos manifests (Gremlin / Chaos Mesh) with automated green/red verdicts before GA | AWS GameDay / FIS; Google DiRT |
+| **Capacity pre-warming SOP** | Medium | Add documented pre-warming runbook for new cell bring-up: `cloud.capacity.rebalance` should warm N% head-room before a region goes public-preview; tie to `cloud.region.register` mutator sequence | AWS capacity reservations pre-warm pattern |
+| **Explicit saturation SLO for each resource dimension** | Medium | §6 lists hot-path latency benchmarks but not saturation thresholds (e.g., CPU, memory, network, IOPS per cell). Add `CellCapacity.saturation_slo_pct` field and reject provision when any dimension > threshold | Google SRE saturation signal |
+| **Cross-region replication lag SLO tightening** | Medium | §9 sets p95 ≤ 60 s (preview) → 15 s (GA). AWS S3 Cross-Region Replication delivers < 1 min 99.99% of objects within 15 min. Expose a `replication_class: standard | accelerated` flag on `Bucket` matching S3 RTC semantics | AWS S3 Replication Time Control (RTC) |
+| **Data perimeter — resource-based policy enforcement** | Medium | The PRD describes Cedar policies on principals but does not specify resource-based policies (analogous to AWS S3 bucket policies). Add `ResourcePolicy` to `Bucket` and `KmsKey` aggregates so resources can independently enforce who can access them regardless of principal-side roles | AWS data perimeter: resource-based policies; AWS IAM resource policies |
+| **Control-plane / data-plane separation SLOs** | Low | SLO tables in §4.3 mix control and data planes but treat them as a single availability number. AWS and GCP independently SLA the control plane (create/delete) vs data plane (read/write existing resources). Split the availability target for `Cloud API v1` into control-plane availability (create/delete: 99.99%) vs data-plane availability (object GET/PUT: 99.999%) | AWS service SLA separation; GCP API availability tiers |
+| **Graceful degradation contract on control-plane outage** | Low | Specify that all data-plane operations (object GET, instance network, running VMs) continue during a control-plane outage. Currently implied but not contractually stated in §4.3 | AWS: data plane continues when control plane is degraded |
+
+### 14.4 Industry-standard adoption summary
+
+| Dimension | Score | Evidence |
+|---|---|---|
+| Cell isolation | **Adequate** | Cell aggregate with density class, per-cell Postgres, per-cell IAM, monthly chaos drills; dedicated enforcement test still missing |
+| Capacity reservation | **Adequate** | `cloud.capacity.rebalance` capability; lacks pre-warming SOP |
+| Multi-region failover | **Adequate** | 4 regions in parallel at preview; Argo Rollouts progressive delivery; AZ-failover drills; end-to-end failover drill evidence still missing |
+| IAM least-privilege | **Adequate** | Cedar policies; `audit-narrow` capability; default-deny cross-cell; resource-policy enforcement still missing |
+| FinOps | **Adequate** | Per-resource-hour metering; `cloud.cost.recommend`; gross-margin gate; no dedicated FinOps CI lane yet |
+| Observability (4 golden signals) | **Adequate** | Latency + availability SLOs present; explicit saturation SLO per cell dimension missing |
+| Data perimeter | **Adequate** | Residency classes + `allowed_data_classes`; resource-based policies not yet specified |
+| KMS / secrets | **Adequate** | BYOK/HYOK; per-pack HSM; OpenBao; `cloud.kms_key_used.v1` audit; HYOK integration evidence still missing |
+| Supply-chain attestation | **Strong** | Cosign + Trivy + SBOM; license gate; per-host image attestation |
+| Vendor lock-in avoidance | **Strong** | All external deps at adapter/process boundary; `cargo-deny` denylist |
+| Error-budget policy | **Gap** | No burn-rate alert contract defined |
+| Hot-key resilience | **Gap** | Bulk caps exist; shuffle-sharding on hot IAM/STS paths not specified |
 
 ---
 
