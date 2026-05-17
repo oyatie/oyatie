@@ -7,12 +7,20 @@
 //! "active" without a baseline-period reference + estimated savings.
 //! The `finops_public` module adds the tenant-visible summary projection.
 //! The `payroll_period` module adds payroll-cycle enums for M07/P02.
+//!
+//! # Finance primitives (P11-finance-library merge-variant delta-1)
+//!
+//! The `finance` sub-module provides ISO 4217 `Currency`, `JournalEntryStatus`,
+//! and `LedgerError` — merged here per user-directive-option-2 (2026-05-17)
+//! instead of new crate scaffolds.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 pub mod finops_public;
 pub use finops_public::{FINOPS_PUBLIC_SCHEMA_VERSION, PublicCostSummary, report_public};
+pub mod finance;
+pub use finance::{Currency, JournalEntryStatus, LedgerError, validate_status_transition};
 
 pub mod payroll_period;
 pub use payroll_period::{PayCycleKind, PayrollPeriod, PayslipStatus, UnknownPayrollPeriod};
