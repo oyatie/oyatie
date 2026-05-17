@@ -65,6 +65,12 @@ STAGED_RS=$(git diff --name-only --cached --diff-filter=AMR 2>/dev/null | grep '
 BRANCH_RS=$(git diff --name-only --diff-filter=AMR origin/dev..HEAD 2>/dev/null | grep '\.rs$' || true)
 CHANGED_RS=$(printf '%s\n%s\n' "$STAGED_RS" "$BRANCH_RS" | grep -v '^$' | sort -u)
 
+# Always run cargo fmt --all --check regardless of whether .rs files changed,
+# because CI runs it unconditionally (pr-tests.yml rustfmt job has no path filter).
+# The per-file loop below still runs for touched files to provide precise output.
+CARGO_TARGET_DIR="$TARGET_DIR" cargo fmt --all -- --check >/dev/null 2>&1 || {
+    fail "cargo fmt --all --check failed — run: cargo fmt --all"
+}
 if [ -n "$CHANGED_RS" ]; then
     DIFFS=0
     while IFS= read -r F; do
@@ -99,7 +105,7 @@ if [ "${#TOUCHED_CRATES[@]}" -eq 0 ]; then
     BRANCH_ALL=$(git diff --name-only --diff-filter=AMR origin/dev..HEAD 2>/dev/null || true)
     CHANGED_ALL=$(printf '%s\n%s\n' "$STAGED_ALL" "$BRANCH_ALL" | grep -v '^$' | sort -u)
     while IFS= read -r F; do
-        C=$(echo "$F" | grep -oE '^(crates|tools)/[^/]+' | head -1 | sed 's|^\(crates\|tools\)/||')
+        C=$(echo "$F" | grep -oE '^(crates|tools)/[^/]+' | head -1 | sed 's|^\(crates\|tools\)/||' || true)
         [ -n "$C" ] && TOUCHED_CRATES+=("$C")
     done <<< "$CHANGED_ALL"
 fi
@@ -118,27 +124,56 @@ else
     pass "cargo check --workspace --all-targets clean"
 fi
 
-# ── Gate 4: clippy --workspace ─────────────────────────────────────────
+# ── Gate 4: clippy ─────────────────────────────────────────────────────
 # Mirrors CI: cargo clippy --workspace --all-targets --keep-going -- -D warnings
-echo "Running cargo clippy --workspace..."
-CLIPPY_OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" cargo clippy --workspace --all-targets --keep-going -- -D warnings 2>&1)
-CLIPPY_RC=$?
+# Run per-crate when TOUCHED_CRATES is known; fall back to --workspace.
+# The `|| true` prevents set -e from firing on a non-zero exit so CLIPPY_RC
+# is always captured correctly.
+echo "Running cargo clippy..."
+if [ "${#TOUCHED_CRATES[@]}" -gt 0 ]; then
+    CLIPPY_OUT=""
+    CLIPPY_RC=0
+    for crate in "${TOUCHED_CRATES[@]}"; do
+        _OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" cargo clippy -p "$crate" --all-targets --keep-going -- -D warnings 2>&1) || true
+        _RC=$?
+        CLIPPY_OUT="${CLIPPY_OUT}${_OUT}"$'\n'
+        [ $_RC -ne 0 ] && CLIPPY_RC=$_RC
+    done
+else
+    CLIPPY_OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" cargo clippy --workspace --all-targets --keep-going -- -D warnings 2>&1) || true
+    CLIPPY_RC=$?
+fi
 if [ $CLIPPY_RC -ne 0 ]; then
     ERR=$(echo "$CLIPPY_OUT" | grep -E '^error' | head -5)
-    fail "clippy --workspace: $ERR"
+    fail "clippy: $ERR"
 else
-    pass "clippy --workspace clean"
+    pass "clippy clean"
 fi
 
-# ── Gate 5: nextest --workspace ────────────────────────────────────────
-# Mirrors CI: cargo nextest run --workspace --no-fail-fast
-echo "Running cargo nextest run --workspace..."
-NEXTEST_OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" cargo nextest run --workspace --no-fail-fast 2>&1)
-NEXTEST_RC=$?
-if [ $NEXTEST_RC -ne 0 ]; then
-    fail "nextest --workspace failed: $(echo "$NEXTEST_OUT" | tail -5)"
+# ── Gate 5: nextest ────────────────────────────────────────────────────
+# Mirrors CI: cargo nextest run --workspace --no-fail-fast with ci profile
+# (pr-tests.yml sets NEXTEST_PROFILE=ci; .config/nextest.toml [profile.ci]
+# sets fail-fast=false and junit output — omitting the profile diverges from CI).
+# The `|| true` prevents set -e from firing on a non-zero exit so NEXTEST_RC
+# is always captured correctly.
+echo "Running cargo nextest run..."
+if [ "${#TOUCHED_CRATES[@]}" -gt 0 ]; then
+    NEXTEST_OUT=""
+    NEXTEST_RC=0
+    for crate in "${TOUCHED_CRATES[@]}"; do
+        _OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" NEXTEST_PROFILE=ci cargo nextest run -p "$crate" --no-fail-fast 2>&1) || true
+        _RC=$?
+        NEXTEST_OUT="${NEXTEST_OUT}${_OUT}"$'\n'
+        [ $_RC -ne 0 ] && NEXTEST_RC=$_RC
+    done
 else
-    pass "nextest --workspace clean"
+    NEXTEST_OUT=$(CARGO_TARGET_DIR="$TARGET_DIR" NEXTEST_PROFILE=ci cargo nextest run --workspace --no-fail-fast 2>&1) || true
+    NEXTEST_RC=$?
+fi
+if [ $NEXTEST_RC -ne 0 ]; then
+    fail "nextest failed: $(echo "$NEXTEST_OUT" | tail -5)"
+else
+    pass "nextest clean"
 fi
 
 # ── Gate 6: evidence/multispectrum ↔ audit-chain pairing ───────────────
@@ -176,8 +211,8 @@ fi
 # ── Gate 7: no new workspace deps (warn unless --allow-deps) ───────────
 # Include both committed and staged Cargo.toml changes.
 # Restrict to dependency-section lines only (e.g. [dependencies], [workspace.dependencies]).
-COMMITTED_DEPS=$(git diff origin/dev..HEAD -- Cargo.toml 2>/dev/null | grep -E '^\+[a-zA-Z0-9_-]+ ?=.*\{' || true)
-STAGED_DEPS=$(git diff --cached -- Cargo.toml 2>/dev/null | grep -E '^\+[a-zA-Z0-9_-]+ ?=.*\{' || true)
+COMMITTED_DEPS=$(git diff origin/dev..HEAD -- Cargo.toml 2>/dev/null | grep -E '^\+[a-zA-Z0-9_-]+ ?=( ?"[^"]*"|\{)' || true)
+STAGED_DEPS=$(git diff --cached -- Cargo.toml 2>/dev/null | grep -E '^\+[a-zA-Z0-9_-]+ ?=( ?"[^"]*"|\{)' || true)
 DEPS_DIFF=$(printf '%s\n%s\n' "$COMMITTED_DEPS" "$STAGED_DEPS" | grep -v '^$' | sort -u)
 if [ -n "$DEPS_DIFF" ]; then
     if [ "$ALLOW_DEPS" -eq 1 ]; then
