@@ -2,11 +2,15 @@
 purpose: "M02b/P22 exit-gate — enumeration of the 14 quality/scalability validator lanes and their oya-dev-cli bindings"
 doc_status: published
 change_id: claude-m02b-p22-doc-coverage-mv-1779009579
+meta_policy: ADR-0125 (chained-enforcement, pending)
 ---
 
 # M02b/P22 Exit-Gate Validators
 
-> **Status:** three lanes wired + tested (statelessness, shardability, documentation-system). Remaining lanes are wired in the CLI but lack integration tests; each follow-on PR adds one test per lane until all 14 are covered, at which point the BLOCKER workflow YAML flip lands.
+> **Status (2026-05-17):** nine lanes wired + tested per PRs #112, #114, #117, #118,
+> #119, #120, #121, #122, #123. Remaining lanes (6, 10, 11, 12) are wired in the
+> CLI but lack integration tests; each follow-on PR adds one test per lane until
+> all 14 are covered, at which point the BLOCKER workflow YAML flip lands.
 
 ## What "wired" means
 
@@ -24,20 +28,20 @@ The "14 quality/scalability lanes" tracked for M02b/P22 exit gate are the lanes 
 
 | # | Lane slug | `oya gate validate` subcommand | Kernel crate | Status |
 |---|---|---|---|---|
-| 1 | `quality-statelessness` | `statelessness` | `oya-check-statelessness` | **wired + tested** (this PR) |
-| 2 | `quality-shardability` | `shardability` | `oya-check-shardability` | **wired + tested** (this PR) |
-| 3 | `quality-perf-budget` | `perf-budget` | `oya-check-perf-budget` | wired; test pending |
-| 4 | `quality-benchmark` | `benchmark` | `oya-check-benchmark` | wired; test pending |
-| 5 | `lean-a-active-artifact-contract` | `active-artifact-contract` | `oya-check-active-artifact-contract` | wired; test pending |
+| 1 | `quality-statelessness` | `statelessness` | `oya-check-statelessness` | **wired + tested** (PR #112) |
+| 2 | `quality-shardability` | `shardability` | `oya-check-shardability` | **wired + tested** (PR #114) |
+| 3 | `quality-perf-budget` | `perf-budget` | `oya-check-perf-budget` | **wired + tested** (PR #117) |
+| 4 | `quality-benchmark` | `benchmark` | `oya-check-benchmark` | **wired + tested** (PR #118) |
+| 5 | `lean-a-active-artifact-contract` | `active-artifact-contract` | `oya-check-active-artifact-contract` | **wired + tested** (PR #119) |
 | 6 | `lean-a-cedar-fragment-coverage` | `cedar-fragment-coverage` | `oya-check-cedar-fragment-coverage` | wired; test pending |
-| 7 | `lean-a-openapi-rest-route-parity` | `openapi-rest-route-parity` | `oya-check-openapi-rest-route-parity` | wired; test pending |
+| 7 | `lean-a-openapi-rest-route-parity` | `openapi-rest-route-parity` | `oya-check-openapi-rest-route-parity` | **wired + tested** (PR #120) |
 | 8 | `foundation-bypass` | `foundation-bypass` | `oya-check-foundation-bypass` | wired; test exists (gate_cli.rs) |
-| 9 | `audit-chain-replay` | `audit-chain-replay` | `oya-check-audit-chain-replay` | wired; test pending |
+| 9 | `audit-chain-replay` | `audit-chain-replay` | `oya-check-audit-chain-replay` | **wired + tested** (PR #121) |
 | 10 | `foundry-capability-schema` | `foundry-capability-schema` | `oya-check-foundry-capability-schema` | wired; test pending |
 | 11 | `foundry-eval` | `foundry-eval` | `oya-check-foundry-eval` | wired; test pending |
 | 12 | `cross-tenant-access-fuzz` | `cross-tenant-access-fuzz` | `oya-check-cross-tenant-access-fuzz` | wired; test pending |
-| 13 | `lean-a4-semver` | `api-semver` | `oya-check-api-semver` | wired; test pending |
-| 14 | `lean-a5-documentation` | `documentation-system` | `oya-check-documentation-system` | **wired + tested** (this PR) |
+| 13 | `lean-a4-semver` | `api-semver` | `oya-check-api-semver` | **wired + tested** (PR #122) |
+| 14 | `lean-a5-documentation` | `documentation-system` | `oya-check-documentation-system` | **wired + tested** (PR #123) |
 
 ## Lanes that do NOT map to `oya gate validate`
 

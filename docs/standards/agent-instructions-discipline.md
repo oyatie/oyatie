@@ -19,6 +19,11 @@ purpose: |
   plain-English prose). Implements MASTERPLAN §7 dual-audience contract.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
 enforced_by: oya-foundry-fitness-agent-instructions-fence
+enforcement_status:
+  oya-foundry-fitness-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
+  oya-foundry-fitness-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)
+  oya-foundry-fitness-banned-primitives: existing (via claude-code-harness.md)
+meta_policy: ADR-0125 (chained-enforcement, pending)
 companion_docs:
   - docs/standards/doc-style.md
   - docs/standards/claude-code-harness.md
