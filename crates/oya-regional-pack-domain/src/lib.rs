@@ -1,4 +1,8 @@
 //! Regional pack kernel: canonical regulatory and residency pack metadata.
+//!
+//! Also hosts the M04-P01 vertical capability pack types
+//! (`CapabilityPack`, `PackVersion`, `CapabilityPackError`) merged per
+//! execution-variant decision 2026-05-17 (option 2 — merge-into-existing-crates).
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -7,6 +11,8 @@ pub mod vertical_regulatory_profile;
 pub use vertical_regulatory_profile::{
     AdVertical, VerticalRegulatoryProfile, VerticalRegulatoryProfileError,
 };
+pub mod capability_pack;
+pub use capability_pack::{CapabilityPack, CapabilityPackError, PackVersion};
 
 use oya_data_boundary_kernel::{Classified, DataClass};
 use oya_residency_domain::{ResidencyClass, parse_residency_class_label};

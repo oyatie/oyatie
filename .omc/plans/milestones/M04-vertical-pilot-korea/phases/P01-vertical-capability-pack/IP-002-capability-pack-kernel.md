@@ -10,6 +10,15 @@ changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployab
 final_shape_compliance: true
 dependency_additions: []
 purpose: Ship the elected vertical's capability pack kernel + entities + workflows.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  New-crate scaffold deferred; CapabilityPack + PackVersion + CapabilityPackError
+  merged into oya-regional-pack-domain (capability_pack module) per option-2
+  directive.  Elected vertical: vertical-corporate (council-resolution 2026-05-17).
+  Owning crate: oya-regional-pack-domain.  Final-shape crate
+  (oya-vertical-corporate-pack-kernel) remains as planned for P01-IP-002 completion.
 ---
 
 # M04-P01-IP-002 — Capability pack kernel (oya-vertical-<elected>-pack-kernel)
