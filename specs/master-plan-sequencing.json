@@ -31,7 +31,8 @@
       "/templates/checklists/per-implementation-plan-checklist.md",
       "/templates/checklists/per-phase-completion-checklist.md"
     ],
-    "updated_at": "2026-05-15T10:45:00Z"
+    "updated_at": "2026-05-17T00:00:00Z",
+    "op11_audit_reference": "registry/stub-audit/2026-05-17/CONSOLIDATED.md"
   },
   "master_plan_discovery_order": [
     "docs/MASTERPLAN.md",
@@ -52,13 +53,42 @@
     "implementation_plan": "ChangeSet-sized executable phase-local slice; owns Oya VCS symbols/artifact pointers, issue-level scope, code shape, tests, evidence, handoff, and promotion eligibility"
   },
   "forbidden_primitives": [
-    "git",
-    "gh",
-    "manual-branch",
-    "manual-rebase",
-    "manual-merge",
-    "manual-push"
+    {
+      "primitive": "git",
+      "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
+      "lane_status": "missing — see F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+    },
+    {
+      "primitive": "gh",
+      "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
+      "lane_status": "missing — see F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+    },
+    {
+      "primitive": "manual-branch",
+      "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
+      "lane_status": "missing — see F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+    },
+    {
+      "primitive": "manual-rebase",
+      "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
+      "lane_status": "missing — see F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+    },
+    {
+      "primitive": "manual-merge",
+      "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
+      "lane_status": "missing — see F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+    },
+    {
+      "primitive": "manual-push",
+      "enforcement_lane_id": "oya-foundry-fitness-banned-primitives",
+      "lane_status": "missing — see F-FORBIDDEN-PRIMITIVES-CI-GUARD"
+    }
   ],
+  "chained_enforcement_contract": {
+    "adr_citation": "ADR-0125",
+    "summary": "Fitness lanes must chain: detection of a banned primitive or aspirational-enforcement gap triggers an automatic fixuptask in registry/fixuptasks.jsonl and blocks promotion until resolved. The lane oya-foundry-fitness-banned-primitives enforces forbidden_primitives above; its absence is itself a gap tracked as F-FORBIDDEN-PRIMITIVES-CI-GUARD.",
+    "status": "specified — implementation pending F-FITNESS-ASPIRATIONAL-ENFORCEMENT-DETECTION"
+  },
   "repo_state_protocol": [
     {
       "step": "claim",
