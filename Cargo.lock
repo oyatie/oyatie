@@ -975,6 +975,10 @@ name = "oya-check-glossary-vocabulary"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-honest-claims"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-license-policy"
 version = "0.1.0"
 
@@ -1521,6 +1525,7 @@ dependencies = [
  "oya-check-documentation-system",
  "oya-check-glossary-coverage",
  "oya-check-glossary-vocabulary",
+ "oya-check-honest-claims",
  "oya-check-license-policy",
  "oya-check-mobile-native",
  "oya-check-openapi-rest-route-parity",

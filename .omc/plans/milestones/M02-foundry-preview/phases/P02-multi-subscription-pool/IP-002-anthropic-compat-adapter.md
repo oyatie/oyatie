@@ -1,6 +1,7 @@
 ---
 doc_class: ImplementationPlan
 template_id: TPL-IP
+id: M02-P02-IP-002.2
 ip_id: IP-002-anthropic-compat-adapter
 parent: ./INDEX.md
 milestone: M02

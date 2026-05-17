@@ -1,6 +1,7 @@
 ---
 doc_class: ImplementationPlan
 template_id: TPL-IP
+id: M02-P02-IP-001.2
 ip_id: IP-001-provider-account-pool-kernel
 parent: ./INDEX.md
 milestone: M02

@@ -1,6 +1,7 @@
 ---
 doc_class: ImplementationPlan
 template_id: TPL-IP
+id: M02-P02-IP-004.2
 ip_id: IP-004-oauth-subscription-capture
 parent: ./INDEX.md
 milestone: M02

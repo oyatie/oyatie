@@ -6,10 +6,30 @@
   "_meta": {
     "doc_class": "Machine-Readable-Schema",
     "schema_id": "EXE-PLAN-SCHEMA",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "draft-sidecar",
     "owner_team": "council-architecture + axis-foundry",
     "created_at": "2026-05-13T00:00:00Z",
+    "updated_at": "2026-05-17T18:36:54Z",
+    "related_implementation_plan_changeset_contract": {
+      "adr": "ADR-0129",
+      "identity_field": "id",
+      "required_frontmatter_fields": [
+        "doc_class",
+        "id",
+        "execution_unit",
+        "changeset_contract"
+      ],
+      "measured_frontmatter_fields": [
+        "changeset_split_rule"
+      ],
+      "optional_graph_fields": [
+        "depends_on_changesets",
+        "serializes_with_changesets",
+        "writes_global_artifacts"
+      ],
+      "validator": "oya gate validate honest-claims"
+    },
     "user_directive": "Phase 1 of accumulated-requirements roadmap: kill Markdown-as-source-of-truth gap",
     "related": [
       "/specs/active-machine-readable-artifact-contract.json",

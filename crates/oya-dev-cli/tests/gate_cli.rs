@@ -5327,6 +5327,151 @@ fn openapi_rest_route_parity_gate_accepts_clean_matched_routes() {
     fs::remove_dir_all(temp).ok();
 }
 
+#[test]
+fn honest_claims_gate_accepts_clean_fixture_corpus_and_plan_graph() {
+    let temp = TempDirGuard::new("honest-claims-clean");
+    let docs_dir = temp.path().join("docs");
+    let plans_dir = temp.path().join("plans");
+    fs::create_dir_all(&docs_dir).expect("docs dir created");
+    fs::create_dir_all(&plans_dir).expect("plans dir created");
+    fs::write(
+        docs_dir.join("ADR-9000.md"),
+        "claim_status: blocked_until_required_evidence_is_green\n\
+         Active lane evidence references concrete validation output.\n",
+    )
+    .expect("doc written");
+    write_honest_claims_plan(&plans_dir, "IP-001.md", "M01-P01-IP-001", "");
+    write_honest_claims_plan(
+        &plans_dir,
+        "IP-002.md",
+        "M01-P01-IP-002",
+        "depends_on_changesets: [\"M01-P01-IP-001\"]\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "honest-claims",
+            "--clear-default-corpus",
+            "--corpus-root",
+            docs_dir.to_str().expect("utf8 docs dir"),
+            "--plans-dir",
+            plans_dir.to_str().expect("utf8 plans dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected honest claims gate to accept clean fixture\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("honest-claims validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+}
+
+#[test]
+fn honest_claims_gate_rejects_deferred_required_claims() {
+    let temp = TempDirGuard::new("honest-claims-deferred");
+    let docs_dir = temp.path().join("docs");
+    let plans_dir = temp.path().join("plans");
+    fs::create_dir_all(&docs_dir).expect("docs dir created");
+    fs::create_dir_all(&plans_dir).expect("plans dir created");
+    fs::write(
+        docs_dir.join("ADR-9001.md"),
+        "The required workflow lands in v2.\n",
+    )
+    .expect("doc written");
+    write_honest_claims_plan(&plans_dir, "IP-001.md", "M01-P01-IP-001", "");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "honest-claims",
+            "--clear-default-corpus",
+            "--corpus-root",
+            docs_dir.to_str().expect("utf8 docs dir"),
+            "--plans-dir",
+            plans_dir.to_str().expect("utf8 plans dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("honest-claims violation"),
+        "stderr must include honest-claims violation; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn honest_claims_gate_rejects_changeset_dependency_cycles() {
+    let temp = TempDirGuard::new("honest-claims-cycle");
+    let docs_dir = temp.path().join("docs");
+    let plans_dir = temp.path().join("plans");
+    fs::create_dir_all(&docs_dir).expect("docs dir created");
+    fs::create_dir_all(&plans_dir).expect("plans dir created");
+    fs::write(docs_dir.join("ADR-9002.md"), "Evidence is advisory.\n").expect("doc written");
+    write_honest_claims_plan(
+        &plans_dir,
+        "IP-001.md",
+        "M01-P01-IP-001",
+        "depends_on_changesets: [\"M01-P01-IP-002\"]\n",
+    );
+    write_honest_claims_plan(
+        &plans_dir,
+        "IP-002.md",
+        "M01-P01-IP-002",
+        "depends_on_changesets: [\"M01-P01-IP-001\"]\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "honest-claims",
+            "--clear-default-corpus",
+            "--corpus-root",
+            docs_dir.to_str().expect("utf8 docs dir"),
+            "--plans-dir",
+            plans_dir.to_str().expect("utf8 plans dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("Cycle"),
+        "stderr must include cycle violation; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+fn write_honest_claims_plan(plans_dir: &Path, file_name: &str, id: &str, extra: &str) {
+    fs::write(
+        plans_dir.join(file_name),
+        format!(
+            "---\n\
+             doc_class: ImplementationPlan\n\
+             id: {id}\n\
+             execution_unit: ChangeSet\n\
+             changeset_contract: claimable-verifiable-bundleable-promotable\n\
+             changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable\n\
+             {extra}\
+             ---\n\
+             # {id}\n"
+        ),
+    )
+    .expect("implementation plan written");
+}
+
 fn temp_dir(label: &str) -> std::path::PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)

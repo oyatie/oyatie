@@ -67,6 +67,7 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "cargo-prefix",
     "pre-push-contract",
     "quality-lanes",
+    "honest-claims",
     "workspace-hygiene",
     "hyperscaler-arch-invariants",
     "hyperscaler-maturity-claims",

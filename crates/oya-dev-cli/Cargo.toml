@@ -35,6 +35,7 @@ oya-check-documentation-system = { path = "../oya-check-documentation-system" }
 oya-foundry-evidence-file-adapter = { path = "../oya-foundry-evidence-file-adapter" }
 oya-check-glossary-coverage = { path = "../oya-check-glossary-coverage" }
 oya-check-glossary-vocabulary = { path = "../oya-check-glossary-vocabulary" }
+oya-check-honest-claims = { path = "../oya-check-honest-claims" }
 oya-check-license-policy = { path = "../oya-check-license-policy" }
 oya-foundry-mdbook-domain = { path = "../oya-foundry-mdbook-domain" }
 oya-foundry-openapi-domain = { path = "../oya-foundry-openapi-domain" }
