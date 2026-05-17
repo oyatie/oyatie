@@ -1,0 +1,51 @@
+{
+  "schema_version": "2.3.0",
+  "change_id": "claude-m07-p02-payroll-merge-variant-1778999872",
+  "session_id": "claude-durable-goal-2026-05-17-m07-p02-agent",
+  "timestamp_unix": 1778999872,
+  "scope": "M07/P02-payroll merge-variant delta-1",
+  "change_class_id": "CC-2_type_addition",
+  "crate": "oya-cloud-finops-kernel",
+  "module": "payroll_period",
+  "types_added": [
+    "PayrollPeriod",
+    "PayCycleKind",
+    "PayslipStatus",
+    "UnknownPayrollPeriod"
+  ],
+  "test_result": "28/28 pass (11 new payroll_period + 17 pre-existing)",
+  "execution_variant": "merge-into-existing-crates",
+  "decided_by": "user-directive-option-2",
+  "decided_at": "2026-05-17",
+  "rustfmt": "1.95.0 clean",
+  "new_crate_scaffolds": 0,
+  "new_workspace_deps": 0,
+  "facets": [
+    {
+      "facet_id": "F1",
+      "name": "Correctness",
+      "verdict": "ACCEPT",
+      "evidence": "PayrollPeriod::from_str round-trips all 5 variants; UnknownPayrollPeriod returned for unknown wire strings. PayslipStatus FSM terminal-state invariant tested. PayCycleKind.runs_per_year() matches KR payroll standard cadences (52/26/24/12). requires_monthly_withholding_filing() correctly excludes Quarterly per 소득세법 §128."
+    },
+    {
+      "facet_id": "F2",
+      "name": "Architecture",
+      "verdict": "ACCEPT",
+      "evidence": "New module added to existing kernel crate per merge-variant directive. No new crate scaffolds, no new workspace deps. pub mod + re-export in lib.rs matches established finops_public pattern. Types are pure value types with no I/O — correct kernel layer placement per 13-layer enum (ADR-0105 Tier 3 kernel)."
+    },
+    {
+      "facet_id": "A1",
+      "name": "Naming Adherence",
+      "verdict": "ACCEPT",
+      "evidence": "PayrollPeriod / PayCycleKind / PayslipStatus follow v4 BNF: Domain+Concept+Kind pattern. UnknownPayrollPeriod matches established Unknown* error naming (cf. UnknownEmployeeStatus in P01-hr). Module name payroll_period uses snake_case matching hr_employee_status precedent."
+    },
+    {
+      "facet_id": "A3",
+      "name": "Documentation Adherence",
+      "verdict": "ACCEPT",
+      "evidence": "All public types carry doc comments. Legal citations present: 소득세법 §128 (withholding filing), 근로기준법 §48 (payslip immutability), 근로기준법 §42 (3-year retention). Wire-string contract documented referencing migrations/payroll/001_payroll_schema.sql. Module-level doc comment cites M07/P02-payroll merge-variant delta-1 provenance."
+    }
+  ],
+  "council_verdict": "ACCEPT",
+  "council_note": "CC-2 type addition into existing kernel crate. All 4 facets ACCEPT. 28/28 tests pass. rustfmt 1.95.0 clean. Zero new scaffolds or deps."
+}

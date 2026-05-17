@@ -6,6 +6,14 @@ phase: P02-payroll
 impl_plan_id: IP-P02-payroll-full-scaffold
 status: pending
 owner: council-enterprise
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Merge-variant delta-1: PayrollPeriod + PayslipStatus + PayCycleKind +
+  UnknownPayrollPeriod added to oya-cloud-finops-kernel::payroll_period.
+  No new crate scaffolds; no new workspace deps. Full oya-payroll-* scaffold
+  deferred to later delta per merge-variant execution pattern.
 blocked_by:
 - impl_plan: IP-P01-hr-full-scaffold
   reason: Employee/Employment Ontology Object Types must exist before payroll adapter
