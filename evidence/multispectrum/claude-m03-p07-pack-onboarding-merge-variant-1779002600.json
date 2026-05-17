@@ -16,8 +16,8 @@
     "evidence/audit-chain.jsonl (row appended)"
   ],
   "local_gates": [
-    "cargo nextest -p oya-regional-pack-domain: 15/15 PASS",
-    "rustfmt 1.95.0: clean"
+    "cargo test -p oya-regional-pack-domain: 31/31 PASS after rebase onto PR #109 queue head",
+    "rustfmt 1.95.0: clean after conflict resolution"
   ],
   "facets": {
     "F1_linus": {
@@ -27,7 +27,7 @@
     },
     "F3_correctness": {
       "considered": true,
-      "findings": ["Strict-forward transition enforced via is_valid_next(from, to) explicit validator: single-step advance only, emergency Withdrawn permitted from any non-terminal, post-terminal moves rejected. Terminal states detected by is_terminal helper. from_wire round-trips with label() for serialization stability. NOTE: original evidence incorrectly described this guard as 'Ord+is_advance'; is_valid_next was absent at first commit and has since been added (P2 codex thread PRRT_kwDOSbSl2s6CnzKE + PRRT_kwDOSbSl2s6Cn3mf)."],
+      "findings": ["Strict-forward transition enforced via is_valid_next(from, to) explicit validator: single-step advance only, emergency Withdrawn permitted from any non-terminal, post-terminal moves rejected. Terminal states detected by is_terminal helper. from_wire round-trips with label() for serialization stability. NOTE: original evidence incorrectly described this guard as 'Ord+is_advance'; is_valid_next was absent at first commit and has since been added (P2 codex thread PRRT_kwDOSbSl2s6CnzKE + PRRT_kwDOSbSl2s6Cn3mf). Rebase onto the #109 queue head required preserving capability_pack and kr_regulatory exports plus adding pack_onboarding_phase; current regional-pack-domain local proof is 31/31 tests."],
       "fixuptasks": []
     },
     "A1_naming": {
