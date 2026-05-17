@@ -2,6 +2,9 @@
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod product_catalog;
+pub use product_catalog::{ProductCatalogError, ProductEntry, ProductId, ProductMetadata};
+
 use std::{collections::BTreeMap, fmt, sync::Arc};
 
 pub use oya_audit_chain_domain::{AuditChain, AuditEvent, Plane};
