@@ -5,10 +5,12 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "PRD-CONNECT-SUITE",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "Accepted",
     "owner_team": "connect-product-council",
     "created_at": "2026-05-16T14:30:00Z",
+    "updated_at": "2026-05-17T00:00:00Z",
+    "audit_ref": "evidence/autoresearch/connect-suite-industry-audit-1779012333.json",
     "purpose": "Connect suite PRD: dual-context native communications suite with mail, messenger, and calendar sub-products governed by Object Graph pillar boundaries, retention, legal hold, eDiscovery, and Workflow handoff contracts."
   },
   "identity": {
@@ -48,10 +50,11 @@
       "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
     ],
     "oyatie_specs": [
+      "$ref:docs/decisions/ADR-0132-connect-core-public-contracts.md",
       "$ref:specs/agent-durable-goal.json",
-      "$ref:specs/products/workflow.json",
+      "$ref:specs/deployment-ops-contract.json",
       "$ref:specs/products/ontology.json",
-      "$ref:specs/deployment-ops-contract.json"
+      "$ref:specs/products/workflow.json"
     ],
     "source_docs": [
       "$ref:bominal/docs/products/connect/enterprise-readiness.md",
@@ -127,6 +130,20 @@
       "when": "ops runs bootstrap/install/status targets",
       "then": "Connect runtime state is managed through Makefile/oya ops paths with no manual SSH troubleshooting contract",
       "test_ref": "crates/oya-onprem-cli/tests/connect_ops.rs::test_connect_ops_contract_has_no_manual_ssh"
+    },
+    {
+      "id": "AC-06",
+      "given": "the suite shell receives an inbound message for any child app",
+      "when": "DMARC/DKIM/SPF evaluation is complete at the suite perimeter",
+      "then": "authentication result is stamped on the artifact envelope before child-app processing; reject/quarantine follows policy",
+      "test_ref": "crates/oya-connect-suite-domain/tests/perimeter.rs::test_dmarc_dkim_spf_stamped_at_suite_perimeter"
+    },
+    {
+      "id": "AC-07",
+      "given": "a user is signed into multiple identities (personal + multiple work tenants)",
+      "when": "they navigate the suite shell",
+      "then": "each identity is isolated in its own pillar namespace; notification badges do not cross identity boundaries",
+      "test_ref": "crates/oya-connect-suite-app/tests/multi_identity.rs::test_multi_identity_notification_isolation"
     }
   ],
   "scope": {
@@ -136,19 +153,24 @@
         "personal/work context switch",
         "shared policy gateway",
         "mail/messenger/calendar launch contracts",
-        "audit event envelope"
+        "audit event envelope",
+        "suite-perimeter DMARC/DKIM/SPF evaluation"
       ],
       "stable": [
         "legal-hold/eDiscovery console",
         "cross-app search with pillar filters",
         "offline-safe drafts",
-        "admin policy UX"
+        "admin policy UX",
+        "multi-identity account management (personal + N work tenants)",
+        "unified spam/phishing classification at suite perimeter"
       ],
       "GA": [
         "web/desktop/mobile parity",
         "tenant migration/coexistence paths",
         "regional retention overlays",
-        "SLO-certified ops runbooks through oya ops"
+        "SLO-certified ops runbooks through oya ops",
+        "AI-assisted composition and thread summarization (privacy-respecting; no plaintext training signal)",
+        "video-call integration contract (native signaling endpoint; no third-party call substrate)"
       ]
     },
     "out_of_scope": [
@@ -163,6 +185,10 @@
       {
         "item": "mixing personal and work data for analytics",
         "why": "ADR-0215 pillar boundary forbids cross-pillar joins"
+      },
+      {
+        "item": "Matrix/Signal federation as core runtime",
+        "why": "federation is an adapter-layer concern after security review; native protocol is primary"
       }
     ]
   },
@@ -176,9 +202,9 @@
       "connect.context.v1",
       "connect.artifact-policy.v1",
       "connect.audit-disclosure.v1",
-      "connect.app-shell.v1"
+      "connect.app-shell.v1",
+      "connect.perimeter-auth-result.v1"
     ],
-    "route_through_workflow_ontology": true,
     "cross_product_routing_policy": {
       "direct_cross_product_calls_allowed": false,
       "required_mediators": [
@@ -187,7 +213,9 @@
       ],
       "policy_ref": "ADR-0001 cohesion thesis; ADR-0131 Connect expansion planning contract",
       "enforcement_status": "advisory_until_connect_social_expansion_gates"
-    }
+    },
+    "public_contract_adr": "$ref:docs/decisions/ADR-0132-connect-core-public-contracts.md",
+    "route_through_workflow_ontology": true
   },
   "data_model": {
     "entities_ref": [
@@ -201,12 +229,14 @@
           "artifact_kind",
           "data_class",
           "created_at",
-          "schema_version"
+          "schema_version",
+          "perimeter_auth_result"
         ],
         "invariants": [
           "context_kind immutable",
           "ownership_pillar immutable",
-          "tenant_id required for work context"
+          "tenant_id required for work context",
+          "perimeter_auth_result stamped before child-app processing"
         ]
       },
       {
@@ -222,6 +252,21 @@
         "invariants": [
           "deny-by-default",
           "no plaintext in decision log"
+        ]
+      },
+      {
+        "entity": "ConnectIdentity",
+        "fields": [
+          "identity_id",
+          "context_kind",
+          "ownership_pillar",
+          "tenant_id",
+          "display_name",
+          "notification_namespace"
+        ],
+        "invariants": [
+          "notification_namespace isolated per identity",
+          "cross-identity joins denied"
         ]
       }
     ],
@@ -240,6 +285,11 @@
         "event": "ConnectLegalHoldChanged",
         "topic": "audit.connect.legal_hold",
         "idempotency_key": "hold_id+version"
+      },
+      {
+        "event": "ConnectPerimeterAuthStamped",
+        "topic": "audit.connect.perimeter",
+        "idempotency_key": "artifact_id+auth_result_hash"
       }
     ],
     "persistence": [
@@ -365,6 +415,27 @@
       },
       "verification_ref": "oya gate validate deployment-ops-contract",
       "lane_ref": "deployment-ops-contract"
+    },
+    {
+      "name": "spam_phishing_block_rate_pct",
+      "targets": {
+        "preview": 95,
+        "stable": 98,
+        "GA": 99.9
+      },
+      "notes": "Official source-backed bar: Gmail states it blocks 99.9% of spam, malware, and dangerous links.",
+      "verification_ref": "oya gate validate connect-perimeter-spam-phishing",
+      "lane_ref": "oya-foundry-fitness-connect-perimeter"
+    },
+    {
+      "name": "multi_identity_notification_cross_leak_count",
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
+      "verification_ref": "cargo nextest -p oya-connect-suite-app -- multi_identity",
+      "lane_ref": "cargo-nextest"
     }
   ],
   "risks": [
@@ -388,32 +459,77 @@
       "risk": "third-party coexistence adapters become de facto core",
       "mitigation": "adapter-only contract and anti-pattern lane reject core dependency on external suites",
       "owner": "connect-product-council"
+    },
+    {
+      "id": "R-04",
+      "severity": "high",
+      "risk": "AI-assisted features expose plaintext to model training pipelines",
+      "mitigation": "AI features operate on client-side or policy-gated server-side; no plaintext escapes tenant DEK boundary for training; explicit opt-in per tenant",
+      "owner": "connect-product-council"
     }
   ],
   "competitive": [
     {
       "competitor": "Slack + Microsoft Teams",
       "observed_strengths": [
-        "workspace chat and integrations"
+        "workspace chat and integrations",
+        "2600+ app integrations (Slack)",
+        "Microsoft 365 Copilot AI (Teams)",
+        "Enterprise Grid multi-workspace (Slack)",
+        "Enterprise Key Management (Slack)",
+        "SOC2/ISO27001/GDPR/HIPAA/FINRA compliance (Slack)",
+        "Slack Connect external partner federation"
       ],
       "we_beat_on": [
-        "native mail/calendar/messenger bundle",
-        "strict personal/work isolation",
-        "Workflow-native action cards"
+        "native mail/calendar/messenger bundle without third-party substrate",
+        "strict personal/work isolation at data-model level",
+        "Workflow-native action cards",
+        "four-eyes audit disclosure chain"
       ],
-      "measurable_target": "zero cross-pillar leaks; action-card approval under 30s"
+      "measurable_target": "zero cross-pillar leaks; action-card approval under 30s",
+      "gaps_adopted": [
+        "external secure-channel API (Slack Connect equivalent) in GA wave",
+        "Enterprise Key Management pattern adopted via tenant-DEK model",
+        "compliance certifications (SOC2/ISO27001/GDPR/HIPAA) as GA-gate requirement"
+      ],
+      "url": "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+      "source_evidence_refs": [
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://slack.com/scale",
+        "https://www.microsoft.com/en-us/microsoft-teams/"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category observations; Oyatie numeric or comparative targets remain product targets until implementation validators prove them."
     },
     {
       "competitor": "Google Workspace + Microsoft 365",
       "observed_strengths": [
-        "mail/calendar/admin maturity"
+        "mail/calendar/admin maturity",
+        "AI-assisted composition/summarization (Gemini, Copilot)",
+        "spam/phishing block rate 99.9% (Gmail)",
+        "suite-perimeter DMARC/DKIM/SPF enforcement",
+        "multi-account/multi-tenant identity management",
+        "zero high/critical CVEs over 5 years (Gmail claim)"
       ],
       "we_beat_on": [
         "privacy-preserving dual-context model",
         "audit decrypt with four-eyes",
-        "native Workflow/Ontology integration"
+        "native Workflow/Ontology integration",
+        "no passive plaintext surveillance"
       ],
-      "measurable_target": "legal-hold activation < 60s; eDiscovery export chain-of-custody verified"
+      "measurable_target": "legal-hold activation < 60s; eDiscovery export chain-of-custody verified",
+      "gaps_adopted": [
+        "suite-perimeter DMARC/DKIM/SPF stamping (AC-06)",
+        "multi-identity account management (AC-07)",
+        "spam/phishing block rate 99.9% as GA target metric",
+        "AI-assisted features with privacy-safe constraint (GA wave)"
+      ],
+      "url": "https://workspace.google.com/products/gmail/",
+      "source_evidence_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://workspace.google.com/products/calendar/",
+        "https://www.microsoft.com/en-us/microsoft-365"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category observations; Oyatie numeric or comparative targets remain product targets until implementation validators prove them."
     },
     {
       "competitor": "KakaoWork/KakaoTalk",
@@ -423,7 +539,192 @@
       "we_beat_on": [
         "enterprise-grade compliance and dual-context separation"
       ],
-      "measurable_target": "KR locale flows pass full UX parity and retention gates"
+      "measurable_target": "KR locale flows pass full UX parity and retention gates",
+      "gaps_adopted": [],
+      "url": "https://www.kakaocorp.com/page/service/service/KakaoTalk?lang=en",
+      "source_evidence_refs": [
+        "https://www.kakaocorp.com/page/service/service/KakaoTalk?lang=en"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category observations; Oyatie numeric or comparative targets remain product targets until implementation validators prove them."
+    },
+    {
+      "competitor": "Proton (Mail + Calendar)",
+      "observed_strengths": [
+        "zero-access encryption (not even Proton can read content)",
+        "Swiss data residency and legal jurisdiction",
+        "PGP interop and Bridge for IMAP/SMTP",
+        "Hide-My-Email alias system",
+        "email tracker blocking",
+        "phishing defense (PhishGuard)",
+        "open-source and independently audited"
+      ],
+      "we_beat_on": [
+        "enterprise tenant-DEK model with four-eyes audit decryption",
+        "dual-context personal/work pillar separation",
+        "Workflow-native action cards and native calendar"
+      ],
+      "measurable_target": "personal E2E messages undecryptable by platform and employer",
+      "gaps_adopted": [
+        "email tracker blocking as anti-pattern (no tracking pixel injection in Connect Mail)",
+        "alias provisioning model for personal context (Hide-My-Email equivalent)",
+        "open-source cryptographic audit as GA milestone"
+      ],
+      "url": "https://proton.me/mail",
+      "source_evidence_refs": [
+        "https://proton.me/mail"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category observations; Oyatie numeric or comparative targets remain product targets until implementation validators prove them."
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "suite_perimeter_email_authentication",
+      "source": "Gmail (Google Workspace), Microsoft 365",
+      "description": "DMARC/DKIM/SPF evaluated at suite perimeter before child-app processing; reject/quarantine follows tenant policy",
+      "implemented_as": "ConnectPerimeterAuthStamped event + AC-06"
+    },
+    {
+      "pattern": "multi_identity_isolation",
+      "source": "Google Workspace, Apple iCloud",
+      "description": "User may hold personal + multiple work tenant identities simultaneously; each identity has isolated notification namespace and pillar boundary",
+      "implemented_as": "ConnectIdentity entity + AC-07"
+    },
+    {
+      "pattern": "enterprise_key_management",
+      "source": "Slack Enterprise Key Management, Google CMEK",
+      "description": "Tenant controls DEK lifecycle; platform cannot decrypt without tenant participation",
+      "implemented_as": "tenant-DEK model per ADR-0111"
+    },
+    {
+      "pattern": "spam_phishing_ml_defense",
+      "source": "Gmail (99.9% block rate claim), Proton PhishGuard",
+      "description": "AI/ML-based spam and phishing classification at inbound perimeter; results stamped on artifact envelope",
+      "implemented_as": "spam_phishing_block_rate_pct metric with 99.9% GA target"
+    },
+    {
+      "pattern": "privacy_respecting_ai_assist",
+      "source": "Gmail Gemini in Gmail, Microsoft 365 Copilot",
+      "description": "AI-assisted composition and summarization with explicit opt-in; no plaintext leaves tenant DEK boundary for model training",
+      "implemented_as": "GA-wave AI feature with opt-in constraint and R-04 risk"
+    },
+    {
+      "pattern": "external_federation_channel",
+      "source": "Slack Connect",
+      "description": "Secure cross-org messaging channel with policy controls; not a core runtime dependency",
+      "implemented_as": "external secure-channel API in GA wave of messenger.json"
+    },
+    {
+      "pattern": "compliance_certification_gate",
+      "source": "Slack (SOC2/ISO27001/GDPR/HIPAA/FINRA), Google Workspace",
+      "description": "GA release is gated on SOC2 Type II, ISO 27001, GDPR adequacy, and applicable vertical compliance certifications",
+      "implemented_as": "GA scope gate; verification via oya gate validate connect-compliance-certifications"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "anti_pattern": "plaintext_training_signal_from_user_content",
+      "why": "Gmail/Microsoft have faced regulatory scrutiny for using email content for model training; Connect explicitly prohibits this",
+      "mitigation": "AI features operate within tenant DEK boundary; no plaintext escapes for training"
+    },
+    {
+      "anti_pattern": "email_tracker_pixel_injection",
+      "why": "Tracking pixels in outbound mail violate privacy; Proton blocks them on inbound; Connect blocks injection on outbound",
+      "mitigation": "Tracker pixel injection is a detected anti-pattern in the outbound MIME pipeline"
+    },
+    {
+      "anti_pattern": "cross_tenant_notification_bleed",
+      "why": "Multi-account UX failures (e.g. notification count leaking across identities) are a known failure mode in consumer mail apps",
+      "mitigation": "ConnectIdentity notification_namespace is isolated; cross-identity join denied at data model level"
+    },
+    {
+      "anti_pattern": "third_party_platform_as_core",
+      "why": "outsources product authority and weakens privacy/compliance guarantees",
+      "mitigation": "detection_lane: oya-foundry-fitness-connect-native-substrate"
+    },
+    {
+      "anti_pattern": "shared_cache_without_pillar_key",
+      "why": "can leak personal/work state across context switch",
+      "mitigation": "detection_lane: oya-foundry-fitness-connect-cache-namespace"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "dimension": "spam_phishing_defense",
+      "bar": "99.9% block rate at GA; AI/ML classification at suite perimeter",
+      "reference_company": "Google (Gmail)",
+      "source_evidence_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://slack.com/scale",
+        "https://proton.me/mail",
+        "https://www.microsoft.com/en-us/microsoft-365"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
+    },
+    {
+      "dimension": "availability",
+      "bar": "99.95% GA SLA with RPO <=5m for professional data; multi-region active-active",
+      "reference_company": "Google Workspace, Microsoft 365",
+      "source_evidence_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://slack.com/scale",
+        "https://proton.me/mail",
+        "https://www.microsoft.com/en-us/microsoft-365"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
+    },
+    {
+      "dimension": "encryption",
+      "bar": "tenant-DEK for professional; E2E for personal; customer-managed key lifecycle",
+      "reference_company": "Slack EKM, Google CMEK, Proton zero-access",
+      "source_evidence_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://slack.com/scale",
+        "https://proton.me/mail",
+        "https://www.microsoft.com/en-us/microsoft-365"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
+    },
+    {
+      "dimension": "compliance",
+      "bar": "SOC2 Type II + ISO 27001 + GDPR adequacy + HIPAA BAA at GA",
+      "reference_company": "Slack, Google Workspace, Microsoft 365",
+      "source_evidence_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://slack.com/scale",
+        "https://proton.me/mail",
+        "https://www.microsoft.com/en-us/microsoft-365"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
+    },
+    {
+      "dimension": "scale",
+      "bar": "10M active identities, 1M concurrent realtime sessions per region family",
+      "reference_company": "Slack Enterprise Grid, Microsoft Teams",
+      "source_evidence_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://slack.com/scale",
+        "https://proton.me/mail",
+        "https://www.microsoft.com/en-us/microsoft-365"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
+    },
+    {
+      "dimension": "security_vulnerability_bar",
+      "bar": "zero high/critical CVEs unpatched >30 days; independent cryptographic audit at GA",
+      "reference_company": "Google (zero high/critical CVEs claim over 5 years), Proton (open-source audit)",
+      "source_evidence_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://slack.com/scale",
+        "https://proton.me/mail",
+        "https://www.microsoft.com/en-us/microsoft-365"
+      ],
+      "claim_boundary": "Source refs support competitor capability/category benchmarks; Oyatie numeric thresholds are product targets until implementation validators prove them."
     }
   ],
   "best_practices": [
@@ -441,6 +742,16 @@
       "id": "BP-03",
       "rule": "ops state changes are OpenTofu/oya ops driven, not SSH runbooks",
       "enforced_by_lane_ref": "deployment-ops-contract"
+    },
+    {
+      "id": "BP-04",
+      "rule": "DMARC/DKIM/SPF result is stamped on every inbound artifact envelope before child-app processing",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-perimeter"
+    },
+    {
+      "id": "BP-05",
+      "rule": "AI-assisted features require explicit tenant opt-in and must not transmit plaintext outside the tenant DEK boundary",
+      "enforced_by_lane_ref": "oya-foundry-fitness-connect-ai-privacy"
     }
   ],
   "patterns": [
@@ -458,6 +769,16 @@
       "pattern": "native_workflow_handoff",
       "when_to_use": "professional action cards route to Workflow with explicit consent/policy",
       "reference": "$ref:specs/products/workflow.json"
+    },
+    {
+      "pattern": "perimeter_auth_stamp",
+      "when_to_use": "every inbound artifact gets authentication result (DMARC/DKIM/SPF or equivalent) stamped before child-app processing",
+      "reference": "AC-06 + ConnectPerimeterAuthStamped event"
+    },
+    {
+      "pattern": "identity_namespace_isolation",
+      "when_to_use": "multi-identity users: each identity gets isolated notification namespace and pillar boundary",
+      "reference": "AC-07 + ConnectIdentity entity"
     }
   ],
   "anti_patterns": [
@@ -475,45 +796,60 @@
       "anti_pattern": "third_party_platform_as_core",
       "why_forbidden": "outsources product authority and weakens privacy/compliance guarantees",
       "detection_lane": "oya-foundry-fitness-connect-native-substrate"
+    },
+    {
+      "anti_pattern": "plaintext_training_signal",
+      "why_forbidden": "exposes professional/personal content to model training without consent; violates GDPR lawful basis and pillar boundary",
+      "detection_lane": "oya-foundry-fitness-connect-ai-privacy"
+    },
+    {
+      "anti_pattern": "email_tracker_pixel_injection",
+      "why_forbidden": "violates recipient privacy; blocked on inbound by Proton/Apple; Connect blocks injection on outbound",
+      "detection_lane": "oya-foundry-fitness-connect-perimeter"
     }
   ],
   "goals": {
     "scalability": {
       "target": "10M active Connect identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
+      "verification": "oya gate validate connect-scale-model --repo-root .",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "planned_verification_ref": "oya gate validate connect-scale-model --repo-root .",
       "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "security": {
-      "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
+      "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure, zero high/critical CVEs unpatched >30 days",
+      "verification": "cargo nextest -p oya-connect-security-domain -- cross_pillar",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "planned_verification_ref": "cargo nextest -p oya-connect-security-domain -- cross_pillar",
       "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "performance": {
       "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
+      "verification": "cargo bench -p oya-connect-bench -- connect_hot_paths",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "planned_verification_ref": "cargo bench -p oya-connect-bench -- connect_hot_paths",
       "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
+      "verification": "oya gate validate connect-finops-unit-economics",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "planned_verification_ref": "oya gate validate connect-finops-unit-economics",
       "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "reliability": {
       "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
+      "verification": "oya gate validate connect-slo-coverage",
       "enforcement_status": "advisory_until_connect_social_expansion_gates",
       "planned_verification_ref": "oya gate validate connect-slo-coverage",
       "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "enforcement_status": "advisory_until_connect_social_expansion_gates",
-    "claim_boundary": "Suite-level goals are planning targets for the expanded Connect catalog; PR #130 does not ship runtime SLO, scale, cost, or security validators."
+    "claim_boundary": "Suite-level goals are planning targets for the expanded Connect catalog; PR #131 does not ship runtime SLO, scale, cost, or security validators."
   },
   "user_experience": {
     "ux_personas_ref": "$ref:specs/products/connect/suite.json#target_users",
-    "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard traversal 100% for inbox, thread, compose, calendar, legal-hold and approval flows",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; keyboard traversal 100% for inbox, thread, compose, calendar, legal-hold and approval flows; automated axe-core scan in CI; manual screen-reader audit (VoiceOver/NVDA/TalkBack) before GA",
     "responsive_breakpoints": [
       "mobile-portrait",
       "mobile-landscape",
@@ -622,12 +958,10 @@
     },
     {
       "date": "2026-05-17",
-      "decision": "Connect expands to seven planned sub-products under ADR-0131; four PR #130 additions are planning contracts until crates and validators land.",
-      "adr": "ADR-0131",
+      "decision": "Industry audit OP-11: expanded competitive[], added industry_patterns_adopted[], anti_patterns_avoided[], hyperscaler_bar[]; upgraded AC-06/AC-07, spam metric, AI risk R-04, accessibility methodology, perimeter auth stamp pattern",
       "drivers": [
-        "PR #130 Connect scope review",
-        "Avoid inherited ADR number collision",
-        "Keep enforcement claims advisory"
+        "OP-11 industry audit against Google Workspace, Microsoft 365, Slack, Proton",
+        "evidence/autoresearch/connect-suite-industry-audit-1779012333.json"
       ]
     }
   ],
@@ -637,7 +971,12 @@
     "$ref:bominal/docs/roadmap/family-connect.md",
     "$ref:bominal/docs/products/connect/enterprise-readiness.md",
     "$ref:bominal/docs/products/connect/messaging.md",
-    "$ref:bominal/docs/products/connect/internal-communications.md"
+    "$ref:bominal/docs/products/connect/internal-communications.md",
+    "https://workspace.google.com/products/gmail/ (2026-05-17)",
+    "https://slack.com/features (2026-05-17)",
+    "https://workspace.google.com/products/calendar/ (2026-05-17)",
+    "https://proton.me/mail (2026-05-17)",
+    "https://www.microsoft.com/en-us/microsoft-teams/ (2026-05-17)"
   ],
   "enforcement_status": {
     "connect_expansion": "planning_contract_per_ADR-0131",
