@@ -1,0 +1,49 @@
+{
+  "change_id": "claude-m06-p01-ads-preview-merge-variant-1778999052",
+  "change_class_id": "CC-2_kernel_type_addition",
+  "change_class_rationale": "Pure additive surface in oya-saas-plugin-marketplace-kernel: new auction module (Auction/Bid/AuctionState/AuctionError + ID newtypes) with no external deps and no public API removals.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778999052,
+  "git_sha_base": "e0f9f083",
+  "branch": "agent/m06-p01-ads-preview-merge-variant-1778999052",
+  "session_id": "claude-durable-goal-2026-05-17-m06-p01-agent",
+  "agent_id": "claude-durable-goal-m06-p01",
+  "task": "M06-P01-IP-001 merge-variant delta-1: smallest net-new type (Auction + Bid) backported into existing oya-saas-plugin-marketplace-kernel instead of scaffolding new oya-ads-auction-kernel crate. Honors user 2026-05-17 option-2 directive.",
+  "artifacts_touched": [
+    "crates/oya-saas-plugin-marketplace-kernel/src/auction.rs (NEW)",
+    "crates/oya-saas-plugin-marketplace-kernel/src/lib.rs (re-export + doc-comment update)",
+    ".omc/plans/milestones/M06-ads-vertical-fanout/phases/P01-ads-preview-internal-auction/IP-001-auction-bidding.md (frontmatter execution_variant amended)",
+    "evidence/multispectrum/claude-m06-p01-ads-preview-merge-variant-1778999052.json (this file)",
+    "evidence/audit-chain.jsonl (row appended)"
+  ],
+  "local_gates": [
+    "cargo nextest -p oya-saas-plugin-marketplace-kernel: 16/16 PASS (5 new auction + 11 pre-existing)",
+    "rustfmt 1.95.0: clean"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": ["One new module, one re-export. Tests cover boundary (zero-bid floor), saturation (MAX_BIDS_PER_AUCTION = 256), class-isolation (cross-tenant rejection), and lifecycle (closed-auction rejection). No new workspace deps."],
+      "fixuptasks": []
+    },
+    "F3_correctness": {
+      "considered": true,
+      "findings": ["Tenant-isolation invariant enforced at submit_bid construction time. AuctionId / BidId carry prefix validation. Empty advertiser_id and zero bid_micros rejected. State machine: Open → Closed is monotonic."],
+      "fixuptasks": []
+    },
+    "A1_naming": {
+      "considered": true,
+      "findings": ["Per ADR-0105: domain types (Auction, Bid) live in kernel crate. AuctionError follows existing UnknownXLabel/UnknownXError pattern. PascalCase types, snake_case fields, ALL_CAPS const prefixes — conforming."],
+      "fixuptasks": []
+    },
+    "A3_structure": {
+      "considered": true,
+      "findings": ["Module added to existing crate; lib.rs re-export pattern matches PR #60/#61/#62/#63/#64/#65/#67..#86 cascade. No new workspace member; no Cargo.toml workspace touch."],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Mirrors PR #60-#86 merge-variant pattern exactly. Smallest meaningful delta from IP-001."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT", "rationale": "Tenant-isolation invariant + bid-cap + closed-state monotonicity each have a dedicated unit test. No silent regressions; no public API churn elsewhere."}
+  }
+}
