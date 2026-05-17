@@ -27,6 +27,8 @@ const REQUIRED_SCORE_CARD_FIELDS: &[&str] = &[
 ];
 
 const ALLOWED_PATTERN_STATUSES: &[&str] = &["active", "candidate", "retired"];
+const ACTIVE_SCORE_CARD_STATUS: &str = "active";
+const ADVISORY_SCORE_CARD_STATUS: &str = "advisory-until-validator";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct LoopRecoveryPatternsValidateArgs {
@@ -307,14 +309,76 @@ fn read_score_card_inventory(path: &Path) -> Result<ScoreCardInventoryReport, St
                 path.display()
             ));
         }
-        if execute_score_card_query(id, query, path)? {
-            score_card_commands_executed += 1;
+        let enforcement_status = check_object
+            .get("enforcement_status")
+            .and_then(Value::as_str)
+            .unwrap_or(ACTIVE_SCORE_CARD_STATUS);
+        match enforcement_status {
+            ACTIVE_SCORE_CARD_STATUS => {
+                if execute_score_card_query(id, query, path)? {
+                    score_card_commands_executed += 1;
+                }
+            }
+            ADVISORY_SCORE_CARD_STATUS => {
+                validate_advisory_score_card(id, check_object, path)?;
+            }
+            _ => {
+                return Err(format!(
+                    "{} score-card `{id}` has invalid enforcement_status `{enforcement_status}`",
+                    path.display()
+                ));
+            }
         }
     }
     Ok(ScoreCardInventoryReport {
         score_card_ids: ids,
         score_card_commands_executed,
     })
+}
+
+fn validate_advisory_score_card(
+    id: &str,
+    check_object: &serde_json::Map<String, Value>,
+    path: &Path,
+) -> Result<(), String> {
+    let planned_verification_ref =
+        required_str_in_object(check_object, "planned_verification_ref", path)?;
+    if planned_verification_ref.trim().is_empty() {
+        return Err(format!(
+            "{} score-card `{id}` planned_verification_ref must be non-empty",
+            path.display()
+        ));
+    }
+    let activation_requires = check_object
+        .get("activation_requires")
+        .and_then(Value::as_array)
+        .ok_or_else(|| {
+            format!(
+                "{} score-card `{id}` advisory row missing activation_requires array",
+                path.display()
+            )
+        })?;
+    if activation_requires.is_empty() {
+        return Err(format!(
+            "{} score-card `{id}` activation_requires array must be non-empty",
+            path.display()
+        ));
+    }
+    for (index, item) in activation_requires.iter().enumerate() {
+        let Some(text) = item.as_str() else {
+            return Err(format!(
+                "{} score-card `{id}` activation_requires[{index}] must be a string",
+                path.display()
+            ));
+        };
+        if text.trim().is_empty() {
+            return Err(format!(
+                "{} score-card `{id}` activation_requires[{index}] must be non-empty",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn execute_score_card_query(id: &str, query: &str, path: &Path) -> Result<bool, String> {
@@ -749,4 +813,76 @@ fn contains_any_keyword(value: &str, keywords: &[&str]) -> bool {
     keywords
         .iter()
         .any(|keyword| lowercase.contains(&keyword.to_ascii_lowercase()))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::{AtomicU64, Ordering};
+
+    use super::*;
+
+    static NEXT_FIXTURE_ID: AtomicU64 = AtomicU64::new(1);
+
+    #[test]
+    fn advisory_score_card_is_inventory_only_until_validator_lands() {
+        let fixture = score_cards_fixture(true);
+
+        let report = read_score_card_inventory(&fixture).expect("advisory score-card is valid");
+
+        assert_eq!(report.score_card_ids.len(), 1);
+        assert_eq!(report.score_card_commands_executed, 0);
+    }
+
+    #[test]
+    fn advisory_score_card_requires_activation_evidence() {
+        let fixture = score_cards_fixture(false);
+
+        let error = read_score_card_inventory(&fixture).expect_err("activation evidence required");
+
+        assert!(error.contains("activation_requires"));
+    }
+
+    fn score_cards_fixture(include_activation_requires: bool) -> PathBuf {
+        let fixture_id = NEXT_FIXTURE_ID.fetch_add(1, Ordering::Relaxed);
+        let variant = if include_activation_requires {
+            "with-activation"
+        } else {
+            "missing-activation"
+        };
+        let root = std::env::temp_dir().join(format!(
+            "oya-loop-recovery-advisory-score-card-{}-{variant}-{fixture_id}",
+            std::process::id(),
+        ));
+        fs::create_dir_all(&root).expect("fixture dir created");
+        let evidence_path = root.join("evidence.json");
+        fs::write(&evidence_path, "{}\n").expect("evidence file written");
+        let mut check = serde_json::json!({
+            "id": "score-card:hyperscaler:future-advisory",
+            "facet": "hyperscaler-pattern",
+            "query": "oya gate validate future-hyperscaler-score-card",
+            "pass_criterion": "exit 0 after the validator exists and is branch-protected",
+            "score": 8,
+            "severity_tier": "MAJOR",
+            "empirical_evidence_path": evidence_path,
+            "enforcement_status": "advisory-until-validator",
+            "planned_verification_ref": "ADR-0134"
+        });
+        if include_activation_requires {
+            check["activation_requires"] = serde_json::json!([
+                "validator crate exists",
+                "workflow is branch-protected",
+                "fixture-tree integration tests pass"
+            ]);
+        }
+        let score_cards = serde_json::json!({
+            "checks": [check]
+        });
+        let score_cards_path = root.join("score-cards.json");
+        fs::write(
+            &score_cards_path,
+            serde_json::to_string_pretty(&score_cards).expect("score-card fixture serializes"),
+        )
+        .expect("score-cards fixture written");
+        score_cards_path
+    }
 }
