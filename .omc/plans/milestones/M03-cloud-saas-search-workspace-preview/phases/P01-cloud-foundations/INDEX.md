@@ -5,6 +5,15 @@ id: M03-P01
 title: Cloud Foundations (KMS / Storage / Network / IAM / Region / Cell)
 status: in-progress (IP-001 unblocked 2026-05-16 — both adapters' live backends provisioned)
 purpose: Lift the in-flight cloud kernels to API+app+adapter+runtime completeness; provider-agnostic by default.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Merge-variant 2: net-new types are added as modules inside existing live
+  oya-cloud-* crates (no new crate scaffolds, no new workspace deps).
+  Pattern mirrors F-M02B-PLAN-LIVE-CRATE-RECONCILIATION; M03+ tracking task
+  is F-M03-PLAN-LIVE-CRATE-RECONCILIATION (filed 2026-05-17,
+  session_id=claude-durable-goal-2026-05-17-m03-p01-agent).
 ---
 
 # M03-P01 — Cloud Foundations
