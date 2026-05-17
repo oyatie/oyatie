@@ -1,6 +1,10 @@
 ---
 purpose: "P08 — KR Acceptance Evidence: Implementation Plan"
 status: in-progress
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "AcceptanceTestKind added as new module kr_acceptance in oya-foundry-evidence-domain; no new crate scaffold, no new workspace deps, no serde."
 ---
 
 # P08 — KR Acceptance Evidence: Implementation Plan
