@@ -19,7 +19,7 @@ related:
 
 ## When to update
 
-- Every cutover phase (e.g., M-CC-P01 agentic-pipeline cutover).
+- Every cutover phase (e.g., M01-P08 agentic-pipeline cutover).
 - Every migration phase (schema, crate-rename, contract-rename, capability-rename).
 - Every archive event (file moved to `archive/` tree).
 - Every retirement event (file removed from active tree).
@@ -30,7 +30,7 @@ related:
 ```yaml
 - inventory_row_id: INV-NNNN
   date: YYYY-MM-DD
-  phase: M-CC-P01 | M0N-P0M | ...
+  phase: M01-P08 | M0N-P0M | ...
   ip_ref: IP-NNN-<slug>
   action: keep | move | archive | delete | rename | recreate-forbidden
   source_path: <repo-relative path>
@@ -83,7 +83,7 @@ related:
 ```yaml
 - inventory_row_id: INV-0042
   date: 2026-05-13
-  phase: M-CC-P01
+  phase: M01-P08
   ip_ref: IP-007-archive-omx-ultragoal
   action: archive
   source_path: example/legacy/source-ledger.jsonl

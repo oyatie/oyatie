@@ -2,7 +2,7 @@
 
 - purpose: Verify fenced agent-instruction sections invoke the sanctioned primitive triad (`grit`, `icm`, `oya-tooling-agent-read`) and that any documented direct VCS / forge exception carries an icm rationale.
 - enforces: Directive 12 (MASTERPLAN) — sanctioned-primitives policy + ADR-0054 + ADR-0055.
-- activation: Defined/scaffolded in M-CC-P01-IP-006; enforcement activates at M-CC-P01-IP-007 / P5 merge per ADR-0053 bootstrap-window clause.
+- activation: Defined/scaffolded in M01-P08-IP-006; enforcement activates at M01-P08-IP-007 / P5 merge per ADR-0053 bootstrap-window clause.
 - kernel_crate: `oya-foundry-fitness-banned-primitives-kernel` — `PrimitiveUsage { path, line, primitive, has_icm_rationale }`, verdict `BannedPrimitivesFitnessReport { usages_checked }`.
 - runner_path: `tools/oya-foundry-fitness-banned-primitives`
 - inputs: `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `docs/agents/**/*.md`, `docs/standards/agent-instructions-discipline.md`, `.omc/**/*.md` files that contain `<!-- agent-instructions:start -->`, and icm rationale store dump.

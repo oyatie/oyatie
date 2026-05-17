@@ -34,7 +34,7 @@
     {
       "severity": "MAJOR",
       "file": "PR #3 aggregate diff",
-      "issue": "2712 files, 151k insertions, and 19k deletions mix clippy policy, nine M-CC-P10 IPs, CLI canonicalization, lifecycle automation, vocabulary retirement, CI, and a new submit primitive. This is unreviewable by construction and makes rollback impossible without reverting unrelated decisions.",
+      "issue": "2712 files, 151k insertions, and 19k deletions mix clippy policy, nine M01-P17 IPs, CLI canonicalization, lifecycle automation, vocabulary retirement, CI, and a new submit primitive. This is unreviewable by construction and makes rollback impossible without reverting unrelated decisions.",
       "remediation": "Split policy hardening, dispatcher runtime, merge-queue, CLI retirement, vocabulary lane, and CI templates into separate PRs with one invariant per PR."
     }
   ],

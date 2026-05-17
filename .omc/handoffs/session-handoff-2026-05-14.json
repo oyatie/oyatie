@@ -34,11 +34,11 @@
   },
 
   "by_milestone": {
-    "M-CC-cross-cutting": {
+    "M01-foundation": {
       "complete": 45, "total": 46,
       "phase_complete_status": "complete (P00-P09 all closed except P06-IP-002)",
       "single_remaining": {
-        "id": "M-CC-P06-IP-002",
+        "id": "M01-P13-IP-002",
         "status": "expanded-from-round-5-findings",
         "honest_state": "multi-week roll-out, NOT a quick close. Concrete acceptance criteria intentionally not met.",
         "missing_artifacts": [
@@ -84,16 +84,16 @@
       "M02-P00-IP-002 domain-types-state-machine",
       "M02-P00-IP-003 secret-store-port",
       "M02-P00-IP-004 identity-types-to-kernel (NEW fixup IP)",
-      "M-CC-P00-IP-001..009 (all 9 Oya VCS IPs)",
-      "M-CC-P01-IP-001/002/003/004/005/006/008/011 (all 8 stubs)",
-      "M-CC-P02-IP-001/002/003 (mdbook + doc-freshness + doc-style)",
-      "M-CC-P03-IP-001 (purpose-frontmatter audit; evidence-only) + IP-002 orphan-detection",
-      "M-CC-P04-IP-001/002 (navigability + predictable-naming)",
-      "M-CC-P05-IP-001/002 (provider-coupling + cloud-multi-provider audit) + IP-003 substitution-test",
-      "M-CC-P06-IP-001/003 (image-discipline + static-musl)",
-      "M-CC-P07-IP-001/002/003/004 (templates + CI-templates + merge-gate + toolchain-gates)",
-      "M-CC-P08-IP-001/002/003/004 (cosign + sbom + slsa + license-policy)",
-      "M-CC-P09-IP-001/002/003/004 (walkers + emitters + mdbook-integration + freshness)",
+      "M01-P07-IP-001..009 (all 9 Oya VCS IPs)",
+      "M01-P08-IP-001/002/003/004/005/006/008/011 (all 8 stubs)",
+      "M01-P09-IP-001/002/003 (mdbook + doc-freshness + doc-style)",
+      "M01-P10-IP-001 (purpose-frontmatter audit; evidence-only) + IP-002 orphan-detection",
+      "M01-P11-IP-001/002 (navigability + predictable-naming)",
+      "M01-P12-IP-001/002 (provider-coupling + cloud-multi-provider audit) + IP-003 substitution-test",
+      "M01-P13-IP-001/003 (image-discipline + static-musl)",
+      "M01-P14-IP-001/002/003/004 (templates + CI-templates + merge-gate + toolchain-gates)",
+      "M01-P15-IP-001/002/003/004 (cosign + sbom + slsa + license-policy)",
+      "M01-P16-IP-001/002/003/004 (walkers + emitters + mdbook-integration + freshness)",
       "M03-P02-IP-002/003 (k8s-functions-api + capacity-management)",
       "M03-P03-IP-001/002/003/004/005 (5 cloud-*-kernel scaffolds)"
     ]
@@ -109,7 +109,7 @@
       "/evidence/m-cc-p03-ip-001-purpose-frontmatter-audit.json",
       "/evidence/m-cc-p05-ip-002-cloud-multi-provider-audit.json",
       "IP status flips for M03-P02-IP-002/003 + M03-P03-IP-001..005",
-      "IP status flips for M-CC-P03-IP-001 + M-CC-P05-IP-002 (split-required → complete)",
+      "IP status flips for M01-P10-IP-001 + M01-P12-IP-002 (split-required → complete)",
       "registry/catalog/oya-cloud-{billing,observability,finops,marketplace}-kernel.yaml (autogen)"
     ],
     "push_state": "NOT pushed to remote origin. User has not authorized push."
@@ -123,7 +123,7 @@
       "01KRMBH793RGYD2ACZ85MG2MNP (M03 7-IP-closure)",
       "01KRMB1NP9FQQBRMM4AHVJYQ7Q (finops-api test flake FixupTask)",
       "01KRMASXFWEFGTRXXAAMAYWVQ1 (architecture-antipatterns audit)",
-      "01KRMA9K6HH4W4SJDC81MTZP4J (M-CC-P00 IP-001/009 + Rust merge-gate migration)"
+      "01KRMA9K6HH4W4SJDC81MTZP4J (M01-P07 IP-001/009 + Rust merge-gate migration)"
     ],
     "key_evidence_files": {
       "ledger": "/evidence/masterplan-prompt-to-artifact-ledger.json",
@@ -153,9 +153,9 @@
       "characterization": "Pre-existing test in pre-existing crate (added to workspace this session); idempotency replay assertion fails. Likely real bug, not flake."
     },
     "proposed_new_ips_from_antipatterns_audit": [
-      "M-CC-P01-IP-012 ICM-claim-scope kernel (B2 fix)",
-      "M-CC-P01-IP-013 IP-status-truth kernel (C1+C2 fix — would have prevented 6+ stale-status discoveries this session)",
-      "M-CC-P01-IP-014 IP-dependency-edges kernel (D2 fix)"
+      "M01-P08-IP-012 ICM-claim-scope kernel (B2 fix)",
+      "M01-P08-IP-013 IP-status-truth kernel (C1+C2 fix — would have prevented 6+ stale-status discoveries this session)",
+      "M01-P08-IP-014 IP-dependency-edges kernel (D2 fix)"
     ]
   },
 

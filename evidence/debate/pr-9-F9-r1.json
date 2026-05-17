@@ -14,7 +14,7 @@
       "severity": "MAJOR",
       "file": "docs/standards/multispectrum-review.md:1-47 and docs/AGENTS.md:54-63",
       "issue": "PR #9 touched the multispectrum/registry surfaces, but the human gateway still says the canonical spec is v2.1.0 and instructs users to run before `grit done`, while docs/AGENTS now points to v2.4.0 and Oya VCS/Foundry pipeline admission. This directly hurts adoption of the review evidence contract.",
-      "remediation": "Update the gateway to derive/display the current spec version and replace `grit done` with the Oya VCS/Foundry pipeline (M-CC-P11) admission sequence."
+      "remediation": "Update the gateway to derive/display the current spec version and replace `grit done` with the Oya VCS/Foundry pipeline (M01-P18) admission sequence."
     },
     {
       "severity": "MINOR",

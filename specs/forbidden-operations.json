@@ -99,7 +99,7 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": null,
-        "evidence": "ADR-0118 retirement removes the one-time archive lane; M-CC-P11 admission gates replacement changes per ADR-0116"
+        "evidence": "ADR-0118 retirement removes the one-time archive lane; M01-P18 admission gates replacement changes per ADR-0116"
       }
     },
     {

@@ -14,7 +14,7 @@
     "Spec JSON edits are descriptive removals (e.g., dropping enforcer references); no algorithm encoded in the edits"
   ],
   "uncertainty_areas": [
-    "Whether the M-CC-P11 admission gate (named as the replacement substrate) preserves the same complexity class for the invariant the retired lane caught"
+    "Whether the M01-P18 admission gate (named as the replacement substrate) preserves the same complexity class for the invariant the retired lane caught"
   ],
   "drift_detected": false,
   "findings": [],

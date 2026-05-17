@@ -9,7 +9,7 @@
 #   - layer (slot-N): `app` — binary tool that orchestrates the kernel
 #                per ADR-0107 amended 2026-05-15 "tools/ binding".
 #
-# Introducing IP: M-CC-P11-IP-003 (ADR-0112 wave-A).
+# Introducing IP: M01-P18-IP-003 (ADR-0112 wave-A).
 name = "oya-foundry-webhook-receiver-app"
 edition.workspace = true
 version.workspace = true
@@ -48,4 +48,4 @@ audit_chain = true
 
 [package.metadata.oya.lifecycle]
 stage = "scaffolded"
-introducing_ip = "M-CC-P11-IP-003"
+introducing_ip = "M01-P18-IP-003"

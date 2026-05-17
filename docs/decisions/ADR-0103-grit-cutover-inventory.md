@@ -22,7 +22,7 @@ renumber_reason: "ID-collision with ADR-0052-inventory-grit-cutover.md (Canonica
 
 ## Context
 
-Prior to the agentic-pipeline cutover (M-CC-P01), agents reached into the
+Prior to the agentic-pipeline cutover (M01-P08), agents reached into the
 repository via direct `git`/`gh` commands, hand-rolled bash scripts, and
 ad-hoc lock files. The cutover replaces those primitives with the
 sanctioned trio `grit + icm + oya-tooling-agent-read`. Closing out the
@@ -39,7 +39,7 @@ retirement timing.
 |---|---|---|
 | Direct `git` from agents | `grit claim`/`grit done` + `oya-tooling-agent-read log/diff/pr-view` | Banned (banned-primitives lane enforces) |
 | Direct `gh` from agents | `oya-tooling-agent-read pr-view`/`pr-comments` | Banned |
-| `git rebase` / `git merge` by agents | Controller-owned merge queue (M-CC-P00 IP-007) | Banned |
+| `git rebase` / `git merge` by agents | Controller-owned merge queue (M01-P07 IP-007) | Banned |
 | Local bash lock files | grit claim → work → done state machine | Retired |
 | `cargo run -p oya-dev-cli -- check ...` aggregate commands | Per-lane `oya-dev-cli -- gate validate <lane>` | Retired (scripts/check.sh:79) |
 | Pre-cutover monolithic checklists | ChangeSet-sized IP files under `.omc/plans/milestones/*/phases/*/IP-*.md` | Retired |
@@ -48,7 +48,7 @@ retirement timing.
 ## Compatibility window
 
 `grit` remains the compatibility shim for repo-state transitions until
-M-CC-P00 promotion-controller acceptance lifts the waiver
+M01-P07 promotion-controller acceptance lifts the waiver
 (`gitops-vcs-replacement.json` §moved_earlier_in_masterplan).
 
 ## Consequences

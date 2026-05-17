@@ -76,7 +76,7 @@ canonical_source: https://github.com/CaddyGlow/ccproxy-api
 |---|---|---|---|
 | TOML configuration | `pyproject.toml` + per-plugin TOML | **rejected** | oyatie uses typed-config-via-cedar + Kubernetes ConfigMap + OpenBao; TOML is not the surface |
 | `enabled_plugins` / `disabled_plugins` lists | global plugin gating | **full** | Cedar policy at runtime + Helm values at deploy time |
-| Docker / docker-compose | `Dockerfile` + `docker-compose.yml` | **full** | Distroless-debian13 per Directive 5; Helm chart per M-CC-P06 |
+| Docker / docker-compose | `Dockerfile` + `docker-compose.yml` | **full** | Distroless-debian13 per Directive 5; Helm chart per M01-P13 |
 | Systemd service templates | `systemd/` | **rejected** | Kubernetes-only deployment; per `.omc/standards/image-discipline.md` |
 | Nix flake | `nix/` | **rejected** | Not a Nix shop; Bazel/Buck2 also rejected per `.omc/standards/dependency-policy.md §8` |
 | `uvx` / `pipx` install | Python entry points | **rejected** | Distroless container deployment; no host-Python install path |

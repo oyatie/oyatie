@@ -1,8 +1,8 @@
 {
   "$schema_ref": "/templates/evidence-bundle-template.json",
-  "_artifact_id": "M-CC-P03-IP-001-purpose-frontmatter-audit",
+  "_artifact_id": "M01-P10-IP-001-purpose-frontmatter-audit",
   "_meta": {
-    "ip": "M-CC-P03-IP-001",
+    "ip": "M01-P10-IP-001",
     "audited_at": "2026-05-14",
     "auditor": "claude-mcc-finish",
     "scope": "docs/**/*.md + .omc/**/*.md + .omc/**/*.json",
@@ -175,5 +175,5 @@
       "/evidence/goals/implement-masterplan-goal-prompt.json"
     ]
   },
-  "next_action": "M-CC-P03-IP-001a (proposed): per-subtree backfill IPs for each top-level directory with non-zero 'without_purpose' counts above. Lane runner is oya-foundry-fitness-doc-style-kernel + oya-foundry-fitness-orphan-detection-kernel."
+  "next_action": "M01-P10-IP-001a (proposed): per-subtree backfill IPs for each top-level directory with non-zero 'without_purpose' counts above. Lane runner is oya-foundry-fitness-doc-style-kernel + oya-foundry-fitness-orphan-detection-kernel."
 }

@@ -261,7 +261,7 @@ Per Phase-1 audit 2026-05-15:
 | `dependency-status` | added → in-use → deprecated → removed | `Cargo.lock` + ADR supersession refs | Cargo.lock-driven |
 | `feature-flag-status` | proposed → live → ramped → deprecated → removed | `#[cfg(feature` + feature manifest | 6 occurrences |
 
-Each lane ships under M-CC-cross-cutting/phases/P03-purpose-orphan-detection/ as `fitness-<name>-lifecycle-lane.md`.
+Each lane ships under M01-foundation/phases/P03-purpose-orphan-detection/ as `fitness-<name>-lifecycle-lane.md`.
 
 ## Naming justification (per `feedback_naming_justification`)
 

@@ -1,7 +1,7 @@
 {
   "change_id": "pr-11",
   "pr_number": 11,
-  "pr_title": "M-CC-P11-IP-002 wave-A: merge-queue app-side modules",
+  "pr_title": "M01-P18-IP-002 wave-A: merge-queue app-side modules",
   "merge_commit_sha": "5ec873ce2b6a5e37465b037ddeeb9343199abe59",
   "facet_id": "F6",
   "facet_name": "Alternatives review",

@@ -11,7 +11,7 @@ doc_status: published
 > **Owner:** `council-architecture` + `foundry-vcs`
 > **Date:** 2026-05-16
 > **doc_class:** DecisionRecord
-> **purpose:** Formally retire grit, rtk, icm, and vox from the repo's prescribed agent-coordination surface. The in-repo Foundry pipeline (M-CC-P11 substrate landed in PR #5 + the wave-A webhook-receiver work) is now the sole canonical workflow for concurrent agent work.
+> **purpose:** Formally retire grit, rtk, icm, and vox from the repo's prescribed agent-coordination surface. The in-repo Foundry pipeline (M01-P18 substrate landed in PR #5 + the wave-A webhook-receiver work) is now the sole canonical workflow for concurrent agent work.
 > **enforced_by:** `oya-foundry-vcs-admission-gate` + branch-pipeline review/CI lanes
 > **Related:** ADR-0054 (deprecated by this ADR), ADR-0052/0053 (historical inventories of the retired primitives), ADR-0110/0111/0112/0113 (Foundry pipeline substrate), ADR-0115 (sibling registry consolidation landed via PR #9)
 
@@ -29,7 +29,7 @@ Prior ADRs (ADR-0052, ADR-0053, ADR-0054) elevated `grit` and `icm` as "sanction
 
 Three forces have superseded that model:
 
-1. **Foundry pipeline (M-CC-P11) is live in-repo.** PR #5 landed ADR-0110/0111/0112/0113, which together define the end-to-end agentic VCS substrate: webhook intake, router, admission-gate, projected-merge-state, conflict-kernel, changeset-state, review-mergequeue-kernel. Wave-A (webhook-receiver intake + routing + projected-merge-state crates) is merged. The Foundry pipeline is the in-repo replacement for everything `grit` and `icm` previously coordinated outside the repo.
+1. **Foundry pipeline (M01-P18) is live in-repo.** PR #5 landed ADR-0110/0111/0112/0113, which together define the end-to-end agentic VCS substrate: webhook intake, router, admission-gate, projected-merge-state, conflict-kernel, changeset-state, review-mergequeue-kernel. Wave-A (webhook-receiver intake + routing + projected-merge-state crates) is merged. The Foundry pipeline is the in-repo replacement for everything `grit` and `icm` previously coordinated outside the repo.
 2. **Branch pipeline is live (2026-05-16).** `dev` → `staging` → `production` with `dev` as the default branch and auto-promotion workflows on 30-min/hourly cadence. PR off `dev` with reviewer-agent APPROVE + CI green is the canonical contribution path; merge-queue handles ordering. This removes any need for an external lock primitive.
 3. **No-out-of-repo-coordination invariant.** The long-term operating contract (sunset note already present in `CLAUDE.md`) said grit/icm/rtk/vox would all leave the repo once Oya VCS and Foundry went live. Both conditions are now met.
 
@@ -46,7 +46,7 @@ The following external agent-coordination tools are **retired** from the prescri
 - `rtk` (cargo shim and command rewrites)
 - `vox` (inventoried but unused)
 
-The **Foundry pipeline (M-CC-P11)** is the sole canonical workflow for concurrent agent work in the oyatie tree. Every agent contribution flows: per-agent `git worktree` → branch off `dev` → `gh pr create --base dev` → webhook-receiver → router → admission-gate (ADR-0111 projected-merge-state + conflict-kernel pre-admit) → merge-queue ordering → reviewer-agent APPROVE + CI green → auto-merge.
+The **Foundry pipeline (M01-P18)** is the sole canonical workflow for concurrent agent work in the oyatie tree. Every agent contribution flows: per-agent `git worktree` → branch off `dev` → `gh pr create --base dev` → webhook-receiver → router → admission-gate (ADR-0111 projected-merge-state + conflict-kernel pre-admit) → merge-queue ordering → reviewer-agent APPROVE + CI green → auto-merge.
 
 Direct build invocation uses `~/.rustup/toolchains/<channel>/bin/cargo` — no shim.
 
@@ -64,7 +64,7 @@ Filename `ADR-0116-retire-external-agent-coordination-tooling.md` — `<artifact
 
 | Retired | Replaced by | ADR/PR |
 |---------|-------------|--------|
-| `grit claim/work/done` | **Foundry pipeline** (M-CC-P11): per-agent worktree (Layer 0 isolation) → PR off `dev` → webhook-receiver → router → admission-gate + merge-queue (ADR-0111 projected-merge-state + conflict-kernel) → auto-merge on review+CI green | ADR-0110/0111/0112/0113 + PR #5 + wave-A webhook-receiver |
+| `grit claim/work/done` | **Foundry pipeline** (M01-P18): per-agent worktree (Layer 0 isolation) → PR off `dev` → webhook-receiver → router → admission-gate + merge-queue (ADR-0111 projected-merge-state + conflict-kernel) → auto-merge on review+CI green | ADR-0110/0111/0112/0113 + PR #5 + wave-A webhook-receiver |
 | `icm scaffold-locks` (topic `scaffold-locks-oyatie`) | **Foundry pipeline** Layer-0 isolation (per-agent worktree). Concurrent-safe-paths registry handles file-scope coordination at admission-gate time; no shared mutable file scope exists once each agent works in its own worktree | ADR-0111 §"Conflict-avoidance pre-admit gate" + `registry/vcs/concurrent-safe-paths.yaml` |
 | `rtk` cargo shim | Direct cargo via `~/.rustup/toolchains/<channel>/bin/cargo`. No Foundry-pipeline involvement; this is a local build-tool concern only | (no replacement needed) |
 | `vox` | No active use — formally retired without replacement | (no replacement needed) |
@@ -153,5 +153,5 @@ This seam SHOULD be removed once wave-B lands; contributors today need to unders
 - ADR-0112 — webhook-driven foundry agent invocation
 - ADR-0113 — VCS orchestrator end-to-end
 - ADR-0115 — registry consolidation (sibling in-flight via PR #9)
-- PR #5 — ADR-0110/0111/0112/0113 end-to-end agentic VCS pipeline (M-CC-P11)
+- PR #5 — ADR-0110/0111/0112/0113 end-to-end agentic VCS pipeline (M01-P18)
 - Branch pipeline policy (live 2026-05-16): `dev` default, `dev` → `staging` → `production` auto-promotion

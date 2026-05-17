@@ -48,7 +48,7 @@
     {"id": "F-PR13-11", "severity": "low", "summary": "cargo run -p oya-foundry-fitness-archive-orphan-app gives generic cargo error; should tombstone with pointer to ADR-0118 (F4)", "lane": "tombstone-runtime-hint"},
     {"id": "F-PR13-12", "severity": "low", "summary": "ADR-0118 verification plan duplicates PR body (F1)", "lane": "adr-deduplication"},
     {"id": "F-PR13-13", "severity": "low", "summary": "Sweep .github/workflows for any residual cargo run -p oya-foundry-fitness-archive-orphan step (F7)", "lane": "ci-sweep"},
-    {"id": "F-PR13-14", "severity": "low", "summary": "FO-06 marks enforced_by:null pointing to ADR-0118/0116 — once M-CC-P11 admission gate ships, wire concrete enforcer name (F7)", "lane": "fo-enforcer-binding"},
+    {"id": "F-PR13-14", "severity": "low", "summary": "FO-06 marks enforced_by:null pointing to ADR-0118/0116 — once M01-P18 admission gate ships, wire concrete enforcer name (F7)", "lane": "fo-enforcer-binding"},
     {"id": "F-PR13-15", "severity": "low", "summary": "ip-008-archive-glue.json lacks $schema/$id/_meta envelope; only schema_version (A6)", "lane": "evidence-schema-envelope"}
   ],
   "final_recommendation": "approve-with-fixups (post-merge)",

@@ -1,4 +1,4 @@
-//! Cloud data-plane kernel (M-CC-M03-P03-IP-001).
+//! Cloud data-plane kernel (M03-P03-IP-001).
 //!
 //! Provider-neutral abstractions for OLTP/OLAP/object-store/queue
 //! data-services. Defines DataServiceKind, ResidencyClass, and a

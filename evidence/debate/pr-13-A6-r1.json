@@ -17,7 +17,7 @@
       "severity": "CRITICAL",
       "title": "Stale crate references in forbidden-operations.json after archive-orphan retirement",
       "evidence": "specs/cross-cutting/forbidden-operations.json:26 still lists `oya-foundry-fitness-archive-orphan-kernel` as the enforcer of FO-01 (no parallel canonical trees); line 92 still lists it as the sole enforcer of FO-07 (no editing legacy retired paths). PR-13 removed that crate from Cargo workspace members and deleted its source, leaving FO-07 with a non-existent enforcer and a 'mechanical' mode that no longer fires.",
-      "fix": "Update FO-01.enforcement.enforced_by to drop `oya-foundry-fitness-archive-orphan-kernel`; for FO-07 either replace the enforcer with the Foundry M-CC-P11 substrate cited in ADR-0118, or flip mode from `mechanical` to `cultural` with an explicit GAP note. Cite ADR-0118 in evidence."
+      "fix": "Update FO-01.enforcement.enforced_by to drop `oya-foundry-fitness-archive-orphan-kernel`; for FO-07 either replace the enforcer with the Foundry M01-P18 substrate cited in ADR-0118, or flip mode from `mechanical` to `cultural` with an explicit GAP note. Cite ADR-0118 in evidence."
     },
     {
       "id": "A6-PR13-02",
@@ -29,7 +29,7 @@
       "id": "A6-PR13-03",
       "severity": "MAJOR",
       "title": "masterplan.json index drift for IP-008",
-      "evidence": "specs/cross-cutting/masterplan.json:801-812 still has `status: stub` and title `Archive orchestration glue + archive-orphan lane (P6)` for M-CC-P01-IP-008, contradicting the PR-13 markdown change to `status: retired` and the retired title in `.omc/plans/.../IP-008-archive-glue.md`."
+      "evidence": "specs/cross-cutting/masterplan.json:801-812 still has `status: stub` and title `Archive orchestration glue + archive-orphan lane (P6)` for M01-P08-IP-008, contradicting the PR-13 markdown change to `status: retired` and the retired title in `.omc/plans/.../IP-008-archive-glue.md`."
     },
     {
       "id": "A6-PR13-04",

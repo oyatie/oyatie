@@ -26,7 +26,7 @@
   "consolidation_collapsed_kernel_adapter_pair": false,
   "consolidation_analysis": "PR is pure data emission into evidence/debate/ + an append to evidence/audit-chain.jsonl. No Rust module, port trait, kernel/adapter pairing, or usecase boundary is created, moved, merged, or removed. Layer enum is structurally untouched.",
   "adr_amendment_weakens_inward_flow": false,
-  "adr_check": "Zero ADR files modified or added. ADR-0056 (12-layer enum) and inward-flow doctrine unaffected. PR body cites Foundry pipeline M-CC-P11 as canonical and explicitly disclaims grit/rtk/icm/vox usage; no policy weakening.",
+  "adr_check": "Zero ADR files modified or added. ADR-0056 (12-layer enum) and inward-flow doctrine unaffected. PR body cites Foundry pipeline M01-P18 as canonical and explicitly disclaims grit/rtk/icm/vox usage; no policy weakening.",
   "spec_coherence": {
     "doc": "n/a",
     "verdict": "COHERENT",

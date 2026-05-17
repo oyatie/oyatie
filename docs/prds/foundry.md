@@ -40,8 +40,8 @@ Foundry is the substrate on which M01–M12 milestones depend. Every µservice i
 | `engine-adapter` | adapter-namespace registry + cross-product-refusal gate | M02-P01 |
 | `engine-capability` | autonomy-ceiling registry; capability tokens | M02-P17 |
 | `engine-bypass` | bootstrap-window carve-out ledger (ADR-0053 §carve-outs) | M01 |
-| `engine-mdbook` | mdbook publishing pipeline | M-CC-P02 |
-| `engine-openapi` | OpenAPI contract validator | M-CC-P02 |
+| `engine-mdbook` | mdbook publishing pipeline | M01-P09 |
+| `engine-openapi` | OpenAPI contract validator | M01-P09 |
 
 Plus `oya-check-*` rule binaries (BNF-exempt) for the 14+ fitness lanes.
 

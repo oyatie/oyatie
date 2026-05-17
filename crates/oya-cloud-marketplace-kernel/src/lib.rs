@@ -1,4 +1,4 @@
-//! Cloud marketplace kernel (M-CC-M03-P03-IP-005 minimum viable kernel).
+//! Cloud marketplace kernel (M03-P03-IP-005 minimum viable kernel).
 //!
 //! Pure I/O-free model for marketplace listings (ISV-published SaaS
 //! offers), entitlement state, and the admission rule that an

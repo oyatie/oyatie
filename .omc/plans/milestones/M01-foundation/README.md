@@ -68,7 +68,7 @@ All M02 work (M02b-substrate phases P01-P22). The BNF v4.1 cutover is the precon
 
 ## Acceptance evidence
 
-`acceptance-evidence/README.md` plus `/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json` record the current M01 acceptance closeout: G1/G2 live Cargo package set, M-CC-P01 P5+ lane evidence, M-CC-P00 scoped waiver, focused 65/65 package tests, and full `./scripts/check.sh` closeout under Rust 1.95.0 / edition 2024 / rustfmt 2024.
+`acceptance-evidence/README.md` plus `/evidence/foundation/m01-foundation-acceptance-audit-2026-05-14.json` record the current M01 acceptance closeout: G1/G2 live Cargo package set, M01-P08 P5+ lane evidence, M01-P07 scoped waiver, focused 65/65 package tests, and full `./scripts/check.sh` closeout under Rust 1.95.0 / edition 2024 / rustfmt 2024.
 
 ## References
 

@@ -33,9 +33,9 @@ for findings outside this fix-PR's control-plane-only scope (audit-chain
 cryptographic chaining, PR15 v1/v2 template migration, M02/M03 milestone
 collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
-## 2026-05-16 — archive-orphan lane retired after M-CC-P11 cutover
+## 2026-05-16 — archive-orphan lane retired after M01-P18 cutover
 
-- Retired the one-time `archive-orphan` fitness lane after ADR-0116 established the Foundry pipeline (M-CC-P11) as the canonical VCS substrate.
+- Retired the one-time `archive-orphan` fitness lane after ADR-0116 established the Foundry pipeline (M01-P18) as the canonical VCS substrate.
 - Removed the pre-grit archive payload, `oya-foundry-fitness-archive-orphan-kernel`, `oya-foundry-fitness-archive-orphan-app`, workspace members, and catalog entries.
 - Naming justification: `archive-orphan` remains only as a historical lane id because IP-008 used that exact cutover-boundary name.
 
@@ -43,14 +43,14 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 - Added `crates/oya-foundry-fitness-sunset-lifecycle-kernel` (I/O-free pure check + kernel-local std-only `Date` type — zero non-std deps, honoring ADR-0083 Tier 1) and `tools/oya-foundry-fitness-sunset-lifecycle-app` (composition-root dev-CLI walking 3 discovery surfaces: ADR frontmatter, spec JSON `_sunset` objects, `[package.metadata.oya.sunset]` Cargo manifest sections). Operationalizes the user directive (2026-05-15) `sunset > deprecation > removal. dispatch.` and the `feedback_no_exceptions_canonical.md` doctrine — time-bounded sunset clauses are canonical *because of* the sunset clause, not despite it.
 - Kernel exposes `Date`, `SunsetClause`, `LifecycleState` (5 variants: PRE_SUNSET / SUNSET_REACHED / DEPRECATED / REMOVAL_REACHED / MISSING_FIELDS), `Violation`, `evaluate(clauses, now, reached_milestones)`, `effective_deprecation_at`, `effective_removal_at`. Canonical sub-rule defaults: `deprecation_at = sunset_at + 30 days`, `removal_at = effective_deprecation_at + 90 days`. 11 kernel unit tests + 7 dev-CLI tests pass.
-- Workspace members updated (`crates/oya-foundry-fitness-sunset-lifecycle-kernel`, `tools/oya-foundry-fitness-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
+- Workspace members updated (`crates/oya-foundry-fitness-sunset-lifecycle-kernel`, `tools/oya-foundry-fitness-sunset-lifecycle-app`); `cargo check --workspace` green; lane surfaces 6 baseline violations on first run (3 ADRs: 0037/0067/0083; 3 specs: markdown-retirement-policy, multispectrum-review, oyatie-doctrine — all MISSING_FIELDS). Ratchet plan WARN → BLOCK in `.omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`.
 - ADR-0108 anchors the machine-readable schema (`sunset_at` OR `sunset_milestone`, plus optional `deprecation_at`, `removal_at`, `sunset_topic`); complements ADR-0037 (runtime-side per-tenant `DeprecationUsed` events) and ADR-0109 (generic lifecycle-automation framework). Scaffold-lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
 ## 2026-05-15 — Fitness lane `oya-foundry-fitness-adapter-with-no-importer` scaffolded (ADR-0104 audit-#7 mechanical-prevention)
 
 - Added `crates/oya-foundry-fitness-adapter-with-no-importer-kernel` (I/O-free check) and `tools/oya-foundry-fitness-adapter-with-no-importer` (dev-CLI runner) per ADR-0104 Follow-up #4. The lane scans the workspace and flags any `*-adapter` crate that has no `*-importer-*` consumer — the audit-#7 anti-pattern that produced 18 placeholder-shell crates in commit `34c62f2`.
 - Kernel exposes `WorkspaceCrate`, `Violation`, `AdapterImporterReport`, and `check`; port-in-kernel per ADR-0056 (filesystem walking lives in the dev-CLI). 8 kernel unit tests + 3 dev-CLI parser tests pass.
-- Workspace members updated (`crates/oya-foundry-fitness-adapter-with-no-importer-kernel`, `tools/oya-foundry-fitness-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
+- Workspace members updated (`crates/oya-foundry-fitness-adapter-with-no-importer-kernel`, `tools/oya-foundry-fitness-adapter-with-no-importer`); `cargo check --workspace` green; lane surfaces 29 baseline violations on first run (ratchet plan WARN→BLOCK in plan file under `.omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/fitness-adapter-with-no-importer-lane.md`).
 - Implements ADR-0104 Consequences §4 mechanical-prevention candidate; scaffold lock logged in `scaffold-locks-oyatie` per ADR-0054.
 
 ## 2026-05-15 — M02-P06 Foundry Supervisor implementation complete
@@ -152,32 +152,32 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 - Recorded the M01-P01-IP-001 scaffold-claim fallback after grit returned the known new/doc-symbol FK failure.
 - Added repo-root `rustfmt.toml` to pin both Rust parsing edition and rustfmt style edition to 2024 under the Rust 1.95.0 stance.
 
-## 2026-05-14 — M-CC-P01 foundation cleared
+## 2026-05-14 — M01-P08 foundation cleared
 
 - Closed the P01 foundation sequence: IP-009 delete-active-path cleanup, IP-010 parallel-claim demo, and IP-012 authoritative-tracked lane all received code-review APPROVE.
 - Marked the P01 phase index `foundation-cleared` with explicit evidence and remaining pre-existing workspace blockers.
 - Standalone P01 gates are green: banned-primitives, archive-orphan, authoritative-tracked, and parallel-claim demo regression.
 
-## 2026-05-14 — M-CC-P01-IP-012 authoritative-tracked lane
+## 2026-05-14 — M01-P08-IP-012 authoritative-tracked lane
 
 - Added `oya-foundry-fitness-authoritative-tracked-kernel` and `tools/oya-foundry-fitness-authoritative-tracked` to validate the `docs/AGENTS.md` canonical authority links against tracked repository state.
 - The runner parses the canonical doc map, accepts tracked directories through tracked children, and fails on missing, ignored, or untracked authoritative artifacts.
 - Corrected `docs/AGENTS.md` masterplan authority pointer to current tracked `docs/MASTERPLAN.md` after the lane exposed an untracked future-target pointer.
 - Updated the IP-012 good-taste row with the single typed-list behavior.
 
-## 2026-05-14 — M-CC-P01-IP-010 parallel-claim demo runbook
+## 2026-05-14 — M01-P08-IP-010 parallel-claim demo runbook
 
 - Added `docs/runbooks/agentic-pipeline/grit-parallel-claim-demo.md` and executable script to prove two session-less `grit` agents can claim non-overlapping symbols in one file.
 - Recorded the 2026-05-14 transcript under `/evidence/agentic-pipeline/ip-010-parallel-claim-demo-transcript/`, including the duplicate-claim negative case and final lock cleanup.
 - Updated the runbooks index with the agentic-pipeline demo entry.
 
-## 2026-05-14 — M-CC-P01-IP-009 removed DELETE-class Bominal ultragoal ephemera
+## 2026-05-14 — M01-P08-IP-009 removed DELETE-class Bominal ultragoal ephemera
 
 - Removed the two ADR-0052 DELETE-class active-path files from `bominal/agents/ultragoal/` after P7 gates passed: banned-primitives, archive-orphan, and non-null ARCHIVE timestamps.
 - Updated IP-009 to target the actual DELETE-class rows and avoid direct VCS wording in the agent-facing plan.
 - Stamped ADR-0052 DELETE-row notes with P7 cleanup time `2026-05-14T13:26:13Z`.
 
-## 2026-05-14 — M-CC-P01-IP-008 archive-orphan lane and Bominal ultragoal archive
+## 2026-05-14 — M01-P08-IP-008 archive-orphan lane and Bominal ultragoal archive
 
 - Archived 15 Bominal ultragoal orchestration-glue files under `bominal/agents/ultragoal/archive/pre-grit-cutover-2026-05-12/` and stamped ADR-0052 `Archived at` rows for the ARCHIVE class.
 - Added `oya-foundry-fitness-archive-orphan-kernel` and `tools/oya-foundry-fitness-archive-orphan` to verify archived copies exist, active originals are absent, and living references are zero outside authority/provenance docs.

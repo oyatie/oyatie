@@ -47,15 +47,15 @@
   ],
   "evidence_type": "implementation-packet",
   "generated_at": "2026-05-14T12:23:00Z",
-  "implementation_packet": "M-CC-P01-IP-005",
+  "implementation_packet": "M01-P08-IP-005",
   "known_blockers": [
     "Cargo workspace metadata fails before package discovery because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml.",
     "scripts/check.sh fails at line 36 because scripts/check-stage0-application-shell-prereqs.py is missing.",
     "oya command remains unavailable in this environment if an oya-native lane invocation is required."
   ],
-  "milestone": "M-CC-cross-cutting",
+  "milestone": "M01-foundation",
   "next_steps": [
-    "Release grit locks for M-CC-P01-IP-005.",
+    "Release grit locks for M01-P08-IP-005.",
     "Promote P01 state to IP-006 agent-facing memory rewrite."
   ],
   "phase": "P01-agentic-pipeline-cutover",
@@ -65,7 +65,7 @@
     "bominal/agents/ultragoal/oyatie-product-delivery-implementation-plan.md"
   ],
   "schema_version": "1.0.0",
-  "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
+  "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
   "summary": "Foundry PHASE-00-SPEC contract surface was verified, the Foundry PRD now cross-cites the required Bominal Foundry corpus sources, and the portfolio-citation lane validates the Foundry corpus citation gate.",
   "validation": [
     {

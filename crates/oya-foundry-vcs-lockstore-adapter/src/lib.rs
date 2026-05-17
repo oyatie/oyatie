@@ -635,7 +635,7 @@ mod tests {
         Claim::new(
             id,
             agent,
-            "M-CC-P00-IP-002",
+            "M01-P07-IP-002",
             vec![symbol(symbol_name)],
             vec![],
             ttl,

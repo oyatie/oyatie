@@ -9,8 +9,8 @@
   "agent": "codex-m01-audit",
   "objective": "Progress Oyatie master-plan execution from M01 Foundation toward M02/M03 readiness without duplicating concurrent M-CC lane.",
   "restated_deliverables": [
-    "Verify M-CC-P00 readiness or waiver before broad fanout/new foundation scaffolds.",
-    "Verify M-CC-P01 is at or beyond P5 before broad fanout/new foundation scaffolds.",
+    "Verify M01-P07 readiness or waiver before broad fanout/new foundation scaffolds.",
+    "Verify M01-P08 is at or beyond P5 before broad fanout/new foundation scaffolds.",
     "Use live Cargo workspace metadata and BNF v4.1 package names, not stale oya-platform phase text.",
     "Execute/accept M01 G1 before G2; accept G2 only after G1 contracts are usable.",
     "Do not implement M02/M03 until M01 acceptance is real.",
@@ -24,7 +24,7 @@
     "grit_done_required": true
   },
   "m_cc_gates": {
-    "M-CC-P00": {
+    "M01-P07": {
       "spec": "/specs/gitops-vcs-replacement.json",
       "spec_status": "Accepted-for-masterplan-P00",
       "phase_status": "first-prerequisite-planned",
@@ -37,7 +37,7 @@
         "continue using grit-compatible claim/work/done and ADR-0054 scaffold fallback until P00 successor is ready"
       ]
     },
-    "M-CC-P01": {
+    "M01-P08": {
       "phase_status": "foundation-cleared",
       "p5_or_higher": true,
       "live_lane_evidence": [
@@ -117,13 +117,13 @@
       "evidence": "M01 status complete for foundation acceptance; P01-P06 phase table complete."
     },
     {
-      "requirement": "Verify M-CC-P00 readiness or waiver",
+      "requirement": "Verify M01-P07 readiness or waiver",
       "artifact": "/specs/gitops-vcs-replacement.json + this evidence",
       "evidence": "P00 spec accepted but phase remains first-prerequisite-planned; waiver is scoped to acceptance reconciliation only."
     },
     {
-      "requirement": "Verify M-CC-P01 >= P5",
-      "artifact": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/INDEX.md + live lane output",
+      "requirement": "Verify M01-P08 >= P5",
+      "artifact": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/INDEX.md + live lane output",
       "evidence": "P01 foundation-cleared; banned-primitives/archive-orphan/authoritative-tracked commands pass."
     },
     {
@@ -186,7 +186,7 @@
     {
       "command": "cargo run --quiet -p oya-dev-cli -- gate validate wave-integration --milestone M02",
       "status": "pass",
-      "summary": "wave integration validation passed: 22 phases, 89 dependencies; M02 phase graph is structurally ready but broad fanout remains blocked by M-CC-P00 not-ready/no broad-fanout waiver."
+      "summary": "wave integration validation passed: 22 phases, 89 dependencies; M02 phase graph is structurally ready but broad fanout remains blocked by M01-P07 not-ready/no broad-fanout waiver."
     },
     {
       "command": "scripts/check-stage0-application-shell-prereqs.py --self-test",
@@ -217,8 +217,8 @@
     "/specs/masterplan.json"
   ],
   "known_limits": [
-    "M-CC-P00 is not claimed ready; waiver is scoped to M01 acceptance reconciliation only.",
-    "M02/M03 implementation remains gated; M02 wave-integration is structurally green, but broad fanout is blocked until M-CC-P00 readiness or explicit waiver."
+    "M01-P07 is not claimed ready; waiver is scoped to M01 acceptance reconciliation only.",
+    "M02/M03 implementation remains gated; M02 wave-integration is structurally green, but broad fanout is blocked until M01-P07 readiness or explicit waiver."
   ],
   "purpose": "Auto-backfilled purpose for m01-foundation-acceptance-audit-2026-05-14.json"
 }

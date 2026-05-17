@@ -34,7 +34,7 @@
     {
       "severity": "MAJOR",
       "summary": "Split-state INDEX drift: .omc/fitness-lanes/INDEX.md on origin/dev still lists archive-orphan as active (`new-directive` / BLOCKER / `cargo run -p oya-foundry-fitness-archive-orphan` / 1200ms) while the parallel docs/fitness-lanes/INDEX.md was correctly retired by this PR. The .omc INDEX row points at a workspace package and runner path that no longer exist post-merge, breaking the structure-adherence invariant that canonical lane registries stay synchronized.",
-      "recommended_action": "Follow-up PR: update .omc/fitness-lanes/INDEX.md row to match docs/fitness-lanes/INDEX.md retirement row (`| archive-orphan | retired | ADR-0118 / ADR-0116 / M-CC-P11 replacement | retired | retired | retired; no CI invocation | 0 | retired |`) plus append the same dated retirement note row. Optionally add a fitness-lane-registry consistency check (parallel-md-sync) to prevent future drift.",
+      "recommended_action": "Follow-up PR: update .omc/fitness-lanes/INDEX.md row to match docs/fitness-lanes/INDEX.md retirement row (`| archive-orphan | retired | ADR-0118 / ADR-0116 / M01-P18 replacement | retired | retired | retired; no CI invocation | 0 | retired |`) plus append the same dated retirement note row. Optionally add a fitness-lane-registry consistency check (parallel-md-sync) to prevent future drift.",
       "fixuptask_id": "F-PR13-01"
     },
     {

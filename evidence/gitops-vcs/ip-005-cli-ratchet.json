@@ -1,9 +1,9 @@
 {
   "schema_version": "1.0.0",
   "evidence_type": "implementation-packet",
-  "milestone": "M-CC-P00",
+  "milestone": "M01-P07",
   "phase": "P00-gitops-vcs-replacement",
-  "implementation_packet": "M-CC-P00-IP-005",
+  "implementation_packet": "M01-P07-IP-005",
   "execution_unit": "ChangeSet",
   "created_at": "2026-05-14T10:50:21.999587Z",
   "workspace_changes": [

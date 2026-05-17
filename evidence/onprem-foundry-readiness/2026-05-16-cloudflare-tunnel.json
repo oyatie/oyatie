@@ -37,7 +37,7 @@
     "tls_termination": "Cloudflare edge",
     "origin_protocol": "HTTP (loopback only, never leaves the host)",
     "hsts": "max-age=31536000",
-    "directive_alignment": "M-CC-P05 cloud-multi-provider readiness ✓; ADR-0043 §api_listener TLS-disabled-with-CF-front ✓"
+    "directive_alignment": "M01-P12 cloud-multi-provider readiness ✓; ADR-0043 §api_listener TLS-disabled-with-CF-front ✓"
   },
   "token_lifecycle": {
     "tokens_used_this_session": [

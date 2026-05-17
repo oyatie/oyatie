@@ -22,7 +22,7 @@
     ]
   },
   "milestones": {
-    "M-CC-cross-cutting": {
+    "M01-foundation": {
       "phases": {
         "P00-gitops-vcs-replacement": {
           "ip_count": 9,
@@ -394,9 +394,9 @@
   },
   "ip_rows": [
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-001-symbol-lock-domain",
       "status": "complete",
@@ -405,9 +405,9 @@
       "title": "Symbol lock domain + ChangeSet kernel"
     },
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-002-remote-lock-store-events",
       "status": "complete",
@@ -416,9 +416,9 @@
       "title": "Remote lock store + event stream"
     },
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-003-change-bundle-attestation",
       "status": "complete",
@@ -427,9 +427,9 @@
       "title": "ChangeBundle attestation + provenance"
     },
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-004-gitops-promotion-controller",
       "status": "complete",
@@ -438,9 +438,9 @@
       "title": "GitOps promotion controller + provider seams"
     },
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-005-grit-compat-cli-and-migration-ratchet",
       "status": "complete",
@@ -449,9 +449,9 @@
       "title": "Grit-compatible CLI + migration ratchet"
     },
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-006-polyglot-indexers",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-006-polyglot-indexers",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-006-polyglot-indexers",
       "status": "complete",
@@ -460,9 +460,9 @@
       "title": "Polyglot AST/indexer adapters"
     },
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-007-review-fix-rebase-merge-queue-loop",
       "status": "complete",
@@ -471,9 +471,9 @@
       "title": "Review/fix, rebase, and merge-queue loop"
     },
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-008-test-standard-enforcement",
       "status": "complete",
@@ -482,9 +482,9 @@
       "title": "Unit/integration/e2e standard enforcement"
     },
     {
-      "item_id": "M-CC-cross-cutting/P00-gitops-vcs-replacement/IP-009-ast-index-contract",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P00-gitops-vcs-replacement/IP-009-ast-index-contract",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md",
+      "milestone": "M01-foundation",
       "phase": "P00-gitops-vcs-replacement",
       "ip_id": "IP-009-ast-index-contract",
       "status": "complete",
@@ -493,9 +493,9 @@
       "title": "AST index contract + impacted-test mapping"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-001-adr-0054-scaffold-claim",
       "status": "complete",
@@ -504,9 +504,9 @@
       "title": "ADR-0054 scaffold-claim pattern + RACI human-orchestrator row (P0.5)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-002-inventory-adr-0052",
       "status": "complete",
@@ -515,9 +515,9 @@
       "title": "Inventory pass + ADR-0052 (P1)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-003-oya-tooling-agent-read",
       "status": "complete",
@@ -526,9 +526,9 @@
       "title": "oya-tooling-agent-read helper (P2)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-004-bidirectional-prd-cite",
       "status": "complete",
@@ -537,9 +537,9 @@
       "title": "Bidirectional PRD citation + portfolio-citation lane (P3)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-005-foundry-corpus-cross-cite",
       "status": "complete",
@@ -548,9 +548,9 @@
       "title": "Foundry corpus cross-cite + PHASE-00-SPEC.md (P3.5)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-006-agent-facing-memory",
       "status": "complete",
@@ -559,9 +559,9 @@
       "title": "Agent-facing memory rewrite (P4)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-007-hook-skill-audit",
       "status": "complete",
@@ -570,9 +570,9 @@
       "title": "Hook + skill audit + banned-primitives lane activation (P5)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-008-archive-glue",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-008-archive-glue",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-008-archive-glue",
       "status": "retired",
@@ -581,9 +581,9 @@
       "title": "Retired archive orchestration glue + archive-orphan lane (P6)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-009-delete-active-path",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-009-delete-active-path",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-009-delete-active-path",
       "status": "complete",
@@ -592,9 +592,9 @@
       "title": "Delete archived glue from active path (P7)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-010-parallel-claim-demo",
       "status": "complete",
@@ -603,9 +603,9 @@
       "title": "Parallel-claim demo runbook (P8)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-011-upstream-grit-bug",
       "status": "complete",
@@ -614,9 +614,9 @@
       "title": "File upstream grit session bug (P9)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit.md",
+      "milestone": "M01-foundation",
       "phase": "P01-agentic-pipeline-cutover",
       "ip_id": "IP-012-authoritative-tracked-audit",
       "status": "complete",
@@ -625,9 +625,9 @@
       "title": "Authoritative-tracked repo-walk audit (P10)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P02-doc-automation-freshness/IP-001-mdbook-pipeline",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-001-mdbook-pipeline.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P02-doc-automation-freshness/IP-001-mdbook-pipeline",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-001-mdbook-pipeline.md",
+      "milestone": "M01-foundation",
       "phase": "P02-doc-automation-freshness",
       "ip_id": "IP-001-mdbook-pipeline",
       "status": "complete",
@@ -636,9 +636,9 @@
       "title": "mdbook publishing pipeline kernel + source walkers"
     },
     {
-      "item_id": "M-CC-cross-cutting/P02-doc-automation-freshness/IP-002-doc-freshness-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-002-doc-freshness-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P02-doc-automation-freshness/IP-002-doc-freshness-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-002-doc-freshness-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P02-doc-automation-freshness",
       "ip_id": "IP-002-doc-freshness-lane",
       "status": "complete",
@@ -647,9 +647,9 @@
       "title": "Doc-freshness CI lane"
     },
     {
-      "item_id": "M-CC-cross-cutting/P02-doc-automation-freshness/IP-003-doc-style-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-003-doc-style-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P02-doc-automation-freshness/IP-003-doc-style-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-003-doc-style-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P02-doc-automation-freshness",
       "ip_id": "IP-003-doc-style-lane",
       "status": "complete",
@@ -658,9 +658,9 @@
       "title": "Doc-style enforcement lane + auto-format"
     },
     {
-      "item_id": "M-CC-cross-cutting/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit.md",
+      "milestone": "M01-foundation",
       "phase": "P03-purpose-orphan-detection",
       "ip_id": "IP-001-purpose-frontmatter-audit",
       "status": "split-required-too-broad-for-single-changeset",
@@ -669,9 +669,9 @@
       "title": "Purpose-frontmatter authoring (audit every existing doc/JSON)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P03-purpose-orphan-detection/IP-001.1-audit-root-core",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-001.1-audit-root-core.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P03-purpose-orphan-detection/IP-001.1-audit-root-core",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-001.1-audit-root-core.md",
+      "milestone": "M01-foundation",
       "phase": "P03-purpose-orphan-detection",
       "ip_id": "IP-001.1-audit-root-core",
       "status": "complete",
@@ -680,9 +680,9 @@
       "title": "Purpose-frontmatter audit (Part 1: Root & Core Docs)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P03-purpose-orphan-detection/IP-001.2-audit-milestones",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-001.2-audit-milestones.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P03-purpose-orphan-detection/IP-001.2-audit-milestones",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-001.2-audit-milestones.md",
+      "milestone": "M01-foundation",
       "phase": "P03-purpose-orphan-detection",
       "ip_id": "IP-001.2-audit-milestones",
       "status": "complete",
@@ -691,9 +691,9 @@
       "title": "Purpose-frontmatter audit (Part 2: Milestone Plans)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P03-purpose-orphan-detection/IP-001.3-audit-json",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-001.3-audit-json.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P03-purpose-orphan-detection/IP-001.3-audit-json",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-001.3-audit-json.md",
+      "milestone": "M01-foundation",
       "phase": "P03-purpose-orphan-detection",
       "ip_id": "IP-001.3-audit-json",
       "status": "complete",
@@ -702,9 +702,9 @@
       "title": "Purpose-frontmatter audit (Part 3: JSON Registries/Specs)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P03-purpose-orphan-detection/IP-002-orphan-detection-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-002-orphan-detection-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P03-purpose-orphan-detection/IP-002-orphan-detection-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-002-orphan-detection-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P03-purpose-orphan-detection",
       "ip_id": "IP-002-orphan-detection-lane",
       "status": "complete",
@@ -713,9 +713,9 @@
       "title": "Orphan-detection lane kernel"
     },
     {
-      "item_id": "M-CC-cross-cutting/P04-agentic-navigability/IP-001-navigability-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-001-navigability-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P04-agentic-navigability/IP-001-navigability-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P04-agentic-navigability/IP-001-navigability-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P04-agentic-navigability",
       "ip_id": "IP-001-navigability-lane",
       "status": "complete",
@@ -724,9 +724,9 @@
       "title": "Agentic-navigability lane kernel + parent-pointer validator"
     },
     {
-      "item_id": "M-CC-cross-cutting/P04-agentic-navigability/IP-002-predictable-naming",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-002-predictable-naming.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P04-agentic-navigability/IP-002-predictable-naming",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P04-agentic-navigability/IP-002-predictable-naming.md",
+      "milestone": "M01-foundation",
       "phase": "P04-agentic-navigability",
       "ip_id": "IP-002-predictable-naming",
       "status": "complete",
@@ -735,9 +735,9 @@
       "title": "Predictable-naming convention enforcement"
     },
     {
-      "item_id": "M-CC-cross-cutting/P05-provider-agnosticism/IP-001-provider-coupling-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-001-provider-coupling-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P05-provider-agnosticism/IP-001-provider-coupling-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-001-provider-coupling-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P05-provider-agnosticism",
       "ip_id": "IP-001-provider-coupling-lane",
       "status": "complete",
@@ -746,9 +746,9 @@
       "title": "Provider-coupling lane kernel"
     },
     {
-      "item_id": "M-CC-cross-cutting/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit.md",
+      "milestone": "M01-foundation",
       "phase": "P05-provider-agnosticism",
       "ip_id": "IP-002-cloud-multi-provider-audit",
       "status": "split-required-too-broad-for-single-changeset",
@@ -757,9 +757,9 @@
       "title": "Multi-provider adapter audit + remediation across Cloud kernels"
     },
     {
-      "item_id": "M-CC-cross-cutting/P05-provider-agnosticism/IP-002.1-audit-billing-marketplace",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-002.1-audit-billing-marketplace.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P05-provider-agnosticism/IP-002.1-audit-billing-marketplace",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-002.1-audit-billing-marketplace.md",
+      "milestone": "M01-foundation",
       "phase": "P05-provider-agnosticism",
       "ip_id": "IP-002.1-audit-billing-marketplace",
       "status": "complete",
@@ -768,9 +768,9 @@
       "title": "Multi-provider adapter audit (Part 1: Billing & Marketplace)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P05-provider-agnosticism/IP-002.2-audit-capacity-data",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-002.2-audit-capacity-data.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P05-provider-agnosticism/IP-002.2-audit-capacity-data",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-002.2-audit-capacity-data.md",
+      "milestone": "M01-foundation",
       "phase": "P05-provider-agnosticism",
       "ip_id": "IP-002.2-audit-capacity-data",
       "status": "complete",
@@ -779,9 +779,9 @@
       "title": "Multi-provider adapter audit (Part 2: Capacity & Data)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P05-provider-agnosticism/IP-002.3-audit-finops-observability",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-002.3-audit-finops-observability.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P05-provider-agnosticism/IP-002.3-audit-finops-observability",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-002.3-audit-finops-observability.md",
+      "milestone": "M01-foundation",
       "phase": "P05-provider-agnosticism",
       "ip_id": "IP-002.3-audit-finops-observability",
       "status": "complete",
@@ -790,9 +790,9 @@
       "title": "Multi-provider adapter audit (Part 3: Finops & Observability)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P05-provider-agnosticism/IP-003-adapter-substitution-harness",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-003-adapter-substitution-harness.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P05-provider-agnosticism/IP-003-adapter-substitution-harness",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-003-adapter-substitution-harness.md",
+      "milestone": "M01-foundation",
       "phase": "P05-provider-agnosticism",
       "ip_id": "IP-003-adapter-substitution-harness",
       "status": "complete",
@@ -801,9 +801,9 @@
       "title": "Adapter-substitution integration-test harness"
     },
     {
-      "item_id": "M-CC-cross-cutting/P06-distroless-lts-image/IP-001-distroless-image-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-001-distroless-image-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P06-distroless-lts-image/IP-001-distroless-image-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-001-distroless-image-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P06-distroless-lts-image",
       "ip_id": "IP-001-distroless-image-lane",
       "status": "complete",
@@ -812,9 +812,9 @@
       "title": "Distroless base + image-discipline lane"
     },
     {
-      "item_id": "M-CC-cross-cutting/P06-distroless-lts-image/IP-002-lts-dependency-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P06-distroless-lts-image/IP-002-lts-dependency-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P06-distroless-lts-image",
       "ip_id": "IP-002-lts-dependency-lane",
       "status": "in-progress",
@@ -823,9 +823,9 @@
       "title": "Dependency-seam discipline + tech-debt ledger + LTS roster"
     },
     {
-      "item_id": "M-CC-cross-cutting/P06-distroless-lts-image/IP-003-static-musl-build",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-003-static-musl-build.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P06-distroless-lts-image/IP-003-static-musl-build",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-003-static-musl-build.md",
+      "milestone": "M01-foundation",
       "phase": "P06-distroless-lts-image",
       "ip_id": "IP-003-static-musl-build",
       "status": "complete",
@@ -834,9 +834,9 @@
       "title": "Static / musl-linked binary build pipeline"
     },
     {
-      "item_id": "M-CC-cross-cutting/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem.md",
+      "milestone": "M01-foundation",
       "phase": "P07-hyperscaler-practices",
       "ip_id": "IP-001-prfaq-designdoc-postmortem",
       "status": "complete",
@@ -845,9 +845,9 @@
       "title": "PRFAQ + Design-Doc + Postmortem templates"
     },
     {
-      "item_id": "M-CC-cross-cutting/P07-hyperscaler-practices/IP-002-1es-ci-templates",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-002-1es-ci-templates.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P07-hyperscaler-practices/IP-002-1es-ci-templates",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-002-1es-ci-templates.md",
+      "milestone": "M01-foundation",
       "phase": "P07-hyperscaler-practices",
       "ip_id": "IP-002-1es-ci-templates",
       "status": "complete",
@@ -856,9 +856,9 @@
       "title": "1ES-templated CI pipelines"
     },
     {
-      "item_id": "M-CC-cross-cutting/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate.md",
+      "milestone": "M01-foundation",
       "phase": "P07-hyperscaler-practices",
       "ip_id": "IP-003-eng-excellence-merge-gate",
       "status": "complete",
@@ -867,9 +867,9 @@
       "title": "Engineering Excellence Council merge gate"
     },
     {
-      "item_id": "M-CC-cross-cutting/P07-hyperscaler-practices/IP-004-rust-toolchain-gates",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-004-rust-toolchain-gates.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P07-hyperscaler-practices/IP-004-rust-toolchain-gates",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-004-rust-toolchain-gates.md",
+      "milestone": "M01-foundation",
       "phase": "P07-hyperscaler-practices",
       "ip_id": "IP-004-rust-toolchain-gates",
       "status": "complete",
@@ -878,9 +878,9 @@
       "title": "Rust toolchain hyperscaler-gate set"
     },
     {
-      "item_id": "M-CC-cross-cutting/P08-supply-chain-security/IP-001-cosign-rekor",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-001-cosign-rekor.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P08-supply-chain-security/IP-001-cosign-rekor",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-001-cosign-rekor.md",
+      "milestone": "M01-foundation",
       "phase": "P08-supply-chain-security",
       "ip_id": "IP-001-cosign-rekor",
       "status": "complete",
@@ -889,9 +889,9 @@
       "title": "Cosign + Rekor signing pipeline"
     },
     {
-      "item_id": "M-CC-cross-cutting/P08-supply-chain-security/IP-002-sbom-pipeline",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-002-sbom-pipeline.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P08-supply-chain-security/IP-002-sbom-pipeline",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-002-sbom-pipeline.md",
+      "milestone": "M01-foundation",
       "phase": "P08-supply-chain-security",
       "ip_id": "IP-002-sbom-pipeline",
       "status": "complete",
@@ -900,9 +900,9 @@
       "title": "SBOM generation per build (CycloneDX / SPDX)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P08-supply-chain-security/IP-003-license-policy-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-003-license-policy-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P08-supply-chain-security/IP-003-license-policy-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-003-license-policy-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P08-supply-chain-security",
       "ip_id": "IP-003-license-policy-lane",
       "status": "complete",
@@ -911,9 +911,9 @@
       "title": "License-policy lane (AGPL/GPL/SSPL/BUSL/RSAL hard-deny)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P08-supply-chain-security/IP-004-slsa-attestation",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P08-supply-chain-security/IP-004-slsa-attestation",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
+      "milestone": "M01-foundation",
       "phase": "P08-supply-chain-security",
       "ip_id": "IP-004-slsa-attestation",
       "status": "complete",
@@ -922,9 +922,9 @@
       "title": "SLSA level \u22653 attestation publishing"
     },
     {
-      "item_id": "M-CC-cross-cutting/P09-visualization-as-code/IP-001-architecture-map-walkers",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P09-visualization-as-code/IP-001-architecture-map-walkers",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md",
+      "milestone": "M01-foundation",
       "phase": "P09-visualization-as-code",
       "ip_id": "IP-001-architecture-map-walkers",
       "status": "complete",
@@ -933,9 +933,9 @@
       "title": "oya-foundry-architecture-map-kernel source walkers"
     },
     {
-      "item_id": "M-CC-cross-cutting/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters.md",
+      "milestone": "M01-foundation",
       "phase": "P09-visualization-as-code",
       "ip_id": "IP-002-mermaid-d2-graphviz-emitters",
       "status": "complete",
@@ -944,9 +944,9 @@
       "title": "Mermaid + D2 + Graphviz emitters"
     },
     {
-      "item_id": "M-CC-cross-cutting/P09-visualization-as-code/IP-003-mdbook-publish-integration",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-003-mdbook-publish-integration.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P09-visualization-as-code/IP-003-mdbook-publish-integration",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-003-mdbook-publish-integration.md",
+      "milestone": "M01-foundation",
       "phase": "P09-visualization-as-code",
       "ip_id": "IP-003-mdbook-publish-integration",
       "status": "complete",
@@ -955,9 +955,9 @@
       "title": "mdbook publishing integration"
     },
     {
-      "item_id": "M-CC-cross-cutting/P09-visualization-as-code/IP-004-architecture-map-freshness-lane",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P09-visualization-as-code/IP-004-architecture-map-freshness-lane",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
+      "milestone": "M01-foundation",
       "phase": "P09-visualization-as-code",
       "ip_id": "IP-004-architecture-map-freshness-lane",
       "status": "complete",
@@ -966,20 +966,20 @@
       "title": "oya-foundry-fitness-architecture-map-freshness lane"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-001-branch-protection-deploy",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-001-branch-protection-deploy.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-001-branch-protection-deploy",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-001-branch-protection-deploy.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-001-branch-protection-deploy",
       "status": "scaffolded",
       "acceptance_snippet": "- `gh api repos/<owner>/oyatie/branches/main/protection` returns 200 with all 9 required checks listed (not 404). - Repo metadata `allow_auto_merge: true`, `delete_branch_on_merge: true`. - A new fitn...",
-      "deps_snippet": "None. Wave-1 IP; can ship before all other M-CC-P10 IPs.",
+      "deps_snippet": "None. Wave-1 IP; can ship before all other M01-P17 IPs.",
       "title": "Branch-protection deploy + auto-merge enablement"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-002-oya-cli-gate-aggregator",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-002-oya-cli-gate-aggregator.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-002-oya-cli-gate-aggregator",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-002-oya-cli-gate-aggregator.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-002-oya-cli-gate-aggregator",
       "status": "complete",
@@ -988,9 +988,9 @@
       "title": "`oya` CLI binary + `oya gate run-all` aggregator"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-003-mistakes-ledger-5-control-stack",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-003-mistakes-ledger-5-control-stack.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-003-mistakes-ledger-5-control-stack",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-003-mistakes-ledger-5-control-stack.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-003-mistakes-ledger-5-control-stack",
       "status": "scaffolded",
@@ -999,9 +999,9 @@
       "title": "Mistakes-ledger 5-control stack (preflight runbook + template + fitness lane + ICM hook + citation probe)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-004-reviewer-agent-auto-dispatch",
       "status": "scaffolded",
@@ -1010,9 +1010,9 @@
       "title": "Reviewer-agent auto-dispatch on PR open + merge-queue integration"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-005-ci-failure-webhook-fix-loop",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-005-ci-failure-webhook-fix-loop.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-005-ci-failure-webhook-fix-loop",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-005-ci-failure-webhook-fix-loop.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-005-ci-failure-webhook-fix-loop",
       "status": "scaffolded",
@@ -1021,9 +1021,9 @@
       "title": "CI-failure webhook \u2192 fix-loop agent dispatch"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-006-merge-queue-fix-loop-integration",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-006-merge-queue-fix-loop-integration.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-006-merge-queue-fix-loop-integration",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-006-merge-queue-fix-loop-integration.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-006-merge-queue-fix-loop-integration",
       "status": "scaffolded",
@@ -1032,9 +1032,9 @@
       "title": "Merge-queue fix-loop integration (parked-PR semantics + bounded retry + fairness + revalidation)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-007-surface-all-failures-ci",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-007-surface-all-failures-ci.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-007-surface-all-failures-ci",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-007-surface-all-failures-ci.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-007-surface-all-failures-ci",
       "status": "scaffolded",
@@ -1043,9 +1043,9 @@
       "title": "Surface-all-failures CI workflow refactor (relax `needs:`, `if: always()`)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-008-banned-primitives-fitness-check",
       "status": "scaffolded",
@@ -1054,9 +1054,9 @@
       "title": "Banned-primitives fitness check (catches grit/git bypass; auto-flips when grit retires)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P10-pipeline-maturity-glue/IP-009-subagent-runtime",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-009-subagent-runtime.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P10-pipeline-maturity-glue/IP-009-subagent-runtime",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-009-subagent-runtime.md",
+      "milestone": "M01-foundation",
       "phase": "P10-pipeline-maturity-glue",
       "ip_id": "IP-009-subagent-runtime",
       "status": "scaffolded",
@@ -1065,9 +1065,9 @@
       "title": "Subagent runtime (real per-facet Claude API invocation + fix-agent invocation)"
     },
     {
-      "item_id": "M-CC-cross-cutting/P11-agentic-vcs-pipeline/IP-001-changeset-state-kernel",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-001-changeset-state-kernel.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P11-agentic-vcs-pipeline/IP-001-changeset-state-kernel",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-001-changeset-state-kernel.md",
+      "milestone": "M01-foundation",
       "phase": "P11-agentic-vcs-pipeline",
       "ip_id": "IP-001-changeset-state-kernel",
       "status": "scaffolded",
@@ -1076,20 +1076,20 @@
       "title": "Changeset state kernel + event log + monotonicity lane"
     },
     {
-      "item_id": "M-CC-cross-cutting/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md",
+      "milestone": "M01-foundation",
       "phase": "P11-agentic-vcs-pipeline",
       "ip_id": "IP-002-merge-queue-projected-state",
       "status": "scaffolded",
       "acceptance_snippet": "- `validate_projected_merge_state(dev_head, queued_prs, candidate)`   kernel function exists, returns   `Result<ProjectedStateReport, ProjectedStateError>`. - 3-invariant validator wired into the exis...",
-      "deps_snippet": "- M-CC-P11-IP-001 (changeset-state kernel) \u2014 for emitting   re-validation events.",
+      "deps_snippet": "- M01-P18-IP-001 (changeset-state kernel) \u2014 for emitting   re-validation events.",
       "title": "Merge-queue projected-state + fix-at-any-stage re-validate"
     },
     {
-      "item_id": "M-CC-cross-cutting/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md",
+      "milestone": "M01-foundation",
       "phase": "P11-agentic-vcs-pipeline",
       "ip_id": "IP-003-webhook-receiver-substrate",
       "status": "scaffolded",
@@ -1098,31 +1098,31 @@
       "title": "Webhook receiver substrate + event router"
     },
     {
-      "item_id": "M-CC-cross-cutting/P11-agentic-vcs-pipeline/IP-004-vcs-orchestrator",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-004-vcs-orchestrator.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P11-agentic-vcs-pipeline/IP-004-vcs-orchestrator",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-004-vcs-orchestrator.md",
+      "milestone": "M01-foundation",
       "phase": "P11-agentic-vcs-pipeline",
       "ip_id": "IP-004-vcs-orchestrator",
       "status": "scaffolded",
       "acceptance_snippet": "- `oya vcs done --changeset <id> --subscribe <url>` returns within   10 seconds with valid JSON containing `changeset_id`,   `current_state: pr_open`, `pr_number`, `pr_url`,   `cost_budget_remaining`....",
-      "deps_snippet": "- M-CC-P11-IP-001 (changeset-state kernel) \u2014 for state writes. - IP-003 (webhook receiver) for `--subscribe` callbacks  ...",
+      "deps_snippet": "- M01-P18-IP-001 (changeset-state kernel) \u2014 for state writes. - IP-003 (webhook receiver) for `--subscribe` callbacks  ...",
       "title": "VCS orchestrator + async-by-default `oya vcs done`"
     },
     {
-      "item_id": "M-CC-cross-cutting/P11-agentic-vcs-pipeline/IP-005-canary-controller",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-005-canary-controller.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P11-agentic-vcs-pipeline/IP-005-canary-controller",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-005-canary-controller.md",
+      "milestone": "M01-foundation",
       "phase": "P11-agentic-vcs-pipeline",
       "ip_id": "IP-005-canary-controller",
       "status": "scaffolded",
       "acceptance_snippet": "- Kernel exposes `evaluate_canary_verdict(signals: &SignalSnapshot,   thresholds: &Thresholds) -> CanaryVerdict` with closed-enum   return. - 6 unit tests cover: clean signals \u2192 Promote; latency breac...",
-      "deps_snippet": "- M-CC-P11-IP-001 (changeset-state kernel) \u2014 for verdict events. - OpenTelemetry collector per cell (assumed; cells with...",
+      "deps_snippet": "- M01-P18-IP-001 (changeset-state kernel) \u2014 for verdict events. - OpenTelemetry collector per cell (assumed; cells with...",
       "title": "Canary controller + per-cell cohort + thresholds + rollback"
     },
     {
-      "item_id": "M-CC-cross-cutting/P11-agentic-vcs-pipeline/IP-006-wave-b-integration",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-006-wave-b-integration.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P11-agentic-vcs-pipeline/IP-006-wave-b-integration",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-006-wave-b-integration.md",
+      "milestone": "M01-foundation",
       "phase": "P11-agentic-vcs-pipeline",
       "ip_id": "IP-006-wave-b-integration",
       "status": "scaffolded",
@@ -1131,14 +1131,14 @@
       "title": "Wave-B integration \u2014 gate promotions on canary; webhook-route IP-004/005/006"
     },
     {
-      "item_id": "M-CC-cross-cutting/P11-agentic-vcs-pipeline/IP-007-wave-c-operational-fitness",
-      "source_path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-007-wave-c-operational-fitness.md",
-      "milestone": "M-CC-cross-cutting",
+      "item_id": "M01-foundation/P11-agentic-vcs-pipeline/IP-007-wave-c-operational-fitness",
+      "source_path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-007-wave-c-operational-fitness.md",
+      "milestone": "M01-foundation",
       "phase": "P11-agentic-vcs-pipeline",
       "ip_id": "IP-007-wave-c-operational-fitness",
       "status": "scaffolded",
       "acceptance_snippet": "- Each lane has a kernel + runner + dev-cli gate-validate arm   per the existing patterns   (`crates/oya-check-<lane>/` + `crates/oya-dev-cli/src/<lane>_gate.rs`). - Each lane runs on the canonical sc...",
-      "deps_snippet": "- M-CC-P11-IP-006 (wave-B integration) \u2014 these lanes consume the   event log + rewind log produced by wave-B.",
+      "deps_snippet": "- M01-P18-IP-006 (wave-B integration) \u2014 these lanes consume the   event log + rewind log produced by wave-B.",
       "title": "Wave-C operational fitness lanes"
     },
     {
@@ -2298,7 +2298,7 @@
   },
   "milestone_phase_counts": {},
   "status_by_milestone": {
-    "M-CC-cross-cutting": {
+    "M01-foundation": {
       "complete": 49,
       "retired": 1,
       "split-required-too-broad-for-single-changeset": 2,

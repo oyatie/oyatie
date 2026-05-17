@@ -65,6 +65,6 @@
     "no on-prem systemd-bound /health smoke captured (deploy blocked on sudo)",
     "no OCI iam/kms/api-gw probe results (auth not configured)",
     "no multi-agent sibling-team self-sufficiency rehearsal (single agent)",
-    "M-CC-P11 changeset-event-log.json has 0 events for this bundle (we are operating outside the controller's event-driven topology)"
+    "M01-P18 changeset-event-log.json has 0 events for this bundle (we are operating outside the controller's event-driven topology)"
   ]
 }

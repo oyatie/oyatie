@@ -23,8 +23,8 @@ Six phases covering account-auth contracts, provider gateway, visibility, gates/
 
 ## Dependencies
 - **Hard:** M01 acceptance gate passed.
-- **Hard:** M-CC-P01 (agentic-pipeline cutover) ≥ P5 merged.
-- **Soft:** M-CC-P05 (provider-agnosticism rollout) — Foundry adapter pattern is the canonical implementation.
+- **Hard:** M01-P08 (agentic-pipeline cutover) ≥ P5 merged.
+- **Soft:** M01-P12 (provider-agnosticism rollout) — Foundry adapter pattern is the canonical implementation.
 
 ## Acceptance gate
 - SecretProvider + KMS in production (provider-agnostic interface; OpenBao reference adapter).
@@ -58,7 +58,7 @@ P00 must complete first (domain types + state machine + secret persistence). Aft
 - Microsoft 1ES CI templates for live-provider smoke lane.
 - Oracle Engineering-Excellence-Council merge gate.
 - Rust toolchain gates inherited.
-- Multi-provider adapter pattern (M-CC-P05) is THE canonical implementation; this milestone validates the principle.
+- Multi-provider adapter pattern (M01-P12) is THE canonical implementation; this milestone validates the principle.
 
 ## Agent-navigability-pointer
 First-claim seed symbol: `crates/oya-foundry-account-kernel/src/lib.rs::ProviderAccount` (after P00 IP-001 scaffold-claim per ADR-0054).

@@ -1,6 +1,6 @@
 //! Image-discipline fitness kernel — blocks non-distroless bases,
 //! shells / package-managers in the final image layer, and oversized
-//! images. Per M-CC-P06: distroless + LTS + size budget.
+//! images. Per M01-P13: distroless + LTS + size budget.
 //!
 //! I/O-free. Runners parse Dockerfiles / image manifests / OCI inspect
 //! output into typed [`ImageDescriptor`] records and feed them to

@@ -13,7 +13,7 @@
   "null_finding_reason": null,
   "position": "concurs_with_synthesis_after_rebuttal",
   "pr_number": 3,
-  "pr_title": "ADR-0083 DENY + M-CC-P10 pipeline maturity + CLI canonicalization",
+  "pr_title": "ADR-0083 DENY + M01-P17 pipeline maturity + CLI canonicalization",
   "rendered_at_unix": 1778920055,
   "reviewer_id": "codex-F5-pr-3-r2-rebuttal",
   "rigor": "GREEN",

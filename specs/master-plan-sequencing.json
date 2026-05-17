@@ -124,10 +124,10 @@
   ],
   "early_prerequisites": [
     {
-      "id": "M-CC-P00-gitops-vcs-replacement",
+      "id": "M01-P07-gitops-vcs-replacement",
       "source_path": "/specs/gitops-vcs-replacement.json",
       "must_complete_before": [
-        "M-CC-P01",
+        "M01-P08",
         "broad M01/M02/M03 parallel fan-out"
       ],
       "compatibility_window": "P00 core is complete and Oya VCS admission is required for forward agentic fan-out; legacy grit/icm may only preserve historical provenance or unblock a documented command-surface gap."

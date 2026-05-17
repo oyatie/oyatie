@@ -1,8 +1,8 @@
 {
   "$schema_ref": "/templates/evidence-bundle-template.json",
-  "_artifact_id": "M-CC-P05-IP-002-cloud-multi-provider-audit",
+  "_artifact_id": "M01-P12-IP-002-cloud-multi-provider-audit",
   "_meta": {
-    "ip": "M-CC-P05-IP-002",
+    "ip": "M01-P12-IP-002",
     "audited_at": "2026-05-14",
     "scope": "crates/oya-cloud-<svc>-adapter-<provider>-*",
     "providers_checked": [
@@ -175,5 +175,5 @@
       "kakao"
     ]
   },
-  "next_action": "Each (service, provider) cell with zero adapters is a candidate sub-IP under M-CC-P05-IP-002a..z. Schedule provider-specific adapter implementation work after kernel ports stabilize."
+  "next_action": "Each (service, provider) cell with zero adapters is a candidate sub-IP under M01-P12-IP-002a..z. Schedule provider-specific adapter implementation work after kernel ports stabilize."
 }

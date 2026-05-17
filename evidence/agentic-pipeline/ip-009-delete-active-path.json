@@ -1,6 +1,6 @@
 {
   "changed_files": [
-    ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
+    ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
     "docs/decisions/ADR-0052-inventory-grit-cutover.md",
     ".omc/scratch/inventory-draft-oyatie-cutover.md",
     "docs/CHANGELOG.md",
@@ -47,11 +47,11 @@
   ],
   "evidence_type": "implementation-packet",
   "generated_at": "2026-05-14T19:58:00Z",
-  "implementation_packet": "M-CC-P01-IP-009",
+  "implementation_packet": "M01-P08-IP-009",
   "known_blockers": [],
-  "milestone": "M-CC-cross-cutting",
+  "milestone": "M01-foundation",
   "next_steps": [
-    "M-CC-P01-IP-009 is complete; IP-010 and IP-012 also have closeout evidence.",
+    "M01-P08-IP-009 is complete; IP-010 and IP-012 also have closeout evidence.",
     "Defer broad master-plan parallel expansion until P00 acceptance/waiver is recorded."
   ],
   "phase": "P01-agentic-pipeline-cutover",
@@ -61,7 +61,7 @@
     "ADR-0052 ARCHIVE rows with Archived at null count was 0 before deletion"
   ],
   "schema_version": "1.0.0",
-  "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
+  "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
   "summary": "P7 removed the two ADR-0052 DELETE-class Bominal ultragoal active-path ephemera files after all three gates were green, then reconciled one stale absent KEEP evidence-file row found during code review.",
   "validation": [
     {

@@ -620,7 +620,7 @@ mod tests {
             "--agent",
             "agent-a",
             "--intent",
-            "M-CC-P00-IP-005",
+            "M01-P07-IP-005",
             "crates/oya-foundry-vcs-cli-ratchet-kernel",
         ]);
         assert_eq!(claim.kind, OyaVcsCommandKind::Claim);

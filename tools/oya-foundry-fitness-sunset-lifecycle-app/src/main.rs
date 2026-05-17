@@ -698,15 +698,15 @@ mod tests {
             "--now".to_string(),
             "2026-05-15".to_string(),
             "--reached-milestone".to_string(),
-            "M-CC-P01-merge".to_string(),
+            "M01-P08-merge".to_string(),
             "--reached-milestone".to_string(),
-            "M-CC-P00-merge".to_string(),
+            "M01-P07-merge".to_string(),
         ];
         let options = Options::parse(&args).expect("parse");
         assert_eq!(options.now, Date::parse_iso("2026-05-15").unwrap());
         assert_eq!(
             options.reached_milestones,
-            vec!["M-CC-P01-merge".to_string(), "M-CC-P00-merge".to_string(),]
+            vec!["M01-P08-merge".to_string(), "M01-P07-merge".to_string(),]
         );
     }
 

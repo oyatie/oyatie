@@ -203,69 +203,69 @@
       "verdict": "in_progress_blocking_control_surface",
       "verdict_rationale": "Cross-cutting control surfaces are actively landing; P00 is complete in specs/masterplan.json, but P11 canary/controller wave and full dissolution evidence are not yet terminal.",
       "repo_directories": [
-        "M-CC-cross-cutting"
+        "M01-foundation"
       ],
       "repo_directory_alignment": "aligned",
       "phases": [
         {
           "id": "P00",
           "label": "P00",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "complete_by_specs_masterplan_index_but_still_requires_downstream_runtime_proof",
           "implementation_plans": [
             {
               "id": "IP-001-symbol-lock-domain",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-remote-lock-store-events",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-003-change-bundle-attestation",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-004-gitops-promotion-controller",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-005-grit-compat-cli-and-migration-ratchet",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-006-polyglot-indexers",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-007-review-fix-rebase-merge-queue-loop",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-008-test-standard-enforcement",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-009-ast-index-contract",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -276,80 +276,80 @@
         {
           "id": "P01",
           "label": "P01",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-adr-0054-scaffold-claim",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-inventory-adr-0052",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-003-oya-tooling-agent-read",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-004-bidirectional-prd-cite",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-005-foundry-corpus-cross-cite",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-006-agent-facing-memory",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-007-hook-skill-audit",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-008-archive-glue",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-009-delete-active-path",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-010-parallel-claim-demo",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-011-upstream-grit-bug",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-012-authoritative-tracked-audit",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -360,26 +360,26 @@
         {
           "id": "P02",
           "label": "P02",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-mdbook-pipeline",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-001-mdbook-pipeline.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-001-mdbook-pipeline.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-doc-freshness-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-002-doc-freshness-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-002-doc-freshness-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-003-doc-style-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-003-doc-style-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-003-doc-style-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -390,20 +390,20 @@
         {
           "id": "P03",
           "label": "P03",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-purpose-frontmatter-audit",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-orphan-detection-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-002-orphan-detection-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-002-orphan-detection-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -414,20 +414,20 @@
         {
           "id": "P04",
           "label": "P04",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P04-agentic-navigability/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-navigability-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-001-navigability-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P04-agentic-navigability/IP-001-navigability-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-predictable-naming",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-002-predictable-naming.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P04-agentic-navigability/IP-002-predictable-naming.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -438,26 +438,26 @@
         {
           "id": "P05",
           "label": "P05",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-provider-coupling-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-001-provider-coupling-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-001-provider-coupling-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-cloud-multi-provider-audit",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-003-adapter-substitution-harness",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-003-adapter-substitution-harness.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-003-adapter-substitution-harness.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -468,26 +468,26 @@
         {
           "id": "P06",
           "label": "P06",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-distroless-image-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-001-distroless-image-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-001-distroless-image-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-lts-dependency-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-003-static-musl-build",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-003-static-musl-build.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-003-static-musl-build.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -498,32 +498,32 @@
         {
           "id": "P07",
           "label": "P07",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-prfaq-designdoc-postmortem",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-1es-ci-templates",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-002-1es-ci-templates.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-002-1es-ci-templates.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-003-eng-excellence-merge-gate",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-004-rust-toolchain-gates",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-004-rust-toolchain-gates.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-004-rust-toolchain-gates.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -534,32 +534,32 @@
         {
           "id": "P08",
           "label": "P08",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-cosign-rekor",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-001-cosign-rekor.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-001-cosign-rekor.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-sbom-pipeline",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-002-sbom-pipeline.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-002-sbom-pipeline.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-003-license-policy-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-003-license-policy-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-003-license-policy-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-004-slsa-attestation",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -570,32 +570,32 @@
         {
           "id": "P09",
           "label": "P09",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/",
           "path_exists": true,
           "status": "artifacts_authored_or_planned",
           "honest_done_verdict": "authored_plan_not_proven_complete",
           "implementation_plans": [
             {
               "id": "IP-001-architecture-map-walkers",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-002-mermaid-d2-graphviz-emitters",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-003-mdbook-publish-integration",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-003-mdbook-publish-integration.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-003-mdbook-publish-integration.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             },
             {
               "id": "IP-004-architecture-map-freshness-lane",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
               "path_exists": true,
               "source_status": "artifact_exists_planned_or_authored"
             }
@@ -2384,13 +2384,13 @@
     }
   ],
   "actual_hierarchy_inventory": {
-    "M-CC-cross-cutting": {
-      "path": ".omc/plans/milestones/M-CC-cross-cutting",
+    "M01-foundation": {
+      "path": ".omc/plans/milestones/M01-foundation",
       "phase_count": 12,
       "phases": [
         {
           "id": "P00-gitops-vcs-replacement",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2410,7 +2410,7 @@
         },
         {
           "id": "P01-agentic-pipeline-cutover",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2433,7 +2433,7 @@
         },
         {
           "id": "P02-doc-automation-freshness",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2447,7 +2447,7 @@
         },
         {
           "id": "P03-purpose-orphan-detection",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2463,7 +2463,7 @@
         },
         {
           "id": "P04-agentic-navigability",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P04-agentic-navigability",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2476,7 +2476,7 @@
         },
         {
           "id": "P05-provider-agnosticism",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2493,7 +2493,7 @@
         },
         {
           "id": "P06-distroless-lts-image",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2507,7 +2507,7 @@
         },
         {
           "id": "P07-hyperscaler-practices",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2522,7 +2522,7 @@
         },
         {
           "id": "P08-supply-chain-security",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2537,7 +2537,7 @@
         },
         {
           "id": "P09-visualization-as-code",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2552,7 +2552,7 @@
         },
         {
           "id": "P10-pipeline-maturity-glue",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,
@@ -2572,7 +2572,7 @@
         },
         {
           "id": "P11-agentic-vcs-pipeline",
-          "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline",
+          "path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline",
           "index_exists": true,
           "phase_spec_exists": false,
           "impl_plan_exists": false,

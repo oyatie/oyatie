@@ -28,9 +28,9 @@
   "duplicate_reviewer_ids": [],
   "findings": [],
   "audit_trail": {
-    "plan_ref": ".omc/plans/milestones/M-CC-cross-cutting/phases/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md",
+    "plan_ref": ".omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md",
     "audit_ref": "evidence/audits/pipeline-maturity-audit-2026-05-15.md",
     "upstream_kernel": "oya-foundry-vcs-review-mergequeue-kernel",
-    "subagent_runtime_followup": "TODO M-CC-P10-IP-004-followup: the per-facet subagent runtime (Claude API / OMC teams / orchestrator-shaped harness) is not yet wired into a Rust binary. Until then the dispatcher writes APPROVE with subagent_runtime_pending=true and the merge-queue admission consumer (IP-006) MUST refuse to trust that. Follow-up IP scope: pick the runtime substrate, scaffold an oya-foundry-* crate that translates one FacetDispatch into one subagent invocation, and wire it in upstream of the rollup."
+    "subagent_runtime_followup": "TODO M01-P17-IP-004-followup: the per-facet subagent runtime (Claude API / OMC teams / orchestrator-shaped harness) is not yet wired into a Rust binary. Until then the dispatcher writes APPROVE with subagent_runtime_pending=true and the merge-queue admission consumer (IP-006) MUST refuse to trust that. Follow-up IP scope: pick the runtime substrate, scaffold an oya-foundry-* crate that translates one FacetDispatch into one subagent invocation, and wire it in upstream of the rollup."
   }
 }

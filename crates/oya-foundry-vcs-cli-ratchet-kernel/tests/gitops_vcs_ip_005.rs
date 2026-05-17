@@ -16,7 +16,7 @@ fn grit_alias_claim_maps_to_controller_lock_claim() {
         "--agent",
         "agent-ip005",
         "--intent",
-        "M-CC-P00-IP-005",
+        "M01-P07-IP-005",
         "crates/oya-foundry-vcs-cli-ratchet-kernel",
     ])
     .unwrap();
@@ -127,7 +127,7 @@ fn claim_work_verify_done_promote_flow_is_controller_ordered() {
             "--agent",
             "agent-ip005",
             "--intent",
-            "M-CC-P00-IP-005",
+            "M01-P07-IP-005",
             "crates/oya-foundry-vcs-cli-ratchet-kernel",
         ])
         .unwrap(),

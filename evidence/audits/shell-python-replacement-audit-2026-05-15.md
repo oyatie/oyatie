@@ -61,7 +61,7 @@
 
 ### `.omc/hooks/` (1 file, 71 LOC)
 
-13. **`.omc/hooks/grit-claim-intent-gate.sh`** (71 LOC) — category B — purpose: Claude-Code `PreToolUse` hook that JSON-parses stdin and rejects `grit claim` / `grit begin` invocations on `crates/oya-*` paths missing both a phase-id regex match and an Accepted-plan/ADR regex match. **Sunset-coupled**: `grit` itself is on the sunset path (CLAUDE.md "Both [grit + oya-tooling-agent-read] are scheduled to sunset once Oya VCS (M-CC-P00) and Foundry go live"). Replacement options: (a) port to **`tools/oya-grit-claim-intent-gate-app`** Rust binary now and delete when grit retires; (b) skip — let it die when grit dies. **Recommended: option (b)** — replacement cost (~30 min) is wasted against a sunsetting tool. Estimated effort if (a): **S (under 30 min)**.
+13. **`.omc/hooks/grit-claim-intent-gate.sh`** (71 LOC) — category B — purpose: Claude-Code `PreToolUse` hook that JSON-parses stdin and rejects `grit claim` / `grit begin` invocations on `crates/oya-*` paths missing both a phase-id regex match and an Accepted-plan/ADR regex match. **Sunset-coupled**: `grit` itself is on the sunset path (CLAUDE.md "Both [grit + oya-tooling-agent-read] are scheduled to sunset once Oya VCS (M01-P07) and Foundry go live"). Replacement options: (a) port to **`tools/oya-grit-claim-intent-gate-app`** Rust binary now and delete when grit retires; (b) skip — let it die when grit dies. **Recommended: option (b)** — replacement cost (~30 min) is wasted against a sunsetting tool. Estimated effort if (a): **S (under 30 min)**.
 
 ### `docs/runbooks/` (1 file, 100 LOC) — category E
 

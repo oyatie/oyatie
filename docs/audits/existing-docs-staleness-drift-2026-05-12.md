@@ -106,7 +106,7 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 
 ## Remediation plan
 
-### BLOCKER items (ship before Phase 5 execution; M-CC-P02):
+### BLOCKER items (ship before Phase 5 execution; M01-P09):
 1. Lift MASTERPLAN.md (`.omc/plans/` → `docs/`); emit authority-chain event.
 2. Create workspace PRD + team charter (orphan remediation).
 3. Create ADR-0053 + ADR-0054 (sanctioned primitives, grit-done).
@@ -114,7 +114,7 @@ related_adrs: ADR-0052, ADR-0053, ADR-0054, ADR-0055
 
 **Timeline:** Before W-Foundry-Preview gate.
 
-### HIGH items (within W-Foundation; M-CC-P02 + M-CC-P07):
+### HIGH items (within W-Foundation; M01-P09 + M01-P14):
 1. Update Tier-1 docs with MASTERPLAN cites.
 2. Update DESIGN.md Plane matrix to 7 axes.
 3. Update AGENTS.md Node 20 → 24.

@@ -1,4 +1,4 @@
-//! Adapter-substitution test harness (M-CC-P05-IP-003).
+//! Adapter-substitution test harness (M01-P12-IP-003).
 //!
 //! For each port-trait pair we expect to be provider-agnostic, the
 //! harness verifies that swapping one adapter for another (e.g., Cosign

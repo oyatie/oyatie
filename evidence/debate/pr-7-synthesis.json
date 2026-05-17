@@ -107,11 +107,11 @@
       "severity": "BLOCKER"
     },
     {
-      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:42-60 and tools/oya-foundry-webhook-receiver-app/src/main.rs:342-409",
+      "evidence": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md:42-60 and tools/oya-foundry-webhook-receiver-app/src/main.rs:342-409",
       "facets_concurring": [
         "F9"
       ],
-      "headline": "M-CC-P11-IP-003 acceptance requires the HTTP receiver to dedup against an append-only delivery log and route deliveries, but the HTTP path only reads the startup log and returns accepted/routing-failed without appending a delivery outcome. Operators cannot ad…",
+      "headline": "M01-P18-IP-003 acceptance requires the HTTP receiver to dedup against an append-only delivery log and route deliveries, but the HTTP path only reads the startup log and returns accepted/routing-failed without appending a delivery outcome. Operators cannot ad…",
       "id": "PR7-CONV-9",
       "recommended_remediation": "Append each HTTP delivery outcome atomically to `registry/vcs/webhook-delivery-log.json` before returning, add restart/redelivery tests, and make PR #7 evidence distinguish simulate-only behavior from live HTTP behavior.",
       "remediation_fixuptasks": [

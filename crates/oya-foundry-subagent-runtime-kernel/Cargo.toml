@@ -13,7 +13,7 @@
 #   - Sibling pattern: every other `oya-foundry-*-kernel` crate (the
 #                      port-in-kernel substrate; adapter impls live
 #                      one ring out, binary entrypoints two rings out).
-#   - Introducing IP:  M-CC-P10-IP-009 (subagent runtime).
+#   - Introducing IP:  M01-P17-IP-009 (subagent runtime).
 name = "oya-foundry-subagent-runtime-kernel"
 edition.workspace = true
 version.workspace = true
@@ -42,4 +42,4 @@ audit_chain = true
 
 [package.metadata.oya.lifecycle]
 stage = "scaffolded"
-introducing_ip = "M-CC-P10-IP-009"
+introducing_ip = "M01-P17-IP-009"

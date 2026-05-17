@@ -1,5 +1,5 @@
 //! Supply-chain fitness kernel — Cosign + Rekor + SBOM attestation
-//! checks. Per M-CC-P08-IP-001: every shipped artifact must carry a
+//! checks. Per M01-P15-IP-001: every shipped artifact must carry a
 //! valid Cosign signature and a Rekor transparency-log entry.
 //!
 //! I/O-free. Runners verify signatures / fetch Rekor entries / parse

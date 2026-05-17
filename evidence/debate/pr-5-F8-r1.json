@@ -1,7 +1,7 @@
 {
   "change_id": "pr-5",
   "pr_number": 5,
-  "pr_title": "ADR-0110/0111/0112/0113 \u2014 end-to-end agentic VCS pipeline (M-CC-P11)",
+  "pr_title": "ADR-0110/0111/0112/0113 \u2014 end-to-end agentic VCS pipeline (M01-P18)",
   "merge_commit_sha": "3185596f5a1bfbbfd1fff7e1ccd7500af9906613",
   "facet_id": "F8",
   "facet_name": "Observability/operations review",

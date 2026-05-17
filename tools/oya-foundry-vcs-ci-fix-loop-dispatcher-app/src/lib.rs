@@ -1,5 +1,5 @@
 //! `oya-foundry-vcs-ci-fix-loop-dispatcher-app` — dual-source fix-loop
-//! dispatcher (M-CC-P10-IP-005).
+//! dispatcher (M01-P17-IP-005).
 //!
 //! ## Canonical state machine served
 //!

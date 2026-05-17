@@ -29,7 +29,7 @@ kind = "shared"
 layer = "kernel"
 purpose = "Pure-domain port-in-kernel for ADR-0111 projected-merge-state simulation + 3-invariant validator (diff cleanliness via parsed git-merge-tree output, path-overlap check, sha well-formedness). No I/O; std-only deps."
 lifecycle.stage = "scaffolded"
-introducing_ip = "M-CC-P11-IP-002"
+introducing_ip = "M01-P18-IP-002"
 
 [dependencies]
 

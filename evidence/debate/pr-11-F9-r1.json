@@ -1,24 +1,24 @@
 {
   "change_id": "pr-11",
   "pr_number": 11,
-  "pr_title": "M-CC-P11-IP-002 wave-A: merge-queue app-side modules",
+  "pr_title": "M01-P18-IP-002 wave-A: merge-queue app-side modules",
   "merge_commit_sha": "5ec873ce2b6a5e37465b037ddeeb9343199abe59",
   "facet_id": "F9",
   "facet_name": "Product/plan/hierarchy/adoption review",
   "reviewer_id": "codex-F9-pr-11-r1-product",
   "considered": true,
   "rigor": "RED",
-  "summary": "F9 product/plan review for PR #11: it targets the right Foundry pipeline (M-CC-P11) IP-002 slice, but the shipped modules are not actually wired into the merge-queue runner adoption path. Highest severity BLOCKER.",
+  "summary": "F9 product/plan review for PR #11: it targets the right Foundry pipeline (M01-P18) IP-002 slice, but the shipped modules are not actually wired into the merge-queue runner adoption path. Highest severity BLOCKER.",
   "findings": [
     {
       "severity": "BLOCKER",
-      "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:45-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs:98-157",
+      "file": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:45-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs:98-157",
       "issue": "IP-002 acceptance requires the three-invariant validator to be wired into the existing merge-queue app admit path, but main still parses admission events and calls `Scheduler::admit` directly. The new pre-admit/projected-state modules are exported, not adopted by the runner.",
       "remediation": "Call `conflict_avoidance_pre_admit::pre_admit_check` before `Scheduler::admit`, load candidate/queued PR metadata plus concurrent-safe paths, write refusal evidence/PR comment, and add a regression where overlapping PRs are refused before admission."
     },
     {
       "severity": "BLOCKER",
-      "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:52-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs:158-222",
+      "file": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:52-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs:158-222",
       "issue": "Fix-at-any-stage is implemented as a standalone module but the runner has no path for `pull_request.synchronize` events, no persisted reposition counts, and no invocation of `handle_synchronize_event`. The PR therefore does not advance the stated agentic merge-queue behavior for live PR updates.",
       "remediation": "Add a synchronize-event input path from the webhook router/admission log, persist reposition counts across runs, invoke the revalidation handler, and emit the required IP-002 fix-at-any-stage smoke evidence."
     },

@@ -1,4 +1,4 @@
-//! Source walkers for the architecture-map kernel (M-CC-P09-IP-001).
+//! Source walkers for the architecture-map kernel (M01-P16-IP-001).
 //!
 //! Each `walk_*` function takes a slice of **pre-parsed** typed records
 //! and produces a partial `ArchitectureMap` covering one source layer.

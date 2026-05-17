@@ -1,5 +1,5 @@
 //! `oya-foundry-vcs-merge-queue-fix-loop-app` — merge-queue integration
-//! layer (M-CC-P10-IP-006).
+//! layer (M01-P17-IP-006).
 //!
 //! ## What this crate does
 //!

@@ -115,7 +115,7 @@ impl AdmissionReport {
 
 /// Pure validator. Returns the full violation list (no short-circuit) so
 /// runners surface every failure mode in one CI cycle (surface-all-failures
-/// posture per M-CC-P02-IP-007).
+/// posture per M01-P09-IP-007).
 pub fn validate_admission(inputs: &AdmissionInputs<'_>) -> AdmissionReport {
     let mut violations = Vec::new();
 

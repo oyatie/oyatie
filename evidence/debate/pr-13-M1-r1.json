@@ -6,7 +6,7 @@
   "lens": "Challenge the load-bearing assumption",
   "challenged_assumptions": [
     {
-      "assumption": "ADR-0116 makes M-CC-P11 the canonical VCS substrate, justifying retirement now.",
+      "assumption": "ADR-0116 makes M01-P18 the canonical VCS substrate, justifying retirement now.",
       "load_bearing": true,
       "challenge": "ADR-0116 does not exist in Oyatie's docs/decisions/. The local sequence stops at ADR-0114; the only ADR-0116 hits are Bominal inheritance references to a Kafka/outbox decision, not a VCS-substrate decision. PR 13 cites ADR-0116 nine times as the justification for deletion, but the citation is fabricated or premature.",
       "evidence": "ls docs/decisions/ADR-011*.md \u2192 only 0110..0114 present; grep ADR-0116 \u2192 only ADR-0059/0060/0062 (Bominal Kafka inheritance).",
@@ -14,9 +14,9 @@
       "confidence": "HIGH"
     },
     {
-      "assumption": "M-CC-P11 will own the archive-orphan invariant once deployed.",
+      "assumption": "M01-P18 will own the archive-orphan invariant once deployed.",
       "load_bearing": true,
-      "challenge": "M-CC-P11 (admission gate, projected merge state, conflict kernel) is not yet operational and does not even claim to enforce 'no live ref to archived runtime-glue paths'. Projected-merge-state checks future merges; it does not scan living files for inbound refs to retired archive paths. The replacement invariant is asserted but not demonstrated. Retirement is premature: delete the gate AFTER the replacement enforces the same invariant in CI, not before.",
+      "challenge": "M01-P18 (admission gate, projected merge state, conflict kernel) is not yet operational and does not even claim to enforce 'no live ref to archived runtime-glue paths'. Projected-merge-state checks future merges; it does not scan living files for inbound refs to retired archive paths. The replacement invariant is asserted but not demonstrated. Retirement is premature: delete the gate AFTER the replacement enforces the same invariant in CI, not before.",
       "evidence": "ADR-0118 'Rejected alternatives' claims 'projected-merge-state and conflict-kernel already own the replacement invariant' with zero pointer to where that enforcement lives.",
       "severity": "CRITICAL",
       "confidence": "HIGH"
@@ -60,7 +60,7 @@
     "ADR-0118 'supersedes: [ADR-0052]' but ADR-0052 was the inventory ledger driving the cutover \u2014 superseding it without replacement of the inventory contract leaves the cutover ledger orphaned.",
     "No sunset_date / removal_date pair as the new oya-foundry-fitness-sunset-lifecycle-kernel would require."
   ],
-  "verdict_justification": "Load-bearing citation ADR-0116 does not exist locally in Oyatie. The retirement is justified by a phantom ADR. Combined with skipping the just-scaffolded sunset-lifecycle doctrine and asserting replacement invariants without locating them, this PR is built on three unverified loads. REJECT until: (1) the actual local ADR establishing M-CC-P11 as canonical VCS substrate is cited (or created), (2) the replacement-invariant location is named with file:line, (3) the sunset-lifecycle workflow is honored or an explicit ADR-0108 carve-out is written.",
+  "verdict_justification": "Load-bearing citation ADR-0116 does not exist locally in Oyatie. The retirement is justified by a phantom ADR. Combined with skipping the just-scaffolded sunset-lifecycle doctrine and asserting replacement invariants without locating them, this PR is built on three unverified loads. REJECT until: (1) the actual local ADR establishing M01-P18 as canonical VCS substrate is cited (or created), (2) the replacement-invariant location is named with file:line, (3) the sunset-lifecycle workflow is honored or an explicit ADR-0108 carve-out is written.",
   "escalation_mode": "ADVERSARIAL",
   "escalation_reason": "Phantom ADR citation + doctrine bypass triggers systemic-issue threshold."
 }

@@ -16,7 +16,7 @@
       "milestone": "M02",
       "phase": "M02-foundry-preview (live closure shape: on-prem workspace-shell cell)",
       "dependencies": [
-        "M-CC-P00-gitops-vcs-replacement (forward-closure authority, partial: M-CC-P11 lands on dev, not yet on main)",
+        "M01-P07-gitops-vcs-replacement (forward-closure authority, partial: M01-P18 lands on dev, not yet on main)",
         "rust 1.95.0 toolchain on host",
         "ZFS pool oyatie-bulk + /srv/oyatie/{audit-chain,object-graph,regional-packs} mounts"
       ],
@@ -80,8 +80,8 @@
     {
       "item_id": "OCI-CLI-TOOLING-INSTALL-2026-05-16",
       "source_path": "host PATH + ~/.local/bin/oci",
-      "milestone": "M-CC-cross-cutting",
-      "phase": "M-CC-P05-cloud-multi-provider (OCI tooling readiness on the on-prem control box)",
+      "milestone": "M01-foundation",
+      "phase": "M01-P12-cloud-multi-provider (OCI tooling readiness on the on-prem control box)",
       "dependencies": [
         "python3 (system)",
         "user-mode pip (bootstrapped via get-pip.py --break-system-packages)"
@@ -101,8 +101,8 @@
     {
       "item_id": "OCI-READINESS-AUTH-KMS-APIGW-2026-05-16",
       "source_path": "specs/cross-cutting/* + (forthcoming) infra/oci/",
-      "milestone": "M-CC-cross-cutting",
-      "phase": "M-CC-P05-cloud-multi-provider + M02b-substrate identity/kms/audit-chain phases",
+      "milestone": "M01-foundation",
+      "phase": "M01-P12-cloud-multi-provider + M02b-substrate identity/kms/audit-chain phases",
       "dependencies": [
         "OCI-CLI-TOOLING-INSTALL-2026-05-16 (verified)",
         "OCI tenancy OCID + region + user OCID + API key pair",
@@ -129,7 +129,7 @@
       "dependencies": [
         "OCI-READINESS-AUTH-KMS-APIGW-2026-05-16 (blocked)",
         "ONPREM-FOUNDRY-DEPLOY-SYSTEMD-2026-05-16 (blocked, gates M2 exit)",
-        "M-CC-P00-gitops-vcs-replacement promoted to main (live state on dev only)"
+        "M01-P07-gitops-vcs-replacement promoted to main (live state on dev only)"
       ],
       "acceptance_criteria": [
         "compartment + tenancy IaC committed",
@@ -163,10 +163,10 @@
       "blocked_reason": "Per directive: M3 starts only after live M2 exit passes. M2 exit gated on Foundry on-prem deploy."
     },
     {
-      "item_id": "M-CC-P00-GITOPS-VCS-REPLACEMENT-LIVENESS",
+      "item_id": "M01-P07-GITOPS-VCS-REPLACEMENT-LIVENESS",
       "source_path": "specs/cross-cutting/gitops-vcs-replacement.json + tools/oya-foundry-vcs-* + .github/workflows/oya-foundry-fitness-changeset-state.yml",
-      "milestone": "M-CC-cross-cutting",
-      "phase": "M-CC-P00 + M-CC-P11",
+      "milestone": "M01-foundation",
+      "phase": "M01-P07 + M01-P18",
       "dependencies": [
         "tools/oya-foundry-vcs-admission-gate-app builds",
         "tools/oya-foundry-vcs-provider-execution-gate-app builds",
@@ -183,7 +183,7 @@
       "status": "verified-locally (promote deferred to GitOps controller; controller not yet deployed)",
       "evidence_refs": [
         "specs/cross-cutting/gitops-vcs-replacement.json v1.7.0 accepted",
-        "dev commit 3185596f lands M-CC-P11 agentic VCS pipeline ADR-0110/0111/0112/0113/0114",
+        "dev commit 3185596f lands M01-P18 agentic VCS pipeline ADR-0110/0111/0112/0113/0114",
         "target/release/oya built locally from oya-dev-cli; full `vcs claim → verify → done` cycle accepted under observe policy",
         "evidence/onprem-foundry-readiness/2026-05-16-changebundle.json"
       ],

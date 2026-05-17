@@ -9,7 +9,7 @@
   "claim": {
     "agent": "codex-autopilot-p01-ip006",
     "direct_git_or_gh_used_by_agent": false,
-    "fallback_lock_reason": "M-CC-P01-IP-006 is doc-only and uses icm-lock-p4/scaffold-lock fallback per plan and ADR-0054 when grit cannot claim non-indexed doc symbols.",
+    "fallback_lock_reason": "M01-P08-IP-006 is doc-only and uses icm-lock-p4/scaffold-lock fallback per plan and ADR-0054 when grit cannot claim non-indexed doc symbols.",
     "grit_claim_attempt": "CLAUDE.md::agent-instructions + AGENTS.md::agent-instructions + docs/AGENTS.md::sanctioned-primitives-section",
     "grit_claim_result": "blocked by FOREIGN KEY constraint failed for doc pseudo-symbols; no active grit locks",
     "scaffold_lock_closed_icm_id": "01KRK7CGQDF44QB6ET8H0G2YP4",
@@ -44,19 +44,19 @@
   ],
   "evidence_type": "implementation-packet",
   "generated_at": "2026-05-14T12:41:00Z",
-  "implementation_packet": "M-CC-P01-IP-006",
+  "implementation_packet": "M01-P08-IP-006",
   "known_blockers": [
     "Cargo workspace metadata fails before package discovery because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml.",
     "scripts/check.sh fails at line 36 because scripts/check-stage0-application-shell-prereqs.py is missing.",
     "No grit locks were taken because doc pseudo-symbol claims fail with the known FOREIGN KEY constraint failure; ICM lock fallback was used and closed."
   ],
-  "milestone": "M-CC-cross-cutting",
+  "milestone": "M01-foundation",
   "next_steps": [
-    "Begin M-CC-P01-IP-007 hook + skill audit and banned-primitives lane activation."
+    "Begin M01-P08-IP-007 hook + skill audit and banned-primitives lane activation."
   ],
   "phase": "P01-agentic-pipeline-cutover",
   "schema_version": "1.0.0",
-  "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
+  "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
   "summary": "Agent-facing memory was rewritten to the sanctioned primitive triad with machine-readable agent-instructions fences and lane-thin root hubs.",
   "validation": [
     {

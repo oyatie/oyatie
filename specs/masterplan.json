@@ -53,9 +53,9 @@
       "summary": "External runtime dependencies are conscious, ledgered, layer-contained, and phase-out-triggered rather than schedule-driven.",
       "source_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
       "canonical_home": {
-        "milestone": "M-CC-cross-cutting",
+        "milestone": "M01-foundation",
         "phase": "P06-distroless-lts-image",
-        "implementation_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md"
+        "implementation_plan": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md"
       },
       "rules": [
         "Public APIs expose Oyatie wrapper/newtype surfaces only; hyper/tokio/bytes/http-body types stay out of kernel/runtime public signatures except adapter-owned boundaries.",
@@ -121,7 +121,7 @@
   ],
   "milestones": [
     {
-      "id": "M-CC-cross-cutting",
+      "id": "M01-foundation",
       "title": "Cross-cutting workstreams",
       "status": "open",
       "phases": [
@@ -137,7 +137,7 @@
               "deliverable": "Language-agnostic kernel model + symbol graph schema + claim/queue/lease invariants; Rust AST remains first-class, not exclusive.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md"
             },
             {
               "id": "IP-002-remote-lock-store-events",
@@ -145,7 +145,7 @@
               "deliverable": "Local + distributed LockStorePort adapters and watch event stream.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md"
             },
             {
               "id": "IP-003-change-bundle-attestation",
@@ -153,7 +153,7 @@
               "deliverable": "Signed ChangeBundle format with claim coverage manifest and evidence records.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md"
             },
             {
               "id": "IP-004-gitops-promotion-controller",
@@ -161,7 +161,7 @@
               "deliverable": "Controller-owned remote promotion path integrated with CI/CD admission, review/fix loop, rebase, merge queue, and environment reconciliation.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md"
             },
             {
               "id": "IP-005-grit-compat-cli-and-migration-ratchet",
@@ -169,7 +169,7 @@
               "deliverable": "Grit-compatible CLI aliases, migration from local grit, CI ratchet banning local-only closeout for agent fan-out.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md"
             },
             {
               "id": "IP-006-polyglot-indexers",
@@ -177,7 +177,7 @@
               "deliverable": "Swift/Kotlin/C#/C++/XAML/TypeScript/config/contract semantic indexers with cross-language dependency edges.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md"
             },
             {
               "id": "IP-007-review-fix-rebase-merge-queue-loop",
@@ -185,7 +185,7 @@
               "deliverable": "Typed review/fix loop plus controller-owned rebase and merge queue orchestration, with CI/CD evidence and terminal states.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md"
             },
             {
               "id": "IP-008-test-standard-enforcement",
@@ -193,7 +193,7 @@
               "deliverable": "Document and machine-encode unit/integration/e2e standards, registry-driven commands, and CI/CD admission enforcement.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md"
             },
             {
               "id": "IP-009-ast-index-contract",
@@ -201,11 +201,11 @@
               "deliverable": "Language-neutral AST symbol/range/dependency contract used by claims, review mapping, impacted tests, and semantic conflict checks.",
               "execution_unit": "ChangeSet",
               "changeset_contract": "claimable-verifiable-bundleable-promotable",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
+              "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
             }
           ],
-          "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
-          "phase_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/plan.md",
+          "phase_index": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/INDEX.md",
+          "phase_plan": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/plan.md",
           "source_plan": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md"
         },
         {
@@ -214,8 +214,8 @@
           "status": "stub",
           "implementation_plans": [
             {
-              "id": "M-CC-P06-IP-002",
-              "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+              "id": "M01-P13-IP-002",
+              "path": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
               "title": "Dependency-seam discipline + tech-debt ledger + LTS roster",
               "source_plan": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
               "status": "expanded-from-round-5-findings"
@@ -241,7 +241,7 @@
       "class": "documentation",
       "status": "pass",
       "source_path": "/specs/gitops-vcs-replacement.json",
-      "summary": "GitOps-capable VCS replacement moved into masterplan JSON as M-CC-P00 first prerequisite.",
+      "summary": "GitOps-capable VCS replacement moved into masterplan JSON as M01-P07 first prerequisite.",
       "freshness": "2026-05-14T07:16:07Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
@@ -252,7 +252,7 @@
       "class": "documentation",
       "status": "pass",
       "source_path": "/specs/gitops-vcs-replacement.json",
-      "summary": "Masterplan JSON now references polyglot indexers plus review/fix/rebase/merge-queue CI/CD loop for M-CC-P00.",
+      "summary": "Masterplan JSON now references polyglot indexers plus review/fix/rebase/merge-queue CI/CD loop for M01-P07.",
       "freshness": "2026-05-14T07:19:08Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
@@ -263,7 +263,7 @@
       "class": "documentation",
       "status": "pass",
       "source_path": "/specs/gitops-vcs-replacement.json",
-      "summary": "Masterplan JSON now requires documented/enforced unit/integration/e2e standards and AST support in M-CC-P00.",
+      "summary": "Masterplan JSON now requires documented/enforced unit/integration/e2e standards and AST support in M01-P07.",
       "freshness": "2026-05-14T07:20:28Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
@@ -274,7 +274,7 @@
       "class": "documentation",
       "status": "pass",
       "source_path": "/specs/test-standard.json",
-      "summary": "Machine-readable test standard and test-suite registry added as concrete artifacts supporting M-CC-P00.",
+      "summary": "Machine-readable test standard and test-suite registry added as concrete artifacts supporting M01-P07.",
       "freshness": "2026-05-14T07:22:20Z",
       "command_or_lane": "manual JSON update + jq validation",
       "result": "pending final validation",
@@ -285,12 +285,12 @@
       "class": "documentation",
       "status": "pass",
       "source_path": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
-      "summary": "Approved Oya VCS ralplan v5 folded into M-CC-P00 phase/IP packet files and global ImplementationPlan-as-ChangeSet contract.",
+      "summary": "Approved Oya VCS ralplan v5 folded into M01-P07 phase/IP packet files and global ImplementationPlan-as-ChangeSet contract.",
       "freshness": "2026-05-14T08:55:00Z",
       "command_or_lane": "manual masterplan fold-in + jq validation",
       "result": "pending final validation",
       "artifact_ref": "/specs/masterplan.json#implementation_plan_contract",
-      "known_gap": "Implementation crates/controllers remain planned by M-CC-P00 IP execution."
+      "known_gap": "Implementation crates/controllers remain planned by M01-P07 IP execution."
     },
     {
       "class": "documentation",
@@ -318,11 +318,11 @@
   "gitops_vcs_replacement": {
     "source_spec": "/specs/gitops-vcs-replacement.json",
     "status": "core-complete-ci-admission-wired-provider-adapters-followup",
-    "milestone": "M-CC-cross-cutting",
+    "milestone": "M01-foundation",
     "phase": "P00-gitops-vcs-replacement",
     "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev\u2192staging\u2192production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
     "must_precede": [
-      "M-CC-P01-agentic-pipeline-cutover",
+      "M01-P08-agentic-pipeline-cutover",
       "broad M01/M02/M03 parallel fan-out"
     ],
     "planned_ips": [
@@ -331,63 +331,63 @@
         "status": "complete",
         "deliverable": "Language-agnostic kernel model + symbol graph schema + claim/queue/lease invariants; Rust AST remains first-class, not exclusive.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md"
       },
       {
         "id": "IP-002-remote-lock-store-events",
         "status": "complete",
         "deliverable": "Local + distributed LockStorePort adapters and watch event stream.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md"
       },
       {
         "id": "IP-003-change-bundle-attestation",
         "status": "complete",
         "deliverable": "Signed ChangeBundle format with claim coverage manifest and evidence records.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md"
       },
       {
         "id": "IP-004-gitops-promotion-controller",
         "status": "complete",
         "deliverable": "Controller-owned remote promotion path integrated with CI/CD admission, review/fix loop, rebase, merge queue, and environment reconciliation.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md"
       },
       {
         "id": "IP-005-grit-compat-cli-and-migration-ratchet",
         "status": "complete",
         "deliverable": "Grit-compatible CLI aliases, migration from local grit, CI ratchet banning local-only closeout for agent fan-out.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md"
       },
       {
         "id": "IP-006-polyglot-indexers",
         "status": "complete",
         "deliverable": "Swift/Kotlin/C#/C++/XAML/TypeScript/config/contract semantic indexers with cross-language dependency edges.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md"
       },
       {
         "id": "IP-007-review-fix-rebase-merge-queue-loop",
         "status": "complete",
         "deliverable": "Typed review/fix loop plus controller-owned rebase and merge queue orchestration, with CI/CD evidence and terminal states.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md"
       },
       {
         "id": "IP-008-test-standard-enforcement",
         "status": "complete",
         "deliverable": "Document and machine-encode unit/integration/e2e standards, registry-driven commands, and CI/CD admission enforcement.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md"
       },
       {
         "id": "IP-009-ast-index-contract",
         "status": "complete",
         "deliverable": "Language-neutral AST symbol/range/dependency contract used by claims, review mapping, impacted tests, and semantic conflict checks.",
         "execution_unit": "ChangeSet",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
+        "path": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
       }
     ],
     "success_targets": {
@@ -439,8 +439,8 @@
     "high_throughput_agent_scheduler_ref": "/specs/gitops-vcs-replacement.json#high_throughput_agent_scheduler",
     "issue_tracker_integration_ref": "/specs/gitops-vcs-replacement.json#issue_tracker_integration",
     "source_plan": ".omx/plans/ralplan-gitops-vcs-replacement-20260514.md",
-    "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
-    "phase_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/plan.md",
+    "phase_index": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/INDEX.md",
+    "phase_plan": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/plan.md",
     "consensus": {
       "status": "APPROVED v5",
       "architect_verdict": "APPROVE",
@@ -463,18 +463,18 @@
     ],
     "implementation_plan_semantics": "Each P00 IP is a ChangeSet-sized implementation packet and inherits the global implementation_plan_contract.",
     "implementation_packet_files": {
-      "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
-      "phase_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/plan.md",
+      "phase_index": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/INDEX.md",
+      "phase_plan": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/plan.md",
       "ips": [
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
-        ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
+        ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md"
       ]
     },
     "authority_cutover": {
@@ -540,30 +540,30 @@
     },
     "milestones": [
       {
-        "id": "M-CC",
-        "slug": "M-CC-cross-cutting",
-        "path": ".omc/plans/milestones/M-CC-cross-cutting",
-        "index": ".omc/plans/milestones/M-CC-cross-cutting/INDEX.md",
+        "id": "M01",
+        "slug": "M01-foundation",
+        "path": ".omc/plans/milestones/M01-foundation",
+        "index": ".omc/plans/milestones/M01-foundation/INDEX.md",
         "readme": null,
-        "title": "Cross-cutting workstreams",
-        "status": "open",
+        "title": "Foundation (incl. cross-cutting workstreams)",
+        "status": "in-progress",
         "doc_class": "MilestoneIndex",
         "phase_count": 10,
         "implementation_plan_count": 46,
         "phases": [
           {
-            "id": "M-CC-P00",
-            "slug": "P00-gitops-vcs-replacement",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
+            "id": "M01-P07",
+            "slug": "P07-gitops-vcs-replacement",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P07-gitops-vcs-replacement",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P07-gitops-vcs-replacement/INDEX.md",
             "title": "Polyglot GitOps-capable VCS Replacement (Oya VCS)",
             "status": "complete",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 9,
             "implementation_plans": [
               {
-                "id": "M-CC-P00-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
+                "id": "M01-P07-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-001-symbol-lock-domain.md",
                 "title": "Symbol lock domain + ChangeSet kernel",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -576,8 +576,8 @@
                 "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
               },
               {
-                "id": "M-CC-P00-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
+                "id": "M01-P07-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-002-remote-lock-store-events.md",
                 "title": "Remote lock store + event stream",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -590,8 +590,8 @@
                 "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
               },
               {
-                "id": "M-CC-P00-IP-003",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
+                "id": "M01-P07-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-003-change-bundle-attestation.md",
                 "title": "ChangeBundle attestation + provenance",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -604,8 +604,8 @@
                 "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
               },
               {
-                "id": "M-CC-P00-IP-004",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
+                "id": "M01-P07-IP-004",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-004-gitops-promotion-controller.md",
                 "title": "GitOps promotion controller + provider seams",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -618,8 +618,8 @@
                 "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
               },
               {
-                "id": "M-CC-P00-IP-005",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
+                "id": "M01-P07-IP-005",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-005-grit-compat-cli-and-migration-ratchet.md",
                 "title": "Grit-compatible CLI + migration ratchet",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -632,8 +632,8 @@
                 "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
               },
               {
-                "id": "M-CC-P00-IP-006",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
+                "id": "M01-P07-IP-006",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-006-polyglot-indexers.md",
                 "title": "Polyglot AST/indexer adapters",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -646,8 +646,8 @@
                 "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
               },
               {
-                "id": "M-CC-P00-IP-007",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
+                "id": "M01-P07-IP-007",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-007-review-fix-rebase-merge-queue-loop.md",
                 "title": "Review/fix, rebase, and merge-queue loop",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -660,8 +660,8 @@
                 "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
               },
               {
-                "id": "M-CC-P00-IP-008",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
+                "id": "M01-P07-IP-008",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-008-test-standard-enforcement.md",
                 "title": "Unit/integration/e2e standard enforcement",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -674,8 +674,8 @@
                 "source_spec": "../../../../../specs/gitops-vcs-replacement.json"
               },
               {
-                "id": "M-CC-P00-IP-009",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md",
+                "id": "M01-P07-IP-009",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/IP-009-ast-index-contract.md",
                 "title": "AST index contract + impacted-test mapping",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -690,18 +690,18 @@
             ]
           },
           {
-            "id": "M-CC-P01",
-            "slug": "P01-agentic-pipeline-cutover",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/INDEX.md",
+            "id": "M01-P08",
+            "slug": "P08-agentic-pipeline-cutover",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P08-agentic-pipeline-cutover",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P08-agentic-pipeline-cutover/INDEX.md",
             "title": "Agentic-Pipeline Cutover (Oya VCS SoT; grit/icm historical)",
             "status": "foundation-cleared / P00-gated",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 12,
             "implementation_plans": [
               {
-                "id": "M-CC-P01-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md",
+                "id": "M01-P08-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-001-adr-0054-scaffold-claim.md",
                 "title": "ADR-0054 scaffold-claim pattern + RACI human-orchestrator row (P0.5)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -714,8 +714,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
+                "id": "M01-P08-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-002-inventory-adr-0052.md",
                 "title": "Inventory pass + ADR-0052 (P1)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -728,8 +728,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-003",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
+                "id": "M01-P08-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
                 "title": "oya-tooling-agent-read helper (P2)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -742,8 +742,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-004",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite.md",
+                "id": "M01-P08-IP-004",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-004-bidirectional-prd-cite.md",
                 "title": "Bidirectional PRD citation + portfolio-citation lane (P3)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -756,8 +756,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-005",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
+                "id": "M01-P08-IP-005",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-005-foundry-corpus-cross-cite.md",
                 "title": "Foundry corpus cross-cite + PHASE-00-SPEC.md (P3.5)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -770,8 +770,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-006",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
+                "id": "M01-P08-IP-006",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-006-agent-facing-memory.md",
                 "title": "Agent-facing memory rewrite (P4)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -784,8 +784,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-007",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
+                "id": "M01-P08-IP-007",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
                 "title": "Hook + skill audit + banned-primitives lane activation (P5)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -798,8 +798,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-008",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
+                "id": "M01-P08-IP-008",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-008-archive-glue.md",
                 "title": "Retired archive orchestration glue + archive-orphan lane (P6)",
                 "status": "retired",
                 "doc_class": "ImplementationPlan",
@@ -811,11 +811,11 @@
                 "source_plan": null,
                 "source_spec": null,
                 "retired_by": "docs/decisions/ADR-0118-retire-archive-orphan-fitness-lane.md",
-                "naming_justification": "M-CC-P01-IP-008 keeps the archive-orphan wording because that is the historical implementation-packet id already cited by evidence."
+                "naming_justification": "M01-P08-IP-008 keeps the archive-orphan wording because that is the historical implementation-packet id already cited by evidence."
               },
               {
-                "id": "M-CC-P01-IP-009",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
+                "id": "M01-P08-IP-009",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-009-delete-active-path.md",
                 "title": "Delete archived glue from active path (P7)",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -828,8 +828,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-010",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
+                "id": "M01-P08-IP-010",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-010-parallel-claim-demo.md",
                 "title": "Parallel-claim demo runbook (P8)",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -842,8 +842,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-011",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md",
+                "id": "M01-P08-IP-011",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-011-upstream-grit-bug.md",
                 "title": "File upstream grit session bug (P9)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -856,8 +856,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P01-IP-012",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit.md",
+                "id": "M01-P08-IP-012",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-012-authoritative-tracked-audit.md",
                 "title": "Authoritative-tracked repo-walk audit (P10)",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
@@ -872,18 +872,18 @@
             ]
           },
           {
-            "id": "M-CC-P02",
-            "slug": "P02-doc-automation-freshness",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/INDEX.md",
+            "id": "M01-P09",
+            "slug": "P09-doc-automation-freshness",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P09-doc-automation-freshness",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P09-doc-automation-freshness/INDEX.md",
             "title": "Doc Auto-Generation + Freshness",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 3,
             "implementation_plans": [
               {
-                "id": "M-CC-P02-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-001-mdbook-pipeline.md",
+                "id": "M01-P09-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-001-mdbook-pipeline.md",
                 "title": "mdbook publishing pipeline kernel + source walkers",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -896,8 +896,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P02-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-002-doc-freshness-lane.md",
+                "id": "M01-P09-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-002-doc-freshness-lane.md",
                 "title": "Doc-freshness CI lane",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -910,8 +910,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P02-IP-003",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/IP-003-doc-style-lane.md",
+                "id": "M01-P09-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/IP-003-doc-style-lane.md",
                 "title": "Doc-style enforcement lane + auto-format",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -926,18 +926,18 @@
             ]
           },
           {
-            "id": "M-CC-P03",
-            "slug": "P03-purpose-orphan-detection",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/INDEX.md",
+            "id": "M01-P10",
+            "slug": "P10-purpose-orphan-detection",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P10-purpose-orphan-detection",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P10-purpose-orphan-detection/INDEX.md",
             "title": "Purpose-Discipline + Orphan-Detection",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 2,
             "implementation_plans": [
               {
-                "id": "M-CC-P03-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit.md",
+                "id": "M01-P10-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-001-purpose-frontmatter-audit.md",
                 "title": "Purpose-frontmatter authoring (audit every existing doc/JSON)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -950,8 +950,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P03-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P03-purpose-orphan-detection/IP-002-orphan-detection-lane.md",
+                "id": "M01-P10-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P03-purpose-orphan-detection/IP-002-orphan-detection-lane.md",
                 "title": "Orphan-detection lane kernel",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -966,18 +966,18 @@
             ]
           },
           {
-            "id": "M-CC-P04",
-            "slug": "P04-agentic-navigability",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/INDEX.md",
+            "id": "M01-P11",
+            "slug": "P11-agentic-navigability",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-navigability",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-navigability/INDEX.md",
             "title": "Agentic-Dev Optimization (Navigability Lanes)",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 2,
             "implementation_plans": [
               {
-                "id": "M-CC-P04-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-001-navigability-lane.md",
+                "id": "M01-P11-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P04-agentic-navigability/IP-001-navigability-lane.md",
                 "title": "Agentic-navigability lane kernel + parent-pointer validator",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -990,8 +990,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P04-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P04-agentic-navigability/IP-002-predictable-naming.md",
+                "id": "M01-P11-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P04-agentic-navigability/IP-002-predictable-naming.md",
                 "title": "Predictable-naming convention enforcement",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1006,18 +1006,18 @@
             ]
           },
           {
-            "id": "M-CC-P05",
-            "slug": "P05-provider-agnosticism",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/INDEX.md",
+            "id": "M01-P12",
+            "slug": "P12-provider-agnosticism",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P12-provider-agnosticism",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P12-provider-agnosticism/INDEX.md",
             "title": "Provider-Agnosticism + Adapter Discipline",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 3,
             "implementation_plans": [
               {
-                "id": "M-CC-P05-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-001-provider-coupling-lane.md",
+                "id": "M01-P12-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-001-provider-coupling-lane.md",
                 "title": "Provider-coupling lane kernel",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1030,8 +1030,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P05-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit.md",
+                "id": "M01-P12-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-002-cloud-multi-provider-audit.md",
                 "title": "Multi-provider adapter audit + remediation across Cloud kernels",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1044,8 +1044,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P05-IP-003",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P05-provider-agnosticism/IP-003-adapter-substitution-harness.md",
+                "id": "M01-P12-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P05-provider-agnosticism/IP-003-adapter-substitution-harness.md",
                 "title": "Adapter-substitution integration-test harness",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1060,18 +1060,18 @@
             ]
           },
           {
-            "id": "M-CC-P06",
-            "slug": "P06-distroless-lts-image",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/INDEX.md",
+            "id": "M01-P13",
+            "slug": "P13-distroless-lts-image",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P13-distroless-lts-image",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P13-distroless-lts-image/INDEX.md",
             "title": "Distroless + Image-Discipline + Dependency-Seam/LTS Phaseout",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 3,
             "implementation_plans": [
               {
-                "id": "M-CC-P06-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-001-distroless-image-lane.md",
+                "id": "M01-P13-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-001-distroless-image-lane.md",
                 "title": "Distroless base + image-discipline lane",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1084,8 +1084,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P06-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
+                "id": "M01-P13-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md",
                 "title": "Dependency-seam discipline + tech-debt ledger + LTS roster",
                 "status": "expanded-from-round-5-findings",
                 "doc_class": "ImplementationPlan",
@@ -1098,8 +1098,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P06-IP-003",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-003-static-musl-build.md",
+                "id": "M01-P13-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-003-static-musl-build.md",
                 "title": "Static / musl-linked binary build pipeline",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1114,18 +1114,18 @@
             ]
           },
           {
-            "id": "M-CC-P07",
-            "slug": "P07-hyperscaler-practices",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/INDEX.md",
+            "id": "M01-P14",
+            "slug": "P14-hyperscaler-practices",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P14-hyperscaler-practices",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P14-hyperscaler-practices/INDEX.md",
             "title": "Hyperscaler-Practice Adoption (Working Backwards / Design Doc / Postmortem / 1ES / Eng-Excellence)",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 4,
             "implementation_plans": [
               {
-                "id": "M-CC-P07-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem.md",
+                "id": "M01-P14-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-001-prfaq-designdoc-postmortem.md",
                 "title": "PRFAQ + Design-Doc + Postmortem templates",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1138,8 +1138,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P07-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-002-1es-ci-templates.md",
+                "id": "M01-P14-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-002-1es-ci-templates.md",
                 "title": "1ES-templated CI pipelines",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1152,8 +1152,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P07-IP-003",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate.md",
+                "id": "M01-P14-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-003-eng-excellence-merge-gate.md",
                 "title": "Engineering Excellence Council merge gate",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1166,8 +1166,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P07-IP-004",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P07-hyperscaler-practices/IP-004-rust-toolchain-gates.md",
+                "id": "M01-P14-IP-004",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P07-hyperscaler-practices/IP-004-rust-toolchain-gates.md",
                 "title": "Rust toolchain hyperscaler-gate set",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1182,18 +1182,18 @@
             ]
           },
           {
-            "id": "M-CC-P08",
-            "slug": "P08-supply-chain-security",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/INDEX.md",
+            "id": "M01-P15",
+            "slug": "P15-supply-chain-security",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P15-supply-chain-security",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P15-supply-chain-security/INDEX.md",
             "title": "Supply-Chain Security (Cosign + Rekor + SLSA + SBOM)",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 4,
             "implementation_plans": [
               {
-                "id": "M-CC-P08-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-001-cosign-rekor.md",
+                "id": "M01-P15-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-001-cosign-rekor.md",
                 "title": "Cosign + Rekor signing pipeline",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1206,8 +1206,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P08-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-002-sbom-pipeline.md",
+                "id": "M01-P15-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-002-sbom-pipeline.md",
                 "title": "SBOM generation per build (CycloneDX / SPDX)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1220,8 +1220,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P08-IP-003",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-003-license-policy-lane.md",
+                "id": "M01-P15-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-003-license-policy-lane.md",
                 "title": "License-policy lane (AGPL/GPL/SSPL/BUSL/RSAL hard-deny)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1234,8 +1234,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P08-IP-004",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
+                "id": "M01-P15-IP-004",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
                 "title": "SLSA level \u22653 attestation publishing",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1250,18 +1250,18 @@
             ]
           },
           {
-            "id": "M-CC-P09",
-            "slug": "P09-visualization-as-code",
-            "path": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code",
-            "index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/INDEX.md",
+            "id": "M01-P16",
+            "slug": "P16-visualization-as-code",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P16-visualization-as-code",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P16-visualization-as-code/INDEX.md",
             "title": "Visualization-as-Code (Foundry-Owned Architecture / Product / Service / Tech-Stack Maps)",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 4,
             "implementation_plans": [
               {
-                "id": "M-CC-P09-IP-001",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md",
+                "id": "M01-P16-IP-001",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-001-architecture-map-walkers.md",
                 "title": "oya-foundry-architecture-map-kernel source walkers",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1274,8 +1274,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P09-IP-002",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters.md",
+                "id": "M01-P16-IP-002",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-002-mermaid-d2-graphviz-emitters.md",
                 "title": "Mermaid + D2 + Graphviz emitters",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1288,8 +1288,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P09-IP-003",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-003-mdbook-publish-integration.md",
+                "id": "M01-P16-IP-003",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-003-mdbook-publish-integration.md",
                 "title": "mdbook publishing integration",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1302,8 +1302,8 @@
                 "source_spec": null
               },
               {
-                "id": "M-CC-P09-IP-004",
-                "file": ".omc/plans/milestones/M-CC-cross-cutting/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
+                "id": "M01-P16-IP-004",
+                "file": ".omc/plans/milestones/M01-foundation/phases/P09-visualization-as-code/IP-004-architecture-map-freshness-lane.md",
                 "title": "oya-foundry-fitness-architecture-map-freshness lane",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
@@ -1316,21 +1316,7 @@
                 "source_spec": null
               }
             ]
-          }
-        ]
-      },
-      {
-        "id": "M01",
-        "slug": "M01-foundation",
-        "path": ".omc/plans/milestones/M01-foundation",
-        "index": ".omc/plans/milestones/M01-foundation/INDEX.md",
-        "readme": ".omc/plans/milestones/M01-foundation/README.md",
-        "title": "Foundation",
-        "status": "complete",
-        "doc_class": "MilestoneIndex",
-        "phase_count": 11,
-        "implementation_plan_count": 16,
-        "phases": [
+          },
           {
             "id": "P01-bnf-v4-adrs-finalized",
             "slug": "P01-bnf-v4-adrs-finalized",

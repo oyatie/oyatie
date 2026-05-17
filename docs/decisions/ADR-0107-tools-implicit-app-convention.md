@@ -42,7 +42,7 @@ User directive (2026-05-15): *"for 9 dont allow exceptions. fix our adr and othe
 |---|---|---|
 | `tools/oya-foundry-fitness-portfolio-citation` | RENAME → `*-app` | Binary tool; canonical `-app` suffix per layer enum. |
 | `tools/oya-foundry-fitness-predictable-naming` | RENAME → `*-app` | Binary tool; canonical `-app`. |
-| `tools/oya-foundry-fitness-archive-orphan` | RETIRED by ADR-0118 | One-time IP-008 lane removed after M-CC-P11 replaced the grit-era cutover substrate. |
+| `tools/oya-foundry-fitness-archive-orphan` | RETIRED by ADR-0118 | One-time IP-008 lane removed after M01-P18 replaced the grit-era cutover substrate. |
 | `tools/oya-foundry-fitness-banned-primitives` | RENAME → `*-app` | Binary tool; canonical `-app`. |
 | `tools/oya-foundry-fitness-adr-shape` | RENAME → `*-app` | Binary tool; canonical `-app`. |
 | `tools/oya-foundry-fitness-authoritative-tracked` | RENAME → `*-app` | Binary tool; canonical `-app`. |

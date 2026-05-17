@@ -33,7 +33,7 @@
     },
     {
       "severity": "LOW",
-      "summary": "docs/CHANGELOG.md retains the historical 2026-05-14 entry 'M-CC-P01-IP-008 archive-orphan lane shipped' without an inline back-link to the 2026-05-16 retirement entry. Trail is intact for top-down readers but a forward sentinel would help bottom-up readers.",
+      "summary": "docs/CHANGELOG.md retains the historical 2026-05-14 entry 'M01-P08-IP-008 archive-orphan lane shipped' without an inline back-link to the 2026-05-16 retirement entry. Trail is intact for top-down readers but a forward sentinel would help bottom-up readers.",
       "recommended_action": "Optionally add a one-line '(retired 2026-05-16, see ADR-0118)' suffix to the older CHANGELOG row.",
       "fixuptask_id": "F-PR13-02"
     },

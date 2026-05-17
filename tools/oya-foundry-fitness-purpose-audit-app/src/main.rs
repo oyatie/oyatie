@@ -1,4 +1,4 @@
-//! Purpose-audit tool (M-CC-P03-IP-001).
+//! Purpose-audit tool (M01-P10-IP-001).
 //!
 //! Scans Markdown and JSON files for purpose declarations and reports violations.
 //! Also supports backfilling purpose frontmatter if requested (v6 Directive 12).

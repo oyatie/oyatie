@@ -7,7 +7,7 @@ status: in-progress
 purpose: |
   Delta-spec for new fitness lanes introduced by P02. This file is the *proposal*; the
   authoritative lane definitions land under `.omc/fitness-lanes/<lane>.md` once approved
-  (M-CC-P01 owns lane-file shape). Do not edit existing lanes from this file.
+  (M01-P08 owns lane-file shape). Do not edit existing lanes from this file.
 length_cap: 120
 ---
 
@@ -66,4 +66,4 @@ length_cap: 120
 
 ## 7. Lift target
 
-When approved, each row above lands as a file under `.omc/fitness-lanes/<lane>.md` following the canonical lane-file shape; M-CC-P01 owns the lift. This delta-spec is the proposal anchor only.
+When approved, each row above lands as a file under `.omc/fitness-lanes/<lane>.md` following the canonical lane-file shape; M01-P08 owns the lift. This delta-spec is the proposal anchor only.

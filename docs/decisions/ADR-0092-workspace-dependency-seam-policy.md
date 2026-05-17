@@ -18,13 +18,13 @@ doc_status: published
 ## Status
 
 Accepted (2026-05-14). Codifies the dependency-seam discipline AND amends
-M-CC-P06-IP-002's original layer enum + ledger shape to align with the
+M01-P13-IP-002's original layer enum + ledger shape to align with the
 canonical 12-layer enum (ADR-0056 v4.1) and the multispectrum review bar
 (`docs/standards/multispectrum-review.md`).
 
 ## Context
 
-`.omc/plans/milestones/M-CC-cross-cutting/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md`
+`.omc/plans/milestones/M01-foundation/phases/P06-distroless-lts-image/IP-002-lts-dependency-lane.md`
 declared a 5-value layer enum `{kernel, runtime, adapter, api, app}`
 inconsistent with ADR-0056 v4.1's canonical 12-value enum
 `{kernel, domain, application, adapter, infrastructure, cli, rest, grpc, graphql, worker, app, sdk}`.

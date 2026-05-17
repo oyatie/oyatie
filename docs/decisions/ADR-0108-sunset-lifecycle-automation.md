@@ -74,7 +74,7 @@ surfaces (ADR frontmatter YAML, spec JSON `_sunset` object,
 | Field | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `sunset_at` | RFC3339 date `YYYY-MM-DD` | one of `sunset_at` OR `sunset_milestone` | — | Calendar-anchored sunset date. |
-| `sunset_milestone` | canonical milestone id (e.g. `M-CC-P01-merge`) | one of `sunset_at` OR `sunset_milestone` | — | Milestone-anchored sunset gate. |
+| `sunset_milestone` | canonical milestone id (e.g. `M01-P08-merge`) | one of `sunset_at` OR `sunset_milestone` | — | Milestone-anchored sunset gate. |
 | `deprecation_at` | RFC3339 date `YYYY-MM-DD` | no | `sunset_at + 30 days` | Date at which the surface MUST carry a deprecation marker. |
 | `removal_at` | RFC3339 date `YYYY-MM-DD` | no | `effective deprecation_at + 90 days` | Date at which the surface MUST be deleted from the repo. |
 | `sunset_topic` | short slug | yes | — | Cross-surface correlation id (e.g. `tools-implicit-app-exception`). |
@@ -258,5 +258,5 @@ plan file).
 - ADR-0109 — generic lifecycle-automation framework (complementary).
 - ADR-0083 — Tier 1 library policy this kernel honors.
 - ADR-0056 — port-in-kernel doctrine this kernel honors.
-- `.omc/plans/milestones/M-CC-cross-cutting/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`
+- `.omc/plans/milestones/M01-foundation/phases/P02-doc-automation-freshness/fitness-sunset-lifecycle-lane.md`
   — execution plan + ratchet waves.

@@ -1,6 +1,6 @@
 //! `oya-foundry-pr-review-dispatcher-app` — multispectrum reviewer-agent
 //! fan-out dispatcher for the post-CI-green review gate
-//! (M-CC-P10-IP-004).
+//! (M01-P17-IP-004).
 //!
 //! ## What this crate does
 //!

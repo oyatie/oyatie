@@ -1,6 +1,6 @@
 {
   "milestones": {
-    "M-CC-cross-cutting": {
+    "M01-foundation": {
       "phases": {
         "P00-gitops-vcs-replacement": {
           "phase_status": "complete",

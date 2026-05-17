@@ -16,17 +16,17 @@
     },
     "index_md_retired_status_obvious": {
       "verdict": "pass",
-      "evidence": "docs/fitness-lanes/INDEX.md row now reads `archive-orphan | retired | ADR-0118 / ADR-0116 / M-CC-P11 replacement | retired | retired | retired; no CI invocation | 0 | retired`. The word `retired` is repeated in every cell and severity column, which is unambiguous. CHANGELOG row at the bottom dated 2026-05-16 explains why.",
+      "evidence": "docs/fitness-lanes/INDEX.md row now reads `archive-orphan | retired | ADR-0118 / ADR-0116 / M01-P18 replacement | retired | retired | retired; no CI invocation | 0 | retired`. The word `retired` is repeated in every cell and severity column, which is unambiguous. CHANGELOG row at the bottom dated 2026-05-16 explains why.",
       "minor_nit": "The 64-lane total in the trailing paragraph is now stale; arithmetic still says 64 but one lane is dead. Either tag the row as `(retired, 63 active)` or update the count line."
     },
     "adr_0118_explains_what_now": {
       "verdict": "partial",
-      "evidence": "ADR-0118 clearly states the lane is retired and points at M-CC-P11 / projected-merge-state / conflict-kernel as the replacement substrate. It does NOT, however, give a future debugger a recipe for `what do I do if I find a Bominal-style orphan archive in 2026-Q3?`. The Decision section enumerates what was removed; the Rejected-alternatives section is good. A short `## What to do if you hit the original failure mode` paragraph would close the loop.",
-      "suggested_fix": "Add 2-3 sentences mapping the historical failure modes (archive copy missing, original still active, living code references archived path) to the M-CC-P11 admission/conflict kernels that now own those invariants by name, so future grep on `archive orphan` lands on a forwarding pointer rather than only an ADR title."
+      "evidence": "ADR-0118 clearly states the lane is retired and points at M01-P18 / projected-merge-state / conflict-kernel as the replacement substrate. It does NOT, however, give a future debugger a recipe for `what do I do if I find a Bominal-style orphan archive in 2026-Q3?`. The Decision section enumerates what was removed; the Rejected-alternatives section is good. A short `## What to do if you hit the original failure mode` paragraph would close the loop.",
+      "suggested_fix": "Add 2-3 sentences mapping the historical failure modes (archive copy missing, original still active, living code references archived path) to the M01-P18 admission/conflict kernels that now own those invariants by name, so future grep on `archive orphan` lands on a forwarding pointer rather than only an ADR title."
     },
     "ip_008_evidence_self_explanatory": {
       "verdict": "pass",
-      "evidence": "evidence/agentic-pipeline/ip-008-archive-glue.json adds a top-level `retirement` block with `retired_on`, `retired_by` (ADR path), `replacement` (M-CC-P11 / ADR-0116), `removed_workspace_members`, and `removed_archive_payload`. The `naming_justification` inside that block explicitly calls out the use of `removed_*` keys to distinguish deleted vs active artifacts. A future debugger opening only this JSON gets the full retirement story without having to cross-reference.",
+      "evidence": "evidence/agentic-pipeline/ip-008-archive-glue.json adds a top-level `retirement` block with `retired_on`, `retired_by` (ADR path), `replacement` (M01-P18 / ADR-0116), `removed_workspace_members`, and `removed_archive_payload`. The `naming_justification` inside that block explicitly calls out the use of `removed_*` keys to distinguish deleted vs active artifacts. A future debugger opening only this JSON gets the full retirement story without having to cross-reference.",
       "minor_nit": "Top-level `status` is not updated to e.g. `retired`; only the appended `retirement` object signals it. A future automated reader keying on `status` will still see the original value."
     }
   },
@@ -57,7 +57,7 @@
       "severity": "LOW",
       "area": "adr_completeness",
       "finding": "ADR-0118 lacks an explicit `what to do if you hit the original failure mode` forwarding paragraph.",
-      "fix": "Add 2-3 sentences naming the M-CC-P11 kernel that now owns each historical failure mode."
+      "fix": "Add 2-3 sentences naming the M01-P18 kernel that now owns each historical failure mode."
     },
     {
       "id": "F4-PR13-04",

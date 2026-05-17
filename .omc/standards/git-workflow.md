@@ -62,20 +62,20 @@ the lane refuses.
 
 ## 3. Cutover-bootstrap-window exception
 
-During the grit/icm agentic-pipeline cutover (M-CC-P01 per MASTERPLAN
+During the grit/icm agentic-pipeline cutover (M01-P08 per MASTERPLAN
 §8), there is a documented **bootstrap window** during which raw git /
 gh is permitted *for the cutover work itself* without per-invocation
 rationale:
 
 - Window: from the cutover branch creation through the wave-gate sign-off
-  for M-CC-P01.
+  for M01-P08.
 - Operators MUST instead log a **once-per-session** rationale to icm at
   session start:
   ```sh
   icm store -t direct-tool-invocations \
-    -c "M-CC-P01 cutover bootstrap session" -i critical -k "cutover,bootstrap"
+    -c "M01-P08 cutover bootstrap session" -i critical -k "cutover,bootstrap"
   ```
-- After M-CC-P01 sign-off, the exception expires and the per-invocation
+- After M01-P08 sign-off, the exception expires and the per-invocation
   rule (§2) applies.
 
 The cutover window is the *only* multi-invocation exemption.

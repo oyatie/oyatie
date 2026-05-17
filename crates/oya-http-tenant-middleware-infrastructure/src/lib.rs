@@ -7,7 +7,7 @@
 //!   - short-circuits with HTTP 400 when the route requires a tenant and the
 //!     header is missing/invalid.
 //!
-//! Per ADR-0095 (Phase 7 of M-CC-P06-IP-002): grammar lives in
+//! Per ADR-0095 (Phase 7 of M01-P13-IP-002): grammar lives in
 //! `oya-tenancy-kernel`, not here. This middleware extracts; the kernel
 //! validates. Defense in depth — anyone who bypasses the middleware (e.g.,
 //! a test, a debug path) still cannot construct an invalid `TenantSlug`.

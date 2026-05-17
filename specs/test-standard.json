@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.dev/specs/test-standard.json",
   "title": "OyatieTestStandard",
-  "description": "Machine-readable unit/integration/e2e test standard enforced by M-CC-P00 GitOps VCS admission and CI/CD promotion.",
+  "description": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-TEST-STANDARD",
@@ -14,10 +14,10 @@
     "markdown_authority": "docs/standards/testing.md",
     "enforced_by": [
       "oya-foundry-fitness-test-evidence",
-      "M-CC-P00 GitOps VCS admission",
+      "M01-P07 GitOps VCS admission",
       "merge-queue CI/CD gates"
     ],
-    "purpose": "Machine-readable unit/integration/e2e test standard enforced by M-CC-P00 GitOps VCS admission and CI/CD promotion."
+    "purpose": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion."
   },
   "tiers": [
     {

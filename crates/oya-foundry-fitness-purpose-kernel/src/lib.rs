@@ -1,4 +1,4 @@
-//! Purpose-discipline fitness kernel (M-CC-P03-IP-001).
+//! Purpose-discipline fitness kernel (M01-P10-IP-001).
 //!
 //! Validates that every artifact (Markdown or JSON) has a declared purpose.
 //! Markdown files must have `purpose:` in YAML frontmatter.

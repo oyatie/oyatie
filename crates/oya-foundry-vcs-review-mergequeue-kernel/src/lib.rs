@@ -4,7 +4,7 @@
 //! rebase, and merge-queue events and returns bounded agent fixup work without
 //! letting agents own direct rebase/merge operations.
 //!
-//! ## M-CC-P10-IP-006 extension (2026-05-15)
+//! ## M01-P17-IP-006 extension (2026-05-15)
 //!
 //! Per IP-006 §"Scope" this kernel additionally provides the merge-queue
 //! scheduler that ties together parked-PR semantics, per-PR retry budget,
@@ -35,7 +35,7 @@ use std::fmt;
 
 use oya_foundry_vcs_kernel::{ChangeSet, CiState, QueueState, ReviewState, SymbolId};
 
-// M-CC-P10-IP-006 extension modules.
+// M01-P17-IP-006 extension modules.
 pub mod fairness;
 pub mod parked_state;
 pub mod pr_retry_budget;

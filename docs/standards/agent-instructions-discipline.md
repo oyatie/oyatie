@@ -188,7 +188,7 @@ directives inline without the fence. Migration rule:
    the call with a sanctioned primitive).
 4. Add a CHANGELOG row noting the migration.
 
-The migration window is M-CC-P01 (per MASTERPLAN §8). After M-CC-P01
+The migration window is M01-P08 (per MASTERPLAN §8). After M01-P08
 sign-off, the `agent-instructions-fence` lane is fully blocking.
 
 ## 10. Worked example
