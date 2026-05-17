@@ -5,6 +5,13 @@ id: M03-P08
 title: Cross-Axis Contract Registry + Fitness Lanes
 status: complete
 purpose: Author every DESIGN §10 cross-axis contract row as a tracked OpenAPI / Proto / AsyncAPI artifact bound to a fitness lane.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Delta-1 merge-variant: AxisKind, CrossAxisContract, AxisBinding added as
+  cross_axis module in oya-foundry-architecture-map-kernel. No new crate
+  scaffolded; no workspace deps added; std-only.
 ---
 
 # M03-P08 — Cross-Axis Contract Registry
