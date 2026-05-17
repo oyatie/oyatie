@@ -1,5 +1,10 @@
 //! Identity kernel: user records and purpose-bound short-lived tokens.
 
+pub mod identity_employment_classification;
+pub use identity_employment_classification::{
+    EmploymentClassification, UnknownEmploymentClassification,
+};
+
 use std::fmt;
 
 use oya_data_boundary_kernel::{Classified, DataClass, Purpose};
