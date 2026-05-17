@@ -22,6 +22,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: Scaffolds all 13 application crates across 5 BCs, implements the Leptos SSR + WASM composition-root shell, wires the per-tenant product catalog from TenantProductRegistry, implements the SSO hub PKCE + nonce flow per Bominal ADR-0123.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 merges ProductId, ProductMetadata, ProductEntry, and ProductCatalogError into existing oya-application-app via new product_catalog.rs module. No new crates scaffolded. References F-M02B-PLAN-LIVE-CRATE-RECONCILIATION (filed P04). Adds 8 unit tests covering ProductId rejection/roundtrip, ProductMetadata validation, ProductEntry is_active/deep_link_path, enabled-product filtering, and ProductId ordering."
 ---
 # IP-001-application-kernel-scaffold: Scaffold Application Shell — 13 Crates / 5 BCs + Leptos Shell + SSO Hub + DDL
 
