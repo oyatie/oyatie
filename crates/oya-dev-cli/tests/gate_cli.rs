@@ -4646,6 +4646,158 @@ fn benchmark_gate_passes_clean_crate() {
     fs::remove_dir_all(temp).ok();
 }
 
+// --- openapi-rest-route-parity integration tests (M02b/P22 exit-gate lane 7) ---
+
+fn write_rest_crate(crates_dir: &Path, crate_name: &str, lib_rs_content: &str) {
+    let src_dir = crates_dir.join(crate_name).join("src");
+    fs::create_dir_all(&src_dir).expect("rest crate src dir created");
+    fs::write(src_dir.join("lib.rs"), lib_rs_content).expect("rest lib.rs written");
+}
+
+fn write_openapi_contract(contracts_dir: &Path, filename: &str, content: &str) {
+    fs::create_dir_all(contracts_dir).expect("contracts dir created");
+    fs::write(contracts_dir.join(filename), content).expect("openapi contract written");
+}
+
+fn openapi_rest_route_parity_args<'a>(
+    crates_dir: &'a Path,
+    contracts_dir: &'a Path,
+) -> Vec<&'a str> {
+    vec![
+        "gate",
+        "validate",
+        "openapi-rest-route-parity",
+        "--crates-dir",
+        crates_dir.to_str().expect("utf8 crates_dir"),
+        "--contracts-dir",
+        contracts_dir.to_str().expect("utf8 contracts_dir"),
+        "--crate-prefix",
+        "oya-ops-",
+        "--contract-prefix",
+        "ops-",
+    ]
+}
+
+#[test]
+fn openapi_rest_route_parity_gate_rejects_route_missing_from_openapi() {
+    let temp = temp_dir("orp-reject-missing-openapi");
+    let crates_dir = temp.join("crates");
+    let contracts_dir = temp.join("contracts");
+
+    write_rest_crate(
+        &crates_dir,
+        "oya-ops-orders-rest",
+        "pub const HEALTH_ROUTE: &str = \"/ops/api/v1/health\";\npub const ORDERS_ROUTE: &str = \"/ops/api/v1/orders\";\n",
+    );
+    write_openapi_contract(
+        &contracts_dir,
+        "ops-orders.openapi.yaml",
+        "openapi: 3.2.0\ninfo:\n  title: Orders\n  version: 1.0.0\npaths:\n  /ops/api/v1/health:\n    get: {}\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(openapi_rest_route_parity_args(&crates_dir, &contracts_dir))
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "gate must reject when route missing from openapi; stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("openapi-rest-route-parity validation failed"),
+        "stderr must contain failure message; stderr={stderr}"
+    );
+    assert!(
+        stderr.contains("/ops/api/v1/orders"),
+        "stderr must name the REST-only route; stderr={stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn openapi_rest_route_parity_gate_rejects_path_missing_from_rest() {
+    let temp = temp_dir("orp-reject-missing-rest");
+    let crates_dir = temp.join("crates");
+    let contracts_dir = temp.join("contracts");
+
+    write_rest_crate(
+        &crates_dir,
+        "oya-ops-orders-rest",
+        "pub const HEALTH_ROUTE: &str = \"/ops/api/v1/health\";\n",
+    );
+    write_openapi_contract(
+        &contracts_dir,
+        "ops-orders.openapi.yaml",
+        "openapi: 3.2.0\ninfo:\n  title: Orders\n  version: 1.0.0\npaths:\n  /ops/api/v1/health:\n    get: {}\n  /ops/api/v1/orders:\n    post: {}\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(openapi_rest_route_parity_args(&crates_dir, &contracts_dir))
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "gate must reject when openapi path is missing from REST; stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("openapi-rest-route-parity validation failed"),
+        "stderr must contain failure message; stderr={stderr}"
+    );
+    assert!(
+        stderr.contains("/ops/api/v1/orders"),
+        "stderr must name the OpenAPI-only path; stderr={stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn openapi_rest_route_parity_gate_accepts_clean_matched_routes() {
+    let temp = temp_dir("orp-accept-clean");
+    let crates_dir = temp.join("crates");
+    let contracts_dir = temp.join("contracts");
+
+    write_rest_crate(
+        &crates_dir,
+        "oya-ops-health-rest",
+        "pub const HEALTH_ROUTE: &str = \"/ops/api/v1/health\";\n",
+    );
+    write_openapi_contract(
+        &contracts_dir,
+        "ops-health.openapi.yaml",
+        "openapi: 3.2.0\ninfo:\n  title: Health\n  version: 1.0.0\npaths:\n  /ops/api/v1/health:\n    get: {}\n",
+    );
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args(openapi_rest_route_parity_args(&crates_dir, &contracts_dir))
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "gate must accept clean matched routes; stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("openapi-rest-route-parity validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn temp_dir(label: &str) -> std::path::PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
