@@ -215,10 +215,10 @@ mod tests {
         let leaves: Vec<Sha256Hash> = (0u8..2).map(|i| leaf(&[i])).collect();
         let tree = MerkleTree::new(leaves.clone());
         let root = tree.build_root();
-        for idx in 0..leaves.len() {
+        for (idx, &leaf_hash) in leaves.iter().enumerate() {
             let path = tree.proof_path(idx);
             assert!(
-                MerkleTree::verify_proof(leaves[idx], idx, &path, root),
+                MerkleTree::verify_proof(leaf_hash, idx, &path, root),
                 "proof failed for leaf {idx}"
             );
         }
@@ -229,10 +229,10 @@ mod tests {
         let leaves: Vec<Sha256Hash> = (0u8..8).map(|i| leaf(&[i])).collect();
         let tree = MerkleTree::new(leaves.clone());
         let root = tree.build_root();
-        for idx in 0..leaves.len() {
+        for (idx, &leaf_hash) in leaves.iter().enumerate() {
             let path = tree.proof_path(idx);
             assert!(
-                MerkleTree::verify_proof(leaves[idx], idx, &path, root),
+                MerkleTree::verify_proof(leaf_hash, idx, &path, root),
                 "proof failed for leaf {idx}"
             );
         }
@@ -243,10 +243,10 @@ mod tests {
         let leaves: Vec<Sha256Hash> = (0u8..5).map(|i| leaf(&[i])).collect();
         let tree = MerkleTree::new(leaves.clone());
         let root = tree.build_root();
-        for idx in 0..leaves.len() {
+        for (idx, &leaf_hash) in leaves.iter().enumerate() {
             let path = tree.proof_path(idx);
             assert!(
-                MerkleTree::verify_proof(leaves[idx], idx, &path, root),
+                MerkleTree::verify_proof(leaf_hash, idx, &path, root),
                 "proof failed for leaf {idx} (odd tree)"
             );
         }
