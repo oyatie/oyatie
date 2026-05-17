@@ -9,6 +9,10 @@ changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 merges WorkspaceSurfaceKind (14-variant enum covering all M03-P06 SPEC §4 surfaces) into existing oya-workspace-chat-api via new surface_kind.rs module. No new crates scaffolded. No new workspace deps. std-only. 4 unit tests covering 14-variant count, tag uniqueness, tag prefix, and spec-row ordering."
 purpose: Round out the remaining 5 Workspace surfaces.
 ---
 
