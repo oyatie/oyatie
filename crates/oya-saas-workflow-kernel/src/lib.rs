@@ -11,6 +11,9 @@
 pub mod priority;
 pub use priority::WorkflowPriority;
 
+pub mod trigger;
+pub use trigger::{StepStatus, TriggerKind};
+
 use std::fmt;
 
 const WORKFLOW_DEFINITION_ID_PREFIX: &str = "wfd_";
