@@ -1,69 +1,82 @@
-//! Lean architecture check vocabulary (lean-a1..lean-a4).
+//! Lean architecture check vocabulary.
 //!
 //! Provides the identifier enum and violation value-object consumed by
 //! `oya-shared-architecture-check-cli` (P01-foundry-engine-consolidation).
 //! This module is I/O-free; CLI tools own parsing and workspace traversal.
 //!
-//! Lean lane mapping (ADR-0056 §CI matrix / ADR-0057):
-//! - `lean-a1` → [`LeanCheckId::DependencyDirection`]
-//! - `lean-a2` → [`LeanCheckId::CrossProductRefusal`]
-//! - `lean-a3` → [`LeanCheckId::PortLocation`]
-//! - `lean-a4` → [`LeanCheckId::LayerCorrectness`]
+//! Canonical CI-lane mapping (docs/standards/ci-lanes.md §1.2 + ADR-0056 §2.2 / §207):
+//! - `lean-a1-architecture` → [`LeanCheckId::DependencyDirection`],
+//!   [`LeanCheckId::LayerCorrectness`], [`LeanCheckId::PortLocation`]
+//!   (one lane covers all three architecture sub-checks)
+//! - `lean-a2-bounded-contexts` → [`LeanCheckId::CrossProductRefusal`]
+//!
+//! Note: `lean-a3` and `lean-a4` are reserved for supply-chain and semver
+//! per ci-lanes.md §1.2 and MUST NOT be reused for architecture checks.
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::fmt;
 
-/// Identifies one of the four lean architecture-check CI lanes.
+/// Identifies one of the four lean architecture-check sub-checks.
 ///
-/// Variants are ordered by their `lean-a*` lane number so that
-/// `Ord`-sorted violation lists are stable across runs.
+/// Variants are ordered by canonical CI lane (`lean-a1-architecture` first,
+/// then `lean-a2-bounded-contexts`) so that `Ord`-sorted violation lists
+/// are stable across runs.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum LeanCheckId {
-    /// lean-a1 — enforce inward-only dependency flow per 13-layer matrix.
+    /// lean-a1-architecture sub-check — enforce inward-only dependency flow
+    /// per 13-layer matrix.
     DependencyDirection,
-    /// lean-a2 — refuse direct cross-µservice imports (except public_layers).
-    CrossProductRefusal,
-    /// lean-a3 — assert port traits live only in `kernel`-layer crates.
-    PortLocation,
-    /// lean-a4 — assert declared layer matches crate-name suffix.
+    /// lean-a1-architecture sub-check — declared layer must match crate-name
+    /// suffix per BNF v4.1.
     LayerCorrectness,
+    /// lean-a1-architecture sub-check — port traits live only in
+    /// `kernel`-layer crates.
+    PortLocation,
+    /// lean-a2-bounded-contexts — refuse direct cross-µservice imports
+    /// (except public_layers per ADR-0056 §2.2).
+    CrossProductRefusal,
 }
 
 impl LeanCheckId {
-    /// Short kebab-case lane tag used in CI output and ADR references.
+    /// Canonical CI lane name used in CI output and branch-protection rules.
+    ///
+    /// Matches the `lean-a*` ids declared in `docs/standards/ci-lanes.md` §1.2.
+    /// Multiple architecture sub-checks share `lean-a1-architecture`.
     pub fn lane_tag(self) -> &'static str {
         match self {
-            Self::DependencyDirection => "lean-a1",
-            Self::CrossProductRefusal => "lean-a2",
-            Self::PortLocation => "lean-a3",
-            Self::LayerCorrectness => "lean-a4",
+            Self::DependencyDirection
+            | Self::LayerCorrectness
+            | Self::PortLocation => "lean-a1-architecture",
+            Self::CrossProductRefusal => "lean-a2-bounded-contexts",
         }
     }
 
-    /// Human-readable description aligned with ADR-0057 lane definitions.
+    /// Human-readable description aligned with canonical ADR definitions.
     pub fn description(self) -> &'static str {
         match self {
             Self::DependencyDirection => {
-                "inward-only dependency flow per 13-layer matrix (ADR-0056)"
+                "inward-only dependency flow per 13-layer matrix (ADR-0056 §2.2)"
+            }
+            Self::LayerCorrectness => {
+                "declared layer must match crate-name suffix (ADR-0056 BNF v4.1)"
+            }
+            Self::PortLocation => {
+                "port traits must live in kernel-layer crates (ADR-0056 §207)"
             }
             Self::CrossProductRefusal => {
-                "no direct cross-µservice imports except via public_layers (ADR-0056)"
-            }
-            Self::PortLocation => "port traits must live in kernel-layer crates (ADR-0057)",
-            Self::LayerCorrectness => {
-                "declared layer must match crate-name suffix (ADR-0056 BNF v4)"
+                "no direct cross-µservice imports except via public_layers (ADR-0056 §2.2)"
             }
         }
     }
 
-    /// Returns all variants in `lean-a*` order.
+    /// Returns all variants in canonical CI-lane order.
     pub fn all() -> [Self; 4] {
         [
             Self::DependencyDirection,
-            Self::CrossProductRefusal,
-            Self::PortLocation,
             Self::LayerCorrectness,
+            Self::PortLocation,
+            Self::CrossProductRefusal,
         ]
     }
 }
@@ -102,7 +115,7 @@ impl LeanViolation {
         }
     }
 
-    /// Single-line CI-log format: `[lean-a1] crate::path — message`.
+    /// Single-line CI-log format: `[lean-a1-architecture] crate::path — message`.
     pub fn to_log_line(&self) -> String {
         format!(
             "[{}] {} — {}",
@@ -126,21 +139,30 @@ mod tests {
     // ── LeanCheckId ──────────────────────────────────────────────────────────
 
     #[test]
-    fn all_returns_four_variants_in_lane_order() {
+    fn all_returns_four_variants_in_canonical_lane_order() {
         let all = LeanCheckId::all();
         assert_eq!(all.len(), 4);
         assert_eq!(all[0], LeanCheckId::DependencyDirection);
-        assert_eq!(all[1], LeanCheckId::CrossProductRefusal);
+        assert_eq!(all[1], LeanCheckId::LayerCorrectness);
         assert_eq!(all[2], LeanCheckId::PortLocation);
-        assert_eq!(all[3], LeanCheckId::LayerCorrectness);
+        assert_eq!(all[3], LeanCheckId::CrossProductRefusal);
     }
 
     #[test]
-    fn lane_tags_match_lean_a_numbering() {
-        assert_eq!(LeanCheckId::DependencyDirection.lane_tag(), "lean-a1");
-        assert_eq!(LeanCheckId::CrossProductRefusal.lane_tag(), "lean-a2");
-        assert_eq!(LeanCheckId::PortLocation.lane_tag(), "lean-a3");
-        assert_eq!(LeanCheckId::LayerCorrectness.lane_tag(), "lean-a4");
+    fn lane_tags_match_ci_lanes_md_section_1_2() {
+        assert_eq!(
+            LeanCheckId::DependencyDirection.lane_tag(),
+            "lean-a1-architecture"
+        );
+        assert_eq!(
+            LeanCheckId::LayerCorrectness.lane_tag(),
+            "lean-a1-architecture"
+        );
+        assert_eq!(LeanCheckId::PortLocation.lane_tag(), "lean-a1-architecture");
+        assert_eq!(
+            LeanCheckId::CrossProductRefusal.lane_tag(),
+            "lean-a2-bounded-contexts"
+        );
     }
 
     #[test]
@@ -151,9 +173,9 @@ mod tests {
     }
 
     #[test]
-    fn ord_is_stable_lean_a1_before_lean_a4() {
-        assert!(LeanCheckId::DependencyDirection < LeanCheckId::LayerCorrectness);
-        assert!(LeanCheckId::CrossProductRefusal < LeanCheckId::PortLocation);
+    fn ord_groups_architecture_lane_before_bounded_contexts_lane() {
+        assert!(LeanCheckId::DependencyDirection < LeanCheckId::CrossProductRefusal);
+        assert!(LeanCheckId::PortLocation < LeanCheckId::CrossProductRefusal);
     }
 
     #[test]
@@ -191,7 +213,7 @@ mod tests {
         );
         assert_eq!(
             v.to_log_line(),
-            "[lean-a2] oya-billing-application — direct import of oya-hr-domain"
+            "[lean-a2-bounded-contexts] oya-billing-application — direct import of oya-hr-domain"
         );
     }
 
