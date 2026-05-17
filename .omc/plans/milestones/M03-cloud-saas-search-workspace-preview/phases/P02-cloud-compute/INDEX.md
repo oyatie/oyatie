@@ -5,6 +5,10 @@ id: M03-P02
 title: Cloud Compute (VM / K8s / Functions / Capacity / DC-Ops)
 status: in-progress
 purpose: Bring managed VM/K8s/Functions + capacity + DC-Ops surfaces to W-Cloud-Preview readiness; provider-agnostic adapter pattern.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "IP-003 symbols (ReservedCapacity, CommittedUseContract, SpotPool) merged into oya-cloud-capacity-kernel::committed_use; no new crate scaffolds, no new workspace deps. Mirrors M03-P01 pattern."
 ---
 
 # M03-P02 — Cloud Compute
