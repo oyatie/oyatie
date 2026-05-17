@@ -17,7 +17,7 @@ purpose: |
   error-budget-policy chapter. Resolves the `standards/on-call.md`
   forward-reference sentinel in `docs/AGENTS.md` canonical doc map.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-runbook-index-resolves
+planned_enforcement_ref: oya-foundry-fitness-runbook-index-resolves
 companion_docs:
   - docs/INCIDENT-MANAGEMENT.md
   - docs/SLO-CATALOG.md

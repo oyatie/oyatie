@@ -8,7 +8,7 @@ date: 2026-05-12
 purpose: |
   Catalogue of progressive-delivery + SLO-burn-rate-rollback architecture for oyatie.
   Maps each artefact to its lift target, the standard(s) it updates, and the lane(s) that enforce it.
-enforced_by: oya-foundry-fitness-orphan-detection
+planned_enforcement_ref: oya-foundry-fitness-orphan-detection
 related_adrs: [ADR-0040, ADR-0042, ADR-0044, ADR-0050, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 doc_status: published
@@ -20,7 +20,7 @@ doc_status: published
 
 ## Strategy + specs (lift to `oyatie/docs/release/`)
 
-| File | Lift target | Updates | Enforced by |
+| File | Lift target | Updates | Planned advisory lane: |
 |---|---|---|---|
 | [`progressive-delivery-strategy.md`](progressive-delivery-strategy.md) | `docs/release/progressive-delivery-strategy.md` | `docs/RELEASE-MANAGEMENT.md` §progressive delivery | `canary-required`, `rollback-evidence` |
 | [`feature-flag-architecture.md`](feature-flag-architecture.md) | `docs/release/feature-flag-architecture.md` | new section in `RELEASE-MANAGEMENT.md` | `feature-flag-debt`, `cohort-honor` |
@@ -33,7 +33,7 @@ doc_status: published
 
 ## Per-axis playbooks (lift to `oyatie/docs/playbooks/`)
 
-| File | Lift target | Updates | Enforced by |
+| File | Lift target | Updates | Planned advisory lane: |
 |---|---|---|---|
 | [`playbook-foundry.md`](playbook-foundry.md) | `docs/playbooks/playbook-foundry.md` | new in `docs/playbooks/` | `canary-required`, `shadow-diff`, `rollback-evidence` |
 | [`playbook-cloud.md`](playbook-cloud.md) | `docs/playbooks/playbook-cloud.md` | new in `docs/playbooks/` | `canary-required`, `rollback-evidence` |

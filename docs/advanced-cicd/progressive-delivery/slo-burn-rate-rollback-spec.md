@@ -10,7 +10,7 @@ purpose: |
   Multi-window multi-burn-rate alerting (per Google SRE Workbook §5): fast-burn (5min×2hr) +
   slow-burn (1hr×6hr). Auto-rollback at fast-burn threshold; auto-pause at slow-burn threshold.
   Provider-agnostic burn-rate kernel.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-slo-coverage
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0040, ADR-0042, ADR-0037]

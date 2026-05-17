@@ -10,7 +10,7 @@ purpose: |
   report on every run. Reports are rolled up into a per-axis mdbook chapter so
   that lane health trends are visible. The rollup is the single visualization
   surface for "is the discipline holding?" at AWS/Google/MS/Oracle bar.
-enforced_by: oya-foundry-fitness-lane-rollup
+planned_enforcement_ref: oya-foundry-fitness-lane-rollup
 extends_crates:
   - oya-foundry-eval-kernel
   - oya-foundry-quality-lane-kernel

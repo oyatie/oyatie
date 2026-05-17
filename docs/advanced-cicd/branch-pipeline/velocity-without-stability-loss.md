@@ -11,7 +11,7 @@ purpose: |
   worktree-to-local-dev sync, 3-gate local-dev → origin/dev entry, autonomous
   origin/dev → staging, 5-gate staging → prod) beats both trunk-based and
   review-on-every-stage. Metrics, accepted risks, comparison table.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-regression-sla
   - oya-foundry-fitness-promotion-gate-staging-to-prod
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]

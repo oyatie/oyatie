@@ -8,7 +8,7 @@ date: 2026-05-12
 purpose: |
   Blue/green for stateful migrations, schema changes, runtime cutovers, capability cutovers.
   Atomic switchover via traffic-shift (not deployment-swap). Up/down/dry-run/per-tenant/per-cell rollback per D14.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-rollback-evidence
   - oya-foundry-fitness-schema-migration
 related_adrs: [ADR-0040, ADR-0045, ADR-0049, ADR-0053, ADR-0052, ADR-0054]
@@ -65,7 +65,7 @@ green (soaked; blue removed)
 4. **Cut writers to new shape only.** New code stops dual-writing.
 5. **Destructive teardown (separate release).** Drop old columns; **at least 7 days after writer cutover**.
 
-Each step is its own release; **no step compresses two**. Enforced by `oya-foundry-fitness-schema-migration` (existing lane; extend).
+Each step is its own release; **no step compresses two**. Planned advisory lane: `oya-foundry-fitness-schema-migration` (existing lane; extend).
 
 ## 5. Up / down / dry-run / per-tenant / per-cell rollback (D14)
 

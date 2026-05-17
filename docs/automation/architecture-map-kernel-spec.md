@@ -11,7 +11,7 @@ purpose: |
   three renderings of the system architecture: Mermaid (inline mdbook), D2
   (richer service maps via terrastruct/d2), Graphviz (DAG fallback / SVG fidelity).
   Same shape as the existing `oya-foundry-cohesion-fitness-kernel`.
-enforced_by: oya-foundry-fitness-architecture-map-freshness
+planned_enforcement_ref: oya-foundry-fitness-architecture-map-freshness
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
   - oya-foundry-mdbook-kernel

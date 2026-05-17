@@ -10,7 +10,7 @@ purpose: |
   Define the mechanics of cutting a release/X.Y branch from origin/prod: the tag
   protocol, the read-only invariant, the patch flow back through the four-layer
   pipeline, and the cherry-pick rules. Aligns with Kubernetes release-X.Y model.
-enforced_by: oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-cherry-pick-trail
+planned_enforcement_ref: oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-cherry-pick-trail
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -63,7 +63,7 @@ with Directive 12 documentation). The protocol:
 8. **Emit evidence**: `EVT-RELEASE-BRANCH-CUT` to D14 with the prod SHA, the
    tag, the branch, the lane states, and the agent signature.
 
-Step 1 is enforced by `oya-foundry-fitness-release-branch-cut` — without
+Step 1 is tracked by planned advisory lane `oya-foundry-fitness-release-branch-cut` — without
 green lanes the cut is refused.
 
 ## 4. Read-only invariant

@@ -9,7 +9,7 @@ purpose: |
   Render the wave sequence with milestone gates as a Mermaid Gantt chart.
   Source: MASTERPLAN.md §3 + each milestone INDEX.md + each phase INDEX.md.
   Lift to `docs/visualization/roadmap.md`. Auto-derived; no hand-painted Gantt.
-enforced_by: oya-foundry-fitness-roadmap-viz
+planned_enforcement_ref: oya-foundry-fitness-roadmap-viz
 extends_crates:
   - oya-foundry-architecture-map-kernel
   - oya-foundry-mdbook-kernel

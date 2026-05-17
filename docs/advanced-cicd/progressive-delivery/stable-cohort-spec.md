@@ -9,7 +9,7 @@ adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   Per-tenant stable cohorts that never see canary. Cohort assignment via oya-platform-tenant-cohort-kernel.
   Integrates with autonomy-ceiling and per-vertical regulatory packs.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0040, ADR-0022, ADR-0034, ADR-0049]
 doc_status: published
@@ -74,7 +74,7 @@ All changes emit D14 audit-chain records ([ADR-0003](../../../docs/decisions/ADR
 
 ## 8. Connect-no-ads cohort (LEDG-021 honour)
 
-Per `MISTAKES-LEDGER` LEDG-021, the Connect-no-ads cohort (Workspace tenants who opted out of ad-supported features) MUST be honoured by every rollout. Cohort kernel materialises this as a derived cohort overlay; every Ads-axis canary intersects it and excludes those tenants. Enforced by `oya-foundry-fitness-cohort-honor` and [`playbook-ads.md`](playbook-ads.md).
+Per `MISTAKES-LEDGER` LEDG-021, the Connect-no-ads cohort (Workspace tenants who opted out of ad-supported features) MUST be honoured by every rollout. Cohort kernel materialises this as a derived cohort overlay; every Ads-axis canary intersects it and excludes those tenants. Planned advisory lane: `oya-foundry-fitness-cohort-honor` and [`playbook-ads.md`](playbook-ads.md).
 
 ## 9. Visibility
 

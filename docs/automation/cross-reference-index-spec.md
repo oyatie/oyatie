@@ -10,7 +10,7 @@ purpose: |
   with: path | purpose | doc-class | owner (RACI) | lifecycle (DOC-CATALOG) |
   consumer-fitness-lane | last-verified. The single navigation surface for
   agents + humans across the entire canonical doc tree.
-enforced_by: oya-foundry-fitness-cross-reference-index
+planned_enforcement_ref: oya-foundry-fitness-cross-reference-index
 extends_crates:
   - oya-foundry-doc-catalog-kernel
   - oya-foundry-raci-team-coverage-kernel

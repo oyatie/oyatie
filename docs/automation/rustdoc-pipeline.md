@@ -10,7 +10,7 @@ purpose: |
   API reference inside the mdbook, with a cross-crate link graph and a
   nightly + per-PR delta surface. This is the canonical Rust API doc pipeline
   for Oyatie — no hand-written API reference docs are permitted to compete.
-enforced_by: oya-foundry-fitness-rustdoc-publish
+planned_enforcement_ref: oya-foundry-fitness-rustdoc-publish
 extends_crates:
   - oya-foundry-mdbook-kernel
   - oya-foundry-readme-doc-coverage-kernel

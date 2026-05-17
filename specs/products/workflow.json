@@ -116,10 +116,10 @@
     {"competitor": "Zapier_Make", "we_beat_on": ["production-grade durability + audit + SLA", "per-tenant isolation"], "measurable": "tenant data leak = 0; SLA target"}
   ],
   "best_practices": [
-    {"id": "BP-01", "rule": "canonical JSON spec is single source of truth; visual is projection", "enforced_by_lane_ref": "oya-foundry-fitness-workflow-spec-roundtrip"},
-    {"id": "BP-02", "rule": "per-step audit-chain emission with distinct session_id + timestamp", "enforced_by_lane_ref": "oya-foundry-fitness-audit-chain-session-distinctness", "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"},
+    {"id": "BP-01", "rule": "canonical JSON spec is single source of truth; visual is projection", "planned_enforcement_ref": "oya-foundry-fitness-workflow-spec-roundtrip"},
+    {"id": "BP-02", "rule": "per-step audit-chain emission with distinct session_id + timestamp", "planned_enforcement_ref": "oya-foundry-fitness-audit-chain-session-distinctness", "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"},
     {"id": "BP-03", "rule": "state-machine + DAG hybrid; spec schema requires exactly one state-machine + zero-or-more DAG blocks", "enforced_by_schema_ref": "$ref:contracts/workflow_spec.v1.json"},
-    {"id": "BP-04", "rule": "jurisdiction overlay precedence explicit; 3x re-run identity check", "enforced_by_lane_ref": "oya-foundry-fitness-overlay-resolution-determinism"},
+    {"id": "BP-04", "rule": "jurisdiction overlay precedence explicit; 3x re-run identity check", "planned_enforcement_ref": "oya-foundry-fitness-overlay-resolution-determinism"},
     {"id": "BP-05", "rule": "idempotent step execution via idempotency_key; at-most-once side effect", "enforced_by_test_ref": "crates/oya-saas-workflow-domain/tests/idempotency.rs"},
     {"id": "BP-06", "rule": "TDD per $ref:specs/agent-durable-goal.json#tdd_contract; 100% public API coverage + prove-it for every bug"},
     {"id": "BP-07", "rule": "competitive claims require official-source evidence_refs plus concrete patch/verification; unsourced benchmark deltas are forbidden", "enforced_by_ref": "$ref:evidence/autoresearch/workflow-competitive-map.json#source_policy"},

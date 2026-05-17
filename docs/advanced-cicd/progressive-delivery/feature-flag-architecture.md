@@ -9,7 +9,7 @@ purpose: |
   OpenFeature SDK as the in-tree standard. Provider-agnostic per Directive 4 so we can swap
   LaunchDarkly / GrowthBook / Flagsmith / Unleash / in-house behind the OpenFeature interface.
   Pins flag taxonomy + lifecycle + flag-debt budget.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-feature-flag-debt
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0040, ADR-0020, ADR-0053, ADR-0052, ADR-0054]

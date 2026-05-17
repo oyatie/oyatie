@@ -18,7 +18,7 @@ purpose: |
   followed), and the dual-audience requirement (every fenced block has adjacent
   plain-English prose). Implements MASTERPLAN §7 dual-audience contract.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-agent-instructions-fence
+planned_enforcement_ref: oya-foundry-fitness-agent-instructions-fence
 enforcement_status:
   oya-foundry-fitness-agent-instructions-fence: F-PENDING-AGENT-INSTRUCTIONS-FENCE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-foundry-fitness-dual-audience: F-PENDING-DUAL-AUDIENCE (crate missing)

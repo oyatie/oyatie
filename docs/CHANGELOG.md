@@ -251,7 +251,7 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 - Authored `docs/decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md` (Accepted).
 - Fixes the agent-callable coordination/state-transition primitive set at `{grit, icm, oya-tooling-agent-read}`; direct `git`/`gh` permitted only with documented rationale per Directive 12.
-- Enforced by `oya-foundry-fitness-banned-primitives` lane (defined P4, activated P5 merge boundary).
+- Historical planned enforcement: `oya-foundry-fitness-banned-primitives` lane was defined for P4/P5 merge-boundary work.
 - Consensus reached iter-2 via Planner+Architect+Critic; operational driver: `.omc/plans/ralplan-oyatie-sst-consolidation.md`.
 - Sibling ADRs landing in parallel: ADR-0052 (pre-grit artifact inventory), ADR-0054 (grit scaffold-claim pattern).
 

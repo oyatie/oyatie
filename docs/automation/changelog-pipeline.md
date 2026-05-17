@@ -10,7 +10,7 @@ purpose: |
   auto-emits a `docs/CHANGELOG.md` row. The row is templated from the PR body +
   commit metadata; the `oya-foundry-fitness-changelog-row` lane fails the PR if
   the row is missing or malformed. CHANGELOG drift dies at the door.
-enforced_by: oya-foundry-fitness-changelog-row
+planned_enforcement_ref: oya-foundry-fitness-changelog-row
 extends_crates:
   - oya-foundry-pr-traceability-kernel
   - oya-foundry-doc-catalog-kernel
@@ -27,7 +27,7 @@ doc_status: published
 
 ## 1. Purpose
 
-`docs/CHANGELOG.md` is the human-readable trail of canonical-doc evolution. Today it is hand-maintained, which guarantees drift. This pipeline closes the loop: any PR touching a doc listed in `docs/DOC-CATALOG.md` Tier-1 or Tier-2 MUST emit a CHANGELOG row, and the row shape is enforced by the lane.
+`docs/CHANGELOG.md` is the human-readable trail of canonical-doc evolution. Today it is hand-maintained, which guarantees drift. This pipeline closes the loop: any PR touching a doc listed in `docs/DOC-CATALOG.md` Tier-1 or Tier-2 MUST emit a CHANGELOG row, and the row shape is tracked by planned advisory lane `oya-foundry-fitness-changelog-row`.
 
 ## 2. Inputs
 

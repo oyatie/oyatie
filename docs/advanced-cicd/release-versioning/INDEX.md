@@ -9,7 +9,7 @@ adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   Catalogue of the release-versioning policy for oyatie. Maps each artefact to its
   lift target, the standard(s) it updates, and the lane(s) that enforce it.
-enforced_by: oya-foundry-fitness-orphan-detection
+planned_enforcement_ref: oya-foundry-fitness-orphan-detection
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -21,7 +21,7 @@ doc_status: published
 
 ## Strategy + specs (lift to `oyatie/docs/release/`)
 
-| File | Lift target | Updates | Enforced by |
+| File | Lift target | Updates | Planned advisory lane: |
 |---|---|---|---|
 | [`release-versioning-strategy.md`](release-versioning-strategy.md) | `docs/release/release-versioning-strategy.md` | `docs/RELEASE-MANAGEMENT.md` §versioning | all 6 new lanes |
 | [`crate-versioning-spec.md`](crate-versioning-spec.md) | `docs/release/crate-versioning-spec.md` | `docs/standards/RUST-CRATE-CONVENTIONS.md` | `semver-discipline` |

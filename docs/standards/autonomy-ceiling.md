@@ -17,7 +17,7 @@ purpose: |
   `forbidden-operations.json` FO-10 and the AGENTS.md §Pre-flight checklist
   Item 4 ("Confirm autonomy ceiling").
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-autonomy-ceiling
+planned_enforcement_ref: oya-foundry-fitness-autonomy-ceiling
 enforcement_status:
   oya-foundry-fitness-autonomy-ceiling: F-PENDING-AUTONOMY-CEILING (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-foundry-fitness-capability-publish: F-PENDING-CAPABILITY-PUBLISH (crate missing)

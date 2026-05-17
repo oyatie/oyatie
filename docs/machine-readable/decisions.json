@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 107,
-    "numbering": "ADR-0001..ADR-0134 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0129)",
-    "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0129"],
-    "next_adr": "ADR-0135",
+    "total_adrs": 110,
+    "numbering": "ADR-0001..ADR-0135 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127)",
+    "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127"],
+    "next_adr": "ADR-0136",
     "status_counts": {
-      "Accepted": 22,
+      "Accepted": 25,
       "Proposed": 7,
       "Superseded": 2,
       "accepted": 39,
@@ -1245,6 +1245,30 @@
       "related": ["ADR-0111", "ADR-0112", "ADR-0113", "ADR-0116"]
     },
     {
+      "adr": "ADR-0128",
+      "number": 128,
+      "title": "Hyperscaler architecture invariants — canonical spec + portfolio binding",
+      "status": "Accepted",
+      "owner": "council-architecture, ops-sre-reliability, ops-security",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0128-hyperscaler-architecture-invariants.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0114", "ADR-0119", "ADR-0123"]
+    },
+    {
+      "adr": "ADR-0129",
+      "number": 129,
+      "title": "ChangeSet Plan DAG and Honest Claims Gate",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0116", "ADR-0124", "ADR-0128"]
+    },
+    {
       "adr": "ADR-0130",
       "number": 130,
       "title": "Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System",
@@ -1303,6 +1327,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0114", "ADR-0123", "ADR-0133"]
+    },
+    {
+      "adr": "ADR-0135",
+      "number": 135,
+      "title": "Aspirational Enforcement Gate",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0135-aspirational-enforcement-gate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0129", "ADR-0133", "ADR-0134"]
     }
   ]
 }

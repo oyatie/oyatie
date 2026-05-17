@@ -904,32 +904,32 @@
     {
       "id": "BP-01",
       "rule": "personal and professional trust models are separate data-model states, not runtime flags",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-trust-boundary"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-trust-boundary"
     },
     {
       "id": "BP-02",
       "rule": "delivery state transitions are idempotent and replayable",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-realtime"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-realtime"
     },
     {
       "id": "BP-03",
       "rule": "verified anonymity includes explicit disclosure of audit exception",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anonymity-disclosure"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-anonymity-disclosure"
     },
     {
       "id": "BP-04",
       "rule": "message edit and delete operations append to immutable audit log; original ciphertext retained per retention policy",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-messenger-audit"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-messenger-audit"
     },
     {
       "id": "BP-05",
       "rule": "presence state is scoped to ownership_pillar; personal presence is never shared with work context without explicit grant",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-presence-pillar"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-presence-pillar"
     },
     {
       "id": "BP-06",
       "rule": "reactions inherit parent message tenant DEK and retention policy",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-messenger-audit"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-messenger-audit"
     }
   ],
   "patterns": [

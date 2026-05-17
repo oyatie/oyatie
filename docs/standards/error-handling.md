@@ -19,7 +19,7 @@ purpose: |
   `standards/error-handling.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-error-boundary
+planned_enforcement_ref: oya-foundry-fitness-error-boundary
 enforcement_status:
   oya-foundry-fitness-error-boundary: existing
   oya-foundry-fitness-no-unwrap-prod: existing

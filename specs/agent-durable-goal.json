@@ -199,7 +199,7 @@
       "id": "OP-01",
       "name": "no_silent_regression",
       "rule": "Public contracts protected. Any breaking change requires ADR + version bump + sunset clause + BREAKING marker in CHANGELOG. Internal callers swept in same PR.",
-      "enforced_by": ["oya-foundry-fitness-lean-a10", "oya-foundry-fitness-api-semver"],
+      "planned_enforcement_refs": ["oya-foundry-fitness-lean-a10"], "enforced_by": ["oya-foundry-fitness-api-semver"],
       "references": ["feedback_no_silent_regression"]
     },
     {

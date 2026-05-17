@@ -17,7 +17,7 @@ purpose: |
   sunset at M01-P08 sign-off), and the revised banned-primitives lane
   semantics (catch *undocumented* invocations only).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-banned-primitives
+planned_enforcement_ref: oya-foundry-fitness-banned-primitives
 enforcement_status:
   oya-foundry-fitness-banned-primitives: existing
   F-FORBIDDEN-PRIMITIVES-CI-GUARD: pending Wave-B webhook receiver (ADR-0116)

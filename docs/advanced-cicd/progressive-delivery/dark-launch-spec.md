@@ -8,7 +8,7 @@ date: 2026-05-12
 purpose: |
   Write-side dark-launch (shadow traffic + diff-compare) for high-risk surfaces.
   Diff kernel: oya-foundry-shadow-diff-kernel. Aligned with Foundry RAG gate pattern.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-shadow-diff
 related_adrs: [ADR-0040, ADR-0011, ADR-0024, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]

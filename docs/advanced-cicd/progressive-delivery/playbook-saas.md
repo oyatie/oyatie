@@ -8,7 +8,7 @@ date: 2026-05-12
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   SaaS surface rollouts with per-vertical regulatory-pack awareness.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0001, ADR-0033, ADR-0034, ADR-0037]
@@ -60,7 +60,7 @@ A/B experiments on SaaS surfaces are gated by cohort:
 - `canary-pioneer` + `canary-eligible` + opted-in `stable-enterprise` are eligible.
 - `stable-regulated` is **never** eligible without per-vertical pack opt-in.
 
-Enforced by `oya-foundry-fitness-cohort-honor`.
+Planned advisory lane: `oya-foundry-fitness-cohort-honor`.
 
 ## 7. Per-tenant smoke (after canary)
 
