@@ -3,8 +3,15 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M06-P03
 title: Per-Vertical Regulatory Binding
-status: stub
+status: in-progress
 purpose: Bind each of the 13 verticals to its KR regulatory pack subset + DPIA.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  VerticalRegulatoryProfile + AdVertical added as new module in
+  oya-regional-pack-domain (no new crate scaffold, no new workspace deps).
+  Mirrors PR #60-#91 merge-variant delta pattern.
 ---
 
 # M06-P03 — Per-Vertical Regulatory Binding
