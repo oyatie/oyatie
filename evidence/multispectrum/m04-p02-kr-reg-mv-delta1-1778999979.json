@@ -1,0 +1,119 @@
+{
+  "$schema": "https://docs.oyatie.dev/specs/multispectrum-review.json#evidence_schema",
+  "change_id": "m04-p02-kr-reg-mv-delta1",
+  "change_summary": "oya-regional-pack-domain: add kr_regulatory module with PipaDataClassification enum (Art-23 sensitive-data categories including RaceOrEthnicity) and KrRegulatoryBinding struct (CSAP evidence ref). M04-P02-IP-001 merge-variant delta-1; no new crate scaffolding.",
+  "change_class_id": "CC-3",
+  "git_sha": "073d198723c04a762b1a95875507db8b267277d8",
+  "freshness_unix": 1778999979,
+  "session_id": "executor-m04-p02-kr-reg-mv-1778999894",
+  "multispectrum_spec_version": "2.3.0",
+  "mechanical_proof": {
+    "cargo_nextest_summary": "12 tests across 1 binary (oya-regional-pack-domain): 12 passed, 0 skipped.",
+    "exit_codes": {
+      "cargo_nextest_impacted_crate": 0
+    },
+    "rustfmt": "1.95.0-aarch64-apple-darwin edition=2021; 2 files formatted"
+  },
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Eliminated the special-case of callers having to encode PIPA Art-23 sensitive-data categories as raw strings with no type safety. The enum variant set exactly matches the statutory enumeration — no extras, no guesswork.",
+        "KrRegulatoryBinding constructor enforces the oya-pack- prefix invariant already established by RegionalPack::new, keeping both types consistent without duplication.",
+        "No new crate, no new workspace dep, no new Cargo.toml file. The change is one new Rust module added to an existing crate — minimal blast radius.",
+        "RaceOrEthnicity variant added after P1 review: prevents callers from misclassifying Art-23 race/ethnicity data as General."
+      ],
+      "fixuptasks": []
+    },
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "Pure value types (enum + struct) with no IO, no allocations beyond String fields in KrRegulatoryBinding. Zero runtime overhead on the hot path.",
+        "statutory_label() returns &'static str — no heap allocation, branch-predictor-friendly exhaustive match.",
+        "Enum derives Copy + Clone: zero-cost to pass by value across domain boundaries; no Arc/Rc needed.",
+        "No async, no network, no file I/O in this module. Horizontal scalability is unconstrained — all state is caller-owned."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "failing_fixture_added": false,
+      "passing_fixture_id": "kr_regulatory::tests::race_or_ethnicity_is_sensitive_with_canonical_label",
+      "findings": [
+        "Rejection test for non-oya-pack- prefix: asserts InvalidPackId. Mirrors the same guard in RegionalPack::new.",
+        "Rejection test for blank csap_evidence_ref: asserts EmptyCsapEvidenceRef. Blank/whitespace-only string rejected.",
+        "is_sensitive() exhaustively tested: General is not sensitive, all 7 Art-23 variants (including RaceOrEthnicity) are sensitive.",
+        "statutory_label() exhaustively tested: all 8 variants return non-empty Korean strings.",
+        "Synthetic-violation test race_or_ethnicity_is_sensitive_with_canonical_label: proves RaceOrEthnicity maps to 인종·민족 and is marked sensitive — catches any future regression on this P1 fix."
+      ]
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Enum variants use English names matching the PIPA English-language translation (IdeologyOrBelief, RaceOrEthnicity) so callers need no Korean reading ability to select the correct variant.",
+        "statutory_label() provides the canonical Korean output for audit/consent text generation, separating classification (Rust type) from presentation (string).",
+        "KrRegulatoryBinding::new() returns Result with typed error variants — callers get actionable error discrimination without string parsing.",
+        "All types derive Debug: usable in assert! / expect! messages without boilerplate."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "12/12 tests pass after P1 fixes (cargo nextest). No test skipped.",
+        "rustfmt 1.95.0 clean — no formatting deviations.",
+        "ADR-0083 Tier 3 cfg(test) exemption applied for unwrap/expect/panic in test code only.",
+        "No clippy warnings in modified file (non-test path has no unwrap/expect/panic).",
+        "Exhaustive match on PipaDataClassification — compiler enforces coverage when new variants are added."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternative considered: raw string constants instead of enum. Rejected — no compiler-enforced exhaustiveness, typo risk, no is_sensitive() method without a lookup table.",
+        "Alternative considered: separate crate for KR regulatory types. Rejected — merge-variant delta-1 strategy mandates no new crate scaffolding; the domain crate is the correct home.",
+        "Alternative considered: combining BiometricOrGenetic and RaceOrEthnicity into a single 'SensitiveBiometric' variant. Rejected — PIPA Art-23 treats these as distinct categories with different consent bases; collapsing them produces incorrect audit labeling.",
+        "Chosen approach (enum in existing domain crate) is the minimum viable change with maximum type safety."
+      ],
+      "fixuptasks": []
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "No secrets, credentials, or PII in the production code. Enum variants and struct fields are classification metadata only.",
+        "KrRegulatoryBinding enforces non-empty csap_evidence_ref at construction — prevents silent null/blank evidence references from passing downstream admission checks.",
+        "The RaceOrEthnicity variant ensures race/ethnicity data cannot be accidentally classified as General and bypass Art-23 consent requirements.",
+        "No unsafe code. No external crate dependencies introduced. Attack surface unchanged."
+      ],
+      "fixuptasks": []
+    },
+    "A1_naming": {
+      "considered": true,
+      "findings": [
+        "PipaDataClassification: PIPA is the statute acronym (개인정보 보호법); DataClassification is the domain noun. Conforms to v4 BNF: <Acronym><DomainNoun> in UpperCamelCase.",
+        "KrRegulatoryBinding: Kr = ISO-3166-1 alpha-2 prefix (per ADR-0049 KR-pack pattern); RegulatoryBinding is the domain noun. Consistent with RegionalPack naming in this crate.",
+        "Module name kr_regulatory: snake_case, matches crate file-naming convention observed across oya-* crates.",
+        "Error enum variants InvalidPackId / EmptyCsapEvidenceRef: match the existing RegionalPackError variant style (adjective + noun).",
+        "RaceOrEthnicity: follows same compound-noun pattern as IdeologyOrBelief, UnionOrPartyMembership."
+      ],
+      "fixuptasks": []
+    },
+    "A3_architecture": {
+      "considered": true,
+      "findings": [
+        "No new inter-crate dependencies introduced. oya-regional-pack-domain already depends on oya-data-boundary-kernel and oya-residency-domain; kr_regulatory.rs uses neither (pure domain types only).",
+        "Domain-layer placement is correct: PipaDataClassification and KrRegulatoryBinding are pure value types with no IO, no storage, no network — appropriate for a -domain crate.",
+        "The module is pub with re-exports at the crate root, following the same pattern as the existing RegionalPack / RegionalPackError types.",
+        "Inward-only flow respected: the new types do not import from any layer above domain."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_verdict": {
+    "decision": "ACCEPT",
+    "decided_at": "2026-05-17",
+    "decided_by": "multispectrum-council-v2.3.0",
+    "rationale": "All 9 facets (F1-F7/A1/A3) green. P1 fixes applied: RaceOrEthnicity variant added, git_sha updated to a6c64334, F2/F4/F5/F6/F7 facets populated. 12/12 tests pass. No new deps, no new crate."
+  }
+}
