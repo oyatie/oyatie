@@ -1,0 +1,483 @@
+{
+  "audit_id": "enterprise-suite-industry-audit-1779012320",
+  "op": "OP-11",
+  "date": "2026-05-17",
+  "auditor": "agent/audit-enterprise-1779012320",
+  "scope": "4 enterprise PRDs: suite, hr, payroll, accounting",
+  "industry_references_consulted": [
+    {
+      "vendor": "ADP Workforce Now",
+      "source_evidence_refs": [
+        "src_adp_workforce_now_20260517"
+      ],
+      "source_backed_signals": [
+        "all-in-one HR software category",
+        "workforce/payroll category grounding"
+      ]
+    },
+    {
+      "vendor": "BambooHR",
+      "source_evidence_refs": [
+        "src_bamboohr_platform_20260517"
+      ],
+      "source_backed_signals": [
+        "all-in-one HR platform category",
+        "employee lifecycle/self-service category grounding"
+      ]
+    },
+    {
+      "vendor": "DOUZONE / WEHAGO",
+      "source_evidence_refs": [
+        "src_douzone_platform_20260517"
+      ],
+      "source_backed_signals": [
+        "WEHAGO business platform category",
+        "accounting/payroll/management support category grounding"
+      ]
+    },
+    {
+      "vendor": "Deel",
+      "source_evidence_refs": [
+        "src_deel_payroll_20260517"
+      ],
+      "source_backed_signals": [
+        "multi-country payroll category",
+        "employee/contractor payroll and compliance category grounding"
+      ]
+    },
+    {
+      "vendor": "Gusto",
+      "source_evidence_refs": [
+        "src_gusto_payroll_20260517"
+      ],
+      "source_backed_signals": [
+        "payroll software/service category",
+        "employee and contractor payroll category grounding"
+      ]
+    },
+    {
+      "vendor": "NetSuite (Oracle)",
+      "source_evidence_refs": [
+        "src_netsuite_erp_20260517"
+      ],
+      "source_backed_signals": [
+        "cloud ERP category",
+        "financial management/accounting category grounding"
+      ]
+    },
+    {
+      "vendor": "QuickBooks Online",
+      "source_evidence_refs": [
+        "src_quickbooks_accounting_20260517"
+      ],
+      "source_backed_signals": [
+        "small-business accounting software category",
+        "bank transaction sync/reporting/payroll integration category grounding"
+      ]
+    },
+    {
+      "vendor": "Rippling",
+      "source_evidence_refs": [
+        "src_rippling_platform_20260517"
+      ],
+      "source_backed_signals": [
+        "HR, payroll, IT, and finance platform category",
+        "workflow/permissions/integrations category grounding"
+      ]
+    },
+    {
+      "vendor": "SAP SaaS portfolio",
+      "source_evidence_refs": [
+        "src_sap_cloud_erp_20260517",
+        "src_sap_btp_20260517",
+        "src_sap_spend_management_20260517",
+        "src_sap_concur_travel_expense_20260517"
+      ],
+      "source_backed_signals": [
+        "SAP Cloud ERP covers finance, supply chain, HR, and sales business processes with preconfigured cloud ERP processes and AI.",
+        "SAP BTP is the integration, automation, extension, AI, app, and workflow platform for SAP and third-party landscapes.",
+        "SAP Spend Management covers source-to-pay, supplier management, travel and expense, business network, policy checks, approvals, and AI-assisted spend workflows.",
+        "SAP Concur Travel & Expense unifies travel, expense, and card spend data with configurable workflows and reporting."
+      ]
+    },
+    {
+      "vendor": "SAP SuccessFactors",
+      "source_evidence_refs": [
+        "src_sap_hcm_20260517"
+      ],
+      "source_backed_signals": [
+        "HCM/HR software category",
+        "employee-experience/talent category grounding"
+      ]
+    },
+    {
+      "vendor": "Sage Intacct",
+      "source_evidence_refs": [
+        "src_sage_intacct_20260517"
+      ],
+      "source_backed_signals": [
+        "cloud accounting and financial management category",
+        "multi-entity financial management category grounding"
+      ]
+    },
+    {
+      "vendor": "Workday HCM",
+      "source_evidence_refs": [
+        "src_workday_hcm_20260517"
+      ],
+      "source_backed_signals": [
+        "HCM/HR product family",
+        "finance/payroll adjacent product family",
+        "platform extension surface"
+      ]
+    },
+    {
+      "vendor": "Xero",
+      "source_evidence_refs": [
+        "src_xero_accounting_20260517"
+      ],
+      "source_backed_signals": [
+        "online accounting software category",
+        "bank/accounting workflow category grounding"
+      ]
+    }
+  ],
+  "gap_analysis": {
+    "suite": {
+      "gaps_identified": [
+        "missing ISO 27001 / SOC 2 Type II compliance evidence binding",
+        "missing explicit data residency controls per region",
+        "missing SSO / SAML 2.0 / OIDC identity provider integration spec",
+        "multi-currency limited to KRW/USD/EUR (JPY, GBP, CNY, AUD absent)",
+        "competitive section missing SAP SuccessFactors (major HCM competitor)",
+        "no industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gap — expanded"
+    },
+    "hr": {
+      "gaps_identified": [
+        "missing onboarding/offboarding checklist pattern (BambooHR/Workday)",
+        "missing e-signature for offer letters/contracts",
+        "missing compensation bands with pay equity analysis (SAP SF/ADP)",
+        "missing performance review cycles enum (annual/semi-annual/continuous)",
+        "missing skills and competency framework (Workday Skills Cloud)",
+        "missing contractor/contingent worker class",
+        "missing succession planning",
+        "missing AI-assisted scheduling bounded by labor law rulepacks",
+        "competitive section missing SAP SuccessFactors and BambooHR",
+        "no industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gap — expanded"
+    },
+    "payroll": {
+      "gaps_identified": [
+        "missing explicit pay cycle type enum (biweekly/semimonthly/monthly/quarterly) — ADP/Gusto standard",
+        "missing off-cycle payroll run type",
+        "missing garnishment and deduction engine",
+        "missing contractor (프리랜서/1099) payment class",
+        "missing year-end settlement entity (연말정산/W-2)",
+        "missing retroactive pay adjustment with compensating entry",
+        "missing benefits deduction sync from HR enrollment",
+        "missing disbursement method tracking",
+        "competitive section missing ADP and Gusto (primary payroll competitors)",
+        "no industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gap — expanded"
+    },
+    "accounting": {
+      "gaps_identified": [
+        "missing fiscal year vs calendar year period model",
+        "missing fixed asset management (acquisition, depreciation, disposal)",
+        "missing revenue recognition engine (ASC 606 / IFRS 15 / K-IFRS 1115)",
+        "missing bank reconciliation with bank feed integration",
+        "missing accounts aging reports (AR/AP aging buckets)",
+        "missing dimension tagging (department, project, location, cost center)",
+        "missing intercompany elimination at group consolidation",
+        "missing budget vs actuals tracking",
+        "missing auditor evidence pack export",
+        "competitive section missing Sage Intacct (direct enterprise competitor)",
+        "no industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gap — expanded"
+    }
+  },
+  "changes_applied": {
+    "suite.json": {
+      "version": "1.0.0 -> 1.1.0",
+      "competitive_entries_added": [
+        "SAP SaaS portfolio (Cloud ERP / BTP / Ariba / Concur)",
+        "SAP SuccessFactors"
+      ],
+      "competitive_entries_expanded": [
+        "Workday",
+        "Rippling",
+        "WEHAGO/더존"
+      ],
+      "new_fields": [
+        "industry_patterns_adopted (7)",
+        "anti_patterns_avoided (5)",
+        "hyperscaler_bar (6)"
+      ]
+    },
+    "hr.json": {
+      "version": "1.0.0 -> 1.1.0",
+      "competitive_entries_added": [
+        "SAP SuccessFactors",
+        "BambooHR"
+      ],
+      "competitive_entries_expanded": [
+        "Workday HCM",
+        "Rippling HRIS",
+        "WEHAGO HR"
+      ],
+      "new_fields": [
+        "industry_patterns_adopted (7)",
+        "anti_patterns_avoided (5)",
+        "hyperscaler_bar (5)"
+      ]
+    },
+    "payroll.json": {
+      "version": "1.0.0 -> 1.1.0",
+      "competitive_entries_added": [
+        "ADP Workforce Now",
+        "Gusto"
+      ],
+      "competitive_entries_expanded": [
+        "Deel",
+        "Rippling Payroll",
+        "더존/WEHAGO payroll"
+      ],
+      "new_fields": [
+        "industry_patterns_adopted (8)",
+        "anti_patterns_avoided (5)",
+        "hyperscaler_bar (5)"
+      ]
+    },
+    "accounting.json": {
+      "version": "1.0.0 -> 1.1.0",
+      "competitive_entries_added": [
+        "Sage Intacct"
+      ],
+      "competitive_entries_expanded": [
+        "NetSuite",
+        "QuickBooks/Xero",
+        "더존 iCUBE/WEHAGO accounting"
+      ],
+      "new_fields": [
+        "industry_patterns_adopted (9)",
+        "anti_patterns_avoided (5)",
+        "hyperscaler_bar (6)"
+      ]
+    }
+  },
+  "no_op": false,
+  "conclusion": "All 4 PRDs had material gaps vs industry-leading SaaS. Expanded competitive sections, added industry_patterns_adopted, anti_patterns_avoided, and hyperscaler_bar arrays across all 4 PRDs. Version bumped 1.0.0 -> 1.1.0 in each.",
+  "verification_method": "official_vendor_landing_pages_refreshed_2026_05_17_plus_local_prd_gap_review",
+  "verification_limitations": [
+    "This audit is a product-planning gap review, not external feature-conformance proof.",
+    "Official vendor landing pages and retrieval receipts were refreshed on 2026-05-17 for vendor/category grounding; detailed implementation signals remain advisory unless directly represented in the local Enterprise PRDs.",
+    "The new industry_patterns_adopted, anti_patterns_avoided, and hyperscaler_bar fields are not enforced by a PR #129 validator. They stay advisory until an Enterprise hyperscaler-bar gate ships."
+  ],
+  "source_fidelity": {
+    "direct_official_pages_refreshed_2026_05_17": 16,
+    "blocked_or_timeout_after_repair": 0,
+    "limitation": "Official pages and receipts ground competitor/category awareness, including SAP SaaS portfolio breadth. Detailed competitive strengths remain planning hypotheses unless backed by source_evidence_refs and accepted local PRD mechanisms.",
+    "sap_saas_benchmark_added": true
+  },
+  "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+  "required_followup_gate": "oya gate validate enterprise-hyperscaler-bar",
+  "source_receipts": [
+    {
+      "source_id": "src_adp_workforce_now_20260517",
+      "vendor": "ADP Workforce Now",
+      "url": "https://www.adp.com/what-we-offer/products/adp-workforce-now.aspx",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 436,
+      "cli_body_sha256": "690e9798e113eb8c32dd76eb93a6f5c353c566895ba32dc0feac9d74481efec5",
+      "page_title": "Workforce Now All-In-One HR Software | ADP",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "browser-rendered official page used for high-level category grounding; CLI 403 body digest is an access-denied receipt, not product content"
+    },
+    {
+      "source_id": "src_bamboohr_platform_20260517",
+      "vendor": "BambooHR",
+      "url": "https://www.bamboohr.com/platform/",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 4551,
+      "cli_body_sha256": "fe719d263d590d632479bab8f274ef4f0e621c6cfc206adb444724b671ed9d18",
+      "page_title": "All-In-One, Easy to Use HR Software | BambooHR",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "browser-rendered official page used for high-level category grounding; CLI 403 body digest is a Cloudflare receipt, not product content"
+    },
+    {
+      "source_id": "src_deel_payroll_20260517",
+      "vendor": "Deel",
+      "url": "https://www.deel.com/solutions/payroll/",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 200,
+      "cli_bytes": 1085683,
+      "cli_body_sha256": "af7740224b5505301333a5982daedbef2feeeb0167ad7260ae3e7f9c5a7a189e",
+      "page_title": "Payroll Solutions | Hire & Pay in 130+ Countries | Deel",
+      "browser_render_status": "readable",
+      "source_use_boundary": "high-level product/category grounding only"
+    },
+    {
+      "source_id": "src_douzone_platform_20260517",
+      "vendor": "DOUZONE / WEHAGO",
+      "url": "https://en.douzone.com/",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 200,
+      "cli_bytes": 71086,
+      "cli_body_sha256": "bcace47b87f090da600b0502e3e7193d4cd7d5b174a100c71e9a87360907e7b3",
+      "page_title": "DOUZONE",
+      "browser_render_status": "readable",
+      "source_use_boundary": "high-level product/category grounding only"
+    },
+    {
+      "source_id": "src_gusto_payroll_20260517",
+      "vendor": "Gusto",
+      "url": "https://gusto.com/product/payroll",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 5274,
+      "cli_body_sha256": "45cc9fcf310b07e55c9e0bb102a508494008acc55e4b78a90ff9ba55e24fc8bf",
+      "page_title": "Payroll Software & Services for Small Businesses | Gusto",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "browser-rendered official page used for high-level category grounding; CLI 403 body digest is a Cloudflare receipt, not product content"
+    },
+    {
+      "source_id": "src_netsuite_erp_20260517",
+      "vendor": "NetSuite (Oracle)",
+      "url": "https://www.netsuite.com/portal/products/erp.shtml",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 407,
+      "cli_body_sha256": "0c86d6537e7cefb4dc7fa3bbd24b59027860df3646fba59f36b79a5631410425",
+      "page_title": "Cloud ERP Software with AI - Enterprise Resource Planning Solution | NetSuite",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "browser-rendered official page used for high-level category grounding; CLI 403 body digest is an access-denied receipt, not product content"
+    },
+    {
+      "source_id": "src_quickbooks_accounting_20260517",
+      "vendor": "QuickBooks Online",
+      "url": "https://quickbooks.intuit.com/accounting/",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 0,
+      "cli_bytes": 0,
+      "cli_body_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "page_title": "Best Accounting Software for Small Businesses | QuickBooks",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "browser-rendered official page used for high-level category grounding; CLI HTTP/2 failure produced an empty-body digest"
+    },
+    {
+      "source_id": "src_rippling_platform_20260517",
+      "vendor": "Rippling",
+      "url": "https://www.rippling.com/",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 200,
+      "cli_bytes": 768804,
+      "cli_body_sha256": "76913d57714936e0bdc6f23e6a5ffae15cd04265b39f679c884d7b5473f3001f",
+      "page_title": "Rippling: #1 Workforce Management System | HR, IT, Finance",
+      "browser_render_status": "readable",
+      "source_use_boundary": "high-level product/category grounding only"
+    },
+    {
+      "source_id": "src_sage_intacct_20260517",
+      "vendor": "Sage Intacct",
+      "url": "https://www.sage.com/en-us/sage-business-cloud/intacct/",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 4515,
+      "cli_body_sha256": "b04dd0431cb3a1bfbd0a43c426a5aae749c6638a6cd764e94cf3cc9b6e177f83",
+      "page_title": "Sage Intacct Cloud Accounting and Financial Management Software | Sage Intacct US",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "browser-rendered official page used for high-level category grounding; CLI 403 body digest is a Cloudflare receipt, not product content"
+    },
+    {
+      "source_id": "src_sap_btp_20260517",
+      "vendor": "SAP Business Technology Platform",
+      "url": "https://www.sap.com/products/technology-platform.html",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 410,
+      "cli_body_sha256": "1ed3e28d08b989e6fd7479c037d69f5109afd33d484701ad1b355b71d9e7785a",
+      "page_title": "SAP Business Technology Platform | SAP",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "official SAP BTP page used for integration, extension, automation, AI, and workflow benchmark; CLI 403 body digest is an access-denied receipt, not product content"
+    },
+    {
+      "source_id": "src_sap_cloud_erp_20260517",
+      "vendor": "SAP Cloud ERP",
+      "url": "https://www.sap.com/products/erp/s4hana.cloud-edition.html",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 421,
+      "cli_body_sha256": "4fdbb903010360bca6b74f2adc4719e94df4b4ef092730b4bc635fe7d04805e7",
+      "page_title": "SAP S/4HANA ERP cloud software for fast-growth companies | SAP Cloud ERP",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "official SAP Cloud ERP page used for high-level SaaS portfolio benchmark; CLI 403 body digest is an access-denied receipt, not product content"
+    },
+    {
+      "source_id": "src_sap_concur_travel_expense_20260517",
+      "vendor": "SAP Concur Travel & Expense",
+      "url": "https://www.concur.com/en-us/travel-expense",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 200,
+      "cli_bytes": 177611,
+      "cli_body_sha256": "304f7a8d0e8a19909e8af005c3d7490fa9baec4504e45fb7bf59a20596d479f1",
+      "page_title": "Business Travel and Expense (T&E) Management Software | SAP Concur US",
+      "browser_render_status": "readable",
+      "source_use_boundary": "official SAP Concur page used for travel/expense spend workflow benchmark"
+    },
+    {
+      "source_id": "src_sap_hcm_20260517",
+      "vendor": "SAP SuccessFactors",
+      "url": "https://www.sap.com/products/hcm.html",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 388,
+      "cli_body_sha256": "2818f23ffb1430fa63d13f26033303be29dd0e7737a3e36e967f101dadd0c0a8",
+      "page_title": "HCM Software | Automated and Autonomous HR | SAP",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "browser-rendered official page used for high-level category grounding; CLI 403 body digest is an access-denied receipt, not product content"
+    },
+    {
+      "source_id": "src_sap_spend_management_20260517",
+      "vendor": "SAP Spend Management / Ariba",
+      "url": "https://www.sap.com/products/spend-management.html",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 403,
+      "cli_bytes": 405,
+      "cli_body_sha256": "9fa429fa1c08265f713de5887a60a9d3d2db18e7013e1cd3e104646047b072d5",
+      "page_title": "Spend Management Software Solutions | SAP",
+      "browser_render_status": "readable_via_codex_web_renderer",
+      "source_use_boundary": "official SAP Spend Management page used for source-to-pay, supplier, travel/expense, and policy-control benchmark; CLI 403 body digest is an access-denied receipt, not product content"
+    },
+    {
+      "source_id": "src_workday_hcm_20260517",
+      "vendor": "Workday HCM",
+      "url": "https://www.workday.com/en-us/products/human-capital-management/overview.html",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 200,
+      "cli_bytes": 373730,
+      "cli_body_sha256": "fb77deffa3dd6e52cd3413a6f1276ecc9819b157d68e9996705ef6aec5d57395",
+      "page_title": "Human Capital Management (HCM) Software | Workday US",
+      "browser_render_status": "readable",
+      "source_use_boundary": "high-level product/category grounding only"
+    },
+    {
+      "source_id": "src_xero_accounting_20260517",
+      "vendor": "Xero",
+      "url": "https://www.xero.com/us/accounting-software/",
+      "fetched_at": "2026-05-17T15:22:10Z",
+      "cli_http_status": 200,
+      "cli_bytes": 534941,
+      "cli_body_sha256": "29442d4dd376dee0c56c45ffd3e80c1e8d83c11192c808d95a72ea9f4df859d0",
+      "page_title": "Online Accounting Software for Your Small Business | Xero US",
+      "browser_render_status": "readable",
+      "source_use_boundary": "high-level product/category grounding only"
+    }
+  ]
+}
