@@ -1,0 +1,28 @@
+{
+  "change_id": "claude-save-goal-json-1778980453",
+  "change_class_id": "CC-5_doc_only",
+  "change_class_rationale": "Repo-root JSON artifact creation. No source, no schema-of-record beyond DurableGoalPrompt doc_class.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778980453,
+  "git_sha_base": "1e38ad73",
+  "branch": "agent/save-goal-json",
+  "session_id": "claude-save-goal-json-2026-05-17",
+  "agent_id": "claude-save-goal-json",
+  "task": "Save the multi-session durable-goal prompt as goal.json at repo root per user directive 'This should be saved so I can say implement following instructions from goal.json'. Cross-session canonical entry point for M01..M12 autonomous execution.",
+  "artifacts_touched": [
+    "goal.json (NEW; repo-root durable-goal artifact)",
+    "evidence/multispectrum/claude-save-goal-json-1778980453.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "facets": {
+    "F1_linus": {"considered": true, "findings": ["One file, repo root, clear purpose. The prompt body is the data; agents pick it up + execute. No coordination kernel, no orchestrator."], "fixuptasks": []},
+    "F4_ergonomic": {"considered": true, "findings": ["User can now say 'implement following instructions from goal.json' to any fresh agent session. No multi-line goal text required."], "fixuptasks": []},
+    "F5_quality": {"considered": true, "findings": ["JSON valid. Authority chain explicit. Stop condition explicit. Quality bar cited (Stripe/Palantir/Linear). All canonical paths point at current dev=1e38ad73 truth."], "fixuptasks": []},
+    "F9_compliance": {"considered": true, "findings": ["Supersedes evidence/goals/implement-masterplan-goal-prompt.json (which cited retired grit/icm)."], "fixuptasks": []},
+    "F11_observability": {"considered": true, "findings": ["Audit-chain row + multispectrum evidence + repo-root discoverability."]}
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Repo-root canonical entry point matches the user's intended invocation pattern."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT_WITH_GUARDRAILS", "guardrails": ["Old implement-masterplan-goal-prompt.json still exists; mark it superseded in a follow-up slice if continued drift becomes a problem.", "goal.json content must be kept in sync when ADR-0116 / agent-durable-goal.json / multispectrum-review.json evolve; track via [[durable-goal-prompt-freshness]] memory if drift becomes recurring."]}
+  }
+}
