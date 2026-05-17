@@ -4,6 +4,10 @@
 //! Real OpenBao/HSM integrations belong in adapter/runtime crates; this kernel
 //! never performs I/O and never prints secret material.
 
+pub mod zeroizing;
+
+pub use zeroizing::{VaultPath, VaultPathError, ZeroizingSecret};
+
 use std::collections::BTreeMap;
 use std::fmt;
 
