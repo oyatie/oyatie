@@ -1,0 +1,48 @@
+{
+  "change_id": "claude-m03-p07-pack-onboarding-merge-variant-1779002600",
+  "change_class_id": "CC-2_kernel_type_addition",
+  "change_class_rationale": "Pure additive surface in oya-regional-pack-domain: new pack_onboarding_phase module (4 public types: PackOnboardingPhase lifecycle enum + PackInstallStatus + RegionalRolloutGate + RegionalRolloutGateError) with std-only deps and no public API removals.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779002600,
+  "branch": "agent/m03-p07-rpo-mv-54511-1779002357",
+  "session_id": "claude-durable-goal-2026-05-17-m03-p07-agent",
+  "agent_id": "claude-durable-goal-m03-p07",
+  "task": "M03-P07-regional-pack-onboarding merge-variant delta-1: lifecycle types for onboarding regional packs (PackOnboardingPhase strict-forward FSM + PackInstallStatus + RegionalRolloutGate admission check) into existing oya-regional-pack-domain.",
+  "artifacts_touched": [
+    "crates/oya-regional-pack-domain/src/pack_onboarding_phase.rs (NEW)",
+    "crates/oya-regional-pack-domain/src/lib.rs (re-export)",
+    ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/INDEX.md (frontmatter)",
+    "evidence/multispectrum/claude-m03-p07-pack-onboarding-merge-variant-1779002600.json (this file)",
+    "evidence/audit-chain.jsonl (row appended)"
+  ],
+  "local_gates": [
+    "cargo test -p oya-regional-pack-domain: 31/31 PASS after rebase onto PR #109 queue head",
+    "rustfmt 1.95.0: clean after conflict resolution"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": ["One new module, four re-exports. PackOnboardingPhase is strict-forward FSM (no skip), terminal states explicit (Activated success / Withdrawn failure). PackInstallStatus distinct from phase to allow per-step status without conflating with lifecycle position. RegionalRolloutGate is a value-object whose prerequisites are validated explicitly via check() — callers construct the gate with observed booleans and then call check() to produce a typed error if any prerequisite is unmet."],
+      "fixuptasks": []
+    },
+    "F3_correctness": {
+      "considered": true,
+      "findings": ["Strict-forward transition enforced via is_valid_next(from, to) explicit validator: single-step advance only, emergency Withdrawn permitted from any non-terminal, post-terminal moves rejected. Terminal states detected by is_terminal helper. from_wire round-trips with label() for serialization stability. NOTE: original evidence incorrectly described this guard as 'Ord+is_advance'; is_valid_next was absent at first commit and has since been added (P2 codex thread PRRT_kwDOSbSl2s6CnzKE + PRRT_kwDOSbSl2s6Cn3mf). Rebase onto the #109 queue head required preserving capability_pack and kr_regulatory exports plus adding pack_onboarding_phase; current regional-pack-domain local proof is 31/31 tests."],
+      "fixuptasks": []
+    },
+    "A1_naming": {
+      "considered": true,
+      "findings": ["PackOnboardingPhase complements existing OnboardingPhase patterns. label()/from_wire pattern matches PR #62/#65/#86 et al — kernel-stable wire format. Module name pack_onboarding_phase singular per existing crate convention."],
+      "fixuptasks": []
+    },
+    "A3_structure": {
+      "considered": true,
+      "findings": ["New module added to existing crate; lib.rs re-export pattern matches PR #60..#106 cascade. No new workspace member; no Cargo.toml touch."],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Smallest meaningful delta from M03-P07 plan. Strict-forward lifecycle correctly encoded; rollout gate explicit."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT", "rationale": "Terminal states distinguished. Phase vs install-status separation matches the actual concern decomposition (lifecycle position vs per-step state)."}
+  }
+}
