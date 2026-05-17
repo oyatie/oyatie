@@ -819,6 +819,46 @@ A phase that registers a new µservice (or new BC) is **not Complete** until the
 
 ---
 
+## 16. Connect product scope — 7 sub-products
+
+Connect is a dual-context µservice (B2B Application shell + B2C Personal entry path) that ships in PR #130 with 7 sub-products:
+
+| Sub-product | Context | Description |
+|---|---|---|
+| `connect-messenger` | B2B + B2C | E2EE real-time messaging (PQXDH + Signal ratchet) |
+| `connect-mail` | B2B + B2C | Async mail with legal-hold / eDiscovery (Pro) and user-owned audit chain (Personal) |
+| `connect-social` | B2C | Social feed, reactions, follower graph — ships PR #130 |
+| `connect-shorts` | B2C | Short-form video / content format — ships PR #130 |
+| `connect-network` | B2C | Professional network layer (connections, endorsements) — ships PR #130 |
+| `connect-anonymous` | B2C | Anonymous posting / ephemeral context — ships PR #130 |
+| `connect-community` | B2B + B2C | Community channels and spaces |
+
+The 4 new sub-products (`social`, `shorts`, `network`, `anonymous`) are added to the flat µservice catalog and follow BNF v4.1 crate naming (`oya-connect-social-*`, etc.). Cross-context safety invariant: Personal data never flows to org policy engine, never indexed by org Search, never exposed via org Ontology. See ADR-0126 for the Connect expansion decision record.
+
+---
+
+## 17. 2026-05-17 OP-11 audit findings
+
+The 2026-05-17 OP-11 stub audit (`registry/stub-audit/2026-05-17/CONSOLIDATED.md`) surfaced **847 findings** across the codebase: 67 critical (blocking promotability), 12 fixuptasks filed to `registry/fixuptasks.jsonl`. Key themes: aspirational-enforcement gaps (fitness lanes specified but not implemented), doc-coverage drift, milestone skeleton laundering, and forbidden-primitive enforcement absence. See ADR-0125 for the chained-enforcement response: every gap now triggers an automatic fixuptask and blocks promotion until resolved. The `oya-foundry-fitness-banned-primitives` lane is the first priority deliverable from this audit; its absence is itself tracked as `F-FORBIDDEN-PRIMITIVES-CI-GUARD`.
+
+---
+
+## 18. Portfolio hyperscaler patterns
+
+Five hyperscaler-grade patterns were identified as portfolio gaps and added as implementation items to the relevant milestones (see ADR-0127):
+
+| Pattern | Target milestone | Fixuptask / IP |
+|---|---|---|
+| LLM circuit-breaker (provider failover + budget hard-stop) | M02-foundry | IP pending |
+| Per-tenant rate-limit (token-bucket, Valkey-backed, tenant-scoped) | M02b | IP pending |
+| Provider shed (graceful degradation on provider unavailability) | M02-foundry | IP pending |
+| Golden signals dashboard (latency / traffic / errors / saturation per µservice) | M02b workflow-studio | IP pending |
+| Error-budget SLO burn-rate alarms (cross-cutting; all substrate µservices) | M02b cross-cutting | IP pending |
+
+These patterns are pre-conditions for Proof Ladder L5 graduation of any µservice that depends on an external LLM or third-party provider. CI lane `oya-check-hyperscaler-patterns` (authored in M02b) will enforce their presence.
+
+---
+
 ## 15. Status footer
 
 Status: **Accepted** (canonical at `docs/MASTERPLAN.md`).
