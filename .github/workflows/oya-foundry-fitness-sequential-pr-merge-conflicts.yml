@@ -14,7 +14,11 @@ on:
       start_pr:
         description: "First PR number in the numeric sequence"
         required: false
-        default: "1"
+        default: "111"
+      end_pr:
+        description: "Last PR number in the numeric sequence; empty means all later open PRs"
+        required: false
+        default: ""
       skip_prs:
         description: "Explicit one-off comma-separated PR numbers to skip"
         required: false
@@ -29,8 +33,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  sequential-pr-merge-conflicts:
-    name: sequential-pr-merge-conflicts
+  oya-foundry-fitness-sequential-pr-merge-conflicts:
+    name: oya-foundry-fitness-sequential-pr-merge-conflicts
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -44,12 +48,18 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           BASE_BRANCH: ${{ github.event.inputs.base_branch || 'dev' }}
-          START_PR: ${{ github.event.inputs.start_pr || '1' }}
+          START_PR: ${{ github.event.inputs.start_pr || vars.OYA_MERGE_QUEUE_START_PR || '111' }}
+          END_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.event.inputs.end_pr || '' }}
           SKIP_PRS: ${{ github.event.inputs.skip_prs || '' }}
         run: |
           set -euo pipefail
-          scripts/check-sequential-pr-merge-conflicts.sh \
-            --base-branch "$BASE_BRANCH" \
-            --base-ref "origin/$BASE_BRANCH" \
-            --start-pr "$START_PR" \
+          args=(
+            --base-branch "$BASE_BRANCH"
+            --base-ref "origin/$BASE_BRANCH"
+            --start-pr "$START_PR"
             --skip-prs "$SKIP_PRS"
+          )
+          if [ -n "$END_PR" ]; then
+            args+=(--end-pr "$END_PR")
+          fi
+          scripts/check-sequential-pr-merge-conflicts.sh "${args[@]}"

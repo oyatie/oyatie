@@ -4,6 +4,7 @@ set -euo pipefail
 base_branch="dev"
 base_ref=""
 start_pr="1"
+end_pr=""
 skip_prs=""
 limit="200"
 pr_json=""
@@ -19,7 +20,9 @@ Options:
                            (default: origin/<base-branch>)
   --start-pr <number>      First PR number in the numeric merge sequence
                            (default: 1; no PR is excluded by default)
-  --skip-prs <csv>         Explicit one-off PR numbers to skip, e.g. "105,109"
+  --end-pr <number>        Last PR number to include in the numeric merge
+                           sequence (default: no upper bound)
+  --skip-prs <csv>         Explicit one-off PR numbers to skip, e.g. "109,130"
                            (default: empty)
   --limit <number>         Maximum open PRs to query from GitHub (default: 200)
   --pr-json <path>         Read PR list JSON from a file instead of gh pr list
@@ -44,6 +47,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --start-pr)
       start_pr="${2:?missing --start-pr value}"
+      shift 2
+      ;;
+    --end-pr)
+      end_pr="${2:?missing --end-pr value}"
       shift 2
       ;;
     --skip-prs)
@@ -80,6 +87,19 @@ case "$start_pr" in
     exit 2
     ;;
 esac
+
+if [ -n "$end_pr" ]; then
+  case "$end_pr" in
+    ''|*[!0-9]*)
+      echo "--end-pr must be a positive integer" >&2
+      exit 2
+      ;;
+  esac
+  if [ "$end_pr" -lt "$start_pr" ]; then
+    echo "--end-pr must be greater than or equal to --start-pr" >&2
+    exit 2
+  fi
+fi
 
 case "$limit" in
   ''|*[!0-9]*)
@@ -135,6 +155,11 @@ jq -r --argjson start "$start_pr" --rawfile skip "$skip_file" '
   | @tsv
 ' "$prs_file" > "$ordered_file"
 
+if [ -n "$end_pr" ]; then
+  awk -F'\t' -v end="$end_pr" '$1 <= end' "$ordered_file" > "$ordered_file.end"
+  mv "$ordered_file.end" "$ordered_file"
+fi
+
 if [ ! -s "$ordered_file" ]; then
   echo "sequential PR merge simulation: no open PRs matched base=${base_branch} start_pr=${start_pr}"
   exit 0
@@ -148,6 +173,7 @@ echo "base_branch=${base_branch}"
 echo "base_ref=${base_ref}"
 echo "base_commit=${virtual_head}"
 echo "start_pr=${start_pr}"
+echo "end_pr=${end_pr:-<none>}"
 echo "skip_prs=${skip_prs:-<none>}"
 
 while IFS=$'\t' read -r number head_ref_name head_oid is_draft title; do

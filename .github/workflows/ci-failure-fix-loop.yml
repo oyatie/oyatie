@@ -36,6 +36,8 @@ on:
     workflows:
       - pr-tests
       - oya-foundry-fitness-supply-chain
+      - oya-foundry-fitness-sequential-pr-merge-conflicts
+      - oya-foundry-fitness-pr-review
     types: [completed]
   repository_dispatch:
     types: [pr-review-fix-requested]

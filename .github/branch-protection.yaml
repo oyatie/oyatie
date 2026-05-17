@@ -11,8 +11,9 @@
 # Branches in this file are the SHARED-WORLD branches (L2/L3/L4):
 #
 #   - dev        Shared-world entry point. PRs target here. 3-gate:
-#                signed-commits + linear-history + every required
-#                CI check green. Default branch on github.
+#                signed-commits + linear-history + reviewer-agent
+#                check + every required CI check green. Default branch
+#                on github.
 #   - staging    Auto-promoted from dev (workflow:
 #                .github/workflows/promote-dev-to-staging.yml).
 #                No PR review; signed-commits + linear-history;
@@ -34,12 +35,9 @@ branches:
     disallow_force_push: true
     require_signed_commits: true
     require_signed_tags: true
-    # IP-004 + IP-009: reviewer-agent gate dropped TIME-BOUNDED until
-    # 2026-06-15 OR until 5 consecutive PRs have `oya-pr-review` post
-    # APPROVE via the live subagent runtime. See
-    # `feedback_branch_pipeline_final_final` for the canonical 3-gate
-    # specification (signed + linear + every required-check) that
-    # this transition narrows to.
+    # IP-004 + queue automation: reviewer-agent and sequential-merge
+    # checks are required before the next-queue auto-merge controller
+    # can enable auto-merge for the bottom-most PR.
     required_approving_reviews: 0
     # Canonical contract: each entry below is BOTH the workflow YAML
     # job-key AND the workflow's `name:` field. The
@@ -56,9 +54,8 @@ branches:
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver
       - oya-foundry-fitness-protection-context-match
-      # oya-pr-review — see comment above. 1-line uncomment to
-      # restore the multispectrum reviewer-agent gate.
-      # - oya-pr-review
+      - oya-foundry-fitness-sequential-pr-merge-conflicts
+      - oya-pr-review
 
   staging:
     # Auto-promoted from dev by promote-dev-to-staging.yml; the

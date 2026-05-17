@@ -1,0 +1,62 @@
+name: oya-foundry-sequential-pr-queue-repair
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: "PR base branch to repair against"
+        required: false
+        default: "dev"
+      start_pr:
+        description: "First PR number in the active numeric queue"
+        required: false
+        default: "111"
+      target_pr:
+        description: "PR number whose branch should absorb earlier open queue heads"
+        required: true
+      repair_mode:
+        description: "plan prints the safe repair; apply pushes the repaired branch"
+        required: false
+        default: "plan"
+        type: choice
+        options: ["plan", "apply"]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: sequential-pr-queue-repair-${{ github.event.inputs.target_pr }}
+  cancel-in-progress: false
+
+jobs:
+  sequential-pr-queue-repair:
+    name: sequential-pr-queue-repair
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.base_branch || 'dev' }}
+          fetch-depth: 0
+
+      - name: Repair target PR against earlier queue heads
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.event.inputs.base_branch || 'dev' }}
+          START_PR: ${{ github.event.inputs.start_pr || vars.OYA_MERGE_QUEUE_START_PR || '111' }}
+          TARGET_PR: ${{ github.event.inputs.target_pr }}
+          REPAIR_MODE: ${{ github.event.inputs.repair_mode || 'plan' }}
+        run: |
+          set -euo pipefail
+          args=(
+            --base-branch "$BASE_BRANCH"
+            --base-ref "origin/$BASE_BRANCH"
+            --start-pr "$START_PR"
+            --target-pr "$TARGET_PR"
+          )
+          if [ "$REPAIR_MODE" = "apply" ]; then
+            args+=(--apply)
+          fi
+          scripts/repair-sequential-pr-queue.sh "${args[@]}"
