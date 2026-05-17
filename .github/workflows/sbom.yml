@@ -1,4 +1,4 @@
-# SBOM generation per release (M-CC-P08-IP-002).
+# SBOM generation per release (M01-P15-IP-002).
 #
 # Produces CycloneDX + SPDX SBOMs at releases/<tag>/sbom.{cdx,spdx}.json
 # for each release tag. Verification gate downstream consumes

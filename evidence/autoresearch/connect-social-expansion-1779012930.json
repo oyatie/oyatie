@@ -1,0 +1,68 @@
+{
+  "evidence_id": "connect-social-expansion-1779012930",
+  "created_at": "2026-05-17T10:20:00Z",
+  "task": "Extend Connect to full social-network super-app vision with 4 new sub-product PRDs",
+  "directive_ref": "user directive 2026-05-17T10:20Z",
+  "new_files": [
+    "specs/products/connect/social.json",
+    "specs/products/connect/shorts.json",
+    "specs/products/connect/network.json",
+    "specs/products/connect/anonymous.json"
+  ],
+  "modified_files": [
+    "specs/products/connect/suite.json"
+  ],
+  "json_validation": {
+    "social.json": "PASS",
+    "shorts.json": "PASS",
+    "network.json": "PASS",
+    "anonymous.json": "PASS",
+    "suite.json": "PASS"
+  },
+  "industry_sources_fetched": [
+    "https://about.instagram.com/features",
+    "https://newsroom.tiktok.com/en-us",
+    "https://www.linkedin.com/help/linkedin/answer/a548441",
+    "https://www.teamblind.com/about"
+  ],
+  "dual_context_isolation": {
+    "social": "separate auth realms, separate Ontology sub-graphs, pillar-keyed feed/stories/search, no cross-suggest",
+    "shorts": "separate Foundry FYP model instances per context_kind, pillar-partitioned training pipelines, monetization ledger per pillar",
+    "network": "work-context primary, personal projection opt-in with consent token, open-to-work hidden from employer in personal pillar",
+    "anonymous": "work-context only; cross-context movement denied by default and mediated only by Workflow consent-token plus Ontology aggregate projection with k>=10; threat model added for HSM/operator/legal/side-channel risks"
+  },
+  "competitive_analysis_bp07_compliance": true,
+  "acceptance_criteria_count": {
+    "social": 6,
+    "shorts": 6,
+    "network": 6,
+    "anonymous": 6
+  },
+  "production_readiness_gates_count": {
+    "social": 6,
+    "shorts": 6,
+    "network": 6,
+    "anonymous": 7
+  },
+  "repair_1779032369": {
+    "findings_addressed": [
+      "130-C01",
+      "130-C02",
+      "130-M01",
+      "130-M02",
+      "130-M03",
+      "130-M04",
+      "130-S01",
+      "130-S02",
+      "owner-team-collision",
+      "crypto-claim-boundary"
+    ],
+    "scope_decision": "ADR-0131 added in this repair branch; masterplan and Connect suite references point to the non-conflicting ADR-0131 planning contract.",
+    "enforcement_boundary": "New Connect social-expansion gates/crates are not shipped by PR #130; PRD benchmark, goal, and industry-pattern fields are advisory planning contracts.",
+    "design_system_reuse_audit": "$ref:specs/design-system/catalog.json#reuse_audit_2026_05_17_connect_social_expansion",
+    "anonymous_threat_model": "$ref:specs/products/connect/anonymous.json#threat_model",
+    "adr": "ADR-0131",
+    "adr_path": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md",
+    "workflow_ontology_boundary": "All cross-product behavior is represented through structured route_through_workflow_ontology contracts; direct cross-product calls are forbidden."
+  }
+}

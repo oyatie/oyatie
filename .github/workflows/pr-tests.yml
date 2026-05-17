@@ -3,7 +3,7 @@ name: pr-tests
 # Required-check workflow for every PR + push to main per the 2026-05-15
 # audit finding "0 workflows run cargo test/cargo nextest on pull_request."
 #
-# Posture: surface-all-failures (M-CC-P02-IP-007).
+# Posture: surface-all-failures (M01-P09-IP-007).
 #   - Each gate (fmt / clippy / check / nextest / oya-vcs-admission) runs
 #     INDEPENDENTLY. There are no cross-job `needs:` chains here — a
 #     failure in one gate does NOT skip the others. One CI cycle therefore
@@ -19,7 +19,7 @@ name: pr-tests
 #
 # Branch-protection ruleset (`.github/branch-protection.yaml`) lists these
 # job IDs as required checks. The ruleset is deployed on `main` (gh api
-# PUT, M-CC-P02-IP-001), so every PR to `main` blocks until these jobs
+# PUT, M01-P09-IP-001), so every PR to `main` blocks until these jobs
 # pass.
 
 on:
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     # No `needs:` — runs independently per surface-all-failures posture
-    # (M-CC-P02-IP-007). If `cargo-check` fails for one reason, nextest
+    # (M01-P09-IP-007). If `cargo-check` fails for one reason, nextest
     # may still surface different failures (missing test binaries, broken
     # toolchain installs, missing nextest profile, etc.) in the SAME CI
     # cycle instead of waiting a re-trigger to expose them.

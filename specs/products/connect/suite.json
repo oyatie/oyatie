@@ -31,7 +31,11 @@
     "children": [
       "$ref:specs/products/connect/mail.json",
       "$ref:specs/products/connect/messenger.json",
-      "$ref:specs/products/connect/calendar.json"
+      "$ref:specs/products/connect/calendar.json",
+      "$ref:specs/products/connect/social.json",
+      "$ref:specs/products/connect/shorts.json",
+      "$ref:specs/products/connect/network.json",
+      "$ref:specs/products/connect/anonymous.json"
     ],
     "suite_boundary": "unified communications shell; each child owns domain runtime but shares persona, policy, search, notification, and audit seams"
   },
@@ -173,7 +177,17 @@
       "connect.artifact-policy.v1",
       "connect.audit-disclosure.v1",
       "connect.app-shell.v1"
-    ]
+    ],
+    "route_through_workflow_ontology": true,
+    "cross_product_routing_policy": {
+      "direct_cross_product_calls_allowed": false,
+      "required_mediators": [
+        "Workflow",
+        "Ontology"
+      ],
+      "policy_ref": "ADR-0001 cohesion thesis; ADR-0131 Connect expansion planning contract",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates"
+    }
   },
   "data_model": {
     "entities_ref": [
@@ -466,24 +480,36 @@
   "goals": {
     "scalability": {
       "target": "10M active Connect identities, 1M concurrent realtime sessions per region family, 100K tenant workspaces per control plane",
-      "verification": "oya gate validate connect-scale-model --repo-root ."
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate connect-scale-model --repo-root .",
+      "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "security": {
       "target": "zero cross-pillar access, tenant-DEK professional encryption, personal E2E where declared, immutable audit chain for all privileged disclosure",
-      "verification": "cargo nextest -p oya-connect-security-domain -- cross_pillar"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo nextest -p oya-connect-security-domain -- cross_pillar",
+      "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "performance": {
       "target": "interactive p95 under 150ms for inbox/thread/calendar state transitions; realtime fanout p99 under 500ms inside a region",
-      "verification": "cargo bench -p oya-connect-bench -- connect_hot_paths"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-bench -- connect_hot_paths",
+      "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "efficiency": {
       "target": "per-seat monthly infra cost tracked by message, mailbox, and calendar-event unit economics with no unmetered background fanout",
-      "verification": "oya gate validate connect-finops-unit-economics"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate connect-finops-unit-economics",
+      "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
     },
     "reliability": {
       "target": "99.95% GA availability, RPO <= 5m for professional data, RTO <= 30m for regional cell failover",
-      "verification": "oya gate validate connect-slo-coverage"
-    }
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate connect-slo-coverage",
+      "claim_boundary": "Advisory target until Connect suite validators and implementation crates land."
+    },
+    "enforcement_status": "advisory_until_connect_social_expansion_gates",
+    "claim_boundary": "Suite-level goals are planning targets for the expanded Connect catalog; PR #130 does not ship runtime SLO, scale, cost, or security validators."
   },
   "user_experience": {
     "ux_personas_ref": "$ref:specs/products/connect/suite.json#target_users",
@@ -593,6 +619,16 @@
         "handoff F-PRD-CONNECT-SUITE-AUTHOR",
         "shell-to-Rust consolidation"
       ]
+    },
+    {
+      "date": "2026-05-17",
+      "decision": "Connect expands to seven planned sub-products under ADR-0131; four PR #130 additions are planning contracts until crates and validators land.",
+      "adr": "ADR-0131",
+      "drivers": [
+        "PR #130 Connect scope review",
+        "Avoid inherited ADR number collision",
+        "Keep enforcement claims advisory"
+      ]
     }
   ],
   "sources_scanned": [
@@ -602,5 +638,9 @@
     "$ref:bominal/docs/products/connect/enterprise-readiness.md",
     "$ref:bominal/docs/products/connect/messaging.md",
     "$ref:bominal/docs/products/connect/internal-communications.md"
-  ]
+  ],
+  "enforcement_status": {
+    "connect_expansion": "planning_contract_per_ADR-0131",
+    "validator_gap": "PR #130 updates Connect PRD/design contracts only; social/shorts/network/anonymous crates and validators are follow-up work."
+  }
 }

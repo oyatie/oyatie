@@ -6,15 +6,15 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 100,
-    "numbering": "ADR-0001..ADR-0122 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089)",
-    "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089"],
-    "next_adr": "ADR-0123",
+    "total_adrs": 104,
+    "numbering": "ADR-0001..ADR-0131 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0129)",
+    "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0129"],
+    "next_adr": "ADR-0132",
     "status_counts": {
-      "Accepted": 18,
+      "Accepted": 21,
       "Proposed": 5,
       "Superseded": 2,
-      "accepted": 38,
+      "accepted": 39,
       "deprecated": 1,
       "proposed": 36
     }
@@ -1219,6 +1219,54 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0056", "ADR-0106", "ADR-0107", "ADR-0133"]
+    },
+    {
+      "adr": "ADR-0123",
+      "number": 123,
+      "title": "Hyperscaler maturity claim gate",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0123-hyperscaler-maturity-claim-gate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0116"]
+    },
+    {
+      "adr": "ADR-0124",
+      "number": 124,
+      "title": "Own merge-queue policy — webhook-driven, GitHub-merge-queue-free",
+      "status": "accepted",
+      "owner": "jason931225",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0124-own-merge-queue-webhook-driven.md",
+      "supersedes": ["none"],
+      "superseded_by": ["none"],
+      "related": ["ADR-0111", "ADR-0112", "ADR-0113", "ADR-0116"]
+    },
+    {
+      "adr": "ADR-0130",
+      "number": 130,
+      "title": "Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System",
+      "status": "Accepted",
+      "owner": "council-architecture + ontology-team",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
+      "supersedes": ["N/A"],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0131",
+      "number": 131,
+      "title": "Connect Social Expansion Planning Contract",
+      "status": "Accepted",
+      "owner": "connect-product-council",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0131-connect-social-expansion-planning-contract.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0001", "ADR-0029", "ADR-0056", "ADR-0105", "ADR-0123"]
     }
   ]
 }

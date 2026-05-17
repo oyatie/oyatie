@@ -6,7 +6,7 @@
 #   - docs/templates/capability-record-template-v2.yaml  [THIS FILE, Status: Accepted]
 #   - docs/templates/capability-record-template.yaml     [DEPRECATED v1]
 # Canonical home is ambiguous. Filed as F-CAPABILITY-V1V2-CANONICAL-CLARIFY
-# in registries/cross-cutting/fixuptasks.jsonl. Until resolved, treat this
+# in registry/fixuptasks.jsonl. Until resolved, treat this
 # file (Accepted, breaking-schema v2 with metadata.* nesting) as the
 # functional canonical for NEW capability records.
 # ====================================================================

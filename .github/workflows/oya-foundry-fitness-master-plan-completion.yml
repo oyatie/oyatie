@@ -27,7 +27,7 @@ name: oya-foundry-fitness-master-plan-completion
 # `F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION` (admin step requiring
 # `gh api PUT repos/.../branches/dev/protection`).
 #
-# Posture: surface-all-failures (M-CC-P02-IP-007). Single-job workflow;
+# Posture: surface-all-failures (M01-P09-IP-007). Single-job workflow;
 # the job ID matches the required-check name exactly so the
 # branch-protection ruleset resolves to this status one-for-one when
 # the F-MASTERPLAN-COMPLETION-BRANCH-PROTECTION fixuptask lands.

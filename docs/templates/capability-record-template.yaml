@@ -5,7 +5,7 @@
 # (root, Status: Accepted, metadata.* nested, T1-T4 autonomy enum, data-class
 # allowlist, audit-chain topic, Cosign signing slot). This file is retained
 # read-only pending consumer migration. New consumers MUST use root canonical.
-# Filed as F-CAPABILITY-V1-OLD-RETIRE in registries/cross-cutting/fixuptasks.jsonl.
+# Filed as F-CAPABILITY-V1-OLD-RETIRE in registry/fixuptasks.jsonl.
 # ====================================================================
 #
 # Capability record template — copy to registry/capability-templates/<id>.yaml

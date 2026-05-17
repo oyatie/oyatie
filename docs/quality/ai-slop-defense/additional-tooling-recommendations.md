@@ -20,7 +20,7 @@ doc_status: published
 > **BLOCKER** — must ship before M01 closes.
 > **HIGH** — must ship before M02 (Foundry-Preview) closes.
 > **MED** — must ship before M03 (Cloud/SaaS/Search/Workspace Preview).
-> **LOW** — M-CC backlog, hygiene-class.
+> **LOW** — M01+ hygiene backlog.
 >
 > Accepted per ADR-0053 (fitness-lane governance) and ADR-0055
 > (impossible-to-fail environment contract). BLOCKER tools are binding
