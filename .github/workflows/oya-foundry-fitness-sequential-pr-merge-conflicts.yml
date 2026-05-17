@@ -41,7 +41,7 @@ jobs:
       - name: Checkout base branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.base_branch || 'dev' }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.event.inputs.base_branch || 'dev' }}
           fetch-depth: 0
 
       - name: Simulate numeric open-PR merge order
