@@ -5,6 +5,13 @@ id: M03-P05
 title: Search Preview (pgroonga + Morphology + pgvector + RAG)
 status: complete
 purpose: Stand up search foundations — pgroonga day-1, KR/JP/EN morphology, vector index, tenant-private indexes, RAG endpoint to Foundry.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Delta-1 adds QueryRoutingMode (3-variant physical-shard-pool selector) into
+  oya-search-query-domain via new module + re-export. No new crates, no new
+  workspace deps, std-only. Mirrors PR #60-#101 merge-variant pattern.
 ---
 
 # M03-P05 — Search Preview
