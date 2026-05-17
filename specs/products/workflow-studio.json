@@ -5,7 +5,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "PRD-WORKFLOW-STUDIO",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "status": "Accepted",
     "owner_team": "council-design-system + workflow-team",
     "created_at": "2026-05-16T13:05:00Z",
@@ -106,11 +106,445 @@
     {"id": "R-04", "severity": "medium", "risk": "browser perf ≠ server bench", "mitigation": "AC-01/AC-02/AC-03/AC-06 exercised with synthetic browser harness"}
   ],
   "competitive": [
-    {"competitor": "n8n", "we_beat_on": ["per-tenant isolation", "signed audit per step", "jurisdiction overlay UI", "Cedar policy preview"], "measurable": "editor availability 99.95% vs n8n cloud 99.9%; cross-tenant leak = 0"},
-    {"competitor": "Zapier", "we_beat_on": ["production-grade durability + per-step audit + SLA + per-tenant isolation + LLM-friendly DSL"], "measurable": "<100ms p99 save (Zapier ~300ms)"},
-    {"competitor": "Make.com", "we_beat_on": ["multi-domain (Make is integration-focused) + production observability per step"], "measurable": "6 domain libraries (Make: 1); GA TTI <2s (Make ~3.5s)"},
-    {"competitor": "Camunda Modeler", "we_beat_on": ["not BPMN + 10x faster save + LLM-friendly authoring"], "measurable": "<100ms save (Camunda ~1s)"},
-    {"competitor": "Retool", "we_beat_on": ["workflow first-class (Retool is app-first) + per-tenant audit + jurisdiction overlay"], "measurable": "n/a — different product class"}
+    {
+      "competitor": "n8n",
+      "source": "docs.n8n.io/workflows + docs.n8n.io/source-control-environments",
+      "their_strengths": [
+        "sticky notes for canvas annotation",
+        "manual/partial/production execution modes",
+        "git-backed source control with push/pull + change comparison across dev/staging/prod environments",
+        "custom roles + credential sharing + projects for team collab",
+        "AI agent cluster nodes (ReAct, SQL Agent, Conversational) with 200+ connectors",
+        "data redaction on execution records",
+        "dirty-node indicator for re-execution targeting"
+      ],
+      "we_beat_on": [
+        "per-tenant cell isolation (n8n is shared-instance by default)",
+        "signed audit-chain per step (n8n has execution history, not cryptographic audit)",
+        "jurisdiction overlay UI (n8n has no multi-jurisdiction concept)",
+        "Cedar policy preview before save",
+        "canonical JSON spec as source-of-truth (n8n stores graph, not schema-validated spec)",
+        "CRDT collab (n8n has no concurrent edit model)"
+      ],
+      "gaps_we_adopt": [
+        "sticky-note canvas annotations",
+        "manual/partial execution mode distinction in editor",
+        "push/pull environment promotion UI pattern",
+        "dirty-node re-execution indicator",
+        "data redaction flag per execution record"
+      ],
+      "measurable": "editor availability 99.95% vs n8n cloud 99.9%; cross-tenant leak = 0; save p99 <100ms"
+    },
+    {
+      "competitor": "Zapier",
+      "source": "zapier.com/features + platform landing pages",
+      "their_strengths": [
+        "8000+ app connectors (broadest integration surface)",
+        "template-driven onboarding with business-function categorization",
+        "AI-powered action suggestions and automation from natural language",
+        "no-code composition accessible to non-technical users",
+        "scheduled and event-triggered zaps"
+      ],
+      "we_beat_on": [
+        "production-grade durable execution (Zapier has no resumable long-running state)",
+        "per-step audit chain (Zapier has task history, not cryptographic audit)",
+        "per-tenant isolation (Zapier is multi-tenant shared)",
+        "LLM-friendly canonical DSL (Zapier has no machine-readable spec format)",
+        "jurisdiction overlay + compliance-aware authoring",
+        "CRDT collaborative editing (Zapier has no concurrent edit model)",
+        "git-backed definition versioning"
+      ],
+      "gaps_we_adopt": [
+        "template library with business-function categorization for onboarding",
+        "natural-language workflow draft (LLM-assist) — already in GA wave scope; confirm parity",
+        "connector breadth target: 100 GA connectors with auth/quota/retry/data_class metadata"
+      ],
+      "measurable": "save p99 <100ms (Zapier ~300ms); tenant data leak = 0; SLA 99.95%"
+    },
+    {
+      "competitor": "Make.com",
+      "source": "help.make.com/scenarios + platform docs",
+      "their_strengths": [
+        "module-based scenario model with visual pipeline canvas",
+        "router modules for multi-branch conditional flows",
+        "incomplete execution recovery (resume from last successful module)",
+        "run replay for failed scenarios",
+        "scenario size governance (2MB limit, 100/day per team)",
+        "subscenario composition for reuse"
+      ],
+      "we_beat_on": [
+        "multi-domain node libraries (Make is integration-focused, single domain)",
+        "production observability per step with audit chain",
+        "per-tenant cell isolation",
+        "canonical JSON spec + round-trip guarantee",
+        "CRDT collaborative editing",
+        "jurisdiction overlay + Cedar policy preview"
+      ],
+      "gaps_we_adopt": [
+        "incomplete-execution recovery — partial-save resume from last valid step (maps to AC-03 offline buffer)",
+        "subscenario / sub-workflow composition pattern",
+        "scenario size governance + validation at authoring time"
+      ],
+      "measurable": "6 domain libraries (Make: 1); GA TTI <2s (Make ~3.5s); save p99 <100ms"
+    },
+    {
+      "competitor": "Retool Workflows",
+      "source": "retool.com/products/workflows",
+      "their_strengths": [
+        "interactive canvas with markdown annotations for collaboration",
+        "block-level granular debugging (logs down to each block)",
+        "step-into historical run data to pinpoint exact failure block",
+        "contingency paths + custom retry policies per block",
+        "filtering, branching, looping out-of-the-box",
+        "AI code generation: prompt-to-automation in seconds",
+        "native OpenAI/Anthropic/Azure/Bedrock integration",
+        "audit logs + secrets management + advanced permissions",
+        "self-host within VPC",
+        "durable execution (runs to completion)",
+        "multiple environments + git-based source control"
+      ],
+      "we_beat_on": [
+        "workflow-first product (Retool is app-builder-first; workflows are secondary)",
+        "per-tenant isolation with cell-level tenancy",
+        "jurisdiction overlay + Cedar policy preview",
+        "canonical JSON spec round-trip guarantee",
+        "CRDT concurrent editing",
+        "cryptographic signed audit chain per step"
+      ],
+      "gaps_we_adopt": [
+        "block/node-level granular debug logs (maps to live debugger in stable wave)",
+        "step-into historical run data from editor (replay timeline variant: failure-debug)",
+        "contingency path UI + custom retry policy per node",
+        "markdown/sticky annotations on canvas",
+        "AI prompt-to-automation draft (LLM-assist authoring — GA wave)"
+      ],
+      "measurable": "Retool n/a (app-platform class); oyatie: save p99 <100ms; audit chain completeness 100%"
+    },
+    {
+      "competitor": "Microsoft Power Automate",
+      "source": "learn.microsoft.com/en-us/power-automate/flow-types + getting-started",
+      "their_strengths": [
+        "three flow types: cloud (event/schedule/instant), desktop (RPA), generative actions (AI-intent-driven)",
+        "AI Copilot: natural-language flow creation from home screen",
+        "environment switcher: dev/sandbox/production with role-filtered access",
+        "drag-and-drop no-code composer with 1000+ connectors",
+        "solutions for ALM (application lifecycle management) and deployment",
+        "approvals, process mining, desktop flow activity built-in",
+        "Power Platform integration (Power Apps, Power BI, Dataverse)",
+        "enterprise SSO + RBAC via Power Platform admin center",
+        "generative actions: specify intent only, AI selects action sequence"
+      ],
+      "we_beat_on": [
+        "multi-domain non-Microsoft-stack (Power Automate is Microsoft-ecosystem locked)",
+        "canonical JSON spec (Power Automate has no open machine-readable workflow format)",
+        "per-tenant cell isolation with cryptographic audit chain",
+        "jurisdiction overlay for compliance (Power Automate has DLP policies but no visual overlay)",
+        "CRDT concurrent editing (Power Automate has last-writer-wins)",
+        "open LLM integration via Cedar-gated capability registry (not Microsoft-only AI)"
+      ],
+      "gaps_we_adopt": [
+        "generative actions pattern: intent-only authoring where AI picks action sequence (maps to LLM-assist GA wave)",
+        "environment switcher with role-filtered list (dev/staging/prod promotion UI)",
+        "solutions/ALM pattern: export/import workflow definition bundles for deployment",
+        "approval step as first-class node type (currently implicit via capability-call)"
+      ],
+      "measurable": "open-stack vs Microsoft-only; oyatie availability 99.95%; save p99 <100ms"
+    },
+    {
+      "competitor": "Apache Airflow UI",
+      "source": "airflow.apache.org/docs/stable/ui.html",
+      "their_strengths": [
+        "grid view: runs-as-columns x tasks-as-rows for cross-run status comparison",
+        "graph view: logical DAG structure with clickable dependency nodes",
+        "tasks tab: operator type, trigger rule, pool usage, executor config per task",
+        "backfill/replay: trigger past date ranges for reprocessing",
+        "asset lineage view: producer/consumer graph across DAGs",
+        "dark/light theme toggle",
+        "RBAC-gated admin panel: variables, connections, pools, providers, plugins",
+        "task instance logs with traceback + rendered template context"
+      ],
+      "we_beat_on": [
+        "visual canvas authoring (Airflow UI is monitoring-only; DAGs are Python code)",
+        "multi-tenant isolation (Airflow is single-cluster shared)",
+        "canonical JSON spec + round-trip (Airflow DAGs are Python, not portable spec)",
+        "CRDT collaborative editing",
+        "jurisdiction overlay + Cedar policy preview",
+        "non-Kubernetes-native (Airflow requires infra ops knowledge)"
+      ],
+      "gaps_we_adopt": [
+        "grid view: runs-as-columns x tasks-as-rows execution history matrix in replay timeline",
+        "asset lineage view: producer/consumer graph overlay for workflows touching ontology entities",
+        "backfill/replay trigger for historical date ranges",
+        "task-level operator metadata panel (maps to node config panel: executor_config, pool, trigger_rule fields)",
+        "dark/light theme support in editor"
+      ],
+      "measurable": "1M concurrent instances per cell (Airflow ~10K); no Python-DAG required; TTI <2s"
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "sticky_note_canvas_annotations",
+      "citation": "n8n sticky notes (docs.n8n.io/workflows)",
+      "description": "Freeform annotation nodes pinned to canvas regions for team documentation and review comments",
+      "adoption_status": "preview",
+      "impl_ref": "WorkflowCanvas variant: authoring — add AnnotationNode component to design-system"
+    },
+    {
+      "pattern": "manual_partial_production_execution_modes",
+      "citation": "n8n execution modes (docs.n8n.io/workflows/executions)",
+      "description": "Distinct execution modes: manual (editor-triggered, full trace visible), partial (re-run from dirty node), production (async, data-redacted per policy)",
+      "adoption_status": "stable",
+      "impl_ref": "WorkflowReplayTimeline + editor_event.v1.json execution_mode field"
+    },
+    {
+      "pattern": "dirty_node_re_execution_indicator",
+      "citation": "n8n dirty nodes (docs.n8n.io/workflows/executions)",
+      "description": "Visual badge on nodes whose upstream inputs changed since last execution, enabling targeted partial re-run",
+      "adoption_status": "stable",
+      "impl_ref": "WorkflowCanvas node state: add dirty_since_last_run boolean to node render"
+    },
+    {
+      "pattern": "environment_promotion_push_pull_ui",
+      "citation": "n8n source control environments (docs.n8n.io/source-control-environments)",
+      "description": "Push/pull UI for promoting definitions across dev→staging→prod environments with change-comparison diff before promotion",
+      "adoption_status": "stable",
+      "impl_ref": "SpecDiffViewer variant: workflow-round-trip; git-backed definitions store"
+    },
+    {
+      "pattern": "execution_data_redaction_flag",
+      "citation": "n8n data redaction (docs.n8n.io/workflows/executions)",
+      "description": "Per-execution record flag to redact sensitive field values from execution history while preserving metadata and step graph",
+      "adoption_status": "stable",
+      "impl_ref": "editor_event.v1.json: add redact_execution_data boolean; Cedar policy controls who can view unredacted"
+    },
+    {
+      "pattern": "block_level_granular_debug_logs",
+      "citation": "Retool Workflows block-level debugging (retool.com/products/workflows)",
+      "description": "Per-node log panel in editor debug mode showing input/output, error class, and retry state for each node independently",
+      "adoption_status": "stable",
+      "impl_ref": "WorkflowReplayTimeline variant: failure-debug; live debugger (stable wave)"
+    },
+    {
+      "pattern": "contingency_path_per_node_retry_policy",
+      "citation": "Retool Workflows contingency paths (retool.com/products/workflows)",
+      "description": "Each node declares an error-path edge (fallback subgraph) and retry_policy in the spec; editor surfaces this as a distinct error-edge color",
+      "adoption_status": "stable",
+      "impl_ref": "workflow_spec.v1.json: node.on_error = {path_ref, retry_policy}; WorkflowNodeConfigPanel variant: http-step adds retry section"
+    },
+    {
+      "pattern": "incomplete_execution_resume",
+      "citation": "Make.com incomplete executions (help.make.com/scenarios)",
+      "description": "When a workflow errors mid-run, the execution is marked incomplete and can be resumed from the last successfully completed node after the error is fixed",
+      "adoption_status": "stable",
+      "impl_ref": "AC-03 offline buffer + workflow engine resume-after-restart (workflow.json AC-05); editor surfaces resume-eligible executions"
+    },
+    {
+      "pattern": "subscenario_sub_workflow_composition",
+      "citation": "Make.com subscenarios (help.make.com/scenarios)",
+      "description": "Workflows can embed sub-workflow references as nodes; sub-workflow executes in same audit chain with scoped context",
+      "adoption_status": "GA",
+      "impl_ref": "workflow_spec.v1.json: node type capability-call already supports sub-workflow_ref; editor adds sub-workflow node variant in stable node library"
+    },
+    {
+      "pattern": "intent_driven_generative_actions",
+      "citation": "Microsoft Power Automate generative actions (learn.microsoft.com/en-us/power-automate/flow-types)",
+      "description": "Author specifies intent in natural language; AI selects and sequences actions; human reviews before save — distinct from prompt-to-draft (which generates a full spec to edit)",
+      "adoption_status": "GA",
+      "impl_ref": "AC-05 LLM-assist authoring; editor intent-input panel → AI emits candidate spec → human review before canonical save"
+    },
+    {
+      "pattern": "environment_switcher_with_role_filter",
+      "citation": "Microsoft Power Automate environment switcher (learn.microsoft.com/en-us/power-automate/getting-started)",
+      "description": "Header environment picker filters available environments by user role (admin, maker, run-only); prevents accidental production edits",
+      "adoption_status": "stable",
+      "impl_ref": "editor session: env_context field with role-filtered list from Cedar; UI header env-picker component"
+    },
+    {
+      "pattern": "approval_step_as_first_class_node",
+      "citation": "Microsoft Power Automate approvals built-in (learn.microsoft.com/en-us/power-automate/getting-started)",
+      "description": "Approval step is a named node type in the node library, not just a capability-call; surfaces approver identity, timeout, and escalation in config panel",
+      "adoption_status": "stable",
+      "impl_ref": "NodeLibraryByDomain: add ApprovalNode to Business domain; WorkflowNodeConfigPanel variant: approval-step"
+    },
+    {
+      "pattern": "grid_view_execution_history_matrix",
+      "citation": "Apache Airflow grid view (airflow.apache.org/docs/stable/ui.html)",
+      "description": "Execution history displayed as runs-as-columns × nodes-as-rows matrix; cell color = per-node status per run; click cell = node log for that run",
+      "adoption_status": "GA",
+      "impl_ref": "WorkflowReplayTimeline: add grid_matrix variant alongside live-run and historical-replay"
+    },
+    {
+      "pattern": "asset_lineage_producer_consumer_graph",
+      "citation": "Apache Airflow asset views (airflow.apache.org/docs/stable/ui.html)",
+      "description": "Overlay showing which ontology entities a workflow produces or consumes, with edges to other workflows that consume those entities",
+      "adoption_status": "GA",
+      "impl_ref": "WorkflowCanvas variant: jurisdiction-overlay extended to include ontology-lineage overlay mode"
+    },
+    {
+      "pattern": "backfill_replay_historical_date_range",
+      "citation": "Apache Airflow backfill (airflow.apache.org/docs/stable/ui.html)",
+      "description": "Trigger re-execution of a workflow over a historical time range with concurrency policy; useful for data reprocessing after bug fix",
+      "adoption_status": "GA",
+      "impl_ref": "workflow engine: schedule/backfill step type (from workflow.json Argo pattern); editor exposes backfill trigger in replay timeline"
+    },
+    {
+      "pattern": "dark_light_theme_editor",
+      "citation": "Apache Airflow dark/light theme (airflow.apache.org/docs/stable/ui.html)",
+      "description": "Editor-level dark/light theme toggle persisted per user preference; accessibility requirement (WCAG contrast compliance in both modes)",
+      "adoption_status": "preview",
+      "impl_ref": "WorkflowCanvas + all design-system primitives: CSS custom-property theme tokens; Leptos signal-based theme provider"
+    },
+    {
+      "pattern": "template_library_with_function_categorization",
+      "citation": "Zapier template library (zapier.com/features)",
+      "description": "Curated workflow template gallery organized by business function (customer support, sales, operations, agentic); enables time-to-first-workflow < 5 minutes",
+      "adoption_status": "stable",
+      "impl_ref": "definition marketplace (GA wave scope); preview: ship 20+ templates across 6 domain categories at launch"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "name": "shared_instance_multi_tenant_canvas",
+      "observed_in": "n8n (default self-host shared instance)",
+      "citation": "docs.n8n.io/workflows — RBAC via projects but no cell-level tenancy",
+      "risk": "cross-tenant data exposure via shared execution context or credential bleed",
+      "avoidance_mechanism": "per-tenant cell pinning enforced at session open; Cedar policy gate on every save; test_no_cross_tenant_leak CI lane"
+    },
+    {
+      "name": "last_writer_wins_concurrent_edit",
+      "observed_in": "Zapier, Make.com, Power Automate",
+      "citation": "None of these products expose a CRDT or OT model; concurrent save = silent overwrite",
+      "risk": "silent edit loss in collaborative teams",
+      "avoidance_mechanism": "CRDT (yrs/loro) with explicit conflict UI when auto-merge fails (AC-06); test_no_silent_overwrite CI lane"
+    },
+    {
+      "name": "python_code_as_workflow_canonical_authority",
+      "observed_in": "Apache Airflow (DAGs are Python files)",
+      "citation": "airflow.apache.org/docs/stable/ui.html — Code Tab shows Python DAG definition",
+      "risk": "workflow logic cannot be authored visually, LLM-generated, or schema-validated; editor is monitoring-only",
+      "avoidance_mechanism": "canonical JSON spec (workflow_spec.v1.json) is source of truth; visual and Python are projections only; round-trip CI lane enforces"
+    },
+    {
+      "name": "ecosystem_lock_in_as_workflow_substrate",
+      "observed_in": "Microsoft Power Automate (Microsoft-ecosystem-only connectors and Dataverse)",
+      "citation": "learn.microsoft.com/en-us/power-automate/flow-types — Power Platform integration is the connector surface",
+      "risk": "customers cannot migrate or run workflows on non-Microsoft infrastructure; vendor lock-in",
+      "avoidance_mechanism": "open workflow_spec.v1.json format; capability registry is open (any Foundry capability); no proprietary runtime SDK required by workflow definition"
+    },
+    {
+      "name": "monitoring_only_ui_no_authoring_canvas",
+      "observed_in": "Apache Airflow UI",
+      "citation": "airflow.apache.org/docs/stable/ui.html — UI is grid/graph view for monitoring; DAGs authored externally in Python",
+      "risk": "business users and non-engineers cannot create or modify workflows; forces engineering dependency",
+      "avoidance_mechanism": "WorkflowCanvas authoring variant is the primary surface; visual → spec round-trip guaranteed; no code required for basic workflows (AC-01)"
+    },
+    {
+      "name": "app_builder_primary_workflow_secondary",
+      "observed_in": "Retool Workflows",
+      "citation": "retool.com/products/workflows — Workflows is one feature within Retool app-builder platform",
+      "risk": "workflow features are deprioritized; no standalone deployment; tied to app-builder licensing model",
+      "avoidance_mechanism": "Workflow Studio is a first-class standalone product with its own crate family, API surface, and licensing (per-seat + per-active-definition)"
+    },
+    {
+      "name": "connector_breadth_without_data_class_metadata",
+      "observed_in": "Zapier (8000+ connectors), n8n (200+ connectors)",
+      "citation": "zapier.com/features; docs.n8n.io/workflows — connectors lack data_class / PII annotations",
+      "risk": "workflows silently move PII or regulated data through connectors without author awareness; compliance breach",
+      "avoidance_mechanism": "every connector/capability-call node exposes data_class field; Cedar policy preview fires when data_class = PII or REGULATED (AC-07); oya-foundry-fitness-cedar-preview-required lane"
+    },
+    {
+      "name": "no_machine_readable_workflow_spec",
+      "observed_in": "Zapier, Power Automate, Retool",
+      "citation": "None expose a schema-validated open workflow format; definitions are stored in proprietary internal representations",
+      "risk": "LLM authoring impossible; git-based review impossible; editor cannot guarantee round-trip fidelity",
+      "avoidance_mechanism": "workflow_spec.v1.json with JSON Schema 2020-12; byte-equal round-trip CI lane (AC-02); LLM submission validated before editor render (AC-05)"
+    },
+    {
+      "name": "spinner_only_loading_on_critical_path",
+      "observed_in": "Make.com (TTI ~3.5s with blank canvas until fully loaded)",
+      "citation": "help.make.com/scenarios — scenario builder loads modules sequentially",
+      "risk": "perceived performance degradation; user abandonment on large definitions",
+      "avoidance_mechanism": "canvas/layout skeletons + descriptor progressive loading; spinner-only loading forbidden on critical path (user_experience.loading_state_coverage)"
+    },
+    {
+      "name": "unredacted_sensitive_data_in_execution_history",
+      "observed_in": "n8n (execution data visible to all users with workflow access by default)",
+      "citation": "docs.n8n.io/workflows/executions — data redaction is opt-in, not default",
+      "risk": "secrets or PII exposed in execution logs to unauthorized viewers",
+      "avoidance_mechanism": "execution_data_redaction_flag per execution record; Cedar policy controls who can view unredacted history; redaction is on-by-default for data_class = PII or SECRET"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "requirement": "10k_node_canvas_render_under_100ms",
+      "rationale": "Production enterprise workflows (supply-chain, healthcare orchestration) regularly exceed 1000 nodes; Palantir Foundry pipelines routinely hit 10k+ steps",
+      "target": "canvas render of 10,000-node workflow completes in <100ms p99 (60fps interaction); virtualized node rendering mandatory",
+      "verification": "synthetic canvas bench: generate 10k-node spec, measure first-render and pan/zoom p99 in headless browser harness",
+      "lane_ref": "oya-foundry-fitness-perf-budget (canvas-scale variant)"
+    },
+    {
+      "requirement": "canvas_interaction_p99_under_50ms",
+      "rationale": "Linear-grade responsiveness: every user interaction (node select, drag, edge draw) must feel instant; Figma achieves <16ms at 60fps; we target <50ms p99",
+      "target": "<50ms p99 for all canvas interaction ops: node drag, edge connect, config panel open, zoom",
+      "verification": "cargo bench canvas-interaction-p99 via headless Leptos WASM harness",
+      "lane_ref": "oya-foundry-fitness-perf-budget"
+    },
+    {
+      "requirement": "10k_concurrent_editor_sessions_per_region",
+      "rationale": "Stripe-grade multi-tenant: 10k simultaneous editors sharing per-tenant cell infrastructure without noisy-neighbor degradation",
+      "target": "10,000 concurrent editor sessions per region; p99 save latency stays <100ms under full load",
+      "verification": "canary load-test: 10k concurrent WebSocket editor sessions; measure save p99 and CRDT merge latency",
+      "lane_ref": "oya-foundry-fitness-canary-observability"
+    },
+    {
+      "requirement": "crdt_merge_under_10ms_p99",
+      "rationale": "Collaborative editing (Google Docs-grade): CRDT merge must be imperceptible to users; yrs/loro can achieve <5ms for typical document sizes",
+      "target": "<10ms p99 CRDT merge for concurrent edits on 1000-node workflow spec",
+      "verification": "cargo bench crdt-merge-p99 -p oya-saas-workflow-studio-domain",
+      "lane_ref": "oya-foundry-fitness-perf-budget"
+    },
+    {
+      "requirement": "tti_cold_under_2s_p99_global",
+      "rationale": "Google-grade TTI: users in any region (including KR) must reach interactive canvas in <2s cold; CDN edge cache + WASM streaming required",
+      "target": "TTI <2s p99 cold start globally (GA); <3s preview; node library progressive loading within 500ms of canvas interactive",
+      "verification": "synthetic Lighthouse budget via cargo nextest; CDN-hit verification per region",
+      "lane_ref": "oya-foundry-fitness-perf-budget (editor_tti_cold_p99_seconds metric)"
+    },
+    {
+      "requirement": "zero_cross_tenant_canvas_state_leak",
+      "rationale": "AWS-grade tenancy isolation: no editor session may observe another tenant's node data, execution history, or ontology descriptors at any layer (render, CRDT state, WebSocket, CDN cache key)",
+      "target": "cross_tenant_leak_count = 0 at all waves; per-tenant CDN cache key; WebSocket session scoped to tenant cell",
+      "verification": "cargo nextest test_no_cross_tenant_leak; CDN cache-key audit; WebSocket session isolation test",
+      "lane_ref": "oya-foundry-fitness-tenancy-isolation"
+    },
+    {
+      "requirement": "secrets_zero_plaintext_in_editor_state",
+      "rationale": "Stripe-grade secrets: credential values (API keys, tokens) must never appear in editor CRDT state, execution history, or browser memory as plaintext",
+      "target": "all credential fields in node config panels use SecretRef type; plaintext value never round-trips through editor; secrets resolved at engine execution time only",
+      "verification": "oya-foundry-fitness-cedar-preview-required: grep CRDT state and editor_event.v1.json for raw secret patterns; static analysis lane",
+      "lane_ref": "oya-foundry-fitness-security-headers + secrets-zero-plaintext lane"
+    },
+    {
+      "requirement": "wcag_22_aa_100pct_keyboard_navigation",
+      "rationale": "Linear-grade accessibility: every canvas operation, node config, diff view, replay, and policy preview must be keyboard-operable; screen-reader compatible node graph (aria-label on every edge and node)",
+      "target": "100% keyboard navigation coverage; WCAG 2.2 AA in both dark and light themes; axe-core CI scan zero violations",
+      "verification": "axe-core automated scan in CI; manual keyboard navigation audit per component at each wave",
+      "lane_ref": "oya-foundry-fitness-a11y (planned)"
+    },
+    {
+      "requirement": "definition_load_under_200ms_for_1000_node_spec",
+      "rationale": "Palantir-grade large-graph UX: loading a 1000-node pipeline definition into the editor must complete in <200ms; requires streaming parse + virtual canvas",
+      "target": "<200ms spec parse + initial render for 1000-node workflow_spec.v1.json; streaming JSON parse mandatory above 500 nodes",
+      "verification": "cargo bench definition-load-p99 with generated 1000-node corpus",
+      "lane_ref": "oya-foundry-fitness-perf-budget"
+    },
+    {
+      "requirement": "availability_99_95_pct_with_mttr_60s",
+      "rationale": "Stripe-grade SLA: editor availability 99.95% equates to <26 minutes downtime/month; auto-rollback canary must trigger within 60s of regression detection",
+      "target": "editor_availability_slo_pct = 99.95% at GA; MTTR <60s via auto-rollback canary (ADR-0114)",
+      "verification": "oya gate validate workflow-studio-availability --window 30d; canary-observability-rollback lane",
+      "lane_ref": "oya-foundry-fitness-canary-observability"
+    }
   ],
   "best_practices": [
     {"id": "BP-01", "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec", "enforced_by_lane_ref": "oya-foundry-fitness-workflow-spec-roundtrip"},
@@ -294,9 +728,18 @@
     "$ref:bominal/decisions/ADR-0164-workflow-canonical-spec-format.md",
     "$ref:docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md",
     "$ref:specs/products/workflow.json",
-    "$ref:memory/feedback_workflow_studio_scope"
-  ,
+    "$ref:memory/feedback_workflow_studio_scope",
     "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
     "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
-    "$ref:specs/design-system/catalog.json"]
+    "$ref:specs/design-system/catalog.json",
+    "official:n8n-docs-workflows (docs.n8n.io/workflows 2026-05-17)",
+    "official:n8n-docs-executions (docs.n8n.io/workflows/executions 2026-05-17)",
+    "official:n8n-docs-source-control (docs.n8n.io/source-control-environments 2026-05-17)",
+    "official:zapier-features (zapier.com/features 2026-05-17)",
+    "official:make-help-scenarios (help.make.com/scenarios 2026-05-17)",
+    "official:retool-workflows (retool.com/products/workflows 2026-05-17)",
+    "official:power-automate-flow-types (learn.microsoft.com/en-us/power-automate/flow-types 2026-05-17)",
+    "official:power-automate-getting-started (learn.microsoft.com/en-us/power-automate/getting-started 2026-05-17)",
+    "official:airflow-ui (airflow.apache.org/docs/apache-airflow/stable/ui.html 2026-05-17)"
+  ]
 }
