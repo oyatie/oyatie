@@ -2785,6 +2785,10 @@ dependencies = [
 [[package]]
 name = "oya-policy-cedar-domain"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "oya-regional-pack-api"

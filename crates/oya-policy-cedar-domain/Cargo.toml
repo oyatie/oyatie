@@ -11,5 +11,11 @@ name = "oya_policy_cedar_domain"
 path = "src/lib.rs"
 doctest = false
 
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+
 [lints]
 workspace = true
