@@ -6,6 +6,10 @@ phase: P11-finance-library
 status: Proposed
 depends_on_phase_spec: phase-spec.md
 purpose: "Implementation plan for P11-finance-library of M02b-substrate: detailed code structure and acceptance lanes."
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 merges Currency (ISO 4217 subset, KRW-first), JournalEntryStatus (Draft→Pending→Posted/Voided state machine), and LedgerError into oya-cloud-finops-kernel instead of scaffolding new oya-finance-library-* crates. Rationale: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION — live crates must be used rather than proliferating new scaffolds. No workspace dep changes; std-only. Session: claude-durable-goal-2026-05-17-p11-agent."
 ---
 # P11-finance-library Implementation Plan
 
