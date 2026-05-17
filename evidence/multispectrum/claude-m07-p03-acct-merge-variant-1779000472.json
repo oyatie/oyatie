@@ -1,0 +1,70 @@
+{
+  "change_id": "claude-m07-p03-acct-merge-variant-1779000472",
+  "change_class_id": "CC-2_type_addition",
+  "change_class_rationale": "Adds 2 new public types (AccountingPeriod + AccountingPeriodKind + PeriodCloseState + PeriodCloseError) + 4 pure functions + new module file (accounting_period.rs) to existing live kernel crate (oya-cloud-finops-kernel). Additive only; encodes K-GAAP period-close lifecycle (월마감/연마감). No new workspace crates, no new deps.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779000472,
+  "git_sha_base": "ddd84343e8340b83a202b088015ff361ec60d002",
+  "branch": "agent/m07-p03-acct-mv-1779000472",
+  "session_id": "claude-durable-goal-2026-05-17-m07-p03-agent",
+  "agent_id": "claude-m07-p03-acct-merge-variant",
+  "task": "First merge-variant delta from M07/P03-accounting impl-plan into the existing live oya-cloud-finops-kernel crate. Full-scaffold (oya-accounting-* family) NOT executed per user directive 2026-05-17 option-2 (merge-into-existing-crates). AccountingPeriod + PeriodCloseState K-GAAP period-close lifecycle added as accounting_period.rs module.",
+  "artifacts_touched": [
+    "crates/oya-cloud-finops-kernel/src/accounting_period.rs (NEW; ~270 lines: AccountingPeriodKind + PeriodCloseState + AccountingPeriod + PeriodCloseError + 4 functions + 12 tests)",
+    "crates/oya-cloud-finops-kernel/src/lib.rs (added `pub mod accounting_period` + re-exports for all public types and functions)",
+    ".omc/plans/milestones/M07-first-tenant/phases/P03-accounting/impl-plan.md (frontmatter: execution_variant=merge-into-existing-crates + decided_at + decided_by + execution_variant_note)",
+    "evidence/multispectrum/claude-m07-p03-acct-merge-variant-1779000472.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "local_gates": [
+    "cargo nextest run -p oya-cloud-finops-kernel: PASS (55/55 tests)",
+    "rustfmt --edition 2024: PASS (accounting_period.rs reformatted clean)"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Honors no-over-scaffolding: full 16-crate oya-accounting-* plan -> 1 module into existing kernel. AccountingPeriod + PeriodCloseState are the foundational contract because every downstream accounting surface (COA, ledger, auto-journal) depends on period-close enforcement.",
+        "No new workspace deps introduced; std-only. Complements existing ReportPeriod/PublicCostSummary without duplicating Currency/JournalEntryStatus."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "AccountingPeriodKind encodes K-GAAP 월마감/연마감 vocabulary. PeriodCloseState enforces the posting-gate invariant (Open->PendingReview->Closed, no post to non-Open). 12 tests cover validation, happy-path close lifecycle, all error branches, and label distinctness.",
+        "All 55 crate tests (12 new + 43 pre-existing) pass at 55/55."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "AccountingPeriod fields annotated with `// data_class: INTERNAL_ONLY` per data-classification convention. No raw secrets in tests; period_id values are synthetic (ap_2025_03). Aligns with ADR-0083 Tier 3 test-exemption pattern already in the crate."
+      ],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Audit-chain row appended with distinct change_id=claude-m07-p03-acct-merge-variant-1779000472 and session_id (OP-08). PeriodCloseError.message() provides structured error strings for all variants, ready for structured logging downstream."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "AccountingPeriod + PeriodCloseState are the right first delta — every downstream accounting surface (COA CRUD, ledger append, auto-journal from PayrollRunCompleted) must enforce the period-close gate. Merge-into-existing-crates is correct for this phase maturity."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT_WITH_GUARDRAILS",
+      "guardrails": [
+        "Remaining M07/P03 scope (COA, double-entry ledger, auto-journal, Typst financial statements) still requires full oya-accounting-* scaffold when P02-payroll exit gate is green.",
+        "Period ID format (ap_2025_03) is informal; a typed PeriodId newtype should be introduced before the ledger module depends on it to prevent stringly-typed coupling."
+      ]
+    }
+  }
+}
