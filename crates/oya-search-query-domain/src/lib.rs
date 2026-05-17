@@ -9,6 +9,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod query_routing_mode;
+pub use query_routing_mode::{QueryRoutingMode, QueryRoutingModeError};
+
 pub mod engine;
 pub use engine::SearchEngine;
 
