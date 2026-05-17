@@ -1,0 +1,73 @@
+{
+  "change_id": "claude-durable-goal-2026-05-17-p09-agent",
+  "change_class_id": "CC-2_type_addition",
+  "change_class_rationale": "Net-new SearchEngine value-object enum backported from P09-search plan into existing live crate oya-search-query-domain. No new crate scaffold; single module file + re-export.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778997084,
+  "git_sha_base": "42444e5f",
+  "branch": "agent/m02b-p09-search-merge-variant-1778997084",
+  "session_id": "claude-durable-goal-2026-05-17-p09-agent",
+  "agent_id": "claude-executor-p09-search-mv",
+  "task": "M02b/P09-search merge-variant delta 1: backport SearchEngine enum (Pgroonga/Tantivy/Auto) from impl-plan into oya-search-query-domain as engine.rs module. No new crate scaffold per user directive.",
+  "artifacts_touched": [
+    "crates/oya-search-query-domain/src/engine.rs (NEW)",
+    "crates/oya-search-query-domain/src/lib.rs (pub mod engine + pub use engine::SearchEngine)",
+    "evidence/multispectrum/claude-durable-goal-2026-05-17-p09-agent.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "local_gates": [
+    "cargo nextest run -p oya-search-query-domain --all-features: PASS (10/10)",
+    "rustfmt --edition 2024: PASS"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "SearchEngine is a pure sealed enum — no runtime deps added. Derives Clone+Copy+Debug+Eq+PartialEq+Ord+PartialOrd matching sibling QueryMode/QueryLocale in the same crate.",
+        "needs_pgroonga/needs_tantivy helpers express intent without booleans-in-struct smell.",
+        "Placed in engine.rs submodule with pub use re-export — consistent with how this workspace splits types at module granularity."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "5 unit tests cover: variant-specific predicate correctness, Auto dual-predicate, Ord ordering, Clone/Copy consistency.",
+        "Test file carries the ADR-0083 Tier-3 cfg_attr exemption for unwrap/expect/panic.",
+        "Zero new dependencies in Cargo.toml."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "No data-class fields introduced (enum is discriminant-only).",
+        "No unsafe code; #![forbid(unsafe_code)] inherited at crate level.",
+        "No cross-tenant or autonomy-ceiling concerns; pure value object.",
+        "execution_variant=merge-into-existing-crates recorded in commit message per task directive."
+      ],
+      "fixuptasks": []
+    },
+    "A1_naming": {
+      "considered": true,
+      "findings": [
+        "SearchEngine matches P09 impl-plan spec name verbatim (oya-search-query-kernel/src/types.rs line 316).",
+        "Module file engine.rs follows crate-level naming: QueryMode → mode.rs would be adjacent; engine.rs is unambiguous.",
+        "Variant names Pgroonga/Tantivy/Auto match the plan spec casing exactly."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "Merge-into-existing pattern is the correct call given NO new crate scaffolds directive. oya-search-query-domain is the canonical home for query-identity types; SearchEngine is a query-identity discriminant. Dep-direction clean: domain layer, no upstream imports."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT",
+      "rationale": "Smallest viable diff: 1 new file (64 lines), 2 lines added to lib.rs. 10/10 tests green. Satisfies merge-variant delta-1 scope with no scope creep."
+    }
+  }
+}
