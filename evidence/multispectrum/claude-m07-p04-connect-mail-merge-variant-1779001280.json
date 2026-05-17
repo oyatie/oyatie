@@ -1,0 +1,48 @@
+{
+  "change_id": "claude-m07-p04-connect-mail-merge-variant-1779001280",
+  "change_class_id": "CC-2_kernel_type_addition",
+  "change_class_rationale": "Pure additive surface in oya-connect-mail-domain: new thread_state module (MailboxKind + ThreadStatus enums) with std-only dependencies and no public API removals.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779001280,
+  "branch": "agent/m07-p04-mail-mv-1779001064",
+  "session_id": "claude-durable-goal-2026-05-17-m07-p04-agent",
+  "agent_id": "claude-durable-goal-m07-p04",
+  "task": "M07-P04-connect-pro-mail merge-variant delta-1: smallest net-new type surface (MailboxKind 3-variant + ThreadStatus 4-state lifecycle) into existing oya-connect-mail-domain instead of new connect-pro-mail crates.",
+  "artifacts_touched": [
+    "crates/oya-connect-mail-domain/src/thread_state.rs (NEW)",
+    "crates/oya-connect-mail-domain/src/lib.rs (re-export)",
+    ".omc/plans/milestones/M07-first-tenant/phases/P04-connect-pro-mail/impl-plan.md (frontmatter execution_variant)",
+    "evidence/multispectrum/claude-m07-p04-connect-mail-merge-variant-1779001280.json (this file)",
+    "evidence/audit-chain.jsonl (row appended)"
+  ],
+  "local_gates": [
+    "cargo nextest -p oya-connect-mail-domain: 13/13 PASS (4 new thread_state + 9 pre-existing)",
+    "rustfmt 1.95.0: clean"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": ["One new module, two re-exports. MailboxKind reflects dual-context isolation (ADR-0208/0215: Professional unreachable from Personal). PersonalNotGa variant explicitly flags non-GA surface. ThreadStatus 4-state lifecycle is monotonic forward-only into Deleted."],
+      "fixuptasks": []
+    },
+    "F3_correctness": {
+      "considered": true,
+      "findings": ["MailboxKind::is_tenant_governed matches Professional + SharedInbox (PersonalNotGa excluded). ThreadStatus::can_receive excludes Deleted (soft-delete final state). is_inbox_visible matches Active only."],
+      "fixuptasks": []
+    },
+    "A1_naming": {
+      "considered": true,
+      "findings": ["PersonalNotGa naming explicit per ADR-0029 (not yet GA flagged in-type). Pascal/snake/SCREAMING conventions respected. Module name thread_state — singular form per existing crate convention."],
+      "fixuptasks": []
+    },
+    "A3_structure": {
+      "considered": true,
+      "findings": ["Module added to existing crate; lib.rs re-export pattern matches PR #60..#96 cascade. No new workspace member; no Cargo.toml workspace touch."],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Smallest meaningful delta from M07-P04 plan. Dual-context isolation correctly encoded at the type level."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT", "rationale": "PersonalNotGa explicitly NOT GA — surface-level type flag prevents accidental GA promotion. Monotonic lifecycle. 4 tests cover both is_* checks."}
+  }
+}
