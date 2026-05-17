@@ -4,6 +4,7 @@
 **/.DS_Store
 
 .grit
+/bominal/
 
 # Python bytecode (per shell-python audit 2026-05-15)
 __pycache__/
