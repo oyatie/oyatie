@@ -6,6 +6,14 @@ phase: P17-capability-registry
 impl_plan_id: IP-001-capability-registry-kernel-scaffold
 status: pending
 owner: council-foundry
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  User directive 2026-05-17 (option 2): do NOT scaffold the 8 new crates listed in
+  the impl-plan. Instead, backport the smallest net-new type into the existing live
+  oya-foundry-capability-registry-kernel crate. Delta-1 adds CapabilityStatus
+  (Active/Deprecated/Disabled) via a new status.rs module + re-export.
 blocked_by:
 - impl_plan: P14-policy/IP-001
   reason: McpToolDiscoveryAdapter calls PolicyEvaluator to gate capability invocations

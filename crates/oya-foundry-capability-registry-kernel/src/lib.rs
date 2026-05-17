@@ -2,9 +2,15 @@
 //!
 //! Neutral value types describing a published capability and its
 //! autonomy classification. No I/O, no provider-specific deps.
+//!
+//! M02b-P17 delta-1: adds `status` module with `CapabilityStatus`.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
+pub mod status;
+
+pub use status::{CapabilityStatus, CapabilityStatusParseError};
 
 use std::fmt;
 
