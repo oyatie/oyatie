@@ -36,6 +36,8 @@ on:
     workflows:
       - pr-tests
       - oya-foundry-fitness-supply-chain
+      - oya-foundry-fitness-sequential-pr-merge-conflicts
+      - oya-foundry-fitness-pr-review
     types: [completed]
   repository_dispatch:
     types: [pr-review-fix-requested]
@@ -102,10 +104,12 @@ jobs:
           gh api "repos/$REPO/actions/runs/$WORKFLOW_RUN_ID/jobs" --paginate \
             --jq '.jobs[] | select(.conclusion=="failure" or .conclusion=="cancelled" or .conclusion=="timed_out") | "\(.name)\t\(.conclusion)\t\(.url)"' \
             > failed-jobs.tsv || true
-          echo "pr=$PR"        >> "$GITHUB_OUTPUT"
-          echo "head=$HEAD_SHA" >> "$GITHUB_OUTPUT"
-          echo "base=$BASE_SHA" >> "$GITHUB_OUTPUT"
-          echo "source=ci-failure" >> "$GITHUB_OUTPUT"
+          {
+            echo "pr=$PR"
+            echo "head=$HEAD_SHA"
+            echo "base=$BASE_SHA"
+            echo "source=ci-failure"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Resolve PR + heads (review-source)
         if: github.event_name == 'repository_dispatch'
@@ -117,10 +121,12 @@ jobs:
         run: |
           set -euo pipefail
           : > failed-jobs.tsv
-          echo "pr=$PR" >> "$GITHUB_OUTPUT"
-          echo "head=$HEAD_SHA" >> "$GITHUB_OUTPUT"
-          echo "base=$BASE_SHA" >> "$GITHUB_OUTPUT"
-          echo "source=pr-review-fix-requested" >> "$GITHUB_OUTPUT"
+          {
+            echo "pr=$PR"
+            echo "head=$HEAD_SHA"
+            echo "base=$BASE_SHA"
+            echo "source=pr-review-fix-requested"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Build dispatcher
         run: cargo build -p oya-foundry-vcs-ci-fix-loop-dispatcher-app
