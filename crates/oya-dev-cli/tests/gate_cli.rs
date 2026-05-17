@@ -4191,6 +4191,92 @@ fn statelessness_gate_passes_clean_app_crate() {
     fs::remove_dir_all(temp).ok();
 }
 
+// ─── shardability integration tests (M02b/P22 exit-gate lane 2) ─────────────
+
+/// Proves the shardability validator catches a `CREATE TABLE` that is missing
+/// `tenant_id` — the canonical synthetic-violation shape for ADR-0062 §"sharded
+/// state" (non-shard-keyed table, Postgres+Citus row-level-security requirement).
+#[test]
+fn shardability_gate_catches_missing_tenant_id_in_app_crate() {
+    let temp = temp_dir("shard-violation");
+    let migrations_dir = temp.join("migrations");
+    fs::create_dir_all(&migrations_dir).expect("migrations dir created");
+    fs::write(
+        migrations_dir.join("001_orders.sql"),
+        // intentional violation: no tenant_id column, no global opt-out marker
+        "CREATE TABLE orders (\n  id UUID PRIMARY KEY,\n  amount BIGINT NOT NULL\n);\n",
+    )
+    .expect("violation migration written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "shardability",
+            "--migrations-dir",
+            migrations_dir.to_str().expect("utf8 migrations dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected failure for missing tenant_id\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("shardability validation failed"),
+        "stderr must contain failure message; got: {stderr}"
+    );
+    assert!(
+        stderr.contains("tenant_id"),
+        "stderr must name the violation kind; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the shardability validator passes when all tables declare `tenant_id`
+/// — clean path smoke-test.
+#[test]
+fn shardability_gate_passes_clean_app_crate() {
+    let temp = temp_dir("shard-clean");
+    let migrations_dir = temp.join("migrations");
+    fs::create_dir_all(&migrations_dir).expect("migrations dir created");
+    fs::write(
+        migrations_dir.join("001_events.sql"),
+        "CREATE TABLE events (\n  id UUID PRIMARY KEY,\n  tenant_id UUID NOT NULL,\n  payload JSONB\n);\n",
+    )
+    .expect("clean migration written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "shardability",
+            "--migrations-dir",
+            migrations_dir.to_str().expect("utf8 migrations dir"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected pass for tenant_id-keyed table\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("shardability validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
 fn write_catalog_record(registry_dir: &Path, crate_id: &str, plane: &str) {
     write_catalog_record_with_claim(registry_dir, crate_id, plane, "preview");
 }
