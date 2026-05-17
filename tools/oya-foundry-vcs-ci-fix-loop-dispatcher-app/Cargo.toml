@@ -4,7 +4,7 @@
 #   - slot-2 µservice: `foundry` (registered; internal engineering platform).
 #   - bc-tokens: `vcs-ci-fix-loop-dispatcher` (kebab tokens; bounded context is
 #                the VCS fix-loop dispatcher binary that serves both CI-source
-#                AND review-source per M-CC-P10-IP-005 §"Dual-source fix-loop").
+#                AND review-source per M01-P17-IP-005 §"Dual-source fix-loop").
 #   - layer (slot-N): `app` — closed enum {kernel, domain, usecase, app,
 #                adapter, infrastructure, cli, rest, grpc, graphql, worker,
 #                sdk, api} per ADR-0056 amended by ADR-0105 + ADR-0106. Bin-
@@ -15,7 +15,7 @@
 #   - Sibling pattern: matches other tools/oya-foundry-vcs-*-app crates
 #                (admission-gate-app, provider-execution-gate-app).
 #
-# IP plan symbol-claims (M-CC-P10-IP-005 §"Symbols to grit-claim") listed
+# IP plan symbol-claims (M01-P17-IP-005 §"Symbols to grit-claim") listed
 # `tools/oya-ci-fix-loop-dispatcher`. That literal predates BNF v4.1 and
 # fails (a) the slot-2 µservice registry (no `oya-ci-*` entry exists; the
 # correct slot-2 is `foundry`), (b) the closed layer enum (no `-app`
@@ -59,4 +59,4 @@ audit_chain = true
 
 [package.metadata.oya.lifecycle]
 stage = "scaffolded"
-introducing_ip = "M-CC-P10-IP-005"
+introducing_ip = "M01-P17-IP-005"

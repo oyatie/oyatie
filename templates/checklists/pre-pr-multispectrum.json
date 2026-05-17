@@ -30,7 +30,7 @@
     "step_7_close_claim": "Only after lane exit 0: `grit done --agent <id>` (closes claim; promotion path per ADR-0054)."
   },
   "template_instance": {
-    "change_id": "<REQUIRED \u2014 e.g., M-CC-P06-IP-002-PHASE-N>",
+    "change_id": "<REQUIRED \u2014 e.g., M01-P13-IP-002-PHASE-N>",
     "change_summary": "<REQUIRED \u2014 one paragraph: what changed and why>",
     "change_class_id": "<REQUIRED \u2014 one of CC-1_kernel_public_api | CC-2_adapter_or_infrastructure | CC-3_application_or_domain | CC-4_refactor_pure | CC-5_doc_only | CC-6_generated_or_vendored | CC-7_test_or_fixture>",
     "git_sha": "<REQUIRED \u2014 40-char SHA of HEAD at evidence emit time>",

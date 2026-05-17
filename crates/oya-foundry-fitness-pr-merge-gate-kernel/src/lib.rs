@@ -1,4 +1,4 @@
-//! Engineering Excellence Council merge-gate kernel (M-CC-P07-IP-003).
+//! Engineering Excellence Council merge-gate kernel (M01-P14-IP-003).
 //!
 //! Pure I/O-free Rust replacement for the earlier Node.js merge-gate
 //! script (retired 2026-05-14 per user directive "no shellscript no mjs

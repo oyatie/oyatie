@@ -6,7 +6,7 @@
     "handoff_id": "HANDOFF-DOCTRINE-MIGRATION-2026-05-14",
     "ephemeral": true,
     "created_at": "2026-05-14T21:00:00Z",
-    "predecessor_session": "claude-mcc-p06-ip-002 (closed M-CC-P06-IP-002 + authored oyatie-doctrine v1.0.0 + multispectrum-review v2.1.0 + seam lane scaffold + audit)",
+    "predecessor_session": "claude-mcc-p06-ip-002 (closed M01-P13-IP-002 + authored oyatie-doctrine v1.0.0 + multispectrum-review v2.1.0 + seam lane scaffold + audit)",
     "successor_session_target": "executor agent picking up where predecessor stopped"
   },
 
@@ -147,7 +147,7 @@
       "docs/decisions/ADR-0094-handler-trait-with-associated-error.md (Accepted)",
       "docs/decisions/ADR-0095-tenant-slug-in-tenancy-kernel.md (Accepted)"
     ],
-    "ip_status_flipped": "M-CC-P06-IP-002 → complete (amended per ADR-0092)",
+    "ip_status_flipped": "M01-P13-IP-002 → complete (amended per ADR-0092)",
     "p06_phase_status": "in-progress (1 of 3 IPs complete; IP-001 distroless + IP-003 musl pending + image-discipline + lts-dependency lanes pending)"
   },
 

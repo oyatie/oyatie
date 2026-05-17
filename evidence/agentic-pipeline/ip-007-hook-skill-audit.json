@@ -57,19 +57,19 @@
   ],
   "evidence_type": "implementation-packet",
   "generated_at": "2026-05-14T13:07:00Z",
-  "implementation_packet": "M-CC-P01-IP-007",
+  "implementation_packet": "M01-P08-IP-007",
   "known_blockers": [
     "Cargo workspace metadata fails before package discovery because Cargo.toml references missing crates/oya-tenancy-kernel/Cargo.toml.",
     "scripts/check.sh fails at line 36 because scripts/check-stage0-application-shell-prereqs.py is missing."
   ],
-  "milestone": "M-CC-cross-cutting",
+  "milestone": "M01-foundation",
   "next_steps": [
     "Run grit done for codex-autopilot-p01-ip007.",
-    "Begin M-CC-P01-IP-008 archive orchestration glue + archive-orphan lane."
+    "Begin M01-P08-IP-008 archive orchestration glue + archive-orphan lane."
   ],
   "phase": "P01-agentic-pipeline-cutover",
   "schema_version": "1.0.0",
-  "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
+  "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-007-hook-skill-audit.md",
   "summary": "Banned-primitives lane was activated for exact agent-instruction fences, with a repo-local source inventory and std-only kernel/runner that rejects hard-banned primitives and undocumented direct VCS/forge usage.",
   "validation": [
     {

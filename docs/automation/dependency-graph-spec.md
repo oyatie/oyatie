@@ -46,7 +46,7 @@ doc_class: ImplementationPlan
 parent: .omc/plans/milestones/M02-foundry-preview/phases/P03-policy-cedar/INDEX.md
 depends_on:
   - .omc/plans/milestones/M01-foundation/phases/P02-identity/IP-005-cedar-bootstrap.md
-  - .omc/plans/milestones/M-CC-cross-cutting/phases/M-CC-P01-grit-icm-cutover/IP-001-grit-bootstrap.md
+  - .omc/plans/milestones/M01-foundation/phases/M01-P08-grit-icm-cutover/IP-001-grit-bootstrap.md
 status: open
 ```
 
@@ -78,7 +78,7 @@ digraph plan_dag {
 
   "M01-P02" -> "M01-P03";
   "M01-P03" -> "M02-P01";
-  "M-CC-P01" -> "M02-P01" [style=dashed, label="cross-cutting"];
+  "M01-P08" -> "M02-P01" [style=dashed, label="cross-cutting"];
 }
 ```
 

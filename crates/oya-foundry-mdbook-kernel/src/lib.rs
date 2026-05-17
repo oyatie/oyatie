@@ -1,8 +1,8 @@
 //! Foundry mdbook publishing kernel — pure I/O-free model for the
 //! `walk → publish → wire-architecture-map` doc pipeline.
 //!
-//! M-CC-P02-IP-001 ships `walk_sources` + `publish_site`.
-//! M-CC-P09-IP-003 ships `wire_architecture_map`.
+//! M01-P09-IP-001 ships `walk_sources` + `publish_site`.
+//! M01-P16-IP-003 ships `wire_architecture_map`.
 //!
 //! Runners discover rustdoc HTML, OpenAPI YAML, ADR Markdown, and
 //! frontmatter-bearing artifacts on disk, feed the typed records here,

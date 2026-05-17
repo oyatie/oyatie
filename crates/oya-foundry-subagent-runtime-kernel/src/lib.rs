@@ -239,7 +239,7 @@ pub struct SubagentRequest {
     /// `<tool>-<facet_id>-<change_id>` per feedback_multispectrum_review_v22.
     /// data_class: INTERNAL_ONLY
     pub reviewer_id: String, // data_class: INTERNAL_ONLY
-    /// `<pr-number>` or `M-CC-P10-IP-004-pr42` style id.
+    /// `<pr-number>` or `M01-P17-IP-004-pr42` style id.
     /// data_class: INTERNAL_ONLY
     pub change_id: String, // data_class: INTERNAL_ONLY
     /// System prompt (the rendered facet template).

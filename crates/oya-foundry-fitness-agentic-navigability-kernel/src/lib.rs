@@ -1,6 +1,6 @@
 //! Agentic-navigability fitness kernel — blocks plan/spec trees with
 //! missing INDEX.md, missing `parent:` pointer, undeclared `symbols-touched`,
-//! or undeclared `purpose`. Per M-CC-P04 directive: every artifact agents
+//! or undeclared `purpose`. Per M01-P11 directive: every artifact agents
 //! need to read must be reachable from the root hub in two hops.
 //!
 //! I/O-free. Runners walk the tree and feed typed [`PlanNode`] records

@@ -62,7 +62,7 @@ Out-of-scope (referenced explicitly to prevent scope creep):
 | Predecessor | Status | Acceptance gate cite |
 |---|---|---|
 | M0N-1 | merged \| open | per phase INDEX `§Acceptance` |
-| M-CC-P0M | open | per `milestones/M-CC-cross-cutting/phases/P0M/INDEX.md` |
+| M-CC-P0M | open | per `milestones/M01-foundation/phases/P0M/INDEX.md` |
 
 ## Acceptance gate
 
@@ -95,7 +95,7 @@ The first symbol/file a fresh agent **MUST** read after this INDEX to enter the 
 - Google Design Doc — applied to: `<phase list>`
 - Blameless Postmortem — every Sev-1/Sev-2 in milestone scope.
 - Trunk-Based Development + Feature Flags + Canary — release strategy per `docs/RELEASE-MANAGEMENT.md`.
-- SLSA L2 + Cosign keyless OIDC + Syft SBOM — supply-chain (M-CC-P08).
+- SLSA L2 + Cosign keyless OIDC + Syft SBOM — supply-chain (M01-P15).
 - `cargo-vet` + `cargo-deny` + `cargo-audit` triad — Rust supply chain.
 - Distroless / Chainguard images — runtime image policy.
 

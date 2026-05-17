@@ -197,7 +197,7 @@ pub struct SunsetClause {
     /// Optional explicit sunset date (`YYYY-MM-DD`).
     // data_class: INTERNAL_ONLY
     pub sunset_at: Option<Date>, // data_class: INTERNAL_ONLY
-    /// Optional milestone-anchored sunset (e.g. `M-CC-P01-merge`).
+    /// Optional milestone-anchored sunset (e.g. `M01-P08-merge`).
     /// data_class: INTERNAL_ONLY
     pub sunset_milestone: Option<String>, // data_class: INTERNAL_ONLY
     /// Optional explicit deprecation date. When `None` and `sunset_at` is
@@ -550,7 +550,7 @@ mod tests {
         let clause = SunsetClause {
             location: "test://ms".into(),
             sunset_at: None,
-            sunset_milestone: Some("M-CC-P01-merge".into()),
+            sunset_milestone: Some("M01-P08-merge".into()),
             deprecation_at: None,
             removal_at: None,
             sunset_topic: "milestone-thing".into(),
@@ -563,7 +563,7 @@ mod tests {
         // Milestone reached -> SunsetReached. days_overdue is None
         // because no date anchor exists to measure against (milestone-
         // only clauses have no deprecation due-date).
-        let v2 = evaluate(&[clause], now, &["M-CC-P01-merge".to_string()]);
+        let v2 = evaluate(&[clause], now, &["M01-P08-merge".to_string()]);
         assert_eq!(v2.len(), 1);
         assert_eq!(v2[0].state, LifecycleState::SunsetReached);
         assert_eq!(v2[0].days_overdue, None);
@@ -604,7 +604,7 @@ mod tests {
     fn doctrine_sentinel_is_recognized() {
         assert!(is_sentinel_milestone(DOCTRINE_NOT_TIME_BOUNDED_SENTINEL));
         assert!(is_sentinel_milestone("doctrine-not-time-bounded"));
-        assert!(!is_sentinel_milestone("M-CC-P01-merge"));
+        assert!(!is_sentinel_milestone("M01-P08-merge"));
         assert!(!is_sentinel_milestone("doctrine-not-time-bounded-typo"));
     }
 

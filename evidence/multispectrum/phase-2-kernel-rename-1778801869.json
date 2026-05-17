@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.oyatie.dev/specs/multispectrum-review.json#evidence_schema",
-  "change_id": "M-CC-P06-IP-002-PHASE-2",
+  "change_id": "M01-P13-IP-002-PHASE-2",
   "change_summary": "oya-http-middleware-kernel: HyperRequest/HyperResponse renamed to HttpRequest/HttpResponse; body type Bytes\u2192Vec<u8>; bytes dep removed. Hyper adapter does Vec<u8>\u2194Bytes conversion at the boundary. Three middleware crates + ops-workspace-shell-runtime updated to consume new types and drop bytes. Root-cause seam fix.",
   "change_class_id": "CC-1_kernel_public_api",
   "git_sha": "825cedfbc106d7bfb222e3dcf4fabe0a40489818",

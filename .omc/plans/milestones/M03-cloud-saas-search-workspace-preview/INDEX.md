@@ -35,8 +35,8 @@ Eight phases:
 
 ## Dependencies
 - **Hard:** M01, M02 acceptance gates passed.
-- **Soft:** M-CC-P05 provider-agnosticism active (Cloud kernels MUST use provider-neutral interfaces).
-- **Soft:** M-CC-P06 distroless+LTS+image-discipline lanes active.
+- **Soft:** M01-P12 provider-agnosticism active (Cloud kernels MUST use provider-neutral interfaces).
+- **Soft:** M01-P13 distroless+LTS+image-discipline lanes active.
 
 ## Acceptance gate
 - Cloud: per [`docs/ROADMAP.md`](../../../docs/ROADMAP.md) §2.3 — IAM (Cedar+SSO+STS), region/AZ/cell taxonomy, compute (k8s+functions), storage (object+block+KMS-shred), network (VPC+LB+DNS+interconnect), billing (per-resource metering + per-region tax-invoice), observability, Cloud control-plane API frozen v1, ≥ 2 regional packs onboarded.

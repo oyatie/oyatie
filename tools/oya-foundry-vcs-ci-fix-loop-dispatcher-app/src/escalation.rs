@@ -64,7 +64,7 @@ impl EscalationRecord {
              this PR is now parked from automated fix-loop dispatch and requires human triage. The fix-loop dispatcher will \
              NOT post further bundles for this PR until the `{escalation_label}` label is removed.\n\n\
              Evidence: `evidence/pipeline-maturity-glue/ip-005-fix-loop/{pr}/` (per-attempt bundles).\n\n\
-             Related: M-CC-P10-IP-005 (dispatcher), M-CC-P10-IP-006 (merge-queue eviction on exhaustion).",
+             Related: M01-P17-IP-005 (dispatcher), M01-P17-IP-006 (merge-queue eviction on exhaustion).",
             pr = pr_number,
             max = crate::retry_budget::MAX_ATTEMPTS_PER_PR,
             source = final_source.as_wire(),
@@ -161,8 +161,8 @@ mod tests {
         assert_eq!(record.labels, vec![HUMAN_ESCALATION_LABEL, STUCK_PR_LABEL]);
         assert!(record.issue_title.contains("PR #42"));
         assert!(record.issue_body.contains("pr-review-fix-requested"));
-        assert!(record.issue_body.contains("M-CC-P10-IP-005"));
-        assert!(record.issue_body.contains("M-CC-P10-IP-006"));
+        assert!(record.issue_body.contains("M01-P17-IP-005"));
+        assert!(record.issue_body.contains("M01-P17-IP-006"));
         let json = record.to_json();
         assert!(json.contains("\"labels\":[\"human-escalation\",\"fix-loop-exhausted\"]"));
         assert!(json.contains("\"pr_number\":42"));

@@ -161,7 +161,7 @@ While the change is in flight, every agent and every human MUST observe these ru
 - **Bacon for dev-loop, nextest for evidence.** Prefer `bacon check / clippy / nextest` for fast feedback. Final evidence runs `cargo nextest run --workspace --all-features --no-fail-fast` per [`standards/testing.md`](standards/testing.md) <!-- forward-reference: wave-1 -->.
 ## Sanctioned primitives
 
-Agent-callable coordination and state-transition primitives are a closed set: Oya VCS claim / verify / done / promote plus the `oya-vcs-admission` CI lane, all delivered through the Foundry pipeline (M-CC-P11). Oya VCS owns claims, ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock release. ADR-0052/ADR-0053/ADR-0054 are historical records only; the external coordination tools they sanctioned (grit, icm, rtk, vox) are retired per ADR-0116 (2026-05-16).
+Agent-callable coordination and state-transition primitives are a closed set: Oya VCS claim / verify / done / promote plus the `oya-vcs-admission` CI lane, all delivered through the Foundry pipeline (M01-P18). Oya VCS owns claims, ChangeBundles, review/fix, controller rebase, merge queue, promotion, and lock release. ADR-0052/ADR-0053/ADR-0054 are historical records only; the external coordination tools they sanctioned (grit, icm, rtk, vox) are retired per ADR-0116 (2026-05-16).
 
 External agent-coordination tooling (grit, rtk, icm, vox) is retired per ADR-0116. New crate scaffolds use plain `git mv` inside a per-agent `git worktree`; concurrent-file coordination happens at admission-gate time via `registry/vcs/concurrent-safe-paths.yaml` (ADR-0111 conflict-avoidance pre-admit gate). No external coordination tool participates in the prescribed surface.
 

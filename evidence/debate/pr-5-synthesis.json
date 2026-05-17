@@ -110,7 +110,7 @@
       "facets_concurring": [
         "F9"
       ],
-      "headline": "PR #5 is described as the Foundry pipeline (M-CC-P11) design contract, but the ADRs remain `status: Proposed`. Proposed ADRs do not lock the product/roadmap contract that later PRs are expected to implement.",
+      "headline": "PR #5 is described as the Foundry pipeline (M01-P18) design contract, but the ADRs remain `status: Proposed`. Proposed ADRs do not lock the product/roadmap contract that later PRs are expected to implement.",
       "id": "PR5-CONV-9",
       "recommended_remediation": "Promote ADR-0110..0114 to Accepted only after council signoff, or change PR #5/P11 wording to say it is a proposal and block implementation PRs from treating it as canonical until accepted.",
       "remediation_fixuptasks": [
@@ -119,13 +119,13 @@
       "severity": "BLOCKER"
     },
     {
-      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/INDEX.md:20-24 and specs/cross-cutting/masterplan.json:520-553",
+      "evidence": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/INDEX.md:20-24 and specs/cross-cutting/masterplan.json:520-553",
       "facets_concurring": [
         "F9"
       ],
-      "headline": "P11 exists as `.omc` phase files, but the current machine-readable masterplan live index does not include M-CC-P11. The canonical agentic VCS substrate cannot be reliably adopted if its phase is only discoverable by filesystem search rather than the masterpla…",
+      "headline": "P11 exists as `.omc` phase files, but the current machine-readable masterplan live index does not include M01-P18. The canonical agentic VCS substrate cannot be reliably adopted if its phase is only discoverable by filesystem search rather than the masterpla…",
       "id": "PR5-CONV-10",
-      "recommended_remediation": "Regenerate the masterplan live hierarchy with M-CC-P11 and make the plan-hierarchy lane fail when a phase file is absent from `/specs/cross-cutting/masterplan.json`.",
+      "recommended_remediation": "Regenerate the masterplan live hierarchy with M01-P18 and make the plan-hierarchy lane fail when a phase file is absent from `/specs/cross-cutting/masterplan.json`.",
       "remediation_fixuptasks": [
         "F-PR5-10"
       ],
@@ -210,7 +210,7 @@
   "merge_commit_sha": "3185596f5a1bfbbfd1fff7e1ccd7500af9906613",
   "naming_justification": "evidence/debate/pr-5-synthesis.json is the canonical synthesis path for PR #5 under the multispectrum debate evidence naming contract.",
   "pr_number": 5,
-  "pr_title": "ADR-0110/0111/0112/0113 — end-to-end agentic VCS pipeline (M-CC-P11)",
+  "pr_title": "ADR-0110/0111/0112/0113 — end-to-end agentic VCS pipeline (M01-P18)",
   "rendered_at_unix": 1778920055,
   "round": "synthesis",
   "round_2_evidence_policy": {

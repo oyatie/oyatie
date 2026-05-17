@@ -40,7 +40,7 @@ Runtime tier:
 | capability-publish | existing | STANDARD/capability-map | oya-foundry-capability-kernel | tools/oya-foundry-fitness-capability-publish | `cargo run -p oya-foundry-fitness-capability-publish` | 400 | HIGH |
 | portfolio-citation | new-directive | Directive A1 (bidirectional bominal<->oyatie PRD cite) | oya-foundry-fitness-portfolio-citation-kernel | tools/oya-foundry-fitness-portfolio-citation | `cargo run -p oya-foundry-fitness-portfolio-citation` | 800 | HIGH |
 | banned-primitives | new-directive | Directive 12 (sanctioned primitives) | oya-foundry-fitness-banned-primitives-kernel | tools/oya-foundry-fitness-banned-primitives | `cargo run -p oya-foundry-fitness-banned-primitives` | 500 | BLOCKER |
-| archive-orphan | retired | ADR-0118 / ADR-0116 / M-CC-P11 replacement | retired | retired | retired; no CI invocation | 0 | retired |
+| archive-orphan | retired | ADR-0118 / ADR-0116 / M01-P18 replacement | retired | retired | retired; no CI invocation | 0 | retired |
 | authoritative-tracked | new-directive | Directive A8 | oya-foundry-fitness-authoritative-tracked-kernel | tools/oya-foundry-fitness-authoritative-tracked | `cargo run -p oya-foundry-fitness-authoritative-tracked` | 400 | BLOCKER |
 | agentic-navigability | new-directive | Directive 10 (navigability) | oya-foundry-fitness-agentic-navigability-kernel | tools/oya-foundry-fitness-agentic-navigability | `cargo run -p oya-foundry-fitness-agentic-navigability` | 600 | HIGH |
 | orphan-detection | new-directive | Directive 10 (purpose) | oya-foundry-fitness-orphan-detection-kernel | tools/oya-foundry-fitness-orphan-detection | `cargo run -p oya-foundry-fitness-orphan-detection` | 1100 | HIGH |
@@ -91,4 +91,4 @@ Total: 64 lanes. See sibling `<lane-id>.md` for kernel sketch, failure modes, an
 | --- | --- |
 | 2026-05-12 | 64 fitness-lane specs landed in `docs/fitness-lanes/`; kernel implementations in Stage 3 |
 
-| 2026-05-16 | Retired archive-orphan lane after ADR-0116 made M-CC-P11 the canonical VCS substrate; removed its workspace crates, runner, catalog entries, and one-time archive payload. |
+| 2026-05-16 | Retired archive-orphan lane after ADR-0116 made M01-P18 the canonical VCS substrate; removed its workspace crates, runner, catalog entries, and one-time archive payload. |

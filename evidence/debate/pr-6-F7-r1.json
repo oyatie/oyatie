@@ -6,7 +6,7 @@
   "findings": [
     {
       "file": ".github/workflows/promote-dev-to-staging.yml:16-25 and 79-83",
-      "issue": "F7 facet concurrence: Immediate downstream promotion is optional: when the PAT secret is absent, the step silently skips and only the hourly cron remains. For the Foundry pipeline (M-CC-P11), that leaves the documented dev→staging→production trigger guarantee dependent on out-of-b…",
+      "issue": "F7 facet concurrence: Immediate downstream promotion is optional: when the PAT secret is absent, the step silently skips and only the hourly cron remains. For the Foundry pipeline (M01-P18), that leaves the documented dev→staging→production trigger guarantee dependent on out-of-b…",
       "remediation": "Make the degraded mode visible and gated: either fail the immediate-promotion lane when the secret is missing for environments that require trigger fidelity, or emit a recorded degraded verdict with a bounded cron-only SLO and documented secret owner/rotation…",
       "severity": "MAJOR"
     }

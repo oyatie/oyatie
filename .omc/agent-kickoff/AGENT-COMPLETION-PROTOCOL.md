@@ -65,7 +65,7 @@ Capture the returned emission ID — this goes into PR body `## Evidence` and is
 
 ## C6 — Update inventory ledger (if applicable)
 
-Phases under M-CC-P01 (agentic-pipeline cutover) and any phase whose INDEX `inventory-ledger-required: true` requires an `oya-foundry-fitness-inventory-tracker` row (CHK-INV). Append the row in this PR.
+Phases under M01-P08 (agentic-pipeline cutover) and any phase whose INDEX `inventory-ledger-required: true` requires an `oya-foundry-fitness-inventory-tracker` row (CHK-INV). Append the row in this PR.
 
 ## C7 — Update CHANGELOG / MISTAKES-LEDGER (if applicable)
 

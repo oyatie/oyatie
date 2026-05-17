@@ -1,4 +1,4 @@
-//! Cloud capacity-management kernel (M-CC-M03-P02-IP-003).
+//! Cloud capacity-management kernel (M03-P02-IP-003).
 //!
 //! Pure I/O-free types + admission rules for reservation, quota, and
 //! per-region capacity envelopes. Provider-specific quota APIs live in

@@ -33,7 +33,7 @@
     "scalability_requirement": "horizontal mandatory"
   },
   "persistent_goal": {
-    "statement": "Move the master plan forward without user intervention while honoring every guardrail. End state: agents can claim → work → verify → land any planned ChangeSet via the Foundry pipeline (M-CC-P11), with evidence in the audit chain, zero silent regressions, zero exception clauses, CI-enforced quality on every lane.",
+    "statement": "Move the master plan forward without user intervention while honoring every guardrail. End state: agents can claim → work → verify → land any planned ChangeSet via the Foundry pipeline (M01-P18), with evidence in the audit chain, zero silent regressions, zero exception clauses, CI-enforced quality on every lane.",
     "termination_criterion": "Master plan reaches Complete state per masterplan.json with all stop_conditions clear and all axes' production readiness gates green.",
     "horizon": "indefinite"
   },
@@ -250,7 +250,7 @@
     {
       "id": "OP-09",
       "name": "plain_primitives_only",
-      "rule": "External agent-coordination tooling (grit, rtk, icm, vox) is RETIRED per ADR-0116 (2026-05-16). Use plain git, gh, cargo, jq, sed only. Foundry pipeline (M-CC-P11) is the canonical agentic workflow substrate.",
+      "rule": "External agent-coordination tooling (grit, rtk, icm, vox) is RETIRED per ADR-0116 (2026-05-16). Use plain git, gh, cargo, jq, sed only. Foundry pipeline (M01-P18) is the canonical agentic workflow substrate.",
       "supersedes_directives": ["AGENTIC PIPELINE HARDENING RULE 2026-05-12 (grit-only)", "grit-claim-state-on-stop hook"],
       "references": ["feedback_deprecate_external_agent_coord_tooling", "feedback_foundry_pipeline_canonical"]
     },

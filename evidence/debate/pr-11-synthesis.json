@@ -43,7 +43,7 @@
       "severity": "BLOCKER"
     },
     {
-      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:45-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs…",
+      "evidence": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:45-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs…",
       "facets_concurring": [
         "F9"
       ],
@@ -56,7 +56,7 @@
       "severity": "BLOCKER"
     },
     {
-      "evidence": ".omc/plans/milestones/M-CC-cross-cutting/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:52-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs…",
+      "evidence": ".omc/plans/milestones/M01-foundation/phases/P11-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md:52-61 and tools/oya-foundry-vcs-merge-queue-fix-loop-app/src/main.rs…",
       "facets_concurring": [
         "F9"
       ],
@@ -213,7 +213,7 @@
   "merge_commit_sha": "5ec873ce2b6a5e37465b037ddeeb9343199abe59",
   "naming_justification": "evidence/debate/pr-11-synthesis.json is the canonical synthesis path for PR #11 under the multispectrum debate evidence naming contract.",
   "pr_number": 11,
-  "pr_title": "M-CC-P11-IP-002 wave-A: merge-queue app-side modules",
+  "pr_title": "M01-P18-IP-002 wave-A: merge-queue app-side modules",
   "rendered_at_unix": 1778920055,
   "round": "synthesis",
   "round_2_evidence_policy": {

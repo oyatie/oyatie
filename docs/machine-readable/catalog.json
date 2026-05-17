@@ -110,7 +110,7 @@
       "tier": "cross-cutting",
       "update_trigger": [
         "agent-instruction source inventory changes",
-        "M-CC-P01 banned-primitives lane audit"
+        "M01-P08 banned-primitives lane audit"
       ],
       "update_cadence": "per-change",
       "dependent_docs": [

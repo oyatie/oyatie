@@ -44,7 +44,7 @@ impl Default for ProtectionContextMatchValidateArgs {
             branch_protection_path: PathBuf::from(".github/branch-protection.yaml"),
             workflows_dir: PathBuf::from(".github/workflows"),
             // Default to `dev` — the canonical default branch per the
-            // FINAL-FINAL pipeline (M-CC-P10-2026-05-16 + the
+            // FINAL-FINAL pipeline (M01-P17-2026-05-16 + the
             // branch-protection.yaml rewrite landing here in PR #4).
             // Override with `--branch <name>` when the lane needs to
             // validate a non-default branch's protection.

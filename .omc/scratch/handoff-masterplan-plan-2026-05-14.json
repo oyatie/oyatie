@@ -20,7 +20,7 @@
       "M04-vertical-pilot-korea": "gated on M03",
       "M05-cloud-search-stable": "gated on M04",
       "M06-ads-vertical-fanout": "gated on M05",
-      "M-CC-cross-cutting": "parallel-track-excluded-from-this-handoff"
+      "M01-foundation": "parallel-track-excluded-from-this-handoff"
     },
     "deferred_items": [
       "M03-P08 cross-axis contracts schema reconcile — entries reverted; need owner_axis/consumer_axes shape",
@@ -235,8 +235,8 @@
     },
     {
       "id": "X2",
-      "name": "M-CC-P01 remaining IPs (agentic pipeline hardening)",
-      "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/INDEX.md",
+      "name": "M01-P08 remaining IPs (agentic pipeline hardening)",
+      "phase_index": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/INDEX.md",
       "ips_remaining": ["IP-001", "IP-002", "IP-003", "IP-004", "IP-005", "IP-006", "IP-008", "IP-011"],
       "blocker_for": [],
       "estimated_sessions": 3,
@@ -244,8 +244,8 @@
     },
     {
       "id": "X3",
-      "name": "M-CC-P00 Oya VCS implementation (long-horizon parallel)",
-      "phase_index": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement/INDEX.md",
+      "name": "M01-P07 Oya VCS implementation (long-horizon parallel)",
+      "phase_index": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/INDEX.md",
       "waiver_active": true,
       "blocker_for": [],
       "estimated_sessions": "10+",

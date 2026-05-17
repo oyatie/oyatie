@@ -26,7 +26,7 @@ docs/PRIVACY-PROGRAM.md::§2.2.2-consent-tier-mapping
 (Scaffold-claim per ADR-0054 if any symbol is in a not-yet-existing crate.)
 
 ## Agent-prerequisites
-M-CC-P01 (agentic-pipeline cutover) ≥ P5 merged.
+M01-P08 (agentic-pipeline cutover) ≥ P5 merged.
 
 ## Acceptance-test-commands
 ```

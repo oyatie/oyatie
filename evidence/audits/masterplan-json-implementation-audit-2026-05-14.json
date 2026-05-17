@@ -6,7 +6,7 @@
     "Masterplan JSON is valid JSON and remains canonical machine-readable seed.",
     "Masterplan JSON encodes the current implementation hierarchy from actual milestone/phase/IP files.",
     "Every existing ImplementationPlan is explicitly represented as a ChangeSet-sized execution unit.",
-    "Oya VCS M-CC-P00 approved ralplan v5 is folded into milestone/phase/IP packets.",
+    "Oya VCS M01-P07 approved ralplan v5 is folded into milestone/phase/IP packets.",
     "Templates/checklists enforce the ChangeSet-sized IP rule for future implementation plans.",
     "Completion status distinguishes masterplan-spec implementation from executing every future product ChangeSet."
   ],
@@ -28,7 +28,7 @@
     },
     {
       "requirement": "Oya VCS folded into master plan",
-      "artifact": ".omc/plans/milestones/M-CC-cross-cutting/phases/P00-gitops-vcs-replacement",
+      "artifact": ".omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement",
       "evidence": "INDEX.md + plan.md + IP-001..IP-009 materialized and indexed"
     },
     {

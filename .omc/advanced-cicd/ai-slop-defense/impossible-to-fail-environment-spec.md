@@ -141,7 +141,7 @@ failure budget is explicit and owned:
 |---|---|---|---|---|
 | Novel attack class not in catalogue | Catalogue is a snapshot; new attacks emerge. | ≤ 1 Sev-1 / quarter | ops-security | quarterly threat-model refresh; replay-as-eval per ADR-0024. |
 | LLM regression beyond replay coverage | Foundation models change; eval harness is per-snapshot. | ≤ 1 Sev-2 / quarter | axis-foundry | Cross-model diff-vote (`omc ccg`) on high-blast-radius changes. |
-| Regulator change without notice | Sovereignty / privacy law shifts. | ≤ 1 Sev-2 / year | regional-packs + ops-compliance | Monthly regional-pack review per MASTERPLAN §8 M-CC-P05. |
+| Regulator change without notice | Sovereignty / privacy law shifts. | ≤ 1 Sev-2 / year | regional-packs + ops-compliance | Monthly regional-pack review per MASTERPLAN §8 M01-P12. |
 | Hardware failure cascades | Provider outage beyond canary scope. | budgeted via SLO error budget | ops-sre-reliability | Multi-region preparedness (W-Region-Fan-Out future milestone). |
 | Human / agent collusion on a banned-primitive bypass | Two agents agree to bypass policy. | should be ≤ 1 / year, audited | council-architecture | Audit-chain ground truth; reviewer-agent veto. |
 

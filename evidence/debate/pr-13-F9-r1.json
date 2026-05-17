@@ -64,7 +64,7 @@
     {
       "gate": "ADR-0108_sunset_process_followed_or_exemption_documented",
       "severity": "MEDIUM",
-      "evidence": "ADR-0108 defines the sunset→deprecation→removal lifecycle. ADR-0118 and the PR body justify the bypass (one-time lane, M-CC-P11 replacement) but no explicit ADR-0108 exemption field or sunset-lifecycle entry exists for archive-orphan in any machine-readable file. The justification is present only in prose (ADR-0118 body, PR description).",
+      "evidence": "ADR-0108 defines the sunset→deprecation→removal lifecycle. ADR-0118 and the PR body justify the bypass (one-time lane, M01-P18 replacement) but no explicit ADR-0108 exemption field or sunset-lifecycle entry exists for archive-orphan in any machine-readable file. The justification is present only in prose (ADR-0118 body, PR description).",
       "requirement_source": "ADR-0108 sunset-lifecycle automation schema — machine-readable sunset record expected."
     }
   ],

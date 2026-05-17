@@ -3,9 +3,9 @@
   "evidence_type": "implementation-packet",
   "milestone": "M-CC",
   "phase": "P01-agentic-pipeline-cutover",
-  "implementation_packet": "M-CC-P01-IP-003",
+  "implementation_packet": "M01-P08-IP-003",
   "created_at": "2026-05-14T11:38:29.205606Z",
-  "source_plan": ".omc/plans/milestones/M-CC-cross-cutting/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
+  "source_plan": ".omc/plans/milestones/M01-foundation/phases/P01-agentic-pipeline-cutover/IP-003-oya-tooling-agent-read.md",
   "claim": {
     "scaffold_open": "icm scaffold-locks-oyatie id 01KRK441AGPWBG2SZKDDTVVRB2",
     "scaffold_closed": "icm scaffold-locks-oyatie id 01KRK4F31FRKRBY580M8HWCK14",

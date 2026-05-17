@@ -335,7 +335,7 @@ mod tests {
             occurrences: 2,
             first_occurrence_evidence: "commit a4f3b21".into(),
             second_occurrence_evidence: "commit b9e2c4f".into(),
-            control_landed_at: "M-CC-P10-IP-003".into(),
+            control_landed_at: "M01-P17-IP-003".into(),
             preflight_hint: "run the probe".into(),
             icm_keyword: format!("error-class,{primitive},{failure_mode}"),
             citation_probe_lane: "oya-foundry-fitness-mistakes-ledger-kernel".into(),

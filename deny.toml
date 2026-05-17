@@ -1,4 +1,4 @@
-# cargo-deny policy (M-CC-P07-IP-004).
+# cargo-deny policy (M01-P14-IP-004).
 #
 # Hyperscaler-grade dependency policy: licenses, advisories, bans, and
 # registry sources are all governed here. `cargo deny check` is wired
