@@ -3,6 +3,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod design_partner_status;
+pub use design_partner_status::{DesignPartnerStatus, DesignPartnerStatusError};
+
 use oya_data_boundary_kernel::{Classified, DataClass};
 use oya_residency_domain::{ResidencyClass, residency_class_allows_home_region_label};
 

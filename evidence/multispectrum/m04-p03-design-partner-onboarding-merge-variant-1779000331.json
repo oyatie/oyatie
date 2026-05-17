@@ -1,0 +1,51 @@
+{
+  "change_id": "m04-p03-design-partner-onboarding-merge-variant-1779000331",
+  "spec_version": "2.3.0",
+  "change_class_id": "CC-2_type_addition",
+  "freshness_unix": 1779000331,
+  "evidence_id": "m04-p03-design-partner-onboarding-merge-variant-1779000331",
+  "scope": "M04-P03-design-partner-onboarding merge-variant delta-1",
+  "crate": "oya-tenancy-domain",
+  "types_added": ["DesignPartnerStatus", "DesignPartnerStatusError"],
+  "module_added": "design_partner_status",
+  "execution_variant": "merge-into-existing-crates",
+  "decided_by": "user-directive-option-2",
+  "decided_at": "2026-05-17",
+  "test_result": "7/7 pass",
+  "no_new_workspace_deps": true,
+  "no_new_crate_scaffolds": true,
+  "facets": {
+    "F1": {
+      "label": "correctness",
+      "verdict": "PASS",
+      "notes": "DesignPartnerStatus Ord-derived; advance() rejects regression via <= guard; 5 tests cover happy path, full pipeline, regression, and idempotent-advance; 7/7 nextest pass."
+    },
+    "F3": {
+      "label": "architecture",
+      "verdict": "PASS",
+      "notes": "Type added to oya-tenancy-domain matching existing Tenant/TenantError ownership pattern. No cross-product direct call; no new workspace deps; std-only. Inward-only flow preserved."
+    },
+    "A1": {
+      "label": "naming-adherence",
+      "verdict": "PASS",
+      "notes": "DesignPartnerStatus: PascalCase enum per v4 BNF. label() returns ADR-0049-style snake_case. Module name design_partner_status matches file. Re-export at crate root follows identity_employment_classification precedent."
+    },
+    "A3": {
+      "label": "structure-adherence",
+      "verdict": "PASS",
+      "notes": "New module declared as pub mod + pub use re-export at lib.rs top, matching oya-identity-domain::identity_employment_classification pattern. No test-only allows added beyond existing crate-level cfg_attr."
+    }
+  },
+  "council_verdict": "ACCEPT",
+  "validation": [
+    {
+      "command": "CARGO_TARGET_DIR=/Users/jasonlee/oyatie/target-m04-p03 cargo nextest run -p oya-tenancy-domain",
+      "status": "pass",
+      "summary": "7 tests run: 7 passed, 0 skipped"
+    },
+    {
+      "command": "rustfmt --edition 2021 (1.95.0 toolchain)",
+      "status": "pass"
+    }
+  ]
+}
