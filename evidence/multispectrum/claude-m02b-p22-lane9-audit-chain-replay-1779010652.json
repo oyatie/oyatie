@@ -1,0 +1,80 @@
+{
+  "change_id": "claude-m02b-p22-lane9-audit-chain-replay-1779010652",
+  "change_class_id": "CC-1_test_only",
+  "change_class_rationale": "ADD-TEST-ONLY: appends audit-chain-replay gate integration tests to gate_cli.rs. No production code changes; adds the missing in-workspace dependencies needed by the integration fixture.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779031200,
+  "git_sha_base": "origin/dev@0aad99e404a028478b118f7e105b2867dd392bd1",
+  "branch": "agent/m02b-p22-lane9-acr-1779010652",
+  "session_id": "codex-merge-queue-pr123-review-fix",
+  "agent_id": "codex",
+  "task": "M02b/P22 lane-9 synthetic-violation integration tests for `oya gate validate audit-chain-replay`, repaired for the sequential merge queue after PRs #141/#142.",
+  "artifacts_touched": [
+    "crates/oya-dev-cli/tests/gate_cli.rs",
+    "crates/oya-dev-cli/Cargo.toml",
+    "evidence/audit-chain.jsonl",
+    "evidence/multispectrum/claude-m02b-p22-lane9-audit-chain-replay-1779010652.json",
+    "scripts/check-sequential-pr-merge-conflicts.sh"
+  ],
+  "references_fixuptasks": [],
+  "review_findings_addressed": [
+    "123-M01",
+    "123-M02",
+    "123-S01",
+    "123-S02",
+    "123-N01"
+  ],
+  "local_gates": [
+    "cargo test -p oya-dev-cli --test gate_cli audit_chain_replay_gate: PASS (3/3)",
+    "cargo check -p oya-dev-cli: PASS",
+    "cargo clippy -p oya-dev-cli --test gate_cli -- -D warnings: PASS",
+    "cargo fmt --check: PASS",
+    "bash -n scripts/check-sequential-pr-merge-conflicts.sh: PASS",
+    "shellcheck scripts/check-sequential-pr-merge-conflicts.sh: PASS",
+    "check-sequential-pr-merge-conflicts.sh without git user config: PASS",
+    "jq evidence: PASS",
+    "git diff --check: PASS"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "The branch was rebuilt on current origin/dev instead of preserving stacked lane-5/lane-7 history, preventing stale tests and evidence from overwriting already-merged work."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "Coverage now includes the clean path, surface-field tamper hash mismatch, and swapped-record ordering violation. New temp dirs use TempDirGuard Drop cleanup. The sequential queue simulator now supplies its own git author/committer identity for CI-only virtual commits."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "Fixtures use synthetic tenant ids only and do not embed secrets. Evidence is covered by evidence/audit-chain.jsonl."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "codex-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "Tests exercise the CLI gate dispatch path and the real FileAuditLedger plus AuditChain verifier without adding production code."
+    },
+    "critic": {
+      "agent": "codex-self-critic-check",
+      "verdict": "ACCEPT",
+      "guardrails": [
+        "Keep this PR scoped to lane-9 test coverage and evidence only."
+      ]
+    },
+    "F9_compliance": {
+      "agent": "codex-self-compliance-check",
+      "verdict": "ACCEPT",
+      "rationale": "Synthetic fixtures, no secrets, and audit-chain evidence coverage are present."
+    }
+  }
+}

@@ -60,7 +60,9 @@ oya-foundry-step-file-adapter = { path = "../oya-foundry-step-file-adapter" }
 oya-foundry-step-domain = { path = "../oya-foundry-step-domain" }
 oya-foundry-vcs-cli-ratchet-kernel = { path = "../oya-foundry-vcs-cli-ratchet-kernel" }
 oya-foundry-vcs-changeset-state-kernel = { path = "../oya-foundry-vcs-changeset-state-kernel" }
+oya-audit-chain-domain = { path = "../oya-audit-chain-domain" }
 oya-audit-chain-file-adapter = { path = "../oya-audit-chain-file-adapter" }
+oya-data-boundary-kernel = { path = "../oya-data-boundary-kernel" }
 oya-eventing-file-adapter = { path = "../oya-eventing-file-adapter" }
 oya-eventing-domain = { path = "../oya-eventing-domain" }
 oya-secrets-file-adapter = { path = "../oya-secrets-file-adapter" }

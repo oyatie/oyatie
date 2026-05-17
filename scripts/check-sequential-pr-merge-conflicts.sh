@@ -122,6 +122,11 @@ if ! git rev-parse --verify --quiet "$base_ref^{commit}" >/dev/null; then
   exit 2
 fi
 
+export GIT_AUTHOR_NAME="${GIT_AUTHOR_NAME:-oyatie-queue-simulator}"
+export GIT_AUTHOR_EMAIL="${GIT_AUTHOR_EMAIL:-queue-simulator@users.noreply.github.com}"
+export GIT_COMMITTER_NAME="${GIT_COMMITTER_NAME:-$GIT_AUTHOR_NAME}"
+export GIT_COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-$GIT_AUTHOR_EMAIL}"
+
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
