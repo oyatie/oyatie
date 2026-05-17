@@ -3,6 +3,11 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod vertical_regulatory_profile;
+pub use vertical_regulatory_profile::{
+    AdVertical, VerticalRegulatoryProfile, VerticalRegulatoryProfileError,
+};
+
 use oya_data_boundary_kernel::{Classified, DataClass};
 use oya_residency_domain::{ResidencyClass, parse_residency_class_label};
 
