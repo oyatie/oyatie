@@ -3,8 +3,15 @@ doc_class: PhaseIndex
 parent: ../../INDEX.md
 id: M06-P04
 title: Analytics Warehouse + Streaming + DP-Bounded Reports
-status: stub
+status: in-progress
 purpose: Ship the analytics axis substrate: event ingestion, warehouse, streaming, DP-bounded reports.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Delta-1 merges StreamingPartitionStrategy + admit_streaming_partition into
+  oya-cloud-data-kernel::streaming_partition (no new crate scaffold, no new
+  workspace deps, std-only). Mirrors M06-P03 merge-variant pattern.
 ---
 
 # M06-P04 — Analytics Warehouse + Streaming
