@@ -100,6 +100,7 @@ impl CloudEvent {
     /// # Errors
     ///
     /// Returns [`CloudEventError`] if any field fails validation.
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         id: impl Into<String>,
         tenant_id: impl Into<String>,
