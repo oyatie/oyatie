@@ -2,11 +2,18 @@
 //!
 //! This crate owns the cross-microservice tenancy primitives from ADR-0002 and
 //! PRD-tenancy: [`TenantId`], immutable [`RegionBinding`], [`ResidencyClass`],
-//! [`Tenant`], and the row-level isolation guard that every adapter can apply
-//! before persistence-specific RLS policies run.
+//! [`Tenant`], the row-level isolation guard that every adapter can apply
+//! before persistence-specific RLS policies run, and the tier/status value
+//! objects introduced by IP-001-tenancy-kernel-scaffold (P13-tenancy).
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
+pub mod tier_status;
+
+pub use tier_status::{
+    SuspensionReason, TenantStatus, TenantStatusParseError, TenantTier, TenantTierParseError,
+};
 
 use std::collections::BTreeSet;
 use std::fmt;

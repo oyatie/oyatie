@@ -21,6 +21,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: "Scaffolds all 7 tenancy crates, authors the complete Postgres DDL (expanding M02b-substrate-schema-foundation §4 with full indexes + RLS + `oyatie.set_current_tenant()` function), implements all three kernel port traits with sealed markers."
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "User chose merge-variant 2026-05-17 — FROM-SCRATCH scaffold below preserved as reference. First delta landed: TierStatus enum in oya-tenancy-kernel::tier_status (2026-05-17). Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION."
 ---
 # IP-001-tenancy-kernel-scaffold: Scaffold Tenancy Kernel, Domain, Application, Adapter, REST, gRPC, App — Full DDL + RLS Bootstrap
 
