@@ -1,6 +1,10 @@
 ---
 purpose: "P07 — Workflow Studio Visual Editor: Implementation Plan"
 status: in-progress
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 merges EditorActionKind + NodeKind into oya-saas-workflow-kernel::editor_action. No new crates, no new workspace deps, std-only."
 ---
 
 # P07 — Workflow Studio Visual Editor: Implementation Plan
