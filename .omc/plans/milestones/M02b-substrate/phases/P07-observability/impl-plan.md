@@ -7,6 +7,10 @@ impl_plan_id: IP-P07-observability-substrate
 status: pending
 owner: council-architecture
 blocked_by: []
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "User chose merge-variant 2026-05-17 — FROM-SCRATCH scaffold below preserved as reference; deltas land incrementally into existing oya-observability-{domain,tracing-adapter} crates. Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION. First delta landed: Severity enum (6 levels Trace<Debug<Info<Warn<Error<Fatal) + OpenTelemetry SeverityNumber int mapping + UnknownSeverityLabel error added to oya-observability-domain::severity module (2026-05-17). Remaining deltas (LogRecord struct, sealed port traits, OpenTelemetry exporter adapter, sampling policy, Cedar policy) tracked under the reconciliation FixupTask as separate slices."
 acceptance_lanes:
 - cargo-check
 - cargo-build
