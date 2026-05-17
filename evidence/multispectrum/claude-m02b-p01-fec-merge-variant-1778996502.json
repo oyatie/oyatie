@@ -1,0 +1,72 @@
+{
+  "change_id": "claude-m02b-p01-fec-merge-variant-1778996502",
+  "change_class_id": "CC-2_adapter_or_infrastructure",
+  "change_class_rationale": "Adds LeanCheckId enum + LeanViolation value-object in a new lean_check.rs module of the existing oya-foundry-fitness-quality-lane-kernel crate. Additive; encodes 4 lean-a* lane identifiers (lean-a1..lean-a4) with stable Ord + Display + CI log-line formatting.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778996502,
+  "git_sha_base": "<post-dev>",
+  "branch": "agent/m02b-p01-foundry-engine-consolidation-merge-variant-1778996502",
+  "session_id": "claude-durable-goal-2026-05-17-p01-agent",
+  "agent_id": "claude-m02b-p01-fec-merge-variant",
+  "task": "M02b/P01-foundry-engine-consolidation merge-variant delta 1 per user 2026-05-17 (option 2). Smallest foundational delta from P01 impl-plan added to existing live crate.",
+  "artifacts_touched": [
+    "crates/oya-foundry-fitness-quality-lane-kernel/src/lean_check.rs (NEW; LeanCheckId enum + LeanViolation + Display + lane_tag + all() + tests)",
+    "crates/oya-foundry-fitness-quality-lane-kernel/src/lib.rs (pub mod lean_check + re-exports)",
+    ".omc/plans/milestones/M02b-substrate/phases/P01-foundry-engine-consolidation/impl-plan.md (execution_variant frontmatter)",
+    "evidence/multispectrum/claude-m02b-p01-fec-merge-variant-1778996502.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "references_fixuptasks": ["F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"],
+  "local_gates": [
+    "cargo nextest -p oya-foundry-fitness-quality-lane-kernel --all-features: 13 passed, 0 skipped",
+    "rustfmt 1.95.0 applied to lean_check.rs + lib.rs"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "1 enum (LeanCheckId, 4 variants) + 1 value-object (LeanViolation) into existing crate; no new crates.",
+        "LeanCheckId is foundational for every lean-a* check tool; natural home is quality-lane-kernel which already owns LanePhase/LaneVerdict.",
+        "Ord on LeanCheckId derived via variant declaration order, which matches lean-a1..lean-a4 numbering — stable sort by construction."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "10 exhaustive tests: lane_tag round-trips, Ord stability (lean-a1 < lean-a4), Display == lane_tag, all() order, description non-empty + ADR ref, LeanViolation field round-trip, to_log_line format, Display == to_log_line, sort-by-check-then-location, empty-list clean-workspace."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "No data-class, autonomy-ceiling, or licence surface touched. LeanCheckId/LeanViolation carry INTERNAL_ONLY repo-structure metadata; no user data or secrets."
+      ],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Audit-chain row appended with distinct timestamp_unix + session_id (OP-08).",
+        "Seventh M02b foundation phase reconciliation slice under F-M02B-PLAN-LIVE-CRATE-RECONCILIATION (joins P02/P03/P04/P05/P06/P07)."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "LeanCheckId is the right first delta for P01 — every downstream architecture-check CLI subcommand needs a typed lane identifier to emit structured violations. Placing it in quality-lane-kernel (which already owns lane-phase vocabulary) is the minimal correct home; avoids a new crate and keeps lean-a* contracts co-located with LanePhase/LaneVerdict."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT_WITH_GUARDRAILS",
+      "guardrails": [
+        "LeanCheckId covers lean-a1..lean-a4 only; lean-a5..lean-a14 (lib-name-parity, composition-root-only, sdk-kernel-only, statelessness, shardability, perf-budget, supply-chain, semver, bounded-context, doc-coverage) are follow-on deltas under the same reconciliation FixupTask.",
+        "If ADR-0056 adds a new lean-a* lane, add a new variant + bump lane_tag() match arm before shipping the follow-on CLI crate."
+      ]
+    }
+  }
+}
