@@ -67,6 +67,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-protection-context-match` | every required-status-check context in .github/branch-protection.yaml is the `name:` field of some workflow job (prevents silent-bypass where GitHub waits forever for a context no workflow posts) |
 | `oya-foundry-fitness-changeset-state-monotonicity` | every changeset's event-log row sequence is a non-decreasing subsequence of the 13-value closed enum (per ADR-0110); detects backwards-transition bugs in dispatcher emitters |
 | `oya-foundry-fitness-changeset-state-enum-closed` | every changeset-event-log row's to_state is in the closed 13-value enum (per ADR-0110); detects rogue state-name additions that bypass the design contract |
+| `oya-foundry-fitness-sequential-pr-merge-conflicts` | simulate numeric open-PR merge order against dev and fail before projected merge conflicts reach manual merge time |
 | `lean-a1-architecture` | layer-correctness — no dep-direction violations per ADR-0056 §2.2 |
 | `lean-a2-bounded-contexts` | microservice-isolation — no cross-µservice deps except via workflow/ontology (v4.1 override) |
 | `lean-a3-supply-chain` | supply-chain integrity — Trivy + RustSec + deny per ADR-0039 |

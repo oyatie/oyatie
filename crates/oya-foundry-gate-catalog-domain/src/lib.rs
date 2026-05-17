@@ -152,6 +152,7 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "cargo run -q -p oya-foundry-vcs-admission-gate-app",
     "cargo run -q -p oya-foundry-fitness-purpose-audit-app",
     "cargo run -p oya-foundry-vcs-merge-queue-fix-loop-app -- --gc-staging-refs --max-age-seconds 3600",
+    "scripts/check-sequential-pr-merge-conflicts.sh --base-branch dev --start-pr 1",
 ];
 
 /// Concatenated canonical command catalog. Provides downstream gates a

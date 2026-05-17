@@ -185,6 +185,14 @@ lanes:
     source: ADR-0017 / MFL-0011
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate brand-residue
+  - id: oya-foundry-fitness-sequential-pr-merge-conflicts
+    stage: per-pr
+    status: active
+    owner_team: axis-foundry
+    purpose: simulate numeric open-PR merge order against dev and fail before projected merge conflicts reach manual merge time
+    source: specs/gitops-vcs-replacement.json / merge-queue conflict-avoidance directive
+    runtime_budget_seconds: 1200
+    check_command: scripts/check-sequential-pr-merge-conflicts.sh --base-branch dev --start-pr 1
   - id: cargo-fmt
     stage: per-pr
     status: active
