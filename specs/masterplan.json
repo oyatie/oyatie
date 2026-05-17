@@ -41,36 +41,57 @@
         "adr_citation": "ADR-0125"
       },
       "connect_expansion": {
-        "description": "Connect gains 4 new B2C sub-products (social, shorts, network, anonymous) shipping in PR #130. Total Connect sub-products: 7. See ADR-0126.",
-        "new_sub_products": ["connect-social", "connect-shorts", "connect-network", "connect-anonymous"],
+        "description": "Connect gains 4 planned B2C sub-product PRD surfaces (social, shorts, network, anonymous) in PR #130. Total Connect sub-product planning surfaces: 7. See ADR-0131.",
+        "new_sub_products": [
+          "connect-social",
+          "connect-shorts",
+          "connect-network",
+          "connect-anonymous"
+        ],
         "pr_reference": "PR #130",
-        "adr_citation": "ADR-0126"
+        "adr_citation": "ADR-0131",
+        "decision_boundary": "Planning contract only; implementation crates and validators are follow-up work."
       },
       "portfolio_hyperscaler_gaps": {
         "description": "Five hyperscaler patterns identified as portfolio gaps; added as IPs to relevant milestones. See ADR-0127.",
         "adr_citation": "ADR-0127",
         "items": [
-          {"pattern": "llm-circuit-breaker", "milestone": "M02-foundry"},
-          {"pattern": "per-tenant-rate-limit", "milestone": "M02b"},
-          {"pattern": "provider-shed", "milestone": "M02-foundry"},
-          {"pattern": "golden-signals-dashboard", "milestone": "M02b-workflow-studio"},
-          {"pattern": "error-budget-slo-burn-rate-alarms", "milestone": "M02b-cross-cutting"}
+          {
+            "pattern": "llm-circuit-breaker",
+            "milestone": "M02-foundry"
+          },
+          {
+            "pattern": "per-tenant-rate-limit",
+            "milestone": "M02b"
+          },
+          {
+            "pattern": "provider-shed",
+            "milestone": "M02-foundry"
+          },
+          {
+            "pattern": "golden-signals-dashboard",
+            "milestone": "M02b-workflow-studio"
+          },
+          {
+            "pattern": "error-budget-slo-burn-rate-alarms",
+            "milestone": "M02b-shared-substrate"
+          }
         ]
       }
     }
   },
   "vision": {
-    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent \u00b5services integrated through Workflow and Ontology.",
-    "current_markdown_section": "docs/MASTERPLAN.md \u00a71"
+    "summary": "Oyatie is one cohesive ecosystem-as-a-service, expressed as a flat catalog of independent µservices integrated through Workflow and Ontology.",
+    "current_markdown_section": "docs/MASTERPLAN.md §1"
   },
   "architecture_invariants": [
     {
       "id": "workflow-ontology-adapter-layer",
-      "summary": "All inter-\u00b5service integration flows through Workflow or Ontology; direct cross-\u00b5service calls are refused."
+      "summary": "All inter-µservice integration flows through Workflow or Ontology; direct cross-µservice calls are refused."
     },
     {
       "id": "flat-microservice-catalog",
-      "summary": "No Product Groups, Verticals, or Arms in architecture; every \u00b5service is independently enable-able."
+      "summary": "No Product Groups, Verticals, or Arms in architecture; every µservice is independently enable-able."
     },
     {
       "id": "dependency-seam-discipline",
@@ -146,7 +167,7 @@
   "milestones": [
     {
       "id": "M01-foundation",
-      "title": "Cross-cutting workstreams",
+      "title": "Foundation shared workstreams",
       "status": "open",
       "phases": [
         {
@@ -281,7 +302,7 @@
       "class": "documentation",
       "status": "pass",
       "source_path": ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
-      "summary": "Round-5 dep-seam phaseout findings folded into masterplan JSON and M-CC P06 IP-002 hierarchy.",
+      "summary": "Round-5 dep-seam phaseout findings folded into masterplan JSON and the M01-P13-IP-002 hierarchy.",
       "freshness": "2026-05-14T06:53:11Z",
       "command_or_lane": "manual spec update + jq validation",
       "result": "pending validation",
@@ -371,7 +392,7 @@
     "status": "core-complete-ci-admission-wired-provider-adapters-followup",
     "milestone": "M01-foundation",
     "phase": "P00-gitops-vcs-replacement",
-    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev\u2192staging\u2192production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
+    "summary": "Oya VCS preserves grit-style AST/semantic locks and isolated work, then adds provider-neutral ChangeSets, native/provider-backed semantic merge queues, virtual merge stacks, queue-aware locks, review/CI/security/GitOps fix loops, dev→staging→production release trains, and Rust compile-latency scheduling. GitHub/GitHub Actions, Trivy, and Argo CD are first-class adapters, not core dependencies; native/in-house adapters must provide the same features. It also handles variable-speed agent bursts and many PR views/hour by scheduling ChangeSets rather than provider PRs, applying PR apertures/backpressure/batching, and linking every ChangeSet to provider-neutral OyaWorkItems through a GitHub Issues adapter or native issue tracker.",
     "must_precede": [
       "M01-P08-agentic-pipeline-cutover",
       "broad M01/M02/M03 parallel fan-out"
@@ -1323,7 +1344,7 @@
               {
                 "id": "M01-P15-IP-004",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P08-supply-chain-security/IP-004-slsa-attestation.md",
-                "title": "SLSA level \u22653 attestation publishing",
+                "title": "SLSA level ≥3 attestation publishing",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -1458,7 +1479,7 @@
               {
                 "id": "M01-P01-IP-003",
                 "file": ".omc/plans/milestones/M01-foundation/phases/P01-data-use-boundary-tenancy/IP-003-dsr-cascade-engine.md",
-                "title": "dsr.cascade.execute \u226430d cascade engine",
+                "title": "dsr.cascade.execute ≤30d cascade engine",
                 "status": "complete",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2205,7 +2226,7 @@
               {
                 "id": "M02-P03-IP-002",
                 "file": ".omc/plans/milestones/M02-foundry-preview/phases/P03-gates-validators-evidence/IP-002-foundry-fitness-lane-ratchet.md",
-                "title": "Foundry-fitness lane ratchet (7 lanes WARN\u2192BLOCK)",
+                "title": "Foundry-fitness lane ratchet (7 lanes WARN→BLOCK)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -2941,7 +2962,7 @@
             "slug": "P06-workspace-14-surfaces",
             "path": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces",
             "index": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P06-workspace-14-surfaces/INDEX.md",
-            "title": "Workspace Axis (14 surfaces \u2014 Mail, Calendar, Drive, Meet, Chat, +9 more)",
+            "title": "Workspace Axis (14 surfaces — Mail, Calendar, Drive, Meet, Chat, +9 more)",
             "status": "stub",
             "doc_class": "PhaseIndex",
             "implementation_plan_count": 5,
@@ -3045,7 +3066,7 @@
               {
                 "id": "M03-P07-IP-002",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P07-regional-pack-onboarding/IP-002-second-pack.md",
-                "title": "Second pack onboarding (JP/US/EU \u2014 council-elected)",
+                "title": "Second pack onboarding (JP/US/EU — council-elected)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3071,7 +3092,7 @@
               {
                 "id": "M03-P08-IP-001",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-001-saas-pairs.md",
-                "title": "SaaS\u2194Cloud + SaaS\u2194Search + SaaS\u2194Agent-runtime contracts",
+                "title": "SaaS↔Cloud + SaaS↔Search + SaaS↔Agent-runtime contracts",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3085,7 +3106,7 @@
               {
                 "id": "M03-P08-IP-002",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-002-cloud-pairs.md",
-                "title": "Cloud\u2194Agent-runtime + Cloud\u2194Search + Cloud\u2194Ads contracts",
+                "title": "Cloud↔Agent-runtime + Cloud↔Search + Cloud↔Ads contracts",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3099,7 +3120,7 @@
               {
                 "id": "M03-P08-IP-003",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-003-search-ads-pairs.md",
-                "title": "Search\u2194Ads + Search\u2194Agent-runtime + Ads\u2194Agent-runtime contracts",
+                "title": "Search↔Ads + Search↔Agent-runtime + Ads↔Agent-runtime contracts",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3113,7 +3134,7 @@
               {
                 "id": "M03-P08-IP-004",
                 "file": ".omc/plans/milestones/M03-cloud-saas-search-workspace-preview/phases/P08-cross-axis-contracts/IP-004-vertical-workspace-pairs.md",
-                "title": "Vertical\u2194others + Workspace\u2194others contracts",
+                "title": "Vertical↔others + Workspace↔others contracts",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3337,7 +3358,7 @@
               {
                 "id": "M04-P02-IP-003",
                 "file": ".omc/plans/milestones/M04-vertical-pilot-korea/phases/P02-kr-regulatory-binding/IP-003-kr-vertical-surfaces.md",
-                "title": "KR vertical-specific surfaces (\uc804\uc790\uc138\uae08\uacc4\uc0b0\uc11c / \ud734\uc77c\u00b7\uc57c\uac04 \uadfc\ub85c / \uc2e4\uba85\uc778\uc99d / \uc0ac\uc5c5\uc790\ub4f1\ub85d)",
+                "title": "KR vertical-specific surfaces (전자세금계산서 / 휴일·야간 근로 / 실명인증 / 사업자등록)",
                 "status": "stub",
                 "doc_class": "ImplementationPlan",
                 "execution_unit": "ChangeSet",
@@ -3881,10 +3902,14 @@
     ]
   },
   "connect_product_catalog_2026_05_17": {
-    "description": "Connect ships 7 sub-products as of PR #130. The 4 new B2C sub-products below expand the flat µservice catalog. See ADR-0126.",
-    "adr_citation": "ADR-0126",
+    "description": "Connect records 7 planned sub-product PRD surfaces as of PR #130. The 4 new B2C sub-product planning surfaces below expand the flat µservice catalog. See ADR-0131.",
+    "adr_citation": "ADR-0131",
     "pr_reference": "PR #130",
-    "existing_sub_products": ["connect-messenger", "connect-mail", "connect-community"],
+    "existing_sub_products": [
+      "connect-messenger",
+      "connect-mail",
+      "connect-community"
+    ],
     "new_sub_products_pr130": [
       {
         "id": "connect-social",
@@ -3910,7 +3935,34 @@
         "description": "Anonymous posting / ephemeral context",
         "crate_prefix": "oya-connect-anonymous"
       }
-    ]
+    ],
+    "decision_boundary": "Planning contract only; implementation crates and validators are follow-up work."
+  },
+  "industrial_mes_benchmark_2026_05_17": {
+    "scope": "M07 Industrial Suite KR manufacturing MES planning benchmark",
+    "evidence_ref": "evidence/autoresearch/industrial-mes-benchmark-1779034103.json",
+    "enforcement_status": "advisory_until_M07_industrial_mes_validator",
+    "competitors": [
+      "Siemens Opcenter Execution",
+      "Rockwell Automation Plex Smart Manufacturing Platform",
+      "SAP Digital Manufacturing",
+      "Dassault Systemes DELMIA Apriso / DELMIA MES",
+      "AVEVA Manufacturing Execution System",
+      "GE Vernova Proficy Plant Applications",
+      "Tulip Composable MES / Frontline Operations Platform"
+    ],
+    "benchmark_dimensions_required_for_M07": [
+      "ISA-95 production/quality/material/equipment vocabulary",
+      "OPC UA / SCADA / historian adapter boundaries",
+      "work-order dispatch/execution/exception/rework lifecycle",
+      "OEE/yield/quality/scrap/downtime/takt/capacity telemetry",
+      "connected-worker work instructions and supervisor approvals",
+      "traceability/genealogy/eDHR/eBR where regulated",
+      "multi-plant template rollout/versioning/rollback governance",
+      "Workflow Studio operator UX and safety guardrails"
+    ],
+    "planned_validator": "oya-check-industrial-mes-benchmark",
+    "claim_boundary": "Source-backed category benchmark only; no M07 feature parity or production-readiness claim until specs, validators, fixtures, and implementation evidence land."
   },
   "portfolio_hyperscaler_gap_ips": {
     "description": "Five hyperscaler-grade patterns identified as portfolio gaps in the 2026-05-17 OP-11 audit. Added as pending IPs to relevant milestones. See ADR-0127.",
@@ -3948,8 +4000,8 @@
       {
         "id": "HYPER-IP-005",
         "pattern": "error-budget-slo-burn-rate-alarms",
-        "title": "Error-budget SLO burn-rate alarms (cross-cutting; all substrate µservices)",
-        "target_milestone": "M02b-cross-cutting",
+        "title": "Error-budget SLO burn-rate alarms (shared substrate; all substrate µservices)",
+        "target_milestone": "M02b-shared-substrate",
         "status": "stub — IP file pending"
       }
     ]

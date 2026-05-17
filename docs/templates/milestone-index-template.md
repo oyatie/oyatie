@@ -62,7 +62,7 @@ Out-of-scope (referenced explicitly to prevent scope creep):
 | Predecessor | Status | Acceptance gate cite |
 |---|---|---|
 | M0N-1 | merged \| open | per phase INDEX `§Acceptance` |
-| M-CC-P0M | open | per `milestones/M01-foundation/phases/P0M/INDEX.md` |
+| M01-P0N | open | per `milestones/M01-foundation/phases/P0N/INDEX.md` |
 
 ## Acceptance gate
 

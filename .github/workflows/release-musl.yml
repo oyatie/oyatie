@@ -1,4 +1,4 @@
-# Static / musl-linked release build pipeline (M-CC-P06-IP-003).
+# Static / musl-linked release build pipeline (M01-P13-IP-003).
 #
 # Cross-compiles workspace binaries to {x86_64,aarch64}-unknown-linux-musl
 # using `cross`, packages each as a tar.gz under releases/<tag>/, and

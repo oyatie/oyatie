@@ -3,6 +3,7 @@ adr_id: ADR-0124
 title: Own merge-queue policy — webhook-driven, GitHub-merge-queue-free
 status: accepted
 date: 2026-05-17
+owner: jason931225
 deciders: jason931225
 supersedes: none
 superseded_by: none
@@ -13,7 +14,7 @@ related:
   - ADR-0116-retire-external-agent-coordination-tooling.md
 ---
 
-# ADR-0124 — Own merge-queue policy
+# ADR-0124: Own merge-queue policy — webhook-driven, GitHub-merge-queue-free
 
 ## Context
 

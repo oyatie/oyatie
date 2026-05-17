@@ -1,4 +1,4 @@
-# Reusable CI lane template (M-CC-P07-IP-002).
+# Reusable CI lane template (M01-P14-IP-002).
 #
 # Microsoft 1ES-style: every lane is a thin caller of this reusable
 # workflow so toolchain/sccache/cache config lives in exactly one place.

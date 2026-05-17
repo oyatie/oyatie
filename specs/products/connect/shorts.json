@@ -27,7 +27,94 @@
       "oya-connect-shorts-app",
       "oya-connect-shorts-rest"
     ],
-    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
+    "crate_ref_bindings": [
+      {
+        "crate": "oya-connect-shorts-kernel",
+        "crate_name": "oya-connect-shorts-kernel",
+        "bnf_parse": {
+          "prefix": "oya",
+          "product": "connect",
+          "bounded_context": "shorts",
+          "layer": "kernel"
+        },
+        "layer": "kernel",
+        "layer_token": "kernel",
+        "layer_enum_adr": "ADR-0105",
+        "naming_adrs": [
+          "ADR-0056",
+          "ADR-0105"
+        ],
+        "naming_justification": "BNF v4.1: oya-<product:connect>-<bounded-context:shorts>-<layer:kernel>; kernel is a canonical ADR-0105 layer suffix and the product/context tokens are registered by ADR-0131.",
+        "port_trait_ownership": "owns pure domain types, port traits, and no-I/O invariants for the bounded context",
+        "workflow_ontology_boundary": "declares Workflow/Ontology ports for cross-product integration; does not call other product crates",
+        "enforcement_status": "planning_contract_until_crate_scaffold"
+      },
+      {
+        "crate": "oya-connect-shorts-domain",
+        "crate_name": "oya-connect-shorts-domain",
+        "bnf_parse": {
+          "prefix": "oya",
+          "product": "connect",
+          "bounded_context": "shorts",
+          "layer": "domain"
+        },
+        "layer": "domain",
+        "layer_token": "domain",
+        "layer_enum_adr": "ADR-0105",
+        "naming_adrs": [
+          "ADR-0056",
+          "ADR-0105"
+        ],
+        "naming_justification": "BNF v4.1: oya-<product:connect>-<bounded-context:shorts>-<layer:domain>; domain is a canonical ADR-0105 layer suffix and the product/context tokens are registered by ADR-0131.",
+        "port_trait_ownership": "owns business rules and implements/uses kernel ports without adapter dependencies",
+        "workflow_ontology_boundary": "uses kernel ports only; cross-product state is mediated by Workflow/Ontology contracts",
+        "enforcement_status": "planning_contract_until_crate_scaffold"
+      },
+      {
+        "crate": "oya-connect-shorts-app",
+        "crate_name": "oya-connect-shorts-app",
+        "bnf_parse": {
+          "prefix": "oya",
+          "product": "connect",
+          "bounded_context": "shorts",
+          "layer": "app"
+        },
+        "layer": "app",
+        "layer_token": "app",
+        "layer_enum_adr": "ADR-0105",
+        "naming_adrs": [
+          "ADR-0056",
+          "ADR-0105"
+        ],
+        "naming_justification": "BNF v4.1: oya-<product:connect>-<bounded-context:shorts>-<layer:app>; app is a canonical ADR-0105 layer suffix and the product/context tokens are registered by ADR-0131.",
+        "port_trait_ownership": "owns composition/usecase orchestration and wires domain behavior to protocol adapters",
+        "workflow_ontology_boundary": "orchestrates Workflow/Ontology adapters at the composition boundary",
+        "enforcement_status": "planning_contract_until_crate_scaffold"
+      },
+      {
+        "crate": "oya-connect-shorts-rest",
+        "crate_name": "oya-connect-shorts-rest",
+        "bnf_parse": {
+          "prefix": "oya",
+          "product": "connect",
+          "bounded_context": "shorts",
+          "layer": "rest"
+        },
+        "layer": "rest",
+        "layer_token": "rest",
+        "layer_enum_adr": "ADR-0105",
+        "naming_adrs": [
+          "ADR-0056",
+          "ADR-0105"
+        ],
+        "naming_justification": "BNF v4.1: oya-<product:connect>-<bounded-context:shorts>-<layer:rest>; rest is a canonical ADR-0105 layer suffix and the product/context tokens are registered by ADR-0131.",
+        "port_trait_ownership": "owns HTTP route/DTO mapping and calls inward; no domain rules live here",
+        "workflow_ontology_boundary": "exposes protocol-specific handlers and delegates inward; direct cross-product calls are forbidden",
+        "enforcement_status": "planning_contract_until_crate_scaffold"
+      }
+    ],
+    "naming_justification": "All planned connect-shorts crates parse as oya-connect-shorts-<layer>; ADR-0056 supplies the BNF discipline and ADR-0105 supplies the canonical layer enum."
   },
   "inherits": {
     "bominal_adrs": [
@@ -190,7 +277,11 @@
         "ShortsCreatorFollowEdge — typed Ontology edge per context_kind",
         "ShortsVideoArtifact — typed Ontology node with creator, tags, duet chain, and stitch references",
         "ShortsEngagementSignal — watch/like/share/comment edges for FYP model training (pillar-scoped)"
-      ]
+      ],
+      "route_through_workflow_ontology": true,
+      "direct_cross_product_calls_allowed": false,
+      "boundary_contract": "All cross-product reads/writes are mediated by Workflow and Ontology contracts; PR #130 ships the contract text only.",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates"
     },
     "foundry": {
       "contracts": [
@@ -246,76 +337,125 @@
     {
       "pattern": "for_you_page_relevance_model",
       "source": "TikTok FYP",
-      "implementation": "Foundry per-context relevance model trained on pillar-scoped engagement signals; model artifacts are separate for personal and professional contexts"
+      "implementation": "Foundry per-context relevance model trained on pillar-scoped engagement signals; model artifacts are separate for personal and professional contexts",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "duet_stitch_collaborative_format",
       "source": "TikTok Duets/Stitches",
-      "implementation": "duet/stitch artifact inherits context_kind from source video; cross-context duet requires explicit consent and is audit logged"
+      "implementation": "duet/stitch artifact inherits context_kind from source video; cross-context duet requires explicit consent and is audit logged",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "live_virtual_gifting",
       "source": "TikTok LIVE gifts",
-      "implementation": "personal context uses fan gifting with creator revenue share; professional context routes through Workflow billing contract"
+      "implementation": "personal context uses fan gifting with creator revenue share; professional context routes through Workflow billing contract",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "in_app_video_editor",
       "source": "TikTok / Instagram Reels editor",
-      "implementation": "client-side WebAssembly video editor with licensed music catalog; effects run client-side; no biometric data persisted"
+      "implementation": "client-side WebAssembly video editor with licensed music catalog; effects run client-side; no biometric data persisted",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "creator_monetization_program",
       "source": "TikTok Creator Fund / Series / LIVE subscriptions",
-      "implementation": "per-context creator monetization ledger; personal earnings are personal-pillar owned; professional brand revenue flows through Workflow billing"
+      "implementation": "per-context creator monetization ledger; personal earnings are personal-pillar owned; professional brand revenue flows through Workflow billing",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     }
   ],
   "anti_patterns_avoided": [
     {
       "anti_pattern": "cross_context_fyp_signal_mixing",
       "why": "personal watch history must not influence professional feed relevance and vice versa",
-      "detection_lane": "oya-foundry-fitness-connect-pillar"
+      "detection_lane": "oya-foundry-fitness-connect-pillar",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "biometric_persistence_from_video_effects",
       "why": "GDPR Art.9; voice prints and face geometry are in-session rendering only",
-      "detection_lane": "oya-foundry-fitness-connect-ar-privacy"
+      "detection_lane": "oya-foundry-fitness-connect-ar-privacy",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "opaque_relevance_model_without_audit",
       "why": "Foundry FYP model must be auditable and explainable; DSA compliance requires transparency report",
-      "detection_lane": "oya-foundry-fitness-foundry-model-auditability"
+      "detection_lane": "oya-foundry-fitness-foundry-model-auditability",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "employer_visible_personal_creator_earnings",
       "why": "ADR-0215 personal pillar; creator revenue is personal-owned and never accessible to tenant admin",
-      "detection_lane": "oya-foundry-fitness-connect-pillar"
+      "detection_lane": "oya-foundry-fitness-connect-pillar",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     }
   ],
   "hyperscaler_bar": [
     {
       "dimension": "feed_load_p95_ms",
       "target": 120,
-      "verification": "cargo bench -p oya-connect-shorts-bench -- feed_load_p95"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-shorts-bench -- feed_load_p95",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
     },
     {
       "dimension": "video_transcode_start_s",
       "target": 2,
-      "verification": "cargo bench -p oya-connect-shorts-bench -- transcode_start_p95"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-shorts-bench -- transcode_start_p95",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
     },
     {
       "dimension": "live_stream_latency_ms",
       "target": 500,
-      "verification": "cargo bench -p oya-connect-shorts-bench -- live_stream_latency_p99"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-shorts-bench -- live_stream_latency_p99",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
     },
     {
       "dimension": "cross_pillar_denial_correctness_pct",
       "target": 100,
-      "verification": "cargo nextest -p oya-connect-shorts-domain -- pillar"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo nextest -p oya-connect-shorts-domain -- pillar",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
     },
     {
       "dimension": "fyp_model_inference_ms",
       "target": 50,
-      "verification": "cargo bench -p oya-connect-shorts-bench -- fyp_inference_p95"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-shorts-bench -- fyp_inference_p95",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
+    },
+    {
+      "dimension": "availability_slo",
+      "target": "99.95% monthly availability for playback/feed APIs; 99.9% for upload/transcode control APIs",
+      "planned_verification_ref": "cargo nextest -p oya-connect-shorts-domain -- slo",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Planning target only; no availability monitor ships in PR #130."
+    },
+    {
+      "dimension": "scale_envelope",
+      "target": "planning target: 1M MAU per cell, 25k video manifest QPS per cell, 50k concurrent live viewers per region",
+      "planned_verification_ref": "cargo bench -p oya-connect-shorts-bench -- scale_envelope",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Capacity target only; no benchmark harness ships in PR #130."
+    },
+    {
+      "dimension": "unit_cost_target",
+      "target": "planning target: <= USD 0.55 per 1,000 playback starts excluding CDN pass-through",
+      "planned_verification_ref": "oya gate validate connect-shorts-cost-envelope",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "FinOps target only; no cost gate ships in PR #130."
     }
   ],
   "production_readiness_gates": [
@@ -591,6 +731,16 @@
         "user directive 2026-05-17T10:20Z: Connect = Instagram + TikTok + LinkedIn + Blind + iMessage + Gmail all in one",
         "ADR-0208 dual-context model extended to short-form video surfaces"
       ]
+    },
+    {
+      "date": "2026-05-17",
+      "decision": "connect-shorts is accepted as a PR #130 planning contract, not as implemented production scope.",
+      "adr": "ADR-0131",
+      "drivers": [
+        "Connect expansion must be source-bounded and enforcement-honest",
+        "New crates and validators are follow-up work",
+        "Cross-product flows route only through Workflow/Ontology"
+      ]
     }
   ],
   "contracts": {
@@ -605,7 +755,17 @@
       "connect.shorts.feed_signal.v1",
       "connect.shorts.live_stream.v1",
       "connect.shorts.monetization_event.v1"
-    ]
+    ],
+    "route_through_workflow_ontology": true,
+    "cross_product_routing_policy": {
+      "direct_cross_product_calls_allowed": false,
+      "required_mediators": [
+        "Workflow",
+        "Ontology"
+      ],
+      "policy_ref": "ADR-0001 cohesion thesis; ADR-0131 Connect expansion planning contract",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates"
+    }
   },
   "optimization_practices": [
     {
@@ -722,24 +882,36 @@
   "goals": {
     "scalability": {
       "target": "regional short-form feeds support high-cardinality watch events and creator uploads without cross-context signal sharing",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/shorts.json"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/shorts.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "security": {
       "target": "personal and professional FYP models, monetization ledgers, and discovery indexes are pillar-isolated",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/shorts.json"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/shorts.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "performance": {
       "target": "feed load p95 under 120ms and model serving p95 under 200ms per region",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/shorts.json"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/shorts.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "efficiency": {
       "target": "video transcoding, model training, and live streaming are budgeted per context and tenant",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/shorts.json"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/shorts.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "reliability": {
       "target": "99.95% GA availability with CDN purge and replayable moderation events",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/shorts.json"
-    }
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/shorts.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
+    },
+    "enforcement_status": "advisory_until_connect_social_expansion_gates",
+    "claim_boundary": "Goal targets are PRD planning targets. PR #130 does not ship product crates, monitors, benchmarks, or production SLO enforcement."
   },
   "user_experience": {
     "ux_personas_ref": "$ref:specs/products/connect/shorts.json#target_users",
@@ -789,5 +961,12 @@
     "bominal ADR-0208 Connect dual-context model",
     "bominal ADR-0215 Connect retention and legal-hold dual-context policy",
     "specs/products/connect/suite.json"
-  ]
+  ],
+  "enforcement_status": {
+    "industry_patterns_adopted": "advisory_until_connect_social_expansion_gates",
+    "anti_patterns_avoided": "advisory_until_connect_social_expansion_gates",
+    "hyperscaler_bar": "advisory_until_connect_social_expansion_gates",
+    "production_readiness_gates": "planned_until_connect_social_expansion_crates_exist",
+    "validator_gap": "PR #130 adds machine-readable PRD/design contracts only; dedicated connect-social-expansion validators and crates are follow-up implementation work."
+  }
 }

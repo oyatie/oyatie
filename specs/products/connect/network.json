@@ -30,7 +30,94 @@
       "oya-connect-network-app",
       "oya-connect-network-rest"
     ],
-    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
+    "crate_ref_bindings": [
+      {
+        "crate": "oya-connect-network-kernel",
+        "crate_name": "oya-connect-network-kernel",
+        "bnf_parse": {
+          "prefix": "oya",
+          "product": "connect",
+          "bounded_context": "network",
+          "layer": "kernel"
+        },
+        "layer": "kernel",
+        "layer_token": "kernel",
+        "layer_enum_adr": "ADR-0105",
+        "naming_adrs": [
+          "ADR-0056",
+          "ADR-0105"
+        ],
+        "naming_justification": "BNF v4.1: oya-<product:connect>-<bounded-context:network>-<layer:kernel>; kernel is a canonical ADR-0105 layer suffix and the product/context tokens are registered by ADR-0131.",
+        "port_trait_ownership": "owns pure domain types, port traits, and no-I/O invariants for the bounded context",
+        "workflow_ontology_boundary": "declares Workflow/Ontology ports for cross-product integration; does not call other product crates",
+        "enforcement_status": "planning_contract_until_crate_scaffold"
+      },
+      {
+        "crate": "oya-connect-network-domain",
+        "crate_name": "oya-connect-network-domain",
+        "bnf_parse": {
+          "prefix": "oya",
+          "product": "connect",
+          "bounded_context": "network",
+          "layer": "domain"
+        },
+        "layer": "domain",
+        "layer_token": "domain",
+        "layer_enum_adr": "ADR-0105",
+        "naming_adrs": [
+          "ADR-0056",
+          "ADR-0105"
+        ],
+        "naming_justification": "BNF v4.1: oya-<product:connect>-<bounded-context:network>-<layer:domain>; domain is a canonical ADR-0105 layer suffix and the product/context tokens are registered by ADR-0131.",
+        "port_trait_ownership": "owns business rules and implements/uses kernel ports without adapter dependencies",
+        "workflow_ontology_boundary": "uses kernel ports only; cross-product state is mediated by Workflow/Ontology contracts",
+        "enforcement_status": "planning_contract_until_crate_scaffold"
+      },
+      {
+        "crate": "oya-connect-network-app",
+        "crate_name": "oya-connect-network-app",
+        "bnf_parse": {
+          "prefix": "oya",
+          "product": "connect",
+          "bounded_context": "network",
+          "layer": "app"
+        },
+        "layer": "app",
+        "layer_token": "app",
+        "layer_enum_adr": "ADR-0105",
+        "naming_adrs": [
+          "ADR-0056",
+          "ADR-0105"
+        ],
+        "naming_justification": "BNF v4.1: oya-<product:connect>-<bounded-context:network>-<layer:app>; app is a canonical ADR-0105 layer suffix and the product/context tokens are registered by ADR-0131.",
+        "port_trait_ownership": "owns composition/usecase orchestration and wires domain behavior to protocol adapters",
+        "workflow_ontology_boundary": "orchestrates Workflow/Ontology adapters at the composition boundary",
+        "enforcement_status": "planning_contract_until_crate_scaffold"
+      },
+      {
+        "crate": "oya-connect-network-rest",
+        "crate_name": "oya-connect-network-rest",
+        "bnf_parse": {
+          "prefix": "oya",
+          "product": "connect",
+          "bounded_context": "network",
+          "layer": "rest"
+        },
+        "layer": "rest",
+        "layer_token": "rest",
+        "layer_enum_adr": "ADR-0105",
+        "naming_adrs": [
+          "ADR-0056",
+          "ADR-0105"
+        ],
+        "naming_justification": "BNF v4.1: oya-<product:connect>-<bounded-context:network>-<layer:rest>; rest is a canonical ADR-0105 layer suffix and the product/context tokens are registered by ADR-0131.",
+        "port_trait_ownership": "owns HTTP route/DTO mapping and calls inward; no domain rules live here",
+        "workflow_ontology_boundary": "exposes protocol-specific handlers and delegates inward; direct cross-product calls are forbidden",
+        "enforcement_status": "planning_contract_until_crate_scaffold"
+      }
+    ],
+    "naming_justification": "All planned connect-network crates parse as oya-connect-network-<layer>; ADR-0056 supplies the BNF discipline and ADR-0105 supplies the canonical layer enum."
   },
   "inherits": {
     "bominal_adrs": [
@@ -209,7 +296,11 @@
         "CompanyMembershipEdge — employee→company typed edge used for org chart and lead discovery",
         "SkillEndorsementEdge — endorser→endorsee typed edge for skill validation",
         "AlumniEdge — past-employer typed edge for alumni network"
-      ]
+      ],
+      "route_through_workflow_ontology": true,
+      "direct_cross_product_calls_allowed": false,
+      "boundary_contract": "All cross-product reads/writes are mediated by Workflow and Ontology contracts; PR #130 ships the contract text only.",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates"
     },
     "foundry": {
       "contracts": [
@@ -253,81 +344,132 @@
     {
       "pattern": "professional_identity_graph",
       "source": "LinkedIn profile + connections",
-      "implementation": "ProfessionalIdentityNode in Ontology; connection edges are typed work-context; all professional surfaces derive from this canonical node"
+      "implementation": "ProfessionalIdentityNode in Ontology; connection edges are typed work-context; all professional surfaces derive from this canonical node",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "recruiter_talent_search",
       "source": "LinkedIn Recruiter",
-      "implementation": "Foundry RecruiterCopilotAgent with candidate matching; open-to-work consent signals in professional pillar; personal open-to-work hidden from current employer"
+      "implementation": "Foundry RecruiterCopilotAgent with candidate matching; open-to-work consent signals in professional pillar; personal open-to-work hidden from current employer",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "sales_navigator_relationship_intelligence",
       "source": "LinkedIn Sales Navigator",
-      "implementation": "Foundry SalesCopilotAgent derives lead graph from professional Ontology edges only; no personal social graph"
+      "implementation": "Foundry SalesCopilotAgent derives lead graph from professional Ontology edges only; no personal social graph",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "thought_leadership_articles_newsletters",
       "source": "LinkedIn Articles / Newsletters",
-      "implementation": "professional-context article artifact in Ontology; Workflow newsletter delivery pipeline; employer content policy applies"
+      "implementation": "professional-context article artifact in Ontology; Workflow newsletter delivery pipeline; employer content policy applies",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "skills_endorsements_assessments",
       "source": "LinkedIn Skills",
-      "implementation": "SkillEndorsementEdge in Ontology; Foundry skill assessment challenges; certificates link to ProfessionalIdentityNode"
+      "implementation": "SkillEndorsementEdge in Ontology; Foundry skill assessment challenges; certificates link to ProfessionalIdentityNode",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     },
     {
       "pattern": "learning_platform_integration",
       "source": "LinkedIn Learning",
-      "implementation": "course catalog in Foundry; LearningPathAgent recommends paths based on skills gap on ProfessionalIdentityNode; certificates surfaced in professional profile"
+      "implementation": "course catalog in Foundry; LearningPathAgent recommends paths based on skills gap on ProfessionalIdentityNode; certificates surfaced in professional profile",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Source-inspired PRD planning pattern; not an implemented production claim in PR #130."
     }
   ],
   "anti_patterns_avoided": [
     {
       "anti_pattern": "personal_social_graph_in_professional_network",
       "why": "professional network must be work-context only; ADR-0208 pillar boundary",
-      "detection_lane": "oya-foundry-fitness-connect-pillar"
+      "detection_lane": "oya-foundry-fitness-connect-pillar",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "employer_visible_personal_open_to_work",
       "why": "personal career search activity is personal-pillar owned; ADR-0215",
-      "detection_lane": "oya-foundry-fitness-connect-pillar"
+      "detection_lane": "oya-foundry-fitness-connect-pillar",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "static_filter_based_recruiter_search",
       "why": "Foundry agentic copilot provides dynamic matching; static filter UIs are not the pattern",
-      "detection_lane": "oya-foundry-fitness-foundry-agent-coverage"
+      "detection_lane": "oya-foundry-fitness-foundry-agent-coverage",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     },
     {
       "anti_pattern": "personal_data_in_b2b_ad_targeting",
       "why": "professional ads use only work-context Ontology attributes; personal data never consulted",
-      "detection_lane": "oya-foundry-fitness-connect-ads-isolation"
+      "detection_lane": "oya-foundry-fitness-connect-ads-isolation",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Forbidden design pattern for future implementation; validator/crate enforcement is not shipped by PR #130."
     }
   ],
   "hyperscaler_bar": [
     {
       "dimension": "profile_load_p95_ms",
       "target": 100,
-      "verification": "cargo bench -p oya-connect-network-bench -- profile_load_p95"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-network-bench -- profile_load_p95",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
     },
     {
       "dimension": "connection_graph_query_p95_ms",
       "target": 150,
-      "verification": "cargo bench -p oya-connect-network-bench -- connection_graph_query_p95"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-network-bench -- connection_graph_query_p95",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
     },
     {
       "dimension": "recruiter_search_p95_ms",
       "target": 500,
-      "verification": "cargo bench -p oya-connect-network-bench -- recruiter_search_p95"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-network-bench -- recruiter_search_p95",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
     },
     {
       "dimension": "cross_pillar_denial_correctness_pct",
       "target": 100,
-      "verification": "cargo nextest -p oya-connect-network-domain -- pillar"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo nextest -p oya-connect-network-domain -- pillar",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
     },
     {
       "dimension": "ontology_edge_write_p99_ms",
       "target": 50,
-      "verification": "cargo bench -p oya-connect-network-bench -- ontology_edge_write_p99"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "cargo bench -p oya-connect-network-bench -- ontology_edge_write_p99",
+      "claim_boundary": "Planning target only until the Connect social-expansion gates and crates land."
+    },
+    {
+      "dimension": "availability_slo",
+      "target": "99.95% monthly availability for profile/feed/search reads; 99.9% for graph mutation APIs",
+      "planned_verification_ref": "cargo nextest -p oya-connect-network-domain -- slo",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Planning target only; no availability monitor ships in PR #130."
+    },
+    {
+      "dimension": "scale_envelope",
+      "target": "planning target: 1M professional profiles per cell, 2B graph edges per region, 5k recruiter-search QPS per cell",
+      "planned_verification_ref": "cargo bench -p oya-connect-network-bench -- scale_envelope",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "Capacity target only; no benchmark harness ships in PR #130."
+    },
+    {
+      "dimension": "unit_cost_target",
+      "target": "planning target: <= USD 0.30 per 1,000 graph/profile reads",
+      "planned_verification_ref": "oya gate validate connect-network-cost-envelope",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "claim_boundary": "FinOps target only; no cost gate ships in PR #130."
     }
   ],
   "production_readiness_gates": [
@@ -625,6 +767,16 @@
         "user directive 2026-05-17T10:20Z: Connect = Instagram + TikTok + LinkedIn + Blind + iMessage + Gmail all in one",
         "ADR-0208 dual-context model; professional network is work-context primary"
       ]
+    },
+    {
+      "date": "2026-05-17",
+      "decision": "connect-network is accepted as a PR #130 planning contract, not as implemented production scope.",
+      "adr": "ADR-0131",
+      "drivers": [
+        "Connect expansion must be source-bounded and enforcement-honest",
+        "New crates and validators are follow-up work",
+        "Cross-product flows route only through Workflow/Ontology"
+      ]
     }
   ],
   "contracts": {
@@ -639,7 +791,17 @@
       "connect.network.connection.v1",
       "connect.network.job_application.v1",
       "connect.network.skill_assertion.v1"
-    ]
+    ],
+    "route_through_workflow_ontology": true,
+    "cross_product_routing_policy": {
+      "direct_cross_product_calls_allowed": false,
+      "required_mediators": [
+        "Workflow",
+        "Ontology"
+      ],
+      "policy_ref": "ADR-0001 cohesion thesis; ADR-0131 Connect expansion planning contract",
+      "enforcement_status": "advisory_until_connect_social_expansion_gates"
+    }
   },
   "optimization_practices": [
     {
@@ -756,24 +918,36 @@
   "goals": {
     "scalability": {
       "target": "100M professional identity nodes and 1B typed professional edges partitioned by tenant and region",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/network.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "security": {
       "target": "professional graph queries never expose personal social graph or hidden open-to-work signals",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/network.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "performance": {
       "target": "profile search, feed, recruiter search, and lead discovery stay below 200ms p95",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/network.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "efficiency": {
       "target": "recruiter, sales, learning, and ads workloads are metered by query class and graph traversal budget",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/network.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
     },
     "reliability": {
       "target": "99.95% GA availability with reproducible graph rebuild and search-index recovery",
-      "verification": "oya gate validate product-prd-json --product specs/products/connect/network.json"
-    }
+      "enforcement_status": "advisory_until_connect_social_expansion_gates",
+      "planned_verification_ref": "oya gate validate product-prd-json --product specs/products/connect/network.json",
+      "claim_boundary": "Advisory target until validators and implementation crates land."
+    },
+    "enforcement_status": "advisory_until_connect_social_expansion_gates",
+    "claim_boundary": "Goal targets are PRD planning targets. PR #130 does not ship product crates, monitors, benchmarks, or production SLO enforcement."
   },
   "user_experience": {
     "ux_personas_ref": "$ref:specs/products/connect/network.json#target_users",
@@ -822,5 +996,12 @@
     "bominal ADR-0208 Connect dual-context model",
     "bominal ADR-0215 Connect retention and legal-hold dual-context policy",
     "specs/products/connect/suite.json"
-  ]
+  ],
+  "enforcement_status": {
+    "industry_patterns_adopted": "advisory_until_connect_social_expansion_gates",
+    "anti_patterns_avoided": "advisory_until_connect_social_expansion_gates",
+    "hyperscaler_bar": "advisory_until_connect_social_expansion_gates",
+    "production_readiness_gates": "planned_until_connect_social_expansion_crates_exist",
+    "validator_gap": "PR #130 adds machine-readable PRD/design contracts only; dedicated connect-social-expansion validators and crates are follow-up implementation work."
+  }
 }

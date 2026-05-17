@@ -4,7 +4,7 @@
   "title": "DesignSystem:Hr Aggregate Insights Dashboard",
   "doc_class": "Machine-Readable-Spec",
   "component_id": "hr-aggregate-insights-dashboard",
-  "owner_team": "connect-product-council",
+  "owner_team": "connect-product-council + vertical-corporate-hr-review",
   "product_ref": "$ref:specs/products/connect/anonymous.json",
   "component_name": "HRAggregateInsightsDashboard",
   "status": "planned-contract",
@@ -26,5 +26,6 @@
   "contract": {
     "purpose": "HRAggregateInsightsDashboard is a declared Connect Anonymous UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
     "state_model_ref": "$ref:specs/products/connect/anonymous.json#frontend_components"
-  }
+  },
+  "governance_boundary": "Connect anonymous aggregate UX primitive; HR semantics require vertical-corporate review, but ownership remains with Connect until Enterprise HR implementation consumes it."
 }
