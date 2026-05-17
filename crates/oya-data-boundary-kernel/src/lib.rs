@@ -5,6 +5,10 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod retention_policy;
+
+pub use retention_policy::{ClassificationLevel, DataClassMatcher, PurgeAction, RetentionPolicy};
+
 use std::collections::BTreeSet;
 
 /// Data-class vocabulary owned by the Data Use Boundary.
