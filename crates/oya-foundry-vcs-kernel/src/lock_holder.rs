@@ -44,9 +44,19 @@ impl LockHolderId {
         if agent_id.contains('/') {
             return Err(VcsKernelError::InvalidAgentId);
         }
+        // Reject embedded whitespace: from_wire rejects it, so new() must too
+        // to preserve the round-trip guarantee from_wire(id.value) == Ok(id).
+        if agent_id.chars().any(|ch| ch.is_whitespace()) {
+            return Err(VcsKernelError::InvalidAgentId);
+        }
         let claim_id =
             validate_prefixed(claim_id.into(), "claim_", VcsKernelError::InvalidClaimId)?;
         if claim_id.contains('/') {
+            return Err(VcsKernelError::InvalidClaimId);
+        }
+        // Reject embedded whitespace: from_wire rejects it, so new() must too
+        // to preserve the round-trip guarantee from_wire(id.value) == Ok(id).
+        if claim_id.chars().any(|ch| ch.is_whitespace()) {
             return Err(VcsKernelError::InvalidClaimId);
         }
         let value = format!("holder:{agent_id}/{claim_id}");
@@ -59,12 +69,23 @@ impl LockHolderId {
 
     /// Parse a [`LockHolderId`] from its wire representation produced by [`LockHolderId::new`].
     ///
+    /// Rejects inputs containing any ASCII whitespace character before
+    /// delegating to [`Self::new`].  Wires like `"holder:agent-01 /claim_abc"`
+    /// or `"holder: agent/claim_abc"` are rejected rather than silently
+    /// normalised, preserving the round-trip guarantee that
+    /// `from_wire(id.value) == Ok(id)` for any canonically-constructed id.
+    ///
     /// # Errors
     ///
-    /// Returns [`VcsKernelError::InvalidClaimId`] when the input does not
-    /// conform to the `holder:<agent_id>/<claim_id>` format.
+    /// Returns [`VcsKernelError::InvalidClaimId`] when the input contains
+    /// whitespace or does not conform to the `holder:<agent_id>/<claim_id>`
+    /// format.
     pub fn from_wire(wire: impl Into<String>) -> Result<Self, VcsKernelError> {
         let wire = wire.into();
+        // Reject any whitespace — canonical wire values never contain spaces/tabs.
+        if wire.chars().any(|ch| ch.is_whitespace()) {
+            return Err(VcsKernelError::InvalidClaimId);
+        }
         let body = wire
             .strip_prefix("holder:")
             .ok_or(VcsKernelError::InvalidClaimId)?;
@@ -184,6 +205,29 @@ mod injectivity_tests {
     #[test]
     fn claim_id_with_slash_is_rejected() {
         let err = LockHolderId::new("a", "claim_x/claim_1").unwrap_err();
+        assert!(matches!(err, VcsKernelError::InvalidClaimId));
+    }
+}
+
+#[cfg(test)]
+mod unicode_whitespace_tests {
+    use super::*;
+
+    #[test]
+    fn unicode_nbsp_in_agent_id_rejected() {
+        let err = LockHolderId::new("agent\u{00A0}01", "claim_abc").unwrap_err();
+        assert!(matches!(err, VcsKernelError::InvalidAgentId));
+    }
+
+    #[test]
+    fn unicode_nbsp_in_claim_id_rejected() {
+        let err = LockHolderId::new("agent", "claim_\u{00A0}abc").unwrap_err();
+        assert!(matches!(err, VcsKernelError::InvalidClaimId));
+    }
+
+    #[test]
+    fn unicode_nbsp_in_wire_rejected() {
+        let err = LockHolderId::from_wire("holder:agent/claim_abc\u{00A0}").unwrap_err();
         assert!(matches!(err, VcsKernelError::InvalidClaimId));
     }
 }
