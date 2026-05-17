@@ -6,14 +6,17 @@
 //! moderation, durable storage, bot execution, and Matrix compatibility remain
 //! adapter concerns.
 
+pub mod surface_kind;
+pub use surface_kind::WorkspaceSurfaceKind;
+
 use std::collections::BTreeMap;
 
-use oya_data_boundary_kernel::parse_data_class_label;
 use oya_connect_messenger_domain::{
-    workspace_chat_data_class_from_legacy, AttachmentRef, ChatChannel, ChatChannelCreate,
-    ChatChannelKind, ChatError, ChatMessage, ChatMessageCreate, ChatParticipant,
-    ChatParticipantRole, ChatSenderKind,
+    AttachmentRef, ChatChannel, ChatChannelCreate, ChatChannelKind, ChatError, ChatMessage,
+    ChatMessageCreate, ChatParticipant, ChatParticipantRole, ChatSenderKind,
+    workspace_chat_data_class_from_legacy,
 };
+use oya_data_boundary_kernel::parse_data_class_label;
 
 pub const WORKSPACE_CHAT_MESSAGE_SEND_SURFACE: &str = "workspace.chat.message.send";
 pub const WORKSPACE_CHAT_OPENAPI_CONTRACT: &str =

@@ -2974,6 +2974,14 @@ name = "oya-tooling-agent-read"
 version = "0.1.0"
 
 [[package]]
+name = "oya-workspace-chat-api"
+version = "0.1.0"
+dependencies = [
+ "oya-connect-messenger-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "oya-xtask-metadata-augment-app"
 version = "0.1.0"
 dependencies = [
