@@ -6,7 +6,7 @@ date: 2026-05-16
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, Bominal-ADR-0106, Bominal-ADR-0107]
+related: [ADR-0056, Bominal-ADR-0106, Bominal-ADR-0107, Bominal-ADR-0133]
 related_specs: [/specs/products/ontology.json, /specs/knowledge-graph-schema.json]
 purpose: Rename oya-platform-object-graph-kernel crate (and any siblings) to oya-ontology-* per the glossary rename Object Graph → Ontology (matching Palantir terminology); aligns crate names with /specs/products/ontology.json + Bominal-ADR-0106; eliminates the stale "object-graph" token from the canonical naming surface.
 ---

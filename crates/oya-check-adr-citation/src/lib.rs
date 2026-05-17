@@ -81,6 +81,10 @@ fn adr_citations(line: &str) -> Vec<String> {
             index += 1;
             continue;
         }
+        if index >= 8 && &bytes[index - 8..index] == b"Bominal-" {
+            index += 8;
+            continue;
+        }
         let digits = &bytes[index + 4..index + 8];
         if digits.iter().all(u8::is_ascii_digit) {
             citations.push(line[index..index + 8].to_string());
@@ -166,6 +170,42 @@ mod tests {
         assert_eq!(
             validate_adr_citations([], ["ADR-0001"]),
             Err(AdrCitationError::NoDocuments)
+        );
+    }
+
+    #[test]
+    fn skips_bominal_namespace_adr_citations() {
+        assert_eq!(
+            validate_adr_citations(
+                [doc(
+                    "docs/decisions/ADR-0122.md",
+                    "related: [ADR-0056, Bominal-ADR-0133]",
+                    false,
+                )],
+                ["ADR-0056"],
+            ),
+            Ok(AdrCitationReport {
+                documents_checked: 1,
+                citations_checked: 1,
+            })
+        );
+    }
+
+    #[test]
+    fn bominal_prefix_does_not_byte_collide_with_local_adr() {
+        assert_eq!(
+            validate_adr_citations(
+                [doc(
+                    "docs/decisions/ADR-0122.md",
+                    "Cited ADR-0056 alongside Bominal-ADR-0056.",
+                    false,
+                )],
+                ["ADR-0056"],
+            ),
+            Ok(AdrCitationReport {
+                documents_checked: 1,
+                citations_checked: 1,
+            })
         );
     }
 
