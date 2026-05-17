@@ -1,0 +1,96 @@
+{
+  "change_id": "codex-foundry-industry-audit-repair-1779029617",
+  "change_class_id": "CC-5_doc_only",
+  "change_class_rationale": "Reviewer-requested repair to a Markdown PRD plus JSON evidence artifacts. No source code, schema, or runtime contract changes.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779029617,
+  "git_sha_base": "066a82dd3f75b7a57d3210fc500374f407385e61",
+  "branch": "agent/audit-foundry-1779012354",
+  "session_id": "codex-merge-queue-pr126-review-fix",
+  "agent_id": "codex",
+  "task": "Resolve PR #126 review findings for Foundry competitive audit honesty, section ordering, evidence provenance, and current OpenAI positioning.",
+  "artifacts_touched": [
+    "docs/products/foundry/PRD.md",
+    "evidence/autoresearch/foundry-industry-audit-1779012354.json",
+    "evidence/multispectrum/codex-foundry-industry-audit-repair-1779029617.json",
+    "evidence/audit-chain.jsonl"
+  ],
+  "review_findings_addressed": [
+    "126-C01",
+    "126-M01",
+    "126-M02",
+    "126-M03",
+    "126-S01",
+    "126-S02",
+    "126-S03",
+    "current-head-missing-multispectrum-evidence",
+    "current-head-pr-template-shape",
+    "current-head-peer-overclaim",
+    "current-head-openai-assistants-deprecation",
+    "current-head-files-modified-inventory"
+  ],
+  "local_gates": [
+    "jq empty evidence/autoresearch/foundry-industry-audit-1779012354.json evidence/multispectrum/codex-foundry-industry-audit-repair-1779029617.json: PASS",
+    "heading-order rg check: PASS (11f, 11g, 11h, 11h.1, 11i, 11j, 11k, 12, 13, 14)",
+    "scripts/evidence-secret-scan.sh evidence/multispectrum evidence/audit-chain.jsonl: PASS",
+    "cargo run -p oya-dev-cli -- gate validate product-index: PASS (7 axis rows, 20 catalog products)",
+    "cargo run -p oya-dev-cli -- gate validate quality-lanes: PASS (69 registry records, 69 markdown rows, 64 active commands, 39 owner teams)",
+    "git diff --check: PASS"
+  ],
+  "verification_limitations": [
+    "cargo run -p oya-dev-cli -- gate validate benchmark --products-dir docs/products was run and failed on a pre-existing repository backlog: 12 PRDs currently lack exact `## Competitive benchmark` headings, including docs/products/foundry/PRD.md and docs/products/cloud/PRD.md. This PR does not claim that lane green.",
+    "Full GitHub CI must be re-run after push because this repair rebases PR #126 onto the #125 merge head."
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Smallest repair: renumber sections, narrow peer-audit claims to the compared columns, add one missing exfiltration anti-pattern, and mark evidence as self-attested instead of inventing an enforcement lane."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "The evidence now distinguishes scored peers from source scans, preventing an 8-peer claim from being backed by a 5-peer table."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "PRD heading order is repaired to 11h/11i/11j/11k followed by 12 Open questions, 13 Decision log, and 14 Sources scanned. The legacy benchmark lane still expects an exact `## Competitive benchmark` heading and remains a separate corpus-wide backlog."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "Audit-chain and multispectrum evidence are attached for the PR repair; no retired registries/cross-cutting path is reintroduced."
+      ],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Review findings are enumerated in machine-readable evidence and mirrored by an audit-chain row."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "codex-self-architect-check",
+      "verdict": "ACCEPT_WITH_VERIFICATION",
+      "rationale": "The repair preserves the PR's intent while removing dishonest scope and circular enforcement claims."
+    },
+    "critic": {
+      "agent": "codex-self-critic-check",
+      "verdict": "ACCEPT_WITH_GUARDRAILS",
+      "guardrails": [
+        "Do not treat prose-only hyperscaler claims as enforced without an explicit gate.",
+        "Keep OpenAI Assistants only as deprecated legacy context; future PRs should compare against Responses / Agents surfaces."
+      ]
+    }
+  }
+}

@@ -837,7 +837,107 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | `OpsDeploymentStatusPanel` | `$ref:specs/design-system/ops-deployment-status-panel.json` | plan-preview / canary / rollback / blocked-secret | tablet / desktop |
 | `PolicyDisclosureBanner` | `$ref:specs/design-system/policy-disclosure-banner.json` | audit-access / requires-second-approver / expired-policy | tablet / desktop |
 
-## 11. Open questions
+## 11h. Competitive landscape
+
+> Audit date: 2026-05-17. Column-scored peers: Palantir Foundry, AWS Bedrock Agents, OpenAI Responses / Agents (with Assistants as deprecated legacy context), LangChain / LangSmith, GitHub Copilot Workspace. Additional source scans, not column-scored: Anthropic Claude / Claude Code, Hugging Face Spaces, AutoGPT.
+
+| Dimension | Palantir Foundry | AWS Bedrock Agents | OpenAI Responses / Agents | LangChain / LangSmith | GitHub Copilot Workspace | **Oyatie Foundry (this PRD)** |
+|---|---|---|---|---|---|---|
+| Agent runtime | Closed enterprise; no external SDK | Managed Lambda-backed orchestration; natural-language config | Responses API + Conversations state with built-in tools; Assistants thread/run model is deprecated legacy context | LangGraph orchestration with memory + human-in-loop | Agent mode per-task; multi-LLM dispatch | `oya-foundry-run-*` + `oya-foundry-capability-*`; autonomy-tiered (T0..T5); multi-provider (Codex / Claude / Gemini + regional packs) |
+| Tool / capability registry | Ontology-backed action registry | Action-group + knowledge-base per-agent config | Responses / Agents tool calling and prompt configuration; no tenant-exportable global capability registry | Toolkits per chain; no global registry | MCP-server config per org; no formal registry | Semver-versioned `Capability` in `oya-foundry-registry-*`; CI-fitness-gate on every catalog registration; cross-axis contract gate |
+| Multi-agent orchestration | Proprietary agent-network model | Supervisor + subagent architecture | Agents platform supports tool-using agent apps; cross-agent topology remains app-owned | LangGraph multi-agent support; human-in-loop | Single-agent per task; third-party agents via MCP | ADR-0021 OG-AG gateway plus ADR-0110/0111/0112/0113/0116 pipeline substrate; per-Run `on_behalf_of` consent inheritance; T5 governance-mode for multi-tenant multi-axis; `foundry.run_started.v1` fan-out |
+| Sandbox isolation | Palantir-managed infra; no Wasm | Lambda execution boundary | Code interpreter sandboxed by OpenAI | No native sandbox; user-managed | Copilot-managed execution; no user sandbox control | Wasmtime + Firecracker (ADR-0023); per-capability `SideEffectClass`; `CrossAxisWrite` forces cross-axis review |
+| Memory / state | Ontology persistent state; per-user | Managed memory per agent (cross-session retained) | Responses state + Conversations; Assistants Threads remain migration-only legacy context | LangGraph checkpointing; Redis backend | Thread history (28d); no explicit episodic/declarative split | `CrossSessionMemory` (ADR-0024): declarative / episodic / procedural; per-tenant per-principal retention; DSR cascade; Postgres + Redis hot tier |
+| Observability / replay | Palantir internal; no external export | CloudWatch metrics; no trace replay | Minimal; no per-step audit replay | LangSmith tracing + aggregate trend metrics | Audit logs (enterprise); billing dashboard | Per-step `Evidence` chain with Merkle linkage (ADR-0003, ADR-0110, ADR-0113); Ed25519-signed records; immutable S3 anchor; regulator export API; `oya-foundry-fitness-foundry-evidence-completeness` CI gate |
+| Eval harness | Manual + Palantir AIP evaluation | No native eval; third-party required | Evals product (API + CI integration) | LangSmith eval on offline/production datasets | No eval harness | `oya-foundry-eval-*` (ADR-0024); `foundry.eval.run` API boundary; cohort evidence; idempotency; nightly eval + A/B routing gate |
+| Provenance / audit chain | Internal audit log; not tenant-exported | CloudTrail; per-account | OpenAI platform logs; no customer Merkle chain | LangSmith traces; no cryptographic provenance | Enterprise audit logs | Merkle-chained `Evidence` per step; `oya-platform-audit-chain-kernel` cross-axis; 7y retention; regulator-portal per pack (ADR-0003, ADR-0042, ADR-0116) |
+| Secret handling | Palantir-managed vault | AWS Secrets Manager / IAM roles | OpenAI platform secrets (no tenant vault) | User-managed; no platform secret store | No platform secret store | OpenBao (ADR-0043); `SecretReference` newtype (sref:// only); per-`(tenant_id, capability_id, provider_kind)` path; rotation-window enforced; secret-redaction CI scan |
+| Policy / authorization gating | Palantir RBAC; no external policy language | IAM roles + Bedrock Guardrails | System prompt only; no formal policy language | No policy engine; user-managed | Enterprise admin control plane | Cedar policy (ADR-0007); `AutonomyCeiling::permit` is the only execution path; T0..T5 tier enforcement; per-pack overlay (KR T1 default, KSA T0 sovereign); no internal bypass |
+| Marketplace / sharing | Palantir Marketplace (enterprise) | AWS Marketplace (models + agents) | GPT Store / GPT sharing; Assistants sharing is deprecated legacy context | LangChain Hub (chains + prompts) | MCP server directory (community) | `oya-saas-marketplace-kernel`; Wasmtime-sandboxed plugins (ADR-0023, ADR-0036); Cosign-signed capability artifacts (ADR-0039); revenue share (ADR-0034) |
+| Cost controls | Palantir enterprise contract | Per-token billing + AWS cost controls | Usage limits per org | No native cost controls | Budget controls per org; metered premium requests | Per-capability `max_tokens` / `max_steps`; `UsageWindow` (5h / 1wk / project); `reserve_remaining_pct` failover; per-tenant FinOps console; `oya-platform-metering-kernel`; cost-route optimization capability (T2) |
+| Model-vendor abstraction | Palantir AIP models; no open adapter | Model-provider choice (Bedrock model catalog) | OpenAI models only | Any LLM via LangChain abstractions | Multi-LLM (Anthropic / Google / OpenAI) | `ProviderAdapter` trait; `ProviderKind` enum (12+ providers); regional pack adapters (HyperCLOVA, Mistral, Sarvam, Falcon, etc.); no model lock-in by design |
+| Multi-tenancy | Enterprise tenant isolation; SaaS-only | AWS account-level isolation | Organization-level isolation | No native multi-tenancy | Organization-level | `TenantId` mandatory on every kernel entity; per-tenant sharding (`Run` / `Evidence`); per-tenant autonomy ceiling; per-tenant residency; per-tenant subscription binding with `consent_receipt_ref` |
+
+### 11h.1 Gaps closed by this PRD vs peers
+
+| Gap in peers | Oyatie Foundry resolution |
+|---|---|
+| No peer provides cryptographically-provable per-step evidence chain exportable to tenants | Merkle-chained `Evidence` with Ed25519 signatures; `BulkExportEvidence` API; 7-year retention |
+| AWS Bedrock / OpenAI Responses / Agents have no formal tenant-exportable capability registry with semver lifecycle | `oya-foundry-registry-*` with ADR-0040 semver evolution; `oya-foundry-fitness-product-prd` CI gate |
+| LangChain has no platform-level secret store | OpenBao per-tenant per-capability with `SecretReference` newtype; never logged |
+| GitHub Copilot Workspace has no autonomy tier for graduated agent authority | T0..T5 `AutonomyTier` enforced at `AutonomyCeiling::permit`; Cedar policy per capability |
+| No peer has per-pack regional LLM provider abstraction with residency enforcement | `Provider.residency_compliant_for` × `Tenant.residency` routing; per-pack adapters for KR/JP/EU/IN/KSA |
+| Eval harness is optional in LangSmith; non-existent in Bedrock/Copilot | `oya-foundry-eval-*` is a mandatory CI gate before capability publishing |
+
+---
+
+## 11i. Industry patterns adopted
+
+The following patterns are adopted from industry-leading agentic platforms and are reflected in this PRD's architecture:
+
+| Pattern | Industry source | Oyatie Foundry implementation |
+|---|---|---|
+| **Structured capability registry with versioned schema** | Palantir Foundry Ontology actions; OpenAI Responses / Agents tool schema | Semver-versioned `Capability` entity in `oya-foundry-capability-kernel`; `registry/catalog/<crate>.yaml` as source of truth; `foundry.capability_registered.v1` event on publish |
+| **Per-step audit trail with tamper-evidence** | Palantir audit log; AWS CloudTrail | Merkle-chained `Evidence` with Ed25519 per-record signature (ADR-0003, ADR-0028); chain segment root frozen on `Run` completion |
+| **Multi-provider model abstraction behind a stable trait** | LangChain `BaseLLM`; AWS Bedrock model catalog | `ProviderAdapter` trait in `oya-foundry-provider-kernel`; `ProviderKind` enum; per-adapter crate isolation; `ProviderAuth` enum covers API-key / subscription / OAuth / vendor-managed-identity |
+| **Graduated autonomy tiers with human-in-the-loop gates** | GitHub Copilot (human review before merge); AWS Bedrock human-review integration | `AutonomyTier` T0..T5; `AutonomyCeiling::permit` enforced on every run; T3+ requires explicit tenant opt-in; EAC capped at T2 default |
+| **Cross-session memory with typed retention** | OpenAI Responses / Conversations state; AWS Bedrock managed memory | `CrossSessionMemory` (declarative / episodic / procedural); per-record `data_class`; DSR cascade ack mandatory; retention bound by tenant policy |
+| **Eval harness as first-class CI gate** | LangSmith evaluation suite; OpenAI Evals | `oya-foundry-eval-*`; nightly eval + A/B routing gate; `foundry.eval.run` idempotent API; cohort evidence required for capability promotion |
+| **Supply-chain attestation for every artifact** | GitHub supply chain security (Sigstore); AWS Artifact | Cosign + Rekor + Trivy + SBOM (ADR-0039); `builder.supply_chain_attested.v1` on every release; `oya-foundry-supply-app` CI gate |
+| **Wasm sandbox for third-party plugin extension** | Cloudflare Workers (V8 isolate); Fastly Compute@Edge | Wasmtime + WASI Preview 2 (ADR-0023); per-plugin trust gate; `PluginSigner::cosign` required before marketplace listing |
+| **Declarative policy-as-code for authorization** | AWS Cedar (Amazon Verified Permissions); OPA | Cedar policy fragments (ADR-0007); `AutonomyCeiling` + `CapabilityId` as principal+resource; per-pack policy overlay |
+| **Outbox pattern for reliable event emission** | AWS event-driven storage streams / transactional outbox before Kafka | Outbox + Kafka (ADR-0046, ADR-0050); `Evidence` emit on hot path; circuit-break shifts to local persistent queue on audit-chain unavailability |
+| **MCP (Model Context Protocol) for tool interoperability** | GitHub Copilot MCP integration; Anthropic MCP | `oya-foundry-mcp-adapter` (ADR-0001); tenant-controlled MCP-server enable; per-binding capability allow-list |
+| **FinOps unit-economics surfaced to tenants** | AWS Cost Explorer; Anthropic usage dashboard | Per-tenant per-capability cost in `UsageWindow`; `oya-platform-metering-kernel`; FinOps console; `foundry.provider_failover.v1` fed to FinOps stream |
+| **Progressive delivery with canary + rollback** | Argo Rollouts; AWS CodeDeploy | Argo Rollouts for capability + adapter promotion (ADR-0050); per-capability semver deprecation horizon ≥ 12 months (ADR-0040) |
+| **Observability with distributed tracing** | LangSmith tracing; AWS X-Ray; OpenTelemetry everywhere | OpenTelemetry (ADR-0042); per-step `latency_ms`; hot-path benchmarks wired to `oya-foundry-fitness-bench` |
+
+---
+
+## 11j. Anti-patterns avoided
+
+| Anti-pattern | Risk | Oyatie Foundry guard |
+|---|---|---|
+| **Runaway agent loops** (agent invokes itself or peers without bound) | Cost blowout; infinite recursion; prompt injection amplification | `Run.max_steps` per capability; `AutonomyCeiling::permit` gates every recursive invocation; `Run.state = rejected_autonomy` on ceiling breach; EAC hard-capped at T2 |
+| **Cost blowouts from unconstrained LLM calls** | Provider bill exceeds reserved budget; tenant stranded mid-project | `UsageWindow` with `usage_limit_pct` + `reserve_remaining_pct`; failover/cooldown triggered at threshold; `provider_cost_route` optimization capability (T2); per-capability `max_tokens` |
+| **Prompt injection via untrusted tool outputs** | Malicious tool response hijacks agent goal | `Capability.tool_calls_allowed` explicit allowlist; `SideEffectClass` declares blast radius; per-step `data_classes_touched` checked against `Capability.data_classes_touched` declaration; no tool output can elevate `AutonomyTier` |
+| **Tool-output exfiltration** | Tool response smuggles secrets, tenant data, or credentials into downstream prompts or logs | Tool outputs inherit `data_class`; `SecretReference` values remain opaque; evidence/log serializers redact secret-like payloads; cross-tenant writes require Cedar approval and fail closed on unknown data class |
+| **Model / provider lock-in** | Vendor pricing power; residency violation if provider exits region | `ProviderAdapter` trait isolates all provider specifics; `ProviderKind.Custom(CustomProviderRef)` for future providers; per-pack failover chain; residency-validated routing rejects non-compliant providers |
+| **Silent account switching** | Audit gap; potential cross-tenant data exposure | `ProviderAccount` state machine forbids concurrent `Active` with same `(provider, subscription)`; every switch emits `foundry.subscription_session_renewed.v1` audit event |
+| **Secrets in repo / logs / fixtures** | Credential exfiltration | `SecretReference` newtype with `sref://` scheme; `Debug` shows only redacted tail; `guard-secrets.mjs` CI scan blocks merge; OpenBao only persists reference, not secret material |
+| **Uncatalogued capabilities running in production** | No audit trail; no autonomy enforcement | `oya-foundry-registry-app` rejects capabilities not in `registry/catalog/`; per-PR catalog-validation gate; `FoundationBypass` record required for any skip |
+| **Cross-tenant memory leaks** | Privacy violation; regulatory breach | `CrossSessionMemory.tenant_id` mandatory; cross-tenant retrieval refused at kernel; DSR cascade mandatory; per-record `data_class` checked at every access |
+| **Evidence emission bypassed for performance** | Capability runs without audit trail | Evidence emit is on the hot path; `Evidence::emit` failure causes `Run` failure; no performance exception path exists |
+| **Autonomous agent operating outside registered surface** | Uncontrolled side effects; no audit | Every agent run must originate from a registered `Capability` with a registered `AutonomyCeiling`; "agent-internet" style unconstrained runs are explicitly out-of-scope |
+| **Foundation bypasses accumulating silently** | Architecture drift; compliance gap | `FoundationBypass` requires `regression_window_days > 0`; quarterly bypass-remediation sprint; scorecard publishes open-bypass count; open bypass count is a top-level success metric |
+| **Provider residency violation** | Legal / regulatory breach in data-sovereign markets | `Provider.residency_compliant_for` × `Tenant.residency` validated at routing; per-pack adapter restriction; fail-fast on residency breach (no silent degradation); chaos-tested quarterly |
+
+---
+
+## 11k. Hyperscaler bar
+
+This section captures the concrete hyperscaler-grade commitments that differentiate Oyatie Foundry from "startup-grade" agentic platforms.
+
+Stage split: Preview availability targets apply at the Foundry Preview Proof Ladder stage; GA performance budgets apply only after the GA benchmark lane is active and must be treated as planned until that lane is green.
+
+| Bar | Commitment | Enforcement mechanism |
+|---|---|---|
+| **Evidence completeness: 100%** | Every regulated capability emits a Merkle-linked, Ed25519-signed `Evidence` record per step; 0 silent drops allowed | `oya-foundry-fitness-foundry-evidence-completeness` CI gate blocks merge; `Evidence` emit failure blocks `Run` completion; SLO 99.99% evidence emission |
+| **Audit retention: 7 years** | `Run` / `Step` / `Evidence` / `PolicyDecision` retained for 7 years across Postgres + ClickHouse + S3-class cold store | ADR-0003 audit-chain retention; `schema_version` versioning on all entities; migration policy per §5.7; `BulkExportEvidence` regulator API |
+| **Autonomy ceiling: no bypass ever** | `AutonomyCeiling::permit` is the only execution path for any capability invocation; no internal-only exception | Cedar policy; `run_rejected.v1` emitted on every denial; chaos-test of bypass attempts run quarterly; hard constraint in §3.2 anti-scope |
+| **Residency enforcement: fail-fast** | A residency-strict tenant never has data routed to a non-compliant provider; preference is fail-fast over lossy degradation | `Provider.residency_compliant_for` × `Tenant.residency` routing check; per-pack adapter restriction; quarterly chaos test |
+| **Supply-chain: 100% attested** | Every release artifact carries Cosign signature + SBOM + Trivy scan; 0 unattested artifacts in production | `oya-foundry-supply-app` CI gate; `builder.supply_chain_attested.v1` per release; per-pack supply-chain overlay (KCMVP, GAIA-X, FedRAMP, NCA-NCS) |
+| **Horizontal scalability: stateless daemon** | Foundry daemon carries no per-request mutable state; `ProviderRoute` is transient per `Run`; all state in Postgres + Redis + Kafka | Per-tenant sharding on `(tenant_id, time)` for `Run` / `Step` / `Evidence`; Citus per-tenant; ClickHouse cold archive; no daemon-local state that would prevent horizontal scale-out |
+| **SLO 99.95% capability invocation (Preview)** | Control-plane SLO for capability invocation; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Hot-path benchmarks in `oya-foundry-fitness-bench`; Argo Rollouts per-capability canary; circuit-break + failover per provider |
+| **License gate: no AGPL/GPL in product code** | All third-party dependencies Apache-2 / MIT / BSD / MPL-2; AGPL / GPL denied at CI | `oya-foundry-fitness-license` CI gate; per-dep license tier in §8 |
+| **Zero cross-axis contract violations on main** | Every cross-axis contract change reviewed; `oya-foundry-fitness-contracts` blocks any contract drift | Per-PR fitness gate; `FoundationBypass` mandatory on any skip; bypass count < 5 open at GA is a top-level success metric |
+| **Perf budget enforced by CI** | Capability invocation p99 ≤ 200 ms at GA; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms; not guidelines — CI failures | `oya-foundry-fitness-bench` hard failure on regressions |
+| **Regulator portal per pack** | Each regional pack exposes a `RegulatorPortal` for autonomy-decision evidence export; not a single global endpoint | Per-pack `RegulatorPortal` implementation required before per-pack GA; attested at Proof Ladder R5 |
+| **Model-vendor freedom: zero lock-in** | Adding a new provider requires only a new `ProviderAdapter` crate; the `ProviderAdapter` trait is a stability surface (ADR-0040); no business logic touches provider internals | Trait stability policy; `ProviderKind::Custom(CustomProviderRef)` escape hatch; per-pack adapter crate isolation |
+
+---
+
+## 12. Open questions
 
 1. **Subscription-mode disclosure surfacing**: at tenant onboarding (one-time), or per-capability-invocation (every time)? Default proposed: tenant onboarding + per-renewal record + audit-chain export; per-invocation disclosure only on demand.
 2. **Per-tenant subscription credential storage**: tenant brings their own OpenAI / Anthropic / Google subscription token, or Oyatie holds per-tenant subscriptions? Default proposed: tenant brings own (BYO-subscription); Oyatie facilitates renewal flow without persisting human credential.
@@ -849,7 +949,7 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 8. **Provider failover policy when residency restricts options to one provider per pack**: fail-fast on provider unavailability, or accept higher-class loss-of-service? Default proposed: fail-fast (residency-strict); per-tenant opt-in for cross-pack failover with explicit consent.
 9. **Capability-author bot vs human ratio (Foundry engineering platform team operating model)**: target ratio of Foundry-authored ADRs / capability registrations vs human-authored; council pending.
 
-## 12. Decision log
+## 13. Decision log
 
 | Date | Decision | Rationale |
 |---|---|---|
@@ -864,10 +964,11 @@ License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden
 | 2026-05-09 | MCP integration gated until spec stabilizes | ADR-0001 ecosystem-integration plane |
 | 2026-05-09 | EAC default T2; T3 opt-in per-repository per-lane | Engineering safety; gradual autonomy tightening |
 
-## 13. Sources scanned
+## 14. Sources scanned
 
 - [`docs/PRD.md`](../../PRD.md) §1.5, §3.1 (Foundry-as-accelerator), §6
 - [`docs/DESIGN.md`](../../DESIGN.md) §1, §3, §4, §5, §10, §12; §3 (Foundry-as-accelerator detailed)
+- [OpenAI API deprecations](https://platform.openai.com/docs/deprecations/) and [Assistants migration guide](https://platform.openai.com/docs/assistants/how-it-works) (checked 2026-05-17: Assistants API is deprecated; replacement path is Responses API + Conversations API)
 - [`docs/PRIVACY-PROGRAM.md`](../../PRIVACY-PROGRAM.md) §2.2.5 (inference / agent boundary), §2.4 (agent autonomy ceiling), §2.5 Q4
 - [`docs/GLOSSARY.md`](../../GLOSSARY.md) §1, §5, §8 (Oyatie-specific terms)
 - Flat Foundry implementation: `crates/oya-foundry-*`; current `repoctl` compatibility runtime: `crates/oya-tooling-cli-dev-runtime/`. The retired `services/agent/daemon/` path is historical only and must not be recreated.
