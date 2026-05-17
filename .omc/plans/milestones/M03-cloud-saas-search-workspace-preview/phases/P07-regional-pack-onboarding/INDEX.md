@@ -5,6 +5,10 @@ id: M03-P07
 title: Regional Pack Onboarding (KR + one of JP/US/EU)
 status: complete
 purpose: Onboard ≥ 2 regional packs per W-Cloud-Preview gate; KR-Seoul mandatory, second pack council-elected (JP-Tokyo / US-Northern-Virginia / EU-Frankfurt).
+execution_variant: merge-into-existing-crates
+decided_at: 2026-05-17
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 backports PackOnboardingPhase + PackInstallStatus + RegionalRolloutGate into existing oya-regional-pack-domain::pack_onboarding_phase instead of scaffolding new onboarding crates. Honors no-over-scaffolding rule."
 ---
 
 # M03-P07 — Regional Pack Onboarding
