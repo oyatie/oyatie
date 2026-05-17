@@ -4496,3 +4496,170 @@ fn temp_dir(label: &str) -> std::path::PathBuf {
         .as_nanos();
     std::env::temp_dir().join(format!("oya-{label}-{}-{nanos}", std::process::id()))
 }
+
+// ─── documentation-system integration tests (M02b/P22 exit-gate lane 3) ─────
+
+/// Proves the documentation-system validator catches an `active` pipeline record
+/// whose check_command is absent from the wired-commands catalog — the canonical
+/// synthetic-violation shape for the lean-a5-documentation lane (ADR-0063 §"doc
+/// coverage enforced").  The check-script override (`--check-script`) replaces
+/// the canonical catalog with a fixture file that deliberately omits
+/// `cargo run -p oya-dev-cli -- catalog validate`, so the `catalog` active step
+/// is flagged as unwired.
+#[test]
+fn documentation_system_gate_catches_unwired_active_command() {
+    let temp = temp_dir("doc-system-violation");
+    fs::create_dir_all(&temp).expect("temp dir created");
+
+    // DOCUMENTATION.md declares the fitness lane so the lane-declared check passes.
+    let doc_path = temp.join("DOCUMENTATION.md");
+    fs::write(
+        &doc_path,
+        "# Documentation\n\noya-foundry-fitness-docs is the fitness lane.\n",
+    )
+    .expect("DOCUMENTATION.md written");
+
+    // wiki quickref not referenced → wiki_quickref_referenced=false, skip presence check.
+    let quickref_path = temp.join("quickref-absent.md");
+
+    // check-script fixture: contains commands for all steps EXCEPT catalog validate —
+    // this leaves the `catalog` active record unwired.
+    let check_script_path = temp.join("check.sh");
+    fs::write(
+        &check_script_path,
+        "cargo run -p oya-dev-cli -- gate validate api-semver\n\
+         cargo run -p oya-dev-cli -- gate validate documentation-system\n\
+         cargo run -p oya-dev-cli -- gate validate adr-citation\n\
+         cargo run -p oya-dev-cli -- gate validate doc-catalog\n",
+    )
+    .expect("check script written");
+
+    // Pipeline TSV: all 6 required steps; `catalog` is active with a check_command
+    // that is NOT present in the check-script above (the violation).
+    let pipeline_path = temp.join("pipeline.tsv");
+    fs::write(
+        &pipeline_path,
+        "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\n\
+         rustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\n\
+         openapi\toya doc openapi\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate api-semver\tcontracts\tcontracts are absent; api-semver guards first contract adoption\n\
+         mdbook\toya doc mdbook\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\n\
+         adr-index\toya doc adr-index\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\n\
+         catalog\toya doc catalog\tactive\tcargo run -p oya-dev-cli -- catalog validate\tregistry/catalog\t\n\
+         lint\toya doc lint\tactive\tcargo run -p oya-dev-cli -- gate validate doc-catalog\tdocs\t\n",
+    )
+    .expect("pipeline TSV written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "documentation-system",
+            "--documentation",
+            doc_path.to_str().expect("utf8 doc path"),
+            "--pipeline",
+            pipeline_path.to_str().expect("utf8 pipeline path"),
+            "--check-script",
+            check_script_path.to_str().expect("utf8 check script path"),
+            "--wiki-quickref",
+            quickref_path.to_str().expect("utf8 quickref path"),
+            "--repo-root",
+            temp.to_str().expect("utf8 repo root"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        !output.status.success(),
+        "expected failure for unwired active check_command\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("documentation system validation failed"),
+        "stderr must contain failure message; got: {stderr}"
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+/// Proves the documentation-system validator passes when all six required
+/// pipeline steps are present and every active/adoption-guard record has its
+/// check_command present in the wired-commands catalog — clean-path smoke-test.
+#[test]
+fn documentation_system_gate_passes_clean_pipeline() {
+    let temp = temp_dir("doc-system-clean");
+    fs::create_dir_all(&temp).expect("temp dir created");
+
+    // DOCUMENTATION.md with fitness lane declaration; no wiki quickref reference
+    // so the wiki-quickref presence check is skipped.
+    let doc_path = temp.join("DOCUMENTATION.md");
+    fs::write(
+        &doc_path,
+        "# Documentation\n\noya-foundry-fitness-docs is the fitness lane.\n",
+    )
+    .expect("DOCUMENTATION.md written");
+
+    let quickref_path = temp.join("quickref-absent.md");
+
+    // check-script fixture: contains all four check_commands used by
+    // active/adoption-guard records below.
+    let check_script_path = temp.join("check.sh");
+    fs::write(
+        &check_script_path,
+        "cargo run -p oya-dev-cli -- gate validate api-semver\n\
+         cargo run -p oya-dev-cli -- gate validate documentation-system\n\
+         cargo run -p oya-dev-cli -- gate validate adr-citation\n\
+         cargo run -p oya-dev-cli -- catalog validate\n\
+         cargo run -p oya-dev-cli -- gate validate doc-catalog\n",
+    )
+    .expect("check script written");
+
+    // Pipeline TSV: all 6 required steps; every check_command is present in
+    // the check-script above — no violations.
+    let pipeline_path = temp.join("pipeline.tsv");
+    fs::write(
+        &pipeline_path,
+        "step_id\tdocumented_command\tstate\tcheck_command\tscope_path\trationale\n\
+         rustdoc\toya doc rustdoc\ttracked-deferred\t\tcrates\tblocked: full rustdoc artifact publication is not part of the bootstrap lane\n\
+         openapi\toya doc openapi\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate api-semver\tcontracts\tcontracts are absent; api-semver guards first contract adoption\n\
+         mdbook\toya doc mdbook\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate documentation-system\tdocs/site\tpublic mdbook source is absent; documentation-system guards the pipeline registry\n\
+         adr-index\toya doc adr-index\tadoption-guard\tcargo run -p oya-dev-cli -- gate validate adr-citation\tdocs/decisions\tadr-citation prevents stale ADR references until generator publication ships\n\
+         catalog\toya doc catalog\tactive\tcargo run -p oya-dev-cli -- catalog validate\tregistry/catalog\t\n\
+         lint\toya doc lint\tactive\tcargo run -p oya-dev-cli -- gate validate doc-catalog\tdocs\t\n",
+    )
+    .expect("pipeline TSV written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "documentation-system",
+            "--documentation",
+            doc_path.to_str().expect("utf8 doc path"),
+            "--pipeline",
+            pipeline_path.to_str().expect("utf8 pipeline path"),
+            "--check-script",
+            check_script_path.to_str().expect("utf8 check script path"),
+            "--wiki-quickref",
+            quickref_path.to_str().expect("utf8 quickref path"),
+            "--repo-root",
+            temp.to_str().expect("utf8 repo root"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected pass for fully-wired pipeline\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout).contains("documentation system validation passed"),
+        "stdout must confirm pass; got: {}",
+        String::from_utf8_lossy(&output.stdout)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
