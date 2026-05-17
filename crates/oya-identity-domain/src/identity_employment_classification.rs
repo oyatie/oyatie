@@ -23,7 +23,7 @@ use std::fmt;
 ///
 /// Each variant's `as_str()` value is the wire/SQL string that appears in the
 /// `identity.employments.classification` column (see `V001__identity_init.sql`
-/// CHECK constraint). Round-trip via `EmploymentClassification::from_str()`.
+/// CHECK constraint). Round-trip via `EmploymentClassification::from_wire()`.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 pub enum EmploymentClassification {
     /// 정규직 — full-time permanent employee
@@ -77,7 +77,7 @@ impl EmploymentClassification {
     }
 
     /// Parse from the Korean wire string.
-    pub fn from_str(s: &str) -> Result<Self, UnknownEmploymentClassification> {
+    pub fn from_wire(s: &str) -> Result<Self, UnknownEmploymentClassification> {
         match s {
             "정규직" => Ok(Self::Regular),
             "계약직" => Ok(Self::Contract),
@@ -134,14 +134,14 @@ mod tests {
         for variant in EmploymentClassification::ALL {
             let wire = variant.as_str();
             let parsed =
-                EmploymentClassification::from_str(wire).expect("all wire strings must round-trip");
+                EmploymentClassification::from_wire(wire).expect("all wire strings must round-trip");
             assert_eq!(parsed, variant, "round-trip failed for {wire}");
         }
     }
 
     #[test]
     fn from_str_rejects_unknown_value() {
-        let err = EmploymentClassification::from_str("unknown")
+        let err = EmploymentClassification::from_wire("unknown")
             .expect_err("unknown string must be rejected");
         assert_eq!(err.0, "unknown");
         let msg = err.to_string();
@@ -158,7 +158,7 @@ mod tests {
     #[test]
     fn from_str_rejects_empty_string() {
         let err =
-            EmploymentClassification::from_str("").expect_err("empty string must be rejected");
+            EmploymentClassification::from_wire("").expect_err("empty string must be rejected");
         assert_eq!(err.0, "");
         assert!(
             err.to_string()
@@ -169,7 +169,7 @@ mod tests {
     #[test]
     fn from_str_rejects_english_equivalent() {
         // English labels must not accidentally match — only Korean wire strings are valid
-        let err = EmploymentClassification::from_str("Regular")
+        let err = EmploymentClassification::from_wire("Regular")
             .expect_err("English label must not match");
         assert_eq!(err.0, "Regular");
     }
@@ -196,7 +196,7 @@ mod tests {
             "임원",
         ];
         for wire in expected_wire_strings {
-            let parsed = EmploymentClassification::from_str(wire)
+            let parsed = EmploymentClassification::from_wire(wire)
                 .unwrap_or_else(|_| panic!("wire string {wire:?} must parse"));
             assert_eq!(parsed.as_str(), wire, "as_str must be identity for {wire}");
         }
