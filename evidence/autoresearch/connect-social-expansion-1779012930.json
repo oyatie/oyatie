@@ -1,0 +1,47 @@
+{
+  "evidence_id": "connect-social-expansion-1779012930",
+  "created_at": "2026-05-17T10:20:00Z",
+  "task": "Extend Connect to full social-network super-app vision with 4 new sub-product PRDs",
+  "directive_ref": "user directive 2026-05-17T10:20Z",
+  "new_files": [
+    "specs/products/connect/social.json",
+    "specs/products/connect/shorts.json",
+    "specs/products/connect/network.json",
+    "specs/products/connect/anonymous.json"
+  ],
+  "modified_files": [
+    "specs/products/connect/suite.json"
+  ],
+  "json_validation": {
+    "social.json": "PASS",
+    "shorts.json": "PASS",
+    "network.json": "PASS",
+    "anonymous.json": "PASS",
+    "suite.json": "PASS"
+  },
+  "industry_sources_fetched": [
+    "https://about.instagram.com/features",
+    "https://newsroom.tiktok.com/en-us",
+    "https://www.linkedin.com/help/linkedin/answer/a548441",
+    "https://www.teamblind.com/about"
+  ],
+  "dual_context_isolation": {
+    "social": "separate auth realms, separate Ontology sub-graphs, pillar-keyed feed/stories/search, no cross-suggest",
+    "shorts": "separate Foundry FYP model instances per context_kind, pillar-partitioned training pipelines, monetization ledger per pillar",
+    "network": "work-context primary, personal projection opt-in with consent token, open-to-work hidden from employer in personal pillar",
+    "anonymous": "BLAKE3 keyed hash with HSM-backed per-tenant salt, no FK from AnonPost to identity table, four-eyes legal hold for identity reveal"
+  },
+  "competitive_analysis_bp07_compliance": true,
+  "acceptance_criteria_count": {
+    "social": 6,
+    "shorts": 6,
+    "network": 6,
+    "anonymous": 6
+  },
+  "production_readiness_gates_count": {
+    "social": 6,
+    "shorts": 6,
+    "network": 6,
+    "anonymous": 7
+  }
+}

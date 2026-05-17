@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/connect/social.schema.json",
+  "title": "ProductPrd:ConnectSocial",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-CONNECT-SOCIAL",
+    "version": "1.0.0",
+    "status": "Draft",
+    "owner_team": "connect-product-council",
+    "created_at": "2026-05-17T10:20:00Z",
+    "purpose": "Connect Social PRD: visual-social product combining Instagram + Snapchat patterns — photo/video feed, stories, reels, AR effects, close-friends rings, collaborative posts, DM integration — with strict professional/personal dual-context isolation and deep Workflow/Ontology/Foundry ecosystem integration."
+  },
+  "identity": {
+    "product_id": "connect-social",
+    "suite_id": "connect",
+    "owning_axis": "workspace-communications",
+    "product_class": "suite-app",
+    "user_facing_surface": true,
+    "context_model": ["personal", "work"],
+    "crate_refs_planned": [
+      "oya-connect-social-kernel",
+      "oya-connect-social-domain",
+      "oya-connect-social-app",
+      "oya-connect-social-rest"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+      "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+      "$ref:bominal/decisions/ADR-0132-data-ownership-pillars.md",
+      "$ref:bominal/decisions/ADR-0140-multi-jurisdiction-policy.md",
+      "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/products/workflow.json",
+      "$ref:specs/products/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "user_decisions": [
+      "2026-05-17:D-CONNECT-SOCIAL-01 visual social is a first-class Connect sub-product combining Instagram + Snapchat patterns",
+      "2026-05-17:D-CONNECT-SOCIAL-02 professional and personal social feeds are hermetically isolated — no cross-feed, no cross-search, no cross-suggest"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0208#dual-context-model",
+  "target_users": [
+    {
+      "persona": "personal_user",
+      "interface": "personal feed, stories, reels, AR camera, DMs",
+      "billing": "personal account tier; never employer-visible"
+    },
+    {
+      "persona": "employee_brand_user",
+      "interface": "professional social feed, company stories, team highlights",
+      "billing": "workspace seat; employer context only"
+    },
+    {
+      "persona": "content_creator",
+      "interface": "creator studio, analytics dashboard, monetization panel",
+      "billing": "creator program; context-scoped"
+    },
+    {
+      "persona": "enterprise_it_admin",
+      "interface": "professional social policy console, content moderation admin",
+      "billing": "enterprise tenant admin"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-SOCIAL-01",
+      "given": "a user posts a photo in personal context",
+      "when": "the post is written to storage and indexed",
+      "then": "context_kind=personal and ownership_pillar=personal are immutable on the artifact; the post does not appear in any professional feed, search index, or Ontology work-graph",
+      "verification_command": "cargo nextest -p oya-connect-social-domain -- test_personal_post_pillar_immutable"
+    },
+    {
+      "id": "AC-SOCIAL-02",
+      "given": "a user has both personal and work persona grants",
+      "when": "they switch context in ConnectShellPersonaSwitcher",
+      "then": "the social feed, stories ring, close-friends list, and AR camera session are fully reconstructed from the new context; zero cross-context artifact references survive the switch",
+      "verification_command": "cargo nextest -p oya-connect-social-domain -- test_context_switch_reconstructs_all_surfaces"
+    },
+    {
+      "id": "AC-SOCIAL-03",
+      "given": "a story is created with ephemeral TTL",
+      "when": "the TTL expires",
+      "then": "the story artifact is purged from CDN, search index, and Ontology graph within 60 seconds; a tombstone audit event is emitted",
+      "verification_command": "cargo nextest -p oya-connect-social-domain -- test_ephemeral_story_purge_within_ttl"
+    },
+    {
+      "id": "AC-SOCIAL-04",
+      "given": "a Workflow automation is configured to cross-post a professional story to the Workspace newsfeed",
+      "when": "the story is published in work context",
+      "then": "Workflow receives a SocialContentPublished event with explicit consent token; cross-post executes only within professional context; personal context is never consulted",
+      "verification_command": "cargo nextest -p oya-connect-social-domain -- test_workflow_crosspost_requires_consent_and_stays_in_work_context"
+    },
+    {
+      "id": "AC-SOCIAL-05",
+      "given": "an AR effect is applied to a photo",
+      "when": "the photo is saved or shared",
+      "then": "effect metadata is stored as a non-sensitive annotation; biometric data derived from face-detection is never persisted beyond the in-session rendering pipeline",
+      "verification_command": "cargo nextest -p oya-connect-social-domain -- test_ar_no_biometric_persistence"
+    },
+    {
+      "id": "AC-SOCIAL-06",
+      "given": "a collaborative post is created between two users",
+      "when": "both users are in personal context",
+      "then": "the collaborative artifact is owned by personal pillar for both users; if either user's context is work, the collaboration requires explicit cross-user consent and is audit logged",
+      "verification_command": "cargo nextest -p oya-connect-social-domain -- test_collab_post_ownership_and_consent"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "photo and video feed (personal + professional)",
+        "stories (24h ephemeral, TTL-purge)",
+        "close-friends rings (personal context only)",
+        "DM integration via Connect Messenger",
+        "basic AR camera filters (client-side, no biometric persistence)",
+        "context switcher integration with ConnectShellPersonaSwitcher"
+      ],
+      "stable": [
+        "short-form reels (< 90s) with in-app editor",
+        "collaborative posts with dual-owner consent",
+        "creator analytics dashboard (context-scoped)",
+        "Ontology relationship graph integration (follow graph per context)",
+        "Workflow cross-post automation contracts",
+        "shopping product tagging (personal context; professional product catalog in work context)"
+      ],
+      "GA": [
+        "full AR effects SDK (third-party effect developers)",
+        "creator monetization (personal: fan subscriptions; professional: sponsored content program)",
+        "Foundry agentic discovery feed (relevance model per context)",
+        "regional packs: KR, US, EU locale UX + content-moderation overlays",
+        "Live streaming (personal and professional)",
+        "Ads integration (context-isolated ad auction; personal ads never use work data)"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "cross-context feed blending",
+        "why": "ADR-0208 pillar boundary forbids cross-pillar joins; personal and professional feeds are hermetically separate"
+      },
+      {
+        "item": "biometric data persistence from AR effects",
+        "why": "privacy and regulatory risk; face-detection is in-session rendering only"
+      },
+      {
+        "item": "employer access to personal social content",
+        "why": "ADR-0215 personal pillar is never employer-visible"
+      }
+    ]
+  },
+  "dual_context_isolation": {
+    "mechanism": "separate auth realms per context_kind; ConnectSocialFeed, ConnectStoriesRing, ConnectFollowGraph, and ConnectSocialSearchIndex are each pillar-keyed; Cedar policy denies any cross-pillar read or join at the domain layer",
+    "separate_auth_realms": true,
+    "separate_audit_chains": true,
+    "no_cross_feed": true,
+    "no_cross_search": true,
+    "no_cross_suggest": true,
+    "follow_graph_isolation": "personal follow graph and professional follow graph are separate Ontology sub-graphs; no shared node references",
+    "notification_isolation": "social notification topics are pillar-prefixed; personal social notifications never route to work notification channels",
+    "enforcement_lane": "oya-foundry-fitness-connect-pillar"
+  },
+  "ecosystem_integration": {
+    "workflow": {
+      "contracts": [
+        "SocialContentPublished — triggers cross-post automations, brand publishing workflows, team highlight campaigns",
+        "SocialEngagementMilestone — triggers creator reward workflows, community recognition automations",
+        "SocialModerationDecision — triggers policy enforcement workflows in professional context"
+      ],
+      "consent_required": true,
+      "context_scoped": true
+    },
+    "ontology": {
+      "contracts": [
+        "SocialFollowRelationship — typed Ontology edge between User entities per context",
+        "SocialContentArtifact — typed Ontology node linked to creator identity, tags, and media assets",
+        "SocialEngagementSignal — reaction/comment/share edges for relevance modeling"
+      ],
+      "cross_product_boundary": "Ontology adapter only; Social never calls Workspace or Vertical crates directly"
+    },
+    "foundry": {
+      "contracts": [
+        "FeedRelevanceModel — Foundry agentic model surfaces per-context ranked feed",
+        "ContentModerationAgent — Foundry agent flags policy-violating content in professional context",
+        "CreatorDiscoveryAgent — Foundry agent surfaces creator recommendations per context"
+      ]
+    },
+    "workspace": "professional social feed integrates with Workspace newsfeed via Workflow cross-post contract; no direct import",
+    "ads": "context-isolated ad auction; personal ad signals never cross to professional context; professional sponsored content requires explicit campaign consent"
+  },
+  "competitive": [
+    {
+      "competitor": "Instagram (Meta)",
+      "observed_strengths": ["visual feed maturity", "Reels discovery", "Stories ubiquity", "AR effects breadth", "creator monetization", "shopping integration"],
+      "source_evidence_refs": ["https://about.instagram.com/features — Reels, Stories, DMs, Search & Explore"],
+      "we_beat_on": [
+        "strict personal/professional context isolation with audit chain",
+        "Workflow-native cross-post automations with consent tokens",
+        "Ontology-backed follow graph for professional networking",
+        "no cross-context ad targeting",
+        "GDPR/PIPA-compliant regional packs"
+      ],
+      "measurable_target": "zero cross-pillar feed bleed; AR biometric persistence = 0 bytes; story TTL purge < 60s"
+    },
+    {
+      "competitor": "Snapchat",
+      "observed_strengths": ["ephemeral stories", "AR Lens platform", "Discover content hub", "youthful UX"],
+      "source_evidence_refs": ["snap.com — ephemeral content, AR filters, Discover"],
+      "we_beat_on": [
+        "enterprise-grade dual-context isolation",
+        "audit chain for professional stories",
+        "AR without biometric persistence",
+        "Foundry agentic discovery replacing algorithmic opacity"
+      ],
+      "measurable_target": "story ephemeral purge < 60s; AR in-session only; Foundry feed relevance p95 < 200ms"
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "ephemeral_stories_ttl",
+      "source": "Instagram Stories, Snapchat",
+      "implementation": "story artifact carries ttl_expires_at; a scheduled Foundry task purges CDN + index + Ontology node on expiry"
+    },
+    {
+      "pattern": "close_friends_ring",
+      "source": "Instagram Close Friends",
+      "implementation": "personal-context-only audience ring; ring membership is a personal-pillar Ontology edge; never visible in work context"
+    },
+    {
+      "pattern": "collaborative_post_dual_owner",
+      "source": "Instagram Collab Posts",
+      "implementation": "two-party artifact with consent token from each owner; pillar must match or cross-context consent must be explicitly granted and audit logged"
+    },
+    {
+      "pattern": "ar_effect_marketplace",
+      "source": "Instagram / Snapchat Lens Studio",
+      "implementation": "third-party AR effect bundles distributed via Foundry catalog; effects run client-side WebAssembly; face-mesh data never leaves device"
+    },
+    {
+      "pattern": "creator_analytics_dashboard",
+      "source": "Instagram Insights",
+      "implementation": "per-context creator analytics; professional context analytics may be shared with employer only with explicit consent and Workflow approval card"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "anti_pattern": "cross_context_feed_join",
+      "why": "leaks personal social graph to employer; forbidden by ADR-0208",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    },
+    {
+      "anti_pattern": "biometric_persistence_from_ar",
+      "why": "GDPR Art.9 special category data; face geometry is in-session only",
+      "detection_lane": "oya-foundry-fitness-connect-ar-privacy"
+    },
+    {
+      "anti_pattern": "ad_signal_cross_context_targeting",
+      "why": "personal ad profile must never inform professional ad auction and vice versa",
+      "detection_lane": "oya-foundry-fitness-connect-ads-isolation"
+    },
+    {
+      "anti_pattern": "opaque_algorithmic_feed_with_no_audit",
+      "why": "Foundry relevance model must be auditable and explainable per context",
+      "detection_lane": "oya-foundry-fitness-foundry-model-auditability"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "dimension": "feed_load_p95_ms",
+      "target": 120,
+      "verification": "cargo bench -p oya-connect-social-bench -- feed_load_p95"
+    },
+    {
+      "dimension": "story_purge_latency_s",
+      "target": 60,
+      "verification": "cargo nextest -p oya-connect-social-domain -- test_ephemeral_story_purge_within_ttl"
+    },
+    {
+      "dimension": "ar_frame_render_ms",
+      "target": 16,
+      "verification": "cargo bench -p oya-connect-social-bench -- ar_frame_render_p95"
+    },
+    {
+      "dimension": "follow_graph_edge_write_ms",
+      "target": 50,
+      "verification": "cargo bench -p oya-connect-social-bench -- follow_graph_edge_write_p99"
+    },
+    {
+      "dimension": "cross_pillar_denial_correctness_pct",
+      "target": 100,
+      "verification": "cargo nextest -p oya-connect-social-domain -- pillar"
+    }
+  ],
+  "production_readiness_gates": [
+    {
+      "gate": "dual-context isolation",
+      "check": "cargo nextest -p oya-connect-social-domain -- pillar",
+      "must_pass": true
+    },
+    {
+      "gate": "ar-no-biometric-persistence",
+      "check": "cargo nextest -p oya-connect-social-domain -- test_ar_no_biometric_persistence",
+      "must_pass": true
+    },
+    {
+      "gate": "story-ttl-purge",
+      "check": "cargo nextest -p oya-connect-social-domain -- test_ephemeral_story_purge_within_ttl",
+      "must_pass": true
+    },
+    {
+      "gate": "perf-budget",
+      "check": "cargo bench -p oya-connect-social-bench -- feed_load_p95",
+      "must_pass": true
+    },
+    {
+      "gate": "doc-coverage",
+      "check": "oya gate validate connect-social-doc-coverage",
+      "must_pass": true
+    },
+    {
+      "gate": "regional-pack-KR",
+      "check": "oya gate validate connect-social-regional-pack --pack KR",
+      "must_pass": true
+    }
+  ],
+  "frontend_components": [
+    {
+      "component": "SocialFeedScroller",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/social-feed-scroller.json",
+      "variants": ["personal-grid", "professional-grid", "list"],
+      "tested_at_breakpoints": ["mobile-portrait", "mobile-landscape", "tablet", "desktop"]
+    },
+    {
+      "component": "StoriesRingBar",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/stories-ring-bar.json",
+      "variants": ["personal", "professional", "close-friends"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+    },
+    {
+      "component": "ARCameraOverlay",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/ar-camera-overlay.json",
+      "variants": ["effect-picker", "capture", "preview"],
+      "tested_at_breakpoints": ["mobile-portrait", "mobile-landscape"]
+    },
+    {
+      "component": "SocialPostComposer",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/social-post-composer.json",
+      "variants": ["photo", "video", "collab", "story"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+    },
+    {
+      "component": "ConnectShellPersonaSwitcher",
+      "source": "shared suite primitive",
+      "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
+      "variants": ["personal", "work", "admin-audit"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop", "wide-desktop"]
+    }
+  ],
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "SocialPost",
+        "fields": ["post_id", "creator_id", "tenant_id", "context_kind", "ownership_pillar", "media_refs", "caption", "audience_ring", "ttl_expires_at", "collab_owner_ids", "schema_version"],
+        "invariants": ["context_kind immutable", "ownership_pillar immutable", "ttl_expires_at required for stories"]
+      },
+      {
+        "entity": "SocialFollowEdge",
+        "fields": ["edge_id", "follower_id", "followee_id", "context_kind", "created_at"],
+        "invariants": ["context_kind immutable; personal and work edges are separate Ontology sub-graphs"]
+      },
+      {
+        "entity": "SocialEngagementEvent",
+        "fields": ["event_id", "actor_id", "target_post_id", "engagement_kind", "context_kind", "timestamp"],
+        "invariants": ["context_kind must match target_post context_kind"]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "SocialContentPublished",
+        "topic": "connect.social.publish",
+        "idempotency_key": "post_id+version"
+      },
+      {
+        "event": "SocialStoryExpired",
+        "topic": "connect.social.story_expired",
+        "idempotency_key": "post_id+ttl_expires_at"
+      },
+      {
+        "event": "SocialBoundaryDenied",
+        "topic": "audit.connect.social.policy",
+        "idempotency_key": "principal+resource+policy_hash"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "SocialPost",
+        "store": "Postgres/RLS + object storage (media)",
+        "sharding_key": "context_kind+tenant_id",
+        "retention": "user-controlled + regional pack overlays"
+      },
+      {
+        "aggregate": "SocialFollowGraph",
+        "store": "Ontology graph store",
+        "sharding_key": "context_kind+user_id",
+        "retention": "account lifetime"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "cross_pillar_denial_correctness_pct",
+      "targets": {"preview": 100, "stable": 100, "GA": 100},
+      "verification_ref": "cargo nextest -p oya-connect-social-domain -- pillar",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "feed_load_p95_ms",
+      "targets": {"preview": 250, "stable": 150, "GA": 120},
+      "verification_ref": "cargo bench -p oya-connect-social-bench -- feed_load_p95",
+      "lane_ref": "oya-foundry-fitness-perf-budget"
+    },
+    {
+      "name": "story_ttl_purge_s",
+      "targets": {"preview": 120, "stable": 60, "GA": 30},
+      "verification_ref": "cargo nextest -p oya-connect-social-domain -- test_ephemeral_story_purge_within_ttl",
+      "lane_ref": "cargo-nextest"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-SOCIAL-01",
+      "severity": "critical",
+      "risk": "personal social graph exposed to employer via cross-context follow-graph join",
+      "mitigation": "Ontology sub-graphs are pillar-keyed; Cedar deny-by-default at domain layer",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-SOCIAL-02",
+      "severity": "high",
+      "risk": "AR face-detection data persisted to server",
+      "mitigation": "AR pipeline is client-side WebAssembly; no face geometry leaves device; enforced by test_ar_no_biometric_persistence",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-SOCIAL-03",
+      "severity": "high",
+      "risk": "algorithmic feed creates filter bubble without transparency",
+      "mitigation": "Foundry relevance model is auditable and explainable; user can inspect feed signals",
+      "owner": "connect-product-council"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "PIPA content-retention bounds; Korea-first UX; local content moderation rules; real-name verification exemption for personal context"
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "COPPA age-gating for under-13; CCPA data deletion rights; creator tax reporting hooks"
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "GDPR Art.9 biometric prohibition enforcement; DSA content moderation transparency; lawful-basis disclosure for algorithmic feed"
+      }
+    ]
+  },
+  "decision_log": [
+    {
+      "date": "2026-05-17",
+      "decision": "ConnectSocial is a first-class Connect sub-product; Instagram + Snapchat patterns adopted with strict dual-context isolation",
+      "drivers": [
+        "user directive 2026-05-17T10:20Z: Connect = Instagram + TikTok + LinkedIn + Blind + iMessage + Gmail all in one",
+        "ADR-0208 dual-context model extended to social surfaces"
+      ]
+    }
+  ]
+}

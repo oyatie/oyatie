@@ -31,7 +31,11 @@
     "children": [
       "$ref:specs/products/connect/mail.json",
       "$ref:specs/products/connect/messenger.json",
-      "$ref:specs/products/connect/calendar.json"
+      "$ref:specs/products/connect/calendar.json",
+      "$ref:specs/products/connect/social.json",
+      "$ref:specs/products/connect/shorts.json",
+      "$ref:specs/products/connect/network.json",
+      "$ref:specs/products/connect/anonymous.json"
     ],
     "suite_boundary": "unified communications shell; each child owns domain runtime but shares persona, policy, search, notification, and audit seams"
   },

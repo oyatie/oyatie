@@ -1,0 +1,524 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/connect/network.schema.json",
+  "title": "ProductPrd:ConnectNetwork",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-CONNECT-NETWORK",
+    "version": "1.0.0",
+    "status": "Draft",
+    "owner_team": "connect-product-council",
+    "created_at": "2026-05-17T10:20:00Z",
+    "purpose": "Connect Network PRD: professional networking product combining LinkedIn patterns — professional identity, career graph, job board, articles/newsletters, learning, Sales Navigator-equivalent, skills + endorsements, groups, events — with strict professional-only context, Ontology-backed relationship graph, and deep Workflow/Foundry ecosystem integration. Personal context is read-only projection only."
+  },
+  "identity": {
+    "product_id": "connect-network",
+    "suite_id": "connect",
+    "owning_axis": "workspace-communications",
+    "product_class": "suite-app",
+    "user_facing_surface": true,
+    "context_model": ["work"],
+    "personal_context_projection": {
+      "allowed": true,
+      "scope": "user may expose a curated personal bio to professional network with explicit consent; no personal messages, posts, or social artifacts are ever surfaced in network context without explicit opt-in"
+    },
+    "crate_refs_planned": [
+      "oya-connect-network-kernel",
+      "oya-connect-network-domain",
+      "oya-connect-network-app",
+      "oya-connect-network-rest"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+      "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+      "$ref:bominal/decisions/ADR-0132-data-ownership-pillars.md",
+      "$ref:bominal/decisions/ADR-0140-multi-jurisdiction-policy.md",
+      "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/products/workflow.json",
+      "$ref:specs/products/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "user_decisions": [
+      "2026-05-17:D-CONNECT-NETWORK-01 professional networking is a first-class Connect sub-product combining LinkedIn patterns",
+      "2026-05-17:D-CONNECT-NETWORK-02 professional identity graph lives in Ontology; never exposes personal social graph"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0208#dual-context-model",
+  "target_users": [
+    {
+      "persona": "professional_individual",
+      "interface": "profile, feed, connections, job search, articles, learning, groups, events",
+      "billing": "workspace seat or individual professional tier"
+    },
+    {
+      "persona": "recruiter",
+      "interface": "talent search, pipeline management, outreach (Recruiter-tier equivalent)",
+      "billing": "recruiter subscription"
+    },
+    {
+      "persona": "sales_professional",
+      "interface": "lead discovery, relationship intelligence, account mapping (Sales Navigator-equivalent)",
+      "billing": "sales subscription"
+    },
+    {
+      "persona": "content_creator_professional",
+      "interface": "articles, newsletters, thought leadership feed",
+      "billing": "workspace seat or creator program"
+    },
+    {
+      "persona": "enterprise_it_admin",
+      "interface": "org chart integration, SSO, employee directory, policy console",
+      "billing": "enterprise tenant admin"
+    },
+    {
+      "persona": "learning_user",
+      "interface": "course library, skill assessments, learning paths, certificates",
+      "billing": "workspace seat or learning subscription"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-NETWORK-01",
+      "given": "a user has a professional profile",
+      "when": "a colleague or recruiter searches the network",
+      "then": "only work-context profile fields are returned; personal social posts, personal contacts, and personal biography are never included unless the user has explicitly opted in with consent token",
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_profile_search_excludes_personal_context"
+    },
+    {
+      "id": "AC-NETWORK-02",
+      "given": "a user connects with a professional contact",
+      "when": "the connection edge is created in Ontology",
+      "then": "the edge is typed context_kind=work and ownership_pillar=work; it is never accessible from personal social graph queries",
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_professional_connection_edge_pillar"
+    },
+    {
+      "id": "AC-NETWORK-03",
+      "given": "a recruiter runs a talent search",
+      "when": "search results are returned",
+      "then": "results contain only professional-context Ontology nodes with user-consented profile visibility; open-to-work signals are only visible to recruiters when the user has set recruiter_visible=true",
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_recruiter_search_respects_open_to_work_consent"
+    },
+    {
+      "id": "AC-NETWORK-04",
+      "given": "a sales professional uses lead discovery",
+      "when": "account maps and relationship intelligence are computed",
+      "then": "lead graph is derived from Ontology professional edges and company membership only; personal social connections are never included in lead scoring",
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_lead_discovery_excludes_personal_graph"
+    },
+    {
+      "id": "AC-NETWORK-05",
+      "given": "an employee publishes an article or newsletter",
+      "when": "the content is indexed and distributed",
+      "then": "content is scoped to professional context; employer content policy applies for work-context articles; personal opinion articles in personal context are never visible to employer unless cross-posted with consent",
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_article_content_policy_scope"
+    },
+    {
+      "id": "AC-NETWORK-06",
+      "given": "a user completes a learning course",
+      "when": "a certificate is issued",
+      "then": "the certificate is added to the professional Ontology profile node; a SkilledAsserted event is emitted; the user may share to professional feed with one-click; personal learning history is separate",
+      "verification_command": "cargo nextest -p oya-connect-network-domain -- test_learning_certificate_professional_ontology_node"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "professional profile (experience, education, skills, headline)",
+        "professional feed (connections + followed companies)",
+        "1st/2nd/3rd degree connection graph via Ontology",
+        "direct message to connections via Connect Messenger (work context)",
+        "basic job board (post, search, apply)",
+        "context switcher integration"
+      ],
+      "stable": [
+        "articles and newsletters (professional context)",
+        "recruiter talent search with open-to-work consent signals",
+        "skills endorsements and skill assessments",
+        "groups (professional communities)",
+        "events (online + hybrid professional events)",
+        "Workflow-powered hiring pipeline automations",
+        "learning library (course catalog, skill paths, certificates)",
+        "company pages with employee directory integration"
+      ],
+      "GA": [
+        "Sales Navigator-equivalent: lead discovery, account maps, relationship intelligence",
+        "Foundry agentic recruiter copilot (candidate matching, outreach drafting)",
+        "Foundry agentic sales copilot (lead scoring, next-best-action)",
+        "alumni network graph via Ontology",
+        "regional packs: KR, US, EU",
+        "paid premium tiers: Recruiter, Sales, Career, Learning",
+        "Ads: B2B professional targeting (professional context only; zero personal data)"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "personal social graph surfaced in professional network",
+        "why": "ADR-0208 pillar boundary; professional network is work-context only"
+      },
+      {
+        "item": "employer access to personal career job-search activity",
+        "why": "ADR-0215 personal pillar; open-to-work signals in personal context are never visible to current employer"
+      },
+      {
+        "item": "personal learning history visible to employer without consent",
+        "why": "ADR-0208/0215; personal learning is personal-pillar owned"
+      }
+    ]
+  },
+  "dual_context_isolation": {
+    "mechanism": "ConnectNetwork is a work-context-primary product; all Ontology edges, search indexes, feed content, and recruiter/sales data are ownership_pillar=work; personal context projection is opt-in with explicit consent token; Cedar policy denies personal→work reads without consent",
+    "separate_auth_realms": true,
+    "separate_audit_chains": true,
+    "no_cross_feed": true,
+    "no_cross_search": true,
+    "no_cross_suggest": true,
+    "personal_context_projection_consent": "user explicitly opts in via PersonalBioProjectionConsent token; token is revocable; projection is read-only snapshot, never live sync",
+    "open_to_work_protection": "open-to-work signal in personal context (hiding from current employer) is stored in personal pillar; never accessible to current employer even as tenant admin",
+    "enforcement_lane": "oya-foundry-fitness-connect-pillar"
+  },
+  "ecosystem_integration": {
+    "workflow": {
+      "contracts": [
+        "NetworkConnectionAccepted — triggers onboarding automation, CRM update, sales pipeline insert",
+        "NetworkJobApplicationSubmitted — triggers hiring pipeline workflow, ATS integration",
+        "NetworkArticlePublished — triggers distribution workflow, newsletter delivery",
+        "NetworkHiringStageAdvanced — triggers recruiter pipeline automation",
+        "NetworkSkillAsserted — triggers learning path recommendation workflow"
+      ],
+      "consent_required": true,
+      "context_scoped": true
+    },
+    "ontology": {
+      "contracts": [
+        "ProfessionalIdentityNode — canonical professional profile entity in Ontology",
+        "ProfessionalConnectionEdge — typed work-context relationship edge",
+        "CompanyMembershipEdge — employee→company typed edge used for org chart and lead discovery",
+        "SkillEndorsementEdge — endorser→endorsee typed edge for skill validation",
+        "AlumniEdge — past-employer typed edge for alumni network"
+      ]
+    },
+    "foundry": {
+      "contracts": [
+        "RecruiterCopilotAgent — Foundry agent for candidate matching and outreach drafting",
+        "SalesCopilotAgent — Foundry agent for lead scoring and next-best-action",
+        "ContentRecommendationAgent — Foundry agent for professional feed curation",
+        "LearningPathAgent — Foundry agent for personalized skill development path"
+      ]
+    },
+    "workspace": "org chart, employee directory, and company policies flow from Workspace to ConnectNetwork via Ontology company membership edges; Workflow handles provisioning events",
+    "vertical": "vertical-specific professional communities (e.g. healthcare, legal, finance) surface as professional groups with vertical-specific content policies",
+    "ads": "B2B professional ad targeting using professional Ontology attributes (job title, company, skills, industry) only; zero personal data in ad targeting; personal context never consulted"
+  },
+  "competitive": [
+    {
+      "competitor": "LinkedIn",
+      "observed_strengths": [
+        "professional identity as global standard",
+        "recruiter and sales product maturity",
+        "learning platform breadth",
+        "content/newsletter distribution",
+        "job board depth",
+        "premium subscription tiers"
+      ],
+      "source_evidence_refs": [
+        "https://www.linkedin.com/help/linkedin/answer/a548441 — professional profile, connections, jobs, feed, groups, events, learning, premium"
+      ],
+      "we_beat_on": [
+        "strict personal/professional context isolation — open-to-work never visible to current employer",
+        "Ontology-backed relationship graph with typed edges (richer than LinkedIn first-degree list)",
+        "Foundry agentic recruiter + sales copilots (vs. static Sales Navigator filters)",
+        "Workflow-native hiring and sales pipeline automations",
+        "no cross-context ad signal leakage",
+        "enterprise SSO + policy integration via Workspace",
+        "GDPR/PIPA-compliant regional packs"
+      ],
+      "measurable_target": "open-to-work employer-visibility denial = 100%; profile search excludes personal context = 100%; lead discovery excludes personal graph = 100%"
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "professional_identity_graph",
+      "source": "LinkedIn profile + connections",
+      "implementation": "ProfessionalIdentityNode in Ontology; connection edges are typed work-context; all professional surfaces derive from this canonical node"
+    },
+    {
+      "pattern": "recruiter_talent_search",
+      "source": "LinkedIn Recruiter",
+      "implementation": "Foundry RecruiterCopilotAgent with candidate matching; open-to-work consent signals in professional pillar; personal open-to-work hidden from current employer"
+    },
+    {
+      "pattern": "sales_navigator_relationship_intelligence",
+      "source": "LinkedIn Sales Navigator",
+      "implementation": "Foundry SalesCopilotAgent derives lead graph from professional Ontology edges only; no personal social graph"
+    },
+    {
+      "pattern": "thought_leadership_articles_newsletters",
+      "source": "LinkedIn Articles / Newsletters",
+      "implementation": "professional-context article artifact in Ontology; Workflow newsletter delivery pipeline; employer content policy applies"
+    },
+    {
+      "pattern": "skills_endorsements_assessments",
+      "source": "LinkedIn Skills",
+      "implementation": "SkillEndorsementEdge in Ontology; Foundry skill assessment challenges; certificates link to ProfessionalIdentityNode"
+    },
+    {
+      "pattern": "learning_platform_integration",
+      "source": "LinkedIn Learning",
+      "implementation": "course catalog in Foundry; LearningPathAgent recommends paths based on skills gap on ProfessionalIdentityNode; certificates surfaced in professional profile"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "anti_pattern": "personal_social_graph_in_professional_network",
+      "why": "professional network must be work-context only; ADR-0208 pillar boundary",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    },
+    {
+      "anti_pattern": "employer_visible_personal_open_to_work",
+      "why": "personal career search activity is personal-pillar owned; ADR-0215",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    },
+    {
+      "anti_pattern": "static_filter_based_recruiter_search",
+      "why": "Foundry agentic copilot provides dynamic matching; static filter UIs are not the pattern",
+      "detection_lane": "oya-foundry-fitness-foundry-agent-coverage"
+    },
+    {
+      "anti_pattern": "personal_data_in_b2b_ad_targeting",
+      "why": "professional ads use only work-context Ontology attributes; personal data never consulted",
+      "detection_lane": "oya-foundry-fitness-connect-ads-isolation"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "dimension": "profile_load_p95_ms",
+      "target": 100,
+      "verification": "cargo bench -p oya-connect-network-bench -- profile_load_p95"
+    },
+    {
+      "dimension": "connection_graph_query_p95_ms",
+      "target": 150,
+      "verification": "cargo bench -p oya-connect-network-bench -- connection_graph_query_p95"
+    },
+    {
+      "dimension": "recruiter_search_p95_ms",
+      "target": 500,
+      "verification": "cargo bench -p oya-connect-network-bench -- recruiter_search_p95"
+    },
+    {
+      "dimension": "cross_pillar_denial_correctness_pct",
+      "target": 100,
+      "verification": "cargo nextest -p oya-connect-network-domain -- pillar"
+    },
+    {
+      "dimension": "ontology_edge_write_p99_ms",
+      "target": 50,
+      "verification": "cargo bench -p oya-connect-network-bench -- ontology_edge_write_p99"
+    }
+  ],
+  "production_readiness_gates": [
+    {
+      "gate": "dual-context isolation",
+      "check": "cargo nextest -p oya-connect-network-domain -- pillar",
+      "must_pass": true
+    },
+    {
+      "gate": "profile-search-excludes-personal",
+      "check": "cargo nextest -p oya-connect-network-domain -- test_profile_search_excludes_personal_context",
+      "must_pass": true
+    },
+    {
+      "gate": "recruiter-open-to-work-consent",
+      "check": "cargo nextest -p oya-connect-network-domain -- test_recruiter_search_respects_open_to_work_consent",
+      "must_pass": true
+    },
+    {
+      "gate": "lead-discovery-excludes-personal-graph",
+      "check": "cargo nextest -p oya-connect-network-domain -- test_lead_discovery_excludes_personal_graph",
+      "must_pass": true
+    },
+    {
+      "gate": "perf-budget",
+      "check": "cargo bench -p oya-connect-network-bench -- profile_load_p95",
+      "must_pass": true
+    },
+    {
+      "gate": "doc-coverage",
+      "check": "oya gate validate connect-network-doc-coverage",
+      "must_pass": true
+    }
+  ],
+  "frontend_components": [
+    {
+      "component": "ProfessionalProfileCard",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/professional-profile-card.json",
+      "variants": ["compact", "full", "recruiter-view", "sales-view"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+    },
+    {
+      "component": "NetworkFeed",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/network-feed.json",
+      "variants": ["connections", "company", "industry", "following"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop", "wide-desktop"]
+    },
+    {
+      "component": "JobBoardSearch",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/job-board-search.json",
+      "variants": ["candidate", "recruiter-post"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+    },
+    {
+      "component": "RecruiterPipeline",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/recruiter-pipeline.json",
+      "variants": ["kanban", "list"],
+      "tested_at_breakpoints": ["tablet", "desktop", "wide-desktop"]
+    },
+    {
+      "component": "SalesCopilotPanel",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/sales-copilot-panel.json",
+      "variants": ["lead-discovery", "account-map", "next-best-action"],
+      "tested_at_breakpoints": ["desktop", "wide-desktop"]
+    },
+    {
+      "component": "ConnectShellPersonaSwitcher",
+      "source": "shared suite primitive",
+      "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
+      "variants": ["personal", "work", "admin-audit"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop", "wide-desktop"]
+    }
+  ],
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "ProfessionalIdentityNode",
+        "fields": ["identity_id", "user_id", "tenant_id", "context_kind", "ownership_pillar", "headline", "experience_refs", "education_refs", "skills_refs", "open_to_work_recruiter_visible", "schema_version"],
+        "invariants": ["context_kind=work", "ownership_pillar=work", "open_to_work_recruiter_visible is personal-pillar for hiding from current employer"]
+      },
+      {
+        "entity": "ProfessionalConnectionEdge",
+        "fields": ["edge_id", "user_a_id", "user_b_id", "context_kind", "degree", "connected_at"],
+        "invariants": ["context_kind=work immutable"]
+      },
+      {
+        "entity": "JobPosting",
+        "fields": ["job_id", "company_id", "tenant_id", "context_kind", "title", "location", "remote_kind", "status", "created_at"],
+        "invariants": ["context_kind=work; never surfaced in personal context"]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "NetworkConnectionAccepted",
+        "topic": "connect.network.connection",
+        "idempotency_key": "edge_id+version"
+      },
+      {
+        "event": "NetworkJobApplicationSubmitted",
+        "topic": "connect.network.job_application",
+        "idempotency_key": "application_id+job_id+user_id"
+      },
+      {
+        "event": "NetworkBoundaryDenied",
+        "topic": "audit.connect.network.policy",
+        "idempotency_key": "principal+resource+policy_hash"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "ProfessionalIdentityNode",
+        "store": "Ontology graph store + Postgres/RLS for search projection",
+        "sharding_key": "tenant_id",
+        "retention": "account lifetime; GDPR erasure on request"
+      },
+      {
+        "aggregate": "JobPosting",
+        "store": "Postgres/RLS + search index",
+        "sharding_key": "tenant_id",
+        "retention": "active + 2y audit"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "personal_context_leak_to_network_pct",
+      "targets": {"preview": 0, "stable": 0, "GA": 0},
+      "verification_ref": "cargo nextest -p oya-connect-network-domain -- test_profile_search_excludes_personal_context",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "profile_load_p95_ms",
+      "targets": {"preview": 250, "stable": 150, "GA": 100},
+      "verification_ref": "cargo bench -p oya-connect-network-bench -- profile_load_p95",
+      "lane_ref": "oya-foundry-fitness-perf-budget"
+    },
+    {
+      "name": "recruiter_search_p95_ms",
+      "targets": {"preview": 1000, "stable": 700, "GA": 500},
+      "verification_ref": "cargo bench -p oya-connect-network-bench -- recruiter_search_p95",
+      "lane_ref": "oya-foundry-fitness-perf-budget"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-NETWORK-01",
+      "severity": "critical",
+      "risk": "current employer discovers employee is open-to-work via professional network query",
+      "mitigation": "open-to-work signal stored in personal pillar; employer-visible flag requires explicit user consent; enforced by test_recruiter_search_respects_open_to_work_consent",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-NETWORK-02",
+      "severity": "high",
+      "risk": "personal social connections surface in professional lead discovery",
+      "mitigation": "lead graph derived from professional Ontology edges only; personal graph never consulted; enforced by test_lead_discovery_excludes_personal_graph",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-NETWORK-03",
+      "severity": "medium",
+      "risk": "recruiter copilot surfaces candidates from outside user consent scope",
+      "mitigation": "RecruiterCopilotAgent queries only nodes with explicit recruiter-visibility consent; Foundry agent is gated by Cedar policy",
+      "owner": "connect-product-council"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "Korean labor law compliance; local recruiter certification requirements; PIPA professional data retention bounds"
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "EEO compliance in job postings; EEOC-safe talent search filters; background check consent flows"
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "GDPR data portability for professional profile; lawful-basis disclosure for algorithmic job recommendation; Works Council data processing agreements"
+      }
+    ]
+  },
+  "decision_log": [
+    {
+      "date": "2026-05-17",
+      "decision": "ConnectNetwork is a first-class Connect sub-product; LinkedIn patterns adopted with Ontology-backed professional graph and Foundry agentic copilots",
+      "drivers": [
+        "user directive 2026-05-17T10:20Z: Connect = Instagram + TikTok + LinkedIn + Blind + iMessage + Gmail all in one",
+        "ADR-0208 dual-context model; professional network is work-context primary"
+      ]
+    }
+  ]
+}

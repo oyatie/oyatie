@@ -1,0 +1,490 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/products/connect/shorts.schema.json",
+  "title": "ProductPrd:ConnectShorts",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-CONNECT-SHORTS",
+    "version": "1.0.0",
+    "status": "Draft",
+    "owner_team": "connect-product-council",
+    "created_at": "2026-05-17T10:20:00Z",
+    "purpose": "Connect Shorts PRD: short-form video product combining TikTok FYP and Instagram Reels patterns — for-you feed, duets, stitches, effects, LIVE streaming, creator monetization — with strict professional/personal dual-context isolation, Foundry agentic relevance ranking, and Workflow/Ontology/Ads ecosystem integration."
+  },
+  "identity": {
+    "product_id": "connect-shorts",
+    "suite_id": "connect",
+    "owning_axis": "workspace-communications",
+    "product_class": "suite-app",
+    "user_facing_surface": true,
+    "context_model": ["personal", "work"],
+    "crate_refs_planned": [
+      "oya-connect-shorts-kernel",
+      "oya-connect-shorts-domain",
+      "oya-connect-shorts-app",
+      "oya-connect-shorts-rest"
+    ],
+    "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path"
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0208-connect-dual-context-unified-channel-hub.md",
+      "$ref:bominal/decisions/ADR-0215-connect-retention-legal-hold-dual-context.md",
+      "$ref:bominal/decisions/ADR-0132-data-ownership-pillars.md",
+      "$ref:bominal/decisions/ADR-0140-multi-jurisdiction-policy.md",
+      "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/products/workflow.json",
+      "$ref:specs/products/ontology.json",
+      "$ref:specs/deployment-ops-contract.json"
+    ],
+    "user_decisions": [
+      "2026-05-17:D-CONNECT-SHORTS-01 short-form video is a first-class Connect sub-product combining TikTok + Reels patterns",
+      "2026-05-17:D-CONNECT-SHORTS-02 FYP relevance model runs per-context in Foundry; personal watch history never trains professional model"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0208#dual-context-model",
+  "target_users": [
+    {
+      "persona": "personal_viewer",
+      "interface": "for-you feed, search, following feed, LIVE viewer",
+      "billing": "personal account tier"
+    },
+    {
+      "persona": "personal_creator",
+      "interface": "video editor, effects studio, duet/stitch tools, creator analytics, monetization",
+      "billing": "creator program; context-scoped"
+    },
+    {
+      "persona": "professional_creator",
+      "interface": "professional short-form content (training videos, product demos, company culture), work feed",
+      "billing": "workspace seat; employer context only"
+    },
+    {
+      "persona": "enterprise_it_admin",
+      "interface": "professional short-form policy console, content moderation, LIVE broadcast admin",
+      "billing": "enterprise tenant admin"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-SHORTS-01",
+      "given": "a user watches videos in personal context",
+      "when": "watch history signals are collected",
+      "then": "watch history is keyed by context_kind=personal; signals are never written to the professional Foundry relevance model training pipeline",
+      "verification_command": "cargo nextest -p oya-connect-shorts-domain -- test_personal_watch_history_pillar_isolation"
+    },
+    {
+      "id": "AC-SHORTS-02",
+      "given": "a user creates a duet with a personal-context video",
+      "when": "the duet is published",
+      "then": "the duet artifact inherits context_kind=personal from the source video; it is denied from the professional feed index",
+      "verification_command": "cargo nextest -p oya-connect-shorts-domain -- test_duet_inherits_source_context"
+    },
+    {
+      "id": "AC-SHORTS-03",
+      "given": "a Foundry FYP model produces a ranked feed",
+      "when": "the feed is served to a user",
+      "then": "the ranked list contains only artifacts with matching context_kind; the model training data contains no cross-context signals",
+      "verification_command": "cargo nextest -p oya-connect-shorts-domain -- test_fyp_feed_context_filter"
+    },
+    {
+      "id": "AC-SHORTS-04",
+      "given": "a creator initiates a LIVE stream",
+      "when": "the stream is broadcast",
+      "then": "the stream is context-scoped; personal LIVE streams are not discoverable in professional search; gift/virtual-currency transactions are context-isolated",
+      "verification_command": "cargo nextest -p oya-connect-shorts-domain -- test_live_stream_context_isolation"
+    },
+    {
+      "id": "AC-SHORTS-05",
+      "given": "a professional short-form video (e.g. product demo) is published in work context",
+      "when": "a Workflow automation is triggered",
+      "then": "Workflow receives a ShortsContentPublished event with consent token; the video may be cross-posted to professional social feed via Workflow; personal feed is never consulted",
+      "verification_command": "cargo nextest -p oya-connect-shorts-domain -- test_workflow_professional_crosspost"
+    },
+    {
+      "id": "AC-SHORTS-06",
+      "given": "a creator has enabled monetization",
+      "when": "a revenue event (ad impression, virtual gift, subscription view) occurs",
+      "then": "revenue is attributed to the correct context; personal creator revenue is never visible to employer; professional brand revenue flows through Workflow billing contract",
+      "verification_command": "cargo nextest -p oya-connect-shorts-domain -- test_monetization_revenue_context_isolation"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "for-you feed (personal + professional, separate Foundry models)",
+        "video upload (up to 3 minutes)",
+        "basic in-app video editor (trim, speed, music from licensed catalog)",
+        "effects (client-side, no biometric persistence)",
+        "context switcher integration with ConnectShellPersonaSwitcher",
+        "following feed per context"
+      ],
+      "stable": [
+        "duets and stitches (context-inherited)",
+        "LIVE streaming (personal and professional with separate discovery indexes)",
+        "creator analytics dashboard (context-scoped)",
+        "virtual gifting (personal context; professional context uses Workflow billing)",
+        "Ontology creator graph (follower/following edges per context)",
+        "Workflow cross-post automation for professional content"
+      ],
+      "GA": [
+        "creator monetization: ad revenue share, fan subscriptions, brand partnerships (context-scoped)",
+        "in-app e-commerce product tagging (personal: consumer shop; professional: B2B product catalog)",
+        "Foundry real-time FYP model updates per context",
+        "third-party effects SDK (WebAssembly, client-side)",
+        "regional packs: KR, US, EU locale UX + content-moderation overlays",
+        "Ads integration (context-isolated; personal ad signals never cross to professional model)"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "cross-context FYP signal mixing",
+        "why": "ADR-0208 pillar boundary; personal watch history must not train professional relevance model"
+      },
+      {
+        "item": "biometric data persistence from video effects",
+        "why": "GDPR Art.9; face geometry and voice prints are in-session rendering only"
+      },
+      {
+        "item": "employer access to personal creator earnings",
+        "why": "ADR-0215 personal pillar; creator revenue is personal-owned"
+      }
+    ]
+  },
+  "dual_context_isolation": {
+    "mechanism": "separate Foundry relevance model instances per context_kind; ShortsForYouFeed, ShortsDiscoveryIndex, ShortsCreatorAnalytics, and ShortsMonetizationLedger are each pillar-keyed; Cedar policy denies cross-pillar reads at domain layer",
+    "separate_auth_realms": true,
+    "separate_audit_chains": true,
+    "no_cross_feed": true,
+    "no_cross_search": true,
+    "no_cross_suggest": true,
+    "relevance_model_isolation": "personal FYP model and professional FYP model are separate Foundry model artifacts; training pipelines share no data",
+    "monetization_isolation": "personal creator revenue ledger and professional brand revenue ledger are separate aggregates keyed by context_kind",
+    "enforcement_lane": "oya-foundry-fitness-connect-pillar"
+  },
+  "ecosystem_integration": {
+    "workflow": {
+      "contracts": [
+        "ShortsContentPublished — triggers cross-post to professional social feed, brand publishing pipelines",
+        "ShortsCreatorMilestone — triggers creator reward workflows, onboarding automations",
+        "ShortsModerationDecision — triggers policy enforcement in professional context",
+        "ShortsBrandPartnershipApproval — triggers brand deal approval workflow in professional context"
+      ],
+      "consent_required": true,
+      "context_scoped": true
+    },
+    "ontology": {
+      "contracts": [
+        "ShortsCreatorFollowEdge — typed Ontology edge per context_kind",
+        "ShortsVideoArtifact — typed Ontology node with creator, tags, duet chain, and stitch references",
+        "ShortsEngagementSignal — watch/like/share/comment edges for FYP model training (pillar-scoped)"
+      ]
+    },
+    "foundry": {
+      "contracts": [
+        "ShortsFYPModel — per-context Foundry relevance model; personal and professional are separate model artifacts",
+        "ShortsContentModerationAgent — Foundry agent for professional content policy enforcement",
+        "ShortsCreatorMatchingAgent — Foundry agent recommends duet/collab partners within context"
+      ]
+    },
+    "ads": "context-isolated video ad auction; in-feed video ads are pillar-scoped; personal ad profile never informs professional ad targeting",
+    "workspace": "professional short-form content discoverable via Workspace newsfeed through Workflow cross-post contract only"
+  },
+  "competitive": [
+    {
+      "competitor": "TikTok",
+      "observed_strengths": ["FYP algorithm accuracy", "duet/stitch collaborative formats", "LIVE gifting ecosystem", "creator monetization breadth", "in-app e-commerce (TikTok Shop)"],
+      "source_evidence_refs": ["https://newsroom.tiktok.com/en-us — LIVE, virtual gifts, creator tools, discovery hubs"],
+      "we_beat_on": [
+        "strict personal/professional FYP model isolation",
+        "Workflow-native professional content publishing with consent",
+        "auditable relevance model (no opaque algorithm)",
+        "no cross-context ad signal leakage",
+        "enterprise-grade professional short-form content with legal hold"
+      ],
+      "measurable_target": "zero cross-pillar FYP signal leakage; professional content legal hold activates < 60s; feed load p95 < 120ms"
+    },
+    {
+      "competitor": "Instagram Reels",
+      "observed_strengths": ["Reels discovery integration with feed", "effects breadth", "creator collaboration"],
+      "source_evidence_refs": ["https://about.instagram.com/features — Reels feature listing"],
+      "we_beat_on": [
+        "native dual-context model (personal vs. professional reels)",
+        "Ontology-backed creator graph",
+        "Foundry explainable relevance vs opaque algorithm"
+      ],
+      "measurable_target": "duet context inheritance correctness = 100%; Foundry feed relevance p95 < 200ms"
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "for_you_page_relevance_model",
+      "source": "TikTok FYP",
+      "implementation": "Foundry per-context relevance model trained on pillar-scoped engagement signals; model artifacts are separate for personal and professional contexts"
+    },
+    {
+      "pattern": "duet_stitch_collaborative_format",
+      "source": "TikTok Duets/Stitches",
+      "implementation": "duet/stitch artifact inherits context_kind from source video; cross-context duet requires explicit consent and is audit logged"
+    },
+    {
+      "pattern": "live_virtual_gifting",
+      "source": "TikTok LIVE gifts",
+      "implementation": "personal context uses fan gifting with creator revenue share; professional context routes through Workflow billing contract"
+    },
+    {
+      "pattern": "in_app_video_editor",
+      "source": "TikTok / Instagram Reels editor",
+      "implementation": "client-side WebAssembly video editor with licensed music catalog; effects run client-side; no biometric data persisted"
+    },
+    {
+      "pattern": "creator_monetization_program",
+      "source": "TikTok Creator Fund / Series / LIVE subscriptions",
+      "implementation": "per-context creator monetization ledger; personal earnings are personal-pillar owned; professional brand revenue flows through Workflow billing"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "anti_pattern": "cross_context_fyp_signal_mixing",
+      "why": "personal watch history must not influence professional feed relevance and vice versa",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    },
+    {
+      "anti_pattern": "biometric_persistence_from_video_effects",
+      "why": "GDPR Art.9; voice prints and face geometry are in-session rendering only",
+      "detection_lane": "oya-foundry-fitness-connect-ar-privacy"
+    },
+    {
+      "anti_pattern": "opaque_relevance_model_without_audit",
+      "why": "Foundry FYP model must be auditable and explainable; DSA compliance requires transparency report",
+      "detection_lane": "oya-foundry-fitness-foundry-model-auditability"
+    },
+    {
+      "anti_pattern": "employer_visible_personal_creator_earnings",
+      "why": "ADR-0215 personal pillar; creator revenue is personal-owned and never accessible to tenant admin",
+      "detection_lane": "oya-foundry-fitness-connect-pillar"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "dimension": "feed_load_p95_ms",
+      "target": 120,
+      "verification": "cargo bench -p oya-connect-shorts-bench -- feed_load_p95"
+    },
+    {
+      "dimension": "video_transcode_start_s",
+      "target": 2,
+      "verification": "cargo bench -p oya-connect-shorts-bench -- transcode_start_p95"
+    },
+    {
+      "dimension": "live_stream_latency_ms",
+      "target": 500,
+      "verification": "cargo bench -p oya-connect-shorts-bench -- live_stream_latency_p99"
+    },
+    {
+      "dimension": "cross_pillar_denial_correctness_pct",
+      "target": 100,
+      "verification": "cargo nextest -p oya-connect-shorts-domain -- pillar"
+    },
+    {
+      "dimension": "fyp_model_inference_ms",
+      "target": 50,
+      "verification": "cargo bench -p oya-connect-shorts-bench -- fyp_inference_p95"
+    }
+  ],
+  "production_readiness_gates": [
+    {
+      "gate": "dual-context isolation",
+      "check": "cargo nextest -p oya-connect-shorts-domain -- pillar",
+      "must_pass": true
+    },
+    {
+      "gate": "fyp-context-filter",
+      "check": "cargo nextest -p oya-connect-shorts-domain -- test_fyp_feed_context_filter",
+      "must_pass": true
+    },
+    {
+      "gate": "duet-context-inheritance",
+      "check": "cargo nextest -p oya-connect-shorts-domain -- test_duet_inherits_source_context",
+      "must_pass": true
+    },
+    {
+      "gate": "monetization-isolation",
+      "check": "cargo nextest -p oya-connect-shorts-domain -- test_monetization_revenue_context_isolation",
+      "must_pass": true
+    },
+    {
+      "gate": "perf-budget",
+      "check": "cargo bench -p oya-connect-shorts-bench -- feed_load_p95",
+      "must_pass": true
+    },
+    {
+      "gate": "doc-coverage",
+      "check": "oya gate validate connect-shorts-doc-coverage",
+      "must_pass": true
+    }
+  ],
+  "frontend_components": [
+    {
+      "component": "ShortsForYouFeed",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/shorts-for-you-feed.json",
+      "variants": ["personal", "professional", "following"],
+      "tested_at_breakpoints": ["mobile-portrait", "mobile-landscape", "tablet"]
+    },
+    {
+      "component": "ShortsVideoEditor",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/shorts-video-editor.json",
+      "variants": ["personal-creator", "professional-creator"],
+      "tested_at_breakpoints": ["mobile-portrait", "mobile-landscape"]
+    },
+    {
+      "component": "ShortsLiveViewer",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/shorts-live-viewer.json",
+      "variants": ["personal", "professional-broadcast"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop"]
+    },
+    {
+      "component": "ShortsCreatorAnalyticsDashboard",
+      "source": "planned design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/shorts-creator-analytics-dashboard.json",
+      "variants": ["personal-creator", "professional-creator"],
+      "tested_at_breakpoints": ["tablet", "desktop"]
+    },
+    {
+      "component": "ConnectShellPersonaSwitcher",
+      "source": "shared suite primitive",
+      "design_system_ref": "$ref:specs/design-system/connect-shell-persona-switcher.json",
+      "variants": ["personal", "work", "admin-audit"],
+      "tested_at_breakpoints": ["mobile-portrait", "tablet", "desktop", "wide-desktop"]
+    }
+  ],
+  "data_model": {
+    "entities_ref": [
+      {
+        "entity": "ShortsVideo",
+        "fields": ["video_id", "creator_id", "tenant_id", "context_kind", "ownership_pillar", "media_ref", "duration_ms", "source_video_id", "format_kind", "schema_version"],
+        "invariants": ["context_kind immutable", "ownership_pillar immutable", "duet/stitch inherits context_kind from source"]
+      },
+      {
+        "entity": "ShortsFYPSignal",
+        "fields": ["signal_id", "user_id", "video_id", "context_kind", "signal_kind", "watch_pct", "timestamp"],
+        "invariants": ["context_kind must match video context_kind; never persisted cross-context"]
+      },
+      {
+        "entity": "ShortsMonetizationEvent",
+        "fields": ["event_id", "creator_id", "context_kind", "revenue_kind", "amount_cents", "currency", "timestamp"],
+        "invariants": ["context_kind immutable; personal revenue never accessible to tenant admin"]
+      }
+    ],
+    "events_emitted": [
+      {
+        "event": "ShortsContentPublished",
+        "topic": "connect.shorts.publish",
+        "idempotency_key": "video_id+version"
+      },
+      {
+        "event": "ShortsLiveStarted",
+        "topic": "connect.shorts.live_started",
+        "idempotency_key": "stream_id+creator_id"
+      },
+      {
+        "event": "ShortsBoundaryDenied",
+        "topic": "audit.connect.shorts.policy",
+        "idempotency_key": "principal+resource+policy_hash"
+      }
+    ],
+    "persistence": [
+      {
+        "aggregate": "ShortsVideo",
+        "store": "Postgres/RLS + object storage (media) + CDN",
+        "sharding_key": "context_kind+tenant_id",
+        "retention": "user-controlled + regional pack overlays"
+      },
+      {
+        "aggregate": "ShortsFYPSignal",
+        "store": "Foundry feature store (pillar-partitioned)",
+        "sharding_key": "context_kind+user_id",
+        "retention": "90 days rolling window per context"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "cross_pillar_fyp_signal_leakage_count",
+      "targets": {"preview": 0, "stable": 0, "GA": 0},
+      "verification_ref": "cargo nextest -p oya-connect-shorts-domain -- test_personal_watch_history_pillar_isolation",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "feed_load_p95_ms",
+      "targets": {"preview": 300, "stable": 180, "GA": 120},
+      "verification_ref": "cargo bench -p oya-connect-shorts-bench -- feed_load_p95",
+      "lane_ref": "oya-foundry-fitness-perf-budget"
+    },
+    {
+      "name": "duet_context_inheritance_correctness_pct",
+      "targets": {"preview": 100, "stable": 100, "GA": 100},
+      "verification_ref": "cargo nextest -p oya-connect-shorts-domain -- test_duet_inherits_source_context",
+      "lane_ref": "cargo-nextest"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-SHORTS-01",
+      "severity": "critical",
+      "risk": "personal watch history signals contaminate professional FYP model",
+      "mitigation": "Foundry model artifacts are separate; training pipelines are pillar-partitioned; enforced by test_personal_watch_history_pillar_isolation",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-SHORTS-02",
+      "severity": "high",
+      "risk": "LIVE stream gifting revenue misattributed to wrong context",
+      "mitigation": "ShortsMonetizationEvent.context_kind is immutable; revenue ledger aggregates are pillar-keyed",
+      "owner": "connect-product-council"
+    },
+    {
+      "id": "R-SHORTS-03",
+      "severity": "medium",
+      "risk": "DSA content moderation transparency requirements not met",
+      "mitigation": "Foundry FYP model produces explainability report; ShortsModerationDecision events are publicly auditable in professional context",
+      "owner": "connect-product-council"
+    }
+  ],
+  "regional_packs": {
+    "region_policy_ref": "$ref:docs/decisions/ADR-0140 + $ref:bominal/decisions/ADR-0140",
+    "packs": [
+      {
+        "pack": "KR",
+        "required": true,
+        "notes": "PIPA retention bounds; K-content creator program; local music licensing catalog; youth protection screen-time limits"
+      },
+      {
+        "pack": "US",
+        "required": true,
+        "notes": "COPPA under-13 age gating; DMCA takedown automation; creator tax form integration"
+      },
+      {
+        "pack": "EU",
+        "required": true,
+        "notes": "DSA platform transparency reports; GDPR data portability for creator content; lawful-basis disclosure for FYP algorithm"
+      }
+    ]
+  },
+  "decision_log": [
+    {
+      "date": "2026-05-17",
+      "decision": "ConnectShorts is a first-class Connect sub-product; TikTok FYP + Instagram Reels patterns adopted with per-context Foundry relevance models",
+      "drivers": [
+        "user directive 2026-05-17T10:20Z: Connect = Instagram + TikTok + LinkedIn + Blind + iMessage + Gmail all in one",
+        "ADR-0208 dual-context model extended to short-form video surfaces"
+      ]
+    }
+  ]
+}
