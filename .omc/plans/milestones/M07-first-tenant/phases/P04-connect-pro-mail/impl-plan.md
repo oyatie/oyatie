@@ -6,6 +6,10 @@ phase: P04-connect-pro-mail
 impl_plan_id: IP-P04-connect-pro-mail-full-scaffold
 status: pending
 owner: council-connect
+execution_variant: merge-into-existing-crates
+decided_at: 2026-05-17
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 backports MailboxKind 3-variant enum + ThreadStatus 4-state lifecycle into existing oya-connect-mail-domain::thread_state instead of scaffolding new connect-pro-mail crates. Honors no-over-scaffolding rule; tracked under F-M02B-PLAN-LIVE-CRATE-RECONCILIATION (extended to M07 phases)."
 blocked_by:
 - impl_plan: IP-P01-hr-full-scaffold
   reason: EmployeeHired Workflow event required for Connect provisioning-application
