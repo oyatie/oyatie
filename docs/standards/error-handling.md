@@ -27,7 +27,7 @@ enforcement_status:
   oya-foundry-fitness-audit-emission: existing
   F-FITNESS-ERROR-HANDLING-LANES: meta-lane per OP-11 audit
   F-FITNESS-ASPIRATIONAL-ENFORCEMENT-DETECTION: meta-lane per OP-11
-meta_policy: ADR-0125 (chained-enforcement, pending)
+meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/standards/code-style-rust.md
   - docs/standards/testing.md
@@ -184,7 +184,7 @@ PR that touches error paths and refuses:
 Lane: `oya-foundry-fitness-silent-failure` (F-PENDING-SILENT-FAILURE; clippy-driven;
 full gate is the reviewer-agent verdict; crate creation tracked in
 registry/stub-audit/2026-05-17/missing-fitness-crates.json; enforced at PR review
-until crate lands; meta-policy ADR-0125 chained-enforcement).
+until crate lands; meta-policy ADR-0133 chained-enforcement planning contract).
 
 ## 7. Audit-chain integration
 

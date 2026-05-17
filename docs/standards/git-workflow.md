@@ -21,7 +21,7 @@ enforced_by: oya-foundry-fitness-banned-primitives
 enforcement_status:
   oya-foundry-fitness-banned-primitives: existing
   F-FORBIDDEN-PRIMITIVES-CI-GUARD: pending Wave-B webhook receiver (ADR-0116)
-meta_policy: ADR-0125 (chained-enforcement, pending)
+meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/claude-code-harness.md
@@ -111,7 +111,7 @@ Lane: `oya-foundry-fitness-banned-primitives` (existing; Wave-A: catches
 **undocumented** `git` / `gh` invocations inside agent-instruction
 sections; Wave-B: `F-FORBIDDEN-PRIMITIVES-CI-GUARD` will add CI-level
 blocking once webhook receiver is deployed per ADR-0116).
-Meta-policy: ADR-0125 (chained-enforcement, pending).
+Meta-policy: ADR-0133 (chained-enforcement planning contract, pending).
 
 | Pattern | Verdict |
 |---|---|
