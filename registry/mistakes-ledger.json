@@ -2,7 +2,7 @@
   "$schema_version": "1.0.0",
   "doc_class": "Registry",
   "registry_class": "Mistakes-Ledger",
-  "purpose": "Append-only registry of repeat-class agent/CI errors. Every entry MUST be indexed by a (primitive, failure_mode) row in docs/runbooks/sanctioned-primitives/preflight.md. Enforced by oya-foundry-fitness-mistakes-ledger-kernel.",
+  "purpose": "Append-only registry of repeat-class agent/CI errors. Every entry MUST be indexed by a (primitive, failure_mode) row in docs/runbooks/sanctioned-primitives/preflight.md. Planned advisory enforcement: oya-foundry-fitness-mistakes-ledger-kernel.",
   "control_id": "MISTAKES-LEDGER-CONTROL-2",
   "memory_ref": "feedback_repeat_mistake_prevention",
   "audit_ref": "evidence/audits/pipeline-maturity-audit-2026-05-15.md",

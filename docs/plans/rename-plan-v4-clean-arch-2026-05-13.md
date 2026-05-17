@@ -499,7 +499,7 @@ kernel ◀── domain ◀── application ◀── { adapter, infrastructur
 kernel ◀── sdk
 ```
 
-Enforced by `oya-check-architecture` (LEAN-A1 per §4a) per §5 and by
+Planned advisory check: `oya-check-architecture` (LEAN-A1 per §4a) per §5 and by
 `cargo-metadata`-driven workspace lints. Edges allowed:
 
 - `kernel` → nothing internal
@@ -1926,7 +1926,7 @@ The `status` field carries one of three closed values:
   governance gate); xtask validates POST-CONDITIONS, not the
   transition act itself.
 
-**Dependency rules** (enforced by LEAN-A2 `oya-check-bounded-contexts`):
+**Dependency rules** (planned advisory LEAN-A2 check `oya-check-bounded-contexts`):
 - `shared` BCs depend only on other `shared` BCs.
 - `<vertical>` BCs depend on `shared` BCs + same-vertical BCs only.
 - **Cross-vertical deps REFUSED** at LEAN-A2 BLOCKER severity.

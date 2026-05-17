@@ -866,17 +866,17 @@
     {
       "id": "BP-ANON-01",
       "rule": "anonymous posts store anonymous_author_token only",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anon-identity-isolation"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-anon-identity-isolation"
     },
     {
       "id": "BP-ANON-02",
       "rule": "employer-facing views expose aggregate stats only",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anon-aggregate-only"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-anon-aggregate-only"
     },
     {
       "id": "BP-ANON-03",
       "rule": "legal identity reveal requires two compliance officers and HSM vault access",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anon-legal-hold"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-anon-legal-hold"
     }
   ],
   "patterns": [

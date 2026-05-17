@@ -853,17 +853,17 @@
     {
       "id": "BP-NETWORK-01",
       "rule": "professional identity graph is work-context primary and consent-bounded",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-network-pillar"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-network-pillar"
     },
     {
       "id": "BP-NETWORK-02",
       "rule": "recruiter search respects open-to-work consent and employer-denial rules",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-recruiter-consent"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-recruiter-consent"
     },
     {
       "id": "BP-NETWORK-03",
       "rule": "sales intelligence derives only from professional Ontology edges",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-sales-graph"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-sales-graph"
     }
   ],
   "patterns": [

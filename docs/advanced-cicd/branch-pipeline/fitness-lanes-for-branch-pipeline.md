@@ -10,7 +10,7 @@ purpose: |
   The six new fitness lanes added by this composer, plus the renames/scoping
   adjustments. Each lane: name, severity, scope (which branch / which transition),
   evaluation logic, output schema, escalation. Provider-agnostic lane definitions.
-enforced_by: self-describing
+planned_enforcement_ref: self-describing
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---

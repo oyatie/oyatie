@@ -917,6 +917,10 @@ name = "oya-check-adr-index"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-aspirational-enforcement"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-authority-cohesion"
 version = "0.1.0"
 
@@ -1513,6 +1517,7 @@ dependencies = [
  "oya-check-active-artifact-contract",
  "oya-check-adr-citation",
  "oya-check-adr-index",
+ "oya-check-aspirational-enforcement",
  "oya-check-authority-cohesion",
  "oya-check-benchmark",
  "oya-check-brand-residue",

@@ -10,7 +10,7 @@ purpose: |
   via standard local-dev → origin/dev path. staging: revert via the standard path
   (cannot push directly to staging). prod: SLO-burn-rate-fast auto-rollback per
   ADR-0040 + hot-fix path with reduced gate set + Directive 12 human-orchestrator signature.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0040, ADR-0041, ADR-0043, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]

@@ -17,7 +17,7 @@ purpose: |
   Level 2 provenance attestation. Implements MASTERPLAN Directive 5 (distroless
   + smallest-image containers) and Directive 6 (hyperscaler-bar).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-image-discipline
+planned_enforcement_ref: oya-foundry-fitness-image-discipline
 enforcement_status:
   oya-foundry-fitness-image-discipline: F-PENDING-IMAGE-DISCIPLINE (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-foundry-fitness-container-base: F-PENDING-CONTAINER-BASE (crate missing)
@@ -141,7 +141,7 @@ Required rules:
 
 ## 5. Image-size budget
 
-Per-binary budget enforced by `oya-foundry-fitness-image-discipline`:
+Per-binary budget planned for advisory enforcement by `oya-foundry-fitness-image-discipline`:
 
 | Binary class | Compressed budget | Decompressed budget |
 |---|---|---|

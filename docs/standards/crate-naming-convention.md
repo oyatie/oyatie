@@ -16,7 +16,7 @@ purpose: |
   forward-reference left by `docs/standards/code-style-rust.md` §5 (naming
   conventions) and binds the `oya-foundry-fitness-naming-convention` lane.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-naming-convention
+planned_enforcement_ref: oya-foundry-fitness-naming-convention
 companion_docs:
   - docs/standards/code-style-rust.md
   - docs/standards/doc-style.md

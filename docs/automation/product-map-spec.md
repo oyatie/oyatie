@@ -10,7 +10,7 @@ purpose: |
   wave, and dependencies. Source: `docs/products/<axis>/PRD.md` frontmatter +
   `docs/ROADMAP.md` wave-mapping. Lift to `docs/visualization/product-map.md`
   with a Mermaid graph as the primary render.
-enforced_by: oya-foundry-fitness-product-map
+planned_enforcement_ref: oya-foundry-fitness-product-map
 extends_crates:
   - oya-foundry-architecture-map-kernel
   - oya-foundry-mdbook-kernel

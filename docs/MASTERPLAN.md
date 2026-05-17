@@ -407,7 +407,7 @@ Every PRD must include a **Performance Targets** section with concrete p50/p99/p
 
 | Requirement | Enforcement |
 |---|---|
-| Stateless services | Required for all `application` / `rest` / `grpc` / `graphql` / `worker` layer crates. State lives only in adapter+infrastructure. Enforced by `oya-check-statelessness-cli` (TBD M02-P09). |
+| Stateless services | Required for all `application` / `rest` / `grpc` / `graphql` / `worker` layer crates. State lives only in adapter+infrastructure. Planned advisory check: `oya-check-statelessness-cli` (TBD M02-P09). |
 | Sharded state | Postgres + Citus per Bominal ADR-0117; ClickHouse + replicas; Valkey cluster. Single-DB-only designs fail `oya-check-shardability-cli` (TBD M02-P09). |
 | Event-driven | Outbox → Kafka KRaft. Direct synchronous cross-µservice calls require ADR justification. |
 | Cell architecture | All tenant-bound state partitioned per (cell, region); per Bominal ADR-0009 + oyatie ADR-0009. |

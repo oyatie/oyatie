@@ -24,12 +24,15 @@
     "v2_directive": "User directive 2026-05-14: 'additional spectrums that we should enforce into every single thing we do. including foundry. foundry's agentic flow + our current dev flow. should be enforced.' v2.0.0 adds F8 performance, F9 compliance as REQUIRED facets, and M1 challenge_assumption + M2 zoomed_out_fit as OPTIONAL meta-facets (required when meta_review_triggered).",
     "v2_1_directive": "User directive 2026-05-14: 'Make sure we add deterministic layer to it where it makes sense to do so.' v2.1.0 adds F10 reversibility/blast-radius, F11 observability, F13 migration/backwards-compat as REQUIRED facets when applicable + a `deterministic_layer_principle` declaring per-facet auto_checks vs human_judgment split. Lane enforces auto_checks mechanically; judgment layer fills the rest.",
     "v2_3_directive": "User directive 2026-05-15 across two consecutive messages: 'additional lens for our own policy adherence like naming, documentation, structure, architecture, dependency, etc' + 'schema, algorithm, as well'. v2.3.0 adds a new family of POLICY-ADHERENCE facets (A-prefix: A1..A7) distinct from F-family critique lenses and M-family meta lenses. A-facets mechanically enforce drift between code-as-built and doctrine-as-declared. Closed enum cap relaxed for A-family \u2014 adherence facets grow as policy domains do.",
-    "enforced_by": [
-      "oya-check-dependency-seam (sub-check: multispectrum-evidence-attached)",
+    "evidence_sources": [
       "PR review CODEOWNERS (manual sign-off)",
       "active-artifact-contract evidence bundle (ADR-0069)",
       "foundry agentic-flow (oya vcs claim \u2192 work \u2192 verify \u2192 done \u2192 promote) with rtk-ai/grit compatibility/provenance only",
       "SessionStart hook in agents/settings/claude.settings.json"
+    ],
+    "planned_enforcement_refs": [
+      "oya-check-dependency-seam (sub-check: multispectrum-evidence-attached)",
+      "CODEOWNERS facet-mapped reviewer signature"
     ],
     "related_adrs": [
       "ADR-0054",
@@ -1333,7 +1336,7 @@
       "violation_crate": "crates/<lane-crate>/tests/fixtures/<sub-check>/failing/",
       "meta_test": "crates/<lane-crate>/tests/fixture_pair.rs \u2014 asserts for every sub-check that the failing fixture triggers the documented diagnostic AND the passing fixture does not."
     },
-    "enforced_by": "oya-check-dependency-seam sub-check fixture-pair-coverage"
+    "planned_enforcement_ref": "oya-check-dependency-seam sub-check fixture-pair-coverage"
   },
   "mandatory_subchecks_in_seam_lane": {
     "multispectrum-evidence-attached": {

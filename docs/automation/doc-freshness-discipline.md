@@ -11,7 +11,7 @@ purpose: |
   `oya-foundry-fitness-doc-freshness` lane that enforces it: BLOCKER for
   Constitutional + Operating-Contract; HIGH for Reference; Decision-Record is
   never-stale; Working-Draft has 30-day budget.
-enforced_by: oya-foundry-fitness-doc-freshness
+planned_enforcement_ref: oya-foundry-fitness-doc-freshness
 extends_crates:
   - oya-foundry-runbook-freshness-kernel
   - oya-foundry-doc-catalog-kernel

@@ -887,7 +887,7 @@
     {
       "id": "BP-01",
       "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec",
-      "enforced_by_lane_ref": "oya-foundry-fitness-workflow-spec-roundtrip"
+      "planned_enforcement_ref": "oya-foundry-fitness-workflow-spec-roundtrip"
     },
     {
       "id": "BP-02",

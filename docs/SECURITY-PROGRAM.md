@@ -106,7 +106,7 @@ The Oyatie threat model assumes: a sophisticated, motivated adversary with crede
 
 ## 4. Continuous-control monitoring
 
-Per [COMPLIANCE-MATRIX](COMPLIANCE-MATRIX.md), every control has an evidence cadence enforced by `oya-foundry-fitness-control-monitoring`. Failures emit `EVT-CONTROL-EVIDENCE-MISSING` and trigger a runbook.
+Per [COMPLIANCE-MATRIX](COMPLIANCE-MATRIX.md), every control has an evidence cadence tracked by planned advisory lane `oya-foundry-fitness-control-monitoring`. Failures emit `EVT-CONTROL-EVIDENCE-MISSING` and trigger a runbook.
 
 ## 5. Sources scanned
 

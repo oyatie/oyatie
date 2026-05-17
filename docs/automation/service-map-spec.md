@@ -10,7 +10,7 @@ purpose: |
   API surface as a layered DAG (kernel → runtime → adapter → app). Source: Cargo
   workspace metadata + `oya-foundry-cohesion-fitness-kernel` contract records +
   rustdoc link graph. Lift to `docs/visualization/service-map.md` as D2 + SVG.
-enforced_by: oya-foundry-fitness-service-map
+planned_enforcement_ref: oya-foundry-fitness-service-map
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
   - oya-foundry-architecture-map-kernel

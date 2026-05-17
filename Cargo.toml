@@ -32,6 +32,7 @@ members = [
   "crates/oya-check-glossary-coverage",
   "crates/oya-check-glossary-vocabulary",
   "crates/oya-check-honest-claims",
+  "crates/oya-check-aspirational-enforcement",
   "crates/oya-foundry-mdbook-domain",
   "crates/oya-foundry-openapi-domain",
   "crates/oya-check-placeholder-debt",

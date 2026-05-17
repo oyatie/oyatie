@@ -11,7 +11,7 @@ purpose: |
   template, 180-day sunset entry in SUNSET-LEDGER, dual reviewer-agent gate
   (change-class-reviewer + api-stability-reviewer), and major-version bump on
   next release cut. Calibrated between AWS (12 months) and Stripe (never-break).
-enforced_by: oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-api-version-stability
+planned_enforcement_ref: oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-api-version-stability
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---

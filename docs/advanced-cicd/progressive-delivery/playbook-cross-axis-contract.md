@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Cross-axis contract changes; require all consumer axes to canary in lockstep.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0011, ADR-0012, ADR-0037, ADR-0053, ADR-0052, ADR-0054]

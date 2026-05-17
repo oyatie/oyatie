@@ -817,17 +817,17 @@
     {
       "id": "BP-SHORTS-01",
       "rule": "FYP training data is context-scoped",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-shorts-fyp-isolation"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-shorts-fyp-isolation"
     },
     {
       "id": "BP-SHORTS-02",
       "rule": "duet and stitch artifacts inherit source context",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-shorts-context-inheritance"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-shorts-context-inheritance"
     },
     {
       "id": "BP-SHORTS-03",
       "rule": "creator revenue visibility follows ownership pillar",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-shorts-monetization"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-shorts-monetization"
     }
   ],
   "patterns": [

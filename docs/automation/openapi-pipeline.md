@@ -10,7 +10,7 @@ purpose: |
   (interactive) views in the mdbook; cross-validate runtime bindings against
   schema bindings; treat OpenAPI 3.1 YAML as the single source of truth for every
   HTTP-shaped Oyatie API surface.
-enforced_by: oya-foundry-fitness-openapi-publish
+planned_enforcement_ref: oya-foundry-fitness-openapi-publish
 extends_crates:
   - oya-foundry-openapi-kernel
   - oya-foundry-mdbook-kernel

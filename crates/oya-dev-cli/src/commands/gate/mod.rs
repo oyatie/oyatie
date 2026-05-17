@@ -1043,6 +1043,33 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("aspirational-enforcement")) => {
+            match crate::parse_aspirational_enforcement_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_aspirational_enforcement_gate(args) {
+                    Ok(report) => {
+                        println!(
+                            "aspirational-enforcement validation passed: {} documents, {} lines, {} binding mentions, {} check crates, {} workflow contexts, {} quality lane contexts, {} required contexts",
+                            report.documents_checked,
+                            report.lines_checked,
+                            report.binding_mentions,
+                            report.known_crates,
+                            report.workflow_contexts,
+                            report.quality_lane_contexts,
+                            report.branch_required_contexts
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("aspirational-enforcement validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("hyperscaler-arch-invariants")) => {
             match crate::parse_hyperscaler_arch_invariants_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_hyperscaler_arch_invariants_gate(args) {

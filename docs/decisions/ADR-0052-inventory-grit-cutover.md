@@ -12,7 +12,7 @@ superseded_by: [ADR-0118]
 doc_class: DecisionRecord
 purpose: |
   Canonical inventory ledger for the grit/icm cutover; classifies every file/dir/script under oyatie/ and bominal/agents/ + bominal/docs/ scope by closed-set action (KEEP/KEEP+ANNOTATE/REPLACE-WITH-GRIT/REPLACE-WITH-ICM/REPLACE-WITH-HELPER/ARCHIVE/DELETE/FLAG-FOR-USER).
-enforced_by: oya-foundry-fitness-inventory-tracker
+planned_enforcement_ref: oya-foundry-fitness-inventory-tracker
 related:
   - ADR-0053
   - ADR-0054
@@ -38,7 +38,7 @@ tags:
 
 Accepted. This ADR satisfies acceptance criterion **A2** of `.omc/plans/ralplan-oyatie-sst-consolidation.md`: "A canonical inventory ledger ADR classifies every file/dir/script in scope by closed-set action before any deletion or archive move executes."
 
-Enforced by: `oya-foundry-fitness-inventory-tracker` CI lane.
+Planned enforcement: `oya-foundry-fitness-inventory-tracker` remains advisory until the CI lane exists.
 
 ---
 

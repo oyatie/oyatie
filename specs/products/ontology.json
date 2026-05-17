@@ -137,7 +137,7 @@
     {"competitor": "Apollo_GraphQL_Federation", "we_beat_on": ["typed-entity model (Apollo is API-stitching)", "audit per action", "jurisdiction overlay"], "measurable": "per-action audit (Apollo: API-tracing only)"}
   ],
   "best_practices": [
-    {"id": "BP-01", "rule": "tier classification per property", "ref": "$ref:bominal/decisions/ADR-0133", "enforced_by_lane_ref": "oya-foundry-fitness-ontology-tier-enforcement"},
+    {"id": "BP-01", "rule": "tier classification per property", "ref": "$ref:bominal/decisions/ADR-0133", "planned_enforcement_ref": "oya-foundry-fitness-ontology-tier-enforcement"},
     {"id": "BP-02", "rule": "default-deny cross-tenant links; Cedar required to permit", "ref": "AC-03"},
     {"id": "BP-03", "rule": "type checking at workflow-deploy time, not runtime", "ref": "AC-05"},
     {"id": "BP-04", "rule": "cryptographically signed audit chain per action (post-$ref:docs/decisions/ADR-0083 cryptographic chain)", "required_at": "GA"},

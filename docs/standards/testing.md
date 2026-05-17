@@ -20,7 +20,7 @@ purpose: |
   the `standards/testing.md` forward-reference sentinel in
   `docs/AGENTS.md` §During-change discipline.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-test-evidence
+planned_enforcement_ref: oya-foundry-fitness-test-evidence
 companion_docs:
   - docs/QA-TEST-STRATEGY.md
   - docs/standards/code-style-rust.md

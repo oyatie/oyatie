@@ -56,7 +56,7 @@ These are not "products" in the customer sense but are catalog-tracked for consi
 | Regional packs | [`../regional-packs/`](../regional-packs/) | One pack per locale (KR / JP / US / EU / IN / BR / KSA / UAE / AU / SG / …); each is its own folder with `PACK.md` + `i18n/` + `regulatory/` + `payment-rails/` + `identity/` + `tax/` |
 | Engineering teams | [`../teams/`](../teams/) | One charter per team |
 
-## Required sections per product PRD (enforced by `oya-foundry-fitness-product-prd`)
+## Required sections per product PRD (validated by `oya gate validate product-prd-json`)
 
 1. **North star** — what + who + why
 2. **Target users** — personas + value-exchange

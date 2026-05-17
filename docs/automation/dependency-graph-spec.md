@@ -10,7 +10,7 @@ purpose: |
   milestone/phase/IP frontmatter. Source: every `.omc/plans/milestones/**` file's
   `parent:` and `depends_on:` frontmatter. Lift to
   `docs/visualization/dependency-graph.md` as Graphviz dot (SVG fidelity).
-enforced_by: oya-foundry-fitness-dep-graph
+planned_enforcement_ref: oya-foundry-fitness-dep-graph
 extends_crates:
   - oya-foundry-architecture-map-kernel
   - oya-foundry-pr-traceability-kernel
