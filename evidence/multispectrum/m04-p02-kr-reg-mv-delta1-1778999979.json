@@ -3,7 +3,7 @@
   "change_id": "m04-p02-kr-reg-mv-delta1",
   "change_summary": "oya-regional-pack-domain: add kr_regulatory module with PipaDataClassification enum (Art-23 sensitive-data categories including RaceOrEthnicity) and KrRegulatoryBinding struct (CSAP evidence ref). M04-P02-IP-001 merge-variant delta-1; no new crate scaffolding.",
   "change_class_id": "CC-3",
-  "git_sha": "073d198723c04a762b1a95875507db8b267277d8",
+  "git_sha": "0221dd510cc41bbe78ad9b7787fd4d0c632a5b9a",
   "freshness_unix": 1778999979,
   "session_id": "executor-m04-p02-kr-reg-mv-1778999894",
   "multispectrum_spec_version": "2.3.0",
