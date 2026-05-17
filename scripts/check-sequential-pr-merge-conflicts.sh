@@ -182,6 +182,11 @@ while IFS=$'\t' read -r number head_ref_name head_oid is_draft title; do
   if [ "$fetch_heads" = "1" ]; then
     git fetch --no-tags origin "+refs/pull/${number}/head:${pr_ref}" >/dev/null 2>&1
     head_ref="$pr_ref"
+    fetched_head="$(git rev-parse "${head_ref}^{commit}")"
+    if [ "$fetched_head" != "$head_oid" ]; then
+      echo "::error::PR #${number} moved while fetching (${head_oid} -> ${fetched_head}); refusing stale queue simulation" >&2
+      exit 1
+    fi
   else
     head_ref="$head_oid"
   fi

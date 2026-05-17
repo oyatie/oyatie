@@ -44,54 +44,13 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.event.inputs.base_branch || 'dev' }}
           fetch-depth: 0
 
-      - name: Resolve simulation scope
-        id: scope
-        env:
-          BASE_BRANCH: ${{ github.event.inputs.base_branch || github.event.pull_request.base.ref || 'dev' }}
-          DEFAULT_START_PR: ${{ github.event.inputs.start_pr || vars.OYA_MERGE_QUEUE_START_PR || '111' }}
-          DISPATCH_END_PR: ${{ github.event.inputs.end_pr || '' }}
-          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-        run: |
-          set -euo pipefail
-          start_pr="$DEFAULT_START_PR"
-          end_pr="$DISPATCH_END_PR"
-
-          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            end_pr="$PR_NUMBER"
-            git diff --name-only "origin/${BASE_BRANCH}" HEAD > "$RUNNER_TEMP/changed-files.txt"
-            if [ -s "$RUNNER_TEMP/changed-files.txt" ] && awk '
-              /^\.github\/workflows\/ci-failure-fix-loop\.yml$/ { next }
-              /^\.github\/workflows\/oya-foundry-fitness-sequential-pr-merge-conflicts\.yml$/ { next }
-              /^\.github\/workflows\/oya-foundry-next-queue-automerge\.yml$/ { next }
-              /^\.github\/workflows\/oya-foundry-sequential-pr-queue-repair\.yml$/ { next }
-              /^scripts\/check-sequential-pr-merge-conflicts\.sh$/ { next }
-              /^scripts\/repair-sequential-pr-queue\.sh$/ { next }
-              /^scripts\/trigger-next-queue-automerge\.sh$/ { next }
-              /^registry\/quality\/lanes\.yaml$/ { next }
-              /^docs\/standards\/ci-lanes\.md$/ { next }
-              /^crates\/oya-foundry-gate-catalog-domain\/src\/lib\.rs$/ { next }
-              { bad=1 }
-              END { exit bad ? 1 : 0 }
-            ' "$RUNNER_TEMP/changed-files.txt"; then
-              start_pr="$PR_NUMBER"
-              echo "::notice::queue-infrastructure-only PR; simulating current PR only against ${BASE_BRANCH}"
-            fi
-          fi
-
-          {
-            echo "base_branch=$BASE_BRANCH"
-            echo "start_pr=$start_pr"
-            echo "end_pr=$end_pr"
-            echo "skip_prs=${{ github.event.inputs.skip_prs || '' }}"
-          } >> "$GITHUB_OUTPUT"
-
       - name: Simulate numeric open-PR merge order
         env:
           GH_TOKEN: ${{ github.token }}
-          BASE_BRANCH: ${{ steps.scope.outputs.base_branch }}
-          START_PR: ${{ steps.scope.outputs.start_pr }}
-          END_PR: ${{ steps.scope.outputs.end_pr }}
-          SKIP_PRS: ${{ steps.scope.outputs.skip_prs }}
+          BASE_BRANCH: ${{ github.event.inputs.base_branch || github.event.pull_request.base.ref || 'dev' }}
+          START_PR: ${{ github.event.inputs.start_pr || vars.OYA_MERGE_QUEUE_START_PR || '111' }}
+          END_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.event.inputs.end_pr || '' }}
+          SKIP_PRS: ${{ github.event.inputs.skip_prs || '' }}
         run: |
           set -euo pipefail
           args=(
