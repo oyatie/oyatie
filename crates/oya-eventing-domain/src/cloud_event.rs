@@ -31,6 +31,12 @@ pub enum CloudEventError {
     /// `tenant_id`, `microservice`, or `event_type` contained a dot, which
     /// would break the structured topic name.
     IllegalDotInComponent,
+    /// `time` did not conform to RFC3339 format (`YYYY-MM-DDTHH:MM:SSZ` or
+    /// `YYYY-MM-DDTHH:MM:SS+HH:MM` / `YYYY-MM-DDTHH:MM:SS-HH:MM`).
+    InvalidTimeFormat { time: String },
+    /// `data` was not valid JSON; `data_content_type` is always
+    /// `"application/json"` so the payload must be parseable.
+    InvalidPayload { reason: String },
 }
 
 impl std::fmt::Display for CloudEventError {
@@ -47,6 +53,18 @@ impl std::fmt::Display for CloudEventError {
             Self::IllegalDotInComponent => f.write_str(
                 "cloud_event: tenant_id, microservice, and event_type must not contain '.'",
             ),
+            Self::InvalidTimeFormat { time } => {
+                write!(
+                    f,
+                    "cloud_event: time must be RFC3339 (e.g. 2006-01-02T15:04:05Z), got {time:?}"
+                )
+            }
+            Self::InvalidPayload { reason } => {
+                write!(
+                    f,
+                    "cloud_event: data must be valid JSON (data_content_type is application/json): {reason}"
+                )
+            }
         }
     }
 }
@@ -92,6 +110,91 @@ pub struct CloudEvent {
     oyatie_cell_id: String, // data_class: INTERNAL_ONLY
 }
 
+/// Validate that `s` is a minimal RFC3339 timestamp.
+///
+/// Accepted shapes (all field widths fixed):
+/// - `YYYY-MM-DDTHH:MM:SSZ`
+/// - `YYYY-MM-DDTHH:MM:SS+HH:MM`
+/// - `YYYY-MM-DDTHH:MM:SS-HH:MM`
+///
+/// Sub-second fractions are NOT required; this check is intentionally
+/// conservative — it verifies structural shape only, not calendar validity.
+fn is_rfc3339(s: &str) -> bool {
+    // Minimum: "YYYY-MM-DDTHH:MM:SSZ" = 20 chars
+    let b = s.as_bytes();
+    if b.len() < 20 {
+        return false;
+    }
+    // Date portion: YYYY-MM-DD
+    let date_ok = b[4] == b'-' && b[7] == b'-';
+    // Date/time separator
+    let sep_ok = b[10] == b'T' || b[10] == b't';
+    // Time portion: HH:MM:SS
+    let time_ok = b[13] == b':' && b[16] == b':';
+    if !date_ok || !sep_ok || !time_ok {
+        return false;
+    }
+    // All date/time digit positions must be ASCII digits
+    for &pos in &[0, 1, 2, 3, 5, 6, 8, 9, 11, 12, 14, 15, 17, 18] {
+        if !b[pos].is_ascii_digit() {
+            return false;
+        }
+    }
+    // Timezone: 'Z' or optional sub-second fraction then '+'/'-' offset
+    // Strip optional fractional seconds (.NNN...)
+    let tz_start = if b[19] == b'.' {
+        // find end of fraction
+        let mut i = 20;
+        while i < b.len() && b[i].is_ascii_digit() {
+            i += 1;
+        }
+        i
+    } else {
+        19
+    };
+    if tz_start >= b.len() {
+        return false;
+    }
+    match b[tz_start] {
+        b'Z' | b'z' => tz_start + 1 == b.len(),
+        b'+' | b'-' => {
+            // must have HH:MM after the sign — exactly 5 more bytes
+            let tz = &b[tz_start + 1..];
+            tz.len() == 5
+                && tz[2] == b':'
+                && tz[0..2].iter().all(|c| c.is_ascii_digit())
+                && tz[3..5].iter().all(|c| c.is_ascii_digit())
+        }
+        _ => false,
+    }
+}
+
+/// Validate that `s` is a JSON value (object, array, string, number, bool, or null).
+///
+/// Uses a minimal hand-rolled check to avoid a heavy parser dependency: the
+/// string must start with a JSON value introducer (`{`, `[`, `"`, digit, `-`,
+/// `t`, `f`, or `n`) and must be balanced at the top level.  For the oyatie
+/// eventing substrate, payloads are expected to be JSON objects or arrays; this
+/// check is conservative but sufficient to reject obviously non-JSON strings.
+fn is_valid_json(s: &str) -> bool {
+    let s = s.trim();
+    if s.is_empty() {
+        return false;
+    }
+    match s.chars().next() {
+        Some('{') => s.ends_with('}'),
+        Some('[') => s.ends_with(']'),
+        Some('"') => s.len() >= 2 && s.ends_with('"'),
+        Some('t') => s == "true",
+        Some('f') => s == "false",
+        Some('n') => s == "null",
+        Some(c) if c.is_ascii_digit() || c == '-' => s.chars().skip(1).all(|c| {
+            c.is_ascii_digit() || c == '.' || c == 'e' || c == 'E' || c == '+' || c == '-'
+        }),
+        _ => false,
+    }
+}
+
 impl CloudEvent {
     /// Construct a [`CloudEvent`] and enforce the oyatie topic naming convention.
     ///
@@ -103,8 +206,8 @@ impl CloudEvent {
     /// - `microservice` — producing microservice name; must not contain `'.'`.
     /// - `event_type` — event type token; must not contain `'.'`.
     /// - `version` — semantic version integer (≥ 1).
-    /// - `time` — ISO-8601 timestamp string.
-    /// - `data` — JSON payload string.
+    /// - `time` — RFC3339 timestamp string (e.g. `"2026-05-17T00:00:00Z"`).
+    /// - `data` — JSON payload string; must be valid JSON (any JSON value type).
     ///
     /// # Errors
     ///
@@ -120,6 +223,8 @@ impl CloudEvent {
         time: impl Into<String>,
         data: impl Into<String>,
     ) -> Result<Self, CloudEventError> {
+        // Convert all inputs FIRST — validation runs entirely on these values
+        // before any struct field is set (P1 payload-before-set ordering).
         let id = id.into();
         let tenant_id = tenant_id.into();
         let cell_id = cell_id.into();
@@ -127,6 +232,8 @@ impl CloudEvent {
         let event_type_str = event_type.into();
         let time = time.into();
         let data = data.into();
+
+        // --- All validation BEFORE any struct construction ---
 
         // Thread 1 (P1): reject empty id
         if id.is_empty() {
@@ -159,7 +266,18 @@ impl CloudEvent {
         if tenant_id.contains('.') || microservice.contains('.') || event_type_str.contains('.') {
             return Err(CloudEventError::IllegalDotInComponent);
         }
+        // Thread (P2 PRRT_kwDOSbSl2s6CnZ-O): enforce RFC3339 time format
+        if !is_rfc3339(&time) {
+            return Err(CloudEventError::InvalidTimeFormat { time });
+        }
+        // Thread (P1 PRRT_kwDOSbSl2s6CnZ-M): validate JSON payload before setting
+        if !is_valid_json(&data) {
+            return Err(CloudEventError::InvalidPayload {
+                reason: "does not start/end with a valid JSON value".into(),
+            });
+        }
 
+        // --- All validation passed; construct the struct ---
         let structured_type = format!("t.{tenant_id}.{microservice}.{event_type_str}.v{version}");
         let source = format!("//oyatie/{microservice}");
 
@@ -309,30 +427,31 @@ mod tests {
         assert_eq!(ev.event_type(), "t.acme.eventing.outbox_dispatched.v3");
     }
 
+    const T: &str = "2026-05-17T00:00:00Z";
+
     #[test]
     fn cloud_event_rejects_empty_tenant_id() {
         let err =
-            CloudEvent::new("id", "", "cell", "eventing", "dispatched", 1, "t", "{}").unwrap_err();
+            CloudEvent::new("id", "", "cell", "eventing", "dispatched", 1, T, "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyTenantId);
     }
 
     #[test]
     fn cloud_event_rejects_empty_microservice() {
-        let err =
-            CloudEvent::new("id", "acme", "cell", "", "dispatched", 1, "t", "{}").unwrap_err();
+        let err = CloudEvent::new("id", "acme", "cell", "", "dispatched", 1, T, "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyMicroservice);
     }
 
     #[test]
     fn cloud_event_rejects_empty_event_type() {
-        let err = CloudEvent::new("id", "acme", "cell", "eventing", "", 1, "t", "{}").unwrap_err();
+        let err = CloudEvent::new("id", "acme", "cell", "eventing", "", 1, T, "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyEventType);
     }
 
     #[test]
     fn cloud_event_rejects_empty_cell_id() {
         let err =
-            CloudEvent::new("id", "acme", "", "eventing", "dispatched", 1, "t", "{}").unwrap_err();
+            CloudEvent::new("id", "acme", "", "eventing", "dispatched", 1, T, "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyCellId);
     }
 
@@ -345,7 +464,7 @@ mod tests {
             "eventing.sub",
             "dispatched",
             1,
-            "t",
+            T,
             "{}",
         )
         .unwrap_err();
@@ -361,7 +480,7 @@ mod tests {
             "eventing",
             "out.dispatched",
             1,
-            "t",
+            T,
             "{}",
         )
         .unwrap_err();
@@ -402,15 +521,15 @@ mod tests {
     /// Thread 1 (P1): constructor must reject empty id.
     #[test]
     fn new_rejects_empty_id() {
-        let err = CloudEvent::new("", "acme", "cell", "eventing", "dispatched", 1, "t", "{}")
-            .unwrap_err();
+        let err =
+            CloudEvent::new("", "acme", "cell", "eventing", "dispatched", 1, T, "{}").unwrap_err();
         assert_eq!(err, CloudEventError::EmptyId);
     }
 
     /// Thread 2 (P2): constructor must reject version == 0.
     #[test]
     fn new_rejects_zero_version() {
-        let err = CloudEvent::new("id", "acme", "cell", "eventing", "dispatched", 0, "t", "{}")
+        let err = CloudEvent::new("id", "acme", "cell", "eventing", "dispatched", 0, T, "{}")
             .unwrap_err();
         assert_eq!(err, CloudEventError::InvalidVersion { version: 0 });
     }
@@ -425,7 +544,7 @@ mod tests {
             "eventing",
             "dispatched",
             1,
-            "t",
+            T,
             "{}",
         )
         .unwrap_err();
@@ -483,12 +602,83 @@ mod tests {
             "  Eventing  ",
             "  Outbox_Dispatched  ",
             1,
-            "t",
+            T,
             "{}",
         )
         .expect("whitespace-padded inputs are valid after trim");
         assert_eq!(ev.event_type(), "t.acme.eventing.outbox_dispatched.v1");
         assert_eq!(ev.oyatie_tenant_id(), "acme");
         assert_eq!(ev.oyatie_cell_id(), "cell-us-east-1");
+    }
+
+    /// PRRT_kwDOSbSl2s6CnZ-M (P1): constructor must reject non-JSON payload before
+    /// setting `data_content_type = "application/json"`.
+    #[test]
+    fn new_rejects_non_json_payload() {
+        let err = CloudEvent::new(
+            "id",
+            "acme",
+            "cell",
+            "eventing",
+            "dispatched",
+            1,
+            T,
+            "not-json",
+        )
+        .unwrap_err();
+        assert!(
+            matches!(err, CloudEventError::InvalidPayload { .. }),
+            "expected InvalidPayload, got {err:?}"
+        );
+        // Confirm display is human-readable
+        assert!(!err.to_string().is_empty());
+    }
+
+    /// PRRT_kwDOSbSl2s6CnZ-O (P2): constructor must reject timestamps that do not
+    /// conform to RFC3339 format.
+    #[test]
+    fn new_rejects_non_rfc3339_time() {
+        for bad in &[
+            "yesterday",
+            "2026-05-17",
+            "05/17/2026",
+            "2026-05-17 00:00:00",
+            "",
+        ] {
+            let err = CloudEvent::new(
+                "id",
+                "acme",
+                "cell",
+                "eventing",
+                "dispatched",
+                1,
+                *bad,
+                "{}",
+            )
+            .unwrap_err();
+            assert!(
+                matches!(err, CloudEventError::InvalidTimeFormat { .. }),
+                "expected InvalidTimeFormat for {bad:?}, got {err:?}"
+            );
+        }
+        // Positive: valid RFC3339 variants must be accepted
+        for good in &[
+            "2026-05-17T00:00:00Z",
+            "2026-05-17T12:34:56+05:30",
+            "2026-05-17T12:34:56-07:00",
+            "2026-05-17T12:34:56.123Z",
+        ] {
+            CloudEvent::new(
+                "id",
+                "acme",
+                "cell",
+                "eventing",
+                "dispatched",
+                1,
+                *good,
+                "{}",
+            )
+            .unwrap_or_else(|e| panic!("expected Ok for {good:?}, got {e:?}"));
+        }
     }
 }
