@@ -5,6 +5,10 @@ id: M06-P02
 title: Vertical-Fan-Out (13 verticals in parallel)
 status: stub
 purpose: Build out the remaining 13 verticals using the M04-proven blueprint, in parallel.
+execution_variant: merge-into-existing-crates
+decided_at: 2026-05-17
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 backports FanoutVertical 13-variant enum + FanoutTarget + FanoutRoster + FanoutError into existing oya-saas-plugin-marketplace-kernel::vertical_fanout instead of scaffolding new oya-saas-vertical-* crates. Honors no-over-scaffolding rule; tracked under F-M02B-PLAN-LIVE-CRATE-RECONCILIATION (extended to M06 phases). Subsequent deltas (per-vertical entity types + workflow stubs) land under same execution variant."
 ---
 
 # M06-P02 — Vertical-Fan-Out (13)

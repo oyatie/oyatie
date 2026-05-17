@@ -10,6 +10,9 @@
 //! * [`auction::Auction`] — internal-tenant ad slot auction,
 //! * [`auction::Bid`] — single advertiser bid with tenant-isolation enforcement.
 //!
+//! M06-P02 extension (merge-variant delta-1):
+//! * [`vertical_fanout`] — 13-vertical capability-pack roster (preview tier).
+//!
 //! No external Rust deps — std + workspace path deps only per ADR-0015.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
@@ -18,6 +21,11 @@
 pub mod auction;
 pub use auction::{
     Auction, AuctionCreate, AuctionError, AuctionId, AuctionState, Bid, BidCreate, BidId,
+};
+pub mod vertical_fanout;
+pub use vertical_fanout::{
+    FANOUT_SCHEMA_VERSION, FANOUT_VERTICAL_COUNT, FanoutError, FanoutRoster, FanoutTarget,
+    FanoutVertical,
 };
 
 use std::collections::BTreeMap;
