@@ -9,6 +9,7 @@
 //! M06-P01-IP-001 merge-variant delta-1 (2026-05-17):
 //! * [`auction::Auction`] — internal-tenant ad slot auction,
 //! * [`auction::Bid`] — single advertiser bid with tenant-isolation enforcement.
+//!
 //! M06-P02 extension (merge-variant delta-1):
 //! * [`vertical_fanout`] — 13-vertical capability-pack roster (preview tier).
 //!
