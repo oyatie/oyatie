@@ -39,10 +39,25 @@ pub(crate) fn parse_master_plan_completion_audit_args(
 ) -> Result<MasterPlanCompletionAuditArgs, String> {
     let mut parsed = MasterPlanCompletionAuditArgs {
         master_plan_path: PathBuf::from("specs/masterplan.json"),
+        // Default evidence_dirs intentionally broad: the prior 3-dir default
+        // missed canonical evidence under audits/, multispectrum/, per-change/,
+        // and goals/ — leading to false `complete IP has no evidence` failures
+        // for IPs whose completion artifact lives in those dirs (e.g.,
+        // M01-P10-IP-001.1..3 audit-shaped IPs whose evidence is the audit
+        // JSON under evidence/audits/, or M01-P17-IP-002 whose completion is
+        // recorded under evidence/per-change/). Override via --evidence-dir
+        // (repeatable) if a more focused scan is needed.
         evidence_dirs: vec![
             PathBuf::from("evidence/foundation"),
             PathBuf::from("evidence/gitops-vcs"),
             PathBuf::from("evidence/agentic-pipeline"),
+            PathBuf::from("evidence/audits"),
+            PathBuf::from("evidence/multispectrum"),
+            PathBuf::from("evidence/per-change"),
+            PathBuf::from("evidence/goals"),
+            PathBuf::from("evidence/debate"),
+            PathBuf::from("evidence/ledger"),
+            PathBuf::from("evidence/pipeline-maturity-glue"),
         ],
     };
     let mut iter = args.into_iter();

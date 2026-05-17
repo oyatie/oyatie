@@ -962,6 +962,24 @@
                 "dependency_additions": [],
                 "source_plan": null,
                 "source_spec": null
+              },
+              {
+                "id": "M01-P10-IP-001.1",
+                "title": "IP 001.1 audit root core",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P10-purpose-orphan-detection/IP-001.1-audit-root-core.md",
+                "status": "complete"
+              },
+              {
+                "id": "M01-P10-IP-001.2",
+                "title": "IP 001.2 audit milestones",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P10-purpose-orphan-detection/IP-001.2-audit-milestones.md",
+                "status": "complete"
+              },
+              {
+                "id": "M01-P10-IP-001.3",
+                "title": "IP 001.3 audit json",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P10-purpose-orphan-detection/IP-001.3-audit-json.md",
+                "status": "complete"
               }
             ]
           },
@@ -1056,6 +1074,24 @@
                 "dependency_additions": [],
                 "source_plan": null,
                 "source_spec": null
+              },
+              {
+                "id": "M01-P12-IP-002.1",
+                "title": "IP 002.1 audit billing marketplace",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P12-provider-agnosticism/IP-002.1-audit-billing-marketplace.md",
+                "status": "complete"
+              },
+              {
+                "id": "M01-P12-IP-002.2",
+                "title": "IP 002.2 audit capacity data",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P12-provider-agnosticism/IP-002.2-audit-capacity-data.md",
+                "status": "complete"
+              },
+              {
+                "id": "M01-P12-IP-002.3",
+                "title": "IP 002.3 audit finops observability",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P12-provider-agnosticism/IP-002.3-audit-finops-observability.md",
+                "status": "complete"
               }
             ]
           },
@@ -1684,6 +1720,124 @@
                 "dependency_additions": [],
                 "source_plan": null,
                 "source_spec": null
+              }
+            ]
+          },
+          {
+            "id": "M01-P17",
+            "slug": "P17-pipeline-maturity-glue",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/INDEX.md",
+            "title": "Pipeline Maturity Glue",
+            "status": "in-progress",
+            "doc_class": "PhaseIndex",
+            "implementation_plans": [
+              {
+                "id": "M01-P17-IP-001",
+                "title": "IP 001 branch protection deploy",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-001-branch-protection-deploy.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P17-IP-002",
+                "title": "IP 002 oya cli gate aggregator",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-002-oya-cli-gate-aggregator.md",
+                "status": "complete"
+              },
+              {
+                "id": "M01-P17-IP-003",
+                "title": "IP 003 mistakes ledger 5 control stack",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-003-mistakes-ledger-5-control-stack.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P17-IP-004",
+                "title": "IP 004 reviewer agent auto dispatch",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-004-reviewer-agent-auto-dispatch.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P17-IP-005",
+                "title": "IP 005 ci failure webhook fix loop",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-005-ci-failure-webhook-fix-loop.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P17-IP-006",
+                "title": "IP 006 merge queue fix loop integration",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-006-merge-queue-fix-loop-integration.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P17-IP-007",
+                "title": "IP 007 surface all failures ci",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-007-surface-all-failures-ci.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P17-IP-008",
+                "title": "IP 008 banned primitives fitness check",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-008-banned-primitives-fitness-check.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P17-IP-009",
+                "title": "IP 009 subagent runtime",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P17-pipeline-maturity-glue/IP-009-subagent-runtime.md",
+                "status": "scaffolded"
+              }
+            ]
+          },
+          {
+            "id": "M01-P18",
+            "slug": "P18-agentic-vcs-pipeline",
+            "path": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline",
+            "index": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline/INDEX.md",
+            "title": "Agentic Vcs Pipeline",
+            "status": "scaffolded",
+            "doc_class": "PhaseIndex",
+            "implementation_plans": [
+              {
+                "id": "M01-P18-IP-001",
+                "title": "IP 001 changeset state kernel",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline/IP-001-changeset-state-kernel.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P18-IP-002",
+                "title": "IP 002 merge queue projected state",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline/IP-002-merge-queue-projected-state.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P18-IP-003",
+                "title": "IP 003 webhook receiver substrate",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline/IP-003-webhook-receiver-substrate.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P18-IP-004",
+                "title": "IP 004 vcs orchestrator",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline/IP-004-vcs-orchestrator.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P18-IP-005",
+                "title": "IP 005 canary controller",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline/IP-005-canary-controller.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P18-IP-006",
+                "title": "IP 006 wave b integration",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline/IP-006-wave-b-integration.md",
+                "status": "scaffolded"
+              },
+              {
+                "id": "M01-P18-IP-007",
+                "title": "IP 007 wave c operational fitness",
+                "path": ".omc/plans/milestones/M01-foundation/phases/P18-agentic-vcs-pipeline/IP-007-wave-c-operational-fitness.md",
+                "status": "scaffolded"
               }
             ]
           }
