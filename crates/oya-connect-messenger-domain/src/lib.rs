@@ -8,6 +8,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod delivery_class;
+pub use delivery_class::{MessageDeliveryClass, MessengerChannelKind};
+
 use std::collections::BTreeSet;
 
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
