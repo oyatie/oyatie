@@ -1,0 +1,48 @@
+{
+  "change_id": "m02b-p21-planes-merge-variant-1778998163",
+  "change_class_id": "CC-2",
+  "freshness_unix": 1778998163,
+  "evidence_id": "m02b-p21-planes-merge-variant-1778998163",
+  "feature_id": "F-P21-ARCHITECTURE-PLANES-GREEN",
+  "created_at_epoch_seconds": 1778998163,
+  "status": "pass",
+  "session_id": "claude-durable-goal-2026-05-17-p21-agent",
+  "multispectrum_version": "v2.3.0",
+  "facets_evaluated": [
+    {
+      "facet": "F1-correctness",
+      "verdict": "pass",
+      "evidence": "9-plane enum matches ADR-0224..ADR-0231 exactly; governing_adr() returns canonical ADR numbers; from_id/id() round-trip verified by test; ProofLevel ordering L4 < L5 asserted; PlaneVerdict.is_l4/is_l5 logic verified; 16 new tests, 65 total passing."
+    },
+    {
+      "facet": "A1-naming",
+      "verdict": "pass",
+      "evidence": "ArchitecturePlane — noun phrase matching P21 phase name; ADR-0105 v4 BNF conformant. ProofLevel — ADR-0223 'proof ladder level' terminology. PlaneVerdict — 'Verdict' matches ADR-0223 notation. UnknownPlane — error sentinel follows kernel error-type pattern (MapError, GateCatalogError). Module id 'plane' — snake_case, single-word, matches emit/walk sibling modules. Re-exports at crate root follow ArchitectureMap/NodeId/EdgeKind precedent."
+    },
+    {
+      "facet": "A3-structure",
+      "verdict": "pass",
+      "evidence": "New module plane.rs added as pub mod plane in lib.rs; re-exported at crate root matching existing NodeKind/EdgeKind/ArchitectureMap pattern. No new crate scaffold. No new workspace deps. Crate remains std-only, I/O-free per kernel-tier (ADR-0083 Tier 1). cfg(test) allow attributes mirror lib.rs and walk.rs pattern."
+    },
+    {
+      "facet": "A4-architecture",
+      "verdict": "pass",
+      "evidence": "plane.rs is pure domain data — no I/O, no subprocess, no network, no panics outside cfg(test). Inward-only dependency flow respected: plane module depends on nothing in the crate; crate has zero workspace deps (Cargo.toml [dependencies] empty). 9-plane enum is closed per ADR-0224..ADR-0231 — non_exhaustive intentionally withheld per inline doc. PlaneVerdict is a value type (no ports, no adapters) matching kernel-tier pattern."
+    }
+  ],
+  "validation": [
+    {
+      "command": "cargo nextest run -p oya-foundry-architecture-map-kernel",
+      "status": "pass",
+      "summary": "65 tests run: 65 passed, 0 skipped (16 new plane:: tests)"
+    },
+    {
+      "command": "rustfmt --edition 2024 src/plane.rs src/lib.rs",
+      "status": "pass",
+      "summary": "no formatting changes after edition-2024 pass"
+    }
+  ],
+  "delta_one_liner": "Add ArchitecturePlane 9-plane enum + PlaneVerdict + ProofLevel to oya-foundry-architecture-map-kernel/src/plane.rs; 16 new tests; 65 total pass.",
+  "execution_variant": "merge-into-existing-crates",
+  "decided_by": "user-directive-option-2"
+}
