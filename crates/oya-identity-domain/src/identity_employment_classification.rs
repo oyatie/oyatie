@@ -151,21 +151,19 @@ mod tests {
 
     #[test]
     fn display_renders_korean_wire_string() {
-        assert_eq!(
-            EmploymentClassification::Regular.to_string(),
-            "정규직"
-        );
-        assert_eq!(
-            EmploymentClassification::Executive.to_string(),
-            "임원"
-        );
+        assert_eq!(EmploymentClassification::Regular.to_string(), "정규직");
+        assert_eq!(EmploymentClassification::Executive.to_string(), "임원");
     }
 
     #[test]
     fn from_str_rejects_empty_string() {
-        let err = EmploymentClassification::from_str("").expect_err("empty string must be rejected");
+        let err =
+            EmploymentClassification::from_str("").expect_err("empty string must be rejected");
         assert_eq!(err.0, "");
-        assert!(err.to_string().contains("unknown employment classification"));
+        assert!(
+            err.to_string()
+                .contains("unknown employment classification")
+        );
     }
 
     #[test]
