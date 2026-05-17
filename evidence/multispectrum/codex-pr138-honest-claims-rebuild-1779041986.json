@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "change_id": "codex-pr138-honest-claims-rebuild-1779041986",
+  "timestamp_iso": "2026-05-17T18:48:37Z",
+  "session_id": "codex-merge-queue-pr138-review-fix",
+  "scope": "PR-138 honest claims and ChangeSet graph enforcement rebuild",
+  "source_pr": 138,
+  "base_after_pr": {
+    "pr": 137,
+    "dev_sha": "6d104accb22456270a5949ad90736e6e2951d19e"
+  },
+  "review_findings_addressed": [
+    {
+      "id": "138-B01-library-only-no-corpus-runner",
+      "resolution": "added oya-check-honest-claims as an I/O-free kernel plus the real oya gate validate honest-claims CLI entrypoint that walks ADRs, standards, specs, PRD roots, and .omc/plans/milestones by default"
+    },
+    {
+      "id": "138-B02-changeset-dag-contract-not-enforced",
+      "resolution": "made existing ImplementationPlan frontmatter id the canonical ChangeSet key and added graph checks for duplicates, unknown/self dependencies, cycles, asymmetric serialization, and unordered global artifact writes"
+    },
+    {
+      "id": "138-H01-check-not-required-and-wrong-push-branch",
+      "resolution": "added oya-foundry-fitness-honest-claims workflow on pull_request and dev push, branch-protection required status, quality-lane registry row, CI-lanes mirror row, and gate-catalog aggregation"
+    },
+    {
+      "id": "138-H02-phrase-scanner-blocks-legitimate-references",
+      "resolution": "scanner skips code fences/examples, allows historical version citations and quoted/governance maturity-gate text, and fixture tests cover those paths"
+    },
+    {
+      "id": "138-M01-stale-schema-masterplan-version",
+      "resolution": "bumped specs/plan-schema.json and specs/masterplan.json to version 1.1.0 with 2026-05-17 update timestamps and the exact ChangeSet graph field contract"
+    },
+    {
+      "id": "138-M02-adr-schema-field-drift",
+      "resolution": "added ADR-0129 with the exact required, measured, and optional graph fields and rejected the duplicate changeset_id migration"
+    }
+  ],
+  "post_rebuild_review_findings_addressed": [
+    {
+      "id": "post-review-clippy-collapsible-if",
+      "resolution": "collapsed nested conditionals so cargo clippy -p oya-check-honest-claims --all-targets -- -D warnings passes"
+    },
+    {
+      "id": "post-review-prd-corpus-exclusion",
+      "resolution": "added docs/PRD.md, docs/prds, docs/products, and docs/raw/agentic-delivery-fabric-executable-prd.md to the default honest-claims corpus"
+    },
+    {
+      "id": "post-review-masterplan-index-inconsistency",
+      "resolution": "marked live_implementation_index as a historical snapshot and added the current runtime index source plus 172-plan runtime count"
+    },
+    {
+      "id": "post-review-adr-default-corpus-drift",
+      "resolution": "updated ADR-0129 to list the actual default PRD, ADR, standards, specs, and raw PRD corpus roots plus the plan graph directory"
+    }
+  ],
+  "artifacts": [
+    ".github/branch-protection.yaml",
+    ".github/workflows/oya-foundry-fitness-honest-claims.yml",
+    ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-001-provider-account-pool-kernel.md",
+    ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-002-anthropic-compat-adapter.md",
+    ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-003-openai-compat-adapter.md",
+    ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-004-oauth-subscription-capture.md",
+    ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-005-upstream-api-drift-lane.md",
+    ".omc/plans/milestones/M02-foundry-preview/phases/P02-multi-subscription-pool/IP-006-tos-policy-audit-chain.md",
+    "Cargo.toml",
+    "crates/oya-check-honest-claims/Cargo.toml",
+    "crates/oya-check-honest-claims/src/lib.rs",
+    "crates/oya-dev-cli/Cargo.toml",
+    "crates/oya-dev-cli/src/commands/gate/mod.rs",
+    "crates/oya-dev-cli/src/honest_claims_gate.rs",
+    "crates/oya-dev-cli/src/lib.rs",
+    "crates/oya-dev-cli/tests/gate_cli.rs",
+    "crates/oya-foundry-gate-catalog-domain/src/lib.rs",
+    "docs/decisions/ADR-0129-changeset-plan-dag-and-honest-claims-gate.md",
+    "docs/standards/ci-lanes.md",
+    "registry/quality/lanes.yaml",
+    "specs/masterplan.json",
+    "specs/plan-schema.json"
+  ],
+  "claim_boundary": "This change enforces honest claims and ChangeSet graph validity for the current repository corpus. It does not claim every product is hyperscaler mature, nor does it introduce retired cross-cutting registries or retired milestone labels.",
+  "local_verification": [
+    "cargo fmt --all -- --check: PASS",
+    "cargo check -p oya-dev-cli --tests: PASS",
+    "cargo test -p oya-check-honest-claims: PASS",
+    "cargo test -p oya-dev-cli honest_claims_gate --test gate_cli: PASS",
+    "cargo test -p oya-foundry-gate-catalog-domain rendered_form_contains_hyperscaler_architecture_and_maturity_lanes: PASS",
+    "oya gate validate honest-claims: PASS, 285 documents, 70667 lines, 172 implementation plans",
+    "oya gate validate quality-lanes: PASS",
+    "oya gate validate protection-context-match: PASS",
+    "jq changed JSON: PASS"
+  ]
+}

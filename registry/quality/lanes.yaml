@@ -65,6 +65,14 @@ lanes:
     source: standards/ci-lanes.md
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate quality-lanes
+  - id: oya-foundry-fitness-honest-claims
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: scan authoritative docs/specs/ADRs for deferred active claims and validate ImplementationPlan ChangeSet graph integrity
+    source: ADR-0129 / specs/plan-schema.json / specs/masterplan.json
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-dev-cli -- gate validate honest-claims
   - id: oya-foundry-fitness-workspace-hygiene
     stage: foundation
     status: active

@@ -1,0 +1,38 @@
+name: oya-foundry-fitness-honest-claims
+
+# Required-check workflow for honest claims and ImplementationPlan-as-ChangeSet
+# graph integrity. The job name intentionally matches the branch-protection
+# context exactly.
+
+on:
+  pull_request:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oya-foundry-fitness-honest-claims-${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  oya-foundry-fitness-honest-claims:
+    name: oya-foundry-fitness-honest-claims
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: stable
+      - name: Cache cargo registry + target
+        uses: Swatinem/rust-cache@9d47c6ad4b02e050fd481d890b2ea34778fd09d6
+        with:
+          shared-key: pr-tests
+      - name: Validate honest claims and ChangeSet graph
+        env:
+          CARGO_TERM_COLOR: always
+          CARGO_INCREMENTAL: "0"
+        run: cargo run -p oya-dev-cli -- gate validate honest-claims
