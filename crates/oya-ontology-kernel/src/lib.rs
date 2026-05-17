@@ -1,7 +1,10 @@
-//! Ontology kernel: data-classed entities and property-tier semantics.
+//! Ontology kernel: data-classed entities, property-tier semantics, and pillar isolation.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
+
+pub mod pillar;
+pub use pillar::{OntologyPillar, UnknownPillarLabel};
 
 use std::collections::BTreeMap;
 

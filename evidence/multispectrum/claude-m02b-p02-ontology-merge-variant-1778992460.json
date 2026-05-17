@@ -1,0 +1,48 @@
+{
+  "change_id": "claude-m02b-p02-ontology-merge-variant-1778992460",
+  "change_class_id": "CC-2_adapter_or_infrastructure",
+  "change_class_rationale": "Adds 2 new public types (OntologyPillar enum + UnknownPillarLabel error) + a new module file (pillar.rs) to an existing live kernel crate (oya-ontology-kernel). Additive only; encodes the org/person pillar-isolation contract from Bominal-ADR-0132. Touches the M02b/P02-ontology impl-plan frontmatter to record the user's merge-variant decision.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778992460,
+  "git_sha_base": "586abb85",
+  "branch": "agent/m02b-p02-ontology-merge-variant-1778992460",
+  "session_id": "claude-durable-goal-2026-05-17-p02-agent",
+  "agent_id": "claude-m02b-p02-ontology-merge-variant",
+  "task": "First merge-variant delta from M02b/P02-ontology impl-plan into the existing live oya-ontology-* crates. Parallel subagent slice dispatched by parent claude-durable-goal session per user directive 2026-05-17 (option 2: merge-into-existing-crates). Honors user's no-over-scaffolding rule: the 45-crate FROM-SCRATCH scaffold from the impl-plan is NOT scaffolded; instead one canonical type (OntologyPillar) is added to the existing kernel crate.",
+  "artifacts_touched": [
+    "crates/oya-ontology-kernel/src/pillar.rs (NEW; 166 lines: OntologyPillar enum + UnknownPillarLabel error + From/Display impls + exhaustive tests)",
+    "crates/oya-ontology-kernel/src/lib.rs (added `pub mod pillar` + re-exports for OntologyPillar, UnknownPillarLabel)",
+    ".omc/plans/milestones/M02b-substrate/phases/P02-ontology/impl-plan.md (frontmatter: execution_variant=merge-into-existing-crates + execution_variant_note pointing to F-M02B-PLAN-LIVE-CRATE-RECONCILIATION)",
+    "evidence/multispectrum/claude-m02b-p02-ontology-merge-variant-1778992460.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "references_fixuptasks": ["F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"],
+  "local_gates": [
+    "cargo nextest run -p oya-ontology-kernel --all-features: PASS"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": ["Honors no-over-scaffolding: 45-crate plan → 1 type into existing kernel. The OntologyPillar enum is the smallest meaningful first delta because every other Ontology object will reference a pillar, so it's the foundational contract."],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": ["Pillar enum has wire_label + from_wire_label + From<&str>/From<String> + Display impls + exhaustive tests. Encodes the wire_label string contract that Postgres CHECK + Protobuf serializer share."],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": ["Aligns with Bominal-ADR-0132 (org/person pillar isolation) inherited per [[bominal-inheritance-precedence]]. No data-class, autonomy-ceiling, or licence surface touched."],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": ["Audit-chain row appended with distinct timestamp_unix + session_id (OP-08). Slice references the same F-M02B-PLAN-LIVE-CRATE-RECONCILIATION FixupTask as P06 — one shared cross-phase tracker, not 6 separate ones."]
+    }
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Same pattern as PR #60 (P06 baseline). Pillar enum is the foundational contract; subsequent deltas can build on it."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT_WITH_GUARDRAILS", "guardrails": ["4 more foundation phases (P03-identity, P04-audit-chain, P05-eventing, P07-observability) need analogous merge-variant frontmatter + delta slices.", "OntologyPillar's wire_label contract must stay in sync with the Postgres CHECK constraint when DDL lands in a follow-on slice."]}
+  }
+}
