@@ -897,32 +897,32 @@
     {
       "id": "BP-01",
       "rule": "professional mail is encrypted under tenant DEK and never plaintext-indexed",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-mail-encryption"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-mail-encryption"
     },
     {
       "id": "BP-02",
       "rule": "retention expiry checks legal hold before delete",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-retention"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-retention"
     },
     {
       "id": "BP-03",
       "rule": "mail-to-Workflow requires explicit user action or tenant policy basis",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-workflow-handoff"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-workflow-handoff"
     },
     {
       "id": "BP-04",
       "rule": "every active sending domain must have DMARC policy set before production activation",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-perimeter"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-perimeter"
     },
     {
       "id": "BP-05",
       "rule": "AI-assisted features require explicit tenant opt-in; no plaintext exits tenant DEK boundary for training",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-ai-privacy"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-ai-privacy"
     },
     {
       "id": "BP-06",
       "rule": "DKIM keys are rotated at minimum every 365 days; ARC seals preserve authentication across forwarding hops",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-perimeter"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-perimeter"
     }
   ],
   "patterns": [

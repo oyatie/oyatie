@@ -143,7 +143,7 @@ The registry is the single input to per-language SDK codegen (`oya-foundry-sdk-g
 
 - On-call: `EVT-CONTRACT-LANE-FAIL-RATE > N` daily rollup.
 - Runbooks: `runbooks/contract-introduction.md`, `runbooks/contract-breaking-change.md`.
-- CI: `oya-check-contracts` is a P0 lane; failure blocks merge.
+- Planned enforcement: `oya-check-contracts` is an advisory P0 lane reference until the crate exists; active merge blocking stays with shipped gates.
 - Per-quarter audit by `council-architecture`: every contract row reviewed; orphan rows removed.
 
 ---

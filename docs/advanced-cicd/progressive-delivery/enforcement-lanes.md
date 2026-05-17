@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Named fitness lanes that enforce the progressive-delivery strategy + specs + playbooks.
-enforced_by: self
+planned_enforcement_ref: self
 related_adrs: [ADR-0040, ADR-0042, ADR-0037, ADR-0038, ADR-0039, ADR-0050, ADR-0053, ADR-0052, ADR-0054]
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 doc_status: published

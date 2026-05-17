@@ -10,7 +10,7 @@ purpose: |
   Define LTS support window, EOL signaling, and per-major-version end-of-life
   process for oyatie. 12 months from major release; 90-day pre-EOL warning;
   EOL-LEDGER as the single source of truth for support status.
-enforced_by: oya-foundry-fitness-version-eol-warning
+planned_enforcement_ref: oya-foundry-fitness-version-eol-warning
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---

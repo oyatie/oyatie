@@ -960,32 +960,32 @@
     {
       "id": "BP-01",
       "rule": "calendar details are never used as implicit personal-to-work inference source",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-calendar-pillar"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-pillar"
     },
     {
       "id": "BP-02",
       "rule": "Workflow handoff is explicit action card or documented tenant policy only",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-workflow-handoff"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-workflow-handoff"
     },
     {
       "id": "BP-03",
       "rule": "recurrence expansion is bounded and observable",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-calendar-scale"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-scale"
     },
     {
       "id": "BP-04",
       "rule": "all event times store IANA tz database IDs; fixed-offset-only storage is forbidden",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-calendar-timezone"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-timezone"
     },
     {
       "id": "BP-05",
       "rule": "scheduling assistant and booking pages use free/busy-only projection; personal event details never cross pillar boundary",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-calendar-pillar"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-pillar"
     },
     {
       "id": "BP-06",
       "rule": "video call links are invalidated when the parent event is cancelled; access policy is checked at join time",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-calendar-video-call"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-calendar-video-call"
     }
   ],
   "patterns": [

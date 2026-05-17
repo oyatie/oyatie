@@ -10,7 +10,7 @@ purpose: |
   (orchestrates the 3-gate local-dev → origin/dev verification), staging-promoter
   (autonomous origin/dev → staging fast-forward), prod-promoter (5-gate staging → prod).
   Plus staging-fixer (canary/SLO-regression worker) and the reviewer-agent dispatch table.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-no-direct-origin-dev-commit
   - oya-foundry-fitness-no-direct-staging-commit
   - oya-foundry-fitness-no-direct-prod-commit

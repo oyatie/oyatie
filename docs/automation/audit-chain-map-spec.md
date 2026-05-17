@@ -10,7 +10,7 @@ purpose: |
   crates. Source: per-crate `[package.metadata.oyatie.events]` blocks +
   `contracts/eventschema/*.yaml` + the doc-catalog event taxonomy.
   Lift to `docs/visualization/audit-chain.md` (D2 + Mermaid).
-enforced_by: oya-foundry-fitness-audit-chain-map
+planned_enforcement_ref: oya-foundry-fitness-audit-chain-map
 extends_crates:
   - oya-foundry-cohesion-fitness-kernel
   - oya-foundry-evidence-kernel

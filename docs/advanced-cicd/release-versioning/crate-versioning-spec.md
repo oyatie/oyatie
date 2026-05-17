@@ -10,7 +10,7 @@ purpose: |
   Define how every oya-* crate is versioned: SemVer 2.0.0 mandatory, workspace
   lockstep until W-Foundry-Preview, independent thereafter, with cargo-semver-checks
   enforcement in CI and a breaking-change ADR gate.
-enforced_by: oya-foundry-fitness-semver-discipline
+planned_enforcement_ref: oya-foundry-fitness-semver-discipline
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---

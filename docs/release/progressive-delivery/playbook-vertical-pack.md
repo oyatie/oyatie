@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Vertical-pack updates (healthcare/fintech/etc.) with DPIA refresh per pack.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-data-class
   - oya-foundry-fitness-cohort-honor
 related_adrs: [ADR-0033, ADR-0034, ADR-0038, ADR-0053, ADR-0055]
@@ -65,7 +65,7 @@ Sequence:
 
 ## 5. Per-vertical pack approval
 
-Each pack has a named approver (per-vertical compliance officer). Approval is gated by D14 emit; no auto-approval. PR-blocking lane `oya-foundry-fitness-data-class` requires the approver field.
+Each pack has a named approver (per-vertical compliance officer). Approval is gated by D14 emit; no auto-approval. Planned advisory lane `oya-foundry-fitness-data-class` records approver-field gaps until the PR-blocking workflow exists.
 
 ## 6. Rollback
 

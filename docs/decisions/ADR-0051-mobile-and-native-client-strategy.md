@@ -95,7 +95,7 @@ Every regulated capability invocation from a native client emits to the same aud
 ## Adoption + verification
 
 - Per-product PRDs that declare native-in-scope cite this ADR and emit a per-product mobile addendum.
-- The `oya-foundry-fitness-mobile-native` CI lane lands as part of W-Foundry-Preview foundation work (lane scaffolded, blocking gates activate at W-Workspace-Stable).
+- The planned advisory lane `oya-foundry-fitness-mobile-native` lands as part of W-Foundry-Preview foundation work (lane scaffolded, blocking gates activate at W-Workspace-Stable).
 - The Mobile Native Strategy is reviewed at every wave gate (Foundry-Preview through Region-Fan-Out); deviation requires founder + council-architecture sign-off.
 
 ## Sources

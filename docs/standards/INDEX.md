@@ -90,8 +90,7 @@ that satisfies it.
 Every file in this directory:
 
 1. Carries `status: Accepted` and a `date: <ISO-date>` in frontmatter after lift.
-2. Declares `enforced_by: <lane-name>` in frontmatter so the fitness-lane registry has
-   a stable back-reference.
+2. Declares `enforced_by: <lane-name>` only for active workflow + quality-lane controls, otherwise `planned_enforcement_ref: <lane-name>`, so the fitness-lane registry has a stable back-reference without overclaiming enforcement.
 3. Is ≤ 250 lines (this index included).
 4. Cites the hyperscaler source by URL where it adopts an upstream practice.
 5. Does NOT duplicate content from `docs/AGENTS.md`,

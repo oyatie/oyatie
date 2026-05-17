@@ -19,7 +19,7 @@ purpose: |
   and the 12-value canonical layer enum (kernel, domain, application, app, adapter,
   infrastructure, cli, rest, grpc, graphql, worker, sdk) per ADR-0056.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-clippy-pedantic
+planned_enforcement_ref: oya-foundry-fitness-clippy-pedantic
 companion_docs:
   - docs/standards/error-handling.md
   - docs/standards/dependency-policy.md

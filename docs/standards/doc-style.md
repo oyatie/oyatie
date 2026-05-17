@@ -18,7 +18,7 @@ purpose: |
   `doc-catalog.md` + the post-2026-05-15 doctrinal substrate, `docs/AGENTS.md` canonical doc map, and
   `docs/README.md`.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-doc-style
+planned_enforcement_ref: oya-foundry-fitness-doc-style
 companion_docs:
   - docs/DOC-CATALOG.md
   - docs/STANDARDS-AND-TEMPLATES.md
@@ -118,7 +118,8 @@ purpose: |
   One paragraph: what this doc answers; who reads it.
 lift_target: <path/under/docs/...>   # only for working drafts under .omc/
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: <ci-lane-name>          # standards/runbooks only
+enforced_by: <active-ci-lane-name>   # standards/runbooks only when workflow + quality-lane row are active
+planned_enforcement_ref: <lane-name> # use instead when enforcement is planned/advisory
 companion_docs:
   - <path>
 authority_chain_declaration: |
@@ -130,14 +131,14 @@ Per-doc-class additions:
 
 - **Tier-1 strategy docs** (AGENTS, PRD, DESIGN, SPEC, ROADMAP):
   `excludes:` block (each row `path:` + `reason:`).
-- **Standards**: `enforced_by: <lane-name>` (REQUIRED).
+- **Standards**: one enforcement reference is REQUIRED. Use `enforced_by: <lane-name>` only for active workflow + quality-lane controls; otherwise use `planned_enforcement_ref: <lane-name>`.
 - **Runbooks**: `last_verified: <ISO-date>`, `severity_tier: <Sev-1|2|3|4>`,
   `slo_links: [<slo-ids>]`.
 - **ADRs**: `adr_id:`, `status: <Proposed|Accepted|Superseded|Retired>`,
   `supersedes:`, `superseded_by:`, `decision_drivers:`, `consequences:`.
 
-The lane `oya-foundry-fitness-frontmatter-shape` validates per-doc-class
-required keys.
+The planned lane `oya-foundry-fitness-frontmatter-shape` will validate
+per-doc-class required keys once wired as an active workflow and quality lane.
 
 ## 5. Heading hierarchy
 

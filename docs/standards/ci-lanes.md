@@ -26,6 +26,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-docs` | documentation-system pipeline registry and wiki quickref stay grounded | DOCUMENTATION.md / registry/docs/pipeline.tsv |
 | `oya-foundry-fitness-quality-lanes` | registry/quality/lanes.yaml and this CI-lanes doc mirror stay in sync | standards/ci-lanes.md |
 | `oya-foundry-fitness-honest-claims` | scan authoritative docs/specs/ADRs for deferred active claims and validate ImplementationPlan ChangeSet graph integrity | ADR-0129 / specs/plan-schema.json / specs/masterplan.json |
+| `oya-foundry-fitness-aspirational-enforcement` | block active required enforcement claims that reference missing check crates, workflows, or branch-protection contexts | ADR-0135 / ADR-0133 |
 | `oya-foundry-fitness-workspace-hygiene` | inventory temp, home, repo-root, build-artifact, and oyatie-worktrees residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions | specs/workspace-hygiene.json / ADR-0123 |
 | `oya-foundry-fitness-hyperscaler-maturity-claims` | block unsupported hyperscaler maturity claims unless product depth, pipeline, hygiene, UX, safety, guardrail, and competitor evidence are green | specs/hyperscaler-gates.json / ADR-0123 |
 | `oya-foundry-fitness-foundation-bypass` | foundation-bypass expiry monitor | ADR-0040 |

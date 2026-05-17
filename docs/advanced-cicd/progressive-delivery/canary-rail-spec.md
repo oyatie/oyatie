@@ -8,7 +8,7 @@ date: 2026-05-12
 purpose: |
   Flagger as the K8s-native canary controller; Argo Rollouts as the second sanctioned option.
   Metric-gated promotion at 1% → 5% → 25% → 50% → 100% with SLO-burn-rate-bounded hold durations.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-slo-coverage
 related_adrs: [ADR-0040, ADR-0042, ADR-0044, ADR-0053, ADR-0052, ADR-0054]

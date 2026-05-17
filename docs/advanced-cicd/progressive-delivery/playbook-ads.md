@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Ads-axis rollouts with privacy-gate; Connect-no-ads cohort honoured per LEDG-021.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-cohort-honor
   - oya-foundry-fitness-data-class
   - oya-foundry-fitness-canary-required
@@ -42,7 +42,7 @@ The `connect-no-ads` cohort ([`stable-cohort-spec.md`](stable-cohort-spec.md) §
 2. No canary stage routes no-ads traffic to ad-serving code paths.
 3. No experiment targets no-ads tenants (even when sample-size pressure tempts it).
 
-Enforced by `oya-foundry-fitness-cohort-honor` as a BLOCKER for Ads-axis PRs. Violation = ledger entry + Sev-1.
+Planned advisory lane: `oya-foundry-fitness-cohort-honor` as a planned blocker for Ads-axis PRs. Violation = ledger entry + Sev-1.
 
 ## 4. Privacy gates
 

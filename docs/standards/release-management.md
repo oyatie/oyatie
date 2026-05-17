@@ -17,7 +17,7 @@ purpose: |
   Operates downstream of `docs/RELEASE-MANAGEMENT.md` (program-level mechanics)
   and supplies the per-PR / per-release authoring rules.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-flag-debt
+planned_enforcement_ref: oya-foundry-fitness-flag-debt
 companion_docs:
   - docs/RELEASE-MANAGEMENT.md
   - docs/SLO-CATALOG.md
@@ -83,7 +83,7 @@ Per Google's [Standard of Code Review](https://google.github.io/eng-practices/re
   - **Created**: ISO date.
   - **Retire-by**: ISO date ≤ 30 days from creation (the **flag-debt SLO**).
   - **Rollout strategy**: percentage / tenant cohort / capability binding.
-- The lane `oya-foundry-fitness-flag-debt` opens a blocking PR check at
+- Once implemented, the advisory lane `oya-foundry-fitness-flag-debt` opens a blocking PR check at
   retire-by + 1d.
 - Stale flags are an anti-pattern: lifetime > 30 d without renewal
   triggers `EVT-FLAG-OVERDUE` and a team-lead escalation.

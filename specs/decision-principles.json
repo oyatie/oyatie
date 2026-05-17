@@ -24,7 +24,9 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-check-cohesion",
+          "oya-check-cohesion"
+        ],
+        "planned_enforcement_refs": [
           "oya-foundry-fitness-cohesion-fitness-kernel"
         ],
         "evidence": "PR-time cohesion-lane verdict"
@@ -38,7 +40,9 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-check-doc-catalog",
+          "oya-check-doc-catalog"
+        ],
+        "planned_enforcement_refs": [
           "oya-foundry-fitness-pr-traceability-kernel"
         ],
         "evidence": "doc-catalog lane refuses PRs that change a canonical surface without updating dependents the catalog names"
@@ -74,11 +78,11 @@
       "statement": "All authority lives under docs/. Files outside the tree are non-authoritative discovery surfaces or working drafts.",
       "binding": "load-bearing",
       "enforcement": {
-        "mode": "mechanical",
-        "enforced_by": [
+        "mode": "mechanical-deferred",
+        "planned_enforcement_refs": [
           "oya-foundry-fitness-authoritative-tracked-kernel"
         ],
-        "evidence": "authoritative-tracked lane verifies every doc cited as authoritative in docs/AGENTS.md is repo-tracked"
+        "evidence": "Planned authoritative-tracked lane will verify every doc cited as authoritative in docs/AGENTS.md is repo-tracked; current control is PR review."
       }
     },
     {
@@ -89,8 +93,10 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-foundry-fitness-doc-style-kernel",
           "oya-check-doc-catalog"
+        ],
+        "planned_enforcement_refs": [
+          "oya-foundry-fitness-doc-style-kernel"
         ],
         "evidence": "doc-style lane enforces length cap + frontmatter shape per doc_class"
       }

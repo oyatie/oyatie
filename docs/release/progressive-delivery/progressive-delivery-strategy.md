@@ -8,7 +8,7 @@ date: 2026-05-12
 purpose: |
   Single coherent progressive-delivery strategy. Pins the change-class decision matrix
   (blue/green vs canary vs rolling) and the default rails. Extends ADR-0040; does not duplicate.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0040, ADR-0041, ADR-0042, ADR-0044, ADR-0050, ADR-0053, ADR-0055]
@@ -62,7 +62,7 @@ Per [`stable-cohort-spec.md`](stable-cohort-spec.md). Regulated tenants (healthc
 
 ## 6. Rollback unit
 
-Per-cell. A bad release reverts in one cell without disturbing healthy cells. Per-cell rollback emits D14 audit-chain evidence ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)) and is enforced by `oya-foundry-fitness-rollback-evidence`.
+Per-cell. A bad release reverts in one cell without disturbing healthy cells. Per-cell rollback emits D14 audit-chain evidence ([ADR-0003](../../decisions/ADR-0003-audit-chain-and-evidence-emission.md)) and is tracked by planned advisory lane `oya-foundry-fitness-rollback-evidence`.
 
 ## 7. Anti-scope
 

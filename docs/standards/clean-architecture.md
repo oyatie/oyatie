@@ -18,7 +18,7 @@ purpose: |
   `crate-naming-convention.md` (a crate's `[package.metadata.oya].role`
   MUST match its actual layer behavior).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-architecture-conventions
+planned_enforcement_ref: oya-foundry-fitness-architecture-conventions
 companion_docs:
   - docs/standards/crate-naming-convention.md
   - docs/standards/code-style-rust.md

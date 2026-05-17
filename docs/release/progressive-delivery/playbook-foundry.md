@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Rollout strategy for Foundry capability publishes — eval-set + canary + cohort + audit-chain + Cosign-signed.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-shadow-diff
   - oya-foundry-fitness-rollback-evidence

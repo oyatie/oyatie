@@ -11,7 +11,7 @@ purpose: |
   `**/*.md`, `**/*.json`, `**/*.toml` and fails any PR that introduces a file
   without a declared purpose, or that leaves a file referenced nowhere. No
   orphans in `main`.
-enforced_by: oya-foundry-fitness-orphan-detection
+planned_enforcement_ref: oya-foundry-fitness-orphan-detection
 extends_crates:
   - oya-foundry-readme-doc-coverage-kernel
   - oya-foundry-catalog-kernel

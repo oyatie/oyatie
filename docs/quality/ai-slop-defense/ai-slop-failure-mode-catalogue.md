@@ -28,7 +28,7 @@ doc_status: published
 | ID | Description | Example | Severity | Mechanical prevention |
 |----|---|---|---|---|
 | **AIS-001** | Hallucinated package on PyPI / crates.io / npm — "slopsquatting" attack surface; ~20% of AI suggestions reference nonexistent packages, 43% repeat across re-asks ([Snyk Slopsquatting](https://snyk.io/articles/slopsquatting-mitigation-strategies/), [USENIX 2025 package-hallucinations](https://www.usenix.org/system/files/conference/usenixsecurity25/sec25cycle1-prepub-742-spracklen.pdf)). | `cargo add notarealcrate-utils-async` succeeds against a typosquat. | C | `cargo-vet` + `cargo-deny [bans] external = "deny"` allowlist; new lane `oya-foundry-fitness-dep-allowlist` blocks any addition not pre-audited. |
-| **AIS-002** | Hallucinated stdlib / framework function (`std::sync::AsyncMutex`, `tokio::spawn_blocking_local`). | LLM emits `tokio::join_all` thinking it exists in Tokio (it lives in `futures`). | H | `cargo check` is mandatory pre-commit; `oya-foundry-fitness-compile-clean` blocks any IP merge whose code does not compile. |
+| **AIS-002** | Hallucinated stdlib / framework function (`std::sync::AsyncMutex`, `tokio::spawn_blocking_local`). | LLM emits `tokio::join_all` thinking it exists in Tokio (it lives in `futures`). | H | `cargo check` is mandatory pre-commit; planned advisory lane `oya-foundry-fitness-compile-clean` records compile-clean gaps before IP merge once implemented. |
 | **AIS-003** | Hallucinated CLI flag / env var / config key. | `kubectl apply --strict-validation` (does not exist). | M | Shellcheck + `oya-foundry-fitness-cli-flag-verify` (new) — every documented flag verified against parsed `--help`. |
 
 ## Class 2 — Silent failure / error swallowing

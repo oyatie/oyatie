@@ -731,27 +731,27 @@
     {
       "id": "BP-01",
       "rule": "context_kind and ownership_pillar are immutable creation-time fields",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-pillar"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-pillar"
     },
     {
       "id": "BP-02",
       "rule": "all privileged professional content disclosure requires four-eyes audit",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-disclosure"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-disclosure"
     },
     {
       "id": "BP-03",
       "rule": "ops state changes are OpenTofu/oya ops driven, not SSH runbooks",
-      "enforced_by_lane_ref": "deployment-ops-contract"
+      "planned_enforcement_ref": "deployment-ops-contract"
     },
     {
       "id": "BP-04",
       "rule": "DMARC/DKIM/SPF result is stamped on every inbound artifact envelope before child-app processing",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-perimeter"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-perimeter"
     },
     {
       "id": "BP-05",
       "rule": "AI-assisted features require explicit tenant opt-in and must not transmit plaintext outside the tenant DEK boundary",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-ai-privacy"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-ai-privacy"
     }
   ],
   "patterns": [

@@ -11,7 +11,7 @@ purpose: |
   Retired terms enforced via the `oya-foundry-fitness-glossary` lane. No hand-edits
   permitted after generation; the canonical vocabulary lives at source, not in a
   hand-curated wordlist.
-enforced_by: oya-foundry-fitness-glossary
+planned_enforcement_ref: oya-foundry-fitness-glossary
 extends_crates:
   - oya-foundry-glossary-coverage-kernel
   - oya-foundry-glossary-vocabulary-kernel

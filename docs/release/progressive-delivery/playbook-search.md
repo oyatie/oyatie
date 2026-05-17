@@ -7,7 +7,7 @@ status: Accepted
 date: 2026-05-12
 purpose: |
   Search index/ranker rollouts with A/B + cohort.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-shadow-diff
   - oya-foundry-fitness-cohort-honor

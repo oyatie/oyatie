@@ -823,17 +823,17 @@
     {
       "id": "BP-SOCIAL-01",
       "rule": "personal and professional feeds never blend",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-social-pillar"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-social-pillar"
     },
     {
       "id": "BP-SOCIAL-02",
       "rule": "AR effects do not persist biometric data",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-ar-privacy"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-ar-privacy"
     },
     {
       "id": "BP-SOCIAL-03",
       "rule": "professional cross-posting requires Workflow consent token",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-social-workflow-consent"
+      "planned_enforcement_ref": "oya-foundry-fitness-connect-social-workflow-consent"
     }
   ],
   "patterns": [

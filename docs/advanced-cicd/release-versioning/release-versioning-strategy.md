@@ -12,7 +12,7 @@ purpose: |
   Adopt the strongest pattern observed across hyperscalers (AWS, Google/Kubernetes,
   Microsoft Azure, Oracle/Java) so oyatie users, partners, and operators get a
   contract that matches industry expectation.
-enforced_by: oya-foundry-fitness-semver-discipline, oya-foundry-fitness-api-version-stability, oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-version-eol-warning, oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-cherry-pick-trail
+planned_enforcement_ref: oya-foundry-fitness-semver-discipline, oya-foundry-fitness-api-version-stability, oya-foundry-fitness-release-branch-cut, oya-foundry-fitness-version-eol-warning, oya-foundry-fitness-deprecation-notice, oya-foundry-fitness-cherry-pick-trail
 related_adrs: [ADR-0040, ADR-0041, ADR-0050]
 doc_status: published
 ---
@@ -88,7 +88,7 @@ Microsoft Azure `api-version` query parameter + AWS service date versioning:
   axis-prefix already adopted in `contracts/openapi/`.
 - **OpenAPI 3.1 is the source of truth**; the spec carries the
   `x-stability` extension (`alpha` / `beta` / `stable` / `ga`) and the
-  `x-introduced` / `x-deprecated` dates. Enforced by
+  `x-introduced` / `x-deprecated` dates. Planned advisory lane:
   `oya-foundry-fitness-api-version-stability`.
 
 Detail: [`api-versioning-spec.md`](api-versioning-spec.md).

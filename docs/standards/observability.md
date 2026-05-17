@@ -18,7 +18,7 @@ purpose: |
   defaults. Operates within `decision-principles.json` DP-08 (audit-chain
   emission on every cross-axis flow).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-otel-emit
+planned_enforcement_ref: oya-foundry-fitness-otel-emit
 companion_docs:
   - docs/standards/error-handling.md
   - docs/standards/on-call.md

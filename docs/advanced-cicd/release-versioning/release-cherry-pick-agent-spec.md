@@ -10,7 +10,7 @@ purpose: |
   Define the release-cherry-pick agent: the only identity authorised to add
   commits to a release/X.Y branch and to mint patch tags. Operates under
   Directive 12 (documented direct tool invocations).
-enforced_by: oya-foundry-fitness-cherry-pick-trail, oya-foundry-fitness-release-branch-cut
+planned_enforcement_ref: oya-foundry-fitness-cherry-pick-trail, oya-foundry-fitness-release-branch-cut
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---

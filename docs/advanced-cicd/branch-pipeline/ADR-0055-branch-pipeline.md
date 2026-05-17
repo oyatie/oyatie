@@ -55,7 +55,7 @@ We adopt a **four-layer pipeline** with **asymmetric auto-promotion gates** and 
 - `staging` ← `staging-promoter` (Cosign identity `oya-foundry-staging-promoter`).
 - `prod` ← `prod-promoter` (Cosign identity `oya-foundry-prod-promoter`).
 
-Direct commits forbidden by branch-protection. Enforced by three BLOCKER lanes: `oya-foundry-fitness-no-direct-origin-dev-commit`, `oya-foundry-fitness-no-direct-staging-commit`, `oya-foundry-fitness-no-direct-prod-commit`.
+Direct commits forbidden by branch-protection. Planned advisory lanes: `oya-foundry-fitness-no-direct-origin-dev-commit`, `oya-foundry-fitness-no-direct-staging-commit`, `oya-foundry-fitness-no-direct-prod-commit`.
 
 **Reviewer-agent dispatch.** Per-PR, by file-glob change class (per `docs/AGENTS.md`). Multi-class PRs invoke multiple reviewers in parallel; all must `APPROVE` for the aggregate verdict to clear gate 2 at local-dev → origin/dev. Verdict recorded via `icm store -t pr-review-verdicts` per [Directive 12](../../plans/MASTERPLAN.md).
 

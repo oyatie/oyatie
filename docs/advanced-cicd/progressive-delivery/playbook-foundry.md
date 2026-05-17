@@ -8,7 +8,7 @@ date: 2026-05-12
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   Rollout strategy for Foundry capability publishes — eval-set + canary + cohort + audit-chain + Cosign-signed.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-shadow-diff
   - oya-foundry-fitness-rollback-evidence

@@ -11,7 +11,7 @@ purpose: |
   and distroless container image. Source: every `Cargo.toml`, every
   `package.json`, the verified LTS roster, and the distroless-base declarations.
   Lift to `docs/visualization/tech-stack.md` as Mermaid.
-enforced_by: oya-foundry-fitness-tech-stack-map
+planned_enforcement_ref: oya-foundry-fitness-tech-stack-map
 extends_crates:
   - oya-foundry-license-policy-kernel
   - oya-foundry-vendor-contract-recency-kernel

@@ -10,7 +10,7 @@ purpose: |
   Evidence base: how AWS, Google/Kubernetes, Microsoft Azure, Oracle/OCI/Java,
   Rust, Stripe, and Twilio version their SDKs, services, release branches, and
   LTS commitments. Anchors the oyatie policy choices in real-world precedent.
-enforced_by: self
+planned_enforcement_ref: self
 related_adrs: [ADR-0041]
 doc_status: published
 ---

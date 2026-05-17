@@ -8,7 +8,7 @@ date: 2026-05-12
 adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   Workspace surface rollouts (Mail / Docs / Drive / Calendar / Meet).
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-canary-required
   - oya-foundry-fitness-rollback-evidence
 related_adrs: [ADR-0029, ADR-0040]
@@ -61,7 +61,7 @@ Failure = per-tenant rollback. Surfaced in tenant trust portal.
 
 ## 6. Connect-no-ads cohort honour
 
-Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-spec.md`](stable-cohort-spec.md) §8). Any rollout that introduces an ad-supported feature MUST exclude this cohort. Enforced by `oya-foundry-fitness-cohort-honor`.
+Workspace surfaces respect the `connect-no-ads` cohort overlay ([`stable-cohort-spec.md`](stable-cohort-spec.md) §8). Any rollout that introduces an ad-supported feature MUST exclude this cohort. Planned advisory lane: `oya-foundry-fitness-cohort-honor`.
 
 ## 7. SLO targets (Workspace-specific)
 

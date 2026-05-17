@@ -922,16 +922,16 @@ Stage split: Preview availability targets apply at the Foundry Preview Proof Lad
 
 | Bar | Commitment | Enforcement mechanism |
 |---|---|---|
-| **Evidence completeness: 100%** | Every regulated capability emits a Merkle-linked, Ed25519-signed `Evidence` record per step; 0 silent drops allowed | `oya-foundry-fitness-foundry-evidence-completeness` CI gate blocks merge; `Evidence` emit failure blocks `Run` completion; SLO 99.99% evidence emission |
+| **Evidence completeness: 100%** | Every regulated capability emits a Merkle-linked, Ed25519-signed `Evidence` record per step; 0 silent drops allowed | Planned advisory lane `oya-foundry-fitness-foundry-evidence-completeness`; `Evidence` emit failure blocks `Run` completion; SLO 99.99% evidence emission |
 | **Audit retention: 7 years** | `Run` / `Step` / `Evidence` / `PolicyDecision` retained for 7 years across Postgres + ClickHouse + S3-class cold store | ADR-0003 audit-chain retention; `schema_version` versioning on all entities; migration policy per §5.7; `BulkExportEvidence` regulator API |
 | **Autonomy ceiling: no bypass ever** | `AutonomyCeiling::permit` is the only execution path for any capability invocation; no internal-only exception | Cedar policy; `run_rejected.v1` emitted on every denial; chaos-test of bypass attempts run quarterly; hard constraint in §3.2 anti-scope |
 | **Residency enforcement: fail-fast** | A residency-strict tenant never has data routed to a non-compliant provider; preference is fail-fast over lossy degradation | `Provider.residency_compliant_for` × `Tenant.residency` routing check; per-pack adapter restriction; quarterly chaos test |
 | **Supply-chain: 100% attested** | Every release artifact carries Cosign signature + SBOM + Trivy scan; 0 unattested artifacts in production | `oya-foundry-supply-app` CI gate; `builder.supply_chain_attested.v1` per release; per-pack supply-chain overlay (KCMVP, GAIA-X, FedRAMP, NCA-NCS) |
 | **Horizontal scalability: stateless daemon** | Foundry daemon carries no per-request mutable state; `ProviderRoute` is transient per `Run`; all state in Postgres + Redis + Kafka | Per-tenant sharding on `(tenant_id, time)` for `Run` / `Step` / `Evidence`; Citus per-tenant; ClickHouse cold archive; no daemon-local state that would prevent horizontal scale-out |
-| **SLO 99.95% capability invocation (Preview)** | Control-plane SLO for capability invocation; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Hot-path benchmarks in `oya-foundry-fitness-bench`; Argo Rollouts per-capability canary; circuit-break + failover per provider |
-| **License gate: no AGPL/GPL in product code** | All third-party dependencies Apache-2 / MIT / BSD / MPL-2; AGPL / GPL denied at CI | `oya-foundry-fitness-license` CI gate; per-dep license tier in §8 |
-| **Zero cross-axis contract violations on main** | Every cross-axis contract change reviewed; `oya-foundry-fitness-contracts` blocks any contract drift | Per-PR fitness gate; `FoundationBypass` mandatory on any skip; bypass count < 5 open at GA is a top-level success metric |
-| **Perf budget enforced by CI** | Capability invocation p99 ≤ 200 ms at GA; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms; not guidelines — CI failures | `oya-foundry-fitness-bench` hard failure on regressions |
+| **SLO 99.95% capability invocation (Preview)** | Control-plane SLO for capability invocation; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Planned advisory benchmark lane `oya-foundry-fitness-bench`; Argo Rollouts per-capability canary; circuit-break + failover per provider |
+| **License gate: no AGPL/GPL in product code** | All third-party dependencies Apache-2 / MIT / BSD / MPL-2; AGPL / GPL denied at CI | License policy per ADR-0039 and planned advisory lane `oya-foundry-fitness-license`; per-dep license tier in §8 |
+| **Zero cross-axis contract violations on main** | Every cross-axis contract change reviewed; planned advisory lane `oya-foundry-fitness-contracts` records contract drift until active | Per-PR fitness gate; `FoundationBypass` mandatory on any skip; bypass count < 5 open at GA is a top-level success metric |
+| **Perf budget validated by CI once active** | Capability invocation p99 ≤ 200 ms at GA; autonomy decision p99 ≤ 5 ms; evidence emit p99 ≤ 10 ms | Planned advisory lane `oya-foundry-fitness-bench` records benchmark regressions until active |
 | **Regulator portal per pack** | Each regional pack exposes a `RegulatorPortal` for autonomy-decision evidence export; not a single global endpoint | Per-pack `RegulatorPortal` implementation required before per-pack GA; attested at Proof Ladder R5 |
 | **Model-vendor freedom: zero lock-in** | Adding a new provider requires only a new `ProviderAdapter` crate; the `ProviderAdapter` trait is a stability surface (ADR-0040); no business logic touches provider internals | Trait stability policy; `ProviderKind::Custom(CustomProviderRef)` escape hatch; per-pack adapter crate isolation |
 
@@ -1005,8 +1005,8 @@ When this PRD is created or updated, also update:
 - Every entity field has a `data_class` annotation
 - Every external dep has a license-tier row
 - Every cross-axis contract is in DESIGN §10
-- **Foundry-specific**: `oya-foundry-fitness-foundry-evidence-completeness` blocks merge if any new regulated capability lacks evidence emission contract
-- **Foundry-specific**: `oya-foundry-fitness-foundry-autonomy-default` blocks merge if any new capability omits `min_autonomy_tier`
-- **Foundry-specific**: `oya-foundry-fitness-foundry-provider-residency` blocks merge if any new provider adapter omits `residency_compliant_for` declarations for all in-roster packs
-- **Foundry engineering platform-specific (folded in)**: `oya-foundry-fitness-catalog-validate` blocks merge of any crate without a CatalogRecord
-- **Foundry engineering platform-specific**: `oya-foundry-fitness-foundation-bypass-window` blocks merge of bypass with `regression_window_days = 0` (forces explicit remediation horizon)
+- **Foundry-specific**: planned advisory lane `oya-foundry-fitness-foundry-evidence-completeness` records gaps where a regulated capability lacks evidence emission contract
+- **Foundry-specific**: planned advisory lane `oya-foundry-fitness-foundry-autonomy-default` records gaps where a capability omits `min_autonomy_tier`
+- **Foundry-specific**: planned advisory lane `oya-foundry-fitness-foundry-provider-residency` records gaps where a provider adapter omits `residency_compliant_for` declarations for all in-roster packs
+- **Foundry engineering platform-specific (folded in)**: planned advisory lane `oya-foundry-fitness-catalog-validate` records crates without a CatalogRecord
+- **Foundry engineering platform-specific**: planned advisory lane `oya-foundry-fitness-foundation-bypass-window` records bypasses with `regression_window_days = 0` (forces explicit remediation horizon)

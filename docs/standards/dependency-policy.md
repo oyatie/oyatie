@@ -18,7 +18,7 @@ purpose: |
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
   MASTERPLAN Directive 4.
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-lts-dependency
+planned_enforcement_ref: oya-foundry-fitness-lts-dependency
 companion_docs:
   - docs/standards/security-review.md
   - docs/standards/code-style-rust.md

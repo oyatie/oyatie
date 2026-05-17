@@ -583,7 +583,7 @@ Per [DESIGN.md §12](../../DESIGN.md):
 | `Apache Kafka` | secondary | Apache-2 | own event bus — rejected; outbox is day-1 | adopt gated (ADR-0046) |
 | `ClickHouse` | secondary | Apache-2 | own OLAP — rejected | adopt (ADR-0045) |
 
-License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden in product code; SSPL / BUSL — ADR review. GPL daemons (KVM/FRR) and AGPL extensions (Mimir) are allowed only at process boundary; the boundary is enforced by `oya-foundry-fitness-license` (ADR-0039).
+License gate: Apache-2 / MIT / BSD / MPL-2 — allowed; AGPL / GPL — forbidden in product code; SSPL / BUSL — ADR review. GPL daemons (KVM/FRR) and AGPL extensions (Mimir) are allowed only at process boundary; the boundary is governed by ADR-0039 and planned advisory lane `oya-foundry-fitness-license`.
 
 ## 9. Success metrics (required)
 

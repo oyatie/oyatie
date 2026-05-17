@@ -19,7 +19,7 @@ purpose: |
   `standards/claude-code-harness.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Claude Code).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-banned-primitives
+planned_enforcement_ref: oya-foundry-fitness-banned-primitives
 enforcement_status:
   oya-foundry-fitness-banned-primitives: existing
   oya-foundry-fitness-user-machine-guard: existing (§8)

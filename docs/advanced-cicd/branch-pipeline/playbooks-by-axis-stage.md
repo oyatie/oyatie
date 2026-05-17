@@ -10,7 +10,7 @@ purpose: |
   Per-axis dev/staging/prod playbook differentiation. Each of the seven axes has a
   per-stage cadence, gate set, canary cohort, and reviewer-agent dispatch profile.
   Extends progressive-delivery playbook patterns from .omc/advanced-cicd/progressive-delivery/.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-promotion-gate-staging-to-prod
 related_adrs: [ADR-0001, ADR-0040, ADR-0041]
 doc_status: published

@@ -10,7 +10,7 @@ purpose: |
   Six new fitness lanes that mechanically enforce the release-versioning policy:
   SemVer discipline, API version stability, release-branch cut correctness,
   cherry-pick trail integrity, EOL warning, and deprecation notice.
-enforced_by: self
+planned_enforcement_ref: self
 related_adrs: [ADR-0041, ADR-0050]
 doc_status: published
 ---

@@ -73,6 +73,14 @@ lanes:
     source: ADR-0129 / specs/plan-schema.json / specs/masterplan.json
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate honest-claims
+  - id: oya-foundry-fitness-aspirational-enforcement
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: block active required enforcement claims that reference missing check crates, workflows, or branch-protection contexts
+    source: ADR-0135 / ADR-0133
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-dev-cli -- gate validate aspirational-enforcement
   - id: oya-foundry-fitness-workspace-hygiene
     stage: foundation
     status: active

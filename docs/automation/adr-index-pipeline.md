@@ -10,7 +10,7 @@ purpose: |
   (id, title, status, supersedes, superseded_by, owners, date). Manual edits to
   ADR-INDEX.md are forbidden after generation. A pre-commit hook verifies index
   matches the source set; CI re-verifies; out-of-sync rejects.
-enforced_by: oya-foundry-fitness-adr-index
+planned_enforcement_ref: oya-foundry-fitness-adr-index
 extends_crates:
   - oya-foundry-adr-index-kernel
   - oya-foundry-adr-citation-kernel

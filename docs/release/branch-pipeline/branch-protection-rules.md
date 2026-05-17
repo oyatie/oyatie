@@ -10,7 +10,7 @@ purpose: |
   force-push policy, merge-method, Cosign-signed-commit requirement, SLSA L2+
   provenance requirement. Git-server-agnostic; same shape on GitHub / GitLab /
   Gitea / Bitbucket. Encoded in branch-protection.yaml schema.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-branch-protection-drift
   - oya-foundry-fitness-no-direct-origin-dev-commit
   - oya-foundry-fitness-no-direct-staging-commit

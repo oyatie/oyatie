@@ -10,7 +10,7 @@ purpose: |
   capability.stage values: dev-draft (agent's local clone) → dev (published after PR +
   reviewer-APPROVE + CI green) → staging (autonomous promotion + canary cohort) →
   prod (5-gate verification). New fitness lane binds stage to source branch.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-capability-stage-binding
 related_adrs: [ADR-0020, ADR-0021, ADR-0022, ADR-0024, ADR-0053, ADR-0055]
 adr_citations: [ADR-0053, ADR-0055]

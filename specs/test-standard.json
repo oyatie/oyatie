@@ -12,9 +12,12 @@
     "created_at": "2026-05-14T07:22:20Z",
     "updated_at": "2026-05-14T07:22:20Z",
     "markdown_authority": "docs/standards/testing.md",
-    "enforced_by": [
-      "oya-foundry-fitness-test-evidence",
+    "evidence_sources": [
       "M01-P07 GitOps VCS admission",
+      "merge-queue CI/CD gates"
+    ],
+    "planned_enforcement_refs": [
+      "oya-foundry-fitness-test-evidence",
       "merge-queue CI/CD gates"
     ],
     "purpose": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion."

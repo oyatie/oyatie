@@ -13,7 +13,7 @@ purpose: >
   Fix the agent-callable coordination/state-transition primitive set at
   {grit, icm, oya-tooling-agent-read}. Direct git/gh permitted only with
   documented rationale per Directive 12.
-enforced_by: oya-foundry-fitness-banned-primitives
+planned_enforcement_ref: oya-foundry-fitness-banned-primitives
 ---
 
 # ADR-0053: grit + icm + oya-tooling-agent-read as sole sanctioned primitives for agentic work
@@ -23,7 +23,7 @@ enforced_by: oya-foundry-fitness-banned-primitives
 - **Owners:** `council-architecture`, `foundry`
 - **Supersedes:** (none)
 - **Superseded by:** (none)
-- **Enforced by:** `oya-foundry-fitness-banned-primitives`
+- **Planned enforcement:** `oya-foundry-fitness-banned-primitives` remains advisory until the lane exists.
 - **Siblings landing in parallel:** ADR-0052 (pre-grit artifact inventory), ADR-0054 (grit scaffold-claim pattern)
 - **Operational driver:** [`.omc/plans/SST consolidation ralplan`](../../.omc/plans/SST consolidation ralplan)
 - **Operating contract shaped:** [`docs/AGENTS.md`](../AGENTS.md) §Sanctioned primitives

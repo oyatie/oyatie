@@ -22,11 +22,11 @@
       "statement": "Authority lives in docs/. Re-creating a retired authority surface is a regression.",
       "severity": "high",
       "enforcement": {
-        "mode": "mechanical",
-        "enforced_by": [
+        "mode": "mechanical-deferred",
+        "planned_enforcement_refs": [
           "oya-foundry-fitness-authoritative-tracked-kernel"
         ],
-        "evidence": "authoritative-tracked lane verifies every authoritative doc is in docs/"
+        "evidence": "Planned authoritative-tracked lane will verify every authoritative doc is in docs/; current control is PR review plus retired-vocabulary checks."
       }
     },
     {
@@ -35,12 +35,14 @@
       "statement": "Hook failure is a signal; the fix is the underlying issue, not the bypass.",
       "severity": "high",
       "enforcement": {
-        "mode": "mechanical",
-        "enforced_by": [
-          "oya-foundry-fitness-pre-push-kernel",
+        "mode": "mechanical-deferred",
+        "evidence_sources": [
           ".github/workflows/cosign.yml (post-2026-05-15: pinned identity + issuer regex)"
         ],
-        "evidence": "pre-push fitness lane rejects commits authored with --no-verify; cosign verify-blob now pins certificate identity to repo's own workflow file"
+        "planned_enforcement_refs": [
+          "oya-foundry-fitness-pre-push-kernel"
+        ],
+        "evidence": "cosign verify-blob pins certificate identity to repo's own workflow file for signing posture; planned pre-push fitness lane will reject commits authored with --no-verify."
       }
     },
     {
@@ -123,7 +125,9 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-check-license-policy",
+          "oya-check-license-policy"
+        ],
+        "planned_enforcement_refs": [
           "oya-foundry-fitness-license-policy-kernel"
         ],
         "evidence": "license-policy lane scans Cargo.lock + transitive deps against forbidden-license enum"
@@ -139,7 +143,9 @@
         "enforced_by": [
           "oya-foundry-autonomy-ceiling-kernel",
           "oya-foundry-autonomy-ceiling-domain",
-          "oya-foundry-autonomy-ceiling-app",
+          "oya-foundry-autonomy-ceiling-app"
+        ],
+        "planned_enforcement_refs": [
           "oya-foundry-fitness-claim-ceiling-kernel"
         ],
         "evidence": "autonomy-ceiling crates validate Cedar policy presence + runtime check on every uplift attempt"

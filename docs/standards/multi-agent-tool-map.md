@@ -19,7 +19,7 @@ purpose: |
   `standards/multi-agent-tool-map.md` wave-2 forward-reference sentinel in
   `docs/AGENTS.md` §Per-agent appendices (Gemini).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-tool-map-cohesion
+planned_enforcement_ref: oya-foundry-fitness-tool-map-cohesion
 companion_docs:
   - docs/AGENTS.md
   - docs/standards/claude-code-harness.md

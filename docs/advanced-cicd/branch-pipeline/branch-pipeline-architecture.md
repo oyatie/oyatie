@@ -11,7 +11,7 @@ purpose: |
   the review-and-CI gate at the local-dev → origin/dev boundary, autonomous
   origin/dev → staging promotion, and 5-gate staging → prod promotion. No human-button
   at any transition. Supersedes ADR-0041 trunk-based posture.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-promotion-gate-local-dev-to-origin-dev
   - oya-foundry-fitness-promotion-gate-staging-to-prod
   - oya-foundry-fitness-no-direct-origin-dev-commit
@@ -74,24 +74,24 @@ flowchart LR
 
 ## 4. local-dev → origin/dev promotion gate (the 3 checks)
 
-`dev-promoter` agent (per [`agent-roles-spec.md`](agent-roles-spec.md) §2) orchestrates. **All three must be green** for auto-merge:
+Target design: `dev-promoter` agent (per [`agent-roles-spec.md`](agent-roles-spec.md) §2) orchestrates. **All three must be green** for auto-merge after the planned lanes below are wired as active required contexts; until then, promotion is limited to current branch-protection checks plus recorded review evidence:
 
-1. **PR shape conforms.** Five H2 sections per the project PR template; enforced by `oya-foundry-fitness-pr-shape` (BLOCKER).
-2. **Reviewer-agent verdict = `APPROVE`.** Per-change-class dispatch (per `docs/AGENTS.md`): `rust-reviewer`, `typescript-reviewer`, `python-reviewer`, `database-reviewer`, `security-reviewer`, `privacy-reviewer`, `tdd-guide`, `silent-failure-hunter`, `doc-updater`, `doc-style-reviewer`, `capability-reviewer`, `perf-reviewer`. Multi-class PRs invoke multiple reviewers in parallel; all must `APPROVE`. Verdict recorded via `icm store -t pr-review-verdicts -c '<verdict + items>' -i high -k 'pr-<id>,<reviewer>'`. Enforced by `oya-foundry-fitness-pr-review-verdict-present` (BLOCKER, scoped to this transition).
-3. **CI cleared.** Every fitness lane on PR HEAD is GREEN. Enforced by `oya-foundry-fitness-promotion-gate-local-dev-to-origin-dev` (BLOCKER, gate-class).
+1. **PR shape conforms.** Five H2 sections per the project PR template; planned advisory lane: `oya-foundry-fitness-pr-shape` (planned blocker).
+2. **Reviewer-agent verdict = `APPROVE`.** Per-change-class dispatch (per `docs/AGENTS.md`): `rust-reviewer`, `typescript-reviewer`, `python-reviewer`, `database-reviewer`, `security-reviewer`, `privacy-reviewer`, `tdd-guide`, `silent-failure-hunter`, `doc-updater`, `doc-style-reviewer`, `capability-reviewer`, `perf-reviewer`. Multi-class PRs invoke multiple reviewers in parallel; all must `APPROVE`. Verdict recorded via `icm store -t pr-review-verdicts -c '<verdict + items>' -i high -k 'pr-<id>,<reviewer>'`. Planned advisory lane: `oya-foundry-fitness-pr-review-verdict-present` (planned blocker, scoped to this transition).
+3. **CI cleared.** Every fitness lane on PR HEAD is GREEN. Planned advisory lane: `oya-foundry-fitness-promotion-gate-local-dev-to-origin-dev` (planned blocker, gate-class).
 
 Promotion mechanic: squash-merge into `origin/dev` (PR's merge commit). Linear history preserved; no merge commits.
 
-No human button. The PR opens automatically when the agent declares done; reviewer agents render on `pr.opened` / `pr.commit-pushed`; CI runs on push. When all three gates are simultaneously green, `dev-promoter` invokes the merge.
+No human button is the target automation contract. The PR opens automatically when the agent declares done; reviewer agents render on `pr.opened` / `pr.commit-pushed`; CI runs on push. Until the planned blocker lanes are active required contexts, `dev-promoter` may merge only when current required checks are green and review/fix evidence is recorded.
 
 ## 5. staging → prod promotion gate (the 5 checks)
 
-Promotion fires automatically when **all five** are green on `staging` HEAD:
+Target promotion fires automatically when **all five** are green on `staging` HEAD after the planned lanes are active; until then, this section is a design contract, not a claim that the missing lanes block production:
 
-1. **All reviewer-agent comments resolved.** Every comment from the local-dev → origin/dev review thread carries `resolved: true` annotation OR a follow-up commit referencing the comment id (the follow-up went through the standard local-dev → origin/dev → staging path). Enforced by `oya-foundry-fitness-pr-comment-resolution`.
-2. **All CI fixed and green.** Every fitness lane GREEN on `staging` HEAD for ≥ **N consecutive runs** (default N=3; configurable per change class). Enforced by `oya-foundry-fitness-promotion-gate-staging-to-prod`.
+1. **All reviewer-agent comments resolved.** Every comment from the local-dev → origin/dev review thread carries `resolved: true` annotation OR a follow-up commit referencing the comment id (the follow-up went through the standard local-dev → origin/dev → staging path). Planned advisory lane: `oya-foundry-fitness-pr-comment-resolution`.
+2. **All CI fixed and green.** Every fitness lane GREEN on `staging` HEAD for ≥ **N consecutive runs** (default N=3; configurable per change class). Planned advisory lane: `oya-foundry-fitness-promotion-gate-staging-to-prod`.
 3. **Progressive-delivery canary at 100% on staging deployment for ≥ M hours.** Default M=24h non-regulated, 7d regulated (per [ADR-0040](../../../docs/decisions/ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md) + `.omc/advanced-cicd/progressive-delivery/canary-rail-spec.md`).
-4. **Zero open `slo-burn-rate-fast` alerts.** SLO catalog freshness ≤ 5 min; verified by `oya-foundry-fitness-slo-burn-rate-fast`.
+4. **Zero open `slo-burn-rate-fast` alerts.** SLO catalog freshness ≤ 5 min; planned verification lane: `oya-foundry-fitness-slo-burn-rate-fast`.
 5. **(Optional, per change class) Reviewer-agent re-affirms verdict after canary observations.** Triggered for: `database-reviewer`, `security-reviewer`, `privacy-reviewer`, `capability-reviewer`, `perf-reviewer` classes. Re-affirmation uses post-canary SLO + audit-chain evidence as input.
 
 Promotion mechanic: `prod-promoter` agent fast-forwards `prod` to `staging` HEAD. Linear history preserved; Cosign-signed commit per [ADR-0039](../../../docs/decisions/ADR-0039-supply-chain-security-trivy-cosign-sbom-signed-commits.md); SLSA L2+ provenance bundle attached.

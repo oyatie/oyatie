@@ -53,6 +53,7 @@ branches:
       - oya-foundry-fitness-cohesion
       - oya-foundry-fitness-api-semver
       - oya-foundry-fitness-honest-claims
+      - oya-foundry-fitness-aspirational-enforcement
       - oya-foundry-fitness-protection-context-match
       - oya-pr-review
 

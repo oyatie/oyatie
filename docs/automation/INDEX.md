@@ -10,7 +10,7 @@ purpose: |
   under `docs/automation/`. Anchor for MASTERPLAN Directives 10 and 11. Every
   row names the pipeline id, inputs, outputs, trigger, fitness lane, and the
   mdbook chapter where renders publish.
-enforced_by: oya-foundry-fitness-doc-freshness
+planned_enforcement_ref: oya-foundry-fitness-doc-freshness
 companion_docs:
   - ../../docs/MASTERPLAN.md
   - ../../docs/DOC-CATALOG.md
@@ -20,11 +20,11 @@ doc_status: published
 
 # Oyatie Automation Pipeline Catalogue
 
-> **Status:** Accepted. **Owner:** axis-foundry + council-architecture. **Date:** 2026-05-12. **ADRs:** ADR-0052, ADR-0053, ADR-0054.
+> **Status:** Accepted catalogue. **Owner:** axis-foundry + council-architecture. **Date:** 2026-05-12. **ADRs:** ADR-0052, ADR-0053, ADR-0054. Lane names are planned/advisory unless the row explicitly says extant.
 
-## 1. Auto-generation pipelines (Directive 10)
+## 1. Planned auto-generation pipelines (Directive 10)
 
-| Pipeline id | Inputs | Outputs | Trigger | Fitness lane | mdbook chapter |
+| Pipeline id | Inputs | Outputs | Target trigger | Planned/active fitness lane | mdbook chapter |
 |---|---|---|---|---|---|
 | `rustdoc` | every workspace `///` comment | per-crate API ref + cross-crate link graph | nightly + per-PR delta | `oya-foundry-fitness-rustdoc-publish` | `/api/rust/<crate>` |
 | `openapi` | `contracts/openapi/*.yaml` (3.1) | Redoc + Swagger UI + runtime/schema cross-validation | per-PR + nightly | `oya-foundry-fitness-openapi-publish` | `/api/openapi/<surface>` |
@@ -35,9 +35,9 @@ doc_status: published
 | `changelog` | merged PR body + commit metadata | `docs/CHANGELOG.md` row | on-merge | `oya-foundry-fitness-changelog-row` | `/operations/changelog` |
 | `glossary` | source `/// glossary: <term>` blocks | `docs/GLOSSARY.md` + retirement enforcement | per-PR + nightly | `oya-foundry-fitness-glossary` | `/reference/glossary` |
 
-## 2. Architecture-visualization specs (Directive 11)
+## 2. Planned architecture-visualization specs (Directive 11)
 
-| Spec id | Source | Render | Trigger | Fitness lane | mdbook chapter |
+| Spec id | Source | Render | Target trigger | Planned/active fitness lane | mdbook chapter |
 |---|---|---|---|---|---|
 | `architecture-map-kernel` | workspace + contracts + docs/products | Mermaid + D2 + Graphviz | per-PR + nightly | `oya-foundry-fitness-architecture-map-freshness` | `/visualization/architecture` |
 | `product-map` | 7 axes × N products with status/owner/wave | Mermaid | nightly | `oya-foundry-fitness-product-map` | `/visualization/product-map` |
@@ -49,7 +49,7 @@ doc_status: published
 
 ## 3. Discipline specs (top-level)
 
-| Discipline spec | Output artifact | Fitness lane | Severity ladder |
+| Discipline spec | Output artifact | Planned/active fitness lane | Severity ladder |
 |---|---|---|---|
 | `doc-freshness-discipline` | per-doc-class staleness PR auto-gen | `oya-foundry-fitness-doc-freshness` | BLOCKER Const/Op, HIGH Ref, advisory Working |
 | `orphan-detection-discipline` | orphan report per PR | `oya-foundry-fitness-orphan-detection` | HIGH |
@@ -63,4 +63,4 @@ doc_status: published
 
 ## 5. Authority + governance
 
-Every spec carries `status: Accepted`, `date:`, `purpose:`, `enforced_by:`. No prototype variants. Specs ≤150 lines; visualization specs ≤200. Cite existing oyatie crates by exact name when extending. Hyperscaler bar: Mermaid native + D2 richer renders + Graphviz where SVG fidelity matters. Governing ADRs: ADR-0052 (artifact inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim pattern).
+Every spec carries `status: Accepted`, `date:`, `purpose:`, and either `enforced_by:` for active workflow + quality-lane controls or `planned_enforcement_ref:` for planned/advisory controls. No prototype variants. Specs ≤150 lines; visualization specs ≤200. Cite existing oyatie crates by exact name when extending. Hyperscaler bar: Mermaid native + D2 richer renders + Graphviz where SVG fidelity matters. Governing ADRs: ADR-0052 (artifact inventory), ADR-0053 (sanctioned primitives), ADR-0054 (scaffold-claim pattern).

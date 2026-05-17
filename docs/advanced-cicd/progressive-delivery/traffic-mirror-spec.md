@@ -9,7 +9,7 @@ adrs_cited: [ADR-0053, ADR-0052, ADR-0054]
 purpose: |
   Istio/Envoy mirror primitive, provider-agnostic via service-mesh adapter pattern.
   The mesh-level mechanism dark-launch + per-cell rollback ride on.
-enforced_by:
+planned_enforcement_ref:
   - oya-foundry-fitness-shadow-diff
 related_adrs: [ADR-0044, ADR-0040]
 doc_status: published

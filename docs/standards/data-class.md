@@ -18,7 +18,7 @@ purpose: |
   ("No new struct fields in kernel crates without `data_class`") and §Do Item 8
   (audit-chain emission on every cross-axis flow).
 canonical_authority: /specs/decision-principles.json + /specs/forbidden-operations.json
-enforced_by: oya-foundry-fitness-data-class
+planned_enforcement_ref: oya-foundry-fitness-data-class
 enforcement_status:
   oya-foundry-fitness-data-class: F-PENDING-DATA-CLASS (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-foundry-fitness-dsr-cascade: F-PENDING-DSR-CASCADE (crate missing)

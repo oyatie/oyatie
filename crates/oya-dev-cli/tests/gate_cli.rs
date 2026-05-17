@@ -5454,6 +5454,851 @@ fn honest_claims_gate_rejects_changeset_dependency_cycles() {
     );
 }
 
+#[test]
+fn aspirational_enforcement_gate_accepts_real_required_surfaces() {
+    let temp = TempDirGuard::new("aspirational-clean");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9000.md"),
+        "enforced_by: oya-check-real\nbranch protection required check: oya-foundry-fitness-real\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "expected clean aspirational fixture to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&output.stdout)
+            .contains("aspirational-enforcement validation passed")
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_missing_required_workflow() {
+    let temp = TempDirGuard::new("aspirational-missing-workflow");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9001.md"),
+        "required check: oya-foundry-fitness-missing\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingWorkflow"),
+        "stderr must include missing workflow violation; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_negated_advisory_required_claim() {
+    let temp = TempDirGuard::new("aspirational-negated-advisory");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9008.md"),
+        "required check: oya-foundry-fitness-missing is active, not advisory\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingWorkflow"),
+        "stderr must include negated-advisory missing workflow; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_multiline_enforced_by_claim() {
+    let temp = TempDirGuard::new("aspirational-multiline");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9009.md"),
+        "enforced_by:\n  - oya-check-missing\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingCrate"),
+        "stderr must include multiline missing crate; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_unindented_multiline_enforced_by_claim() {
+    let temp = TempDirGuard::new("aspirational-unindented-multiline");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9010.md"),
+        "enforced_by:\n- oya-check-missing\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingCrate"),
+        "stderr must include unindented multiline missing crate; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_unindented_multiline_required_check() {
+    let temp = TempDirGuard::new("aspirational-unindented-required-check");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9011.md"),
+        "required check:\n- oya-foundry-fitness-missing\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingWorkflow"),
+        "stderr must include unindented required-check missing workflow; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_unindented_multiline_required_status() {
+    let temp = TempDirGuard::new("aspirational-unindented-required-status");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9012.md"),
+        "required status:\n- oya-foundry-fitness-real\n",
+    )
+    .expect("doc written");
+    fs::write(
+        &fixture.branch_protection,
+        "branches:\n  dev:\n    required_status_checks:\n      - oya-foundry-fitness-other\n",
+    )
+    .expect("branch protection written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingRequiredContext"),
+        "stderr must include unindented required-status missing branch context; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_missing_branch_protection_file() {
+    let temp = TempDirGuard::new("aspirational-missing-branch-protection");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9003.md"),
+        "branch protection required check: oya-foundry-fitness-real\n",
+    )
+    .expect("doc written");
+    fs::remove_file(&fixture.branch_protection).expect("branch protection removed");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("branch-protection unreadable"),
+        "stderr must include unreadable branch-protection failure; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_accepts_inline_comments_in_control_surfaces() {
+    let temp = TempDirGuard::new("aspirational-inline-comments");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9013.md"),
+        "branch protection required check: oya-foundry-fitness-real\n",
+    )
+    .expect("doc written");
+    fs::write(
+        fixture.workflows.join("real-with-comments.yml"),
+        "name: oya-foundry-fitness-real # workflow context\njobs:\n  oya-foundry-fitness-real: # job context\n    name: oya-foundry-fitness-real # check name\n",
+    )
+    .expect("workflow written");
+    fs::write(
+        &fixture.quality_lanes,
+        "lanes:\n  - id: oya-foundry-fitness-real # lane id\n    status: active # current\n",
+    )
+    .expect("quality lanes written");
+    fs::write(
+        &fixture.branch_protection,
+        "branches:\n  dev: # default branch\n    required_status_checks: # current required contexts\n      - oya-foundry-fitness-real # required\n",
+    )
+    .expect("branch protection written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "inline comments in control surfaces should pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_required_context_on_wrong_branch() {
+    let temp = TempDirGuard::new("aspirational-wrong-branch");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9006.md"),
+        "branch protection required check: oya-foundry-fitness-real\n",
+    )
+    .expect("doc written");
+    fs::write(
+        &fixture.branch_protection,
+        "branches:\n  dev:\n    required_status_checks:\n      - oya-foundry-fitness-other\n  staging:\n    required_status_checks:\n      - oya-foundry-fitness-real\n",
+    )
+    .expect("branch protection written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingRequiredContext"),
+        "stderr must include wrong-branch required-context failure; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_file_stem_only_workflow_stub() {
+    let temp = TempDirGuard::new("aspirational-stem-only-workflow");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9014.md"),
+        "enforced_by: oya-foundry-fitness-stem-only\n",
+    )
+    .expect("doc written");
+    fs::write(
+        fixture.workflows.join("oya-foundry-fitness-stem-only.yml"),
+        "name: unrelated-workflow\njobs:\n  unrelated-job:\n    name: unrelated-job\n",
+    )
+    .expect("workflow written");
+    fs::write(
+        &fixture.quality_lanes,
+        "lanes:\n  - id: oya-foundry-fitness-stem-only\n    status: active\n",
+    )
+    .expect("quality lanes written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingWorkflow"),
+        "workflow filename stem alone must not satisfy the context; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_metadata_key_only_workflow_stub() {
+    let temp = TempDirGuard::new("aspirational-metadata-key-workflow");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9015.md"),
+        "enforced_by: oya-foundry-fitness-metadata-only\n",
+    )
+    .expect("doc written");
+    fs::write(
+        fixture.workflows.join("metadata-only.yml"),
+        "name: unrelated-workflow\nmetadata:\n  oya-foundry-fitness-metadata-only:\njobs:\n  unrelated-job:\n    name: unrelated-job\n",
+    )
+    .expect("workflow written");
+    fs::write(
+        &fixture.quality_lanes,
+        "lanes:\n  - id: oya-foundry-fitness-metadata-only\n    status: active\n",
+    )
+    .expect("quality lanes written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingWorkflow"),
+        "metadata keys must not satisfy workflow context; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_step_name_only_workflow_stub() {
+    let temp = TempDirGuard::new("aspirational-step-name-workflow");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9016.md"),
+        "enforced_by: oya-foundry-fitness-step-only\n",
+    )
+    .expect("doc written");
+    fs::write(
+        fixture.workflows.join("step-only.yml"),
+        "name: unrelated-workflow\njobs:\n  unrelated-job:\n    steps:\n      - name: oya-foundry-fitness-step-only\n        run: echo step-only\n",
+    )
+    .expect("workflow written");
+    fs::write(
+        &fixture.quality_lanes,
+        "lanes:\n  - id: oya-foundry-fitness-step-only\n    status: active\n",
+    )
+    .expect("quality lanes written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingWorkflow"),
+        "step names must not satisfy workflow context; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_blocks_merge_without_required_context() {
+    let temp = TempDirGuard::new("aspirational-blocks-merge");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9007.md"),
+        "oya-foundry-fitness-real blocks merge for active enforcement claims\n",
+    )
+    .expect("doc written");
+    fs::write(
+        &fixture.branch_protection,
+        "branches:\n  dev:\n    required_status_checks:\n      - oya-foundry-fitness-other\n",
+    )
+    .expect("branch protection written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingRequiredContext"),
+        "stderr must include blocks-merge required-context failure; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_missing_corpus_root() {
+    let temp = TempDirGuard::new("aspirational-missing-corpus");
+    let fixture = write_aspirational_fixture(temp.path());
+    let missing_root = temp.path().join("missing-docs");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            missing_root.to_str().expect("utf8 missing docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("corpus root unreadable"),
+        "stderr must include unreadable corpus failure; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_allows_planned_missing_lanes() {
+    let temp = TempDirGuard::new("aspirational-planned");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9002.md"),
+        "candidate validator oya-foundry-fitness-missing remains planned and advisory\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(
+        output.status.success(),
+        "planned/advisory missing lane must not fail\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_active_quality_lane_without_workflow() {
+    let temp = TempDirGuard::new("aspirational-quality-lane");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.docs.join("ADR-9004.md"),
+        "enforced_by: oya-foundry-fitness-lane-only\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingWorkflow"),
+        "active quality-lane without workflow must fail; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+#[test]
+fn aspirational_enforcement_gate_rejects_workflow_without_quality_lane() {
+    let temp = TempDirGuard::new("aspirational-workflow-only");
+    let fixture = write_aspirational_fixture(temp.path());
+    fs::write(
+        fixture.workflows.join("oya-foundry-fitness-workflow-only.yml"),
+        "name: oya-foundry-fitness-workflow-only\njobs:\n  oya-foundry-fitness-workflow-only:\n    name: oya-foundry-fitness-workflow-only\n",
+    )
+    .expect("workflow written");
+    fs::write(
+        fixture.docs.join("ADR-9005.md"),
+        "enforced_by: oya-foundry-fitness-workflow-only\n",
+    )
+    .expect("doc written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "aspirational-enforcement",
+            "--clear-default-corpus",
+            "--corpus-root",
+            fixture.docs.to_str().expect("utf8 docs"),
+            "--crates-dir",
+            fixture.crates.to_str().expect("utf8 crates"),
+            "--workflows-dir",
+            fixture.workflows.to_str().expect("utf8 workflows"),
+            "--quality-lanes",
+            fixture.quality_lanes.to_str().expect("utf8 quality lanes"),
+            "--branch-protection",
+            fixture
+                .branch_protection
+                .to_str()
+                .expect("utf8 branch protection"),
+        ])
+        .output()
+        .expect("gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("MissingQualityLane"),
+        "workflow without active quality lane must fail; got: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+struct AspirationalFixture {
+    docs: PathBuf,
+    crates: PathBuf,
+    workflows: PathBuf,
+    quality_lanes: PathBuf,
+    branch_protection: PathBuf,
+}
+
+fn write_aspirational_fixture(root: &Path) -> AspirationalFixture {
+    let docs = root.join("docs");
+    let crates = root.join("crates");
+    let workflows = root.join("workflows");
+    fs::create_dir_all(&docs).expect("docs dir created");
+    fs::create_dir_all(crates.join("oya-check-real")).expect("check crate dir created");
+    fs::create_dir_all(&workflows).expect("workflows dir created");
+    fs::write(
+        workflows.join("oya-foundry-fitness-real.yml"),
+        "name: oya-foundry-fitness-real\njobs:\n  oya-foundry-fitness-real:\n    name: oya-foundry-fitness-real\n",
+    )
+    .expect("workflow written");
+    let quality_lanes = root.join("quality-lanes.yaml");
+    fs::write(
+        &quality_lanes,
+        "lanes:\n  - id: oya-foundry-fitness-real\n    status: active\n  - id: oya-foundry-fitness-lane-only\n    status: active\n",
+    )
+    .expect("quality lanes written");
+    let branch_protection = root.join("branch-protection.yaml");
+    fs::write(
+        &branch_protection,
+        "branches:\n  dev:\n    required_status_checks:\n      - oya-foundry-fitness-real\n",
+    )
+    .expect("branch protection written");
+    AspirationalFixture {
+        docs,
+        crates,
+        workflows,
+        quality_lanes,
+        branch_protection,
+    }
+}
+
 fn write_honest_claims_plan(plans_dir: &Path, file_name: &str, id: &str, extra: &str) {
     fs::write(
         plans_dir.join(file_name),

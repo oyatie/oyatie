@@ -15,7 +15,7 @@ doc_status: published
 > **Date:** 2026-05-12
 > **doc_class:** DecisionRecord
 > **purpose:** Resolve the new-crate chicken-and-egg with grit symbol-locking via the icm-coordination-lock fallback pattern (scaffold-locks-oyatie topic). Cargo.toml::workspace_members is verified NOT indexed by grit at v0.3.0, so the primary scaffold-claim path is the icm fallback.
-> **enforced_by:** `oya-foundry-fitness-scaffold-claim-pattern`
+> **planned_enforcement_ref:** `oya-foundry-fitness-scaffold-claim-pattern` — advisory until the lane exists.
 > **Related:** ADR-0052 (grit/icm tooling inventory), ADR-0053 (grit + icm as sanctioned coordination primitives), ADR-0015 (flat-crates layout), ADR-0041 (GitOps trunk-based development)
 
 ---

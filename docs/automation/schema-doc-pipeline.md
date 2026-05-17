@@ -11,7 +11,7 @@ purpose: |
   plus the field's `///` doc-comment and emits the canonical data-class
   catalogue doc. The doc is the system-of-record for which fields hold which
   privacy class.
-enforced_by: oya-foundry-fitness-data-class
+planned_enforcement_ref: oya-foundry-fitness-data-class
 extends_crates:
   - oya-foundry-data-class-fitness-kernel
   - oya-foundry-glossary-coverage-kernel

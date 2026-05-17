@@ -10,7 +10,7 @@ purpose: |
   with severity-aware staleness thresholds: >90 days = advisory, >180 days = HIGH,
   >365 days = BLOCKER. Auto-generate a refresh-PR template when a threshold is
   crossed. Extends the existing `oya-foundry-runbook-freshness-kernel`.
-enforced_by: oya-foundry-fitness-runbook-freshness
+planned_enforcement_ref: oya-foundry-fitness-runbook-freshness
 extends_crates:
   - oya-foundry-runbook-freshness-kernel
   - oya-foundry-runbook-index-kernel
