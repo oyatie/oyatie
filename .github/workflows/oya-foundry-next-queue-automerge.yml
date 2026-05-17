@@ -1,0 +1,74 @@
+name: oya-foundry-next-queue-automerge
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: "PR base branch to advance"
+        required: false
+        default: "dev"
+      start_pr:
+        description: "First PR number in the active numeric queue"
+        required: false
+        default: "111"
+      after_pr:
+        description: "Merged PR number that triggered this tick; 0 selects the queue floor"
+        required: false
+        default: "0"
+      dry_run:
+        description: "Print selected next PR without enabling auto-merge"
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+permissions:
+  contents: write
+  pull-requests: write
+  checks: read
+  actions: read
+  statuses: read
+
+concurrency:
+  group: next-queue-automerge-${{ github.event.inputs.base_branch || github.event.pull_request.base.ref || 'dev' }}
+  cancel-in-progress: false
+
+jobs:
+  next-queue-automerge:
+    name: next-queue-automerge
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.merged == true &&
+       github.event.pull_request.base.ref == 'dev')
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.base_branch || github.event.pull_request.base.ref || 'dev' }}
+          fetch-depth: 0
+
+      - name: Trigger auto-merge for next queue PR only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: ${{ github.event.inputs.base_branch || github.event.pull_request.base.ref || 'dev' }}
+          START_PR: ${{ github.event.inputs.start_pr || vars.OYA_MERGE_QUEUE_START_PR || '111' }}
+          AFTER_PR: ${{ github.event.inputs.after_pr || github.event.pull_request.number || '0' }}
+          DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+        run: |
+          set -euo pipefail
+          args=(
+            --base-branch "$BASE_BRANCH"
+            --base-ref "origin/$BASE_BRANCH"
+            --start-pr "$START_PR"
+            --after-pr "$AFTER_PR"
+            --required-review-check oya-pr-review
+          )
+          if [ "$DRY_RUN" = "true" ]; then
+            args+=(--dry-run)
+          fi
+          scripts/trigger-next-queue-automerge.sh "${args[@]}"
