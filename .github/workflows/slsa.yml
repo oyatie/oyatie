@@ -1,4 +1,4 @@
-# SLSA level ≥3 attestation publishing (M-CC-P08-IP-004).
+# SLSA level ≥3 attestation publishing (M01-P15-IP-004).
 #
 # Publishes SLSA Build L3 provenance for each release tag using the
 # generic reusable workflow from slsa-framework. Provenance attaches

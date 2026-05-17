@@ -428,88 +428,116 @@
       "purpose": "Policy disclosure banner component row for retention, legal hold, consent, audit access, and Workflow handoff consequences."
     },
     "design_system_catalog": {
-          "kind": "design-system-catalog",
-          "current_path": "/specs/design-system/catalog.json",
-          "target_path_after_md_retirement": "same (machine-readable from inception)",
-          "migration_phase": "complete",
-          "purpose": "Machine-readable design-system catalog for PRD template v1.5 §11f/§11g UX/frontend-component coverage."
+      "kind": "design-system-catalog",
+      "current_path": "/specs/design-system/catalog.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Machine-readable design-system catalog for PRD template v1.5 §11f/§11g UX/frontend-component coverage."
     },
     "design_workflow_canvas": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/workflow-canvas.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Node-edge authoring canvas for durable Workflow definitions with explicit state, branch, join, capability-call, and jurisdiction-overlay affordances."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/workflow-canvas.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Node-edge authoring canvas for durable Workflow definitions with explicit state, branch, join, capability-call, and jurisdiction-overlay affordances."
     },
     "design_workflow_node_config_panel": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/workflow-node-config-panel.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Inspector panel for node parameters, typed inputs/outputs, policy preview, validation errors, and jurisdiction-specific overrides."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/workflow-node-config-panel.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Inspector panel for node parameters, typed inputs/outputs, policy preview, validation errors, and jurisdiction-specific overrides."
     },
     "design_workflow_replay_timeline": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/workflow-replay-timeline.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Step-by-step execution replay, failure inspection, audit-chain correlation, and rollback/retry decision support for Workflow operators."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/workflow-replay-timeline.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Step-by-step execution replay, failure inspection, audit-chain correlation, and rollback/retry decision support for Workflow operators."
     },
     "design_spec_diff_viewer": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/spec-diff-viewer.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Semantic diff viewer for canonical JSON specs, PR review, schema evolution, jurisdiction overlays, and LLM-authored patch review."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/spec-diff-viewer.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Semantic diff viewer for canonical JSON specs, PR review, schema evolution, jurisdiction overlays, and LLM-authored patch review."
     },
     "design_ontology_graph_explorer": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/ontology-graph-explorer.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Typed entity/link/action graph explorer for schema admins, vertical specialists, and developers inspecting semantic, kinetic, and dynamic layers."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/ontology-graph-explorer.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Typed entity/link/action graph explorer for schema admins, vertical specialists, and developers inspecting semantic, kinetic, and dynamic layers."
     },
     "design_entity_action_policy_preview": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/entity-action-policy-preview.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Pre-execution preview of Cedar policy, autonomy tier, data-class effects, and audit consequences for typed Ontology actions."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/entity-action-policy-preview.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Pre-execution preview of Cedar policy, autonomy tier, data-class effects, and audit consequences for typed Ontology actions."
     },
     "design_audit_evidence_timeline": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/audit-evidence-timeline.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Append-only evidence timeline for PRs, promoted changesets, agent decisions, incident closeout, and compliance controls."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/audit-evidence-timeline.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Append-only evidence timeline for PRs, promoted changesets, agent decisions, incident closeout, and compliance controls."
     },
     "design_cloud_cell_topology_map": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/cloud-cell-topology-map.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Operational topology map for cells, regions, tenant routing, capacity, canary state, and deployment ownership without manual SSH troubleshooting."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/cloud-cell-topology-map.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Operational topology map for cells, regions, tenant routing, capacity, canary state, and deployment ownership without manual SSH troubleshooting."
     },
     "design_foundry_agent_run_timeline": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/foundry-agent-run-timeline.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Timeline for autonomous agent runs, lane transitions, evidence attachments, verifier decisions, and rollback/fix loops."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/foundry-agent-run-timeline.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Timeline for autonomous agent runs, lane transitions, evidence attachments, verifier decisions, and rollback/fix loops."
     },
     "design_score_card_result_table": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/score-card-result-table.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Deterministic score-card results table for lane pass/fail evidence, forbidden LLM-judgment status, source citations, and remediation links."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/score-card-result-table.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Deterministic score-card results table for lane pass/fail evidence, forbidden LLM-judgment status, source citations, and remediation links."
     },
     "design_ops_deployment_status_panel": {
-          "kind": "design-system-component",
-          "current_path": "/specs/design-system/ops-deployment-status-panel.json",
-          "target_path_after_md_retirement": "same",
-          "migration_phase": "complete",
-          "purpose": "Deployment status surface for OpenTofu plans, oya ops actions, canary phases, rollback state, and operator-safe remediation links."
+      "kind": "design-system-component",
+      "current_path": "/specs/design-system/ops-deployment-status-panel.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Deployment status surface for OpenTofu plans, oya ops actions, canary phases, rollback state, and operator-safe remediation links."
+    },
+    "prd_connect_anonymous": {
+      "kind": "prd",
+      "current_path": "/specs/products/connect/anonymous.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Connect Anonymous sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
+    },
+    "prd_connect_network": {
+      "kind": "prd",
+      "current_path": "/specs/products/connect/network.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Connect Network sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
+    },
+    "prd_connect_shorts": {
+      "kind": "prd",
+      "current_path": "/specs/products/connect/shorts.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Connect Shorts sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
+    },
+    "prd_connect_social": {
+      "kind": "prd",
+      "current_path": "/specs/products/connect/social.json",
+      "target_path_after_md_retirement": "same",
+      "migration_phase": "complete",
+      "purpose": "Connect Social sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
     }
   },
   "by_kind": {

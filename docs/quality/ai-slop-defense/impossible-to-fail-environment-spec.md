@@ -173,7 +173,7 @@ prevented) to the impossible-to-fail steady state:
    cargo-semver-checks, cargo-machete + cargo-udeps, reviewer-agent,
    Falco, cargo-hakari, chaos-mesh, OPA/Cedar coverage. Closes 3 of 4
    remaining open modes.
-3. **M03 / M-CC** — MED tools: kube-linter + kubescape, RepoMap,
+3. **M03** — MED tools: kube-linter + kubescape, RepoMap,
    diff-vote, cargo-auditable, dependency-review-action,
    cargo-binstall, perf-budget hardening. Closes the final mode +
    hardens the residual.

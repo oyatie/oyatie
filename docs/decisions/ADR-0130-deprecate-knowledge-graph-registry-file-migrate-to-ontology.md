@@ -1,4 +1,4 @@
-# ADR-0130 — Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System
+# ADR-0130: Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System
 
 **Status:** Accepted
 **Date:** 2026-05-17

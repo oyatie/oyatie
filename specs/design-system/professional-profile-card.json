@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/design-system/professional-profile-card.schema.json",
+  "title": "DesignSystem:Professional Profile Card",
+  "doc_class": "Machine-Readable-Spec",
+  "component_id": "professional-profile-card",
+  "owner_team": "connect-product-council",
+  "product_ref": "$ref:specs/products/connect/network.json",
+  "component_name": "ProfessionalProfileCard",
+  "status": "planned-contract",
+  "variants": [
+    "compact",
+    "full",
+    "recruiter-view",
+    "sales-view"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": true,
+    "screen_reader": true,
+    "reduced_motion": true
+  },
+  "responsive_breakpoints": [
+    "mobile-portrait",
+    "tablet",
+    "desktop"
+  ],
+  "contract": {
+    "purpose": "ProfessionalProfileCard is a declared Connect Network UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
+    "state_model_ref": "$ref:specs/products/connect/network.json#frontend_components"
+  }
+}

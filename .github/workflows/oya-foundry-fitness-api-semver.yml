@@ -10,7 +10,7 @@ name: oya-foundry-fitness-api-semver
 # `.meta.yaml` siblings and validates the kernel in
 # `crates/oya-foundry-api-semver-domain` (ADR-0037).
 #
-# Posture: surface-all-failures (M-CC-P02-IP-007). This is a single-job
+# Posture: surface-all-failures (M01-P09-IP-007). This is a single-job
 # workflow; the job ID matches the required-check name exactly so the
 # branch-protection ruleset resolves to this status one-for-one.
 

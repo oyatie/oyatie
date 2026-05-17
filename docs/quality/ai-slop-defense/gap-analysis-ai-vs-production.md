@@ -152,7 +152,7 @@ error-fan-in, dep-allowlist, unicode-discipline, cancel-safety,
 task-supervisor, fuzz-corpus, mutation-coverage, semgrep-injection,
 secret-scan) cascade across multiple modes. The residual 4 modes
 (stale K8s API, perf hot-path drift, regional-data crossing,
-performance budget drift) close in M-CC phases.
+performance budget drift) close in M01 foundation phases.
 
 ## 5. Sources
 

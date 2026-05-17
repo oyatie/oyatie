@@ -27,7 +27,7 @@ doc_class: ImplementationPlan
 template_id: TPL-IP
 ip_id: IP-NNN-<slug>          # NNN is zero-padded per phase
 parent: ../INDEX.md            # phase INDEX (relative path)
-milestone: M0N                 # M01..M06 or M-CC
+milestone: M0N                 # M01..M12
 phase: P0N-<slug>
 status: pending approval | open | in-progress | merged | blocked
 execution_unit: ChangeSet      # every IP is a ChangeSet-sized execution unit

@@ -14,7 +14,7 @@
 #
 # Sunset trigger: the long-term goal is to replace this two-line
 # shim with a Rust-binary git hook installed via `oya hook install`
-# (tracked under M-CC-P10 follow-up). git itself requires hooks to
+# (tracked under M01-P17 follow-up). git itself requires hooks to
 # be executable files; the minimum-viable Rust replacement is a
 # one-line shim that `exec`s into the oya binary, which is what
 # this file is.

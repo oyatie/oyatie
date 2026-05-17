@@ -1,7 +1,7 @@
-# Reusable release template (M-CC-P07-IP-002).
+# Reusable release template (M01-P14-IP-002).
 #
 # Cuts a release tarball under `releases/<tag>/<artifact>`, then defers
-# to the cosign + sbom + slsa workflows (M-CC-P08) for signing,
+# to the cosign + sbom + slsa workflows (M01-P15) for signing,
 # SBOMs, and provenance. Callers supply the binary list and the
 # target triple matrix.
 #

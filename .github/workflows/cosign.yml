@@ -1,4 +1,4 @@
-# Cosign + Rekor signing pipeline (M-CC-P08-IP-001).
+# Cosign + Rekor signing pipeline (M01-P15-IP-001).
 #
 # Triggered on every release tag; signs each release artifact with Cosign
 # (keyless via GitHub OIDC), uploads the signature, and writes the entry

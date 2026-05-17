@@ -247,7 +247,7 @@ Inherited from Bominal 1:1 (with glossary translation): ADR-0011, ADR-0017–ADR
 
 ### M07 — Industrial Suite KR
 
-**Scope:** Activate manufacturing / logistics / facility-ops / procurement / security µservices. Workflow Studio templates: SOP-execution, shift-handover, defect-routing, last-mile-delivery, vendor-onboarding, security-audit, incident-IR, MES integration. Ontology gains domain entity types: Asset, WorkOrder, Shipment, Defect, Vendor, PO, Receipt.
+**Scope:** Activate manufacturing / logistics / facility-ops / procurement / security µservices. Workflow Studio templates: SOP-execution, shift-handover, defect-routing, last-mile-delivery, vendor-onboarding, security-audit, incident-IR, MES integration. Ontology gains domain entity types: Asset, WorkOrder, Shipment, Defect, Vendor, PO, Receipt. MES benchmark source: `evidence/autoresearch/industrial-mes-benchmark-1779034103.json`.
 
 **Regulatory:** 산업안전보건법, 중대재해처벌법, 화학물질관리법 (manufacturing); 화물자동차운수사업법, 항만운송사업법 (logistics); 개인정보보호법 (security records).
 
@@ -355,7 +355,7 @@ All compliance traits pluggable per Bominal ADR-0140 regional-pack pattern; oyat
 
 **RALPLAN v5 fold-in (2026-05-14), superseded where needed by ADR-0116:** The approved object chain remains `OyaWorkItem → IssuePlan → ChangeSet → VirtualHead / QueueAwareLease / FixupTask → ChangeBundle → Promotion / ReleaseTrain`. Oya VCS is the forward repo-transition, evidence-bundle, promotion, issue-digestion, package/deploy-lineage, and `ops.oyatie.com` explainability authority. Legacy grit/icm/rtk/vox references in earlier ralplan material are historical context only. The master-plan packet home is `.omc/plans/milestones/M01-foundation/phases/P00-gitops-vcs-replacement/`; execution starts with IP-001 + IP-009 before queue/controller fan-out.
 
-**Dependency seam + phase-out discipline (round-5 folded):** release-critical products may ship on Hyper/Tokio/Serde-family dependencies first, but every such dependency is conscious debt: layer-contained behind Oyatie wrapper/newtypes, registered in `/registry/tech-debt-ledger.json`, owned by DRI, tied to trigger-based replacement criteria, and guarded by `oya-check-dependency-seam-discipline`. Public APIs expose Oyatie types only; `hyper::*`, `tokio::*`, `bytes::*`, and `http_body::*` do not leak outside adapter-owned boundaries. Phase-out is triggered by ontology stability, parity evidence, p99 budget history, CVE acceleration, and dependent-wave state — not calendar wish-casting. Canonical implementation home: M-CC → P06 → `IP-002-lts-dependency-lane.md`; machine-readable masterplan seed: `/specs/masterplan.json`.
+**Dependency seam + phase-out discipline (round-5 folded):** release-critical products may ship on Hyper/Tokio/Serde-family dependencies first, but every such dependency is conscious debt: layer-contained behind Oyatie wrapper/newtypes, registered in `/registry/tech-debt-ledger.json`, owned by DRI, tied to trigger-based replacement criteria, and guarded by `oya-check-dependency-seam-discipline`. Public APIs expose Oyatie types only; `hyper::*`, `tokio::*`, `bytes::*`, and `http_body::*` do not leak outside adapter-owned boundaries. Phase-out is triggered by ontology stability, parity evidence, p99 budget history, CVE acceleration, and dependent-wave state — not calendar wish-casting. Canonical implementation home: M01-P13 → `IP-002-lts-dependency-lane.md`; machine-readable masterplan seed: `/specs/masterplan.json`.
 
 ---
 
@@ -428,9 +428,10 @@ New CI fitness lanes (authored in M02-P09):
 
 | µservice cluster | Oyatie competitive references |
 |---|---|
-| HR / Payroll | 더존비즈온, ADP, Workday, SAP SuccessFactors |
-| Accounting / Finance | 더존 iCUBE, NetSuite, Xero |
+| HR / Payroll | 더존비즈온, ADP, Workday, SAP SuccessFactors, SAP SaaS portfolio |
+| Accounting / Finance | 더존 iCUBE, NetSuite, Xero, SAP Cloud ERP / SAP SaaS portfolio |
 | Healthcare (medical/pharmacy/clinical) | 유비케어, 비트컴퓨터, Epic Systems, Cerner |
+| Industrial / MES | Siemens Opcenter, Rockwell Plex, SAP Digital Manufacturing, DELMIA Apriso, AVEVA MES, GE Proficy, Tulip |
 | FinTech (payments/banking) | Stripe, 토스, 카카오뱅크, 케이뱅크 |
 | Connect (messenger/mail/community) | Slack, Gmail (Google Workspace), Signal, Notion |
 | Search | Algolia, Elasticsearch/OpenSearch, Naver Search |
@@ -438,7 +439,7 @@ New CI fitness lanes (authored in M02-P09):
 | Cloud substrate | AWS, OCI, GCP |
 | Identity | Auth0, Okta, Keycloak |
 | Eventing | Confluent Kafka, Apache Pulsar |
-| Workflow | Temporal, Camunda, AWS Step Functions |
+| Workflow | Temporal, Camunda, AWS Step Functions, SAP BTP / SAP Build |
 
 Each µservice PRD lists the competitor set, the specific benchmark dimensions, and the primary-source evidence. Quality parity is a gate on Proof Ladder L4→L5 graduation.
 
@@ -476,7 +477,6 @@ Full register: `docs/RISK-REGISTER.md`.
 | M01 | axis-foundry (rename execution) | council-architecture |
 | M02 | platform-substrate + axis-foundry | council-architecture |
 | M03 | axis-enterprise + axis-connect + axis-cloud | council-architecture + gtm-customer-success |
-| M-CC | per-phase owner | council-architecture |
 
 Full RACI: `docs/RACI-OWNERSHIP.md`.
 
@@ -486,7 +486,7 @@ Full RACI: `docs/RACI-OWNERSHIP.md`.
 
 This section lists every (Milestone, Phase, Impl-Plan) tuple. Files marked **[EXISTS]** are already authored under `.omc/plans/milestones/`. Files marked **[TBD]** need authoring in a Wave 2 planning session — the path is the canonical target location.
 
-### M-CC — Cross-cutting workstreams
+### M01 — Foundation Workstreams
 
 | Phase | Phase path | Impl Plan | Status |
 |---|---|---|---|
@@ -824,19 +824,19 @@ A phase that registers a new µservice (or new BC) is **not Complete** until the
 
 ## 16. Connect product scope — 7 sub-products
 
-Connect is a dual-context µservice (B2B Application shell + B2C Personal entry path) that ships in PR #130 with 7 sub-products:
+Connect is a dual-context µservice (B2B Application shell + B2C Personal entry path). PR #130 records the planning contract for 7 sub-product PRD surfaces:
 
 | Sub-product | Context | Description |
 |---|---|---|
 | `connect-messenger` | B2B + B2C | E2EE real-time messaging (PQXDH + Signal ratchet) |
 | `connect-mail` | B2B + B2C | Async mail with legal-hold / eDiscovery (Pro) and user-owned audit chain (Personal) |
-| `connect-social` | B2C | Social feed, reactions, follower graph — ships PR #130 |
-| `connect-shorts` | B2C | Short-form video / content format — ships PR #130 |
-| `connect-network` | B2C | Professional network layer (connections, endorsements) — ships PR #130 |
-| `connect-anonymous` | B2C | Anonymous posting / ephemeral context — ships PR #130 |
+| `connect-social` | B2C | Planned social feed, reactions, follower graph PRD surface |
+| `connect-shorts` | B2C | Planned short-form video / content format PRD surface |
+| `connect-network` | B2C | Planned professional network layer (connections, endorsements) PRD surface |
+| `connect-anonymous` | B2C | Planned anonymous posting / ephemeral context PRD surface |
 | `connect-community` | B2B + B2C | Community channels and spaces |
 
-The 4 new sub-products (`social`, `shorts`, `network`, `anonymous`) are added to the flat µservice catalog and follow BNF v4.1 crate naming (`oya-connect-social-*`, etc.). Cross-context safety invariant: Personal data never flows to org policy engine, never indexed by org Search, never exposed via org Ontology. See ADR-0126 for the Connect expansion decision record.
+The 4 new sub-products (`social`, `shorts`, `network`, `anonymous`) are added to the flat µservice catalog and follow BNF v4.1 crate naming (`oya-connect-social-*`, etc.). Cross-context safety invariant: Personal data never flows to org policy engine, never indexed by org Search, never exposed via org Ontology. See ADR-0131 for the Connect expansion planning-contract decision record.
 
 ---
 
@@ -856,7 +856,7 @@ Five hyperscaler-grade patterns were identified as portfolio gaps and added as i
 | Per-tenant rate-limit (token-bucket, Valkey-backed, tenant-scoped) | M02b | IP pending |
 | Provider shed (graceful degradation on provider unavailability) | M02-foundry | IP pending |
 | Golden signals dashboard (latency / traffic / errors / saturation per µservice) | M02b workflow-studio | IP pending |
-| Error-budget SLO burn-rate alarms (cross-cutting; all substrate µservices) | M02b cross-cutting | IP pending |
+| Error-budget SLO burn-rate alarms (shared substrate; all substrate µservices) | M02b shared-substrate | IP pending |
 
 These patterns are pre-conditions for Proof Ladder L5 graduation of any µservice that depends on an external LLM or third-party provider. CI lane `oya-check-hyperscaler-patterns` (authored in M02b) will enforce their presence.
 
@@ -865,4 +865,4 @@ These patterns are pre-conditions for Proof Ladder L5 graduation of any µservic
 ## 15. Status footer
 
 Status: **Accepted** (canonical at `docs/MASTERPLAN.md`).
-Iteration: 10 — enforced ImplementationPlan-as-ChangeSet semantics for all IPs and materialized M01-P07 Oyatie VCS phase/IP packet files from approved ralplan v5. Iteration: 9 — added documented/enforced unit/integration/e2e test standard plus explicit AST handling to M01-P07. Iteration: 8 — expanded M01-P07 to cover polyglot semantic indexing plus CI/CD review-fix loop, controller-owned rebase, and merge queue handling. Iteration: 7 — moved the legacy-compatible VCS replacement ahead of other cross-cutting work as M01-P07 and upgraded its target from local merge serialization to GitOps promotion/reconciliation per 2026-05-14 user directive. Iteration: 6 — folded dependency-seam phaseout round-5 into §6/§8/M-CC hierarchy and seeded `/specs/masterplan.json` per Markdown-retirement target. Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-documentation-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.
+Iteration: 10 — enforced ImplementationPlan-as-ChangeSet semantics for all IPs and materialized M01-P07 Oyatie VCS phase/IP packet files from approved ralplan v5. Iteration: 9 — added documented/enforced unit/integration/e2e test standard plus explicit AST handling to M01-P07. Iteration: 8 — expanded M01-P07 to cover polyglot semantic indexing plus CI/CD review-fix loop, controller-owned rebase, and merge queue handling. Iteration: 7 — moved the legacy-compatible VCS replacement ahead of other shared foundation work as M01-P07 and upgraded its target from local merge serialization to GitOps promotion/reconciliation per 2026-05-14 user directive. Iteration: 6 — folded dependency-seam phaseout round-5 into the M01-P13 hierarchy and seeded `/specs/masterplan.json` per Markdown-retirement target. Iteration: 5 — extended 2026-05-13 with M04–M12 milestone scope (Healthcare KR, Connect Personal B2C, FinTech KR, Industrial Suite KR, Enterprise breadth, US/EU expansion, Healthcare US/EU, Hyperscaler maturity), §2.5 Canonical base + localization packs (KR pack #1; ADR-0064), §5.5 Localization pack catalog, §13.5 Documentation suite coverage CI-enforced (ADR-0063 / LEAN-A5 `oya-check-documentation-cli`). Iteration 4 (earlier on 2026-05-13): full rewrite per /deep-interview session consensus — flat µservice catalog, BNF v4.1, Ontology/Workflow adapter layer, Bominal inheritance posture, M01-M03 phase+IP index.

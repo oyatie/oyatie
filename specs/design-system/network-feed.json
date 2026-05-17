@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.dev/schemas/design-system/network-feed.schema.json",
+  "title": "DesignSystem:Network Feed",
+  "doc_class": "Machine-Readable-Spec",
+  "component_id": "network-feed",
+  "owner_team": "connect-product-council",
+  "product_ref": "$ref:specs/products/connect/network.json",
+  "component_name": "NetworkFeed",
+  "status": "planned-contract",
+  "variants": [
+    "connections",
+    "company",
+    "industry",
+    "following"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": true,
+    "screen_reader": true,
+    "reduced_motion": true
+  },
+  "responsive_breakpoints": [
+    "mobile-portrait",
+    "tablet",
+    "desktop",
+    "wide-desktop"
+  ],
+  "contract": {
+    "purpose": "NetworkFeed is a declared Connect Network UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
+    "state_model_ref": "$ref:specs/products/connect/network.json#frontend_components"
+  }
+}

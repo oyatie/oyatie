@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 100
-- **Numbering:** ADR-0001..ADR-0122 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089)
-- **Next ADR number:** 0123
-- **Status counts:** Accepted 18, Proposed 5, Superseded 2, accepted 38, deprecated 1, proposed 36
+- **Total ADRs:** 104
+- **Numbering:** ADR-0001..ADR-0131 (non-contiguous; gaps: 0012, 0033, 0068, 0070..0082, 0084..0089, 0125..0129)
+- **Next ADR number:** 0132
+- **Status counts:** Accepted 21, Proposed 5, Superseded 2, accepted 39, deprecated 1, proposed 36
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -121,11 +121,15 @@ doc_status: published
 | ADR-0120 | accepted | Rust-first on-prem tooling; every install paired with uninstall | axis-foundry + ops-sre | [`ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md`](decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md) |
 | ADR-0121 | accepted | On-prem Kubernetes stack — vanilla kubeadm + containerd + Istio + Envoy | axis-cloud + axis-foundry | [`ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md`](decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md) |
 | ADR-0122 | Accepted | Ontology crate rename — retire "object-graph" naming | council-architecture | [`ADR-0122-ontology-crate-rename-from-object-graph.md`](decisions/ADR-0122-ontology-crate-rename-from-object-graph.md) |
+| ADR-0123 | Accepted | Hyperscaler maturity claim gate | council-architecture | [`ADR-0123-hyperscaler-maturity-claim-gate.md`](decisions/ADR-0123-hyperscaler-maturity-claim-gate.md) |
+| ADR-0124 | accepted | Own merge-queue policy — webhook-driven, GitHub-merge-queue-free | jason931225 | [`ADR-0124-own-merge-queue-webhook-driven.md`](decisions/ADR-0124-own-merge-queue-webhook-driven.md) |
+| ADR-0130 | Accepted | Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System | council-architecture + ontology-team | [`ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md`](decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md) |
+| ADR-0131 | Accepted | Connect Social Expansion Planning Contract | connect-product-council | [`ADR-0131-connect-social-expansion-planning-contract.md`](decisions/ADR-0131-connect-social-expansion-planning-contract.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0123), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0132), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
@@ -140,9 +144,10 @@ The directory is intentionally non-contiguous. Every existing `docs/decisions/AD
 | 0068 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0070..0082 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 | 0084..0089 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
+| 0125..0129 | Not represented by a `docs/decisions/ADR-*.md` file; reserved, deleted, or retired. |
 
 ## Sources scanned
 
-- `decisions/` directory listing — 100 ADR files (sorted ascending)
+- `decisions/` directory listing — 104 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks
