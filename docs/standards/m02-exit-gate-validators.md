@@ -1,12 +1,12 @@
 ---
 purpose: "M02b/P22 exit-gate — enumeration of the 14 quality/scalability validator lanes and their oya-dev-cli bindings"
 doc_status: published
-change_id: m02b-p22-statelessness-mv-17232-1779002788
+change_id: m02b-p22-shardability-mv-19733-1779003546
 ---
 
 # M02b/P22 Exit-Gate Validators
 
-> **Status:** skeleton — one lane wired + tested (statelessness). Remaining lanes are wired in the CLI but lack integration tests; each follow-on PR adds one test per lane until all 14 are covered, at which point the BLOCKER workflow YAML flip lands.
+> **Status:** two lanes wired + tested (statelessness, shardability). Remaining lanes are wired in the CLI but lack integration tests; each follow-on PR adds one test per lane until all 14 are covered, at which point the BLOCKER workflow YAML flip lands.
 
 ## What "wired" means
 
@@ -25,7 +25,7 @@ The "14 quality/scalability lanes" tracked for M02b/P22 exit gate are the lanes 
 | # | Lane slug | `oya gate validate` subcommand | Kernel crate | Status |
 |---|---|---|---|---|
 | 1 | `quality-statelessness` | `statelessness` | `oya-check-statelessness` | **wired + tested** (this PR) |
-| 2 | `quality-shardability` | `shardability` | `oya-check-shardability` | wired; test pending |
+| 2 | `quality-shardability` | `shardability` | `oya-check-shardability` | **wired + tested** (this PR) |
 | 3 | `quality-perf-budget` | `perf-budget` | `oya-check-perf-budget` | wired; test pending |
 | 4 | `quality-benchmark` | `benchmark` | `oya-check-benchmark` | wired; test pending |
 | 5 | `lean-a-active-artifact-contract` | `active-artifact-contract` | `oya-check-active-artifact-contract` | wired; test pending |
