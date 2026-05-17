@@ -1,0 +1,343 @@
+{
+  "audit_id": "connect-suite-industry-audit-1779012333",
+  "audit_op": "OP-11",
+  "audited_at": "2026-05-17T00:00:00Z",
+  "branch": "agent/audit-connect-1779012333",
+  "audited_prds": [
+    "specs/products/connect/suite.json",
+    "specs/products/connect/mail.json",
+    "specs/products/connect/messenger.json",
+    "specs/products/connect/calendar.json"
+  ],
+  "industry_references_fetched": [
+    {
+      "url": "https://workspace.google.com/products/gmail/",
+      "status": "ok",
+      "key_findings": [
+        "Gmail states it blocks 99.9% of spam, malware, and dangerous links",
+        "Workspace Gmail advertises 99.9% guaranteed uptime",
+        "Gmail includes Gemini summarization and privacy positioning"
+      ]
+    },
+    {
+      "url": "https://workspace.google.com/learn-more/security/security-whitepaper/asset-protection/",
+      "status": "ok",
+      "key_findings": [
+        "Google Workspace security whitepaper repeats Gmail more-than-99.9% threat blocking claim",
+        "Gmail protection includes spam, phishing, malware, malware scanning, quarantine, routing, and audit/admin processing"
+      ]
+    },
+    {
+      "url": "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+      "status": "ok",
+      "key_findings": [
+        "Slack Enterprise Grid supports up to 500,000 people",
+        "Enterprise Grid uses unlimited connected workspaces inside an organization",
+        "Enterprise Grid includes security and governance controls including EKM, retention, DLP/eDiscovery integrations, and app management"
+      ]
+    },
+    {
+      "url": "https://slack.com/scale",
+      "status": "ok",
+      "key_findings": [
+        "Slack scale page positions Enterprise+ for large organizations",
+        "Slack lists enterprise security, compliance, Enterprise Key Management, and scale capabilities"
+      ]
+    },
+    {
+      "url": "https://slack.com/enterprise",
+      "status": "ok",
+      "key_findings": [
+        "Slack enterprise page claims 2,600 Marketplace apps and enterprise compliance posture"
+      ]
+    },
+    {
+      "url": "https://support.google.com/calendar/answer/11608416?hl=en",
+      "status": "ok",
+      "key_findings": [
+        "Google Calendar appointment schedules create/share booking pages",
+        "Premium appointment schedules can check availability across multiple calendars",
+        "Google Meet links are added automatically when choosing video call appointments"
+      ]
+    },
+    {
+      "url": "https://support.google.com/calendar/answer/37083?hl=en",
+      "status": "ok",
+      "key_findings": [
+        "Google Calendar sharing can expose only free/busy details instead of event details"
+      ]
+    },
+    {
+      "url": "https://support.google.com/calendar/answer/11190973?hl=en",
+      "status": "ok",
+      "key_findings": [
+        "Google Calendar focus time can mute chat notifications and automatically decline meetings for eligible Workspace accounts"
+      ]
+    },
+    {
+      "url": "https://proton.me/mail",
+      "status": "ok",
+      "key_findings": [
+        "Proton Mail states end-to-end and zero-access encryption",
+        "Proton Mail blocks email trackers",
+        "Proton states services are open source and independently audited",
+        "Proton emphasizes Swiss privacy jurisdiction"
+      ]
+    },
+    {
+      "url": "https://www.microsoft.com/en-us/microsoft-teams/",
+      "status": "ok",
+      "key_findings": [
+        "Microsoft Teams is the official collaboration benchmark for channels, meetings, and Microsoft 365 integration"
+      ]
+    },
+    {
+      "url": "https://support.microsoft.com/en-us/office/send-s-mime-or-microsoft-purview-encrypted-emails-in-outlook-373339cb-bf1a-4509-b296-802a39d801dc",
+      "status": "ok",
+      "key_findings": [
+        "Outlook supports S/MIME and Microsoft Purview encrypted email"
+      ]
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/purview/edisc-hold-types-mailboxes",
+      "status": "ok",
+      "key_findings": [
+        "Microsoft Purview eDiscovery hold types cover Exchange Online mailbox hold scenarios"
+      ]
+    },
+    {
+      "url": "https://learn.microsoft.com/microsoft-365/admin/email/about-shared-mailboxes",
+      "status": "ok",
+      "key_findings": [
+        "Microsoft 365 documents shared mailbox administration and related advanced compliance licensing"
+      ]
+    },
+    {
+      "url": "https://support.apple.com/en-is/guide/icloud/mm15eb200ab4/icloud",
+      "status": "ok",
+      "key_findings": [
+        "Apple documents iCloud calendar sharing and syncing across devices"
+      ]
+    },
+    {
+      "url": "https://support.apple.com/en-kg/102301",
+      "status": "ok",
+      "key_findings": [
+        "Apple documents iCloud calendar subscriptions across devices"
+      ]
+    }
+  ],
+  "gap_analysis": {
+    "suite": {
+      "gaps_found": [
+        "No industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields",
+        "No explicit DMARC/DKIM/SPF at suite perimeter model",
+        "No multi-identity account isolation AC",
+        "No spam/phishing block rate metric (Gmail 99.9% bar not captured)",
+        "No AI-assisted features position (risks and privacy constraints)",
+        "Accessibility coverage lacked testing methodology (axe-core CI + screen-reader manual)",
+        "No compliance certification gate (SOC2/ISO27001/GDPR/HIPAA) as GA requirement",
+        "No external federation channel position"
+      ],
+      "verdict": "gaps found - updated"
+    },
+    "mail": {
+      "gaps_found": [
+        "No DMARC/DKIM/SPF model in data model or ACs",
+        "No ARC (Authenticated Received Chain) for forwarded mail",
+        "No confidential/expiring mail feature",
+        "No tracker pixel blocking",
+        "No Hide-My-Email alias provisioning model",
+        "No DLP classification field on MailMessage",
+        "No deliverability warmup and reputation model",
+        "No AI-assisted compose with DEK-bounded constraint",
+        "No spam/phishing block rate metric",
+        "No SmtpDomainConfig entity",
+        "Mailing list management not in any wave",
+        "S/MIME placement correct (GA) but ARC omitted"
+      ],
+      "verdict": "gaps found - updated"
+    },
+    "messenger": {
+      "gaps_found": [
+        "No Channel entity (only DirectConversation)",
+        "No threaded replies model (thread_parent_id)",
+        "No message edit/delete with audit trail",
+        "No emoji reactions entity",
+        "No presence/status model with pillar isolation",
+        "No cross-org channel (Slack Connect equivalent)",
+        "No message scheduling",
+        "No large-channel tiered fan-out model",
+        "No AI-assisted thread summarization",
+        "Competitive[Slack] missing all Slack feature strengths",
+        "No industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gaps found - updated"
+    },
+    "calendar": {
+      "gaps_found": [
+        "No CalDAV/iCal RFC 5545 protocol compatibility (only mentioned in GA wave as 'adapters')",
+        "No IANA time zone mandatory model - could allow fixed-offset-only storage",
+        "No scheduling assistant with free/busy-only cross-pillar projection",
+        "No working hours / focus time entity",
+        "No video-call auto-link generation",
+        "No appointment booking pages",
+        "No cross-org free/busy federation protocol specification",
+        "No time insights scope constraint (work-only)",
+        "No BookingPage or VideoCallLink entities",
+        "No timezone_dst_correctness metric",
+        "No iCal round-trip metric",
+        "Calendar competitive missing Apple Calendar entirely",
+        "No industry_patterns_adopted, anti_patterns_avoided, hyperscaler_bar fields"
+      ],
+      "verdict": "gaps found - updated"
+    }
+  },
+  "abort_no_op": false,
+  "reason": "All 4 PRDs had material gaps against Google Workspace, Microsoft 365, Slack, and Proton industry bars. Updates applied.",
+  "changes_summary": {
+    "suite.json": [
+      "version 1.0.0 -> 1.1.0",
+      "Added AC-06 (DMARC/DKIM/SPF perimeter stamp) and AC-07 (multi-identity isolation)",
+      "Added ConnectIdentity entity and ConnectPerimeterAuthStamped event",
+      "Added connect.perimeter-auth-result.v1 contract",
+      "Added spam_phishing_block_rate_pct and multi_identity_notification_cross_leak_count metrics",
+      "Added R-04 AI training risk",
+      "Added BP-04 (DMARC) and BP-05 (AI privacy)",
+      "Added perimeter_auth_stamp and identity_namespace_isolation patterns",
+      "Added plaintext_training_signal and email_tracker_pixel_injection anti-patterns",
+      "Added industry_patterns_adopted[] (7 patterns)",
+      "Added anti_patterns_avoided[] (5 entries)",
+      "Added hyperscaler_bar[] (6 dimensions)",
+      "Expanded competitive[] with Proton entry and gaps_adopted on existing entries",
+      "Updated accessibility_coverage to include axe-core CI + screen-reader manual",
+      "Added GA wave: AI-assisted features, video-call integration contract",
+      "Added Matrix/Signal federation out-of-scope entry"
+    ],
+    "mail.json": [
+      "version 1.0.0 -> 1.1.0",
+      "Added AC-06 (DMARC/DKIM/SPF at SMTP ingest) through AC-10 (Hide-My-Email alias)",
+      "Added SmtpDomainConfig and MailAlias entities",
+      "Added perimeter_auth_result, confidential_expiry_at, dlp_classification fields on MailMessage",
+      "Added aliases pillar invariant on Mailbox",
+      "Added MailDmarcActionTaken, MailTrackerBlocked, MailConfidentialExpired events",
+      "Added SmtpDomainConfig persistence aggregate",
+      "Added connect.mail.alias.v1 and connect.perimeter-auth-result.v1 to contracts",
+      "Added spam_phishing_block_rate_pct, dmarc_dkim_spf_coverage_pct, deliverability_inbox_rate_pct metrics",
+      "Added R-04 (AI training leak) and R-05 (confidential expiry bypass) risks",
+      "Added BP-04 (DMARC before production), BP-05 (AI opt-in), BP-06 (DKIM rotation/ARC)",
+      "Added dmarc_first_delivery and confidential_expiry_with_hold_precedence patterns",
+      "Added plaintext_training_signal, no_dmarc_on_sending_domain, tracker_pixel_injection anti-patterns",
+      "Added industry_patterns_adopted[] (8 patterns)",
+      "Added anti_patterns_avoided[] (6 entries)",
+      "Added hyperscaler_bar[] (6 dimensions)",
+      "Expanded competitive[] with Proton entry and gaps_adopted on Gmail/Exchange entries",
+      "Added ARC, confidential mail, tracker blocking, Hide-My-Email, DLP, AI assist, deliverability to scope waves"
+    ],
+    "messenger.json": [
+      "version 1.0.0 -> 1.1.0",
+      "Added Channel entity (channels with threaded replies, external_partner_scope)",
+      "Added Message.thread_parent_id, edited_at, deleted_at, scheduled_send_at fields",
+      "Added MessageAuditLog.action enum (decrypt, edit, delete, disclosure)",
+      "Added Presence entity with pillar isolation",
+      "Added Reaction entity with retention inheritance",
+      "Added AC-06 (edit/delete audit) through AC-10 (cross-org DEK isolation)",
+      "Added external_partner persona",
+      "Added MessengerMessageEdited, Deleted, PresenceUpdated, ReactionAdded events",
+      "Added message_edit_delete_audit_coverage_pct and presence_pillar_cross_leak_count metrics",
+      "Added R-04 (presence pillar leak) and R-05 (cross-org eDiscovery scope) risks",
+      "Added BP-04 (edit/delete audit), BP-05 (presence pillar), BP-06 (reaction retention)",
+      "Added thread_inherits_parent_retention and edit_delete_audit_append patterns",
+      "Added presence_cross_pillar_exposure and edit_delete_without_audit_trail anti-patterns",
+      "Added industry_patterns_adopted[] (8 patterns)",
+      "Added anti_patterns_avoided[] (7 entries)",
+      "Added hyperscaler_bar[] (6 dimensions)",
+      "Expanded competitive[] with detailed Slack/Teams strengths and gaps_adopted",
+      "Added large-channel fan-out and presence heartbeat optimization practices",
+      "Added threads, edit/delete audit, reactions, presence, cross-org, scheduling, large-channel to scope waves"
+    ],
+    "calendar.json": [
+      "version 1.0.0 -> 1.1.0",
+      "Added AC-06 (CalDAV/iCal RFC 5545 external RSVP) through AC-11 (focus time blocks scheduling)",
+      "Added external_invitee persona",
+      "Added WorkingHoursPolicy, BookingPage, VideoCallLink entities",
+      "Added AvailabilityProjection.projection_kind field with invariants",
+      "Added CalendarEvent fields: description_ciphertext, timezone_iana, rrule, video_call_link_ref, booking_page_ref, status",
+      "Added CalendarEvent invariants: timezone_iana IANA-only, video_call_link invalidated on cancel, rrule bounded",
+      "Added CalendarExternalRsvpReceived, CalendarVideoCallLinkInvalidated, CalendarBookingPageSlotTaken events",
+      "Added WorkingHoursPolicy and BookingPage persistence aggregates",
+      "Added connect.calendar.ical_feed.v1 and connect.calendar.video_call_link.v1 contracts",
+      "Added third-party video call substrate to external_rejected",
+      "Added ical_rfc5545_round_trip_pct, scheduling_assistant_personal_detail_exposure_count, timezone_dst_correctness_pct metrics",
+      "Added R-04 (iCal interop failure), R-05 (scheduling assistant inference), R-06 (DST ambiguity), R-07 (video link persistence) risks",
+      "Added BP-04 (IANA tz mandatory), BP-05 (free/busy-only projection), BP-06 (video link lifecycle)",
+      "Added iana_timezone_first, free_busy_only_cross_boundary, video_call_link_lifecycle patterns",
+      "Added fixed_offset_timezone_storage, third_party_video_call_as_core, scheduling_assistant_personal_detail_inference, booking_page_exposing_event_titles anti-patterns",
+      "Added industry_patterns_adopted[] (8 patterns)",
+      "Added anti_patterns_avoided[] (7 entries)",
+      "Added hyperscaler_bar[] (6 dimensions)",
+      "Expanded competitive[] with Apple Calendar entry and detailed gaps_adopted",
+      "Added timezone_normalization and scheduling_assistant_cache optimization practices",
+      "Added timezone disambiguation UX error state",
+      "Added iCal parse failure error state",
+      "Added CalDAV, scheduling assistant, working hours, video links, booking pages, cross-org federation, time insights to scope waves"
+    ]
+  },
+  "prd_audit_index": {
+    "suite": {
+      "prd": "specs/products/connect/suite.json",
+      "stable_anchor": "prd_audit_index.suite",
+      "changes_summary_ref": "changes_summary.suite.json",
+      "source_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://proton.me/mail"
+      ],
+      "status": "updated"
+    },
+    "mail": {
+      "prd": "specs/products/connect/mail.json",
+      "stable_anchor": "prd_audit_index.mail",
+      "changes_summary_ref": "changes_summary.mail.json",
+      "source_refs": [
+        "https://workspace.google.com/products/gmail/",
+        "https://workspace.google.com/learn-more/security/security-whitepaper/asset-protection/",
+        "https://proton.me/mail",
+        "https://support.microsoft.com/en-us/office/send-s-mime-or-microsoft-purview-encrypted-emails-in-outlook-373339cb-bf1a-4509-b296-802a39d801dc",
+        "https://learn.microsoft.com/en-us/purview/edisc-hold-types-mailboxes",
+        "https://learn.microsoft.com/microsoft-365/admin/email/about-shared-mailboxes"
+      ],
+      "status": "updated"
+    },
+    "messenger": {
+      "prd": "specs/products/connect/messenger.json",
+      "stable_anchor": "prd_audit_index.messenger",
+      "changes_summary_ref": "changes_summary.messenger.json",
+      "source_refs": [
+        "https://slack.com/resources/why-use-slack/slack-enterprise-grid",
+        "https://slack.com/scale",
+        "https://slack.com/enterprise",
+        "https://www.microsoft.com/en-us/microsoft-teams/"
+      ],
+      "status": "updated"
+    },
+    "calendar": {
+      "prd": "specs/products/connect/calendar.json",
+      "stable_anchor": "prd_audit_index.calendar",
+      "changes_summary_ref": "changes_summary.calendar.json",
+      "source_refs": [
+        "https://support.google.com/calendar/answer/11608416?hl=en",
+        "https://support.google.com/calendar/answer/37083?hl=en",
+        "https://support.google.com/calendar/answer/11190973?hl=en",
+        "https://support.apple.com/en-is/guide/icloud/mm15eb200ab4/icloud",
+        "https://support.apple.com/en-kg/102301"
+      ],
+      "status": "updated"
+    }
+  },
+  "source_limitations": [
+    "Unsupported numeric latency claims are labeled as Oyatie-owned targets in PRDs instead of vendor claims.",
+    "The previous unavailable Outlook evidence row was replaced with working official Microsoft Support and Microsoft Learn sources.",
+    "Discord and Notion exploratory references were removed from source-backed findings because they are not used by the four Connect core PRD changes."
+  ]
+}
