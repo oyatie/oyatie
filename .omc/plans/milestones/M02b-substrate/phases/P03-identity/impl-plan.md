@@ -18,6 +18,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: Delivers the complete Identity substrate across 8 BCs (users, persons, organizations, employees, employments, sessions, mfa, passkeys) — 32 BC-layer crates + 3 presentation + 1 app = 36 total.
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "The 36-crate scaffold described below is the FROM-SCRATCH variant. Live `dev` already ships `oya-identity-domain` + `oya-identity-usecase` + `oya-identity-api` with overlapping types (UserId / User / IdpBinding / Principal / Token / StsCredential / CredentialRequest / IdentityError). User chose merge-variant 2026-05-17 — backport this plan's deltas into the existing crates incrementally rather than scaffolding a parallel substrate. Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION. First delta landed: EmploymentClassification (8-variant enum per Bominal ADR-0126) added to oya-identity-domain::identity_employment_classification module (2026-05-17). Remaining deltas (Email/Phone value objects, LockReason/ChallengeMethod/ChallengeToken types, SessionStore/UserStore port traits, argon2id password hashing, OIDC PKCE flow, WebAuthn/passkey types, DDL, Cedar policy, Protobuf schema) tracked under the reconciliation fixuptask as separate slices."
 ---
 # IP-P03-identity-substrate: Scaffold 36 Identity crates with full DDL, port traits, auth flows, Cedar, Protobuf
 
