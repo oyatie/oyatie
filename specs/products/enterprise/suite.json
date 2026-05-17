@@ -5,7 +5,8 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "PRD-ENTERPRISE-SUITE",
-    "version": "1.0.0",
+    "version": "1.1.0",
+    "audit": "industry-audit-2026-05-17:OP-11",
     "status": "Accepted",
     "owner_team": "enterprise-product-council",
     "created_at": "2026-05-16T16:15:00Z",
@@ -387,40 +388,318 @@
   ],
   "competitive": [
     {
-      "competitor": "Workday",
-      "observed_strengths": [
-        "enterprise HCM/finance breadth",
-        "large account maturity"
-      ],
-      "we_beat_on": [
-        "OpenTofu/ops-native deployment",
-        "Workflow/Object Graph cohesion",
-        "Korea-first statutory fidelity"
-      ],
-      "measurable_target": "entity close evidence available within 5 minutes of close"
-    },
-    {
       "competitor": "Rippling",
       "observed_strengths": [
         "HR/IT/finance automation",
-        "modular packaging"
+        "modular packaging",
+        "device/app admin linkage to HR lifecycle"
+      ],
+      "gaps_vs_oyatie": [
+        "US-centric payroll (limited KR native)",
+        "no legal-entity evidence isolation model",
+        "compliance audit trail less formal than WORM chain"
       ],
       "we_beat_on": [
         "deterministic audit-chain close",
-        "strict legal-entity boundaries"
+        "strict legal-entity boundaries",
+        "KR statutory depth"
       ],
-      "measurable_target": "policy bypass count remains 0"
+      "measurable_target": "policy bypass count remains 0",
+      "source_evidence_refs": [
+        "src_rippling_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-centric payroll (limited KR native)",
+        "no legal-entity evidence isolation model",
+        "compliance audit trail less formal than WORM chain"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "deterministic audit-chain close",
+        "strict legal-entity boundaries",
+        "KR statutory depth"
+      ]
+    },
+    {
+      "competitor": "SAP SaaS portfolio (Cloud ERP / BTP / Ariba / Concur)",
+      "observed_strengths": [
+        "Cloud ERP breadth across finance, supply chain, HR, sales, preconfigured best-practice processes, and embedded AI",
+        "BTP integration, extension, automation, AI, app, and workflow platform across SAP and third-party landscapes",
+        "Spend Management / Ariba source-to-pay, supplier lifecycle, travel/expense, policy checks, approvals, and AI-assisted spend workflows",
+        "Concur Travel & Expense unifies travel, expense, and card spend data with configurable workflows and reporting"
+      ],
+      "gaps_vs_oyatie": [
+        "portfolio breadth spans multiple SAP cloud products instead of one repo-native Workflow/Object Graph/audit-chain closure authority",
+        "extension and integration depend on the SAP ecosystem; Oyatie keeps product claims bound to open workflow specs and repo-native gates",
+        "official SaaS pages do not prove Korea-first statutory close evidence, legal-entity WORM audit-chain isolation, or rollback-first close promotion",
+        "suite breadth can increase implementation and governance complexity for KR-first tenants that need statutory fidelity before global portfolio breadth"
+      ],
+      "we_beat_on": [
+        "one Enterprise suite control surface over HR, Payroll, Accounting, approvals, evidence, and incident rollback",
+        "Workflow/Object Graph-native closure authority instead of ecosystem-dependent integration glue",
+        "Korea-first statutory fidelity and legal-entity WORM evidence as primary product obligations",
+        "repo-native gates and audit-chain evidence for every claimed hyperscaler commitment"
+      ],
+      "measurable_target": "SAP SaaS parity benchmark reviewed for every Enterprise suite wave; no SAP-inspired commitment may ship without source_evidence_refs, claim_boundary, and an accepted local mechanism",
+      "source_evidence_refs": [
+        "src_sap_cloud_erp_20260517",
+        "src_sap_btp_20260517",
+        "src_sap_spend_management_20260517",
+        "src_sap_concur_travel_expense_20260517"
+      ],
+      "claim_boundary": "Source-backed SAP SaaS portfolio benchmark as of 2026-05-17; source refs prove official SAP product/category grounding, not exhaustive feature parity or SAP implementation internals.",
+      "observed_weaknesses": [
+        "portfolio breadth spans multiple SAP cloud products instead of one repo-native Workflow/Object Graph/audit-chain closure authority",
+        "extension and integration depend on the SAP ecosystem; Oyatie keeps product claims bound to open workflow specs and repo-native gates",
+        "official SaaS pages do not prove Korea-first statutory close evidence, legal-entity WORM audit-chain isolation, or rollback-first close promotion",
+        "suite breadth can increase implementation and governance complexity for KR-first tenants that need statutory fidelity before global portfolio breadth"
+      ],
+      "adopt_actions": [
+        "Adopt SAP-grade portfolio breadth, clean-core extension discipline, source-to-pay visibility, and travel/expense workflow depth only where they map to accepted Enterprise goals, data models, UX flows, and validators."
+      ],
+      "improve_actions": [
+        "Bind suite breadth to one Enterprise control surface over HR, Payroll, Accounting, approvals, evidence, and incident rollback.",
+        "Prefer Workflow/Object Graph-native closure authority over ecosystem-dependent integration glue.",
+        "Keep Korea-first statutory fidelity and legal-entity WORM evidence as primary product obligations.",
+        "Require repo-native gates and audit-chain evidence for every claimed hyperscaler commitment."
+      ]
+    },
+    {
+      "competitor": "SAP SuccessFactors",
+      "observed_strengths": [
+        "global HCM breadth: recruiting, onboarding, performance, compensation, succession",
+        "multi-country payroll via partner network",
+        "SAP integration ecosystem",
+        "compliance localization for 100+ countries"
+      ],
+      "gaps_vs_oyatie": [
+        "partner-dependent KR payroll (not native)",
+        "no evidence-first close audit chain native to the platform",
+        "complex configuration requiring specialized consultants",
+        "no ops-as-code convergence model"
+      ],
+      "we_beat_on": [
+        "native KR statutory fidelity without partner dependency",
+        "evidence-first close with WORM audit chain",
+        "ops-managed deployment without manual SSH",
+        "Workflow-native approval routing (not config-table-driven)"
+      ],
+      "measurable_target": "KR obligations trigger coverage 100% by stable wave without partner dependency",
+      "source_evidence_refs": [
+        "src_sap_hcm_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "partner-dependent KR payroll (not native)",
+        "no evidence-first close audit chain native to the platform",
+        "complex configuration requiring specialized consultants",
+        "no ops-as-code convergence model"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "native KR statutory fidelity without partner dependency",
+        "evidence-first close with WORM audit chain",
+        "ops-managed deployment without manual SSH",
+        "Workflow-native approval routing (not config-table-driven)"
+      ]
     },
     {
       "competitor": "WEHAGO/더존",
       "observed_strengths": [
-        "KR SME accounting/payroll footprint"
+        "KR SME accounting/payroll footprint",
+        "HomeTax/4대보험 native integration",
+        "local market familiarity"
+      ],
+      "gaps_vs_oyatie": [
+        "no group legal-entity evidence isolation",
+        "no modern Workflow-native close",
+        "limited global/US/EU expansion path",
+        "no ops-as-code deployment model"
       ],
       "we_beat_on": [
         "modern Workflow-native suite",
-        "group-ready audit/evidence model"
+        "group-ready audit/evidence model",
+        "ops-managed deployment",
+        "global regional pack architecture"
       ],
-      "measurable_target": "KR group rollup preserves 100% entity evidence digests"
+      "measurable_target": "KR group rollup preserves 100% entity evidence digests",
+      "source_evidence_refs": [
+        "src_douzone_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "no group legal-entity evidence isolation",
+        "no modern Workflow-native close",
+        "limited global/US/EU expansion path",
+        "no ops-as-code deployment model"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "modern Workflow-native suite",
+        "group-ready audit/evidence model",
+        "ops-managed deployment",
+        "global regional pack architecture"
+      ]
+    },
+    {
+      "competitor": "Workday",
+      "observed_strengths": [
+        "enterprise HCM/finance breadth",
+        "large account maturity",
+        "unified data architecture with AI-driven analytics",
+        "global payroll with local compliance adaptation",
+        "Workday Extend API platform for custom apps",
+        "skills intelligence cloud"
+      ],
+      "gaps_vs_oyatie": [
+        "no native ops-as-code deployment (manual infra provisioning)",
+        "AI suggestions can influence compliance gates (we keep deterministic rulepacks)",
+        "no Korea-first statutory fidelity out of box",
+        "closed extension model vs open Workflow/Ontology composition"
+      ],
+      "we_beat_on": [
+        "OpenTofu/ops-native deployment",
+        "Workflow/Object Graph cohesion",
+        "Korea-first statutory fidelity",
+        "deterministic rulepack close authority (no AI-only gates)",
+        "legal-entity evidence isolation by default"
+      ],
+      "measurable_target": "entity close evidence available within 5 minutes of close",
+      "source_evidence_refs": [
+        "src_workday_hcm_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "no native ops-as-code deployment (manual infra provisioning)",
+        "AI suggestions can influence compliance gates (we keep deterministic rulepacks)",
+        "no Korea-first statutory fidelity out of box",
+        "closed extension model vs open Workflow/Ontology composition"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "OpenTofu/ops-native deployment",
+        "Workflow/Object Graph cohesion",
+        "Korea-first statutory fidelity",
+        "deterministic rulepack close authority (no AI-only gates)",
+        "legal-entity evidence isolation by default"
+      ]
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "unified-suite shell with child product launch contracts",
+      "source": "Workday — single data model across HCM and Finance modules",
+      "implementation": "suite policy gateway + legal_entity_context shared across HR/Payroll/Accounting children"
+    },
+    {
+      "pattern": "role-based self-service portal: employee / manager / HR admin tiers",
+      "source": "ADP Workforce Now, BambooHR — tiered self-service UX reduces admin burden",
+      "implementation": "EnterprisePolicyDisclosureBanner + EnterpriseWorkQueueList scoped per persona tier"
+    },
+    {
+      "pattern": "SSO / SAML 2.0 / OIDC identity provider federation",
+      "source": "Workday, SAP SuccessFactors, Rippling — enterprise IdP federation required for suite adoption",
+      "implementation": "suite shell delegates identity to workspace IdP seam; SAML/OIDC adapter in Connect layer"
+    },
+    {
+      "pattern": "ISO 27001 + SOC 2 Type II compliance evidence generation",
+      "source": "Workday, NetSuite, ADP — enterprise procurement mandates these certifications",
+      "implementation": "audit-chain WORM evidence + deployment-ops-contract gate covers SOC 2 control evidence; ISMS-P binding via KR pack"
+    },
+    {
+      "pattern": "explicit data residency controls per region",
+      "source": "Workday, SAP — GDPR + data sovereignty require explicit region pinning",
+      "implementation": "ops_cell includes region pin; tenant data routing enforces residency at Postgres RLS + object store level"
+    },
+    {
+      "pattern": "multi-currency with FX rate snapshot at transaction time",
+      "source": "NetSuite, Xero, Sage Intacct — global enterprise requires >3 currency pairs",
+      "implementation": "currency_handling extended to KRW, USD, EUR, JPY, GBP, CNY, AUD; FX rate snapshot stored on JournalVoucher and WageLedgerEntry"
+    },
+    {
+      "pattern": "approval inbox with SLA budgets and escalation",
+      "source": "Workday — inbox-driven approval with configurable SLA thresholds",
+      "implementation": "Workflow queues expose SLA and exception budgets; operator inbox backpressure before overload"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "anti_pattern": "single global mutable ledger across legal entities",
+      "source_warning": "NetSuite multi-subsidiary anti-pattern — intercompany without elimination leads to double-counting",
+      "mitigation": "legal-entity cell isolation; group rollups are projections only, never shared mutable state"
+    },
+    {
+      "anti_pattern": "AI as sole compliance gate authority",
+      "source_warning": "Workday AI scheduling can conflict with labor law in some jurisdictions if not bounded",
+      "mitigation": "deterministic rulepacks are closure authority; AI may surface suggestions but cannot close gates"
+    },
+    {
+      "anti_pattern": "partner-dependent statutory compliance",
+      "source_warning": "SAP SuccessFactors KR payroll relies on partner network creating version-drift risk",
+      "mitigation": "native KR rulepack with effective-date versioning; no partner dependency for statutory close"
+    },
+    {
+      "anti_pattern": "manual SSH troubleshooting as documented recovery path",
+      "source_warning": "legacy ERP ops runbooks contain ad hoc SSH steps that bypass change control",
+      "mitigation": "deployment-ops contract forbids SSH troubleshooting; OpenTofu/Makefile/oya ops are only convergence path"
+    },
+    {
+      "anti_pattern": "monolithic close boundary across all tenants",
+      "source_warning": "shared close cycle causes cascading delays when one entity has exceptions",
+      "mitigation": "each legal entity closes independently; group close is a projection after all entity closes succeed"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "dimension": "availability",
+      "target": "99.95% GA (Workday SLA parity); 99.99% aspirational at hyperscaler scale",
+      "planned_verification_ref": "oya gate validate enterprise-slo-coverage",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "data_residency",
+      "target": "explicit per-region storage pin; no cross-region data transit without tenant consent",
+      "planned_verification_ref": "oya gate validate enterprise-data-residency",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "security_certifications",
+      "target": "SOC 2 Type II evidence pack per close cycle; ISO 27001 / ISMS-P binding for KR pack",
+      "planned_verification_ref": "oya gate validate enterprise-security-cert-evidence",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "identity_federation",
+      "target": "SAML 2.0 + OIDC IdP federation ready at GA; MFA enforced for all admin surfaces",
+      "planned_verification_ref": "oya gate validate enterprise-identity-federation",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "multi_currency",
+      "target": "KRW, USD, EUR, JPY, GBP, CNY, AUD supported; FX rate snapshot at transaction time",
+      "planned_verification_ref": "oya gate validate enterprise-multi-currency",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
+    },
+    {
+      "dimension": "horizontal_scalability",
+      "target": "tenant + legal-entity cell routing enables shard-per-entity scaling without code fork",
+      "planned_verification_ref": "oya gate validate enterprise-enterprisesuite-scale-model",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     }
   ],
   "best_practices": [
@@ -490,7 +769,11 @@
       "currency_handling": [
         "KRW",
         "USD",
-        "EUR"
+        "EUR",
+        "JPY",
+        "GBP",
+        "CNY",
+        "AUD"
       ]
     }
   },
@@ -532,12 +815,34 @@
     }
   ],
   "sources_scanned": [
+    "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
     "/Users/jasonlee/bominal/docs/products/corporate/corporate.md",
     "/Users/jasonlee/bominal/docs/products/corporate/hr-payroll-known-limits.md",
-    "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
     "/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
-    "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
-    "specs/products/connect/suite.json",
-    "specs/deployment-ops-contract.json"
-  ]
+    "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+    "https://en.douzone.com/",
+    "https://www.adp.com/what-we-offer/products/adp-workforce-now.aspx",
+    "https://www.concur.com/en-us/travel-expense",
+    "https://www.netsuite.com/portal/products/erp.shtml",
+    "https://www.rippling.com/",
+    "https://www.sage.com/en-us/sage-business-cloud/intacct/",
+    "https://www.sap.com/products/erp/s4hana.cloud-edition.html",
+    "https://www.sap.com/products/hcm.html",
+    "https://www.sap.com/products/spend-management.html",
+    "https://www.sap.com/products/technology-platform.html",
+    "https://www.workday.com/en-us/products/human-capital-management/overview.html",
+    "specs/deployment-ops-contract.json",
+    "specs/products/connect/suite.json"
+  ],
+  "industry_audit_source_fidelity": {
+    "audit_id": "enterprise-suite-industry-audit-1779012320",
+    "verification_method": "official_vendor_landing_pages_refreshed_2026_05_17_plus_local_prd_gap_review",
+    "verification_limitations": [
+      "Official vendor landing pages establish product/category presence and high-level capability areas only; this PR does not claim exhaustive feature parity verification.",
+      "New industry_patterns_adopted, anti_patterns_avoided, and hyperscaler_bar entries are product-planning commitments until dedicated Enterprise validators land.",
+      "No runtime, CI lane, or schema validator for the new Enterprise hyperscaler_bar dimensions ships in this PR."
+    ],
+    "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+    "required_followup_gate": "oya gate validate enterprise-hyperscaler-bar"
+  }
 }
