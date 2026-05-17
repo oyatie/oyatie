@@ -10,6 +10,8 @@
 
 pub mod priority;
 pub use priority::WorkflowPriority;
+pub mod editor_action;
+pub use editor_action::{EditorActionKind, NodeKind};
 
 pub mod trigger;
 pub use trigger::{StepStatus, TriggerKind};

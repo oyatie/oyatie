@@ -1,0 +1,71 @@
+{
+  "change_id": "claude-m07-p07-wse-merge-variant-1779002561",
+  "change_class_id": "CC-2_kernel_type_addition",
+  "change_class_rationale": "Pure additive surface in oya-saas-workflow-kernel: new editor_action module (EditorActionKind 10-variant + NodeKind 8-variant enums) with std-only dependencies and no public API removals.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1779002561,
+  "branch": "agent/m03-p07-wse-mv-66840-1779002440",
+  "session_id": "claude-durable-goal-2026-05-17-m07-p07-agent",
+  "agent_id": "claude-durable-goal-m07-p07",
+  "task": "M07-P07-workflow-studio-editor merge-variant delta-1: smallest net-new type surface (EditorActionKind 10-variant + NodeKind 8-variant) into existing oya-saas-workflow-kernel instead of new workflow-studio crates.",
+  "artifacts_touched": [
+    "crates/oya-saas-workflow-kernel/src/editor_action.rs (NEW)",
+    "crates/oya-saas-workflow-kernel/src/lib.rs (pub mod + re-export)",
+    ".omc/plans/milestones/M07-first-tenant/phases/P07-workflow-studio-editor/impl-plan.md (frontmatter execution_variant)",
+    "evidence/multispectrum/claude-m07-p07-wse-merge-variant-1779002561.json (this file)",
+    "evidence/audit-chain.jsonl (row appended)"
+  ],
+  "local_gates": [
+    "cargo test -p oya-saas-workflow-kernel: 11/11 PASS (6 new editor_action + 5 pre-existing)",
+    "rustfmt 1.95.0: clean"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "One new module, two re-exports. EditorActionKind is a closed 10-variant enum covering canvas dispatch surface. NodeKind mirrors workflow.node_kind DDL from P07 phase-spec so kernel and DB share one canonical closed-set.",
+        "is_topology_mutation and is_reversible helper predicates encode invariants at the type level without adding any external dep."
+      ],
+      "fixuptasks": []
+    },
+    "F3_correctness": {
+      "considered": true,
+      "findings": [
+        "is_topology_mutation covers AddNode/RemoveNode/ConnectNodes/DisconnectNodes only — MoveNode, Undo, Redo, OpenProperties, SaveDraft, Publish excluded correctly.",
+        "is_reversible adds MoveNode to the topology-mutation set — consistent with undo/redo semantics.",
+        "NodeKind::requires_human matches Approval only; introduces_delay matches Timer only — both minimal and precise."
+      ],
+      "fixuptasks": []
+    },
+    "A1_naming": {
+      "considered": true,
+      "findings": [
+        "Pascal/snake/SCREAMING conventions respected throughout.",
+        "Module name editor_action — singular noun form consistent with existing kernel module naming.",
+        "EditorActionKind + NodeKind names match P07 DDL enum identifiers (node_kind -> NodeKind, action type -> EditorActionKind)."
+      ],
+      "fixuptasks": []
+    },
+    "A4_architecture": {
+      "considered": true,
+      "findings": [
+        "Module added to existing crate; lib.rs re-export pattern matches PR #60..#106 cascade pattern.",
+        "No new workspace member; Cargo.toml workspace untouched.",
+        "Kernel takes no UI/WASM/serde deps — canvas SDK (oya-workflow-leptos-canvas) will depend inward on these types per ADR-0023."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "Smallest meaningful delta from M07-P07 plan. NodeKind mirrors P07 DDL exactly, ensuring kernel-DB alignment from day one without a DB dep. EditorActionKind closes the canvas dispatch surface."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT",
+      "rationale": "10 and 8 variant closed enums with helper predicates. 6 new tests cover all predicate branches. No serde, no workspace deps, no new crate scaffold — strictly merge-variant."
+    }
+  }
+}
