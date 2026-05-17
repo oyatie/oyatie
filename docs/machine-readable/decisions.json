@@ -6,12 +6,12 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 104,
-    "numbering": "ADR-0001..ADR-0131 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0129)",
+    "total_adrs": 105,
+    "numbering": "ADR-0001..ADR-0132 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0129)",
     "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0129"],
-    "next_adr": "ADR-0132",
+    "next_adr": "ADR-0133",
     "status_counts": {
-      "Accepted": 21,
+      "Accepted": 22,
       "Proposed": 5,
       "Superseded": 2,
       "accepted": 39,
@@ -1267,6 +1267,18 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0001", "ADR-0029", "ADR-0056", "ADR-0105", "ADR-0123"]
+    },
+    {
+      "adr": "ADR-0132",
+      "number": 132,
+      "title": "Connect Core Public Contracts",
+      "status": "Accepted",
+      "owner": "connect-product-council",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0132-connect-core-public-contracts.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0001", "ADR-0003", "ADR-0008", "ADR-0059", "ADR-0131"]
     }
   ]
 }
