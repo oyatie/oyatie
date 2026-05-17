@@ -90,7 +90,7 @@ impl MerkleTree {
         let mut level = self.leaves.clone();
         let mut idx = leaf_index;
         while level.len() > 1 {
-            let sibling = if idx % 2 == 0 {
+            let sibling = if idx.is_multiple_of(2) {
                 // Right sibling; duplicate if this is the last (odd) leaf.
                 level.get(idx + 1).copied().unwrap_or(level[idx])
             } else {
@@ -124,7 +124,7 @@ impl MerkleTree {
         let mut idx = leaf_index;
         for &sibling in proof_path {
             let mut hasher = Sha256::new();
-            if idx % 2 == 0 {
+            if idx.is_multiple_of(2) {
                 hasher.update(current);
                 hasher.update(sibling);
             } else {
