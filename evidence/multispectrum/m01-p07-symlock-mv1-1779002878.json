@@ -33,8 +33,8 @@
     "F5_quality": {
       "considered": true,
       "findings": [
-        "17 unit tests + 8 integration tests pass under cargo test -p oya-foundry-vcs-kernel.",
-        "cargo-clippy -D warnings clean on all targets.",
+        "22 unit tests + 8 integration tests pass under cargo test -p oya-foundry-vcs-kernel after rebase onto the #110 queue head.",
+        "cargo clippy -p oya-foundry-vcs-kernel --all-targets -- -D warnings clean on all targets.",
         "rustfmt 1.95.0 --check passes on both modified files."
       ],
       "fixuptasks": []
@@ -65,11 +65,11 @@
     },
     "cargo_clippy": {
       "status": "pass",
-      "summary": "cargo-clippy clippy -p oya-foundry-vcs-kernel --all-targets -- -D warnings — clean"
+      "summary": "cargo clippy -p oya-foundry-vcs-kernel --all-targets -- -D warnings — clean after rebase"
     },
     "cargo_test": {
       "status": "pass",
-      "summary": "17 unit tests + 8 integration tests passed, 0 failed"
+      "summary": "22 unit tests + 8 integration tests passed, 0 failed"
     },
     "rustfmt_check": {
       "status": "pass",
