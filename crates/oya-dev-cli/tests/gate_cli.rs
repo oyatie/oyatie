@@ -4798,6 +4798,127 @@ fn openapi_rest_route_parity_gate_accepts_clean_matched_routes() {
     fs::remove_dir_all(temp).ok();
 }
 
+// --- audit-chain-replay integration tests (M02b/P22 exit-gate lane 9) ---
+
+fn write_audit_chain_replay_fixture(shard_path: PathBuf, tenant_id: &str) {
+    use oya_audit_chain_domain::{AuditChain, Plane};
+    use oya_audit_chain_file_adapter::FileAuditLedger;
+    use oya_data_boundary_kernel::{DataClass, Purpose};
+
+    let mut chain = AuditChain::default();
+    chain
+        .append_classifications(
+            tenant_id,
+            "tenant.create",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::InternalOnly],
+            "ALLOW",
+        )
+        .expect("fixture: append tenant.create");
+    chain
+        .append_classifications(
+            tenant_id,
+            "identity.user.upsert",
+            Plane::Control,
+            Purpose::CoreService,
+            vec![DataClass::PiiIdentifying],
+            "ALLOW",
+        )
+        .expect("fixture: append identity.user.upsert");
+    FileAuditLedger::new(shard_path)
+        .append_chain(&chain)
+        .expect("fixture: shard written");
+}
+
+fn run_audit_chain_replay_gate(shards_dir: &Path) -> std::process::Output {
+    Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "audit-chain-replay",
+            "--shards-dir",
+            shards_dir.to_str().expect("utf8 shards dir"),
+        ])
+        .output()
+        .expect("gate command runs")
+}
+
+#[test]
+fn audit_chain_replay_gate_accepts_clean_shard() {
+    let temp = TempDirGuard::new("acr-accept");
+    fs::create_dir_all(temp.path()).expect("shards dir created");
+    write_audit_chain_replay_fixture(temp.path().join("tenant-alpha.log"), "ten_alpha");
+
+    let output = run_audit_chain_replay_gate(temp.path());
+
+    assert!(
+        output.status.success(),
+        "expected clean shard to pass\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        stdout.contains("audit chain replay validation passed: 1 shards, 2 events"),
+        "stdout must confirm pass; got: {stdout}"
+    );
+}
+
+#[test]
+fn audit_chain_replay_gate_rejects_surface_field_tamper() {
+    let temp = TempDirGuard::new("acr-surface-tamper");
+    fs::create_dir_all(temp.path()).expect("shards dir created");
+    let shard_path = temp.path().join("tenant-beta.log");
+    write_audit_chain_replay_fixture(shard_path.clone(), "ten_beta");
+
+    let raw = fs::read_to_string(&shard_path).expect("shard readable");
+    let tampered = raw.replacen("tenant.create", "tenant.delete", 1);
+    fs::write(&shard_path, tampered).expect("tampered shard written");
+
+    let output = run_audit_chain_replay_gate(temp.path());
+
+    assert!(
+        !output.status.success(),
+        "expected tampered shard to fail\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("audit chain replay validation failed"),
+        "stderr must name failure; got: {stderr}"
+    );
+}
+
+#[test]
+fn audit_chain_replay_gate_rejects_swapped_record_order() {
+    let temp = TempDirGuard::new("acr-swapped-records");
+    fs::create_dir_all(temp.path()).expect("shards dir created");
+    let shard_path = temp.path().join("tenant-gamma.log");
+    write_audit_chain_replay_fixture(shard_path.clone(), "ten_gamma");
+
+    let raw = fs::read_to_string(&shard_path).expect("shard readable");
+    let mut records = raw.lines().collect::<Vec<_>>();
+    assert_eq!(records.len(), 2, "fixture must contain two records");
+    records.swap(0, 1);
+    fs::write(&shard_path, format!("{}\n", records.join("\n"))).expect("swapped shard written");
+
+    let output = run_audit_chain_replay_gate(temp.path());
+
+    assert!(
+        !output.status.success(),
+        "expected swapped records to fail\nstdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("audit chain replay validation failed"),
+        "stderr must name failure; got: {stderr}"
+    );
+}
+
 fn temp_dir(label: &str) -> std::path::PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
