@@ -133,8 +133,8 @@ mod tests {
     fn round_trip_from_str_for_every_variant() {
         for variant in EmploymentClassification::ALL {
             let wire = variant.as_str();
-            let parsed =
-                EmploymentClassification::from_wire(wire).expect("all wire strings must round-trip");
+            let parsed = EmploymentClassification::from_wire(wire)
+                .expect("all wire strings must round-trip");
             assert_eq!(parsed, variant, "round-trip failed for {wire}");
         }
     }
