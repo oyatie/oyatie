@@ -85,8 +85,8 @@
     }
   ],
   "chained_enforcement_contract": {
-    "adr_citation": "ADR-0125",
-    "summary": "Fitness lanes must chain: detection of a banned primitive or aspirational-enforcement gap triggers an automatic fixuptask in registry/fixuptasks.jsonl and blocks promotion until resolved. The lane oya-foundry-fitness-banned-primitives enforces forbidden_primitives above; its absence is itself a gap tracked as F-FORBIDDEN-PRIMITIVES-CI-GUARD.",
+    "adr_citation": "ADR-0133",
+    "summary": "Fitness lanes must chain: detection of a banned primitive or aspirational-enforcement gap triggers a fixuptask and blocks promotion only after a real detector, workflow, branch-protection row, and source-corpus artifact exist on branch. The lane oya-foundry-fitness-banned-primitives is planned; its absence is itself a gap tracked as F-FORBIDDEN-PRIMITIVES-CI-GUARD.",
     "status": "specified — implementation pending F-FITNESS-ASPIRATIONAL-ENFORCEMENT-DETECTION"
   },
   "repo_state_protocol": [

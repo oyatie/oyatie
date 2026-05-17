@@ -23,7 +23,7 @@ enforcement_status:
   oya-foundry-fitness-data-class: F-PENDING-DATA-CLASS (crate missing; tracked in registry/stub-audit/2026-05-17/missing-fitness-crates.json)
   oya-foundry-fitness-dsr-cascade: F-PENDING-DSR-CASCADE (crate missing)
   oya-foundry-fitness-audit-emission: existing
-meta_policy: ADR-0125 (chained-enforcement, pending)
+meta_policy: ADR-0133 (chained-enforcement planning contract, pending)
 companion_docs:
   - docs/PRIVACY-PROGRAM.md
   - docs/standards/security-review.md
