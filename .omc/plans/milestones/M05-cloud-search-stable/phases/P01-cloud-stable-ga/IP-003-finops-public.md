@@ -3,13 +3,20 @@ doc_class: ImplementationPlan
 parent: ./INDEX.md
 id: M05-P01-IP-003
 title: FinOps surface public-facing
-status: stub
+status: in-progress
 execution_unit: ChangeSet
 changeset_contract: claimable-verifiable-bundleable-promotable
 changeset_split_rule: split-before-execution-if-unrelated-lock-scope-or-deployable
 final_shape_compliance: true
 dependency_additions: []
 purpose: Expose FinOps surface to public-GA tenants.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Delta-1 lands `report_public` + `PublicCostSummary` + `FINOPS_PUBLIC_SCHEMA_VERSION`
+  into `oya-cloud-finops-kernel::finops_public` (new module). No new crate scaffolded.
+  Satisfies IP-003 `report_public` symbol via merge-into-existing-crates variant.
 ---
 
 # M05-P01-IP-003 — FinOps surface public-facing
