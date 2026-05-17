@@ -198,8 +198,17 @@ gh pr checks "$number" --json name,bucket,state,workflow > "$checks_json" 2> "$c
 checks_status=$?
 set -e
 if [ "$checks_status" -ne 0 ] && [ "$checks_status" -ne 8 ]; then
+  if grep -qi "no checks reported" "$checks_err"; then
+    echo "no checks reported for PR #${number}; not enabling auto-merge"
+    exit 0
+  fi
   cat "$checks_err" >&2
   exit "$checks_status"
+fi
+
+if [ ! -s "$checks_json" ]; then
+  echo "no check data returned for PR #${number}; not enabling auto-merge"
+  exit 0
 fi
 
 review_bucket="$(jq -r --arg check "$required_review_check" '
