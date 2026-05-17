@@ -423,7 +423,26 @@
         "legal-entity isolation preventing cross-entity wage leak",
         "payroll-to-GL journal bridge with source digest"
       ],
-      "measurable_target": "100% statutory export hash coverage"
+      "measurable_target": "100% statutory export hash coverage",
+      "source_evidence_refs": [
+        "src_adp_workforce_now_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-centric tax engine; KR 4대보험 requires partner integration",
+        "no evidence-first WORM audit chain for statutory close",
+        "no legal-entity isolation for group multi-entity payroll",
+        "no ops-as-code deployment model"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "native KR statutory payroll (4대보험, HomeTax, 원천징수) without partner",
+        "evidence-first close with WORM audit chain",
+        "legal-entity isolation preventing cross-entity wage leak",
+        "payroll-to-GL journal bridge with source digest"
+      ]
     },
     {
       "competitor": "Gusto",
@@ -448,7 +467,26 @@
         "audit-chain close evidence (WORM)",
         "payroll-to-GL bridge with balanced journal and source digest"
       ],
-      "measurable_target": "0 entity-boundary violations at group close"
+      "measurable_target": "0 entity-boundary violations at group close",
+      "source_evidence_refs": [
+        "src_gusto_payroll_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-only (no KR/EU statutory support)",
+        "no legal-entity group model",
+        "no audit-chain close evidence",
+        "no accounting GL bridge with source digest"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "KR statutory fidelity (4대보험, HomeTax, 원천징수)",
+        "group multi-entity close with entity boundary isolation",
+        "audit-chain close evidence (WORM)",
+        "payroll-to-GL bridge with balanced journal and source digest"
+      ]
     },
     {
       "competitor": "Deel",
@@ -467,7 +505,24 @@
         "native accounting bridge with balanced journal requirement",
         "WORM audit chain for statutory exports"
       ],
-      "measurable_target": "100% statutory export hash coverage"
+      "measurable_target": "100% statutory export hash coverage",
+      "source_evidence_refs": [
+        "src_deel_payroll_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "KR native payroll accuracy dependent on local partner",
+        "no evidence-first WORM close",
+        "no native accounting GL bridge"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "KR group legal-entity close evidence",
+        "native accounting bridge with balanced journal requirement",
+        "WORM audit chain for statutory exports"
+      ]
     },
     {
       "competitor": "Rippling Payroll",
@@ -486,7 +541,24 @@
         "KR statutory depth",
         "evidence-first close gate"
       ],
-      "measurable_target": "0 entity-boundary violations"
+      "measurable_target": "0 entity-boundary violations",
+      "source_evidence_refs": [
+        "src_rippling_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-centric, limited KR native",
+        "no legal-entity evidence isolation",
+        "no WORM audit chain"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "audit-chain close and entity isolation",
+        "KR statutory depth",
+        "evidence-first close gate"
+      ]
     },
     {
       "competitor": "더존/WEHAGO payroll",
@@ -504,7 +576,24 @@
         "group entity close boundary enforcement",
         "ops-managed deployment"
       ],
-      "measurable_target": "payroll-to-GL balance errors stay 0"
+      "measurable_target": "payroll-to-GL balance errors stay 0",
+      "source_evidence_refs": [
+        "src_douzone_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "no group legal-entity evidence isolation",
+        "no modern Workflow-native variance review",
+        "limited global expansion"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "Workflow-native variance review and rollback-first launch evidence",
+        "group entity close boundary enforcement",
+        "ops-managed deployment"
+      ]
     }
   ],
   "industry_patterns_adopted": [
@@ -580,27 +669,37 @@
     {
       "dimension": "pay_cycle_flexibility",
       "target": "weekly, biweekly, semimonthly, monthly, quarterly cycles all supported; off-cycle run available at any time",
-      "verification_ref": "oya gate validate enterprise-payroll-pay-cycle-types"
+      "planned_verification_ref": "oya gate validate enterprise-payroll-pay-cycle-types",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     },
     {
       "dimension": "statutory_accuracy",
       "target": "KR 4대보험 and 원천징수 variance <= 10 bps at GA; US payroll tax variance <= 5 bps at GA",
-      "verification_ref": "cargo nextest -p oya-enterprise-payroll-domain -- kr_close_variance"
+      "planned_verification_ref": "cargo nextest -p oya-enterprise-payroll-domain -- kr_close_variance",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     },
     {
       "dimension": "year_end_settlement",
       "target": "KR 연말정산 export hash and receipt required before settlement close; 100% coverage",
-      "verification_ref": "oya gate validate enterprise-payroll-year-end-settlement"
+      "planned_verification_ref": "oya gate validate enterprise-payroll-year-end-settlement",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     },
     {
       "dimension": "off_cycle_evidence",
       "target": "off-cycle and correction runs carry same evidence gate as regular runs; 0 unaudited off-cycle closes",
-      "verification_ref": "oya gate validate enterprise-payroll-off-cycle-evidence"
+      "planned_verification_ref": "oya gate validate enterprise-payroll-off-cycle-evidence",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     },
     {
       "dimension": "disbursement_traceability",
       "target": "every disbursement method instruction carries payroll run digest; 100% traceability to wage ledger",
-      "verification_ref": "oya gate validate enterprise-payroll-disbursement-traceability"
+      "planned_verification_ref": "oya gate validate enterprise-payroll-disbursement-traceability",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     }
   ],
   "best_practices": [
@@ -670,7 +769,11 @@
       "currency_handling": [
         "KRW",
         "USD",
-        "EUR"
+        "EUR",
+        "JPY",
+        "GBP",
+        "CNY",
+        "AUD"
       ]
     }
   },
@@ -712,12 +815,29 @@
     }
   ],
   "sources_scanned": [
+    "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
     "/Users/jasonlee/bominal/docs/products/corporate/corporate.md",
     "/Users/jasonlee/bominal/docs/products/corporate/hr-payroll-known-limits.md",
-    "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
     "/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
-    "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
-    "specs/products/connect/suite.json",
-    "specs/deployment-ops-contract.json"
-  ]
+    "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+    "https://en.douzone.com/",
+    "https://gusto.com/product/payroll",
+    "https://www.adp.com/what-we-offer/products/adp-workforce-now.aspx",
+    "https://www.deel.com/solutions/payroll/",
+    "https://www.rippling.com/",
+    "https://www.workday.com/en-us/products/human-capital-management/overview.html",
+    "specs/deployment-ops-contract.json",
+    "specs/products/connect/suite.json"
+  ],
+  "industry_audit_source_fidelity": {
+    "audit_id": "enterprise-suite-industry-audit-1779012320",
+    "verification_method": "official_vendor_landing_pages_refreshed_2026_05_17_plus_local_prd_gap_review",
+    "verification_limitations": [
+      "Official vendor landing pages establish product/category presence and high-level capability areas only; this PR does not claim exhaustive feature parity verification.",
+      "New industry_patterns_adopted, anti_patterns_avoided, and hyperscaler_bar entries are product-planning commitments until dedicated Enterprise validators land.",
+      "No runtime, CI lane, or schema validator for the new Enterprise hyperscaler_bar dimensions ships in this PR."
+    ],
+    "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+    "required_followup_gate": "oya gate validate enterprise-hyperscaler-bar"
+  }
 }

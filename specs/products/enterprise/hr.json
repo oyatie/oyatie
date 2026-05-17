@@ -421,7 +421,26 @@
         "evidence-first labor compliance close",
         "legal-entity scoped employee records with RLS isolation"
       ],
-      "measurable_target": "100% threshold-triggered obligations open workflow within 1 controller tick"
+      "measurable_target": "100% threshold-triggered obligations open workflow within 1 controller tick",
+      "source_evidence_refs": [
+        "src_workday_hcm_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "no native KR labor-law threshold obligations (rules-of-employment, labor-management council)",
+        "AI suggestions can override scheduling in ways that conflict with KR LSA",
+        "no WORM audit chain for labor compliance evidence",
+        "no ops-as-code deployment model"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "KR threshold evidence (10/30 employee obligation triggers)",
+        "Workflow/Object Graph cohesion",
+        "evidence-first labor compliance close",
+        "legal-entity scoped employee records with RLS isolation"
+      ]
     },
     {
       "competitor": "SAP SuccessFactors",
@@ -443,7 +462,26 @@
         "ops-managed deployment",
         "Workflow-native approval routing"
       ],
-      "measurable_target": "KR obligations trigger coverage 100% by stable without partner dependency"
+      "measurable_target": "KR obligations trigger coverage 100% by stable without partner dependency",
+      "source_evidence_refs": [
+        "src_sap_hcm_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "KR HR compliance relies on partner localization, not native rulepacks",
+        "complex configuration model requiring SAP-certified consultants",
+        "no deterministic audit-chain for labor obligation evidence",
+        "no ops-as-code convergence"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "native KR statutory HR fidelity without partner dependency",
+        "audit-chain WORM evidence for all labor compliance events",
+        "ops-managed deployment",
+        "Workflow-native approval routing"
+      ]
     },
     {
       "competitor": "BambooHR",
@@ -467,7 +505,26 @@
         "group HR operations for conglomerate tenants",
         "Workflow-owned approval routing with deterministic gates"
       ],
-      "measurable_target": "0 lifecycle policy bypasses"
+      "measurable_target": "0 lifecycle policy bypasses",
+      "source_evidence_refs": [
+        "src_bamboohr_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-centric, no KR labor law compliance",
+        "no legal-entity isolation model",
+        "no audit-chain evidence for compliance obligations",
+        "no statutory filing integration"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "KR labor compliance automation",
+        "legal-entity evidence isolation",
+        "group HR operations for conglomerate tenants",
+        "Workflow-owned approval routing with deterministic gates"
+      ]
     },
     {
       "competitor": "Rippling HRIS",
@@ -486,7 +543,24 @@
         "legal-entity close coupling",
         "KR statutory depth"
       ],
-      "measurable_target": "0 lifecycle policy bypasses"
+      "measurable_target": "0 lifecycle policy bypasses",
+      "source_evidence_refs": [
+        "src_rippling_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "US-centric payroll and compliance",
+        "no legal-entity evidence isolation",
+        "audit trail less formal than WORM chain"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "audit-chain labor evidence",
+        "legal-entity close coupling",
+        "KR statutory depth"
+      ]
     },
     {
       "competitor": "WEHAGO HR",
@@ -504,7 +578,24 @@
         "Workflow-native obligation tracking",
         "WORM evidence chain"
       ],
-      "measurable_target": "KR obligations trigger coverage 100% by GA"
+      "measurable_target": "KR obligations trigger coverage 100% by GA",
+      "source_evidence_refs": [
+        "src_douzone_platform_20260517"
+      ],
+      "claim_boundary": "Source-backed planning benchmark as of 2026-05-17; source refs prove vendor/category grounding, not exhaustive feature parity or competitor internals.",
+      "observed_weaknesses": [
+        "no group legal-entity evidence isolation",
+        "no modern Workflow-native HR",
+        "limited global expansion path"
+      ],
+      "adopt_actions": [
+        "Adopt source-backed mature patterns from observed_strengths only when they map to accepted Enterprise goals, data model, UX flows, and gates."
+      ],
+      "improve_actions": [
+        "group legal-entity model and ops-managed deployment",
+        "Workflow-native obligation tracking",
+        "WORM evidence chain"
+      ]
     }
   ],
   "industry_patterns_adopted": [
@@ -575,27 +666,37 @@
     {
       "dimension": "employee_lifecycle_automation",
       "target": "onboarding checklist completion tracked; offboarding evidence emitted within 1 business day of termination",
-      "verification_ref": "oya gate validate enterprise-hr-lifecycle-automation"
+      "planned_verification_ref": "oya gate validate enterprise-hr-lifecycle-automation",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     },
     {
       "dimension": "performance_review_coverage",
       "target": "100% of active employees in an active review cycle have a PerformanceCycle record by cycle start date",
-      "verification_ref": "oya gate validate enterprise-hr-performance-cycle-coverage"
+      "planned_verification_ref": "oya gate validate enterprise-hr-performance-cycle-coverage",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     },
     {
       "dimension": "compensation_band_compliance",
       "target": "0 employees outside their legal_entity compensation band without documented exception evidence",
-      "verification_ref": "oya gate validate enterprise-hr-compensation-band"
+      "planned_verification_ref": "oya gate validate enterprise-hr-compensation-band",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     },
     {
       "dimension": "sensitive_read_audit",
       "target": "100% of sensitive HR field reads (medical, disciplinary, salary) produce audit-chain evidence",
-      "verification_ref": "oya gate validate enterprise-hr-sensitive-read-audit"
+      "planned_verification_ref": "oya gate validate enterprise-hr-sensitive-read-audit",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     },
     {
       "dimension": "kr_labor_obligation_triggers",
       "target": "10/30/100/300 employee thresholds trigger obligations within 1 controller tick with 100% coverage",
-      "verification_ref": "oya gate validate enterprise-hr-kr-obligations"
+      "planned_verification_ref": "oya gate validate enterprise-hr-kr-obligations",
+      "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+      "enforcement_note": "Planning commitment only in PR #129; not enforced until the Enterprise hyperscaler-bar validator lands."
     }
   ],
   "best_practices": [
@@ -665,7 +766,11 @@
       "currency_handling": [
         "KRW",
         "USD",
-        "EUR"
+        "EUR",
+        "JPY",
+        "GBP",
+        "CNY",
+        "AUD"
       ]
     }
   },
@@ -707,12 +812,29 @@
     }
   ],
   "sources_scanned": [
+    "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
     "/Users/jasonlee/bominal/docs/products/corporate/corporate.md",
     "/Users/jasonlee/bominal/docs/products/corporate/hr-payroll-known-limits.md",
-    "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
     "/Users/jasonlee/bominal/docs/products/corporate/m3-kr-group-payroll-mail-prd.md",
-    "/Users/jasonlee/bominal/docs/products/corporate/corp-compliance-vertical-design.md",
-    "specs/products/connect/suite.json",
-    "specs/deployment-ops-contract.json"
-  ]
+    "/Users/jasonlee/bominal/docs/products/corporate/sme-vs-conglomerate-coverage.md",
+    "https://en.douzone.com/",
+    "https://www.adp.com/what-we-offer/products/adp-workforce-now.aspx",
+    "https://www.bamboohr.com/platform/",
+    "https://www.rippling.com/",
+    "https://www.sap.com/products/hcm.html",
+    "https://www.workday.com/en-us/products/human-capital-management/overview.html",
+    "specs/deployment-ops-contract.json",
+    "specs/products/connect/suite.json"
+  ],
+  "industry_audit_source_fidelity": {
+    "audit_id": "enterprise-suite-industry-audit-1779012320",
+    "verification_method": "official_vendor_landing_pages_refreshed_2026_05_17_plus_local_prd_gap_review",
+    "verification_limitations": [
+      "Official vendor landing pages establish product/category presence and high-level capability areas only; this PR does not claim exhaustive feature parity verification.",
+      "New industry_patterns_adopted, anti_patterns_avoided, and hyperscaler_bar entries are product-planning commitments until dedicated Enterprise validators land.",
+      "No runtime, CI lane, or schema validator for the new Enterprise hyperscaler_bar dimensions ships in this PR."
+    ],
+    "enforcement_status": "advisory_until_enterprise_hyperscaler_bar_gate",
+    "required_followup_gate": "oya gate validate enterprise-hyperscaler-bar"
+  }
 }
