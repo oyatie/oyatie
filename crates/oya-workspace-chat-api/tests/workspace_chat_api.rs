@@ -3,13 +3,13 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_workspace_chat_api::{
-    send_workspace_chat_message_from_api, WorkspaceChatApiAuthorization, WorkspaceChatApiError,
-    WorkspaceChatApiPrincipal, WorkspaceChatAttachmentRequest, WorkspaceChatChannelSeed,
-    WorkspaceChatMessageDirectory, WorkspaceChatMessageMetadata, WorkspaceChatMessageRecord,
-    WorkspaceChatMessageSendApiRequest, WorkspaceChatMessageSendApiStatus,
-    WorkspaceChatMessageSendIdempotencyLedger, WorkspaceChatMessageSendRequest,
-    WorkspaceChatSendBoundaryContext, WORKSPACE_CHAT_MESSAGE_SEND_SURFACE,
-    WORKSPACE_CHAT_OPENAPI_CONTRACT,
+    WORKSPACE_CHAT_MESSAGE_SEND_SURFACE, WORKSPACE_CHAT_OPENAPI_CONTRACT,
+    WorkspaceChatApiAuthorization, WorkspaceChatApiError, WorkspaceChatApiPrincipal,
+    WorkspaceChatAttachmentRequest, WorkspaceChatChannelSeed, WorkspaceChatMessageDirectory,
+    WorkspaceChatMessageMetadata, WorkspaceChatMessageRecord, WorkspaceChatMessageSendApiRequest,
+    WorkspaceChatMessageSendApiStatus, WorkspaceChatMessageSendIdempotencyLedger,
+    WorkspaceChatMessageSendRequest, WorkspaceChatSendBoundaryContext,
+    send_workspace_chat_message_from_api,
 };
 
 const CHANNEL_ID: &str = "chat_channel_001";
