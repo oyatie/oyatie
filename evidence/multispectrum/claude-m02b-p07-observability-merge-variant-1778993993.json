@@ -1,0 +1,34 @@
+{
+  "change_id": "claude-m02b-p07-observability-merge-variant-1778993993",
+  "change_class_id": "CC-2_adapter_or_infrastructure",
+  "change_class_rationale": "Adds Severity enum + UnknownSeverityLabel error in a new severity.rs module of the existing oya-observability-domain crate. Additive; encodes 6-level severity + OpenTelemetry SeverityNumber mapping.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778993993,
+  "git_sha_base": "<post-#61-dev>",
+  "branch": "agent/m02b-p07-observability-merge-variant-1778993993",
+  "session_id": "claude-durable-goal-2026-05-17-p07",
+  "agent_id": "claude-m02b-p07-observability-merge-variant",
+  "task": "M02b/P07-observability merge-variant delta 1 per user 2026-05-17 (option 2). Smallest foundational delta from P07 impl-plan added to existing live crate.",
+  "artifacts_touched": [
+    "crates/oya-observability-domain/src/severity.rs (NEW; Severity enum + UnknownSeverityLabel + From/TryFrom + Display + tests)",
+    "crates/oya-observability-domain/src/lib.rs (pub mod severity + re-exports)",
+    ".omc/plans/milestones/M02b-substrate/phases/P07-observability/impl-plan.md (execution_variant frontmatter)",
+    "evidence/multispectrum/claude-m02b-p07-observability-merge-variant-1778993993.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "references_fixuptasks": ["F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"],
+  "local_gates": [
+    "cargo nextest -p oya-observability-domain --all-features: PASS",
+    "rustfmt 1.95.0 applied to severity.rs + lib.rs"
+  ],
+  "facets": {
+    "F1_linus": {"considered": true, "findings": ["1 enum + 1 error type into existing crate; no new crates. Severity is foundational for LogRecord and every other observability emit-side type."], "fixuptasks": []},
+    "F5_quality": {"considered": true, "findings": ["9 exhaustive tests including OpenTelemetry SeverityNumber spec alignment, totally-ordered severity, round-trip wire labels, unknown-label rejection."], "fixuptasks": []},
+    "F9_compliance": {"considered": true, "findings": ["No data-class, autonomy-ceiling, or licence surface touched. Severity is pure typed vocabulary; cannot leak sensitive content."], "fixuptasks": []},
+    "F11_observability": {"considered": true, "findings": ["Audit-chain row appended with distinct timestamp_unix + session_id (OP-08). Sixth M02b foundation phase reconciliation slice; pairs with P02/P03/P04/P05/P06 under F-M02B-PLAN-LIVE-CRATE-RECONCILIATION."]}
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Severity is the right first delta — every downstream LogRecord/Span emitter needs it. OTel SeverityNumber alignment future-proofs the wire mapping."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT_WITH_GUARDRAILS", "guardrails": ["Severity is one half of the LogRecord contract; LogRecord struct itself is a follow-on delta under the same reconciliation FixupTask.", "OTel SeverityNumber spec may extend (currently 1..24 with 4-step gaps); if/when a new intermediate level lands, add a new variant + bump the otel int mapping table."]}
+  }
+}

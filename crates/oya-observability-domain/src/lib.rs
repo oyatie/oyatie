@@ -4,6 +4,10 @@
 //! tracing subscribers/exporters; kernels and app services use the vocabulary to
 //! avoid string drift and accidental sensitive-content telemetry.
 
+pub mod severity;
+
+pub use severity::{Severity, UnknownSeverityLabel};
+
 use std::fmt;
 
 use oya_data_boundary_kernel::{
