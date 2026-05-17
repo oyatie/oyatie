@@ -20,6 +20,15 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: Scaffolds all 9 records crates across 2 BCs (records-fhir, records-released-view), declares the 9 FHIR R5 resource types supported in M02.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: >
+  Per user-directive-option-2 (2026-05-17): instead of scaffolding 9 new records crates from scratch,
+  the FhirResourceType discriminant (9 FHIR R5 variants) is backported into the existing live crate
+  oya-connect-recordings-domain. Broader records-fhir and records-released-view scaffolding deferred
+  pending F-M02B-PLAN-LIVE-CRATE-RECONCILIATION resolution. See evidence/multispectrum/
+  claude-m02b-p16-records-merge-variant-1778997868.json for gate evidence.
 ---
 # IP-001-records-kernel-scaffold: Scaffold Records FHIR + Released-View Kernel/Domain/Application/Adapter/REST/App — FHIR R5 Ports + Ontology Bridge + DDL
 

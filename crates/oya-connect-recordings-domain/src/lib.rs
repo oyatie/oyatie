@@ -9,6 +9,10 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod fhir_resource_type;
+
+pub use fhir_resource_type::FhirResourceType;
+
 use std::collections::BTreeSet;
 
 use oya_connect_meet_domain::{RecordingAccessMode, RecordingRef, RecordingStatus};
