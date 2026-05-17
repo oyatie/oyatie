@@ -1,0 +1,156 @@
+{
+  "change_id": "claude-m02b-p12-workflow-merge-variant-1778997503",
+  "change_class_id": "CC-1",
+  "change_class_rationale": "Introduces new public kernel API (TriggerKind + StepStatus enums) into oya-saas-workflow-kernel, a kernel-layer crate of pure types. Per specs/multispectrum-review.json CC-1 definition: 'Public API of a kernel-layer crate (pure types or port trait declarations)'. CC-2 was incorrect \u2014 adapters/infrastructure bind to kernel types; kernel types themselves are CC-1.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778997503,
+  "git_sha": "<set-at-merge-time-by-squash>",
+  "branch": "agent/m02b-p12-workflow-engine-merge-variant-1778997503",
+  "session_id": "claude-durable-goal-2026-05-17-p12-agent",
+  "agent_id": "claude-m02b-p12-workflow-merge-variant",
+  "task": "First merge-variant delta from M02b/P12-workflow-engine impl-plan into the existing live oya-saas-workflow-kernel crate. 25-crate FROM-SCRATCH scaffold from the impl-plan NOT executed; instead two canonical kernel types (TriggerKind + StepStatus) added to existing kernel crate via new trigger.rs module. Per user directive 2026-05-17 (option 2: merge-into-existing-crates).",
+  "artifacts_touched": [
+    "crates/oya-saas-workflow-kernel/src/trigger.rs (NEW; ~160 lines: TriggerKind enum + StepStatus enum + Display impls + 4 tests)",
+    "crates/oya-saas-workflow-kernel/src/lib.rs (added `pub mod trigger` + re-exports for TriggerKind, StepStatus)",
+    ".omc/plans/milestones/M02b-substrate/phases/P12-workflow-engine/impl-plan.md (frontmatter: execution_variant=merge-into-existing-crates + decided_at + decided_by + execution_variant_note citing F-M02B-PLAN-LIVE-CRATE-RECONCILIATION)",
+    "evidence/multispectrum/claude-m02b-p12-workflow-merge-variant-1778997503.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "references_fixuptasks": [
+    "F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"
+  ],
+  "local_gates": [
+    "cargo nextest run -p oya-saas-workflow-kernel --all-features: 9/9 PASS (5 pre-existing + 4 new trigger module tests)"
+  ],
+  "facets": {
+    "F2_hyperscaler": {
+      "considered": true,
+      "findings": [
+        "No new Cargo dependencies introduced. trigger.rs uses only core Rust types (std::fmt). No duplicate transitive versions added.",
+        "`cargo deny check` passes \u2014 no new dependency surface.",
+        "Enums are Copy + Clone; zero heap allocation at call sites. Schema-aligned labels avoid per-call string allocation in audit paths."
+      ],
+      "fixuptasks": []
+    },
+    "F3_adversarial": {
+      "considered": true,
+      "findings": [
+        "Synthetic-violation tests added in trigger.rs: `trigger_kind_labels_match_db_check_constraint` and `step_status_labels_match_db_check_constraint` assert that every emitted label is in the DB CHECK constraint allowlist and that the previously invalid labels ('schedule', 'event-driven', 'sub-workflow', 'succeeded', 'timed-out') are not emitted.",
+        "Enum exhaustiveness enforced by compiler \u2014 no catch-all arm in as_str(). Adding a variant without updating as_str() is a compile error.",
+        "is_terminal() uses explicit match \u2014 no silent default."
+      ],
+      "fixuptasks": []
+    },
+    "F4_ergonomic": {
+      "considered": true,
+      "findings": [
+        "Variant names (Cron, Event, Ontology, Api) mirror the DB constraint tokens closely, reducing impedance for adapter authors.",
+        "Display impl delegates to as_str() \u2014 format!(\"{}\", kind) and kind.as_str() are identical, no surprises.",
+        "All derives (Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd) present for ergonomic use in HashMap keys, sorted collections, and pattern matching."
+      ],
+      "fixuptasks": []
+    },
+    "F6_alternatives": {
+      "considered": true,
+      "findings": [
+        "Alternative A (string newtype): rejected \u2014 loses exhaustiveness checking; adapter authors can construct invalid labels.",
+        "Alternative B (separate TriggerLabel string constants): rejected \u2014 decouples the enum from the label, enabling label drift.",
+        "Alternative C (keep Bominal names, translate at adapter boundary): rejected \u2014 creates a mandatory translation step at every write path; a DB constraint violation would only surface at runtime.",
+        "Selected: align enum variant labels directly to DB constraint tokens. Single source of truth; compile-time exhaustiveness; zero runtime translation cost."
+      ],
+      "alternatives_named": [
+        "string-newtype",
+        "string-constants",
+        "bominal-names-with-adapter-translation"
+      ],
+      "fixuptasks": []
+    },
+    "F7_security": {
+      "considered": true,
+      "findings": [
+        "TriggerKind and StepStatus are fieldless discriminant enums \u2014 no data fields, no secret material, no PII surface.",
+        "as_str() returns &'static str constants; no dynamic string construction, no injection surface.",
+        "`cargo audit` passes \u2014 no new RUSTSEC advisories introduced (no new dependencies).",
+        "No secret-scan hits: enum variant names and labels are all schema-public tokens."
+      ],
+      "fixuptasks": []
+    },
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Honors no-over-scaffolding: 25-crate plan -> 2 types into existing kernel. TriggerKind and StepStatus are the foundational contracts because every downstream workflow surface (step-history table, event bus, SLA enforcement, webhook receiver) discriminates on them.",
+        "Smallest viable diff: 1 new file (trigger.rs) + 3-line lib.rs change. No new crate scaffolds created."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "TriggerKind covers 6 canonical trigger surfaces aligned to DB CHECK constraint: Manual, Cron, Webhook, Event, Ontology, Api. Bominal ADR-0148 names (Schedule, EventDriven, SubWorkflow) are retired; current labels match workflow.runs.triggered_by_kind CHECK constraint exactly.",
+        "StepStatus covers 5 per-step outcome states: Pending, Running, Completed, Failed, Skipped. is_terminal() predicate enforces closed-set terminal detection. Old Succeeded/TimedOut labels retired; Completed is the canonical terminal-success label per workflow.step_runs.status CHECK constraint.",
+        "Both enums implement Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Display for ergonomic use across layers.",
+        "Tests cover: label uniqueness, terminal predicate correctness, Display/as_str parity, DB CHECK constraint conformance, and synthetic-violation assertions that old invalid labels are not emitted."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "No raw secret material or PII in new types. TriggerKind and StepStatus are pure discriminant enums with no data fields.",
+        "data_class annotation not required for fieldless enums per project convention."
+      ],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "as_str() methods return canonical lowercase labels matching DB CHECK constraint tokens and ADR-0023 OpenAPI discriminator convention: trigger kinds emit 'cron','webhook','event','ontology','manual','api'; step statuses emit 'pending','running','completed','failed','skipped'. Old kebab-case labels ('event-driven', 'timed-out') are not emitted \u2014 confirmed by synthetic-violation tests.",
+        "Audit-chain row appended with distinct timestamp_unix + session_id (OP-08). References F-M02B-PLAN-LIVE-CRATE-RECONCILIATION cross-phase tracker consistent with P02-P11 pattern."
+      ],
+      "fixuptasks": []
+    },
+    "F8_performance": {
+      "considered": true,
+      "findings": [
+        "TriggerKind and StepStatus are fieldless Copy enums \u2014 zero heap allocation at construction or match sites. as_str() returns &'static str with no runtime allocation.",
+        "No benchmarks required for discriminant-only enums at this delta; performance budget impact is negligible (enum size = 1 byte; matches compile to jump tables).",
+        "No new Cargo dependencies; no transitive compile-time or binary-size regression."
+      ],
+      "fixuptasks": []
+    },
+    "M1_challenge_assumption": {
+      "considered": true,
+      "findings": [
+        "Assumption challenged: 'Are TriggerKind/StepStatus the right first P12 delta?' \u2014 Yes. These two enums are the foundational discriminants that every downstream P12 surface (step_runs persistence, webhook receiver, SLA enforcement, audit events) depends on. Delivering them first unblocks all adapter authors without requiring any infrastructure scaffolding.",
+        "Assumption challenged: 'Should these live in oya-saas-workflow-kernel rather than a new crate?' \u2014 Yes. The merge-into-existing-crates execution variant (F-M02B-PLAN-LIVE-CRATE-RECONCILIATION) is validated: the existing kernel crate is already the correct home for pure kernel types; no new crate is warranted for two enums.",
+        "Assumption challenged: 'Is CC-1 the correct class?' \u2014 Yes. oya-saas-workflow-kernel is a kernel-layer crate of pure types. New public types in such a crate are CC-1 per specs/multispectrum-review.json CC-1 definition."
+      ],
+      "fixuptasks": []
+    },
+    "M2_zoomed_out_fit": {
+      "considered": true,
+      "findings": [
+        "Zoomed-out fit: TriggerKind + StepStatus are schema-aligned kernel contracts. They fit the system because: (1) they match the DB CHECK constraints declared in the P12 impl-plan DDL, (2) they unblock the step-history, SLA, and webhook adapter layers without leaking infrastructure concerns into the kernel, (3) they are consistent with the pattern established by analogous enums in P09 (search), P10 (vector distance), and P11 (VCS).",
+        "No architectural drift introduced. The merge-variant approach (2 types into existing crate vs. 25-crate scaffold) is the correct minimal-footprint choice for a foundation milestone that must stay shippable at every delta."
+      ],
+      "fixuptasks": []
+    }
+  },
+  "consensus_debate_synthesis": "evidence/debate/claude-m02b-p12-workflow-merge-variant-1778997503-synthesis.json",
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "TriggerKind and StepStatus are exactly the right first delta for P12 \u2014 they are the smallest types that unlock downstream step-history recording, SLA enforcement, and webhook routing without requiring any infrastructure scaffolding."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT_WITH_GUARDRAILS",
+      "guardrails": [
+        "Remaining P12 BCs (transitions, approvals, SLA, automations, triggers, integrations) still need analogous merge-variant frontmatter + delta slices in future sessions.",
+        "TriggerKind.Event and StepStatus terminal states (Completed/Failed/Skipped) should be wired to oya-eventing-domain CloudEvent and oya-saas-workflow-domain SLA enforcement respectively when those layers ship."
+      ]
+    }
+  },
+  "git_sha_note": "Branch is force-pushed during cascade rebases; the canonical commit SHA is the squash-merge commit on dev, recorded in audit-chain at merge time."
+}

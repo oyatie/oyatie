@@ -18,6 +18,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: Scaffolds all 25 workflow crates across 7 BCs (engine, transitions, approvals, sla, automations, triggers, integrations), authors the complete Postgres DDL migrations (expanding M02b-substrate-schema-foundation §2).
+execution_variant: merge-into-existing-crates
+decided_at: 2026-05-17
+decided_by: user-directive-option-2
+execution_variant_note: "Per user directive 2026-05-17 (option 2): 25-crate FROM-SCRATCH scaffold NOT executed. Instead, smallest net-new types (TriggerKind + StepStatus) added to existing live crate oya-saas-workflow-kernel via new trigger.rs module. Honors F-M02B-PLAN-LIVE-CRATE-RECONCILIATION (cross-phase tracker). Delta: trigger.rs (~160 lines) + lib.rs re-export + 7 new tests."
 ---
 # IP-001-workflow-engine-kernel-scaffold: Scaffold Workflow Engine Kernel, Domain, Application, Adapter, Worker, gRPC, REST, App — Full DDL + Port Traits + Migrations
 
