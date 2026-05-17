@@ -14,6 +14,10 @@ acceptance_lanes:
 - cargo-nextest
 - cargo-deny
 purpose: "Implements the two scalability-enforcement fitness lane binaries: `oya-check-statelessness` (detects module-level mutable state in presentation/application/ worker crates) and `oya-check-shardability` (verifies every tenant-bound table decl."
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Both crates already existed as lib-only stubs in the workspace. Per merge-variant directive, smallest net-new TYPE (CheckMode enum) added to each existing lib.rs via new module block + tests. No new crate scaffolds created. No new workspace deps introduced."
 ---
 # IP-001-ci-lanes-statelessness-shardability: Implement oya-check-statelessness + oya-check-shardability CLI Binaries
 
