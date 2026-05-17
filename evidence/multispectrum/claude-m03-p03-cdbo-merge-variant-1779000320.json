@@ -1,0 +1,66 @@
+{
+  "change_id": "claude-m03-p03-cdbo-merge-variant-1779000320",
+  "change_class_id": "CC-2",
+  "freshness_unix": 1779000320,
+  "evidence_id": "claude-m03-p03-cdbo-merge-variant-1779000320",
+  "feature_id": "F-M03-P03-CDBO-MERGE-VARIANT",
+  "session_id": "claude-durable-goal-2026-05-17-m03-p03-agent",
+  "created_at_epoch_seconds": 1779000320,
+  "status": "pass",
+  "review_version": "v2.3.0",
+  "facets_evaluated": ["F1", "F3", "A1", "A3"],
+  "merge_variant": "merge-into-existing-crates",
+  "decided_at": "2026-05-17",
+  "decided_by": "user-directive-option-2",
+  "execution_variant": "merge-into-existing-crates",
+  "execution_variant_note": "No new crate scaffolded; DatabaseEngine + DataService + DataServiceError + provision_data_service added as new module data_service inside existing oya-cloud-data-kernel. Mirrors finops_public / cell_budget pattern from PR #60-#91.",
+  "delta_one_liner": "Add DatabaseEngine + DataService + provision_data_service to oya-cloud-data-kernel::data_service (M03-P03-IP-001 DataService/DatabaseEngine; 12 net-new tests)",
+  "multispectrum_council": [
+    {
+      "facet": "F1-correctness",
+      "verdict": "ACCEPT",
+      "evidence": "provision_data_service enforces non-empty service_id and plan_id, then checks engine.kind() == plan.kind. EngineFamilyMismatch captures both sides for diagnostics. All 12 data_service tests pass covering every engine variant, both empty-id paths, mismatch, and name/kind invariants. Existing 9 lib-level tests unchanged (21/21 total pass)."
+    },
+    {
+      "facet": "F3-architecture",
+      "verdict": "ACCEPT",
+      "evidence": "Pure I/O-free kernel module. No async, no provider deps, no serde, no new workspace dependencies. Directive 4 compliant. Re-exported from crate root via pub use. No new crate scaffolded."
+    },
+    {
+      "facet": "A1-naming",
+      "verdict": "ACCEPT",
+      "evidence": "DatabaseEngine, DataService, DataServiceError, provision_data_service follow v4 BNF + PascalCase/snake_case conventions. module name data_service matches crate naming pattern (snake_case). Engine variant names match ADR-0015 provider-neutral catalogue (postgres, citus, redis, clickhouse, pgvector, kafka)."
+    },
+    {
+      "facet": "A3-structure",
+      "verdict": "ACCEPT",
+      "evidence": "Module file + pub mod declaration + pub use re-exports in lib.rs exactly mirrors finops_public/cell_budget pattern. cfg_attr test exemption present (ADR-0083 Tier 3). data_class comments on all pub struct fields. IP-001 frontmatter unchanged (plan files are read-only per executor constraints); INDEX.md execution_variant amended."
+    }
+  ],
+  "audit_chain_row": {
+    "session_id": "claude-durable-goal-2026-05-17-m03-p03-agent",
+    "change_class": "CC-2",
+    "crate": "oya-cloud-data-kernel",
+    "module": "data_service",
+    "net_new_types": ["DatabaseEngine", "DataService", "DataServiceError"],
+    "net_new_fns": ["provision_data_service"],
+    "tests_added": 12,
+    "tests_total": 21,
+    "no_new_crates": true,
+    "no_new_workspace_deps": true,
+    "ip_reference": "M03-P03-IP-001"
+  },
+  "validation": [
+    {
+      "command": "CARGO_TARGET_DIR=/Users/jasonlee/oyatie/target-m03-p03 cargo nextest run -p oya-cloud-data-kernel",
+      "status": "pass",
+      "summary": "21 passed, 0 skipped"
+    },
+    {
+      "command": "rustfmt --edition 2024 (1.95.0-aarch64-apple-darwin)",
+      "status": "pass",
+      "summary": "clean"
+    }
+  ],
+  "verdict": "ACCEPT"
+}

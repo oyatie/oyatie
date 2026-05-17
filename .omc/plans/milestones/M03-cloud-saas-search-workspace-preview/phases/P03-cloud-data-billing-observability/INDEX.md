@@ -5,6 +5,10 @@ id: M03-P03
 title: Cloud Data + Billing + Observability + FinOps + Marketplace
 status: in-progress
 purpose: Bring data services, billing/tax, observability, FinOps, and marketplace to W-Cloud-Preview readiness.
+execution_variant: merge-into-existing-crates
+decided_at: "2026-05-17"
+decided_by: user-directive-option-2
+execution_variant_note: "Delta-1 adds DatabaseEngine+DataService+provision_data_service to oya-cloud-data-kernel::data_service (IP-001). No new crates scaffolded; no new workspace deps. Mirrors PR #60-#91 merge-variant pattern."
 ---
 
 # M03-P03 — Cloud Data + Billing + Observability + FinOps + Marketplace
