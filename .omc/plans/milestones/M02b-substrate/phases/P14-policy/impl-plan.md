@@ -20,6 +20,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: "Scaffolds all 9 policy crates across 2 BCs (policy-engine, policy-rule-packs), authors the complete Postgres DDL for `policy.tenant_rule_packs` and `policy.evaluation_log`, integrates the `cedar-policy` crate as the evaluation adapter."
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "User chose merge-variant 2026-05-17 — FROM-SCRATCH scaffold below preserved as reference. First delta landed: authz_engine module in oya-policy-cedar-domain::authz_engine (2026-05-17). Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION."
 ---
 # IP-001-policy-kernel-scaffold: Scaffold Policy Engine + Rule-Packs Kernel/Domain/Application/Adapter/gRPC/App — Cedar DDL + Port Traits
 
