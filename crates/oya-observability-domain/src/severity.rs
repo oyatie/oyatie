@@ -98,7 +98,11 @@ impl TryFrom<&str> for Severity {
 impl TryFrom<String> for Severity {
     type Error = UnknownSeverityLabel;
     fn try_from(label: String) -> Result<Self, <Self as TryFrom<String>>::Error> {
-        Self::from_wire_label(&label).ok_or_else(|| UnknownSeverityLabel(label))
+        if let Some(sev) = Self::from_wire_label(&label) {
+            Ok(sev)
+        } else {
+            Err(UnknownSeverityLabel(label))
+        }
     }
 }
 
