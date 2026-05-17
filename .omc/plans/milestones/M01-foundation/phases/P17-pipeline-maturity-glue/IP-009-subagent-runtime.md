@@ -17,6 +17,30 @@ purpose: Close the `subagent_runtime_pending=true` gap left by IP-004 / IP-005 /
 
 # M01-P17-IP-009 — Subagent runtime (per-facet Claude API invocation)
 
+## Acceptance Criteria
+
+- **AC-001**: 21 per-facet prompt templates exist under `evidence/pipeline-maturity-glue/ip-004-pr-review/facets/<facet-id>.md` (F1..F11 + F13 + M1+M2 + A1..A7), each with required frontmatter fields (`facet_id`, `facet_name`, `lens`, `severity_bar`).
+  - test_id: `find evidence/pipeline-maturity-glue/ip-004-pr-review/facets -name "*.md" | wc -l` returns `>= 21`
+  - verification_command: `find evidence/pipeline-maturity-glue/ip-004-pr-review/facets -name "*.md" | wc -l`
+  - status: pending-spec-author
+- **AC-002**: `cargo build -p oya-foundry-subagent-runtime-kernel` and `cargo test -p oya-foundry-subagent-runtime-kernel` pass with zero errors.
+  - test_id: `cargo nextest run -p oya-foundry-subagent-runtime-kernel --all-features`
+  - verification_command: `cargo nextest run -p oya-foundry-subagent-runtime-kernel --all-features`
+- **AC-003**: In deterministic-mock mode, a test PR invocation produces 21 per-facet JSON findings under `evidence/pipeline-maturity-glue/ip-004-pr-review/<pr>/` and dispatcher rollup carries `subagent_runtime_pending=false`.
+  - test_id: `cargo nextest run -p oya-foundry-subagent-runtime-kernel mock_port_produces_facet_finding`
+  - verification_command: `cargo nextest run -p oya-foundry-subagent-runtime-kernel --all-features`
+  - status: pending-spec-author
+- **AC-004**: IP-006 admission gate refuses any admission-log event whose rollup carries `subagent_runtime_pending=true`.
+  - test_id: `cargo nextest run -p oya-foundry-vcs-admission-gate-kernel rejects_pending_subagent_runtime`
+  - verification_command: `cargo nextest run -p oya-foundry-vcs-admission-gate-kernel --all-features`
+  - status: pending-spec-author
+- **AC-005**: Raw Anthropic API key never appears in repo, chat, or checkpoint (OpenBao `SecretReference` path only).
+  - test_id: `oya gate validate supply-chain` + `git log --all -p | grep -i "ANTHROPIC_API_KEY"` returns empty
+  - verification_command: `cargo run -p oya-dev-cli -- gate validate supply-chain`
+- **AC-006**: `cargo clippy --workspace --all-targets` exits 0 after this IP merges.
+  - test_id: `cargo clippy --workspace --all-targets -- -D warnings`
+  - verification_command: `cargo clippy --workspace --all-targets -- -D warnings`
+
 ## Scope
 
 IP-004 (reviewer-agent auto-dispatch), IP-005 (CI-failure fix-loop), and IP-006 (merge-queue fix-loop integration) all currently emit a `subagent_runtime_pending=true` marker because the per-facet subagent invocation has not been wired into a Rust binary. Per the autonomous-decision-principles charter ("no stubs / placeholders / `unimplemented!()` within scope"), this IP closes that gap with a real runtime.

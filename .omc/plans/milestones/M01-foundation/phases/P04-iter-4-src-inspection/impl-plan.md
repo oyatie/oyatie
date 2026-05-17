@@ -15,6 +15,25 @@ purpose: "Inspects `src/` of each crate with `STUB-pending-iter-4-src-inspection
 ---
 # IP-001-iter-4-src-inspection: Resolve 88 STUB-pending layer-evidence cells
 
+## Acceptance Criteria
+
+- **AC-001**: Zero `STUB-pending` markers remain in the rename-plan audit body after this IP merges.
+  - test_id: `grep -c "STUB-pending" docs/plans/rename-plan-v4-clean-arch-2026-05-13.md` returns `0`
+  - verification_command: `grep -c "STUB-pending" docs/plans/rename-plan-v4-clean-arch-2026-05-13.md`
+- **AC-002**: At least 26 `PROTOCOL-UNKNOWN` markers remain (gates P03 protocol-split decision).
+  - test_id: `grep -c "PROTOCOL-UNKNOWN" docs/plans/rename-plan-v4-clean-arch-2026-05-13.md` returns `>= 26`
+  - verification_command: `grep -c "PROTOCOL-UNKNOWN" docs/plans/rename-plan-v4-clean-arch-2026-05-13.md`
+- **AC-003**: Workspace compiles cleanly after any kernel→domain reclassifications.
+  - test_id: `cargo check --workspace --all-features` exits `0`
+  - verification_command: `cargo check --workspace --all-features`
+- **AC-004**: Every resolved cell follows the canonical `crates/<name>/src/lib.rs:<line> — <pattern>` evidence format (no bare citations).
+  - test_id: `oya gate validate placeholder-debt` exits `0` (no unresolved evidence stubs in audit body)
+  - verification_command: `oya gate validate placeholder-debt`
+- **AC-005**: Any kernel→domain reclassification is documented with a BNF justification comment in the rename plan §3 Exception list.
+  - test_id: manual review of §3 Exception rows — each must cite the ADR-0056 §2.2.4 decision-tree path
+  - verification_command: `grep -c "Exception" docs/plans/rename-plan-v4-clean-arch-2026-05-13.md`
+  - status: pending-spec-author
+
 ## Intent
 
 Inspects `src/` of each crate with `STUB-pending-iter-4-src-inspection` in its
