@@ -3,6 +3,9 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
+pub mod merkle_tree;
+pub use merkle_tree::{MerkleTree, Sha256Hash};
+
 use ed25519_dalek::{Signature, Signer, SigningKey, VerifyingKey};
 use oya_data_boundary_kernel::{DataClass, DataClassification, Purpose};
 use sha2::{Digest, Sha256};

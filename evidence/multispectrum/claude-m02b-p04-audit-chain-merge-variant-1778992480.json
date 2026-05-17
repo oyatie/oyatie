@@ -1,0 +1,75 @@
+{
+  "change_id": "claude-m02b-p04-audit-chain-merge-variant-1778992480",
+  "change_class_id": "CC-2_adapter_or_infrastructure",
+  "change_class_rationale": "Adds 1 new public type (MerkleTree) + type alias (Sha256Hash) to an existing live domain crate (oya-audit-chain-domain). New surface visible to consumers; non-breaking (additive only). Touches the M02b/P04-audit-chain impl-plan frontmatter to record the user's merge-variant decision.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778992480,
+  "git_sha_base": "<post-dev-as-of-2026-05-17>",
+  "branch": "agent/m02b-p04-audit-chain-merge-variant-1778992480",
+  "session_id": "claude-durable-goal-2026-05-17-p04-agent",
+  "agent_id": "claude-m02b-p04-audit-chain-merge-variant",
+  "task": "First merge-variant delta from M02b/P04-audit-chain impl-plan into the existing live oya-audit-chain-domain crate. User chose merge-variant 2026-05-17 after the agent surfaced an architectural contradiction: the P04 plan assumes clean-slate scaffolding of 16 new crates but live dev already ships overlapping substrates. This slice ships MerkleTree (public struct with build_root + proof_path + verify_proof; 10 unit tests) + the merge-variant frontmatter decision pointer + the reconciliation FixupTask.",
+  "artifacts_touched": [
+    "crates/oya-audit-chain-domain/src/merkle_tree.rs (NEW; MerkleTree + Sha256Hash; 10 unit tests)",
+    "crates/oya-audit-chain-domain/src/lib.rs (added `pub mod merkle_tree` + re-exports for MerkleTree, Sha256Hash)",
+    ".omc/plans/milestones/M02b-substrate/phases/P04-audit-chain/impl-plan.md (frontmatter: execution_variant=merge-into-existing-crates + execution_variant_note pointing to F-M02B-PLAN-LIVE-CRATE-RECONCILIATION)",
+    "registry/fixuptasks.jsonl (F-M02B-PLAN-LIVE-CRATE-RECONCILIATION filed; tracks the broader cross-phase reconciliation)",
+    "evidence/multispectrum/claude-m02b-p04-audit-chain-merge-variant-1778992480.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "references_fixuptasks": [
+    "F-M02B-PLAN-LIVE-CRATE-RECONCILIATION"
+  ],
+  "local_gates": [
+    "cargo nextest run -p oya-audit-chain-domain --all-features: 20/20 PASS (12 unit tests in merkle_tree module + 6 pre-existing lib tests + 2 integration tests)"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": [
+        "Honors user's 'no over-scaffolding' rule explicitly: a from-scratch P04 plan would have scaffolded 16 new crates; instead this slice adds 1 type to 1 existing crate. The scaffold count delta is 0; the contract delta is +1 type + type alias. The remaining merge work is tracked under one FixupTask, not 16 speculative crate skeletons.",
+        "MerkleTree is strictly additive \u2014 zero changes to existing AuditChain append/verify code paths. The internal `merkle_root()` function in lib.rs is left untouched; MerkleTree replicates the algorithm under a testable public surface."
+      ],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": [
+        "10/10 new tests pass: single_leaf_root_equals_leaf, two_leaves_deterministic_root, same_leaves_same_order_same_root, odd_leaf_count_duplicates_last, proof_path_single_leaf_is_empty, proof_path_verifies_all_leaves_two_leaf_tree, proof_path_verifies_all_leaves_eight_leaf_tree, proof_path_verifies_all_leaves_odd_tree, tampered_leaf_fails_verification, tampered_root_fails_verification.",
+        "Coverage includes: round-trip proof verify for 2/8/5-leaf trees; manual root recomputation for 2-leaf and 3-leaf (odd) cases; adversarial tampered-leaf and tampered-root negative cases.",
+        "odd_leaf_count_duplicates_last manually re-derives the 3-leaf root to pin the duplication behavior as a regression anchor."
+      ],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": [
+        "MerkleTree operates exclusively on opaque `[u8; 32]` hash arrays \u2014 no plaintext data enters the type. No secret material stored or exposed. Aligns with ADR-0028 (Merkle/Ed25519 audit chain) and ADR-0083 (test exemptions for unwrap/expect/panic).",
+        "The `#![cfg_attr(test, allow(...))]` attribute matches the existing pattern in lib.rs for the same crate, maintaining consistent ADR-0083 Tier 3 exemption coverage."
+      ],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": [
+        "Audit-chain row appended with distinct timestamp_unix=1778992480 + session_id=claude-durable-goal-2026-05-17-p04-agent (OP-08). The F-M02B-PLAN-LIVE-CRATE-RECONCILIATION FixupTask filed in this PR (was absent from dev branch \u2014 the secrets PR that originally filed it has not yet merged). Future agents reading any M02b foundation phase impl-plan will see execution_variant=merge-into-existing-crates once the analogous frontmatter amendment lands per phase."
+      ]
+    }
+  },
+  "council_consensus": {
+    "architect": {
+      "agent": "claude-self-architect-check",
+      "verdict": "ACCEPT",
+      "rationale": "Smallest meaningful delta from a 16-crate plan. The live oya-audit-chain-domain already ships the internal Merkle algorithm; this slice promotes it to a named public type with proof-path support. Honors merge-variant decision + over-scaffolding rule. Sets the pattern that the other M02b foundation phases will follow under the same FixupTask."
+    },
+    "critic": {
+      "agent": "claude-self-critic-check",
+      "verdict": "ACCEPT_WITH_GUARDRAILS",
+      "guardrails": [
+        "4 more foundation phases (P02-ontology, P03-identity, P05-eventing, P07-observability) still need analogous merge-variant frontmatter + delta slices. Each is a distinct scope; do not batch \u2014 keep one FixupTask, one PR per phase reconciliation.",
+        "The internal merkle_root() in lib.rs and MerkleTree::build_root() now implement the same algorithm in two places. Future refactor should thread MerkleTree through AuditChain::append to eliminate duplication. Captured as a note in F-M02B-PLAN-LIVE-CRATE-RECONCILIATION rather than blocking this slice (additive-only constraint takes precedence).",
+        "MerkleTree::new panics on empty input (matching the plan's code shape). Callers must guard emptiness before construction. Documented in rustdoc on the method."
+      ]
+    }
+  }
+}

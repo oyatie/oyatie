@@ -18,6 +18,10 @@ acceptance_lanes:
 - lean-a3
 - lean-a4
 purpose: "Delivers the complete Audit-chain substrate: 16 crates across 3 BCs (events, segments, signing), full append-only Postgres DDL with UPDATE/DELETE denial triggers, Merkle tree builder, Ed25519 segment sealer worker."
+execution_variant: merge-into-existing-crates
+execution_variant_decided_at: 2026-05-17
+execution_variant_decided_by: user-directive-option-2
+execution_variant_note: "The 16-crate scaffold described below is the FROM-SCRATCH variant. Live `dev` already ships `oya-audit-chain-domain` + `oya-audit-chain-usecase` + `oya-audit-chain-file-adapter` with overlapping types (AuditChain, AuditEvent, MerkleRoot, Ed25519SigningKey, Ed25519Signature, AuditAppendInput, AuditChainError, FileAuditLedger, full emit use-case). User chose merge-variant 2026-05-17 — backport this plan's deltas into the existing crates incrementally rather than scaffolding a parallel substrate. Tracking: F-M02B-PLAN-LIVE-CRATE-RECONCILIATION. First delta landed: MerkleTree (public struct with build_root + proof_path + verify_proof; 10 unit tests) added to oya-audit-chain-domain::merkle_tree module (2026-05-17). Remaining deltas (AuditEventStore port, AuditSegmentSealer port, PgAuditEventStore adapter, DDL, protobuf, Cedar policy, k6 load test) tracked under the reconciliation fixuptask as separate slices."
 ---
 # IP-P04-audit-chain-substrate: Scaffold 16 audit-chain crates with Merkle/Ed25519 sealer, append-only DDL, KMS bridge
 
