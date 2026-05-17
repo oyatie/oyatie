@@ -1,0 +1,16 @@
+name: oya-cell-cell-registry-app
+role: app
+context: cell
+plane: control
+slo: cell-substrate-control-plane
+contracts_consumed: [contracts/openapi/cell.yaml, contracts/asyncapi/cell-events.yaml]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "<TBD>"
+  source_adrs: [ADR-0105, ADR-0131]
+allowed_dependency_edges: [oya-cell-cell-registry-kernel, oya-cell-cell-registry-domain, oya-cell-cell-registry-usecase, oya-cell-cell-registry-adapter, oya-cell-cell-registry-adapter-postgres, oya-cell-cell-registry-rest]
+data_classes_owned: []
+operational_classes_owned: []
+autonomy_tier_required: T2

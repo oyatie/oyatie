@@ -1,0 +1,12 @@
+name: oya-community-voting-engine-usecase
+role: usecase
+context: community
+plane: control
+slo: voting-engine-stable
+contracts_consumed: [oya-community-voting-engine-domain]
+contracts_exposed: [oya-community-voting-engine-api]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0106, ADR-0126, ADR-0131]
+allowed_dependency_edges: [oya-community-voting-engine-domain, oya-community-voting-engine-kernel]
+autonomy_tier_required: T1

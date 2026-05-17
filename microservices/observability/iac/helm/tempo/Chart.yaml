@@ -1,0 +1,12 @@
+apiVersion: v2
+name: oya-observability-tempo
+description: Grafana Tempo distributed trace storage per ADR-0130 Layer-A
+type: application
+version: 0.1.0
+appVersion: "3.0.0"  # Tempo LTS line
+maintainers:
+  - name: axis-observability
+dependencies:
+  - name: tempo-distributed
+    version: "^1.20.0"
+    repository: https://grafana.github.io/helm-charts

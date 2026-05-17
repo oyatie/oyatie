@@ -1,0 +1,12 @@
+name: oya-community-moderation-queue-adapter-moderation-bridge
+role: adapter-moderation-bridge
+context: community
+plane: data
+slo: moderation-queue-stable
+contracts_consumed: [oya-community-moderation-queue-adapter]
+contracts_exposed: []
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+allowed_dependency_edges: [oya-community-moderation-queue-adapter, oya-community-moderation-queue-domain, oya-community-moderation-queue-kernel]
+autonomy_tier_required: T1

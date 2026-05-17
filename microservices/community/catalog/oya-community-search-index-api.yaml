@@ -1,0 +1,12 @@
+name: oya-community-search-index-api
+role: api
+context: community
+plane: control
+slo: search-index-stable
+contracts_consumed: [oya-community-search-index-kernel]
+contracts_exposed: []
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+allowed_dependency_edges: [oya-community-search-index-kernel]
+autonomy_tier_required: T1

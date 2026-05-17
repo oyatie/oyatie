@@ -1,0 +1,16 @@
+name: oya-foundry-runtime-session-state-kernel
+role: kernel
+context: foundry-runtime
+plane: control
+slo: preview-control-plane
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "<TBD>"
+  source_adrs: [ADR-0025, ADR-0056, ADR-0105, ADR-0131]
+allowed_dependency_edges: []
+data_classes_owned: [INTERNAL_ONLY, BEHAVIORAL_TENANT_PRODUCT, AUDIT, SENSITIVE_PIPA_ART23, PII_IDENTIFYING]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T1

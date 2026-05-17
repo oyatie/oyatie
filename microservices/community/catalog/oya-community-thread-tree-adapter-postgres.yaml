@@ -1,0 +1,13 @@
+name: oya-community-thread-tree-adapter-postgres
+role: adapter-postgres
+context: community
+plane: data
+slo: thread-tree-stable
+contracts_consumed: [oya-community-thread-tree-adapter]
+contracts_exposed: []
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+allowed_dependency_edges: [oya-community-thread-tree-adapter, oya-community-thread-tree-domain, oya-community-thread-tree-kernel]
+data_classes_owned: [BEHAVIORAL_TENANT_PRODUCT]
+autonomy_tier_required: T1

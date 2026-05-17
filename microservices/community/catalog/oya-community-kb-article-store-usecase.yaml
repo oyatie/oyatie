@@ -1,0 +1,12 @@
+name: oya-community-kb-article-store-usecase
+role: usecase
+context: community
+plane: control
+slo: kb-article-store-stable
+contracts_consumed: [oya-community-kb-article-store-domain]
+contracts_exposed: [oya-community-kb-article-store-api]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0106, ADR-0126, ADR-0131]
+allowed_dependency_edges: [oya-community-kb-article-store-domain, oya-community-kb-article-store-kernel]
+autonomy_tier_required: T1

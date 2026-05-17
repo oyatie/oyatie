@@ -1,0 +1,8 @@
+apiVersion: v2
+name: oya-application-cdn-controller
+description: CDN purge worker + origin shield controller for Application Shell bundles per ADR-0131
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: axis-application

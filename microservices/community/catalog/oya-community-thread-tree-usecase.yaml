@@ -1,0 +1,12 @@
+name: oya-community-thread-tree-usecase
+role: usecase
+context: community
+plane: control
+slo: thread-tree-stable
+contracts_consumed: [oya-community-thread-tree-domain, oya-community-thread-tree-kernel]
+contracts_exposed: [oya-community-thread-tree-api]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0106, ADR-0126, ADR-0131]
+allowed_dependency_edges: [oya-community-thread-tree-domain, oya-community-thread-tree-kernel]
+autonomy_tier_required: T1

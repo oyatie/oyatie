@@ -1,0 +1,12 @@
+name: oya-community-search-index-adapter
+role: adapter
+context: community
+plane: data
+slo: search-index-stable
+contracts_consumed: [oya-community-search-index-api]
+contracts_exposed: []
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+allowed_dependency_edges: [oya-community-search-index-api, oya-community-search-index-domain, oya-community-search-index-kernel]
+autonomy_tier_required: T1

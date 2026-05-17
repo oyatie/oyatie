@@ -1,0 +1,35 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Shared base for the foundry-runtime cluster, applied identically per-pack with
+# pack-specific overlays for residency region, retention overrides, OpenBao secret
+# references, replica scaling tier. Per ADR-0025 + ADR-0131 + multi-region.md DR posture.
+
+namespace: foundry-runtime
+
+resources:
+  - namespace.yaml
+  - networkpolicy-default-deny.yaml
+  - networkpolicy-sibling-allowlist.yaml
+  - openbao-secret-references.yaml
+  - spire-trust-domain.yaml
+  - istio-peer-authentication.yaml
+  - service-mesh-tenant-headers.yaml
+
+helmCharts:
+  - name: oya-foundry-runtime-pool
+    valuesFile: ../../helm/runtime-pool/values.yaml
+    releaseName: foundry-runtime-pool
+    namespace: foundry-runtime
+  - name: oya-foundry-runtime-redis
+    valuesFile: ../../helm/redis/values.yaml
+    releaseName: foundry-runtime-redis
+    namespace: foundry-runtime
+  - name: oya-foundry-runtime-postgres
+    valuesFile: ../../helm/postgres/values.yaml
+    releaseName: foundry-runtime-postgres
+    namespace: foundry-runtime
+
+commonLabels:
+  app.kubernetes.io/part-of: oya-foundry-runtime
+  oyatie/microservice: foundry-runtime

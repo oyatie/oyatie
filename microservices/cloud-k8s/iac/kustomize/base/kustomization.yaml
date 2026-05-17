@@ -1,0 +1,52 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Shared base for the cloud-k8s cluster substrate, applied identically per-pack
+# with overlays for residency region, OpenBao secret-reference URIs, replica scaling tier.
+# Per ADR-0121 Layer-A + multi-region.md DR posture.
+
+namespace: cloud-k8s-system
+
+resources:
+  - namespace.yaml
+  - openbao-secret-references.yaml
+  - kyverno-cluster-policies.yaml
+  - cilium-network-policies-default-deny.yaml
+  - istio-peerauth-strict.yaml
+
+helmCharts:
+  - name: oya-cloud-k8s-cni-cilium
+    valuesFile: ../../helm/cni-cilium/values.yaml
+    releaseName: cilium
+    namespace: cilium-system
+  - name: oya-cloud-k8s-istio-base
+    valuesFile: ../../helm/istio-base/values.yaml
+    releaseName: istio-base
+    namespace: istio-system
+  - name: oya-cloud-k8s-istiod
+    valuesFile: ../../helm/istiod/values.yaml
+    releaseName: istiod
+    namespace: istio-system
+  - name: oya-cloud-k8s-envoy-gateway
+    valuesFile: ../../helm/envoy-gateway/values.yaml
+    releaseName: envoy-gateway
+    namespace: istio-system
+  - name: oya-cloud-k8s-csi-block-volume
+    valuesFile: ../../helm/csi-block-volume/values.yaml
+    releaseName: csi-block-volume
+    namespace: kube-system
+  - name: oya-cloud-k8s-csi-object
+    valuesFile: ../../helm/csi-object/values.yaml
+    releaseName: csi-object
+    namespace: kube-system
+  - name: oya-cloud-k8s-csi-file
+    valuesFile: ../../helm/csi-file/values.yaml
+    releaseName: csi-file
+    namespace: kube-system
+
+commonLabels:
+  app.kubernetes.io/part-of: oya-cloud-k8s
+  oyatie/microservice: cloud-k8s
+
+configurations:
+  - name-suffix.yaml

@@ -1,0 +1,12 @@
+name: oya-community-thread-tree-sdk
+role: sdk
+context: community
+plane: edge
+slo: thread-tree-stable
+contracts_consumed: [oya-community-thread-tree-api]
+contracts_exposed: []
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  source_adrs: [ADR-0105, ADR-0126, ADR-0131]
+allowed_dependency_edges: [oya-community-thread-tree-api]
+autonomy_tier_required: T1

@@ -1,0 +1,17 @@
+name: oya-observability-otel-ingest-app
+role: app
+context: observability
+plane: data
+slo: preview-data-plane
+contracts_consumed: []
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17}
+traceability:
+  github_issue: "<TBD>"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0130]
+allowed_dependency_edges: [kernel, usecase, api, adapter]
+data_classes_owned: []
+operational_classes_owned: []
+autonomy_tier_required: T2
+binary: true

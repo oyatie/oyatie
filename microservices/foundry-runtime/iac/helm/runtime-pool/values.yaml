@@ -1,0 +1,108 @@
+# Foundry Runtime pool — per-pack XS tier baseline per capacity-model.md
+# Verify against capacity-model.md formulae before changing replica counts.
+
+global:
+  pack: pack-kr  # overridden by kustomize overlay
+  imageRegistry: oyatie-internal.registry/foundry-runtime
+  imageTag: "1.0.0"  # LTS pin
+
+# capability-executor-app
+capabilityExecutor:
+  replicas: 4
+  resources:
+    requests: { cpu: "1000m", memory: "1Gi" }
+    limits:   { cpu: "2000m", memory: "2Gi" }
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10001
+    readOnlyRootFilesystem: true
+    seccompProfile: { type: RuntimeDefault }
+    capabilities: { drop: ["ALL"] }
+  appArmorProfile: runtime/default
+  autoscaling:
+    enabled: true
+    minReplicas: 3        # HA quorum
+    maxReplicas: 200      # per capacity-model.md ceiling
+    targetCPUUtilizationPercentage: 70
+
+# invocation-orchestrator-app + worker
+invocationOrchestrator:
+  app:
+    replicas: 2
+    resources: { requests: { cpu: "500m", memory: "512Mi" }, limits: { cpu: "1000m", memory: "1Gi" } }
+  worker:
+    replicas: 2
+    resources: { requests: { cpu: "500m", memory: "512Mi" }, limits: { cpu: "1000m", memory: "1Gi" } }
+
+# runtime-pool-app + worker + pool warm pods
+runtimePool:
+  app:
+    replicas: 2
+    resources: { requests: { cpu: "500m", memory: "512Mi" } }
+  worker:
+    replicas: 2
+    resources: { requests: { cpu: "500m", memory: "512Mi" } }
+  warmPods:
+    baseline: 8
+    maxBurst: 100         # HPA ceiling per capacity-model.md
+    coldStartBudgetMs: 500  # ADR-0020
+
+# session-state-app
+sessionState:
+  replicas: 2
+  resources: { requests: { cpu: "1000m", memory: "1Gi" } }
+
+# capability-registry-cache-app + worker
+capabilityRegistryCache:
+  app:
+    replicas: 2
+    resources: { requests: { cpu: "500m", memory: "1Gi" } }   # in-memory cache headroom
+  worker:
+    replicas: 2
+    resources: { requests: { cpu: "500m", memory: "512Mi" } }
+
+# Pod-baseline security per runtime-isolation.md TI-11
+podBaseline:
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  seccompProfile: { type: RuntimeDefault }
+  appArmorProfile: runtime/default
+  capabilities: { drop: ["ALL"] }
+  automountServiceAccountToken: false  # SPIRE injects SVID via spiffe-helper
+
+# Istio mesh integration (per runtime-isolation.md TI-10)
+istio:
+  mtls: STRICT  # MANDATORY per policy/runtime-isolation.md TI-10
+  authorizationPolicy:
+    # Refuse non-sibling SPIFFE identities
+    allowedSiblings:
+      - "spiffe://oyatie/foundry-providers/*"
+      - "spiffe://oyatie/foundry-guardrails/*"
+      - "spiffe://oyatie/foundry-evidence/*"
+      - "spiffe://oyatie/foundry-supervisor/*"
+      - "spiffe://oyatie/tenancy/*"
+      - "spiffe://oyatie/workflow-engine/*"
+      - "spiffe://oyatie/ops-portal/*"
+
+# NetworkPolicy default-deny + sibling-allowlist
+networkPolicy:
+  defaultDeny: true
+  allowSiblings:
+    - foundry-providers
+    - foundry-guardrails
+    - foundry-evidence
+    - foundry-supervisor
+    - tenancy
+  allowInfrastructure:
+    - oya-foundry-runtime-redis  # in-cluster
+    - oya-foundry-runtime-postgres  # in-cluster
+
+# OpenBao SecretReference materialisation
+openBao:
+  enabled: true
+  secretReferences:
+    - { name: redis-auth,         path: "secret/foundry-runtime/redis/auth" }
+    - { name: postgres-creds,     path: "secret/foundry-runtime/postgres/creds" }
+    - { name: spire-trust-bundle, path: "secret/foundry-runtime/spire/trust-bundle" }
+    - { name: supervisor-pubkey,  path: "secret/foundry-runtime/supervisor-pubkey/ed25519" }
+    - { name: tenancy-pubkey,     path: "secret/foundry-runtime/tenancy-pubkey/ed25519" }

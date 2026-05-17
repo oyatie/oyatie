@@ -1,0 +1,102 @@
+id: cap:cell:cell-assign:v1
+name: cell-assign
+namespace: cell
+display_name: Assign Tenant to Cell
+description: |
+  Place a tenant on a cell within the tenant's pack. Invoked at tenant onboarding (TenantOnboarded
+  event) OR on rebalance/migration decisions. Performs binpack placement over current cell utilization
+  + capacity constraints; emits CellAssigned (or CellRebalanced if pre-existing assignment).
+
+owner_team: axis-cell-substrate
+maturity: stable
+created_at: 2026-05-17
+related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_specs: [/specs/per-microservice-flat-layout.json]
+related_artifacts:
+  - microservices/cell/PRD.md
+  - microservices/cell/contracts/openapi/cell.yaml
+  - microservices/cell/policy/cell-boundary.md
+  - microservices/cell/policy/data-residency.md
+
+autonomy_tier: T2
+# T2 = write to substrate state; not destructive.
+# Per ADR-0022 autonomy tiers (Bominal-inherited).
+
+inputs:
+  - name: tenant_id
+    type: string
+    pattern: '^tenant:[a-f0-9]{16}$'
+    required: true
+  - name: pack
+    type: enum
+    values: [pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa]
+    required: true
+  - name: tenant_scope
+    type: enum
+    values: [trial, production, sandbox, internal]
+    required: true
+  - name: constraints
+    type: object
+    required: false
+    description: Optional placement constraints (e.g., affinity to existing assignments; HIPAA-dedicated requirement)
+
+outputs:
+  - name: cell_id
+    type: string
+  - name: pack
+    type: string
+  - name: scope
+    type: enum
+    values: [primary, ha-secondary]
+  - name: binpack_score
+    type: number
+  - name: signature
+    type: string
+
+data_classes_touched:
+  - SENSITIVE_PIPA_ART23
+  # (tenant_id, cell_id) pair created.
+  - AUDIT
+  # Assignment emission is an audit event.
+  - INTERNAL_ONLY
+  # Cell metadata read during placement decision.
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+evidence_topic: oya.cell.assigned
+# This capability emits to the audit-chain evidence-topic stream.
+
+cost_profile:
+  type: per-call
+  estimated_cost_usd_per_call: 0.0001
+  cost_drivers:
+    - Postgres write (cell_assignments table)
+    - Binpack decision (in-memory; sub-ms)
+    - Audit-chain seal
+    - Event emission to workflow bus
+
+cedar_policy_fragments:
+  - microservices/cell/policy/ci-scope.cedar
+  - microservices/cell/policy/cell-boundary.md (server-side enforcement)
+
+eval_set:
+  golden_inputs_path: microservices/cell/capabilities/eval/cell-assign-golden.jsonl
+  pass_threshold: 0.99
+  eval_metric: placement-decision-binpack-score-vs-reference
+  cadence: per-release
+  reference: Kubernetes scheduler binpack reference + custom oyatie heuristics
+
+sunset:
+  status: none
+  notes: ""

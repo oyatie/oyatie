@@ -1,0 +1,13 @@
+apiVersion: v2
+name: oya-workflow-engine-redis
+description: Redis Sentinel HA cluster for workflow-engine ephemeral lease + subscription state per ADR-0131
+type: application
+version: 0.1.0
+appVersion: "7.2"  # Redis 7.2 LTS per docs/standards/workflow-engine-substrate.md
+maintainers:
+  - name: axis-workflow
+    email: axis-workflow@oyatie.dev
+dependencies:
+  - name: redis
+    version: "19.x"
+    repository: https://charts.bitnami.com/bitnami

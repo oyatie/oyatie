@@ -1,0 +1,25 @@
+name: oya-foundry-evidence-evidence-pack-builder-adapter-audit-chain-bridge
+role: adapter
+context: foundry-evidence
+plane: control
+slo: preview-control-plane
+contracts_consumed: [oya-audit-chain-emission-sdk]
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-jp, oya-pack-sg, oya-pack-au, oya-pack-in, oya-pack-br, oya-pack-ae, oya-pack-ksa]
+lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
+traceability:
+  github_issue: "<TBD>"
+  source_adrs: [ADR-0056, ADR-0105, ADR-0028, ADR-0131]
+allowed_dependency_edges:
+  - oya-foundry-evidence-evidence-pack-builder-kernel
+  - oya-foundry-evidence-evidence-pack-builder-domain
+  - oya-foundry-evidence-evidence-pack-builder-api
+  - oya-audit-chain-emission-sdk
+data_classes_owned: [AUDIT]
+operational_classes_owned: [AUDIT]
+autonomy_tier_required: T2
+notes: |
+  THE SOLE crate in foundry-evidence permitted to import oya-audit-chain-*.
+  Encapsulates retry, back-off, SPIFFE binding, and dead-letter contract for
+  the substrate bridge. Per ADR-0131 substrate-split. LEAN lane
+  cross-microservice-import-forbidden enforces this exclusivity at compile time.
