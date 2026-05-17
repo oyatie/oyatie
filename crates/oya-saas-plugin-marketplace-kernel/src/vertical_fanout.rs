@@ -101,6 +101,10 @@ pub struct FanoutTarget {
 
 impl FanoutTarget {
     /// Construct and validate a fan-out target.
+    ///
+    /// In addition to the `vpack_` prefix check, `pack_id` must match the
+    /// canonical pack id for `vertical` (`vpack_<vertical.pack_slug()>`),
+    /// preventing mismatched pairs like `Healthcare` + `vpack_fintech`.
     pub fn new(
         vertical: FanoutVertical,
         pack_id: impl Into<String>,
@@ -110,6 +114,9 @@ impl FanoutTarget {
         if !pack_id.starts_with(FANOUT_PACK_ID_PREFIX)
             || pack_id.len() <= FANOUT_PACK_ID_PREFIX.len()
         {
+            return Err(FanoutError::InvalidPackId);
+        }
+        if pack_id != Self::canonical_pack_id(vertical) {
             return Err(FanoutError::InvalidPackId);
         }
         let cosign_signature = cosign_signature.into();
@@ -148,9 +155,29 @@ impl FanoutRoster {
         Self::default()
     }
 
-    /// Register a fan-out target. Returns [`FanoutError::DuplicateVertical`]
-    /// if the vertical is already present.
+    /// Register a fan-out target.
+    ///
+    /// Re-validates that `target.pack_id` matches the canonical id for
+    /// `target.vertical`, catching targets whose invariants were bypassed by
+    /// direct field construction rather than [`FanoutTarget::new`].
+    /// Returns [`FanoutError::InvalidPackId`] on mismatch or
+    /// [`FanoutError::DuplicateVertical`] if the vertical is already present.
     pub fn register(&mut self, target: FanoutTarget) -> Result<(), FanoutError> {
+        // Re-validate pack_id: catches direct field construction bypassing new().
+        if target.pack_id != FanoutTarget::canonical_pack_id(target.vertical) {
+            return Err(FanoutError::InvalidPackId);
+        }
+        // Re-validate cosign prefix: catches targets whose cosign_signature was
+        // set directly (e.g. empty string) without going through FanoutTarget::new.
+        if !target.cosign_signature.starts_with(FANOUT_COSIGN_PREFIX)
+            || target.cosign_signature.len() <= FANOUT_COSIGN_PREFIX.len()
+        {
+            return Err(FanoutError::InvalidCosignSignature);
+        }
+        // Re-validate schema_version is the canonical value.
+        if target.schema_version != FANOUT_SCHEMA_VERSION {
+            return Err(FanoutError::InvalidPackId);
+        }
         if self.targets.iter().any(|t| t.vertical == target.vertical) {
             return Err(FanoutError::DuplicateVertical);
         }
