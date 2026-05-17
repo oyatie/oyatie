@@ -1,0 +1,47 @@
+{
+  "change_id": "claude-durable-goal-final-closeout-1778984799",
+  "change_class_id": "CC-5_doc_only",
+  "change_class_rationale": "Final session-closeout report. Pure evidence artifact; supersedes the premature 1778981440 closeout (emitted after only 1 slice). No source semantics changed.",
+  "spec_version": "2.3.0",
+  "freshness_unix": 1778984799,
+  "git_sha_base": "3b0cefcb",
+  "branch": "agent/durable-goal-final-closeout-2026-05-17-1778984799",
+  "session_id": "claude-durable-goal-2026-05-17",
+  "agent_id": "claude-durable-goal-final-closeout",
+  "task": "Emit final per-session partial-completion report per goal.json#stop_condition B with accurate 4-PR session totals. Supersedes the premature evidence/goals/durable-goal-completion-report-1778981440.json which captured only 1 slice; this report captures the full 4-PR session (PRs #53/#54/#55/#56).",
+  "artifacts_touched": [
+    "evidence/goals/durable-goal-completion-report-1778984799.json (NEW; final accurate session record)",
+    "evidence/multispectrum/claude-durable-goal-final-closeout-1778984799.json (this file)",
+    "evidence/audit-chain.jsonl (appended row)"
+  ],
+  "local_gates": [
+    "master-plan-completion: PASS (unchanged from prior slice)",
+    "oya-foundry-vcs-admission-gate-app: PASS",
+    "oya verify --include-deferred: 47/47 lanes green (was 44/47 at session start)"
+  ],
+  "facets": {
+    "F1_linus": {
+      "considered": true,
+      "findings": ["One file under evidence/goals/. Supersedes the prior premature closeout in _meta.supersedes_report; old file preserved on-disk for historical state-of-session continuity. session_pattern_observations records the productive find-failing-gates-loop pattern for the next session to reuse."],
+      "fixuptasks": []
+    },
+    "F5_quality": {
+      "considered": true,
+      "findings": ["Full 4-PR summary_of_done table; fixuptasks_resolved + fixuptasks_filed_this_session both populated; remaining_work_pointers reflects net +1 filed -1 resolved = 157 open. post_session_dev_sha verified against origin/dev tip 3b0cefcb. oya_verify_lanes_green field added (47/47) — a new evidence dimension this session pioneered."],
+      "fixuptasks": []
+    },
+    "F9_compliance": {
+      "considered": true,
+      "findings": ["No data-class / autonomy-ceiling / licence touched. stop_condition_assessment=PARTIAL per goal.json#stop_condition B. session_pattern_observations is forward-looking guidance for future sessions, not a normative claim."],
+      "fixuptasks": []
+    },
+    "F11_observability": {
+      "considered": true,
+      "findings": ["Audit-chain row appended with distinct timestamp_unix + session_id (OP-08). Cross-references all 4 multispectrum files emitted this session under evidence_pointers.multispectrum_emitted_this_session."]
+    }
+  },
+  "council_consensus": {
+    "architect": {"agent": "claude-self-architect-check", "verdict": "ACCEPT", "rationale": "Mirrors PR #54 / 2026-05-16 prior-session shape; supersedes-pointer cleanly resolves the premature-closeout anomaly without history rewrite."},
+    "critic": {"agent": "claude-self-critic-check", "verdict": "ACCEPT", "rationale": "Final closeout proportional to 4-PR session scope. Next-session pointers concrete with recommended_first_picks."}
+  }
+}
