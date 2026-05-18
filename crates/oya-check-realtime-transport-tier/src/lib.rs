@@ -77,18 +77,16 @@ pub fn check(decls: &[RealtimeStreamDeclaration]) -> TierReport {
             Err(_) => continue,
         };
 
-        match (d.surface, tier) {
-            (SurfaceKind::ClientFacing, RealtimeTransportTier::GrpcStreaming) => {
-                // enforce_client_tier covers this; explicit gap.
-                let _ = enforce_client_tier(tier);
-                gaps.push(TierGap {
-                    microservice: d.microservice.clone(),
-                    stream_id: d.stream_id.clone(),
-                    reason: TierGapReason::GrpcStreamingOnClientSurface,
-                });
-                continue;
-            }
-            _ => {}
+        if let (SurfaceKind::ClientFacing, RealtimeTransportTier::GrpcStreaming) = (d.surface, tier)
+        {
+            // enforce_client_tier covers this; explicit gap.
+            let _ = enforce_client_tier(tier);
+            gaps.push(TierGap {
+                microservice: d.microservice.clone(),
+                stream_id: d.stream_id.clone(),
+                reason: TierGapReason::GrpcStreamingOnClientSurface,
+            });
+            continue;
         }
 
         match (d.direction, tier) {
@@ -198,10 +196,7 @@ mod tests {
             SurfaceKind::ClientFacing,
         )]);
         assert_eq!(r.gaps.len(), 1);
-        assert_eq!(
-            r.gaps[0].reason,
-            TierGapReason::WebSocketOnOneWaySurface
-        );
+        assert_eq!(r.gaps[0].reason, TierGapReason::WebSocketOnOneWaySurface);
     }
 
     #[test]

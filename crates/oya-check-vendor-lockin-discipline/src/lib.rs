@@ -129,10 +129,9 @@ impl fmt::Display for VendorLockinError {
             Self::InvalidTier { entry_name, value } => {
                 write!(f, "vendor {entry_name}: invalid tier `{value}`")
             }
-            Self::TierIIMissingSeamTrait(name) => write!(
-                f,
-                "vendor {name}: Tier II must declare seam_adapter_trait"
-            ),
+            Self::TierIIMissingSeamTrait(name) => {
+                write!(f, "vendor {name}: Tier II must declare seam_adapter_trait")
+            }
             Self::TierIIMissingSeamImpl(name) => write!(
                 f,
                 "vendor {name}: Tier II must declare at least one seam_adapter_impls member"
@@ -198,7 +197,9 @@ pub fn validate_registry(entries: &[VendorEntry]) -> Result<VendorLockinReport, 
                 require_phase_out_fields(entry)?;
                 let seam_trait = entry.seam_adapter_trait.as_deref().unwrap_or("").trim();
                 if seam_trait.is_empty() {
-                    return Err(VendorLockinError::TierIIMissingSeamTrait(entry.name.clone()));
+                    return Err(VendorLockinError::TierIIMissingSeamTrait(
+                        entry.name.clone(),
+                    ));
                 }
                 seam_traits.insert(seam_trait);
                 if entry.seam_adapter_impls.is_empty() {
@@ -212,8 +213,16 @@ pub fn validate_registry(entries: &[VendorEntry]) -> Result<VendorLockinReport, 
                 // Pre-classified: trait may be a planning placeholder; impls
                 // list may be empty until adoption. We still require the
                 // trait declaration so adoption cannot skip the seam step.
-                if entry.seam_adapter_trait.as_deref().unwrap_or("").trim().is_empty() {
-                    return Err(VendorLockinError::TierIIMissingSeamTrait(entry.name.clone()));
+                if entry
+                    .seam_adapter_trait
+                    .as_deref()
+                    .unwrap_or("")
+                    .trim()
+                    .is_empty()
+                {
+                    return Err(VendorLockinError::TierIIMissingSeamTrait(
+                        entry.name.clone(),
+                    ));
                 }
             }
             VendorTier::TierIII => {
@@ -223,7 +232,13 @@ pub fn validate_registry(entries: &[VendorEntry]) -> Result<VendorLockinReport, 
                         entry.name.clone(),
                     ));
                 }
-                if entry.replacement_path.as_deref().unwrap_or("").trim().is_empty() {
+                if entry
+                    .replacement_path
+                    .as_deref()
+                    .unwrap_or("")
+                    .trim()
+                    .is_empty()
+                {
                     return Err(VendorLockinError::MissingField {
                         entry_name: entry.name.clone(),
                         field: "replacement_path",
@@ -238,7 +253,13 @@ pub fn validate_registry(entries: &[VendorEntry]) -> Result<VendorLockinReport, 
 }
 
 fn require_phase_out_fields(entry: &VendorEntry) -> Result<(), VendorLockinError> {
-    if entry.replacement_path.as_deref().unwrap_or("").trim().is_empty() {
+    if entry
+        .replacement_path
+        .as_deref()
+        .unwrap_or("")
+        .trim()
+        .is_empty()
+    {
         return Err(VendorLockinError::MissingField {
             entry_name: entry.name.clone(),
             field: "replacement_path",
@@ -665,7 +686,13 @@ impl<'a> JsonParser<'a> {
             }
             Some(c) if c.is_ascii_digit() || c == '-' => {
                 while let Some(b) = self.peek() {
-                    if b.is_ascii_digit() || b == '.' || b == '-' || b == '+' || b == 'e' || b == 'E' {
+                    if b.is_ascii_digit()
+                        || b == '.'
+                        || b == '-'
+                        || b == '+'
+                        || b == 'e'
+                        || b == 'E'
+                    {
                         self.advance();
                     } else {
                         break;
@@ -856,7 +883,9 @@ mod tests {
         bad.license = None;
         assert_eq!(
             validate_registry(&[bad]),
-            Err(VendorLockinError::TierIMissingLicense("postgres".to_owned()))
+            Err(VendorLockinError::TierIMissingLicense(
+                "postgres".to_owned()
+            ))
         );
     }
 
@@ -866,7 +895,9 @@ mod tests {
         bad.steward = None;
         assert_eq!(
             validate_registry(&[bad]),
-            Err(VendorLockinError::TierIMissingLicense("postgres".to_owned()))
+            Err(VendorLockinError::TierIMissingLicense(
+                "postgres".to_owned()
+            ))
         );
     }
 

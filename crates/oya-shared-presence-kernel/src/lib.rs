@@ -95,21 +95,17 @@ impl CursorPosition {
 /// A single participant's awareness state.
 #[derive(Clone, Debug, PartialEq)]
 pub struct PresenceState {
-    pub participant_id: ParticipantId,        // data_class: INTERNAL_ONLY
-    pub cursor: Option<CursorPosition>,       // data_class: INTERNAL_ONLY
-    pub selection_anchor: Option<String>,     // data_class: INTERNAL_ONLY
-    pub last_seen_unix_ms: u64,               // data_class: INTERNAL_ONLY
+    pub participant_id: ParticipantId,    // data_class: INTERNAL_ONLY
+    pub cursor: Option<CursorPosition>,   // data_class: INTERNAL_ONLY
+    pub selection_anchor: Option<String>, // data_class: INTERNAL_ONLY
+    pub last_seen_unix_ms: u64,           // data_class: INTERNAL_ONLY
 }
 
 /// Presence tracker trait — adapters implement (Loro awareness is the
 /// real impl; kernel ships an in-memory default).
 pub trait PresenceTracker {
     fn join(&mut self, room: &RoomKey, state: PresenceState) -> Result<(), PresenceError>;
-    fn leave(
-        &mut self,
-        room: &RoomKey,
-        participant: &ParticipantId,
-    ) -> Result<(), PresenceError>;
+    fn leave(&mut self, room: &RoomKey, participant: &ParticipantId) -> Result<(), PresenceError>;
     fn participants(&self, room: &RoomKey) -> Vec<PresenceState>;
     /// Evict participants whose last-seen is older than
     /// `now_unix_ms - max_idle_ms`.
@@ -146,11 +142,7 @@ impl PresenceTracker for LoroPresenceTracker {
         Ok(())
     }
 
-    fn leave(
-        &mut self,
-        room: &RoomKey,
-        participant: &ParticipantId,
-    ) -> Result<(), PresenceError> {
+    fn leave(&mut self, room: &RoomKey, participant: &ParticipantId) -> Result<(), PresenceError> {
         let Some(entry) = self.rooms.get_mut(room) else {
             return Err(PresenceError::UnknownRoom);
         };

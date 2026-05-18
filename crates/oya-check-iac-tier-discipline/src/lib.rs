@@ -314,7 +314,10 @@ mod tests {
         )];
         let (_, viols) = audit(&cfg, &arts);
         assert_eq!(viols.len(), 1);
-        assert_eq!(viols[0].kind, ViolationKind::ArgocdAppReferencesCloudPrimitive);
+        assert_eq!(
+            viols[0].kind,
+            ViolationKind::ArgocdAppReferencesCloudPrimitive
+        );
     }
 
     #[test]
@@ -369,21 +372,13 @@ mod tests {
     fn violations_are_sorted_by_tier_kind_path() {
         let cfg = DisciplineConfig::default();
         let arts = vec![
-            art(
-                IacTier::TierAArgoCd,
-                "z-late.yaml",
-                "kind: AppProject",
-            ),
+            art(IacTier::TierAArgoCd, "z-late.yaml", "kind: AppProject"),
             art(
                 IacTier::TierBOpenTofu,
                 "a-early.tofu",
                 "resource \"kubernetes_pod\" \"x\" {}",
             ),
-            art(
-                IacTier::TierAArgoCd,
-                "m-middle.yaml",
-                "kind: AppProject",
-            ),
+            art(IacTier::TierAArgoCd, "m-middle.yaml", "kind: AppProject"),
         ];
         let (_, viols) = audit(&cfg, &arts);
         assert_eq!(viols.len(), 3);

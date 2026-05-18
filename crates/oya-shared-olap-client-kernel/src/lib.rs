@@ -277,15 +277,31 @@ pub enum Value {
 #[derive(Clone, Debug, PartialEq)]
 pub enum Aggregate {
     Count,
-    CountDistinct { column: String },
-    Sum { column: String },
-    Avg { column: String },
-    Min { column: String },
-    Max { column: String },
+    CountDistinct {
+        column: String,
+    },
+    Sum {
+        column: String,
+    },
+    Avg {
+        column: String,
+    },
+    Min {
+        column: String,
+    },
+    Max {
+        column: String,
+    },
     /// Quantile (e.g., `quantile(0.99)(column)`).
-    Quantile { column: String, q: f64 },
+    Quantile {
+        column: String,
+        q: f64,
+    },
     /// Top-K — `topK(k)(column)`.
-    TopK { column: String, k: u32 },
+    TopK {
+        column: String,
+        k: u32,
+    },
 }
 
 /// Order direction for `ORDER BY`.
@@ -417,10 +433,7 @@ pub trait OlapClient {
 
 /// Verify a `QualifiedTable` belongs to the caller's tenant; foreclose
 /// cross-tenant access at the kernel layer.
-pub fn assert_same_tenant(
-    caller: &TenantId,
-    table: &QualifiedTable,
-) -> Result<(), KernelError> {
+pub fn assert_same_tenant(caller: &TenantId, table: &QualifiedTable) -> Result<(), KernelError> {
     if table.tenant_id() == caller {
         Ok(())
     } else {
@@ -489,9 +502,7 @@ pub mod memory_adapter {
 
     impl OlapClient for InMemoryOlapClient {
         fn ensure_tenant_database(&mut self, tenant_id: &TenantId) -> Result<(), KernelError> {
-            self.databases
-                .entry(tenant_id.database_name())
-                .or_default();
+            self.databases.entry(tenant_id.database_name()).or_default();
             Ok(())
         }
 
@@ -526,7 +537,8 @@ pub mod memory_adapter {
             let tenant = schema.name.tenant_id().clone();
             self.ensure_tenant_database(&tenant)?;
             let db = self.db_mut(&tenant)?;
-            db.views.insert(schema.name.as_str().to_string(), schema.clone());
+            db.views
+                .insert(schema.name.as_str().to_string(), schema.clone());
             Ok(())
         }
 
@@ -568,10 +580,7 @@ pub mod memory_adapter {
                 .tables
                 .get(query.source.table().as_str())
                 .ok_or_else(|| {
-                    KernelError::AdapterError(format!(
-                        "table {} does not exist",
-                        query.source
-                    ))
+                    KernelError::AdapterError(format!("table {} does not exist", query.source))
                 })?;
 
             // Apply filter

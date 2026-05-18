@@ -66,10 +66,7 @@ impl AdpConnector {
             }
             for i in 1..=3 {
                 let mut d = EntityDoc::new();
-                d.insert(
-                    "id",
-                    EntityValue::Str(format!("PS-{i:08}")),
-                );
+                d.insert("id", EntityValue::Str(format!("PS-{i:08}")));
                 d.insert("workerId", EntityValue::Str("AOID-00000001".into()));
                 d.insert("grossPay", EntityValue::Int(500_000));
                 self.put(tenant, "pay-statement", &format!("PS-{i:08}"), d);
@@ -108,7 +105,9 @@ impl AdpConnector {
     fn check_kind(&self, kind: &str) -> Result<()> {
         match kind {
             "worker" | "pay-statement" | "time-card" | "benefit-coverage" => Ok(()),
-            other => Err(ConnectorError::Unsupported(format!("adp entity_kind={other}"))),
+            other => Err(ConnectorError::Unsupported(format!(
+                "adp entity_kind={other}"
+            ))),
         }
     }
     fn seal(&self, ctx: &ConnectorCtx, op: &str, payload: &str) {
@@ -214,7 +213,10 @@ impl Connector for AdpConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let mut doc = self.get(ctx, entity_kind, id)?;
-        doc.insert(patch.field.clone(), patch.value.unwrap_or(EntityValue::Null));
+        doc.insert(
+            patch.field.clone(),
+            patch.value.unwrap_or(EntityValue::Null),
+        );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
         self.seal(ctx, "connector.update", id);
         Ok(doc)
@@ -308,7 +310,12 @@ mod tests {
     #[test]
     fn list_pay_statements() {
         let s = AdpConnector::new();
-        assert!(!s.list(&ctx(), "pay-statement", None).unwrap().items.is_empty());
+        assert!(
+            !s.list(&ctx(), "pay-statement", None)
+                .unwrap()
+                .items
+                .is_empty()
+        );
     }
     #[test]
     fn unsupported_kind_errors() {

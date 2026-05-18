@@ -1,8 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_shared_i18n_kernel::{
-    FluentI18nCatalog, I18nCatalog, LocaleTag, Message, MessageId,
-};
+use oya_shared_i18n_kernel::{FluentI18nCatalog, I18nCatalog, LocaleTag, Message, MessageId};
 
 fn id(s: &str) -> MessageId {
     MessageId::new(s).unwrap()

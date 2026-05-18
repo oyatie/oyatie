@@ -106,8 +106,8 @@ impl RegulatoryPack {
     pub const fn retention_floor_days(self) -> u32 {
         match self {
             Self::Generic | Self::Eu | Self::UsFinancial | Self::UsPublicSector => 2_555, // 7y
-            Self::Kr => 1_825,            // 5y
-            Self::UsHealthcare => 2_190,  // 6y
+            Self::Kr => 1_825,                                                            // 5y
+            Self::UsHealthcare => 2_190,                                                  // 6y
         }
     }
     #[must_use]
@@ -375,11 +375,7 @@ impl BackupExecutor for InMemoryBackupExecutor {
         }
         let mut ledger = self.lock();
         ledger.next_backup_id += 1;
-        let id = format!(
-            "{}-{:06}",
-            request.prong.wire_name(),
-            ledger.next_backup_id
-        );
+        let id = format!("{}-{:06}", request.prong.wire_name(), ledger.next_backup_id);
         let bytes = 1_024 * u64::from(request.retention_days);
         let entry = ledger
             .bytes_per_microservice
@@ -506,7 +502,10 @@ mod tests {
     fn bucket_without_oya_prefix_rejected() {
         let mut req = request(BackupProng::Filesystem, RegulatoryPack::Generic, 2_555);
         req.target.bucket = "not-oya-bucket".into();
-        assert_eq!(req.validate().unwrap_err(), BackupError::BucketNamingViolation);
+        assert_eq!(
+            req.validate().unwrap_err(),
+            BackupError::BucketNamingViolation
+        );
     }
 
     // ---- Cost-label enforcement (ADR-0199 D-1) ----
@@ -530,7 +529,11 @@ mod tests {
     fn velero_executor_runs_a_backup() {
         let exec = InMemoryBackupExecutor::new(BackupProng::KubernetesState);
         let outcome = exec
-            .run(&request(BackupProng::KubernetesState, RegulatoryPack::Generic, 2_555))
+            .run(&request(
+                BackupProng::KubernetesState,
+                RegulatoryPack::Generic,
+                2_555,
+            ))
             .unwrap();
         assert!(outcome.backup_id.starts_with("kubernetes-state-"));
         assert!(outcome.bytes_written > 0);
@@ -545,7 +548,11 @@ mod tests {
     fn executor_rejects_request_with_wrong_prong() {
         let exec = InMemoryBackupExecutor::new(BackupProng::KubernetesState);
         let err = exec
-            .run(&request(BackupProng::PostgresPitr, RegulatoryPack::Generic, 2_555))
+            .run(&request(
+                BackupProng::PostgresPitr,
+                RegulatoryPack::Generic,
+                2_555,
+            ))
             .unwrap_err();
         assert!(matches!(err, BackupError::AdapterFailure { .. }));
     }
@@ -565,10 +572,7 @@ mod tests {
     fn workload_rpo_rto_match_adr_table() {
         assert_eq!(WorkloadClass::App.rpo(), Duration::from_secs(15 * 60));
         assert_eq!(WorkloadClass::App.rto(), Duration::from_secs(60 * 60));
-        assert_eq!(
-            WorkloadClass::Regulatory.rpo(),
-            Duration::from_secs(5 * 60)
-        );
+        assert_eq!(WorkloadClass::Regulatory.rpo(), Duration::from_secs(5 * 60));
         assert_eq!(
             WorkloadClass::Regulatory.rto(),
             Duration::from_secs(30 * 60)

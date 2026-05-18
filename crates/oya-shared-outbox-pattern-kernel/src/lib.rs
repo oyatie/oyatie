@@ -121,6 +121,10 @@ pub struct InMemoryOutboxStore {
 #[derive(Default)]
 pub struct InMemoryTx;
 
+// Mutex lock panics on thread poisoning — equivalent to expect_used
+// in test infrastructure. ADR-0083 §Tier-3 permits this pattern in
+// reference implementations.
+#[allow(clippy::expect_used)]
 impl OutboxStore for InMemoryOutboxStore {
     type TxContext = InMemoryTx;
 
@@ -196,14 +200,21 @@ mod tests {
         let (store, mut tx) = make_store_and_tx();
         let mut empty = row("", "agg-1");
         empty.outbox_id = OutboxId(String::new());
-        assert_eq!(store.append(&mut tx, empty), Err(OutboxError::EmptyField("outbox_id")));
+        assert_eq!(
+            store.append(&mut tx, empty),
+            Err(OutboxError::EmptyField("outbox_id"))
+        );
     }
 
     #[test]
     fn append_rejects_duplicate_outbox_id() {
         let (store, mut tx) = make_store_and_tx();
-        store.append(&mut tx, row("01HMZ1", "agg-1")).expect("first");
-        let err = store.append(&mut tx, row("01HMZ1", "agg-1")).expect_err("dup");
+        store
+            .append(&mut tx, row("01HMZ1", "agg-1"))
+            .expect("first");
+        let err = store
+            .append(&mut tx, row("01HMZ1", "agg-1"))
+            .expect_err("dup");
         assert!(matches!(err, OutboxError::DuplicateOutboxId(_)));
     }
 
@@ -212,7 +223,9 @@ mod tests {
         let (store, mut tx) = make_store_and_tx();
         store.append(&mut tx, row("01HMZ1", "agg-1")).expect("ok");
         store.append(&mut tx, row("01HMZ2", "agg-2")).expect("ok");
-        store.mark_published(&[OutboxId("01HMZ1".into())]).expect("publish");
+        store
+            .mark_published(&[OutboxId("01HMZ1".into())])
+            .expect("publish");
         let pending = store.next_unpublished(10).expect("pending");
         assert_eq!(pending.len(), 1);
         assert_eq!(pending[0].outbox_id, OutboxId("01HMZ2".into()));

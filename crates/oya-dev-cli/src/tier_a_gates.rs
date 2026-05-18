@@ -52,10 +52,10 @@ fn read_optional_string(path: &Path) -> Option<String> {
 fn microservice_name_for(path: &Path) -> Option<String> {
     let mut iter = path.components();
     while let Some(c) = iter.next() {
-        if c.as_os_str() == OsStr::new("microservices") {
-            if let Some(next) = iter.next() {
-                return Some(next.as_os_str().to_string_lossy().to_string());
-            }
+        if c.as_os_str() == OsStr::new("microservices")
+            && let Some(next) = iter.next()
+        {
+            return Some(next.as_os_str().to_string_lossy().to_string());
         }
     }
     None
@@ -77,10 +77,10 @@ fn walk(dir: &Path, extensions: &[&str], out: &mut Vec<PathBuf>) {
         let p = entry.path();
         if p.is_dir() {
             walk(&p, extensions, out);
-        } else if let Some(ext) = p.extension().and_then(|e| e.to_str()) {
-            if extensions.iter().any(|e| e.eq_ignore_ascii_case(ext)) {
-                out.push(p);
-            }
+        } else if let Some(ext) = p.extension().and_then(|e| e.to_str())
+            && extensions.iter().any(|e| e.eq_ignore_ascii_case(ext))
+        {
+            out.push(p);
         }
     }
 }

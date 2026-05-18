@@ -90,11 +90,9 @@ pub fn required_artifacts_for(framework: ComplianceFramework) -> Vec<EvidenceArt
             VulnScanReport,
             PenTestReport,
         ],
-        ComplianceFramework::Gdpr => vec![
-            DsarCompletionRecord,
-            AccessReviewSnapshot,
-            VulnScanReport,
-        ],
+        ComplianceFramework::Gdpr => {
+            vec![DsarCompletionRecord, AccessReviewSnapshot, VulnScanReport]
+        }
         ComplianceFramework::Hipaa => vec![
             MinimumNecessaryAccessLog,
             BaaInventoryEntry,
@@ -114,12 +112,12 @@ pub fn required_artifacts_for(framework: ComplianceFramework) -> Vec<EvidenceArt
 /// tracks identity + seal hash + emit time.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EvidenceArtifact {
-    pub artifact_id: String,                 // data_class: INTERNAL_ONLY
-    pub kind: EvidenceArtifactKind,          // data_class: INTERNAL_ONLY
-    pub framework: ComplianceFramework,      // data_class: INTERNAL_ONLY
-    pub audit_chain_seal_hex: String,        // data_class: INTERNAL_ONLY
-    pub emitted_unix_ms: u64,                // data_class: INTERNAL_ONLY
-    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
+    pub artifact_id: String,            // data_class: INTERNAL_ONLY
+    pub kind: EvidenceArtifactKind,     // data_class: INTERNAL_ONLY
+    pub framework: ComplianceFramework, // data_class: INTERNAL_ONLY
+    pub audit_chain_seal_hex: String,   // data_class: INTERNAL_ONLY
+    pub emitted_unix_ms: u64,           // data_class: INTERNAL_ONLY
+    pub tenant_id: String,              // data_class: INTERNAL_ONLY
 }
 
 impl EvidenceArtifact {
@@ -214,11 +212,11 @@ pub fn coverage_gaps(
 /// can flag overdue requests.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct DsarRequest {
-    pub request_id: String,                  // data_class: INTERNAL_ONLY
-    pub tenant_id: String,                   // data_class: INTERNAL_ONLY
-    pub subject_id_pseudonym: String,        // data_class: INTERNAL_ONLY
-    pub opened_unix_ms: u64,                 // data_class: INTERNAL_ONLY
-    pub closed_unix_ms: Option<u64>,         // data_class: INTERNAL_ONLY
+    pub request_id: String,           // data_class: INTERNAL_ONLY
+    pub tenant_id: String,            // data_class: INTERNAL_ONLY
+    pub subject_id_pseudonym: String, // data_class: INTERNAL_ONLY
+    pub opened_unix_ms: u64,          // data_class: INTERNAL_ONLY
+    pub closed_unix_ms: Option<u64>,  // data_class: INTERNAL_ONLY
 }
 
 impl DsarRequest {
@@ -336,7 +334,10 @@ mod tests {
         )
         .unwrap();
         assert_eq!(gaps.len(), 4);
-        assert!(gaps.iter().all(|g| g.framework == ComplianceFramework::Soc2TypeII));
+        assert!(
+            gaps.iter()
+                .all(|g| g.framework == ComplianceFramework::Soc2TypeII)
+        );
         // Sanity: window cutoff
         let stale_gaps = coverage_gaps(
             "tenant_x",
@@ -356,13 +357,8 @@ mod tests {
             "tenant_other",
             10,
         );
-        let gaps = coverage_gaps(
-            "tenant_x",
-            &[other],
-            &[ComplianceFramework::Soc2TypeII],
-            0,
-        )
-        .unwrap();
+        let gaps =
+            coverage_gaps("tenant_x", &[other], &[ComplianceFramework::Soc2TypeII], 0).unwrap();
         // None of tenant_other's artifacts count for tenant_x.
         assert_eq!(gaps.len(), 6);
     }

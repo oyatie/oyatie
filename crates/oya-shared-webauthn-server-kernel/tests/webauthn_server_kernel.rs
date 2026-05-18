@@ -39,8 +39,12 @@ impl WebauthnRpAdapter for StubAdapter {
     fn generate_challenge(&self) -> Vec<u8> {
         (0u8..32).collect()
     }
-    fn rp_id(&self) -> &str { &self.rp_id }
-    fn rp_name(&self) -> &str { &self.rp_name }
+    fn rp_id(&self) -> &str {
+        &self.rp_id
+    }
+    fn rp_name(&self) -> &str {
+        &self.rp_name
+    }
 
     fn verify_registration(
         &self,
@@ -95,7 +99,10 @@ impl WebauthnRpAdapter for StubAdapter {
     }
 }
 
-fn srv(aaguid: Aaguid, allowlist: BTreeSet<Aaguid>) -> ReferenceWebauthnServer<StubAdapter, InMemoryChallengeStore, InMemoryCredentialStore> {
+fn srv(
+    aaguid: Aaguid,
+    allowlist: BTreeSet<Aaguid>,
+) -> ReferenceWebauthnServer<StubAdapter, InMemoryChallengeStore, InMemoryCredentialStore> {
     let mut s = ReferenceWebauthnServer::new(
         StubAdapter::new(aaguid),
         InMemoryChallengeStore::default(),
@@ -105,15 +112,31 @@ fn srv(aaguid: Aaguid, allowlist: BTreeSet<Aaguid>) -> ReferenceWebauthnServer<S
     s
 }
 
-fn tenant() -> TenantId { TenantId("tenant-acme".into()) }
-fn user() -> UserId { UserId("user-1".into()) }
+fn tenant() -> TenantId {
+    TenantId("tenant-acme".into())
+}
+fn user() -> UserId {
+    UserId("user-1".into())
+}
 
 #[test]
 fn pack_tier_attestation_requirements() {
-    assert_eq!(PackTier::SandboxOrDev.required_attestation(), AttestationConveyance::None);
-    assert_eq!(PackTier::PackStandard.required_attestation(), AttestationConveyance::Indirect);
-    assert_eq!(PackTier::PackRegulated.required_attestation(), AttestationConveyance::Direct);
-    assert_eq!(PackTier::AcrCritical.required_attestation(), AttestationConveyance::Direct);
+    assert_eq!(
+        PackTier::SandboxOrDev.required_attestation(),
+        AttestationConveyance::None
+    );
+    assert_eq!(
+        PackTier::PackStandard.required_attestation(),
+        AttestationConveyance::Indirect
+    );
+    assert_eq!(
+        PackTier::PackRegulated.required_attestation(),
+        AttestationConveyance::Direct
+    );
+    assert_eq!(
+        PackTier::AcrCritical.required_attestation(),
+        AttestationConveyance::Direct
+    );
     assert!(!PackTier::PackStandard.requires_aaguid_allowlist());
     assert!(PackTier::PackRegulated.requires_aaguid_allowlist());
     assert!(PackTier::AcrCritical.requires_aaguid_allowlist());
@@ -124,7 +147,13 @@ fn happy_path_register_then_authenticate() {
     let aaguid = Aaguid([1u8; 16]);
     let server = srv(aaguid, BTreeSet::new());
     let chal = server
-        .begin_registration(&tenant(), &user(), "Alice", PackTier::PackStandard, 1_700_000_000)
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Alice",
+            PackTier::PackStandard,
+            1_700_000_000,
+        )
         .expect("begin reg");
     assert_eq!(chal.attestation, AttestationConveyance::Indirect);
 
@@ -146,7 +175,12 @@ fn happy_path_register_then_authenticate() {
     assert_eq!(cred.user_id, user());
 
     let auth_chal = server
-        .begin_authentication(&tenant(), vec![cred.credential_id.clone()], Mediation::Optional, 1_700_000_050)
+        .begin_authentication(
+            &tenant(),
+            vec![cred.credential_id.clone()],
+            Mediation::Optional,
+            1_700_000_050,
+        )
         .expect("begin auth");
     let authed = server
         .finish_authentication(
@@ -172,7 +206,13 @@ fn regulated_pack_enforces_aaguid_allowlist() {
     // Empty allowlist → reject
     let server = srv(aaguid, BTreeSet::new());
     let chal = server
-        .begin_registration(&tenant(), &user(), "Bob", PackTier::PackRegulated, 1_700_000_000)
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Bob",
+            PackTier::PackRegulated,
+            1_700_000_000,
+        )
         .expect("begin");
     assert_eq!(chal.attestation, AttestationConveyance::Direct);
     let err = server
@@ -199,7 +239,13 @@ fn regulated_pack_with_allowlisted_aaguid_accepts() {
     al.insert(aaguid);
     let server = srv(aaguid, al);
     let chal = server
-        .begin_registration(&tenant(), &user(), "Carol", PackTier::PackRegulated, 1_700_000_000)
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Carol",
+            PackTier::PackRegulated,
+            1_700_000_000,
+        )
         .expect("begin");
     let cred = server
         .finish_registration(
@@ -222,7 +268,13 @@ fn regulated_pack_with_allowlisted_aaguid_accepts() {
 fn rejects_attestation_when_adapter_denies() {
     let server = srv(Aaguid([4u8; 16]), BTreeSet::new());
     let chal = server
-        .begin_registration(&tenant(), &user(), "Dave", PackTier::SandboxOrDev, 1_700_000_000)
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Dave",
+            PackTier::SandboxOrDev,
+            1_700_000_000,
+        )
         .expect("begin");
     let err = server
         .finish_registration(
@@ -246,7 +298,13 @@ fn rejects_sign_count_regression() {
     let aaguid = Aaguid([5u8; 16]);
     let server = srv(aaguid, BTreeSet::new());
     let chal = server
-        .begin_registration(&tenant(), &user(), "Eve", PackTier::PackStandard, 1_700_000_000)
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Eve",
+            PackTier::PackStandard,
+            1_700_000_000,
+        )
         .expect("begin");
     let cred = server
         .finish_registration(
@@ -265,7 +323,12 @@ fn rejects_sign_count_regression() {
 
     // First authentication: sign_count goes 0 → some N
     let auth_chal = server
-        .begin_authentication(&tenant(), vec![cred.credential_id.clone()], Mediation::Optional, 1_700_000_050)
+        .begin_authentication(
+            &tenant(),
+            vec![cred.credential_id.clone()],
+            Mediation::Optional,
+            1_700_000_050,
+        )
         .expect("begin");
     let r = server
         .finish_authentication(
@@ -285,7 +348,12 @@ fn rejects_sign_count_regression() {
 
     // Second authentication presenting LOWER sign count = cloned-authenticator alarm
     let auth_chal2 = server
-        .begin_authentication(&tenant(), vec![cred.credential_id.clone()], Mediation::Optional, 1_700_000_150)
+        .begin_authentication(
+            &tenant(),
+            vec![cred.credential_id.clone()],
+            Mediation::Optional,
+            1_700_000_150,
+        )
         .expect("begin");
     let err = server
         .finish_authentication(
@@ -301,7 +369,13 @@ fn rejects_sign_count_regression() {
             1_700_000_200,
         )
         .unwrap_err();
-    assert!(matches!(err, WebauthnError::SignCountRegression { stored: 10, presented: 5 }));
+    assert!(matches!(
+        err,
+        WebauthnError::SignCountRegression {
+            stored: 10,
+            presented: 5
+        }
+    ));
 }
 
 #[test]
@@ -365,7 +439,13 @@ fn exclude_credentials_returns_user_existing_set() {
     // Register two credentials for the user.
     for _ in 0..2 {
         let chal = server
-            .begin_registration(&tenant(), &user(), "Frank", PackTier::PackStandard, 1_700_000_000)
+            .begin_registration(
+                &tenant(),
+                &user(),
+                "Frank",
+                PackTier::PackStandard,
+                1_700_000_000,
+            )
             .expect("begin");
         server
             .finish_registration(
@@ -384,7 +464,13 @@ fn exclude_credentials_returns_user_existing_set() {
     }
 
     let chal3 = server
-        .begin_registration(&tenant(), &user(), "Frank", PackTier::PackStandard, 1_700_000_001)
+        .begin_registration(
+            &tenant(),
+            &user(),
+            "Frank",
+            PackTier::PackStandard,
+            1_700_000_001,
+        )
         .expect("begin");
     // The exclude_credentials in the 3rd challenge should already contain
     // the previous registrations.

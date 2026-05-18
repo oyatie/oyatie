@@ -10,10 +10,10 @@
 //!
 //! Per ADR-0083, the kernel is I/O-free. Adapter crates:
 //!   - `oya-shared-timeseries-timescaledb-adapter` — Postgres 18.4 +
-//!      TimescaleDB 2.26 community extension; tokio-postgres at the
-//!      adapter layer.
+//!     TimescaleDB 2.26 community extension; tokio-postgres at the
+//!     adapter layer.
 //!   - `oya-shared-timeseries-memory-adapter` — in-process reference impl
-//!      shipped here as a module for tests.
+//!     shipped here as a module for tests.
 //!
 //! ## In-house roadmap parity (ADR-0194 §"In-house roadmap")
 //!
@@ -259,16 +259,24 @@ pub enum SeriesValue {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum KernelError {
     TenantIdEmpty,
-    TenantIdTooLong { actual: usize },
+    TenantIdTooLong {
+        actual: usize,
+    },
     TenantIdInvalidChar,
     HypertableNameEmpty,
-    HypertableNameTooLong { actual: usize },
+    HypertableNameTooLong {
+        actual: usize,
+    },
     HypertableNameInvalidChar,
     /// TSL-fence violation per ADR-0194 §"TSL component fence".
-    TslFenceViolation { function_name: String },
+    TslFenceViolation {
+        function_name: String,
+    },
     /// `time_bucket` is required in continuous-aggregate SELECT expressions.
     ContinuousAggregateMissingTimeBucket,
-    UnknownColumn { column: String },
+    UnknownColumn {
+        column: String,
+    },
     AdapterError(String),
 }
 
@@ -276,13 +284,23 @@ impl fmt::Display for KernelError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::TenantIdEmpty => write!(f, "tenant id is empty"),
-            Self::TenantIdTooLong { actual } => write!(f, "tenant id length {actual} exceeds {TENANT_ID_MAX_LEN}"),
+            Self::TenantIdTooLong { actual } => {
+                write!(f, "tenant id length {actual} exceeds {TENANT_ID_MAX_LEN}")
+            }
             Self::TenantIdInvalidChar => write!(f, "tenant id contains invalid character"),
             Self::HypertableNameEmpty => write!(f, "hypertable name is empty"),
-            Self::HypertableNameTooLong { actual } => write!(f, "hypertable name length {actual} exceeds {HYPERTABLE_NAME_MAX_LEN}"),
-            Self::HypertableNameInvalidChar => write!(f, "hypertable name contains invalid character"),
+            Self::HypertableNameTooLong { actual } => write!(
+                f,
+                "hypertable name length {actual} exceeds {HYPERTABLE_NAME_MAX_LEN}"
+            ),
+            Self::HypertableNameInvalidChar => {
+                write!(f, "hypertable name contains invalid character")
+            }
             Self::TslFenceViolation { function_name } => {
-                write!(f, "TSL fence violation: function {function_name} is TSL-only (ADR-0194)")
+                write!(
+                    f,
+                    "TSL fence violation: function {function_name} is TSL-only (ADR-0194)"
+                )
             }
             Self::ContinuousAggregateMissingTimeBucket => {
                 write!(f, "continuous aggregate SELECT must use time_bucket()")
@@ -412,7 +430,8 @@ pub mod memory_adapter {
             schema: &ContinuousAggregateSchema,
         ) -> Result<(), KernelError> {
             validate_cagg_select(&schema.select_expr)?;
-            self.views.insert(schema.view_name.as_str().to_string(), schema.clone());
+            self.views
+                .insert(schema.view_name.as_str().to_string(), schema.clone());
             Ok(())
         }
 
@@ -495,7 +514,10 @@ mod tests {
 
     #[test]
     fn cardinality_class_classifies_series_count() {
-        assert_eq!(CardinalityClass::classify_series_count(500), CardinalityClass::Low);
+        assert_eq!(
+            CardinalityClass::classify_series_count(500),
+            CardinalityClass::Low
+        );
         assert_eq!(
             CardinalityClass::classify_series_count(50_000),
             CardinalityClass::Medium
@@ -543,10 +565,12 @@ mod tests {
             validate_cagg_select("SELECT tenant_id, count(*) FROM events GROUP BY tenant_id"),
             Err(KernelError::ContinuousAggregateMissingTimeBucket)
         );
-        assert!(validate_cagg_select(
-            "SELECT time_bucket('1 hour', ts) AS bucket, tenant_id, count(*) FROM events"
-        )
-        .is_ok());
+        assert!(
+            validate_cagg_select(
+                "SELECT time_bucket('1 hour', ts) AS bucket, tenant_id, count(*) FROM events"
+            )
+            .is_ok()
+        );
     }
 
     #[test]
@@ -676,8 +700,7 @@ mod tests {
         s.ensure_continuous_aggregate(&ContinuousAggregateSchema {
             view_name: view.clone(),
             source: source.clone(),
-            select_expr:
-                "SELECT time_bucket('1 hour', ts) AS bucket, count(*) FROM events".into(),
+            select_expr: "SELECT time_bucket('1 hour', ts) AS bucket, count(*) FROM events".into(),
             refresh_interval_seconds: 300,
         })
         .unwrap();
@@ -708,8 +731,9 @@ mod tests {
             .ensure_continuous_aggregate(&ContinuousAggregateSchema {
                 view_name: view,
                 source,
-                select_expr: "SELECT time_bucket('1 hour', ts), approx_percentile(0.99, v) FROM events"
-                    .into(),
+                select_expr:
+                    "SELECT time_bucket('1 hour', ts), approx_percentile(0.99, v) FROM events"
+                        .into(),
                 refresh_interval_seconds: 300,
             })
             .unwrap_err();

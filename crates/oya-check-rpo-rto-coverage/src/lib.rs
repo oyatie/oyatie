@@ -34,11 +34,11 @@ pub struct Finding {
 /// Five-tier RTO model per ADR-0152.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RtoTier {
-    Realtime,    // < 5 min
-    Hot,         // < 1 h
-    Warm,        // < 4 h
-    Cold,        // < 24 h
-    BestEffort,  // best-effort
+    Realtime,   // < 5 min
+    Hot,        // < 1 h
+    Warm,       // < 4 h
+    Cold,       // < 24 h
+    BestEffort, // best-effort
 }
 
 impl RtoTier {

@@ -91,7 +91,8 @@ pub fn audit_all(documents: Vec<OpenApiDocument>) -> (CoverageReport, Vec<Findin
                         path: doc.path.clone(),
                         microservice: doc.microservice.clone(),
                         line: idx + 1,
-                        message: "list operation missing cursor + page_size parameters (ADR-0150)".into(),
+                        message: "list operation missing cursor + page_size parameters (ADR-0150)"
+                            .into(),
                     });
                 }
             }
@@ -162,7 +163,11 @@ paths:
             contents: yaml.into(),
         };
         let (_report, findings) = audit_all(vec![doc]);
-        assert!(findings.iter().any(|f| f.message.contains("missing cursor")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("missing cursor"))
+        );
     }
 
     #[test]

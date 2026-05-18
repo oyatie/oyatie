@@ -190,20 +190,30 @@ pub struct ObjectMetadata {
 pub enum ObjectStoreError {
     InvalidBucketName,
     InvalidObjectKey,
-    PresignTtlExceeded { requested_seconds: u64, cap_seconds: u64 },
+    PresignTtlExceeded {
+        requested_seconds: u64,
+        cap_seconds: u64,
+    },
     PresignTtlInvalid,
-    NotFound { bucket: String, key: String },
-    IntegrityFailure { bucket: String, key: String },
-    BackendUnavailable { detail: String },
+    NotFound {
+        bucket: String,
+        key: String,
+    },
+    IntegrityFailure {
+        bucket: String,
+        key: String,
+    },
+    BackendUnavailable {
+        detail: String,
+    },
 }
 
 impl fmt::Display for ObjectStoreError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::InvalidBucketName => write!(
-                f,
-                "invalid bucket name (ADR-0196 D-3 canonical convention)"
-            ),
+            Self::InvalidBucketName => {
+                write!(f, "invalid bucket name (ADR-0196 D-3 canonical convention)")
+            }
             Self::InvalidObjectKey => write!(f, "invalid object key"),
             Self::PresignTtlExceeded {
                 requested_seconds,
@@ -245,7 +255,11 @@ pub trait ObjectStore: Send + Sync {
     /// Returns `ObjectStoreError::NotFound` if the object does not exist;
     /// `ObjectStoreError::BackendUnavailable` on transient backend
     /// failure.
-    fn head(&self, bucket: &BucketName, key: &ObjectKey) -> Result<ObjectMetadata, ObjectStoreError>;
+    fn head(
+        &self,
+        bucket: &BucketName,
+        key: &ObjectKey,
+    ) -> Result<ObjectMetadata, ObjectStoreError>;
 
     /// Get object bytes.
     ///
@@ -346,7 +360,11 @@ impl InMemoryObjectStore {
 }
 
 impl ObjectStore for InMemoryObjectStore {
-    fn head(&self, bucket: &BucketName, key: &ObjectKey) -> Result<ObjectMetadata, ObjectStoreError> {
+    fn head(
+        &self,
+        bucket: &BucketName,
+        key: &ObjectKey,
+    ) -> Result<ObjectMetadata, ObjectStoreError> {
         let store = self.lock();
         store
             .objects
@@ -369,13 +387,13 @@ impl ObjectStore for InMemoryObjectStore {
             })?;
         // Integrity check (ADR-0196 D-6): re-compute and compare.
         let actual = Self::compute_sha256_hex(bytes);
-        if let Some(expected) = &meta.sha256_hex {
-            if &actual != expected {
-                return Err(ObjectStoreError::IntegrityFailure {
-                    bucket: bucket.as_str().to_string(),
-                    key: key.as_str().to_string(),
-                });
-            }
+        if let Some(expected) = &meta.sha256_hex
+            && &actual != expected
+        {
+            return Err(ObjectStoreError::IntegrityFailure {
+                bucket: bucket.as_str().to_string(),
+                key: key.as_str().to_string(),
+            });
         }
         Ok(bytes.clone())
     }
@@ -558,7 +576,10 @@ mod tests {
             ttl: Duration::ZERO,
             content_type: None,
         };
-        assert_eq!(req.validate().unwrap_err(), ObjectStoreError::PresignTtlInvalid);
+        assert_eq!(
+            req.validate().unwrap_err(),
+            ObjectStoreError::PresignTtlInvalid
+        );
     }
 
     // ---- In-memory adapter round-trip ----

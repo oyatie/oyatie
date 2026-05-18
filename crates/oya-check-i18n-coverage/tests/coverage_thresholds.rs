@@ -80,8 +80,16 @@ fn missing_ids_reported_sorted_for_gap() {
         min_coverage_bps: 10_000,
     };
     let r = check(&[input]);
-    assert!(r.gaps[0].missing_message_ids.contains(&"cancel".to_string()));
-    assert!(r.gaps[0].missing_message_ids.contains(&"delete".to_string()));
+    assert!(
+        r.gaps[0]
+            .missing_message_ids
+            .contains(&"cancel".to_string())
+    );
+    assert!(
+        r.gaps[0]
+            .missing_message_ids
+            .contains(&"delete".to_string())
+    );
 }
 
 #[test]

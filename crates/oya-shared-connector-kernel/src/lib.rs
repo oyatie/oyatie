@@ -112,7 +112,11 @@ impl SecretReference {
 impl fmt::Debug for SecretReference {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Show path tag only; never the resolved secret.
-        write!(f, "SecretReference(path=[REDACTED:{} chars])", self.path.len())
+        write!(
+            f,
+            "SecretReference(path=[REDACTED:{} chars])",
+            self.path.len()
+        )
     }
 }
 
@@ -517,7 +521,11 @@ impl OntologyProjection {
         }
     }
     /// Map an ontology field to an entity field.
-    pub fn map_field(mut self, ontology_field: impl Into<String>, entity_field: impl Into<String>) -> Self {
+    pub fn map_field(
+        mut self,
+        ontology_field: impl Into<String>,
+        entity_field: impl Into<String>,
+    ) -> Self {
         self.field_map
             .insert(ontology_field.into(), entity_field.into());
         self
@@ -603,7 +611,12 @@ pub trait Connector: Send + Sync {
     ) -> Result<Page, ConnectorError>;
 
     /// Read a single entity by id.
-    fn get(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<EntityDoc, ConnectorError>;
+    fn get(
+        &self,
+        ctx: &ConnectorCtx,
+        entity_kind: &str,
+        id: &str,
+    ) -> Result<EntityDoc, ConnectorError>;
 
     /// Create a new entity. `idempotency_key` enforces at-most-once.
     fn create(
@@ -625,7 +638,8 @@ pub trait Connector: Send + Sync {
     ) -> Result<EntityDoc, ConnectorError>;
 
     /// Delete an entity.
-    fn delete(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str) -> Result<(), ConnectorError>;
+    fn delete(&self, ctx: &ConnectorCtx, entity_kind: &str, id: &str)
+    -> Result<(), ConnectorError>;
 
     /// Subscribe to change events on the given entity kinds.
     fn subscribe(

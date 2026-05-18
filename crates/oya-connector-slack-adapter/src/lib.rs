@@ -176,19 +176,16 @@ impl Connector for SlackConnector {
         }
     }
 
-    fn list(
-        &self,
-        ctx: &ConnectorCtx,
-        entity_kind: &str,
-        cursor: Option<Cursor>,
-    ) -> Result<Page> {
+    fn list(&self, ctx: &ConnectorCtx, entity_kind: &str, cursor: Option<Cursor>) -> Result<Page> {
         self.check_kind(entity_kind)?;
         self.seal(ctx, "connector.list", entity_kind);
         let store = self.lock_store();
         let by_kind = store
             .get(ctx.tenant_id().as_str())
             .and_then(|m| m.get(entity_kind));
-        let mut items: Vec<EntityDoc> = by_kind.map(|m| m.values().cloned().collect()).unwrap_or_default();
+        let mut items: Vec<EntityDoc> = by_kind
+            .map(|m| m.values().cloned().collect())
+            .unwrap_or_default();
         // 100-per-page cursor; cursor is the next start index as a string.
         let start: usize = cursor
             .as_ref()
@@ -197,7 +194,11 @@ impl Connector for SlackConnector {
         const PAGE: usize = 100;
         let end = std::cmp::min(start + PAGE, items.len());
         let page = items.drain(start..end).collect();
-        let next = if end < start + PAGE { None } else { Cursor::new(end.to_string()).ok() };
+        let next = if end < start + PAGE {
+            None
+        } else {
+            Cursor::new(end.to_string()).ok()
+        };
         Ok(Page {
             items: page,
             next_cursor: next,
@@ -294,7 +295,9 @@ impl Connector for SlackConnector {
             .and_then(|m| m.remove(id))
             .is_some();
         if !removed {
-            return Err(ConnectorError::NotFound(format!("slack {entity_kind}/{id}")));
+            return Err(ConnectorError::NotFound(format!(
+                "slack {entity_kind}/{id}"
+            )));
         }
         self.lock_events().push_back(Event {
             entity_kind: entity_kind.to_owned(),
@@ -458,10 +461,7 @@ mod tests {
             )
             .unwrap();
         let got = s.get(&ctx(), "conversation", "C0001").unwrap();
-        assert_eq!(
-            got.get("name"),
-            Some(&EntityValue::Str("renamed".into()))
-        );
+        assert_eq!(got.get("name"), Some(&EntityValue::Str("renamed".into())));
     }
 
     #[test]

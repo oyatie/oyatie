@@ -188,7 +188,10 @@ pub enum WasmRuntimeError {
     /// Memory ceiling tripped.
     MemoryCeilingTripped { class: SandboxClass, ceiling: u64 },
     /// Wall-clock ceiling tripped.
-    WallClockExceeded { class: SandboxClass, ceiling: Duration },
+    WallClockExceeded {
+        class: SandboxClass,
+        ceiling: Duration,
+    },
     /// Capability token invalid for (tenant, class, call-site).
     CapabilityTokenInvalid,
     /// Entrypoint not exported by the module.
@@ -210,7 +213,10 @@ impl fmt::Display for WasmRuntimeError {
                 write!(f, "fuel exhausted in {class} (ceiling {ceiling})")
             }
             WasmRuntimeError::MemoryCeilingTripped { class, ceiling } => {
-                write!(f, "memory ceiling tripped in {class} (ceiling {ceiling} bytes)")
+                write!(
+                    f,
+                    "memory ceiling tripped in {class} (ceiling {ceiling} bytes)"
+                )
             }
             WasmRuntimeError::WallClockExceeded { class, ceiling } => {
                 write!(f, "wall-clock exceeded in {class} (ceiling {ceiling:?})")

@@ -321,7 +321,11 @@ mod tests {
 
     #[test]
     fn vector_backend_label_round_trips() {
-        for b in [VectorBackend::Pgvector, VectorBackend::Milvus, VectorBackend::InHouse] {
+        for b in [
+            VectorBackend::Pgvector,
+            VectorBackend::Milvus,
+            VectorBackend::InHouse,
+        ] {
             assert_eq!(VectorBackend::parse_label(b.label()), Some(b));
         }
         assert_eq!(VectorBackend::parse_label("unknown"), None);
@@ -330,9 +334,27 @@ mod tests {
     #[test]
     fn multi_record_only_offenders_flagged() {
         let records = vec![
-            rec("foundry", "ten_a", "rag", VectorBackend::Pgvector, 5_000_000),
-            rec("foundry", "ten_b", "rag", VectorBackend::Pgvector, 50_000_000), // OVER
-            rec("foundry", "ten_c", "rag", VectorBackend::Milvus, 500_000_000),
+            rec(
+                "foundry",
+                "ten_a",
+                "rag",
+                VectorBackend::Pgvector,
+                5_000_000,
+            ),
+            rec(
+                "foundry",
+                "ten_b",
+                "rag",
+                VectorBackend::Pgvector,
+                50_000_000,
+            ), // OVER
+            rec(
+                "foundry",
+                "ten_c",
+                "rag",
+                VectorBackend::Milvus,
+                500_000_000,
+            ),
             rec("search", "ten_a", "rag", VectorBackend::Pgvector, 1),
         ];
         let r = check(&records).unwrap();

@@ -56,8 +56,10 @@ pub fn audit_all(documents: Vec<WorkflowDocument>) -> (Report, Vec<Finding>) {
         if lower.contains("trivy") {
             trivy_present = true;
         }
-        if doc.path.ends_with("slsa.yml") || doc.path.ends_with("slsa.yaml")
-            || lower.contains("slsa-github-generator") || lower.contains("slsa-framework")
+        if doc.path.ends_with("slsa.yml")
+            || doc.path.ends_with("slsa.yaml")
+            || lower.contains("slsa-github-generator")
+            || lower.contains("slsa-framework")
         {
             slsa_present = true;
         }
@@ -100,7 +102,11 @@ mod tests {
         let docs: Vec<WorkflowDocument> = vec![];
         let (report, findings) = audit_all(docs);
         assert!(!report.cosign_present);
-        assert!(findings.iter().any(|f| f.message.contains("cosign workflow")));
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.message.contains("cosign workflow"))
+        );
     }
 
     #[test]

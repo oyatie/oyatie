@@ -46,24 +46,40 @@ pub struct DisciplineReport {
 }
 
 impl DisciplineReport {
-    pub fn ok(&self) -> bool { self.findings.is_empty() }
+    pub fn ok(&self) -> bool {
+        self.findings.is_empty()
+    }
 }
 
 const CEDAR_FORBIDDEN_NEEDLES: &[&str] = &[
     // Network-layer attributes belong at the edge per ADR-0191.
-    "client_ip", "remote_ip", "source_ip",
-    "asn", "geoip", "country_code", "geolocation",
-    "rate_limit", "ratelimit",
-    "waf", "bot_score", "ddos",
+    "client_ip",
+    "remote_ip",
+    "source_ip",
+    "asn",
+    "geoip",
+    "country_code",
+    "geolocation",
+    "rate_limit",
+    "ratelimit",
+    "waf",
+    "bot_score",
+    "ddos",
     "user_agent_regex",
 ];
 
 const ENVOY_FORBIDDEN_NEEDLES: &[&str] = &[
     // Identity / principal-aware concerns belong at the origin per ADR-0191.
-    "principal.acr", "acr_level", "acr_required",
-    "principal.tenant_id", "tenant_residency", "data_class",
-    "purpose_binding", "step_up_required",
-    "cedar_principal", "oidc_subject",
+    "principal.acr",
+    "acr_level",
+    "acr_required",
+    "principal.tenant_id",
+    "tenant_residency",
+    "data_class",
+    "purpose_binding",
+    "step_up_required",
+    "cedar_principal",
+    "oidc_subject",
 ];
 
 /// Suppression marker: a line ending with `// authz-tier-discipline: ok
@@ -75,7 +91,9 @@ fn line_is_suppressed(line: &str) -> bool {
 pub fn scan_cedar(file: &str, body: &str) -> DisciplineReport {
     let mut findings = Vec::new();
     for (idx, line) in body.lines().enumerate() {
-        if line_is_suppressed(line) { continue; }
+        if line_is_suppressed(line) {
+            continue;
+        }
         let lc = line.to_ascii_lowercase();
         for needle in CEDAR_FORBIDDEN_NEEDLES {
             if lc.contains(needle) {
@@ -99,7 +117,9 @@ pub fn scan_cedar(file: &str, body: &str) -> DisciplineReport {
 pub fn scan_envoy_filter(file: &str, body: &str) -> DisciplineReport {
     let mut findings = Vec::new();
     for (idx, line) in body.lines().enumerate() {
-        if line_is_suppressed(line) { continue; }
+        if line_is_suppressed(line) {
+            continue;
+        }
         let lc = line.to_ascii_lowercase();
         for needle in ENVOY_FORBIDDEN_NEEDLES {
             if lc.contains(needle) {

@@ -70,9 +70,9 @@ impl RealtimeTransportTier {
 /// resume.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct RealtimeSubscription {
-    pub subscription_id: String,            // data_class: INTERNAL_ONLY
-    pub tier: RealtimeTransportTier,        // data_class: INTERNAL_ONLY
-    pub last_event_id: Option<String>,      // data_class: INTERNAL_ONLY
+    pub subscription_id: String,       // data_class: INTERNAL_ONLY
+    pub tier: RealtimeTransportTier,   // data_class: INTERNAL_ONLY
+    pub last_event_id: Option<String>, // data_class: INTERNAL_ONLY
 }
 
 impl RealtimeSubscription {
@@ -199,9 +199,13 @@ impl RealtimeTransport for WebSocketTransport {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RealtimeError {
-    UnknownTransportTier { label: String },
+    UnknownTransportTier {
+        label: String,
+    },
     EmptySubscriptionId,
-    MalformedSubscriptionId { subscription_id: String },
+    MalformedSubscriptionId {
+        subscription_id: String,
+    },
     EmptyResumeToken,
     TierMismatch {
         expected: RealtimeTransportTier,
@@ -233,9 +237,7 @@ impl RealtimeError {
             Self::PayloadBudgetExceeded {
                 actual_bytes,
                 budget_bytes,
-            } => format!(
-                "payload budget exceeded: actual={actual_bytes}B budget={budget_bytes}B"
-            ),
+            } => format!("payload budget exceeded: actual={actual_bytes}B budget={budget_bytes}B"),
             Self::GrpcStreamingNotClientFacing => {
                 "gRPC streaming is not allowed for client-facing surfaces".to_owned()
             }
@@ -304,11 +306,9 @@ mod tests {
 
     #[test]
     fn subscription_validates_id_and_supports_resume() {
-        let sub = RealtimeSubscription::new(
-            "sub_canvas_42".into(),
-            RealtimeTransportTier::WebSocket,
-        )
-        .unwrap();
+        let sub =
+            RealtimeSubscription::new("sub_canvas_42".into(), RealtimeTransportTier::WebSocket)
+                .unwrap();
         assert_eq!(sub.last_event_id, None);
         let resumed = sub.with_resume("evt_99".into()).unwrap();
         assert_eq!(resumed.last_event_id.as_deref(), Some("evt_99"));
@@ -334,8 +334,7 @@ mod tests {
             4 << 20
         );
         assert_eq!(
-            PayloadBudget::defaults_for(RealtimeTransportTier::GrpcStreaming)
-                .max_payload_bytes,
+            PayloadBudget::defaults_for(RealtimeTransportTier::GrpcStreaming).max_payload_bytes,
             16 << 20
         );
     }
@@ -357,11 +356,7 @@ mod tests {
 
     #[test]
     fn admit_rejects_tier_mismatch() {
-        let sub = RealtimeSubscription::new(
-            "sub_x".into(),
-            RealtimeTransportTier::Sse,
-        )
-        .unwrap();
+        let sub = RealtimeSubscription::new("sub_x".into(), RealtimeTransportTier::Sse).unwrap();
         let ws = WebSocketTransport;
         assert!(matches!(
             ws.admit(&sub),

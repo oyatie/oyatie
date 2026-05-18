@@ -10,10 +10,10 @@
 //! pure logic and NO I/O. Engine bindings live in adapter crates:
 //!   - `oya-shared-vector-store-milvus-adapter` — Milvus 2.6.x via gRPC.
 //!   - `oya-shared-vector-store-pgvector-adapter` — embedded-tier pgvector
-//!      for ≤10M-vector tenants (per ADR-0192 ceiling rule).
+//!     for ≤10M-vector tenants (per ADR-0192 ceiling rule).
 //!   - `oya-shared-vector-store-memory-adapter` — in-process reference impl
-//!      shipped in this crate as a public sub-module (`memory_adapter`) so
-//!      consumer crates can run their own tests without spinning Milvus.
+//!     shipped in this crate as a public sub-module (`memory_adapter`) so
+//!     consumer crates can run their own tests without spinning Milvus.
 //!
 //! The kernel forbids cross-tenant search at construction time: every
 //! [`VectorSearchRequest`] carries a `TenantId` and the canonical
@@ -352,11 +352,7 @@ pub struct VectorSearchRequest {
 }
 
 impl VectorSearchRequest {
-    pub fn canonical_hnsw(
-        collection: CollectionName,
-        query_embedding: Vec<f32>,
-        k: u32,
-    ) -> Self {
+    pub fn canonical_hnsw(collection: CollectionName, query_embedding: Vec<f32>, k: u32) -> Self {
         Self {
             collection,
             data_class: None,
@@ -389,17 +385,31 @@ pub struct DsrCascade {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum KernelError {
     TenantIdEmpty,
-    TenantIdTooLong { actual: usize },
+    TenantIdTooLong {
+        actual: usize,
+    },
     TenantIdInvalidChar,
     CollectionDomainEmpty,
-    CollectionDomainTooLong { actual: usize },
+    CollectionDomainTooLong {
+        actual: usize,
+    },
     CollectionDomainInvalidChar,
-    DimensionMismatch { expected: u32, actual: u32 },
-    InvalidDimension { value: u32 },
+    DimensionMismatch {
+        expected: u32,
+        actual: u32,
+    },
+    InvalidDimension {
+        value: u32,
+    },
     EmptyEmbedding,
-    EmbeddingTooLargeForCustomDim { dim: u32 },
+    EmbeddingTooLargeForCustomDim {
+        dim: u32,
+    },
     KZero,
-    KTooLarge { requested: u32, limit: u32 },
+    KTooLarge {
+        requested: u32,
+        limit: u32,
+    },
     /// The embedded-tier (pgvector) path was selected for a collection whose
     /// per-tenant vector count exceeds the ADR-0192 ceiling. The kernel
     /// directs the caller to delegate to the Milvus adapter (or the in-house
@@ -432,7 +442,10 @@ impl fmt::Display for KernelError {
                 write!(f, "collection domain contains invalid character")
             }
             Self::DimensionMismatch { expected, actual } => {
-                write!(f, "vector dimension {actual} does not match expected {expected}")
+                write!(
+                    f,
+                    "vector dimension {actual} does not match expected {expected}"
+                )
             }
             Self::InvalidDimension { value } => write!(f, "vector dimension {value} out of range"),
             Self::EmptyEmbedding => write!(f, "embedding is empty"),
@@ -505,10 +518,18 @@ pub fn normalize_hit_ordering(
     let mut hits = hits;
     match metric {
         DistanceMetric::Cosine | DistanceMetric::L2 => {
-            hits.sort_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap_or(std::cmp::Ordering::Equal));
+            hits.sort_by(|a, b| {
+                a.distance
+                    .partial_cmp(&b.distance)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
         }
         DistanceMetric::InnerProduct => {
-            hits.sort_by(|a, b| b.distance.partial_cmp(&a.distance).unwrap_or(std::cmp::Ordering::Equal));
+            hits.sort_by(|a, b| {
+                b.distance
+                    .partial_cmp(&a.distance)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
         }
     }
     hits
@@ -621,7 +642,9 @@ pub mod memory_adapter {
                     ))
                 })?;
             validate_embedding_dim(&record.embedding, state.schema.dimension)?;
-            state.records.insert(record.source_id.clone(), record.clone());
+            state
+                .records
+                .insert(record.source_id.clone(), record.clone());
             Ok(())
         }
 
@@ -654,11 +677,7 @@ pub mod memory_adapter {
                 })
                 .map(|r| VectorSearchHit {
                     source_id: r.source_id.clone(),
-                    distance: distance(
-                        &request.query_embedding,
-                        &r.embedding,
-                        state.schema.metric,
-                    ),
+                    distance: distance(&request.query_embedding, &r.embedding, state.schema.metric),
                     data_class: r.data_class,
                 })
                 .collect();
@@ -686,15 +705,12 @@ pub mod memory_adapter {
         }
 
         fn count(&self, collection: &CollectionName) -> Result<u64, KernelError> {
-            let state = self
-                .collections
-                .get(collection.as_str())
-                .ok_or_else(|| {
-                    KernelError::AdapterError(format!(
-                        "collection {} does not exist",
-                        collection.as_str()
-                    ))
-                })?;
+            let state = self.collections.get(collection.as_str()).ok_or_else(|| {
+                KernelError::AdapterError(format!(
+                    "collection {} does not exist",
+                    collection.as_str()
+                ))
+            })?;
             Ok(state.records.len() as u64)
         }
     }
@@ -716,9 +732,7 @@ pub mod memory_adapter {
                 }
                 1.0 - dot / (na * nb)
             }
-            DistanceMetric::InnerProduct => {
-                a.iter().zip(b.iter()).map(|(x, y)| x * y).sum::<f32>()
-            }
+            DistanceMetric::InnerProduct => a.iter().zip(b.iter()).map(|(x, y)| x * y).sum::<f32>(),
         }
     }
 }
@@ -866,11 +880,8 @@ mod tests {
     #[test]
     fn canonical_hnsw_schema_uses_pinned_defaults() {
         let coll = CollectionName::new(tid("ten_acme"), dom("rag_corpus"));
-        let schema = CollectionSchema::canonical_hnsw(
-            coll,
-            VectorDimension::D1024,
-            DistanceMetric::Cosine,
-        );
+        let schema =
+            CollectionSchema::canonical_hnsw(coll, VectorDimension::D1024, DistanceMetric::Cosine);
         assert_eq!(schema.index_type, IndexType::Hnsw);
         assert_eq!(schema.hnsw_m, 16);
         assert_eq!(schema.hnsw_ef_construction, 200);

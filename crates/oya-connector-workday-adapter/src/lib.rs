@@ -68,7 +68,10 @@ impl WorkdayConnector {
                 d.insert("active", EntityValue::Bool(true));
                 self.put(tenant, "worker", &id, d);
             }
-            for (jid, name) in [("JP-001", "Software Engineer"), ("JP-002", "Product Manager")] {
+            for (jid, name) in [
+                ("JP-001", "Software Engineer"),
+                ("JP-002", "Product Manager"),
+            ] {
                 let mut d = EntityDoc::new();
                 d.insert("id", EntityValue::Str(jid.to_owned()));
                 d.insert("name", EntityValue::Str(name.to_owned()));
@@ -263,8 +266,7 @@ impl Connector for WorkdayConnector {
                 .map_field("givenName", "givenName")
                 .map_field("familyName", "familyName")
                 .map_field("active", "active"),
-            OntologyProjection::new("JobProfile", "workday:job-profile")
-                .map_field("name", "name"),
+            OntologyProjection::new("JobProfile", "workday:job-profile").map_field("name", "name"),
         ]
     }
 }

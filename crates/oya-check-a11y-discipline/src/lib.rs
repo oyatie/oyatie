@@ -79,10 +79,10 @@ pub fn allowed_runners(stack: ClientStack) -> Vec<&'static str> {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ClientStackManifest {
-    pub microservice: String,                // data_class: INTERNAL_ONLY
-    pub stack: ClientStack,                  // data_class: INTERNAL_ONLY
-    pub wcag_target: WcagTarget,             // data_class: INTERNAL_ONLY
-    pub declared_runners: BTreeSet<String>,  // data_class: INTERNAL_ONLY
+    pub microservice: String,               // data_class: INTERNAL_ONLY
+    pub stack: ClientStack,                 // data_class: INTERNAL_ONLY
+    pub wcag_target: WcagTarget,            // data_class: INTERNAL_ONLY
+    pub declared_runners: BTreeSet<String>, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -119,8 +119,7 @@ pub fn check(manifests: &[ClientStackManifest]) -> A11yReport {
             });
             continue;
         }
-        let allowed: BTreeSet<&'static str> =
-            allowed_runners(m.stack).into_iter().collect();
+        let allowed: BTreeSet<&'static str> = allowed_runners(m.stack).into_iter().collect();
         for runner in &m.declared_runners {
             if !allowed.contains(runner.as_str()) {
                 gaps.push(A11yGap {
@@ -144,7 +143,12 @@ pub fn check(manifests: &[ClientStackManifest]) -> A11yReport {
 mod tests {
     use super::*;
 
-    fn mf(ms: &str, stack: ClientStack, runners: &[&str], target: WcagTarget) -> ClientStackManifest {
+    fn mf(
+        ms: &str,
+        stack: ClientStack,
+        runners: &[&str],
+        target: WcagTarget,
+    ) -> ClientStackManifest {
         ClientStackManifest {
             microservice: ms.into(),
             stack,
@@ -214,9 +218,24 @@ mod tests {
     #[test]
     fn report_counts_distinct_microservices() {
         let r = check(&[
-            mf("workflow-studio", ClientStack::SvelteKit, &["pa11y"], WcagTarget::AA),
-            mf("workflow-studio", ClientStack::Leptos, &["rust-a11y-lint"], WcagTarget::AA),
-            mf("calendar", ClientStack::SwiftUi, &["accessibility-inspector-ui-test"], WcagTarget::AA),
+            mf(
+                "workflow-studio",
+                ClientStack::SvelteKit,
+                &["pa11y"],
+                WcagTarget::AA,
+            ),
+            mf(
+                "workflow-studio",
+                ClientStack::Leptos,
+                &["rust-a11y-lint"],
+                WcagTarget::AA,
+            ),
+            mf(
+                "calendar",
+                ClientStack::SwiftUi,
+                &["accessibility-inspector-ui-test"],
+                WcagTarget::AA,
+            ),
         ]);
         assert_eq!(r.microservices_checked, 2);
         assert_eq!(r.stacks_checked, 3);
@@ -226,7 +245,11 @@ mod tests {
     #[test]
     fn all_stacks_have_at_least_one_allowed_runner() {
         for stack in ClientStack::all() {
-            assert!(!allowed_runners(stack).is_empty(), "stack {:?} has no runners", stack);
+            assert!(
+                !allowed_runners(stack).is_empty(),
+                "stack {:?} has no runners",
+                stack
+            );
         }
     }
 }

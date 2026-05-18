@@ -57,7 +57,8 @@ pub fn audit_all(documents: Vec<AsyncApiDocument>) -> (Report, Vec<Finding>) {
             findings.push(Finding {
                 path: doc.path.clone(),
                 microservice: doc.microservice.clone(),
-                message: "AsyncAPI document missing canonical event `version` header (ADR-0154)".into(),
+                message: "AsyncAPI document missing canonical event `version` header (ADR-0154)"
+                    .into(),
             });
         }
     }

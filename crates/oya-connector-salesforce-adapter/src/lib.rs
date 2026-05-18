@@ -218,7 +218,10 @@ impl Connector for SalesforceConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let mut doc = self.get(ctx, entity_kind, id)?;
-        doc.insert(patch.field.clone(), patch.value.unwrap_or(EntityValue::Null));
+        doc.insert(
+            patch.field.clone(),
+            patch.value.unwrap_or(EntityValue::Null),
+        );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
         self.lock_events().push_back(Event {
             entity_kind: entity_kind.to_owned(),
@@ -285,13 +288,11 @@ impl Connector for SalesforceConnector {
     }
     fn ontology_projections(&self) -> Vec<OntologyProjection> {
         vec![
-            OntologyProjection::new("Customer", "salesforce:Account")
-                .map_field("name", "Name"),
+            OntologyProjection::new("Customer", "salesforce:Account").map_field("name", "Name"),
             OntologyProjection::new("Contact", "salesforce:Contact")
                 .map_field("givenName", "FirstName")
                 .map_field("familyName", "LastName"),
-            OntologyProjection::new("Deal", "salesforce:Opportunity")
-                .map_field("amount", "Amount"),
+            OntologyProjection::new("Deal", "salesforce:Opportunity").map_field("amount", "Amount"),
         ]
     }
 }
@@ -341,9 +342,11 @@ mod tests {
     }
     #[test]
     fn unknown_returns_not_found() {
-        assert!(SalesforceConnector::new()
-            .get(&ctx(), "Account", "missing")
-            .is_err());
+        assert!(
+            SalesforceConnector::new()
+                .get(&ctx(), "Account", "missing")
+                .is_err()
+        );
     }
     #[test]
     fn unsupported_object_errors() {

@@ -1,8 +1,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use oya_shared_presence_kernel::{
-    CursorPosition, LoroPresenceTracker, ParticipantId, PresenceState, PresenceTracker,
-    RoomKey, TenantId,
+    CursorPosition, LoroPresenceTracker, ParticipantId, PresenceState, PresenceTracker, RoomKey,
+    TenantId,
 };
 
 fn rk(tenant: &str, room: &str) -> RoomKey {

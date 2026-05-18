@@ -208,7 +208,10 @@ impl Connector for RipplingConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let mut doc = self.get(ctx, entity_kind, id)?;
-        doc.insert(patch.field.clone(), patch.value.unwrap_or(EntityValue::Null));
+        doc.insert(
+            patch.field.clone(),
+            patch.value.unwrap_or(EntityValue::Null),
+        );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
         self.seal(ctx, "connector.update", id);
         Ok(doc)
@@ -261,8 +264,7 @@ impl Connector for RipplingConnector {
             OntologyProjection::new("Employee", "rippling:employee")
                 .map_field("givenName", "firstName")
                 .map_field("familyName", "lastName"),
-            OntologyProjection::new("Device", "rippling:device")
-                .map_field("model", "model"),
+            OntologyProjection::new("Device", "rippling:device").map_field("model", "model"),
         ]
     }
 }
@@ -292,21 +294,29 @@ mod tests {
     #[test]
     fn smoke_ten_employees() {
         assert_eq!(
-            RipplingConnector::new().list(&ctx(), "employee", None).unwrap().items.len(),
+            RipplingConnector::new()
+                .list(&ctx(), "employee", None)
+                .unwrap()
+                .items
+                .len(),
             10
         );
     }
     #[test]
     fn get_employee_ok() {
-        assert!(RipplingConnector::new()
-            .get(&ctx(), "employee", "emp-000001")
-            .is_ok());
+        assert!(
+            RipplingConnector::new()
+                .get(&ctx(), "employee", "emp-000001")
+                .is_ok()
+        );
     }
     #[test]
     fn get_unknown_not_found() {
-        assert!(RipplingConnector::new()
-            .get(&ctx(), "employee", "missing")
-            .is_err());
+        assert!(
+            RipplingConnector::new()
+                .get(&ctx(), "employee", "missing")
+                .is_err()
+        );
     }
     #[test]
     fn unsupported_kind() {

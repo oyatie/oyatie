@@ -64,8 +64,13 @@ pub struct Page<T> {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum PaginationError {
-    PageSizeOutOfBounds { requested: u32 },
-    CursorScopeMismatch { recorded_scope: String, attempted_scope: String },
+    PageSizeOutOfBounds {
+        requested: u32,
+    },
+    CursorScopeMismatch {
+        recorded_scope: String,
+        attempted_scope: String,
+    },
     CursorMalformed(String),
     SkeletonNotYetImplemented(&'static str),
 }
@@ -77,7 +82,10 @@ impl fmt::Display for PaginationError {
                 f,
                 "oya-shared-cursor-pagination-kernel: page_size {requested} out of [1, 100]"
             ),
-            PaginationError::CursorScopeMismatch { recorded_scope, attempted_scope } => write!(
+            PaginationError::CursorScopeMismatch {
+                recorded_scope,
+                attempted_scope,
+            } => write!(
                 f,
                 "oya-shared-cursor-pagination-kernel: cursor-scope mismatch (recorded={recorded_scope:?}, attempted={attempted_scope:?})"
             ),
@@ -121,12 +129,18 @@ mod tests {
 
     #[test]
     fn page_size_clamps_low() {
-        assert_eq!(PageSize::try_new(0), Err(PaginationError::PageSizeOutOfBounds { requested: 0 }));
+        assert_eq!(
+            PageSize::try_new(0),
+            Err(PaginationError::PageSizeOutOfBounds { requested: 0 })
+        );
     }
 
     #[test]
     fn page_size_clamps_high() {
-        assert_eq!(PageSize::try_new(101), Err(PaginationError::PageSizeOutOfBounds { requested: 101 }));
+        assert_eq!(
+            PageSize::try_new(101),
+            Err(PaginationError::PageSizeOutOfBounds { requested: 101 })
+        );
     }
 
     #[test]

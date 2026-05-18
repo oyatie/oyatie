@@ -23,10 +23,34 @@ fn d(
 #[test]
 fn mixed_streams_emit_only_violating_gaps() {
     let r = check(&[
-        d("ms-a", "ok1", "sse", TrafficDirection::OneWay, SurfaceKind::ClientFacing),
-        d("ms-a", "bad1", "sse", TrafficDirection::Bidirectional, SurfaceKind::ClientFacing),
-        d("ms-b", "ok2", "websocket", TrafficDirection::Bidirectional, SurfaceKind::ClientFacing),
-        d("ms-b", "bad2", "grpc-streaming", TrafficDirection::OneWay, SurfaceKind::ClientFacing),
+        d(
+            "ms-a",
+            "ok1",
+            "sse",
+            TrafficDirection::OneWay,
+            SurfaceKind::ClientFacing,
+        ),
+        d(
+            "ms-a",
+            "bad1",
+            "sse",
+            TrafficDirection::Bidirectional,
+            SurfaceKind::ClientFacing,
+        ),
+        d(
+            "ms-b",
+            "ok2",
+            "websocket",
+            TrafficDirection::Bidirectional,
+            SurfaceKind::ClientFacing,
+        ),
+        d(
+            "ms-b",
+            "bad2",
+            "grpc-streaming",
+            TrafficDirection::OneWay,
+            SurfaceKind::ClientFacing,
+        ),
     ]);
     assert_eq!(r.streams_checked, 4);
     assert_eq!(r.gaps.len(), 2);
@@ -78,8 +102,5 @@ fn websocket_service_to_service_one_way_flagged() {
         SurfaceKind::ServiceToService,
     )]);
     assert_eq!(r.gaps.len(), 1);
-    assert_eq!(
-        r.gaps[0].reason,
-        TierGapReason::WebSocketOnOneWaySurface
-    );
+    assert_eq!(r.gaps[0].reason, TierGapReason::WebSocketOnOneWaySurface);
 }

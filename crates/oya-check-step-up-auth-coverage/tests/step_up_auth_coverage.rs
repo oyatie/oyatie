@@ -55,7 +55,10 @@ paths:
 "#;
     let r = fixture(spec);
     assert_eq!(r.findings.len(), 1);
-    assert_eq!(r.findings[0].finding_kind, FindingKind::BelowFloorOnSensitivePath);
+    assert_eq!(
+        r.findings[0].finding_kind,
+        FindingKind::BelowFloorOnSensitivePath
+    );
 }
 
 #[test]
@@ -146,7 +149,12 @@ fn malformed_spec_returns_parse_error() {
 
 #[test]
 fn missing_paths_section_returns_parse_error() {
-    let err = scan("test", "openapi: 3.1.0\ninfo:\n  title: x\n  version: 1.0.0\n").err().expect("err");
+    let err = scan(
+        "test",
+        "openapi: 3.1.0\ninfo:\n  title: x\n  version: 1.0.0\n",
+    )
+    .err()
+    .expect("err");
     let msg = format!("{err}");
     assert!(msg.contains("missing top-level `paths`"));
 }

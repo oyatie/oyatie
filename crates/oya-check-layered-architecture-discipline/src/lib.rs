@@ -154,17 +154,15 @@ where
         // schema-required-true (advisory for north-south-only api-
         // gateway); it does NOT signal east-west ownership for conflict
         // purposes — only the helm-template annotation form does.
-        let north_south_via_schema = line_has_key_value(&manifest.contents, "north_south_only", "true");
+        let north_south_via_schema =
+            line_has_key_value(&manifest.contents, "north_south_only", "true");
         let north_south_via_annotation = line_has_annotation_key_assignment(
             &manifest.contents,
             "gateway.networking.k8s.io/managed-by",
         );
         let manifest_waypoint_enrolled = declares_ambient_waypoint_true(&lower);
-        let east_west_via_dataplane_annotation = line_has_annotation_key_value(
-            &manifest.contents,
-            "istio.io/dataplane-mode",
-            "ambient",
-        );
+        let east_west_via_dataplane_annotation =
+            line_has_annotation_key_value(&manifest.contents, "istio.io/dataplane-mode", "ambient");
 
         // Conflict shape (a): schema north_south_only=true AND ambient_waypoint=true.
         if north_south_via_schema && manifest_waypoint_enrolled {

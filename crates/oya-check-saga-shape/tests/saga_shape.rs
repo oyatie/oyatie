@@ -1,8 +1,8 @@
 //! Integration tests for the saga-shape validator (ADR-0173).
 
 use oya_check_saga_shape::{
-    canonical_microservice_catalog, validate_saga_shape, AuditClass, CompensationKind,
-    IdempotencyKeyStrategy, RollbackStrategy, SagaDefinition, SagaShapeViolationKind, SagaStep,
+    AuditClass, CompensationKind, IdempotencyKeyStrategy, RollbackStrategy, SagaDefinition,
+    SagaShapeViolationKind, SagaStep, canonical_microservice_catalog, validate_saga_shape,
 };
 
 fn fixture_saga(
@@ -83,9 +83,11 @@ fn portfolio_fails_when_write_step_uses_noop_compensation() {
     )];
     let violations =
         validate_saga_shape(sagas, &catalog).expect_err("noop compensation on write must fail");
-    assert!(violations
-        .iter()
-        .any(|v| v.kind == SagaShapeViolationKind::NoopCompensationOnWriteStep));
+    assert!(
+        violations
+            .iter()
+            .any(|v| v.kind == SagaShapeViolationKind::NoopCompensationOnWriteStep)
+    );
 }
 
 #[test]
@@ -97,10 +99,12 @@ fn portfolio_advises_when_target_microservice_unknown() {
         CompensationKind::Custom,
         AuditClass::WriteIdempotent,
     )];
-    let report = validate_saga_shape(sagas, &catalog)
-        .expect("unknown target should not fail; only advise");
+    let report =
+        validate_saga_shape(sagas, &catalog).expect("unknown target should not fail; only advise");
     assert_eq!(report.advisories.len(), 1);
-    assert!(report.advisories[0]
-        .message
-        .contains("not-a-real-microservice"));
+    assert!(
+        report.advisories[0]
+            .message
+            .contains("not-a-real-microservice")
+    );
 }

@@ -69,10 +69,9 @@ pub enum IdGeneratorError {
 impl fmt::Display for IdGeneratorError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            IdGeneratorError::MalformedUlid(value) => write!(
-                f,
-                "oya-shared-ulid-id-kernel: malformed ULID {value:?}"
-            ),
+            IdGeneratorError::MalformedUlid(value) => {
+                write!(f, "oya-shared-ulid-id-kernel: malformed ULID {value:?}")
+            }
             IdGeneratorError::SkeletonNotYetImplemented(method) => write!(
                 f,
                 "oya-shared-ulid-id-kernel: {method} is skeleton-only \
@@ -100,6 +99,9 @@ pub struct SeededIdGenerator {
     counter: std::sync::Mutex<u64>,
 }
 
+// Mutex lock panics on thread poisoning — same severity as a panic.
+// ADR-0083 §Tier-3 permits this in reference implementations.
+#[allow(clippy::expect_used)]
 impl IdGenerator for SeededIdGenerator {
     fn new_ulid(&self) -> Result<Ulid, IdGeneratorError> {
         let mut c = self.counter.lock().expect("mutex poisoned");

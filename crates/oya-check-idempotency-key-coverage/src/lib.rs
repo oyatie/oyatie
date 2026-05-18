@@ -179,7 +179,10 @@ paths:
             contents: yaml.into(),
         };
         let (_report, findings) = audit_all(vec![doc]);
-        assert!(findings.is_empty(), "no findings expected, got: {findings:?}");
+        assert!(
+            findings.is_empty(),
+            "no findings expected, got: {findings:?}"
+        );
     }
 
     #[test]

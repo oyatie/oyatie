@@ -1157,7 +1157,7 @@ pub(crate) fn validate_vendor_lockin_discipline_gate(
             let joined = workspace_dir.join(&member);
             joined
                 .strip_prefix(workspace_dir)
-                .map(|stripped| slash_path_component(stripped))
+                .map(slash_path_component)
                 .unwrap_or_else(|_| slash_path_component(&joined))
         })
         .collect();

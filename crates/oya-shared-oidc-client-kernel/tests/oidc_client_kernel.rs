@@ -65,8 +65,16 @@ fn forge_token(kid: &str, payload: serde_json::Value) -> String {
         kid: kid.into(),
         typ: Some("JWT".into()),
     };
-    let h = b64url_encode(serde_json::to_vec(&header).expect("header serialize").as_slice());
-    let p = b64url_encode(serde_json::to_vec(&payload).expect("payload serialize").as_slice());
+    let h = b64url_encode(
+        serde_json::to_vec(&header)
+            .expect("header serialize")
+            .as_slice(),
+    );
+    let p = b64url_encode(
+        serde_json::to_vec(&payload)
+            .expect("payload serialize")
+            .as_slice(),
+    );
     let s = b64url_encode(b"signature-stub");
     format!("{h}.{p}.{s}")
 }
@@ -111,7 +119,9 @@ fn verifies_well_formed_token() {
 fn rejects_unknown_kid() {
     let verifier = ReferenceOidcVerifier::new(mk_jwks(), StubVerifier);
     let token = forge_token("k-unknown", valid_claims_json());
-    let err = verifier.verify(&token, &default_cfg(1_700_000_500)).unwrap_err();
+    let err = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .unwrap_err();
     assert!(matches!(err, OidcError::UnknownKid(_)));
 }
 
@@ -119,7 +129,9 @@ fn rejects_unknown_kid() {
 fn rejects_invalid_signature() {
     let verifier = ReferenceOidcVerifier::new(mk_jwks(), StubVerifier);
     let token = forge_token("broken", valid_claims_json());
-    let err = verifier.verify(&token, &default_cfg(1_700_000_500)).unwrap_err();
+    let err = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .unwrap_err();
     assert_eq!(err, OidcError::SignatureInvalid);
 }
 
@@ -129,7 +141,9 @@ fn rejects_wrong_issuer() {
     let mut p = valid_claims_json();
     p["iss"] = json!("https://evil.example");
     let token = forge_token("k1", p);
-    let err = verifier.verify(&token, &default_cfg(1_700_000_500)).unwrap_err();
+    let err = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .unwrap_err();
     assert!(matches!(err, OidcError::IssuerMismatch { .. }));
 }
 
@@ -139,7 +153,9 @@ fn rejects_wrong_audience() {
     let mut p = valid_claims_json();
     p["aud"] = json!("not-oya-foundry");
     let token = forge_token("k1", p);
-    let err = verifier.verify(&token, &default_cfg(1_700_000_500)).unwrap_err();
+    let err = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .unwrap_err();
     assert!(matches!(err, OidcError::AudienceMismatch { .. }));
 }
 
@@ -149,7 +165,9 @@ fn accepts_audience_array_when_match_present() {
     let mut p = valid_claims_json();
     p["aud"] = json!(["a", "oya-foundry", "b"]);
     let token = forge_token("k1", p);
-    let claims = verifier.verify(&token, &default_cfg(1_700_000_500)).expect("ok");
+    let claims = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .expect("ok");
     assert!(matches!(claims.aud, Audience::Many(ref v) if v.len() == 3));
 }
 
@@ -158,7 +176,9 @@ fn rejects_expired_token_outside_skew() {
     let verifier = ReferenceOidcVerifier::new(mk_jwks(), StubVerifier);
     let token = forge_token("k1", valid_claims_json());
     // exp=1_700_000_900, skew=60, now=1_700_001_000 → expired by 100s.
-    let err = verifier.verify(&token, &default_cfg(1_700_001_000)).unwrap_err();
+    let err = verifier
+        .verify(&token, &default_cfg(1_700_001_000))
+        .unwrap_err();
     assert!(matches!(err, OidcError::Expired { .. }));
 }
 
@@ -178,7 +198,9 @@ fn rejects_missing_tenant_id_claim() {
     let mut p = valid_claims_json();
     p["tenant_id"] = json!("");
     let token = forge_token("k1", p);
-    let err = verifier.verify(&token, &default_cfg(1_700_000_500)).unwrap_err();
+    let err = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .unwrap_err();
     assert_eq!(err, OidcError::MissingClaim("tenant_id"));
 }
 
@@ -193,9 +215,13 @@ fn acr_ordering_routine_lt_critical() {
 #[test]
 fn rejects_malformed_three_segments_required() {
     let verifier = ReferenceOidcVerifier::new(mk_jwks(), StubVerifier);
-    let err = verifier.verify("not.a.valid.jwt", &default_cfg(1_700_000_500)).unwrap_err();
+    let err = verifier
+        .verify("not.a.valid.jwt", &default_cfg(1_700_000_500))
+        .unwrap_err();
     assert!(matches!(err, OidcError::Malformed(_)));
-    let err = verifier.verify("a.b", &default_cfg(1_700_000_500)).unwrap_err();
+    let err = verifier
+        .verify("a.b", &default_cfg(1_700_000_500))
+        .unwrap_err();
     assert!(matches!(err, OidcError::Malformed(_)));
 }
 
@@ -203,7 +229,9 @@ fn rejects_malformed_three_segments_required() {
 fn meets_acr_helper_through_oidcclient_trait() {
     let verifier = ReferenceOidcVerifier::new(mk_jwks(), StubVerifier);
     let token = forge_token("k1", valid_claims_json());
-    let claims = verifier.verify(&token, &default_cfg(1_700_000_500)).expect("ok");
+    let claims = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .expect("ok");
     assert!(verifier.meets_acr(&claims, AcrLevel::Routine));
     assert!(verifier.meets_acr(&claims, AcrLevel::Elevated));
     assert!(!verifier.meets_acr(&claims, AcrLevel::Sensitive));
@@ -212,7 +240,8 @@ fn meets_acr_helper_through_oidcclient_trait() {
 
 #[test]
 fn jwks_from_json_parses() {
-    let json = br#"{"keys":[{"kid":"k1","kty":"RSA","alg":"RS256","use":"sig","n":"n","e":"AQAB"}]}"#;
+    let json =
+        br#"{"keys":[{"kid":"k1","kty":"RSA","alg":"RS256","use":"sig","n":"n","e":"AQAB"}]}"#;
     let jwks = Jwks::from_json(json).expect("parse");
     assert!(jwks.find("k1").is_some());
     assert!(jwks.find("k2").is_none());
@@ -236,12 +265,18 @@ fn rejects_disallowed_alg_hs256() {
     let mut verifier = ReferenceOidcVerifier::new(mk_jwks(), StubVerifier);
     // The default `allowed_algs` excludes HS256; reaffirm.
     verifier.allowed_algs = vec!["RS256".to_owned(), "ES256".to_owned()];
-    let header = JwtHeader { alg: "HS256".into(), kid: "k1".into(), typ: Some("JWT".into()) };
+    let header = JwtHeader {
+        alg: "HS256".into(),
+        kid: "k1".into(),
+        typ: Some("JWT".into()),
+    };
     let h = b64url_encode(&serde_json::to_vec(&header).expect("ser"));
     let p = b64url_encode(&serde_json::to_vec(&valid_claims_json()).expect("ser"));
     let s = b64url_encode(b"sig");
     let token = format!("{h}.{p}.{s}");
-    let err = verifier.verify(&token, &default_cfg(1_700_000_500)).unwrap_err();
+    let err = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .unwrap_err();
     assert!(matches!(err, OidcError::AlgMismatch { .. }));
 }
 
@@ -251,9 +286,14 @@ fn claims_preserve_additional_fields() {
     let mut p = valid_claims_json();
     p["custom_oyatie_pack"] = json!("eu");
     let token = forge_token("k1", p);
-    let claims: OidcClaims = verifier.verify(&token, &default_cfg(1_700_000_500)).expect("ok");
+    let claims: OidcClaims = verifier
+        .verify(&token, &default_cfg(1_700_000_500))
+        .expect("ok");
     assert_eq!(
-        claims.additional.get("custom_oyatie_pack").map(|v| v.as_str().unwrap_or("")),
+        claims
+            .additional
+            .get("custom_oyatie_pack")
+            .map(|v| v.as_str().unwrap_or("")),
         Some("eu")
     );
 }

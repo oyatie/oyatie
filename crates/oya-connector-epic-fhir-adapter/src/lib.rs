@@ -135,9 +135,9 @@ impl Connector for EpicFhirConnector {
         ConnectorCapabilities {
             list: true,
             get: true,
-            create: true,    // e.g. POST MedicationRequest
-            update: true,    // PATCH/PUT
-            delete: false,   // Epic generally forbids hard-delete of clinical records
+            create: true,     // e.g. POST MedicationRequest
+            update: true,     // PATCH/PUT
+            delete: false,    // Epic generally forbids hard-delete of clinical records
             subscribe: false, // FHIR Subscriptions are tenant-config dependent
         }
     }
@@ -220,7 +220,10 @@ impl Connector for EpicFhirConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let mut doc = self.get(ctx, entity_kind, id)?;
-        doc.insert(patch.field.clone(), patch.value.unwrap_or(EntityValue::Null));
+        doc.insert(
+            patch.field.clone(),
+            patch.value.unwrap_or(EntityValue::Null),
+        );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
         self.seal(ctx, "connector.update", id);
         Ok(doc)
@@ -308,15 +311,19 @@ mod tests {
     }
     #[test]
     fn get_patient_ok() {
-        assert!(EpicFhirConnector::new()
-            .get(&ctx(), "Patient", "Patient-00000001")
-            .is_ok());
+        assert!(
+            EpicFhirConnector::new()
+                .get(&ctx(), "Patient", "Patient-00000001")
+                .is_ok()
+        );
     }
     #[test]
     fn unknown_not_found() {
-        assert!(EpicFhirConnector::new()
-            .get(&ctx(), "Patient", "missing")
-            .is_err());
+        assert!(
+            EpicFhirConnector::new()
+                .get(&ctx(), "Patient", "missing")
+                .is_err()
+        );
     }
     #[test]
     fn unsupported_resource() {

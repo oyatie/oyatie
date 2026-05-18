@@ -209,12 +209,13 @@ fn parse_single_doc(doc: &str) -> Option<ParsedWorkload> {
         }
         if in_labels_block {
             // exit the labels block once we see a sibling-or-shallower key
-            if let Some(base) = labels_block_indent {
-                if !line.trim().is_empty() && indent <= base {
-                    in_labels_block = false;
-                    labels_block_indent = None;
-                    // fallthrough to process this line as a non-label
-                }
+            if let Some(base) = labels_block_indent
+                && !line.trim().is_empty()
+                && indent <= base
+            {
+                in_labels_block = false;
+                labels_block_indent = None;
+                // fallthrough to process this line as a non-label
             }
             if in_labels_block {
                 // expect `<key>: <value>` lines
@@ -448,9 +449,21 @@ spec: {}
 
     #[test]
     fn microservices_covered_is_unique_set() {
-        let m1 = render("a.yaml", "drive", "kind: Deployment\nmetadata:\n  name: x\n  labels: {}\n");
-        let m2 = render("b.yaml", "drive", "kind: Deployment\nmetadata:\n  name: y\n  labels: {}\n");
-        let m3 = render("c.yaml", "calendar", "kind: Deployment\nmetadata:\n  name: z\n  labels: {}\n");
+        let m1 = render(
+            "a.yaml",
+            "drive",
+            "kind: Deployment\nmetadata:\n  name: x\n  labels: {}\n",
+        );
+        let m2 = render(
+            "b.yaml",
+            "drive",
+            "kind: Deployment\nmetadata:\n  name: y\n  labels: {}\n",
+        );
+        let m3 = render(
+            "c.yaml",
+            "calendar",
+            "kind: Deployment\nmetadata:\n  name: z\n  labels: {}\n",
+        );
         let rep = validate_advisory([m1, m2, m3].into_iter());
         assert_eq!(rep.microservices_covered.len(), 2);
     }

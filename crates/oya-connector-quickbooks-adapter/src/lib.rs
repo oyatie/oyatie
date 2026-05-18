@@ -207,7 +207,10 @@ impl Connector for QuickbooksConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let mut doc = self.get(ctx, entity_kind, id)?;
-        doc.insert(patch.field.clone(), patch.value.unwrap_or(EntityValue::Null));
+        doc.insert(
+            patch.field.clone(),
+            patch.value.unwrap_or(EntityValue::Null),
+        );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
         self.seal(ctx, "connector.update", id);
         Ok(doc)
@@ -256,12 +259,9 @@ impl Connector for QuickbooksConnector {
     }
     fn ontology_projections(&self) -> Vec<OntologyProjection> {
         vec![
-            OntologyProjection::new("Customer", "qbo:Customer")
-                .map_field("name", "DisplayName"),
-            OntologyProjection::new("Vendor", "qbo:Vendor")
-                .map_field("name", "DisplayName"),
-            OntologyProjection::new("Invoice", "qbo:Invoice")
-                .map_field("totalAmount", "TotalAmt"),
+            OntologyProjection::new("Customer", "qbo:Customer").map_field("name", "DisplayName"),
+            OntologyProjection::new("Vendor", "qbo:Vendor").map_field("name", "DisplayName"),
+            OntologyProjection::new("Invoice", "qbo:Invoice").map_field("totalAmount", "TotalAmt"),
         ]
     }
 }
@@ -291,17 +291,29 @@ mod tests {
     #[test]
     fn list_customers() {
         assert_eq!(
-            QuickbooksConnector::new().list(&ctx(), "Customer", None).unwrap().items.len(),
+            QuickbooksConnector::new()
+                .list(&ctx(), "Customer", None)
+                .unwrap()
+                .items
+                .len(),
             4
         );
     }
     #[test]
     fn get_customer_ok() {
-        assert!(QuickbooksConnector::new().get(&ctx(), "Customer", "1").is_ok());
+        assert!(
+            QuickbooksConnector::new()
+                .get(&ctx(), "Customer", "1")
+                .is_ok()
+        );
     }
     #[test]
     fn unknown_not_found() {
-        assert!(QuickbooksConnector::new().get(&ctx(), "Customer", "x").is_err());
+        assert!(
+            QuickbooksConnector::new()
+                .get(&ctx(), "Customer", "x")
+                .is_err()
+        );
     }
     #[test]
     fn unsupported_entity() {
@@ -351,10 +363,7 @@ mod tests {
     }
     #[test]
     fn auth_oauth2() {
-        assert_eq!(
-            QuickbooksConnector::new().auth_scheme(),
-            AuthScheme::OAuth2
-        );
+        assert_eq!(QuickbooksConnector::new().auth_scheme(), AuthScheme::OAuth2);
     }
     #[test]
     fn ontology_projections_present() {

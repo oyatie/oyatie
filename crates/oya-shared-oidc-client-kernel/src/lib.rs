@@ -323,13 +323,13 @@ impl<V: JwsVerifier> OidcClient for ReferenceOidcVerifier<V> {
                 exp: claims.exp,
             });
         }
-        if let Some(nbf) = claims.nbf {
-            if cfg.now_unix_seconds + skew < nbf {
-                return Err(OidcError::NotYetValid {
-                    now: cfg.now_unix_seconds,
-                    nbf,
-                });
-            }
+        if let Some(nbf) = claims.nbf
+            && cfg.now_unix_seconds + skew < nbf
+        {
+            return Err(OidcError::NotYetValid {
+                now: cfg.now_unix_seconds,
+                nbf,
+            });
         }
 
         if claims.tenant_id.is_empty() {
@@ -363,8 +363,7 @@ fn split_jwt(bearer: &str) -> Result<(&str, &str, &str), OidcError> {
 /// Minimal base64url decoder per RFC 4648 §5 (no padding, URL-safe alphabet).
 /// Kept in-crate to avoid a base64 dependency in the kernel.
 pub fn b64url_decode(input: &str) -> Result<Vec<u8>, OidcError> {
-    const ALPHABET: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut lut = [0xFFu8; 256];
     for (i, c) in ALPHABET.iter().enumerate() {
         lut[*c as usize] = i as u8;
@@ -381,7 +380,9 @@ pub fn b64url_decode(input: &str) -> Result<Vec<u8>, OidcError> {
             break; // padding ends
         }
         if v == 0xFF {
-            return Err(OidcError::Malformed(format!("invalid b64url byte 0x{b:02x}")));
+            return Err(OidcError::Malformed(format!(
+                "invalid b64url byte 0x{b:02x}"
+            )));
         }
         buf = (buf << 6) | u32::from(v);
         bits += 6;
@@ -395,8 +396,7 @@ pub fn b64url_decode(input: &str) -> Result<Vec<u8>, OidcError> {
 
 /// Inverse of `b64url_decode`; used by tests + tooling.
 pub fn b64url_encode(input: &[u8]) -> String {
-    const ALPHABET: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut out = String::with_capacity(input.len() * 4 / 3 + 4);
     let mut buf: u32 = 0;
     let mut bits: u32 = 0;

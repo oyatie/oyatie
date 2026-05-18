@@ -49,15 +49,31 @@ pub struct Meta {
 pub struct UserName {
     #[serde(rename = "givenName", default, skip_serializing_if = "Option::is_none")]
     pub given_name: Option<String>,
-    #[serde(rename = "familyName", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "familyName",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub family_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub formatted: Option<String>,
-    #[serde(rename = "middleName", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "middleName",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub middle_name: Option<String>,
-    #[serde(rename = "honorificPrefix", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "honorificPrefix",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub honorific_prefix: Option<String>,
-    #[serde(rename = "honorificSuffix", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "honorificSuffix",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub honorific_suffix: Option<String>,
 }
 
@@ -85,13 +101,21 @@ pub struct GroupMembership {
 /// SCIM Enterprise extension per RFC 7643 §4.3.
 #[derive(Clone, Debug, Eq, PartialEq, Default, Serialize, Deserialize)]
 pub struct EnterpriseExtension {
-    #[serde(rename = "employeeNumber", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "employeeNumber",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub employee_number: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub department: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub division: Option<String>,
-    #[serde(rename = "costCenter", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "costCenter",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub cost_center: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub organization: Option<String>,
@@ -112,7 +136,11 @@ pub struct OyatieExtension {
 pub struct User {
     pub schemas: Vec<String>,
     pub id: ScimId,
-    #[serde(rename = "externalId", default, skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "externalId",
+        default,
+        skip_serializing_if = "Option::is_none"
+    )]
     pub external_id: Option<String>,
     #[serde(rename = "userName")]
     pub user_name: String,
@@ -249,17 +277,50 @@ pub enum ScimType {
 
 /// The contract every SCIM µservice implements.
 pub trait ScimServer: Send + Sync {
-    fn list_users(&self, tenant: &TenantId, q: &ListQuery) -> Result<ListResponse<User>, ScimError>;
+    fn list_users(&self, tenant: &TenantId, q: &ListQuery)
+    -> Result<ListResponse<User>, ScimError>;
     fn get_user(&self, tenant: &TenantId, id: &ScimId) -> Result<User, ScimError>;
-    fn create_user(&self, tenant: &TenantId, input: NewUser, now_unix: i64) -> Result<User, ScimError>;
-    fn replace_user(&self, tenant: &TenantId, id: &ScimId, input: NewUser, now_unix: i64) -> Result<User, ScimError>;
-    fn patch_user(&self, tenant: &TenantId, id: &ScimId, op: &PatchOp, now_unix: i64) -> Result<User, ScimError>;
+    fn create_user(
+        &self,
+        tenant: &TenantId,
+        input: NewUser,
+        now_unix: i64,
+    ) -> Result<User, ScimError>;
+    fn replace_user(
+        &self,
+        tenant: &TenantId,
+        id: &ScimId,
+        input: NewUser,
+        now_unix: i64,
+    ) -> Result<User, ScimError>;
+    fn patch_user(
+        &self,
+        tenant: &TenantId,
+        id: &ScimId,
+        op: &PatchOp,
+        now_unix: i64,
+    ) -> Result<User, ScimError>;
     fn delete_user(&self, tenant: &TenantId, id: &ScimId) -> Result<(), ScimError>;
 
-    fn list_groups(&self, tenant: &TenantId, q: &ListQuery) -> Result<ListResponse<Group>, ScimError>;
+    fn list_groups(
+        &self,
+        tenant: &TenantId,
+        q: &ListQuery,
+    ) -> Result<ListResponse<Group>, ScimError>;
     fn get_group(&self, tenant: &TenantId, id: &ScimId) -> Result<Group, ScimError>;
-    fn create_group(&self, tenant: &TenantId, input: NewGroup, now_unix: i64) -> Result<Group, ScimError>;
-    fn patch_group(&self, tenant: &TenantId, id: &ScimId, op: &PatchOp, now_unix: i64) -> Result<Group, ScimError>;
+    fn create_group(
+        &self,
+        tenant: &TenantId,
+        input: NewGroup,
+        now_unix: i64,
+    ) -> Result<Group, ScimError>;
+    fn patch_group(
+        &self,
+        tenant: &TenantId,
+        id: &ScimId,
+        op: &PatchOp,
+        now_unix: i64,
+    ) -> Result<Group, ScimError>;
     fn delete_group(&self, tenant: &TenantId, id: &ScimId) -> Result<(), ScimError>;
 }
 
@@ -323,7 +384,12 @@ impl UserStore for InMemoryUserStore {
     fn list(&self, tenant: &TenantId) -> Vec<User> {
         self.inner
             .lock()
-            .map(|g| g.iter().filter(|(t, _)| t == tenant).map(|(_, u)| u.clone()).collect())
+            .map(|g| {
+                g.iter()
+                    .filter(|(t, _)| t == tenant)
+                    .map(|(_, u)| u.clone())
+                    .collect()
+            })
             .unwrap_or_default()
     }
     fn get(&self, tenant: &TenantId, id: &ScimId) -> Option<User> {
@@ -367,7 +433,12 @@ impl GroupStore for InMemoryGroupStore {
     fn list(&self, tenant: &TenantId) -> Vec<Group> {
         self.inner
             .lock()
-            .map(|g| g.iter().filter(|(t, _)| t == tenant).map(|(_, gr)| gr.clone()).collect())
+            .map(|g| {
+                g.iter()
+                    .filter(|(t, _)| t == tenant)
+                    .map(|(_, gr)| gr.clone())
+                    .collect()
+            })
             .unwrap_or_default()
     }
     fn get(&self, tenant: &TenantId, id: &ScimId) -> Option<Group> {
@@ -380,7 +451,10 @@ impl GroupStore for InMemoryGroupStore {
     }
     fn put(&self, group: &Group, tenant: &TenantId) {
         if let Ok(mut g) = self.inner.lock() {
-            if let Some(slot) = g.iter_mut().find(|(t, gr)| t == tenant && gr.id == group.id) {
+            if let Some(slot) = g
+                .iter_mut()
+                .find(|(t, gr)| t == tenant && gr.id == group.id)
+            {
                 slot.1 = group.clone();
             } else {
                 g.push((tenant.clone(), group.clone()));
@@ -407,7 +481,9 @@ impl CounterIdGen {
     }
 }
 impl Default for CounterIdGen {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 impl IdGen for CounterIdGen {
     fn next_id(&self) -> ScimId {
@@ -426,7 +502,13 @@ pub struct ReferenceScimServer<U: UserStore, G: GroupStore, I: IdGen> {
 
 impl<U: UserStore, G: GroupStore, I: IdGen> ReferenceScimServer<U, G, I> {
     pub fn new(users: U, groups: G, ids: I, base_url: impl Into<String>) -> Self {
-        Self { users, groups, ids, base_url: base_url.into(), max_items_per_page: 200 }
+        Self {
+            users,
+            groups,
+            ids,
+            base_url: base_url.into(),
+            max_items_per_page: 200,
+        }
     }
 
     fn user_meta(&self, tenant: &TenantId, id: &ScimId, now_unix: i64, etag: &str) -> Meta {
@@ -466,11 +548,26 @@ fn days_to_ymd(mut days: i64) -> (i64, i64, i64) {
     let mut year = 1970_i64;
     loop {
         let dly = if is_leap(year) { 366 } else { 365 };
-        if days < dly { break; }
+        if days < dly {
+            break;
+        }
         days -= dly;
         year += 1;
     }
-    let dim = [31, if is_leap(year) {29} else {28}, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    let dim = [
+        31,
+        if is_leap(year) { 29 } else { 28 },
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    ];
     let mut mo = 0;
     while days >= dim[mo] {
         days -= dim[mo];
@@ -484,7 +581,11 @@ fn is_leap(y: i64) -> bool {
 }
 
 impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U, G, I> {
-    fn list_users(&self, tenant: &TenantId, q: &ListQuery) -> Result<ListResponse<User>, ScimError> {
+    fn list_users(
+        &self,
+        tenant: &TenantId,
+        q: &ListQuery,
+    ) -> Result<ListResponse<User>, ScimError> {
         let all = self.users.list(tenant);
         let filtered = apply_user_filter(&all, q.filter.as_deref())?;
         let total = filtered.len();
@@ -506,15 +607,29 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
             .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))
     }
 
-    fn create_user(&self, tenant: &TenantId, input: NewUser, now_unix: i64) -> Result<User, ScimError> {
+    fn create_user(
+        &self,
+        tenant: &TenantId,
+        input: NewUser,
+        now_unix: i64,
+    ) -> Result<User, ScimError> {
         if input.user_name.is_empty() {
-            return Err(ScimError::new(400, Some(ScimType::InvalidValue), "userName is required"));
+            return Err(ScimError::new(
+                400,
+                Some(ScimType::InvalidValue),
+                "userName is required",
+            ));
         }
-        if self.users.find_by_user_name(tenant, &input.user_name).is_some() {
-            return Err(ScimError::new(409, Some(ScimType::Uniqueness), format!(
-                "userName '{}' already exists",
-                input.user_name
-            )));
+        if self
+            .users
+            .find_by_user_name(tenant, &input.user_name)
+            .is_some()
+        {
+            return Err(ScimError::new(
+                409,
+                Some(ScimType::Uniqueness),
+                format!("userName '{}' already exists", input.user_name),
+            ));
         }
         let id = self.ids.next_id();
         let etag = format!("{}{}", id.0, now_unix);
@@ -536,18 +651,29 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
         Ok(user)
     }
 
-    fn replace_user(&self, tenant: &TenantId, id: &ScimId, input: NewUser, now_unix: i64) -> Result<User, ScimError> {
-        let existing = self.users.get(tenant, id).ok_or_else(|| {
-            ScimError::new(404, None, format!("user '{}' not found", id.0))
-        })?;
+    fn replace_user(
+        &self,
+        tenant: &TenantId,
+        id: &ScimId,
+        input: NewUser,
+        now_unix: i64,
+    ) -> Result<User, ScimError> {
+        let existing = self
+            .users
+            .get(tenant, id)
+            .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))?;
         // Uniqueness only enforced if userName actually changed.
-        if input.user_name != existing.user_name {
-            if self.users.find_by_user_name(tenant, &input.user_name).is_some() {
-                return Err(ScimError::new(409, Some(ScimType::Uniqueness), format!(
-                    "userName '{}' already exists",
-                    input.user_name
-                )));
-            }
+        if input.user_name != existing.user_name
+            && self
+                .users
+                .find_by_user_name(tenant, &input.user_name)
+                .is_some()
+        {
+            return Err(ScimError::new(
+                409,
+                Some(ScimType::Uniqueness),
+                format!("userName '{}' already exists", input.user_name),
+            ));
         }
         let etag = format!("{}{}", id.0, now_unix);
         let mut user = User {
@@ -570,10 +696,17 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
         Ok(user)
     }
 
-    fn patch_user(&self, tenant: &TenantId, id: &ScimId, op: &PatchOp, now_unix: i64) -> Result<User, ScimError> {
-        let mut user = self.users.get(tenant, id).ok_or_else(|| {
-            ScimError::new(404, None, format!("user '{}' not found", id.0))
-        })?;
+    fn patch_user(
+        &self,
+        tenant: &TenantId,
+        id: &ScimId,
+        op: &PatchOp,
+        now_unix: i64,
+    ) -> Result<User, ScimError> {
+        let mut user = self
+            .users
+            .get(tenant, id)
+            .ok_or_else(|| ScimError::new(404, None, format!("user '{}' not found", id.0)))?;
         for o in &op.operations {
             apply_patch_user(&mut user, o)?;
         }
@@ -586,13 +719,21 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
 
     fn delete_user(&self, tenant: &TenantId, id: &ScimId) -> Result<(), ScimError> {
         if self.users.get(tenant, id).is_none() {
-            return Err(ScimError::new(404, None, format!("user '{}' not found", id.0)));
+            return Err(ScimError::new(
+                404,
+                None,
+                format!("user '{}' not found", id.0),
+            ));
         }
         self.users.delete(tenant, id);
         Ok(())
     }
 
-    fn list_groups(&self, tenant: &TenantId, q: &ListQuery) -> Result<ListResponse<Group>, ScimError> {
+    fn list_groups(
+        &self,
+        tenant: &TenantId,
+        q: &ListQuery,
+    ) -> Result<ListResponse<Group>, ScimError> {
         let all = self.groups.list(tenant);
         let total = all.len();
         let per_page = q.items_per_page.min(self.max_items_per_page).max(1);
@@ -611,9 +752,18 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
             .get(tenant, id)
             .ok_or_else(|| ScimError::new(404, None, format!("group '{}' not found", id.0)))
     }
-    fn create_group(&self, tenant: &TenantId, input: NewGroup, now_unix: i64) -> Result<Group, ScimError> {
+    fn create_group(
+        &self,
+        tenant: &TenantId,
+        input: NewGroup,
+        now_unix: i64,
+    ) -> Result<Group, ScimError> {
         if input.display_name.is_empty() {
-            return Err(ScimError::new(400, Some(ScimType::InvalidValue), "displayName is required"));
+            return Err(ScimError::new(
+                400,
+                Some(ScimType::InvalidValue),
+                "displayName is required",
+            ));
         }
         let id = self.ids.next_id();
         let etag = format!("{}{}", id.0, now_unix);
@@ -627,10 +777,17 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
         self.groups.put(&group, tenant);
         Ok(group)
     }
-    fn patch_group(&self, tenant: &TenantId, id: &ScimId, op: &PatchOp, now_unix: i64) -> Result<Group, ScimError> {
-        let mut group = self.groups.get(tenant, id).ok_or_else(|| {
-            ScimError::new(404, None, format!("group '{}' not found", id.0))
-        })?;
+    fn patch_group(
+        &self,
+        tenant: &TenantId,
+        id: &ScimId,
+        op: &PatchOp,
+        now_unix: i64,
+    ) -> Result<Group, ScimError> {
+        let mut group = self
+            .groups
+            .get(tenant, id)
+            .ok_or_else(|| ScimError::new(404, None, format!("group '{}' not found", id.0)))?;
         for o in &op.operations {
             apply_patch_group(&mut group, o)?;
         }
@@ -642,7 +799,11 @@ impl<U: UserStore, G: GroupStore, I: IdGen> ScimServer for ReferenceScimServer<U
     }
     fn delete_group(&self, tenant: &TenantId, id: &ScimId) -> Result<(), ScimError> {
         if self.groups.get(tenant, id).is_none() {
-            return Err(ScimError::new(404, None, format!("group '{}' not found", id.0)));
+            return Err(ScimError::new(
+                404,
+                None,
+                format!("group '{}' not found", id.0),
+            ));
         }
         self.groups.delete(tenant, id);
         Ok(())
@@ -683,12 +844,17 @@ fn apply_patch_user(user: &mut User, op: &PatchOperation) -> Result<(), ScimErro
             Ok(())
         }
         (PatchOpKind::Add, "emails") => {
-            let arr = op.value.as_ref().and_then(|v| v.as_array()).ok_or_else(|| {
-                ScimError::new(400, Some(ScimType::InvalidValue), "emails expects array")
-            })?;
+            let arr = op
+                .value
+                .as_ref()
+                .and_then(|v| v.as_array())
+                .ok_or_else(|| {
+                    ScimError::new(400, Some(ScimType::InvalidValue), "emails expects array")
+                })?;
             for e in arr {
-                let parsed: Email = serde_json::from_value(e.clone())
-                    .map_err(|err| ScimError::new(400, Some(ScimType::InvalidSyntax), err.to_string()))?;
+                let parsed: Email = serde_json::from_value(e.clone()).map_err(|err| {
+                    ScimError::new(400, Some(ScimType::InvalidSyntax), err.to_string())
+                })?;
                 user.emails.push(parsed);
             }
             Ok(())
@@ -713,18 +879,27 @@ fn apply_patch_group(group: &mut Group, op: &PatchOperation) -> Result<(), ScimE
     match (op.op, path) {
         (PatchOpKind::Replace, "displayName") => {
             let v = op.value.as_ref().and_then(|v| v.as_str()).ok_or_else(|| {
-                ScimError::new(400, Some(ScimType::InvalidValue), "displayName expects string")
+                ScimError::new(
+                    400,
+                    Some(ScimType::InvalidValue),
+                    "displayName expects string",
+                )
             })?;
             group.display_name = v.to_owned();
             Ok(())
         }
         (PatchOpKind::Add, "members") => {
-            let arr = op.value.as_ref().and_then(|v| v.as_array()).ok_or_else(|| {
-                ScimError::new(400, Some(ScimType::InvalidValue), "members expects array")
-            })?;
+            let arr = op
+                .value
+                .as_ref()
+                .and_then(|v| v.as_array())
+                .ok_or_else(|| {
+                    ScimError::new(400, Some(ScimType::InvalidValue), "members expects array")
+                })?;
             for m in arr {
-                let parsed: GroupMembership = serde_json::from_value(m.clone())
-                    .map_err(|err| ScimError::new(400, Some(ScimType::InvalidSyntax), err.to_string()))?;
+                let parsed: GroupMembership = serde_json::from_value(m.clone()).map_err(|err| {
+                    ScimError::new(400, Some(ScimType::InvalidSyntax), err.to_string())
+                })?;
                 group.members.push(parsed);
             }
             Ok(())
@@ -762,11 +937,19 @@ fn parse_filter_value_in_brackets(p: &str) -> Option<String> {
 /// list. Supports the practical RFC 7644 §3.4.2.2 subset used by Okta /
 /// Entra / Workspace clients in the wild.
 fn apply_user_filter(users: &[User], filter: Option<&str>) -> Result<Vec<User>, ScimError> {
-    let Some(f) = filter else { return Ok(users.to_vec()) };
+    let Some(f) = filter else {
+        return Ok(users.to_vec());
+    };
     let f = f.trim();
-    if f.is_empty() { return Ok(users.to_vec()) }
+    if f.is_empty() {
+        return Ok(users.to_vec());
+    }
     let expr = parse_filter(f)?;
-    Ok(users.iter().filter(|u| eval_user(u, &expr)).cloned().collect())
+    Ok(users
+        .iter()
+        .filter(|u| eval_user(u, &expr))
+        .cloned()
+        .collect())
 }
 
 #[derive(Clone, Debug)]
@@ -785,7 +968,10 @@ pub enum FilterExpr {
 /// Minimal recursive-descent filter parser. Sufficient for the in-the-wild
 /// dialects used by the canonical SCIM clients.
 pub fn parse_filter(input: &str) -> Result<FilterExpr, ScimError> {
-    let mut p = Parser { src: input.as_bytes(), pos: 0 };
+    let mut p = Parser {
+        src: input.as_bytes(),
+        pos: 0,
+    };
     let e = p.parse_or()?;
     p.skip_ws();
     if p.pos < p.src.len() {
@@ -798,29 +984,49 @@ pub fn parse_filter(input: &str) -> Result<FilterExpr, ScimError> {
     Ok(e)
 }
 
-struct Parser<'a> { src: &'a [u8], pos: usize }
+struct Parser<'a> {
+    src: &'a [u8],
+    pos: usize,
+}
 impl<'a> Parser<'a> {
-    fn skip_ws(&mut self) { while self.pos < self.src.len() && self.src[self.pos].is_ascii_whitespace() { self.pos += 1; } }
+    fn skip_ws(&mut self) {
+        while self.pos < self.src.len() && self.src[self.pos].is_ascii_whitespace() {
+            self.pos += 1;
+        }
+    }
     fn peek_keyword(&mut self, kw: &str) -> bool {
         self.skip_ws();
         let bytes = kw.as_bytes();
-        if self.src.len() < self.pos + bytes.len() { return false; }
+        if self.src.len() < self.pos + bytes.len() {
+            return false;
+        }
         let slice = &self.src[self.pos..self.pos + bytes.len()];
-        if !slice.eq_ignore_ascii_case(bytes) { return false; }
+        if !slice.eq_ignore_ascii_case(bytes) {
+            return false;
+        }
         // Must be followed by a delimiter (whitespace, paren, eof).
         let next = self.pos + bytes.len();
-        if next == self.src.len() { return true; }
+        if next == self.src.len() {
+            return true;
+        }
         let c = self.src[next];
         c.is_ascii_whitespace() || c == b'(' || c == b')'
     }
     fn eat_keyword(&mut self, kw: &str) -> bool {
-        if self.peek_keyword(kw) { self.pos += kw.len(); true } else { false }
+        if self.peek_keyword(kw) {
+            self.pos += kw.len();
+            true
+        } else {
+            false
+        }
     }
     fn parse_or(&mut self) -> Result<FilterExpr, ScimError> {
         let mut left = self.parse_and()?;
         loop {
             self.skip_ws();
-            if !self.eat_keyword("or") { break }
+            if !self.eat_keyword("or") {
+                break;
+            }
             let right = self.parse_and()?;
             left = FilterExpr::Or(Box::new(left), Box::new(right));
         }
@@ -830,7 +1036,9 @@ impl<'a> Parser<'a> {
         let mut left = self.parse_not()?;
         loop {
             self.skip_ws();
-            if !self.eat_keyword("and") { break }
+            if !self.eat_keyword("and") {
+                break;
+            }
             let right = self.parse_not()?;
             left = FilterExpr::And(Box::new(left), Box::new(right));
         }
@@ -841,13 +1049,21 @@ impl<'a> Parser<'a> {
         if self.eat_keyword("not") {
             self.skip_ws();
             if self.pos >= self.src.len() || self.src[self.pos] != b'(' {
-                return Err(ScimError::new(400, Some(ScimType::InvalidFilter), "not requires (...)"));
+                return Err(ScimError::new(
+                    400,
+                    Some(ScimType::InvalidFilter),
+                    "not requires (...)",
+                ));
             }
             self.pos += 1;
             let inner = self.parse_or()?;
             self.skip_ws();
             if self.pos >= self.src.len() || self.src[self.pos] != b')' {
-                return Err(ScimError::new(400, Some(ScimType::InvalidFilter), "missing ) after not"));
+                return Err(ScimError::new(
+                    400,
+                    Some(ScimType::InvalidFilter),
+                    "missing ) after not",
+                ));
             }
             self.pos += 1;
             return Ok(FilterExpr::Not(Box::new(inner)));
@@ -857,14 +1073,22 @@ impl<'a> Parser<'a> {
     fn parse_atom(&mut self) -> Result<FilterExpr, ScimError> {
         self.skip_ws();
         if self.pos >= self.src.len() {
-            return Err(ScimError::new(400, Some(ScimType::InvalidFilter), "unexpected eof"));
+            return Err(ScimError::new(
+                400,
+                Some(ScimType::InvalidFilter),
+                "unexpected eof",
+            ));
         }
         if self.src[self.pos] == b'(' {
             self.pos += 1;
             let e = self.parse_or()?;
             self.skip_ws();
             if self.pos >= self.src.len() || self.src[self.pos] != b')' {
-                return Err(ScimError::new(400, Some(ScimType::InvalidFilter), "missing )"));
+                return Err(ScimError::new(
+                    400,
+                    Some(ScimType::InvalidFilter),
+                    "missing )",
+                ));
             }
             self.pos += 1;
             return Ok(e);
@@ -883,7 +1107,13 @@ impl<'a> Parser<'a> {
             "co" => FilterExpr::Co(attr, val),
             "sw" => FilterExpr::Sw(attr, val),
             "ew" => FilterExpr::Ew(attr, val),
-            other => return Err(ScimError::new(400, Some(ScimType::InvalidFilter), format!("unsupported op {other}"))),
+            other => {
+                return Err(ScimError::new(
+                    400,
+                    Some(ScimType::InvalidFilter),
+                    format!("unsupported op {other}"),
+                ));
+            }
         })
     }
     fn parse_attr(&mut self) -> Result<String, ScimError> {
@@ -891,10 +1121,18 @@ impl<'a> Parser<'a> {
         let start = self.pos;
         while self.pos < self.src.len() {
             let c = self.src[self.pos];
-            if c.is_ascii_alphanumeric() || c == b'.' || c == b':' || c == b'_' || c == b'-' { self.pos += 1; } else { break; }
+            if c.is_ascii_alphanumeric() || c == b'.' || c == b':' || c == b'_' || c == b'-' {
+                self.pos += 1;
+            } else {
+                break;
+            }
         }
         if self.pos == start {
-            return Err(ScimError::new(400, Some(ScimType::InvalidFilter), "expected attribute name"));
+            return Err(ScimError::new(
+                400,
+                Some(ScimType::InvalidFilter),
+                "expected attribute name",
+            ));
         }
         Ok(std::str::from_utf8(&self.src[start..self.pos])
             .map_err(|_| ScimError::new(400, Some(ScimType::InvalidFilter), "non-utf8 in attr"))?
@@ -903,9 +1141,15 @@ impl<'a> Parser<'a> {
     fn parse_op_word(&mut self) -> Result<String, ScimError> {
         self.skip_ws();
         let start = self.pos;
-        while self.pos < self.src.len() && self.src[self.pos].is_ascii_alphabetic() { self.pos += 1; }
+        while self.pos < self.src.len() && self.src[self.pos].is_ascii_alphabetic() {
+            self.pos += 1;
+        }
         if self.pos == start {
-            return Err(ScimError::new(400, Some(ScimType::InvalidFilter), "expected op"));
+            return Err(ScimError::new(
+                400,
+                Some(ScimType::InvalidFilter),
+                "expected op",
+            ));
         }
         Ok(std::str::from_utf8(&self.src[start..self.pos])
             .map_err(|_| ScimError::new(400, Some(ScimType::InvalidFilter), "non-utf8 in op"))?
@@ -914,7 +1158,11 @@ impl<'a> Parser<'a> {
     fn parse_string_literal(&mut self) -> Result<String, ScimError> {
         self.skip_ws();
         if self.pos >= self.src.len() || self.src[self.pos] != b'"' {
-            return Err(ScimError::new(400, Some(ScimType::InvalidFilter), "expected \"..\" string literal"));
+            return Err(ScimError::new(
+                400,
+                Some(ScimType::InvalidFilter),
+                "expected \"..\" string literal",
+            ));
         }
         self.pos += 1;
         let mut out = Vec::new();
@@ -928,10 +1176,15 @@ impl<'a> Parser<'a> {
             }
         }
         if self.pos >= self.src.len() {
-            return Err(ScimError::new(400, Some(ScimType::InvalidFilter), "unterminated string"));
+            return Err(ScimError::new(
+                400,
+                Some(ScimType::InvalidFilter),
+                "unterminated string",
+            ));
         }
         self.pos += 1;
-        String::from_utf8(out).map_err(|_| ScimError::new(400, Some(ScimType::InvalidFilter), "non-utf8 string"))
+        String::from_utf8(out)
+            .map_err(|_| ScimError::new(400, Some(ScimType::InvalidFilter), "non-utf8 string"))
     }
 }
 
@@ -941,11 +1194,18 @@ fn eval_user(u: &User, expr: &FilterExpr) -> bool {
         FilterExpr::Or(a, b) => eval_user(u, a) || eval_user(u, b),
         FilterExpr::Not(inner) => !eval_user(u, inner),
         FilterExpr::Pr(attr) => attr_present_user(u, attr),
-        FilterExpr::Eq(attr, v) => attr_value_user(u, attr).map_or(false, |s| s.eq_ignore_ascii_case(v)),
-        FilterExpr::Ne(attr, v) => attr_value_user(u, attr).map_or(true, |s| !s.eq_ignore_ascii_case(v)),
-        FilterExpr::Co(attr, v) => attr_value_user(u, attr).map_or(false, |s| s.to_ascii_lowercase().contains(&v.to_ascii_lowercase())),
-        FilterExpr::Sw(attr, v) => attr_value_user(u, attr).map_or(false, |s| s.to_ascii_lowercase().starts_with(&v.to_ascii_lowercase())),
-        FilterExpr::Ew(attr, v) => attr_value_user(u, attr).map_or(false, |s| s.to_ascii_lowercase().ends_with(&v.to_ascii_lowercase())),
+        FilterExpr::Eq(attr, v) => {
+            attr_value_user(u, attr).is_some_and(|s| s.eq_ignore_ascii_case(v))
+        }
+        FilterExpr::Ne(attr, v) => {
+            attr_value_user(u, attr).is_none_or(|s| !s.eq_ignore_ascii_case(v))
+        }
+        FilterExpr::Co(attr, v) => attr_value_user(u, attr)
+            .is_some_and(|s| s.to_ascii_lowercase().contains(&v.to_ascii_lowercase())),
+        FilterExpr::Sw(attr, v) => attr_value_user(u, attr)
+            .is_some_and(|s| s.to_ascii_lowercase().starts_with(&v.to_ascii_lowercase())),
+        FilterExpr::Ew(attr, v) => attr_value_user(u, attr)
+            .is_some_and(|s| s.to_ascii_lowercase().ends_with(&v.to_ascii_lowercase())),
     }
 }
 
@@ -955,7 +1215,11 @@ fn attr_value_user(u: &User, attr: &str) -> Option<String> {
         "id" => Some(u.id.0.clone()),
         "externalId" => u.external_id.clone(),
         "displayName" => u.display_name.clone(),
-        "active" => Some(if u.active { "true".to_owned() } else { "false".to_owned() }),
+        "active" => Some(if u.active {
+            "true".to_owned()
+        } else {
+            "false".to_owned()
+        }),
         "emails.value" => u.emails.first().map(|e| e.value.clone()),
         "name.givenName" => u.name.as_ref().and_then(|n| n.given_name.clone()),
         "name.familyName" => u.name.as_ref().and_then(|n| n.family_name.clone()),
@@ -964,5 +1228,5 @@ fn attr_value_user(u: &User, attr: &str) -> Option<String> {
 }
 
 fn attr_present_user(u: &User, attr: &str) -> bool {
-    attr_value_user(u, attr).map_or(false, |s| !s.is_empty())
+    attr_value_user(u, attr).is_some_and(|s| !s.is_empty())
 }

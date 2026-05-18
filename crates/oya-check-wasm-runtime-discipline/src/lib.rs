@@ -61,9 +61,7 @@ impl DisciplineConfig {
     #[must_use]
     pub fn canonical() -> Self {
         Self {
-            adapter_allowlist: vec![
-                "oya-shared-wasm-runtime-kernel-adapter-wasmtime".to_string(),
-            ],
+            adapter_allowlist: vec!["oya-shared-wasm-runtime-kernel-adapter-wasmtime".to_string()],
         }
     }
 }
@@ -110,11 +108,7 @@ impl fmt::Display for ViolationKind {
 
 const FORBIDDEN_RUNTIME_CRATES: &[&str] = &["wasmtime", "wasmer", "wasmedge"];
 const KERNEL_CRATE: &str = "oya-shared-wasm-runtime-kernel";
-const WASM_INTENT_MARKERS: &[&str] = &[
-    "wasm-execute",
-    "wasm-sandbox",
-    "envoy-wasm-filter",
-];
+const WASM_INTENT_MARKERS: &[&str] = &["wasm-execute", "wasm-sandbox", "envoy-wasm-filter"];
 
 /// Audit a batch of manifests against the WASM runtime discipline
 /// invariants. Order-independent; the same input always yields the
@@ -162,7 +156,9 @@ pub fn audit(
         // depend on the kernel.
         if !mentions_kernel
             && m.crate_name != KERNEL_CRATE
-            && WASM_INTENT_MARKERS.iter().any(|marker| m.contents.contains(marker))
+            && WASM_INTENT_MARKERS
+                .iter()
+                .any(|marker| m.contents.contains(marker))
         {
             violations.push(DisciplineViolation {
                 crate_name: m.crate_name.clone(),
@@ -205,8 +201,14 @@ mod tests {
     fn clean_workspace_has_no_violations() {
         let cfg = DisciplineConfig::canonical();
         let manifests = vec![
-            mf("oya-foundry-tool-runner", "[dependencies]\noya-shared-wasm-runtime-kernel = { path = \"../oya-shared-wasm-runtime-kernel\" }"),
-            mf("oya-shared-wasm-runtime-kernel", "[dependencies]\n# trait-only, no deps"),
+            mf(
+                "oya-foundry-tool-runner",
+                "[dependencies]\noya-shared-wasm-runtime-kernel = { path = \"../oya-shared-wasm-runtime-kernel\" }",
+            ),
+            mf(
+                "oya-shared-wasm-runtime-kernel",
+                "[dependencies]\n# trait-only, no deps",
+            ),
         ];
         let (rep, viols) = audit(&cfg, &manifests);
         assert_eq!(rep.manifests_checked, 2);
@@ -229,10 +231,7 @@ mod tests {
     #[test]
     fn direct_wasmer_import_is_flagged() {
         let cfg = DisciplineConfig::canonical();
-        let manifests = vec![mf(
-            "oya-rogue-wasmer",
-            "[dependencies]\nwasmer = \"4\"\n",
-        )];
+        let manifests = vec![mf("oya-rogue-wasmer", "[dependencies]\nwasmer = \"4\"\n")];
         let (_, viols) = audit(&cfg, &manifests);
         assert_eq!(viols.len(), 1);
         assert_eq!(viols[0].kind, ViolationKind::DirectRuntimeImport);
@@ -246,7 +245,10 @@ mod tests {
             "[dependencies]\nwasmtime = \"30\"\n",
         )];
         let (_, viols) = audit(&cfg, &manifests);
-        assert!(viols.is_empty(), "allowlisted adapter must pass; got {viols:?}");
+        assert!(
+            viols.is_empty(),
+            "allowlisted adapter must pass; got {viols:?}"
+        );
     }
 
     #[test]

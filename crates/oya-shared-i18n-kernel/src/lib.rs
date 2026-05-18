@@ -119,8 +119,8 @@ impl MessageId {
 /// has a name that survives identifier-grammar.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Message {
-    pub pattern: String,         // data_class: INTERNAL_ONLY
-    pub args: Vec<String>,       // data_class: INTERNAL_ONLY
+    pub pattern: String,   // data_class: INTERNAL_ONLY
+    pub args: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 impl Message {
@@ -129,9 +129,7 @@ impl Message {
             return Err(I18nError::EmptyMessagePattern);
         }
         for arg in &args {
-            if arg.is_empty()
-                || !arg.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
-            {
+            if arg.is_empty() || !arg.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
                 return Err(I18nError::MalformedArgument {
                     argument: arg.clone(),
                 });
@@ -159,8 +157,8 @@ pub trait I18nCatalog {
 /// `I18nCatalog` themselves.
 #[derive(Clone, Debug)]
 pub struct FluentI18nCatalog {
-    source_locale: LocaleTag,                                            // data_class: INTERNAL_ONLY
-    bundles: BTreeMap<LocaleTag, BTreeMap<MessageId, Message>>,          // data_class: INTERNAL_ONLY
+    source_locale: LocaleTag, // data_class: INTERNAL_ONLY
+    bundles: BTreeMap<LocaleTag, BTreeMap<MessageId, Message>>, // data_class: INTERNAL_ONLY
 }
 
 impl FluentI18nCatalog {
@@ -173,12 +171,7 @@ impl FluentI18nCatalog {
         }
     }
 
-    pub fn insert(
-        &mut self,
-        locale: LocaleTag,
-        message_id: MessageId,
-        message: Message,
-    ) {
+    pub fn insert(&mut self, locale: LocaleTag, message_id: MessageId, message: Message) {
         self.bundles
             .entry(locale)
             .or_default()

@@ -38,7 +38,7 @@ use std::io::stdout;
 use std::process::ExitCode;
 
 use clap::{CommandFactory, Parser, Subcommand};
-use clap_complete::{generate, Shell};
+use clap_complete::{Shell, generate};
 
 /// Tenant-facing `oya` CLI per ADR-0167.
 #[derive(Parser, Debug)]

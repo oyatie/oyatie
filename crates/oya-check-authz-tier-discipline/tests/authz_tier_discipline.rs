@@ -83,7 +83,8 @@ fn combined_scan_merges_findings() {
     let envoy = "match: { acr_required: critical }";
     let r = scan_combined(&[("p.cedar", cedar)], &[("e.yaml", envoy)]);
     assert!(r.findings.len() >= 2);
-    let tiers: std::collections::BTreeSet<Tier> = r.findings.iter().map(|f| f.source_tier).collect();
+    let tiers: std::collections::BTreeSet<Tier> =
+        r.findings.iter().map(|f| f.source_tier).collect();
     assert!(tiers.contains(&Tier::Origin));
     assert!(tiers.contains(&Tier::Edge));
 }
@@ -106,7 +107,8 @@ fn finding_carries_remediation() {
 
 #[test]
 fn suppression_marker_only_suppresses_marked_line() {
-    let body = "context.client_ip == \"x\"; // authz-tier-discipline: ok (intentional)\ncontext.asn == 1;";
+    let body =
+        "context.client_ip == \"x\"; // authz-tier-discipline: ok (intentional)\ncontext.asn == 1;";
     let r = scan_cedar("p.cedar", body);
     // First line suppressed; second still flags.
     assert_eq!(r.findings.len(), 1);

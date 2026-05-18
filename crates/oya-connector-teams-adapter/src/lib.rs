@@ -59,7 +59,10 @@ impl TeamsConnector {
 
     fn seed_sandbox(&self) {
         for tenant in ["sandbox", "t-1"] {
-            for (cid, name) in [("19:abc1@thread.tacv2", "general"), ("19:abc2@thread.tacv2", "random")] {
+            for (cid, name) in [
+                ("19:abc1@thread.tacv2", "general"),
+                ("19:abc2@thread.tacv2", "random"),
+            ] {
                 let mut d = EntityDoc::new();
                 d.insert("id", EntityValue::Str(cid.to_owned()));
                 d.insert("displayName", EntityValue::Str(name.to_owned()));
@@ -241,7 +244,9 @@ impl Connector for TeamsConnector {
             .and_then(|m| m.remove(id))
             .is_some();
         if !removed {
-            return Err(ConnectorError::NotFound(format!("teams {entity_kind}/{id}")));
+            return Err(ConnectorError::NotFound(format!(
+                "teams {entity_kind}/{id}"
+            )));
         }
         self.lock_events().push_back(Event {
             entity_kind: entity_kind.to_owned(),

@@ -71,7 +71,10 @@ pub struct IdempotentResponse {
 pub enum IdempotencyStoreError {
     KeyTooShort,
     KeyTooLong,
-    FingerprintMismatch { recorded: RequestFingerprint, attempted: RequestFingerprint },
+    FingerprintMismatch {
+        recorded: RequestFingerprint,
+        attempted: RequestFingerprint,
+    },
     SkeletonNotYetImplemented(&'static str),
 }
 
@@ -86,7 +89,10 @@ impl fmt::Display for IdempotencyStoreError {
                 f,
                 "oya-shared-idempotency-key-kernel: idempotency key longer than 256 bytes"
             ),
-            IdempotencyStoreError::FingerprintMismatch { recorded, attempted } => write!(
+            IdempotencyStoreError::FingerprintMismatch {
+                recorded,
+                attempted,
+            } => write!(
                 f,
                 "oya-shared-idempotency-key-kernel: fingerprint mismatch (recorded={recorded:?}, attempted={attempted:?})"
             ),
@@ -129,7 +135,10 @@ pub trait IdempotencyKeyStore: Send + Sync {
     ///
     /// # Errors
     /// - `SkeletonNotYetImplemented` for the skeleton impl.
-    fn peek(&self, key: &IdempotencyKey) -> Result<Option<IdempotentResponse>, IdempotencyStoreError>;
+    fn peek(
+        &self,
+        key: &IdempotencyKey,
+    ) -> Result<Option<IdempotentResponse>, IdempotencyStoreError>;
 }
 
 /// In-memory reference implementation used by per-µservice integration
@@ -139,6 +148,9 @@ pub struct InMemoryIdempotencyKeyStore {
     inner: std::sync::Mutex<std::collections::HashMap<String, IdempotentResponse>>,
 }
 
+// Mutex lock panics on thread poisoning — same severity as a panic.
+// ADR-0083 §Tier-3 permits this in reference implementations.
+#[allow(clippy::expect_used)]
 impl IdempotencyKeyStore for InMemoryIdempotencyKeyStore {
     fn get_or_compute(
         &self,
@@ -167,7 +179,10 @@ impl IdempotencyKeyStore for InMemoryIdempotencyKeyStore {
         Ok(())
     }
 
-    fn peek(&self, key: &IdempotencyKey) -> Result<Option<IdempotentResponse>, IdempotencyStoreError> {
+    fn peek(
+        &self,
+        key: &IdempotencyKey,
+    ) -> Result<Option<IdempotentResponse>, IdempotencyStoreError> {
         let inner = self.inner.lock().expect("mutex poisoned");
         Ok(inner.get(key.as_str()).cloned())
     }
@@ -188,13 +203,19 @@ mod tests {
 
     #[test]
     fn key_rejects_too_short() {
-        assert_eq!(IdempotencyKey::try_new("short"), Err(IdempotencyStoreError::KeyTooShort));
+        assert_eq!(
+            IdempotencyKey::try_new("short"),
+            Err(IdempotencyStoreError::KeyTooShort)
+        );
     }
 
     #[test]
     fn key_rejects_too_long() {
         let long = "x".repeat(257);
-        assert_eq!(IdempotencyKey::try_new(long), Err(IdempotencyStoreError::KeyTooLong));
+        assert_eq!(
+            IdempotencyKey::try_new(long),
+            Err(IdempotencyStoreError::KeyTooLong)
+        );
     }
 
     #[test]
@@ -207,8 +228,12 @@ mod tests {
             compute_count += 1;
             good_response()
         };
-        let first = store.get_or_compute(&key, &fp, &mut compute).expect("first call");
-        let second = store.get_or_compute(&key, &fp, &mut compute).expect("replay");
+        let first = store
+            .get_or_compute(&key, &fp, &mut compute)
+            .expect("first call");
+        let second = store
+            .get_or_compute(&key, &fp, &mut compute)
+            .expect("replay");
         assert_eq!(first, second);
         assert_eq!(compute_count, 1, "compute must run once across two calls");
     }
@@ -220,12 +245,17 @@ mod tests {
         let fp_a = RequestFingerprint("sha256:abc".into());
         let fp_b = RequestFingerprint("sha256:xyz".into());
         let mut compute_a = || good_response();
-        store.get_or_compute(&key, &fp_a, &mut compute_a).expect("first call");
+        store
+            .get_or_compute(&key, &fp_a, &mut compute_a)
+            .expect("first call");
         let mut compute_b = || good_response();
         let err = store
             .get_or_compute(&key, &fp_b, &mut compute_b)
             .expect_err("fingerprint mismatch");
-        assert!(matches!(err, IdempotencyStoreError::FingerprintMismatch { .. }));
+        assert!(matches!(
+            err,
+            IdempotencyStoreError::FingerprintMismatch { .. }
+        ));
     }
 
     #[test]

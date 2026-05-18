@@ -119,7 +119,11 @@ mod tests {
         let r = check(&[input]).unwrap();
         // GDPR requires 3 artifacts; none provided.
         assert_eq!(r.gaps.len(), 3);
-        assert!(r.gaps.iter().all(|g| g.framework == ComplianceFramework::Gdpr));
+        assert!(
+            r.gaps
+                .iter()
+                .all(|g| g.framework == ComplianceFramework::Gdpr)
+        );
     }
 
     #[test]
@@ -142,10 +146,7 @@ mod tests {
         let input = MicroserviceEvidenceInput {
             microservice: "ops-portal".into(),
             tenant_id: "tenant_x".into(),
-            frameworks: vec![
-                ComplianceFramework::Gdpr,
-                ComplianceFramework::Hipaa,
-            ],
+            frameworks: vec![ComplianceFramework::Gdpr, ComplianceFramework::Hipaa],
             artifacts: vec![],
             window_open_unix_ms: 0,
         };

@@ -38,10 +38,10 @@ fn microservice_name_for(path: &Path) -> Option<String> {
     // microservices/<ms>/... — return <ms>.
     let mut iter = path.components();
     while let Some(c) = iter.next() {
-        if c.as_os_str() == OsStr::new("microservices") {
-            if let Some(next) = iter.next() {
-                return Some(next.as_os_str().to_string_lossy().to_string());
-            }
+        if c.as_os_str() == OsStr::new("microservices")
+            && let Some(next) = iter.next()
+        {
+            return Some(next.as_os_str().to_string_lossy().to_string());
         }
     }
     None

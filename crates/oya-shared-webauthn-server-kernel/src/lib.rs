@@ -341,9 +341,10 @@ impl CredentialStore for InMemoryCredentialStore {
 
     fn put(&self, cred: &Credential) {
         let Ok(mut g) = self.inner.lock() else { return };
-        if let Some(slot) = g.iter_mut().find(|c| {
-            c.tenant_id == cred.tenant_id && c.credential_id == cred.credential_id
-        }) {
+        if let Some(slot) = g
+            .iter_mut()
+            .find(|c| c.tenant_id == cred.tenant_id && c.credential_id == cred.credential_id)
+        {
             *slot = cred.clone();
         } else {
             g.push(cred.clone());
@@ -370,9 +371,17 @@ impl CredentialStore for InMemoryCredentialStore {
 /// production).
 pub trait ChallengeStore: Send + Sync {
     fn put_registration(&self, c: &RegistrationChallenge, now_unix: i64);
-    fn take_registration(&self, id: &str, now_unix: i64) -> Result<RegistrationChallenge, WebauthnError>;
+    fn take_registration(
+        &self,
+        id: &str,
+        now_unix: i64,
+    ) -> Result<RegistrationChallenge, WebauthnError>;
     fn put_authentication(&self, c: &AuthenticationChallenge, now_unix: i64);
-    fn take_authentication(&self, id: &str, now_unix: i64) -> Result<AuthenticationChallenge, WebauthnError>;
+    fn take_authentication(
+        &self,
+        id: &str,
+        now_unix: i64,
+    ) -> Result<AuthenticationChallenge, WebauthnError>;
 }
 
 #[derive(Default)]
@@ -389,8 +398,15 @@ impl ChallengeStore for InMemoryChallengeStore {
             g.push((c.clone(), now_unix));
         }
     }
-    fn take_registration(&self, id: &str, now_unix: i64) -> Result<RegistrationChallenge, WebauthnError> {
-        let mut g = self.reg.lock().map_err(|_| WebauthnError::Internal("lock".into()))?;
+    fn take_registration(
+        &self,
+        id: &str,
+        now_unix: i64,
+    ) -> Result<RegistrationChallenge, WebauthnError> {
+        let mut g = self
+            .reg
+            .lock()
+            .map_err(|_| WebauthnError::Internal("lock".into()))?;
         let pos = g
             .iter()
             .position(|(c, _)| c.challenge_id == id)
@@ -406,8 +422,15 @@ impl ChallengeStore for InMemoryChallengeStore {
             g.push((c.clone(), now_unix));
         }
     }
-    fn take_authentication(&self, id: &str, now_unix: i64) -> Result<AuthenticationChallenge, WebauthnError> {
-        let mut g = self.auth.lock().map_err(|_| WebauthnError::Internal("lock".into()))?;
+    fn take_authentication(
+        &self,
+        id: &str,
+        now_unix: i64,
+    ) -> Result<AuthenticationChallenge, WebauthnError> {
+        let mut g = self
+            .auth
+            .lock()
+            .map_err(|_| WebauthnError::Internal("lock".into()))?;
         let pos = g
             .iter()
             .position(|(c, _)| c.challenge_id == id)
@@ -495,7 +518,9 @@ where
         response: &RegistrationResponse,
         now_unix: i64,
     ) -> Result<Credential, WebauthnError> {
-        let challenge = self.challenge_store.take_registration(&response.challenge_id, now_unix)?;
+        let challenge = self
+            .challenge_store
+            .take_registration(&response.challenge_id, now_unix)?;
         if challenge.user_id != *user_id {
             return Err(WebauthnError::UserMismatch {
                 expected: challenge.user_id.clone(),
@@ -559,7 +584,9 @@ where
                 actual: stored.tenant_id,
             });
         }
-        let new_sign_count = self.adapter.verify_authentication(&challenge, response, &stored)?;
+        let new_sign_count = self
+            .adapter
+            .verify_authentication(&challenge, response, &stored)?;
         if new_sign_count <= stored.sign_count && (stored.sign_count != 0 || new_sign_count != 0) {
             // sign_count == 0 stays 0 for cloned-authenticator-tolerant Yubikeys
             // (W3C WebAuthn §6.1.1 — implementations MAY use 0); only enforce
@@ -583,8 +610,7 @@ where
 /// dependency on the oidc kernel (the two crates are independent
 /// substrates).
 fn b64url_encode_local(input: &[u8]) -> String {
-    const ALPHABET: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut out = String::with_capacity(input.len() * 4 / 3 + 4);
     let mut buf: u32 = 0;
     let mut bits: u32 = 0;

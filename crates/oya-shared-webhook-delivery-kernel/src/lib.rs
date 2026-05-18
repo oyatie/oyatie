@@ -64,7 +64,10 @@ pub enum DeliveryReceipt {
     /// ADR-0169 §"Failure-mode catalog". Will not be retried.
     DeadLettered { http_status: u16, reason: String },
     /// Retryable failure; will be retried per ADR-0169 §"Retry schedule".
-    Retrying { attempt: u8, next_attempt_in: Duration },
+    Retrying {
+        attempt: u8,
+        next_attempt_in: Duration,
+    },
 }
 
 /// Webhook-delivery client trait integrated by every µservice that

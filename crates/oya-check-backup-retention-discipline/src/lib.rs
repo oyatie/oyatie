@@ -171,7 +171,12 @@ mod tests {
 
     #[test]
     fn meeting_generic_floor_is_ok() {
-        let r = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::Generic, 2_555, None)));
+        let r = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::Generic,
+            2_555,
+            None,
+        )));
         assert_eq!(r.findings_ok, 1);
         assert_eq!(r.findings_blocking, 0);
         assert!(r.would_pass_strict());
@@ -179,7 +184,12 @@ mod tests {
 
     #[test]
     fn below_generic_floor_no_override_is_blocking() {
-        let r = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::Generic, 90, None)));
+        let r = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::Generic,
+            90,
+            None,
+        )));
         assert_eq!(r.findings_blocking, 1);
         assert_eq!(r.findings[0].declared_days, 90);
         assert_eq!(r.findings[0].floor_days, 2_555);
@@ -201,35 +211,65 @@ mod tests {
 
     #[test]
     fn kr_floor_is_5y() {
-        let r = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::Kr, 1_825, None)));
+        let r = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::Kr,
+            1_825,
+            None,
+        )));
         assert_eq!(r.findings_ok, 1);
-        let r2 = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::Kr, 1_824, None)));
+        let r2 = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::Kr,
+            1_824,
+            None,
+        )));
         assert_eq!(r2.findings_blocking, 1);
     }
 
     #[test]
     fn us_healthcare_floor_is_6y() {
-        let r = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::UsHealthcare, 2_190, None)));
+        let r = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::UsHealthcare,
+            2_190,
+            None,
+        )));
         assert_eq!(r.findings_ok, 1);
-        let r2 = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::UsHealthcare, 1_825, None)));
+        let r2 = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::UsHealthcare,
+            1_825,
+            None,
+        )));
         assert_eq!(r2.findings_blocking, 1);
     }
 
     #[test]
     fn eu_floor_is_7y() {
-        let r = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::Eu, 2_555, None)));
+        let r = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::Eu,
+            2_555,
+            None,
+        )));
         assert_eq!(r.findings_ok, 1);
-        let r2 = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::Eu, 2_190, None)));
+        let r2 = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::Eu,
+            2_190,
+            None,
+        )));
         assert_eq!(r2.findings_blocking, 1);
     }
 
     #[test]
     fn mixed_declarations_aggregate_correctly() {
         let ds = vec![
-            decl("a", RegulatoryPack::Generic, 2_555, None),         // ok
-            decl("b", RegulatoryPack::Kr, 1_825, None),              // ok
-            decl("c", RegulatoryPack::UsHealthcare, 1_000, None),    // blocking
-            decl("d", RegulatoryPack::Eu, 100, Some("ADR-OVR-1")),   // advisory
+            decl("a", RegulatoryPack::Generic, 2_555, None), // ok
+            decl("b", RegulatoryPack::Kr, 1_825, None),      // ok
+            decl("c", RegulatoryPack::UsHealthcare, 1_000, None), // blocking
+            decl("d", RegulatoryPack::Eu, 100, Some("ADR-OVR-1")), // advisory
         ];
         let r = validate_advisory(ds.into_iter());
         assert_eq!(r.declarations_scanned, 4);
@@ -248,7 +288,12 @@ mod tests {
 
     #[test]
     fn finding_display_carries_pack_and_floor() {
-        let r = validate_advisory(std::iter::once(decl("drive", RegulatoryPack::Kr, 1_000, None)));
+        let r = validate_advisory(std::iter::once(decl(
+            "drive",
+            RegulatoryPack::Kr,
+            1_000,
+            None,
+        )));
         let s = format!("{}", r.findings[0]);
         assert!(s.contains("kr"));
         assert!(s.contains("1825"));

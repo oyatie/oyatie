@@ -7,11 +7,7 @@ use oya_shared_realtime_transport_kernel::{
 
 #[test]
 fn empty_resume_token_is_rejected() {
-    let sub = RealtimeSubscription::new(
-        "sub_a".into(),
-        RealtimeTransportTier::WebSocket,
-    )
-    .unwrap();
+    let sub = RealtimeSubscription::new("sub_a".into(), RealtimeTransportTier::WebSocket).unwrap();
     assert_eq!(
         sub.with_resume(String::new()),
         Err(RealtimeError::EmptyResumeToken)
@@ -21,11 +17,9 @@ fn empty_resume_token_is_rejected() {
 #[test]
 fn websocket_admits_bidirectional_subscription() {
     let ws = WebSocketTransport;
-    let sub = RealtimeSubscription::new(
-        "sub_canvas_collab".into(),
-        RealtimeTransportTier::WebSocket,
-    )
-    .unwrap();
+    let sub =
+        RealtimeSubscription::new("sub_canvas_collab".into(), RealtimeTransportTier::WebSocket)
+            .unwrap();
     assert!(ws.admit(&sub).is_ok());
     assert!(ws.tier().bidirectional());
 }

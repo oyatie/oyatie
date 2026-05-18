@@ -9,17 +9,17 @@
 //!
 //! - I-1. Every saga has at least one step.
 //! - I-2. Every step declares all six required fields
-//!         (forward_action, compensation_action, idempotency_key_strategy,
-//!          timeout_budget_ms, retry_policy, audit_class).
+//!   (forward_action, compensation_action, idempotency_key_strategy,
+//!   timeout_budget_ms, retry_policy, audit_class).
 //! - I-3. If `audit_class != ReadOnly` then `compensation_action.kind` MUST
-//!         NOT be `NoopWithEvidence` (per ADR-0173 D-1 paragraph 2).
+//!   NOT be `NoopWithEvidence` (per ADR-0173 D-1 paragraph 2).
 //! - I-4. Step ids are unique within a saga.
 //!
 //! Non-validating (advisory) checks land as warnings:
 //!
 //! - W-1. `target_microservice` should appear in the canonical 32-µservice
-//!         catalog. The catalog is supplied by the caller; this kernel
-//!         doesn't read it from disk.
+//!   catalog. The catalog is supplied by the caller; this kernel
+//!   doesn't read it from disk.
 
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` / `panic!()`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -356,7 +356,10 @@ mod tests {
     fn valid_saga_passes() {
         let catalog = canonical_microservice_catalog();
         let result = validate_saga_shape(
-            vec![saga(vec![write_step("revoke_tokens", CompensationKind::Custom)])],
+            vec![saga(vec![write_step(
+                "revoke_tokens",
+                CompensationKind::Custom,
+            )])],
             &catalog,
         );
         let report = result.unwrap();
@@ -415,9 +418,11 @@ mod tests {
             &catalog,
         );
         let violations = result.unwrap_err();
-        assert!(violations
-            .iter()
-            .any(|v| v.kind == SagaShapeViolationKind::DuplicateStepId));
+        assert!(
+            violations
+                .iter()
+                .any(|v| v.kind == SagaShapeViolationKind::DuplicateStepId)
+        );
     }
 
     #[test]
@@ -427,9 +432,11 @@ mod tests {
         step.timeout_budget_ms = 50; // below 100 ms floor
         let result = validate_saga_shape(vec![saga(vec![step])], &catalog);
         let violations = result.unwrap_err();
-        assert!(violations
-            .iter()
-            .any(|v| v.kind == SagaShapeViolationKind::InvalidTimeoutBudget));
+        assert!(
+            violations
+                .iter()
+                .any(|v| v.kind == SagaShapeViolationKind::InvalidTimeoutBudget)
+        );
     }
 
     #[test]
@@ -439,9 +446,11 @@ mod tests {
         step.retry_max_attempts = 11; // above 10 ceiling
         let result = validate_saga_shape(vec![saga(vec![step])], &catalog);
         let violations = result.unwrap_err();
-        assert!(violations
-            .iter()
-            .any(|v| v.kind == SagaShapeViolationKind::InvalidRetryAttempts));
+        assert!(
+            violations
+                .iter()
+                .any(|v| v.kind == SagaShapeViolationKind::InvalidRetryAttempts)
+        );
     }
 
     #[test]

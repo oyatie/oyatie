@@ -220,11 +220,18 @@ pub enum EmailCommsError {
     /// Tenant SPF record does not authorize the active provider.
     SpfNotAuthorized(TenantId),
     /// Tenant DMARC policy is `p=none` past the warm-up window.
-    DmarcPolicyForbidden { tenant: TenantId, policy: DmarcPolicy },
+    DmarcPolicyForbidden {
+        tenant: TenantId,
+        policy: DmarcPolicy,
+    },
     /// Recipient address is on the suppression list.
     RecipientSuppressed(EmailAddress),
     /// Provider responded with a non-retryable error.
-    ProviderError { provider: EmailProvider, code: String, message: String },
+    ProviderError {
+        provider: EmailProvider,
+        code: String,
+        message: String,
+    },
     /// Real provider SDK not configured (feature flag absent or
     /// adapter not wired).
     AdapterNotConfigured(EmailProvider),
@@ -241,10 +248,16 @@ impl fmt::Display for EmailCommsError {
         match self {
             EmailCommsError::InvalidAddress(s) => write!(f, "invalid email address: {s}"),
             EmailCommsError::RateCeilingExceeded { tenant, per_minute } => {
-                write!(f, "tenant {tenant:?} exceeded {per_minute}/min rate ceiling")
+                write!(
+                    f,
+                    "tenant {tenant:?} exceeded {per_minute}/min rate ceiling"
+                )
             }
             EmailCommsError::DkimBindingMissing(t) => {
-                write!(f, "tenant {t:?} has no DKIM binding; unsigned send forbidden")
+                write!(
+                    f,
+                    "tenant {t:?} has no DKIM binding; unsigned send forbidden"
+                )
             }
             EmailCommsError::SpfNotAuthorized(t) => {
                 write!(f, "tenant {t:?} SPF record does not authorize provider")
@@ -255,7 +268,11 @@ impl fmt::Display for EmailCommsError {
             EmailCommsError::RecipientSuppressed(addr) => {
                 write!(f, "recipient {addr:?} on suppression list")
             }
-            EmailCommsError::ProviderError { provider, code, message } => {
+            EmailCommsError::ProviderError {
+                provider,
+                code,
+                message,
+            } => {
                 write!(f, "{provider} error {code}: {message}")
             }
             EmailCommsError::AdapterNotConfigured(p) => {
@@ -264,7 +281,10 @@ impl fmt::Display for EmailCommsError {
             EmailCommsError::NoRecipients => write!(f, "no recipients"),
             EmailCommsError::EmptyMessage => write!(f, "empty message"),
             EmailCommsError::IdempotencyConflict { key } => {
-                write!(f, "idempotency-key {key} collides with non-identical prior send")
+                write!(
+                    f,
+                    "idempotency-key {key} collides with non-identical prior send"
+                )
             }
         }
     }
@@ -298,6 +318,7 @@ pub trait EmailComms: Send + Sync {
 /// Shared deliverability invariant check used by every real
 /// adapter. Centralizing it here means DKIM/SPF/DMARC + suppression
 /// + rate-ceiling rules are uniform across SES, Postal, Mailgun,
+///
 /// SMTP.
 ///
 /// # Errors
@@ -442,7 +463,9 @@ impl EmailComms for MailgunEmailComms {
         message: &OutboundMessage,
     ) -> Result<SendOutcome, EmailCommsError> {
         self.preflight(binding, message)?;
-        Err(EmailCommsError::AdapterNotConfigured(EmailProvider::Mailgun))
+        Err(EmailCommsError::AdapterNotConfigured(
+            EmailProvider::Mailgun,
+        ))
     }
 }
 
@@ -621,22 +644,13 @@ mod tests {
         let b = good_binding();
         let m = good_message();
         for adapter in [
-            (
-                SesEmailComms::new().send(&b, &m),
-                EmailProvider::Ses,
-            ),
-            (
-                PostalEmailComms::new().send(&b, &m),
-                EmailProvider::Postal,
-            ),
+            (SesEmailComms::new().send(&b, &m), EmailProvider::Ses),
+            (PostalEmailComms::new().send(&b, &m), EmailProvider::Postal),
             (
                 MailgunEmailComms::new().send(&b, &m),
                 EmailProvider::Mailgun,
             ),
-            (
-                SmtpEmailComms::new().send(&b, &m),
-                EmailProvider::Smtp,
-            ),
+            (SmtpEmailComms::new().send(&b, &m), EmailProvider::Smtp),
         ] {
             let (res, expected) = adapter;
             match res.unwrap_err() {

@@ -14,7 +14,7 @@
 //!
 //!   - `GROUP BY` over a non-indexed dimension, OR
 //!   - `COUNT(DISTINCT ...)` over > 100K-row table (caller annotates row
-//!      count via [`OlapUsage::row_count_estimate`]), OR
+//!     count via [`OlapUsage::row_count_estimate`]), OR
 //!   - window functions (`OVER`) across multi-month windows.
 //!
 //! Lane mode follows the canonical [`CheckMode`].
@@ -205,9 +205,7 @@ pub fn check(records: &[OlapUsage]) -> Report {
                 excerpt: sql.clone(),
             });
         }
-        if looks_like_count_distinct(sql)
-            && rec.row_count_estimate > WIDE_AGGREGATE_ROW_THRESHOLD
-        {
+        if looks_like_count_distinct(sql) && rec.row_count_estimate > WIDE_AGGREGATE_ROW_THRESHOLD {
             violations.push(Violation {
                 microservice: rec.microservice.clone(),
                 source_file: rec.source_file.clone(),

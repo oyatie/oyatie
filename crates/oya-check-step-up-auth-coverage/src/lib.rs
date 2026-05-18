@@ -26,10 +26,19 @@
 use serde::{Deserialize, Serialize};
 
 const SENSITIVE_PATH_NEEDLES: &[&str] = &[
-    "/secret", "/secrets", "/key", "/keys",
-    "/rotate", "/revoke", "/delete-tenant", "/transfer",
-    "/payment", "/payments", "/admin",
-    "/billing/currency", "/residency",
+    "/secret",
+    "/secrets",
+    "/key",
+    "/keys",
+    "/rotate",
+    "/revoke",
+    "/delete-tenant",
+    "/transfer",
+    "/payment",
+    "/payments",
+    "/admin",
+    "/billing/currency",
+    "/residency",
 ];
 
 const MUTATING_METHODS: &[&str] = &["post", "put", "patch", "delete"];
@@ -72,24 +81,34 @@ impl StepUpAuthCoverageReport {
 const KNOWN_ACR: &[&str] = &["routine", "elevated", "sensitive", "critical"];
 
 /// Run the gate against a YAML or JSON OpenAPI 3.x spec body.
-pub fn scan(spec_source: impl Into<String>, body: &str) -> Result<StepUpAuthCoverageReport, ScanError> {
+pub fn scan(
+    spec_source: impl Into<String>,
+    body: &str,
+) -> Result<StepUpAuthCoverageReport, ScanError> {
     let spec: serde_yaml::Value = serde_yaml::from_str(body)
         .map_err(|e| ScanError::Parse(format!("yaml/json parse: {e}")))?;
     let spec_source = spec_source.into();
 
-    let paths = spec.get("paths").and_then(|p| p.as_mapping()).ok_or_else(|| {
-        ScanError::Parse("missing top-level `paths`".to_owned())
-    })?;
+    let paths = spec
+        .get("paths")
+        .and_then(|p| p.as_mapping())
+        .ok_or_else(|| ScanError::Parse("missing top-level `paths`".to_owned()))?;
 
     let mut findings = Vec::new();
     let mut ops_inspected = 0usize;
     let mut ops_declared = 0usize;
 
     for (path_key, path_item) in paths {
-        let Some(path_str) = path_key.as_str() else { continue };
-        let Some(item_map) = path_item.as_mapping() else { continue };
+        let Some(path_str) = path_key.as_str() else {
+            continue;
+        };
+        let Some(item_map) = path_item.as_mapping() else {
+            continue;
+        };
         for (method_key, op) in item_map {
-            let Some(method_str) = method_key.as_str() else { continue };
+            let Some(method_str) = method_key.as_str() else {
+                continue;
+            };
             let method_lc = method_str.to_ascii_lowercase();
             if !MUTATING_METHODS.contains(&method_lc.as_str())
                 && !matches!(method_lc.as_str(), "get" | "head" | "options")
@@ -100,16 +119,23 @@ pub fn scan(spec_source: impl Into<String>, body: &str) -> Result<StepUpAuthCove
                 // read-only methods are inspected only to count declarations,
                 // never required to declare.
                 ops_inspected += 1;
-                if op_has_acr_decl(op) { ops_declared += 1; }
+                if op_has_acr_decl(op) {
+                    ops_declared += 1;
+                }
                 continue;
             }
             ops_inspected += 1;
-            let op_id = op.get("operationId").and_then(|v| v.as_str()).map(String::from);
+            let op_id = op
+                .get("operationId")
+                .and_then(|v| v.as_str())
+                .map(String::from);
             let exempt = op
                 .get("x-acr-exempt")
                 .and_then(|v| v.as_bool())
                 .unwrap_or(false);
-            if exempt { continue; }
+            if exempt {
+                continue;
+            }
             let acr = op.get("x-acr-required").and_then(|v| v.as_str());
             let path_is_sensitive = is_sensitive_path(path_str);
             match acr {

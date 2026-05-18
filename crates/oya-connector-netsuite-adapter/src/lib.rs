@@ -210,7 +210,10 @@ impl Connector for NetsuiteConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let mut doc = self.get(ctx, entity_kind, id)?;
-        doc.insert(patch.field.clone(), patch.value.unwrap_or(EntityValue::Null));
+        doc.insert(
+            patch.field.clone(),
+            patch.value.unwrap_or(EntityValue::Null),
+        );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
         self.seal(ctx, "connector.update", id);
         Ok(doc)
@@ -262,8 +265,7 @@ impl Connector for NetsuiteConnector {
         vec![
             OntologyProjection::new("Customer", "netsuite:customer")
                 .map_field("name", "companyName"),
-            OntologyProjection::new("Vendor", "netsuite:vendor")
-                .map_field("name", "companyName"),
+            OntologyProjection::new("Vendor", "netsuite:vendor").map_field("name", "companyName"),
             OntologyProjection::new("SalesOrder", "netsuite:salesOrder")
                 .map_field("total", "total"),
         ]
@@ -305,13 +307,19 @@ mod tests {
     }
     #[test]
     fn get_customer_ok() {
-        assert!(NetsuiteConnector::new().get(&ctx(), "customer", "1").is_ok());
+        assert!(
+            NetsuiteConnector::new()
+                .get(&ctx(), "customer", "1")
+                .is_ok()
+        );
     }
     #[test]
     fn unknown_record_not_found() {
-        assert!(NetsuiteConnector::new()
-            .get(&ctx(), "customer", "999")
-            .is_err());
+        assert!(
+            NetsuiteConnector::new()
+                .get(&ctx(), "customer", "999")
+                .is_err()
+        );
     }
     #[test]
     fn unsupported_record_type() {

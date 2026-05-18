@@ -207,7 +207,10 @@ impl Connector for GustoConnector {
     ) -> Result<EntityDoc> {
         self.check_kind(entity_kind)?;
         let mut doc = self.get(ctx, entity_kind, id)?;
-        doc.insert(patch.field.clone(), patch.value.unwrap_or(EntityValue::Null));
+        doc.insert(
+            patch.field.clone(),
+            patch.value.unwrap_or(EntityValue::Null),
+        );
         self.put(ctx.tenant_id().as_str(), entity_kind, id, doc.clone());
         self.seal(ctx, "connector.update", id);
         Ok(doc)
@@ -280,29 +283,39 @@ mod tests {
     #[test]
     fn ten_employees_smoke() {
         assert_eq!(
-            GustoConnector::new().list(&ctx(), "employee", None).unwrap().items.len(),
+            GustoConnector::new()
+                .list(&ctx(), "employee", None)
+                .unwrap()
+                .items
+                .len(),
             10
         );
     }
     #[test]
     fn get_employee_ok() {
-        assert!(GustoConnector::new()
-            .get(&ctx(), "employee", "emp-00000001")
-            .is_ok());
+        assert!(
+            GustoConnector::new()
+                .get(&ctx(), "employee", "emp-00000001")
+                .is_ok()
+        );
     }
     #[test]
     fn unknown_employee_not_found() {
-        assert!(GustoConnector::new()
-            .get(&ctx(), "employee", "missing")
-            .is_err());
+        assert!(
+            GustoConnector::new()
+                .get(&ctx(), "employee", "missing")
+                .is_err()
+        );
     }
     #[test]
     fn list_payrolls() {
-        assert!(!GustoConnector::new()
-            .list(&ctx(), "payroll", None)
-            .unwrap()
-            .items
-            .is_empty());
+        assert!(
+            !GustoConnector::new()
+                .list(&ctx(), "payroll", None)
+                .unwrap()
+                .items
+                .is_empty()
+        );
     }
     #[test]
     fn unsupported_kind() {

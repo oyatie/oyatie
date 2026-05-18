@@ -48,8 +48,14 @@ impl QuotaAxis {
 /// Decision returned by the quota check.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum QuotaDecision {
-    Allowed { remaining: u64 },
-    Denied { limit: u64, used: u64, retry_after_seconds: u64 },
+    Allowed {
+        remaining: u64,
+    },
+    Denied {
+        limit: u64,
+        used: u64,
+        retry_after_seconds: u64,
+    },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -62,10 +68,9 @@ pub enum QuotaError {
 impl fmt::Display for QuotaError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            QuotaError::UnknownTenant(id) => write!(
-                f,
-                "oya-shared-tenant-quota-kernel: unknown tenant {id:?}"
-            ),
+            QuotaError::UnknownTenant(id) => {
+                write!(f, "oya-shared-tenant-quota-kernel: unknown tenant {id:?}")
+            }
             QuotaError::NegativeAmount => write!(
                 f,
                 "oya-shared-tenant-quota-kernel: amount must be non-negative"
@@ -113,12 +118,8 @@ pub trait TenantQuotaKernel: Send + Sync {
     /// # Errors
     /// - `UnknownTenant` when the tenant has no quota record.
     /// - `SkeletonNotYetImplemented` for the skeleton impl.
-    fn release(
-        &self,
-        tenant_id: &TenantId,
-        axis: QuotaAxis,
-        amount: u64,
-    ) -> Result<(), QuotaError>;
+    fn release(&self, tenant_id: &TenantId, axis: QuotaAxis, amount: u64)
+    -> Result<(), QuotaError>;
 }
 
 #[cfg(test)]
@@ -128,7 +129,10 @@ mod tests {
     #[test]
     fn axis_wire_names_are_stable() {
         assert_eq!(QuotaAxis::RequestRate.wire_name(), "request_rate");
-        assert_eq!(QuotaAxis::ConcurrentRequests.wire_name(), "concurrent_requests");
+        assert_eq!(
+            QuotaAxis::ConcurrentRequests.wire_name(),
+            "concurrent_requests"
+        );
         assert_eq!(QuotaAxis::Memory.wire_name(), "memory");
         assert_eq!(QuotaAxis::Storage.wire_name(), "storage");
         assert_eq!(QuotaAxis::Connections.wire_name(), "connections");
@@ -145,9 +149,16 @@ mod tests {
 
     #[test]
     fn decision_denied_carries_retry_after() {
-        let d = QuotaDecision::Denied { limit: 100, used: 100, retry_after_seconds: 30 };
+        let d = QuotaDecision::Denied {
+            limit: 100,
+            used: 100,
+            retry_after_seconds: 30,
+        };
         match d {
-            QuotaDecision::Denied { retry_after_seconds, .. } => {
+            QuotaDecision::Denied {
+                retry_after_seconds,
+                ..
+            } => {
                 assert_eq!(retry_after_seconds, 30);
             }
             QuotaDecision::Allowed { .. } => panic!("wrong variant"),

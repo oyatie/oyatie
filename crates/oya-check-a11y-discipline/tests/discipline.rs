@@ -16,13 +16,21 @@ fn mf(ms: &str, stack: ClientStack, runners: &[&str]) -> ClientStackManifest {
 
 #[test]
 fn winui3_requires_accessibility_insights() {
-    let r = check(&[mf("ops-portal", ClientStack::WinUi3, &["accessibility-insights-for-windows"])]);
+    let r = check(&[mf(
+        "ops-portal",
+        ClientStack::WinUi3,
+        &["accessibility-insights-for-windows"],
+    )]);
     assert!(r.gaps.is_empty());
 }
 
 #[test]
 fn gtk4_requires_at_spi_runner() {
-    let r = check(&[mf("calendar", ClientStack::Gtk4, &["at-spi-conformance-test"])]);
+    let r = check(&[mf(
+        "calendar",
+        ClientStack::Gtk4,
+        &["at-spi-conformance-test"],
+    )]);
     assert!(r.gaps.is_empty());
 }
 
@@ -54,6 +62,10 @@ fn unknown_runner_is_flagged_per_stack() {
 
 #[test]
 fn mobile_compose_stack_uses_accessibility_scanner() {
-    let r = check(&[mf("workflow-studio", ClientStack::Compose, &["android-accessibility-scanner-ci"])]);
+    let r = check(&[mf(
+        "workflow-studio",
+        ClientStack::Compose,
+        &["android-accessibility-scanner-ci"],
+    )]);
     assert!(r.gaps.is_empty());
 }
