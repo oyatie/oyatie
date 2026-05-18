@@ -1689,6 +1689,58 @@ fn design_spec_maturity_claims_gate_rejects_unblocked_operational_claims() {
 }
 
 #[test]
+fn design_spec_maturity_claims_gate_rejects_unimplemented_required_surfaces() {
+    let temp = temp_dir("design-spec-maturity-unknown-surface");
+    let microservices_root = temp.join("microservices");
+    write_design_spec_maturity_service_fixture(&microservices_root);
+    let standard_path = temp.join("bad-standard.json");
+    let fixture = fs::read_to_string(repo_root().join("specs/design-spec-maturity-claims.json"))
+        .expect("repo standard read");
+    let mut standard: serde_json::Value =
+        serde_json::from_str(&fixture).expect("repo standard parses");
+    standard
+        .get_mut("required_surfaces")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("required surfaces array")
+        .push(serde_json::json!({
+            "id": "new_required_surface",
+            "name": "New Required Surface",
+            "evidence_policy": "Every service must prove this surface."
+        }));
+    fs::write(
+        &standard_path,
+        serde_json::to_string_pretty(&standard).expect("bad standard serializes"),
+    )
+    .expect("bad standard written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "design-spec-maturity-claims",
+            "--standard",
+            standard_path.to_str().expect("utf8 standard path"),
+            "--microservices-root",
+            microservices_root
+                .to_str()
+                .expect("utf8 microservices path"),
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("design/spec maturity gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("unknown required design/spec surface ids: new_required_surface"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn hyperscaler_arch_invariants_gate_accepts_repo_spec() {
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args(["gate", "validate", "hyperscaler-arch-invariants"])

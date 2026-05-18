@@ -233,6 +233,10 @@ fn validate_standard(standard: &Value) -> Result<StandardRules, String> {
 fn validate_required_surfaces(root: &Map<String, Value>) -> Result<(), String> {
     let surfaces = array_field(root, "required_surfaces")?;
     let mut ids = BTreeSet::new();
+    let required_ids = REQUIRED_SURFACE_IDS
+        .iter()
+        .copied()
+        .collect::<BTreeSet<_>>();
     for (index, row) in surfaces.iter().enumerate() {
         let surface = object(row, &format!("required_surfaces[{index}]"))?;
         let id = string_field(surface, "id")?;
@@ -241,6 +245,17 @@ fn validate_required_surfaces(root: &Map<String, Value>) -> Result<(), String> {
         }
         require_non_empty_string(surface, "name")?;
         require_non_empty_string(surface, "evidence_policy")?;
+    }
+    let unexpected = ids
+        .iter()
+        .filter(|id| !required_ids.contains(id.as_str()))
+        .map(String::as_str)
+        .collect::<Vec<_>>();
+    if !unexpected.is_empty() {
+        return Err(format!(
+            "unknown required design/spec surface ids: {}",
+            unexpected.join(", ")
+        ));
     }
     for required_id in REQUIRED_SURFACE_IDS {
         if !ids.contains(*required_id) {
