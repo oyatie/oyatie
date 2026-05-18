@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "microservice": "api-gateway",
+  "owner": "axis-network",
+  "purpose": "Dedicated north-south edge tier for tenant, partner, mobile, and browser traffic before requests enter workload microservices.",
+  "adrs": [
+    {
+      "id": "ADR-0157",
+      "title": "API gateway tier",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0157-api-gateway-tier.md"
+    },
+    {
+      "id": "ADR-0182",
+      "title": "North-south gateway versus east-west service mesh separation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md"
+    },
+    {
+      "id": "ADR-0183",
+      "title": "Policy engine separation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
+    }
+  ],
+  "contracts": {
+    "openapi": ["microservices/api-gateway/contracts/api-gateway.openapi.yaml"],
+    "asyncapi": ["microservices/api-gateway/contracts/api-gateway.asyncapi.yaml"],
+    "proto": ["microservices/api-gateway/contracts/api_gateway.proto"]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "north-south-request-admission",
+      "file": "microservices/api-gateway/capabilities/north-south-request-admission.yaml"
+    }
+  ],
+  "slos": [
+    {
+      "name": "api-gateway-edge-latency",
+      "target": "0.99",
+      "file": "microservices/api-gateway/slos/api-gateway.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001",
+      "title": "API gateway design readiness bundle",
+      "acceptance_status": "design-ready",
+      "file": "microservices/api-gateway/IP-001-api-gateway-design-readiness.md"
+    }
+  ],
+  "regulatory_packs": ["us", "eu", "kr", "sovereign-cell"],
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.api_gateway.request.admitted",
+      "oya.api_gateway.request.denied",
+      "oya.api_gateway.waf.triggered"
+    ]
+  }
+}

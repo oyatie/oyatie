@@ -70,7 +70,7 @@ Per ADR-0064 + ADR-0179, every µservice ships a canonical-base + per-regional-p
 ## Cross-references
 
 - ADR-0064 — canonical base + localization.
-- ADR-0179 — sovereign cloud per-regional pack.
+- ADR-0240 — sovereign cloud per-regional pack.
 - ADR-0118 — EU AI Act Annex III refusal.
 - ADR-0209 — substrate authority.
 - IP-002 — SOC 2 control mapping (canonical analogue).

@@ -49,7 +49,7 @@ LINDDUN methodology is given equal weight to STRIDE because the privacy-properti
 
 ### In-scope
 
-All components introduced by parallel ADR-0135 (Connect dissolution) + ADR-0132 (suite dissolution into anonymous surface) for the anonymous µservice. Deployed in the dedicated anonymous Kubernetes cluster.
+All components introduced by parallel ADR-0238 (Connect dissolution) + ADR-0132 (suite dissolution into anonymous surface) for the anonymous µservice. Deployed in the dedicated anonymous Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|

@@ -25,13 +25,13 @@
       "id": "2026-05-17-op11-advisory-summary",
       "date": "2026-05-17",
       "citation": "specs/masterplan.json#_meta.session_directives_2026_05_17.op11_audit",
-      "summary": "OP-11 and portfolio hyperscaler findings are tracked as advisory remediation inventory until ADR-0133/ADR-0134 activation requirements land on branch.",
+      "summary": "OP-11 and portfolio hyperscaler findings are tracked as advisory remediation inventory until ADR-0236/ADR-0134 activation requirements land on branch.",
       "source_evidence": "evidence/autoresearch/hyperscaler-pattern-meta-audit-1779012603.json",
       "prs_referenced": [126, 127, 128, 129, 130, 131, 135]
     }
   ],
   "adr_references_current": [
-    "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md",
+    "docs/decisions/ADR-0236-op11-corpus-remediation-planning-contract.md",
     "docs/decisions/ADR-0134-portfolio-hyperscaler-pattern-remediation-backlog.md"
   ],
   "quality_bar": {

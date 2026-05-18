@@ -1,0 +1,38 @@
+openapi: 3.1.0
+info:
+  title: Oyatie API Gateway
+  version: 0.1.0
+paths:
+  /edge/admission:
+    post:
+      operationId: admitEdgeRequest
+      summary: Validate north-south request admission before workload routing.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EdgeAdmissionRequest'
+      responses:
+        '202':
+          description: Request admitted for workload routing.
+        '401':
+          description: Authentication failed.
+        '403':
+          description: Tenant, cell, or policy scope denied.
+        '429':
+          description: Rate limit denied.
+components:
+  schemas:
+    EdgeAdmissionRequest:
+      type: object
+      required: [tenant_id, cell_id, route_id, request_id]
+      properties:
+        tenant_id:
+          type: string
+        cell_id:
+          type: string
+        route_id:
+          type: string
+        request_id:
+          type: string

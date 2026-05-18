@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0",
+  "microservice": "feature-flags",
+  "owner": "axis-governance",
+  "purpose": "Canonical OpenFeature-compatible runtime flag substrate with tenant, persona, cohort, and emergency kill-switch targeting.",
+  "adrs": [
+    {
+      "id": "ADR-0159",
+      "title": "Feature flag substrate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0159-feature-flag-substrate.md"
+    },
+    {
+      "id": "ADR-0160",
+      "title": "Progressive delivery Flagger",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0160-progressive-delivery-flagger.md"
+    },
+    {
+      "id": "ADR-0183",
+      "title": "Policy engine separation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md"
+    }
+  ],
+  "contracts": {
+    "openapi": ["microservices/feature-flags/contracts/feature-flags.openapi.yaml"],
+    "asyncapi": ["microservices/feature-flags/contracts/feature-flags.asyncapi.yaml"],
+    "proto": ["microservices/feature-flags/contracts/feature_flags.proto"]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "flag-evaluation",
+      "file": "microservices/feature-flags/capabilities/flag-evaluation.yaml"
+    }
+  ],
+  "slos": [
+    {
+      "name": "feature-flag-evaluation-latency",
+      "target": "0.99",
+      "file": "microservices/feature-flags/slos/feature-flags.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001",
+      "title": "Feature flag design readiness bundle",
+      "acceptance_status": "design-ready",
+      "file": "microservices/feature-flags/IP-001-feature-flags-design-readiness.md"
+    }
+  ],
+  "regulatory_packs": ["us", "eu", "kr", "healthcare"],
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.feature_flags.flag.changed",
+      "oya.feature_flags.flag.evaluated",
+      "oya.feature_flags.kill_switch.invoked"
+    ]
+  }
+}

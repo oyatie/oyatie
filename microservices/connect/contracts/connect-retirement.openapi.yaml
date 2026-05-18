@@ -1,0 +1,31 @@
+openapi: 3.1.0
+info:
+  title: Connect Retirement Status
+  version: 0.1.0
+paths:
+  /connect/retirement/status:
+    get:
+      operationId: getConnectRetirementStatus
+      summary: Read retirement status for the Connect umbrella.
+      responses:
+        '200':
+          description: Retirement status.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectRetirementStatus'
+components:
+  schemas:
+    ConnectRetirementStatus:
+      type: object
+      required: [status, subservices, retirement_plan]
+      properties:
+        status:
+          type: string
+          enum: [retiring]
+        subservices:
+          type: array
+          items:
+            type: string
+        retirement_plan:
+          type: string

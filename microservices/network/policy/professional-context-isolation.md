@@ -22,7 +22,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing Professional-context invariants of the `network` substrate. Per parallel ADR-0135 (which inherits Bominal ADR-0208's dual-context model) and ADR-0132 (suite-and-bundle dissolution), the `network` µservice is **Professional-tier-only**. The `social` sibling owns Personal/General context. This document is the authoritative reference for SOC 2 examiners (CC6.1), ISO 27001 auditors (A.5.15, A.8.3), GDPR Art. 25 reviewers, KR PIPA Art. 28 reviewers, HIPAA OCR, EU DSA Coordinator, EU AI Act notified body, EEOC examiner, NYC DCWP LL144 auditor asking *"how does network keep Professional and Personal separated?"*
+Define the load-bearing Professional-context invariants of the `network` substrate. Per parallel ADR-0238 (which inherits Bominal ADR-0208's dual-context model) and ADR-0132 (suite-and-bundle dissolution), the `network` µservice is **Professional-tier-only**. The `social` sibling owns Personal/General context. This document is the authoritative reference for SOC 2 examiners (CC6.1), ISO 27001 auditors (A.5.15, A.8.3), GDPR Art. 25 reviewers, KR PIPA Art. 28 reviewers, HIPAA OCR, EU DSA Coordinator, EU AI Act notified body, EEOC examiner, NYC DCWP LL144 auditor asking *"how does network keep Professional and Personal separated?"*
 
 `network` inherits the dual-context-isolation pattern from the sibling `social` µservice (`microservices/social/policy/dual-context-isolation.md`) but adopts the **Professional-only specialisation**: the only valid `ContextKind` for `network` resources is `Professional`. Personal entities never appear in `network` at any layer.
 
@@ -41,7 +41,7 @@ Properties:
 - Enum is sealed at the kernel layer with exactly one variant.
 - The kernel exposes ZERO methods that produce a Personal-tier value.
 - Cross-context coercion from `social::ContextKind::Personal` to `NetworkContextKind::Professional` is rejected at compile-time because no such conversion exists.
-- Runtime config CANNOT introduce a Personal entity into `network`; this is a compile-time + data-model invariant per parallel ADR-0135.
+- Runtime config CANNOT introduce a Personal entity into `network`; this is a compile-time + data-model invariant per parallel ADR-0238.
 
 ## Entity Type Invariants
 

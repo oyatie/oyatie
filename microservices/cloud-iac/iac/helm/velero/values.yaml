@@ -94,7 +94,7 @@ velero:
           matchLabels:
             oya.io/backup-tier: batch
         storageLocation: default
-    # Regulatory tier: full retention per ADR-0162 + ADR-0179-sovereign + regional-pack
+    # Regulatory tier: full retention per ADR-0162 + ADR-0240-sovereign + regional-pack
     regulatory-tier-daily:
       disabled: false
       schedule: "0 4 * * *"

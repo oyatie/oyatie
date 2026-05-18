@@ -37,14 +37,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the foundation of the network µservice per parallel ADR-0135 + ADR-0132 + ADR-0133: professional-profile + professional-graph + connection-request + post-composition + feed-timeline + reactions + mentions + hashtags + trending-topics + notifications + content-moderation + abuse-reporting + search + skill-assessments + profile-verification + pages + groups + events-bridge + jobs-handoff + inmail-bridge + endorsement-engine + accessibility-captions + recruiter-stub (OFF) + services-marketplace-stub (OFF) + learning-stub (OFF) + salary-insights-stub.
+This phase ships the foundation of the network µservice per parallel ADR-0238 + ADR-0132 + ADR-0133: professional-profile + professional-graph + connection-request + post-composition + feed-timeline + reactions + mentions + hashtags + trending-topics + notifications + content-moderation + abuse-reporting + search + skill-assessments + profile-verification + pages + groups + events-bridge + jobs-handoff + inmail-bridge + endorsement-engine + accessibility-captions + recruiter-stub (OFF) + services-marketplace-stub (OFF) + learning-stub (OFF) + salary-insights-stub.
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (LinkedIn / Xing / Wantedly / Glassdoor / Indeed parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs in scope; every NFR covered; stubs that are explicitly OFF-by-default are scoped via dedicated ADR successor-IPs).
 - No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Professional-context isolation by data model (NOT runtime flag) per parallel ADR-0135; reuses social pattern; never federates to Personal-tier.
+- Professional-context isolation by data model (NOT runtime flag) per parallel ADR-0238; reuses social pattern; never federates to Personal-tier.
 - EU AI Act Annex III §4 (employment, workers management, access to self-employment) high-risk obligations operative from day-1 per ADR-NET-0002.
 
 ## Scope
@@ -59,7 +59,7 @@ Plus cross-cutting:
 - `.github/branch-protection.yaml` — add `release/network/*` pattern protection.
 - `/specs/hyperscaler-gates.json` — register HG-NETWORK per ADR-0133.
 - `Cargo.toml` (workspace) — register ~165 crates.
-- `docs/standards/professional-context-isolation.md` — overlay reference (cross-cutting; per parallel ADR-0135; reuses social's authoritative dual-context-isolation.md).
+- `docs/standards/professional-context-isolation.md` — overlay reference (cross-cutting; per parallel ADR-0238; reuses social's authoritative dual-context-isolation.md).
 
 ### Out-of-scope (scheduled-for-distinct-tracked-work to successor-IP phases or successor-IP ADRs)
 

@@ -19,16 +19,16 @@ doc_status: published
 
 ## Purpose
 
-The `messenger` microservice is the native team-channels-plus-direct-messages surface that ships under ADR-0132 (product-suite-and-bundle dissolution) as a stand-alone hero µservice, factored out of the legacy Connect-suite by parallel-session ADR-0135. It owns **team channels + direct messages + threaded conversation + read receipts + file sharing + inline reactions + @mentions + channel-level RBAC + message search**, across the dual-context model (Personal B2C + Professional B2B) inherited from Bominal ADR-0208 via parallel ADR-0135.
+The `messenger` microservice is the native team-channels-plus-direct-messages surface that ships under ADR-0132 (product-suite-and-bundle dissolution) as a stand-alone hero µservice, factored out of the legacy Connect-suite by parallel-session ADR-0135. It owns **team channels + direct messages + threaded conversation + read receipts + file sharing + inline reactions + @mentions + channel-level RBAC + message search**, across the dual-context model (Personal B2C + Professional B2B) inherited from Bominal ADR-0208 via parallel ADR-0238.
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone messenger clients (web + desktop + mobile). It is also consumable as a shared substrate by other oyatie products via the `messenger.message.v1` Workflow events and the `MessageThread` Ontology object type.
 
-Bominal predecessor: the `connect-messenger` slice of Bominal's unified Connect suite. Per parallel ADR-0135, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical messenger landing in oyatie.
+Bominal predecessor: the `connect-messenger` slice of Bominal's unified Connect suite. Per parallel ADR-0238, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical messenger landing in oyatie.
 
 ## Tenant Value
 
 - **Tenant Outcome 1 — Team coordination without app fragmentation.** Tenants get Slack/Teams-class channel + DM + thread workflows in the same shell as mail, calendar, workflow studio, ontology browser — switching personal/professional context without leaving the surface.
-- **Tenant Outcome 2 — Dual-context-safe collaboration.** Personal (B2C) DMs never cross into professional (B2B) audit scope per parallel ADR-0135; professional channels carry tenant-DEK encryption + four-eyes audit disclosure inherited from Bominal ADR-0215.
+- **Tenant Outcome 2 — Dual-context-safe collaboration.** Personal (B2C) DMs never cross into professional (B2B) audit scope per parallel ADR-0238; professional channels carry tenant-DEK encryption + four-eyes audit disclosure inherited from Bominal ADR-0215.
 - **Tenant Outcome 3 — Real-time delivery with read-receipt and presence integrity.** p99 message-send ≤ 100ms within region; presence-update p99 ≤ 1s; read-receipt fan-out under WebSocket backpressure remains idempotent.
 - **Tenant Outcome 4 — Channel-scoped RBAC + message search that respects Cedar policy.** Search results are filtered server-side by Cedar evaluation; no client-side trust; pack-aware retention bounds (KR PIPA / GDPR / HIPAA when channels carry PHI).
 - **Tenant Outcome 5 — Native Workflow + Ontology integration.** Mention-resolution reads from Ontology (`Person`, `Team`, `Channel`); action-cards from `mail` µservice surface inline; channel events feed Workflow Studio engines.
@@ -171,7 +171,7 @@ CI lanes that must green:
 - `oya gate validate statelessness --microservice messenger`
 - `oya gate validate shardability --microservice messenger`
 - `oya gate validate authority-cohesion --microservice messenger` (HG-MESSENGER)
-- `oya gate validate dual-context-isolation --microservice messenger` (NEW; per parallel ADR-0135)
+- `oya gate validate dual-context-isolation --microservice messenger` (NEW; per parallel ADR-0238)
 
 ## Integration via Workflow + Ontology
 
@@ -288,7 +288,7 @@ Sharding:
 | AC-08 | eDiscovery export bundles message + attachment + audit-chain seal | `tests/e2e/ediscovery-export.rs` |
 | AC-09 | `oya gate validate per-microservice-layout --microservice messenger` exit 0 | ADR-0131 lane |
 | AC-10 | `oya gate validate authority-cohesion --microservice messenger` exit 0 | ADR-0123 lane; HG-MESSENGER registered |
-| AC-11 | `oya gate validate dual-context-isolation --microservice messenger` exit 0 | NEW per parallel ADR-0135 |
+| AC-11 | `oya gate validate dual-context-isolation --microservice messenger` exit 0 | NEW per parallel ADR-0238 |
 
 ## Open Questions
 

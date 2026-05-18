@@ -10,7 +10,7 @@
     "alerting": "4-window burn-rate per ADR-0139 routed to PagerDuty + Opsgenie",
     "deployments_and_rollouts": "GitOps via Flux per ADR-0041",
     "data_integrity_and_durability": "BACKUP TABLE → S3-compat; quarterly drill (IP-012)",
-    "disaster_recovery": "cross-cell per ADR-0180-dr-business-continuity-portfolio-policy",
+    "disaster_recovery": "cross-cell per ADR-0241-dr-business-continuity-portfolio-policy",
     "release_cadence": "trunk-based per ADR-0041",
     "incident_response": "PagerDuty + Opsgenie + runbooks",
     "documentation": "PRD + 15 IPs + runbooks + threat-model + compliance"

@@ -32,7 +32,7 @@ Oyatie's blob/artifact/evidence/cold-tier storage shape requires:
 - **Erasure coding** for capacity efficiency at the warehouse-cold tier.
 - **Permissive OSS licensing** per ADR-0173 vendor-lock-in policy.
 - **On-prem deployable** for sovereign packs (KR CSAP, EU GAIA-X) per
-  ADR-0179-sovereign-cloud-per-regional-pack.
+  ADR-0240-sovereign-cloud-per-regional-pack.
 - **Active maintainer** + commercial-support availability for ops escalation.
 
 The hyperscaler reference shape for blob storage:
@@ -263,7 +263,7 @@ substrate from vendor to in-house in three phases:
 - `oya-object-store-server` instances federate across cells per ADR-
   0009; per-tenant locality is managed by the object plane itself, not
   by application code.
-- Cross-pack data movement governed by ADR-0179-sovereign-cloud-per-
+- Cross-pack data movement governed by ADR-0240-sovereign-cloud-per-
   regional-pack residency rules at the object layer (not application
   layer).
 

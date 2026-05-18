@@ -43,7 +43,7 @@ Identify, classify, and mitigate threats to social's confidentiality, integrity,
 
 ### In-scope
 
-All components introduced by parallel ADR-0135 (Connect dissolution → social µservice) and ADR-0132 (suite dissolution into social surface) for the social µservice. Deployed in the dedicated social Kubernetes cluster.
+All components introduced by parallel ADR-0238 (Connect dissolution → social µservice) and ADR-0132 (suite dissolution into social surface) for the social µservice. Deployed in the dedicated social Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -135,7 +135,7 @@ Ten trust boundaries:
 1. **External → Cluster ingress** (TLS, WAF, DDoS, WebSocket upgrade).
 2. **Gateway → BC services** (mTLS + SPIFFE identity).
 3. **BC services → backing stores** (RLS + per-tenant prefix isolation).
-4. **Personal/Professional context isolation** (data-model invariant per parallel ADR-0135).
+4. **Personal/Professional context isolation** (data-model invariant per parallel ADR-0238).
 5. **BC services → audit-chain** (Ed25519 seal).
 6. **BC services → ontology** (Workflow event bus).
 7. **Media scan path** (untrusted blob → scanner → quarantine vs production).

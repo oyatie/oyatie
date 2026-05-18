@@ -1,4 +1,4 @@
-# ADR-0136: Foundry Scope Clarification (Internal-Only Amendment)
+# ADR-0239: Foundry Scope Clarification (Internal-Only Amendment)
 
 - **Status:** Accepted (amendment)
 - **Date:** 2026-05-18

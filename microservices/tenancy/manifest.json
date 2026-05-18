@@ -251,10 +251,10 @@
       "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
     },
     {
-      "id": "ADR-0131",
+      "id": "ADR-0234",
       "title": "Connect Social Expansion Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0131-connect-social-expansion-planning-contract.md"
+      "file": "docs/decisions/ADR-0234-connect-social-expansion-planning-contract.md"
     },
     {
       "id": "ADR-0139",

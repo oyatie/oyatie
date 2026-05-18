@@ -79,7 +79,7 @@ oyatie notes adopts a **strict tier-split E2E posture**:
 ### A. Default OFF for Personal-tier; user opts in
 - Pros: closest to current incumbent default (Apple Notes / OneNote); lowest UX friction.
 - Cons: contradicts Personal-pillar privacy promise; equivalent to Notion's posture which fails GDPR Art. 9 best-practice; leaves AI-surface vulnerability open by default.
-- Rejected: contradicts parallel ADR-0135 dual-context posture + Standard Notes precedent.
+- Rejected: contradicts parallel ADR-0238 dual-context posture + Standard Notes precedent.
 
 ### B. Default ON for both tiers
 - Pros: cleanest E2E posture across the board.

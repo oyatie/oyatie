@@ -12,7 +12,7 @@ This directory holds ADRs that govern the `network` µservice exclusively, per t
 
 Each ADR closes one Open Question (or derived gap) surfaced in `microservices/network/PRD.md`, in `microservices/network/PHASE-01-NETWORK-FOUNDATION.md`, or in a policy / runbook / threat-model / DPIA artifact under `microservices/network/`.
 
-The `network` µservice is the Professional-tier social-graph + identity µservice per parallel ADR-0135. Several decisions are paired with sibling µservice ADRs:
+The `network` µservice is the Professional-tier social-graph + identity µservice per parallel ADR-0238. Several decisions are paired with sibling µservice ADRs:
 
 - `ADR-NET-0001` (storage) ↔ `ADR-SOC-0002` (sibling follow-graph storage; pattern aligned, consistency differs)
 - `ADR-NET-0002` (recommender bounds) ↔ `ADR-SOC-0003` (sibling content-moderation bounds; both EU AI Act high-risk; different Annex III subclause)

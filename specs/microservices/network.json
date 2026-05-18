@@ -799,7 +799,7 @@
         "Workflow",
         "Ontology"
       ],
-      "policy_ref": "ADR-0001 cohesion thesis; ADR-0131 Connect expansion planning contract",
+      "policy_ref": "ADR-0001 cohesion thesis; ADR-0234 Connect expansion planning contract",
       "enforcement_status": "advisory_until_connect_social_expansion_gates"
     }
   },

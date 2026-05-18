@@ -121,7 +121,7 @@ Discord enterprise pivot, Matrix v2 federation).
 ## Key oyatie Differentiators (NOT in any competitor)
 
 1. **Dual-context isolation by data-model invariant** — Personal ≠ Professional
-   enforced at compile-time + LEAN-lane (per parallel ADR-0135); no competitor
+   enforced at compile-time + LEAN-lane (per parallel ADR-0238); no competitor
    does this at data-model level.
 2. **Multi-pack residency by design** — 11 region-pinned packs; no SaaS
    competitor matches the breadth (Slack/Teams region-coarse).

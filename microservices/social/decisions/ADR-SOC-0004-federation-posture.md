@@ -43,7 +43,7 @@ ActivityPub is the most widely-deployed open federation protocol for social plat
 
 Key tensions:
 
-1. **Dual-context invariant (parallel ADR-0135 + DCI-08)**: Personal-tier user data must NEVER cross pack borders without explicit user consent; federation egress is by definition a cross-pack flow.
+1. **Dual-context invariant (parallel ADR-0238 + DCI-08)**: Personal-tier user data must NEVER cross pack borders without explicit user consent; federation egress is by definition a cross-pack flow.
 2. **Regulatory residency (pack residency per `policy/data-residency.md`)**: Cross-pack data flow requires SCC for GDPR-scope tenants + tenant-level opt-in for KR PIPA Art. 28 cross-border consent.
 3. **Federation security (T-S-03 forged @-mention; T-I-08 personal-tier leak; T-D-07 federation peer flood)**: untrusted peers can send spam, malicious content, or attempt protocol-level attacks.
 4. **HIPAA Safe Harbor (pack-us-healthcare)**: federation by default would create per-peer covered-entity relationship complications; default-OFF is the safer posture.
@@ -96,7 +96,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 
 - Pros: out-of-the-box federation; lowest friction for tenant adoption.
 - Cons: violates DCI-08 (Personal-tier would federate by default); violates pack residency without SCC; violates HIPAA Safe Harbor; violates KR PIPA Art. 28 cross-border consent; regulatory non-compliance.
-- Rejected: incompatible with parallel ADR-0135 + regulatory posture.
+- Rejected: incompatible with parallel ADR-0238 + regulatory posture.
 
 ### B. Federation OFF, no future opt-in capability (Twitter/X-style closed platform)
 
@@ -165,7 +165,7 @@ oyatie social adopts a **conservative + opt-in + tier-shaped federation posture*
 
 ### Regulatory
 
-- **DCI-08 + parallel ADR-0135**: Personal-tier never federates; preserved at type-system level.
+- **DCI-08 + parallel ADR-0238**: Personal-tier never federates; preserved at type-system level.
 - **GDPR Arts. 44-50**: cross-border transfer (federation = cross-border) requires SCC; per-tenant attestation enforced.
 - **KR PIPA Art. 28**: explicit user-consent for cross-border data; tenant attestation flows through this requirement.
 - **HIPAA Safe Harbor §164.514**: pack-us-healthcare federation default-OFF; activation requires BAA + per-peer attestation.

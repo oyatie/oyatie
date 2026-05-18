@@ -97,6 +97,14 @@ lanes:
     source: specs/hyperscaler-gates.json / ADR-0123
     runtime_budget_seconds: 180
     check_command: cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
+  - id: oya-foundry-fitness-design-spec-maturity-claims
+    stage: foundation
+    status: active
+    owner_team: council-architecture
+    purpose: allow only the bounded design/spec maturity claim when every microservice has the required implementation-ready design surfaces, while keeping operational maturity blocked
+    source: specs/design-spec-maturity-claims.json / ADR-0123
+    runtime_budget_seconds: 180
+    check_command: cargo run -p oya-dev-cli -- gate validate design-spec-maturity-claims
   - id: oya-foundry-fitness-foundation-bypass
     stage: foundation
     status: active

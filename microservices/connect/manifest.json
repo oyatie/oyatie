@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "microservice": "connect",
+  "owner": "council-architecture",
+  "purpose": "Retiring umbrella coordination surface for the dissolved Connect suite.",
+  "status": "retiring",
+  "adrs": [
+    {
+      "id": "ADR-0237",
+      "title": "Connect dissolution strangler migration",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0237-connect-dissolution-strangler-migration.md"
+    },
+    {
+      "id": "ADR-0238",
+      "title": "Connect super-app expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0238-connect-super-app-expansion.md"
+    }
+  ],
+  "contracts": {
+    "openapi": ["microservices/connect/contracts/connect-retirement.openapi.yaml"],
+    "asyncapi": ["microservices/connect/contracts/connect-retirement.asyncapi.yaml"],
+    "proto": ["microservices/connect/contracts/connect_retirement.proto"]
+  },
+  "capabilities": [
+    {
+      "tier": "T3",
+      "name": "umbrella-retirement-readiness",
+      "file": "microservices/connect/capabilities/umbrella-retirement-readiness.yaml"
+    }
+  ],
+  "slos": [
+    {
+      "name": "connect-retirement-evidence-lag",
+      "target": "0.99",
+      "file": "microservices/connect/slos/connect-retirement.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001",
+      "title": "Connect retirement design readiness bundle",
+      "acceptance_status": "design-ready",
+      "file": "microservices/connect/IP-001-connect-retirement-design-readiness.md"
+    }
+  ],
+  "regulatory_packs": ["us", "eu", "kr"],
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.connect.retirement.status_changed",
+      "oya.connect.retirement.readiness_checked"
+    ]
+  }
+}

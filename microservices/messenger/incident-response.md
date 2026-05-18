@@ -63,7 +63,7 @@ Primary on-call paged (ops-sre-reliability primary)
 
 ## Cross-Channel Leak = Sev-1
 
-Any confirmed cross-channel data exposure — including cross-tenant, cross-context (parallel ADR-0135), cross-pack residency violation, or unauthorised channel membership — is **automatically Sev-1** regardless of scope. Triggers:
+Any confirmed cross-channel data exposure — including cross-tenant, cross-context (parallel ADR-0238), cross-pack residency violation, or unauthorised channel membership — is **automatically Sev-1** regardless of scope. Triggers:
 
 - IC immediately engages PrivacyLead + ops-security.
 - Channel is quarantined (writes blocked; reads only by ops-security under JIT elevation).

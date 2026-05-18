@@ -36,14 +36,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the foundation of the shorts µservice per parallel ADR-0135 + ADR-0132: video-upload + video-transcode + video-storage + thumbnail + audio-track-library + audio-attribution + video-composition + feed-timeline + watch-time + like-share-comment + repost-stitch-duet + hashtag + trending + notifications + content-moderation + copyright-claim + age-gate + parental-controls + accessibility-captions + creator-analytics + DRM-stub, dual-context-safe across Personal (B2C) and Professional (B2B).
+This phase ships the foundation of the shorts µservice per parallel ADR-0238 + ADR-0132: video-upload + video-transcode + video-storage + thumbnail + audio-track-library + audio-attribution + video-composition + feed-timeline + watch-time + like-share-comment + repost-stitch-duet + hashtag + trending + notifications + content-moderation + copyright-claim + age-gate + parental-controls + accessibility-captions + creator-analytics + DRM-stub, dual-context-safe across Personal (B2C) and Professional (B2B).
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (TikTok / Reels / Shorts parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs except monetization-stub and live-streaming-stub explicitly off by default per PRD §"Out-of-scope").
 - No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
+- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0238.
 - Minor-protection at regulatory floor — EU DSA Art. 28 + KR 청소년 보호법 + COPPA + UK OSA + CA AB-2273 + UT SMRA enforced by default.
 
 ## Scope
@@ -58,7 +58,7 @@ Plus cross-cutting:
 - `.github/branch-protection.yaml` — add `release/shorts/*` pattern protection + 8 required checks per IP-015.
 - `/specs/hyperscaler-gates.json` — register HG-SHORTS per ADR-0133.
 - `Cargo.toml` (workspace) — register ~140 crates.
-- `docs/standards/dual-context-isolation.md` (already authored cross-cutting per parallel ADR-0135).
+- `docs/standards/dual-context-isolation.md` (already authored cross-cutting per parallel ADR-0238).
 
 ### Out-of-scope (scheduled-for-distinct-tracked-work to successor-IP phases)
 

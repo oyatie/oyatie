@@ -838,13 +838,13 @@ Connect is a dual-context µservice (B2B Application shell + B2C Personal entry 
 | `connect-anonymous` | B2C | Planned anonymous posting / ephemeral context PRD surface |
 | `connect-community` | B2B + B2C | Community channels and spaces |
 
-The 4 new sub-products (`social`, `shorts`, `network`, `anonymous`) are added to the flat µservice catalog and follow BNF v4.1 crate naming (`oya-connect-social-*`, etc.). Cross-context safety invariant: Personal data never flows to org policy engine, never indexed by org Search, never exposed via org Ontology. See ADR-0131 for the Connect expansion planning-contract decision record.
+The 4 new sub-products (`social`, `shorts`, `network`, `anonymous`) are added to the flat µservice catalog and follow BNF v4.1 crate naming (`oya-connect-social-*`, etc.). Cross-context safety invariant: Personal data never flows to org policy engine, never indexed by org Search, never exposed via org Ontology. See ADR-0234 for the Connect expansion planning-contract decision record.
 
 ---
 
 ## 17. 2026-05-17 OP-11 audit findings
 
-The 2026-05-17 OP-11 stub audit summary surfaced **847 findings** across the codebase: 67 critical (blocking promotability), 12 fixuptasks filed to `registry/fixuptasks.jsonl`. Key themes: aspirational-enforcement gaps (fitness lanes specified but not implemented), doc-coverage drift, milestone skeleton laundering, and forbidden-primitive enforcement absence. See ADR-0133 for the planning contract: missing detectors, workflows, branch-protection rows, and source-corpus artifacts remain advisory until they exist on the branch. The `oya-foundry-fitness-banned-primitives` lane is the first priority deliverable from this audit; its absence is itself tracked as `F-FORBIDDEN-PRIMITIVES-CI-GUARD`.
+The 2026-05-17 OP-11 stub audit summary surfaced **847 findings** across the codebase: 67 critical (blocking promotability), 12 fixuptasks filed to `registry/fixuptasks.jsonl`. Key themes: aspirational-enforcement gaps (fitness lanes specified but not implemented), doc-coverage drift, milestone skeleton laundering, and forbidden-primitive enforcement absence. See ADR-0236 for the planning contract: missing detectors, workflows, branch-protection rows, and source-corpus artifacts remain advisory until they exist on the branch. The `oya-foundry-fitness-banned-primitives` lane is the first priority deliverable from this audit; its absence is itself tracked as `F-FORBIDDEN-PRIMITIVES-CI-GUARD`.
 
 ---
 

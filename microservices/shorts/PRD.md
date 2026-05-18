@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `shorts` microservice is oyatie's native TikTok-/Instagram-Reels-/YouTube-Shorts-/Snapchat-Spotlight-class short-form-video platform. Per parallel ADR-0135 (Connect dissolution), it is one of the first-class µservices factored out of the legacy Connect umbrella. It owns **video-upload + video-transcode (multi-bitrate HLS/DASH ABR ladder) + video-storage (S3 + CDN) + thumbnail-generation + audio-track-library (licensed + UGC) + audio-attribution + video-composition (clip + cut + sticker + caption overlay) + feed-timeline (algorithmic + chronological) + watch-time-tracking + like + share + comment + repost (stitch + duet) + hashtag + sound-of-the-week trending + content-moderation (NSFW + violence + minor-protection classifier) + copyright-claim (Content-ID-class hash matching) + age-gate + parental-controls + accessibility-captions (auto-generated + manual) + notifications + creator-analytics + monetization-stub (off by default; tip-jar M04-onward) + live-streaming-stub (M05-onward; off at M03) + DRM-stub (HLS + DASH + Widevine/FairPlay/PlayReady; tenant-tier gated)** across the 11 oyatie regulatory packs.
+The `shorts` microservice is oyatie's native TikTok-/Instagram-Reels-/YouTube-Shorts-/Snapchat-Spotlight-class short-form-video platform. Per parallel ADR-0238 (Connect dissolution), it is one of the first-class µservices factored out of the legacy Connect umbrella. It owns **video-upload + video-transcode (multi-bitrate HLS/DASH ABR ladder) + video-storage (S3 + CDN) + thumbnail-generation + audio-track-library (licensed + UGC) + audio-attribution + video-composition (clip + cut + sticker + caption overlay) + feed-timeline (algorithmic + chronological) + watch-time-tracking + like + share + comment + repost (stitch + duet) + hashtag + sound-of-the-week trending + content-moderation (NSFW + violence + minor-protection classifier) + copyright-claim (Content-ID-class hash matching) + age-gate + parental-controls + accessibility-captions (auto-generated + manual) + notifications + creator-analytics + monetization-stub (off by default; tip-jar M04-onward) + live-streaming-stub (M05-onward; off at M03) + DRM-stub (HLS + DASH + Widevine/FairPlay/PlayReady; tenant-tier gated)** across the 11 oyatie regulatory packs.
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone shorts clients (web + desktop + mobile). It is also consumable as a shared substrate by other oyatie products via the `shorts.video.v1` Workflow events and the `Video`, `Sound`, `Sticker`, `Hashtag` Ontology object types.
 
@@ -216,7 +216,7 @@ CI lanes that must green:
 - `oya gate validate statelessness --microservice shorts`
 - `oya gate validate shardability --microservice shorts`
 - `oya gate validate authority-cohesion --microservice shorts` (HG-SHORTS)
-- `oya gate validate dual-context-isolation --microservice shorts` (per parallel ADR-0135)
+- `oya gate validate dual-context-isolation --microservice shorts` (per parallel ADR-0238)
 - `oya gate validate eu-ai-act-conformance --microservice shorts` (per ADR-SHORTS-0003)
 - `oya gate validate eu-dsa-conformance --microservice shorts`
 - `oya gate validate pack-aware-age-gate --microservice shorts` (per ADR-SHORTS-0006)
@@ -374,7 +374,7 @@ Sharding:
 | AC-12 | DRM Widevine + FairPlay + PlayReady license issuance for Premium-tier tenant succeeds; non-Premium-tier denied | `tests/e2e/drm-tier-gating.rs` |
 | AC-13 | `oya gate validate per-microservice-layout --microservice shorts` exit 0 | ADR-0131 lane |
 | AC-14 | `oya gate validate authority-cohesion --microservice shorts` exit 0 | ADR-0123 lane; HG-SHORTS registered |
-| AC-15 | `oya gate validate dual-context-isolation --microservice shorts` exit 0 | per parallel ADR-0135 |
+| AC-15 | `oya gate validate dual-context-isolation --microservice shorts` exit 0 | per parallel ADR-0238 |
 | AC-16 | EU AI Act transparency label appears on every moderation verdict + ranking explanation on pack-eu | `tests/e2e/eu-ai-act-transparency.rs` |
 | AC-17 | Monetization-stub + live-streaming-stub T2 capabilities are disabled by default; admin opt-in required | `tests/e2e/stubs-default-off.rs` |
 | AC-18 | Auto-caption (WebVTT) produced within video_duration × 0.3 p95 for English; manual-override path works | `tests/e2e/captions.rs` |

@@ -25,7 +25,7 @@ Each cell hosts:
 
 Cross-cell `remote()` queries are forbidden for tenant principals; permitted only for `Role::InternalAdmin`. Pattern: per-cell rollups → scheduled cross-cell aggregation job emits a fleet-wide rollup table at midnight UTC, read by internal ops dashboards.
 
-## DR shape (per ADR-0180-dr-business-continuity-portfolio-policy)
+## DR shape (per ADR-0241-dr-business-continuity-portfolio-policy)
 
 - **RPO:** ≤ 24h (matches ADR-0152). Hot tier replicated within-cell every 60s; cold tier replicated cell-locally to S3.
 - **RTO:** ≤ 1h per affected tenant.
@@ -41,4 +41,4 @@ NetworkPolicy + Cedar enforce cross-pack denial (per ADR-0049 + ADR-0010).
 
 ## References
 
-- ADR-0049, ADR-0010, ADR-0009, ADR-0152, ADR-0180-dr-business-continuity-portfolio-policy, ADR-0193.
+- ADR-0049, ADR-0010, ADR-0009, ADR-0152, ADR-0241-dr-business-continuity-portfolio-policy, ADR-0193.

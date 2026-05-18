@@ -117,7 +117,7 @@ Per-cell sizing target for the largest tenant class (10–100M vector range):
 
 - **Milvus backup tool** (Apache-2.0; ships with Milvus) emits per-collection backup to S3-compat (SeaweedFS).
 - Backup cadence: daily incremental + weekly full per ADR-0152 RPO/RTO canonical (RPO ≤ 24h for vector retrieval; vectors are re-derivable from canonical entities via re-embedding if backup loss exceeds RPO).
-- Cross-cell DR per ADR-0180-dr-business-continuity-portfolio-policy.
+- Cross-cell DR per ADR-0241-dr-business-continuity-portfolio-policy.
 
 ### Secrets — OpenBao SecretReference
 
@@ -281,7 +281,7 @@ The in-house roadmap is a commitment of trajectory, not a near-term deliverable.
 - ADR-0152 — RPO / RTO canonical.
 - ADR-0153 — outbox pattern.
 - ADR-0155 — per-tenant resource quotas.
-- ADR-0180-dr-business-continuity-portfolio-policy — cross-cell DR.
+- ADR-0241-dr-business-continuity-portfolio-policy — cross-cell DR.
 - ADR-0184 — storage tier layering (Milvus is the vector-database addition to the four-tier storage model; conceptually Tier-5 specialty store).
 - ADR-0186 — observability backplane layering (Milvus metrics/logs/traces flow through OpenTelemetry Collector).
 - ADR-0193 — OLAP analytics warehouse (ClickHouse).

@@ -1,5 +1,5 @@
 ---
-id: ADR-0133
+id: ADR-0236
 status: Proposed
 deciders: council-architecture, ops-quality
 date: 2026-05-17
@@ -18,7 +18,7 @@ version: 1.0.0
 purpose: Record the OP-11 corpus-audit remediation plan without claiming that the aspirational-enforcement detector, workflow, branch-protection status check, or full source corpus already exists.
 ---
 
-# ADR-0133: OP-11 Corpus Remediation Planning Contract
+# ADR-0236: OP-11 Corpus Remediation Planning Contract
 
 ## Status
 
@@ -59,7 +59,7 @@ Adopt the OP-11 audit response as a **planning contract** with these constraints
 - A detector is required to have a CLI entrypoint, fixture-tree integration
   tests, negative-path tests, and a branch-protection row before any ADR may call
   it a required CI gate.
-- Existing references to this remediation lane must cite `ADR-0133`, not the
+- Existing references to this remediation lane must cite `ADR-0236`, not the
   inherited/gap-reserved lower ADR number.
 - Until the detector lands, OP-11 remediation claims remain advisory and review
   enforced. A PR may not claim that a missing lane is caught mechanically.

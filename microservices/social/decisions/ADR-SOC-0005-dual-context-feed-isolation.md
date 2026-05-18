@@ -21,10 +21,10 @@ related_artifacts:
   - microservices/social/threat-model.md (T-I-07, T-I-08)
   - microservices/social/dpia.md (R-07, R-08)
   - Bominal ADR-0208 (inherited)
-purpose: Apply the dual-context isolation pattern (per parallel ADR-0135 inheriting Bominal ADR-0208) to the social µservice — Personal-tier feed vs Professional-tier feed; same data-model invariant pattern as messenger / mail.
+purpose: Apply the dual-context isolation pattern (per parallel ADR-0238 inheriting Bominal ADR-0208) to the social µservice — Personal-tier feed vs Professional-tier feed; same data-model invariant pattern as messenger / mail.
 ---
 
-# ADR-SOC-0005: Dual-context feed isolation — Personal pillar feed vs Professional pillar feed; data-model invariant per parallel ADR-0135
+# ADR-SOC-0005: Dual-context feed isolation — Personal pillar feed vs Professional pillar feed; data-model invariant per parallel ADR-0238
 
 ## Status
 
@@ -51,7 +51,7 @@ The decision needs to (a) confirm the dual-context invariants for the social µs
 
 ## Decision
 
-oyatie social adopts the **dual-context isolation pattern from parallel ADR-0135 + Bominal ADR-0208** with social-specific extensions:
+oyatie social adopts the **dual-context isolation pattern from parallel ADR-0238 + Bominal ADR-0208** with social-specific extensions:
 
 1. **Distinct entity types per tier** (DCI-01 inheritance):
    - `PersonalProfile`, `PersonalPost`, `PersonalFollowEdge`, `PersonalReaction`, `PersonalNotification`, `PersonalFeedEntry` — only `Personal`.
@@ -94,7 +94,7 @@ oyatie social adopts the **dual-context isolation pattern from parallel ADR-0135
 
 - Pros: simpler type system; fewer crates; less code.
 - Cons: violates compile-time invariant; runtime bug can route Personal post into Professional context; matches Twitter / Meta account-level switch model which we explicitly reject; misses competitive differentiator 1 in `competitor-parity-matrix.md`.
-- Rejected: incompatible with parallel ADR-0135.
+- Rejected: incompatible with parallel ADR-0238.
 
 ### B. Three or more context kinds (Personal / Professional / Federated / etc.)
 

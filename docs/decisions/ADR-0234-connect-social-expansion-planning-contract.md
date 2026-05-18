@@ -1,5 +1,5 @@
 ---
-id: ADR-0131
+id: ADR-0234
 status: Accepted
 deciders: connect-product-council, council-architecture, council-design-system, ops-security
 date: 2026-05-17
@@ -23,7 +23,7 @@ version: 1.0.0
 purpose: Record the PR #130 Connect expansion as a planning contract, not an implemented production or enforcement claim.
 ---
 
-# ADR-0131: Connect Social Expansion Planning Contract
+# ADR-0234: Connect Social Expansion Planning Contract
 
 ## Status
 
@@ -62,7 +62,7 @@ Accept the four new Connect sub-product PRDs as a **planning contract** for PR #
 
 ## Consequences
 
-- Masterplan and Connect suite references cite `ADR-0131`, not `ADR-0126`.
+- Masterplan and Connect suite references cite `ADR-0234`, not `ADR-0126`.
 - PR #130 can merge only if it marks unenforced claims as advisory and carries evidence for the planning contract.
 - Follow-up implementation must add the dedicated validators before any production readiness or hyperscaler maturity claim can rely on these PRDs.
 - Anonymous workplace discussion remains blocked from GA until threat-model tests, legal-hold controls, and aggregate-only UX gates exist.

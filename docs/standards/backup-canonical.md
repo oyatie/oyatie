@@ -10,8 +10,8 @@ related_adrs:
   - ADR-0162
   - ADR-0165
   - ADR-0173-vendor-lock-in-avoidance-and-stack-ownership
-  - ADR-0179-sovereign-cloud-per-regional-pack
-  - ADR-0180-dr-business-continuity-portfolio-policy
+  - ADR-0240-sovereign-cloud-per-regional-pack
+  - ADR-0241-dr-business-continuity-portfolio-policy
   - ADR-0184
   - ADR-0186
   - ADR-0196

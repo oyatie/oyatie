@@ -32,7 +32,7 @@ doc_status: published
 
 ## Purpose
 
-Per ADR-0132 + parallel ADR-0135, Connect dissolves into mail / messenger / calendar / community / social / shorts / network / anonymous. This phase ships `mail` as a standalone µservice under `microservices/mail/` per ADR-0131. It carries the dual-context-isolation invariant (Personal vs Professional, kernel-enforced), the four-eyes legal-hold contract, the chain-of-custody-preserving eDiscovery export, and the SMTP/IMAP/JMAP edge surface.
+Per ADR-0132 + parallel ADR-0238, Connect dissolves into mail / messenger / calendar / community / social / shorts / network / anonymous. This phase ships `mail` as a standalone µservice under `microservices/mail/` per ADR-0131. It carries the dual-context-isolation invariant (Personal vs Professional, kernel-enforced), the four-eyes legal-hold contract, the chain-of-custody-preserving eDiscovery export, and the SMTP/IMAP/JMAP edge surface.
 
 This phase advances master-plan principles:
 - Industry-leader competitive parity (Microsoft Exchange Online + Google Workspace + Naver Works Mail).

@@ -2,7 +2,7 @@
 
 **Phase:** PHASE-01-ANALYTICS-OLAP-BOOTSTRAP
 **Owner:** infra (council-analytics + ops-sre-reliability)
-**Authority ADRs:** ADR-0152 RPO/RTO canonical, ADR-0180-dr-business-continuity-portfolio-policy, ADR-0193, ADR-0039 supply chain
+**Authority ADRs:** ADR-0152 RPO/RTO canonical, ADR-0241-dr-business-continuity-portfolio-policy, ADR-0193, ADR-0039 supply chain
 **Depends on:** IP-001
 **Status:** Planned
 
@@ -252,7 +252,7 @@ File: `evidence/dr-drills/_template.json`
 ## References
 
 - ADR-0152 RPO/RTO canonical (RPO ≤ 24h, RTO ≤ 1h per tenant).
-- ADR-0180-dr-business-continuity-portfolio-policy.
+- ADR-0241-dr-business-continuity-portfolio-policy.
 - ADR-0039 supply chain (cosign signing).
 - ADR-0043 secrets (OpenBao for cosign keys).
 - `microservices/analytics/runbooks/restore-drill.md`.

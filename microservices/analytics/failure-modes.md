@@ -260,6 +260,6 @@ This document enumerates each component, its credible failure modes, the detecti
 
 ## 14. References
 
-- ADR-0193 (engine choice), ADR-0001 cohesion, ADR-0152 RPO/RTO, ADR-0180-dr-business-continuity-portfolio-policy, ADR-0003 audit chain.
+- ADR-0193 (engine choice), ADR-0001 cohesion, ADR-0152 RPO/RTO, ADR-0241-dr-business-continuity-portfolio-policy, ADR-0003 audit chain.
 - specs/hyperscaler-architecture-invariants.json (4-INV).
 - NIST SP 800-30 Rev. 1 (risk assessment).

@@ -114,7 +114,7 @@ Phase 1 extends existing identity and Connect-family surfaces with explicit cont
 
 ## References
 
-- ADR-0136: Foundry internal scope clarification; consumer AI belongs to Intelligence, not Foundry.
+- ADR-0239: Foundry internal scope clarification; consumer AI belongs to Intelligence, not Foundry.
 - ADR-0211: In-house tech stack policy; multi-context identity is Class C differentiation.
 - ADR-0212: Buildability doctrine; downstream IPs must be implementable from artifacts alone.
 - ADR-0214: Consent graph is the only cross-context bridge.

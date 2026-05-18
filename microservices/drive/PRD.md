@@ -21,7 +21,7 @@ doc_status: published
 
 The `drive` µservice is oyatie's native object/file storage, hierarchical folder, multipart resumable upload, range-download, content-defined-chunking delta-sync, shared-link, fine-grained permission, full-text search, preview/thumbnail, virus-scan, DLP, encryption-at-rest, immutability-tier (WORM), and per-tenant quota substrate. Per ADR-0132 (no-suite forward policy) and ADR-0135 (Connect unbundle parallel session) drive is a standalone tenant-facing µservice — separate from docs/sheets/slides editing surfaces — owning bytes-at-rest, bytes-in-flight, hierarchy, sharing, sync, preview, DLP, retention, and immutability.
 
-The µservice carries dual-context (Personal / Professional) per parallel ADR-0135; bytes never cross context boundaries except via explicit share-link issuance or policy-bound projection.
+The µservice carries dual-context (Personal / Professional) per parallel ADR-0238; bytes never cross context boundaries except via explicit share-link issuance or policy-bound projection.
 
 Bominal inheritance: Bominal's `workspace.drive` + `connect.files` ADRs are inherited 1:1 per `feedback_bominal_inheritance_precedence.md`; oyatie additions captured below.
 

@@ -1,0 +1,23 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: connect-retirement-evidence-lag
+spec:
+  description: Design target for retirement evidence publication lag.
+  objective:
+    target: 0.99
+  indicator:
+    metadata:
+      name: connect-retirement-evidence-lag-p99
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_connect_retirement_evidence_lag_seconds_bucket{le="300"}[5m]))
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_connect_retirement_evidence_lag_seconds_count[5m]))

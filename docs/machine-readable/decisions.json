@@ -6,14 +6,17 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 110,
-    "numbering": "ADR-0001..ADR-0135 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127)",
-    "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127"],
-    "next_adr": "ADR-0136",
+    "total_adrs": 206,
+    "numbering": "ADR-0001..ADR-0241 (non-contiguous; gaps: ADR-0012, ADR-0033, ADR-0068, ADR-0070..ADR-0082, ADR-0084..ADR-0089, ADR-0125..ADR-0127, ADR-0224..ADR-0233)",
+    "gaps": ["ADR-0012", "ADR-0033", "ADR-0068", "ADR-0070..ADR-0082", "ADR-0084..ADR-0089", "ADR-0125..ADR-0127", "ADR-0224..ADR-0233"],
+    "next_adr": "ADR-0242",
     "status_counts": {
-      "Accepted": 25,
-      "Proposed": 7,
-      "Superseded": 2,
+      "Accepted": 115,
+      "Accepted (amendment)": 1,
+      "Amended": 1,
+      "Proposed": 8,
+      "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
+      "Superseded": 4,
       "accepted": 39,
       "deprecated": 1,
       "proposed": 36
@@ -191,7 +194,7 @@
     {
       "adr": "ADR-0016",
       "number": 16,
-      "title": "Wave and plane integration framework — descriptive wave names (W-Foundation through W-Region-Fan-Out), per-wave gate criteria, status labels (preview / stable / GA), no M0/M1/M2/M3/MVP vocab",
+      "title": "Wave and plane integration framework — descriptive wave names (W-Foundation through W-Region-Fan-Out), per-wave gate criteria, status labels (preview / stable / GA), no M0/M1/M2/M3/minimum-shippable-tier vocab",
       "status": "proposed",
       "owner": "council-architecture + tactical-first-vertical-pilot until first vertical preview ships",
       "date": "2026-05-09",
@@ -246,7 +249,7 @@
       "path": "decisions/ADR-0020-foundry-multi-provider-adapter-model.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0021 (capability registry + MCP gateway)", "ADR-0022 (autonomy ceiling enforcement)", "ADR-0024 (eval harness + replay)", "ADR-0026 (in-house model substrate roadmap)"]
+      "related": ["ADR-0021", "ADR-0022", "ADR-0024", "ADR-0026"]
     },
     {
       "adr": "ADR-0021",
@@ -258,7 +261,7 @@
       "path": "decisions/ADR-0021-foundry-capability-registry-and-mcp-gateway.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0020 (provider adapter model)", "ADR-0022 (autonomy ceiling enforcement)", "ADR-0024 (eval harness — gates publish)", "ADR-0025 (Foundry as engineering platform)"]
+      "related": ["ADR-0020", "ADR-0022", "ADR-0024", "ADR-0025"]
     },
     {
       "adr": "ADR-0022",
@@ -270,7 +273,7 @@
       "path": "decisions/ADR-0022-autonomy-ceiling-runtime-enforcement.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0020 (provider adapter)", "ADR-0021 (capability registry)", "ADR-0023 (sandbox; complements process-level isolation)", "ADR-0024 (eval harness; adversarial cases test the ceiling)", "ADR-0025 (engineering-platform; same gates apply to agent-authored PRs)"]
+      "related": ["ADR-0020", "ADR-0021", "ADR-0023", "ADR-0024", "ADR-0025"]
     },
     {
       "adr": "ADR-0023",
@@ -282,7 +285,7 @@
       "path": "decisions/ADR-0023-foundry-sandbox-wasmtime-firecracker.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0020 (provider adapter)", "ADR-0021 (capability registry — capability declares which sandbox class it needs)", "ADR-0022 (autonomy ceiling — sandbox is process-level defense-in-depth)", "ADR-0025 (engineering platform — sandbox-spawn metering rolls into scorecards)"]
+      "related": ["ADR-0020", "ADR-0021", "ADR-0022", "ADR-0025"]
     },
     {
       "adr": "ADR-0024",
@@ -294,7 +297,7 @@
       "path": "decisions/ADR-0024-foundry-eval-harness-and-replay.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0020 (provider adapter — A/B targets)", "ADR-0021 (capability registry — eval gate at publish)", "ADR-0022 (autonomy ceiling — adversarial cohort tests bypass attempts)", "ADR-0023 (sandbox — replay needs deterministic tool execution)", "ADR-0026 (in-house substrate — eval is the gate that decides when an in-house variant supplants a provider)"]
+      "related": ["ADR-0020", "ADR-0021", "ADR-0022", "ADR-0023", "ADR-0026"]
     },
     {
       "adr": "ADR-0025",
@@ -306,7 +309,7 @@
       "path": "decisions/ADR-0025-foundry-as-engineering-platform.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0020 (provider adapter)", "ADR-0021 (capability registry)", "ADR-0022 (autonomy ceiling)", "ADR-0023 (sandbox)", "ADR-0024 (eval harness — same gate substrate)"]
+      "related": ["ADR-0020", "ADR-0021", "ADR-0022", "ADR-0023", "ADR-0024"]
     },
     {
       "adr": "ADR-0026",
@@ -318,7 +321,7 @@
       "path": "decisions/ADR-0026-in-house-ai-model-substrate-roadmap.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0020 (provider adapter — the trait extends to in-house IDs)", "ADR-0024 (eval harness — the cutover gate)", "ADR-0025 (engineering platform — supplies the data and gate substrate)", "ADR-0027 (vision/speech/robotics sub-substrates — built on the same kernel)"]
+      "related": ["ADR-0020", "ADR-0024", "ADR-0025", "ADR-0027"]
     },
     {
       "adr": "ADR-0027",
@@ -330,7 +333,7 @@
       "path": "decisions/ADR-0027-robotics-vision-speech-sub-substrates.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0020 (provider adapter — vision/speech models extend the trait)", "ADR-0022 (autonomy ceiling — T4 disabled by default for safety-critical actuation)", "ADR-0024 (eval harness — per-substrate eval cohorts)", "ADR-0026 (in-house substrate — vision/speech models live on the same kernel)"]
+      "related": ["ADR-0020", "ADR-0022", "ADR-0024", "ADR-0026"]
     },
     {
       "adr": "ADR-0028",
@@ -503,7 +506,7 @@
     {
       "adr": "ADR-0043",
       "number": 43,
-      "title": "Secrets management — OpenBao (MPL-2; supersedes Vault BUSL), per-tenant per-cell HSM partition (KCMVP + FIPS 140-3), per-capability SecretProvider",
+      "title": "Secrets management — OpenBao (MPL-2; supersedes Vault BUSL), per-tenant per-cell HSM partition (KCminimum-shippable-tier + FIPS 140-3), per-capability SecretProvider",
       "status": "proposed",
       "owner": "foundry",
       "date": "2026-05-09",
@@ -606,7 +609,7 @@
       "path": "decisions/ADR-0051-mobile-and-native-client-strategy.md",
       "supersedes": ["the legacy mobile-clients quality-bar, multi-form-factor, and Compose↔SwiftUI parity cluster per [ADR-LEGACY-REGRESSION-MAPPING.md](../ADR-LEGACY-REGRESSION-MAPPING.md)"],
       "superseded_by": [],
-      "related": ["ADR-0001 (cohesion thesis — single brand surface across all clients)", "ADR-0010 (regional-pack architecture — per-region store / privacy variations)", "ADR-0017 (brand naming + repo layout)", "ADR-0044 (gateway / mTLS — mobile-to-API edge)"]
+      "related": ["ADR-0001", "ADR-0010", "ADR-0017", "ADR-0044"]
     },
     {
       "adr": "ADR-0052",
@@ -629,7 +632,7 @@
       "date": "2026-05-12",
       "path": "decisions/ADR-0053-grit-icm-as-sanctioned-primitives.md",
       "supersedes": ["(none)"],
-      "superseded_by": [],
+      "superseded_by": ["(none)"],
       "related": []
     },
     {
@@ -642,7 +645,7 @@
       "path": "decisions/ADR-0054-grit-scaffold-claim-pattern.md",
       "supersedes": [],
       "superseded_by": ["ADR-0116"],
-      "related": ["ADR-0052 (grit/icm tooling inventory)", "ADR-0053 (grit + icm as sanctioned coordination primitives)", "ADR-0015 (flat-crates layout)", "ADR-0041 (GitOps trunk-based development)"]
+      "related": ["ADR-0052", "ADR-0053", "ADR-0015", "ADR-0041"]
     },
     {
       "adr": "ADR-0055",
@@ -762,7 +765,7 @@
       "path": "decisions/ADR-0064-canonical-base-and-localization-packs.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0056", "ADR-0058", "ADR-0059", "ADR-0060", "ADR-0062", "ADR-0063", "Bominal ADR-0140 (retired per ADR-0145) (inherited)"]
+      "related": ["ADR-0056", "ADR-0058", "ADR-0059", "ADR-0060", "ADR-0062", "ADR-0063", "ADR-0140"]
     },
     {
       "adr": "ADR-0065",
@@ -798,7 +801,7 @@
       "path": "decisions/ADR-0067-ops-oyatie-com-hyperscaler-operations-console.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0061 (Application B2B shell)", "ADR-0063", "ADR-0064", "ADR-0065 (docs Leptos)", "ADR-0066 (live introspection)", "Bominal ADR-0020 (observability)", "Bominal ADR-0117 (cell architecture)", "Bominal ADR-0132 (Cedar pillars)"]
+      "related": ["ADR-0061", "ADR-0063", "ADR-0064", "ADR-0065", "ADR-0066", "ADR-0020", "ADR-0117", "ADR-0132"]
     },
     {
       "adr": "ADR-0069",
@@ -810,7 +813,7 @@
       "path": "decisions/ADR-0069-active-machine-readable-artifact-contract.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0015 (flat-crates)", "ADR-0056 (BNF v4.1)", "ADR-0063 (doc-coverage)", "ADR-0067 (ops portal)", "ADR-0088 (foundry microservice scaffolding)"]
+      "related": ["ADR-0015", "ADR-0056", "ADR-0063", "ADR-0067", "ADR-0088"]
     },
     {
       "adr": "ADR-0083",
@@ -820,7 +823,7 @@
       "owner": "council-architecture",
       "date": "2026-05-15",
       "path": "decisions/ADR-0083-rust-error-handling-tier-decision.md",
-      "supersedes": ["none"],
+      "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0015", "ADR-0017", "ADR-0037", "ADR-0056", "ADR-0069"]
     },
@@ -832,8 +835,8 @@
       "owner": "council-architecture",
       "date": "2026-05-14",
       "path": "decisions/ADR-0090-hyper-canonical-http-backbone.md",
-      "supersedes": ["—"],
-      "superseded_by": ["—"],
+      "supersedes": [],
+      "superseded_by": [],
       "related": ["ADR-0064"]
     },
     {
@@ -844,8 +847,8 @@
       "owner": "council-foundry",
       "date": "2026-05-14",
       "path": "decisions/ADR-0091-foundry-write-gate-foundations.md",
-      "supersedes": ["—"],
-      "superseded_by": ["—"],
+      "supersedes": [],
+      "superseded_by": [],
       "related": ["ADR-0054", "ADR-0090"]
     },
     {
@@ -856,8 +859,8 @@
       "owner": "council-architecture",
       "date": "2026-05-14",
       "path": "decisions/ADR-0092-workspace-dependency-seam-policy.md",
-      "supersedes": ["—"],
-      "superseded_by": ["—"],
+      "supersedes": [],
+      "superseded_by": [],
       "related": ["ADR-0054", "ADR-0056", "ADR-0062", "ADR-0069", "ADR-0090", "ADR-0093", "ADR-0094", "ADR-0095"]
     },
     {
@@ -1146,7 +1149,7 @@
       "path": "decisions/ADR-0116-retire-external-agent-coordination-tooling.md",
       "supersedes": ["ADR-0054 (grit scaffold-claim pattern)"],
       "superseded_by": [],
-      "related": ["ADR-0054 (deprecated by this ADR)", "ADR-0052/0053 (historical inventories of the retired primitives)", "ADR-0110/0111/0112/0113 (Foundry pipeline substrate)", "ADR-0115 (sibling registry consolidation landed via PR #9)"]
+      "related": ["ADR-0054", "ADR-0052", "ADR-0110", "ADR-0115"]
     },
     {
       "adr": "ADR-0117",
@@ -1240,8 +1243,8 @@
       "owner": "jason931225",
       "date": "2026-05-17",
       "path": "decisions/ADR-0124-own-merge-queue-webhook-driven.md",
-      "supersedes": ["none"],
-      "superseded_by": ["none"],
+      "supersedes": [],
+      "superseded_by": [],
       "related": ["ADR-0111", "ADR-0112", "ADR-0113", "ADR-0116"]
     },
     {
@@ -1269,52 +1272,52 @@
       "related": ["ADR-0116", "ADR-0124", "ADR-0128"]
     },
     {
-      "adr": "ADR-0139",
+      "adr": "ADR-0130",
       "number": 130,
       "title": "Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System",
       "status": "Accepted",
       "owner": "council-architecture + ontology-team",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0139-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
-      "supersedes": ["N/A"],
+      "path": "decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
+      "supersedes": [],
       "superseded_by": [],
       "related": []
     },
     {
       "adr": "ADR-0131",
       "number": 131,
-      "title": "Connect Social Expansion Planning Contract",
+      "title": "Per-microservice flat layout (universal)",
       "status": "Accepted",
-      "owner": "connect-product-council",
+      "owner": "council-architecture",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0131-connect-social-expansion-planning-contract.md",
-      "supersedes": [],
+      "path": "decisions/ADR-0131-per-microservice-flat-layout.md",
+      "supersedes": ["ADR-0015, ADR-0119"],
       "superseded_by": [],
-      "related": ["ADR-0001", "ADR-0029", "ADR-0056", "ADR-0105", "ADR-0123"]
+      "related": ["ADR-0015", "ADR-0056", "ADR-0105", "ADR-0110", "ADR-0115", "ADR-0116", "ADR-0119", "ADR-0122", "ADR-0139"]
     },
     {
       "adr": "ADR-0132",
       "number": 132,
-      "title": "Connect Core Public Contracts",
+      "title": "No-suite forward-policy (universal flat catalog)",
       "status": "Accepted",
-      "owner": "connect-product-council",
+      "owner": "council-architecture",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0132-connect-core-public-contracts.md",
+      "path": "decisions/ADR-0132-product-suite-and-bundle-dissolution.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0001", "ADR-0003", "ADR-0008", "ADR-0059", "ADR-0131"]
+      "related": ["ADR-0056", "ADR-0105", "ADR-0110", "ADR-0115", "ADR-0119", "ADR-0122", "ADR-0127", "ADR-0139", "ADR-0131", "ADR-0135"]
     },
     {
       "adr": "ADR-0133",
       "number": 133,
-      "title": "OP-11 Corpus Remediation Planning Contract",
-      "status": "Proposed",
+      "title": "Industry-best-practice + hyperscaler-grade conformance program",
+      "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0133-op11-corpus-remediation-planning-contract.md",
+      "path": "decisions/ADR-0133-industry-best-practice-conformance-program.md",
       "supersedes": [],
       "superseded_by": [],
-      "related": ["ADR-0116", "ADR-0123"]
+      "related": ["ADR-0056", "ADR-0105", "ADR-0106", "ADR-0123", "ADR-0139", "ADR-0131", "ADR-0132", "ADR-0135"]
     },
     {
       "adr": "ADR-0134",
@@ -1339,6 +1342,1158 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0129", "ADR-0133", "ADR-0134"]
+    },
+    {
+      "adr": "ADR-0136",
+      "number": 136,
+      "title": "Foundry as a single µservice (with internal bounded contexts)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0136-foundry-as-single-microservice.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0022", "ADR-0024", "ADR-0025", "ADR-0056", "ADR-0105", "ADR-0106", "ADR-0110", "ADR-0123", "ADR-0139", "ADR-0131", "ADR-0132", "ADR-0133", "ADR-0134", "ADR-0137", "ADR-0138"]
+    },
+    {
+      "adr": "ADR-0137",
+      "number": 137,
+      "title": "Foundry bounded contexts",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0137-foundry-bounded-contexts.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0022", "ADR-0025", "ADR-0056", "ADR-0105", "ADR-0106", "ADR-0123", "ADR-0139", "ADR-0131", "ADR-0132", "ADR-0136", "ADR-0138"]
+    },
+    {
+      "adr": "ADR-0138",
+      "number": 138,
+      "title": "Foundry six-path deprecation — Strangler migration",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0138-foundry-six-path-deprecation.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0056", "ADR-0105", "ADR-0110", "ADR-0114", "ADR-0123", "ADR-0139", "ADR-0131", "ADR-0132", "ADR-0133", "ADR-0134", "ADR-0136", "ADR-0137"]
+    },
+    {
+      "adr": "ADR-0139",
+      "number": 139,
+      "title": "Agentic SLO-gated promotion",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0139-agentic-slo-gated-promotion.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0041", "ADR-0056", "ADR-0105", "ADR-0110", "ADR-0111", "ADR-0112", "ADR-0113", "ADR-0114", "ADR-0116", "ADR-0123", "ADR-0131"]
+    },
+    {
+      "adr": "ADR-0140",
+      "number": 140,
+      "title": "Cross-cutting carriers — adapter-rule exemption",
+      "status": "Superseded",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md",
+      "supersedes": [],
+      "superseded_by": ["ADR-0145"],
+      "related": ["ADR-0011", "ADR-0056", "ADR-0064", "ADR-0105", "ADR-0123", "ADR-0131", "ADR-0132", "ADR-0135", "ADR-0136", "ADR-0139"]
+    },
+    {
+      "adr": "ADR-0141",
+      "number": 141,
+      "title": "Workflow + Ontology — read path direct; write path orchestrated",
+      "status": "Superseded",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0141-workflow-ontology-read-path-direct.md",
+      "supersedes": [],
+      "superseded_by": ["ADR-0145"],
+      "related": ["ADR-0056", "ADR-0064", "ADR-0067", "ADR-0128", "ADR-0131", "ADR-0139", "ADR-0140"]
+    },
+    {
+      "adr": "ADR-0142",
+      "number": 142,
+      "title": "CRDT portability trait + alternate-adapter compile gate",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0142-crdt-portability-trait.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0056", "ADR-0064", "ADR-0131", "ADR-0133", "ADR-0135"]
+    },
+    {
+      "adr": "ADR-0143",
+      "number": 143,
+      "title": "Foundry per-BC release pointer",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0143-foundry-per-bc-release-pointer.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0056", "ADR-0067", "ADR-0131", "ADR-0136", "ADR-0137", "ADR-0138", "ADR-0139"]
+    },
+    {
+      "adr": "ADR-0144",
+      "number": 144,
+      "title": "EU AI Act graduated risk tier model",
+      "status": "Accepted",
+      "owner": "council-privacy",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0144-eu-ai-act-graduated-risk-tier-model.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0133", "ADR-0140"]
+    },
+    {
+      "adr": "ADR-0145",
+      "number": 145,
+      "title": "Inter-microservice communication: hyperscaler shape with opt-in Workflow + Ontology",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0145-inter-microservice-communication-reform.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0131", "ADR-0132", "ADR-0135", "ADR-0136", "ADR-0139"]
+    },
+    {
+      "adr": "ADR-0146",
+      "number": 146,
+      "title": "Container base image: distroless `static-debian12:nonroot`",
+      "status": "Accepted",
+      "owner": "axis-governance, axis-cloud-k8s, axis-observability",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0146-container-base-image-distroless-nonroot.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0131", "ADR-0083"]
+    },
+    {
+      "adr": "ADR-0147",
+      "number": 147,
+      "title": "Container sandboxing runtime ladder",
+      "status": "Amended",
+      "owner": "ops-security",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0147-container-sandboxing-runtime-ladder.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0117", "ADR-0131", "ADR-0133", "ADR-0139", "ADR-0140", "ADR-0144"]
+    },
+    {
+      "adr": "ADR-0148",
+      "number": 148,
+      "title": "Service-mesh canonical: Cilium L3/L4 + Istio Ambient L7 (layered globally; zero overlap)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0148-service-mesh-cilium-ambient-layered.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0009", "ADR-0121", "ADR-0131", "ADR-0145", "ADR-0146", "ADR-0147", "ADR-0149", "ADR-0150", "ADR-0153", "ADR-0182", "ADR-0183", "ADR-0184", "ADR-0185", "ADR-0186"]
+    },
+    {
+      "adr": "ADR-0149",
+      "number": 149,
+      "title": "Idempotency Keys Canonical",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, axis-all-microservices",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0149-idempotency-keys-canonical.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0150",
+      "number": 150,
+      "title": "Cursor Pagination Canonical",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, axis-all-microservices",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0150-cursor-pagination-canonical.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0151",
+      "number": 151,
+      "title": "X-Request-Id Propagation",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, axis-observability",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0151-request-id-propagation.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0152",
+      "number": 152,
+      "title": "RPO/RTO Canonical (Five-Tier Recovery Model)",
+      "status": "Accepted",
+      "owner": "ops-sre-reliability, council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0152-rpo-rto-canonical.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0153",
+      "number": 153,
+      "title": "Outbox Pattern",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, axis-messenger,",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0153-outbox-pattern.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0154",
+      "number": 154,
+      "title": "Event Schema Versioning",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, axis-all-microservices",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0154-event-schema-versioning.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0155",
+      "number": 155,
+      "title": "Per-Tenant Resource Quotas",
+      "status": "Accepted",
+      "owner": "axis-tenancy, council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0155-per-tenant-resource-quotas.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0156",
+      "number": 156,
+      "title": "PII Registry Canonical (Cross-Cutting Data Classification)",
+      "status": "Accepted",
+      "owner": "council-architecture, council-privacy, axis-tenancy",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0156-pii-registry-canonical.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0157",
+      "number": 157,
+      "title": "Dedicated API Gateway Tier (separate from per-µservice rate-limit)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0157-api-gateway-tier.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0009", "ADR-0049", "ADR-0114", "ADR-0121", "ADR-0128", "ADR-0145", "ADR-0148", "ADR-0182"]
+    },
+    {
+      "adr": "ADR-0158",
+      "number": 158,
+      "title": "Per-µservice Multi-Region Disposition (active-active / active-passive / single-region), Sovereign Tenant Region Pinning, Global Control-Plane",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0158-multi-region-active-active.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0009", "ADR-0028", "ADR-0049", "ADR-0114", "ADR-0121", "ADR-0128", "ADR-0142", "ADR-0148", "ADR-0157"]
+    },
+    {
+      "adr": "ADR-0159",
+      "number": 159,
+      "title": "Dedicated Feature-Flag µservice (runtime gradual rollout) separate from ChangeSet acceptance (code-deploy gating)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0159-feature-flag-substrate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0007", "ADR-0009", "ADR-0049", "ADR-0110", "ADR-0114", "ADR-0128", "ADR-0139", "ADR-0145", "ADR-0157", "ADR-0158"]
+    },
+    {
+      "adr": "ADR-0160",
+      "number": 160,
+      "title": "Progressive Delivery via Flagger 1.x (canary + blue-green + A/B), ArgoCD-integrated, SLO-gated promotion",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0160-progressive-delivery-flagger.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0110", "ADR-0114", "ADR-0121", "ADR-0124", "ADR-0139", "ADR-0148", "ADR-0157", "ADR-0158"]
+    },
+    {
+      "adr": "ADR-0161",
+      "number": 161,
+      "title": "CSI Driver + StorageClass Abstraction (canonical naming `oya-{pg,s3,redis,object}-{hot,warm,cold}`; per-pack CSI driver pin)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0161-csi-storage-class-canonical.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0009", "ADR-0028", "ADR-0043", "ADR-0049", "ADR-0121", "ADR-0143", "ADR-0158", "ADR-0164"]
+    },
+    {
+      "adr": "ADR-0162",
+      "number": 162,
+      "title": "Per-tenant Audit-Chain Slicing (partition by tenant_id; sovereign-tenant dedicated shard; per-tenant retrieval API)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0162-per-tenant-audit-log-slicing.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0003", "ADR-0008", "ADR-0009", "ADR-0028", "ADR-0038", "ADR-0049", "ADR-0128", "ADR-0143", "ADR-0158", "ADR-0164"]
+    },
+    {
+      "adr": "ADR-0163",
+      "number": 163,
+      "title": "Per-tenant Environment Tiers (test / staging / prod), Cell-Isolated, Stripe `sk_test_` API-key Pattern",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0163-tenant-environment-tiers.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0001", "ADR-0009", "ADR-0028", "ADR-0049", "ADR-0110", "ADR-0114", "ADR-0157", "ADR-0158", "ADR-0159", "ADR-0160"]
+    },
+    {
+      "adr": "ADR-0164",
+      "number": 164,
+      "title": "Sovereign Cloud / Air-Gapped Deployment (per-pack variant; on-prem registry / Bao / audit-chain shard / no external egress)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0164-sovereign-cloud-air-gapped.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0009", "ADR-0043", "ADR-0049", "ADR-0121", "ADR-0143", "ADR-0145", "ADR-0158", "ADR-0161", "ADR-0162"]
+    },
+    {
+      "adr": "ADR-0165",
+      "number": 165,
+      "title": "Chaos Engineering Substrate (Chaos Mesh 2.x; SLO-driven nightly drills against staging)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0165-chaos-engineering-substrate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0114", "ADR-0121", "ADR-0128", "ADR-0139", "ADR-0145", "ADR-0148", "ADR-0157", "ADR-0158", "ADR-0160"]
+    },
+    {
+      "adr": "ADR-0166",
+      "number": 166,
+      "title": "Schema Registry (Apicurio Registry; Confluent-compat API; AsyncAPI 3.x + proto3 + OpenAPI 3.1; backward-compat lane)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0166-schema-registry.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0005", "ADR-0011", "ADR-0029", "ADR-0100", "ADR-0105", "ADR-0128", "ADR-0131", "ADR-0145", "ADR-0148", "ADR-0157"]
+    },
+    {
+      "adr": "ADR-0167",
+      "number": 167,
+      "title": "Tenant-facing CLI binary `oya` (separate from internal `oya-dev-cli`)",
+      "status": "Accepted",
+      "owner": "council-api-sdk",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0167-tenant-cli.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0002", "ADR-0011", "ADR-0021", "ADR-0037", "ADR-0121", "ADR-0145", "ADR-0146"]
+    },
+    {
+      "adr": "ADR-0168",
+      "number": 168,
+      "title": "Public status page derived from SLO state",
+      "status": "Accepted",
+      "owner": "ops-sre-reliability",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0168-public-status-page.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0042", "ADR-0121", "ADR-0139", "ADR-0148", "ADR-0167"]
+    },
+    {
+      "adr": "ADR-0169",
+      "number": 169,
+      "title": "Webhook DLQ + exponential-backoff retry (Stripe webhook subscriptions pattern)",
+      "status": "Accepted",
+      "owner": "axis-eventing",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0169-webhook-dlq-retry.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0005", "ADR-0011", "ADR-0037", "ADR-0040", "ADR-0145", "ADR-0167", "ADR-0168"]
+    },
+    {
+      "adr": "ADR-0170",
+      "number": 170,
+      "title": "Backstage-style internal developer portal",
+      "status": "Accepted",
+      "owner": "axis-developer-experience",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0170-developer-portal.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0011", "ADR-0019", "ADR-0025", "ADR-0042", "ADR-0131", "ADR-0139", "ADR-0167"]
+    },
+    {
+      "adr": "ADR-0171",
+      "number": 171,
+      "title": "Multi-cluster federation via ArgoCD ApplicationSets + Cluster API",
+      "status": "Accepted",
+      "owner": "axis-cloud-iac",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0171-multi-cluster-federation.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0009", "ADR-0010", "ADR-0049", "ADR-0117", "ADR-0121", "ADR-0131", "ADR-0148"]
+    },
+    {
+      "adr": "ADR-0172",
+      "number": 172,
+      "title": "Read replicas + CQRS where appropriate (high-read BCs only, per-µservice opt-in)",
+      "status": "Accepted",
+      "owner": "axis-eventing",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0172-cqrs-read-replicas.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0005", "ADR-0009", "ADR-0028", "ADR-0045", "ADR-0131", "ADR-0145", "ADR-0148", "ADR-0171"]
+    },
+    {
+      "adr": "ADR-0173",
+      "number": 173,
+      "title": "Vendor lock-in avoidance and stack ownership",
+      "status": "Accepted",
+      "owner": "axis-governance, axis-foundry, axis-cloud-k8s, axis-cloud-secrets, axis-observability",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0173-vendor-lock-in-avoidance-and-stack-ownership.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0013", "ADR-0014", "ADR-0020", "ADR-0026", "ADR-0042", "ADR-0043", "ADR-0064", "ADR-0083", "ADR-0092", "ADR-0104", "ADR-0105", "Amendment 3 backend-qualified adapter naming)", "ADR-0142", "ADR-0146", "ADR-0147", "ADR-0148"]
+    },
+    {
+      "adr": "ADR-0174",
+      "number": 174,
+      "title": "FinOps cost-attribution + chargeback policy",
+      "status": "Accepted",
+      "owner": "council-architecture, ops-finops, axis-cloud",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0174-finops-cost-attribution-chargeback.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0028", "ADR-0009", "ADR-0020", "ADR-0004"]
+    },
+    {
+      "adr": "ADR-0175",
+      "number": 175,
+      "title": "Tenant lifecycle workflow",
+      "status": "Accepted",
+      "owner": "council-architecture, council-privacy, axis-workspace",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0175-tenant-lifecycle-workflow.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0002", "ADR-0038", "ADR-0035", "ADR-0222", "ADR-0009"]
+    },
+    {
+      "adr": "ADR-0176",
+      "number": 176,
+      "title": "Brown-out + graceful-degradation signal API",
+      "status": "Accepted",
+      "owner": "council-architecture, ops-sre-reliability, axis-cloud",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0176-brownout-degradation-signal-api.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0128", "ADR-0009", "ADR-0042", "ADR-0044", "ADR-0148"]
+    },
+    {
+      "adr": "ADR-0177",
+      "number": 177,
+      "title": "Internal vs external API surface separation",
+      "status": "Accepted",
+      "owner": "council-architecture, platform-api-sdk, ops-security",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0177-internal-external-api-surface-separation.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0037", "ADR-0157", "ADR-0044", "ADR-0011"]
+    },
+    {
+      "adr": "ADR-0178",
+      "number": 178,
+      "title": "Layered throttling — per-tenant / per-user / per-IP / per-key",
+      "status": "Accepted",
+      "owner": "council-architecture, ops-security, axis-cloud, platform-api-sdk",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0178-layered-throttling-tiers.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0021", "ADR-0044", "ADR-0148", "ADR-0157", "ADR-0177"]
+    },
+    {
+      "adr": "ADR-0179",
+      "number": 179,
+      "title": "Postgres connection pooling canonical: pgcat (Rust pgbouncer-class)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0179-postgres-connection-pooling-pgcat.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0009", "ADR-0028", "ADR-0045", "ADR-0121", "ADR-0131", "ADR-0148", "ADR-0158"]
+    },
+    {
+      "adr": "ADR-0180",
+      "number": 180,
+      "title": "SLO composition + inheritance arithmetic",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0180-slo-composition-inheritance-arithmetic.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0042", "ADR-0093", "ADR-0128", "ADR-0139", "ADR-0160"]
+    },
+    {
+      "adr": "ADR-0181",
+      "number": 181,
+      "title": "Container image promotion pipeline: dev → staging → prod (cosign-signed tier promotion)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0181-container-image-promotion-pipeline.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0039", "ADR-0041", "ADR-0114", "ADR-0124", "ADR-0146", "ADR-0148", "ADR-0160"]
+    },
+    {
+      "adr": "ADR-0182",
+      "number": 182,
+      "title": "API Gateway (north-south) vs Service Mesh (east-west) separation; zero overlap",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0121", "ADR-0145", "ADR-0148", "ADR-0150", "ADR-0157", "ADR-0183", "ADR-0184", "ADR-0185", "ADR-0186"]
+    },
+    {
+      "adr": "ADR-0183",
+      "number": 183,
+      "title": "Kubernetes policy engine separation: Cedar (app authz) vs Kyverno (admission)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0183-policy-engine-separation-cedar-app-authz-kyverno-admission.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0121", "ADR-0145", "ADR-0146", "ADR-0148", "ADR-0182", "ADR-0184", "ADR-0185", "ADR-0186"]
+    },
+    {
+      "adr": "ADR-0184",
+      "number": 184,
+      "title": "Storage tier layering: OLTP / read-replica / cache / search; each tier owns one access pattern",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0184-storage-tier-layering.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0161", "ADR-0172", "ADR-0179", "ADR-0182", "ADR-0183", "ADR-0185", "ADR-0186"]
+    },
+    {
+      "adr": "ADR-0185",
+      "number": 185,
+      "title": "Workflow Studio client stack: per-surface native rendering; OpenAPI contract is the cross-ecosystem unifier",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0185-workflow-studio-client-stack.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0131", "ADR-0145", "ADR-0148", "ADR-0182", "ADR-0183", "ADR-0184", "ADR-0186"]
+    },
+    {
+      "adr": "ADR-0186",
+      "number": 186,
+      "title": "Observability backplane layering: collection / storage / query / alert / SLO authoring; zero overlap",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0186-observability-backplane-layering.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0139", "ADR-0145", "ADR-0148", "ADR-0153", "ADR-0180", "ADR-0182", "ADR-0183", "ADR-0184", "ADR-0185"]
+    },
+    {
+      "adr": "ADR-0187",
+      "number": 187,
+      "title": "Canonical OIDC IdP: Zitadel primary; OIDC/SAML/SCIM/Passkeys/WebAuthn first-class",
+      "status": "Accepted",
+      "owner": "axis-identity",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0187-canonical-oidc-idp-zitadel-primary.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0182", "ADR-0183", "ADR-0173"]
+    },
+    {
+      "adr": "ADR-0188",
+      "number": 188,
+      "title": "Passkey / WebAuthn Level-3 substrate; phishing-resistant first-factor; TOTP fallback; SMS rejected",
+      "status": "Accepted",
+      "owner": "axis-identity",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0188-passkey-webauthn-substrate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0187", "ADR-0189"]
+    },
+    {
+      "adr": "ADR-0189",
+      "number": 189,
+      "title": "Step-up authentication ACR classes (`routine`, `elevated`, `sensitive`, `critical`); ACR-bound Cedar gates",
+      "status": "Accepted",
+      "owner": "axis-identity",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0189-step-up-authentication-acr-classes.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0183", "ADR-0187", "ADR-0188", "ADR-0162"]
+    },
+    {
+      "adr": "ADR-0190",
+      "number": 190,
+      "title": "SCIM 2.0 inbound provisioning for enterprise tenants; pluggable adapter for non-SCIM HRIS",
+      "status": "Accepted",
+      "owner": "axis-identity",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0190-scim-2-provisioning-enterprise-tenants.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0187", "ADR-0175"]
+    },
+    {
+      "adr": "ADR-0191",
+      "number": 191,
+      "title": "Edge authz tier separation: Envoy Gateway edge (IP/rate/WAF/bot/DDoS) vs Istio waypoint Cedar PDP origin (identity/context/step-up/data-class); never overlap",
+      "status": "Accepted",
+      "owner": "axis-identity + axis-api-gateway",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0191-edge-authz-tier-vs-origin-cedar-pdp.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0148", "ADR-0157", "ADR-0178", "ADR-0182", "ADR-0183", "ADR-0187"]
+    },
+    {
+      "adr": "ADR-0192",
+      "number": 192,
+      "title": "Vector database canonical: Milvus disaggregated cluster; pgvector adapter only for ≤10M-vector tenants",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0192-vector-database-canonical-milvus.md",
+      "supersedes": ["ADR-0046"],
+      "superseded_by": [],
+      "related": ["ADR-0026", "ADR-0030", "ADR-0038", "ADR-0043", "ADR-0049", "ADR-0131", "ADR-0145", "ADR-0153", "ADR-0155", "ADR-0184", "ADR-0186", "ADR-0193", "ADR-0194", "ADR-0195"]
+    },
+    {
+      "adr": "ADR-0193",
+      "number": 193,
+      "title": "OLAP analytics warehouse canonical: ClickHouse 26.3 LTS; tenant-facing analytics, telemetry rollups, audit-log query, billing rollups",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0193-olap-analytics-warehouse-clickhouse.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0031", "ADR-0042", "ADR-0043", "ADR-0131", "ADR-0145", "ADR-0152", "ADR-0155", "ADR-0184", "ADR-0186", "ADR-0192", "ADR-0194", "ADR-0195"]
+    },
+    {
+      "adr": "ADR-0194",
+      "number": 194,
+      "title": "Tenant-facing time-series canonical: TimescaleDB 2.26 Community Edition (Apache-2.0) as a Postgres 18 extension; ops/SRE metrics remain in Prometheus + Mimir",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0194-tenant-facing-timeseries-timescaledb.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0042", "ADR-0043", "ADR-0131", "ADR-0145", "ADR-0153", "ADR-0155", "ADR-0179", "ADR-0184", "ADR-0186", "ADR-0192", "ADR-0193", "ADR-0195"]
+    },
+    {
+      "adr": "ADR-0195",
+      "number": 195,
+      "title": "Stream processing tier: ClickHouse Materialized Views + Kafka Engine default; Apache Flink 2.2 escalation under explicit ADR amendment",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0195-stream-processing-tier.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0005", "ADR-0042", "ADR-0131", "ADR-0145", "ADR-0153", "ADR-0184", "ADR-0186", "ADR-0192", "ADR-0193", "ADR-0194"]
+    },
+    {
+      "adr": "ADR-0196",
+      "number": 196,
+      "title": "Object storage canonical: SeaweedFS primary, Ceph RGW scale-up path",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0196-object-storage-canonical-seaweedfs-primary-ceph-scale-up.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0131", "ADR-0161", "ADR-0173", "ADR-0184", "ADR-0186", "ADR-0197", "ADR-0199"]
+    },
+    {
+      "adr": "ADR-0197",
+      "number": 197,
+      "title": "Backup substrate: 3-pronged (Velero + pgBackRest + Restic) on SeaweedFS, age-encrypted",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0197-backup-substrate-velero-pgbackrest-restic.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0131", "ADR-0152", "ADR-0162", "ADR-0165", "ADR-0173", "ADR-0240", "ADR-0241", "ADR-0184", "ADR-0186", "ADR-0196"]
+    },
+    {
+      "adr": "ADR-0198",
+      "number": 198,
+      "title": "Kubernetes node autoscaling: Karpenter primary, NodePool per workload class",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0198-k8s-node-autoscaling-karpenter.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0131", "ADR-0152", "ADR-0161", "ADR-0173", "ADR-0240", "ADR-0184", "ADR-0186", "ADR-0199"]
+    },
+    {
+      "adr": "ADR-0199",
+      "number": 199,
+      "title": "Per-tenant cost attribution + FinOps substrate (OpenCost + FOCUS 1.3)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0199-per-tenant-cost-attribution-finops-substrate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0131", "ADR-0173", "ADR-0174", "ADR-0240", "ADR-0184", "ADR-0186", "ADR-0196", "ADR-0197", "ADR-0198"]
+    },
+    {
+      "adr": "ADR-0200",
+      "number": 200,
+      "title": "WASM runtime canonical: Wasmtime",
+      "status": "Accepted",
+      "owner": "Substrate architecture authority (oya-architecture-authority)",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0200-wasm-runtime-canonical-wasmtime.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0147"]
+    },
+    {
+      "adr": "ADR-0201",
+      "number": 201,
+      "title": "Email + transactional comms adapter substrate",
+      "status": "Accepted",
+      "owner": "Substrate architecture authority (oya-architecture-authority)",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0201-email-transactional-comms-adapter-substrate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064"]
+    },
+    {
+      "adr": "ADR-0202",
+      "number": 202,
+      "title": "GitOps + IaC + Cluster lifecycle: three-tier separation",
+      "status": "Accepted",
+      "owner": "Substrate architecture authority (oya-architecture-authority)",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0202-gitops-iac-cluster-lifecycle-three-tier.md",
+      "supersedes": ["none (refines tier boundaries already implicit in"],
+      "superseded_by": [],
+      "related": ["ADR-0147"]
+    },
+    {
+      "adr": "ADR-0203",
+      "number": 203,
+      "title": "Documentation engine: three-tier separation",
+      "status": "Accepted",
+      "owner": "Substrate architecture authority (oya-architecture-authority)",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0203-documentation-engine-three-tier.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0170"]
+    },
+    {
+      "adr": "ADR-0204",
+      "number": 204,
+      "title": "Workflow Studio canvas / node-editor library: svelte-flow (Phase 1) + oya-canvas (Phase 2 in-house)",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0204-workflow-studio-canvas-library.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0185", "ADR-0205", "ADR-0206", "ADR-0207", "ADR-0208"]
+    },
+    {
+      "adr": "ADR-0205",
+      "number": 205,
+      "title": "Code editor canonical: CodeMirror 6 (web) + native text systems",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0205-code-editor-canonical-codemirror.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0185", "ADR-0204", "ADR-0207"]
+    },
+    {
+      "adr": "ADR-0206",
+      "number": 206,
+      "title": "i18n substrate: Fluent (Mozilla) as source-of-truth + ICU MessageFormat surface",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0206-i18n-substrate-fluent-icu.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0064", "ADR-0185", "ADR-0204", "ADR-0205", "ADR-0207"]
+    },
+    {
+      "adr": "ADR-0207",
+      "number": 207,
+      "title": "Accessibility bar: WCAG 2.2 AA mandated; AAA on regulated surfaces",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0207-accessibility-wcag-2-2-aa.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0185", "ADR-0204", "ADR-0205", "ADR-0206"]
+    },
+    {
+      "adr": "ADR-0208",
+      "number": 208,
+      "title": "Realtime transport tier: SSE / WebSocket / gRPC streaming with closed responsibility split",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0208-realtime-transport-tier.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0153", "ADR-0182", "ADR-0185", "ADR-0204"]
+    },
+    {
+      "adr": "ADR-0209",
+      "number": 209,
+      "title": "Compliance evidence automation: in-house pipeline replacing Drata / Vanta",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0209-compliance-evidence-automation.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0145", "ADR-0153", "ADR-0170", "ADR-0181", "ADR-0183"]
+    },
+    {
+      "adr": "ADR-0210",
+      "number": 210,
+      "title": "OpenTelemetry tail-sampling: 100% error / p99 / new-endpoint traces + 1% baseline",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0210-otel-tail-sampling.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0139", "ADR-0145", "ADR-0153", "ADR-0174", "ADR-0186"]
+    },
+    {
+      "adr": "ADR-0211",
+      "number": 211,
+      "title": "In-House Tech Stack Policy",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, axis-platform, council-security",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0211-in-house-tech-stack-policy.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0212",
+      "number": 212,
+      "title": "Buildability Doctrine",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, council-quality",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0212-buildability-doctrine.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0213",
+      "number": 213,
+      "title": "Ecosystem-as-a-Service architecture — Plugin/App Store substrate",
+      "status": "Proposed",
+      "owner": "council-architecture + axis-ecosystem",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0213-ecosystem-as-a-service-architecture.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0001", "ADR-0002", "ADR-0003", "ADR-0007", "ADR-0008", "ADR-0028", "ADR-0037", "ADR-0056", "ADR-0065", "ADR-0105", "ADR-0110", "ADR-0123", "ADR-0131", "ADR-0132", "ADR-0139", "ADR-0147", "ADR-0170", "ADR-0181", "ADR-0185", "ADR-0199", "ADR-0200", "ADR-0211", "ADR-0212"]
+    },
+    {
+      "adr": "ADR-0214",
+      "number": 214,
+      "title": "Cross-Tenant Real-Time Visibility (Consent-Graph + Ontology Projection Extension)",
+      "status": "Proposed (target: Accepted upon PR #143 merge to dev)",
+      "owner": "oyatie axis-consent-graph (with axis-ontology + axis-audit-chain consults)",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0214-cross-tenant-real-time-visibility.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0215",
+      "number": 215,
+      "title": "Multi-Context Platform Architecture",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0215-multi-context-platform-architecture.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0136", "ADR-0211", "ADR-0212", "ADR-0214", "ADR-0218", "ADR-0220"]
+    },
+    {
+      "adr": "ADR-0216",
+      "number": 216,
+      "title": "Open Integration and Migration-Out Policy",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0216-open-integration-and-migration-out-policy.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0211", "ADR-0212", "ADR-0213", "ADR-0217", "ADR-0221"]
+    },
+    {
+      "adr": "ADR-0217",
+      "number": 217,
+      "title": "Vertical Slice Rollout Order",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0217-vertical-slice-rollout-order.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0211", "ADR-0212", "ADR-0215", "ADR-0216", "ADR-0218", "ADR-0219", "ADR-0220"]
+    },
+    {
+      "adr": "ADR-0218",
+      "number": 218,
+      "title": "Tenant Granular Control Surface",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0218-tenant-granular-control-surface.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0061", "ADR-0212", "ADR-0215", "ADR-0216", "ADR-0219", "ADR-0220"]
+    },
+    {
+      "adr": "ADR-0219",
+      "number": 219,
+      "title": "No-Code-First UX with Optional AI-Assist",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0219-no-code-first-ux-with-optional-ai-assist.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0212", "ADR-0215", "ADR-0218", "ADR-0220"]
+    },
+    {
+      "adr": "ADR-0220",
+      "number": 220,
+      "title": "Consumer Intelligence Substrate",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0220-consumer-intelligence-substrate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0136", "ADR-0211", "ADR-0212", "ADR-0215", "ADR-0218", "ADR-0219", "ADR-0221"]
+    },
+    {
+      "adr": "ADR-0221",
+      "number": 221,
+      "title": "Agentic Development Pipeline Hardening",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, council-quality",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0221-agentic-development-pipeline-hardening.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": []
+    },
+    {
+      "adr": "ADR-0222",
+      "number": 222,
+      "title": "Saga + compensating-transaction portfolio policy",
+      "status": "Accepted",
+      "owner": "council-architecture, ops-sre-reliability, axis-workspace",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0222-saga-compensation-portfolio-policy.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0005", "ADR-0035", "ADR-0145", "ADR-0128"]
+    },
+    {
+      "adr": "ADR-0223",
+      "number": 223,
+      "title": "oya git drop-in surface with explicit policy verbs",
+      "status": "Accepted",
+      "owner": "council-architecture, axis-foundry, ops-sre-reliability",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0223-oya-git-drop-in-surface-with-explicit-policy-verbs.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0111", "ADR-0116", "ADR-0132"]
+    },
+    {
+      "adr": "ADR-0234",
+      "number": 234,
+      "title": "Connect Social Expansion Planning Contract",
+      "status": "Accepted",
+      "owner": "connect-product-council",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0234-connect-social-expansion-planning-contract.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0001", "ADR-0029", "ADR-0056", "ADR-0105", "ADR-0123"]
+    },
+    {
+      "adr": "ADR-0235",
+      "number": 235,
+      "title": "Connect Core Public Contracts",
+      "status": "Accepted",
+      "owner": "connect-product-council",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0235-connect-core-public-contracts.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0001", "ADR-0003", "ADR-0008", "ADR-0059", "ADR-0234"]
+    },
+    {
+      "adr": "ADR-0236",
+      "number": 236,
+      "title": "OP-11 Corpus Remediation Planning Contract",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0236-op11-corpus-remediation-planning-contract.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0116", "ADR-0123"]
+    },
+    {
+      "adr": "ADR-0237",
+      "number": 237,
+      "title": "Connect dissolution — Strangler-pattern migration",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0237-connect-dissolution-strangler-migration.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0056", "ADR-0105", "ADR-0110", "ADR-0114", "ADR-0123", "ADR-0139", "ADR-0131", "ADR-0132", "ADR-0133", "ADR-0238"]
+    },
+    {
+      "adr": "ADR-0238",
+      "number": 238,
+      "title": "Connect super-app expansion into 8 flat µservices",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-05-17",
+      "path": "decisions/ADR-0238-connect-super-app-expansion.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0056", "ADR-0060", "ADR-0105", "ADR-0110", "ADR-0123", "ADR-0139", "ADR-0131", "ADR-0132", "ADR-0133", "ADR-0237"]
+    },
+    {
+      "adr": "ADR-0239",
+      "number": 239,
+      "title": "Foundry Scope Clarification (Internal-Only Amendment)",
+      "status": "Accepted (amendment)",
+      "owner": "council-architecture",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0220"]
+    },
+    {
+      "adr": "ADR-0240",
+      "number": 240,
+      "title": "Sovereign cloud per regional pack",
+      "status": "Accepted",
+      "owner": "council-architecture, council-privacy, axis-cloud, ops-compliance",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0240-sovereign-cloud-per-regional-pack.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0010", "ADR-0049", "ADR-0028", "ADR-0009", "ADR-0144"]
+    },
+    {
+      "adr": "ADR-0241",
+      "number": 241,
+      "title": "DR + business-continuity portfolio policy",
+      "status": "Accepted",
+      "owner": "council-architecture, ops-dr-capacity, ops-sre-reliability, ops-compliance",
+      "date": "2026-05-18",
+      "path": "decisions/ADR-0241-dr-business-continuity-portfolio-policy.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0049", "ADR-0009", "ADR-0128", "ADR-0040", "ADR-0240"]
     }
   ]
 }
