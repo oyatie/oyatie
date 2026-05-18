@@ -1,0 +1,248 @@
+{
+  "schema_version": "1.0",
+  "microservice": "observability",
+  "version": "0.1.0",
+  "owner": "axis-observability",
+  "bounded_contexts": [
+    {
+      "name": "observability",
+      "description": "Bounded context 'observability' within observability (data plane)",
+      "crates": [
+        "oya-observability-otel-ingest-adapter",
+        "oya-observability-otel-ingest-api",
+        "oya-observability-otel-ingest-app",
+        "oya-observability-otel-ingest-kernel",
+        "oya-observability-otel-ingest-usecase",
+        "oya-observability-slo-engine-adapter",
+        "oya-observability-slo-engine-adapter-mimir",
+        "oya-observability-slo-engine-api",
+        "oya-observability-slo-engine-app",
+        "oya-observability-slo-engine-domain",
+        "oya-observability-slo-engine-kernel",
+        "oya-observability-slo-engine-rest",
+        "oya-observability-slo-engine-sdk",
+        "oya-observability-slo-engine-usecase",
+        "oya-observability-slo-engine-worker"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/observability/contracts/openapi/slo-engine.yaml"
+    ],
+    "asyncapi": [
+      "microservices/observability/contracts/asyncapi/eligibility-events.yaml"
+    ],
+    "proto": [
+      "microservices/observability/contracts/proto/slo-engine.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "eligibility-query",
+      "file": "microservices/observability/capabilities/eligibility-query.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T0",
+      "name": "openslo-validate",
+      "file": "microservices/observability/capabilities/openslo-validate.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T2",
+      "name": "slo-evaluate",
+      "file": "microservices/observability/capabilities/slo-evaluate.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [],
+  "ips": [
+    {
+      "id": "IP-001-layer-a-grafana-stack-iac",
+      "title": "IP-001: Layer-A Grafana OSS stack IaC",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-001-layer-a-grafana-stack-iac.md"
+    },
+    {
+      "id": "IP-002-openslo-manifest-convention",
+      "title": "IP-002: OpenSLO manifest convention + observability self-SLOs",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-002-openslo-manifest-convention.md"
+    },
+    {
+      "id": "IP-003-slo-engine-kernel",
+      "title": "IP-003: oya-observability-slo-engine-kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-003-slo-engine-kernel.md"
+    },
+    {
+      "id": "IP-004-slo-engine-domain",
+      "title": "IP-004: oya-observability-slo-engine-domain",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-004-slo-engine-domain.md"
+    },
+    {
+      "id": "IP-005-slo-engine-usecase",
+      "title": "IP-005: oya-observability-slo-engine-usecase",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-005-slo-engine-usecase.md"
+    },
+    {
+      "id": "IP-006-slo-engine-adapter",
+      "title": "IP-006: oya-observability-slo-engine-adapter + adapter-mimir",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-006-slo-engine-adapter.md"
+    },
+    {
+      "id": "IP-007-slo-engine-rest",
+      "title": "IP-007: oya-observability-slo-engine-rest",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-007-slo-engine-rest.md"
+    },
+    {
+      "id": "IP-008-slo-engine-worker",
+      "title": "IP-008: oya-observability-slo-engine-worker",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-008-slo-engine-worker.md"
+    },
+    {
+      "id": "IP-009-slo-engine-app",
+      "title": "IP-009: oya-observability-slo-engine-app",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-009-slo-engine-app.md"
+    },
+    {
+      "id": "IP-010-promotion-eligibility-ledger",
+      "title": "IP-010: Promotion-eligibility ledger \u2014 Mimir-native recording rules",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-010-promotion-eligibility-ledger.md"
+    },
+    {
+      "id": "IP-011-per-component-release-pointers",
+      "title": "IP-011: Per-component release pointers",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-011-per-component-release-pointers.md"
+    },
+    {
+      "id": "IP-012-oya-vcs-promotion-readiness-lane",
+      "title": "IP-012: oya-vcs-promotion-readiness CI lane (BLOCKER)",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-012-oya-vcs-promotion-readiness-lane.md"
+    },
+    {
+      "id": "IP-013-event-driven-promote-workflows",
+      "title": "IP-013: Event-driven promote workflows",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-013-event-driven-promote-workflows.md"
+    },
+    {
+      "id": "IP-014-automated-rollback-primitive",
+      "title": "IP-014: Automated rollback primitive",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-014-automated-rollback-primitive.md"
+    },
+    {
+      "id": "IP-015-canary-cohort-weighting",
+      "title": "IP-015: Canary cohort weighting",
+      "acceptance_status": "ga",
+      "file": "microservices/observability/IP-015-canary-cohort-weighting.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "alloy": "1.6.0",
+    "grafana": "12.0.0",
+    "loki": "3.5.0",
+    "mimir": "3.3.0",
+    "prometheus": "3.2.0",
+    "rust": "1.83",
+    "tempo": "3.0.0"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0110",
+      "title": "Changeset State Machine",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0110-changeset-state-machine.md"
+    },
+    {
+      "id": "ADR-0114",
+      "title": "Canary Observability Rollback",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0114-canary-observability-rollback.md"
+    },
+    {
+      "id": "ADR-0130",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0130-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Per Microservice Flat Layout",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-circuit-breaker-bulkhead-global",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-shuffle-sharding-global",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-four-golden-signals-global",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-slo-error-budget-global"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.observability.eligibility-query",
+      "oya.observability.openslo-validate",
+      "oya.observability.slo-evaluate"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  }
+}

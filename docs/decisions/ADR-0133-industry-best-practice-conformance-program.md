@@ -6,7 +6,7 @@ date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0124, ADR-0125, ADR-0127, ADR-0128, ADR-0129, ADR-0130, ADR-0131, ADR-0132, ADR-0135]
+related: [ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0135]
 related_specs: [/specs/industry-best-practice-conformance.json, /specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 session_context:
   authored: 2026-05-17
@@ -25,11 +25,11 @@ Accepted — 2026-05-17.
 
 User directive 2026-05-17: *"make sure all our pipeline, directories, naming, standards, practices, policies follow industry best practices, and hyperscaler grade. The only difference is that our dev team is fully agentic. optimization is key."*
 
-oyatie has already adopted several industry-leading baselines piecemeal (per ADR-0030 Argo Rollouts; ADR-0041 GitOps trunk-based; ADR-0117 cloud-native infrastructure; ADR-0123 hyperscaler-maturity-claim-gate; ADR-0124 canary observability rollback; ADR-0130 agentic SLO-gated promotion; ADR-0131 per-microservice flat layout; ADR-0132 no-suite forward-policy). What is missing is a **continuous, multi-axis audit program** that catches drift the moment an artifact deviates from industry baseline and that explicitly optimises for oyatie's fully-agentic developer (rather than the human-developer assumption embedded in most industry artifacts).
+oyatie has already adopted several industry-leading baselines piecemeal (per ADR-0030 Argo Rollouts; ADR-0041 GitOps trunk-based; ADR-0117 cloud-native infrastructure; ADR-0123 hyperscaler-maturity-claim-gate; ADR-0114 canary observability rollback; ADR-0130 agentic SLO-gated promotion; ADR-0131 per-microservice flat layout; ADR-0132 no-suite forward-policy). What is missing is a **continuous, multi-axis audit program** that catches drift the moment an artifact deviates from industry baseline and that explicitly optimises for oyatie's fully-agentic developer (rather than the human-developer assumption embedded in most industry artifacts).
 
 The audit must distinguish:
 - **Conformance**: artifact matches an industry-published baseline (SOC 2 + ISO 27001 + SLSA + Google SRE + AWS Well-Architected + Microsoft Azure Well-Architected Framework + CNCF cloud-native maturity + OWASP ASVS + Google styleguide + conventional-commits + OpenAPI + AsyncAPI + OpenSLO + OpenTelemetry + Stripe API design + Linear + Vercel deploy patterns + etc.).
-- **Optimisation**: artifact is shaped for fully-agentic consumption (machine-readable, structured-action, parallel-safe ChangeSet claim semantics, fail-closed defaults, smallest-actionable, audit-chain-sealed, idempotent, no-blanket-sed). This is oyatie-specific because most industry artifacts assume a human-on-keyboard dev team.
+- **Optimisation**: artifact is shaped for fully-agentic consumption (machine-readable, structured-action, parallel-safe ChangeSet claim semantics, fail-closed defaults, smallest-actionable, audit-chain-sealed, idempotent, no-blanket-sed). This is oyatie specific because most industry artifacts assume a human-on-keyboard dev team.
 
 Both dimensions are mandatory. An artifact that conforms to SOC 2 + ISO 27001 but blocks parallel agent execution is **not hyperscaler-grade for oyatie**.
 
@@ -148,7 +148,7 @@ Every Cedar fragment under `microservices/<ms>/policy/*.cedar` audited against:
 | Audit findings (machine-readable) | `/specs/industry-best-practice-conformance.json` | This ADR's session (foundation) + quarterly refresh |
 | ADR (this document) | `docs/decisions/ADR-0133-industry-best-practice-conformance-program.md` | one-time foundation + supersession via ADR-NNNN successor-IP |
 | Cross-cutting standard | `docs/standards/agentic-dev-team-optimization.md` | foundation + annual refresh |
-| BLOCKER CI lane | `microservices/governance/src/crates/oya-check-industry-best-practice-conformance/` (or co-located under existing governance crate per ADR-0125 governance bundle) | new on dev |
+| BLOCKER CI lane | `microservices/governance/src/crates/oya-check-industry-best-practice-conformance/` (or co-located under existing governance crate) | new on dev |
 | Per-axis remediation IPs | `microservices/governance/IP-M01-AUDIT-<axis>-<NNN>.md` (or per-µservice when scope is µservice-local) | as findings surface |
 | Per-µservice audit overlay | `microservices/<ms>/audit/industry-best-practice-conformance.md` | per-µservice (Slice-D-equivalent) |
 | Quarterly refresh report | `evidence/audits/industry-best-practice-conformance/<quarter>.json` | quarterly |

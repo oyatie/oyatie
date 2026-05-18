@@ -311,9 +311,9 @@ components:
       type: object
       required: [rule_id, file_line]
       properties:
-        rule_id: { type: string, description: rule-pack rule ID (e.g., 'data-class.r-001') }
-        file_line: { type: string, description: 'path:line' (e.g., 'crates/foo/src/lib.rs:42') }
-        industry_baseline: { type: string, description: 'e.g., SLSA Build L3 §source-provenance' }
+        rule_id: { type: string, description: "rule-pack rule ID (e.g., 'data-class.r-001')" }
+        file_line: { type: string, description: "'path:line' (e.g., 'crates/foo/src/lib.rs:42')" }
+        industry_baseline: { type: string, description: "e.g., SLSA Build L3 §source-provenance" }
         remediation_url: { type: string, format: uri }
         rule_pack_version: { type: string }
 

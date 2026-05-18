@@ -1,0 +1,302 @@
+{
+  "schema_version": "1.0",
+  "microservice": "forms",
+  "version": "0.1.0",
+  "owner": "axis-forms",
+  "bounded_contexts": [
+    {
+      "name": "unknown",
+      "description": "Bounded context 'unknown'",
+      "crates": [
+        "oya-forms-bulk-distribute-worker",
+        "oya-forms-captcha-adapter",
+        "oya-forms-conditional-logic-domain",
+        "oya-forms-crypto-domain",
+        "oya-forms-domain",
+        "oya-forms-export-worker",
+        "oya-forms-form-builder-leptos-wasm",
+        "oya-forms-form-renderer",
+        "oya-forms-meilisearch-adapter",
+        "oya-forms-postgres-adapter",
+        "oya-forms-redis-adapter",
+        "oya-forms-response-collector-rest",
+        "oya-forms-validation-domain",
+        "oya-forms-version-domain"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "domain",
+    "kernel",
+    "rest",
+    "usecase"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/forms/contracts/openapi/forms.openapi.yaml"
+    ],
+    "asyncapi": [
+      "microservices/forms/contracts/asyncapi/forms.asyncapi.yaml"
+    ],
+    "proto": [
+      "microservices/forms/contracts/proto/forms.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "t0-suggest",
+      "file": "microservices/forms/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "t1-assist",
+      "file": "microservices/forms/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "t2-auto",
+      "file": "microservices/forms/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-forms-accessibility-wcag-correctness",
+      "target": "1.0",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/accessibility-wcag-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-ai-form-build-latency",
+      "target": "95",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/ai-form-build-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-analytics-render-latency",
+      "target": "95",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/analytics-render-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-bulk-distribute-latency",
+      "target": "95",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/bulk-distribute-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-export-csv-latency",
+      "target": "95",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/export-csv-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-field-validate-latency",
+      "target": "99",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/field-validate-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-form-render-latency",
+      "target": "95",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/form-render-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-pii-encryption-correctness",
+      "target": "100",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/pii-encryption-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-forms-submission-latency",
+      "target": "95",
+      "sli": "see indicator block",
+      "file": "microservices/forms/slos/submission-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-layer-a-postgres-redis-meilisearch-clamav-waf-cdn-captcha-iac",
+      "title": "IP-001: Layer-A IaC \u2014 Postgres (Citus) + Redis + Meilisearch + ClamAV + WAF + CDN + Captcha sidecar",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-001-layer-a-postgres-redis-meilisearch-clamav-waf-cdn-captcha-iac.md"
+    },
+    {
+      "id": "IP-002-form-field-section-response-domain-kernel",
+      "title": "IP-002: Form / Field / Section / Response domain kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-002-form-field-section-response-domain-kernel.md"
+    },
+    {
+      "id": "IP-003-conditional-logic-engine-cel",
+      "title": "IP-003: Conditional-logic engine (CEL declarative DAG)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-003-conditional-logic-engine-cel.md"
+    },
+    {
+      "id": "IP-004-validation-engine",
+      "title": "IP-004: Validation engine (per-field + cross-field)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-004-validation-engine.md"
+    },
+    {
+      "id": "IP-005-versioning-and-changeset-binding",
+      "title": "IP-005: Versioning + ChangeSet binding",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-005-versioning-and-changeset-binding.md"
+    },
+    {
+      "id": "IP-006-postgres-citus-adapter-with-column-encryption",
+      "title": "IP-006: Postgres + Citus adapter with column-level envelope encryption",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-006-postgres-citus-adapter-with-column-encryption.md"
+    },
+    {
+      "id": "IP-007-redis-adapter",
+      "title": "IP-007: Redis adapter (rate-limit + session)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-007-redis-adapter.md"
+    },
+    {
+      "id": "IP-008-meilisearch-adapter",
+      "title": "IP-008: Meilisearch adapter (response search; PII-redacted)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-008-meilisearch-adapter.md"
+    },
+    {
+      "id": "IP-009-captcha-adapter",
+      "title": "IP-009: Captcha adapter (hCaptcha + Turnstile + Friendly Captcha; reCAPTCHA forbidden in eu/kr/us-hc)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-009-captcha-adapter.md"
+    },
+    {
+      "id": "IP-010-form-builder-leptos-wasm",
+      "title": "IP-010: Form-builder Leptos-WASM authoring UI",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-010-form-builder-leptos-wasm.md"
+    },
+    {
+      "id": "IP-011-form-renderer",
+      "title": "IP-011: Form renderer (Leptos-WASM + plain-HTML fallback)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-011-form-renderer.md"
+    },
+    {
+      "id": "IP-012-response-collector-rest",
+      "title": "IP-012: Response-collector REST surface",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-012-response-collector-rest.md"
+    },
+    {
+      "id": "IP-013-bulk-distribute-worker",
+      "title": "IP-013: Bulk-distribute worker (Kafka-backed)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-013-bulk-distribute-worker.md"
+    },
+    {
+      "id": "IP-014-export-worker",
+      "title": "IP-014: Export worker (CSV / XLSX / JSON / Sheets-bridge; streaming)",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-014-export-worker.md"
+    },
+    {
+      "id": "IP-015-hg-forms-registration",
+      "title": "IP-015: HG-FORMS hyperscaler-gate registration + GA cutover",
+      "acceptance_status": "ga",
+      "file": "microservices/forms/IP-015-hg-forms-registration.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "clamav": "1.0.0",
+    "meilisearch": "1.0.0",
+    "postgres": "1.0.0",
+    "redis": "1.0.0",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0130",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0130-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Per Microservice Flat Layout",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Industry Best Practice Conformance Program",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/forms/iac/helm/form-rest/templates/prometheusrule.yaml#forms-llm-capability-circuit-open",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/forms/iac/helm/form-rest/templates/prometheusrule.yaml#forms-tenant-rate-limit-429-surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/forms/iac/helm/form-rest/templates/prometheusrule.yaml#forms-saturation-cpu-over-70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-slo-error-budget-global"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.forms.t0-suggest",
+      "oya.forms.t1-assist",
+      "oya.forms.t2-auto"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  }
+}

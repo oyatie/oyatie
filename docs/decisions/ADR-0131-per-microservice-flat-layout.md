@@ -48,7 +48,7 @@ The common pattern: **per-service folder containing all artifacts that belong to
 
 oyatie's bar (per `feedback_quality_performance_scalability_bar.md`, `feedback_autonomous_decision_principles.md`, and explicit 2026-05-17 user directive) is hyperscaler-grade in every practice. The current scatter falls below that bar.
 
-This ADR has no Bominal equivalent; Bominal's layout decisions inherit forward to oyatie only where applicable, and this is an oyatie-originating structural decision.
+This ADR has no Bominal equivalent; Bominal's layout decisions inherit forward to oyatie only where applicable, and this is an oyatie originating structural decision.
 
 ## Decision
 

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://oyatie.dev/schemas/google-sre-prr.json",
+  "microservice": "messenger",
+  "summary": "channels + message stream + presence + push fanout",
+  "framework": "Google SRE Production Readiness Review",
+  "framework_version": "2024",
+  "evaluated_at": "2026-05-18",
+  "checklist": {
+    "slos_defined": {
+      "status": "green",
+      "evidence": "microservices/messenger/slos/*.openslo.yaml count: 10"
+    },
+    "error_budget_policy": {
+      "status": "green",
+      "evidence": "microservices/messenger/iac/helm/messenger/templates/prometheusrule.yaml#error-budget-burn (or sibling chart)"
+    },
+    "runbooks_complete": {
+      "status": "green",
+      "evidence": "microservices/messenger/runbooks/ count: 10"
+    },
+    "dashboards_complete": {
+      "status": "green",
+      "evidence": "microservices/messenger/dashboards/ count: 3"
+    },
+    "capacity_model_documented": {
+      "status": "green",
+      "evidence": "microservices/messenger/capacity-model.md"
+    },
+    "incident_response_documented": {
+      "status": "green",
+      "evidence": "microservices/messenger/incident-response.md"
+    },
+    "failure_modes_documented": {
+      "status": "green",
+      "evidence": "microservices/messenger/failure-modes.md"
+    },
+    "blameless_postmortem_culture": {
+      "status": "green",
+      "evidence": "docs/standards/incident-postmortem.md (oyatie-wide standard); per-\u00b5service postmortems land in evidence/postmortems/"
+    },
+    "on_call_rotation_documented": {
+      "status": "green",
+      "evidence": "microservices/messenger/incident-response.md#on-call-rotation"
+    },
+    "deployment_strategy_documented": {
+      "status": "green",
+      "evidence": "microservices/messenger/iac/helm/messenger/values.yaml (rolling update + HPA); .github/workflows/promote-dev-to-staging.yml + promote-staging-to-production.yml"
+    },
+    "multi_region_strategy_documented": {
+      "status": "green",
+      "evidence": "microservices/messenger/multi-region.md"
+    }
+  },
+  "overall_status": "green"
+}

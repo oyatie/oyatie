@@ -21,7 +21,7 @@ session_context:
     section at end of file for the full rebase note.
   parallel_session_caveat: |
     Authored in oyatie 2026-05-17 as the Connect-specific dissolution
-    decision body. The oyatie-side decision (this ADR) takes precedence
+    decision body. The oyatie side decision (this ADR) takes precedence
     per feedback_bominal_inheritance_precedence ("oyatie session decisions
     override Bominal").
 bominal_source: |

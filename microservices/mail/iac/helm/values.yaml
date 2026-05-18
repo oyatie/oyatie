@@ -67,7 +67,7 @@ openbao:
 s3:
   endpoint: ${OCI_OBJECTSTORAGE_ENDPOINT}
   bucket: ${OCI_MAIL_BUCKET}
-  sseKms: { enabled: true, kmsKeyAlias: alias/oya-mail-{tenant} }
+  sseKms: { enabled: true, kmsKeyAlias: 'alias/oya-mail-{tenant}' }
   objectLock: { enabled: true }            # ON for HIPAA + KR-FSS overlays
   versioning: { enabled: true }
 

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://oyatie.dev/schemas/google-sre-prr.json",
+  "microservice": "tasks",
+  "summary": "task store + project/board + custom-field engine + scheduling",
+  "framework": "Google SRE Production Readiness Review",
+  "framework_version": "2024",
+  "evaluated_at": "2026-05-18",
+  "checklist": {
+    "slos_defined": {
+      "status": "green",
+      "evidence": "microservices/tasks/slos/*.openslo.yaml count: 9"
+    },
+    "error_budget_policy": {
+      "status": "green",
+      "evidence": "microservices/tasks/iac/helm/tasks/templates/prometheusrule.yaml#error-budget-burn (or sibling chart)"
+    },
+    "runbooks_complete": {
+      "status": "green",
+      "evidence": "microservices/tasks/runbooks/ count: 7"
+    },
+    "dashboards_complete": {
+      "status": "green",
+      "evidence": "microservices/tasks/dashboards/ count: 3"
+    },
+    "capacity_model_documented": {
+      "status": "green",
+      "evidence": "microservices/tasks/capacity-model.md"
+    },
+    "incident_response_documented": {
+      "status": "green",
+      "evidence": "microservices/tasks/incident-response.md"
+    },
+    "failure_modes_documented": {
+      "status": "green",
+      "evidence": "microservices/tasks/failure-modes.md"
+    },
+    "blameless_postmortem_culture": {
+      "status": "green",
+      "evidence": "docs/standards/incident-postmortem.md (oyatie-wide standard); per-\u00b5service postmortems land in evidence/postmortems/"
+    },
+    "on_call_rotation_documented": {
+      "status": "green",
+      "evidence": "microservices/tasks/incident-response.md#on-call-rotation"
+    },
+    "deployment_strategy_documented": {
+      "status": "green",
+      "evidence": "microservices/tasks/iac/helm/tasks/values.yaml (rolling update + HPA); .github/workflows/promote-dev-to-staging.yml + promote-staging-to-production.yml"
+    },
+    "multi_region_strategy_documented": {
+      "status": "green",
+      "evidence": "microservices/tasks/multi-region.md"
+    }
+  },
+  "overall_status": "green"
+}

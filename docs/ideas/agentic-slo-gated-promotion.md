@@ -44,7 +44,7 @@ exactly this stack internally).
 8. **Grafana OnCall** (Apache-2.0) — incident-paging integration.
    Replaces any PagerDuty/Opsgenie dependency.
 
-### Layer B — oyatie-owned differentiator (where engineering goes)
+### Layer B — oyatie owned differentiator (where engineering goes)
 
 The IP that makes the gate agentic + Foundry-native. Nothing here is
 deferred; everything ships as one unit.
@@ -123,9 +123,9 @@ deferred; everything ships as one unit.
       component before this ships — validated by: catalog deployment
       surfaces; confirm each has traffic-split capability.
 
-## MVP Scope
+## Minimum-shippable scope
 
-There is no MVP. The design ships as one unit. The minimum implementable
+There is no smallest-actionable subset. The design ships as one unit. The minimum implementable
 slice is the full 20-piece substrate above, delivered as one master-plan
 phase. The work decomposes into IPs but does not ship partially: a partial
 gate is a permissive gate.

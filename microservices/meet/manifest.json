@@ -1,0 +1,325 @@
+{
+  "schema_version": "1.0",
+  "microservice": "meet",
+  "version": "0.1.0",
+  "owner": "axis-meet",
+  "bounded_contexts": [
+    {
+      "name": "meet",
+      "description": "Bounded context 'meet' within meet (data plane)",
+      "crates": [
+        "oya-meet-audio-kernel",
+        "oya-meet-e2e-encryption-kernel",
+        "oya-meet-live-stream-egress-adapter-srs-rtmp",
+        "oya-meet-meeting-instance-adapter-coturn",
+        "oya-meet-meeting-instance-adapter-livekit",
+        "oya-meet-meeting-room-adapter-postgres",
+        "oya-meet-meeting-room-domain",
+        "oya-meet-meeting-room-kernel",
+        "oya-meet-meeting-room-rest",
+        "oya-meet-meeting-room-usecase",
+        "oya-meet-participant-adapter-redis",
+        "oya-meet-participant-domain",
+        "oya-meet-participant-kernel",
+        "oya-meet-participant-rest",
+        "oya-meet-participant-usecase",
+        "oya-meet-recording-bridge-adapter-ffmpeg",
+        "oya-meet-recording-bridge-adapter-s3",
+        "oya-meet-recording-bridge-kernel",
+        "oya-meet-screen-share-kernel",
+        "oya-meet-transcription-adapter-whisper",
+        "oya-meet-transcription-kernel",
+        "oya-meet-video-kernel",
+        "oya-meet-webinar-mode-kernel"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "domain",
+    "kernel",
+    "rest",
+    "usecase"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/meet/contracts/openapi/meet.yaml"
+    ],
+    "asyncapi": [
+      "microservices/meet/contracts/asyncapi/meet-events.yaml"
+    ],
+    "proto": [
+      "microservices/meet/contracts/proto/meet.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "meeting-topic-and-participant-hint",
+      "file": "microservices/meet/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "live-captions-transcription-summary",
+      "file": "microservices/meet/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "auto-mute-noise-detect-and-auto-translate",
+      "file": "microservices/meet/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "meet-availability",
+      "target": "0.9995",
+      "sli": "sum(rate(oya_meet_room_create_total{result=\"success\"}[5m]))",
+      "file": "microservices/meet/slos/availability.openslo.yaml"
+    },
+    {
+      "name": "meet-e2e-mls-handshake-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_meet_mls_handshake_seconds_bucket{le=\"1.0\",group_size_bucket=\"le12\"}[5m]))",
+      "file": "microservices/meet/slos/e2e-mls-handshake-latency.openslo.yaml"
+    },
+    {
+      "name": "meet-live-caption-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_meet_live_caption_lag_seconds_bucket{le=\"0.5\"}[5m]))",
+      "file": "microservices/meet/slos/live-caption-latency.openslo.yaml"
+    },
+    {
+      "name": "meet-media-glass-to-glass-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_meet_media_glass_to_glass_seconds_bucket{le=\"0.15\",region_pair=\"intra\"}[5m]))",
+      "file": "microservices/meet/slos/media-glass-to-glass-latency.openslo.yaml"
+    },
+    {
+      "name": "meet-meeting-summary-post-end-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_meet_summary_produce_seconds_bucket{le=\"60\",meeting_duration_bucket=\"60min\"}[1h]))",
+      "file": "microservices/meet/slos/meeting-summary-post-end-latency.openslo.yaml"
+    },
+    {
+      "name": "meet-participant-join-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_meet_participant_join_seconds_bucket{le=\"1.5\"}[5m]))",
+      "file": "microservices/meet/slos/participant-join-latency.openslo.yaml"
+    },
+    {
+      "name": "meet-recording-start-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_meet_recording_start_seconds_bucket{le=\"0.8\"}[5m]))",
+      "file": "microservices/meet/slos/recording-start-latency.openslo.yaml"
+    },
+    {
+      "name": "meet-room-create-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_meet_room_create_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/meet/slos/room-create-latency.openslo.yaml"
+    },
+    {
+      "name": "meet-screen-share-start-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_meet_screen_share_start_seconds_bucket{le=\"0.8\"}[5m]))",
+      "file": "microservices/meet/slos/screen-share-start-latency.openslo.yaml"
+    },
+    {
+      "name": "meet-transcription-correctness-bound",
+      "target": "0.95",
+      "sli": "sum(rate(oya_meet_transcription_quality_good_total[1h]))",
+      "file": "microservices/meet/slos/transcription-correctness-bound.openslo.yaml"
+    },
+    {
+      "name": "meet-webinar-fanout-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_meet_webinar_fanout_seconds_bucket{le=\"5\",broadcast_tier=\"Broadcast\"}[5m]))",
+      "file": "microservices/meet/slos/webinar-fanout-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-iac-bootstrap",
+      "title": "IP-001: IaC bootstrap (Helm + Kustomize + Terraform)",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-001-iac-bootstrap.md"
+    },
+    {
+      "id": "IP-002-cargo-workspace-bootstrap",
+      "title": "IP-002: Cargo workspace bootstrap (per-\u00b5service flat layout)",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-002-cargo-workspace-bootstrap.md"
+    },
+    {
+      "id": "IP-003-meeting-room-kernel-domain",
+      "title": "IP-003: meeting-room kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-003-meeting-room-kernel-domain.md"
+    },
+    {
+      "id": "IP-004-meeting-room-adapter-postgres",
+      "title": "IP-004: meeting-room Postgres adapter (RLS + tenant partitioning)",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-004-meeting-room-adapter-postgres.md"
+    },
+    {
+      "id": "IP-005-meeting-instance-and-livekit",
+      "title": "IP-005: meeting-instance kernel/usecase + LiveKit SFU adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-005-meeting-instance-and-livekit.md"
+    },
+    {
+      "id": "IP-006-participant-and-lobby",
+      "title": "IP-006: participant BC + lobby/waiting-room with Cedar gate",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-006-participant-and-lobby.md"
+    },
+    {
+      "id": "IP-007-screen-share-and-tracks",
+      "title": "IP-007: audio + video + screen-share track lifecycle",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-007-screen-share-and-tracks.md"
+    },
+    {
+      "id": "IP-008-recording-pipeline",
+      "title": "IP-008: recording pipeline (LiveKit egress \u2192 ffmpeg gVisor \u2192 S3)",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-008-recording-pipeline.md"
+    },
+    {
+      "id": "IP-009-transcription-pipeline",
+      "title": "IP-009: transcription pipeline (Whisper streaming + batch + Meilisearch)",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-009-transcription-pipeline.md"
+    },
+    {
+      "id": "IP-010-webinar-and-breakouts",
+      "title": "IP-010: webinar mode (registration + practice + Q&A) + breakout rooms",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-010-webinar-and-breakouts.md"
+    },
+    {
+      "id": "IP-011-live-stream-egress",
+      "title": "IP-011: live-stream egress (RTMP to YouTube/Twitch/Vimeo + WHIP fallback)",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-011-live-stream-egress.md"
+    },
+    {
+      "id": "IP-012-e2e-encryption-mls",
+      "title": "IP-012: opt-in E2E encryption (MLS RFC 9420 + W3C Insertable Streams)",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-012-e2e-encryption-mls.md"
+    },
+    {
+      "id": "IP-013-contracts-openapi-asyncapi-proto",
+      "title": "IP-013: public contracts (OpenAPI 3.2 + AsyncAPI 3.1 + Protobuf v3)",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-013-contracts-openapi-asyncapi-proto.md"
+    },
+    {
+      "id": "IP-014-cedar-policies-and-data-residency",
+      "title": "IP-014: Cedar policies + data residency",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-014-cedar-policies-and-data-residency.md"
+    },
+    {
+      "id": "IP-015-hg-meet-registration-and-branch-protection",
+      "title": "IP-015: HG-MEET registration + branch protection wiring",
+      "acceptance_status": "ga",
+      "file": "microservices/meet/IP-015-hg-meet-registration-and-branch-protection.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0008",
+      "title": "Data Use Boundary",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0008-data-use-boundary.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0130",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0130-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Per Microservice Flat Layout",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Industry Best Practice Conformance Program",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+    },
+    {
+      "id": "ADR-0135",
+      "title": "Connect Super App Expansion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/meet/iac/helm/meet/templates/prometheusrule.yaml#meet-llm-capability-circuit-open",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/meet/iac/helm/meet/templates/prometheusrule.yaml#meet-tenant-rate-limit-429-surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/meet/iac/helm/meet/templates/prometheusrule.yaml#meet-saturation-cpu-over-70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/meet/iac/helm/meet/templates/prometheusrule.yaml#meet-error-budget-fast-burn-1h-14x-aggregate"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.meet.auto-mute-noise-detect-and-auto-translate",
+      "oya.meet.live-captions-transcription-summary",
+      "oya.meet.meeting-topic-and-participant-hint"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  }
+}

@@ -1,0 +1,313 @@
+{
+  "schema_version": "1.0",
+  "microservice": "ontology",
+  "version": "0.1.0",
+  "owner": "axis-ontology",
+  "bounded_contexts": [
+    {
+      "name": "unknown",
+      "description": "Bounded context 'unknown'",
+      "crates": [
+        "oya-ontology-action-engine-usecase",
+        "oya-ontology-agent-gateway-rest",
+        "oya-ontology-app",
+        "oya-ontology-audit-chain-worker",
+        "oya-ontology-cedar-fragment-coverage-adapter",
+        "oya-ontology-entity-store-adapter-clickhouse",
+        "oya-ontology-entity-store-adapter-postgres",
+        "oya-ontology-entity-store-kernel",
+        "oya-ontology-function-engine-rest",
+        "oya-ontology-object-type-registry-domain",
+        "oya-ontology-object-type-registry-kernel",
+        "oya-ontology-object-type-registry-usecase",
+        "oya-ontology-pillar-domain",
+        "oya-ontology-query-engine-adapter-clickhouse",
+        "oya-ontology-sdk"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "domain",
+    "kernel",
+    "rest",
+    "usecase"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/ontology/contracts/openapi/ontology.yaml"
+    ],
+    "asyncapi": [
+      "microservices/ontology/contracts/asyncapi/ontology-events.yaml"
+    ],
+    "proto": [
+      "microservices/ontology/contracts/proto/ontology.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T1",
+      "name": "cedar-evaluate",
+      "file": "microservices/ontology/capabilities/cedar-evaluate.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "query-execute",
+      "file": "microservices/ontology/capabilities/query-execute.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T1",
+      "name": "type-register",
+      "file": "microservices/ontology/capabilities/type-register.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    }
+  ],
+  "slos": [
+    {
+      "name": "ontology-action-invocation-availability",
+      "target": "0.9995",
+      "sli": "sum(rate(oya_ontology_action_invocations_total{outcome=~\"success|denied\"}[1m]))",
+      "file": "microservices/ontology/slos/action-invocation-availability.openslo.yaml"
+    },
+    {
+      "name": "ontology-audit-chain-emission-completeness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_ontology_audit_chain_seal_total[1m]))",
+      "file": "microservices/ontology/slos/audit-chain-emission-completeness.openslo.yaml"
+    },
+    {
+      "name": "ontology-dynamic-layer-freshness",
+      "target": "0.99",
+      "sli": "sum(rate(oya_ontology_dynamic_layer_freshness_lag_seconds_bucket{le=\"2\"}[1m]))",
+      "file": "microservices/ontology/slos/dynamic-layer-freshness.openslo.yaml"
+    },
+    {
+      "name": "ontology-function-read-availability",
+      "target": "0.9999",
+      "sli": "sum(rate(oya_ontology_function_evaluations_total{outcome=\"success\"}[1m]))",
+      "file": "microservices/ontology/slos/function-read-availability.openslo.yaml"
+    },
+    {
+      "name": "ontology-function-read-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_ontology_function_evaluation_duration_seconds_bucket{le=\"0.050\"}[1m]))",
+      "file": "microservices/ontology/slos/function-read-latency.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-ontology-iac-stack",
+      "title": "IP-001: Ontology IaC stack",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-001-ontology-iac-stack.md"
+    },
+    {
+      "id": "IP-002-object-type-registry-kernel-domain",
+      "title": "IP-002: object-type-registry kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-002-object-type-registry-kernel-domain.md"
+    },
+    {
+      "id": "IP-003-link-action-function-type-registry",
+      "title": "IP-003: link-type-registry + action-type-registry + function-type-registry",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-003-link-action-function-type-registry.md"
+    },
+    {
+      "id": "IP-004-entity-store-rls-citus",
+      "title": "IP-004: entity-store (Postgres + Citus + RLS)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-004-entity-store-rls-citus.md"
+    },
+    {
+      "id": "IP-005-link-store-traversal",
+      "title": "IP-005: link-store (typed Link Type persistence + traversal)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-005-link-store-traversal.md"
+    },
+    {
+      "id": "IP-006-cedar-fragment-coverage-engine",
+      "title": "IP-006: cedar-fragment-coverage",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-006-cedar-fragment-coverage-engine.md"
+    },
+    {
+      "id": "IP-007-action-engine-cedar-gated",
+      "title": "IP-007: action-engine",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-007-action-engine-cedar-gated.md"
+    },
+    {
+      "id": "IP-008-function-engine-oltp-and-olap",
+      "title": "IP-008: function-engine (OLTP)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-008-function-engine-oltp-and-olap.md"
+    },
+    {
+      "id": "IP-009-clickhouse-history-mirror",
+      "title": "IP-009: ClickHouse history-mirror",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-009-clickhouse-history-mirror.md"
+    },
+    {
+      "id": "IP-010-audit-chain-merkle-ed25519",
+      "title": "IP-010: audit-chain (Merkle + Ed25519)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-010-audit-chain-merkle-ed25519.md"
+    },
+    {
+      "id": "IP-011-query-engine-3layer-kg",
+      "title": "IP-011: query-engine (3-layer Knowledge Graph)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-011-query-engine-3layer-kg.md"
+    },
+    {
+      "id": "IP-012-agent-gateway-llm-tool-call",
+      "title": "IP-012: agent-gateway",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-012-agent-gateway-llm-tool-call.md"
+    },
+    {
+      "id": "IP-013-pillar-cross-pillar-grant",
+      "title": "IP-013: pillar (org / person + cross-pillar grant)",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-013-pillar-cross-pillar-grant.md"
+    },
+    {
+      "id": "IP-014-rest-and-sdk-surfaces",
+      "title": "IP-014: REST + SDK surfaces",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-014-rest-and-sdk-surfaces.md"
+    },
+    {
+      "id": "IP-015-app-binaries-and-branch-protection",
+      "title": "IP-015: App binaries + branch-protection + HG-ONT + OpenSLO",
+      "acceptance_status": "ga",
+      "file": "microservices/ontology/IP-015-app-binaries-and-branch-protection.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "clickhouse": "24.10",
+    "postgres": "16.6",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0006",
+      "title": "Ontology Typed Entity Layer",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0006-ontology-typed-entity-layer.md"
+    },
+    {
+      "id": "ADR-0028",
+      "title": "Cloud Microservice Architecture",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0028-cloud-microservice-architecture.md"
+    },
+    {
+      "id": "ADR-0055",
+      "title": "Object Graph Renamed To Ontology",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0055-object-graph-renamed-to-ontology.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0059",
+      "title": "Workflow Ontology Ecosystem Adapter Layer",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0059-workflow-ontology-ecosystem-adapter-layer.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0107",
+      "title": "Tools Implicit App Convention",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0107-tools-implicit-app-convention.md"
+    },
+    {
+      "id": "ADR-0110",
+      "title": "Changeset State Machine",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0110-changeset-state-machine.md"
+    },
+    {
+      "id": "ADR-0114",
+      "title": "Canary Observability Rollback",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0114-canary-observability-rollback.md"
+    },
+    {
+      "id": "ADR-0122",
+      "title": "Ontology Crate Rename From Object Graph",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0122-ontology-crate-rename-from-object-graph.md"
+    },
+    {
+      "id": "ADR-0123",
+      "title": "Hyperscaler Maturity Claim Gate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+    },
+    {
+      "id": "ADR-0130",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0130-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Per Microservice Flat Layout",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-circuit-breaker-bulkhead-global",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-shuffle-sharding-global",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-four-golden-signals-global",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-slo-error-budget-global"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.ontology.cedar-evaluate",
+      "oya.ontology.query-execute",
+      "oya.ontology.type-register"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  }
+}

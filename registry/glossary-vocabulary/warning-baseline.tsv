@@ -1,4 +1,5 @@
 # Oyatie glossary vocabulary warning baseline. Format: <kind>\t<token>
+casing-variant	Oya
 casing-variant	oyatie
 uncited-acronym	AA
 uncited-acronym	AAA
@@ -33,6 +34,7 @@ uncited-acronym	AMLD
 uncited-acronym	AMQP
 uncited-acronym	ANN
 uncited-acronym	ANNOTATE
+uncited-acronym	ANPD
 uncited-acronym	ANS
 uncited-acronym	ANVISA
 uncited-acronym	ANY
@@ -142,6 +144,7 @@ uncited-acronym	CMS
 uncited-acronym	CNBV
 uncited-acronym	CNCF
 uncited-acronym	CNI
+uncited-acronym	CNIL
 uncited-acronym	CNPJ
 uncited-acronym	CNS
 uncited-acronym	CO
@@ -169,6 +172,7 @@ uncited-acronym	CRI
 uncited-acronym	CRITICAL
 uncited-acronym	CRLF
 uncited-acronym	CRM
+uncited-acronym	CRON
 uncited-acronym	CROSS
 uncited-acronym	CRUD
 uncited-acronym	CRYPTREC
@@ -227,6 +231,7 @@ uncited-acronym	DONE
 uncited-acronym	DORA
 uncited-acronym	DPA
 uncited-acronym	DPDP
+uncited-acronym	DPDPA
 uncited-acronym	DPF
 uncited-acronym	DPO
 uncited-acronym	DPU
@@ -331,6 +336,7 @@ uncited-acronym	FMCSA
 uncited-acronym	FOR
 uncited-acronym	FORBIDDEN
 uncited-acronym	FORMAT
+uncited-acronym	FOUNDATION
 uncited-acronym	FPE
 uncited-acronym	FPGA
 uncited-acronym	FPS
@@ -417,6 +423,7 @@ uncited-acronym	IAB
 uncited-acronym	IAS
 uncited-acronym	IC
 uncited-acronym	ICM
+uncited-acronym	ICO
 uncited-acronym	ICP
 uncited-acronym	ICT
 uncited-acronym	ICU
@@ -425,6 +432,7 @@ uncited-acronym	IDE
 uncited-acronym	IDENTIFIER
 uncited-acronym	IDENTIFYING
 uncited-acronym	IDFA
+uncited-acronym	IDL
 uncited-acronym	IE
 uncited-acronym	IEC
 uncited-acronym	IEEE
@@ -452,6 +460,7 @@ uncited-acronym	IPS
 uncited-acronym	IPU
 uncited-acronym	IR
 uncited-acronym	IRAP
+uncited-acronym	IRM
 uncited-acronym	IRS
 uncited-acronym	IS
 uncited-acronym	ISACA
@@ -559,7 +568,9 @@ uncited-acronym	MIRI
 uncited-acronym	MISSING
 uncited-acronym	MISTAKES
 uncited-acronym	MITRE
+uncited-acronym	MLS
 uncited-acronym	MM
+uncited-acronym	MMM
 uncited-acronym	MMR
 uncited-acronym	MMZ
 uncited-acronym	MODERATE
@@ -599,6 +610,7 @@ uncited-acronym	NET
 uncited-acronym	NETS
 uncited-acronym	NEW
 uncited-acronym	NFC
+uncited-acronym	NFR
 uncited-acronym	NFS
 uncited-acronym	NG
 uncited-acronym	NGINX
@@ -689,6 +701,7 @@ uncited-acronym	PERSONALIZATION
 uncited-acronym	PERT
 uncited-acronym	PG
 uncited-acronym	PH
+uncited-acronym	PHASE
 uncited-acronym	PIMS
 uncited-acronym	PIN
 uncited-acronym	PIPC
@@ -873,7 +886,9 @@ uncited-acronym	SIGTERM
 uncited-acronym	SIP
 uncited-acronym	SIPC
 uncited-acronym	SIS
+uncited-acronym	SIX
 uncited-acronym	SK
+uncited-acronym	SKILL
 uncited-acronym	SKT
 uncited-acronym	SKU
 uncited-acronym	SLSA
@@ -900,6 +915,7 @@ uncited-acronym	SPLIT
 uncited-acronym	SPOF
 uncited-acronym	SQ
 uncited-acronym	SSD
+uncited-acronym	SSDF
 uncited-acronym	SSE
 uncited-acronym	SSH
 uncited-acronym	SSR
@@ -957,6 +973,7 @@ uncited-acronym	TRACKED
 uncited-acronym	TRADE
 uncited-acronym	TRANSITIVE
 uncited-acronym	TSC
+uncited-acronym	TSDB
 uncited-acronym	TSL
 uncited-acronym	TSP
 uncited-acronym	TSV

@@ -1,0 +1,295 @@
+{
+  "schema_version": "1.0",
+  "microservice": "workflow-studio",
+  "version": "0.1.0",
+  "owner": "axis-workflow-studio",
+  "bounded_contexts": [
+    {
+      "name": "workflow-studio",
+      "description": "Bounded context 'workflow-studio' within workflow-studio (data plane)",
+      "crates": [
+        "oya-workflow-studio-collab-crdt-adapter-redis",
+        "oya-workflow-studio-collab-crdt-domain",
+        "oya-workflow-studio-collab-crdt-worker",
+        "oya-workflow-studio-dsl-emitter-domain",
+        "oya-workflow-studio-dsl-loader-domain",
+        "oya-workflow-studio-jurisdiction-overlay-renderer-domain",
+        "oya-workflow-studio-license-gate-cedar-adapter-postgres",
+        "oya-workflow-studio-license-gate-cedar-domain",
+        "oya-workflow-studio-node-library-registry-adapter-cdn",
+        "oya-workflow-studio-node-library-registry-domain",
+        "oya-workflow-studio-replay-debugger-frontend-domain",
+        "oya-workflow-studio-visual-canvas-adapter-leptos-wasm",
+        "oya-workflow-studio-visual-canvas-domain",
+        "oya-workflow-studio-visual-canvas-kernel",
+        "oya-workflow-studio-visual-canvas-rest"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "domain",
+    "kernel",
+    "rest",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [],
+    "asyncapi": [],
+    "proto": []
+  },
+  "capabilities": [
+    {
+      "tier": "T0",
+      "name": "t0-suggest",
+      "file": "microservices/workflow-studio/capabilities/T0-suggest.yaml",
+      "eu_ai_act_risk_class": "none"
+    },
+    {
+      "tier": "T1",
+      "name": "t1-assist",
+      "file": "microservices/workflow-studio/capabilities/T1-assist.yaml",
+      "eu_ai_act_risk_class": "minimal"
+    },
+    {
+      "tier": "T2",
+      "name": "t2-auto",
+      "file": "microservices/workflow-studio/capabilities/T2-auto.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [
+    {
+      "name": "oya-workflow-studio-collab-crdt-merge-latency",
+      "target": "99",
+      "sli": "see indicator block",
+      "file": "microservices/workflow-studio/slos/collab-crdt-merge-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-studio-collab-crdt-no-silent-loss",
+      "target": "1.0 (1)",
+      "sli": "see indicator block",
+      "file": "microservices/workflow-studio/slos/collab-crdt-no-silent-loss.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-studio-editor-rest-availability",
+      "target": "0.9995 (14.4)",
+      "sli": "see indicator block",
+      "file": "microservices/workflow-studio/slos/editor-rest-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-studio-editor-rest-latency",
+      "target": "99",
+      "sli": "see indicator block",
+      "file": "microservices/workflow-studio/slos/editor-rest-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-studio-editor-tti-cdn-availability",
+      "target": "0.99",
+      "sli": "see indicator block",
+      "file": "microservices/workflow-studio/slos/editor-tti-cdn-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-workflow-studio-license-gate-cedar-availability",
+      "target": "0.9999",
+      "sli": "see indicator block",
+      "file": "microservices/workflow-studio/slos/license-gate-cedar-availability.openslo.yaml"
+    }
+  ],
+  "ips": [
+    {
+      "id": "IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac",
+      "title": "IP-001: Layer-A IaC \u2014 CDN + WAF + Postgres (Citus) + Redis + WebSocket gateway",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md"
+    },
+    {
+      "id": "IP-002-visual-canvas-kernel-domain",
+      "title": "IP-002: visual-canvas \u2014 kernel + domain crates",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-002-visual-canvas-kernel-domain.md"
+    },
+    {
+      "id": "IP-003-dsl-emitter-loader-kernel-domain",
+      "title": "IP-003: dsl-emitter + dsl-loader \u2014 kernel + domain",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-003-dsl-emitter-loader-kernel-domain.md"
+    },
+    {
+      "id": "IP-004-dsl-emitter-loader-usecase-api-adapter-sdk",
+      "title": "IP-004: dsl-emitter + dsl-loader \u2014 usecase + api + adapter + sdk",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md"
+    },
+    {
+      "id": "IP-005-collab-crdt-kernel-domain-adapter",
+      "title": "IP-005: collab-crdt \u2014 kernel + domain + usecase + api + adapter + adapter-redis",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-005-collab-crdt-kernel-domain-adapter.md"
+    },
+    {
+      "id": "IP-006-collab-crdt-worker-sdk",
+      "title": "IP-006: collab-crdt \u2014 worker + sdk (WebSocket gateway long-lived process + tenant SDK)",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-006-collab-crdt-worker-sdk.md"
+    },
+    {
+      "id": "IP-007-node-library-registry-full",
+      "title": "IP-007: node-library-registry \u2014 kernel through app",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-007-node-library-registry-full.md"
+    },
+    {
+      "id": "IP-008-llm-assist-adapter",
+      "title": "IP-008: LLM-assist bridge adapter",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-008-llm-assist-adapter.md"
+    },
+    {
+      "id": "IP-009-license-gate-cedar-full",
+      "title": "IP-009: license-gate-cedar \u2014 full BC (7 layers)",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-009-license-gate-cedar-full.md"
+    },
+    {
+      "id": "IP-010-jurisdiction-overlay-renderer-full",
+      "title": "IP-010: jurisdiction-overlay-renderer \u2014 full BC (5 layers)",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-010-jurisdiction-overlay-renderer-full.md"
+    },
+    {
+      "id": "IP-011-replay-debugger-frontend-full",
+      "title": "IP-011: replay-debugger-frontend \u2014 full BC (6 layers)",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-011-replay-debugger-frontend-full.md"
+    },
+    {
+      "id": "IP-012-visual-canvas-leptos-wasm-rest-sdk-app",
+      "title": "IP-012: visual-canvas \u2014 usecase + api + adapter + adapter-leptos-wasm + rest + sdk + app",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-012-visual-canvas-leptos-wasm-rest-sdk-app.md"
+    },
+    {
+      "id": "IP-013-observability-slo-manifests",
+      "title": "IP-013: workflow-studio OpenSLO manifests",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-013-observability-slo-manifests.md"
+    },
+    {
+      "id": "IP-014-branch-protection-and-hyperscaler-gates",
+      "title": "IP-014: branch-protection.yaml + hyperscaler-gates.json updates",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-014-branch-protection-and-hyperscaler-gates.md"
+    },
+    {
+      "id": "IP-015-hg-workflow-studio-registration-final",
+      "title": "IP-015: HG-WORKFLOW-STUDIO final registration + competitor-parity evidence pinning + Studio launch verification",
+      "acceptance_status": "ga",
+      "file": "microservices/workflow-studio/IP-015-hg-workflow-studio-registration-final.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "postgres": "16.4",
+    "redis": "7.2",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0065",
+      "title": "Docs As Leptos Webapp With Machine Readable Coemit",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md"
+    },
+    {
+      "id": "ADR-0103",
+      "title": "Grit Cutover Inventory",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0103-grit-cutover-inventory.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0110",
+      "title": "Changeset State Machine",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0110-changeset-state-machine.md"
+    },
+    {
+      "id": "ADR-0123",
+      "title": "Hyperscaler Maturity Claim Gate",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
+    },
+    {
+      "id": "ADR-0130",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0130-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Per Microservice Flat Layout",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Industry Best Practice Conformance Program",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/workflow-studio/iac/helm/visual-canvas-rest/templates/prometheusrule.yaml#workflow-studio-llm-capability-circuit-open",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/workflow-studio/iac/helm/visual-canvas-rest/templates/prometheusrule.yaml#workflow-studio-tenant-rate-limit-429-surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/workflow-studio/iac/helm/visual-canvas-rest/templates/prometheusrule.yaml#workflow-studio-saturation-cpu-over-70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/workflow-studio/iac/helm/visual-canvas-rest/templates/prometheusrule.yaml#workflow-studio-error-budget-fast-burn-1h-14x-aggregate"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.workflow-studio.t0-suggest",
+      "oya.workflow-studio.t1-assist",
+      "oya.workflow-studio.t2-auto"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  }
+}

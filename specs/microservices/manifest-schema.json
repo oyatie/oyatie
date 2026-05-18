@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oyatie.dev/schemas/microservice-manifest.json",
+  "title": "Oyatie microservice manifest",
+  "description": "Machine-readable per-microservice manifest. Authoritative consolidation of PRD bounded-context list, catalog crates, contract files, capability catalog (with EU AI Act risk class), OpenSLO targets, in-flight Implementation Plans (GA acceptance only), regulatory packs, LTS pins, ADRs (repo + microservice scope), hyperscaler invariant alert coverage, audit-chain seal events, and OpenBao secrets substrate. Authored per ADR-0131 per-microservice flat layout + Sweep-F machine-readable artifact directive.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "microservice",
+    "version",
+    "owner",
+    "bounded_contexts",
+    "layers",
+    "contracts",
+    "capabilities",
+    "slos",
+    "ips",
+    "regulatory_packs",
+    "lts_pins",
+    "adrs",
+    "hyperscaler_inv_coverage",
+    "audit_chain",
+    "secrets_substrate"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "microservice": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-z0-9.-]+)?$"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "bounded_contexts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "description", "crates"],
+        "properties": {
+          "name": {"type": "string"},
+          "description": {"type": "string"},
+          "crates": {
+            "type": "array",
+            "items": {"type": "string", "pattern": "^oya-[a-z][a-z0-9-]*$"}
+          }
+        }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "enum": [
+          "kernel",
+          "domain",
+          "application",
+          "app",
+          "adapter",
+          "infrastructure",
+          "cli",
+          "rest",
+          "grpc",
+          "graphql",
+          "worker",
+          "sdk",
+          "usecase",
+          "api"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "contracts": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "openapi": {"type": "array", "items": {"type": "string"}},
+        "asyncapi": {"type": "array", "items": {"type": "string"}},
+        "proto": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["tier", "name", "eu_ai_act_risk_class"],
+        "properties": {
+          "tier": {"enum": ["T0", "T1", "T2", "T3"]},
+          "name": {"type": "string"},
+          "file": {"type": "string"},
+          "eu_ai_act_risk_class": {
+            "enum": ["none", "minimal", "limited", "high", "unacceptable"]
+          },
+          "annex_iii_section": {"type": "string"}
+        }
+      }
+    },
+    "slos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "target", "sli"],
+        "properties": {
+          "name": {"type": "string"},
+          "target": {"type": "string"},
+          "sli": {"type": "string"},
+          "file": {"type": "string"}
+        }
+      }
+    },
+    "ips": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "acceptance_status"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^IP-[0-9]{3}"},
+          "title": {"type": "string"},
+          "acceptance_status": {"enum": ["ga"]},
+          "changeset_id": {"type": "string"},
+          "depends_on_changesets": {"type": "array", "items": {"type": "string"}},
+          "parallel_safe_with_changesets": {"type": "array", "items": {"type": "string"}},
+          "enables": {"type": "array", "items": {"type": "string"}},
+          "file": {"type": "string"}
+        }
+      }
+    },
+    "regulatory_packs": {
+      "type": "array",
+      "items": {
+        "enum": ["kr", "eu", "us", "us-healthcare", "jp", "sg", "au", "in", "br", "ae", "ksa"]
+      },
+      "uniqueItems": true
+    },
+    "lts_pins": {
+      "type": "object",
+      "additionalProperties": {"type": "string"}
+    },
+    "adrs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^ADR-[0-9]{4}$"},
+          "title": {"type": "string"},
+          "scope": {"enum": ["repo", "microservice"]},
+          "file": {"type": "string"}
+        }
+      }
+    },
+    "hyperscaler_inv_coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "circuit_breaker",
+        "tenant_rate_limit",
+        "golden_signals",
+        "error_budget_burn"
+      ],
+      "properties": {
+        "circuit_breaker": {"type": "string"},
+        "tenant_rate_limit": {"type": "string"},
+        "golden_signals": {"type": "string"},
+        "error_budget_burn": {"type": "string"}
+      }
+    },
+    "audit_chain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "seal_events"],
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "seal_events": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "secrets_substrate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "format"],
+      "properties": {
+        "provider": {"type": "string", "const": "openbao"},
+        "format": {"type": "string", "const": "${openbao:secret/<path>}"}
+      }
+    }
+  }
+}

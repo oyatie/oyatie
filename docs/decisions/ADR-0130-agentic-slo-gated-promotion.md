@@ -11,7 +11,7 @@ related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/hyperscaler-gate
 bominal_source: |
   Verification result (2026-05-17 audit): no Bominal ADR governs agentic SLO-gated promotion.
   Bominal carries observability-substrate ADRs (e.g., ADR-0009 cell observability; ADR-0019 runtime catalog)
-  but neither addresses gate-integrated SLO authority. This ADR is oyatie-originating.
+  but neither addresses gate-integrated SLO authority. This ADR is oyatie originating.
 competitor_parity_reference: |
   microservices/observability/competitor-parity-matrix.md §"Gate integration (the differentiator)" —
   no competitor (Grafana Cloud SLO / Datadog SLO / Nobl9 / Sloth / GCP SLO / New Relic / Honeycomb)
@@ -37,13 +37,13 @@ Three reinforcing user directives narrowed the design space:
 2. **Adopt OSS leaders, own the differentiator.** The observability runtime is the canonical OSS Grafana stack (used internally by AWS Managed Prometheus, GCP Managed Service for Prometheus, Grafana Cloud, Cloudflare, Shopify). oyatie's IP lives in the SLO model, the eligibility ledger, the per-component release pointers, and the agentic gate workflow — not in re-implementing Prometheus or Grafana.
 3. **Industry-standard SLO model.** Google SRE Workbook ch. 5 multi-window multi-burn-rate alert pattern; OpenSLO manifest format (same shape used by Sloth, Nobl9, Datadog OpenSLO converter); per-component release pointers (precedent: Linear per-service, Stripe per-service, Google per-binary).
 
-This ADR has no Bominal equivalent; promotion gating is an oyatie-originating substrate decision.
+This ADR has no Bominal equivalent; promotion gating is an oyatie originating substrate decision.
 
 This ADR depends on ADR-0131 (per-microservice flat layout) for the location of every artifact it produces. The observability µservice ships natively under that convention.
 
 ## Decision
 
-oyatie adopts a two-layer design: **adopted OSS observability runtime (Layer A)** plus **oyatie-owned agentic-gate differentiator (Layer B)**. Both layers ship together as one M01 phase; neither is scheduled-for-distinct-tracked-work. The deployment substrate is the canonical Grafana stack, self-hosted; the gate logic is a new oyatie µservice `observability` with the BNF v4.1 crate family `oya-observability-<bc>-<layer>` (see §Naming Justification).
+oyatie adopts a two-layer design: **adopted OSS observability runtime (Layer A)** plus **oyatie owned agentic-gate differentiator (Layer B)**. Both layers ship together as one M01 phase; neither is scheduled-for-distinct-tracked-work. The deployment substrate is the canonical Grafana stack, self-hosted; the gate logic is a new oyatie µservice `observability` with the BNF v4.1 crate family `oya-observability-<bc>-<layer>` (see §Naming Justification).
 
 ### Layer A — adopted OSS runtime (commodity; deployed, not written)
 
@@ -60,7 +60,7 @@ All Apache-2.0; deployed alongside oyatie services via Helm/Kustomize manifests 
 
 Industry precedent for Layer A: AWS Managed Prometheus + Managed Grafana (Grafana stack), GCP Managed Service for Prometheus (Prometheus + Grafana), Cloudflare (Prometheus + Grafana per public engineering blog 2019–2024), Shopify (Datadog plus open-source Prometheus per Engineering blog 2020+), Grafana Labs Cloud (the stack, multi-tenant). Self-hosting this stack inside oyatie's perimeter *is* the hyperscaler practice; rebuilding equivalent substrate is a 50-person-year detour not warranted by oyatie's scale or product surface.
 
-### Layer B — oyatie-owned agentic gate (the differentiator)
+### Layer B — oyatie owned agentic gate (the differentiator)
 
 The new µservice `observability` introduces the following BCs and substrate. Every artifact ships under `microservices/observability/` per ADR-0131.
 

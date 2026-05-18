@@ -196,7 +196,7 @@ paths:
         '201':
           description: Created
           content: {application/json: {schema: {$ref: '#/components/schemas/Tenant'}}}
-        '401': {description: OIDC missing or invalid; content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
+        '401': {description: 'OIDC missing or invalid', content: {application/json: {schema: {$ref: '#/components/schemas/Error'}}}}
         '403': {description: Cedar policy denied (tenant operator cannot create)}
         '422': {description: invalid input (e.g., child_data_attested missing for pack-in)}
 

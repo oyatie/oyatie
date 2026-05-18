@@ -233,7 +233,7 @@ components:
       properties:
         template_id: {type: string, format: ulid}
         name: {type: string, maxLength: 80}
-        body_template: {type: string, description: Markdown with `{{placeholders}}`}
+        body_template: {type: string, description: 'Markdown with {{placeholders}}'}
         frontmatter_defaults: {type: object, additionalProperties: true}
 
     ShareLink:

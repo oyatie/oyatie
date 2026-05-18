@@ -1,0 +1,268 @@
+{
+  "schema_version": "1.0",
+  "microservice": "cloud-k8s",
+  "version": "0.1.0",
+  "owner": "axis-cloud-k8s",
+  "bounded_contexts": [
+    {
+      "name": "cloud-k8s",
+      "description": "Bounded context 'cloud-k8s' within cloud-k8s (control plane)",
+      "crates": [
+        "oya-cloud-k8s-cluster-bootstrap-adapter",
+        "oya-cloud-k8s-cluster-bootstrap-adapter-containerd",
+        "oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm",
+        "oya-cloud-k8s-cluster-bootstrap-api",
+        "oya-cloud-k8s-cluster-bootstrap-app",
+        "oya-cloud-k8s-cluster-bootstrap-domain",
+        "oya-cloud-k8s-cluster-bootstrap-kernel",
+        "oya-cloud-k8s-cluster-bootstrap-rest",
+        "oya-cloud-k8s-cluster-bootstrap-sdk",
+        "oya-cloud-k8s-cluster-bootstrap-usecase",
+        "oya-cloud-k8s-cluster-bootstrap-worker",
+        "oya-cloud-k8s-ingress-controller-adapter-envoy",
+        "oya-cloud-k8s-service-mesh-control-plane-adapter-istio"
+      ]
+    }
+  ],
+  "layers": [
+    "adapter",
+    "api",
+    "app",
+    "domain",
+    "kernel",
+    "rest",
+    "sdk",
+    "usecase",
+    "worker"
+  ],
+  "contracts": {
+    "openapi": [
+      "microservices/cloud-k8s/contracts/openapi/cloud-k8s.yaml"
+    ],
+    "asyncapi": [
+      "microservices/cloud-k8s/contracts/asyncapi/cloud-k8s-events.yaml"
+    ],
+    "proto": [
+      "microservices/cloud-k8s/contracts/proto/cloud-k8s.proto"
+    ]
+  },
+  "capabilities": [
+    {
+      "tier": "T3",
+      "name": "cluster-bootstrap",
+      "file": "microservices/cloud-k8s/capabilities/cluster-bootstrap.yaml",
+      "eu_ai_act_risk_class": "high"
+    },
+    {
+      "tier": "T2",
+      "name": "network-policy-apply",
+      "file": "microservices/cloud-k8s/capabilities/network-policy-apply.yaml",
+      "eu_ai_act_risk_class": "limited"
+    },
+    {
+      "tier": "T2",
+      "name": "node-lifecycle",
+      "file": "microservices/cloud-k8s/capabilities/node-lifecycle.yaml",
+      "eu_ai_act_risk_class": "limited"
+    }
+  ],
+  "slos": [],
+  "ips": [
+    {
+      "id": "IP-001-layer-a-iac-kubeadm-containerd-istio-envoy",
+      "title": "IP-001: Layer-A IaC \u2014 kubeadm + containerd + Istio + Envoy + Cilium + CSI",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-001-layer-a-iac-kubeadm-containerd-istio-envoy.md"
+    },
+    {
+      "id": "IP-002-onprem-k8s-stack-standard",
+      "title": "IP-002: docs/standards/cloud-k8s-stack.md (cross-cutting standard)",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-002-onprem-k8s-stack-standard.md"
+    },
+    {
+      "id": "IP-003-cluster-bootstrap-kernel",
+      "title": "IP-003: oya-cloud-k8s-cluster-bootstrap-kernel",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-003-cluster-bootstrap-kernel.md"
+    },
+    {
+      "id": "IP-004-cluster-bootstrap-domain",
+      "title": "IP-004: oya-cloud-k8s-cluster-bootstrap-domain",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-004-cluster-bootstrap-domain.md"
+    },
+    {
+      "id": "IP-005-cluster-bootstrap-usecase",
+      "title": "IP-005: oya-cloud-k8s-cluster-bootstrap-usecase",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-005-cluster-bootstrap-usecase.md"
+    },
+    {
+      "id": "IP-006-cluster-bootstrap-adapter-kubeadm",
+      "title": "IP-006: oya-cloud-k8s-cluster-bootstrap-adapter-kubeadm",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-006-cluster-bootstrap-adapter-kubeadm.md"
+    },
+    {
+      "id": "IP-007-node-lifecycle-kernel-usecase",
+      "title": "IP-007: oya-cloud-k8s-node-lifecycle-{kernel,domain,usecase,adapter}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-007-node-lifecycle-kernel-usecase.md"
+    },
+    {
+      "id": "IP-008-network-policy-kernel-usecase",
+      "title": "IP-008: oya-cloud-k8s-network-policy-{kernel,domain,usecase,adapter}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-008-network-policy-kernel-usecase.md"
+    },
+    {
+      "id": "IP-009-service-mesh-control-plane-istio",
+      "title": "IP-009: oya-cloud-k8s-service-mesh-control-plane-{kernel,usecase,adapter-istio}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-009-service-mesh-control-plane-istio.md"
+    },
+    {
+      "id": "IP-010-ingress-controller-envoy",
+      "title": "IP-010: oya-cloud-k8s-ingress-controller-{kernel,usecase,adapter-envoy}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-010-ingress-controller-envoy.md"
+    },
+    {
+      "id": "IP-011-csi-storage-driver-per-backend",
+      "title": "IP-011: oya-cloud-k8s-csi-storage-driver-{kernel,usecase,adapter-block,adapter-object,adapter-file}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-011-csi-storage-driver-per-backend.md"
+    },
+    {
+      "id": "IP-012-kubernetes-api-proxy",
+      "title": "IP-012: oya-cloud-k8s-kubernetes-api-proxy-{kernel,usecase,adapter,rest,worker,sdk,app}",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-012-kubernetes-api-proxy.md"
+    },
+    {
+      "id": "IP-013-cluster-bootstrap-rest-worker-sdk-app",
+      "title": "IP-013: oya-cloud-k8s-cluster-bootstrap-{rest,worker,sdk,app} + remaining per-BC -rest/-worker/-app wiring",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-013-cluster-bootstrap-rest-worker-sdk-app.md"
+    },
+    {
+      "id": "IP-014-branch-protection-and-hyperscaler-gate",
+      "title": "IP-014: branch-protection + HG-CLOUD-K8S registration",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-014-branch-protection-and-hyperscaler-gate.md"
+    },
+    {
+      "id": "IP-015-observability-slo-and-authority-cohesion",
+      "title": "IP-015: OpenSLO authoring + authority-cohesion registration",
+      "acceptance_status": "ga",
+      "file": "microservices/cloud-k8s/IP-015-observability-slo-and-authority-cohesion.md"
+    }
+  ],
+  "regulatory_packs": [
+    "kr",
+    "eu",
+    "us",
+    "us-healthcare",
+    "jp",
+    "sg",
+    "au",
+    "in",
+    "br",
+    "ae",
+    "ksa"
+  ],
+  "lts_pins": {
+    "cilium": "1.16",
+    "envoy": "1.32.0",
+    "istio": "1.29.2",
+    "k8s": "1.16.0",
+    "rust": "1.83"
+  },
+  "adrs": [
+    {
+      "id": "ADR-0044",
+      "title": "Service Mesh Istio Ambient And Envoy Gateway",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0044-service-mesh-istio-ambient-and-envoy-gateway.md"
+    },
+    {
+      "id": "ADR-0056",
+      "title": "Rust Clean Architecture Bnf",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0056-rust-clean-architecture-bnf.md"
+    },
+    {
+      "id": "ADR-0105",
+      "title": "13 Layer Enum And Check Family Patterns",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
+    },
+    {
+      "id": "ADR-0106",
+      "title": "Rename Application To Usecase",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
+    },
+    {
+      "id": "ADR-0117",
+      "title": "Repo Hygiene Gitignore Audit Config And Kyverno Consolidation",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0117-repo-hygiene-gitignore-audit-config-and-kyverno-consolidation.md"
+    },
+    {
+      "id": "ADR-0120",
+      "title": "Rust First Onprem Tooling With Paired Uninstall",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0120-rust-first-onprem-tooling-with-paired-uninstall.md"
+    },
+    {
+      "id": "ADR-0121",
+      "title": "Onprem K8S Stack Kubeadm Containerd Istio Envoy",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0121-onprem-k8s-stack-kubeadm-containerd-istio-envoy.md"
+    },
+    {
+      "id": "ADR-0130",
+      "title": "Agentic Slo Gated Promotion",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0130-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0131",
+      "title": "Per Microservice Flat Layout",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0131-per-microservice-flat-layout.md"
+    },
+    {
+      "id": "ADR-0132",
+      "title": "Product Suite And Bundle Dissolution",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
+    },
+    {
+      "id": "ADR-0133",
+      "title": "Industry Best Practice Conformance Program",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+    }
+  ],
+  "hyperscaler_inv_coverage": {
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-circuit-breaker-bulkhead-global",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-shuffle-sharding-global",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-four-golden-signals-global",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-slo-error-budget-global"
+  },
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": [
+      "oya.cloud-k8s.cluster-bootstrap",
+      "oya.cloud-k8s.network-policy-apply",
+      "oya.cloud-k8s.node-lifecycle"
+    ]
+  },
+  "secrets_substrate": {
+    "provider": "openbao",
+    "format": "${openbao:secret/<path>}"
+  }
+}

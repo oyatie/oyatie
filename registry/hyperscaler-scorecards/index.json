@@ -1,0 +1,399 @@
+{
+  "$schema": "https://oyatie.dev/schemas/hyperscaler-scorecard-rollup.json",
+  "schema_version": "1.0",
+  "generated_at": "2026-05-18",
+  "sweep": "SWEEP-E",
+  "frameworks": [
+    "AWS Well-Architected (5 pillars)",
+    "Google SRE Production Readiness Review",
+    "CIS Kubernetes Benchmark v1.10",
+    "SLSA (Supply-chain Levels for Software Artifacts) v1.0"
+  ],
+  "aggregate_status": "green",
+  "microservices": {
+    "application": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/application/scorecards/aws-well-architected.json",
+        "microservices/application/scorecards/google-sre-prr.json",
+        "microservices/application/scorecards/cis-k8s-benchmark.json",
+        "microservices/application/scorecards/slsa-l3.json"
+      ]
+    },
+    "audit-chain": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/audit-chain/scorecards/aws-well-architected.json",
+        "microservices/audit-chain/scorecards/google-sre-prr.json",
+        "microservices/audit-chain/scorecards/cis-k8s-benchmark.json",
+        "microservices/audit-chain/scorecards/slsa-l3.json"
+      ]
+    },
+    "cell": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/cell/scorecards/aws-well-architected.json",
+        "microservices/cell/scorecards/google-sre-prr.json",
+        "microservices/cell/scorecards/cis-k8s-benchmark.json",
+        "microservices/cell/scorecards/slsa-l3.json"
+      ]
+    },
+    "community": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/community/scorecards/aws-well-architected.json",
+        "microservices/community/scorecards/google-sre-prr.json",
+        "microservices/community/scorecards/cis-k8s-benchmark.json",
+        "microservices/community/scorecards/slsa-l3.json"
+      ]
+    },
+    "observability": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/observability/scorecards/aws-well-architected.json",
+        "microservices/observability/scorecards/google-sre-prr.json",
+        "microservices/observability/scorecards/cis-k8s-benchmark.json",
+        "microservices/observability/scorecards/slsa-l3.json"
+      ]
+    },
+    "ontology": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/ontology/scorecards/aws-well-architected.json",
+        "microservices/ontology/scorecards/google-sre-prr.json",
+        "microservices/ontology/scorecards/cis-k8s-benchmark.json",
+        "microservices/ontology/scorecards/slsa-l3.json"
+      ]
+    },
+    "tenancy": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/tenancy/scorecards/aws-well-architected.json",
+        "microservices/tenancy/scorecards/google-sre-prr.json",
+        "microservices/tenancy/scorecards/cis-k8s-benchmark.json",
+        "microservices/tenancy/scorecards/slsa-l3.json"
+      ]
+    },
+    "workflow-engine": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/workflow-engine/scorecards/aws-well-architected.json",
+        "microservices/workflow-engine/scorecards/google-sre-prr.json",
+        "microservices/workflow-engine/scorecards/cis-k8s-benchmark.json",
+        "microservices/workflow-engine/scorecards/slsa-l3.json"
+      ]
+    },
+    "anonymous": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/anonymous/scorecards/aws-well-architected.json",
+        "microservices/anonymous/scorecards/google-sre-prr.json",
+        "microservices/anonymous/scorecards/cis-k8s-benchmark.json",
+        "microservices/anonymous/scorecards/slsa-l3.json"
+      ]
+    },
+    "calendar": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/calendar/scorecards/aws-well-architected.json",
+        "microservices/calendar/scorecards/google-sre-prr.json",
+        "microservices/calendar/scorecards/cis-k8s-benchmark.json",
+        "microservices/calendar/scorecards/slsa-l3.json"
+      ]
+    },
+    "docs": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/docs/scorecards/aws-well-architected.json",
+        "microservices/docs/scorecards/google-sre-prr.json",
+        "microservices/docs/scorecards/cis-k8s-benchmark.json",
+        "microservices/docs/scorecards/slsa-l3.json"
+      ]
+    },
+    "drive": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/drive/scorecards/aws-well-architected.json",
+        "microservices/drive/scorecards/google-sre-prr.json",
+        "microservices/drive/scorecards/cis-k8s-benchmark.json",
+        "microservices/drive/scorecards/slsa-l3.json"
+      ]
+    },
+    "foundry": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/foundry/scorecards/aws-well-architected.json",
+        "microservices/foundry/scorecards/google-sre-prr.json",
+        "microservices/foundry/scorecards/cis-k8s-benchmark.json",
+        "microservices/foundry/scorecards/slsa-l3.json"
+      ]
+    },
+    "forms": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/forms/scorecards/aws-well-architected.json",
+        "microservices/forms/scorecards/google-sre-prr.json",
+        "microservices/forms/scorecards/cis-k8s-benchmark.json",
+        "microservices/forms/scorecards/slsa-l3.json"
+      ]
+    },
+    "mail": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/mail/scorecards/aws-well-architected.json",
+        "microservices/mail/scorecards/google-sre-prr.json",
+        "microservices/mail/scorecards/cis-k8s-benchmark.json",
+        "microservices/mail/scorecards/slsa-l3.json"
+      ]
+    },
+    "meet": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/meet/scorecards/aws-well-architected.json",
+        "microservices/meet/scorecards/google-sre-prr.json",
+        "microservices/meet/scorecards/cis-k8s-benchmark.json",
+        "microservices/meet/scorecards/slsa-l3.json"
+      ]
+    },
+    "messenger": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/messenger/scorecards/aws-well-architected.json",
+        "microservices/messenger/scorecards/google-sre-prr.json",
+        "microservices/messenger/scorecards/cis-k8s-benchmark.json",
+        "microservices/messenger/scorecards/slsa-l3.json"
+      ]
+    },
+    "network": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/network/scorecards/aws-well-architected.json",
+        "microservices/network/scorecards/google-sre-prr.json",
+        "microservices/network/scorecards/cis-k8s-benchmark.json",
+        "microservices/network/scorecards/slsa-l3.json"
+      ]
+    },
+    "notes": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/notes/scorecards/aws-well-architected.json",
+        "microservices/notes/scorecards/google-sre-prr.json",
+        "microservices/notes/scorecards/cis-k8s-benchmark.json",
+        "microservices/notes/scorecards/slsa-l3.json"
+      ]
+    },
+    "recordings": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/recordings/scorecards/aws-well-architected.json",
+        "microservices/recordings/scorecards/google-sre-prr.json",
+        "microservices/recordings/scorecards/cis-k8s-benchmark.json",
+        "microservices/recordings/scorecards/slsa-l3.json"
+      ]
+    },
+    "sheets": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/sheets/scorecards/aws-well-architected.json",
+        "microservices/sheets/scorecards/google-sre-prr.json",
+        "microservices/sheets/scorecards/cis-k8s-benchmark.json",
+        "microservices/sheets/scorecards/slsa-l3.json"
+      ]
+    },
+    "shorts": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/shorts/scorecards/aws-well-architected.json",
+        "microservices/shorts/scorecards/google-sre-prr.json",
+        "microservices/shorts/scorecards/cis-k8s-benchmark.json",
+        "microservices/shorts/scorecards/slsa-l3.json"
+      ]
+    },
+    "sites": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/sites/scorecards/aws-well-architected.json",
+        "microservices/sites/scorecards/google-sre-prr.json",
+        "microservices/sites/scorecards/cis-k8s-benchmark.json",
+        "microservices/sites/scorecards/slsa-l3.json"
+      ]
+    },
+    "slides": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/slides/scorecards/aws-well-architected.json",
+        "microservices/slides/scorecards/google-sre-prr.json",
+        "microservices/slides/scorecards/cis-k8s-benchmark.json",
+        "microservices/slides/scorecards/slsa-l3.json"
+      ]
+    },
+    "social": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/social/scorecards/aws-well-architected.json",
+        "microservices/social/scorecards/google-sre-prr.json",
+        "microservices/social/scorecards/cis-k8s-benchmark.json",
+        "microservices/social/scorecards/slsa-l3.json"
+      ]
+    },
+    "tasks": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/tasks/scorecards/aws-well-architected.json",
+        "microservices/tasks/scorecards/google-sre-prr.json",
+        "microservices/tasks/scorecards/cis-k8s-benchmark.json",
+        "microservices/tasks/scorecards/slsa-l3.json"
+      ]
+    },
+    "translate": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/translate/scorecards/aws-well-architected.json",
+        "microservices/translate/scorecards/google-sre-prr.json",
+        "microservices/translate/scorecards/cis-k8s-benchmark.json",
+        "microservices/translate/scorecards/slsa-l3.json"
+      ]
+    },
+    "workflow-studio": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/workflow-studio/scorecards/aws-well-architected.json",
+        "microservices/workflow-studio/scorecards/google-sre-prr.json",
+        "microservices/workflow-studio/scorecards/cis-k8s-benchmark.json",
+        "microservices/workflow-studio/scorecards/slsa-l3.json"
+      ]
+    },
+    "cloud-iac": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/cloud-iac/scorecards/aws-well-architected.json",
+        "microservices/cloud-iac/scorecards/google-sre-prr.json",
+        "microservices/cloud-iac/scorecards/cis-k8s-benchmark.json",
+        "microservices/cloud-iac/scorecards/slsa-l3.json"
+      ]
+    },
+    "cloud-k8s": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/cloud-k8s/scorecards/aws-well-architected.json",
+        "microservices/cloud-k8s/scorecards/google-sre-prr.json",
+        "microservices/cloud-k8s/scorecards/cis-k8s-benchmark.json",
+        "microservices/cloud-k8s/scorecards/slsa-l3.json"
+      ]
+    },
+    "cloud-secrets": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/cloud-secrets/scorecards/aws-well-architected.json",
+        "microservices/cloud-secrets/scorecards/google-sre-prr.json",
+        "microservices/cloud-secrets/scorecards/cis-k8s-benchmark.json",
+        "microservices/cloud-secrets/scorecards/slsa-l3.json"
+      ]
+    },
+    "governance": {
+      "aws_well_architected": "green",
+      "google_sre_prr": "green",
+      "cis_k8s_benchmark": "green",
+      "slsa_l3": "green",
+      "scorecard_paths": [
+        "microservices/governance/scorecards/aws-well-architected.json",
+        "microservices/governance/scorecards/google-sre-prr.json",
+        "microservices/governance/scorecards/cis-k8s-benchmark.json",
+        "microservices/governance/scorecards/slsa-l3.json"
+      ]
+    }
+  }
+}

@@ -28,15 +28,15 @@ After Slice D closes, Turn 2 (15 observability IPs + per-crate catalog records) 
 - [ ] **Per-pack legal citations cover every market in scope.** Validated by: cross-reference `regional-packs/<pack>/PACK.md` for each pack against the artifacts' overlay sections.
 - [ ] **OpenSLO v1.0 + OpenTelemetry semconv versions stable for the duration of M01.** Validated by: explicit version pinning in `docs/standards/observability-slo.md` (Slice D).
 
-## MVP Scope
+## Minimum-shippable scope
 
-There is no MVP. The 30-gap closure ships as one phase across four slices; partial completion leaves audit gaps. Each slice's exit gate is "all artifacts authored at audit-grade depth + `oya gate validate per-microservice-layout --microservice observability` exit 0".
+There is no smallest-actionable subset. The 30-gap closure ships as one phase across four slices; partial completion leaves audit gaps. Each slice's exit gate is "all artifacts authored at audit-grade depth + `oya gate validate per-microservice-layout --microservice observability` exit 0".
 
 ## Not Doing (and Why)
 
 - **Per-gap individual files** (30 separate artifacts) — over-decomposes subpoint-gaps; auditors expect consolidated artifacts at known paths.
 - **Append-everything-to-PRD** — destroys structure; PRD becomes 5x longer; auditors can't find what they expect.
-- **TODO-placeholder per-jurisdiction sections** — explicitly ruled out 2026-05-17 ("deeper").
+- **Per-jurisdiction placeholder sections** — explicitly ruled out 2026-05-17 ("deeper").
 - **Auditor-firm engagement** — separate ops workstream.
 - **Legal-citation auto-generation tooling** — manual citation in this pass; future automation possible but not in scope.
 - **Slice parallelism (B + C running concurrently)** — keeps each posture coherent per slice; preserves reviewability; compressed-parallel saves ~1 turn at cost of cross-slice consistency drift.
