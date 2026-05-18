@@ -1,12 +1,12 @@
 ---
-id: ADR-0135
+id: ADR-0238
 status: Accepted
 deciders: council-architecture, council-product, council-privacy, axis-mail, axis-messenger, axis-calendar, axis-community, axis-social, axis-shorts, axis-network, axis-anonymous, ops-sre-reliability
 date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0060, ADR-0105, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related: [ADR-0056, ADR-0060, ADR-0105, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0237]
 related_specs:
   - /specs/per-microservice-flat-layout.json
   - /specs/microservices/mail.json
@@ -16,7 +16,7 @@ session_context:
   authored: 2026-05-17
   renumbered_2026_05_18: |
     Originally drafted as ADR-0126 in the oyatie 2026-05-17 session.
-    Renumbered to ADR-0135 on 2026-05-18 to avoid collision with dev's
+    Renumbered to ADR-0238 on 2026-05-18 to avoid collision with dev's
     ADR-0126 (Employment classification, PR #135). See "Numbering note"
     section at end of file for the full rebase note.
   parallel_session_caveat: |
@@ -26,7 +26,7 @@ session_context:
     override Bominal").
 bominal_source: |
   Authored in oyatie 2026-05-17 (originally ADR-0126); renumbered to
-  ADR-0135 on 2026-05-18. Bominal-side ADR-0126 is a different decision
+  ADR-0238 on 2026-05-18. Bominal-side ADR-0126 is a different decision
   (Employment classification — 8-class enum) per docs/decisions/ADR-0060
   §inheritance table; the Bominal number is inherited only into the HR/
   payroll product line. The renumber eliminates any cross-axis collision
@@ -36,11 +36,11 @@ purpose: |
   Decompose the legacy Connect super-app into 8 first-class, flat, single-concern
   µservices per ADR-0131 + ADR-0132. Establish the new µservice topology,
   per-µservice SLO authority, per-µservice ChangeSet lane, and the umbrella
-  retirement trigger that ADR-0134 then operationalises as a Strangler-pattern
+  retirement trigger that ADR-0237 then operationalises as a Strangler-pattern
   migration.
 ---
 
-# ADR-0135: Connect super-app expansion into 8 flat µservices
+# ADR-0238: Connect super-app expansion into 8 flat µservices
 
 ## Status
 
@@ -157,7 +157,7 @@ of the following conditions hold simultaneously:
 8. HG-ANONYMOUS accepts at p99 SLOs sustained 30d.
 
 Until all 8 trigger, the Connect umbrella stubs remain in place and the
-Strangler-pattern migration owned by ADR-0134 governs traffic-shifting,
+Strangler-pattern migration owned by ADR-0237 governs traffic-shifting,
 deprecation notices, and the eventual code-removal sweep.
 
 ## Alternatives Considered
@@ -219,7 +219,7 @@ deprecation notices, and the eventual code-removal sweep.
 - **Cons**:
   - Highest one-time migration cost: 3 extant legacy crate families
     (`oya-connect-{mail,messenger,calendar}-*`) must be deprecated and
-    eventually removed per ADR-0134's Strangler migration; 5 net-new
+    eventually removed per ADR-0237's Strangler migration; 5 net-new
     µservices (`community`, `social`, `shorts`, `network`, `anonymous`) must
     be stood up from scratch.
   - 8 HG gates to author, 8 OpenSLO files to author, 8 PRDs to author, 8 IaC
@@ -228,7 +228,7 @@ deprecation notices, and the eventual code-removal sweep.
     end-user-facing surfaces must rename (e.g., "Connect Mail" → "Mail").
 - **Accepted** despite higher one-time cost because (i) the terminal-state
   shape matches the rest of oyatie's flat catalog, (ii) the Strangler
-  migration in ADR-0134 spreads the cost over 6–12 months, and (iii) ADR-0132
+  migration in ADR-0237 spreads the cost over 6–12 months, and (iii) ADR-0132
   forward-policy already constrains every new µservice to this shape — making
   Connect the only legacy exception would be a unique-snowflake violation.
 
@@ -254,14 +254,14 @@ deprecation notices, and the eventual code-removal sweep.
 ### Negative
 
 - **3 legacy crate families need explicit deprecation.** `oya-connect-mail-*`,
-  `oya-connect-messenger-*`, `oya-connect-calendar-*` exist today; ADR-0134
+  `oya-connect-messenger-*`, `oya-connect-calendar-*` exist today; ADR-0237
   owns their Strangler migration to `oya-{mail,messenger,calendar}-*`.
 - **5 net-new µservices to stand up.** `community` (PRD authored, 126 files populated as of 2026-05-17 scaffold), `social` (96 files populated), `shorts` (97 files populated), `network` (100 files populated), `anonymous`
   (102 files populated). Each needs PRD + threat-model + dpia + compliance + capacity-model
   + cost-budget + IaC + SLO + 15-IP phase plan + HG gate. File counts verified via `find microservices/<ms>/ -type f | wc -l` on 2026-05-17.
 - **Hyrum's-Law exposure.** Any external consumer who depended on
   `oya-connect-*` symbol paths, error variant ordering, timing characteristics
-  of bundled handoffs, or umbrella SLO targets must migrate per ADR-0134's
+  of bundled handoffs, or umbrella SLO targets must migrate per ADR-0237's
   feature-flagged canary. Per `feedback_no_silent_regression`, every removed
   symbol or changed behaviour requires deprecation notice + ADR + sunset
   schedule.
@@ -270,12 +270,12 @@ deprecation notices, and the eventual code-removal sweep.
 
 | Cost class | Quantity | Owner | Carrier ADR |
 |---|---|---|---|
-| Extant legacy crate families to deprecate | 3 (mail, messenger, calendar) | axis-mail + axis-messenger + axis-calendar | ADR-0134 |
+| Extant legacy crate families to deprecate | 3 (mail, messenger, calendar) | axis-mail + axis-messenger + axis-calendar | ADR-0237 |
 | Net-new µservices to stand up | 5 (community, social, shorts, network, anonymous) | new axis-community + axis-social + axis-shorts + axis-network + axis-anonymous (axes to be commissioned in M03 phase plan) | per-µservice phase-01 |
 | HG gates to register in `/specs/hyperscaler-gates.json` | 8 | per-µservice owners | per-µservice IP-NNN-hg-*-authority-cohesion |
 | OpenSLO files to author | 8 | per-µservice owners | per-µservice IP-NNN-iac-bootstrap |
 | PRDs to author | 5 net-new (mail/messenger/calendar PRDs already shipped) | per-µservice owners | per-µservice phase-00 |
-| External consumers of `oya-connect-*` to migrate | unknown (verified by dependency-graph CI lane per ADR-0134 §Step 4) | each consumer's owning axis | ADR-0134 |
+| External consumers of `oya-connect-*` to migrate | unknown (verified by dependency-graph CI lane per ADR-0237 §Step 4) | each consumer's owning axis | ADR-0237 |
 
 ### Operational
 
@@ -285,7 +285,7 @@ deprecation notices, and the eventual code-removal sweep.
 - **Per-µservice CI lanes** already covered by `per-microservice-layout`
   (ADR-0131) and `no-new-suite-bundles` (ADR-0132). No additional lane needed.
 - **Deprecation surface:** `microservices/{mail,messenger,calendar}/deprecation-notice.md`
-  (authored per ADR-0134); `microservices/connect/RETIREMENT-PLAN.md` (this
+  (authored per ADR-0237); `microservices/connect/RETIREMENT-PLAN.md` (this
   ADR cycle).
 
 ## Clean Architecture Impact
@@ -295,7 +295,7 @@ deprecation notices, and the eventual code-removal sweep.
 | `dependency-direction` (LEAN-A1) | Reinforced — no cross-µservice direct imports | per-µservice owners ensure no `use oya_<other-ms>_*` in their crates |
 | `per-microservice-layout` (ADR-0131) | Reinforced — 8 new conforming layouts | each new µservice ships flat per ADR-0131 |
 | `no-new-suite-bundles` (ADR-0132) | Reinforced — Connect dissolution is the terminal-state proof | this ADR proves the policy at concrete scale |
-| `connect-umbrella-retirement-readiness` (NEW, lane authored under ADR-0134) | New REPORT-ONLY→BLOCKER | gates the eventual `microservices/connect/` folder removal |
+| `connect-umbrella-retirement-readiness` (NEW, lane authored under ADR-0237) | New REPORT-ONLY→BLOCKER | gates the eventual `microservices/connect/` folder removal |
 
 ## Verification
 
@@ -335,7 +335,7 @@ cargo run -p oya-dev-cli -- gate validate authority-cohesion
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.
-- ADR-0134: Connect dissolution Strangler migration (operational companion).
+- ADR-0237: Connect dissolution Strangler migration (operational companion).
 - `/specs/per-microservice-flat-layout.json`.
 - `/specs/microservices/{mail,messenger,calendar}.json` (flat per-µservice specs; legacy `/specs/microservices/*.json` retired via the specs/products → specs/microservices flatten — see `specs/microservices/RETIREMENT.md`).
 - `feedback_workflow_objectgraph_adapter_layer.md`.
@@ -347,12 +347,12 @@ cargo run -p oya-dev-cli -- gate validate authority-cohesion
 ## Numbering note
 
 Originally drafted as **ADR-0126** in the oyatie session 2026-05-17. Renumbered
-to **ADR-0135** on 2026-05-18 to avoid collision with dev's ADR-0126
+to **ADR-0238** on 2026-05-18 to avoid collision with dev's ADR-0126
 (Employment classification, PR #135), which is the Bominal-inherited HR/payroll
 ADR-0126.
 
 - **Source slot**: ADR-0126 (oyatie 2026-05-17 session draft).
-- **Target slot**: ADR-0135 (next free slot after ADR-0134 Connect-dissolution
+- **Target slot**: ADR-0238 (next free slot after ADR-0237 Connect-dissolution
   Strangler migration).
 - **Reason**: Cross-axis collision avoidance. Per
   `feedback_bominal_inheritance_precedence`, oyatie session decisions override
@@ -360,7 +360,7 @@ ADR-0126.
   intact and preserves trace-back for the Connect-dissolution lineage too.
 - **Cross-reference sweep**: All in-repo cross-references to ADR-0126 in the
   Connect-dissolution lineage (ADR-0132 §related, ADR-0132 §body, ADR-0133
-  §related, ADR-0134 §related + §body) were rewritten to ADR-0135 in the same
+  §related, ADR-0237 §related + §body) were rewritten to ADR-0238 in the same
   ChangeSet that performed this rename. The dev-side ADR-0126
   (Employment classification) is untouched.
 - **Spec-path sweep**: At the same time, `/specs/microservices/{connect,enterprise}/*.json`

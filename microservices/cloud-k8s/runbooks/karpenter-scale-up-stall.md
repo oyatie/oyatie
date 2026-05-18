@@ -44,7 +44,7 @@ adr_authority: ADR-0198
 ## Escalation
 
 - If scale-up stall affects `regulatory` NodePool > 30 min: SEV-1 (per
-  ADR-0179-sovereign — regulatory workloads cannot scale out of
+  ADR-0240-sovereign — regulatory workloads cannot scale out of
   region).
 - If scale-up stall affects `app` NodePool > 1 h: SEV-2.
 - If stall is a cloud-provider quota limit: open the quota request
@@ -58,5 +58,5 @@ adr_authority: ADR-0198
 ## References
 
 - ADR-0198 — Karpenter canonical.
-- ADR-0179-sovereign-cloud-per-regional-pack.
+- ADR-0240-sovereign-cloud-per-regional-pack.
 - ADR-0152 — workload class tier mapping.

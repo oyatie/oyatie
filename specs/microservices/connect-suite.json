@@ -53,7 +53,7 @@
       "$ref:bominal/decisions/ADR-0111-ciphertext-property-type-and-envelope-encryption.md"
     ],
     "oyatie_specs": [
-      "$ref:docs/decisions/ADR-0132-connect-core-public-contracts.md",
+      "$ref:docs/decisions/ADR-0235-connect-core-public-contracts.md",
       "$ref:specs/agent-durable-goal.json",
       "$ref:specs/deployment-ops-contract.json",
       "$ref:specs/products/ontology.json",
@@ -219,10 +219,10 @@
         "Workflow",
         "Ontology"
       ],
-      "policy_ref": "ADR-0001 cohesion thesis; ADR-0131 Connect expansion planning contract",
+      "policy_ref": "ADR-0001 cohesion thesis; ADR-0234 Connect expansion planning contract",
       "enforcement_status": "advisory_until_connect_social_expansion_gates"
     },
-    "public_contract_adr": "$ref:docs/decisions/ADR-0132-connect-core-public-contracts.md",
+    "public_contract_adr": "$ref:docs/decisions/ADR-0235-connect-core-public-contracts.md",
     "route_through_workflow_ontology": true
   },
   "data_model": {

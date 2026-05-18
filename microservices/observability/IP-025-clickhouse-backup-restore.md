@@ -2,7 +2,7 @@
 
 **Phase:** PHASE-02-OBSERVABILITY-CLICKHOUSE-EXTENSION
 **Owner:** infra (axis-observability + ops-sre-reliability)
-**Authority ADRs:** ADR-0152 RPO/RTO, ADR-0193 §"Backup + restore", ADR-0180 DR business-continuity portfolio policy, ADR-0145 inter-microservice communication, ADR-0186 observability backplane
+**Authority ADRs:** ADR-0152 RPO/RTO, ADR-0193 §"Backup + restore", ADR-0241 DR business-continuity portfolio policy, ADR-0145 inter-microservice communication, ADR-0186 observability backplane
 **Depends on:** IP-021
 **Status:** Planned
 **Phase trace:** PHASE-02 §"Backup + DR drill" (addendum lines 46-52).
@@ -173,7 +173,7 @@ Backup window 02:00-06:00 local; watcher daemon always-on.
 
 - ADR-0152 — RPO/RTO targets.
 - ADR-0193 §"Backup + restore".
-- ADR-0180 — DR business-continuity portfolio policy.
+- ADR-0241 — DR business-continuity portfolio policy.
 - ADR-0145 — communication reform.
 - ADR-0186 — observability backplane.
 - Runbooks: `clickhouse-restore.md`, `clickhouse-backup-drill.md`.

@@ -1308,6 +1308,38 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
+        (Some("validate"), Some("design-spec-maturity-claims")) => {
+            match crate::parse_design_spec_maturity_claims_validate_args(args.collect()) {
+                Ok(args) => match crate::validate_design_spec_maturity_claims_gate(args) {
+                    Ok(report) => {
+                        let evidence = report
+                            .evidence_path
+                            .as_ref()
+                            .map(|path| format!(", evidence={}", path.display()))
+                            .unwrap_or_default();
+                        println!(
+                            "design/spec maturity claim validation passed: {} services, {} surfaces, missing_count={}, design_claim_status={}, operational_claim_status={}, allowed_claim={:?}{}",
+                            report.service_count,
+                            report.surface_count,
+                            report.missing_count,
+                            report.design_claim_status,
+                            report.operational_claim_status,
+                            report.allowed_design_claim,
+                            evidence
+                        );
+                        ExitCode::SUCCESS
+                    }
+                    Err(message) => {
+                        eprintln!("design/spec maturity claim validation failed: {message}");
+                        ExitCode::FAILURE
+                    }
+                },
+                Err(message) => {
+                    eprintln!("{message}");
+                    ExitCode::from(2)
+                }
+            }
+        }
         (Some("validate"), Some("workspace-hygiene")) => {
             match crate::parse_workspace_hygiene_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_workspace_hygiene_gate(args) {

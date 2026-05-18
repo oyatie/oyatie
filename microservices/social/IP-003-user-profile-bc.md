@@ -125,4 +125,4 @@ cargo run -p oya-dev-cli -- gate validate dual-context-isolation --microservice 
 ## References
 
 - `policy/dual-context-isolation.md` DCI-01..DCI-08.
-- Bominal ADR-0208; parallel ADR-0135.
+- Bominal ADR-0208; parallel ADR-0238.

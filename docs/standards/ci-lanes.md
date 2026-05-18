@@ -29,6 +29,7 @@ The registry carries each lane's owner team and `runtime_budget_seconds`; the `q
 | `oya-foundry-fitness-aspirational-enforcement` | block active required enforcement claims that reference missing check crates, workflows, or branch-protection contexts | ADR-0135 / ADR-0133 |
 | `oya-foundry-fitness-workspace-hygiene` | inventory temp, home, repo-root, build-artifact, and `oyatie-worktrees` residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions | specs/workspace-hygiene.json / ADR-0123 |
 | `oya-foundry-fitness-hyperscaler-maturity-claims` | block unsupported hyperscaler maturity claims unless product depth, pipeline, hygiene, UX, safety, guardrail, and competitor evidence are green | specs/hyperscaler-gates.json / ADR-0123 |
+| `oya-foundry-fitness-design-spec-maturity-claims` | allow only the bounded design/spec maturity claim when every microservice has the required implementation-ready design surfaces, while keeping operational maturity blocked | specs/design-spec-maturity-claims.json / ADR-0123 |
 | `oya-foundry-fitness-foundation-bypass` | foundation-bypass expiry monitor | ADR-0040 |
 | `oya-foundry-fitness-glossary-cross-doc-coverage` | every glossary term appears outside GLOSSARY when active | GLOSSARY.md §11 / ADR-0018 |
 | `oya-foundry-fitness-glossary-vocabulary` | retired-vocab hard-fail plus casing/acronym warning baseline ratchet | GLOSSARY.md §11 / ADR-0018 |

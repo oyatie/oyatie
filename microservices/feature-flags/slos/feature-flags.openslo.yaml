@@ -1,0 +1,23 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: feature-flag-evaluation-latency
+spec:
+  description: Design target for cell-local flag evaluation latency.
+  objective:
+    target: 0.99
+  indicator:
+    metadata:
+      name: feature-flag-eval-latency-p99
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_feature_flag_eval_duration_bucket{le="0.001"}[5m]))
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: sum(rate(oya_feature_flag_eval_duration_count[5m]))

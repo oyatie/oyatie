@@ -47,7 +47,7 @@ Identify, classify, and mitigate threats to network's confidentiality, integrity
 
 ### In-scope
 
-All components introduced by parallel ADR-0135 (Connect dissolution → network µservice) and ADR-0132 (suite dissolution into network surface) for the network µservice. Deployed in the dedicated network Kubernetes cluster.
+All components introduced by parallel ADR-0238 (Connect dissolution → network µservice) and ADR-0132 (suite dissolution into network surface) for the network µservice. Deployed in the dedicated network Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|

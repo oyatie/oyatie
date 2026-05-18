@@ -1,5 +1,5 @@
 ---
-id: ADR-0132
+id: ADR-0235
 status: Accepted
 deciders: connect-product-council, council-architecture, council-privacy
 date: 2026-05-17
@@ -11,7 +11,7 @@ related:
   - ADR-0003
   - ADR-0008
   - ADR-0059
-  - ADR-0131
+  - ADR-0234
 related_specs:
   - /specs/products/connect/suite.json
   - /specs/products/connect/mail.json
@@ -21,7 +21,7 @@ version: 1.0.0
 purpose: Authorize the Connect core public contracts added by the OP-11 industry audit and bind them to Workflow/Ontology mediation, audit emission, and dual-context safety rules.
 ---
 
-# ADR-0132: Connect Core Public Contracts
+# ADR-0235: Connect Core Public Contracts
 
 ## Status
 

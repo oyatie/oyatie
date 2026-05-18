@@ -48,6 +48,7 @@ mod cross_axis_contracts;
 mod cross_tenant_access_gates;
 mod data_class_gates;
 mod date_utils;
+mod design_spec_maturity_claims_gate;
 mod documentation_gates;
 mod foundation_audit_gates;
 mod foundation_fixture;
@@ -119,6 +120,9 @@ pub(crate) use cross_tenant_access_gates::{
 pub(crate) use data_class_gates::{parse_data_class_validate_args, validate_data_class_gate};
 pub(crate) use date_utils::{
     current_epoch_days, current_epoch_days_i64, parse_yyyy_mm_dd_to_epoch_days,
+};
+pub(crate) use design_spec_maturity_claims_gate::{
+    parse_design_spec_maturity_claims_validate_args, validate_design_spec_maturity_claims_gate,
 };
 pub(crate) use documentation_gates::{
     parse_doc_catalog_validate_args, parse_documentation_system_validate_args,
@@ -292,6 +296,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate quality-lanes [--registry <registry/quality/lanes.yaml>] [--ci-lanes <docs/standards/ci-lanes.md>] [--check-script <scripts/check.sh>] [--teams-dir <docs/teams>]"
         + "\n       oya gate validate honest-claims [--clear-default-corpus] [--corpus-root <path>]... [--plans-dir <.omc/plans/milestones>]"
         + "\n       oya gate validate aspirational-enforcement [--clear-default-corpus] [--corpus-root <path>]... [--crates-dir <crates>] [--workflows-dir <.github/workflows>] [--quality-lanes <registry/quality/lanes.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--branch <dev>]"
+        + "\n       oya gate validate design-spec-maturity-claims [--standard <specs/design-spec-maturity-claims.json>] [--microservices-root <microservices>] [--emit-evidence <evidence/design-spec-maturity/after-2026-05-18.json>]"
         + "\n       oya gate validate hyperscaler-arch-invariants [--spec <specs/hyperscaler-architecture-invariants.json>]"
         + "\n       oya gate validate hyperscaler-maturity-claims [--gates <specs/hyperscaler-gates.json>] [--workflow-studio <specs/microservices/workflow-studio.json>] [--workflow <specs/microservices/workflow.json>] [--workspace-hygiene <specs/workspace-hygiene.json>] [--branch-protection <.github/branch-protection.yaml>] [--pr-review-workflow <.github/workflows/pr-review.yml>] [--ci-fix-loop-workflow <.github/workflows/ci-failure-fix-loop.yml>] [--gitops-vcs <specs/gitops-vcs-replacement.json>] [--merge-queue <specs/merge-queue-parked-pr.json>] [--iterative-fix-loop <specs/iterative-fix-loop.json>] [--ci-fix-loop-retry-budget <registry/ci-fix-loop-retry-budget.json>]"
         + "\n       oya gate validate workspace-hygiene [--policy <specs/workspace-hygiene.json>] [--no-scan] [--strict] [--clean-build-artifacts] [--clean-temp-artifacts]"

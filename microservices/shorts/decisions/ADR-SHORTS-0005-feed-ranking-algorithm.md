@@ -45,7 +45,7 @@ EU DSA Art. 27 (recommender system transparency) and EU AI Act Art. 50 (transpar
 
 KR PIPA Art. 29-2 + EU AI Act Art. 13 require an explanation API surface and an opt-out / human-review path.
 
-Per parallel ADR-0135 dual-context invariant: Personal-tier feed and Professional-tier feed are rendered by separate `FeedCache` ports (DCI invariant).
+Per parallel ADR-0238 dual-context invariant: Personal-tier feed and Professional-tier feed are rendered by separate `FeedCache` ports (DCI invariant).
 
 Per ADR-SHORTS-0006 minor-protection: minor accounts default to chronological-only per EU DSA Art. 28 + KR 청소년 보호법.
 
@@ -69,7 +69,7 @@ oyatie shorts adopts a **three-step strategy** (paired with ADR-SOC-0001):
   Heuristic is fully deterministic + auditable from code; no ML model in P01.
 - Per EU DSA Art. 27: user can switch between chronological + algorithmic via single setting; `ranking_explanation` API populates contributing signals when algorithmic mode active.
 - Per EU AI Act Art. 50: client SDK renders "AI-assessed ranking" label when algorithmic mode active (label same for P01 heuristic + P03 ML to preserve interface stability).
-- Per parallel ADR-0135: Personal-tier feed + Professional-tier feed rendered by separate `FeedCache` ports.
+- Per parallel ADR-0238: Personal-tier feed + Professional-tier feed rendered by separate `FeedCache` ports.
 
 ### Step 2 (M04-onward): ML-driven ranking model
 

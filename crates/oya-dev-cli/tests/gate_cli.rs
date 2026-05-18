@@ -1599,6 +1599,148 @@ fn hyperscaler_maturity_claims_gate_accepts_repo_control_surfaces() {
 }
 
 #[test]
+fn design_spec_maturity_claims_gate_accepts_fixture_and_emits_evidence() {
+    let temp = temp_dir("design-spec-maturity-claims");
+    let microservices_root = temp.join("microservices");
+    write_design_spec_maturity_service_fixture(&microservices_root);
+    let evidence_path = temp.join("evidence/design-spec-maturity.json");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "design-spec-maturity-claims",
+            "--standard",
+            repo_root()
+                .join("specs/design-spec-maturity-claims.json")
+                .to_str()
+                .expect("utf8 standard path"),
+            "--microservices-root",
+            microservices_root
+                .to_str()
+                .expect("utf8 microservices path"),
+            "--emit-evidence",
+            evidence_path.to_str().expect("utf8 evidence path"),
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("design/spec maturity gate command runs");
+
+    assert!(
+        output.status.success(),
+        "stdout={}\nstderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("design/spec maturity claim validation passed"));
+    assert!(
+        stdout.contains("operational_claim_status=blocked_until_operational_evidence_is_green")
+    );
+    let evidence = fs::read_to_string(&evidence_path).expect("evidence written");
+    assert!(evidence.contains("\"missing_count\": 0"));
+    assert!(evidence.contains("hyperscaler-grade design maturity bar"));
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn design_spec_maturity_claims_gate_rejects_unblocked_operational_claims() {
+    let temp = temp_dir("design-spec-maturity-operational-claim");
+    let microservices_root = temp.join("microservices");
+    write_design_spec_maturity_service_fixture(&microservices_root);
+    let standard_path = temp.join("bad-standard.json");
+    let fixture = fs::read_to_string(repo_root().join("specs/design-spec-maturity-claims.json"))
+        .expect("repo standard read");
+    fs::write(
+        &standard_path,
+        fixture.replace(
+            "\"claim_status\": \"blocked_until_operational_evidence_is_green\"",
+            "\"claim_status\": \"allowed\"",
+        ),
+    )
+    .expect("bad standard written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "design-spec-maturity-claims",
+            "--standard",
+            standard_path.to_str().expect("utf8 standard path"),
+            "--microservices-root",
+            microservices_root
+                .to_str()
+                .expect("utf8 microservices path"),
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("design/spec maturity gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("operational maturity claim_status must remain"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
+fn design_spec_maturity_claims_gate_rejects_unimplemented_required_surfaces() {
+    let temp = temp_dir("design-spec-maturity-unknown-surface");
+    let microservices_root = temp.join("microservices");
+    write_design_spec_maturity_service_fixture(&microservices_root);
+    let standard_path = temp.join("bad-standard.json");
+    let fixture = fs::read_to_string(repo_root().join("specs/design-spec-maturity-claims.json"))
+        .expect("repo standard read");
+    let mut standard: serde_json::Value =
+        serde_json::from_str(&fixture).expect("repo standard parses");
+    standard
+        .get_mut("required_surfaces")
+        .and_then(serde_json::Value::as_array_mut)
+        .expect("required surfaces array")
+        .push(serde_json::json!({
+            "id": "new_required_surface",
+            "name": "New Required Surface",
+            "evidence_policy": "Every service must prove this surface."
+        }));
+    fs::write(
+        &standard_path,
+        serde_json::to_string_pretty(&standard).expect("bad standard serializes"),
+    )
+    .expect("bad standard written");
+
+    let output = Command::new(env!("CARGO_BIN_EXE_oya"))
+        .args([
+            "gate",
+            "validate",
+            "design-spec-maturity-claims",
+            "--standard",
+            standard_path.to_str().expect("utf8 standard path"),
+            "--microservices-root",
+            microservices_root
+                .to_str()
+                .expect("utf8 microservices path"),
+        ])
+        .current_dir(repo_root())
+        .output()
+        .expect("design/spec maturity gate command runs");
+
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("unknown required design/spec surface ids: new_required_surface"),
+        "stderr={}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    fs::remove_dir_all(temp).ok();
+}
+
+#[test]
 fn hyperscaler_arch_invariants_gate_accepts_repo_spec() {
     let output = Command::new(env!("CARGO_BIN_EXE_oya"))
         .args(["gate", "validate", "hyperscaler-arch-invariants"])
@@ -6323,6 +6465,94 @@ fn temp_dir(label: &str) -> std::path::PathBuf {
         .expect("clock after epoch")
         .as_nanos();
     std::env::temp_dir().join(format!("oya-{label}-{}-{nanos}", std::process::id()))
+}
+
+fn write_design_spec_maturity_service_fixture(microservices_root: &Path) {
+    let service = microservices_root.join("billing");
+    fs::create_dir_all(service.join("contracts")).expect("contracts dir created");
+    fs::create_dir_all(service.join("capabilities")).expect("capabilities dir created");
+    fs::create_dir_all(service.join("policy")).expect("policy dir created");
+    fs::create_dir_all(service.join("slos")).expect("slos dir created");
+    fs::create_dir_all(service.join("runbooks")).expect("runbooks dir created");
+    fs::write(
+        service.join("manifest.json"),
+        r#"{
+  "service_id": "billing",
+  "adrs": ["ADR-0123"],
+  "regulatory_packs": ["REGIONAL-US"],
+  "audit_chain": {
+    "enabled": true,
+    "seal_events": ["billing.invoice.issued"]
+  }
+}
+"#,
+    )
+    .expect("manifest written");
+    fs::write(
+        service.join("PRD.md"),
+        "# Billing PRD\n\nAcceptance criteria: billing design is implementation-ready.\n",
+    )
+    .expect("PRD written");
+    fs::write(
+        service.join("IP-001-billing-design.md"),
+        "# IP-001 Billing Design\n\nAcceptance criteria: contracts, policy, SLOs, and runbooks are present.\n",
+    )
+    .expect("IP written");
+    fs::write(
+        service.join("contracts/billing.openapi.yaml"),
+        "openapi: 3.1.0\ninfo:\n  title: Billing\n  version: 0.1.0\npaths: {}\n",
+    )
+    .expect("OpenAPI written");
+    fs::write(
+        service.join("contracts/billing.asyncapi.yaml"),
+        "asyncapi: 3.0.0\ninfo:\n  title: Billing Events\n  version: 0.1.0\nchannels: {}\noperations: {}\n",
+    )
+    .expect("AsyncAPI written");
+    fs::write(
+        service.join("contracts/billing.proto"),
+        "syntax = \"proto3\";\npackage oyatie.billing.v1;\nmessage BillingEvent { string id = 1; }\n",
+    )
+    .expect("proto written");
+    fs::write(
+        service.join("capabilities/invoice.yaml"),
+        "id: cap.billing.invoice\n",
+    )
+    .expect("capability written");
+    fs::write(
+        service.join("policy/tenant-isolation.cedar"),
+        "permit(principal, action, resource) when { principal.tenant == resource.tenant };\n",
+    )
+    .expect("policy written");
+    fs::write(
+        service.join("slos/billing.openslo.yaml"),
+        "apiVersion: openslo/v1\nkind: SLO\nmetadata:\n  name: billing\nspec: {}\n",
+    )
+    .expect("SLO written");
+    fs::write(
+        service.join("runbooks/billing.md"),
+        "# Billing Runbook\n\nIncident boundary: rollback invoice emission.\n",
+    )
+    .expect("runbook written");
+    fs::write(
+        service.join("threat-model.md"),
+        "# Threat Model\n\nTenant invoice access and replay threats.\n",
+    )
+    .expect("threat model written");
+    fs::write(
+        service.join("failure-modes.md"),
+        "# Failure Modes\n\nQueue delay, duplicate invoice emission, and policy denial.\n",
+    )
+    .expect("failure modes written");
+    fs::write(
+        service.join("cost-budget.md"),
+        "# Cost Budget\n\nFinOps guardrail: bound invoice recomputation cost.\n",
+    )
+    .expect("cost budget written");
+    fs::write(
+        service.join("operational-boundaries.md"),
+        "# Operational Boundaries\n\nIncident and capacity ownership remain design-only here.\n",
+    )
+    .expect("operational boundaries written");
 }
 
 struct TempDirGuard {

@@ -23,12 +23,12 @@ The `social` microservice is oyatie's native Twitter/X-class first-party social 
 
 This µservice is **a hero product**, end-user-facing through Workflow Studio shell and standalone social clients (web + desktop + mobile). It is also consumable as a shared substrate by other oyatie products via the `social.post.v1` Workflow events and the `Person`, `Post`, `Topic` Ontology object types.
 
-Bominal predecessor: the `connect-social` slice of Bominal's unified Connect suite. Per parallel ADR-0135, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical social landing in oyatie. **social is NET-NEW** — no `oya-connect-social-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md.
+Bominal predecessor: the `connect-social` slice of Bominal's unified Connect suite. Per parallel ADR-0238, that monolithic suite is dissolved into per-surface µservices; this PRD is the canonical social landing in oyatie. **social is NET-NEW** — no `oya-connect-social-*` crates exist; there is no migration-from-connect.md or deprecation-notice.md.
 
 ## Tenant Value
 
 - **Tenant Outcome 1 — Native social presence without identity fragmentation.** Tenants and their end-users get Twitter/X-class profile + follow-graph + feed UX inside the same shell as mail, messenger, calendar, workflow studio — switching personal/professional context without leaving the surface.
-- **Tenant Outcome 2 — Dual-context-safe social.** Personal (B2C) profiles never cross into professional (B2B) audit scope per parallel ADR-0135; Professional posts carry tenant-DEK encryption when configured and four-eyes audit disclosure inherited from Bominal ADR-0215. Personal-tier never federates.
+- **Tenant Outcome 2 — Dual-context-safe social.** Personal (B2C) profiles never cross into professional (B2B) audit scope per parallel ADR-0238; Professional posts carry tenant-DEK encryption when configured and four-eyes audit disclosure inherited from Bominal ADR-0215. Personal-tier never federates.
 - **Tenant Outcome 3 — Real-time feed + notification delivery.** Feed-render p95 ≤ 200ms (top 50 posts); notification-fanout p99 ≤ 2s for 10k-follower accounts; post-create p95 ≤ 100ms.
 - **Tenant Outcome 4 — Moderation that is auditable.** Every moderation verdict + appeal-action emits an audit-chain record (Merkle / Ed25519); EU AI Act high-risk classification for content-moderation + ranking model carries transparency obligations per Art. 50.
 - **Tenant Outcome 5 — Cross-product mention-and-link integration.** Posts cross-link to messenger DMs (deep-link to-messenger bridge), community discussions, ontology entities, and workflow events natively; competitors expose webhooks only.
@@ -194,7 +194,7 @@ CI lanes that must green:
 - `oya gate validate statelessness --microservice social`
 - `oya gate validate shardability --microservice social`
 - `oya gate validate authority-cohesion --microservice social` (HG-SOCIAL)
-- `oya gate validate dual-context-isolation --microservice social` (per parallel ADR-0135)
+- `oya gate validate dual-context-isolation --microservice social` (per parallel ADR-0238)
 
 ## Integration via Workflow + Ontology
 
@@ -334,7 +334,7 @@ Sharding:
 | AC-10 | Age-gate: minor signup on pack-eu requires parental consent attestation | `tests/e2e/age-gate-pack-eu.rs` |
 | AC-11 | `oya gate validate per-microservice-layout --microservice social` exit 0 | ADR-0131 lane |
 | AC-12 | `oya gate validate authority-cohesion --microservice social` exit 0 | ADR-0123 lane; HG-SOCIAL registered |
-| AC-13 | `oya gate validate dual-context-isolation --microservice social` exit 0 | per parallel ADR-0135 |
+| AC-13 | `oya gate validate dual-context-isolation --microservice social` exit 0 | per parallel ADR-0238 |
 | AC-14 | EU AI Act transparency label appears on every classifier verdict on pack-eu | `tests/e2e/eu-ai-act-transparency.rs` |
 | AC-15 | Ads-substrate-stub T2 capability is disabled by default; tenant-admin opt-in required | `tests/e2e/ads-substrate-default-off.rs` |
 

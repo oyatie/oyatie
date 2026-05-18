@@ -27,14 +27,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the foundation of the social µservice per parallel ADR-0135 + ADR-0132: user-profile + follow-graph + post-composition + feed-timeline + reactions + mentions + hashtags + trending-topics + notifications + content-moderation + search + age-verification + profile-verification + lists + bookmarks + abuse-reporting + appeal-workflow, dual-context-safe across Personal (B2C) and Professional (B2B).
+This phase ships the foundation of the social µservice per parallel ADR-0238 + ADR-0132: user-profile + follow-graph + post-composition + feed-timeline + reactions + mentions + hashtags + trending-topics + notifications + content-moderation + search + age-verification + profile-verification + lists + bookmarks + abuse-reporting + appeal-workflow, dual-context-safe across Personal (B2C) and Professional (B2B).
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Twitter/X / Mastodon / Bluesky parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs; every NFR covered).
 - No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
+- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0238.
 
 ## Scope
 
@@ -48,7 +48,7 @@ Plus cross-cutting:
 - `.github/branch-protection.yaml` — add `release/social/*` pattern protection.
 - `/specs/hyperscaler-gates.json` — register HG-SOCIAL per ADR-0133.
 - `Cargo.toml` (workspace) — register ~108 crates.
-- `docs/standards/dual-context-isolation.md` (already authored cross-cutting per parallel ADR-0135).
+- `docs/standards/dual-context-isolation.md` (already authored cross-cutting per parallel ADR-0238).
 
 ### Out-of-scope (scheduled-for-distinct-tracked-work to successor-IP phases)
 
