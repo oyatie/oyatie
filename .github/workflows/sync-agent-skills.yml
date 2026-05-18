@@ -93,6 +93,22 @@ jobs:
           UPSTREAM_SHA="${{ needs.check-upstream.outputs.upstream_sha }}"
           SKILLS_DIR="tools/agent-skills"
 
+          # Stash oyatie-authored files + extract oyatie-authored UPSTREAM.json fields
+          # so they survive the rm -rf below. Per UPSTREAM.json.oyatie_authored_files.
+          STASH_DIR=$(mktemp -d)
+          OYATIE_FILES=$(jq -r '.oyatie_authored_files[]?' "$SKILLS_DIR/UPSTREAM.json" 2>/dev/null || true)
+          for f in $OYATIE_FILES; do
+            if [ -f "$SKILLS_DIR/$f" ]; then
+              mkdir -p "$STASH_DIR/$(dirname "$f")"
+              cp "$SKILLS_DIR/$f" "$STASH_DIR/$f"
+            fi
+          done
+          # Stash oyatie-authored UPSTREAM.json fields (everything except upstream-tracked metadata)
+          if [ -f "$SKILLS_DIR/UPSTREAM.json" ]; then
+            jq '{inheritance_pattern, oyatie_authored_files, import_targets, structural_invariants_for_sync_pr}' \
+              "$SKILLS_DIR/UPSTREAM.json" > "$STASH_DIR/oyatie-fields.json"
+          fi
+
           # Download tarball
           gh api repos/addyosmani/agent-skills/tarball/main > /tmp/skills.tar.gz
           mkdir -p /tmp/skills-extract
@@ -105,23 +121,51 @@ jobs:
           rsync -a --exclude='.github/' "$EXTRACTED/" "$SKILLS_DIR/"
           rm -rf "$SKILLS_DIR/.github"
 
-          # Update UPSTREAM.json
-          FETCH_TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          cat > "$SKILLS_DIR/UPSTREAM.json" <<UPSTREAM_EOF
-          {
-            "upstream": "https://github.com/addyosmani/agent-skills",
-            "commit_sha": "$UPSTREAM_SHA",
-            "fetched_at": "$FETCH_TS",
-            "license": "MIT",
-            "license_file": "tools/agent-skills/LICENSE",
-            "attribution": "Addy Osmani and contributors",
-            "vendor_method": "tarball-extract",
-            "vendor_managed_by": "tools/hook-bootstrap/install.sh + .github/workflows/sync-agent-skills.yml",
-            "manual_edits_prohibited": true,
-            "sync_policy": "auto-PR on upstream drift; never edit in place"
-          }
-          UPSTREAM_EOF
+          # Restore oyatie-authored files
+          if [ -d "$STASH_DIR" ]; then
+            (cd "$STASH_DIR" && find . -type f ! -name 'oyatie-fields.json' \
+              -exec sh -c 'mkdir -p "'"$SKILLS_DIR"'/$(dirname "$1")" && cp "$1" "'"$SKILLS_DIR"'/$1"' _ {} \;)
+          fi
 
+          # Compute skill/persona/reference counts for UPSTREAM.json
+          SKILL_COUNT=$(find "$SKILLS_DIR/skills" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+          PERSONA_COUNT=$(find "$SKILLS_DIR/agents" -mindepth 1 -maxdepth 1 -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ')
+          REFERENCE_COUNT=$(find "$SKILLS_DIR/references" -mindepth 1 -maxdepth 1 -type f 2>/dev/null | wc -l | tr -d ' ')
+
+          # Update UPSTREAM.json (merge upstream-tracked fields with stashed oyatie-authored fields)
+          FETCH_TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          UPSTREAM_FIELDS=$(jq -n \
+            --arg sha "$UPSTREAM_SHA" \
+            --arg ts "$FETCH_TS" \
+            --argjson skills "$SKILL_COUNT" \
+            --argjson personas "$PERSONA_COUNT" \
+            --argjson refs "$REFERENCE_COUNT" \
+            '{
+              upstream: "https://github.com/addyosmani/agent-skills",
+              commit_sha: $sha,
+              fetched_at: $ts,
+              license: "MIT",
+              license_file: "tools/agent-skills/LICENSE",
+              attribution: "Addy Osmani and contributors",
+              vendor_method: "tarball-extract",
+              vendor_managed_by: "tools/hook-bootstrap/install.sh + .github/workflows/sync-agent-skills.yml",
+              manual_edits_prohibited: true,
+              sync_policy: "auto-PR on upstream drift; never edit in place",
+              skill_count: $skills,
+              persona_count: $personas,
+              reference_count: $refs
+            }')
+
+          if [ -f "$STASH_DIR/oyatie-fields.json" ]; then
+            jq -s '.[0] * .[1]' \
+              <(echo "$UPSTREAM_FIELDS") \
+              "$STASH_DIR/oyatie-fields.json" \
+              > "$SKILLS_DIR/UPSTREAM.json"
+          else
+            echo "$UPSTREAM_FIELDS" > "$SKILLS_DIR/UPSTREAM.json"
+          fi
+
+          rm -rf "$STASH_DIR"
           touch "$SKILLS_DIR/.vendored"
           echo "upstream_sha_short=${UPSTREAM_SHA:0:12}" >> "$GITHUB_OUTPUT"
         env:
@@ -157,28 +201,32 @@ jobs:
 
           git push origin "$BRANCH"
 
+          PR_BODY=$(cat <<EOF
+          ## Automated Agent Skills Sync
+
+          Upstream drift detected in [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills).
+
+          **Upstream changelog:** ${{ steps.changelog.outputs.url }}
+
+          ## Changes
+          - Re-vendored \`tools/agent-skills/\` from upstream HEAD
+          - Updated \`tools/agent-skills/UPSTREAM.json\` with new SHA + fetch timestamp
+          - Preserved oyatie-authored files (per \`UPSTREAM.json.oyatie_authored_files\`)
+
+          ## Review checklist
+          - [ ] Review upstream diff for breaking changes to skill structure
+          - [ ] Confirm \`validate-skills.js\` passes (required CI check)
+          - [ ] Confirm session-start hook payload still references valid skill names
+          - [ ] Confirm \`tools/agent-skills/INHERITANCE.md\` survived sync
+          - [ ] Merge when satisfied — do NOT auto-merge
+
+          **Attribution:** Lifecycle skills vendored from addyosmani/agent-skills (MIT).
+          EOF
+          )
+
           gh pr create \
             --title "chore(vendor): sync agent-skills to ${SHORT_SHA}" \
-            --body "$(cat <<'EOF'
-## Automated Agent Skills Sync
-
-Upstream drift detected in [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills).
-
-**Upstream changelog:** ${{ steps.changelog.outputs.url }}
-
-## Changes
-- Re-vendored `tools/agent-skills/` from upstream HEAD
-- Updated `tools/agent-skills/UPSTREAM.json` with new SHA + fetch timestamp
-
-## Review checklist
-- [ ] Review upstream diff for breaking changes to skill structure
-- [ ] Confirm `validate-skills.js` passes (required CI check)
-- [ ] Confirm session-start hook payload still references valid skill names
-- [ ] Merge when satisfied — do NOT auto-merge
-
-**Attribution:** Lifecycle skills vendored from addyosmani/agent-skills (MIT).
-EOF
-            )" \
+            --body "$PR_BODY" \
             --label "auto-vendor-sync,agent-skills" \
             --base dev
         env:

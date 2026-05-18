@@ -65,24 +65,28 @@ jobs:
 
       - name: Verify UPSTREAM.json provenance (if vendored)
         run: |
-          if [ -f tools/agent-skills/UPSTREAM.json ]; then
-            python3 - <<'PYEOF'
-import json, sys
-with open("tools/agent-skills/UPSTREAM.json") as f:
-    data = json.load(f)
-required = ["upstream", "commit_sha", "fetched_at", "license", "attribution", "manual_edits_prohibited"]
-missing = [k for k in required if k not in data]
-if missing:
-    print(f"UPSTREAM.json missing required fields: {missing}", file=sys.stderr)
-    sys.exit(1)
-if data["license"] != "MIT":
-    print(f"Expected MIT license, got: {data['license']}", file=sys.stderr)
-    sys.exit(1)
-if not data["manual_edits_prohibited"]:
-    print("manual_edits_prohibited must be true", file=sys.stderr)
-    sys.exit(1)
-print(f"UPSTREAM.json valid — SHA: {data['commit_sha'][:12]}, fetched: {data['fetched_at']}")
-PYEOF
-          else
+          set -e
+          if [ ! -f tools/agent-skills/UPSTREAM.json ]; then
             echo "ℹ UPSTREAM.json not present — agent-skills not yet vendored (OK for base branch)"
+            exit 0
           fi
+          # Required fields present + license is MIT + manual_edits_prohibited is true
+          jq -e '
+            .upstream
+            and .commit_sha
+            and .fetched_at
+            and (.license == "MIT")
+            and .attribution
+            and (.manual_edits_prohibited == true)
+          ' tools/agent-skills/UPSTREAM.json > /dev/null
+          # Oyatie-authored inheritance fields present
+          jq -e '
+            (.inheritance_pattern // empty) != null
+            and (.oyatie_authored_files // empty) != null
+            and (.import_targets // empty) != null
+          ' tools/agent-skills/UPSTREAM.json > /dev/null
+          # INHERITANCE.md must exist (oyatie-authored)
+          test -f tools/agent-skills/INHERITANCE.md
+          SHA_SHORT=$(jq -r '.commit_sha[0:12]' tools/agent-skills/UPSTREAM.json)
+          FETCHED=$(jq -r '.fetched_at' tools/agent-skills/UPSTREAM.json)
+          echo "UPSTREAM.json valid — SHA: ${SHA_SHORT}, fetched: ${FETCHED}"
