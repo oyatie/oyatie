@@ -188,7 +188,7 @@
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: IaC bootstrap \u2014 Helm + Kustomize for Garage + MinIO + SeaweedFS + Postgres + Redis + Meilisearch + Tika + ClamAV + OPSWAT + LibreOffice-gVisor",
+      "title": "IP-001: IaC bootstrap — Helm + Kustomize for Garage + MinIO + SeaweedFS + Postgres + Redis + Meilisearch + Tika + ClamAV + OPSWAT + LibreOffice-gVisor",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-001-iac-bootstrap.md"
     },
@@ -218,55 +218,55 @@
     },
     {
       "id": "IP-006-upload",
-      "title": "IP-006: upload BC \u2014 multipart resumable + S3 + tus 1.0",
+      "title": "IP-006: upload BC — multipart resumable + S3 + tus 1.0",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-006-upload.md"
     },
     {
       "id": "IP-007-download",
-      "title": "IP-007: download BC \u2014 range + signed URL + CDN steering",
+      "title": "IP-007: download BC — range + signed URL + CDN steering",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-007-download.md"
     },
     {
       "id": "IP-008-sync",
-      "title": "IP-008: sync BC \u2014 FastCDC + LBFS delta-sync + deterministic conflict tie-break",
+      "title": "IP-008: sync BC — FastCDC + LBFS delta-sync + deterministic conflict tie-break",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-008-sync.md"
     },
     {
       "id": "IP-009-share-link",
-      "title": "IP-009: share-link BC \u2014 Ed25519 + Argon2id + strict-TTL + view-cap + revocation cascade",
+      "title": "IP-009: share-link BC — Ed25519 + Argon2id + strict-TTL + view-cap + revocation cascade",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-009-share-link.md"
     },
     {
       "id": "IP-010-permissions",
-      "title": "IP-010: permissions BC \u2014 per-folder + per-file ACL + inheritance + override + ownership transfer",
+      "title": "IP-010: permissions BC — per-folder + per-file ACL + inheritance + override + ownership transfer",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-010-permissions.md"
     },
     {
       "id": "IP-011-search-index",
-      "title": "IP-011: search-index BC \u2014 Meilisearch + Apache Tika full-text + OCR handoff",
+      "title": "IP-011: search-index BC — Meilisearch + Apache Tika full-text + OCR handoff",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-011-search-index.md"
     },
     {
       "id": "IP-012-preview",
-      "title": "IP-012: preview BC \u2014 libvips + qpdf + LibreOffice-gVisor + ffmpeg sandbox",
+      "title": "IP-012: preview BC — libvips + qpdf + LibreOffice-gVisor + ffmpeg sandbox",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-012-preview.md"
     },
     {
       "id": "IP-013-dlp-virus-scan",
-      "title": "IP-013: dlp-virus-scan BC \u2014 ClamAV + OPSWAT + DLP rules + foundry-runtime ML handoff",
+      "title": "IP-013: dlp-virus-scan BC — ClamAV + OPSWAT + DLP rules + foundry-runtime ML handoff",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-013-dlp-virus-scan.md"
     },
     {
       "id": "IP-014-immutability-tier",
-      "title": "IP-014: immutability-tier BC \u2014 WORM compliance-mode + legal hold + 2-person rule + periodic integrity scan",
+      "title": "IP-014: immutability-tier BC — WORM compliance-mode + legal hold + 2-person rule + periodic integrity scan",
       "acceptance_status": "ga",
       "file": "microservices/drive/IP-014-immutability-tier.md"
     },
@@ -291,6 +291,7 @@
     "ksa"
   ],
   "lts_pins": {
+    "prometheus": "2.55",
     "rust": "1.83"
   },
   "adrs": [
@@ -326,34 +327,40 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
+      "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
     },
     {
       "id": "ADR-0135",
-      "title": "Aspirational Enforcement Gate",
+      "title": "Connect Super App Expansion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0135-aspirational-enforcement-gate.md"
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
     },
     {
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0140",
+      "title": "Cross Cutting Carriers Adapter Exemption",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

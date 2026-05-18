@@ -369,7 +369,88 @@ limits:
   memory: 16Gi
 {{- end }}
 
-{{/* oya.runtimeClassName.gvisor — gVisor sandbox runtime */}}
+{{/* ----------------------------------------------------------------------
+     Container sandboxing runtime LADDER (per ADR-0147).
+
+     The five helpers below replace the universal `runtimeClassName: gvisor`
+     anti-pattern with workload-class-tiered selection matching AWS/Google/
+     Microsoft/Cloudflare per-workload practice:
+
+       oya.runtimeClassName.appTier            — emits NOTHING (bare Linux + CIS restricted)
+       oya.runtimeClassName.untrustedContent   — gVisor default; Kata for sovereign tenant tier
+       oya.runtimeClassName.crypto             — Kata (full-VM blast radius)
+       oya.runtimeClassName.aiInference        — gVisor (CPU); Kata-with-GPU for confidential compute
+       oya.runtimeClassName.federationGateway  — gVisor + restrictive egress NetworkPolicy
+
+     Per-tenant override: each helper reads `.Values.tenantTier` (string)
+     and upgrades to Kata when the tenant_tier is "sovereign".
+
+     The legacy `oya.runtimeClassName.gvisor` helper is retained for
+     transitional compatibility but new uses MUST select one of the five
+     workload-class helpers above.
+   ---------------------------------------------------------------------- */}}
+
+{{/* oya.runtimeClassName.appTier — App-tier µservices run on bare Linux + CIS
+     K8s restricted profile. This helper deliberately emits NOTHING. Calling
+     it documents the workload-class choice (vs. omitting accidentally). */}}
+{{- define "oya.runtimeClassName.appTier" -}}
+{{- /* No runtimeClassName — bare Linux + CIS restricted per ADR-0147 */ -}}
+{{- end }}
+
+{{/* oya.runtimeClassName.untrustedContent — gVisor default for content-
+     transcoder/renderer workloads (Pandoc, LibreOffice, Chromium-headless,
+     WeasyPrint, ffmpeg, ImageMagick). Sovereign-tier tenants upgrade to
+     Kata Containers for full-VM blast radius. */}}
+{{- define "oya.runtimeClassName.untrustedContent" -}}
+{{- $tenantTier := .Values.tenantTier | default "default" -}}
+{{- if eq $tenantTier "sovereign" -}}
+runtimeClassName: kata-qemu
+{{- else -}}
+runtimeClassName: gvisor
+{{- end -}}
+{{- end }}
+
+{{/* oya.runtimeClassName.crypto — Cryptographic workers (blind-signature
+     ceremony nodes, KMS-bound signers, signing oracles). gVisor's user-
+     space-kernel emulation provides insufficient blast-radius guarantees
+     for crypto workloads; Kata Containers (full VM) is the default.
+     FIPS 140-3 Level 3 tenants further upgrade to bare HSM. */}}
+{{- define "oya.runtimeClassName.crypto" -}}
+{{- $tenantTier := .Values.tenantTier | default "default" -}}
+{{- if eq $tenantTier "fips-140-3-level-3" -}}
+{{- /* Bare HSM — RuntimeClass-less; pod schedules to HSM-attached host pool */ -}}
+{{- else -}}
+runtimeClassName: kata-qemu
+{{- end -}}
+{{- end }}
+
+{{/* oya.runtimeClassName.aiInference — AI inference workloads (Whisper
+     transcription, ML model inference). Default gVisor on CPU paths;
+     confidential-compute tier upgrades to Kata with GPU passthrough. */}}
+{{- define "oya.runtimeClassName.aiInference" -}}
+{{- $tenantTier := .Values.tenantTier | default "default" -}}
+{{- if eq $tenantTier "confidential-compute" -}}
+runtimeClassName: kata-qemu
+{{- else -}}
+runtimeClassName: gvisor
+{{- end -}}
+{{- end }}
+
+{{/* oya.runtimeClassName.federationGateway — Federation/internet-egress
+     gateway workers. gVisor by default with restrictive egress NetworkPolicy;
+     highest-risk packs upgrade to Kata. */}}
+{{- define "oya.runtimeClassName.federationGateway" -}}
+{{- $tenantTier := .Values.tenantTier | default "default" -}}
+{{- if eq $tenantTier "sovereign" -}}
+runtimeClassName: kata-qemu
+{{- else -}}
+runtimeClassName: gvisor
+{{- end -}}
+{{- end }}
+
+{{/* oya.runtimeClassName.gvisor — DEPRECATED per ADR-0147. Retained for
+     transitional compatibility only. New uses MUST select one of the five
+     workload-class helpers above. */}}
 {{- define "oya.runtimeClassName.gvisor" -}}
 runtimeClassName: gvisor
 {{- end }}

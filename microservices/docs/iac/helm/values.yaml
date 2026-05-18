@@ -177,10 +177,14 @@ opswat:
     tag: "5.6.0"
   licenseKeyRef: "${openbao:secret/docs/us-healthcare/opswat-license}"
 
-# ---- gVisor pool (export workers per ADR-DOCS-0003) -------------------
+# ---- Untrusted-content sandbox pool (export workers per ADR-DOCS-0003) -----
+# RuntimeClass selection delegated to oya.runtimeClassName.untrustedContent
+# canonical Helm helper per ADR-0147 (gVisor default; Kata for sovereign tier).
 
 gvisor:
   enabled: true
+  # runtimeClassName moved to canonical helper per ADR-0147; this key retained
+  # only as a transitional fallback for tooling that still reads it.
   runtimeClassName: gvisor
   poolSize: 10
   perJobTmpfsBytes: 1073741824   # 1 GiB tmpfs

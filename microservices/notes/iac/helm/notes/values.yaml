@@ -59,7 +59,8 @@ importExportWorker:
   resources:
     requests: {cpu: 250m, memory: 512Mi}
     limits: {cpu: 1500m, memory: 2Gi}
-  runtimeClassName: gvisor
+  # ADR-0147: Pandoc/LibreOffice import-export = untrusted-content workload class.
+  workloadClass: untrusted-content
 
 # Substrate secrets via OpenBao SecretReference
 openbao:

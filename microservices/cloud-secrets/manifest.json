@@ -91,7 +91,44 @@
       "eu_ai_act_risk_class": "limited"
     }
   ],
-  "slos": [],
+  "slos": [
+    {
+      "name": "oya-cloud-secrets-audit-log-completeness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_cloud_secrets_op_total{audit_sealed=\"true\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/audit-log-completeness.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-hsm-availability",
+      "target": "0.9999",
+      "sli": "sum(rate(oya_cloud_secrets_hsm_op_total{outcome=\"success\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/hsm-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-key-rotation-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_cloud_secrets_key_rotation_total{outcome=\"on_cadence\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/key-rotation-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-pki-cert-issuance-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_secrets_pki_issue_duration_seconds_bucket{le=\"1\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/pki-cert-issuance-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-secret-resolve-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_cloud_secrets_resolve_duration_seconds_bucket{le=\"0.1\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/secret-resolve-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-cloud-secrets-secret-write-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_cloud_secrets_write_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/cloud-secrets/slos/secret-write-latency.openslo.yaml"
+    }
+  ],
   "ips": [
     {
       "id": "IP-001-layer-a-openbao-postgres-hsm-iac",
@@ -198,8 +235,8 @@
     "ksa"
   ],
   "lts_pins": {
-    "openbao": "2.0.0",
-    "postgres": "16.4",
+    "openbao": "2.0.0\"   # OpenBao 2.x LTS pinned per docs/standards/version-pinning.md",
+    "postgres": "16.4\"   # Postgres LTS pinned per docs/standards/version-pinning.md",
     "rust": "1.83"
   },
   "adrs": [
@@ -247,15 +284,15 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
+      "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
     },
     {
       "id": "ADR-0139",
@@ -265,10 +302,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

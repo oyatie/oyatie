@@ -27,8 +27,16 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9091"
     spec:
-      {{- if $c.runtimeClassName }}
-      runtimeClassName: {{ $c.runtimeClassName }}
+      {{- /* Container sandboxing runtime ladder per ADR-0147; component declares
+            workloadClass which dispatches to the right canonical helper. */}}
+      {{- if eq ($c.workloadClass | default "") "ai-inference" }}
+      {{- include "oya.runtimeClassName.aiInference" $ | nindent 6 }}
+      {{- else if eq ($c.workloadClass | default "") "untrusted-content" }}
+      {{- include "oya.runtimeClassName.untrustedContent" $ | nindent 6 }}
+      {{- else if eq ($c.workloadClass | default "") "crypto" }}
+      {{- include "oya.runtimeClassName.crypto" $ | nindent 6 }}
+      {{- else if eq ($c.workloadClass | default "") "federation-gateway" }}
+      {{- include "oya.runtimeClassName.federationGateway" $ | nindent 6 }}
       {{- end }}
       serviceAccountName: translate-{{ . | kebabcase }}
       securityContext:

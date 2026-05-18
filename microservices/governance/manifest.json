@@ -77,11 +77,11 @@
     }
   ],
   "layers": [
-    "adapter",
-    "domain",
     "kernel",
-    "rest",
-    "usecase"
+    "domain",
+    "usecase",
+    "adapter",
+    "rest"
   ],
   "contracts": {
     "openapi": [
@@ -114,11 +114,48 @@
       "eu_ai_act_risk_class": "minimal"
     }
   ],
-  "slos": [],
+  "slos": [
+    {
+      "name": "oya-governance-aspirational-enforcement-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_governance_aspirational_honesty_test_total{outcome=\"honest\"}[5m]))",
+      "file": "microservices/governance/slos/aspirational-enforcement-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-governance-check-crate-availability",
+      "target": "0.999",
+      "sli": "sum(rate(oya_governance_check_crate_invocation_total{outcome=~\"pass|fail\"}[5m]))",
+      "file": "microservices/governance/slos/check-crate-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-governance-conformance-evidence-freshness",
+      "target": "0.99",
+      "sli": "sum(rate(oya_governance_evidence_age_seconds_bucket{le=\"86400\"}[5m]))",
+      "file": "microservices/governance/slos/conformance-evidence-freshness.openslo.yaml"
+    },
+    {
+      "name": "oya-governance-gate-validate-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_governance_gate_validate_duration_seconds_bucket{le=\"5\"}[5m]))",
+      "file": "microservices/governance/slos/gate-validate-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-governance-per-lane-runtime-budget",
+      "target": "0.95",
+      "sli": "sum(rate(oya_governance_lane_runtime_duration_seconds_bucket{le=\"30\"}[5m]))",
+      "file": "microservices/governance/slos/per-lane-runtime-budget.openslo.yaml"
+    },
+    {
+      "name": "oya-governance-placeholder-debt-coverage-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_governance_placeholder_total{covered=\"true\"}[5m]))",
+      "file": "microservices/governance/slos/placeholder-debt-coverage-correctness.openslo.yaml"
+    }
+  ],
   "ips": [
     {
       "id": "IP-001-scaffold-umbrella-bcs",
-      "title": "IP-001: Scaffold governance umbrella BCs (4 BCs \u00d7 9 layers = 36 crates)",
+      "title": "IP-001: Scaffold governance umbrella BCs (4 BCs × 9 layers = 36 crates)",
       "acceptance_status": "ga",
       "file": "microservices/governance/IP-001-scaffold-umbrella-bcs.md"
     },
@@ -205,6 +242,18 @@
       "title": "IP-015: Finalize 6 runbooks + Helm charts + Kustomize overlays + HG-GOV registration",
       "acceptance_status": "ga",
       "file": "microservices/governance/IP-015-runbooks-iac-finalization.md"
+    },
+    {
+      "id": "IP-NEW-eu-ai-act-annex-iii-refusal-lane",
+      "title": "IP-NEW: wire `oya-check-eu-ai-act-annex-iii-refusal` into oya-dev-cli gate validate",
+      "acceptance_status": "ga",
+      "file": "microservices/governance/IP-NEW-eu-ai-act-annex-iii-refusal-lane.md"
+    },
+    {
+      "id": "IP-NEW-slsa-l3-evidence-grounded-lane",
+      "title": "IP-NEW: wire `oya-check-slsa-l3-evidence-grounded` into oya-dev-cli gate validate",
+      "acceptance_status": "ga",
+      "file": "microservices/governance/IP-NEW-slsa-l3-evidence-grounded-lane.md"
     }
   ],
   "regulatory_packs": [
@@ -263,15 +312,15 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
+      "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
     },
     {
       "id": "ADR-0139",
@@ -281,10 +330,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

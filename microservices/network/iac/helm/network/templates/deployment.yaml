@@ -130,9 +130,10 @@ spec:
         app.kubernetes.io/name: network
         app.kubernetes.io/component: media-transcode-worker
       annotations:
-        io.kubernetes.cri.untrusted-workload: "true"  # gVisor sandbox
+        io.kubernetes.cri.untrusted-workload: "true"  # ADR-0147 untrusted-content sandbox
     spec:
-      runtimeClassName: gvisor
+      {{- /* ffmpeg media + document transcode = untrusted-content per ADR-0147 */}}
+      {{- include "oya.runtimeClassName.untrustedContent" $ | nindent 6 }}
       serviceAccountName: network-media-transcode-worker
       securityContext:
         {{- include "oya.securityContext.podStandard65534" $ | nindent 8 }}

@@ -29,7 +29,8 @@ spec:
     spec:
       serviceAccountName: oya-drive-{{ $kebab }}
       {{- if eq $bc "preview" }}
-      runtimeClassName: gvisor
+      {{- /* Drive preview rendering (Pandoc/LibreOffice/Chromium) = untrusted-content per ADR-0147 */}}
+      {{- include "oya.runtimeClassName.untrustedContent" $ | nindent 6 }}
       {{- end }}
       securityContext:
         runAsNonRoot: true

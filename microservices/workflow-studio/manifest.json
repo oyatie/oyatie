@@ -67,81 +67,81 @@
   "slos": [
     {
       "name": "oya-workflow-studio-collab-crdt-merge-latency",
-      "target": "99",
-      "sli": "see indicator block",
+      "target": "99%",
+      "sli": "total:",
       "file": "microservices/workflow-studio/slos/collab-crdt-merge-latency.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-collab-crdt-no-silent-loss",
       "target": "1.0 (1)",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/workflow-studio/slos/collab-crdt-no-silent-loss.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-editor-rest-availability",
       "target": "0.9995 (14.4)",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/workflow-studio/slos/editor-rest-availability.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-editor-rest-latency",
-      "target": "99",
-      "sli": "see indicator block",
+      "target": "99%",
+      "sli": "total:",
       "file": "microservices/workflow-studio/slos/editor-rest-latency.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-editor-tti-cdn-availability",
       "target": "0.99",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/workflow-studio/slos/editor-tti-cdn-availability.openslo.yaml"
     },
     {
       "name": "oya-workflow-studio-license-gate-cedar-availability",
       "target": "0.9999",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/workflow-studio/slos/license-gate-cedar-availability.openslo.yaml"
     }
   ],
   "ips": [
     {
       "id": "IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac",
-      "title": "IP-001: Layer-A IaC \u2014 CDN + WAF + Postgres (Citus) + Redis + WebSocket gateway",
+      "title": "IP-001: Layer-A IaC — CDN + WAF + Postgres (Citus) + Redis + WebSocket gateway",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-001-layer-a-cdn-waf-postgres-redis-ws-gateway-iac.md"
     },
     {
       "id": "IP-002-visual-canvas-kernel-domain",
-      "title": "IP-002: visual-canvas \u2014 kernel + domain crates",
+      "title": "IP-002: visual-canvas — kernel + domain crates",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-002-visual-canvas-kernel-domain.md"
     },
     {
       "id": "IP-003-dsl-emitter-loader-kernel-domain",
-      "title": "IP-003: dsl-emitter + dsl-loader \u2014 kernel + domain",
+      "title": "IP-003: dsl-emitter + dsl-loader — kernel + domain",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-003-dsl-emitter-loader-kernel-domain.md"
     },
     {
       "id": "IP-004-dsl-emitter-loader-usecase-api-adapter-sdk",
-      "title": "IP-004: dsl-emitter + dsl-loader \u2014 usecase + api + adapter + sdk",
+      "title": "IP-004: dsl-emitter + dsl-loader — usecase + api + adapter + sdk",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-004-dsl-emitter-loader-usecase-api-adapter-sdk.md"
     },
     {
       "id": "IP-005-collab-crdt-kernel-domain-adapter",
-      "title": "IP-005: collab-crdt \u2014 kernel + domain + usecase + api + adapter + adapter-redis",
+      "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-redis",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-005-collab-crdt-kernel-domain-adapter.md"
     },
     {
       "id": "IP-006-collab-crdt-worker-sdk",
-      "title": "IP-006: collab-crdt \u2014 worker + sdk (WebSocket gateway long-lived process + tenant SDK)",
+      "title": "IP-006: collab-crdt — worker + sdk (WebSocket gateway long-lived process + tenant SDK)",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-006-collab-crdt-worker-sdk.md"
     },
     {
       "id": "IP-007-node-library-registry-full",
-      "title": "IP-007: node-library-registry \u2014 kernel through app",
+      "title": "IP-007: node-library-registry — kernel through app",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-007-node-library-registry-full.md"
     },
@@ -153,25 +153,25 @@
     },
     {
       "id": "IP-009-license-gate-cedar-full",
-      "title": "IP-009: license-gate-cedar \u2014 full BC (7 layers)",
+      "title": "IP-009: license-gate-cedar — full BC (7 layers)",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-009-license-gate-cedar-full.md"
     },
     {
       "id": "IP-010-jurisdiction-overlay-renderer-full",
-      "title": "IP-010: jurisdiction-overlay-renderer \u2014 full BC (5 layers)",
+      "title": "IP-010: jurisdiction-overlay-renderer — full BC (5 layers)",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-010-jurisdiction-overlay-renderer-full.md"
     },
     {
       "id": "IP-011-replay-debugger-frontend-full",
-      "title": "IP-011: replay-debugger-frontend \u2014 full BC (6 layers)",
+      "title": "IP-011: replay-debugger-frontend — full BC (6 layers)",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-011-replay-debugger-frontend-full.md"
     },
     {
       "id": "IP-012-visual-canvas-leptos-wasm-rest-sdk-app",
-      "title": "IP-012: visual-canvas \u2014 usecase + api + adapter + adapter-leptos-wasm + rest + sdk + app",
+      "title": "IP-012: visual-canvas — usecase + api + adapter + adapter-leptos-wasm + rest + sdk + app",
       "acceptance_status": "ga",
       "file": "microservices/workflow-studio/IP-012-visual-canvas-leptos-wasm-rest-sdk-app.md"
     },
@@ -208,8 +208,7 @@
     "ksa"
   ],
   "lts_pins": {
-    "postgres": "16.4",
-    "redis": "7.2",
+    "prometheus": "2.55",
     "rust": "1.83"
   },
   "adrs": [
@@ -263,28 +262,34 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
+      "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
     },
     {
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0140",
+      "title": "Cross Cutting Carriers Adapter Exemption",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

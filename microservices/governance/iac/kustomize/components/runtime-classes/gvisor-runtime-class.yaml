@@ -1,0 +1,26 @@
+---
+# gVisor RuntimeClass — userspace-kernel syscall interception via runsc handler.
+# Selected workload classes per ADR-0147:
+#   - untrusted-content transcoders/renderers (Pandoc, LibreOffice, Chromium,
+#     WeasyPrint, ffmpeg, ImageMagick)
+#   - AI inference on CPU paths (Whisper, ML model inference)
+#   - federation/internet-egress gateway workers
+#
+# NOT selected for: crypto (insufficient blast-radius — use kata-qemu);
+# app-tier µservices (overhead unnecessary — use bare runc + CIS restricted).
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: gvisor
+  labels:
+    oyatie/runtime-class: gvisor
+    oyatie/workload-classes: "untrusted-content,ai-inference-cpu,federation-gateway"
+    oyatie/adr: ADR-0147
+handler: runsc
+scheduling:
+  nodeSelector:
+    oyatie/runtime-class-supported: gvisor
+overhead:
+  podFixed:
+    cpu: "50m"
+    memory: "64Mi"

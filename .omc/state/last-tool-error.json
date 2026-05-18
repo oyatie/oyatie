@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"/usr/bin/wc -l /tmp/gate-run-all-full.log 2>/dev/null && /usr/bin/grep 'validation failed' /tmp/gate-run-all-full.log\",\"description\":\"Check captured full log\"}",
-  "error": "Exit code 1\n     159 /tmp/gate-run-all-full.log",
-  "timestamp": "2026-05-18T08:31:29.514Z",
-  "retry_count": 1
+  "tool_input_preview": "{\"command\":\"find microservices -name manifest.json | wc -l && rtk read /tmp/manifest_rust.txt | wc -l && rtk find microservices -name manifest.json -exec md5 {} \\\\; > /tmp/manifest_rust.txt && rtk wc ...",
+  "error": "Exit code 1\n      32\n       0\nrtk: rtk find does not support compound predicates or actions (e.g. -not, -exec). Use `find` directly.",
+  "timestamp": "2026-05-18T08:56:47.275Z",
+  "retry_count": 2
 }

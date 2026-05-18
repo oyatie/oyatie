@@ -22,7 +22,12 @@ spec:
         prometheus.io/port: "9090"
     spec:
       serviceAccountName: slides-runtime
-      runtimeClassName: {{ if .Values.exportPool.gvisor.enabled }}{{ .Values.exportPool.gvisor.runtimeClassName }}{{ else }}runc{{ end }}
+      {{- /* Untrusted-content sandbox per ADR-0147 (LibreOffice + Chromium export pool) */}}
+      {{- if .Values.exportPool.gvisor.enabled }}
+      {{- include "oya.runtimeClassName.untrustedContent" $ | nindent 6 }}
+      {{- else }}
+      runtimeClassName: runc
+      {{- end }}
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:

@@ -94,10 +94,40 @@
   ],
   "slos": [
     {
+      "name": "oya-audit-chain-chain-of-custody-integrity-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_audit_chain_custody_verify_total{outcome=\"intact\"}[5m]))",
+      "file": "microservices/audit-chain/slos/chain-of-custody-integrity-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-audit-chain-evidence-export-freshness",
+      "target": "0.95",
+      "sli": "sum(rate(oya_audit_chain_evidence_export_duration_seconds_bucket{le=\"300\"}[5m]))",
+      "file": "microservices/audit-chain/slos/evidence-export-freshness.openslo.yaml"
+    },
+    {
+      "name": "oya-audit-chain-merkle-chain-verification-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_audit_chain_merkle_verify_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/audit-chain/slos/merkle-chain-verification-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-audit-chain-seal-storage-availability",
+      "target": "0.9999",
+      "sli": "sum(rate(oya_audit_chain_storage_op_total{outcome=\"success\"}[5m]))",
+      "file": "microservices/audit-chain/slos/seal-storage-availability.openslo.yaml"
+    },
+    {
       "name": "oya-audit-chain-seal-write-availability",
       "target": "0.9999",
       "sli": "sum(rate(oya_audit_chain_seal_write_total{outcome=\"success\"}[5m]))",
       "file": "microservices/audit-chain/slos/seal-write-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-audit-chain-seal-write-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_audit_chain_seal_write_duration_seconds_bucket{le=\"0.05\"}[5m]))",
+      "file": "microservices/audit-chain/slos/seal-write-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -181,7 +211,7 @@
     },
     {
       "id": "IP-014-cross-microservice-emission-adapter",
-      "title": "IP-014: Cross-\u00b5service emission SDK adoption",
+      "title": "IP-014: Cross-µservice emission SDK adoption",
       "acceptance_status": "ga",
       "file": "microservices/audit-chain/IP-014-cross-microservice-emission-adapter.md"
     },
@@ -206,7 +236,7 @@
     "ksa"
   ],
   "lts_pins": {
-    "postgres": "16.2",
+    "postgres": "16.2\"  # Postgres LTS pin per docs/standards/audit-chain.md",
     "rust": "1.83"
   },
   "adrs": [
@@ -266,10 +296,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

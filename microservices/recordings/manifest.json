@@ -140,37 +140,37 @@
     },
     {
       "id": "IP-003-recording-ingest-bc",
-      "title": "IP-003: Recording-Ingest BC \u2014 kernel + domain + usecase + ingest contract",
+      "title": "IP-003: Recording-Ingest BC — kernel + domain + usecase + ingest contract",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-003-recording-ingest-bc.md"
     },
     {
       "id": "IP-004-recording-bc",
-      "title": "IP-004: Recording BC \u2014 kernel + domain + usecase + REST (read-side)",
+      "title": "IP-004: Recording BC — kernel + domain + usecase + REST (read-side)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-004-recording-bc.md"
     },
     {
       "id": "IP-005-media-segment-bc",
-      "title": "IP-005: Media-segment BC \u2014 HLS multi-bitrate + CMAF segmentation (ffmpeg gVisor)",
+      "title": "IP-005: Media-segment BC — HLS multi-bitrate + CMAF segmentation (ffmpeg gVisor)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-005-media-segment-bc.md"
     },
     {
       "id": "IP-006-transcript-bc",
-      "title": "IP-006: Transcript BC \u2014 Whisper + pyannote adapter",
+      "title": "IP-006: Transcript BC — Whisper + pyannote adapter",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-006-transcript-bc.md"
     },
     {
       "id": "IP-007-search-bc",
-      "title": "IP-007: Search BC \u2014 Meilisearch adapter + transcript indexing",
+      "title": "IP-007: Search BC — Meilisearch adapter + transcript indexing",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-007-search-bc.md"
     },
     {
       "id": "IP-008-redaction-bc",
-      "title": "IP-008: Redaction BC \u2014 overlay model (no source mutation)",
+      "title": "IP-008: Redaction BC — overlay model (no source mutation)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-008-redaction-bc.md"
     },
@@ -200,13 +200,13 @@
     },
     {
       "id": "IP-013-translation-bc",
-      "title": "IP-013: Translation BC \u2014 cross-\u00b5service handoff to `translate` \u00b5service",
+      "title": "IP-013: Translation BC — cross-µservice handoff to `translate` µservice",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-013-translation-bc.md"
     },
     {
       "id": "IP-014-strangler-migration-adapter",
-      "title": "IP-014: Strangler migration adapter (oya-connect-recordings-* \u2192 oya-recordings-*)",
+      "title": "IP-014: Strangler migration adapter (oya-connect-recordings-* → oya-recordings-*)",
       "acceptance_status": "ga",
       "file": "microservices/recordings/IP-014-strangler-migration-adapter.md"
     },
@@ -231,15 +231,10 @@
     "ksa"
   ],
   "lts_pins": {
+    "prometheus": "2.55",
     "rust": "1.83"
   },
   "adrs": [
-    {
-      "id": "ADR-0008",
-      "title": "Data Use Boundary",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0008-data-use-boundary.md"
-    },
     {
       "id": "ADR-0056",
       "title": "Rust Clean Architecture Bnf",
@@ -253,12 +248,6 @@
       "file": "docs/decisions/ADR-0105-13-layer-enum-and-check-family-patterns.md"
     },
     {
-      "id": "ADR-0106",
-      "title": "Rename Application To Usecase",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0106-rename-application-to-usecase.md"
-    },
-    {
       "id": "ADR-0131",
       "title": "Connect Social Expansion Planning Contract",
       "scope": "repo",
@@ -266,34 +255,22 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
-    },
-    {
-      "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0135",
-      "title": "Aspirational Enforcement Gate",
+      "title": "Connect Super App Expansion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0135-aspirational-enforcement-gate.md"
-    },
-    {
-      "id": "ADR-0139",
-      "title": "Agentic Slo Gated Promotion",
-      "scope": "repo",
-      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

@@ -85,7 +85,7 @@
     },
     {
       "name": "tenancy-latency",
-      "target": "0.99",
+      "target": "≤",
       "sli": "sum(rate(http_request_duration_seconds_bucket{job=\"oya-tenancy-tenant-lifecycle-rest\",route=\"/api/v1/tenants/.+\",le=\"0.005\"}[5m]))",
       "file": "microservices/tenancy/slos/latency.openslo.yaml"
     }
@@ -196,9 +196,9 @@
     "ksa"
   ],
   "lts_pins": {
-    "citus": "12.1.0",
-    "patroni": "3.3.0",
-    "postgres": "16.3",
+    "citus": "12.1.0\"  # Citus LTS line per docs/standards/observability-slo.md",
+    "patroni": "3.3.0\"  # Patroni LTS line",
+    "postgres": "16.3\"  # Postgres LTS line per docs/standards/observability-slo.md",
     "rust": "1.83"
   },
   "adrs": [
@@ -261,13 +261,19 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0140",
+      "title": "Cross Cutting Carriers Adapter Exemption",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

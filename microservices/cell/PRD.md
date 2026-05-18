@@ -271,6 +271,36 @@ Sharding:
 - Cell-registry Postgres partitions by `(pack, region)`; scheduler shards by pack.
 - `oya-check-shardability-cli` CI lane verifies partition key presence.
 
+### Runtime-class affinity (per ADR-0147)
+
+Per ADR-0147 (container sandboxing runtime ladder) the cell substrate is
+runtime-affinity-aware. Cells declare their host-pool's supported
+RuntimeClass handlers in `cell.host_pool.runtime_classes`; tenant
+placement honours runtime-affinity.
+
+- **gVisor-only cells** — vanilla host-pool (commodity nodes). Used for
+  untrusted-content / AI-inference (CPU) / federation-gateway workloads.
+  Cheapest cell tier; serves default-tier tenants.
+- **Kata-capable cells** — nested-virtualisation-capable host-pool (AWS
+  bare-metal / Azure CC-DC / EQX). Used for crypto workloads, sovereign-
+  tier untrusted-content overrides, and confidential-compute AI
+  inference. Cells declare label
+  `oyatie/runtime-class-supported=kata-qemu` and
+  `oyatie/nested-virt=true` on every node.
+- **Wasmtime-only cells** — WASM workers (foundry-runtime tenant
+  extensions, workflow-studio custom WASM nodes). Cells declare
+  `oyatie/runtime-class-supported=wasmtime`.
+
+The scheduler refuses to bind a tenant whose required RuntimeClass set
+exceeds the cell's declared host-pool capabilities (e.g., a sovereign-
+tier tenant requiring Kata cannot be placed on a gVisor-only cell).
+Cell-decommission flow also refuses to drop a Kata-capable cell that is
+the last one in its pack supporting any required RuntimeClass.
+
+The canonical RuntimeClass install component lives at
+`microservices/governance/iac/kustomize/components/runtime-classes/` and
+is composed by the cloud-k8s µservice base.
+
 ## Acceptance Criteria
 
 | AC-ID | Criterion | Verification method |
@@ -310,3 +340,4 @@ Sharding:
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 | (next sibling) | — |
 | ADR-0133 | (next sibling) | — |
+| ADR-0147 | Container sandboxing runtime ladder | cell scheduler honours RuntimeClass affinity per host-pool |

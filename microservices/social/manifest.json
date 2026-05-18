@@ -127,67 +127,67 @@
     },
     {
       "id": "IP-002-cargo-workspace-bootstrap",
-      "title": "IP-002: Cargo workspace bootstrap (per-\u00b5service flat layout)",
+      "title": "IP-002: Cargo workspace bootstrap (per-µservice flat layout)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-002-cargo-workspace-bootstrap.md"
     },
     {
       "id": "IP-003-user-profile-bc",
-      "title": "IP-003: user-profile BC end-to-end (kernel \u2192 domain \u2192 usecase \u2192 api \u2192 adapter-postgres \u2192 rest \u2192 sdk \u2192 app)",
+      "title": "IP-003: user-profile BC end-to-end (kernel → domain → usecase → api → adapter-postgres → rest → sdk → app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-003-user-profile-bc.md"
     },
     {
       "id": "IP-004-follow-graph-bc",
-      "title": "IP-004: follow-graph BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + worker + sdk)",
+      "title": "IP-004: follow-graph BC (kernel → domain → usecase → adapter-postgres + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-004-follow-graph-bc.md"
     },
     {
       "id": "IP-005-post-composition-bc",
-      "title": "IP-005: post-composition BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest + worker + sdk + app)",
+      "title": "IP-005: post-composition BC (kernel → domain → usecase → adapter-postgres + adapter-s3 + adapter-imagemagick + adapter-ffmpeg + rest + worker + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-005-post-composition-bc.md"
     },
     {
       "id": "IP-006-feed-timeline-bc",
-      "title": "IP-006: feed-timeline BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-redis + worker + rest + sdk + app)",
+      "title": "IP-006: feed-timeline BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + rest + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-006-feed-timeline-bc.md"
     },
     {
       "id": "IP-007-reactions-bc",
-      "title": "IP-007: reactions BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-redis + worker + sdk)",
+      "title": "IP-007: reactions BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-007-reactions-bc.md"
     },
     {
       "id": "IP-008-mentions-and-hashtags-bc",
-      "title": "IP-008: mentions + hashtags BCs (kernel \u2192 domain \u2192 usecase \u2192 adapter + worker + sdk)",
+      "title": "IP-008: mentions + hashtags BCs (kernel → domain → usecase → adapter + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-008-mentions-and-hashtags-bc.md"
     },
     {
       "id": "IP-009-trending-topics-bc",
-      "title": "IP-009: trending-topics BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-redis + worker + sdk)",
+      "title": "IP-009: trending-topics BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-009-trending-topics-bc.md"
     },
     {
       "id": "IP-010-notifications-bc",
-      "title": "IP-010: notifications BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-postgres + adapter-redis + worker + websocket + sdk + app)",
+      "title": "IP-010: notifications BC (kernel → domain → usecase → adapter-postgres + adapter-redis + worker + websocket + sdk + app)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-010-notifications-bc.md"
     },
     {
       "id": "IP-011-content-moderation-bc",
-      "title": "IP-011: content-moderation BC (kernel \u2192 domain \u2192 usecase \u2192 adapter-clamav + adapter-opswat + worker + sdk)",
+      "title": "IP-011: content-moderation BC (kernel → domain → usecase → adapter-clamav + adapter-opswat + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-011-content-moderation-bc.md"
     },
     {
       "id": "IP-012-search-and-cedar-filter",
-      "title": "IP-012: search BC + Cedar-scoped filter (kernel \u2192 domain \u2192 usecase \u2192 adapter-meilisearch + worker + sdk)",
+      "title": "IP-012: search BC + Cedar-scoped filter (kernel → domain → usecase → adapter-meilisearch + worker + sdk)",
       "acceptance_status": "ga",
       "file": "microservices/social/IP-012-search-and-cedar-filter.md"
     },
@@ -224,6 +224,7 @@
     "ksa"
   ],
   "lts_pins": {
+    "prometheus": "2.55",
     "rust": "1.83"
   },
   "adrs": [
@@ -259,21 +260,21 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
+      "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
     },
     {
       "id": "ADR-0135",
-      "title": "Aspirational Enforcement Gate",
+      "title": "Connect Super App Expansion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0135-aspirational-enforcement-gate.md"
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
     },
     {
       "id": "ADR-0139",
@@ -283,10 +284,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

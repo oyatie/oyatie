@@ -1,0 +1,23 @@
+---
+# Canonical RuntimeClass install component per ADR-0147 (container sandboxing
+# runtime ladder). The cloud-k8s µservice composes this component into its
+# base so every cluster reconciles a uniform set of RuntimeClass objects
+# before any µservice that references them can schedule pods.
+#
+# Consumer pattern: cloud-k8s base/kustomization.yaml composes via
+#   components: [../../../../governance/iac/kustomize/components/runtime-classes]
+#
+# RuntimeClass coverage:
+#   - gvisor      (handler runsc)    — untrusted content + AI inference (CPU)
+#   - kata-qemu   (handler kata-qemu)— crypto + sovereign-tier overrides
+#   - kata-fc     (handler kata-fc)  — per-request ephemeral isolation
+#   - wasmtime    (handler wasmtime) — WASM-only workers
+
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - gvisor-runtime-class.yaml
+  - kata-qemu-runtime-class.yaml
+  - kata-firecracker-runtime-class.yaml
+  - wasmtime-runtime-class.yaml

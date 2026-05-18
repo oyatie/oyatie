@@ -325,6 +325,66 @@
   ],
   "slos": [
     {
+      "name": "oya-foundry-eval-determinism-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_foundry_eval_replay_total{outcome=\"deterministic\"}[5m]))",
+      "file": "microservices/foundry/slos/eval-determinism-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-eval-run-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_foundry_eval_run_duration_seconds_bucket{le=\"300\"}[5m]))",
+      "file": "microservices/foundry/slos/eval-run-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-evidence-chain-integrity-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_foundry_evidence_chain_verify_total{outcome=\"intact\"}[5m]))",
+      "file": "microservices/foundry/slos/evidence-chain-integrity-correctness.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-evidence-emit-latency",
+      "target": "0.95",
+      "sli": "sum(rate(oya_foundry_evidence_emit_duration_seconds_bucket{le=\"1\"}[5m]))",
+      "file": "microservices/foundry/slos/evidence-emit-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-guardrails-policy-eval-latency",
+      "target": "0.99",
+      "sli": "sum(rate(oya_foundry_guardrails_eval_duration_seconds_bucket{le=\"0.01\"}[5m]))",
+      "file": "microservices/foundry/slos/guardrails-policy-eval-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-guardrails-shadow-mode-fp-budget",
+      "target": "0.99",
+      "sli": "sum(rate(oya_foundry_guardrails_shadow_decision_total{verdict_correct=\"true\"}[5m]))",
+      "file": "microservices/foundry/slos/guardrails-shadow-mode-false-positive-budget.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-providers-availability-anthropic",
+      "target": "0.995",
+      "sli": "sum(rate(oya_foundry_providers_call_total{provider=\"anthropic\",outcome=\"success\"}[5m]))",
+      "file": "microservices/foundry/slos/providers-availability-anthropic.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-providers-availability-google",
+      "target": "0.995",
+      "sli": "sum(rate(oya_foundry_providers_call_total{provider=\"google\",outcome=\"success\"}[5m]))",
+      "file": "microservices/foundry/slos/providers-availability-google.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-providers-availability-openai",
+      "target": "0.995",
+      "sli": "sum(rate(oya_foundry_providers_call_total{provider=\"openai\",outcome=\"success\"}[5m]))",
+      "file": "microservices/foundry/slos/providers-availability-openai.openslo.yaml"
+    },
+    {
+      "name": "oya-foundry-providers-circuit-breaker-correctness",
+      "target": "1.0",
+      "sli": "sum(rate(oya_foundry_providers_cb_trip_event_total{outcome=\"correct\"}[5m]))",
+      "file": "microservices/foundry/slos/providers-circuit-breaker-correctness.openslo.yaml"
+    },
+    {
       "name": "foundry-runtime-availability",
       "target": "0.9995",
       "sli": "sum(rate(oya_foundry_runtime_dispatch_requests_total{outcome=\"success\"}[5m]))",
@@ -418,7 +478,7 @@
     },
     {
       "id": "IP-012-autonomy-tier-gate",
-      "title": "IP-012: Autonomy tier gate (cross-\u00b5service wiring + LEAN lane)",
+      "title": "IP-012: Autonomy tier gate (cross-µservice wiring + LEAN lane)",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-012-runtime-autonomy-tier-gate.md"
     },
@@ -490,7 +550,7 @@
     },
     {
       "id": "IP-009-kill-switch-propagation",
-      "title": "IP-009: Sub-second kill-switch propagation (p99 \u2264 1 s)",
+      "title": "IP-009: Sub-second kill-switch propagation (p99 ≤ 1 s)",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-024-supervisor-kill-switch-propagation.md"
     },
@@ -682,7 +742,7 @@
     },
     {
       "id": "IP-011-audit-chain-bridge",
-      "title": "IP-011: audit-chain bridge (the only cross-\u00b5service consumer)",
+      "title": "IP-011: audit-chain bridge (the only cross-µservice consumer)",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-056-evidence-audit-chain-bridge.md"
     },
@@ -700,7 +760,7 @@
     },
     {
       "id": "IP-014-evidence-archive-cascade",
-      "title": "IP-014: Evidence archive cascade (hot \u2192 warm \u2192 cold)",
+      "title": "IP-014: Evidence archive cascade (hot → warm → cold)",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-059-evidence-evidence-archive-cascade.md"
     },
@@ -760,7 +820,7 @@
     },
     {
       "id": "IP-009-ai-slop-detector",
-      "title": "IP-009: ai-slop-detector \u2014 catalogue-driven pattern detection",
+      "title": "IP-009: ai-slop-detector — catalogue-driven pattern detection",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-069-guardrails-ai-slop-detector.md"
     },
@@ -790,13 +850,13 @@
     },
     {
       "id": "IP-014-shadow-mode-rollout-and-false-positive-budget",
-      "title": "IP-014: Shadow\u2192enforce rollout + per-tenant false-positive escalation budget",
+      "title": "IP-014: Shadow→enforce rollout + per-tenant false-positive escalation budget",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-074-guardrails-shadow-mode-rollout-and-false-positive-budget.md"
     },
     {
       "id": "IP-015-sdk-rust-and-typescript",
-      "title": "IP-015: SDK \u2014 Rust first-party + TypeScript via OpenAPI generator",
+      "title": "IP-015: SDK — Rust first-party + TypeScript via OpenAPI generator",
       "acceptance_status": "ga",
       "file": "microservices/foundry/IP-075-guardrails-sdk-rust-and-typescript.md"
     },
@@ -906,8 +966,8 @@
   ],
   "lts_pins": {
     "clickhouse": "24.3",
-    "postgres": "16.2",
-    "redis": "7.2",
+    "postgres": "16.4.0",
+    "redis": "7.4.1\"   # LTS line; verify-at-deploy",
     "rust": "1.83"
   },
   "adrs": [
@@ -997,15 +1057,15 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
+      "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
     },
     {
       "id": "ADR-0136",
@@ -1030,13 +1090,19 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0140",
+      "title": "Cross Cutting Carriers Adapter Exemption",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

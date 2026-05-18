@@ -71,141 +71,141 @@
   "slos": [
     {
       "name": "oya-sheets-cell-edit-render-latency",
-      "target": "99",
-      "sli": "see indicator block",
+      "target": "99%",
+      "sli": "total:",
       "file": "microservices/sheets/slos/cell-edit-render-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-chart-render-latency",
-      "target": "95",
-      "sli": "see indicator block",
+      "target": "95%",
+      "sli": "total:",
       "file": "microservices/sheets/slos/chart-render-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-collab-cursor-sync-latency",
-      "target": "99",
-      "sli": "see indicator block",
+      "target": "99%",
+      "sli": "total:",
       "file": "microservices/sheets/slos/collab-cursor-sync-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-crdt-merge-no-silent-loss",
       "target": "1.0 (1)",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/sheets/slos/crdt-merge-no-silent-loss.openslo.yaml"
     },
     {
       "name": "oya-sheets-export-xlsx-latency",
-      "target": "95",
-      "sli": "see indicator block",
+      "target": "95%",
+      "sli": "total:",
       "file": "microservices/sheets/slos/export-xlsx-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-formula-engine-correctness",
       "target": "1.0 (1)",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/sheets/slos/formula-engine-correctness.openslo.yaml"
     },
     {
       "name": "oya-sheets-recalc-100k-cells-latency",
-      "target": "95",
-      "sli": "see indicator block",
+      "target": "95%",
+      "sli": "total:",
       "file": "microservices/sheets/slos/recalc-100k-cells-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-recalc-1m-cells-latency",
-      "target": "95",
-      "sli": "see indicator block",
+      "target": "95%",
+      "sli": "total:",
       "file": "microservices/sheets/slos/recalc-1m-cells-latency.openslo.yaml"
     },
     {
       "name": "oya-sheets-sheet-open-latency",
-      "target": "95 (1)",
-      "sli": "see indicator block",
+      "target": "95% (1)",
+      "sli": "total:",
       "file": "microservices/sheets/slos/sheet-open-latency.openslo.yaml"
     }
   ],
   "ips": [
     {
       "id": "IP-001-iac-bootstrap",
-      "title": "IP-001: Layer-A IaC \u2014 CDN + WAF + Postgres + Redis + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars",
+      "title": "IP-001: Layer-A IaC — CDN + WAF + Postgres + Redis + S3 + OCI Object Storage (Arrow/Parquet) + gVisor + AV-scan sidecars",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-001-iac-bootstrap.md"
     },
     {
       "id": "IP-002-cargo-workspace-cell-grid-kernel-domain",
-      "title": "IP-002: cell-grid \u2014 kernel + domain (entities + pure cell-graph algebra)",
+      "title": "IP-002: cell-grid — kernel + domain (entities + pure cell-graph algebra)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-002-cargo-workspace-cell-grid-kernel-domain.md"
     },
     {
       "id": "IP-003-formula-engine-kernel-domain-400-functions",
-      "title": "IP-003: formula-engine \u2014 kernel + domain + usecase + api + adapter + sdk (\u2265400 functions; LibreOffice Calc reference corpus)",
+      "title": "IP-003: formula-engine — kernel + domain + usecase + api + adapter + sdk (≥400 functions; LibreOffice Calc reference corpus)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-003-formula-engine-kernel-domain-400-functions.md"
     },
     {
       "id": "IP-004-recalc-engine-dep-graph-parallel",
-      "title": "IP-004: recalc-engine \u2014 kernel + domain + usecase + api + adapter + worker + sdk (dep-graph + topological + parallel-task-graph per ADR-SHEETS-0004)",
+      "title": "IP-004: recalc-engine — kernel + domain + usecase + api + adapter + worker + sdk (dep-graph + topological + parallel-task-graph per ADR-SHEETS-0004)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-004-recalc-engine-dep-graph-parallel.md"
     },
     {
       "id": "IP-005-collab-crdt-loro-aligned-ws-0001",
-      "title": "IP-005: collab-crdt \u2014 kernel + domain + usecase + api + adapter + adapter-loro + adapter-redis + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)",
+      "title": "IP-005: collab-crdt — kernel + domain + usecase + api + adapter + adapter-loro + adapter-redis + worker + sdk (Loro 1.x aligned with workflow-studio ADR-WS-0001)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-005-collab-crdt-loro-aligned-ws-0001.md"
     },
     {
       "id": "IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid",
-      "title": "IP-006: large-sheet-storage \u2014 postgres + Arrow/Parquet hybrid substrate (per ADR-SHEETS-0003)",
+      "title": "IP-006: large-sheet-storage — postgres + Arrow/Parquet hybrid substrate (per ADR-SHEETS-0003)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-006-large-sheet-storage-postgres-arrow-parquet-hybrid.md"
     },
     {
       "id": "IP-007-cell-grid-adapter-postgres-and-materialized-views",
-      "title": "IP-007: cell-grid \u2014 adapter-postgres with materialized-view caches for hot ranges",
+      "title": "IP-007: cell-grid — adapter-postgres with materialized-view caches for hot ranges",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-007-cell-grid-adapter-postgres-and-materialized-views.md"
     },
     {
       "id": "IP-008-formatting-pivot-charts-data-validation",
-      "title": "IP-008: formatting + pivot-tables + charts + data-validation \u2014 kernel + domain + usecase + api + adapter (custom Leptos canvas chart renderer)",
+      "title": "IP-008: formatting + pivot-tables + charts + data-validation — kernel + domain + usecase + api + adapter (custom Leptos canvas chart renderer)",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-008-formatting-pivot-charts-data-validation.md"
     },
     {
       "id": "IP-009-import-export-xlsx-calamine-rust-xlsxwriter-sandboxed",
-      "title": "IP-009: import-export \u2014 kernel + domain + usecase + api + adapter + adapter-calamine + adapter-rust-xlsxwriter + adapter-clamav + adapter-opswat + worker + sdk",
+      "title": "IP-009: import-export — kernel + domain + usecase + api + adapter + adapter-calamine + adapter-rust-xlsxwriter + adapter-clamav + adapter-opswat + worker + sdk",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-009-import-export-xlsx-calamine-rust-xlsxwriter-sandboxed.md"
     },
     {
       "id": "IP-010-sharing-acl-named-range-cedar",
-      "title": "IP-010: sharing-acl + named-ranges \u2014 full BC crate sets per ADR-SHEETS-0006",
+      "title": "IP-010: sharing-acl + named-ranges — full BC crate sets per ADR-SHEETS-0006",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-010-sharing-acl-named-range-cedar.md"
     },
     {
       "id": "IP-011-ai-formula-smart-fill-foundry-runtime-bridge",
-      "title": "IP-011: ai-formula \u2014 foundry-runtime bridge with T1 advisory + T2 gated per ADR-SHEETS-0005",
+      "title": "IP-011: ai-formula — foundry-runtime bridge with T1 advisory + T2 gated per ADR-SHEETS-0005",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-011-ai-formula-smart-fill-foundry-runtime-bridge.md"
     },
     {
       "id": "IP-012-connected-sheets-comments-version-history-trigger-embed-bridge",
-      "title": "IP-012: connected-sheets + comments + version-history + trigger-bridge + embed-bridge \u2014 full BC crate sets",
+      "title": "IP-012: connected-sheets + comments + version-history + trigger-bridge + embed-bridge — full BC crate sets",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-012-connected-sheets-comments-version-history-trigger-embed-bridge.md"
     },
     {
       "id": "IP-013-cell-grid-rest-leptos-wasm-app-license-gate",
-      "title": "IP-013: cell-grid \u2014 adapter-leptos-wasm + rest + sdk + app + license-gate-cedar full BC",
+      "title": "IP-013: cell-grid — adapter-leptos-wasm + rest + sdk + app + license-gate-cedar full BC",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-013-cell-grid-rest-leptos-wasm-app-license-gate.md"
     },
     {
       "id": "IP-014-observability-slo-manifests-9-openslo",
-      "title": "IP-014: 9 OpenSLO v1.0 manifests \u2014 sheets self-SLOs",
+      "title": "IP-014: 9 OpenSLO v1.0 manifests — sheets self-SLOs",
       "acceptance_status": "ga",
       "file": "microservices/sheets/IP-014-observability-slo-manifests-9-openslo.md"
     },
@@ -230,6 +230,7 @@
     "ksa"
   ],
   "lts_pins": {
+    "prometheus": "2.55",
     "rust": "1.83"
   },
   "adrs": [
@@ -283,34 +284,40 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
+      "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
     },
     {
       "id": "ADR-0135",
-      "title": "Aspirational Enforcement Gate",
+      "title": "Connect Super App Expansion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0135-aspirational-enforcement-gate.md"
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
     },
     {
       "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0140",
+      "title": "Cross Cutting Carriers Adapter Exemption",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

@@ -56,6 +56,7 @@
 
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
+#![allow(clippy::result_large_err)]
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -193,9 +194,7 @@ where
                     });
                 }
                 Some(fragments) => {
-                    let any_forbid = fragments
-                        .iter()
-                        .any(|f| fragment_forbids_action(f, &claim));
+                    let any_forbid = fragments.iter().any(|f| fragment_forbids_action(f, &claim));
                     let any_gates_employment = fragments
                         .iter()
                         .any(|f| fragment_gates_on_employment_context(f, &claim));
@@ -351,7 +350,9 @@ fn flush_claim(
 ) {
     if let Some(id) = current_id.take() {
         if *current_refused {
-            let annex = current_annex.take().unwrap_or_else(|| "Annex III".to_string());
+            let annex = current_annex
+                .take()
+                .unwrap_or_else(|| "Annex III".to_string());
             let action = current_action.take().unwrap_or_default();
             out.push(AnnexIiiClaim {
                 capability_id: id,
@@ -475,7 +476,12 @@ permit (principal, action, resource);
         let claims = parse_annex_iii_claims(&cap);
         assert_eq!(claims.len(), 1, "expected exactly one Annex III claim");
         assert_eq!(claims[0].capability_id, "T2-task-auto-assign");
-        assert!(claims[0].annex_section.to_ascii_lowercase().contains("annex iii"));
+        assert!(
+            claims[0]
+                .annex_section
+                .to_ascii_lowercase()
+                .contains("annex iii")
+        );
         assert_eq!(claims[0].cedar_action_token, "TaskT2AutoAssign");
     }
 
@@ -511,7 +517,10 @@ permit (principal, action, resource);
         };
         let err = validate_annex_iii_refusals(vec![cap], vec![cedar])
             .expect_err("missing employment-context gate must fail");
-        assert_eq!(err.kind, ViolationKind::ForbidRuleMissingEmploymentContextGate);
+        assert_eq!(
+            err.kind,
+            ViolationKind::ForbidRuleMissingEmploymentContextGate
+        );
     }
 
     #[test]
@@ -570,12 +579,11 @@ capabilities:
         let cap_b = CapabilityDocument {
             path: "microservices/calendar/capabilities/T2-auto.yaml".into(),
             microservice: "calendar".into(),
-            contents: T2_AUTO_YAML_WITH_REFUSAL.replace("microservice: tasks", "microservice: calendar"),
+            contents: T2_AUTO_YAML_WITH_REFUSAL
+                .replace("microservice: tasks", "microservice: calendar"),
         };
-        let (report, violations) = audit_all_violations(
-            vec![cap_a, cap_b],
-            Vec::<CedarPolicyDocument>::new(),
-        );
+        let (report, violations) =
+            audit_all_violations(vec![cap_a, cap_b], Vec::<CedarPolicyDocument>::new());
         assert_eq!(report.microservices_audited, 2);
         assert_eq!(violations.len(), 2);
         for v in &violations {

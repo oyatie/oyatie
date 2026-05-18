@@ -175,11 +175,7 @@ impl fmt::Display for SlsaL3EvidenceViolation {
         write!(
             f,
             "{} ({}): cited workflow {:?} — {:?}: {}",
-            self.microservice,
-            self.scorecard_path,
-            self.cited_workflow,
-            self.kind,
-            self.summary,
+            self.microservice, self.scorecard_path, self.cited_workflow, self.kind, self.summary,
         )
     }
 }
@@ -508,7 +504,9 @@ jobs:
         assert_eq!(report.citations_checked, 3);
         // The bare workflows/slsa.yml should canonicalize and pass.
         assert!(
-            violations.iter().all(|v| v.kind != ViolationKind::WorkflowFileMissing),
+            violations
+                .iter()
+                .all(|v| v.kind != ViolationKind::WorkflowFileMissing),
             "unexpected missing-citation violations: {violations:?}"
         );
     }

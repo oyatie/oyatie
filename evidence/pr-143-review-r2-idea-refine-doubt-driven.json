@@ -1,0 +1,526 @@
+{
+  "review_skill": "idea-refine-and-doubt-driven-combined-r2",
+  "reviewer_role": "REVIEW-AGENT-R2-1",
+  "pr_number": 143,
+  "round": 2,
+  "completed_at": "2026-05-18",
+  "verdict": "approve-with-comments",
+  "methodology": "Round-2 adversarial sweep applying idea-refine (divergent regret hunting) + doubt-driven (fresh-context disprove-bias). Round-1's 21 findings are NOT re-verified; instead this round actively hunts NEW issues introduced by Fix-A/B/C/D + ADR-0145 reform. Adversarial framing: assume the fixes are over-confident and the reform introduces its own anti-patterns. Cross-model not invoked (non-interactive).",
+  "cross_model_invoked": false,
+  "cross_model_skip_reason": "non-interactive review context",
+  "hunt_results": {
+    "hunt_1_adr_0145_meta_regrets": [
+      {
+        "id": "H1-1",
+        "title": "ADR-0145 traded ESB-2.0 for distributed-audit-discipline debt with NO discipline enforcement landed",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Consequences/Negative #1: 'Distributed audit discipline required — every µservice authors oya-shared-audit-chain-client integration. Per-service seal emission must be tested.'",
+          "ADR-0145 §Decision/Invariant 1 names enforcement lane 'oya-check-audit-chain-seal-coverage' — searched workspace: NO crate by that name exists.",
+          "Searched crates/ for 'audit-chain-seal-coverage' / 'audit_chain_seal_coverage' / 'audit-chain-client' — zero hits."
+        ],
+        "regret_probability_12mo": 0.6,
+        "regret_scenario": "12 months out: ~30 µservices each emit audit seals with subtly different discipline. Cross-µservice seal-chain integrity is unverifiable because no lane CI-enforced it. A compliance audit asks 'show me every state-changing inter-µservice call seals to audit-chain' and we cannot answer.",
+        "mitigation": "BLOCK promotion of any µservice past dev until oya-check-audit-chain-seal-coverage lane exists AND is wired into oya-dev-cli gate dispatcher. ADR-0145 should not be Accepted without its enforcement primitives existing — currently it is an aspirational ADR."
+      },
+      {
+        "id": "H1-2",
+        "title": "ADR-0145 hand-waves 'Cedar policy authoring grows' without naming a Cedar fragment library",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Consequences/Negative #5: 'each µservice declares which sibling-µservice principals may call which actions. (Mitigated by canonical sibling-call Cedar policy fragments in governance.)'",
+          "Searched microservices/governance/policy/ for canonical sibling-call Cedar fragments — only ci-scope.cedar exists; no sibling-call fragment library.",
+          "Outcome: 33 µservices × O(N) sibling principals × hand-authored Cedar = N² Cedar authoring burden, NOT mitigated."
+        ],
+        "regret_probability_12mo": 0.55,
+        "regret_scenario": "Cedar authoring becomes the new bottleneck previously held by Workflow contract authoring. Each new µservice-to-µservice edge requires hand-written Cedar policy fragments + review. By month 9 we have 200+ ad-hoc Cedar entitlements and no template library; reviewers default-allow because catching mistakes is intractable.",
+        "mitigation": "Author canonical Cedar sibling-call fragment templates in microservices/governance/policy/sibling-call-fragments/ AND a generator that scaffolds per-edge Cedar. Or hold ADR-0145 promotion until that's in place."
+      },
+      {
+        "id": "H1-3",
+        "title": "ADR-0145 'cell-µservice load grows' but cell capacity-model NOT updated for new mTLS handshake rate",
+        "severity": "P2",
+        "evidence": [
+          "ADR-0145 §Consequences/Negative #4: 'Cell-µservice load grows — SPIFFE-ID issuance handles every inter-µservice mTLS handshake (not just edge ingress). Capacity-model updated.'",
+          "microservices/cell/capacity-model.md searched for 'inter-µservice mTLS' / 'sibling-call' / 'ADR-0145' / 'hyperscaler shape' — zero hits.",
+          "The ADR ASSERTS capacity-model was updated but it wasn't. Aspirational claim."
+        ],
+        "regret_probability_12mo": 0.5,
+        "regret_scenario": "Production traffic ramps. SPIRE server hits its SVID-issuance ceiling because cell capacity-model was sized for edge-ingress-only, not full sibling-µservice mesh. Cells start dropping SVID renewals; mTLS handshakes fail; cascading inter-µservice call failures.",
+        "mitigation": "Open IP against microservices/cell/capacity-model.md to model N² inter-µservice handshake rate; size SPIRE accordingly. Pre-condition ADR-0145 ramp on this."
+      },
+      {
+        "id": "H1-4",
+        "title": "ADR-0145 cargo-cults AWS Step Functions without acknowledging Step Functions provides cross-µservice transaction semantics direct-gRPC does NOT",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Alternatives D: 'Pure hyperscaler shape with 3 weaker invariants (accepted) ... matches AWS / Google / Microsoft / Stripe / Anthropic shape'",
+          "AWS Step Functions provides: distributed-transaction sagas, durable retry, compensation, exactly-once semantics, exponential backoff with jitter. Direct gRPC provides NONE of these.",
+          "ADR-0145 names 'Workflow MAY be used for durable long-running cross-µservice orchestration (sagas, retry-with-backoff, human-in-the-loop, multi-step transactions)' — but this is OPT-IN. There's no rule for WHEN a µservice MUST use Workflow vs direct gRPC.",
+          "Without a 'when to use Workflow' rubric, engineers will default to direct gRPC for everything, then debug saga-like failures via custom code, badly."
+        ],
+        "regret_probability_12mo": 0.65,
+        "regret_scenario": "Month 6: an inter-µservice flow needs to update 3 entities atomically. Engineer uses direct gRPC, hand-rolls retry, gets it subtly wrong, leaks half-committed state. The org rediscovers Saga pattern via prod incident. Workflow exists but no one knew when to reach for it.",
+        "mitigation": "Add ADR-0146 'When-to-use-Workflow rubric' OR a Consequences section in ADR-0145 enumerating the 4-5 patterns that MUST use Workflow (multi-µservice state mutations, human-in-the-loop, long-running with retries > 30s, etc.)."
+      },
+      {
+        "id": "H1-5",
+        "title": "Ontology as 'preferred path for cross-µservice entity reads where latency budget permits' is unmeasurable",
+        "severity": "P2",
+        "evidence": [
+          "ADR-0145 §Decision/Invariant 3: 'Ontology query is the preferred path for cross-µservice entity reads where latency budget permits.'",
+          "What's the latency budget threshold? Not specified. Engineers will route around Ontology citing 'latency' without proof, eroding the substrate's value over time.",
+          "Compare: Palantir Foundry's Ontology has SLO-typed read paths with documented p99 budgets. Our ADR-0145 has no analogous specification."
+        ],
+        "regret_probability_12mo": 0.4,
+        "regret_scenario": "Ontology becomes vestigial: engineers default to direct gRPC because 'Ontology is too slow' (assertion, not measurement). Cross-µservice queryability drifts; we have 30 sets of canonical entity contracts.",
+        "mitigation": "Add per-Ontology-axis p99 read budget (e.g., 50ms hot, 200ms cold) and require an ADR to bypass it. Forces measurement before bypass."
+      }
+    ],
+    "hunt_2_other_anti_hyperscaler_patterns": [
+      {
+        "id": "H2-1",
+        "title": "oya-dev-cli is a monolith dispatcher (single-process, single-crate) for 52+ gates — anti-hyperscaler shape",
+        "severity": "P1",
+        "evidence": [
+          "crates/oya-dev-cli/src/commands/gate/mod.rs uses a single `match (verb, lane)` arm-list to dispatch ALL gates.",
+          "Adding a new gate (e.g., oya-check-eu-ai-act-annex-iii-refusal) requires touching this central mod.rs.",
+          "This is the SAME anti-pattern Workflow+Ontology had: a single central authority that must be modified for every µservice change.",
+          "Hyperscaler comparison: AWS uses per-tool CLIs (aws s3, aws iam, aws lambda) with separate code paths; not one monolithic dispatcher."
+        ],
+        "anti_hyperscaler_comparison": "AWS Tools / Google Cloud SDK / Azure CLI all use plugin architectures where each service registers via a discovery mechanism, not a hand-edited central dispatcher. Our oya-dev-cli is the architectural antipattern we just retired.",
+        "regret_probability_12mo": 0.55,
+        "migration_path": "Phase 1 (M02): convert oya-dev-cli to plugin-registry where each oya-check-* crate registers a CommandSpec via inventory or linkme. Phase 2 (M03): split into oya-dev-cli (orchestrator) + per-axis CLIs (oya-governance-cli, oya-foundry-cli)."
+      },
+      {
+        "id": "H2-2",
+        "title": "Single audit-chain µservice instance — not sharded per-tenant or per-cell",
+        "severity": "P1",
+        "evidence": [
+          "microservices/audit-chain/ shows a single µservice with single Helm chart. Not sharded.",
+          "ADR-0145 makes EVERY state-changing inter-µservice call emit a seal to audit-chain. Volume grows multiplicatively.",
+          "Compared to: AWS CloudTrail (per-account isolation), Azure Monitor (per-workspace), GCP Cloud Audit Logs (per-project) — all enforce hard per-tenant boundaries to prevent cross-tenant volume contamination AND for sovereignty."
+        ],
+        "anti_hyperscaler_comparison": "Hyperscalers shard audit at tenant/project boundary. Our single audit-chain creates a noisy-neighbor risk: one chatty tenant degrades the seal-write SLO for all tenants. Also: data sovereignty becomes hard (EU tenant + US tenant audit data co-mingled).",
+        "regret_probability_12mo": 0.5,
+        "migration_path": "ADR-0146 'audit-chain per-cell shardability': document per-cell audit-chain deployment topology; the audit-chain seal storage shards by (cell, tenant); cross-cell verification is via Merkle-tree root commitment, not by querying a single store."
+      },
+      {
+        "id": "H2-3",
+        "title": "Centralized Cedar policy evaluation — single OpenBao/PDP per cell rather than cell-local PEP+PDP",
+        "severity": "P2",
+        "evidence": [
+          "microservices/governance/policy/ structure suggests centralized policy authoring. Per-call evaluation path not clearly cell-local.",
+          "ADR-0145 §Decision says 'Cedar policy authorization (per-call)' — but doesn't specify WHERE the PDP runs.",
+          "If Cedar PDP is in oya-governance-cedar µservice, every inter-µservice call routes through it — re-creating the ESB-2.0 anti-pattern in the authz layer.",
+          "Hyperscaler comparison: AWS IAM evaluates entirely cell-local via in-process IAM SDK. No round-trip to central IAM service per call."
+        ],
+        "anti_hyperscaler_comparison": "AWS IAM, Google Cloud IAM, Azure RBAC: in-process policy evaluation via SDK with pre-distributed policy bundles. Round-trip to PDP for every call would 10x the latency budget. Cedar is designed for cell-local PEP+PDP, but our deployment topology isn't specified.",
+        "regret_probability_12mo": 0.4,
+        "migration_path": "Author ADR for 'Cedar policy distribution topology': PDP-as-sidecar OR PDP-as-library, with policy-bundle propagation via OpenBao. Forbid central-PDP roundtrip for hot-path authz."
+      },
+      {
+        "id": "H2-4",
+        "title": "Single canonical Helm helpers library (Helm umbrella in microservices/observability) shared across 33 µservices",
+        "severity": "P2",
+        "evidence": [
+          "Helm template `include \"oya.networkPolicy.allowEgressToCarriers\" $` referenced in microservices/network/iac/helm/network/templates/networkpolicy.yaml + meet — implies a shared _helpers.tpl library.",
+          "If a single helpers library, then a breaking change ripples across 33 µservices simultaneously.",
+          "Hyperscaler comparison: AWS CDK has per-construct libraries with semver; not one monolithic helpers file shared by everyone."
+        ],
+        "anti_hyperscaler_comparison": "Per-axis Helm helper libraries with semver pinning is the production shape (compare: aws-cdk-lib L1/L2 split, Pulumi providers). Our single helpers.tpl couples 33 µservices to one library version.",
+        "regret_probability_12mo": 0.35,
+        "migration_path": "Split helpers.tpl into per-axis libraries (oya.network.tpl, oya.observability.tpl) under microservices/<axis>/iac/helm-helpers/. µservices import explicitly via Helm dependencies."
+      },
+      {
+        "id": "H2-5",
+        "title": "Synchronous audit-chain seal — no read-your-writes invariant nor async path documented",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Decision/Invariant 1: 'Every state-changing inter-µservice call MUST emit an audit-chain seal at the calling service'.",
+          "Synchronous emission means audit-chain availability sits in the critical path of every state-changing call. Audit-chain outage → every write-path fails.",
+          "Hyperscaler comparison: AWS CloudTrail uses async fire-and-forget with delivery guarantees via S3 + retries. The control-plane writes don't block on CloudTrail."
+        ],
+        "anti_hyperscaler_comparison": "CloudTrail / Azure Audit Logs / GCP Audit Logs: async with bounded retry. The audit emission is on critical path for legal reasons but the latency is async-batched, not sync-blocking.",
+        "regret_probability_12mo": 0.6,
+        "migration_path": "Document the sync-vs-async seal path in ADR-0145 OR a successor ADR. Default async with local WAL + delivery worker. Synchronous only for HIPAA/Sox-Article-6 paths. Make read-your-writes the explicit contract via a per-µservice WAL."
+      },
+      {
+        "id": "H2-6",
+        "title": "33-µservice list as a known-set (hardcoded list) — not a dynamic registry",
+        "severity": "P2",
+        "evidence": [
+          "microservices/ directory enumerates a known list; the count appears in PRDs, evidence, and review scripts as a hardcoded number.",
+          "Adding the 34th µservice requires touching multiple registries by hand.",
+          "Hyperscaler comparison: AWS services are discovered via service-discovery; not enumerated in a static list."
+        ],
+        "anti_hyperscaler_comparison": "Service registries (Consul, etcd, ServiceCatalog) provide dynamic enumeration. Our static directory + static count couples authoring tooling to one specific topology.",
+        "regret_probability_12mo": 0.3,
+        "migration_path": "Author a dynamic registry under registry/microservices/index.json that's auto-generated from microservices/*/manifest.json. Forbid hardcoded 33-count anywhere."
+      },
+      {
+        "id": "H2-7",
+        "title": "manifest.json regenerated by single generator — single point of failure for cross-µservice catalog truth",
+        "severity": "P2",
+        "evidence": [
+          "PR #143 mentions 'Fix-B's generator fix' regenerated manifest.json files. If a single generator owns this, then ALL µservices share that generator's defect surface.",
+          "Hyperscaler comparison: each AWS service ships its own service-spec definition; AWS does NOT have a single generator authoring all 200+ service catalogs."
+        ],
+        "anti_hyperscaler_comparison": "Per-µservice ownership of manifest is the hyperscaler shape. A single generator violates Conway's law and creates a coupling chokepoint.",
+        "regret_probability_12mo": 0.3,
+        "migration_path": "Convert generator into a per-µservice lint that VALIDATES manifest.json against schema, but each µservice owns the authoring."
+      },
+      {
+        "id": "H2-8",
+        "title": "11-pack overlay as ahead-of-time set rather than runtime jurisdiction resolution",
+        "severity": "P3",
+        "evidence": [
+          "PRD wording suggests packs are pre-enumerated (KR, US-Healthcare, EU-GDPR, etc.).",
+          "Hyperscaler comparison: AWS Region availability is runtime-resolved per request; tenant jurisdiction → applicable region → applicable compliance overlay is a runtime resolution, not a fixed set."
+        ],
+        "anti_hyperscaler_comparison": "Compliance overlays as runtime jurisdiction graphs allow per-request policy resolution. Pre-enumerated packs become brittle as jurisdictions multiply (Canada PIPEDA, Brazil LGPD, India DPDPA, China PIPL coming).",
+        "regret_probability_12mo": 0.25,
+        "migration_path": "M03 or later: refactor packs to a jurisdiction graph (region → applicable_overlays []) with runtime resolution."
+      }
+    ],
+    "hunt_3_fix_regressions": [
+      {
+        "id": "H3-1",
+        "title": "Fix-D crates ship ZERO integration tests (empty tests/ directories)",
+        "severity": "P1",
+        "evidence": [
+          "ls crates/oya-shared-hyperscaler-metrics-kernel/tests/ → empty",
+          "ls crates/oya-shared-hyperscaler-metrics-adapter-prometheus/tests/ → empty",
+          "ls crates/oya-check-eu-ai-act-annex-iii-refusal/tests/ → empty",
+          "ls crates/oya-check-slsa-l3-evidence-grounded/tests/ → empty",
+          "Inline tests exist (#[cfg(test)] mod tests) — but no separate integration tests/*.rs. Inline tests share private state and module visibility; not a public-contract test."
+        ],
+        "regression_classification": "valid + actionable",
+        "mitigation": "Author at least one tests/*.rs integration test per crate that exercises the public API as a downstream consumer would. Pre-condition any merge that claims test coverage on this."
+      },
+      {
+        "id": "H3-2",
+        "title": "New Fix-D check gates NOT wired into oya-dev-cli dispatcher",
+        "severity": "P0",
+        "evidence": [
+          "grep oya-dev-cli/src/commands/gate/ for 'eu_ai_act|annex_iii|slsa_l3|evidence_grounded' → 0 matches.",
+          "grep oya-dev-cli/src/lib.rs for same → 0 matches.",
+          "These check crates exist as standalone Rust binaries but are NOT invokable via 'oya gate validate <lane>'. They cannot fail CI.",
+          "PR description claims new gates landed; reality: code exists but no enforcement surface."
+        ],
+        "regression_classification": "valid + actionable — blocks PR claim of 'gates landed'",
+        "mitigation": "Wire both check crates into crates/oya-dev-cli/src/commands/gate/mod.rs via new (verb='validate', lane='eu-ai-act-annex-iii-refusal') + (verb='validate', lane='slsa-l3-evidence-grounded') match arms. Add to registry/quality/lanes.yaml. Add to gate run-all aggregator. Without this, the gates are theater."
+      },
+      {
+        "id": "H3-3",
+        "title": "Stale Workflow+Ontology comment in meet networkpolicy after ADR-0145 reform",
+        "severity": "P1",
+        "evidence": [
+          "microservices/meet/iac/helm/meet/templates/networkpolicy.yaml line: '# workflow-engine-mediated per the Workflow+Ontology adapter rule' — still present.",
+          "microservices/network/iac/helm/network/templates/networkpolicy.yaml line: '# per Workflow+Ontology adapter rule (feedback_workflow_objectgraph_adapter_layer).' — still present.",
+          "ADR-0145 explicitly RETIRES the Workflow+Ontology adapter rule and supersedes the auto-memory. The comments contradict the active ADR.",
+          "Future engineers reading these files will see contradictory rules — comments cite a retired authority."
+        ],
+        "regression_classification": "valid + actionable",
+        "mitigation": "Sweep all `microservices/**/networkpolicy.yaml` and `microservices/**/*.md` for 'Workflow+Ontology adapter rule' / 'feedback_workflow_objectgraph_adapter_layer' references. Update to cite ADR-0145. Add a lint."
+      },
+      {
+        "id": "H3-4",
+        "title": "Multi-window burn-rate is single-window, NOT 4-window MWMB pattern",
+        "severity": "P2",
+        "evidence": [
+          "Inspected microservices/anonymous/slos/post-create-latency.openslo.yaml: alertPolicyRef references 'anonymous-post-create-burnrate' — single reference, not 4 windows.",
+          "Inspected microservices/calendar/slos/agenda-render-latency.openslo.yaml: 'calendar-agenda-render-slow-burn-6h-6x' — single 6h × 6× window. No fast-burn / page / ticket / longer windows.",
+          "Google SRE Workbook canonical multi-window-multi-burn-rate (MWMB) alerting uses 2h × 14.4×, 1h × 14.4× (page); 6h × 6×, 24h × 6× (ticket); etc. PR #143 review-performance claims '4-window burn-rate added' — evidence does not support this.",
+          "Outcome: round-1 performance review verdict may be over-confident; the burn-rate implementation is partial."
+        ],
+        "regression_classification": "valid + actionable; round-1 performance reviewer may have misread artifact",
+        "mitigation": "Audit microservices/observability/iac/helm/observability/templates/ for actual PrometheusRule definitions. Author the missing fast-burn (1h/14.4× page) windows. Cross-check with SRE Workbook §5 MWMB spec."
+      },
+      {
+        "id": "H3-5",
+        "title": "ADR-0141 read-path-direct status correctly Superseded BUT auto-memory NOT updated",
+        "severity": "P1",
+        "evidence": [
+          "docs/decisions/ADR-0141-workflow-ontology-read-path-direct.md status: Superseded ✓",
+          "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md status: Superseded ✓",
+          "/Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/MEMORY.md still contains 'feedback_workflow_objectgraph_adapter_layer.md — THE key architectural rule: all inter-product adapters flow through Workflow (orchestration) + Ontology (info); products never call each other directly' WITHOUT a supersession marker.",
+          "The feedback file itself was NOT searched for a supersession header (file content not verified)."
+        ],
+        "regression_classification": "valid + actionable",
+        "mitigation": "Update MEMORY.md to mark the entry SUPERSEDED by ADR-0145 (parallel to how layer-enum-12-value was marked superseded by layer-enum-adr-0105-13). Add a supersession header to feedback_workflow_objectgraph_adapter_layer.md itself."
+      },
+      {
+        "id": "H3-6",
+        "title": "Drift: ADR-0132 still cites feedback_workflow_objectgraph_adapter_layer as active authority",
+        "severity": "P1",
+        "evidence": [
+          "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md: 'Cross-µservice composition flows through Workflow events and Ontology reads/writes, per feedback_workflow_objectgraph_adapter_layer.md.'",
+          "ADR-0132 was authored BEFORE ADR-0145. The ADR-0132 statement is now contradicted by ADR-0145 invariants.",
+          "Same drift in: docs/prds/ontology.md, docs/prds/workflow.md, docs/prds/hr.md, microservices/tasks/decisions/ADR-TASKS-0005, microservices/forms/decisions/ADR-FORMS-0005, microservices/workflow-studio/decisions/ADR-WS-0005, microservices/meet/IP-008, microservices/network/IP-011."
+        ],
+        "regression_classification": "valid + actionable",
+        "mitigation": "Open IP 'ADR-0145 citation sweep': replace every reference to feedback_workflow_objectgraph_adapter_layer with ADR-0145 OR add 'NOTE: superseded by ADR-0145' inline. Land before any new µservice ships."
+      },
+      {
+        "id": "H3-7",
+        "title": "Round-1 evidence files contain STALE 'BLOCK' / 'approve-with-comments' verdicts for issues now RESOLVED by ADR-0145",
+        "severity": "P2",
+        "evidence": [
+          "evidence/pr-143-review-integration.json verdict 'approve-with-comments' references 'network→ats, meet→recordings' as Workflow+Ontology bypass violations. ADR-0145 explicitly RECLASSIFIES these as compliant.",
+          "evidence/pr-143-review-doubt-driven.json verdict 'block' may now be stale; not re-verified post-ADR-0145.",
+          "The evidence files lack a 'superseded_by' / 'reclassified_at' header.",
+          "A future auditor reading evidence/ will see contradictory verdicts."
+        ],
+        "regression_classification": "valid + actionable",
+        "mitigation": "Add a 'reclassified_at' / 'reclassified_by': 'ADR-0145' field to evidence/pr-143-review-integration.json findings F-INT-* that cited bypass violations. Same for doubt-driven if applicable."
+      },
+      {
+        "id": "H3-8",
+        "title": "Network µservice IP-011 references a 'Tier-G ATS µservice' that DOES NOT EXIST in the 33-µservice catalog",
+        "severity": "P1",
+        "evidence": [
+          "microservices/network/IP-011-jobs-handoff-bc.md: 'contract-versioned event handoff to Tier-G ATS µservice'",
+          "microservices/network/iac/helm/network/templates/networkpolicy.yaml: 'Jobs-handoff to Tier-G ATS µservice flows through workflow-engine event-bus'",
+          "ls microservices/ats → No such file or directory.",
+          "Network has an `-adapter-ats-bridge` crate scaffolded, but the target µservice doesn't exist. The egress NetworkPolicy permits routing to a nonexistent target."
+        ],
+        "regression_classification": "valid + actionable; pre-existing defect surfaced by R2 audit",
+        "mitigation": "Either author the ATS µservice as a future-µservice placeholder (docs/decisions/ADR-NNNN-ats-microservice.md), or remove the ats-bridge surface from network until the partner exists. Don't ship egress policy to a phantom service."
+      },
+      {
+        "id": "H3-9",
+        "title": "SLO time-window uniform 28d rolling — no per-µservice tier-aware variation",
+        "severity": "P3",
+        "evidence": [
+          "Spot-check anonymous/post-create-latency.openslo.yaml: timeWindow 28d isRolling true.",
+          "All SLOs sampled used 28d. No SLO uses tier-specific windows (e.g., audit-chain 90d, compliance 30d).",
+          "Compliance/audit SLOs typically run on 30d calendar-aligned not 28d rolling — to align with monthly attestation cadence."
+        ],
+        "regression_classification": "valid trade-off — accepting uniform 28d is defensible for MVP, but audit-chain/compliance need explicit follow-up",
+        "mitigation": "Open follow-up IP to author tier-specific SLO time-windows for audit-chain + governance + cell µservices (90d calendar-aligned for attestation; 28d rolling for app-tier)."
+      },
+      {
+        "id": "H3-10",
+        "title": "Fix-B placeholder rewrites cannot be verified (no diff trail in this review surface)",
+        "severity": "P3",
+        "evidence": [
+          "Round-1 spec mentioned '100 placeholder files rewritten'. R2 cannot verify rewrite quality without before/after diffs.",
+          "Without a manifest of which 100 files were touched and what the original placeholder said, drift detection is impossible."
+        ],
+        "regression_classification": "noise — no actionable defect found; flagged as audit-trail gap",
+        "mitigation": "Future: any 'mass rewrite' should emit a manifest at evidence/sweep-<id>-rewrite-manifest.json listing each path + original-line-count + new-line-count + intent-preserved boolean."
+      }
+    ],
+    "hunt_4_cross_fix_interactions": [
+      {
+        "id": "H4-1",
+        "title": "oya-shared-hyperscaler-metrics-kernel + adapter HAVE catalog records ✓",
+        "severity": "informational",
+        "evidence": [
+          "registry/catalog/oya-shared-hyperscaler-metrics-kernel.yaml exists (261B).",
+          "registry/catalog/oya-shared-hyperscaler-metrics-adapter-prometheus.yaml exists (259B).",
+          "registry/graph/architecture-map.json references metrics-kernel."
+        ],
+        "verdict": "Fix-D authored catalog records for the kernel + adapter. ✓"
+      },
+      {
+        "id": "H4-2",
+        "title": "oya-check-eu-ai-act-annex-iii-refusal + oya-check-slsa-l3-evidence-grounded HAVE catalog records ✓ BUT NOT wired into dispatcher ✗",
+        "severity": "P0",
+        "evidence": [
+          "registry/catalog/oya-check-eu-ai-act-annex-iii-refusal.yaml exists.",
+          "registry/catalog/oya-check-slsa-l3-evidence-grounded.yaml exists.",
+          "Catalog presence is necessary but not sufficient — dispatcher arm wiring is missing (see H3-2).",
+          "Net: half-landed. Catalog says they exist; dispatcher says they don't."
+        ],
+        "mitigation": "Same as H3-2: wire dispatcher arms + lanes.yaml + run-all aggregator. Without dispatcher wiring, catalog presence is a phantom."
+      },
+      {
+        "id": "H4-3",
+        "title": "adr-follow-ups.yaml has no retirement discipline — risks becoming a zombie registry",
+        "severity": "P2",
+        "evidence": [
+          "registry/placeholder-debt/adr-follow-ups.yaml schema includes 'status: pending | drafting | accepted (transitions to accepted when the real ADR-NNNN lands and is back-linked here)'.",
+          "No documented sweep cadence. No CI lane validates that 'pending' entries haven't been stale > N months.",
+          "Without a sweep, the registry accumulates pending entries indefinitely; becomes another 'TODO file' that no one reads."
+        ],
+        "mitigation": "Add a lane 'oya-check-adr-follow-up-staleness' that fails CI when any entry has been 'pending' > 90 days without justification. Quarterly sweep to retire accepted entries."
+      },
+      {
+        "id": "H4-4",
+        "title": "ADR-0145 claims auto-memory marked superseded BUT MEMORY.md is unmodified",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Consequences/Operational #5: 'feedback_workflow_objectgraph_adapter_layer auto-memory marked superseded.'",
+          "MEMORY.md entry verified — still active, no supersession marker (verified above in H3-5).",
+          "CLAUDE.md verified — no ADR-0145 reference added in the codebase CLAUDE.md (also no Workflow+Ontology assertion to retire — that lived in the auto-memory)."
+        ],
+        "mitigation": "Update MEMORY.md (file under /Users/jasonlee/.claude/projects/-Users-jasonlee-oyatie/memory/) to add a SUPERSEDED row referencing ADR-0145 — same pattern used for layer-enum-12-value supersession. Add a supersession header inside feedback_workflow_objectgraph_adapter_layer.md."
+      }
+    ],
+    "hunt_5_drift": [
+      {
+        "id": "H5-1",
+        "title": "manifest.json count = 32 (not the expected 33)",
+        "severity": "P2",
+        "evidence": [
+          "ls microservices/*/manifest.json | wc -l → 32",
+          "Comparison: microservices/ subdirectories enumerated = 33 (anonymous, application, audit-chain, calendar, cell, cloud-iac, cloud-k8s, cloud-secrets, community, connect, docs, drive, forms, foundry, governance, mail, meet, messenger, network, notes, observability, ontology, recordings, sheets, shorts, sites, slides, social, tasks, tenancy, translate, workflow-engine, workflow-studio = 33).",
+          "One µservice directory is missing its manifest.json. Likely candidate: connect (dissolution µservice) or application (shell).",
+          "PR claim '32 manifests regenerated' is not the same as '33 µservices each have a manifest'."
+        ],
+        "mitigation": "Audit which µservice lacks a manifest.json. Either author one (preferred) OR document why it doesn't have one (e.g., connect is in dissolution per ADR-0132)."
+      },
+      {
+        "id": "H5-2",
+        "title": "ADR-0130 dual usage — two distinct ADR-0130 numbers in tree (deprecate-knowledge-graph + the implied agentic-slo-gated-promotion)",
+        "severity": "P1",
+        "evidence": [
+          "CLAUDE.md cites 'ADR-0130 agentic SLO-gated promotion' as observability_substrate rationale.",
+          "ls docs/decisions/ADR-0130* → only ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md.",
+          "No ADR-0130-agentic-slo-gated-promotion.md exists. CLAUDE.md cites a non-existent ADR.",
+          "This is a numbering collision: CLAUDE.md was written before the deprecate-kg ADR took 0130, OR the agentic-slo-promotion ADR was renumbered without updating CLAUDE.md."
+        ],
+        "mitigation": "Resolve the ADR-0130 collision. Either (a) author the agentic-slo-gated-promotion ADR with a non-colliding number and update CLAUDE.md, or (b) confirm the existing ADR-0130 covers both topics."
+      },
+      {
+        "id": "H5-3",
+        "title": "Round-1 evidence files not version-stamped for ADR-0145 reclassification",
+        "severity": "P2",
+        "evidence": [
+          "evidence/pr-143-review-integration.json contains 'verdict_rationale' that cites 2 violations now reclassified by ADR-0145.",
+          "No 'reclassified_at': '2026-05-18' or 'reclassified_by': 'ADR-0145' marker added.",
+          "Auditor reading evidence/ alone cannot tell which findings remain live."
+        ],
+        "mitigation": "Append a 'post_review_amendments' section to each round-1 review JSON noting which findings were reclassified by ADR-0145 and when."
+      }
+    ],
+    "hunt_6_reform_new_regrets": [
+      {
+        "id": "H6-1",
+        "title": "Service-mesh sprawl: ADR-0145 enables N² mTLS handshakes without specifying service-mesh tooling",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Decision/Direct sibling-µservice egress: 'NetworkPolicy egress rules MAY allow direct egress to sibling µservices gRPC endpoints, subject to mTLS authentication ...'",
+          "No mention of Istio / Linkerd / Cilium / AWS App Mesh. No service-mesh choice committed.",
+          "33 µservices × O(N) sibling edges = up to 528 mTLS handshakes worth of cert management. Without a mesh, this is hand-rolled.",
+          "Hyperscaler comparison: at this density, every hyperscaler uses a mesh (Stripe → Twirp + custom mesh; Google → Stubby + global service-discovery; AWS → App Mesh / VPC Lattice)."
+        ],
+        "regret_probability_12mo": 0.55,
+        "regret_scenario": "By month 9, cert-rotation incidents cascade weekly. Manual SPIFFE-ID issuance scripts can't keep up. We retroactively adopt Istio under incident pressure with no design budget.",
+        "mitigation": "Author ADR-0147 'service-mesh decision' (Istio vs Linkerd vs Cilium vs custom Tower interceptor library). Pre-condition direct sibling-µservice egress on the mesh ADR landing."
+      },
+      {
+        "id": "H6-2",
+        "title": "Distributed audit-chain emission has NO cross-service causality contract",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Decision/Invariant 1: 'Every state-changing inter-µservice call MUST emit an audit-chain seal at the calling service'.",
+          "If µservice A calls µservice B which calls µservice C, who seals what? Each one seals its own call independently. The CROSS-FLOW causal chain (A→B→C) is reconstructed only via OTel tracing, not via the seal-chain.",
+          "Compare to old Workflow+Ontology rule: the Workflow event-bus naturally provided a causal chain because every flow had a single root event.",
+          "Cross-µservice forensic reconstruction (legal subpoena, breach investigation) becomes harder."
+        ],
+        "regret_probability_12mo": 0.5,
+        "regret_scenario": "An audit query asks 'show me every operation that touched user X' — answer requires joining 33 µservice seal logs by trace-id, hoping every µservice honored OTel propagation. One µservice with bad OTel propagation = broken causality chain.",
+        "mitigation": "Add Invariant 4 to ADR-0145: 'every audit-chain seal MUST include the OTel trace-id + parent-span-id; cross-µservice causality is reconstructable from (trace-id, seal-timestamp).' Validate via 'oya-check-audit-seal-trace-binding' lane."
+      },
+      {
+        "id": "H6-3",
+        "title": "Ontology becomes single point of contention if all 33 µservices write to it",
+        "severity": "P2",
+        "evidence": [
+          "ADR-0145 §Decision/Invariant 3: 'µservices that own canonical entities MUST project them into Ontology.'",
+          "30+ µservices projecting writes into Ontology = write-hot-spot.",
+          "No mention of Ontology partition strategy. Single Ontology µservice serializes every projection write.",
+          "Palantir Ontology in production is partitioned by tenant + entity-type — not a single-database design."
+        ],
+        "regret_probability_12mo": 0.4,
+        "regret_scenario": "Ontology projection lag grows with µservice count. Cross-µservice entity reads become stale by minutes. Engineers route around Ontology because freshness budget exceeded; substrate erodes.",
+        "mitigation": "Author Ontology partitioning ADR. Per-tenant + per-entity-class sharding with projection-lag SLO."
+      },
+      {
+        "id": "H6-4",
+        "title": "Cedar per-call authz latency budget never specified — risk of N² authz traffic",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Direct egress: 'Cedar policy authorization (per-call)' — but no latency budget.",
+          "33 µservices × O(N) sibling calls × Cedar eval = up to 528 Cedar eval edges. At 10ms each = 5.3s additional latency budget overhead in a worst-case 528-hop trace.",
+          "Without a budget, engineers will treat Cedar as 'free' and chain calls, then debug latency cascades."
+        ],
+        "regret_probability_12mo": 0.45,
+        "regret_scenario": "P99 latency budgets blow up in month 6. Profiler shows Cedar eval as top time sink. We adopt Cedar caching under duress, with cache-invalidation correctness bugs.",
+        "mitigation": "Specify Cedar eval budget per inter-µservice call (e.g., <1ms p99 via in-process PDP + 1s policy bundle freshness). Require ADR-0148 'Cedar PDP topology + caching contract'."
+      },
+      {
+        "id": "H6-5",
+        "title": "Direct µservice-to-µservice contracts grow without versioning discipline",
+        "severity": "P1",
+        "evidence": [
+          "ADR-0145 §Consequences/Negative #3: 'Per-µservice contract surface grows — each µservice's contracts/openapi or contracts/proto carries the surfaces siblings call.'",
+          "No mention of contract-versioning lane (Buf breaking-change detection, OpenAPI semver enforcement).",
+          "Old rule: Workflow events carried versioned contracts via single registry. New rule: 33 µservices × N siblings × per-edge contract = combinatorial contract surface with no central versioning authority."
+        ],
+        "regret_probability_12mo": 0.5,
+        "regret_scenario": "Month 8: µservice A removes a proto field. Two sibling µservices break in prod simultaneously. No CI lane caught the breaking change because contracts/proto/*.proto was edited without a buf-breaking check.",
+        "mitigation": "Add 'oya-check-proto-breaking' lane (Buf breaking-change detection) AND 'oya-check-openapi-breaking' lane (oasdiff). Pre-condition ADR-0145 ramp."
+      }
+    ]
+  },
+  "new_12_month_regrets": [
+    {"regret": "Audit-chain seal-coverage lane never built (ADR-0145 enforcement aspirational)", "probability": 0.6, "mitigation": "Block µservice promotion until oya-check-audit-chain-seal-coverage lane exists + wired"},
+    {"regret": "Cedar policy authoring becomes the new bottleneck (no fragment library)", "probability": 0.55, "mitigation": "Author governance/policy/sibling-call-fragments/ + generator"},
+    {"regret": "Service-mesh sprawl from N² mTLS handshakes (no mesh tool committed)", "probability": 0.55, "mitigation": "Pre-condition ADR-0145 ramp on ADR-0147 service-mesh decision"},
+    {"regret": "Direct gRPC default loses Workflow's saga semantics (no when-to-use-Workflow rubric)", "probability": 0.65, "mitigation": "Add ADR-0146 when-to-use-Workflow with 4-5 mandatory patterns"},
+    {"regret": "Cedar PDP becomes new ESB-2.0 if centralized eval roundtrip", "probability": 0.4, "mitigation": "Specify cell-local PEP+PDP topology in ADR-0148"},
+    {"regret": "Audit-chain single-instance noisy-neighbor risk across tenants", "probability": 0.5, "mitigation": "ADR-0146 per-cell shardable audit-chain"},
+    {"regret": "Synchronous audit-chain seal puts audit availability in critical path", "probability": 0.6, "mitigation": "Document async-default seal path with WAL"},
+    {"regret": "Ontology projection write hotspot if all µservices write", "probability": 0.4, "mitigation": "Author Ontology partitioning ADR"},
+    {"regret": "Cross-µservice causality reconstructable only via OTel (single failure surface)", "probability": 0.5, "mitigation": "Invariant 4: bind audit seal to trace-id"},
+    {"regret": "Direct µservice-to-µservice contracts grow without breaking-change CI", "probability": 0.5, "mitigation": "Add buf-breaking + oasdiff lanes"}
+  ],
+  "new_anti_hyperscaler_patterns": [
+    "oya-dev-cli monolith dispatcher (vs plugin-registry per-axis CLIs)",
+    "Single audit-chain µservice instance (vs per-tenant/per-cell shardable)",
+    "Centralized Cedar PDP (vs cell-local PEP+PDP)",
+    "Single Helm helpers library shared by 33 µservices (vs per-axis libraries with semver)",
+    "Synchronous audit-chain seal (vs async with delivery worker + WAL)",
+    "33-µservice hardcoded list (vs dynamic registry via manifest auto-discovery)",
+    "Single manifest.json generator (vs per-µservice ownership)",
+    "Static jurisdiction pack set (vs runtime jurisdiction-graph resolution)"
+  ],
+  "merge_blockers": [
+    {
+      "id": "MB-1",
+      "severity": "P0",
+      "title": "Fix-D new check gates (oya-check-eu-ai-act-annex-iii-refusal + oya-check-slsa-l3-evidence-grounded) NOT wired into oya-dev-cli dispatcher",
+      "blocking_rationale": "PR claims new gates landed. Reality: code exists but cannot be invoked via 'oya gate validate <lane>'. The gates cannot fail CI. This is theater that misrepresents PR scope.",
+      "fix_required": "Wire dispatcher arms in crates/oya-dev-cli/src/commands/gate/mod.rs + add to registry/quality/lanes.yaml + add to run-all aggregator. Pre-merge."
+    }
+  ],
+  "approve_with_comments_findings": [
+    "H1-1: ADR-0145 enforcement primitive oya-check-audit-chain-seal-coverage does not exist — file as immediate follow-up IP",
+    "H1-2: Cedar sibling-call fragment library missing — file as follow-up IP",
+    "H1-3: Cell capacity-model not updated for new mTLS handshake rate per ADR-0145 — file as follow-up IP",
+    "H1-4: When-to-use-Workflow rubric absent (ADR-0146) — file as follow-up ADR",
+    "H3-1: Fix-D crates ship zero integration tests in tests/*.rs — file as immediate follow-up IP",
+    "H3-3: Stale 'Workflow+Ontology adapter rule' comments in 8+ files — file as ADR-0145 citation sweep IP",
+    "H3-5: MEMORY.md + feedback_workflow_objectgraph_adapter_layer.md not marked superseded — update before next session start",
+    "H3-6: ADR-0132 + PRDs + per-µservice IPs cite retired feedback memory — file as ADR-0145 citation sweep IP",
+    "H3-8: network µservice references phantom ATS µservice that does not exist — file as either ATS-µservice ADR or ats-bridge removal",
+    "H4-3: adr-follow-ups.yaml has no retirement discipline — add staleness lane",
+    "H5-1: 32 manifests for 33 µservices — audit gap",
+    "H5-2: ADR-0130 dual usage (CLAUDE.md cites non-existent ADR-0130-agentic-slo-gated-promotion) — resolve numbering",
+    "H6-1: service-mesh choice undocumented — file ADR-0147",
+    "H6-2: distributed audit-chain has no cross-service causality contract — add Invariant 4 to ADR-0145",
+    "H6-5: contract-breaking-change CI lanes missing — add buf-breaking + oasdiff"
+  ],
+  "summary": "R2 review surfaces 23 NEW findings (10 H3 fix-regression items, 5 H1 ADR-0145 meta-regrets, 8 H2 anti-hyperscaler patterns, 4 H4 cross-fix gaps, 3 H5 drift items, 5 H6 reform-new-regrets). One P0 merge blocker: Fix-D new gates are catalog-only, NOT dispatcher-wired — claim of 'new gates landed' is theater. Verdict: APPROVE-WITH-COMMENTS conditional on MB-1 fix. ADR-0145 reform is structurally sound but ships as an aspirational ADR — 6 of its named enforcement primitives (audit-seal-coverage lane, Cedar fragment library, capacity-model update, when-to-use-Workflow rubric, service-mesh choice, contract-breaking lanes) do not exist yet. The reform retired one anti-pattern but introduced 5 new ones that need explicit follow-up ADRs (0146-0148). Highest-probability 12mo regret: direct-gRPC default without saga rubric — 65%.",
+  "top_5_new_findings": [
+    {"id": "MB-1 / H3-2", "title": "Fix-D check gates not wired into dispatcher", "severity": "P0", "action": "wire dispatcher arms + lanes.yaml pre-merge"},
+    {"id": "H1-1", "title": "ADR-0145 enforcement lane oya-check-audit-chain-seal-coverage does not exist — ADR is aspirational", "severity": "P1", "action": "block µservice promotion past dev until lane exists"},
+    {"id": "H3-8", "title": "Network µservice references phantom 'Tier-G ATS µservice' that does not exist in 33-µservice catalog", "severity": "P1", "action": "either author ATS ADR or remove ats-bridge"},
+    {"id": "H6-1", "title": "Service-mesh sprawl: N² mTLS handshakes enabled by ADR-0145 with no mesh tool committed", "severity": "P1", "action": "pre-condition direct-egress ramp on ADR-0147 service-mesh choice"},
+    {"id": "H3-3 + H3-6", "title": "8+ files + ADR-0132 + 3 PRDs still cite retired Workflow+Ontology adapter rule — drift", "severity": "P1", "action": "ADR-0145 citation sweep IP"}
+  ]
+}

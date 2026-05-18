@@ -20,6 +20,10 @@ spec:
         prometheus.io/port: "9090"
         prometheus.io/path: "/metrics"
     spec:
+      {{- /* Blind-signature ceremony nodes carry cryptographic blast-radius
+            sensitivity; ADR-0147 elects Kata Containers (full-VM isolation)
+            over gVisor (user-space-kernel). */}}
+      {{- include "oya.runtimeClassName.crypto" $ | nindent 6 }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 65532

@@ -42,9 +42,7 @@
 use oya_shared_hyperscaler_metrics_kernel::{
     CircuitState, HyperscalerMetrics, MetricFamily, MetricsContext, MetricsError, metric_name,
 };
-use prometheus::{
-    GaugeVec, IntCounter, IntCounterVec, Opts, Registry,
-};
+use prometheus::{GaugeVec, IntCounter, IntCounterVec, Opts, Registry};
 
 /// Reference impl: every metric family in
 /// `MetricFamily::canonical_set()` is registered against a shared
@@ -73,10 +71,7 @@ impl PrometheusHyperscalerMetrics {
     /// `AlreadyReg` if the metric was already registered — we propagate
     /// that as `MetricsError::RegistryFailure` so callers can detect
     /// duplicate construction at startup (always a programming bug).
-    pub fn register(
-        registry: &Registry,
-        ctx: MetricsContext,
-    ) -> Result<Self, MetricsError> {
+    pub fn register(registry: &Registry, ctx: MetricsContext) -> Result<Self, MetricsError> {
         let microservice_label = ctx.microservice().to_string();
 
         // INV-CIRCUIT-BREAKER-BULKHEAD
@@ -97,10 +92,7 @@ impl PrometheusHyperscalerMetrics {
 
         let capability_retry_budget_exhausted = IntCounterVec::new(
             Opts::new(
-                metric_name(
-                    &ctx,
-                    MetricFamily::CapabilityRetryBudgetExhaustedTotal,
-                ),
+                metric_name(&ctx, MetricFamily::CapabilityRetryBudgetExhaustedTotal),
                 "Capability retry-budget exhausted events per capability_id. \
                  Canonical alert: OyaCapabilityRetryBudgetExhausted.",
             )
@@ -110,9 +102,7 @@ impl PrometheusHyperscalerMetrics {
         .map_err(|e| MetricsError::RegistryFailure(format!("counter_vec init: {e}")))?;
         registry
             .register(Box::new(capability_retry_budget_exhausted.clone()))
-            .map_err(|e| {
-                MetricsError::RegistryFailure(format!("register retry_budget: {e}"))
-            })?;
+            .map_err(|e| MetricsError::RegistryFailure(format!("register retry_budget: {e}")))?;
 
         // INV-SHUFFLE-SHARDING
         let responses_429 = IntCounterVec::new(
@@ -165,9 +155,7 @@ impl PrometheusHyperscalerMetrics {
             )
             .const_label("microservice", &microservice_label),
         )
-        .map_err(|e| {
-            MetricsError::RegistryFailure(format!("counter success init: {e}"))
-        })?;
+        .map_err(|e| MetricsError::RegistryFailure(format!("counter success init: {e}")))?;
         registry
             .register(Box::new(request_success_total.clone()))
             .map_err(|e| MetricsError::RegistryFailure(format!("register success: {e}")))?;
@@ -226,7 +214,11 @@ impl HyperscalerMetrics for PrometheusHyperscalerMetrics {
         // `state="open"` and expects "1=open, 0=not open" — without
         // resetting the others, a flip from open→closed would leave the
         // open gauge at 1.
-        for s in [CircuitState::Closed, CircuitState::HalfOpen, CircuitState::Open] {
+        for s in [
+            CircuitState::Closed,
+            CircuitState::HalfOpen,
+            CircuitState::Open,
+        ] {
             let value = if s == state { 1.0 } else { 0.0 };
             self.capability_circuit_state
                 .with_label_values(&[capability_id, s.as_label()])

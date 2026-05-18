@@ -71,13 +71,13 @@
     {
       "name": "anonymous-abuse-classifier-latency",
       "target": "0.95",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/anonymous/slos/abuse-classifier-latency.openslo.yaml"
     },
     {
       "name": "anonymous-affinity-attestation-verify-latency",
       "target": "0.95",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/anonymous/slos/affinity-attestation-verify-latency.openslo.yaml"
     },
     {
@@ -95,31 +95,31 @@
     {
       "name": "anonymous-feed-render-latency",
       "target": "0.95",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/anonymous/slos/feed-render-latency.openslo.yaml"
     },
     {
       "name": "anonymous-hard-delete-propagation-correctness",
       "target": "1.0",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/anonymous/slos/hard-delete-propagation-correctness.openslo.yaml"
     },
     {
       "name": "anonymous-legal-process-disclosure-chain-of-custody-correctness",
       "target": "1.0",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/anonymous/slos/legal-process-disclosure-chain-of-custody-correctness.openslo.yaml"
     },
     {
       "name": "anonymous-post-create-latency",
       "target": "0.95",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/anonymous/slos/post-create-latency.openslo.yaml"
     },
     {
       "name": "anonymous-vote-action-latency",
       "target": "0.99",
-      "sli": "see indicator block",
+      "sli": "total:",
       "file": "microservices/anonymous/slos/vote-action-latency.openslo.yaml"
     }
   ],
@@ -198,7 +198,7 @@
     },
     {
       "id": "IP-013-hard-delete-propagation-chain",
-      "title": "IP-013: Hard-delete propagation chain (Postgres \u2192 Redis \u2192 Meilisearch \u2192 audit-chain tombstone)",
+      "title": "IP-013: Hard-delete propagation chain (Postgres → Redis → Meilisearch → audit-chain tombstone)",
       "acceptance_status": "ga",
       "file": "microservices/anonymous/IP-013-hard-delete-propagation-chain.md"
     },
@@ -229,6 +229,7 @@
     "ksa"
   ],
   "lts_pins": {
+    "prometheus": "2.55",
     "rust": "1.83"
   },
   "adrs": [
@@ -264,21 +265,21 @@
     },
     {
       "id": "ADR-0132",
-      "title": "Connect Core Public Contracts",
+      "title": "Product Suite And Bundle Dissolution",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0132-connect-core-public-contracts.md"
+      "file": "docs/decisions/ADR-0132-product-suite-and-bundle-dissolution.md"
     },
     {
       "id": "ADR-0133",
-      "title": "Industry Best Practice Conformance Program",
+      "title": "Op11 Corpus Remediation Planning Contract",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0133-industry-best-practice-conformance-program.md"
+      "file": "docs/decisions/ADR-0133-op11-corpus-remediation-planning-contract.md"
     },
     {
       "id": "ADR-0135",
-      "title": "Aspirational Enforcement Gate",
+      "title": "Connect Super App Expansion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0135-aspirational-enforcement-gate.md"
+      "file": "docs/decisions/ADR-0135-connect-super-app-expansion.md"
     },
     {
       "id": "ADR-0139",
@@ -288,10 +289,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

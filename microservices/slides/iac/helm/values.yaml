@@ -102,6 +102,8 @@ exportPool:
     ksa: 50000
   gvisor:
     enabled: true
+    # runtimeClassName resolved via oya.runtimeClassName.untrustedContent
+    # canonical helper per ADR-0147 (gVisor default; Kata for sovereign tier).
     runtimeClassName: gvisor
 
 broadcastWorker:

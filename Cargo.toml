@@ -289,6 +289,10 @@ members = [
   "crates/oya-shared-hyperscaler-metrics-adapter-prometheus",
   "crates/oya-check-eu-ai-act-annex-iii-refusal",
   "crates/oya-check-slsa-l3-evidence-grounded",
+  "crates/oya-gen-microservice-manifests-app",
+  "crates/oya-resolve-scorecards-app",
+  "crates/oya-check-adr-placeholders",
+  "crates/oya-check-container-base-image",
 ]
 resolver = "2"
 

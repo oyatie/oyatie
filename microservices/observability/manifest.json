@@ -68,7 +68,44 @@
       "eu_ai_act_risk_class": "limited"
     }
   ],
-  "slos": [],
+  "slos": [
+    {
+      "name": "oya-observability-alerting-fanout-latency",
+      "target": "0.99",
+      "sli": "sum(rate(alertmanager_notification_latency_seconds_bucket{le=\"30\"}[5m]))",
+      "file": "microservices/observability/slos/alerting-fanout-latency.openslo.yaml"
+    },
+    {
+      "name": "oya-observability-log-ingest-availability",
+      "target": "0.9995",
+      "sli": "sum(rate(loki_distributor_requests_total{status_code=~\"2..\"}[5m]))",
+      "file": "microservices/observability/slos/log-ingest-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-observability-metric-ingest-availability",
+      "target": "0.9995",
+      "sli": "sum(rate(cortex_distributor_requests_total{status_code=~\"2..\"}[5m]))",
+      "file": "microservices/observability/slos/metric-ingest-availability.openslo.yaml"
+    },
+    {
+      "name": "oya-observability-query-latency-logs",
+      "target": "0.95",
+      "sli": "sum(rate(loki_request_duration_seconds_bucket{route=~\"/loki/api/v1/query.*\",le=\"0.5\"}[5m]))",
+      "file": "microservices/observability/slos/query-latency-logs.openslo.yaml"
+    },
+    {
+      "name": "oya-observability-query-latency-prom",
+      "target": "0.95",
+      "sli": "sum(rate(cortex_querier_request_duration_seconds_bucket{le=\"0.2\"}[5m]))",
+      "file": "microservices/observability/slos/query-latency-prom.openslo.yaml"
+    },
+    {
+      "name": "oya-observability-trace-ingest-availability",
+      "target": "0.999",
+      "sli": "sum(rate(tempo_distributor_spans_received_total[5m])) - sum(rate(tempo_distributor_spans_refused_total[5m]))",
+      "file": "microservices/observability/slos/trace-ingest-availability.openslo.yaml"
+    }
+  ],
   "ips": [
     {
       "id": "IP-001-layer-a-grafana-stack-iac",
@@ -126,7 +163,7 @@
     },
     {
       "id": "IP-010-promotion-eligibility-ledger",
-      "title": "IP-010: Promotion-eligibility ledger \u2014 Mimir-native recording rules",
+      "title": "IP-010: Promotion-eligibility ledger — Mimir-native recording rules",
       "acceptance_status": "ga",
       "file": "microservices/observability/IP-010-promotion-eligibility-ledger.md"
     },
@@ -175,13 +212,13 @@
     "ksa"
   ],
   "lts_pins": {
-    "alloy": "1.6.0",
-    "grafana": "12.0.0",
-    "loki": "3.5.0",
-    "mimir": "3.3.0",
-    "prometheus": "3.2.0",
+    "alloy": "1.6.0\"  # Alloy LTS line per docs/standards/observability-slo.md",
+    "grafana": "12.0.0\"  # Grafana LTS line per docs/standards/observability-slo.md",
+    "loki": "3.5.0\"  # Loki LTS line per docs/standards/observability-slo.md",
+    "mimir": "3.3.0\"  # Mimir LTS line per docs/standards/observability-slo.md",
+    "prometheus": "3.2.0\"  # Prometheus LTS line per docs/standards/observability-slo.md",
     "rust": "1.83",
-    "tempo": "3.0.0"
+    "tempo": "3.0.0\"  # Tempo LTS line"
   },
   "adrs": [
     {
@@ -225,13 +262,19 @@
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
       "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
+    },
+    {
+      "id": "ADR-0140",
+      "title": "Cross Cutting Carriers Adapter Exemption",
+      "scope": "repo",
+      "file": "docs/decisions/ADR-0140-cross-cutting-carriers-adapter-exemption.md"
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

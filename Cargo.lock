@@ -926,6 +926,10 @@ name = "oya-check-adr-index"
 version = "0.1.0"
 
 [[package]]
+name = "oya-check-adr-placeholders"
+version = "0.1.0"
+
+[[package]]
 name = "oya-check-aspirational-enforcement"
 version = "0.1.0"
 
@@ -958,6 +962,10 @@ version = "0.1.0"
 
 [[package]]
 name = "oya-check-cohesion"
+version = "0.1.0"
+
+[[package]]
+name = "oya-check-container-base-image"
 version = "0.1.0"
 
 [[package]]
@@ -2614,6 +2622,14 @@ name = "oya-foundry-write-gate-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "oya-gen-microservice-manifests-app"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "oya-http-latency-budget-middleware-infrastructure"
 version = "0.1.0"
 dependencies = [
@@ -2841,6 +2857,14 @@ name = "oya-residency-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "oya-resolve-scorecards-app"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3265,6 +3289,7 @@ version = "1.0.149"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "83fc039473c5595ace860d8c4fafa220ff474b3fc6bfdb4293327f1a37e94d86"
 dependencies = [
+ "indexmap",
  "itoa",
  "memchr",
  "serde",
