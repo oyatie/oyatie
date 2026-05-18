@@ -14,7 +14,7 @@ related_adrs:
   - ADR-0105
   - ADR-0106
   - ADR-0135
-  - ADR-0130
+  - ADR-0139
   - ADR-0131
   - ADR-0132
   - ADR-0133
@@ -361,7 +361,7 @@ Key parity gaps to close (ordered by priority):
 4. **Per-viewer dynamic + steganographic watermark** — competitors offer
    static visible watermark only. Target: ADR-RECORDINGS-0004 watermarking.
 5. **OpenSLO + agentic gate** — none gate recording feature rollouts on SLO
-   compliance; oyatie does (per ADR-0130).
+   compliance; oyatie does (per ADR-0139).
 6. **Multi-pack residency + per-pack regulatory overlays** — competitors are
    SaaS-region-coarse; oyatie is per-pack jurisdiction-pinned.
 7. **eDiscovery chain-of-custody Merkle seal** — competitors emit a zip with
@@ -452,7 +452,7 @@ Sharding:
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0135 | Connect dual-context (parallel) | dual-context isolation source |
-| ADR-0130 | Agentic SLO-gated promotion | gates recordings releases |
+| ADR-0139 | Agentic SLO-gated promotion | gates recordings releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-RECORDINGS under this |

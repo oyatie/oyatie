@@ -22,7 +22,7 @@ Register the `HG-NOTES` hyperscaler-grade conformance gate per ADR-0133. The gat
 - pack residency (ADR-0117)
 - documentation suite coverage (ADR-0063)
 - canonical base + localization packs (ADR-0064)
-- SLO-gated promotion (ADR-0130)
+- SLO-gated promotion (ADR-0139)
 - authority cohesion (ADR-0133)
 - statelessness + shardability (per ADR-0131)
 - version pinning conformance (LTS pins)

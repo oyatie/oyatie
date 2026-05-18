@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-cell-substrate
 deciders: council-privacy, ops-security, axis-cell-substrate, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/cell/threat-model.md
@@ -215,7 +215,7 @@ Per-pack overlays at `regional-packs/<pack>/cell-dpia-overlay.md`.
 ## References
 
 - Bominal ADR-0009; Bominal ADR-0019.
-- ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0130 (SLO gate); ADR-0131 (per-µservice); ADR-0140 (Cedar).
+- ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0139 (SLO gate); ADR-0131 (per-µservice); ADR-0140 (Cedar).
 - `microservices/cell/PRD.md`; `microservices/cell/threat-model.md`; `microservices/cell/compliance.md`.
 - ICO DPIA template — `ico.org.uk`.
 - CNIL DPIA methodology — `cnil.fr/en/PIA`.

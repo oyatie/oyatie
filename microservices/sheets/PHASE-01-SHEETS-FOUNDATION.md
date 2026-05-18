@@ -35,7 +35,7 @@ depends_on:
     phase: prior phases per master-plan-sequencing
     reason: workspace + branch-protection + Cargo metadata authority must precede Sheets crate authoring
 owner_team: axis-sheets + council-design-system
-related_adrs: [ADR-0065, ADR-0103, ADR-0135, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0065, ADR-0103, ADR-0135, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -295,7 +295,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0116: Retire external agent-coordination tooling.
 - ADR-0123: Hyperscaler maturity claim gate.
 - ADR-0135: Sheets net-new µservice (no legacy connect-sheets).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - ADR-SHEETS-0001..0007 (local).

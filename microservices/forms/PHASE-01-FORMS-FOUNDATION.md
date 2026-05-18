@@ -9,7 +9,7 @@ owner: axis-forms + council-architecture
 related_artifacts:
   - microservices/forms/PRD.md
   - /specs/microservices/forms.json
-related_adrs: [ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-FORMS-0001, ADR-FORMS-0002, ADR-FORMS-0003, ADR-FORMS-0004, ADR-FORMS-0005, ADR-FORMS-0006]
+related_adrs: [ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-FORMS-0001, ADR-FORMS-0002, ADR-FORMS-0003, ADR-FORMS-0004, ADR-FORMS-0005, ADR-FORMS-0006]
 doc_status: published
 ---
 
@@ -30,7 +30,7 @@ Stand up the forms µservice from zero to GA-eligible foundation. This phase del
 9. AI-form-build T2 capability (gated; opt-in only).
 10. Per-pack overlays: pack-kr (launch) + scaffolds for pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa.
 
-## Exit Criteria (SLO-gated per ADR-0130)
+## Exit Criteria (SLO-gated per ADR-0139)
 
 All of:
 
@@ -104,7 +104,7 @@ PHASE-02-FORMS-AI-AND-ANALYTICS (T2 expansion, analytics dashboards, A/B testing
 
 - PRD.md.
 - /specs/microservices/forms.json.
-- ADR-0130 SLO-gated promotion.
+- ADR-0139 SLO-gated promotion.
 - ADR-0131 per-microservice flat layout.
 - ADR-0132 single-concern microservices.
 - ADR-0133 compliance review cadence.

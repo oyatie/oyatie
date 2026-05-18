@@ -26,7 +26,7 @@ depends_on:
     phase: tenancy phase (tenant identity + Cedar entity types)
     reason: ontology depends on tenant resolver + JWT claims with tenant_id + pillar context.
 owner_team: axis-ontology
-related_adrs: [ADR-0006, ADR-0055, ADR-0059, ADR-0106, ADR-0107, ADR-0122, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0006, ADR-0055, ADR-0059, ADR-0106, ADR-0107, ADR-0122, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/microservices/ontology.json, /specs/knowledge-graph-schema.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published

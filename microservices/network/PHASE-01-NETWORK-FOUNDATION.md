@@ -27,7 +27,7 @@ depends_on:
     phase: P01-messenger-foundation
     reason: network's InMail-bridge BC depends on messenger µservice's Professional-tier surface being live (P01)
 owner_team: axis-network
-related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related_adrs: [ADR-0008, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
 related_specs: [/specs/microservices/network.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
@@ -42,7 +42,7 @@ This phase ships the foundation of the network µservice per parallel ADR-0135 +
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (LinkedIn / Xing / Wantedly / Glassdoor / Indeed parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs in scope; every NFR covered; stubs that are explicitly OFF-by-default are scoped via dedicated ADR successor-IPs).
-- No silent regression (production-tier change gated by observability ADR-0130).
+- No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
 - Professional-context isolation by data model (NOT runtime flag) per parallel ADR-0135; reuses social pattern; never federates to Personal-tier.
 - EU AI Act Annex III §4 (employment, workers management, access to self-employment) high-risk obligations operative from day-1 per ADR-NET-0002.

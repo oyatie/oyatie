@@ -101,4 +101,4 @@ cargo run -p oya-dev-cli -- gate validate shadow-enforce-promotion-readiness --r
 
 - ADR-0114 (canary observability rollback precedent).
 - `policy/guardrail-enforcement.md`.
-- ADR-0130 (shadow→enforce gate model).
+- ADR-0139 (shadow→enforce gate model).

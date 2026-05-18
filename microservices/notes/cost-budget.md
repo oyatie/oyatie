@@ -92,5 +92,5 @@ doc_status: published
 ## References
 
 - `capacity-model.md`.
-- ADR-0130 (SLO-gated promotion).
+- ADR-0139 (SLO-gated promotion).
 - ADR-0117 (data residency packs).

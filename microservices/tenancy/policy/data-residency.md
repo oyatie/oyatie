@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-tenancy
 deciders: council-privacy, ops-security, axis-tenancy, gtm-customer-success
-related_adrs: [ADR-0018, ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0018, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/tenancy/threat-model.md (T-I-04 / T-T-04 / T-L-10; cross-pack misroute threats)
   - microservices/tenancy/dpia.md (R-04 cross-border misroute)
@@ -224,7 +224,7 @@ Each pack's overlay at `regional-packs/<pack>/tenancy-residency-overlay.md` carr
 
 - ADR-0018 (Bominal): tenancy + RLS posture.
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - `microservices/tenancy/threat-model.md` T-I-04 + T-T-04 + T-L-10.
 - `microservices/tenancy/dpia.md` R-04 + R-11 + R-15 + §2.2.

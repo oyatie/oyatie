@@ -163,6 +163,6 @@ cargo run -p oya-dev-cli -- gate validate openslo-conformance --microservice clo
 ## References
 
 - ADR-0105 §"sdk layer".
-- ADR-0130 (observability SLO gate authority).
+- ADR-0139 (observability SLO gate authority).
 - OpenSLO v1.0 schema — `github.com/OpenSLO/OpenSLO`.
 - `microservices/cloud-iac/sdk-plan.md`.

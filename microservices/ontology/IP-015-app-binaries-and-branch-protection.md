@@ -69,6 +69,6 @@ In-scope:
 ## References
 
 - ADR-0123 (hyperscaler maturity claim gate).
-- ADR-0130 (SLO gate); ADR-0131 (per-microservice flat layout).
+- ADR-0139 (SLO gate); ADR-0131 (per-microservice flat layout).
 - `microservices/ontology/PHASE-01-TYPED-ENTITY-SUBSTRATE.md` §"branch-protection.yaml diff preview".
 - `microservices/observability/PRD.md` §"OpenSLO manifest convention" (sibling pattern).

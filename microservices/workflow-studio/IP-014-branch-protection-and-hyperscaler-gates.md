@@ -135,5 +135,5 @@ cargo run -p oya-dev-cli -- gate validate authority-cohesion
 ## References
 
 - ADR-0123 Hyperscaler maturity claim gate.
-- ADR-0130 Agentic SLO-gated promotion (release pointer pattern).
+- ADR-0139 Agentic SLO-gated promotion (release pointer pattern).
 - docs/standards/git-workflow.md.

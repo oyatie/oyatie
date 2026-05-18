@@ -41,7 +41,7 @@ doc_status: published
 | CC7.1 Detection of security events | SIEM + Prometheus alerts on `oya_anonymous_personal_tier_*`, `oya_anonymous_legal_process_*` |
 | CC7.2 Monitoring + response | `runbooks/anonymity-leak-incident-response.md` Sev-1 path |
 | CC7.4 Incident response | full IR plan in `incident-response.md` |
-| CC8.1 Change management | ADR-gated; GitOps via merge queue; SLO-gated promotion per ADR-0130 |
+| CC8.1 Change management | ADR-gated; GitOps via merge queue; SLO-gated promotion per ADR-0139 |
 
 ### ISO 27001:2022 + ISO 27018:2019
 
@@ -175,7 +175,7 @@ doc_status: published
 ## Audit evidence collection
 
 - Audit-chain records exportable per tenant per pack for SOC 2 + ISO 27001 evidence runs.
-- LEAN lane pass/fail history retained in artifact-capabilities-registry.json per ADR-0130.
+- LEAN lane pass/fail history retained in artifact-capabilities-registry.json per ADR-0139.
 - Per-release SLSA L3 provenance attestation.
 - Per-release model card for classifier (EU AI Act Art. 11).
 - Per-release golden-set eval report (capabilities/eval/).

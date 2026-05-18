@@ -24,7 +24,7 @@ This document applies the Strangler Pattern from the agent-skills `deprecation-a
 |---|---|
 | Replacement | `oya-docs-*` crate family under `microservices/docs/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-DOCS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 8-BC docs surface (document-store / collab-crdt / block-types / comments-and-suggestions / version-history / sharing-and-permissions / export-import / embed-resolver) is only addressable at µservice granularity, not at Connect-suite granularity |
+| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 8-BC docs surface (document-store / collab-crdt / block-types / comments-and-suggestions / version-history / sharing-and-permissions / export-import / embed-resolver) is only addressable at µservice granularity, not at Connect-suite granularity |
 | Migration owner (Churn Rule) | axis-docs |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~6 months; Phase 5 removal sweep in month 7 (per ADR-0134) |
 
@@ -162,7 +162,7 @@ oya-docs-comments-and-suggestions-kernel = { workspace = true }
 The legacy `oya-connect-docs-*` family was authored before the following ADRs crystallised:
 
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — per-µservice SLO authority.** Docs needs independent SLO targets per surface (doc-open-latency, save-latency, collab-cursor-sync-latency, export-pdf-latency, search-within-doc-latency, doc-list-latency, crdt-merge-no-silent-loss 100% target, share-acl-enforcement-correctness 100% target, pandoc-export-pipeline-availability). A `connect-*` umbrella SLO cannot honour those.
+2. **ADR-0139 — per-µservice SLO authority.** Docs needs independent SLO targets per surface (doc-open-latency, save-latency, collab-cursor-sync-latency, export-pdf-latency, search-within-doc-latency, doc-list-latency, crdt-merge-no-silent-loss 100% target, share-acl-enforcement-correctness 100% target, pandoc-export-pipeline-availability). A `connect-*` umbrella SLO cannot honour those.
 3. **ADR-0131 — per-µservice flat layout.** Docs's IaC, runbooks, threat-model, DPIA, compliance, capacity-model, cost-budget, incident-response, failure-modes, multi-region, SDK plan, competitor-parity-matrix, backfill-replay all need to live under one folder (`microservices/docs/`).
 4. **ADR-0133 — 11-pack-overlay program.** pack-kr (KR PIPA + 전자문서법), pack-eu (GDPR + EU AI Act + eIDAS PAdES), pack-us, pack-us-healthcare (HIPAA + FDA 21 CFR Part 11), pack-jp (APPI), pack-sg (PDPA), pack-au (Privacy Act), pack-in (DPDPA), pack-br (LGPD), pack-ae (UAE PDPL + Hijri overlay), pack-ksa (KSA PDPL + Hijri overlay + Sharia retention) — each lives as `microservices/docs/iac/kustomize/overlays/pack-<region>/`.
 5. **ADR-DOCS-0001 → ADR-DOCS-0006** — docs-specific decisions (CRDT library shared with workflow-studio, block-type system, export pipeline, per-block ACL, AI writing-assist scope, DOCX import fidelity) need to live at per-µservice ADR granularity.

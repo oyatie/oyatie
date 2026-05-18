@@ -90,6 +90,6 @@ gh api repos/oyatie/oya/branches/dev/protection | jq '.required_status_checks.co
 
 ## References
 
-- ADR-0130 (promotion-readiness lane pattern).
+- ADR-0139 (promotion-readiness lane pattern).
 - `microservices/cell/IP-006-cell-boundary-gate-lane.md`.
 - GitHub branch-protection API.

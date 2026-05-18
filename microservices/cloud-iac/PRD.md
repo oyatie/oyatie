@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0120, ADR-0121, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0120, ADR-0121, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-cloud-iac
@@ -80,7 +80,7 @@ This µservice has no Bominal equivalent and originates in oyatie under ADR-0131
 ### Availability + SLO
 
 - Availability target: 99.95% monthly for the iac-applier's apply-event path; 99.9% for the iac-validator's plan-preview path.
-- GitOps reconciler (ArgoCD or Flux) availability: 99.95% monthly per their respective published SLO postures, validated against oyatie's `observability` µservice SLO substrate (ADR-0130) — cloud-iac is itself gated by the SLO promotion gate.
+- GitOps reconciler (ArgoCD or Flux) availability: 99.95% monthly per their respective published SLO postures, validated against oyatie's `observability` µservice SLO substrate (ADR-0139) — cloud-iac is itself gated by the SLO promotion gate.
 - Drift-detection completeness: ≥99.5% of clusters polled per 1h cycle.
 - RTO: ≤15min. RPO: ≤5min (last successful iac-state-index commit).
 
@@ -274,7 +274,7 @@ CI lanes that must green:
 | Event type | Produced by | Handler BC | Action |
 |---|---|---|---|
 | `MicroserviceRegistered` | `tenancy` | `iac-registry` | discover the new µservice; ensure it has IaC scaffolding under `microservices/<ms>/iac/` |
-| `EligibilityChanged` (verdict=eligible) | `observability` (per ADR-0130) | `iac-applier` | a µservice's SHA is eligible for promotion → apply that SHA's IaC to the target environment |
+| `EligibilityChanged` (verdict=eligible) | `observability` (per ADR-0139) | `iac-applier` | a µservice's SHA is eligible for promotion → apply that SHA's IaC to the target environment |
 | `RollbackExecuted` (production-tier) | `observability` | `iac-rollback` | a release pointer rolled back → cloud-iac reverts IaC state to the prior apply |
 
 ### Ontology writes
@@ -311,7 +311,7 @@ Key parity gaps to close (ordered by priority):
 
 1. **Meta-IaC pipeline integration** — Spacelift / Env0 / Terraform Cloud cover Terraform but do NOT canonicalize Helm + Kustomize + Terraform under one apply pipeline; oyatie's differentiator is one pipeline across all three.
 2. **Cryptographic provenance per apply** — none of the commercial offerings ship SLSA L3 + Sigstore attestation as a default invariant; oyatie's audit-chain integration makes this default.
-3. **SLO-gate integration** — Spacelift / Env0 don't refuse applies based on a downstream burn-rate signal; cloud-iac × observability does (per ADR-0130).
+3. **SLO-gate integration** — Spacelift / Env0 don't refuse applies based on a downstream burn-rate signal; cloud-iac × observability does (per ADR-0139).
 4. **Self-hosted with no vendor coupling** — Spacelift / Env0 / Pulumi Cloud / Terraform Cloud are SaaS; oyatie hosts everything on the same Grafana / ArgoCD / OpenTofu stack.
 
 ## Performance Targets
@@ -329,7 +329,7 @@ Key parity gaps to close (ordered by priority):
 
 Error budget:
 - Monthly error budget for iac-applier: 0.05% (≈22min/month).
-- Burn-rate alarm on cloud-iac's own SLOs (per ADR-0130 self-observability): 14.4× burn over 1h triggers page.
+- Burn-rate alarm on cloud-iac's own SLOs (per ADR-0139 self-observability): 14.4× burn over 1h triggers page.
 - Error budget policy: `microservices/cloud-iac/runbooks/error-budget-policy.md` (extends observability template).
 
 ## Horizontal Scalability
@@ -398,7 +398,7 @@ Sharding:
 | ADR-0120 | Rust-first on-prem tooling | tooling authority |
 | ADR-0121 | On-prem k8s stack | substrate authority |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-CLOUD-IAC registers here |
-| ADR-0130 | Agentic SLO-gated promotion | downstream consumer of ApplyExecuted events |
+| ADR-0139 | Agentic SLO-gated promotion | downstream consumer of ApplyExecuted events |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 | No-suite policy | cloud-iac stands alone, not a suite member |
 | ADR-0133 | Industry-best-practice conformance | competitor parity authority |

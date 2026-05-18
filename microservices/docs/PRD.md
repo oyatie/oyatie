@@ -8,7 +8,7 @@ sales_segment: shared-substrate + hero-product
 tier: tenant-facing
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub, ADR-0215-connect-retention-legal-hold-dual-context]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
 related_specs: [/specs/microservices/docs.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-docs
@@ -370,7 +370,7 @@ Sharding: documents partitioned by `(tenant_id, document_id_first_byte)`; commen
 | ADR-0106 | application→usecase | layer rename |
 | ADR-0117 | Cloud-native infrastructure | data residency |
 | ADR-0135 | Connect unbundle (parallel session) | dual-context inheritance |
-| ADR-0130 | Agentic SLO-gated promotion | gate authority |
+| ADR-0139 | Agentic SLO-gated promotion | gate authority |
 | ADR-0131 | Per-microservice flat layout | layout authority |
 | ADR-0132 | Product-suite + bundle dissolution | µservice independence |
 | ADR-0133 | Industry-best-practice conformance | hyperscaler-grade bar |

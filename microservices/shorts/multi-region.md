@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-shorts + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-shorts, council-architecture, council-privacy
-related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/shorts/policy/data-residency.md
   - microservices/shorts/capacity-model.md
@@ -195,7 +195,7 @@ CDN POPs (Cloudflare R2 + Workers): per-pack regional POPs; cross-pack edge repl
 - `microservices/social/multi-region.md` (sibling reference).
 - ADR-0117 (single-cloud-substrate; primary OCI).
 - ADR-0135 (parallel; dual-context).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0131 (per-microservice flat layout).
 - ADR-SHORTS-0001 (video-transcode pipeline; CDN choice).
 - OCI multi-region docs `docs.oracle.com/iaas/Content/Cloud-Adoption-Framework`.

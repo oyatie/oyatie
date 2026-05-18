@@ -6,7 +6,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-observability + council-architecture
 deciders: axis-observability, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0130, ADR-0131]
+related_adrs: [ADR-0139, ADR-0131]
 related_specs: [/specs/agentic-slo-gated-promotion.json]
 applies_to: every microservice in microservices/ that promotes past dev
 enforced_by: oya-governance-openslo-conformance CI lane (BLOCKER)
@@ -18,7 +18,7 @@ doc_status: published
 
 ## Purpose
 
-Cross-cutting rules for authoring OpenSLO manifests at `microservices/<ms>/slos/*.openslo.yaml`. Mandatory for every µservice that wants to promote past `dev` (per ADR-0130 fail-closed default: no manifest → `verdict=rejected`).
+Cross-cutting rules for authoring OpenSLO manifests at `microservices/<ms>/slos/*.openslo.yaml`. Mandatory for every µservice that wants to promote past `dev` (per ADR-0139 fail-closed default: no manifest → `verdict=rejected`).
 
 ## Version Pinning (latest LTS as of 2026-05-17)
 
@@ -286,7 +286,7 @@ Pack overlays at `regional-packs/<pack>/observability-slo-overlay.md` (per-pack 
 
 ## References
 
-- ADR-0130 (Agentic SLO-gated promotion).
+- ADR-0139 (Agentic SLO-gated promotion).
 - ADR-0131 (Per-microservice flat layout).
 - `/specs/agentic-slo-gated-promotion.json`.
 - `microservices/observability/PRD.md`.

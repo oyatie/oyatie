@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-workflow + ops-security
 deciders: council-architecture, ops-security, axis-workflow, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140, ADR-0148]
+related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140, ADR-0148]
 related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every engine substrate change OR new event-type registration
 enforced_frameworks:
@@ -615,7 +615,7 @@ Pack-overlay sections at `regional-packs/<pack>/workflow-engine-overlay.md`; eac
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (data residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout + workflow unbundle.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/workflow-engine/PRD.md`.

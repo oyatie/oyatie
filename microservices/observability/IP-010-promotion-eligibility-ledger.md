@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-nextest, oya-governance-mimir-tenancy-enforced, oya-gov
 
 ## Intent
 
-Per ADR-0130 (revised) the ledger is **Mimir-native** (Prometheus recording rules emit aggregates; the time-series IS the ledger). No git-tracked JSONL. This IP authors the recording rules + ensures the adapter-mimir crate's verdict emission path produces the correct metric shapes per `/specs/agentic-slo-gated-promotion.json` §"promotion_eligibility_ledger".
+Per ADR-0139 (revised) the ledger is **Mimir-native** (Prometheus recording rules emit aggregates; the time-series IS the ledger). No git-tracked JSONL. This IP authors the recording rules + ensures the adapter-mimir crate's verdict emission path produces the correct metric shapes per `/specs/agentic-slo-gated-promotion.json` §"promotion_eligibility_ledger".
 
 ## Concrete File Targets
 
@@ -71,5 +71,5 @@ promtool check rules microservices/observability/iac/helm/mimir/recording-rules.
 
 ## References
 
-- ADR-0130 §"Layer-B item 12 — Promotion-eligibility ledger Mimir-native"
+- ADR-0139 §"Layer-B item 12 — Promotion-eligibility ledger Mimir-native"
 - `/specs/agentic-slo-gated-promotion.json` §"promotion_eligibility_ledger"

@@ -9,7 +9,7 @@ tier: external-facing
 milestone_first_ship: M03-sheets-preview
 bominal_source: []
 net_new: true
-related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0135
 sibling_products:
@@ -582,7 +582,7 @@ Sharding:
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-SHEETS registers here |
 | ADR-0135 | Sheets net-new µservice (no legacy connect-sheets) | this µservice's existence rationale |
-| ADR-0130 | Agentic SLO-gated promotion | Sheets SLO promotion gates this µservice |
+| ADR-0139 | Agentic SLO-gated promotion | Sheets SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout | this µservice authored natively under it |
 | ADR-0132 | Product-suite-and-bundle dissolution | Sheets is a hero product, not a suite |
 | ADR-0133 | Industry-best-practice conformance | Sheets competitor parity tracked here |

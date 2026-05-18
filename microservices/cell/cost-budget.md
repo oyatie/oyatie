@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-finops + axis-cell-substrate + ops-sre-reliability
 deciders: ops-finops, axis-cell-substrate, ops-sre-reliability, council-architecture
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cell/capacity-model.md
   - microservices/cell/multi-region.md

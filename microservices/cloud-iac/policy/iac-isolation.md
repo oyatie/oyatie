@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-cloud-iac
 deciders: council-architecture, ops-security, axis-cloud-iac, council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/cloud-iac/threat-model.md (Trust Boundary 2, T-T-03, T-E-04)
   - microservices/cloud-iac/dpia.md (R-01)
@@ -240,7 +240,7 @@ Per-pack overlays at `regional-packs/<pack>/cloud-iac-isolation-overlay.md`.
 
 - ADR-0028 (Bominal): audit-chain.
 - ADR-0117: cloud-native infrastructure + residency.
-- ADR-0130: agentic SLO-gated promotion.
+- ADR-0139: agentic SLO-gated promotion.
 - ADR-0131: per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/cloud-iac/threat-model.md` §"Trust Boundaries" + T-T-03, T-E-04.

@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M03-foundation
 bominal_source: []  # NET-NEW per ADR-0135; no Bominal predecessor
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-shorts
@@ -308,7 +308,7 @@ Key parity gaps to close (ordered by priority):
 1. **Dual-context isolation by data-model** — none of the competitors enforce personal/professional context as a data-model invariant. Target: compile-time + LEAN-lane enforcement.
 2. **Minor-protection at the regulatory floor** — TikTok / Reels have been fined repeatedly for COPPA + GDPR Art. 8 + UK OSA + CA AB-2273 + UT Social Media Regulation Act violations. Target: pack-aware age-gate by default; parental controls as first-class BC; minor accounts get chronological-only + algorithmic-recommendation-opt-out per default.
 3. **Native Workflow + Ontology integration** — competitors expose webhooks/Graph APIs; oyatie exposes typed Workflow events + Ontology object writes natively.
-4. **OpenSLO + agentic gate** — none gate feature rollouts on SLO compliance; oyatie does (per ADR-0130).
+4. **OpenSLO + agentic gate** — none gate feature rollouts on SLO compliance; oyatie does (per ADR-0139).
 5. **Multi-pack residency + per-pack regulatory overlays** — competitors are SaaS-region-coarse; oyatie is per-pack jurisdiction-pinned.
 6. **EU AI Act high-risk transparency** — competitors lag on Art. 50 transparency labels for moderation + ranking; oyatie ships from day-1 per `capabilities/T2-auto.yaml`.
 7. **Copyright-claim integrity** — competitors' Content-ID systems are opaque to creators. oyatie publishes counter-notice path + repeat-infringer policy + audit-chain seal per claim.
@@ -401,7 +401,7 @@ Sharding:
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0135 | Connect dissolution (parallel) | dual-context isolation source; shorts as a sibling µservice |
-| ADR-0130 | Agentic SLO-gated promotion | gates shorts releases |
+| ADR-0139 | Agentic SLO-gated promotion | gates shorts releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-SHORTS under this |

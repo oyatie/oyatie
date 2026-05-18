@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-foundry-guardrails
 deciders: axis-foundry-guardrails, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0022, ADR-0130, ADR-0131]
+related_adrs: [ADR-0022, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry-guardrails/PRD.md
   - microservices/foundry-guardrails/policy/guardrail-enforcement.md

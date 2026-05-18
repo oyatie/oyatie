@@ -14,7 +14,7 @@ spec:
     p99 latency of the Ontology Function read endpoint. Bominal ADR-0107
     mandates ≤ 50 ms p99 for the Ontology read path; this SLO enforces it
     continuously and gates promotion via the agentic SLO-gated promotion
-    workflow (ADR-0130).
+    workflow (ADR-0139).
   indicator:
     metadata:
       name: ontology-function-read-latency-sli

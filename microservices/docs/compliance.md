@@ -72,7 +72,7 @@ Enumerate compliance frameworks engaged by docs, the controls satisfied, and whe
 | CC7.2 | Monitors system components | SLO + burn-rate dashboards |
 | CC7.4 | Responds to incidents | incident-response.md + runbooks |
 | CC7.5 | Recovers from incidents | DR drills + backup retention |
-| CC8.1 | Manages changes | ADR-0110 ChangeSet + ADR-0130 SLO-gated promotion |
+| CC8.1 | Manages changes | ADR-0110 ChangeSet + ADR-0139 SLO-gated promotion |
 | CC9.1 | Identifies risks | residual-risk acceptance in threat-model.md |
 
 ## ISO 27001 Mapping
@@ -104,7 +104,7 @@ Enumerate compliance frameworks engaged by docs, the controls satisfied, and whe
 | A.8.20 (network security) | mesh mTLS + NetworkPolicy |
 | A.8.21 (security of network services) | per-tenant API key + rate limits |
 | A.8.23 (web filtering) | WAF at ingress |
-| A.8.25 (secure development lifecycle) | LEAN gates + ADR-0130 SLO-gated promotion |
+| A.8.25 (secure development lifecycle) | LEAN gates + ADR-0139 SLO-gated promotion |
 | A.8.26 (application security requirements) | per-microservice security artifacts |
 | A.8.27 (secure system architecture) | ADR-0056 + ADR-0105 |
 | A.8.28 (secure coding) | LEAN check `oya-check-ooxml-import-fidelity` + cargo fuzz |

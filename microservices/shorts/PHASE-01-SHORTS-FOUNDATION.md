@@ -26,7 +26,7 @@ depends_on:
     phase: P01-team-channels-dm-threads
     reason: shorts depends on messenger share-to-DM bridge
 owner_team: axis-shorts
-related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
@@ -41,7 +41,7 @@ This phase ships the foundation of the shorts µservice per parallel ADR-0135 + 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (TikTok / Reels / Shorts parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs except monetization-stub and live-streaming-stub explicitly off by default per PRD §"Out-of-scope").
-- No silent regression (production-tier change gated by observability ADR-0130).
+- No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
 - Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
 - Minor-protection at regulatory floor — EU DSA Art. 28 + KR 청소년 보호법 + COPPA + UK OSA + CA AB-2273 + UT SMRA enforced by default.

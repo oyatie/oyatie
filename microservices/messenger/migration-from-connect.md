@@ -28,7 +28,7 @@ in dev cluster.**
 |---|---|
 | Replacement | `oya-messenger-*` crate family under `microservices/messenger/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-MESSENGER accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #2) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + MLS RFC 9420 E2E group messaging is a clean replacement boundary that did not exist in the legacy surface |
+| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + MLS RFC 9420 E2E group messaging is a clean replacement boundary that did not exist in the legacy surface |
 | Migration owner (Churn Rule) | axis-messenger |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -136,7 +136,7 @@ crystallised. Specifically:
 1. **ADR-0132 no-suite forward-policy.** A `connect-*` crate prefix encodes
    bundle membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
-2. **ADR-0130 per-µservice SLO authority.** Messenger's persistent-connection
+2. **ADR-0139 per-µservice SLO authority.** Messenger's persistent-connection
    count, message-stream throughput, presence-replication lag, websocket-frame
    p99, and huddle SFU-degradation MTTR each need independent SLO targets.
 3. **ADR-0131 per-µservice flat layout.** Messenger's 10 runbooks, threat-

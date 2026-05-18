@@ -70,7 +70,7 @@ After completion:
 
 ## References
 
-- ADR-0130 §"Automated rollback primitive" (precedent).
+- ADR-0139 §"Automated rollback primitive" (precedent).
 - ADR-0140 (Cedar policy).
 - `failure-modes.md` FM-01.
 - `incident-response.md` §"Sev-1 response".

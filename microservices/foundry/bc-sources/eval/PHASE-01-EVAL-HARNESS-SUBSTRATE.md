@@ -8,7 +8,7 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-foundry
 deciders: council-architecture, axis-foundry, ops-sre-reliability, ops-security
-related_adrs: [ADR-0024, ADR-0026, ADR-0056, ADR-0105, ADR-0106, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0024, ADR-0026, ADR-0056, ADR-0105, ADR-0106, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json]
 doc_status: published
 ---
@@ -111,7 +111,7 @@ cargo run -p oya-dev-cli -- gate validate foundry-eval-replay-determinism
 cargo run -p oya-dev-cli -- gate validate authority-cohesion  # HG-FE registered
 ```
 
-Per ADR-0130 SLO gate: `release/foundry-eval/staging` advances only when SLI burn-rate is green; `release/foundry-eval/production` advances only after staging burn-rate clean for 24h.
+Per ADR-0139 SLO gate: `release/foundry-eval/staging` advances only when SLI burn-rate is green; `release/foundry-eval/production` advances only after staging burn-rate clean for 24h.
 
 ## Halt Conditions
 
@@ -125,7 +125,7 @@ Per ADR-0130 SLO gate: `release/foundry-eval/staging` advances only when SLI bur
 
 - ADR-0024 (eval harness + replay design)
 - ADR-0026 (in-house model substrate roadmap; cutover gate)
-- ADR-0130 (agentic SLO-gated promotion; inherited)
+- ADR-0139 (agentic SLO-gated promotion; inherited)
 - ADR-0131 (per-microservice flat layout)
 - ADR-0133 (industry best-practice conformance program; HG-FE)
 - microservices/foundry-eval/PRD.md

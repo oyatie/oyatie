@@ -167,7 +167,7 @@ oyatie recordings ships a **two-component foundry-runtime-hosted pipeline**:
 - IaC: foundry-runtime model-registry pins (whisper-large-v3,
   pyannote-3.1.x); GPU pool sizing per `capacity-model.md`.
 - CI: contract tests run against both engines on a golden multilingual set.
-- Per ADR-0130 SLO-gated promotion: `transcript-search-latency.openslo.yaml`
+- Per ADR-0139 SLO-gated promotion: `transcript-search-latency.openslo.yaml`
   + future `transcription-throughput.openslo.yaml` (Phase-02) gate releases.
 
 ### Regulatory

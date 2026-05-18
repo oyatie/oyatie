@@ -22,7 +22,7 @@ depends_on:
     phase: prior phases per master-plan-sequencing
     reason: workspace + branch-protection + Cargo metadata authority must precede engine crate authoring
 owner_team: axis-workflow
-related_adrs: [ADR-0103, ADR-0130, ADR-0131]
+related_adrs: [ADR-0103, ADR-0139, ADR-0131]
 related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -279,7 +279,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0110: ChangeSet state machine.
 - ADR-0116: Retire external agent-coordination tooling.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout + workflow unbundle.
 - `/specs/microservices/workflow.json`.
 - `/specs/per-microservice-flat-layout.json`.

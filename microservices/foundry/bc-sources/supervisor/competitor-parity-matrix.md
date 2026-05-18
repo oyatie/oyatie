@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-foundry-control-plane + council-architecture
 deciders: axis-foundry-control-plane, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0130, ADR-0131, ADR-0133]
+related_adrs: [ADR-0123, ADR-0139, ADR-0131, ADR-0133]
 related_artifacts:
   - microservices/foundry-supervisor/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-FND-SUP)
@@ -41,7 +41,7 @@ Quantitative + qualitative parity comparison vs the industry-leading agentic-con
 |---|---|---|---|---|---|---|---|---|
 | GitOps capability authoring (YAML in tenant repo, PR-reviewed) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Canary rollout (1 % → 10 % → 50 % → 100 %) | ✅ | ✅ | partial | ❌ | ✅ | partial | ❌ | partial |
-| SLO-gated phase advance (per ADR-0130) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| SLO-gated phase advance (per ADR-0139) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Automated rollback on production burn-rate breach | ✅ | partial (manual rollback only) | manual | manual | partial | manual | manual | manual |
 | Per-component release pointer (per µservice) | ✅ | per-agent | per-assistant | per-assistant | per-agent | per-endpoint | per-endpoint | per-agent |
 | Schema validation API (anonymous) | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
@@ -155,7 +155,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `microservices/foundry-supervisor/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-FND-SUP gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0130 (SLO-gated promotion).
+- ADR-0139 (SLO-gated promotion).
 - ADR-0131 (foundry split).
 - ADR-0133 (industry-best-practice conformance).
 - Competitor docs as cited inline above.

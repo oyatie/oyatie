@@ -28,7 +28,7 @@ in dev cluster.**
 |---|---|
 | Replacement | `oya-calendar-*` crate family under `microservices/calendar/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-CALENDAR accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 6-BC calendar surface (events / recurrence / availability / room-booking / invitation-flow / ics-import-export) is only addressable at µservice granularity, not at Connect-suite granularity |
+| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 6-BC calendar surface (events / recurrence / availability / room-booking / invitation-flow / ics-import-export) is only addressable at µservice granularity, not at Connect-suite granularity |
 | Migration owner (Churn Rule) | axis-calendar |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -166,7 +166,7 @@ following ADRs crystallised:
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — per-µservice SLO authority.** Calendar needs
+2. **ADR-0139 — per-µservice SLO authority.** Calendar needs
    independent SLO targets per surface (agenda-render latency,
    free/busy query, ics-import throughput, scheduling-convergence
    latency, CalDAV availability, notification-delivery freshness,

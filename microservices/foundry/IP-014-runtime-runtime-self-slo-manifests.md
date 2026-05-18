@@ -17,7 +17,7 @@ acceptance_lanes: [openslo-conformance, vcs-promotion-readiness]
 
 ## Intent
 
-Author the four OpenSLO manifests under `microservices/foundry/slos/` so the observability µservice's SLO engine can gate foundry-runtime's `dev → staging → production` promotion per ADR-0130. This IP is the gateway from "feature complete" to "production-promotable" — without these manifests + verdict=eligible, no promotion path past `dev` per `agentic-slo-gated-promotion.json`.
+Author the four OpenSLO manifests under `microservices/foundry/slos/` so the observability µservice's SLO engine can gate foundry-runtime's `dev → staging → production` promotion per ADR-0139. This IP is the gateway from "feature complete" to "production-promotable" — without these manifests + verdict=eligible, no promotion path past `dev` per `agentic-slo-gated-promotion.json`.
 
 ## ChangeSet boundary
 
@@ -73,5 +73,5 @@ cargo run -p oya-dev-cli -- gate validate vcs-promotion-readiness --sha <head-sh
 - `microservices/observability/PRD.md` (SLO engine consumes manifests).
 - `microservices/observability/PHASE-01-AGENTIC-SLO-GATED-PROMOTION.md`.
 - `docs/standards/observability-slo.md` (cross-cutting OpenSLO authoring rules).
-- ADR-0130.
+- ADR-0139.
 - `microservices/foundry/PRD.md` §"Performance Targets" (source-of-truth thresholds).

@@ -1,5 +1,5 @@
 ---
-id: ADR-0130
+id: ADR-0139
 status: Accepted
 deciders: council-architecture, ops-sre-reliability, ops-security, axis-foundry, axis-observability
 date: 2026-05-17
@@ -19,7 +19,7 @@ competitor_parity_reference: |
 purpose: Make every fast-forward of `staging` and `production` strictly conditional on hyperscaler-grade SLO evidence, by adopting the OSS observability leaders (Grafana Alloy + Prometheus + Mimir + Loki + Tempo + Pyroscope + Grafana + Alertmanager + Grafana OnCall) as the substrate and owning the differentiator (OpenSLO-driven SLO engine + per-component release pointers + agentic promotion-eligibility ledger + event-driven promote workflows + automated rollback + canary cohort weighting).
 ---
 
-# ADR-0130: Agentic SLO-gated promotion
+# ADR-0139: Agentic SLO-gated promotion
 
 ## Status
 

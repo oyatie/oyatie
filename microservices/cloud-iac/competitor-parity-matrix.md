@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-cloud-iac + council-architecture
 deciders: axis-cloud-iac, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0130, ADR-0131]
+related_adrs: [ADR-0123, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/PRD.md §Competitive Benchmark
   - /specs/hyperscaler-gates.json (HG-CLOUD-IAC gate)
@@ -45,7 +45,7 @@ Quantitative + qualitative parity comparison vs the industry-leading IaC orchest
 | One pipeline across Helm + Kustomize + Terraform/OpenTofu | ✅ | ❌ (no Terraform) | partial | ❌ (Terraform only) | ❌ (Terraform only) | ✅ | ❌ | ✅ | partial | partial |
 | SLSA L3 attestation per apply (default) | ✅ | ❌ | ❌ | partial | ❌ | partial | ❌ | partial | partial | ❌ |
 | Cryptographic provenance verification at apply-time | ✅ Cosign + Rekor | ❌ | ❌ | ❌ | ❌ | partial | ❌ | partial | partial | ❌ |
-| SLO-gate driven apply decision | ✅ (via observability ADR-0130) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| SLO-gate driven apply decision | ✅ (via observability ADR-0139) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | Per-µservice apply scope (Cedar policy) | ✅ | partial (project scope) | ❌ | partial | ❌ | partial (OPA) | ❌ | partial | ❌ | ❌ |
 | Cross-µservice apply forbidden by default | ✅ | ❌ | ❌ | ❌ | ❌ | partial | ❌ | ❌ | ❌ | ❌ |
 | Per-pack residency pinning | ✅ (11 packs) | ❌ | ❌ | ✅ (US/EU) | ❌ (self-hosted) | ✅ | ❌ | ✅ | ✅ | ❌ |
@@ -149,7 +149,7 @@ Sales claims FORBIDDEN (per ADR-0123):
 - `microservices/cloud-iac/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-CLOUD-IAC gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0131 (per-microservice flat layout).
 - Competitor docs as cited inline above.
 - `microservices/observability/competitor-parity-matrix.md` (parent template).

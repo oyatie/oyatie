@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-translate + ops-sre-reliability
-related_adrs: [ADR-0028, ADR-0130, ADR-0131]
+related_adrs: [ADR-0028, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/failure-modes.md
@@ -123,7 +123,7 @@ If a per-call response is needed for postmortem (e.g., suspected response-shape 
 ## References
 
 - ADR-0028 audit-chain (WAL buffer).
-- ADR-0130 SLO-gated promotion (rollback patterns).
+- ADR-0139 SLO-gated promotion (rollback patterns).
 - `microservices/translate/failure-modes.md`.
 - `microservices/translate/contracts/asyncapi/translate-events.yaml`.
 - Postgres PITR docs.

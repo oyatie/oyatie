@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-workflow + council-design-system + ops-security
 deciders: council-architecture, ops-security, axis-workflow, council-design-system, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS L2 + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0035, ADR-0037, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140, ADR-0164]
+related_adrs: [ADR-0028, ADR-0035, ADR-0037, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140, ADR-0164]
 related_specs: [/specs/microservices/workflow-studio.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Studio Layer-A substrate change OR new node-library activation OR LLM-assist provider change
 enforced_frameworks:
@@ -703,7 +703,7 @@ Pack-overlay sections at `regional-packs/<pack>/workflow-studio-overlay.md`; eac
 - ADR-0103 (Bominal): Workflow hexagonal migration; inherited.
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout + workflow unbundle.
 - ADR-0140: Cedar policy enforcement.
 - ADR-0164 (Bominal): Workflow canonical spec format.

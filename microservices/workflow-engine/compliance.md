@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-workflow, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0035, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0035, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/workflow-engine/threat-model.md
   - microservices/workflow-engine/dpia.md
@@ -58,7 +58,7 @@ Canonical control-to-framework mapping for workflow-engine. Tells external audit
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + run-stuck SLI | `dashboards/*.json` |
 | CC7.4 | Incident response | Severity-classified response + escalation | `incident-response.md` |
 | CC8.1 | Change management | PR review + LEAN gates + branch protection | this changeset |
-| CC9.1 | Risk mitigation | Multi-region + DR pair + auto-rollback | `multi-region.md` + ADR-0130 |
+| CC9.1 | Risk mitigation | Multi-region + DR pair + auto-rollback | `multi-region.md` + ADR-0139 |
 | CC9.2 | Vendor risk management | Sub-processor list + per-vendor DPA | `legal/sub-processors.md` |
 
 **Privacy Criteria (P1-P8, 2017 TSC, optional):**
@@ -225,7 +225,7 @@ Annual external audit reads this file + the evidence artifacts cited above.
 - ADR-0035 (Bominal): Workflow engine.
 - ADR-0117: Cloud-native infrastructure (residency).
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/workflow-engine/threat-model.md`.

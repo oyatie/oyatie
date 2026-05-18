@@ -18,7 +18,7 @@ acceptance_lanes: [hg-registration, branch-protection, oya-governance-microservi
 ## Intent
 
 Register `tasks` in the hyperscaler-gate (HG) microservice catalogue
-per ADR-0130 (SLO-gated promotion). Wire the per-microservice
+per ADR-0139 (SLO-gated promotion). Wire the per-microservice
 branch-protection rules per `.github/branch-protection.yaml`. Confirm
 every PRD-declared NFR metric maps to one of the 9 SLO files under
 `microservices/tasks/slos/` and that every SLO maps to a recording
@@ -67,16 +67,16 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity --microservice ta
 ## Halt Conditions
 
 - SLO coverage gap — refuse to enter phase-exit; no `tasks` µservice
-  goes past dev without SLO authoring per ADR-0130.
+  goes past dev without SLO authoring per ADR-0139.
 - Branch-protection gap — refuse.
 
 ## Next IP
 
-End of phase — promotes to M03 dev rollout per ADR-0130.
+End of phase — promotes to M03 dev rollout per ADR-0139.
 
 ## References
 
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0133 (industry-best-practice conformance).
 - `docs/standards/observability-slo.md`.

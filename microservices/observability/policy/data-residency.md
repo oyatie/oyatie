@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-observability
 deciders: council-privacy, ops-security, axis-observability, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/observability/threat-model.md (T-I-01, T-T-02; cross-region replication threats)
   - microservices/observability/dpia.md (R-11; cross-border-misroute risk)
@@ -191,7 +191,7 @@ Each pack's overlay at `regional-packs/<pack>/data-residency-overlay.md` carries
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0130: Agentic SLO-gated promotion (per-component release pointers; per-pack pinning).
+- ADR-0139: Agentic SLO-gated promotion (per-component release pointers; per-pack pinning).
 - ADR-0131: Per-microservice flat layout.
 - `microservices/observability/threat-model.md` T-I-01 + T-T-02.
 - `microservices/observability/dpia.md` R-11 + R-13 + R-15 + §2.2.

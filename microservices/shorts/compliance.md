@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security + ops-legal
 deciders: council-privacy, ops-security, axis-shorts, council-architecture, ops-compliance, ops-legal
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/shorts/threat-model.md
   - microservices/shorts/dpia.md
@@ -47,7 +47,7 @@ Canonical control-to-framework mapping for the shorts µservice. Tells an extern
 | CC7.2 | Monitoring inputs | Self-observability via observability µservice | `slos/` + `failure-modes.md` |
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + cardinality alerts + sybil + trending poisoning + DMCA-storm | OpenSLO manifests |
 | CC7.4 | Incident response | Severity-classified response + escalation | `incident-response.md` |
-| CC8.1 | Change management | PR review + LEAN gates | observability promotion gate per ADR-0130 |
+| CC8.1 | Change management | PR review + LEAN gates | observability promotion gate per ADR-0139 |
 | CC9.1 | Risk mitigation | Multi-region + DR + automated rollback | `multi-region.md` |
 | CC9.2 | Vendor risk | Sub-processor list + per-vendor DPA | `legal/sub-processors.md` (Slice B) |
 
@@ -258,5 +258,5 @@ Output: `microservices/shorts/evidence/compliance-evidence-<unix_ts>.json`.
 - `microservices/observability/compliance.md` (shape reference).
 - `microservices/social/compliance.md` (sibling reference).
 - `microservices/messenger/compliance.md` (sibling reference).
-- ADR-0028 (Bominal) + ADR-0008 + ADR-0135 + ADR-0130 + ADR-0131 + ADR-0140.
+- ADR-0028 (Bominal) + ADR-0008 + ADR-0135 + ADR-0139 + ADR-0131 + ADR-0140.
 - EU DSA 2065/2022; EU AI Act 2024/1689; EU AVMSD 2018/1808; UK Online Safety Act 2023; DMCA Title II 17 USC §512; COPPA 15 USC §6501; CA AB-2273; UT Social Media Regulation Act.

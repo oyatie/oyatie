@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-foundry + ops-security
 deciders: council-architecture, ops-security, axis-foundry, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP LLM Top 10 (2024) + NIST SP 800-154 + NIST AI RMF (AI 100-1)
-related_adrs: [ADR-0024, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0024, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Layer-A or Layer-B architecture change + on every new eval-set cohort
 enforced_frameworks:
@@ -662,7 +662,7 @@ Pack-overlay sections at `regional-packs/<pack>/foundry-eval-overlay.md` (when a
 - ADR-0056 (BNF v4.1).
 - ADR-0105 (13-layer enum).
 - ADR-0117 (Cloud-native infrastructure; data residency).
-- ADR-0130 (Agentic SLO-gated promotion).
+- ADR-0139 (Agentic SLO-gated promotion).
 - ADR-0131 (Per-microservice flat layout).
 - ADR-0132 (Product-suite-and-bundle dissolution).
 - ADR-0133 (Industry best-practice conformance program).

@@ -11,12 +11,12 @@ exit_gate: |
 depends_on:
   - milestone: M01-foundation
     phase: P01-agentic-slo-gated-promotion
-    reason: observability substrate must precede every µservice's first ship per ADR-0130 bootstrap order
+    reason: observability substrate must precede every µservice's first ship per ADR-0139 bootstrap order
   - milestone: M02-tenant-substrate
     phase: tenancy phase 01
     reason: tenant-context BC consumes tenancy's tenant-resolver + JWT issuance
 owner_team: axis-application
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0117, ADR-0121, ADR-0123, ADR-0130, ADR-0131]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0117, ADR-0121, ADR-0123, ADR-0139, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -159,7 +159,7 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microser
 
 - ADR-0056 BNF v4.1; ADR-0065 Leptos; ADR-0105 13-layer enum; ADR-0117 packs;
   ADR-0121 Modular Product Shell (Bominal); ADR-0123 cross-product auth +
-  hyperscaler maturity gate; ADR-0130 SLO promotion; ADR-0131 flat layout.
+  hyperscaler maturity gate; ADR-0139 SLO promotion; ADR-0131 flat layout.
 - `microservices/application/PRD.md` (this phase's authority).
 - `feedback_glossary_shared_not_platform.md` (Shell→Application override).
 - `feedback_quality_performance_scalability_bar.md` (TTI ≤ 2 s target).

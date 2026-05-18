@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-nextest, runtime-guardrails-coupling, oya-
 
 ## Intent
 
-New BLOCKER CI lane that asserts every foundry-runtime dispatch path round-trips foundry-guardrails before reaching foundry-providers. Static analysis on foundry-runtime crates + runtime audit on staging traffic. Refuses fast-forward when coupling broken (per ADR-0130 promotion gate).
+New BLOCKER CI lane that asserts every foundry-runtime dispatch path round-trips foundry-guardrails before reaching foundry-providers. Static analysis on foundry-runtime crates + runtime audit on staging traffic. Refuses fast-forward when coupling broken (per ADR-0139 promotion gate).
 
 ## ChangeSet boundary
 
@@ -90,6 +90,6 @@ cargo run -p oya-dev-cli -- gate validate runtime-guardrails-coupling --sha HEAD
 
 ## References
 
-- ADR-0022, ADR-0123, ADR-0130, ADR-0131.
+- ADR-0022, ADR-0123, ADR-0139, ADR-0131.
 - `/specs/hyperscaler-gates.json`.
 - PHASE-01 §"branch-protection.yaml diff preview".

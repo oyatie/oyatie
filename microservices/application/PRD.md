@@ -13,7 +13,7 @@ bominal_source:
   - ADR-0209  # client architecture (Leptos web + 5 native tiers)
   - ADR-0018  # tenancy RLS posture
   - ADR-0019  # runtime target metadata model
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0117, ADR-0123, ADR-0130, ADR-0131]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0117, ADR-0123, ADR-0139, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-application
@@ -377,6 +377,6 @@ manifest tables partitioned on the same key. LEAN shardability lane verifies.
 | ADR-0065 | Leptos docs/webapp framework | frontend framework authority |
 | ADR-0105 | 13-layer canonical enum | layer authority |
 | ADR-0117 | Data residency packs | residency authority |
-| ADR-0130 | Agentic SLO-gated promotion | release gate |
+| ADR-0139 | Agentic SLO-gated promotion | release gate |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-APP registers here |

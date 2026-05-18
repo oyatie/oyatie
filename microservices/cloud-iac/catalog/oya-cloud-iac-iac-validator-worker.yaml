@@ -10,7 +10,7 @@ regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-h
 lifecycle: {state: incubating, preview_since: 2026-05-17, stable_since: null, deprecated_since: null}
 traceability:
   github_issue: "oya-foundry-pipeline://scaffold-pr-microservice-flat-layout-buildout-2026-05-17"
-  source_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131]
+  source_adrs: [ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131]
 allowed_dependency_edges: [kernel, domain, usecase, api]
 data_classes_owned: [INTERNAL_ONLY, AUDIT, BEHAVIORAL_TENANT_PRODUCT]
 operational_classes_owned: [AUDIT]

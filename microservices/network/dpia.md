@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-network
 deciders: council-privacy, ops-security, axis-network, council-architecture, ops-compliance, ops-legal
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EDPB Guidelines 4/2019 + EU AI Act FRIA (fundamental-rights-impact-assessment)
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-NET-0001, ADR-NET-0002, ADR-NET-0003, ADR-NET-0004, ADR-NET-0005, ADR-NET-0006]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-NET-0001, ADR-NET-0002, ADR-NET-0003, ADR-NET-0004, ADR-NET-0005, ADR-NET-0006]
 related_specs: [/specs/microservices/network.json]
 related_artifacts:
   - microservices/network/threat-model.md

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-cell-substrate, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/cell/threat-model.md
   - microservices/cell/dpia.md
@@ -50,7 +50,7 @@ Canonical control-to-framework mapping. Tells an external auditor (SOC 2 Type 2 
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + decommission-rate alerts | `incident-response.md` |
 | CC7.4 | Incident response | Severity-classified response + escalation | `incident-response.md` |
 | CC8.1 | Change management | PR review + LEAN gates + branch protection | `branch-protection.yaml` |
-| CC9.1 | Risk mitigation | Multi-region + DR pair + automated rollback | `multi-region.md` + ADR-0130 |
+| CC9.1 | Risk mitigation | Multi-region + DR pair + automated rollback | `multi-region.md` + ADR-0139 |
 | CC9.2 | Vendor risk management | Sub-processor list + per-vendor DPA | `legal/sub-processors.md` |
 
 ### ISO 27001:2022 (Annex A)
@@ -187,7 +187,7 @@ Per `policy/auditor-scope.cedar`:
 - ADR-0028 (Bominal; audit-chain).
 - ADR-0117 (residency).
 - ADR-0123 (hyperscaler-maturity-claims-gate).
-- ADR-0130 (SLO gate).
+- ADR-0139 (SLO gate).
 - ADR-0131 (per-µservice).
 - ADR-0140 (Cedar).
 - `microservices/cell/threat-model.md`; `dpia.md`; `policy/cell-boundary.md`; `policy/data-residency.md`; `incident-response.md`.

@@ -15,7 +15,7 @@ acceptance_lanes: [oya-foundry-fitness-protection-context-match]
 
 ## Intent
 
-Update `.github/branch-protection.yaml` to add tenancy-specific BLOCKER lanes (rls-no-superuser-bypass, rls-force-on-tenant-tables, jwt-key-fingerprint-advertised); add pattern protection for `release/tenancy/{staging,production}` per ADR-0130; establish initial release pointers for tenancy.
+Update `.github/branch-protection.yaml` to add tenancy-specific BLOCKER lanes (rls-no-superuser-bypass, rls-force-on-tenant-tables, jwt-key-fingerprint-advertised); add pattern protection for `release/tenancy/{staging,production}` per ADR-0139; establish initial release pointers for tenancy.
 
 ## Concrete File Targets
 

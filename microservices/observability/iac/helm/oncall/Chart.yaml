@@ -1,7 +1,7 @@
 # Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
 apiVersion: v2
 name: oya-observability-oncall
-description: Grafana OnCall paging + rotation per ADR-0130 Layer-A; rotation managed via Terraform per runbooks/oncall-rotation.md
+description: Grafana OnCall paging + rotation per ADR-0139 Layer-A; rotation managed via Terraform per runbooks/oncall-rotation.md
 type: application
 version: 0.1.0
 appVersion: "1.8.0"  # OnCall LTS line

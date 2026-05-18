@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-translate + ops-security + council-privacy
-related_adrs: [ADR-0117, ADR-0130, ADR-0131, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/failure-modes.md
   - microservices/translate/threat-model.md
@@ -156,7 +156,7 @@ Templates live in `compliance.md` §"Breach Notification" + `policy/data-residen
 - `microservices/translate/compliance.md`.
 - `microservices/translate/policy/data-residency.md`.
 - `microservices/translate/runbooks/` (all 7).
-- ADR-0130 — SLO-gated promotion + rollback.
+- ADR-0139 — SLO-gated promotion + rollback.
 - ADR-TRANSLATE-0004 — residency-bound inference.
 - NIST SP 800-61 Rev. 2 (Computer Security Incident Handling Guide).
 - ISO/IEC 27035:2023 (Information security incident management).

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-notes
 deciders: council-privacy, ops-security, axis-notes, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-NOTES-0001]
+related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-NOTES-0001]
 related_artifacts:
   - microservices/notes/threat-model.md (T-I-09b cross-region; T-I-11 import-bleed)
   - microservices/notes/dpia.md (R-11)

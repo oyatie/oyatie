@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, cargo-nextest, cargo-
 
 ## Intent
 
-Scaffold the iac-rollback BC: kernel + domain + usecase + api + adapter. Coordinate with observability SLO gate's rollback primitive (per ADR-0130): when observability emits `RollbackExecuted` for a release-pointer, iac-rollback reverts the µservice's IaC state to the prior apply.
+Scaffold the iac-rollback BC: kernel + domain + usecase + api + adapter. Coordinate with observability SLO gate's rollback primitive (per ADR-0139): when observability emits `RollbackExecuted` for a release-pointer, iac-rollback reverts the µservice's IaC state to the prior apply.
 
 ## ChangeSet boundary
 
@@ -105,6 +105,6 @@ cargo run -p oya-dev-cli -- gate validate layer-correctness --microservice cloud
 
 ## References
 
-- ADR-0105; ADR-0130 §"Layer-B item 16 — Automated rollback".
+- ADR-0105; ADR-0139 §"Layer-B item 16 — Automated rollback".
 - `microservices/cloud-iac/runbooks/rollback-orchestration.md`.
 - `microservices/observability/runbooks/rollback.md` (SLO-gate parent flow).

@@ -24,7 +24,7 @@ This document applies the Strangler Pattern from the agent-skills `deprecation-a
 |---|---|
 | Replacement | `oya-drive-*` crate family under `microservices/drive/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-DRIVE accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
+| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
 | Migration owner (Churn Rule) | axis-drive |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -111,7 +111,7 @@ oya-drive-share-link-usecase       = { workspace = true }
 The legacy `oya-connect-drive-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
 
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — per-µservice SLO authority.** Drive needs independent SLO targets per surface (file-list latency, upload throughput, download first-byte latency, search latency, sync delta latency, share-link generation latency, preview render latency, DLP scan correctness, WORM correctness, virus-scan correctness). A `connect-*` umbrella SLO cannot honour those.
+2. **ADR-0139 — per-µservice SLO authority.** Drive needs independent SLO targets per surface (file-list latency, upload throughput, download first-byte latency, search latency, sync delta latency, share-link generation latency, preview render latency, DLP scan correctness, WORM correctness, virus-scan correctness). A `connect-*` umbrella SLO cannot honour those.
 3. **ADR-0131 — per-µservice flat layout.** Drive's IaC, runbooks, threat-model, DPIA, compliance, capacity-model, cost-budget, incident-response, failure-modes, multi-region all need to live under one folder (`microservices/drive/`).
 4. **ADR-0133 — 11-pack-overlay program.** pack-kr (KR PIPA + KR-FSS), pack-eu (GDPR + EU AI Act), pack-us (SEC 17a-4(f) + FINRA 4511), pack-us-healthcare (HIPAA), pack-jp (APPI), pack-sg (PDPA), pack-au (Privacy Act), pack-in (DPDPA), pack-br (LGPD), pack-ae (UAE PDPL), pack-ksa (KSA PDPL) — each lives as `microservices/drive/policy/pack-<region>/`. They cannot share a folder root with mail / calendar / messenger.
 5. **ADR-DRIVE-0001 → ADR-DRIVE-0006** — drive-specific decisions (object-storage backend pick, CDC algorithm, share-link security model, encryption-at-rest + E2E, preview sandboxing, WORM policy) need to live at per-µservice ADR granularity, not at the Connect / Workspace suite level.

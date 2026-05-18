@@ -43,7 +43,7 @@ substrate, in chronological order, with their relevance to this µservice.
 |---|---|---|
 | ADR-0110 | ChangeSet state machine | Each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-ONT registers here |
-| ADR-0130 | Agentic SLO-gated promotion | Function-read SLO authored under it |
+| ADR-0139 | Agentic SLO-gated promotion | Function-read SLO authored under it |
 | ADR-0131 | Per-microservice flat layout | This pack authored natively under it |
 
 ## Open ADR successor-IPs

@@ -16,7 +16,7 @@ maintainers:
     email: axis-anonymous@oyatie.dev
 annotations:
   oyatie.dev/microservice: anonymous
-  oyatie.dev/adr-stack: "ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133"
+  oyatie.dev/adr-stack: "ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133"
   oyatie.dev/invariants: "I1, I2, I3, I4, I5, I6, I7"
   oyatie.dev/regulatory-packs: "kr, eu, us, us-hc, uk, jp, sg, au, in, br, ae, ksa"
 dependencies:

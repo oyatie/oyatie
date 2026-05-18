@@ -28,7 +28,7 @@ in dev cluster.**
 |---|---|
 | Replacement | `oya-mail-*` crate family under `microservices/mail/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-MAIL accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #1) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
+| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-pack-overlay program (per ADR-0133) is only addressable at µservice granularity, not at suite granularity |
 | Migration owner (Churn Rule) | axis-mail |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -129,7 +129,7 @@ crystallised. Specifically:
 1. **ADR-0132 no-suite forward-policy.** A `connect-*` crate prefix encodes
    bundle membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
-2. **ADR-0130 per-µservice SLO authority.** Mail's mailbox-fill, inbound
+2. **ADR-0139 per-µservice SLO authority.** Mail's mailbox-fill, inbound
    DKIM/SPF/DMARC verify latency, outbound queue depth, IMAP fetch p99, and
    eDiscovery export turnaround each need independent SLO targets. A
    `connect-*` SLO bucket cannot honour those.

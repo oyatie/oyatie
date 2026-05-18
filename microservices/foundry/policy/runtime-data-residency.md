@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-foundry-runtime
 deciders: council-privacy, ops-security, axis-foundry-runtime, gtm-customer-success
-related_adrs: [ADR-0025, ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0025, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry/threat-model.md (T-I-01, T-T-02, cross-region threats)
   - microservices/foundry/dpia.md (R-11)
@@ -192,7 +192,7 @@ Per-pack overlays at `regional-packs/<pack>/foundry-runtime-residency-overlay.md
 
 ## References
 
-- ADR-0025; ADR-0117; ADR-0130; ADR-0131.
+- ADR-0025; ADR-0117; ADR-0139; ADR-0131.
 - `microservices/foundry/threat-model.md` T-I-01 + T-T-02.
 - `microservices/foundry/dpia.md` R-11 + R-13 + R-15 + §2.2.
 - `microservices/foundry/policy/runtime-isolation.md`.

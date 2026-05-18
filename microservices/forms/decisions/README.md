@@ -9,7 +9,7 @@ doc_status: published
 
 # forms service-scoped ADRs
 
-This directory holds **service-scoped** Architecture Decision Records owned by the `forms` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs live at `docs/decisions/` (e.g., ADR-0105, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140).
+This directory holds **service-scoped** Architecture Decision Records owned by the `forms` µservice per ADR-0131 §"Canonical folder shape". Repo-wide ADRs live at `docs/decisions/` (e.g., ADR-0105, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140).
 
 Service-scoped ADRs are numbered `ADR-FORMS-NNNN` (four-digit, sequential within this directory). The `FORMS` prefix prevents collision with the repo-wide `ADR-NNNN` series and matches the convention adopted by sibling µservices migrating to ADR-0131 per-microservice flat layout (e.g., `ADR-WS-NNNN` for workflow-studio).
 
@@ -26,7 +26,7 @@ Service-scoped ADRs are numbered `ADR-FORMS-NNNN` (four-digit, sequential within
 
 ## Cross-reference policy
 
-- Every service-scoped ADR in this directory MUST reference the repo-wide ADRs it inherits from (e.g., ADR-0131 layout, ADR-0140 Cedar, ADR-0105 layer enum, ADR-0135 microservice naming, ADR-0130 SLO-gated promotion, ADR-0132 single-concern, ADR-0133 review cadence).
+- Every service-scoped ADR in this directory MUST reference the repo-wide ADRs it inherits from (e.g., ADR-0131 layout, ADR-0140 Cedar, ADR-0105 layer enum, ADR-0135 microservice naming, ADR-0139 SLO-gated promotion, ADR-0132 single-concern, ADR-0133 review cadence).
 - Repo-wide ADRs MUST NOT depend on service-scoped ADRs; dependency direction is one-way (service-scoped depends on repo-wide).
 - Service-scoped ADRs may reference each other freely within this directory.
 - Supersession is recorded by adding `superseded_by:` to the old ADR's frontmatter and `supersedes:` to the new ADR's frontmatter; old ADRs are **never deleted** (per the documentation-and-adrs skill).

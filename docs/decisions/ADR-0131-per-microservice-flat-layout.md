@@ -8,7 +8,7 @@ supersedes:
   - "ADR-0015 (partial — supersedes the docs-vs-crates top-level split for per-service ownership; ADR-0015's BC and layer rules remain in force)"
   - "ADR-0119 (partial — supersedes the per-product slice of specs-flat-root; /specs/ retains only cross-cutting specs)"
 superseded_by: []
-related: [ADR-0015, ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0116, ADR-0119, ADR-0122, ADR-0130]
+related: [ADR-0015, ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0116, ADR-0119, ADR-0122, ADR-0139]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/masterplan.json, /specs/master-plan-sequencing.json]
 bominal_source: no Bominal equivalent
 purpose: Mandate one universal artifact layout — per-microservice flat folder containing PRD, phase specs, IPs, service-scoped ADRs, contracts, catalog, specs, runbooks, threat model, IaC, OpenSLO, crates, tests — for every µservice and every product oyatie ships, matching the convention used by AWS, Google, Microsoft, Oracle, and Stripe.
@@ -80,7 +80,7 @@ microservices/<ms>/
     <scenario>.md                                     # operational runbooks
   threat-model.md                                     # STRIDE threat model per docs/templates/threat-model-template.md
   slos/
-    <sli>.openslo.yaml                                # OpenSLO manifests (per ADR-0130 SLO gate)
+    <sli>.openslo.yaml                                # OpenSLO manifests (per ADR-0139 SLO gate)
   dpia.md                                             # OPTIONAL — Data Protection Impact Assessment when regulated capability
   iac/
     helm/<chart>/                                     # Helm charts (Layer-A self-hosted infra)
@@ -114,7 +114,7 @@ Five categories of artifact remain at repo-root locations, exclusively for items
 
 | Central location | Scope | What lives here |
 |---|---|---|
-| `docs/decisions/ADR-NNNN-*.md` | Cross-cutting ADRs | Decisions that govern multiple µservices or the repo (ADR-0056 BNF v4.1; ADR-0105 layer enum; ADR-0110 ChangeSet state machine; ADR-0130 SLO gate; this ADR). Service-scoped ADRs move to `microservices/<ms>/decisions/`. |
+| `docs/decisions/ADR-NNNN-*.md` | Cross-cutting ADRs | Decisions that govern multiple µservices or the repo (ADR-0056 BNF v4.1; ADR-0105 layer enum; ADR-0110 ChangeSet state machine; ADR-0139 SLO gate; this ADR). Service-scoped ADRs move to `microservices/<ms>/decisions/`. |
 | `docs/standards/<topic>.md` | Cross-cutting standards | Code style, commit message, API design, schema migration, error handling, observability/SLO authoring rules, etc. |
 | `docs/templates/<artifact>.md` | Authoring templates | PRD template, ADR template, IP template, phase-spec template, runbook template, etc. |
 | `/specs/<topic>.json` | Cross-cutting machine-readable specs | masterplan.json, master-plan-sequencing.json, hyperscaler-gates.json, per-microservice-flat-layout.json, agentic-slo-gated-promotion.json. Per-product specs (workflow.json, ontology.json, workflow-studio.json) move to `microservices/<ms>/specs/`. |
@@ -254,7 +254,7 @@ Total: 36 flat µservices, 30 migration IPs (six µservices ship natively, no mi
 | IP-M01-MIGR-013 | `cell` | `crates/oya-cell-*` family. |
 | IP-M01-MIGR-014 | `governance` (NEW name; replaces `foundry-fitness` working name) | **Bundles all ~50 `oya-check-*` crates into one µservice.** Moves `crates/oya-check-<topic>/` → `microservices/governance/src/crates/oya-check-<topic>/`. Crate renames to BNF v4.1 conformant `oya-governance-<topic>-<layer>` are staged inside this IP (atomic move+rename). The `governance` µservice owns the CI fitness lanes (architecture cohesion, supply-chain, license, ADR citation, doc coverage, naming conformance, SLO coverage, statelessness, shardability, etc.). Author single PRD describing the governance substrate; per-check evidence stays as lane output. |
 | IP-M01-MIGR-003 | `workflow` | `docs/prds/workflow.md`, `/specs/workflow.json`, `/specs/microservices/workflow-studio.json`, related crates, contracts, catalog. |
-| IP-M01-MIGR-NEW-1 | `observability` | NEW µservice; ships natively under this convention; no migration scope, only authoring. Cross-referenced from ADR-0130. |
+| IP-M01-MIGR-NEW-1 | `observability` | NEW µservice; ships natively under this convention; no migration scope, only authoring. Cross-referenced from ADR-0139. |
 | IP-M01-MIGR-008 | `application` | `docs/prds/application.md`, related crates, catalog. |
 | IP-M01-MIGR-009 | `foundry` | Consolidate `docs/prds/foundry.md` + `docs/products/foundry/` into `microservices/foundry/`; related crates, catalog, contracts. |
 | IP-M01-MIGR-010 | `cloud` | `docs/products/cloud/` → `microservices/cloud/`; related crates, catalog. |
@@ -297,7 +297,7 @@ Repo-wide migration is complete only when every µservice in the table above has
 
 ### Strangler pattern for runtime refs
 
-Per ADR-0130's per-microservice release pointers (`release/<ms>/<env>`): the existing tree-wide `staging` and `production` refs retain **read-only** status during migration. They no longer fast-forward; they are tagged at the pre-migration HEAD and frozen. Removal happens only after every µservice has live `release/<ms>/staging` and `release/<ms>/production` pointers and a successor-IP cleanup ADR retires the legacy refs.
+Per ADR-0139's per-microservice release pointers (`release/<ms>/<env>`): the existing tree-wide `staging` and `production` refs retain **read-only** status during migration. They no longer fast-forward; they are tagged at the pre-migration HEAD and frozen. Removal happens only after every µservice has live `release/<ms>/staging` and `release/<ms>/production` pointers and a successor-IP cleanup ADR retires the legacy refs.
 
 Per ADR-0119 (specs flat root topology), per-product spec files at `/specs/microservices/<product>.json` and `/specs/microservices/<product>/` directories move under their owning µservice; the `/specs/` root retains only cross-cutting specs.
 
@@ -382,7 +382,7 @@ Port traits, kernel/domain/application/adapter layering, and Workflow + Ontology
 - ADR-0116: Retire external agent-coordination tooling (`.omc/plans/` content migrates per this ADR; `.omc/state/sessions/` unaffected).
 - ADR-0119: Specs flat root topology (this ADR refines — `/specs/` retains only cross-cutting specs).
 - ADR-0122: Ontology crate rename (precedent for cross-cutting rename ADR).
-- ADR-0130: Agentic SLO-gated promotion (consumes this ADR for the `microservices/observability/` layout).
+- ADR-0139: Agentic SLO-gated promotion (consumes this ADR for the `microservices/observability/` layout).
 - `feedback_clean_architecture_requirements.md` — bounded-context cohesion principle.
 - `feedback_quality_performance_scalability_bar.md` — hyperscaler-grade bar.
 - `feedback_autonomous_decision_principles.md` — "nothing scheduled-for-distinct-tracked-work" principle.

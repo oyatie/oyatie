@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-messenger
 deciders: ops-sre-reliability, axis-messenger, ops-security, council-architecture
-related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/messenger/threat-model.md
   - microservices/messenger/dpia.md

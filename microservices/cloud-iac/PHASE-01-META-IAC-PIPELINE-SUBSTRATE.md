@@ -20,7 +20,7 @@ depends_on:
     reason: workspace, branch-protection, cloud-k8s minimum-viable cluster, cloud-secrets
             OpenBao deployment, observability SLO gate (downstream signal) all preceding
 owner_team: axis-cloud-iac
-related_adrs: [ADR-0117, ADR-0120, ADR-0121, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0120, ADR-0121, ADR-0139, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 doc_status: published
@@ -30,7 +30,7 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full cloud-iac design: Layer-A self-hosted IaC OSS stack (ArgoCD + Flux + OpenTofu + Helm-controller + Kustomize-controller + Postgres iac-state-index) and Layer-B oyatie-owned crates (iac-renderer + iac-validator + iac-applier + iac-rollback + iac-registry). Delivered as one phase in M01-foundation because every other oyatie µservice depends on cloud-iac to render + apply its IaC; the SLO gate (ADR-0130) needs ApplyExecuted signals to advance per-component release pointers.
+This phase ships the full cloud-iac design: Layer-A self-hosted IaC OSS stack (ArgoCD + Flux + OpenTofu + Helm-controller + Kustomize-controller + Postgres iac-state-index) and Layer-B oyatie-owned crates (iac-renderer + iac-validator + iac-applier + iac-rollback + iac-registry). Delivered as one phase in M01-foundation because every other oyatie µservice depends on cloud-iac to render + apply its IaC; the SLO gate (ADR-0139) needs ApplyExecuted signals to advance per-component release pointers.
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (one IaC pipeline canonicalised across Helm + Kustomize + Terraform; not three diverging tools).
@@ -222,7 +222,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0117: Cloud-native infrastructure.
 - ADR-0120: Rust-first on-prem tooling.
 - ADR-0121: On-prem k8s stack.
-- ADR-0130: Agentic SLO-gated promotion (downstream consumer of ApplyExecuted events).
+- ADR-0139: Agentic SLO-gated promotion (downstream consumer of ApplyExecuted events).
 - ADR-0131: Per-microservice flat layout (location authority).
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.

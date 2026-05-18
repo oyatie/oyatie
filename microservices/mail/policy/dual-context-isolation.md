@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-mail + council-privacy + ops-security
 deciders: council-architecture, ops-security, axis-mail, council-privacy, ops-legal
-related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
 related_artifacts:
   - microservices/mail/threat-model.md (Trust Boundary 6; T-I-02, T-L-05, T-L-08)
   - microservices/mail/dpia.md (R-02, R-06)
@@ -279,7 +279,7 @@ Each pack's overlay at `regional-packs/<pack>/mail-dual-context-overlay.md` maps
 - ADR-0028 (Bominal): audit-chain.
 - ADR-0117: residency.
 - ADR-0135: Connect dissolution; dual-context invariant.
-- ADR-0130: SLO gate.
+- ADR-0139: SLO gate.
 - ADR-0131: per-microservice flat layout.
 - ADR-0132: no-suite forward policy.
 - ADR-0140: Cedar policy enforcement.

@@ -79,14 +79,14 @@ oyatie notes adopts a **structural-impossibility posture for AI assist over Pers
    - A Professional-tier note that gets converted (only via "create new and copy" explicit path; not in-place) gets a fresh AI-eligibility evaluation.
 
 4. **Evidence + transparency artifacts**:
-   - Every AI invocation emits an `evidence_topic` record (per ADR-0130 foundry-evidence pattern).
+   - Every AI invocation emits an `evidence_topic` record (per ADR-0139 foundry-evidence pattern).
    - Outputs labelled "AI-generated" in UI per EU AI Act Art. 50.
    - Tenant-admin sees AI-usage dashboard (calls, model, cost) per month.
    - User can opt-out at any time; opt-out is immediate.
 
 5. **Model drift control**:
    - Eval set per capability (`microservices/notes/capabilities/eval/T1-*-golden.jsonl`) gates production via foundry-eval.
-   - Canary rollout per ADR-0130 (1 % / 5 % / 20 % / 100 %).
+   - Canary rollout per ADR-0139 (1 % / 5 % / 20 % / 100 %).
    - Rollback runbook `runbooks/ai-classifier-rollback-e2e-respect.md`.
 
 ## Alternatives Considered
@@ -167,7 +167,7 @@ oyatie notes adopts a **structural-impossibility posture for AI assist over Pers
 - ADR-NOTES-0001 (E2E posture).
 - ADR-NOTES-0004 (search architecture).
 - ADR-MSGR-0003 (sibling messenger AI bounds; tier-shape pattern).
-- ADR-0130 (SLO-gated promotion; foundry-eval).
+- ADR-0139 (SLO-gated promotion; foundry-eval).
 - `microservices/notes/PRD.md` NFR Security + FR-21 + AC-03.
 - `microservices/notes/policy/e2e-personal-tier-default.md`.
 - `microservices/notes/capabilities/T0-suggest.yaml`, `T1-assist.yaml`, `T2-auto.yaml`.

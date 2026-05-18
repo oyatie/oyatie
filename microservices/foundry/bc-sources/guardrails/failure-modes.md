@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-foundry-guardrails
 deciders: ops-sre-reliability, axis-foundry-guardrails, ops-security, council-architecture
-related_adrs: [ADR-0022, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/foundry-guardrails/threat-model.md
   - microservices/foundry-guardrails/dpia.md
@@ -219,7 +219,7 @@ Each carries: **FM-ID**, **Trigger**, **Detection**, **Tenant impact**, **Severi
 | Tenant impact | Catastrophic: every invocation bypasses safety floor |
 | Severity | Sev-1 (always) |
 | Immediate mitigation | Roll back foundry-runtime to last-good deploy; engage axis-foundry + axis-foundry-guardrails ICs jointly |
-| RTO | ≤ 15 min rollback (foundry-runtime auto-rollback per ADR-0130) |
+| RTO | ≤ 15 min rollback (foundry-runtime auto-rollback per ADR-0139) |
 | Recovery runbook | foundry-runtime's `runbooks/runtime-rollback.md` + this µservice's `runbooks/jailbreak-escalation.md` (because every bypassed invocation is potentially a missed jailbreak) |
 | Postmortem owner | axis-foundry-runtime + axis-foundry-guardrails (joint) |
 

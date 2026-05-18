@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-messenger
 deciders: council-privacy, ops-security, axis-messenger, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
 related_specs: [/specs/microservices/messenger.json]
 related_artifacts:
   - microservices/messenger/threat-model.md

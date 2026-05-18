@@ -8,7 +8,7 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-cloud-secrets + ops-security
 deciders: council-architecture, ops-security, council-privacy
-related_adrs: [ADR-0117, ADR-0120, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0117, ADR-0120, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json]
 doc_status: published
 ---

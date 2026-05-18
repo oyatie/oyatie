@@ -1269,13 +1269,13 @@
       "related": ["ADR-0116", "ADR-0124", "ADR-0128"]
     },
     {
-      "adr": "ADR-0130",
+      "adr": "ADR-0139",
       "number": 130,
       "title": "Deprecate `registry/knowledge-graph-semantic.json` and Migrate to Ontology Type System",
       "status": "Accepted",
       "owner": "council-architecture + ontology-team",
       "date": "2026-05-17",
-      "path": "decisions/ADR-0130-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
+      "path": "decisions/ADR-0139-deprecate-knowledge-graph-registry-file-migrate-to-ontology.md",
       "supersedes": ["N/A"],
       "superseded_by": [],
       "related": []

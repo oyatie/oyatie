@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-messenger
 deciders: council-privacy, ops-security, axis-messenger, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/messenger/threat-model.md (T-I-01, T-T-02; cross-region replication threats)
   - microservices/messenger/dpia.md (R-11)

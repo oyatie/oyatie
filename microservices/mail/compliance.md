@@ -57,7 +57,7 @@ Canonical control-to-framework mapping for the mail µservice. Tells an external
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + cardinality alerts + abuse-classifier | observability µservice integration |
 | CC7.4 | Incident response | Severity-classified response | `incident-response.md` |
 | CC8.1 | Change management | PR review + LEAN gates + branch protection | branch-protection.yaml |
-| CC9.1 | Risk mitigation | Multi-region DR + automated rollback | `multi-region.md` + ADR-0130 |
+| CC9.1 | Risk mitigation | Multi-region DR + automated rollback | `multi-region.md` + ADR-0139 |
 | CC9.2 | Vendor risk management | Sub-processor list + per-vendor DPA | `legal/sub-processors.md` |
 
 **Privacy Criteria (P1–P8, 2017 TSC, optional):**

@@ -66,7 +66,7 @@ runbook).
 | CC7.2 | Monitors system components | SLO + burn-rate dashboards |
 | CC7.4 | Responds to incidents | incident-response.md + runbooks |
 | CC7.5 | Recovers from incidents | DR drills + backup retention; runbooks/publish-pipeline-rollback.md |
-| CC8.1 | Manages changes | ADR-0110 ChangeSet + ADR-0130 SLO-gated promotion |
+| CC8.1 | Manages changes | ADR-0110 ChangeSet + ADR-0139 SLO-gated promotion |
 | CC9.1 | Identifies risks | residual-risk acceptance in threat-model.md |
 
 ## ISO 27001:2022 Mapping
@@ -89,7 +89,7 @@ runbook).
 | A.8.15 (logging) | observability + audit-chain |
 | A.8.20 (network security) | mesh mTLS + NetworkPolicy |
 | A.8.23 (web filtering) | WAF at ingress; rate-limit on anonymous reads |
-| A.8.25 (secure SDLC) | LEAN gates + ADR-0130 |
+| A.8.25 (secure SDLC) | LEAN gates + ADR-0139 |
 | A.8.26 (application security) | per-microservice security artifacts |
 | A.8.27 (secure system architecture) | ADR-0056 + ADR-0105 + ADR-0131 |
 | A.8.28 (secure coding) | LEAN check + cargo fuzz |

@@ -125,7 +125,7 @@ Discord enterprise pivot, Matrix v2 federation).
    does this at data-model level.
 2. **Multi-pack residency by design** — 11 region-pinned packs; no SaaS
    competitor matches the breadth (Slack/Teams region-coarse).
-3. **OpenSLO-gated promotion** — feature rollouts gated by burn-rate (ADR-0130);
+3. **OpenSLO-gated promotion** — feature rollouts gated by burn-rate (ADR-0139);
    no competitor enforces SLO-based rollout halting.
 4. **Cedar v4 policy substrate** — fine-grained per-channel + per-message
    policy; competitors expose only admin-level RBAC.
@@ -176,7 +176,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `/specs/hyperscaler-gates.json` HG-MESSENGER gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
 - ADR-0135 (Connect dual-context, parallel).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0133 (industry best-practice conformance).
 - Competitor docs as cited inline above.

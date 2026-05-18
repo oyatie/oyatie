@@ -30,7 +30,7 @@ depends_on:
     phase: workspace-substrate prerequisites
     reason: docs + sheets co-authored; messenger LiveKit available; foundry-runtime gating wired
 owner_team: axis-workspace + council-design-system
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published

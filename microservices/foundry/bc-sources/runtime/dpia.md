@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-foundry-runtime
 deciders: council-privacy, ops-security, axis-foundry-runtime, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act Art. 9 (risk management)
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
 related_specs: [/specs/agent-operating-contract.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/foundry-runtime/threat-model.md
@@ -272,7 +272,7 @@ Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md`.
 
 ## References
 
-- ADR-0022; ADR-0024; ADR-0025; ADR-0028 (Bominal audit-chain); ADR-0117; ADR-0130; ADR-0131; ADR-0132; ADR-0140.
+- ADR-0022; ADR-0024; ADR-0025; ADR-0028 (Bominal audit-chain); ADR-0117; ADR-0139; ADR-0131; ADR-0132; ADR-0140.
 - `microservices/foundry-runtime/threat-model.md` — paired security artifact.
 - `microservices/foundry-runtime/policy/{runtime-isolation, data-residency}.md`.
 - `microservices/foundry-runtime/compliance.md`.

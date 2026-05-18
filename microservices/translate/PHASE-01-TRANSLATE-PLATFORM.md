@@ -28,7 +28,7 @@ depends_on:
     phase: audit-chain/P01-event-seal-substrate
     reason: Every translation seal flows to audit-chain
 owner_team: axis-translate + ops-security + council-privacy
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -125,7 +125,7 @@ Load tests (`tests/load/`) demonstrate every performance budget in PRD §"Perfor
 ## References
 
 - `microservices/translate/PRD.md`.
-- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133.
+- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133.
 - ADR-TRANSLATE-0001 .. ADR-TRANSLATE-0006.
 - `/specs/per-microservice-flat-layout.json`.
 - `docs/standards/observability-slo.md`.

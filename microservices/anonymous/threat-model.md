@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-anonymous + ops-security
 deciders: council-architecture, ops-security, axis-anonymous, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy; especially relevant) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0006, ADR-ANON-0007]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0006, ADR-ANON-0007]
 related_specs: [/specs/microservices/anonymous.json]
 review_cadence: quarterly + on every architecture or substrate change + every legal-process disclosure category change
 enforced_frameworks:

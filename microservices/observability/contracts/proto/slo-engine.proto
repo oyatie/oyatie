@@ -1,6 +1,6 @@
 // oya-observability-slo-engine — gRPC contract
 // Peer to contracts/openapi/slo-engine.yaml for clients that prefer gRPC.
-// Per ADR-0130 + ADR-0131.
+// Per ADR-0139 + ADR-0131.
 
 syntax = "proto3";
 

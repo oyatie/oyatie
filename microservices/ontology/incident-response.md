@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + council-privacy
 deciders: ops-sre-reliability, ops-security, council-privacy, axis-ontology, council-architecture
-related_adrs: [ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/ontology/threat-model.md
   - microservices/ontology/dpia.md

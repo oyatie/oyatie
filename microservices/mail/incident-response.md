@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-mail + ops-security + council-privacy + ops-legal
 deciders: ops-sre-reliability, axis-mail, ops-security, council-privacy, ops-legal, gtm-customer-success
-related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0028, ADR-0117, ADR-0135, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/mail/threat-model.md
   - microservices/mail/dpia.md
@@ -166,7 +166,7 @@ This document reviewed annually + after every Sev-1 event affecting mail. Change
 - ADR-0028 (Bominal): audit-chain.
 - ADR-0117: residency.
 - ADR-0135: Connect dissolution.
-- ADR-0130: SLO gate.
+- ADR-0139: SLO gate.
 - ADR-0131: per-microservice flat layout.
 - `microservices/mail/threat-model.md`.
 - `microservices/mail/dpia.md`.

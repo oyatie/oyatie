@@ -36,7 +36,7 @@ Per `feedback_no_silent_regression.md`: this notice is the loud, CI-detectable, 
 The legacy `oya-connect-drive-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
 
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — agentic SLO-gated promotion.** Drive needs independent SLO targets per surface (file-list latency, upload throughput, download first-byte, search, sync delta, share-link mint, preview render, DLP correctness, WORM correctness, virus-scan correctness); a `connect-*` umbrella SLO cannot serve them.
+2. **ADR-0139 — agentic SLO-gated promotion.** Drive needs independent SLO targets per surface (file-list latency, upload throughput, download first-byte, search, sync delta, share-link mint, preview render, DLP correctness, WORM correctness, virus-scan correctness); a `connect-*` umbrella SLO cannot serve them.
 3. **ADR-0131 — per-µservice flat layout.** Drive's IaC, runbooks, threat-model, DPIA, compliance, capacity-model, cost-budget all need to live under one folder.
 4. **ADR-0133 — 11-pack-overlay program.** pack-kr / pack-eu / pack-us / pack-us-healthcare / pack-jp / pack-sg / pack-au / pack-in / pack-br / pack-ae / pack-ksa each live at per-µservice overlay granularity.
 5. **ADR-DRIVE-0001 → ADR-DRIVE-0006** — drive-specific decisions (object-storage backend, CDC algorithm, share-link model, encryption-at-rest + E2E, preview sandbox, WORM policy) need to live at per-µservice ADR granularity, not at the Connect / Workspace suite level.

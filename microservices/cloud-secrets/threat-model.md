@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-cloud-secrets + ops-security
 deciders: council-architecture, ops-security, axis-cloud-secrets, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154 + NIST SP 800-57 (Key Management) + FIPS 140-3
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0120, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0120, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every OpenBao or HSM architecture change
 enforced_frameworks:

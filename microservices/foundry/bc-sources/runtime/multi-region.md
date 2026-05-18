@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-foundry-runtime + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-foundry-runtime, council-architecture, council-privacy
-related_adrs: [ADR-0025, ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0025, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry-runtime/policy/data-residency.md
   - microservices/foundry-runtime/capacity-model.md

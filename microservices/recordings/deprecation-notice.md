@@ -43,7 +43,7 @@ gated on the SLO trigger.
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a brand-layer
    concept and must not appear in crate names.
-2. **ADR-0130 — agentic SLO-gated promotion.** Recordings needs independent
+2. **ADR-0139 — agentic SLO-gated promotion.** Recordings needs independent
    SLO targets per surface (recording-list, playback-start, transcript-search,
    transcript-render, redaction-render, export-mp4, export-transcript-pdf,
    legal-hold-engagement + zero-tolerance load-bearing invariants for

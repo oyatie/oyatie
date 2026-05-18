@@ -84,15 +84,15 @@ impl BidId {
 #[derive(Clone, Debug)]
 pub struct AuctionCreate {
     pub auction_id: String, // data_class: INTERNAL_ONLY
-    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub tenant_id: String,  // data_class: INTERNAL_ONLY
     pub ad_slot_id: String, // data_class: INTERNAL_ONLY
 }
 
 /// Input for constructing a [`Bid`].
 #[derive(Clone, Debug)]
 pub struct BidCreate {
-    pub bid_id: String, // data_class: INTERNAL_ONLY
-    pub tenant_id: String, // data_class: INTERNAL_ONLY
+    pub bid_id: String,        // data_class: INTERNAL_ONLY
+    pub tenant_id: String,     // data_class: INTERNAL_ONLY
     pub advertiser_id: String, // data_class: INTERNAL_ONLY
     /// CPM in micro-currency units (e.g. USD micro-cents: 1_000_000 = $1.00).
     pub bid_micros: u64, // data_class: INTERNAL_ONLY

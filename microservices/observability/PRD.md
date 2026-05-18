@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0130, ADR-0131]
+related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0139, ADR-0131]
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 owner_team: axis-observability
@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `observability` microservice is oyatie's substrate for SLO authoring, real-time burn-rate evaluation, promotion-eligibility ledger writes, and Layer-A telemetry runtime (self-hosted Grafana Alloy + Prometheus + Mimir + Loki + Tempo + Pyroscope + Grafana + Alertmanager + Grafana OnCall). It is the enforcement origin of ADR-0130's agentic SLO-gated promotion gate.
+The `observability` microservice is oyatie's substrate for SLO authoring, real-time burn-rate evaluation, promotion-eligibility ledger writes, and Layer-A telemetry runtime (self-hosted Grafana Alloy + Prometheus + Mimir + Loki + Tempo + Pyroscope + Grafana + Alertmanager + Grafana OnCall). It is the enforcement origin of ADR-0139's agentic SLO-gated promotion gate.
 
 This µservice is **shared substrate**, not a hero product. It is consumed by every other oyatie µservice (each must author its own OpenSLO manifest before its release pointer can advance past `dev`) and exposed to tenants for tenant-defined SLOs over their own workflows, applications, and integrations. Its existence is the precondition for oyatie's "hyperscaler-grade in every practice" bar per `feedback_quality_performance_scalability_bar.md`.
 
@@ -91,7 +91,7 @@ Per ADR-0105 (13-value canonical layer enum) and ADR-0106 (`application` → `us
 |---|---|---|---|
 | `slo-engine` | `oya-observability-slo-engine-{kernel,domain,usecase,api,adapter,adapter-mimir,rest,worker,sdk,app}` | OpenSLO manifest read; burn-rate computation; eligibility verdict emission to Mimir; rollback primitive; tenant-facing SLO query API + client SDK | `SloTarget`, `BurnRateWindow`, `EligibilityVerdict`, `ReleasePointer`, `MimirTenant` |
 | `otel-ingest` | `oya-observability-otel-ingest-{kernel,usecase,api,adapter,app}` | OpenTelemetry collector configuration; per-microservice signal annotation; mesh integration. Most ingest is Grafana Alloy (upstream OSS) — oyatie code is configuration + per-µservice signal-routing rules. | `Sample`, `LogRecord`, `Trace`, `Profile`, `ServiceMeshTag` |
-| `eligibility-ledger-writer` | (subsumed under `slo-engine`'s `-adapter-mimir` crate) | Emits eligibility verdicts as Prometheus metrics into Mimir per ADR-0130's Mimir-native ledger model | — |
+| `eligibility-ledger-writer` | (subsumed under `slo-engine`'s `-adapter-mimir` crate) | Emits eligibility verdicts as Prometheus metrics into Mimir per ADR-0139's Mimir-native ledger model | — |
 
 Naming justification — `slo-engine`:
 
@@ -302,8 +302,8 @@ Sharding:
 | ADR-0056 | BNF v4.1 | naming authority |
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
-| ADR-0114 | Canary observability rollback | precedent — ADR-0130 implements |
-| ADR-0130 | Agentic SLO-gated promotion | the design this PRD scaffolds |
+| ADR-0114 | Canary observability rollback | precedent — ADR-0139 implements |
+| ADR-0139 | Agentic SLO-gated promotion | the design this PRD scaffolds |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-OBS registers here |
 | ADR-0116 | Retire external agent-coordination tooling | oya vcs primitives used throughout |

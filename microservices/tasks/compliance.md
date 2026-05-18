@@ -30,7 +30,7 @@ ADA + 직장 갑질 overlays are first-class.
 | GDPR | Arts. 5, 6, 9, 13, 14, 17, 22, 25, 28, 30, 32, 33, 35, 44 | §"GDPR Mapping" below |
 | EU AI Act (EU) 2024/1689 | Annex III §4 + Art. 14 + Art. 50 + Art. 22 | §"EU AI Act Mapping" below |
 | OWASP ASVS v4.0.3 | V1-V14 | application-security baseline |
-| SLSA L3 | Supply chain | per-changeset evidence per ADR-0130 |
+| SLSA L3 | Supply chain | per-changeset evidence per ADR-0139 |
 | NIST SSDF SP 800-218 | Secure software development | LEAN-gate program |
 | WCAG 2.2 AA | Accessibility | per `microservices/tasks/legal/accessibility.md` |
 | CIS Kubernetes Benchmark | Substrate | `cloud-k8s` inheritance |
@@ -72,7 +72,7 @@ ADA + 직장 갑질 overlays are first-class.
 | CC7.2 | Monitors system components | SLO + burn-rate dashboards |
 | CC7.4 | Responds to incidents | incident-response.md + runbooks |
 | CC7.5 | Recovers from incidents | DR drills + backup retention |
-| CC8.1 | Manages changes | ADR-0110 ChangeSet + ADR-0130 SLO-gated promotion |
+| CC8.1 | Manages changes | ADR-0110 ChangeSet + ADR-0139 SLO-gated promotion |
 | CC9.1 | Identifies risks | residual-risk acceptance in threat-model.md |
 
 ## ISO 27001 Mapping
@@ -103,7 +103,7 @@ ADA + 직장 갑질 overlays are first-class.
 | A.8.20 (network security) | mesh mTLS + NetworkPolicy |
 | A.8.21 (security of network services) | per-tenant API key + rate limits |
 | A.8.23 (web filtering) | WAF at ingress |
-| A.8.25 (secure development lifecycle) | LEAN gates + ADR-0130 SLO-gated promotion + SLSA L3 |
+| A.8.25 (secure development lifecycle) | LEAN gates + ADR-0139 SLO-gated promotion + SLSA L3 |
 | A.8.26 (application security requirements) | per-microservice security artifacts |
 | A.8.27 (secure system architecture) | ADR-0056 + ADR-0105 |
 | A.8.28 (secure coding) | LEAN check `oya-check-importer-sandbox-config` + `oya-check-custom-field-type-strict` + cargo fuzz |

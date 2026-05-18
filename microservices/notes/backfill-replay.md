@@ -125,6 +125,6 @@ Personal-tier emits audit-chain ONLY on sharing events. Replay verifies:
 ## References
 
 - ADR-0028 (audit-chain Merkle + Ed25519, inherited).
-- ADR-0130 (SLO-gated promotion).
+- ADR-0139 (SLO-gated promotion).
 - `runbooks/tag-graph-corruption.md`.
 - `runbooks/attachment-loss-recovery.md`.

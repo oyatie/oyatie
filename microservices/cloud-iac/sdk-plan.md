@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-cloud-iac + gtm-customer-success
 deciders: axis-cloud-iac, council-architecture
-related_adrs: [ADR-0130, ADR-0131]
+related_adrs: [ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/contracts/openapi/cloud-iac.yaml
   - microservices/cloud-iac/contracts/proto/cloud-iac.proto

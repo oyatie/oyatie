@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: [Bominal ADR-0019 runtime catalog]
-related_adrs: [ADR-0025, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0025, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-foundry + ops-security
@@ -200,7 +200,7 @@ oyatie differentiators:
 - ADR-0105 — 13-layer enum + check-family patterns.
 - ADR-0106 — `application` → `usecase` rename for new crates.
 - ADR-0117 — pack residency model.
-- ADR-0130 — agentic SLO-gated promotion.
+- ADR-0139 — agentic SLO-gated promotion.
 - ADR-0131 — per-microservice flat layout.
 - ADR-0132 — product suite and bundle dissolution.
 - ADR-0133 — industry-best-practice conformance program.

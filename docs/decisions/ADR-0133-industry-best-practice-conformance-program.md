@@ -6,7 +6,7 @@ date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0135]
+related: [ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0135]
 related_specs: [/specs/industry-best-practice-conformance.json, /specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 session_context:
   authored: 2026-05-17
@@ -25,7 +25,7 @@ Accepted — 2026-05-17.
 
 User directive 2026-05-17: *"make sure all our pipeline, directories, naming, standards, practices, policies follow industry best practices, and hyperscaler grade. The only difference is that our dev team is fully agentic. optimization is key."*
 
-oyatie has already adopted several industry-leading baselines piecemeal (per ADR-0030 Argo Rollouts; ADR-0041 GitOps trunk-based; ADR-0117 cloud-native infrastructure; ADR-0123 hyperscaler-maturity-claim-gate; ADR-0114 canary observability rollback; ADR-0130 agentic SLO-gated promotion; ADR-0131 per-microservice flat layout; ADR-0132 no-suite forward-policy). What is missing is a **continuous, multi-axis audit program** that catches drift the moment an artifact deviates from industry baseline and that explicitly optimises for oyatie's fully-agentic developer (rather than the human-developer assumption embedded in most industry artifacts).
+oyatie has already adopted several industry-leading baselines piecemeal (per ADR-0030 Argo Rollouts; ADR-0041 GitOps trunk-based; ADR-0117 cloud-native infrastructure; ADR-0123 hyperscaler-maturity-claim-gate; ADR-0114 canary observability rollback; ADR-0139 agentic SLO-gated promotion; ADR-0131 per-microservice flat layout; ADR-0132 no-suite forward-policy). What is missing is a **continuous, multi-axis audit program** that catches drift the moment an artifact deviates from industry baseline and that explicitly optimises for oyatie's fully-agentic developer (rather than the human-developer assumption embedded in most industry artifacts).
 
 The audit must distinguish:
 - **Conformance**: artifact matches an industry-published baseline (SOC 2 + ISO 27001 + SLSA + Google SRE + AWS Well-Architected + Microsoft Azure Well-Architected Framework + CNCF cloud-native maturity + OWASP ASVS + Google styleguide + conventional-commits + OpenAPI + AsyncAPI + OpenSLO + OpenTelemetry + Stripe API design + Linear + Vercel deploy patterns + etc.).
@@ -125,7 +125,7 @@ Audit oyatie's repo-wide development practices against the canonical agentic-dev
 2. **Parallel-safe operations** (per `dispatching-parallel-agents` skill + ADR-0110 ChangeSet boundary).
 3. **Idempotent operations** (every CLI subcommand re-runnable; every migration replayable).
 4. **Audit-chain seals on every state transition** (Ed25519 + Merkle per Bominal ADR-0028).
-5. **Fail-closed on every gate** (default-deny per ADR-0130 + ADR-0140).
+5. **Fail-closed on every gate** (default-deny per ADR-0139 + ADR-0140).
 6. **Smallest-actionable artifact format** (per durable user preference; no repeated memory dumps).
 7. **No-blanket-sed** (per ADR-0131 migration-tooling; structured ast-grep / Cargo workspace operations).
 8. **No-deeper-hole rule** (Oya façade over external framework when adding-cheap; per durable preference).
@@ -202,7 +202,7 @@ Every Cedar fragment under `microservices/<ms>/policy/*.cedar` audited against:
 - `/specs/industry-best-practice-conformance.json` (machine-readable audit findings schema)
 - `docs/standards/agentic-dev-team-optimization.md` (axis-5 + axis-6 enforcement reference)
 - ADR-0123 (hyperscaler-maturity-claim-gate)
-- ADR-0130 (agentic SLO-gated promotion)
+- ADR-0139 (agentic SLO-gated promotion)
 - ADR-0131 (per-microservice flat layout)
 - ADR-0132 (no-suite forward-policy)
 - SLSA — `slsa.dev`

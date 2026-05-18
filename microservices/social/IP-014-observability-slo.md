@@ -18,7 +18,7 @@ acceptance_lanes: [openslo-schema-validate, grafana-dashboard-lint, oya-governan
 ## Intent
 
 Wire social into the observability µservice's agentic SLO-gated promotion
-substrate per ADR-0130. Author all 8 OpenSLO manifests; cross-link 3 Grafana
+substrate per ADR-0139. Author all 8 OpenSLO manifests; cross-link 3 Grafana
 dashboards; register burn-rate alerts via PrometheusRule; configure per-pack
 runbook URLs.
 
@@ -47,7 +47,7 @@ grafana-cli plugins validate microservices/social/dashboards/
 
 - Synthetic load against pack-kr cluster; burn-rate alerts fire per SLO threshold.
 - Dashboards render in Grafana with per-pack templating var.
-- ADR-0130 promotion-readiness gate exits 0 for social.
+- ADR-0139 promotion-readiness gate exits 0 for social.
 
 ## Halt Conditions
 
@@ -60,5 +60,5 @@ grafana-cli plugins validate microservices/social/dashboards/
 
 ## References
 
-- ADR-0130 (SLO-gated promotion).
+- ADR-0139 (SLO-gated promotion).
 - `microservices/observability/PRD.md`.

@@ -5,7 +5,7 @@ microservice: calendar
 status: Accepted
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + council-privacy
-related_adrs: [ADR-0130, ADR-0140]
+related_adrs: [ADR-0139, ADR-0140]
 doc_status: published
 ---
 
@@ -207,7 +207,7 @@ Template at `runbooks/post-incident-review-template.md` (referenced).
 
 ## References
 
-- ADR-0130: SLO-gated promotion.
+- ADR-0139: SLO-gated promotion.
 - ADR-0140: Cedar policy.
 - `failure-modes.md`, `runbooks/*`, `compliance.md`, `multi-region.md`.
 - GDPR Arts. 33 + 34; EDPB Guidelines 9/2022.

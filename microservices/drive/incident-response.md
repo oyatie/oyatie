@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: axis-drive + ops-security + ops-sre-reliability
-related_adrs: [ADR-0114, ADR-0130, ADR-0131, ADR-DRIVE-0001, ADR-DRIVE-0003, ADR-DRIVE-0006]
+related_adrs: [ADR-0114, ADR-0139, ADR-0131, ADR-DRIVE-0001, ADR-DRIVE-0003, ADR-DRIVE-0006]
 doc_status: published
 ---
 
@@ -137,7 +137,7 @@ Per ISO 27001 A.5.27 (lessons from incidents):
 ## References
 
 - ADR-0114 — canary observability + rollback.
-- ADR-0130 — SLO-gated promotion.
+- ADR-0139 — SLO-gated promotion.
 - ADR-DRIVE-0003 — share-link security model.
 - ADR-DRIVE-0006 — immutability + WORM policy.
 - `microservices/drive/runbooks/*.md`.

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-foundry-control-plane
 deciders: council-privacy, ops-security, axis-foundry-control-plane, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + EU AI Act Art. 27 (FRIA) + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/foundry-supervisor-control-plane.json]
 related_artifacts:
   - microservices/foundry-supervisor/threat-model.md
@@ -229,7 +229,7 @@ Per-pack overlays at `regional-packs/<pack>/foundry-supervisor-dpia-overlay.md`.
 
 ## References
 
-- ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140.
+- ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140.
 - `microservices/foundry-supervisor/threat-model.md`.
 - `microservices/foundry-supervisor/compliance.md`.
 - `microservices/foundry-supervisor/policy/{supervisor-isolation, data-residency}.md`.

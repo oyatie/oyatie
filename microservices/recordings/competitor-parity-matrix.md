@@ -28,7 +28,7 @@ doc_status: published
 | Auto-translate transcript | partial | YES | partial | partial | partial | partial | no | no | partial | partial | partial | no | no | no | no | no | YES | **YES (cross-µservice handoff to `translate`)** |
 | EBU R128 loudness normalisation | no | no | partial | no | no | no | no | YES | partial | no | no | no | no | no | partial | partial | no | **YES (per ADR-RECORDINGS-0004)** |
 | Cedar-policy server-side ACL filter | no | no | no | no | no | no | no | no | no | partial | partial | no | no | no | no | no | no | **YES (default-deny Cedar v4.2)** |
-| OpenSLO + agentic gate on rollout | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no | **YES (per ADR-0130)** |
+| OpenSLO + agentic gate on rollout | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no | no | **YES (per ADR-0139)** |
 | Per-pack residency (KR/EU/US-HC/US-Fin/JP/SG/AU/IN/BR/AE/KSA) | partial | partial | no | partial | no | no | no | no | YES | YES | YES | no | no | partial | partial | no | no | **YES (11 packs per ADR-0117)** |
 | EU AI Act Art. 50 transparency labelling | no | no | no | no | no | partial | no | no | partial | partial | partial | no | no | no | no | no | partial | **YES (per ADR-RECORDINGS-0006)** |
 | KR 통신비밀보호법 recording-consent enforcement | no | no | no | no | no | no | no | no | partial | partial | partial | no | no | no | no | no | no | **YES (ingest refuses without consent flag)** |
@@ -51,7 +51,7 @@ doc_status: published
    capability competitors lack.
 6. **Per-pack residency** — 11 packs with regulatory overlays.
 7. **OpenSLO + agentic gate** — recording feature rollouts gated by SLO
-   compliance per ADR-0130.
+   compliance per ADR-0139.
 8. **EU AI Act + KR 통신비밀보호법 enforcement at ingest** — competitors don't
    enforce recording-consent at ingest.
 

@@ -85,5 +85,5 @@ After completion:
 - `microservices/cloud-iac/failure-modes.md` FM-09.
 - `microservices/cloud-iac/incident-response.md` §"Severity-1 response".
 - `microservices/observability/runbooks/rollback.md` (parent SLO-gate rollback flow).
-- ADR-0130 §"Automated rollback primitive".
+- ADR-0139 §"Automated rollback primitive".
 - `/specs/agentic-slo-gated-promotion.json` §"rollback_primitive".

@@ -18,7 +18,7 @@ depends_on: [IP-012]
 
 ## Intent
 
-Author OpenSLO v1.0 manifests for workflow-studio's self-SLOs at `microservices/workflow-studio/slos/`. Per ADR-0130 + ADR-0131 §"SLO authoring at microservices/<ms>/slos/*.openslo.yaml mandatory before any µservice promotes past dev". Consumed by the observability µservice's SLO engine which gates Studio's promotion.
+Author OpenSLO v1.0 manifests for workflow-studio's self-SLOs at `microservices/workflow-studio/slos/`. Per ADR-0139 + ADR-0131 §"SLO authoring at microservices/<ms>/slos/*.openslo.yaml mandatory before any µservice promotes past dev". Consumed by the observability µservice's SLO engine which gates Studio's promotion.
 
 ## ChangeSet boundary
 
@@ -111,7 +111,7 @@ cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness \
 
 ## References
 
-- ADR-0130 Agentic SLO-gated promotion.
+- ADR-0139 Agentic SLO-gated promotion.
 - ADR-0131 §"SLO authoring mandatory".
 - OpenSLO v1.0 spec — `github.com/OpenSLO/OpenSLO`.
 - microservices/observability/PRD.md.

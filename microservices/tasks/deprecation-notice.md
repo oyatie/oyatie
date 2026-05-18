@@ -50,7 +50,7 @@ conforming:
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — agentic SLO-gated promotion.** Tasks needs independent
+2. **ADR-0139 — agentic SLO-gated promotion.** Tasks needs independent
    SLO targets per surface (task-list-render latency, task-create
    latency, task-update latency, cross-project search latency, bulk-
    update latency, recurring-materialise latency, webhook-fire

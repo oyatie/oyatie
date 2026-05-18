@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-observability
 deciders: council-privacy, ops-security, axis-observability, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 (개인정보영향평가)
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0132, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0140]
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/observability/threat-model.md
@@ -278,7 +278,7 @@ This DPIA re-reviews on:
 
 - ADR-0028 (Bominal): Audit chain; inherited.
 - ADR-0117: Cloud-native infrastructure (data residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0140: Cedar policy enforcement.

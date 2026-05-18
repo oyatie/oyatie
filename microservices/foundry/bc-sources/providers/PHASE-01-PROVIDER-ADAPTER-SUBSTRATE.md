@@ -16,7 +16,7 @@ depends_on:
     phase: cloud-secrets/P01-openbao-substrate
     reason: OpenBao SecretReference resolver is the canonical credential path; raw-credential leak prevention is non-negotiable
 owner_team: axis-foundry + ops-security
-related_adrs: [ADR-0025, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0025, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -99,6 +99,6 @@ End-to-end drill: a synthetic workflow request routed across Anthropic API, Open
 ## References
 
 - `microservices/foundry-providers/PRD.md`.
-- ADR-0025, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0106, ADR-0130, ADR-0131, ADR-0132, ADR-0133.
+- ADR-0025, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0106, ADR-0139, ADR-0131, ADR-0132, ADR-0133.
 - `/specs/per-microservice-flat-layout.json`.
 - `docs/standards/observability-slo.md`.

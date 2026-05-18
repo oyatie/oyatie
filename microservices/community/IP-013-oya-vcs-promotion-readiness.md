@@ -7,7 +7,7 @@ phase: PHASE-01-community-substrate
 status: Accepted
 date: 2026-05-17
 owner_team: axis-community + governance
-related_adrs: [ADR-0105, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0105, ADR-0135, ADR-0139, ADR-0131]
 doc_status: published
 ---
 
@@ -23,7 +23,7 @@ Wire the community µservice's release pointers (`release/community/<region>/{de
 
 - Per-region release pointers.
 - Promotion gate criteria: SLO green; Cedar coverage green; cargo test green; chaos drill green.
-- Auto-promote workflows on cadence (matching ADR-0130 cadence).
+- Auto-promote workflows on cadence (matching ADR-0139 cadence).
 - Rollback wiring (force-fast-forward to prior pointer).
 
 ## Deliverables

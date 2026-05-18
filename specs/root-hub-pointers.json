@@ -165,9 +165,9 @@
     "knowledge_graph_semantic": {
       "kind": "registry",
       "current_path": "/specs/products/ontology.json#type_system",
-      "deprecated_path": "/registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0130)",
+      "deprecated_path": "/registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0139)",
       "target_path_after_md_retirement": "same (already in ontology.json)",
-      "migration_phase": "complete (content migrated to specs/products/ontology.json#type_system per ADR-0130 compulsory deprecation 2026-05-17)",
+      "migration_phase": "complete (content migrated to specs/products/ontology.json#type_system per ADR-0139 compulsory deprecation 2026-05-17)",
       "purpose": "SEMANTIC layer: 36 node types + 27 edge types + 19 invariants + 11 read-side queries. Static structure of the knowledge graph. Now canonical home is specs/products/ontology.json#type_system."
     },
     "knowledge_graph_kinetic": {

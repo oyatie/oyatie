@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-foundry-control-plane + ops-security
 deciders: council-architecture, ops-security, axis-foundry-control-plane, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154 + EU AI Act Annex IV (high-risk-system risk-management)
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0133, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0133, ADR-0140]
 related_specs: [/specs/foundry-supervisor-control-plane.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Operator / Postgres / Redis / Cedar version upgrade + on every new regulatory pack
 enforced_frameworks:
@@ -48,7 +48,7 @@ Identify, classify, and mitigate threats to the foundry-supervisor's confidentia
 | Cedar v4 evaluator runtime | `oya-foundry-supervisor-supervision-event-bus-*` (7 crates) |
 | OpenBao SecretReference (autonomy-entitlement materialisation) | `oya-foundry-supervisor-kill-switch-circuit-breaker-*` (9 crates) |
 | Istio mesh + SPIFFE identities | Capability-definition manifests in tenant-owned git repos |
-| Grafana Mimir self-SLO ingestion (per ADR-0130) | Audit-chain seal records |
+| Grafana Mimir self-SLO ingestion (per ADR-0139) | Audit-chain seal records |
 
 ### Out-of-scope
 
@@ -480,7 +480,7 @@ Pack-overlay sections in `regional-packs/<pack>/foundry-supervisor-overlay.md` c
 
 ## References
 
-- ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0133, ADR-0140.
+- ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0133, ADR-0140.
 - `microservices/foundry-supervisor/PRD.md`.
 - `microservices/foundry-supervisor/dpia.md`.
 - `microservices/foundry-supervisor/policy/supervisor-isolation.md`.

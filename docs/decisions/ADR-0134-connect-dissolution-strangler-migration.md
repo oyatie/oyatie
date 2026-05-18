@@ -6,7 +6,7 @@ date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0135]
+related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0135]
 related_memory: [feedback_no_silent_regression, feedback_workflow_objectgraph_adapter_layer, feedback_bominal_inheritance_precedence]
 related_specs:
   - /specs/per-microservice-flat-layout.json
@@ -71,8 +71,8 @@ Five facts force the Strangler approach over a Big-Bang cutover:
 4. **The Churn Rule (skill SKILL.md §"Step 3").** If we own the
    infrastructure being deprecated, we are responsible for migrating our own
    consumers — we cannot announce deprecation and leave them stranded.
-5. **Big-Bang is incompatible with ADR-0130's agentic SLO-gated promotion.**
-   ADR-0130 requires sustained SLO conformance before any µservice promotes
+5. **Big-Bang is incompatible with ADR-0139's agentic SLO-gated promotion.**
+   ADR-0139 requires sustained SLO conformance before any µservice promotes
    past dev. A single-cutover migration would have no SLO history on the new
    surface at the moment of cutover; the gate would refuse.
 
@@ -239,13 +239,13 @@ no `/specs/microservices/*.json` file.
   - No adapter crate to author + maintain for 3 months.
   - No feature-flag plumbing.
 - **Cons**:
-  - Zero SLO history on new surface at moment of cutover → ADR-0130 gate
+  - Zero SLO history on new surface at moment of cutover → ADR-0139 gate
     refuses promotion.
   - Hyrum's-Law-bound external consumers break invisibly — every undocumented
     behaviour we miss is a P1 page.
   - Rollback is all-or-nothing; partial rollback impossible.
   - Violates skill SKILL.md §"Step 3: Migrate Incrementally" outright.
-- **Rejected** because (i) it is incompatible with ADR-0130 and (ii) it
+- **Rejected** because (i) it is incompatible with ADR-0139 and (ii) it
   violates the no-silent-regression principle on at minimum the timing /
   error-variant axes — we cannot prove behavioural parity without a soak.
 
@@ -293,7 +293,7 @@ no `/specs/microservices/*.json` file.
   - Per-canary-step SLO + error-rate gates catch Hyrum's-Law regressions
     before they reach 100% traffic.
   - Removal is a required terminal step → no zombie code.
-  - Compatible with ADR-0130's agentic SLO-gated promotion (canary
+  - Compatible with ADR-0139's agentic SLO-gated promotion (canary
     accumulates SLO history before cutover).
   - Compatible with ADR-0114's canary-observability-rollback (the same
     canary mechanism gates both this migration and ongoing releases).
@@ -414,7 +414,7 @@ Per the skill SKILL.md §"Verification" checklist:
 - ADR-0114: Canary observability + rollback.
 - ADR-0123: Hyperscaler maturity claim gate.
 - ADR-0135: Connect super-app expansion into 8 flat µservices (target topology).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.

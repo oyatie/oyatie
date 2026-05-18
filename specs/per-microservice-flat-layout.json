@@ -53,7 +53,7 @@
     {"path": "specs/", "purpose": "service-scoped JSON specs", "file_pattern": "<topic>.json"},
     {"path": "catalog/", "purpose": "per-crate catalog records", "file_pattern": "oya-<ms>-<bc>-<layer>.yaml", "template": "docs/templates/catalog-record-template.yaml"},
     {"path": "runbooks/", "purpose": "operational runbooks", "file_pattern": "<scenario>.md", "template": "docs/templates/runbook-template.md"},
-    {"path": "slos/", "purpose": "OpenSLO manifests per SLI (per ADR-0130)", "file_pattern": "<sli>.openslo.yaml", "format": "OpenSLO v1.0"},
+    {"path": "slos/", "purpose": "OpenSLO manifests per SLI (per ADR-0139)", "file_pattern": "<sli>.openslo.yaml", "format": "OpenSLO v1.0"},
     {"path": "iac/helm/", "purpose": "Helm charts"},
     {"path": "iac/terraform/", "purpose": "Terraform modules"},
     {"path": "iac/kustomize/", "purpose": "Kustomize overlays"},

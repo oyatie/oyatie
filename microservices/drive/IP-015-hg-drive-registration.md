@@ -16,7 +16,7 @@ acceptance_lanes: [oya-governance-hyperscaler-maturity-claims, oya-governance-au
 
 ## Intent
 
-Register HG-DRIVE hyperscaler-maturity claim per ADR-0123 + ADR-0133. Wire SLO eligibility (per ADR-0130) + per-pack canary cohort + branch-protection rule.
+Register HG-DRIVE hyperscaler-maturity claim per ADR-0123 + ADR-0133. Wire SLO eligibility (per ADR-0139) + per-pack canary cohort + branch-protection rule.
 
 ## Concrete File Targets
 
@@ -43,7 +43,7 @@ This IP completes Phase 1. Phase 2 (adapter soak per ADR-0134) begins after HG-D
 ## References
 
 - ADR-0123 (hyperscaler maturity claim gate).
-- ADR-0130 (SLO-gated promotion).
+- ADR-0139 (SLO-gated promotion).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0133 (industry conformance).
 - ADR-0134 (Strangler migration phase ordering).

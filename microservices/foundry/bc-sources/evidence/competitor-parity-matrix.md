@@ -53,7 +53,7 @@ Per ADR-0133, this matrix is **CI-asserted**: every "asserted" row has a CI lane
 | Cross-tenant query refusal (Cedar default-deny) | YES | partial (IAM-based; default-deny by-policy) | partial | partial | depends on customer setup | NO | **parity** |
 | Two-channel root publication (S3 + Mimir + GitHub-pinned) | YES (via audit-chain substrate) | NO (CloudTrail log file validation is single-channel) | NO | NO | NO | NO | **ahead** |
 | Pre-signed URL TTL ≤ 5 min on plaintext fetch | YES | partial (S3 pre-signed URLs configurable; default 15 min) | partial | partial | varies | varies | **asserted** |
-| Self-observability (audit-chain emits SLI to observability µservice; gates own promotion) | YES (ADR-0130 SLO-gated promotion) | partial (CloudWatch metrics + Operational Excellence pillar) | partial | partial | partial | partial | **ahead on tight loop** |
+| Self-observability (audit-chain emits SLI to observability µservice; gates own promotion) | YES (ADR-0139 SLO-gated promotion) | partial (CloudWatch metrics + Operational Excellence pillar) | partial | partial | partial | partial | **ahead on tight loop** |
 
 ## Declared gaps (honest)
 
@@ -78,7 +78,7 @@ Per ADR-0133:
 | Per-pack cryptographic isolation | `cross-pack-replication-forbidden` |
 | Per-event query p99 | `load-drill` |
 | Pre-signed URL TTL | `cedar-policy-fingerprint-match` |
-| Self-observability | `agentic-slo-gated-promotion` per ADR-0130 |
+| Self-observability | `agentic-slo-gated-promotion` per ADR-0139 |
 
 ## Differentiation summary
 

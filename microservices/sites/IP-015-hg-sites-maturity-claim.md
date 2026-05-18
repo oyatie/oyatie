@@ -30,7 +30,7 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microser
 
 ## Phase-exit gate
 
-Per ADR-0130 (agentic SLO-gated promotion): all 15 AC-IDs in PRD-sites
+Per ADR-0139 (agentic SLO-gated promotion): all 15 AC-IDs in PRD-sites
 green; SLO eligibility verdict `eligible` for `sites` µservice over
 `dev → staging` window; reviewer-agent APPROVE on each ChangeSet;
 per-changeset evidence committed at
@@ -53,7 +53,7 @@ phase_exit: true
 |---|---|---|
 | AC-01 | HG-SITES registered in `registry/hyperscaler-maturity-claims.json` with all 9 SLO refs + 11 BC refs + 11 pack overlay refs | `cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims --microservice sites` |
 | AC-02 | All 15 PRD-sites AC-IDs green | per-AC gate audit |
-| AC-03 | SLO eligibility verdict `eligible` over `dev → staging` 30d window | ADR-0130 ledger query |
+| AC-03 | SLO eligibility verdict `eligible` over `dev → staging` 30d window | ADR-0139 ledger query |
 | AC-04 | Reviewer-agent APPROVE on every ChangeSet in sites phase | per ADR-0111 + ADR-0112 |
 | AC-05 | Per-changeset evidence committed at `microservices/sites/evidence/multispectrum/*.json` | filesystem + audit-chain |
 
@@ -70,20 +70,20 @@ phase_exit: true
 | Sibling artifact | Reference |
 |---|---|
 | PRD-sites AC | AC-01..AC-15 (entire surface) |
-| ADR | ADR-0123, ADR-0130, ADR-0133 |
+| ADR | ADR-0123, ADR-0139, ADR-0133 |
 
 ## Risk + Mitigation
 
 | Risk | Mitigation |
 |---|---|
 | HG-SITES marked green while a load-bearing AC silently failing | Per-AC gate must be green before claim emits |
-| 30d SLO window resets prematurely on infra incident | Burn-rate cool-down policy per ADR-0130 |
+| 30d SLO window resets prematurely on infra incident | Burn-rate cool-down policy per ADR-0139 |
 | Reviewer-agent APPROVE bypassed for emergency hotfix | Hotfix carries waiver record + post-hoc review obligation |
 
 ## References
 
 - ADR-0123 (hyperscaler-maturity claim gate).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0133 (industry best-practice conformance program).
 - `registry/hyperscaler-maturity-claims.json`.
 - Google SRE Book — "Implementing SLOs" chapter (Beyer et al., O'Reilly 2016).

@@ -7,7 +7,7 @@ phase: PHASE-01-community-substrate
 status: Accepted
 date: 2026-05-17
 owner_team: axis-community + axis-observability
-related_adrs: [ADR-0105, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0105, ADR-0135, ADR-0139, ADR-0131]
 doc_status: published
 ---
 

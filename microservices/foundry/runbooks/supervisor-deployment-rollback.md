@@ -82,7 +82,7 @@ If reverting introduces a known-fixed regression:
 
 ## References
 
-- ADR-0130 §"Automated rollback primitive" (precedent).
+- ADR-0139 §"Automated rollback primitive" (precedent).
 - `failure-modes.md` FM-02, FM-12.
 - `incident-response.md` §"Sev-1 response".
 - `/specs/foundry-supervisor-control-plane.json` §"rollback".

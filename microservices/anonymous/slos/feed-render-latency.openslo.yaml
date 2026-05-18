@@ -13,7 +13,7 @@ spec:
   description: |
     Feed-render latency for affinity-scoped chronological / Wilson-ranked feed
     queries. Per PRD §"Performance" feed-render target p95 ≤ 250ms.
-    Per ADR-0130, this SLO is mandatory before promotion past dev.
+    Per ADR-0139, this SLO is mandatory before promotion past dev.
   service: oya-anonymous-feed-timeline-rest
   indicator:
     metadata:

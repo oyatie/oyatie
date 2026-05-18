@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-foundry-guardrails
 deciders: council-privacy, ops-security, axis-foundry-guardrails, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry/threat-model.md (T-I-01, FM-13 pack-misroute)
   - microservices/foundry/dpia.md (R-11 cross-border-misroute)
@@ -163,7 +163,7 @@ Per-pack overlay at `regional-packs/<pack>/foundry-guardrails-data-residency-ove
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0130; ADR-0131; ADR-0140.
+- ADR-0139; ADR-0131; ADR-0140.
 - `microservices/foundry/threat-model.md`.
 - `microservices/foundry/dpia.md`.
 - `microservices/foundry/policy/tenant-isolation.md`.

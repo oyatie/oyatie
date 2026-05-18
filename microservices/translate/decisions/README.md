@@ -30,7 +30,7 @@ Per ADR-0131 §"per-microservice flat layout", each µservice maintains its own 
 - ADR-0106 (`application` → `usecase` rename).
 - ADR-0117 (pack residency model).
 - ADR-0135 (connect super-app expansion — parent ADR for translate's existence).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0132 (product suite + bundle dissolution).
 - ADR-0133 (industry-best-practice conformance program).

@@ -5,7 +5,7 @@ milestone: M01-foundation
 phase: P01-agentic-slo-gated-promotion
 status: Active
 entry_gate: |
-  ADR-0130 + ADR-0131 accepted; /specs/agentic-slo-gated-promotion.json + /specs/per-microservice-flat-layout.json published; cargo workspace ready to accept the 14 new crates under microservices/observability/crates/.
+  ADR-0139 + ADR-0131 accepted; /specs/agentic-slo-gated-promotion.json + /specs/per-microservice-flat-layout.json published; cargo workspace ready to accept the 14 new crates under microservices/observability/crates/.
 exit_gate: |
   All 15 IPs merged; oya-vcs-promotion-readiness CI lane present in .github/branch-protection.yaml required_status_checks on dev and staging; release/<ms>/{staging,production} pattern protection rules live; rollback primitive verified via end-to-end drill; cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout --microservice observability exits 0; oya gate validate authority-cohesion exits 0; HG-OBS gate in /specs/hyperscaler-gates.json registers green.
 depends_on:
@@ -13,7 +13,7 @@ depends_on:
     phase: prior phases per master-plan-sequencing
     reason: workspace + branch-protection + Cargo metadata authority must precede gate authoring
 owner_team: axis-observability
-related_adrs: [ADR-0130, ADR-0131]
+related_adrs: [ADR-0139, ADR-0131]
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -23,7 +23,7 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full ADR-0130 design — Layer-A (self-hosted Grafana OSS observability stack) plus Layer-B (oyatie-owned SLO engine + eligibility ledger + per-microservice release pointers + event-driven promote workflows + automated rollback + canary cohort weighting). It is delivered as one phase in M01-foundation because every other oyatie µservice depends on the SLO gate to advance past `dev` per the bootstrap-order policy in `/specs/agentic-slo-gated-promotion.json`.
+This phase ships the full ADR-0139 design — Layer-A (self-hosted Grafana OSS observability stack) plus Layer-B (oyatie-owned SLO engine + eligibility ledger + per-microservice release pointers + event-driven promote workflows + automated rollback + canary cohort weighting). It is delivered as one phase in M01-foundation because every other oyatie µservice depends on the SLO gate to advance past `dev` per the bootstrap-order policy in `/specs/agentic-slo-gated-promotion.json`.
 
 This phase advances master-plan principles:
 - Hyperscaler-grade in every practice (industry-leading OSS observability stack + canonical Google SRE burn-rate model).
@@ -79,7 +79,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-014-automated-rollback-primitive.md`](IP-014-automated-rollback-primitive.md) | Production-tier fast-burn → ref revert; signed; ledger `rollback` verdict; Grafana OnCall incident | pending | axis-observability | IP-011, IP-013 |
 | [`IP-015-canary-cohort-weighting.md`](IP-015-canary-cohort-weighting.md) | Service-mesh traffic-split ramp 1 → 10 → 50 → 100 %; abort-on-burn; otel-ingest BC integration | pending | ops-sre-reliability | IP-001, IP-008 |
 
-Coverage check vs. ADR-0130 §"Concrete file and crate changes": all 7 slo-engine layer crates (IP-003–IP-009), Layer-A IaC (IP-001), OpenSLO manifests + standard (IP-002), ledger (IP-010), pointers (IP-011), gate lane (IP-012), workflows (IP-013), rollback (IP-014), canary (IP-015). The `otel-ingest` BC crates ship as part of the Layer-A IaC + otel collector integration in IP-001 + IP-015; if they require their own IP they will be appended as IP-016+ during execution.
+Coverage check vs. ADR-0139 §"Concrete file and crate changes": all 7 slo-engine layer crates (IP-003–IP-009), Layer-A IaC (IP-001), OpenSLO manifests + standard (IP-002), ledger (IP-010), pointers (IP-011), gate lane (IP-012), workflows (IP-013), rollback (IP-014), canary (IP-015). The `otel-ingest` BC crates ship as part of the Layer-A IaC + otel collector integration in IP-001 + IP-015; if they require their own IP they will be appended as IP-016+ during execution.
 
 ## Acceptance Gates
 
@@ -284,7 +284,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 
 ## References
 
-- ADR-0130: Agentic SLO-gated promotion (this phase's design authority).
+- ADR-0139: Agentic SLO-gated promotion (this phase's design authority).
 - ADR-0131: Per-microservice flat layout (this phase's location authority).
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.

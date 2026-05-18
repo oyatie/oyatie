@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-tenancy
 deciders: council-architecture, ops-security, axis-tenancy, council-privacy
-related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/tenancy/threat-model.md (Trust Boundary 3, T-T-01, T-I-01, T-I-02, T-E-01)
   - microservices/tenancy/dpia.md (R-01)
@@ -350,7 +350,7 @@ Each pack's overlay at `regional-packs/<pack>/tenancy-rls-overlay.md` maps the l
 - ADR-0018 (Bominal): tenancy + RLS posture; inherited.
 - ADR-0028 (Bominal): audit-chain.
 - ADR-0117: cloud-native infrastructure + residency.
-- ADR-0130: agentic SLO-gated promotion.
+- ADR-0139: agentic SLO-gated promotion.
 - ADR-0131: per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/tenancy/threat-model.md` §"Trust Boundaries" + T-T-01 + T-I-01 + T-I-02 + T-E-01.

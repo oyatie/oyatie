@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal-and-tenant-product
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0136, ADR-0137, ADR-0138]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0136, ADR-0137, ADR-0138]
 related_specs: [/specs/microservices/foundry.json, /specs/agent-operating-contract.json, /specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-18
 owner_team: axis-foundry
@@ -370,7 +370,7 @@ list. Cross-BC open questions:
 | ADR-0106 | application→usecase rename | layer authority |
 | ADR-0110 | ChangeSet state machine | per-IP ChangeSets |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-FOUNDRY registers here |
-| ADR-0130 | Agentic SLO-gated promotion | capability + per-BC version gating |
+| ADR-0139 | Agentic SLO-gated promotion | capability + per-BC version gating |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | No-suite forward policy | foundry is one µservice, not a suite |
 | ADR-0133 | Industry-best-practice conformance | OSS LTS pin posture |

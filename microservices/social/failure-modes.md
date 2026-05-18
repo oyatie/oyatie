@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-social
 deciders: ops-sre-reliability, axis-social, ops-security, council-architecture
-related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/social/threat-model.md
   - microservices/social/dpia.md

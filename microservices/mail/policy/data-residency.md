@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-mail + ops-legal
 deciders: council-privacy, ops-security, axis-mail, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/mail/threat-model.md (T-I-08; cross-region replication)
   - microservices/mail/dpia.md (R-08; cross-border-misroute risk)
@@ -220,7 +220,7 @@ Each pack's overlay at `regional-packs/<pack>/mail-residency-overlay.md` carries
 
 - ADR-0117: Cloud-native infrastructure (residency).
 - ADR-0135: Connect dissolution; dual-context residency split.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - `microservices/mail/threat-model.md` T-I-08.
 - `microservices/mail/dpia.md` R-08 + R-13 + §2.2.

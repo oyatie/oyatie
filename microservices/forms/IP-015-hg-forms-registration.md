@@ -15,7 +15,7 @@ acceptance_lanes: [oya-governance-hyperscaler-gate-registration, oya-governance-
 
 ## Intent
 
-Register forms µservice into the hyperscaler-gate catalog per ADR-0130 SLO-gated promotion. All 9 SLOs published. DPIA + AI-Act-conformity signed. pack-kr launch tenant live. GA cutover complete.
+Register forms µservice into the hyperscaler-gate catalog per ADR-0139 SLO-gated promotion. All 9 SLOs published. DPIA + AI-Act-conformity signed. pack-kr launch tenant live. GA cutover complete.
 
 ## Concrete File Targets
 
@@ -38,7 +38,7 @@ Register forms µservice into the hyperscaler-gate catalog per ADR-0130 SLO-gate
 
 ## References
 
-- ADR-0130 SLO-gated promotion.
+- ADR-0139 SLO-gated promotion.
 - ADR-0131 per-microservice flat layout.
 - ADR-0133 compliance review cadence.
 - ADR-FORMS-0001..0006.

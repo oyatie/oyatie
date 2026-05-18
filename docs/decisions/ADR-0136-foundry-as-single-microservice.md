@@ -6,7 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0137, ADR-0138]
+related: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0137, ADR-0138]
 related_memory: [feedback_no_silent_regression, feedback_workflow_objectgraph_adapter_layer, feedback_bominal_inheritance_precedence, feedback_quality_performance_scalability_bar, feedback_flat_product_catalog]
 related_specs:
   - /specs/microservices/foundry.json
@@ -221,7 +221,7 @@ substrate, not six rows that fan-out to one capability.
     one SLO.
   - **Single deployment perimeter** for the operationally inseparable
     invocation hot path.
-  - **Single audit surface** for ADR-0131 + ADR-0123 + ADR-0130 governance
+  - **Single audit surface** for ADR-0131 + ADR-0123 + ADR-0139 governance
     lanes (one µservice = one run, not six).
   - **Per-BC ownership preserved** through `bc-sources/<bc>/` archive +
     BC-tagged crate names + BC-prefixed artefacts + per-BC Helm subcharts.
@@ -275,7 +275,7 @@ substrate, not six rows that fan-out to one capability.
    independent industry references all confirming the choice.
 
 2. **Single audit + governance surface.** Per-µservice governance lanes
-   (ADR-0123 hyperscaler-maturity-claim, ADR-0130 SLO-gated promotion,
+   (ADR-0123 hyperscaler-maturity-claim, ADR-0139 SLO-gated promotion,
    ADR-0131 per-microservice-flat-layout, authority-cohesion) run once
    for foundry instead of six times.
 
@@ -394,7 +394,7 @@ substrate, not six rows that fan-out to one capability.
 - ADR-0106: application→usecase rename.
 - ADR-0110: ChangeSet state machine.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward policy.
 - ADR-0133: Industry best-practice conformance.

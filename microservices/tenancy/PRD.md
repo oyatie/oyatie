@@ -14,7 +14,7 @@ bominal_source:
   - ADR-0117  # cloud-native infrastructure (OCI A1 -> OKE stages)
   - ADR-0009  # cell architecture
   - ADR-0028  # audit chain (Merkle + Ed25519)
-related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-tenancy
@@ -455,6 +455,6 @@ Sharding:
 | ADR-0106 | `usecase` rename | naming compat for new crates |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-TEN registers here |
-| ADR-0130 | Agentic SLO-gated promotion | tenancy authors own OpenSLO + gates own releases |
+| ADR-0139 | Agentic SLO-gated promotion | tenancy authors own OpenSLO + gates own releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0140 | Cedar policy enforcement | policy/*.cedar fragments |

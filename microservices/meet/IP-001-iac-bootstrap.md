@@ -71,7 +71,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 ## References
 
-- ADR-0130; ADR-0131; ADR-0132; ADR-MEET-0001; ADR-MEET-0002.
+- ADR-0139; ADR-0131; ADR-0132; ADR-MEET-0001; ADR-MEET-0002.
 - `microservices/meet/multi-region.md`.
 - `microservices/meet/capacity-model.md`.
 - LiveKit OSS docs `docs.livekit.io`.

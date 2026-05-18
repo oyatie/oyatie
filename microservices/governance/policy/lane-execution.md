@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-foundry + ops-security
 deciders: axis-foundry, ops-security, council-architecture
-related_adrs: [ADR-0110, ADR-0111, ADR-0130, ADR-0131, ADR-0133]
+related_adrs: [ADR-0110, ADR-0111, ADR-0139, ADR-0131, ADR-0133]
 related_artifacts:
   - microservices/governance/threat-model.md
   - microservices/governance/runbooks/lane-failure-triage.md
@@ -134,7 +134,7 @@ This document declares the invariants that every fitness lane under `microservic
 
 - ADR-0110 (ChangeSet state machine).
 - ADR-0111 (merge-queue projected-state).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0131 §"oya-governance-per-microservice-layout" lane.
 - ADR-0133 §"agentic-dev-team optimisation".
 - `microservices/governance/threat-model.md`.

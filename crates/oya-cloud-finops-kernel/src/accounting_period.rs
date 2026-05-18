@@ -61,7 +61,7 @@ pub struct AccountingPeriod {
     pub start_unix_ms: u64, // data_class: INTERNAL_ONLY
     /// Exclusive end of period in Unix milliseconds.
     pub end_unix_ms: u64, // data_class: INTERNAL_ONLY
-    pub state: PeriodCloseState, // data_class: INTERNAL_ONLY
+    pub state: PeriodCloseState,    // data_class: INTERNAL_ONLY
 }
 
 /// Errors from accounting-period operations.

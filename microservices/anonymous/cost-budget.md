@@ -5,7 +5,7 @@ microservice: anonymous
 status: Accepted
 date: 2026-05-17
 owner_team: axis-anonymous + axis-cost-engineering
-related_adrs: [ADR-0130, ADR-ANON-0001, ADR-ANON-0002]
+related_adrs: [ADR-0139, ADR-ANON-0001, ADR-ANON-0002]
 review_cadence: monthly
 doc_status: published
 ---

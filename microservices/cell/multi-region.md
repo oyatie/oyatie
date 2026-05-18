@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-cell-substrate + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-cell-substrate, council-architecture, council-privacy
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cell/policy/data-residency.md
   - microservices/cell/capacity-model.md

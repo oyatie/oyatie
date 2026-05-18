@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: axis-drive + ops-sre-reliability + finops
-related_adrs: [ADR-0117, ADR-0130, ADR-0131, ADR-0133, ADR-DRIVE-0001]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131, ADR-0133, ADR-DRIVE-0001]
 doc_status: published
 ---
 
@@ -93,7 +93,7 @@ Quantify per-cell + per-tenant capacity envelopes; drive HPA + autoscale + cost 
 ## References
 
 - ADR-0117 (cloud-native infrastructure).
-- ADR-0130 (SLO-gated promotion).
+- ADR-0139 (SLO-gated promotion).
 - ADR-0131 (per-microservice flat layout).
 - ADR-0133 (industry conformance).
 - ADR-DRIVE-0001 (object-storage substrate selection).

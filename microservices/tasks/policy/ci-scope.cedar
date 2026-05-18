@@ -4,7 +4,7 @@
 // (PR-time checks, integration tests, evidence emission). No tenant data access.
 // Owner: ops-security
 // Status: Accepted (2026-05-17)
-// Related: ADR-0130 (SLO-gated promotion), ADR-0140
+// Related: ADR-0139 (SLO-gated promotion), ADR-0140
 // Imports: microservices/governance/policy/cedar-canonical-imports.cedar (SWEEP-I Slice 1 canonical envelope per ADR-0064)
 
 // =====================================================================================

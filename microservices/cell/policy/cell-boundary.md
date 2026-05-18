@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-cell-substrate
 deciders: council-architecture, ops-security, axis-cell-substrate, council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/cell/threat-model.md (Trust Boundary 2/3/4/5, T-S-01..T-S-04, T-I-01)
   - microservices/cell/dpia.md (R-01, R-02, R-03)
@@ -268,7 +268,7 @@ Per-pack overlays at `regional-packs/<pack>/cell-boundary-overlay.md` map local 
 
 - ADR-0028 (Bominal): audit-chain.
 - ADR-0117: cloud-native infrastructure + residency.
-- ADR-0130: agentic SLO-gated promotion.
+- ADR-0139: agentic SLO-gated promotion.
 - ADR-0131: per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - Bominal ADR-0009 (cell architecture).

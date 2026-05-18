@@ -17,7 +17,7 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion
     reason: social requires observability gate + tenancy + ontology + audit-chain + cedar
 owner_team: axis-social
-related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/microservices/social.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
@@ -32,7 +32,7 @@ This phase ships the foundation of the social µservice per parallel ADR-0135 + 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Twitter/X / Mastodon / Bluesky parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work within scope (no FUTURE stubs; every NFR covered).
-- No silent regression (production-tier change gated by observability ADR-0130).
+- No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
 - Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
 

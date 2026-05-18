@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal-and-tenant-product
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/agent-operating-contract.json, /specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-foundry-runtime
@@ -310,7 +310,7 @@ CI lanes that must green:
 Key parity gaps to close (ordered by priority):
 
 1. **Gate-integrated autonomy tier** — none of the listed competitors carry a first-class autonomy ceiling per principal that the runtime refuses to cross at dispatch time. This is oyatie's differentiator (ADR-0022 + this PRD FR-08).
-2. **OpenSLO-gated promotion of capability versions** — competitors deploy capability versions atomically; oyatie gates them through ADR-0130 observability runways before they become tenant-default. Cross-µservice integration with `foundry-supervisor` carries this.
+2. **OpenSLO-gated promotion of capability versions** — competitors deploy capability versions atomically; oyatie gates them through ADR-0139 observability runways before they become tenant-default. Cross-µservice integration with `foundry-supervisor` carries this.
 3. **Per-pack residency for session-state** — competitors offer regional residency; oyatie's per-pack model with cross-pack-forbidden is stricter (matches the observability µservice).
 4. **Audit-chain native** — Ed25519 + Merkle on every invocation event vs competitors' best-effort logs.
 5. **Self-hosted substrate** — Bedrock + Vertex + Foundry runtime + LangServe + Assistants are all SaaS; oyatie ships under Kubernetes the tenant or oyatie operates.
@@ -403,7 +403,7 @@ Sharding:
 | ADR-0106 | application→usecase rename | layer authority |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-FR registers here |
-| ADR-0130 | Agentic SLO-gated promotion | capability versions gated through it |
+| ADR-0139 | Agentic SLO-gated promotion | capability versions gated through it |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 | No-suite forward policy | no compat seams |
 | ADR-0133 | Industry-best-practice conformance | OSS LTS pin posture |

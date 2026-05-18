@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0120, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0120, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 owner_team: axis-cloud-secrets + ops-security
@@ -84,7 +84,7 @@ This µservice has no Bominal equivalent; it originates in oyatie.
 - Availability target for `secret-resolution` hot path: **99.99 % monthly** (≈4.3 min/month error budget). Resolution must remain available even when adjacent µservices are degraded — failure cascades through every consumer.
 - Availability target for `secret-rotation` and `audit-emission`: 99.95 % monthly.
 - RTO: ≤2 min (hot-path resolution). RPO: ≤1s (audit emission backlog acceptable; rotation schedule re-derivable from KV state).
-- Self-observability: OpenSLO manifest at `microservices/cloud-secrets/slos/{secret-resolution,rotation-completeness,audit-emission-completeness}.openslo.yaml` (authored under the `observability` µservice gate per ADR-0130).
+- Self-observability: OpenSLO manifest at `microservices/cloud-secrets/slos/{secret-resolution,rotation-completeness,audit-emission-completeness}.openslo.yaml` (authored under the `observability` µservice gate per ADR-0139).
 
 ### Data residency
 
@@ -339,7 +339,7 @@ Sharding:
 | ADR-0106 | usecase rename | new crates use `usecase` |
 | ADR-0117 | Cloud-native infrastructure | residency posture |
 | ADR-0120 | Rust-first on-prem tooling | OpenBao operator Rust-first |
-| ADR-0130 | Agentic SLO-gated promotion | observability gates apply |
+| ADR-0139 | Agentic SLO-gated promotion | observability gates apply |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it; Cloud split origin |
 | ADR-0132 | Industry-vertical unbundle policy | sibling cloud µservices |
 | ADR-0133 | (Cloud split formalisation) | this µservice scaffolds under it |

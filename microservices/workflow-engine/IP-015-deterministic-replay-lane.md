@@ -80,4 +80,4 @@ cargo run -p oya-check-deterministic-replay -- validate --spec <path> --golden <
 - PRD AC-02, AC-11, AC-15
 - `policy/spec-integrity.md` §"Forbidden Spec Constructs"
 - `backfill-replay.md`
-- ADR-0130 §"Promotion gate"
+- ADR-0139 §"Promotion gate"

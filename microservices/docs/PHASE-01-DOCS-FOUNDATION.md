@@ -7,7 +7,7 @@ phase_title: Docs Foundation — document-store + collab-crdt + block-types + co
 status: Accepted
 date: 2026-05-17
 owner_team: axis-docs
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-WS-0001]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-WS-0001]
 doc_status: published
 ---
 
@@ -79,7 +79,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 
 ## Phase gate
 
-Phase-exit gate (per ADR-0130): all 16 AC-IDs green; SLO eligibility verdict `eligible` for `docs` µservice over `dev → staging` window; reviewer-agent APPROVE on each ChangeSet; per-changeset evidence committed at `microservices/docs/evidence/multispectrum/*.json`.
+Phase-exit gate (per ADR-0139): all 16 AC-IDs green; SLO eligibility verdict `eligible` for `docs` µservice over `dev → staging` window; reviewer-agent APPROVE on each ChangeSet; per-changeset evidence committed at `microservices/docs/evidence/multispectrum/*.json`.
 
 ## Risks + mitigations
 

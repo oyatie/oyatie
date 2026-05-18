@@ -7,7 +7,7 @@ phase_title: Tasks Foundation — task-store + project-list + view-engine + depe
 status: Accepted
 date: 2026-05-17
 owner_team: axis-tasks
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0003, ADR-TASKS-0004, ADR-TASKS-0005, ADR-TASKS-0006]
 doc_status: published
 ---
 
@@ -86,7 +86,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 
 ## Phase gate
 
-Phase-exit gate (per ADR-0130): all 13 AC-IDs green; SLO eligibility
+Phase-exit gate (per ADR-0139): all 13 AC-IDs green; SLO eligibility
 verdict `eligible` for `tasks` µservice over `dev → staging` window;
 reviewer-agent APPROVE on each ChangeSet; per-changeset evidence
 committed at `microservices/tasks/evidence/multispectrum/*.json`.

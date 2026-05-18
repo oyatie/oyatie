@@ -26,7 +26,7 @@ depends_on:
   - microservice: tasks
     reason: checklist BC emits ChecklistItemEmitted Workflow events to tasks
 owner_team: axis-notes
-related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
@@ -41,7 +41,7 @@ This phase ships the full notes µservice per parallel ADR-0135 + ADR-0132: shor
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Apple Notes / Obsidian / Standard Notes-class parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work (no FUTURE stubs; every NFR covered).
-- No silent regression (production-tier change gated by observability ADR-0130).
+- No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
 - Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
 - AI-refusal on E2E content as a structural impossibility, not a setting (per ADR-NOTES-0005).
@@ -109,5 +109,5 @@ E2E: ≥ 1 per AC-NN row in PRD.
 ## References
 
 - `microservices/notes/PRD.md`.
-- ADR-0135; ADR-0130; ADR-0131; ADR-0132; ADR-0133.
+- ADR-0135; ADR-0139; ADR-0131; ADR-0132; ADR-0133.
 - ADR-NOTES-0001..0006.

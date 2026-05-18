@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-sheets, council-design-system, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0065, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0065, ADR-0117, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/sheets/threat-model.md
   - microservices/sheets/dpia.md
@@ -55,7 +55,7 @@ Canonical control-to-framework mapping for sheets. Tells external auditors (SOC 
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + cross-tenant collab SLI + range-ACL drift detection | `dashboards/*.json` |
 | CC7.4 | Incident response | Severity-classified response + escalation | `incident-response.md` |
 | CC8.1 | Change management | PR review + LEAN gates + branch protection | this changeset |
-| CC9.1 | Risk mitigation | Multi-region + DR pair + auto-rollback | `multi-region.md` + ADR-0130 |
+| CC9.1 | Risk mitigation | Multi-region + DR pair + auto-rollback | `multi-region.md` + ADR-0139 |
 | CC9.2 | Vendor risk management | Sub-processor list (including LLM providers; ClamAV / OPSWAT vendors) + per-vendor DPA | `legal/sub-processors.md` |
 
 **Privacy Criteria (P1-P8, 2017 TSC, optional):**

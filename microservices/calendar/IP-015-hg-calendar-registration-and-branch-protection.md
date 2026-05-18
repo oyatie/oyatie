@@ -19,7 +19,7 @@ acceptance_lanes: [branch-protection-validate, oya-governance-hyperscaler-maturi
 
 Register HG-CALENDAR as a BLOCKER lane in
 `.github/branch-protection.yaml`. Calendar promotion past dev requires
-HG-CALENDAR green per ADR-0123 + ADR-0130. Wire all 9 OpenSLO manifests
+HG-CALENDAR green per ADR-0123 + ADR-0139. Wire all 9 OpenSLO manifests
 + all per-BC CI lanes into branch-protection.
 
 ## ChangeSet boundary
@@ -76,7 +76,7 @@ serves canary).
 
 ## References
 
-- ADR-0123; ADR-0130; ADR-0131; ADR-0134.
+- ADR-0123; ADR-0139; ADR-0131; ADR-0134.
 - `.github/branch-protection.yaml`.
 - `/registry/quality/lanes.yaml`.
 - `microservices/calendar/PHASE-01-CALENDAR-FOUNDATION.md`.

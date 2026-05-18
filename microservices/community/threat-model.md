@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-community + ops-security
 deciders: council-architecture, ops-security, axis-community, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/connect-unbundle.json]
 review_cadence: quarterly + on every architecture change
 enforced_frameworks:

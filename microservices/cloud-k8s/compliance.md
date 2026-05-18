@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-cloud, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0117, ADR-0121, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0121, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/cloud-k8s/threat-model.md
   - microservices/cloud-k8s/dpia.md
@@ -286,7 +286,7 @@ Refuses merges if any evidence artifact older than 90 days is referenced as "cur
 - `microservices/cloud-k8s/dpia.md`.
 - `microservices/cloud-k8s/policy/{cluster-isolation, data-residency, tenant-scope, ci-scope, auditor-scope, public-read}.{md,cedar}`.
 - `microservices/cloud-k8s/incident-response.md`.
-- ADR-0028 (audit-chain); ADR-0117; ADR-0121; ADR-0123 (hyperscaler-maturity); ADR-0130; ADR-0131; ADR-0140 (Cedar).
+- ADR-0028 (audit-chain); ADR-0117; ADR-0121; ADR-0123 (hyperscaler-maturity); ADR-0139; ADR-0131; ADR-0140 (Cedar).
 - SOC 2 Type 2 TSC — `aicpa.org`.
 - ISO 27001:2022 — `iso.org/standard/27001`.
 - GDPR — `gdpr-info.eu`; EDPB — `edpb.europa.eu`.

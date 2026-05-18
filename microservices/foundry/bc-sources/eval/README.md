@@ -91,7 +91,7 @@ M01-P01: in progress. Per `PHASE-01-EVAL-HARNESS-SUBSTRATE.md`.
 - ADR-0056 (BNF v4.1)
 - ADR-0105 (13-layer enum)
 - ADR-0106 (application → usecase rename)
-- ADR-0130 (agentic SLO-gated promotion; inherited)
+- ADR-0139 (agentic SLO-gated promotion; inherited)
 - ADR-0131 (per-microservice flat layout)
 - ADR-0132 (product-suite-and-bundle dissolution; foundry split)
 - ADR-0133 (industry best-practice conformance program; HG-FE)

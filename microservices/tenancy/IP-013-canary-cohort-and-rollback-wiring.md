@@ -15,7 +15,7 @@ acceptance_lanes: [helm-lint, kubectl-apply-dry-run]
 
 ## Intent
 
-Wire tenancy canary cohort weighting (per ADR-0130 §canary_cohort_weighting; 1→10→50→100 %); production-tier auto-rollback wire-up via observability gate. Tenancy is the most safety-critical µservice in the catalog; rollback discipline is correspondingly strict.
+Wire tenancy canary cohort weighting (per ADR-0139 §canary_cohort_weighting; 1→10→50→100 %); production-tier auto-rollback wire-up via observability gate. Tenancy is the most safety-critical µservice in the catalog; rollback discipline is correspondingly strict.
 
 ## Concrete File Targets
 

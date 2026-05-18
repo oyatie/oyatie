@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-workflow, council-design-system, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0065, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140, ADR-0164]
+related_adrs: [ADR-0028, ADR-0065, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140, ADR-0164]
 related_artifacts:
   - microservices/workflow-studio/threat-model.md
   - microservices/workflow-studio/dpia.md
@@ -55,7 +55,7 @@ Canonical control-to-framework mapping for workflow-studio. Tells external audit
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + cross-tenant collab SLI | `dashboards/*.json` |
 | CC7.4 | Incident response | Severity-classified response + escalation | `incident-response.md` |
 | CC8.1 | Change management | PR review + LEAN gates + branch protection | this changeset |
-| CC9.1 | Risk mitigation | Multi-region + DR pair + auto-rollback | `multi-region.md` + ADR-0130 |
+| CC9.1 | Risk mitigation | Multi-region + DR pair + auto-rollback | `multi-region.md` + ADR-0139 |
 | CC9.2 | Vendor risk management | Sub-processor list (including LLM providers) + per-vendor DPA | `legal/sub-processors.md` |
 
 **Privacy Criteria (P1-P8, 2017 TSC, optional):**
@@ -246,7 +246,7 @@ Annual external audit reads this file + evidence artifacts cited above.
 - ADR-0065: Leptos for browser UI.
 - ADR-0117: Cloud-native infrastructure (residency).
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - ADR-0164 (Bominal): Workflow canonical spec format.

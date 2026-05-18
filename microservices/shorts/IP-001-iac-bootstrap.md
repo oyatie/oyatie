@@ -82,7 +82,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 ## References
 
-- ADR-0130; ADR-0131; ADR-0132; ADR-SHORTS-0001; ADR-SHORTS-0004.
+- ADR-0139; ADR-0131; ADR-0132; ADR-SHORTS-0001; ADR-SHORTS-0004.
 - `microservices/shorts/multi-region.md`.
 - `microservices/shorts/capacity-model.md`.
 - Meilisearch ops `docs.meilisearch.com`.

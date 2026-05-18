@@ -27,7 +27,7 @@ depends_on:
     phase: PHASE-01 (already landed)
     reason: SLO gate consumes supervision events; supervisor consumes EligibilityChanged
 owner_team: axis-foundry-control-plane
-related_adrs: [ADR-0024, ADR-0105, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0024, ADR-0105, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/foundry-supervisor-control-plane.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -37,7 +37,7 @@ doc_status: published
 
 ## Purpose
 
-Ship the full ADR-0131 §"Foundry split" supervisor scope — Layer-A substrate (Postgres, Redis, Kubernetes Operator pattern), all five BCs (agent-fleet-lifecycle, capability-deployment, autonomy-policy-enforcement, supervision-event-bus, kill-switch-circuit-breaker), supervisor self-SLOs authored, integration with `observability` SLO gate (ADR-0130) and `foundry-evidence` audit chain wired.
+Ship the full ADR-0131 §"Foundry split" supervisor scope — Layer-A substrate (Postgres, Redis, Kubernetes Operator pattern), all five BCs (agent-fleet-lifecycle, capability-deployment, autonomy-policy-enforcement, supervision-event-bus, kill-switch-circuit-breaker), supervisor self-SLOs authored, integration with `observability` SLO gate (ADR-0139) and `foundry-evidence` audit chain wired.
 
 Hyperscaler-grade in every practice: the supervisor's own kill-switch engage is itself an SLO observed by `observability`; the µservice ships dashboards on day 1 (deployment-rate, kill-switch-coverage, autonomy-violation-rate) per ADR-0133.
 
@@ -175,7 +175,7 @@ cargo run -p oya-dev-cli -- vcs promote --changeset <id>
 - ADR-0024 (eval harness contract; supervisor consumes EvalRegression).
 - ADR-0105 (13-layer enum); ADR-0106 (application→usecase).
 - ADR-0123 (hyperscaler maturity claim gate; HG-FND-SUP).
-- ADR-0130 (SLO gate; supervisor consumes EligibilityChanged).
+- ADR-0139 (SLO gate; supervisor consumes EligibilityChanged).
 - ADR-0131 §"Foundry split" (this µservice's scope).
 - ADR-0132 (product-suite-and-bundle dissolution).
 - ADR-0133 (industry-best-practice conformance).

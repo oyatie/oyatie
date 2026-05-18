@@ -69,7 +69,7 @@ cargo nextest run -p oya-audit-chain-sealing-worker --test cross_channel_tamper_
 ## References
 
 - ADR-0123 (hyperscaler-maturity claim gate).
-- ADR-0130 §"Authority cohesion".
+- ADR-0139 §"Authority cohesion".
 - `microservices/audit-chain/competitor-parity-matrix.md`.
 - `microservices/audit-chain/policy/seal-integrity.md` §"SI-04" three-channel publication.
 - `microservices/audit-chain/dashboards/*.json`.

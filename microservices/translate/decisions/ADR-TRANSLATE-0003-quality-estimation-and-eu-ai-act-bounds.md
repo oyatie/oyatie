@@ -89,7 +89,7 @@ When high-risk classification triggers:
 ### 3. QE deployment lifecycle
 
 - Model versioned: `translate-qe-comet-kiwi-vN`.
-- Golden eval set: `microservices/translate/capabilities/eval/qe-golden.jsonl`; pass threshold 0.99; refreshed per release per ADR-0130.
+- Golden eval set: `microservices/translate/capabilities/eval/qe-golden.jsonl`; pass threshold 0.99; refreshed per release per ADR-0139.
 - Rollback: per `runbooks/quality-estimation-rollback.md` ≤ 30 min RTO.
 - Per-call `QualityScore.eu_ai_act_classification` field always populated.
 

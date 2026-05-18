@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-foundry-runtime + council-architecture
 deciders: axis-foundry-runtime, council-architecture, gtm-customer-success
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0123, ADR-0130]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0123, ADR-0139]
 related_artifacts:
   - microservices/foundry-runtime/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-FR gate)
@@ -106,7 +106,7 @@ Quantitative + qualitative parity comparison vs industry-leading agent runtime +
 1. **Gate-integrated autonomy**: per-tenant tier ceiling enforced at runtime dispatch; refusal sealed + paged; no competitor has this first-class.
 2. **GitOps capability authoring**: descriptors in git with PR review; competitors use SaaS-side UI or programmatic API.
 3. **Cryptographic audit-chain over invocation**: Ed25519 + Merkle on every event vs competitors' best-effort logs.
-4. **OpenSLO-gated capability promotion**: capability versions gated through ADR-0130 observability runways (via foundry-supervisor integration).
+4. **OpenSLO-gated capability promotion**: capability versions gated through ADR-0139 observability runways (via foundry-supervisor integration).
 5. **Multi-pack residency by design**: 11 region-pinned packs with explicit cross-pack-forbidden + SCC exception.
 6. **EU AI Act high-risk classification first-class**: descriptor carries Annex III flag; runtime refuses unclassified high-risk in pack-eu.
 7. **Provider credentials never in runtime pod**: architectural separation via foundry-providers (defence-in-depth; competitors have IAM-bound but credentials still reside in invocation pod).
@@ -139,6 +139,6 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 
 - `microservices/foundry-runtime/PRD.md` §Competitive Benchmark.
 - `/specs/hyperscaler-gates.json` HG-FR gate.
-- ADR-0022 (autonomy tiers); ADR-0024 (eval harness); ADR-0025 (runtime consolidation); ADR-0123 (hyperscaler-maturity-claim-gate); ADR-0130 (SLO gate).
+- ADR-0022 (autonomy tiers); ADR-0024 (eval harness); ADR-0025 (runtime consolidation); ADR-0123 (hyperscaler-maturity-claim-gate); ADR-0139 (SLO gate).
 - Competitor docs as cited inline above.
 - OWASP Top 10 for LLM Applications 2025 — `genai.owasp.org/llm-top-10/`.

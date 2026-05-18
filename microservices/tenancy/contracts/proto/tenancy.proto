@@ -1,6 +1,6 @@
 // oya-tenancy — gRPC contract
 // Peer to contracts/openapi/tenancy.yaml for clients that prefer gRPC.
-// Per Bominal ADR-0018 + ADR-0130 + ADR-0131.
+// Per Bominal ADR-0018 + ADR-0139 + ADR-0131.
 
 syntax = "proto3";
 

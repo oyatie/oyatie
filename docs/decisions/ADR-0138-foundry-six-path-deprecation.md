@@ -6,7 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0136, ADR-0137]
+related: [ADR-0056, ADR-0105, ADR-0110, ADR-0114, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0136, ADR-0137]
 related_memory: [feedback_no_silent_regression, feedback_bominal_inheritance_precedence]
 related_specs:
   - /specs/microservices/foundry.json
@@ -354,7 +354,7 @@ hyperscaler-gate runs per PR — easily ≫ 66 engineer-hours per quarter.)
 - ADR-0114: Canary observability + rollback — REPORT-ONLY → BLOCKER
   cadence template.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward policy.
 - ADR-0133: Industry best-practice conformance.

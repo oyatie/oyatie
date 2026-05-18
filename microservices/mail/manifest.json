@@ -316,10 +316,10 @@
       "file": "docs/decisions/ADR-0123-hyperscaler-maturity-claim-gate.md"
     },
     {
-      "id": "ADR-0130",
+      "id": "ADR-0139",
       "title": "Agentic Slo Gated Promotion",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0130-agentic-slo-gated-promotion.md"
+      "file": "docs/decisions/ADR-0139-agentic-slo-gated-promotion.md"
     },
     {
       "id": "ADR-0131",

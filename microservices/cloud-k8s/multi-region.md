@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-cloud + cloud-iac
 deciders: ops-sre-reliability, axis-cloud, council-architecture, council-privacy
-related_adrs: [ADR-0117, ADR-0121, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0121, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-k8s/policy/data-residency.md
   - microservices/cloud-k8s/capacity-model.md

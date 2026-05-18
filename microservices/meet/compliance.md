@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-meet, council-architecture, ops-compliance
-related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131]
+related_adrs: [ADR-0008, ADR-0028, ADR-0117, ADR-0123, ADR-0135, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/meet/threat-model.md
   - microservices/meet/dpia.md
@@ -47,7 +47,7 @@ Canonical control-to-framework mapping for the meet µservice. Tells an external
 | CC7.2 | Monitoring inputs | Self-observability via observability µservice | `slos/` + `failure-modes.md` |
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + cardinality alerts | OpenSLO manifests |
 | CC7.4 | Incident response | Severity-classified response + escalation | `incident-response.md` |
-| CC8.1 | Change management | PR review + LEAN gates | observability promotion gate per ADR-0130 |
+| CC8.1 | Change management | PR review + LEAN gates | observability promotion gate per ADR-0139 |
 | CC9.1 | Risk mitigation | Multi-region + DR + automated rollback | `multi-region.md` |
 | CC9.2 | Vendor risk | Sub-processor list + per-vendor DPA (LiveKit/Whisper/SRS/OBS) | `legal/sub-processors.md` |
 
@@ -206,6 +206,6 @@ Output: `microservices/meet/evidence/compliance-evidence-<unix_ts>.json`.
 - `microservices/meet/policy/data-residency.md`.
 - `microservices/meet/policy/recording-consent.md`.
 - `microservices/observability/compliance.md` (shape reference).
-- ADR-0028 (Bominal) + ADR-0008 + ADR-0135 + ADR-0130 + ADR-0131.
+- ADR-0028 (Bominal) + ADR-0008 + ADR-0135 + ADR-0139 + ADR-0131.
 - ADR-MEET-0001..0006.
 - Standards cited inline above.

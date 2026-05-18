@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-drive + ops-security
 deciders: council-architecture, ops-security, axis-drive, council-privacy
 methodology: STRIDE + LINDDUN + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS v4.0.3 + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-DRIVE-0001, ADR-DRIVE-0002, ADR-DRIVE-0003, ADR-DRIVE-0004, ADR-DRIVE-0005, ADR-DRIVE-0006]
 review_cadence: quarterly + on every BC architectural change
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1-CC6.8, CC7.1-CC7.5, CC8.1"
@@ -612,7 +612,7 @@ Per-pack overlays at `regional-packs/<pack>/drive-overlay.md`.
 ## References
 
 - ADR-0028 (Bominal): Audit chain (Merkle + Ed25519).
-- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140.
+- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140.
 - ADR-DRIVE-0001 through ADR-DRIVE-0006.
 - `microservices/drive/PRD.md`, `dpia.md`, `compliance.md`, `policy/*.cedar`, `policy/dual-context-isolation.md`.
 - AWS S3 SigV4 + Object Lock spec; tus.io 1.0; RFC 4918 WebDAV; RFC 9106 Argon2.

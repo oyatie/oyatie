@@ -28,7 +28,7 @@ soak in flight.**
 |---|---|
 | Replacement | `oya-sites-*` crate family under `microservices/sites/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-SITES accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #3) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-BC sites surface (site / page / block / theme / navigation / url-routing / domain-binding / seo / cms-collection / search / cdn-delivery) is only addressable at µservice granularity, not at Connect-suite granularity |
+| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 11-BC sites surface (site / page / block / theme / navigation / url-routing / domain-binding / seo / cms-collection / search / cdn-delivery) is only addressable at µservice granularity, not at Connect-suite granularity |
 | Migration owner (Churn Rule) | axis-sites |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -222,7 +222,7 @@ following ADRs crystallised:
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — per-µservice SLO authority.** Sites needs independent
+2. **ADR-0139 — per-µservice SLO authority.** Sites needs independent
    SLO targets per surface (page-render-latency, static-asset-latency,
    cms-query-latency, site-search-latency, publish-latency, acme-renew-
    latency, image-optimize-latency, seo-meta-correctness 100%,

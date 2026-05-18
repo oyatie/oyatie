@@ -17,7 +17,7 @@ acceptance_lanes: [agentic-slo-gated-promotion, hyperscaler-maturity-claims]
 
 ## Intent
 
-Wire foundry-evidence's SLI emission into the `observability` µservice substrate; register `HG-FOUNDRY-EVIDENCE` gate in `/specs/hyperscaler-gates.json`; close the ADR-0130 SLO-gated-promotion loop for this µservice.
+Wire foundry-evidence's SLI emission into the `observability` µservice substrate; register `HG-FOUNDRY-EVIDENCE` gate in `/specs/hyperscaler-gates.json`; close the ADR-0139 SLO-gated-promotion loop for this µservice.
 
 ## ChangeSet boundary
 
@@ -57,6 +57,6 @@ This IP closes phase `P01-foundry-evidence-frontend`. Per `PHASE-01-FOUNDRY-EVID
 
 ## References
 
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0123 (hyperscaler-grade gates).
 - ADR-0133 (honest claims).

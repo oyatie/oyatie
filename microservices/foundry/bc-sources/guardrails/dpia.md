@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-foundry-guardrails
 deciders: council-privacy, ops-security, axis-foundry-guardrails, council-architecture
 methodology: ICO DPIA template + CNIL DPIA + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act Art. 9 risk-management
-related_adrs: [ADR-0022, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/agent-operating-contract.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/foundry-guardrails/threat-model.md
@@ -256,7 +256,7 @@ Per-pack overlays at `regional-packs/<pack>/foundry-guardrails-dpia-overlay.md`.
 
 ## References
 
-- ADR-0022, ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140.
+- ADR-0022, ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140.
 - `microservices/foundry-guardrails/threat-model.md`.
 - `microservices/foundry-guardrails/compliance.md`.
 - `microservices/foundry-guardrails/policy/{tenant-isolation, data-residency, guardrail-enforcement}.md`.

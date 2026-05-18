@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0120, ADR-0121, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0120, ADR-0121, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-cloud
@@ -21,7 +21,7 @@ doc_status: published
 
 The `cloud-k8s` microservice is oyatie's **on-prem Kubernetes substrate** — the layer that owns vanilla kubeadm clusters, the containerd runtime, the Istio service mesh control plane, the Envoy data plane, and the CNI / CRI / CSI integrations that every other oyatie µservice runs on top of. Per ADR-0121, the stack is **vanilla upstream Kubernetes 1.35 LTS + containerd 2.3.0 LTS + Istio 1.29.2 + Envoy (Istio-bundled) + CSI drivers per storage backend**; no Rancher / k3s / k0s on the primary cell. Per ADR-0131 (Cloud split), `cloud-k8s` is the sibling to `cloud-iac` (which lays down the underlying network + compute + storage on bare-metal / OCI) — `cloud-iac` makes the box; `cloud-k8s` turns it into a Kubernetes cluster.
 
-This µservice is **shared substrate**, not a hero product. It hosts every other oyatie µservice. Its existence is the precondition for ADR-0117's cloud-native progression and ADR-0130's gate-driven promotion (the SLO engine needs a cluster to schedule on). It is consumed by `cell` (tenant cell-scheduling), `cloud-iac` (applies bootstrap manifests against it), `observability` (deploys Grafana stack onto it), and every workload µservice that schedules pods.
+This µservice is **shared substrate**, not a hero product. It hosts every other oyatie µservice. Its existence is the precondition for ADR-0117's cloud-native progression and ADR-0139's gate-driven promotion (the SLO engine needs a cluster to schedule on). It is consumed by `cell` (tenant cell-scheduling), `cloud-iac` (applies bootstrap manifests against it), `observability` (deploys Grafana stack onto it), and every workload µservice that schedules pods.
 
 This µservice has no Bominal equivalent and originates in oyatie per the 2026-05-16 on-prem cell directive.
 
@@ -353,7 +353,7 @@ Sharding:
 | ADR-0117 | Cloud-native infrastructure progression | high-level cloud strategy |
 | ADR-0120 | Rust-first on-prem tooling | tooling discipline |
 | ADR-0121 | On-prem k8s stack: kubeadm + containerd + Istio + Envoy | this PRD's substrate decision |
-| ADR-0130 | Agentic SLO-gated promotion | gating consumer of cluster |
+| ADR-0139 | Agentic SLO-gated promotion | gating consumer of cluster |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 | Product suite + bundle dissolution | no-suite forward policy |
 | ADR-0133 | Industry-best-practice conformance program | CIS / NSA / NIST framework conformance |

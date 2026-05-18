@@ -16,7 +16,7 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion (observability)
     reason: self-SLO authoring requires the SLO engine
 owner_team: axis-foundry-evidence
-related_adrs: [ADR-0003, ADR-0024, ADR-0028, ADR-0056, ADR-0105, ADR-0106, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0003, ADR-0024, ADR-0028, ADR-0056, ADR-0105, ADR-0106, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/foundry-evidence.json, /specs/per-microservice-flat-layout.json, /specs/foundry-agent-runtime.json]
 date: 2026-05-17
 doc_status: published

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-foundry-control-plane
 deciders: axis-foundry-control-plane, council-architecture, ops-sre-reliability, ops-security
-related_adrs: [ADR-0028, ADR-0130, ADR-0131]
+related_adrs: [ADR-0028, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry-supervisor/PRD.md
   - microservices/foundry-supervisor/capacity-model.md
@@ -107,5 +107,5 @@ Cost surfaced in `cost-budget.md`.
 - `microservices/foundry-supervisor/cost-budget.md`.
 - `microservices/foundry-supervisor/contracts/asyncapi/foundry-supervisor-events.yaml`.
 - `microservices/foundry-supervisor/runbooks/supervision-bus-replay.md`.
-- ADR-0028, ADR-0130, ADR-0131.
+- ADR-0028, ADR-0139, ADR-0131.
 - Redis Streams — `redis.io/docs/data-types/streams/`.

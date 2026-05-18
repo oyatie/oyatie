@@ -7,7 +7,7 @@ phase_title: Sites Foundation — site + page + block + theme + navigation + url
 status: Accepted
 date: 2026-05-17
 owner_team: axis-sites
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-SITES-0001, ADR-SITES-0002, ADR-SITES-0003, ADR-SITES-0004, ADR-SITES-0005, ADR-SITES-0006, ADR-SITES-0007]
 doc_status: published
 ---
 
@@ -78,7 +78,7 @@ Out-of-scope (scheduled-for-distinct-tracked-work):
 
 ## Phase gate
 
-Phase-exit gate (per ADR-0130): all 15 AC-IDs green; SLO eligibility verdict `eligible` for `sites` µservice over `dev → staging` window; reviewer-agent APPROVE on each ChangeSet; per-changeset evidence committed at `microservices/sites/evidence/multispectrum/*.json`.
+Phase-exit gate (per ADR-0139): all 15 AC-IDs green; SLO eligibility verdict `eligible` for `sites` µservice over `dev → staging` window; reviewer-agent APPROVE on each ChangeSet; per-changeset evidence committed at `microservices/sites/evidence/multispectrum/*.json`.
 
 ## Risks + mitigations
 

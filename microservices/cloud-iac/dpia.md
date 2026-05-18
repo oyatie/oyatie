@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-cloud-iac
 deciders: council-privacy, ops-security, axis-cloud-iac, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/cloud-iac/threat-model.md
@@ -222,7 +222,7 @@ Per-pack overlays at `regional-packs/<pack>/cloud-iac-dpia-overlay.md`.
 
 - ADR-0028 (Bominal): Audit chain; inherited.
 - ADR-0117: Cloud-native infrastructure.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/cloud-iac/threat-model.md`.

@@ -65,7 +65,7 @@ when {
 };
 
 // =============================================================================
-// PERMIT 3 — deployment workflow promotes release pointers (gated by ADR-0130)
+// PERMIT 3 — deployment workflow promotes release pointers (gated by ADR-0139)
 // =============================================================================
 
 permit (

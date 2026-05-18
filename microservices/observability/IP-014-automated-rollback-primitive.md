@@ -70,6 +70,6 @@ cargo run -p oya-dev-cli -- vcs rollback --microservice observability --env prod
 
 ## References
 
-- ADR-0130 §"Layer-B item 16 — Automated rollback"
+- ADR-0139 §"Layer-B item 16 — Automated rollback"
 - `runbooks/rollback.md`
 - `/specs/agentic-slo-gated-promotion.json` §"rollback_primitive"

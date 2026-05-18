@@ -14,13 +14,13 @@ exit_gate: |
   cargo nextest run --workspace exits 0; oya gate validate per-microservice-layout
   --microservice foundry-runtime exits 0; oya gate validate authority-cohesion exits 0;
   HG-FR gate in /specs/hyperscaler-gates.json registers green; OpenSLO manifests merged + verdict
-  eligible at staging tier per ADR-0130.
+  eligible at staging tier per ADR-0139.
 depends_on:
   - milestone: M01-foundation
     phase: P01-agentic-slo-gated-promotion (observability)
     reason: SLO gate authority must precede any new µservice's first promotion to staging
 owner_team: axis-foundry-runtime
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131]
 related_specs: [/specs/agent-operating-contract.json, /specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 doc_status: published
@@ -80,7 +80,7 @@ Ordered list. Each IP is an executable ChangeSet under this phase folder. Depend
 | [`IP-011-capability-executor-app.md`](IP-011-capability-executor-app.md) | composition root binary wiring executor + orchestrator + pool + cache + session-state adapters | pending | axis-foundry-runtime | IP-005, IP-006, IP-007, IP-008, IP-009 |
 | [`IP-012-autonomy-tier-gate.md`](IP-012-autonomy-tier-gate.md) | AutonomyGate wiring: tenancy lookup + per-tenant ceiling read + dispatch refusal + audit emission | pending | axis-foundry-runtime + ops-security | IP-004 |
 | [`IP-013-dsr-cascade-session-handler.md`](IP-013-dsr-cascade-session-handler.md) | TenantDsrCascade event consumer in session-state worker | pending | axis-foundry-runtime + council-privacy | IP-006 |
-| [`IP-014-runtime-self-slo-manifests.md`](IP-014-runtime-self-slo-manifests.md) | OpenSLO manifests for availability/latency/correctness/freshness at `slos/` per ADR-0130 | pending | axis-foundry-runtime + axis-observability | IP-011 |
+| [`IP-014-runtime-self-slo-manifests.md`](IP-014-runtime-self-slo-manifests.md) | OpenSLO manifests for availability/latency/correctness/freshness at `slos/` per ADR-0139 | pending | axis-foundry-runtime + axis-observability | IP-011 |
 | [`IP-015-hg-fr-hyperscaler-gate-registration.md`](IP-015-hg-fr-hyperscaler-gate-registration.md) | Register HG-FR in `/specs/hyperscaler-gates.json` per ADR-0123; competitor parity assertions | pending | axis-foundry-runtime + council-architecture | IP-014 |
 
 Coverage check vs. PRD §"Bounded Contexts": all 35 crates land via IP-003 through IP-011 (executor=8, registry-cache=7, session-state=9, orchestrator=7, pool=6, app crates included). IaC + Redis/Postgres seed by IP-001+IP-002. Cross-cutting policy bring-up by IP-012 (autonomy) and IP-013 (DSR). Substrate authority via IP-014 (SLO) and IP-015 (HG).
@@ -225,7 +225,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 
 ## References
 
-- ADR-0022; ADR-0024; ADR-0025; ADR-0056; ADR-0105; ADR-0106; ADR-0110; ADR-0123; ADR-0130; ADR-0131; ADR-0132; ADR-0133.
+- ADR-0022; ADR-0024; ADR-0025; ADR-0056; ADR-0105; ADR-0106; ADR-0110; ADR-0123; ADR-0139; ADR-0131; ADR-0132; ADR-0133.
 - `microservices/foundry-runtime/PRD.md`.
 - `microservices/observability/PHASE-01-AGENTIC-SLO-GATED-PROMOTION.md` (precedent shape for ADR-0131 phase artifact).
 - Memory: `feedback_milestone_phase_hierarchy.md`, `feedback_naming_justification.md`, `feedback_oya_vcs_canonical_2026_05_16.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

@@ -16,7 +16,7 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion (observability gate must be live so cell SLOs are authored against it)
     reason: cell µservice publishes its own OpenSLO manifests at microservices/cell/slos/
 owner_team: axis-cell-substrate
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 doc_status: published
@@ -192,7 +192,7 @@ Per BC; see `PRD.md` §"Bounded Contexts" + each catalog row under `catalog/`.
 ## References
 
 - Bominal ADR-0009; Bominal ADR-0019.
-- ADR-0056; ADR-0105; ADR-0106; ADR-0117; ADR-0130; ADR-0131.
+- ADR-0056; ADR-0105; ADR-0106; ADR-0117; ADR-0139; ADR-0131.
 - `microservices/cell/PRD.md`.
 - `microservices/cell/threat-model.md`.
 - `microservices/cell/policy/cell-boundary.md`.

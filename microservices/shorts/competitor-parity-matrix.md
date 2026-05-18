@@ -158,7 +158,7 @@ Legend: ✓ = parity; ◐ = partial; ✗ = absent; — = inherently inapplicable
 1. **Dual-context isolation by data model** — none of competitors enforce Personal/Professional context as data-model invariant. Target: compile-time + LEAN-lane enforcement.
 2. **Minor-protection at the regulatory floor** — TikTok/Reels have been fined repeatedly for COPPA / GDPR Art. 8 / UK OSA / CA AB-2273 / UT SMRA violations; oyatie pack-aware age-gate + parental-controls by default.
 3. **Native Workflow + Ontology integration** — competitors expose webhooks/Graph APIs; oyatie exposes typed Workflow events + Ontology object writes natively.
-4. **OpenSLO + agentic gate** — none gate feature rollouts on SLO compliance; oyatie does per ADR-0130.
+4. **OpenSLO + agentic gate** — none gate feature rollouts on SLO compliance; oyatie does per ADR-0139.
 5. **Multi-pack residency + per-pack regulatory overlays** — competitors are SaaS-region-coarse; oyatie is per-pack jurisdiction-pinned (11 packs).
 6. **EU AI Act high-risk transparency** — competitors lag on Art. 50 transparency labels for moderation + ranking + ASR; oyatie ships from day-1.
 7. **Copyright-claim integrity** — competitors' Content-ID systems are opaque to creators; oyatie publishes counter-notice + repeat-infringer audit-chain seal per claim.

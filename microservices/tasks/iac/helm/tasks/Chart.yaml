@@ -5,7 +5,7 @@ description: |
   Helm chart for the tasks µservice — task-store / project-list / view-engine /
   dependency-graph / recurrence / search-index / importers BCs deployed as
   horizontally-scaled, tenant-sharded, dual-context-isolated workloads. Per
-  ADR-0131 flat layout + ADR-0130 SLO-gated promotion + ADR-TASKS-0001 hybrid
+  ADR-0131 flat layout + ADR-0139 SLO-gated promotion + ADR-TASKS-0001 hybrid
   custom-field model + ADR-TASKS-0002 cycle-prevention invariant +
   ADR-TASKS-0004 LexoRank + Loro CRDT + ADR-TASKS-0006 EU AI Act Annex III §4
   refusal.

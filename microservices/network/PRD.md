@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
 related_specs: [/specs/microservices/network.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-network
@@ -344,7 +344,7 @@ Key parity gaps to close (ordered by priority):
 1. **EU AI Act high-risk transparency for employment** — none of the competitors ship Annex III §4 transparency labels at the feature level; oyatie ships from day-1 per `capabilities/T2-auto.yaml` + ADR-NET-0002.
 2. **Endorsement-chain integrity** — competitors store endorsements as plain counters; oyatie cryptographically signs each endorsement (Ed25519 chain via audit-chain µservice) per ADR-NET-0005.
 3. **Native Workflow + Ontology integration** — competitors expose REST + webhooks; oyatie exposes typed Workflow events + Ontology object writes natively.
-4. **OpenSLO + agentic gate** — none gate feature rollouts on SLO compliance; oyatie does (per ADR-0130).
+4. **OpenSLO + agentic gate** — none gate feature rollouts on SLO compliance; oyatie does (per ADR-0139).
 5. **Multi-pack residency + per-pack employment-law overlays (KR 직장 갑질 + EEOC + Equal Treatment Directives)** — competitors are SaaS-region-coarse; oyatie is per-pack jurisdiction-pinned.
 6. **GDPR Art. 22 right-to-human-review surfaced per-decision** — competitors offer at most a privacy-settings toggle; oyatie surfaces per-recommendation + per-recruiter-search + per-jobs-ranking.
 7. **Profile portability (vCard 4.0 + JSON Resume)** — LinkedIn provides a basic PDF export only; oyatie provides RFC 6350 + open-standard JSON Resume + GDPR Art. 20 native portable JSON per ADR-NET-0006.
@@ -444,7 +444,7 @@ Sharding:
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0135 | Connect dissolution (parallel) | Professional-context isolation source; network as a sibling µservice; distinct from social |
-| ADR-0130 | Agentic SLO-gated promotion | gates network releases |
+| ADR-0139 | Agentic SLO-gated promotion | gates network releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-NETWORK under this |

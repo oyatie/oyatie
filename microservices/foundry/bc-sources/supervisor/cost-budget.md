@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-finops + axis-foundry-control-plane + ops-sre-reliability
 deciders: ops-finops, axis-foundry-control-plane, ops-sre-reliability, council-architecture
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry-supervisor/capacity-model.md
   - microservices/foundry-supervisor/multi-region.md

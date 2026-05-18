@@ -100,7 +100,7 @@ The tasks µservice ships:
   ADR-TASKS-XXXX (one per pack: ADR-TASKS-0007-pack-kr-conformity,
   ADR-TASKS-0008-pack-eu-conformity, etc.). Sign-off lands as an
   artefact at `microservices/tasks/legal/conformity-assessments/
-  <pack>.pdf` plus an `evidence/...` record per ADR-0130.
+  <pack>.pdf` plus an `evidence/...` record per ADR-0139.
 - **T2 in non-employment context** (e.g., a tenant where every task
   is personal todos) is allowed once the tenant explicitly flips off
   the `employment_context` claim — refusal is the safe default.
@@ -182,7 +182,7 @@ in production with the same threshold.
 
 The "request human review" path opens a workflow-engine ticket per
 ADR-TASKS-0005. The reviewer-agent role (Cedar `reviewer_role`)
-materialises with a 5-business-day SLA; SLO-gated promotion (ADR-0130)
+materialises with a 5-business-day SLA; SLO-gated promotion (ADR-0139)
 will not let the µservice pass dev without this path being green.
 
 ## References

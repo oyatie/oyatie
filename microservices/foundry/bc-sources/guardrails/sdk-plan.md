@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-foundry-guardrails + gtm-customer-success
 deciders: axis-foundry-guardrails, council-architecture
-related_adrs: [ADR-0022, ADR-0130, ADR-0131]
+related_adrs: [ADR-0022, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry-guardrails/contracts/openapi/guardrails.yaml
   - microservices/foundry-guardrails/contracts/proto/guardrails.proto

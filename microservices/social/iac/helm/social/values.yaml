@@ -7,7 +7,7 @@ global:
 
 image:
   repository: oya-social-app
-  tag: "1.0.0"  # SHA-pinned at release-pointer advance per ADR-0130
+  tag: "1.0.0"  # SHA-pinned at release-pointer advance per ADR-0139
 
 # ============================================================================
 # Per-BC deployment sizing (XS-tier baseline; HPA scales up)

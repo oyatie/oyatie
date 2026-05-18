@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/microservices/anonymous.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-anonymous
@@ -371,7 +371,7 @@ Note: Sharding key MUST NOT use `user_id` (would defeat I1). Sharding is by `aff
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0135 | Connect dissolution (parallel) | anonymous as a sibling µservice |
-| ADR-0130 | Agentic SLO-gated promotion | gates anonymous releases |
+| ADR-0139 | Agentic SLO-gated promotion | gates anonymous releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-ANONYMOUS under this |

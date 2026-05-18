@@ -5,7 +5,7 @@ phase_id: PHASE-01-FOUNDRY-FOUNDATION
 microservice: foundry
 status: Accepted
 milestone: M01-foundation
-related_adrs: [ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0136, ADR-0137, ADR-0138]
+related_adrs: [ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0136, ADR-0137, ADR-0138]
 date: 2026-05-18
 owner_team: axis-foundry
 ---
@@ -82,7 +82,7 @@ is one ChangeSet.
 
 | # | Risk | Mitigation | Owner |
 |---|---|---|---|
-| R1 | Cross-BC operational coupling regresses to monolithic deployment cadence | Per-BC Helm subcharts + per-BC SLO promotion gates per ADR-0130 | ops-sre-reliability |
+| R1 | Cross-BC operational coupling regresses to monolithic deployment cadence | Per-BC Helm subcharts + per-BC SLO promotion gates per ADR-0139 | ops-sre-reliability |
 | R2 | Crate-name collisions across 6 BCs after directory merge | All crate names retain BNF v4.1 `oya-foundry-<bc>-<feature>-<layer>` form; collision-impossible by construction | axis-foundry + tooling-lane |
 | R3 | bc-sources archive divergence from canonical top-level docs | CI lane `foundry-bc-source-coherence` enforces no orphan reference + canonical doc lists all 6 BC contributions | axis-foundry |
 | R4 | External consumers of old `microservices/foundry-<bc>/` paths break | ADR-0138 Strangler migration + grep verification commands | axis-foundry |
@@ -94,7 +94,7 @@ is one ChangeSet.
 - ADR-0137: Foundry bounded contexts.
 - ADR-0138: Foundry six-path deprecation (Strangler).
 - ADR-0131: Per-microservice flat layout.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - `microservices/foundry/PRD.md` — consolidated PRD.
 - `microservices/foundry/bc-sources/` — per-BC archive (PRDs, PHASE-01s,
   threat-models, etc., preserved verbatim).

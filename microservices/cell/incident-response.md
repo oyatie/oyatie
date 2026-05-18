@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + council-privacy
 deciders: ops-sre-reliability, ops-security, council-privacy, axis-cell-substrate, council-architecture
-related_adrs: [ADR-0028, ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cell/threat-model.md
   - microservices/cell/dpia.md
@@ -160,7 +160,7 @@ Per `runbooks/scheduler-restart.md` §"On-Call Rotation" (cross-references obser
 ## References
 
 - Bominal ADR-0028 (audit-chain).
-- ADR-0117 (cloud-native infra); ADR-0130 (SLO gate); ADR-0131 (per-µservice).
+- ADR-0117 (cloud-native infra); ADR-0139 (SLO gate); ADR-0131 (per-µservice).
 - `microservices/cell/threat-model.md`; `microservices/cell/dpia.md`; `microservices/cell/compliance.md`.
 - `microservices/cell/failure-modes.md`; `microservices/cell/multi-region.md`.
 - `docs/standards/incident-severity.md`.

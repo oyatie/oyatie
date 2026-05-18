@@ -10,7 +10,7 @@ related_artifacts:
   - microservices/observability/failure-modes.md (FM-10 release pointer)
   - microservices/observability/incident-response.md
   - /specs/agentic-slo-gated-promotion.json §"rollback_primitive"
-  - ADR-0130 §"Automated rollback primitive"
+  - ADR-0139 §"Automated rollback primitive"
 doc_status: published
 ---
 
@@ -76,7 +76,7 @@ After completion:
 
 ## References
 
-- ADR-0130 §"Automated rollback primitive".
+- ADR-0139 §"Automated rollback primitive".
 - `microservices/observability/failure-modes.md` FM-10.
 - `microservices/observability/incident-response.md` §"Severity-1 response".
 - `/specs/agentic-slo-gated-promotion.json` §"rollback_primitive".

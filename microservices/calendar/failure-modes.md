@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-calendar + ops-sre-reliability
 methodology: STAMP + FMEA + Google SRE
-related_adrs: [ADR-0130, ADR-0131]
+related_adrs: [ADR-0139, ADR-0131]
 doc_status: published
 ---
 
@@ -150,7 +150,7 @@ Enumerate failure modes, blast radius, detection signals, automated recovery, an
 
 ## References
 
-- ADR-0130: SLO-gated promotion.
+- ADR-0139: SLO-gated promotion.
 - ADR-0131: per-microservice layout.
 - `runbooks/*.md` (one per failure mode).
 - Google SRE Workbook ch. 6 (managing risk) + ch. 11 (managing incidents).

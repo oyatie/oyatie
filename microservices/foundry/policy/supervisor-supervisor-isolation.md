@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-foundry-control-plane
 deciders: council-architecture, ops-security, axis-foundry-control-plane, council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/foundry/threat-model.md (T-I-01, T-S-01, T-T-02, T-E-01)
   - microservices/foundry/dpia.md (R-01, R-02, R-14)
@@ -281,7 +281,7 @@ Each pack's overlay at `regional-packs/<pack>/foundry-supervisor-isolation-overl
 
 ## References
 
-- ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140.
+- ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140.
 - `microservices/foundry/threat-model.md` T-I-01, T-S-01, T-T-02, T-E-01.
 - `microservices/foundry/dpia.md` R-01, R-02, R-14.
 - `microservices/foundry/policy/{tenant-scope, ci-scope, auditor-scope, public-read}.cedar`.

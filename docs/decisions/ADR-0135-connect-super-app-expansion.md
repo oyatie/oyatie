@@ -6,7 +6,7 @@ date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0060, ADR-0105, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
+related: [ADR-0056, ADR-0060, ADR-0105, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134]
 related_specs:
   - /specs/per-microservice-flat-layout.json
   - /specs/microservices/mail.json
@@ -77,7 +77,7 @@ Three structural pressures forced the unbundling:
    transcode-CPU + CDN egress; network scales on edge-write-rate + graph
    traversal QPS; anonymous scales on E2E-key-rotation rate. A single
    Connect-pod HPA cannot satisfy all eight simultaneously.
-2. **Per-concern SLO targets.** ADR-0130 (agentic SLO-gated promotion) requires
+2. **Per-concern SLO targets.** ADR-0139 (agentic SLO-gated promotion) requires
    each µservice to own an OpenSLO file; an umbrella SLO that aggregates eight
    user-visible surfaces hides regressions and violates
    `feedback_no_silent_regression`. The Hyrum's-Law surface of a bundled SLO
@@ -119,7 +119,7 @@ The legacy Connect super-app is **dissolved** into exactly 8 first-class flat
    promotes independently via `oya vcs claim/verify/done/promote` per ADR-0110.
    No bundled ChangeSet may straddle two of the eight.
 2. **One OpenSLO file per µservice.** Authored at
-   `microservices/<ms>/slos/*.openslo.yaml` per ADR-0130 before any µservice
+   `microservices/<ms>/slos/*.openslo.yaml` per ADR-0139 before any µservice
    can promote past dev. No umbrella SLO file may aggregate across two of the
    eight.
 3. **One IaC slice per µservice.** Per-µservice Helm/Kustomize charts under
@@ -239,7 +239,7 @@ deprecation notices, and the eventual code-removal sweep.
 - **8 independent ChangeSet lanes.** Each µservice claims, verifies, ships
   separately; no cross-µservice serialisation of the agentic merge queue.
 - **Per-µservice SLO authority.** Each `microservices/<ms>/slos/*.openslo.yaml`
-  governs only that µservice's release-pointer; ADR-0130's gated promotion
+  governs only that µservice's release-pointer; ADR-0139's gated promotion
   applies per-µservice.
 - **Per-µservice IaC + HPA + cost-budget.** Mimir cardinality budgets, K8s
   PodDisruptionBudgets, per-µservice cost budgets all flow from the flat
@@ -306,7 +306,7 @@ test -d microservices/community && test -d microservices/social && \
 test -d microservices/shorts && test -d microservices/network && \
 test -d microservices/anonymous
 
-# Each µservice has its OpenSLO file (ADR-0130 invariant)
+# Each µservice has its OpenSLO file (ADR-0139 invariant)
 for ms in mail messenger calendar community social shorts network anonymous; do
   ls microservices/$ms/slos/*.openslo.yaml >/dev/null 2>&1 || echo "MISSING SLO: $ms"
 done
@@ -331,7 +331,7 @@ cargo run -p oya-dev-cli -- gate validate authority-cohesion
 - ADR-0105: 13-layer enum.
 - ADR-0110: ChangeSet state machine.
 - ADR-0123: Hyperscaler maturity claim gate.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward-policy.
 - ADR-0133: Industry best-practice conformance program.

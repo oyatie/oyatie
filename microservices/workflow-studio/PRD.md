@@ -11,7 +11,7 @@ bominal_source:
   - ADR-0164   # Workflow canonical spec format
   - ADR-0103   # Workflow hexagonal migration
   - ADR-0037   # Plugin substrate (node-library scaffolding)
-related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/microservices/workflow-studio.json, /specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0131
 unbundle_sibling: microservices/workflow-engine/
@@ -518,7 +518,7 @@ Sharding:
 | ADR-0106 | Application → usecase rename | applied for new crates |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-WORKFLOW-STUDIO registers here |
-| ADR-0130 | Agentic SLO-gated promotion | Studio SLO promotion gates this µservice |
+| ADR-0139 | Agentic SLO-gated promotion | Studio SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout + workflow unbundle | this µservice authored natively under it; sibling = workflow-engine |
 | ADR-0132 | Product-suite-and-bundle dissolution | Studio is a hero product, not a suite |
 | ADR-0133 | Industry-best-practice conformance | Studio competitor parity tracked here |

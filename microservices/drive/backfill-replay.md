@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: axis-drive + ops-sre-reliability + council-privacy
-related_adrs: [ADR-0028, ADR-0114, ADR-0117, ADR-0130, ADR-DRIVE-0001, ADR-DRIVE-0006]
+related_adrs: [ADR-0028, ADR-0114, ADR-0117, ADR-0139, ADR-DRIVE-0001, ADR-DRIVE-0006]
 doc_status: published
 ---
 
@@ -115,7 +115,7 @@ Define how drive backfills data from tenants' prior systems (migration ingest), 
 - ADR-0028 (Bominal) — audit chain.
 - ADR-0114 — canary observability + rollback.
 - ADR-0117 — cloud-native infrastructure / data residency.
-- ADR-0130 — SLO-gated promotion.
+- ADR-0139 — SLO-gated promotion.
 - ADR-DRIVE-0001 — object-storage substrate.
 - ADR-DRIVE-0006 — immutability + WORM policy.
 - `microservices/drive/runbooks/object-storage-degraded.md`.

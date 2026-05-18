@@ -8,7 +8,7 @@ sales_segment: workspace-product
 tier: external-facing
 milestone_first_ship: M03-workspace-preview
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
+related_adrs: [ADR-0056, ADR-0065, ADR-0105, ADR-0106, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/microservices/workspace.json]
 related_unbundle_adr: ADR-0135
 unbundle_sibling_set:
@@ -500,7 +500,7 @@ Sharding:
 | ADR-0106 | Application → usecase rename | applied for new crates |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-SLIDES registers here |
 | ADR-0135 | Connect dissolution | slides is one of 5 net-new µservices unbundled from connect; no legacy |
-| ADR-0130 | Agentic SLO-gated promotion | slides SLO promotion gates this µservice |
+| ADR-0139 | Agentic SLO-gated promotion | slides SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout | this µservice authored natively under it |
 | ADR-0132 | Product-suite-and-bundle dissolution | slides is a single-concern µservice, not a suite |
 | ADR-0133 | Industry-best-practice conformance | slides competitor parity tracked here |

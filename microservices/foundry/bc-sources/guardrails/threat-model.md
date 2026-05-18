@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-foundry-guardrails + ops-security
 deciders: council-architecture, ops-security, axis-foundry-guardrails, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP LLM Top 10 (2025) + MITRE ATLAS + NIST SP 800-154 + NIST AI RMF 1.0
-related_adrs: [ADR-0022, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agent-operating-contract.json]
 review_cadence: quarterly + on every classifier-model rollout + on every Cedar bundle change
 enforced_frameworks:

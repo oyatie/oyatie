@@ -5,7 +5,7 @@ info:
   summary: Eligibility verdict, promotion, and rollback events emitted by the SLO engine
   description: |
     Cross-µservice Workflow events emitted by `oya-observability-slo-engine-worker`.
-    Per ADR-0130 and `/specs/agentic-slo-gated-promotion.json` §`events`.
+    Per ADR-0139 and `/specs/agentic-slo-gated-promotion.json` §`events`.
 
     Consumers:
     - `.github/workflows/promote-dev-to-staging.yml` (repository_dispatch)

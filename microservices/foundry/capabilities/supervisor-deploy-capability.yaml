@@ -6,12 +6,12 @@ display_name: Deploy a Tenant Capability
 description: |
   Admit a tenant-authored capability definition; validate against schema + autonomy-tier
   + cost budget; initiate canary rollout (1 % → 10 % → 50 % → 100 %); gate phase
-  advances on observability `EligibilityChanged` verdict per ADR-0130.
+  advances on observability `EligibilityChanged` verdict per ADR-0139.
 
 owner_team: axis-foundry-control-plane
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0024, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0024, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/foundry-supervisor-control-plane.json]
 related_artifacts:
   - microservices/foundry/PRD.md

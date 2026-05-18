@@ -8,7 +8,7 @@ milestone_parent: M02-foundation
 date: 2026-05-17
 owner_team: axis-anonymous
 deciders: council-architecture, ops-security, council-privacy, axis-anonymous
-related_adrs: [ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0004, ADR-ANON-0005, ADR-ANON-0006, ADR-ANON-0007]
+related_adrs: [ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-ANON-0001, ADR-ANON-0002, ADR-ANON-0003, ADR-ANON-0004, ADR-ANON-0005, ADR-ANON-0006, ADR-ANON-0007]
 doc_status: published
 ---
 

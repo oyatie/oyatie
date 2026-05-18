@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-cell-substrate + ops-security
 deciders: council-architecture, ops-security, axis-cell-substrate, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every cell-substrate architecture change
 enforced_frameworks:
@@ -554,7 +554,7 @@ Per-pack overlays at `regional-packs/<pack>/cell-overlay.md` map local PII law's
 ## References
 
 - Bominal ADR-0009; Bominal ADR-0019.
-- ADR-0028 (audit-chain); ADR-0056 (BNF); ADR-0105 (layer enum); ADR-0117 (cloud-native infra); ADR-0130 (SLO gate); ADR-0131 (per-µservice); ADR-0140 (Cedar).
+- ADR-0028 (audit-chain); ADR-0056 (BNF); ADR-0105 (layer enum); ADR-0117 (cloud-native infra); ADR-0139 (SLO gate); ADR-0131 (per-µservice); ADR-0140 (Cedar).
 - `microservices/cell/PRD.md`; `microservices/cell/dpia.md`; `microservices/cell/compliance.md`.
 - `microservices/cell/policy/{cell-boundary, data-residency, tenant-scope, ci-scope, auditor-scope, public-read}.md|cedar`.
 - Microsoft STRIDE; LINDDUN methodology; OWASP Top 10 2021; NIST SP 800-154.

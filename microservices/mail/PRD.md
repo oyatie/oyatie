@@ -8,7 +8,7 @@ sales_segment: shared-substrate-and-product
 tier: hero-product
 milestone_first_ship: M03-connect-dissolution
 bominal_source: [ADR-0208, ADR-0210, ADR-0215]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/microservices/mail.json, /specs/per-microservice-flat-layout.json]
 date: 2026-05-17
 owner_team: axis-mail + council-privacy
@@ -369,7 +369,7 @@ Sharding:
 | ADR-0117 | Cloud-native infrastructure | residency authority |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-MAIL registers |
 | ADR-0135 | Connect full social network super-app (parallel-session) | Connect dissolution; dual-context invariants |
-| ADR-0130 | Agentic SLO-gated promotion | mail consumes the gate |
+| ADR-0139 | Agentic SLO-gated promotion | mail consumes the gate |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 | No-suite forward policy | mail is a µservice, not a "Connect app" |
 | ADR-0133 | Cross-tenant mail-server pattern | per-tenant logical partition shape |

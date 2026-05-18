@@ -55,6 +55,6 @@ cargo run -p oya-dev-cli -- gate validate self-slo-coverage --microservice found
 
 ## References
 
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - `microservices/observability/PHASE-01-AGENTIC-SLO-GATED-PROMOTION.md`.
 - `docs/standards/observability-slo.md`.

@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-recordings
-related_adrs: [ADR-0130, ADR-RECORDINGS-0001, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005]
+related_adrs: [ADR-0139, ADR-RECORDINGS-0001, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005]
 doc_status: published
 ---
 
@@ -128,7 +128,7 @@ under sustained queue pressure (`runbooks/transcript-pipeline-degraded-whisper.m
 | ffmpeg job queue > 1k | scale transcoder pool |
 | CDN cache hit < 70 % | engage `runbooks/playback-cdn-cache-cascade.md` |
 | Search QPS > 80 % of provisioned | add Meilisearch shard |
-| Legal holds > 10k per cell | activate cell-isolation per ADR-0130 |
+| Legal holds > 10k per cell | activate cell-isolation per ADR-0139 |
 
 ## References
 

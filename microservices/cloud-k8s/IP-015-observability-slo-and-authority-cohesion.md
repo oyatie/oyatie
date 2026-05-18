@@ -15,7 +15,7 @@ acceptance_lanes: [openslo-schema, oya-governance-authority-cohesion, oya-vcs-pr
 
 ## Intent
 
-Author OpenSLO manifests at `microservices/cloud-k8s/slos/*.openslo.yaml` so cloud-k8s's release pointer can advance past `dev` per ADR-0130. Then register HG-CLOUD-K8S in the authority-cohesion gate so cross-microservice claims (e.g., "Cluster bootstrap p99 ≤ 30min") have a verifier.
+Author OpenSLO manifests at `microservices/cloud-k8s/slos/*.openslo.yaml` so cloud-k8s's release pointer can advance past `dev` per ADR-0139. Then register HG-CLOUD-K8S in the authority-cohesion gate so cross-microservice claims (e.g., "Cluster bootstrap p99 ≤ 30min") have a verifier.
 
 ## ChangeSet boundary
 
@@ -148,7 +148,7 @@ End of phase. Begin `exit_gate` validation per PHASE-01.
 
 ## References
 
-- ADR-0130 (agentic SLO-gated promotion); ADR-0123 (HG gate); ADR-0121 (substrate).
+- ADR-0139 (agentic SLO-gated promotion); ADR-0123 (HG gate); ADR-0121 (substrate).
 - `docs/standards/observability-slo.md`.
 - `microservices/observability/PRD.md` FR-01 (OpenSLO authoring).
 - `microservices/cloud-k8s/PRD.md` AC table.

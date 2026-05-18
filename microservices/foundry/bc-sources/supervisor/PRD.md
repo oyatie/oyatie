@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0024, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0024, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/foundry-split.json, /specs/foundry-supervisor-control-plane.json]
 date: 2026-05-17
 owner_team: axis-foundry-control-plane
@@ -33,7 +33,7 @@ Hyperscaler peers: AWS Bedrock Agents control plane, Anthropic Claude control pl
 
 ## Tenant Value
 
-- **Tenant Outcome 1 — One-click capability rollout with safe rollback.** Tenant operators publish a new capability via Workflow Studio; supervisor admits → canary deploys → rolls forward to 100 % only when SLO + autonomy + cost gates green; auto-rollback on breach. Mirrors AWS Bedrock Agents canary rollout posture; differentiator is full integration with `observability` SLO gate (ADR-0130) and `foundry-evidence` cryptographic audit chain (ADR-0028).
+- **Tenant Outcome 1 — One-click capability rollout with safe rollback.** Tenant operators publish a new capability via Workflow Studio; supervisor admits → canary deploys → rolls forward to 100 % only when SLO + autonomy + cost gates green; auto-rollback on breach. Mirrors AWS Bedrock Agents canary rollout posture; differentiator is full integration with `observability` SLO gate (ADR-0139) and `foundry-evidence` cryptographic audit chain (ADR-0028).
 - **Tenant Outcome 2 — Autonomy guarantees by Cedar policy, not by hope.** Every agent invocation is gated by an autonomy-policy Cedar evaluation; tier escalations (T0 → T3) require explicit DPA-recorded entitlement; violations engage the kill-switch within p99 ≤ 1 s.
 - **Tenant Outcome 3 — Kill-switch coverage they can verify.** Tenants see a per-tenant kill-switch-coverage dashboard; auditors verify Ed25519-sealed engage/disengage records; pen-test exercises confirm coverage quarterly.
 - **Tenant Outcome 4 — Per-tenant fleet isolation.** Each tenant's agent fleet lives in a per-tenant Kubernetes namespace under the `foundry-supervisor` operator; cross-tenant invocation is refused at the policy layer; quotas + cost budgets are per-tenant per `cost-budget.md`.
@@ -212,7 +212,7 @@ oya gate validate hyperscaler-maturity-claims # ADR-0123
 |---|---|---|---|
 | `TenantRegistered` | `tenancy` | `agent-fleet-lifecycle` | create per-tenant Kubernetes namespace + default kill-switch (disengaged) + default autonomy entitlement (T0) |
 | `TenantSuspended` | `tenancy` | `kill-switch-circuit-breaker` | engage tenant-scope kill-switch with reason `tenant_suspended` |
-| `EligibilityChanged` | `observability` (per ADR-0130) | `capability-deployment` | held → pause in-flight rollout; rollback → engage rollback flow |
+| `EligibilityChanged` | `observability` (per ADR-0139) | `capability-deployment` | held → pause in-flight rollout; rollback → engage rollback flow |
 | `GuardrailViolation` | `foundry-guardrails` | `kill-switch-circuit-breaker` | engage capability-scope kill-switch |
 | `EvalRegression` | `foundry-eval` | `capability-deployment` | pause rollout at current canary phase; emit `RolloutPhaseHeld` |
 
@@ -245,7 +245,7 @@ oya gate validate hyperscaler-maturity-claims # ADR-0123
 
 Key parity gaps to close (ordered):
 
-1. **Per-component release pointer integration** — none of the competitors gate agentic capability rollouts on µservice-level SLO verdict (ADR-0130). Closing this delivers the same "promotion-gate uniformity" oyatie has elsewhere.
+1. **Per-component release pointer integration** — none of the competitors gate agentic capability rollouts on µservice-level SLO verdict (ADR-0139). Closing this delivers the same "promotion-gate uniformity" oyatie has elsewhere.
 2. **Cryptographic event chain over supervision events** — competitors emit unsigned admin events; oyatie seals every event Ed25519 + Merkle per Bominal ADR-0028.
 3. **Default-deny Cedar autonomy policy** — competitors lean on imperative configs (Bedrock guardrails, Claude system prompts). oyatie's Cedar default-deny matches the strictest hyperscaler IAM posture.
 4. **Sub-second multi-scope kill-switch** — Bedrock Guardrails fires within ~2 s p99; oyatie targets ≤ 1 s p99.
@@ -264,7 +264,7 @@ Key parity gaps to close (ordered):
 Error budget:
 - Monthly error budget for kill-switch engage path: 0.01 % (≈ 4 min/month). Burn-rate alarm: 14.4× over 1h triggers Sev-1 page.
 - Monthly error budget for deployment admit/rollout: 0.05 % (≈ 22 min/month).
-- Self-SLOs authored in `microservices/foundry-supervisor/slos/`; consumed by `observability` per ADR-0130.
+- Self-SLOs authored in `microservices/foundry-supervisor/slos/`; consumed by `observability` per ADR-0139.
 
 ## Horizontal Scalability
 
@@ -327,7 +327,7 @@ Sharding:
 | ADR-0106 | application→usecase rename | new crates use `usecase` |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-FND-SUP registers here |
-| ADR-0130 | Agentic SLO-gated promotion | consumes `EligibilityChanged` for rollout gates |
+| ADR-0139 | Agentic SLO-gated promotion | consumes `EligibilityChanged` for rollout gates |
 | ADR-0131 | Per-microservice flat layout (Foundry split) | this PRD lives under that split |
 | ADR-0132 | Product-suite-and-bundle dissolution | flat layout precedent |
 | ADR-0133 | Industry-best-practice conformance | self-SLO authoring + HG-FND-SUP claim |

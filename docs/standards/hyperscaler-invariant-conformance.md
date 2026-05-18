@@ -7,7 +7,7 @@ adr_anchors:
   - ADR-0064
   - ADR-0123
   - ADR-0128
-  - ADR-0130
+  - ADR-0139
   - ADR-0131
   - ADR-0133
 related_specs:
@@ -156,7 +156,7 @@ panel all three signals in every dashboard under
 **Invariant.** Every Tier-1 / Tier-2 SLO carries a multi-window
 burn-rate policy. Fast-burn at 14.4× (or equivalent ~5×) over a 1-hour
 window pages on-call; slow-burn at ~6× over a 6-hour window opens a
-ticket. Per ADR-0114 canary observability and ADR-0130 agentic
+ticket. Per ADR-0114 canary observability and ADR-0139 agentic
 SLO-gated promotion, the burn-rate policy is the canonical
 halt-the-release signal.
 
@@ -210,7 +210,7 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims
   the seam; the canonical PrometheusRule is the impl).
 - ADR-0123 — hyperscaler maturity claim gate.
 - ADR-0128 — hyperscaler architecture invariants (the four INV-* ids).
-- ADR-0130 — agentic SLO-gated promotion.
+- ADR-0139 — agentic SLO-gated promotion.
 - ADR-0131 — per-microservice flat layout.
 - ADR-0133 — industry best-practice + hyperscaler conformance program.
 - `specs/hyperscaler-architecture-invariants.json` — source of truth for

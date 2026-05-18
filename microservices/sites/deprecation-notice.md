@@ -50,7 +50,7 @@ conforming:
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — agentic SLO-gated promotion.** Sites needs
+2. **ADR-0139 — agentic SLO-gated promotion.** Sites needs
    independent SLO targets per surface (page-render-latency, static-
    asset-latency, cms-query-latency, site-search-latency, publish-
    latency, acme-renew-latency, image-optimize-latency, seo-meta-

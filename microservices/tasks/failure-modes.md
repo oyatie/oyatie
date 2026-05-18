@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-tasks + ops-sre-reliability
 methodology: STAMP + FMEA + Google SRE
-related_adrs: [ADR-0130, ADR-0131]
+related_adrs: [ADR-0139, ADR-0131]
 doc_status: published
 ---
 
@@ -149,7 +149,7 @@ Enumerate failure modes, blast radius, detection signals, automated recovery, an
 
 ## References
 
-- ADR-0130: SLO-gated promotion.
+- ADR-0139: SLO-gated promotion.
 - ADR-0131: per-microservice layout.
 - ADR-TASKS-0002 (dependency-cycle); ADR-TASKS-0003 (rrule); ADR-TASKS-0005 (workflow-bridge); ADR-TASKS-0006 (AI fairness).
 - `runbooks/*.md` (one per failure mode where tasks-specific; cross-µservice ones reuse calendar's).

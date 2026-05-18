@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-mail + ops-security + council-privacy
 deciders: council-architecture, ops-security, axis-mail, council-privacy, ops-legal
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154 + RFC 7208 (SPF) + RFC 6376 (DKIM) + RFC 7489 (DMARC) + RFC 8460 (TLS-RPT) + RFC 8461 (MTA-STS)
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-0208, ADR-0215]
 related_specs: [/specs/microservices/mail.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Layer-A version change or SMTP/IMAP/JMAP protocol change
 enforced_frameworks:
@@ -730,7 +730,7 @@ This threat model re-reviews on:
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (data residency).
 - ADR-0135: Connect dissolution + dual-context invariant.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0132: No-suite forward policy.
 - ADR-0140: Cedar policy enforcement.

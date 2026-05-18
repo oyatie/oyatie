@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-observability
 deciders: ops-sre-reliability, axis-observability, ops-security, council-architecture
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/observability/threat-model.md
   - microservices/observability/dpia.md
@@ -69,7 +69,7 @@ Each failure carries:
 |---|---|
 | Trigger | Worker pod crashloop (e.g., on PromQL parse bug, on OpenBao token-renewal failure) |
 | Detection | `oya_observability_internal_evaluator_alive == 0` for ≥ 2min |
-| Tenant impact | Every µservice's promotion **held** (fail-closed per ADR-0130); no false eligible verdicts |
+| Tenant impact | Every µservice's promotion **held** (fail-closed per ADR-0139); no false eligible verdicts |
 | Severity | Sev-2 (gate functioning correctly — fail-closed — but operationally blocking; Sev-1 if persists > 1h) |
 | Immediate mitigation | Worker HA leadership election re-runs; standby replica takes over; if all replicas fail, manual restart |
 | RTO | ≤ 5 min for leadership-election recovery; ≤ 30 min for root-cause + fix |

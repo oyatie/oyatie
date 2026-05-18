@@ -121,6 +121,6 @@ doc_status: published
 
 ## References
 
-- ADR-0130 SLO-gated promotion (capacity verified before promotion).
+- ADR-0139 SLO-gated promotion (capacity verified before promotion).
 - `cost-budget.md`.
 - `multi-region.md`.

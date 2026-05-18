@@ -43,7 +43,7 @@ pub trait RolloutVerdictEmitter: Send + Sync + Sealed {
 pub async fn advance_canary_phase(
     deployment: &DeploymentId,
     repo: &dyn CapabilityDefinitionStore,
-    observability: &dyn ObservabilityVerdictReader,  // ADR-0130 EligibilityChanged consumer
+    observability: &dyn ObservabilityVerdictReader,  // ADR-0139 EligibilityChanged consumer
     emitter: &dyn RolloutVerdictEmitter,
 ) -> Result<RolloutPhase, KernelError> {
     // 1. Read current phase
@@ -88,6 +88,6 @@ cargo run -p oya-dev-cli -- gate validate capability-yaml-conformance --microser
 
 ## References
 
-- ADR-0130 §"Canary observability rollback" (precedent).
+- ADR-0139 §"Canary observability rollback" (precedent).
 - PRD FR-01..FR-03.
 - `microservices/observability/contracts/asyncapi/eligibility-events.yaml` (consumed).

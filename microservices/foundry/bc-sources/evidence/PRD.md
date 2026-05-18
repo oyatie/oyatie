@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: [ADR-0028, ADR-0003, ADR-0024]
-related_adrs: [ADR-0003, ADR-0024, ADR-0028, ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0003, ADR-0024, ADR-0028, ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs:
   - /specs/foundry-evidence.json
   - /specs/per-microservice-flat-layout.json
@@ -59,7 +59,7 @@ This split is deliberate:
 | FR-06 | regulator-export | to produce a signed, Merkle-linked, framework-filtered evidence-pack bundle for `(tenant, framework, time_range)` where `framework ∈ {eu-ai-act, hipaa, gdpr, kr-pipa, soc2, iso-27001}` | regulator engagement honours each framework's specific evidence requirements | regulator-export | Must |
 | FR-07 | evidence-query API | every read is itself audit-emitted via `audit-chain` per Bominal ADR-0028 §"Self-observability" (audit-of-audits) | tenants and regulators can see who read what evidence and when | evidence-query | Must |
 | FR-08 | every Foundry µservice integration | to consume a stable `oya-foundry-evidence-sdk` client (Rust + future TS/Python bindings) | uniform integration across foundry-runtime, foundry-guardrails, foundry-supervisor, foundry-eval | capability-invocation-recorder | Must |
-| FR-09 | autonomy-tier overlay | to attach the autonomy-tier decision (T0..T3) that was active for the invocation per ADR-0024 + ADR-0130 | regulator-grade T2/T3 evidence requirements are satisfied by construction | evidence-pack-builder | Must |
+| FR-09 | autonomy-tier overlay | to attach the autonomy-tier decision (T0..T3) that was active for the invocation per ADR-0024 + ADR-0139 | regulator-grade T2/T3 evidence requirements are satisfied by construction | evidence-pack-builder | Must |
 | FR-10 | evidence-archive cascade | to drive cold-tier archival of evidence-pack blobs at per-pack retention boundaries while preserving the audit-chain Merkle proof | regulatory retention obligations honoured without operator action; chain integrity preserved | regulator-export | Must |
 
 ## Non-Functional Requirements
@@ -105,7 +105,7 @@ This split is deliberate:
 - Availability target: 99.99 % monthly for `record_invocation` (writes MUST never silently fail; WAL + dead-letter on substrate unavailability; degraded-mode emission still returns receipt + later-sealed marker).
 - Availability target: 99.95 % monthly for `evidence_query` and `regulator-export`.
 - RTO: ≤ 15 min. RPO: ≤ 1 s (period-aligned via audit-chain substrate).
-- Self-observability: foundry-evidence emits SLIs for `pack_assembly_latency_seconds`, `audit_chain_emit_latency_seconds`, `evidence_query_latency_seconds`, `regulator_export_latency_seconds`, `pack_assembly_failure_rate`, `audit_chain_backlog_depth`; the SLO engine (`observability` µservice) gates this µservice's own promotion per ADR-0130.
+- Self-observability: foundry-evidence emits SLIs for `pack_assembly_latency_seconds`, `audit_chain_emit_latency_seconds`, `evidence_query_latency_seconds`, `regulator_export_latency_seconds`, `pack_assembly_failure_rate`, `audit_chain_backlog_depth`; the SLO engine (`observability` µservice) gates this µservice's own promotion per ADR-0139.
 
 ### Data residency
 
@@ -127,7 +127,7 @@ This split is deliberate:
 | Substrate | Used for | ADR ref |
 |---|---|---|
 | `audit-chain` µservice | Merkle sealing of every evidence pack; WORM blob storage; chain query | ADR-0028, ADR-0131 |
-| `observability` µservice | SLO ingestion + alerting + gate-of-promotion | ADR-0130 |
+| `observability` µservice | SLO ingestion + alerting + gate-of-promotion | ADR-0139 |
 | `tenancy` µservice | Tenant identity + DSR cascade entry-points | ADR-0131 |
 | `governance` µservice | Cedar policy evaluation; autonomy-tier authority resolution | ADR-0056 + ADR-0131 |
 | `foundry-runtime` µservice | Invocation envelope source | ADR-0131 |

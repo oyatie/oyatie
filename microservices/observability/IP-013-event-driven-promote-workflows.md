@@ -82,5 +82,5 @@ gh workflow run promote-dev-to-staging.yml --field client_payload='...' --ref de
 
 ## References
 
-- ADR-0130 §"Layer-B item 15 — Event-driven promote workflows"
+- ADR-0139 §"Layer-B item 15 — Event-driven promote workflows"
 - `/specs/agentic-slo-gated-promotion.json` §"promote_workflow_contract"

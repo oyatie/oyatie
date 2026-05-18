@@ -5,7 +5,7 @@ milestone: M02-foundation
 phase: P01-recordings-foundation
 status: pending
 owner_team: axis-recordings
-related_adrs: [ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
+related_adrs: [ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-RECORDINGS-0001, ADR-RECORDINGS-0002, ADR-RECORDINGS-0003, ADR-RECORDINGS-0004, ADR-RECORDINGS-0005, ADR-RECORDINGS-0006, ADR-RECORDINGS-0007]
 related_artifacts:
   - microservices/recordings/PRD.md
   - microservices/recordings/multi-region.md
@@ -24,7 +24,7 @@ SLOs sustained 30d** across dev → staging → production, with parallel
 Strangler migration of the legacy `oya-connect-recordings-domain` crate.
 
 The phase is the canonical M02 instance of the per-µservice agentic SLO-gated
-promotion pattern (ADR-0130) + per-µservice flat layout (ADR-0131) +
+promotion pattern (ADR-0139) + per-µservice flat layout (ADR-0131) +
 industry-best-practice conformance (ADR-0133) + Connect dissolution Strangler
 migration (ADR-0134).
 
@@ -61,7 +61,7 @@ a single claimable-verifiable-bundleable-promotable ChangeSet.
   per ADR-0135 retirement trigger.
 - Phase-3 canary (10 % → 50 % → 100 % traffic) on the Strangler adapter
   reaches 100 % traffic on the new µservice sustained 7d.
-- All 10 SLOs publishing burn-rate to promotion ledger per ADR-0130.
+- All 10 SLOs publishing burn-rate to promotion ledger per ADR-0139.
 
 ## Halt conditions
 
@@ -74,7 +74,7 @@ a single claimable-verifiable-bundleable-promotable ChangeSet.
 
 ## References
 
-- ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
+- ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0134.
 - ADR-RECORDINGS-0001..0007.
 - PRD.md.
 - IP-001-iac-bootstrap.md..IP-015-hg-recordings.md.

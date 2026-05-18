@@ -121,5 +121,5 @@ cargo run -p oya-dev-cli -- gate validate vcs-promotion-readiness --sha <head> -
 
 - `docs/standards/observability-slo.md`.
 - `microservices/observability/PRD.md` FR-01.
-- ADR-0130 (SLO gate).
+- ADR-0139 (SLO gate).
 - OpenSLO v1.0 — `github.com/OpenSLO/OpenSLO`.

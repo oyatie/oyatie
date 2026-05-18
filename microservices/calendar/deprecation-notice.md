@@ -47,7 +47,7 @@ conforming:
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a
    brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — agentic SLO-gated promotion.** Calendar needs
+2. **ADR-0139 — agentic SLO-gated promotion.** Calendar needs
    independent SLO targets per surface (agenda-render latency, free/
    busy query, ics-import throughput, scheduling-convergence latency,
    CalDAV availability, notification-delivery freshness, RSVP fanout

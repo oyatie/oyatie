@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0063, ADR-0064, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0063, ADR-0064, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-notes
@@ -381,7 +381,7 @@ Sharding:
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0117 | Data residency packs | residency authority |
 | ADR-0135 | Connect dual-context (parallel) | dual-context isolation source |
-| ADR-0130 | Agentic SLO-gated promotion | gates notes releases |
+| ADR-0139 | Agentic SLO-gated promotion | gates notes releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-NOTES under this |

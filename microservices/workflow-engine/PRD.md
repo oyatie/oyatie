@@ -16,7 +16,7 @@ bominal_source:
   - ADR-0037   # Plugin substrate (WASM custom nodes)
   - ADR-0009   # Cell architecture
   - ADR-0019   # Runtime target metadata model
-related_adrs: [ADR-0056, ADR-0103, ADR-0105, ADR-0110, ADR-0123, ADR-0130, ADR-0131]
+related_adrs: [ADR-0056, ADR-0103, ADR-0105, ADR-0110, ADR-0123, ADR-0139, ADR-0131]
 related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_unbundle_adr: ADR-0131
 unbundle_sibling: microservices/workflow-studio/
@@ -452,7 +452,7 @@ Sharding:
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-WF-ENGINE registers here |
-| ADR-0130 | Agentic SLO-gated promotion | engine SLO promotion gates this µservice |
+| ADR-0139 | Agentic SLO-gated promotion | engine SLO promotion gates this µservice |
 | ADR-0131 | Per-microservice flat layout + workflow unbundle | this µservice authored natively under it; sibling = workflow-studio |
 | oyatie override | Workflow is shared (not Corporate) | `feedback_workflow_is_shared.md` |
 | oyatie override | Workflow + Ontology = ecosystem adapter | `feedback_workflow_objectgraph_adapter_layer.md` |

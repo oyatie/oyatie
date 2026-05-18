@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + ops-compliance + axis-recordings
-related_adrs: [ADR-0130, ADR-RECORDINGS-0002]
+related_adrs: [ADR-0139, ADR-RECORDINGS-0002]
 doc_status: published
 ---
 
@@ -76,7 +76,7 @@ For Sev-1 confidentiality / integrity incidents:
 
 ## References
 
-- ADR-0130.
+- ADR-0139.
 - `failure-modes.md`.
 - `runbooks/*.md`.
 - ISO 27037:2012; NIST SP 800-86; GDPR Art. 33/34; KR PIPA Arts. 34/34-2;

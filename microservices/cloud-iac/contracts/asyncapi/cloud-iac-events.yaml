@@ -6,11 +6,11 @@ info:
   description: |
     Cross-µservice Workflow events emitted by `oya-cloud-iac-iac-*-worker` crates.
     Per PRD §"Workflow events produced" and the observability SLO gate integration
-    (ADR-0130).
+    (ADR-0139).
 
     Consumers:
     - `audit-chain` µservice (Ed25519 seal of every event per Bominal ADR-0028)
-    - `observability` µservice (SLO gate signal; per ADR-0130)
+    - `observability` µservice (SLO gate signal; per ADR-0139)
     - `foundry-evidence` µservice (apply provenance + multispectrum evidence)
     - `grafana-oncall` (incident paging on rollback / drift / supply-chain failure)
   contact:

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-meet + ops-security
 deciders: council-architecture, ops-security, axis-meet, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154 + ITU-T G.107 (voice quality)
-related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132]
+related_adrs: [ADR-0008, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132]
 related_specs: []
 review_cadence: quarterly + on every architecture or substrate change
 enforced_frameworks:

@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-cell-substrate
 deciders: axis-cell-substrate, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0130, ADR-0131]
+related_adrs: [ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cell/PRD.md
   - microservices/cell/capacity-model.md

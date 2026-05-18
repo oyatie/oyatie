@@ -207,8 +207,8 @@ When erasure conflicts with retention floor:
   `oya-recordings-legal-hold-*` (9 crates) + `oya-recordings-ediscovery-*`
   (8 crates).
 - CI: `retention-policy-correctness` + `legal-hold-chain-of-custody-
-  correctness` are load-bearing 100 % lanes per ADR-0130.
-- Per ADR-0130 SLO-gated promotion: legal-hold-engagement-latency.openslo.yaml
+  correctness` are load-bearing 100 % lanes per ADR-0139.
+- Per ADR-0139 SLO-gated promotion: legal-hold-engagement-latency.openslo.yaml
   gates every release.
 
 ### Regulatory

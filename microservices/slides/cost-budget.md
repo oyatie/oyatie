@@ -97,4 +97,4 @@ Per-pack monthly steady-state cost envelope at the M03 preview target (10k activ
 - OCI pricing (public list, 2026-Q1).
 - foundry-runtime per-capability unit cost (per foundry-runtime cost-budget.md).
 - messenger LiveKit cost (shared; reused via broadcast-mode).
-- ADR-0130 SLO-gated promotion.
+- ADR-0139 SLO-gated promotion.

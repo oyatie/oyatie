@@ -8,7 +8,7 @@ sales_segment: connect-suite-product
 tier: hero-product
 milestone_first_ship: M02-foundation
 bominal_source: [ADR-0208-connect-dual-context-unified-channel-hub.md]
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/microservices/social.json, /specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-social
@@ -275,7 +275,7 @@ Key parity gaps to close (ordered by priority):
 1. **Dual-context isolation by data-model** — none of the competitors enforce personal/professional context as a data-model invariant (LinkedIn is professional-only; Twitter/X blurs via shared identity). Target: compile-time + LEAN-lane enforcement.
 2. **Four-eyes admin disclosure on professional reads** — Twitter/X/Meta allow admin discovery without two-party approval. Target: Bominal ADR-0215 four-eyes pattern.
 3. **Native Workflow + Ontology integration** — competitors expose webhooks/Graph APIs; oyatie exposes typed Workflow events + Ontology object writes natively.
-4. **OpenSLO + agentic gate** — none gate feature rollouts on SLO compliance; oyatie does (per ADR-0130).
+4. **OpenSLO + agentic gate** — none gate feature rollouts on SLO compliance; oyatie does (per ADR-0139).
 5. **Multi-pack residency + per-pack regulatory overlays** — competitors are SaaS-region-coarse; oyatie is per-pack jurisdiction-pinned.
 6. **EU AI Act high-risk transparency** — competitors lag on Art. 50 transparency labels; oyatie ships from day-1 per `capabilities/T2-auto.yaml`.
 
@@ -357,7 +357,7 @@ Sharding:
 | ADR-0105 | 13-layer enum + Amendment 3 | layer + backend-qualified authority |
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0135 | Connect dissolution (parallel) | dual-context isolation source; social as a sibling µservice |
-| ADR-0130 | Agentic SLO-gated promotion | gates social releases |
+| ADR-0139 | Agentic SLO-gated promotion | gates social releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | factored Connect into surfaces |
 | ADR-0133 | Industry best-practice conformance | HG-SOCIAL under this |

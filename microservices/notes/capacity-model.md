@@ -124,7 +124,7 @@ hpa:
 
 ## References
 
-- ADR-0130 (SLO-gated promotion).
+- ADR-0139 (SLO-gated promotion).
 - ADR-0131 (per-microservice flat layout).
 - `multi-region.md`.
 - `cost-budget.md`.

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-cloud-iac + ops-security
 deciders: council-architecture, ops-security, axis-cloud-iac, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154 + SLSA L3
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 review_cadence: quarterly + on every Layer-A or Layer-B architecture change
 enforced_frameworks:
@@ -472,7 +472,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Mitigations:
   - HA ArgoCD: minimum 3 replicas; etcd-backed application state.
   - Standby Flux reconciler available as failover (tenant choice; oyatie operates ArgoCD primary).
-  - Reconciler self-SLI (per observability ADR-0130) gates the cloud-iac µservice's own promotion.
+  - Reconciler self-SLI (per observability ADR-0139) gates the cloud-iac µservice's own promotion.
   - Manual apply path documented in runbook (`runbooks/gitops-reconciler-restart.md`).
 - Owner: ops-sre-reliability + axis-cloud-iac
 - Residual: L
@@ -669,7 +669,7 @@ This threat model re-reviews on:
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (data residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/cloud-iac/PRD.md`.

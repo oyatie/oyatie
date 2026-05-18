@@ -71,7 +71,7 @@ Total Rust crates: 46.
 
 Consumes:
 - `tenancy` → `TenantRegistered`, `TenantSuspended`
-- `observability` → `EligibilityChanged` (per ADR-0130)
+- `observability` → `EligibilityChanged` (per ADR-0139)
 - `foundry-guardrails` → `GuardrailViolation`
 - `foundry-eval` → `EvalRegression`
 
@@ -86,4 +86,4 @@ M01-foundation, Phase 01 (P01-control-plane-landing). 15 IPs pending implementat
 
 ## References
 
-ADR-0024, ADR-0028 (Bominal), ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140. EU AI Act 2024/1689. AWS Bedrock Agents control-plane (peer benchmark).
+ADR-0024, ADR-0028 (Bominal), ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140. EU AI Act 2024/1689. AWS Bedrock Agents control-plane (peer benchmark).

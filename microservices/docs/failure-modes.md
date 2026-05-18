@@ -6,7 +6,7 @@ status: Accepted
 date: 2026-05-17
 owner_team: axis-docs + ops-sre-reliability
 methodology: STAMP + FMEA + Google SRE
-related_adrs: [ADR-0130, ADR-0131, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0006]
+related_adrs: [ADR-0139, ADR-0131, ADR-DOCS-0001, ADR-DOCS-0003, ADR-DOCS-0004, ADR-DOCS-0006]
 doc_status: published
 ---
 
@@ -164,7 +164,7 @@ Enumerate failure modes, blast radius, detection signals, automated recovery, an
 
 ## References
 
-- ADR-0130: SLO-gated promotion.
+- ADR-0139: SLO-gated promotion.
 - ADR-0131: per-microservice layout.
 - ADR-DOCS-0001 (Loro CRDT); ADR-DOCS-0003 (export backend); ADR-DOCS-0004 (per-block ACL); ADR-DOCS-0006 (DOCX fidelity).
 - `runbooks/*.md` (one per failure mode).

@@ -15,7 +15,7 @@ acceptance_lanes: [authority-cohesion]
 ## Intent
 
 Register HG-RECORDINGS in the governance gate catalog per ADR-0123 +
-ADR-0133 + ADR-0130 SLO-gated promotion. Wires the 10 OpenSLO objectives +
+ADR-0133 + ADR-0139 SLO-gated promotion. Wires the 10 OpenSLO objectives +
 2 load-bearing zero-tolerance correctness invariants to the promotion
 eligibility ledger.
 
@@ -58,7 +58,7 @@ load_bearing: true
 | AC-ID | Criterion | Verification |
 |---|---|---|
 | AC-01 | HG-RECORDINGS registered in `registry/artifact-capabilities-registry.json` with 10 SLO refs + 2 load-bearing correctness refs | `cargo run -p oya-dev-cli -- gate validate authority-cohesion --microservice recordings` |
-| AC-02 | All 10 OpenSLO objectives green over 30d in dev cluster | ADR-0130 ledger query |
+| AC-02 | All 10 OpenSLO objectives green over 30d in dev cluster | ADR-0139 ledger query |
 | AC-03 | Retention-policy-correctness + legal-hold-chain-of-custody-correctness both green | governance lanes |
 | AC-04 | Prometheus burn-rate alerts wired to promotion ledger via Helm template | `kubectl apply --dry-run` + `promtool check rules` |
 | AC-05 | Branch-protection adds HG-RECORDINGS as required check on `dev` | `gh api` query of branch protection rules |
@@ -76,19 +76,19 @@ load_bearing: true
 | Sibling artifact | Reference |
 |---|---|
 | PRD-recordings | full surface (FR-01..FR-17, AC-01..AC-15) |
-| ADR | ADR-0123 (HG gates), ADR-0130 (SLO-gated promotion), ADR-0133 (industry best-practice conformance) |
+| ADR | ADR-0123 (HG gates), ADR-0139 (SLO-gated promotion), ADR-0133 (industry best-practice conformance) |
 
 ## Risk + Mitigation
 
 | Risk | Mitigation |
 |---|---|
 | HG marked green while load-bearing correctness AC silently failing | Two load-bearing zero-tolerance lanes block claim |
-| SLO window resets prematurely | Burn-rate cool-down policy per ADR-0130 |
+| SLO window resets prematurely | Burn-rate cool-down policy per ADR-0139 |
 | Branch-protection update accidentally bypassed | `oya-check-branch-protection-conformance` lane refuses drift |
 
 ## References
 
-- ADR-0123 (HG gates), ADR-0130 (SLO-gated promotion), ADR-0133 (industry
+- ADR-0123 (HG gates), ADR-0139 (SLO-gated promotion), ADR-0133 (industry
   best-practice conformance).
 - Google SRE Workbook — "Alerting on SLOs" (Beyer et al., O'Reilly 2018).
 - AWS Well-Architected Framework — Reliability Pillar.

@@ -63,7 +63,7 @@ acceptance_status: ga
 |---|---|
 | PRD-sites NFR | Availability + SLO §; 99.99% page-render |
 | PRD-sites AC | AC-14 (SLO publishing) |
-| ADR | ADR-0130 (agentic SLO-gated promotion) |
+| ADR | ADR-0139 (agentic SLO-gated promotion) |
 
 ## Risk + Mitigation
 
@@ -79,5 +79,5 @@ acceptance_status: ga
 - Grafana Dashboard JSON schema (`grafana.com/docs/grafana/latest/dashboards/build-dashboards`).
 - Google SRE Workbook — Implementing SLOs (Beyer et al., O'Reilly 2018).
 - Prometheus alerting rules (`prometheus.io/docs/prometheus/latest/configuration/alerting_rules`).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - agent-skills shipping-and-launch SKILL.md (runbook authoring).

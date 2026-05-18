@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-build, cargo-clippy, slo-coverage]
 
 ## Intent
 
-Author OpenSLO manifests for governance µservice's own SLIs per ADR-0130's SLO gate + ADR-0131 §"slos/" mandatory subfolder. Self-observability of the substrate that gates other µservices.
+Author OpenSLO manifests for governance µservice's own SLIs per ADR-0139's SLO gate + ADR-0131 §"slos/" mandatory subfolder. Self-observability of the substrate that gates other µservices.
 
 ## ChangeSet boundary
 
@@ -127,7 +127,7 @@ cargo run -p oya-observability-slo-engine-worker -- evaluate --microservice gove
 
 ## References
 
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0131 §"slos/" mandatory subfolder.
 - `microservices/observability/PRD.md` §"OpenSLO v1.0 native".
 - Google SRE Workbook ch. 5 (alerting on SLOs).

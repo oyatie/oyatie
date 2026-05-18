@@ -79,7 +79,7 @@ If a region is unavailable:
 
 ## Promotion Pipeline per Region
 
-Per ADR-0130, each region's promotion-eligibility verdict is independent. A community release pointer at `release/community/<region>/<env>` advances only when the per-region eligibility is GREEN.
+Per ADR-0139, each region's promotion-eligibility verdict is independent. A community release pointer at `release/community/<region>/<env>` advances only when the per-region eligibility is GREEN.
 
 | Env | Ref | Promotion gate |
 |---|---|---|

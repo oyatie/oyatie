@@ -110,4 +110,4 @@ Per PHASE-01 worker class: 1 test per orchestration arm + ≥ 1 long-lived loop 
 
 - ADR-0105.
 - PRD §"Performance Targets" (drift cycle ≤1h).
-- ADR-0130 (eligibility-changed event source).
+- ADR-0139 (eligibility-changed event source).

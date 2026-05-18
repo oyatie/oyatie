@@ -93,6 +93,6 @@ Per PHASE-01 worker class: 1 test per orchestration arm + ≥ 1 long-lived loop 
 
 ## References
 
-- ADR-0130 §"Continuous burn-rate evaluator"
+- ADR-0139 §"Continuous burn-rate evaluator"
 - PRD Open Question 4 (self-observability bootstrap)
 - `/specs/agentic-slo-gated-promotion.json` §"evaluator"

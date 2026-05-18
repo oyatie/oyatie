@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-foundry-runtime + ops-security
 deciders: council-architecture, ops-security, axis-foundry-runtime, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP Top 10 for LLM Applications (2025) + NIST SP 800-154 + MITRE ATLAS
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/agent-operating-contract.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Foundry-substrate or runtime-pool architecture change
 enforced_frameworks:
@@ -513,7 +513,7 @@ Per-pack overlays at `regional-packs/<pack>/foundry-runtime-overlay.md`; each fo
 
 ## References
 
-- ADR-0022 (autonomy tiers); ADR-0024 (eval harness); ADR-0025 (runtime consolidation); ADR-0028 (audit chain — Bominal inherited); ADR-0056 (BNF v4.1); ADR-0105 (13-layer enum); ADR-0117 (residency); ADR-0130 (SLO gate); ADR-0131 (flat layout); ADR-0140 (Cedar policy).
+- ADR-0022 (autonomy tiers); ADR-0024 (eval harness); ADR-0025 (runtime consolidation); ADR-0028 (audit chain — Bominal inherited); ADR-0056 (BNF v4.1); ADR-0105 (13-layer enum); ADR-0117 (residency); ADR-0139 (SLO gate); ADR-0131 (flat layout); ADR-0140 (Cedar policy).
 - `microservices/foundry-runtime/PRD.md`.
 - `microservices/foundry-runtime/dpia.md`.
 - `microservices/foundry-runtime/compliance.md`.

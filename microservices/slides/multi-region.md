@@ -89,6 +89,6 @@ doc_status: published
 ## References
 
 - ADR-0117 per-pack residency.
-- ADR-0130 SLO-gated promotion.
+- ADR-0139 SLO-gated promotion.
 - ADR-SLIDES-0005 broadcast-mode LiveKit reuse (cross-pack rules inherited from messenger).
 - cloud-iac per-pack region IaC.

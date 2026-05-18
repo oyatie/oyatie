@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-recordings
 deciders: council-privacy, ops-security, axis-recordings, ops-compliance
-related_adrs: [ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-RECORDINGS-0002, ADR-RECORDINGS-0005]
+related_adrs: [ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-RECORDINGS-0002, ADR-RECORDINGS-0005]
 related_artifacts:
   - microservices/recordings/threat-model.md
   - microservices/recordings/dpia.md
@@ -149,7 +149,7 @@ ePrivacy Art. 5(3):
   is pack-pinned via `commonLabels.oyatie/pack`.
 - Periodic Postgres audit: no row carries `pack != cluster_pack`.
 - Periodic S3 audit: no object lives in a bucket whose region != pack's region.
-- Per ADR-0130: residency breach is Sev-1.
+- Per ADR-0139: residency breach is Sev-1.
 
 ## References
 

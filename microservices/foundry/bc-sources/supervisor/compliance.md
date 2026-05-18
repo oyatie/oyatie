@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-foundry-control-plane, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/foundry-supervisor/threat-model.md
   - microservices/foundry-supervisor/dpia.md
@@ -52,7 +52,7 @@ Canonical control-to-framework mapping for the foundry-supervisor µservice. Tel
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + autonomy-violation rate | `/specs/foundry-supervisor-control-plane.json` |
 | CC7.4 | Incident response | Severity-classified + escalation | `incident-response.md` |
 | CC8.1 | Change management | PR review + LEAN gates + branch protection | this changeset |
-| CC9.1 | Risk mitigation | Multi-region + DR + automated rollback | `multi-region.md` + ADR-0130 |
+| CC9.1 | Risk mitigation | Multi-region + DR + automated rollback | `multi-region.md` + ADR-0139 |
 | CC9.2 | Vendor risk | Sub-processor list + per-vendor DPA | `legal/sub-processors.md` (Slice D) |
 
 ### ISO 27001:2022 (Annex A control families)
@@ -223,7 +223,7 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 - `microservices/foundry-supervisor/policy/{supervisor-isolation, data-residency}.md`.
 - `microservices/foundry-supervisor/policy/*.cedar`.
 - `microservices/foundry-supervisor/incident-response.md`.
-- ADR-0028, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140.
+- ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140.
 - SOC 2: `aicpa.org/topic/audit-assurance/audit-and-assurance-greater-than-soc-2`.
 - ISO 27001:2022: `iso.org/standard/27001`.
 - GDPR + EDPB: `gdpr-info.eu`, `edpb.europa.eu`.

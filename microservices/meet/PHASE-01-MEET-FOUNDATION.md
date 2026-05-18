@@ -18,7 +18,7 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion
     reason: meet requires observability gate + tenancy + ontology + audit-chain + cedar + calendar
 owner_team: axis-meet
-related_adrs: [ADR-0008, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-MEET-0001, ADR-MEET-0002, ADR-MEET-0003, ADR-MEET-0004, ADR-MEET-0005, ADR-MEET-0006]
+related_adrs: [ADR-0008, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-MEET-0001, ADR-MEET-0002, ADR-MEET-0003, ADR-MEET-0004, ADR-MEET-0005, ADR-MEET-0006]
 related_specs: []
 date: 2026-05-17
 doc_status: published
@@ -33,7 +33,7 @@ This phase ships the full meet µservice per ADR-0135 (net-new) + ADR-0132 (sing
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Google Meet / Zoom / Microsoft Teams Meetings-class feature parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work (no FUTURE stubs; every NFR covered).
-- No silent regression (production-tier change gated by observability ADR-0130).
+- No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
 - Shared substrate (LiveKit + coturn) pattern with messenger huddles per ADR-MSGR-0001.
 

@@ -34,7 +34,7 @@ doc_status: published
 The legacy `oya-connect-docs-*` family was authored before the following ADRs crystallised; each ADR makes the legacy shape non-conforming:
 
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle membership at the architecture layer; bundle membership is a brand-layer concept and must not appear in crate names.
-2. **ADR-0130 — agentic SLO-gated promotion.** Docs needs independent SLO targets per surface (doc-open, save, collab-cursor-sync, export-pdf, search-within-doc, doc-list, crdt-no-silent-loss 100%, share-acl-enforcement-correctness 100%, pandoc-export-pipeline-availability); a `connect-*` umbrella SLO cannot serve them.
+2. **ADR-0139 — agentic SLO-gated promotion.** Docs needs independent SLO targets per surface (doc-open, save, collab-cursor-sync, export-pdf, search-within-doc, doc-list, crdt-no-silent-loss 100%, share-acl-enforcement-correctness 100%, pandoc-export-pipeline-availability); a `connect-*` umbrella SLO cannot serve them.
 3. **ADR-0131 — per-µservice flat layout.** Docs's IaC, runbooks, threat-model, DPIA, compliance, capacity-model, cost-budget all need to live under one folder (`microservices/docs/`).
 4. **ADR-0133 — 11-pack-overlay program.** pack-kr, pack-eu, pack-us, pack-us-healthcare, pack-jp, pack-sg, pack-au, pack-in, pack-br, pack-ae, pack-ksa each need per-µservice overlay granularity.
 5. **ADR-DOCS-0001 → ADR-DOCS-0006** — docs-specific decisions (CRDT library shared with workflow-studio, block-type system, export pipeline architecture, per-block ACL, AI writing-assist bounds, DOCX import fidelity) need to live at per-µservice ADR granularity.

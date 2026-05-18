@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-tenancy
 deciders: axis-tenancy, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0018, ADR-0028, ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/tenancy/PRD.md
   - microservices/tenancy/capacity-model.md

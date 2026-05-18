@@ -16,7 +16,7 @@ depends_on: [IP-011]
 
 ## Intent
 
-Author OpenSLO manifests at `microservices/foundry/slos/` so that observability µservice (per ADR-0130) gates supervisor's own promotion. Registers HG-FND-SUP per ADR-0123.
+Author OpenSLO manifests at `microservices/foundry/slos/` so that observability µservice (per ADR-0139) gates supervisor's own promotion. Registers HG-FND-SUP per ADR-0123.
 
 ## Concrete File Targets
 
@@ -82,6 +82,6 @@ cargo run -p oya-dev-cli -- gate validate hyperscaler-maturity-claims # register
 
 ## References
 
-- ADR-0130; ADR-0123 (HG-FND-SUP).
+- ADR-0139; ADR-0123 (HG-FND-SUP).
 - `microservices/observability/PRD.md` AC-01.
 - Google SRE Workbook ch. 5.

@@ -124,7 +124,7 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 ## References
 
 - ADR-0123 (hyperscaler-maturity-claim-gate)
-- ADR-0130 (agentic SLO-gated promotion)
+- ADR-0139 (agentic SLO-gated promotion)
 - ADR-0131 (per-microservice flat layout)
 - `microservices/mail/competitor-parity-matrix.md`
 - Bominal ADR-0208/0210/0215 (mail inheritance)

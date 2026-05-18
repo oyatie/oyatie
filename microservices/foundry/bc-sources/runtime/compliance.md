@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-foundry-runtime, council-architecture, ops-compliance
-related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0022, ADR-0024, ADR-0025, ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/foundry-runtime/threat-model.md
   - microservices/foundry-runtime/dpia.md
@@ -259,7 +259,7 @@ External auditors receive frozen evidence pack per `docs/templates/evidence-pack
 ## References
 
 - `microservices/foundry-runtime/threat-model.md`; `dpia.md`; `policy/*.md`; `policy/*.cedar`; `incident-response.md`.
-- ADR-0022; ADR-0024; ADR-0025; ADR-0028; ADR-0117; ADR-0123; ADR-0130; ADR-0131; ADR-0140.
+- ADR-0022; ADR-0024; ADR-0025; ADR-0028; ADR-0117; ADR-0123; ADR-0139; ADR-0131; ADR-0140.
 - SOC 2 TSC 2017 + 2022 PoF — `aicpa.org`.
 - ISO/IEC 27001:2022 + 27002:2022 — `iso.org`.
 - GDPR + EDPB — `gdpr-info.eu` + `edpb.europa.eu`.

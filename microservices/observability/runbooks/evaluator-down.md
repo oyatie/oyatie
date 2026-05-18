@@ -27,7 +27,7 @@ doc_status: published
 
 ## Impact
 
-Every µservice's promotion is **held** (fail-closed). This is intentional and correct per ADR-0130; no false eligible verdicts ship. Tenant impact: scheduled promotions delayed.
+Every µservice's promotion is **held** (fail-closed). This is intentional and correct per ADR-0139; no false eligible verdicts ship. Tenant impact: scheduled promotions delayed.
 
 ## Pre-checks
 

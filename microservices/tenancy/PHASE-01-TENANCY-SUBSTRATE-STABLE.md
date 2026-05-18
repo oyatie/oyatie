@@ -6,7 +6,7 @@ phase: P01-tenancy-substrate-stable
 status: Active
 entry_gate: |
   Bominal ADR-0018 + ADR-0011 + ADR-0019 + ADR-0009 + ADR-0117 + ADR-0028 inherited;
-  ADR-0131 (per-microservice flat layout) + ADR-0130 (agentic SLO gate) accepted;
+  ADR-0131 (per-microservice flat layout) + ADR-0139 (agentic SLO gate) accepted;
   /specs/per-microservice-flat-layout.json published;
   microservices/observability/* substrate authored and at Slice D readiness (tenancy consumes it);
   existing crates/oya-tenancy-{kernel,domain,api} are RLS-correct and stable from M01-P01.
@@ -25,7 +25,7 @@ depends_on:
     phase: P01-agentic-slo-gated-promotion (observability)
     reason: tenancy emits OpenSLOs and depends on the gate; observability must precede.
 owner_team: axis-tenancy
-related_adrs: [ADR-0018, ADR-0011, ADR-0019, ADR-0009, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0018, ADR-0011, ADR-0019, ADR-0009, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 doc_status: published
@@ -317,7 +317,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0110 ChangeSet state machine.
 - ADR-0117 Cloud-native infrastructure (residency).
 - ADR-0123 Hyperscaler maturity claim gate (HG-TEN).
-- ADR-0130 Agentic SLO-gated promotion (tenancy consumes the gate).
+- ADR-0139 Agentic SLO-gated promotion (tenancy consumes the gate).
 - ADR-0131 Per-microservice flat layout.
 - ADR-0140 Cedar policy enforcement.
 - `/specs/per-microservice-flat-layout.json`; `/specs/agentic-slo-gated-promotion.json`.

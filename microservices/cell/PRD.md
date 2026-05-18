@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: [Bominal ADR-0009, Bominal ADR-0019]
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-cell-substrate
@@ -306,7 +306,7 @@ Sharding:
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | `application` → `usecase` rename | new crates use `usecase` |
 | ADR-0117 | Cloud-native infrastructure (residency) | pack-pinning derives |
-| ADR-0130 | Agentic SLO-gated promotion | cell SLOs published here |
+| ADR-0139 | Agentic SLO-gated promotion | cell SLOs published here |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it |
 | ADR-0132 | (next sibling) | — |
 | ADR-0133 | (next sibling) | — |

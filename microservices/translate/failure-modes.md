@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-translate
-related_adrs: [ADR-0130, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
+related_adrs: [ADR-0139, ADR-0131, ADR-TRANSLATE-0001, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
 related_artifacts:
   - microservices/translate/threat-model.md
   - microservices/translate/capacity-model.md
@@ -134,4 +134,4 @@ Each Failure Mode = (id, summary, severity, detection signal, runbook, mitigatio
 - `microservices/translate/runbooks/` (all 7).
 - ADR-TRANSLATE-0001 (engine fallback).
 - ADR-TRANSLATE-0004 (residency).
-- ADR-0130 (SLO-gated promotion).
+- ADR-0139 (SLO-gated promotion).

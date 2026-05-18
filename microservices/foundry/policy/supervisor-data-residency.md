@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-foundry-control-plane
 deciders: council-privacy, ops-security, axis-foundry-control-plane, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry/threat-model.md (T-I-01, T-T-02, T-S-04)
   - microservices/foundry/dpia.md (R-07)
@@ -168,7 +168,7 @@ Pack overlays at `regional-packs/<pack>/foundry-supervisor-residency-overlay.md`
 
 ## References
 
-- ADR-0117, ADR-0130, ADR-0131.
+- ADR-0117, ADR-0139, ADR-0131.
 - `microservices/foundry/threat-model.md` T-I-01, T-T-02, T-S-04.
 - `microservices/foundry/dpia.md` R-07.
 - `microservices/foundry/policy/supervisor-isolation.md`.

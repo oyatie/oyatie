@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-cell-substrate
 deciders: council-privacy, ops-security, axis-cell-substrate, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cell/threat-model.md (T-S-04, T-T-02, T-I-01; cross-pack threats)
   - microservices/cell/dpia.md (R-03; cross-pack-misroute risk)
@@ -184,7 +184,7 @@ Per-pack overlays at `regional-packs/<pack>/cell-residency-overlay.md`.
 ## References
 
 - ADR-0117 (cloud-native infra + residency).
-- ADR-0130 (SLO gate).
+- ADR-0139 (SLO gate).
 - ADR-0131 (per-µservice).
 - Bominal ADR-0009 (cell architecture); ADR-0019 (runtime catalog).
 - `microservices/cell/threat-model.md`.

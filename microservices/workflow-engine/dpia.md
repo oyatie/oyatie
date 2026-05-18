@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-workflow
 deciders: council-privacy, ops-security, axis-workflow, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0103, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/microservices/workflow.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/workflow-engine/threat-model.md
@@ -247,7 +247,7 @@ Per-pack DPIA overlays at `regional-packs/<pack>/dpia-overlay.md` carry pack-spe
 - ADR-0035 (Bominal): Workflow engine.
 - ADR-0103 (Bominal): Workflow hexagonal migration.
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout + workflow unbundle.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/workflow-engine/threat-model.md`.

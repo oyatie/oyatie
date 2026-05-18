@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-sre-reliability + axis-foundry-guardrails + cloud-iac + cloud-k8s
 deciders: ops-sre-reliability, axis-foundry-guardrails, council-architecture, council-privacy
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/foundry-guardrails/policy/data-residency.md
   - microservices/foundry-guardrails/capacity-model.md
@@ -145,7 +145,7 @@ Per `compliance.md`:
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - `microservices/foundry-guardrails/policy/data-residency.md`.
 - `microservices/foundry-guardrails/capacity-model.md`.

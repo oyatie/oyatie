@@ -12,8 +12,8 @@
     "updated_at": "2026-05-17T11:30:00Z",
     "covers": ["ontology", "knowledge-graph"],
     "user_pick_2026_05_16": "merge — Ontology = full KG product",
-    "purpose": "Ontology + Knowledge Graph merged into one product PRD — machine-optimized. Ontology = typed entity/link/action schema layer. KG = runtime graph state (semantic+kinetic+dynamic 3-layer per $ref:specs/knowledge-graph-schema.json + $ref:registry/knowledge-graph-{kinetic,dynamic}.json). Semantic type-system content migrated from registry/knowledge-graph-semantic.json into type_system section per ADR-0130 (OP-11 no compat seams).",
-    "migration_note": "ADR-0130: registry/knowledge-graph-semantic.json deprecated and deleted 2026-05-17. All node_types, edge_types, invariants, and read_side_query_examples now live in type_system below. kinetic + dynamic layers remain in their registry files."
+    "purpose": "Ontology + Knowledge Graph merged into one product PRD — machine-optimized. Ontology = typed entity/link/action schema layer. KG = runtime graph state (semantic+kinetic+dynamic 3-layer per $ref:specs/knowledge-graph-schema.json + $ref:registry/knowledge-graph-{kinetic,dynamic}.json). Semantic type-system content migrated from registry/knowledge-graph-semantic.json into type_system section per ADR-0139 (OP-11 no compat seams).",
+    "migration_note": "ADR-0139: registry/knowledge-graph-semantic.json deprecated and deleted 2026-05-17. All node_types, edge_types, invariants, and read_side_query_examples now live in type_system below. kinetic + dynamic layers remain in their registry files."
   },
   "identity": {
     "product_id": "ontology",
@@ -28,7 +28,7 @@
     "bominal_adrs": ["$ref:bominal/decisions/ADR-0106", "$ref:bominal/decisions/ADR-0107", "$ref:bominal/decisions/ADR-0133"],
     "oyatie_specs": ["$ref:specs/agent-durable-goal.json", "$ref:specs/knowledge-graph-schema.json"],
     "oyatie_registries": ["$ref:registry/knowledge-graph-kinetic.json", "$ref:registry/knowledge-graph-dynamic.json"],
-    "migrated_from": "$ref:registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0130; content now in type_system below)",
+    "migrated_from": "$ref:registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0139; content now in type_system below)",
     "memory_pointers": ["feedback_glossary_ontology_not_object_graph", "feedback_workflow_objectgraph_adapter_layer", "feedback_bominal_inheritance_precedence"]
   },
   "north_star_ref": "$ref:bominal/decisions/ADR-0106 (engine-enforced cryptographically-auditable typed-entity layer; Palantir-Foundry-style ontology pattern; platform value compounds when every surface speaks the same typed object)",
@@ -312,7 +312,7 @@
     }
   ],
   "type_system": {
-    "_provenance": "Migrated from registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0130). Palantir-analog: Object Types + Link Types + Functions (read-side) in Palantir Foundry Ontology. SEMANTIC layer: static structure — WHAT THINGS ARE.",
+    "_provenance": "Migrated from registry/knowledge-graph-semantic.json (deleted 2026-05-17 per ADR-0139). Palantir-analog: Object Types + Link Types + Functions (read-side) in Palantir Foundry Ontology. SEMANTIC layer: static structure — WHAT THINGS ARE.",
     "_layer": "semantic",
     "_schema_ref": "/specs/knowledge-graph-schema.json#v1.0.0",
     "node_types": {
@@ -782,7 +782,7 @@
     "product_nodes": [
       {"id": "foundry", "node_type": "Microservice", "label": "Foundry", "status": "active", "owner_team": "team:axis-foundry", "adr_reference": "ADR-0114"},
       {"id": "workflow", "node_type": "Microservice", "label": "Workflow", "status": "active", "owner_team": "team:axis-workflow", "adr_reference": "ADR-0114"},
-      {"id": "ontology", "node_type": "Microservice", "label": "Ontology", "status": "active", "owner_team": "team:axis-ontology", "adr_reference": "ADR-0130"},
+      {"id": "ontology", "node_type": "Microservice", "label": "Ontology", "status": "active", "owner_team": "team:axis-ontology", "adr_reference": "ADR-0139"},
       {"id": "connect", "node_type": "Microservice", "label": "Connect Suite", "status": "planned", "owner_team": "team:axis-connect", "adr_reference": "ADR-0131"},
       {"id": "connect-social", "node_type": "Microservice", "label": "Connect Social", "status": "planned", "owner_team": "team:axis-connect", "adr_reference": "ADR-0131"},
       {"id": "connect-shorts", "node_type": "Microservice", "label": "Connect Shorts", "status": "planned", "owner_team": "team:axis-connect", "adr_reference": "ADR-0131"},
@@ -821,7 +821,7 @@
     "$ref:bominal/decisions/ADR-0107-object-graph-agent-gateway.md",
     "$ref:bominal/decisions/ADR-0133-tier-classified-object-graph.md",
     "$ref:specs/knowledge-graph-schema.json",
-    "$ref:specs/products/ontology.json#type_system (inlined from deleted registry/knowledge-graph-semantic.json per ADR-0130)",
+    "$ref:specs/products/ontology.json#type_system (inlined from deleted registry/knowledge-graph-semantic.json per ADR-0139)",
     "$ref:registry/knowledge-graph-kinetic.json",
     "$ref:registry/knowledge-graph-dynamic.json",
     "$ref:crates/oya-ontology-kernel",

@@ -5,7 +5,7 @@ microservice: tasks
 status: Accepted
 date: 2026-05-17
 owner_team: ops-sre-reliability + ops-security + council-privacy
-related_adrs: [ADR-0130, ADR-0140, ADR-TASKS-0006]
+related_adrs: [ADR-0139, ADR-0140, ADR-TASKS-0006]
 doc_status: published
 ---
 
@@ -223,7 +223,7 @@ Per Google SRE Workbook ch. 15. Conducted within 5 business days of resolution.
 
 ## References
 
-- ADR-0130: SLO-gated promotion.
+- ADR-0139: SLO-gated promotion.
 - ADR-0140: Cedar policy.
 - ADR-TASKS-0006 (AI auto-assign EU AI Act bounds).
 - `failure-modes.md`, `runbooks/*`, `compliance.md`, `multi-region.md`.

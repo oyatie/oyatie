@@ -39,7 +39,7 @@ Cross-BC competitive analysis. Per-BC parity matrices preserved at
 | Subscription-mode provider adapters (e.g. Claude Pro) | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ (providers BC) — **differentiator** |
 | Per-pack residency (cross-pack-forbidden default) | partial | partial | partial | ✗ | ✓ | ✓ (all BCs) |
 | Self-hosted substrate (operate under your Kubernetes) | ✗ | ✗ | partial | ✗ | ✓ | ✓ (all BCs) |
-| OpenSLO-gated capability promotion | ✗ | ✗ | ✗ | ✗ | partial | ✓ (ADR-0130 + supervisor) — **differentiator** |
+| OpenSLO-gated capability promotion | ✗ | ✗ | ✗ | ✗ | partial | ✓ (ADR-0139 + supervisor) — **differentiator** |
 | Per-tenant kill-switch | partial | partial | ✓ | ✗ | ✓ | ✓ (supervisor BC) |
 | OpenBao credential isolation | ✗ | ✗ | ✗ | ✗ | partial | ✓ (providers BC) — **differentiator** |
 
@@ -53,7 +53,7 @@ Cross-BC competitive analysis. Per-BC parity matrices preserved at
 3. **Subscription-mode provider adapters** — invoke Claude Pro / ChatGPT
    Plus / Gemini Advanced subscriptions transparently alongside paid API
    tiers; unique commercial flexibility.
-4. **OpenSLO-gated capability promotion** (ADR-0130) — capability versions
+4. **OpenSLO-gated capability promotion** (ADR-0139) — capability versions
    gated through observability runways before tenant-default; competitors
    atomically deploy versions.
 5. **OpenBao credential isolation in dedicated BC** — provider credentials

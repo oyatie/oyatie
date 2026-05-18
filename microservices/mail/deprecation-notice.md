@@ -46,7 +46,7 @@ ADRs crystallised; each ADR makes the legacy shape non-conforming:
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a brand-layer
    concept and must not appear in crate names.
-2. **ADR-0130 — agentic SLO-gated promotion.** Mail needs independent SLO
+2. **ADR-0139 — agentic SLO-gated promotion.** Mail needs independent SLO
    targets per surface (mailbox-fill, inbound DKIM/SPF/DMARC verify latency,
    outbound queue depth, IMAP fetch p99, eDiscovery export turnaround); a
    `connect-*` umbrella SLO cannot serve them.

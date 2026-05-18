@@ -6,7 +6,7 @@ description: |
   daily-note / web-clipper-bridge / collab-edit / e2e-key-management / search-index /
   template-gallery / checklist / version-history / share-link / embed-resolver /
   import-export BCs deployed as horizontally-scaled, tenant-sharded, E2E-default
-  workloads. Per ADR-0131 flat layout + ADR-0130 SLO-gated promotion + ADR-NOTES-0001
+  workloads. Per ADR-0131 flat layout + ADR-0139 SLO-gated promotion + ADR-NOTES-0001
   Personal-tier E2E-default invariant.
 type: application
 version: 0.1.0

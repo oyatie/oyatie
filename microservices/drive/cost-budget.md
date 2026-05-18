@@ -5,7 +5,7 @@ microservice: drive
 status: Accepted
 date: 2026-05-17
 owner_team: axis-drive + finops + ops-sre-reliability
-related_adrs: [ADR-0130, ADR-0131, ADR-0133, ADR-DRIVE-0001]
+related_adrs: [ADR-0139, ADR-0131, ADR-0133, ADR-DRIVE-0001]
 doc_status: published
 ---
 
@@ -92,7 +92,7 @@ Reference tenant: 1,000 active users, 50TB stored, 1M files, 5GB ingress + 50GB 
 
 ## References
 
-- ADR-0130 (SLO-gated promotion; cost alarms gate promotion).
+- ADR-0139 (SLO-gated promotion; cost alarms gate promotion).
 - ADR-0131 (per-µservice flat layout; per-µservice cost ownership).
 - ADR-0133 (industry-best-practice axis-3 cost discipline).
 - ADR-DRIVE-0001 (object-storage substrate selection; Garage vs MinIO vs SeaweedFS cost trade-offs).

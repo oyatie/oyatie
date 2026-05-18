@@ -6,7 +6,7 @@ date: 2026-05-18
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0022, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0136, ADR-0138]
+related: [ADR-0022, ADR-0025, ADR-0056, ADR-0105, ADR-0106, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0136, ADR-0138]
 related_memory: [feedback_workflow_objectgraph_adapter_layer, feedback_naming_justification, feedback_quality_performance_scalability_bar]
 related_specs:
   - /specs/microservices/foundry.json
@@ -342,7 +342,7 @@ authored in a follow-up IP):
 - ADR-0056: BNF v4.1 — crate-name authority.
 - ADR-0105: 13-layer enum.
 - ADR-0123: Hyperscaler maturity claim gate — HG-FOUNDRY surface.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - Eric Evans, *Domain-Driven Design* (Addison-Wesley, 2003) — bounded
   contexts + ubiquitous language.

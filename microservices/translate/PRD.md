@@ -8,7 +8,7 @@ sales_segment: shared-substrate + standalone
 tier: hero-and-substrate
 milestone_first_ship: M01-foundation
 bominal_source: NONE  # net-new per ADR-0135 (no Bominal antecedent)
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-TRANSLATE-0001, ADR-TRANSLATE-0002, ADR-TRANSLATE-0003, ADR-TRANSLATE-0004, ADR-TRANSLATE-0005, ADR-TRANSLATE-0006]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-translate + ops-security + council-privacy
@@ -272,7 +272,7 @@ oyatie differentiators:
 - ADR-0106 — `application` → `usecase` rename for new crates.
 - ADR-0117 — pack residency model.
 - ADR-0135 — connect super-app expansion (parent ADR; translate is per ADR-0135 §"shared substrate µservices").
-- ADR-0130 — agentic SLO-gated promotion.
+- ADR-0139 — agentic SLO-gated promotion.
 - ADR-0131 — per-microservice flat layout.
 - ADR-0132 — product suite and bundle dissolution.
 - ADR-0133 — industry-best-practice conformance program.

@@ -114,7 +114,7 @@ If this document is wrong, oyatie's overall compliance posture is hollow.
 | A.8.27 | Secure system architecture + engineering principles | clean-arch per `feedback_clean_architecture_requirements.md` |
 | A.8.28 | Secure coding | rustfmt + clippy -D warnings + `cargo deny check` |
 | A.8.30 | Outsourced development | not applicable; agentic dev team is in-house |
-| A.8.31 | Separation of development, test + production environments | per-pack overlays; staging vs production refs per ADR-0130 |
+| A.8.31 | Separation of development, test + production environments | per-pack overlays; staging vs production refs per ADR-0139 |
 | A.8.32 | Change management | per-PR + CODEOWNERS + ADR successor-IP |
 | A.8.34 | Protection of information systems during audit testing | auditor-scope.cedar + JIT scope |
 

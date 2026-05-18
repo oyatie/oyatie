@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-tasks + ops-security
 deciders: council-architecture, ops-security, axis-tasks, council-privacy
 methodology: STRIDE + LINDDUN + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0005, ADR-TASKS-0006]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140, ADR-TASKS-0001, ADR-TASKS-0002, ADR-TASKS-0005, ADR-TASKS-0006]
 review_cadence: quarterly + on every BC architectural change + on every AI capability promotion (T0→T1→T2)
 enforced_frameworks:
   - "SOC 2 Type 2: CC6.1-CC6.8, CC7.1-CC7.5, CC8.1"
@@ -543,7 +543,7 @@ Per-pack overlays at `regional-packs/<pack>/tasks-overlay.md` (scheduled-for-dis
 ## References
 
 - ADR-0028 (Bominal): Audit chain (Merkle + Ed25519).
-- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0140.
+- ADR-0056, ADR-0105, ADR-0106, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0140.
 - ADR-TASKS-0001 (data model + custom fields strict coercion).
 - ADR-TASKS-0002 (dependency graph + cycle prevention).
 - ADR-TASKS-0005 (workflow-engine bridge).

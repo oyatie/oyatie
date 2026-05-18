@@ -17,7 +17,7 @@ acceptance_lanes: [cargo-check, cargo-build, helm-lint, kubectl-apply-dry-run, o
 
 ## Intent
 
-Author Helm + Kustomize manifests for the full Grafana OSS observability stack (Alloy + Prometheus + Mimir + Loki + Tempo + Pyroscope + Grafana + Alertmanager + Grafana OnCall) under `microservices/observability/iac/helm/`. Deploys to the dedicated observability Kubernetes cluster per ADR-0130 Layer-A and `multi-region.md`. Versions pinned to LTS per `docs/standards/observability-slo.md` §"Grafana stack components".
+Author Helm + Kustomize manifests for the full Grafana OSS observability stack (Alloy + Prometheus + Mimir + Loki + Tempo + Pyroscope + Grafana + Alertmanager + Grafana OnCall) under `microservices/observability/iac/helm/`. Deploys to the dedicated observability Kubernetes cluster per ADR-0139 Layer-A and `multi-region.md`. Versions pinned to LTS per `docs/standards/observability-slo.md` §"Grafana stack components".
 
 ## ChangeSet boundary
 
@@ -103,7 +103,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 ## References
 
-- ADR-0130 §"Layer-A — adopted OSS"
+- ADR-0139 §"Layer-A — adopted OSS"
 - `microservices/observability/multi-region.md`
 - `microservices/observability/capacity-model.md`
 - `docs/standards/observability-slo.md` §"Grafana stack components"

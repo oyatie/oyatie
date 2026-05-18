@@ -9,7 +9,7 @@ tier: hero-product
 milestone_first_ship: M02-foundation
 net_new: true
 bominal_source: []
-related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0008, ADR-0056, ADR-0105, ADR-0106, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 date: 2026-05-17
 owner_team: axis-meet
@@ -263,7 +263,7 @@ CI lanes that must green:
 Key parity gaps to close (ordered by priority):
 
 1. **Sovereign-tenant residency by data-model** — none of Google Meet / Zoom / Teams enforce per-pack residency natively; oyatie does (11 packs at GA-readiness).
-2. **OpenSLO-gated promotion of meeting features** — ADR-0130 means new meet features cannot ship while burn-rate is hot; competitors have no SLO-promotion gate.
+2. **OpenSLO-gated promotion of meeting features** — ADR-0139 means new meet features cannot ship while burn-rate is hot; competitors have no SLO-promotion gate.
 3. **Cedar v4.2 fine-grained policy on participants + tracks + recordings** — competitors expose only host/co-host/attendee role flags.
 4. **First-class audit-chain Ed25519 over every recording + transcript + disclosure** — competitors emit opaque vendor logs.
 5. **Interpretation channels via standardised LiveKit audio overlays** — Zoom Webex have proprietary equivalents; oyatie uses LiveKit + RTP packetisation per RFC 3550.
@@ -344,7 +344,7 @@ Sharding:
 | ADR-0105 | 13-layer enum | layer authority |
 | ADR-0106 | application → usecase | layer naming |
 | ADR-0135 | Connect dual-context (parallel) | net-new µservice authorisation |
-| ADR-0130 | Agentic SLO-gated promotion | gates meet releases |
+| ADR-0139 | Agentic SLO-gated promotion | gates meet releases |
 | ADR-0131 | Per-microservice flat layout | this PRD authored under it |
 | ADR-0132 | Suite-and-bundle dissolution | new µservices are single-concern + flat |
 | ADR-0133 | Industry best-practice conformance | HG-MEET under this |

@@ -5,14 +5,14 @@ namespace: cloud-iac
 display_name: Rollback IaC State
 description: |
   Revert a µservice's IaC state to a prior known-good apply. Invoked by observability's
-  SLO gate auto-rollback primitive (per ADR-0130) when a production-tier burn-rate
+  SLO gate auto-rollback primitive (per ADR-0139) when a production-tier burn-rate
   breach fires within 1h post-promotion, OR by an on-call operator under 2-person rule
   for security-response or post-mortem-remediation scenarios.
 
 owner_team: axis-cloud-iac
 maturity: stable
 created_at: 2026-05-17
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 related_artifacts:
   - microservices/cloud-iac/PRD.md

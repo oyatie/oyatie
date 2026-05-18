@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: ops-security + axis-foundry
 deciders: council-architecture, ops-security, axis-foundry, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP LLM Top 10 (2023) + NIST SP 800-154
-related_adrs: [ADR-0025, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0025, ADR-0026, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every adapter / vendor change
 enforced_frameworks:
@@ -255,7 +255,7 @@ Identify, classify, and mitigate threats to the foundry-providers µservice's co
 
 ## References
 
-- ADR-0025, ADR-0026, ADR-0028, ADR-0117, ADR-0130, ADR-0131.
+- ADR-0025, ADR-0026, ADR-0028, ADR-0117, ADR-0139, ADR-0131.
 - OWASP LLM Top 10 (2023) — `owasp.org/www-project-top-10-for-large-language-model-applications`.
 - NIST SP 800-154 — Guide to Data-Centric System Threat Modeling.
 - EU AI Act Reg. (EU) 2024/1689.

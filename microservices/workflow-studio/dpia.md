@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-workflow
 deciders: council-privacy, ops-security, axis-workflow, council-design-system, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act 2024 conformity assessment
-related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0130, ADR-0131, ADR-0140, ADR-0164]
+related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0139, ADR-0131, ADR-0140, ADR-0164]
 related_specs: [/specs/microservices/workflow-studio.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/workflow-studio/threat-model.md
@@ -253,7 +253,7 @@ Per-pack overlays at `regional-packs/<pack>/workflow-studio-dpia-overlay.md`.
 - ADR-0028 (Bominal): Audit chain.
 - ADR-0065: Leptos for browser UI.
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout + workflow unbundle.
 - ADR-0140: Cedar policy enforcement.
 - ADR-0164 (Bominal): Workflow canonical spec format.

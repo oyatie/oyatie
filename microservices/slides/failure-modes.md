@@ -70,7 +70,7 @@ Each FM mapped to a chaos-engineering test under `tests/chaos/`:
 
 ## References
 
-- ADR-0130 SLO-gated promotion.
+- ADR-0139 SLO-gated promotion.
 - ADR-SLIDES-0005 broadcast-mode LiveKit reuse.
 - ADR-SLIDES-0008 chart-live-link.
 - `runbooks/`.

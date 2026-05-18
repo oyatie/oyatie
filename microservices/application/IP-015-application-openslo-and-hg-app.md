@@ -118,5 +118,5 @@ kubectl apply --dry-run=client -k microservices/application/iac/kustomize/overla
 ## References
 
 - ADR-0123 hyperscaler maturity claim gate
-- ADR-0130 SLO-gated promotion
+- ADR-0139 SLO-gated promotion
 - `/specs/agentic-slo-gated-promotion.json`

@@ -8,7 +8,7 @@ sales_segment: shared-substrate
 tier: internal
 milestone_first_ship: M01-foundation
 bominal_source: []
-related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/industry-best-practice-conformance.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 owner_team: axis-foundry
@@ -413,7 +413,7 @@ Sharding:
 | ADR-0106 | application → usecase rename | layer-name authority |
 | ADR-0110 | ChangeSet state machine | each IP is one ChangeSet |
 | ADR-0123 | Hyperscaler maturity claim gate | HG-GOV registers here |
-| ADR-0130 | Agentic SLO-gated promotion | governance lanes gate the SLO gate |
+| ADR-0139 | Agentic SLO-gated promotion | governance lanes gate the SLO gate |
 | ADR-0131 | Per-microservice flat layout | this PRD authored natively under it; IP-M01-MIGR-014 governs the ~50 crate migration |
 | ADR-0132 | Product-suite-and-bundle dissolution | governance bundle decision |
 | ADR-0133 | Industry-best-practice + hyperscaler-grade conformance | this µservice IMPLEMENTS the 6-axis program |

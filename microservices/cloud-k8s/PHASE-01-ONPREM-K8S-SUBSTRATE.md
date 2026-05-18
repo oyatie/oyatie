@@ -13,7 +13,7 @@ depends_on:
     phase: prior phases per master-plan-sequencing
     reason: workspace + branch-protection + OpenBao + audit-chain authority must precede cluster authoring
 owner_team: axis-cloud
-related_adrs: [ADR-0117, ADR-0120, ADR-0121, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0120, ADR-0121, ADR-0139, ADR-0131]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 date: 2026-05-17
 doc_status: published
@@ -234,6 +234,6 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0105: 13-layer enum.
 - ADR-0106: usecase rename.
 - ADR-0123: Hyperscaler maturity claim gate (HG-CLOUD-K8S).
-- ADR-0130: Agentic SLO-gated promotion (cluster substrate is precondition).
+- ADR-0139: Agentic SLO-gated promotion (cluster substrate is precondition).
 - `microservices/cloud-k8s/PRD.md`.
 - Memory: `feedback_milestone_phase_hierarchy.md`, `feedback_naming_justification.md`, `feedback_clean_architecture_requirements.md`, `feedback_quality_performance_scalability_bar.md`.

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-sheets + council-design-system + ops-security
 deciders: council-architecture, ops-security, axis-sheets, council-design-system, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + OWASP API Top 10 (2023) + OWASP ASVS L2 + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0140, ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0003, ADR-SHEETS-0004, ADR-SHEETS-0005, ADR-SHEETS-0006, ADR-SHEETS-0007]
+related_adrs: [ADR-0028, ADR-0035, ADR-0056, ADR-0065, ADR-0103, ADR-0105, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0140, ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0003, ADR-SHEETS-0004, ADR-SHEETS-0005, ADR-SHEETS-0006, ADR-SHEETS-0007]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Sheets Layer-A substrate change OR new function-library release OR AI-formula provider change OR XLSX importer version bump
 enforced_frameworks:
@@ -760,7 +760,7 @@ Pack-overlay sections at `regional-packs/<pack>/sheets-overlay.md`.
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (residency).
 - ADR-0135: Sheets net-new µservice.
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - ADR-SHEETS-0001..0007 (local).

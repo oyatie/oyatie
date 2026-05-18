@@ -193,7 +193,7 @@ Quantitative + qualitative parity comparison against industry-leading Profession
 
 1. **Professional-context isolation by data-model invariant** — never federates to Personal-tier; compile-time invariant; no competitor enforces.
 2. **11-pack residency by design** — no SaaS competitor matches breadth; LinkedIn is region-only.
-3. **OpenSLO-gated promotion** — feature rollouts gated by burn-rate (ADR-0130); no competitor enforces.
+3. **OpenSLO-gated promotion** — feature rollouts gated by burn-rate (ADR-0139); no competitor enforces.
 4. **Cedar v4.2 policy substrate** — fine-grained per-resource policy; competitors expose only admin-level RBAC.
 5. **Endorsement-chain Ed25519 cryptographic integrity** — competitors deliver display-only counts; oyatie endorsements are cryptographically verifiable.
 6. **Four-eyes admin disclosure** — two-principal approval for PII reads; no competitor enforces.
@@ -244,7 +244,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `/specs/hyperscaler-gates.json` HG-NETWORK gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
 - ADR-0135 (Connect dissolution, parallel).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0133 (industry best-practice conformance).
 - Competitor docs as cited inline above.

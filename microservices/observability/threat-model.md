@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-observability + ops-security
 deciders: council-architecture, ops-security, axis-observability, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/agentic-slo-gated-promotion.json, /specs/per-microservice-flat-layout.json]
 review_cadence: quarterly + on every Layer-A or Layer-B architecture change
 enforced_frameworks:
@@ -39,7 +39,7 @@ Identify, classify, and mitigate threats to the observability µservice's confid
 
 ### In-scope
 
-All components introduced by ADR-0130 (agentic SLO-gated promotion) and ADR-0131 (per-microservice flat layout) for the observability µservice, deployed in a **dedicated observability Kubernetes cluster** (decision confirmed 2026-05-17; matches hyperscaler practice — AWS Managed Prometheus runs in its own VPC; GCP Managed Service for Prometheus runs in its own project; Grafana Labs Cloud runs on dedicated infra):
+All components introduced by ADR-0139 (agentic SLO-gated promotion) and ADR-0131 (per-microservice flat layout) for the observability µservice, deployed in a **dedicated observability Kubernetes cluster** (decision confirmed 2026-05-17; matches hyperscaler practice — AWS Managed Prometheus runs in its own VPC; GCP Managed Service for Prometheus runs in its own project; Grafana Labs Cloud runs on dedicated infra):
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -237,7 +237,7 @@ Each threat carries: ID; category; asset; description; likelihood (L/M/H); impac
 - Asset: `microservices/<ms>/slos/*.openslo.yaml`
 - Likelihood: M / Impact: H (false SLO target → false eligibility verdict → bad code reaches prod) / Risk: **H**
 - Mitigations:
-  - All OpenSLO changes require PR review via the `oya-pr-review` lane (per ADR-0130 + ADR-0131 promotion-readiness gating).
+  - All OpenSLO changes require PR review via the `oya-pr-review` lane (per ADR-0139 + ADR-0131 promotion-readiness gating).
   - Per-µservice OpenSLO files protected by CODEOWNERS scoped to `axis-observability + council-architecture`.
   - LEAN check `oya-check-openslo-conformance` (NEW; added to Slice D) validates schema + reasonable burn-rate thresholds (block manifests that set fast-burn > 100% or SLO target < 99%).
   - Schema regression test asserts OpenSLO v1.0 conformance.
@@ -646,7 +646,7 @@ This threat model re-reviews on:
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (data residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/observability/PRD.md`.

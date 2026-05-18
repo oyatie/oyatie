@@ -90,6 +90,6 @@ Turn 2 (15 observability IPs)
 
 ### Slice D artifacts (3 new + 5 edits)
 - New: `docs/standards/observability-slo.md`, `/specs/microservice-migration-tooling.json`, `microservices/observability/competitor-parity-matrix.md`
-- Edits: ADR-0130 (Bominal verify + competitor parity), ADR-0131 (migration cost + src/ path fix), ADR-0132 (migration cost), PHASE-01 (ChangeSet per IP + test coverage + branch-protection diff), `/specs/agentic-slo-gated-promotion.json` (backfill + canary finalization).
+- Edits: ADR-0139 (Bominal verify + competitor parity), ADR-0131 (migration cost + src/ path fix), ADR-0132 (migration cost), PHASE-01 (ChangeSet per IP + test coverage + branch-protection diff), `/specs/agentic-slo-gated-promotion.json` (backfill + canary finalization).
 
 Total: 24 new files + 5 edits = 29 deliverables for 30 gaps (1 gap absorbed into PRD already shipped).

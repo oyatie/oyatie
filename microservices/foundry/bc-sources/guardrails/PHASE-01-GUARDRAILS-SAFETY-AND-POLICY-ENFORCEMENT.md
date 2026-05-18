@@ -16,7 +16,7 @@ depends_on:
     phase: P01-foundry-runtime-runtime-and-sessions (foundry-runtime)
     reason: foundry-runtime is the sole in-cluster caller; coupling lane requires both
 owner_team: axis-foundry-guardrails
-related_adrs: [ADR-0022, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0130, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
+related_adrs: [ADR-0022, ADR-0056, ADR-0105, ADR-0106, ADR-0110, ADR-0123, ADR-0139, ADR-0131, ADR-0132, ADR-0133, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json, /specs/agent-operating-contract.json]
 date: 2026-05-17
 doc_status: published
@@ -250,7 +250,7 @@ Multispectrum evidence per docs/AGENTS.md §changeset: each IP emits `microservi
 - ADR-0106: usecase rename.
 - ADR-0110: ChangeSet state machine.
 - ADR-0123: Hyperscaler maturity claim gate (HG-FGUARD).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout (Foundry split).
 - ADR-0132: Product-suite + bundle dissolution.
 - ADR-0133: Industry-best-practice conformance program.

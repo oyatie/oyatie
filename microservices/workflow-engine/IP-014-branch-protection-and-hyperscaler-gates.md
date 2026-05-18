@@ -52,6 +52,6 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 ## References
 
 - ADR-0123 (hyperscaler maturity claim gate)
-- ADR-0130 (agentic SLO-gated promotion)
+- ADR-0139 (agentic SLO-gated promotion)
 - ADR-0131 (per-microservice flat layout + workflow unbundle)
 - `microservices/workflow-engine/PHASE-01-DURABLE-EXECUTION-SUBSTRATE.md` §"branch-protection.yaml diff preview"

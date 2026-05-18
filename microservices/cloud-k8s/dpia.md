@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-cloud
 deciders: council-privacy, ops-security, axis-cloud, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/cloud-k8s/threat-model.md
   - microservices/cloud-k8s/policy/cluster-isolation.md
@@ -257,7 +257,7 @@ Per-pack DPIA overlays at `regional-packs/<pack>/cloud-k8s-dpia-overlay.md`. Eac
 ## References
 
 - ADR-0028 (Bominal audit chain).
-- ADR-0117, ADR-0120, ADR-0121, ADR-0130, ADR-0131, ADR-0140.
+- ADR-0117, ADR-0120, ADR-0121, ADR-0139, ADR-0131, ADR-0140.
 - `microservices/cloud-k8s/threat-model.md`.
 - `microservices/cloud-k8s/policy/{cluster-isolation, data-residency}.md`.
 - `microservices/cloud-k8s/compliance.md`.

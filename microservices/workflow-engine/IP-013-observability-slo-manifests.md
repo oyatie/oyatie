@@ -17,7 +17,7 @@ acceptance_lanes: [oya-governance-openslo-conformance, oya-vcs-promotion-readine
 
 ## Intent
 
-Author OpenSLO manifests for workflow-engine self-SLOs at `microservices/workflow-engine/slos/`. These are consumed by the observability µservice's promotion gate (per ADR-0130) — workflow-engine cannot advance past dev until its SLOs are green.
+Author OpenSLO manifests for workflow-engine self-SLOs at `microservices/workflow-engine/slos/`. These are consumed by the observability µservice's promotion gate (per ADR-0139) — workflow-engine cannot advance past dev until its SLOs are green.
 
 ## ChangeSet boundary
 
@@ -95,7 +95,7 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 
 ## References
 
-- ADR-0130 (agentic SLO-gated promotion)
+- ADR-0139 (agentic SLO-gated promotion)
 - `microservices/observability/PHASE-01-AGENTIC-SLO-GATED-PROMOTION.md`
 - `docs/standards/observability-slo.md`
 - PRD §"Performance Targets"

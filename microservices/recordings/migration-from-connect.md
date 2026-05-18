@@ -28,7 +28,7 @@ in `microservices/recordings/`.**
 |---|---|
 | Replacement | `oya-recordings-*` crate family under `microservices/recordings/src/crates/` |
 | Removal date | **Advisory** — concrete target is HG-RECORDINGS accepts at p99 SLOs sustained 30d (per ADR-0135 retirement trigger #2) |
-| Reason | ADR-0132 no-suite forward-policy + ADR-0130 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 22-BC recordings surface (recording / media-segment / transcript / translation / redaction / chapter-marker / summary / thumbnail-pack / search / retention-policy / legal-hold / export / share-link / playback / ediscovery / watermarking / drm-stub / audio-loudness / video-encode-ladder / accessibility-captions / recording-ingest) is only addressable at µservice granularity |
+| Reason | ADR-0132 no-suite forward-policy + ADR-0139 per-µservice SLO authority + ADR-0131 per-µservice flat layout + the 22-BC recordings surface (recording / media-segment / transcript / translation / redaction / chapter-marker / summary / thumbnail-pack / search / retention-policy / legal-hold / export / share-link / playback / ediscovery / watermarking / drm-stub / audio-loudness / video-encode-ladder / accessibility-captions / recording-ingest) is only addressable at µservice granularity |
 | Migration owner (Churn Rule) | axis-recordings |
 | Migration window | Phase 2 adapter + Phase 3 canary = ~5 months; Phase 5 removal sweep in month 6 (see ADR-0134) |
 
@@ -140,7 +140,7 @@ following ADRs crystallised:
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer; bundle membership is a brand-layer
    concept and must not appear in crate names.
-2. **ADR-0130 — per-µservice SLO authority.** Recordings needs independent
+2. **ADR-0139 — per-µservice SLO authority.** Recordings needs independent
    SLO targets per surface (recording-list, playback-start, transcript-search,
    transcript-render, redaction-render, export-mp4, export-transcript-pdf,
    legal-hold-engagement + zero-tolerance load-bearing invariants for

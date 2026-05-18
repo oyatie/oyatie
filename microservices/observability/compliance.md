@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-observability, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/observability/threat-model.md
   - microservices/observability/dpia.md
@@ -58,7 +58,7 @@ The canonical control-to-framework mapping for the observability µservice. Tell
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + cardinality alerts | `/specs/agentic-slo-gated-promotion.json` |
 | CC7.4 | Incident response | Severity-classified response + escalation | `incident-response.md` |
 | CC8.1 | Change management | PR review + LEAN gates + branch protection | `tasks/plan.md` (this changeset) |
-| CC9.1 | Risk mitigation | Multi-region + DR pair + automated rollback | `multi-region.md` + ADR-0130 |
+| CC9.1 | Risk mitigation | Multi-region + DR pair + automated rollback | `multi-region.md` + ADR-0139 |
 | CC9.2 | Vendor risk management | Sub-processor list + per-vendor DPA | `legal/sub-processors.md` (Slice D) |
 
 **Privacy Criteria (P1–P8, 2017 TSC, optional):**
@@ -272,7 +272,7 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 - `microservices/observability/policy/{tenant-isolation, data-residency}.md`.
 - `microservices/observability/policy/*.cedar`.
 - `microservices/observability/incident-response.md`.
-- ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (hyperscaler maturity claim gate); ADR-0130 (SLO gate); ADR-0131 (per-microservice flat layout); ADR-0140 (Cedar policy).
+- ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (hyperscaler maturity claim gate); ADR-0139 (SLO gate); ADR-0131 (per-microservice flat layout); ADR-0140 (Cedar policy).
 - SOC 2 Type 2: TSC 2017 + 2022 Points of Focus — `aicpa.org/topic/audit-assurance/audit-and-assurance-greater-than-soc-2`.
 - ISO/IEC 27001:2022 + ISO/IEC 27002:2022 — `iso.org/standard/27001`.
 - GDPR — `gdpr-info.eu`; EDPB Guidelines — `edpb.europa.eu`.

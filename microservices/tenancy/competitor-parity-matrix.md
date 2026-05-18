@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-tenancy + council-architecture
 deciders: axis-tenancy, council-architecture, gtm-customer-success
-related_adrs: [ADR-0018, ADR-0123, ADR-0130]
+related_adrs: [ADR-0018, ADR-0123, ADR-0139]
 related_artifacts:
   - microservices/tenancy/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-TEN gate)
@@ -137,5 +137,5 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `/specs/hyperscaler-gates.json` HG-TEN gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
 - ADR-0018 (tenancy + RLS posture).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - Competitor docs cited inline.

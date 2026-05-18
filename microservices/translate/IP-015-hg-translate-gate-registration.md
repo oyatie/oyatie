@@ -152,4 +152,4 @@ impl TranslateClient {
 
 ## Phase Exit
 
-When this IP merges + verification passes, Phase P01-translate-platform exits and the µservice becomes promotable per ADR-0130.
+When this IP merges + verification passes, Phase P01-translate-platform exits and the µservice becomes promotable per ADR-0139.

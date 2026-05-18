@@ -16,7 +16,7 @@ depends_on: [IP-013]
 
 ## Intent
 
-Author 9 OpenSLO v1.0 manifests for sheets self-SLOs at `microservices/sheets/slos/`. Per ADR-0130 + ADR-0131 §"SLO authoring at microservices/<ms>/slos/*.openslo.yaml mandatory before any µservice promotes past dev". Consumed by the observability µservice's SLO engine which gates Sheets's promotion.
+Author 9 OpenSLO v1.0 manifests for sheets self-SLOs at `microservices/sheets/slos/`. Per ADR-0139 + ADR-0131 §"SLO authoring at microservices/<ms>/slos/*.openslo.yaml mandatory before any µservice promotes past dev". Consumed by the observability µservice's SLO engine which gates Sheets's promotion.
 
 ## ChangeSet boundary
 
@@ -61,7 +61,7 @@ cargo run -p oya-dev-cli -- gate validate oya-vcs-promotion-readiness --microser
 
 ## References
 
-- ADR-0130 Agentic SLO-gated promotion.
+- ADR-0139 Agentic SLO-gated promotion.
 - ADR-0131 §"SLO authoring mandatory".
 - OpenSLO v1.0 spec — `github.com/OpenSLO/OpenSLO`.
 - microservices/observability/PRD.md.

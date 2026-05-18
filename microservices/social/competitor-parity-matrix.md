@@ -143,7 +143,7 @@ Quantitative + qualitative parity comparison against industry-leading social-net
 
 1. **Dual-context isolation by data-model invariant** — Personal ≠ Professional enforced at compile-time + LEAN-lane (per parallel ADR-0135); no competitor does this at data-model level. LinkedIn is professional-only (not dual-context); X / Meta blur with account-level switch.
 2. **Multi-pack residency by design** — 11 region-pinned packs; no SaaS competitor matches breadth.
-3. **OpenSLO-gated promotion** — feature rollouts gated by burn-rate (ADR-0130); no competitor enforces SLO-based rollout halting.
+3. **OpenSLO-gated promotion** — feature rollouts gated by burn-rate (ADR-0139); no competitor enforces SLO-based rollout halting.
 4. **Cedar v4 policy substrate** — fine-grained per-resource policy; competitors expose only admin-level RBAC.
 5. **Cryptographic audit-chain** — Ed25519 + Merkle over every state transition; competitors deliver opaque vendor logs.
 6. **Four-eyes admin disclosure** — two-principal approval for PII reads; no competitor enforces.
@@ -184,7 +184,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `/specs/hyperscaler-gates.json` HG-SOCIAL gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
 - ADR-0135 (Connect dissolution, parallel).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0132 (suite-and-bundle dissolution).
 - ADR-0133 (industry best-practice conformance).
 - Competitor docs as cited inline above.

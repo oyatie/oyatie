@@ -82,6 +82,6 @@ kubectl --dry-run=client apply -f microservices/observability/iac/kustomize/base
 
 ## References
 
-- ADR-0130 §"Layer-B item 17 — Canary cohort weighting"
+- ADR-0139 §"Layer-B item 17 — Canary cohort weighting"
 - `runbooks/canary-graduation.md`
 - `/specs/agentic-slo-gated-promotion.json` §"canary_cohort_weighting_finalized"

@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-tenancy + ops-security
 deciders: council-architecture, ops-security, axis-tenancy, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154
-related_adrs: [ADR-0018, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0018, ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/agentic-slo-gated-promotion.json]
 review_cadence: quarterly + on every Layer-A or Layer-B architecture change
 enforced_frameworks:
@@ -693,7 +693,7 @@ This threat model re-reviews on:
 - ADR-0056: BNF v4.1.
 - ADR-0105: 13-layer enum.
 - ADR-0117: Cloud-native infrastructure (data residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/tenancy/PRD.md`.

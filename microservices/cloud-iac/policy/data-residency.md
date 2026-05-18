@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + axis-cloud-iac
 deciders: council-privacy, ops-security, axis-cloud-iac, gtm-customer-success
-related_adrs: [ADR-0117, ADR-0130, ADR-0131]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/threat-model.md (T-T-04, T-I-01; cross-pack state replication threats)
   - microservices/cloud-iac/dpia.md (R-10)
@@ -184,7 +184,7 @@ Per-pack overlays at `regional-packs/<pack>/cloud-iac-residency-overlay.md`. Pac
 ## References
 
 - ADR-0117: Cloud-native infrastructure (residency).
-- ADR-0130: Agentic SLO-gated promotion.
+- ADR-0139: Agentic SLO-gated promotion.
 - ADR-0131: Per-microservice flat layout.
 - `microservices/cloud-iac/threat-model.md` T-T-04 + T-I-01.
 - `microservices/cloud-iac/dpia.md` R-10.

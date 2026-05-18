@@ -82,4 +82,4 @@ gh api repos/jason931225/oyatie/branches?protected=true | jq '.[].name'
 ## References
 
 - `/specs/agentic-slo-gated-promotion.json` §"release_pointer_convention"
-- ADR-0130 §"Layer-B item 11"
+- ADR-0139 §"Layer-B item 11"

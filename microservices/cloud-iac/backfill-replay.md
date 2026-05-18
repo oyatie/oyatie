@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-cloud-iac
 deciders: axis-cloud-iac, council-architecture, ops-sre-reliability
-related_adrs: [ADR-0130, ADR-0131]
+related_adrs: [ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/cloud-iac/PRD.md
   - microservices/cloud-iac/capacity-model.md
@@ -124,5 +124,5 @@ Cost surfaced in `cost-budget.md` §"Cost-Optimisation Levers"; replay budgeted 
 - `microservices/cloud-iac/capacity-model.md`.
 - `microservices/cloud-iac/cost-budget.md`.
 - `microservices/cloud-iac/contracts/asyncapi/cloud-iac-events.yaml`.
-- ADR-0130; ADR-0131.
+- ADR-0139; ADR-0131.
 - `microservices/observability/backfill-replay.md` (parent template).

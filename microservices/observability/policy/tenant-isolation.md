@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-security + axis-observability
 deciders: council-architecture, ops-security, axis-observability, council-privacy
-related_adrs: [ADR-0028, ADR-0117, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/observability/threat-model.md (Trust Boundary 2, T-S-01, T-I-01, T-E-01)
   - microservices/observability/dpia.md (R-02, R-15)
@@ -266,7 +266,7 @@ Each pack's overlay at `regional-packs/<pack>/tenant-isolation-overlay.md` maps 
 
 - ADR-0028 (Bominal): audit-chain.
 - ADR-0117: cloud-native infrastructure + residency.
-- ADR-0130: agentic SLO-gated promotion.
+- ADR-0139: agentic SLO-gated promotion.
 - ADR-0131: per-microservice flat layout.
 - ADR-0140: Cedar policy enforcement.
 - `microservices/observability/threat-model.md` §"Trust Boundaries" + T-S-01, T-I-01, T-E-01.

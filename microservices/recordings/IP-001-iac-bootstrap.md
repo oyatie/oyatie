@@ -62,7 +62,7 @@ cargo run -p oya-dev-cli -- gate validate version-pinning-conformance
 
 ## References
 
-- ADR-0130; ADR-0131; ADR-0132.
+- ADR-0139; ADR-0131; ADR-0132.
 - `multi-region.md`, `capacity-model.md`.
 - `decisions/ADR-RECORDINGS-0004.md` (CDN backend).
 - `decisions/ADR-RECORDINGS-0005.md` (storage tiering).

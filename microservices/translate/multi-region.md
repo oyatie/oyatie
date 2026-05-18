@@ -6,7 +6,7 @@ status: Accepted
 classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: ops-iac + axis-translate + ops-sre-reliability
-related_adrs: [ADR-0117, ADR-0130, ADR-0131, ADR-TRANSLATE-0004]
+related_adrs: [ADR-0117, ADR-0139, ADR-0131, ADR-TRANSLATE-0004]
 related_artifacts:
   - microservices/translate/PRD.md
   - microservices/translate/policy/data-residency.md
@@ -141,7 +141,7 @@ Quarterly per pack:
 ## SLO Impact
 
 - Translate-request availability: 99.95 % monthly within pack.
-- DR failover does NOT count against SLO budget for the duration of failover (per ADR-0130 ledger annotation).
+- DR failover does NOT count against SLO budget for the duration of failover (per ADR-0139 ledger annotation).
 
 ## Verification
 
@@ -151,7 +151,7 @@ Quarterly per pack:
 ## References
 
 - ADR-0117 — pack residency model.
-- ADR-0130 — SLO-gated promotion + rollback.
+- ADR-0139 — SLO-gated promotion + rollback.
 - ADR-TRANSLATE-0004 — residency-bound inference.
 - `microservices/translate/failure-modes.md`.
 - `microservices/translate/policy/data-residency.md`.

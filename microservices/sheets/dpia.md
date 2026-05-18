@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: council-privacy + axis-sheets
 deciders: council-privacy, ops-security, axis-sheets, council-design-system, council-architecture
 methodology: ICO DPIA template (UK) + CNIL DPIA methodology (FR) + GDPR Art. 35 + KR PIPA Art. 33 + EU AI Act 2024 conformity assessment
-related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0135, ADR-0130, ADR-0131, ADR-0140, ADR-SHEETS-0005]
+related_adrs: [ADR-0028, ADR-0056, ADR-0065, ADR-0103, ADR-0117, ADR-0135, ADR-0139, ADR-0131, ADR-0140, ADR-SHEETS-0005]
 related_specs: [/specs/microservices/sheets.json, /specs/per-microservice-flat-layout.json]
 related_artifacts:
   - microservices/sheets/threat-model.md

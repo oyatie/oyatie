@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-tenancy + gtm-customer-success
 deciders: axis-tenancy, council-architecture
-related_adrs: [ADR-0018, ADR-0130, ADR-0131]
+related_adrs: [ADR-0018, ADR-0139, ADR-0131]
 related_artifacts:
   - microservices/tenancy/contracts/openapi/tenancy.yaml
   - microservices/tenancy/contracts/proto/tenancy.proto

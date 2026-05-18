@@ -99,5 +99,5 @@ cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice
 ## References
 
 - `docs/standards/observability-slo.md`
-- ADR-0130; ADR-0131
+- ADR-0139; ADR-0131
 - OpenSLO v1.0 spec

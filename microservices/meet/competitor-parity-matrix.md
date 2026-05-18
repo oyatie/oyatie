@@ -160,7 +160,7 @@ Quantitative + qualitative parity comparison against industry-leading video-meet
 ## Key oyatie Differentiators (NOT in any competitor)
 
 1. **Multi-pack residency by design** — 11 region-pinned packs; no SaaS competitor matches the breadth (Zoom EE has ~5 regions, Teams Sovereign Cloud ~4).
-2. **OpenSLO-gated meet feature promotion** — feature rollouts gated by burn-rate (ADR-0130); no competitor enforces SLO-based rollout halting.
+2. **OpenSLO-gated meet feature promotion** — feature rollouts gated by burn-rate (ADR-0139); no competitor enforces SLO-based rollout halting.
 3. **Cedar v4.2 fine-grained policy substrate** — per-participant + per-track + per-recording policy; competitors expose only admin-level RBAC.
 4. **Cryptographic audit-chain over recordings + transcripts + disclosure** — Ed25519 + Merkle over every state transition; competitors deliver opaque vendor logs.
 5. **Four-eyes admin recording disclosure** — two-principal approval for recording reads; no competitor enforces.
@@ -198,7 +198,7 @@ Sales claims FORBIDDEN (per ADR-0123 hyperscaler-maturity-claim-gate):
 - `/specs/hyperscaler-gates.json` HG-MEET gate.
 - ADR-0123 (hyperscaler-maturity-claim-gate).
 - ADR-0135 (net-new µservice).
-- ADR-0130 (agentic SLO-gated promotion).
+- ADR-0139 (agentic SLO-gated promotion).
 - ADR-0132 (single-concern + flat).
 - ADR-0133 (industry best-practice conformance).
 - Competitor docs as cited inline above.

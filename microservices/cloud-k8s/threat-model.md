@@ -8,7 +8,7 @@ date: 2026-05-17
 owner_team: axis-cloud + ops-security
 deciders: council-architecture, ops-security, axis-cloud, council-privacy
 methodology: STRIDE (Microsoft) + LINDDUN (privacy) + OWASP Top 10 (2021) + NIST SP 800-154 + CIS Kubernetes Benchmark v1.9 + NSA/CISA Kubernetes Hardening Guide v1.2
-related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0056, ADR-0105, ADR-0117, ADR-0121, ADR-0139, ADR-0131, ADR-0140]
 related_specs: [/specs/per-microservice-flat-layout.json, /specs/hyperscaler-gates.json]
 review_cadence: quarterly + on every Kubernetes / containerd / Istio / Envoy / Cilium version change
 enforced_frameworks:
@@ -703,7 +703,7 @@ Per-pack overlays at `regional-packs/<pack>/cloud-k8s-overlay.md` follow the sam
 - ADR-0028 (Bominal audit chain; inherited).
 - ADR-0056, ADR-0105, ADR-0106 (architecture).
 - ADR-0117 (cloud-native progression), ADR-0120 (Rust-first), ADR-0121 (this µservice's substrate).
-- ADR-0130 (SLO gate), ADR-0131 (per-microservice flat), ADR-0140 (Cedar).
+- ADR-0139 (SLO gate), ADR-0131 (per-microservice flat), ADR-0140 (Cedar).
 - `microservices/cloud-k8s/PRD.md`.
 - `microservices/cloud-k8s/dpia.md` (paired privacy artifact).
 - CIS Kubernetes Benchmark v1.9 — `cisecurity.org/benchmark/kubernetes`.

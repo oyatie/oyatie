@@ -6,7 +6,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-architecture + axis-foundry
 deciders: council-architecture, axis-foundry, ops-sre-reliability
-related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0135, ADR-0130, ADR-0131, ADR-0132, ADR-0133]
+related_adrs: [ADR-0056, ADR-0105, ADR-0110, ADR-0135, ADR-0139, ADR-0131, ADR-0132, ADR-0133]
 related_specs: [/specs/industry-best-practice-conformance.json, /specs/microservice-migration-tooling.json, /specs/agent-durable-goal.json]
 applies_to: every microservice + every artifact in oyatie repo
 enforced_by: oya-governance-industry-best-practice-conformance §"axis-5-practices"
@@ -77,7 +77,7 @@ Every artifact authored in oyatie MUST satisfy these principles. The `oya-govern
 
 ## Principle 5 — Fail-closed on every gate
 
-**Rule:** Default-deny in every authorisation surface (Cedar) + default-`held` in every promotion gate (ADR-0130) + default-`reject` when an OpenSLO manifest is missing. Absence of an explicit permit is a refusal.
+**Rule:** Default-deny in every authorisation surface (Cedar) + default-`held` in every promotion gate (ADR-0139) + default-`reject` when an OpenSLO manifest is missing. Absence of an explicit permit is a refusal.
 
 **Why:** Agents recover from rejection faster than they recover from incorrect approval. False-positive deny is operational delay; false-positive permit is a breach.
 
@@ -137,7 +137,7 @@ The `oya-governance-industry-best-practice-conformance` CI lane (BLOCKER on dev;
 - ADR-0133 (this standard's parent ADR)
 - ADR-0110 (ChangeSet state machine — Principle 2)
 - ADR-0028 (Bominal audit-chain — Principle 4)
-- ADR-0130 (SLO gate fail-closed — Principle 5)
+- ADR-0139 (SLO gate fail-closed — Principle 5)
 - ADR-0140 (Cedar default-deny — Principle 5)
 - `feedback_durable_goal_spec` (Principle 1)
 - `feedback_no_silent_regression` (Principle 5)

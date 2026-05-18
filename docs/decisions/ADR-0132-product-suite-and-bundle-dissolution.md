@@ -6,7 +6,7 @@ date: 2026-05-17
 owner: council-architecture
 supersedes: []
 superseded_by: []
-related: [ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0119, ADR-0122, ADR-0127, ADR-0130, ADR-0131, ADR-0135]
+related: [ADR-0056, ADR-0105, ADR-0110, ADR-0115, ADR-0119, ADR-0122, ADR-0127, ADR-0139, ADR-0131, ADR-0135]
 related_specs: [/specs/per-microservice-flat-layout.json]
 session_context:
   authored: 2026-05-17
@@ -59,7 +59,7 @@ Existing suite wrappers (Connect Suite, Workspace Productivity Suite, Enterprise
 ### Positive
 
 - New µservices land in a uniform shape; no bundle/suite drift.
-- Per-concern SLO + release pointer (per ADR-0130) is the universal pattern, not the exception.
+- Per-concern SLO + release pointer (per ADR-0139) is the universal pattern, not the exception.
 - **Independent scaling.** Each concern scales on its own dimension without dragging unrelated concerns along: mail scales on mailbox-count + inbound-message-rate; calendar scales on event-write-rate; messenger scales on persistent-connection-count + message-rate; slo-engine scales on µservice-count × evaluator-cadence; ehr (future) scales on patient-count + FHIR-write-rate; payments (future) scales on transaction-rate + fraud-eval-rate. A bundled "Connect" or "Workspace" µservice would force these to scale together — wasting capacity on under-utilised surfaces while under-provisioning the bottleneck. Clean-architecture + flat-catalog enables horizontal-scaling efficiency at hyperscaler-grade. Per-pod HPA, per-µservice Mimir cardinality budgets, per-µservice cost budgets all flow from this.
 - Future migrations of existing suites have a clear target shape (this ADR's flat-µservice mandate); their per-team refactor ADRs reference this one as the destination.
 - Forward-policy is enforceable as a CI lane.
@@ -104,7 +104,7 @@ This ADR is structural / policy; layer assignments, dependency direction, and po
 - ADR-0110: ChangeSet state machine.
 - ADR-0135 (originally drafted as ADR-0126 in the oyatie 2026-05-17 session; renumbered 2026-05-18 to avoid collision with dev's ADR-0126 Employment classification): Connect-specific dissolution — full social-network super-app expansion; this ADR cross-references but does not re-author.
 - ADR-0127 (parallel session 2026-05-17): Portfolio hyperscaler pattern enforcement.
-- ADR-0130: Agentic SLO-gated promotion (per-microservice release pointers depend on this ADR's flat-µservice mandate).
+- ADR-0139: Agentic SLO-gated promotion (per-microservice release pointers depend on this ADR's flat-µservice mandate).
 - ADR-0131: Per-microservice flat layout (the layout authority; this ADR is its enforcement sibling for suite-prevention).
 - `feedback_flat_product_catalog.md`: "Everything is shared; flat product catalog."
 - `feedback_glossary_shared_not_platform.md`: retirement of "platform" (= suite by another name) terminology.

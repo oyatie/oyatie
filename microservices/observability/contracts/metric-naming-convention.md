@@ -7,7 +7,7 @@ related_specs:
 related_adrs:
   - ADR-0064
   - ADR-0128
-  - ADR-0130
+  - ADR-0139
   - ADR-0131
   - ADR-0133
 overlay_consumers:
@@ -147,7 +147,7 @@ review.
 
 - ADR-0064 — canonical-base-and-localization-packs.
 - ADR-0128 — hyperscaler architecture invariants (the four INV-* ids).
-- ADR-0130 — agentic SLO-gated promotion (consumer of these signals).
+- ADR-0139 — agentic SLO-gated promotion (consumer of these signals).
 - ADR-0131 — per-microservice flat layout.
 - ADR-0133 — industry best-practice + hyperscaler conformance program.
 - `docs/standards/hyperscaler-invariant-conformance.md` — normative

@@ -42,7 +42,7 @@ gated on the SLO trigger.
 
 1. **ADR-0132 — no-suite forward-policy.** `connect-*` encodes bundle
    membership at the architecture layer.
-2. **ADR-0130 — agentic SLO-gated promotion.** Messenger needs independent
+2. **ADR-0139 — agentic SLO-gated promotion.** Messenger needs independent
    SLO targets per surface (persistent-connection-count, message-stream
    throughput, presence-replication lag, websocket-frame p99, huddle SFU
    MTTR).

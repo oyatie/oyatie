@@ -46,7 +46,7 @@ Per ADR-0117 (tenant pack jurisdiction), each tenant is bound to exactly one **r
 | Audit-chain Merkle root replication (root hash only; no content) | global integrity of audit-chain | Merkle root is cryptographic; reveals no content |
 | Transparency-report aggregator (counts only; no per-tenant content) | EU DSA Arts. 27/28 + KR PIPA Art. 28 transparency obligation | aggregate counts; k-anonymity floor enforced |
 | Per-pack BBS+ issuer-public-key registry replication | cross-pack issuer trust (rare; only for multi-jurisdiction enterprises) | public keys only; never private keys |
-| Promotion-eligibility metric (from observability) | global SLO-gating per ADR-0130 | metric is aggregate; never per-tenant post content |
+| Promotion-eligibility metric (from observability) | global SLO-gating per ADR-0139 | metric is aggregate; never per-tenant post content |
 
 ## Cross-pack data flows that are REFUSED
 

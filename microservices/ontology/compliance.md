@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: council-privacy + ops-compliance + ops-security
 deciders: council-privacy, ops-security, axis-ontology, council-architecture, ops-compliance
-related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0130, ADR-0131, ADR-0140]
+related_adrs: [ADR-0028, ADR-0117, ADR-0123, ADR-0139, ADR-0131, ADR-0140]
 related_artifacts:
   - microservices/ontology/threat-model.md
   - microservices/ontology/dpia.md
@@ -58,7 +58,7 @@ The canonical control-to-framework mapping for the ontology µservice. Tells ext
 | CC7.3 | Anomaly evaluation | Burn-rate alerts + cardinality alerts | `/specs/agentic-slo-gated-promotion.json` |
 | CC7.4 | Incident response | Severity-classified response + escalation | `incident-response.md` |
 | CC8.1 | Change management | PR review + LEAN gates + branch protection | branch-protection.yaml |
-| CC9.1 | Risk mitigation | Multi-region + DR pair + automated rollback | `multi-region.md` + ADR-0130 |
+| CC9.1 | Risk mitigation | Multi-region + DR pair + automated rollback | `multi-region.md` + ADR-0139 |
 | CC9.2 | Vendor risk management | Sub-processor list + per-vendor DPA | `legal/sub-processors.md` |
 
 **Privacy Criteria (P1–P8):**
@@ -277,7 +277,7 @@ External auditors receive a frozen evidence pack per `docs/templates/evidence-pa
 - `microservices/ontology/policy/{type-isolation, data-residency}.md`.
 - `microservices/ontology/policy/*.cedar`.
 - `microservices/ontology/incident-response.md`.
-- ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (hyperscaler-maturity); ADR-0130 (SLO); ADR-0131 (per-microservice flat layout); ADR-0140 (Cedar).
+- ADR-0028 (audit-chain); ADR-0117 (residency); ADR-0123 (hyperscaler-maturity); ADR-0139 (SLO); ADR-0131 (per-microservice flat layout); ADR-0140 (Cedar).
 - SOC 2 Type 2: TSC 2017 + 2022 PoF — `aicpa.org`.
 - ISO/IEC 27001:2022 + 27002:2022 — `iso.org`.
 - GDPR — `gdpr-info.eu`; EDPB — `edpb.europa.eu`.

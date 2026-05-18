@@ -7,7 +7,7 @@ classification: INTERNAL_ONLY
 date: 2026-05-17
 owner_team: axis-cell-substrate + council-architecture
 deciders: axis-cell-substrate, council-architecture, gtm-customer-success
-related_adrs: [ADR-0123, ADR-0130]
+related_adrs: [ADR-0123, ADR-0139]
 related_artifacts:
   - microservices/cell/PRD.md (§Competitive Benchmark)
   - /specs/hyperscaler-gates.json (HG-CELL gate)

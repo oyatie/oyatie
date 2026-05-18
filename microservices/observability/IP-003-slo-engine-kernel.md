@@ -187,6 +187,6 @@ Per PHASE-01 §"Per-IP Test Coverage Threshold" kernel class: 1 test per public 
 
 ## References
 
-- ADR-0056 BNF v4.1; ADR-0105 13-layer enum; ADR-0130 §"Naming justification"
+- ADR-0056 BNF v4.1; ADR-0105 13-layer enum; ADR-0139 §"Naming justification"
 - PRD §"Bounded Contexts" port-trait table
 - Bominal ADR-0028 (data-class taxonomy)
