@@ -47,7 +47,7 @@ components:
       schema:
         type: string
         enum: [Personal, Professional]
-      description: Dual-context invariant per parallel ADR-0135
+      description: Dual-context invariant per parallel ADR-0238
     # Tier-A canonical parameter components (Fix-Agent-I, 2026-05-18).
     # Per ADR-0149..ADR-0151. Every state-changing op MUST ref
     # IdempotencyKey; every list op MUST ref Cursor + PageSize;

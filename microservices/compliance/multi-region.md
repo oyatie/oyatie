@@ -44,5 +44,5 @@ Per ADR-0153 + ADR-0179: per-cell deployment; cross-cell fan-in via outbox repli
 
 - ADR-0153 — observability backplane (outbox + per-cell).
 - ADR-0164 — sovereign cloud air-gapped.
-- ADR-0179 — sovereign cloud per-regional pack.
+- ADR-0240 — sovereign cloud per-regional pack.
 - ADR-0209 — substrate authority.

@@ -19,7 +19,7 @@ doc_status: published
 
 ## Purpose
 
-The `notes` µservice is the **short-form personal-notes + knowledge-capture** surface that ships under parallel ADR-0135 (Connect super-app expansion) and ADR-0132 (suite-and-bundle dissolution) as a stand-alone hero µservice. It is NET-NEW; no `oya-connect-notes-*` legacy crates exist.
+The `notes` µservice is the **short-form personal-notes + knowledge-capture** surface that ships under parallel ADR-0238 (Connect super-app expansion) and ADR-0132 (suite-and-bundle dissolution) as a stand-alone hero µservice. It is NET-NEW; no `oya-connect-notes-*` legacy crates exist.
 
 The µservice owns: **note (Markdown body + YAML frontmatter), notebook/stack (loose hierarchy), tag (multi-tag per note + tag-graph), backlink (Obsidian-style `[[wikilink]]` bidirectional), daily-note (auto-created per day), template, web-clipper-bridge, share-link (read-only by default), embed (image + video + file via drive µservice), checklist, reminder (cross-µservice to tasks), folder (optional; flat-by-default), version-history (linear), search (cross-note + tag-faceted; client-side for E2E notes), graph-view (Obsidian-style force-directed; client-side render), import (Apple Notes export + Evernote ENEX + OneNote + Notion Markdown + Bear + Obsidian vault), export (Markdown + PDF + JSON portable), collab-edit (optional per note; Loro CRDT align), AI-summarize (T1), AI-suggest-tag (T1), AI-link-suggest (T1)**, across the dual-context model (Personal B2C + Professional B2B).
 
@@ -212,7 +212,7 @@ CI lanes that must green:
 - `oya gate validate statelessness --microservice notes`
 - `oya gate validate shardability --microservice notes`
 - `oya gate validate authority-cohesion --microservice notes` (HG-NOTES)
-- `oya gate validate dual-context-isolation --microservice notes` (per parallel ADR-0135)
+- `oya gate validate dual-context-isolation --microservice notes` (per parallel ADR-0238)
 - `oya gate validate e2e-ai-refusal --microservice notes` (NEW; per ADR-NOTES-0005)
 
 ## Integration via Workflow + Ontology
@@ -254,7 +254,7 @@ CI lanes that must green:
 | `Tag{tag_id, tenant_id, name, color, parent_tag_id}` | `tag-graph` | Ed25519 (Professional only) |
 | `Backlink{from_note_id, to_note_id, kind: explicit | tag}` | `backlink-graph` | Ed25519 (Professional only) |
 
-Personal-tier writes to Ontology are MINIMAL by design (only opaque `Note{note_id, user_id, context_kind: Personal}` — no title, no body, no tags) per parallel ADR-0135 + DCI-05.
+Personal-tier writes to Ontology are MINIMAL by design (only opaque `Note{note_id, user_id, context_kind: Personal}` — no title, no body, no tags) per parallel ADR-0238 + DCI-05.
 
 ### Ontology reads
 
@@ -353,7 +353,7 @@ Sharding:
 | AC-10 | Professional note four-eyes disclosure requires two distinct approving principals + audit-chain seal | `tests/e2e/four-eyes-disclosure.rs` |
 | AC-11 | `oya gate validate per-microservice-layout --microservice notes` exit 0 | ADR-0131 lane |
 | AC-12 | `oya gate validate authority-cohesion --microservice notes` exit 0 | ADR-0133 lane; HG-NOTES registered |
-| AC-13 | `oya gate validate dual-context-isolation --microservice notes` exit 0 | per parallel ADR-0135 |
+| AC-13 | `oya gate validate dual-context-isolation --microservice notes` exit 0 | per parallel ADR-0238 |
 | AC-14 | `oya gate validate e2e-ai-refusal --microservice notes` exit 0 | per ADR-NOTES-0005 |
 | AC-15 | Loro collab session: two clients edit same Professional note concurrently; converged state matches reference implementation | `tests/e2e/loro-collab-convergence.rs` |
 | AC-16 | Markdown export round-trips via JSON Canonical (RFC 8785) byte-identical when re-exported | `tests/e2e/export-roundtrip-canonical.rs` |

@@ -27,14 +27,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full messenger µservice per parallel ADR-0135 + ADR-0132: team channels + DMs + threads + read-receipts + file-sharing + reactions + @mentions + channel-level RBAC + message search + presence, dual-context-safe across personal (B2C) and professional (B2B).
+This phase ships the full messenger µservice per parallel ADR-0238 + ADR-0132: team channels + DMs + threads + read-receipts + file-sharing + reactions + @mentions + channel-level RBAC + message search + presence, dual-context-safe across personal (B2C) and professional (B2B).
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Slack/Teams-class feature parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work (no FUTURE stubs; every NFR covered).
 - No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
+- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0238.
 
 ## Scope
 
@@ -48,7 +48,7 @@ Plus cross-cutting:
 - `.github/branch-protection.yaml` — add `release/messenger/*` pattern protection.
 - `/specs/hyperscaler-gates.json` — register HG-MESSENGER per ADR-0133.
 - `Cargo.toml` (workspace) — register 52 crates.
-- `docs/standards/dual-context-isolation.md` (NEW; cross-cutting per parallel ADR-0135).
+- `docs/standards/dual-context-isolation.md` (NEW; cross-cutting per parallel ADR-0238).
 
 ### Out-of-scope
 

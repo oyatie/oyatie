@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing dual-context invariants of the messenger substrate. Per parallel ADR-0135 (which inherits Bominal ADR-0208's dual-context model), every messenger entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
+Define the load-bearing dual-context invariants of the messenger substrate. Per parallel ADR-0238 (which inherits Bominal ADR-0208's dual-context model), every messenger entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
 
 - which keys encrypt the body (personal E2E vs tenant-DEK);
 - which retention floor applies (personal user-policy vs professional pack-floor);
@@ -44,7 +44,7 @@ pub enum ContextKind {
 Properties:
 - Enum is sealed at the kernel layer; only two variants ever exist.
 - Cross-variant write is rejected at the domain layer.
-- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0135.
+- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0238.
 
 ## Entity Type Invariants
 

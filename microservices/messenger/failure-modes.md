@@ -145,7 +145,7 @@ Each entry: FM-ID, trigger, detection, tenant impact, severity, immediate mitiga
 | Runbook | `runbooks/attachment-malware-quarantine.md` |
 | Postmortem | ops-security + axis-messenger |
 
-## FM-10: Cross-context routing violation (parallel ADR-0135 invariant breach)
+## FM-10: Cross-context routing violation (parallel ADR-0238 invariant breach)
 
 | Field | Value |
 |---|---|

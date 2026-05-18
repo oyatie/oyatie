@@ -21,7 +21,7 @@ doc_status: published
 
 ## Purpose
 
-Define the load-bearing dual-context invariants of the notes substrate. Per parallel ADR-0135 (inheriting Bominal ADR-0208's dual-context model), every notes entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
+Define the load-bearing dual-context invariants of the notes substrate. Per parallel ADR-0238 (inheriting Bominal ADR-0208's dual-context model), every notes entity carries a `context_kind: { Personal | Professional }` discriminator that determines:
 
 - which keys encrypt the body (Personal client-derived MLS E2E vs Professional tenant-DEK envelope);
 - which retention floor applies (Personal user-policy vs Professional pack-floor);
@@ -48,7 +48,7 @@ pub enum ContextKind {
 Properties:
 - Enum is sealed at the kernel layer; only two variants ever exist.
 - Cross-variant write is rejected at the domain layer.
-- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0135.
+- Runtime config CANNOT switch a Personal entity into Professional (or vice versa); this is a compile-time + data-model invariant per parallel ADR-0238.
 
 ## Entity Type Invariants
 

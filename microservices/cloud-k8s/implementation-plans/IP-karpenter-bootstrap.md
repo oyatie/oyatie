@@ -2,7 +2,7 @@
 ip_id: cloud-k8s/IP-karpenter-bootstrap
 authored: 2026-05-18
 slice_owner: axis-cloud-k8s
-related_adrs: [ADR-0064, ADR-0131, ADR-0152, ADR-0173-vendor-lock-in-avoidance-and-stack-ownership, ADR-0179-sovereign-cloud-per-regional-pack, ADR-0198, ADR-0199]
+related_adrs: [ADR-0064, ADR-0131, ADR-0152, ADR-0173-vendor-lock-in-avoidance-and-stack-ownership, ADR-0240-sovereign-cloud-per-regional-pack, ADR-0198, ADR-0199]
 ip_status: planned
 ---
 

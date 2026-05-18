@@ -100,10 +100,10 @@
   "lts_pins": {},
   "adrs": [
     {
-      "id": "ADR-0136",
+      "id": "ADR-0239",
       "title": "Foundry internal scope clarification",
       "scope": "repo",
-      "file": "docs/decisions/ADR-0136-amendment-foundry-internal-scope-clarification-2026-05-18.md"
+      "file": "docs/decisions/ADR-0239-amendment-foundry-internal-scope-clarification-2026-05-18.md"
     },
     {
       "id": "ADR-0215",

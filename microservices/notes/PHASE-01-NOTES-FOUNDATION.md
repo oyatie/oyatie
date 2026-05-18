@@ -36,14 +36,14 @@ doc_status: published
 
 ## Purpose
 
-This phase ships the full notes µservice per parallel ADR-0135 + ADR-0132: short-form personal-notes + knowledge-capture, dual-context-safe across personal (B2C) and professional (B2B), with E2E-default on the Personal tier.
+This phase ships the full notes µservice per parallel ADR-0238 + ADR-0132: short-form personal-notes + knowledge-capture, dual-context-safe across personal (B2C) and professional (B2B), with E2E-default on the Personal tier.
 
 It advances master-plan principles:
 - Hyperscaler-grade in every practice (Apple Notes / Obsidian / Standard Notes-class parity + native Workflow + Ontology integration).
 - Nothing scheduled-for-distinct-tracked-work (no FUTURE stubs; every NFR covered).
 - No silent regression (production-tier change gated by observability ADR-0139).
 - Per-microservice flat layout (ADR-0131 native authoring).
-- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0135.
+- Dual-context isolation by data model (NOT runtime flag) per parallel ADR-0238.
 - AI-refusal on E2E content as a structural impossibility, not a setting (per ADR-NOTES-0005).
 
 ## Scope

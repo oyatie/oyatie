@@ -141,7 +141,7 @@ Quantitative + qualitative parity comparison against industry-leading social-net
 
 ## Key oyatie Differentiators (NOT in any competitor)
 
-1. **Dual-context isolation by data-model invariant** — Personal ≠ Professional enforced at compile-time + LEAN-lane (per parallel ADR-0135); no competitor does this at data-model level. LinkedIn is professional-only (not dual-context); X / Meta blur with account-level switch.
+1. **Dual-context isolation by data-model invariant** — Personal ≠ Professional enforced at compile-time + LEAN-lane (per parallel ADR-0238); no competitor does this at data-model level. LinkedIn is professional-only (not dual-context); X / Meta blur with account-level switch.
 2. **Multi-pack residency by design** — 11 region-pinned packs; no SaaS competitor matches breadth.
 3. **OpenSLO-gated promotion** — feature rollouts gated by burn-rate (ADR-0139); no competitor enforces SLO-based rollout halting.
 4. **Cedar v4 policy substrate** — fine-grained per-resource policy; competitors expose only admin-level RBAC.

@@ -23,7 +23,7 @@ The `tasks` µservice is oyatie's native **work-item / task management** substra
 
 The µservice differentiates from `workflow-engine` (durable execution engine) by being the **user-facing CRUD primitive for work-items that humans manage manually**. Calendar binds time-blocks; tasks binds work-items.
 
-The µservice carries dual-context (Personal / Professional) per parallel ADR-0135; task details never cross context boundaries except via explicit project membership or policy-bound projection.
+The µservice carries dual-context (Personal / Professional) per parallel ADR-0238; task details never cross context boundaries except via explicit project membership or policy-bound projection.
 
 Bominal inheritance: ADR-0231 board+views + ADR-0232 dependency graph + ADR-0233 recurring/RSVP-equivalent semantics inherited 1:1 per `feedback_bominal_inheritance_precedence.md`; oyatie additions captured below.
 

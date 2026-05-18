@@ -54,7 +54,7 @@ components:
       name: X-Context-Kind
       required: true
       schema: {type: string, enum: [Personal, Professional]}
-      description: Dual-context invariant per parallel ADR-0135
+      description: Dual-context invariant per parallel ADR-0238
     XAgePackThreshold:
       in: header
       name: X-Age-Pack-Threshold

@@ -49,7 +49,7 @@ retention + legal-hold + eDiscovery + export); the producing µservices
 
 This µservice ships under ADR-0132 (no-suite forward-policy) as a stand-alone
 µservice at the architecture layer, factored out of the legacy Connect-suite
-by parallel ADR-0135. Bominal predecessor: `workspace-recordings` adjunct from
+by parallel ADR-0238. Bominal predecessor: `workspace-recordings` adjunct from
 Bominal ADR-0029.
 
 This µservice is **a hero product** end-user-facing through Workflow Studio

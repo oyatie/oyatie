@@ -1,5 +1,5 @@
 ---
-id: ADR-0179
+id: ADR-0240
 status: Accepted
 date: 2026-05-18
 owners:
@@ -26,7 +26,7 @@ enforcement_status: advisory-until-per-pack-overlay-finalized
 enforced_by: oya gate validate sovereign-cloud-overlay
 ---
 
-# ADR-0179: Sovereign cloud per regional pack
+# ADR-0240: Sovereign cloud per regional pack
 
 ## Status
 

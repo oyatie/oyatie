@@ -1,5 +1,5 @@
 ---
-id: ADR-0180
+id: ADR-0241
 status: Accepted
 date: 2026-05-18
 owners:
@@ -14,7 +14,7 @@ related:
   - ADR-0009-cell-architecture-per-tenant-per-region.md
   - ADR-0128-hyperscaler-architecture-invariants.md
   - ADR-0040-progressive-delivery-canary-blue-green-metric-gated-rollback.md
-  - ADR-0179-sovereign-cloud-per-regional-pack.md
+  - ADR-0240-sovereign-cloud-per-regional-pack.md
 doc_class: Architecture-Decision-Record
 purpose: >
   Four DR tiers per µservice (T1 < 5 min RTO + 0 RPO through T4 < 24 h
@@ -25,7 +25,7 @@ enforcement_status: advisory-until-per-microservice-tier-declared
 enforced_by: oya gate validate dr-business-continuity
 ---
 
-# ADR-0180: DR + business-continuity portfolio policy
+# ADR-0241: DR + business-continuity portfolio policy
 
 ## Status
 
@@ -111,7 +111,7 @@ backlog tracked at `registry/dr/orchestrator-backlog.tsv`).
 | `backup-restore-cross-region-warm` | Periodic backup (hourly) + warm instance in DR region | 0 ms write tail | 1.1× storage |
 | `backup-restore-cold` | Periodic backup (daily); restore-on-demand | 0 ms | 1.05× storage |
 
-The cloud-iac layer (per ADR-0179 sovereign cloud overlay) implements
+The cloud-iac layer (per ADR-0240 sovereign cloud overlay) implements
 each shape against the pack's primary + secondary providers.
 
 ### D-5. Cross-tier coordination
@@ -132,7 +132,7 @@ broader scenarios:
 | --- | --- | --- |
 | Single-AZ failure | ops-sre-reliability | Quarterly (covered by T1/T2 drill) |
 | Region failure | ops-dr-capacity | Quarterly (T1) / semi-annual (T2) |
-| Provider failure (per ADR-0179) | ops-dr-capacity + ops-compliance | Semi-annual |
+| Provider failure (per ADR-0240) | ops-dr-capacity + ops-compliance | Semi-annual |
 | Sovereign-pack regulator suspension | ops-compliance | Tabletop annually |
 | Cyber-attack / ransomware | ops-security + ops-dr-capacity | Tabletop annually |
 | Pandemic / staff unavailability | council-architecture | Tabletop annually |
@@ -249,6 +249,6 @@ diminishing-returns RTO/RPO for low-volume µservices.
 - ADR-0049 (this portfolio) — cross-region replication + residency.
 - ADR-0009 (this portfolio) — cell architecture (blast-radius
   isolation).
-- ADR-0179 (this portfolio) — sovereign cloud per regional pack
+- ADR-0240 (this portfolio) — sovereign cloud per regional pack
   (provides the substrate set for cross-provider failover).
 - ADR-0176 (this portfolio) — brown-out + degradation signal API.

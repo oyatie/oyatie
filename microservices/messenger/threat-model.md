@@ -39,7 +39,7 @@ Identify, classify, and mitigate threats to messenger's confidentiality, integri
 
 ### In-scope
 
-All components introduced by parallel ADR-0135 (Connect dual-context inherited) and ADR-0132 (suite dissolution into messenger surface) for the messenger µservice. Deployed in the dedicated messenger Kubernetes cluster.
+All components introduced by parallel ADR-0238 (Connect dual-context inherited) and ADR-0132 (suite dissolution into messenger surface) for the messenger µservice. Deployed in the dedicated messenger Kubernetes cluster.
 
 | Layer-A (adopted OSS) | Layer-B (oyatie-owned) |
 |---|---|
@@ -113,7 +113,7 @@ Seven trust boundaries:
 1. **External → Cluster ingress** (TLS, WAF, DDoS, WebSocket upgrade).
 2. **Gateway → BC services** (mTLS + SPIFFE identity).
 3. **BC services → backing stores** (RLS + per-tenant prefix isolation).
-4. **Personal/Professional context isolation** (data-model invariant per parallel ADR-0135).
+4. **Personal/Professional context isolation** (data-model invariant per parallel ADR-0238).
 5. **BC services → audit-chain** (Ed25519 seal).
 6. **BC services → ontology** (Workflow event bus).
 7. **Attachment scan path** (untrusted blob → scanner → quarantine vs production).
@@ -268,7 +268,7 @@ Seven trust boundaries:
 - Asset: Dual-context isolation
 - Likelihood L / Impact H (regulatory + privacy breach) / Risk **H**
 - Mitigations: data-model invariant — DirectConversation and Channel are distinct entity types; cross-type write rejected by domain layer; LEAN-lane `oya-check-dual-context-isolation` validates type signatures forbid cross-context flows.
-- Frameworks: GDPR Art. 25; KR PIPA Art. 17; parallel ADR-0135
+- Frameworks: GDPR Art. 25; KR PIPA Art. 17; parallel ADR-0238
 
 ### Denial of Service (D)
 

@@ -25,7 +25,7 @@
       "evidence": [
         "3 shards × 2 replicas + ClickHouse Keeper 3-node Raft quorum",
         "Tolerates single-replica failure per shard",
-        "Cross-cell DR per ADR-0180-dr-business-continuity-portfolio-policy"
+        "Cross-cell DR per ADR-0241-dr-business-continuity-portfolio-policy"
       ]
     },
     "performance_efficiency": {
