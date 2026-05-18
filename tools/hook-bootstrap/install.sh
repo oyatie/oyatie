@@ -5,8 +5,9 @@
 #          Installs: (a) hook entries in .claude/settings.json (project-scoped),
 #          (b) optionally project-scoped .codex/hooks.json if Codex detected,
 #          (c) optionally project-scoped .gemini/settings.json if Gemini detected,
-#          (d) vendors agent-skills from addyosmani/agent-skills if reachable,
-#          (e) suggests direnv allow or prints manual PATH instructions.
+#          (d) optionally project-scoped .hermes/hooks.json if Hermes detected,
+#          (e) vendors agent-skills from addyosmani/agent-skills if reachable,
+#          (f) suggests direnv allow or prints manual PATH instructions.
 #
 # Usage:
 #   ./tools/hook-bootstrap/install.sh               # full install
@@ -15,8 +16,9 @@
 #   ./tools/hook-bootstrap/install.sh --sync-skills # re-vendor agent-skills (force refresh)
 #
 # Reproducibility: writes only to .claude/settings.json, .codex/hooks.json (if Codex
-# detected), .gemini/settings.json (if Gemini detected), and tools/agent-skills/.
-# Never writes to user-level (~/.claude, ~/.codex, ~/.gemini).
+# detected), .gemini/settings.json (if Gemini detected), .hermes/hooks.json (if Hermes
+# detected), and tools/agent-skills/.
+# Never writes to user-level (~/.claude, ~/.codex, ~/.gemini, ~/.hermes).
 # Non-blocking: exits 0 on success; exits 1 only on hard errors (malformed settings.json,
 # missing executable bits on hook scripts).
 
@@ -263,6 +265,78 @@ else
     info "Gemini not detected — skipping .gemini/settings.json (re-run install.sh after installing Gemini CLI)"
 fi
 
+# ── Detect and install Hermes hooks ─────────────────────────────────────────
+
+HERMES_DETECTED=false
+HERMES_DIR="$REPO_ROOT/.hermes"
+if [ -d "$HERMES_DIR" ] || command -v hermes >/dev/null 2>&1 || [ -d "$HOME/.hermes" ]; then
+    HERMES_DETECTED=true
+fi
+
+if $HERMES_DETECTED; then
+    log "Hermes detected — installing project-scoped .hermes/hooks.json..."
+    HERMES_HOOKS="$HERMES_DIR/hooks.json"
+
+    # NOTE: Hermes hook schema is not yet stabilized as a public convention.
+    # This config mirrors Codex's snake_case event names as a reasonable v1
+    # starting point. When Hermes ships an authoritative hook reference,
+    # update event keys accordingly. Hook scripts themselves are agent-agnostic
+    # (they read stdin + emit advisory output to stderr).
+    HERMES_CONTENT='{
+  "_managed_by": "tools/hook-bootstrap/install.sh",
+  "_marker": "'"$MARKER"'",
+  "_note": "Project-scoped Hermes hooks. Never edit manually — managed by install.sh/uninstall.sh.",
+  "_schema_caveat": "Event names mirror Codex snake_case v1. Update when Hermes publishes its authoritative hook reference.",
+  "hooks": {
+    "session_start": [
+      { "command": "tools/hooks/session-start-context-inject.sh" }
+    ],
+    "user_prompt_submit": [
+      { "command": "tools/hooks/userprompt-canonical-primer.sh" }
+    ],
+    "stop": [
+      { "command": "tools/hooks/stop-did-you-forget-suggester.sh" },
+      { "command": "tools/hooks/microservice-quality-bar.sh" }
+    ],
+    "pre_tool_use": [
+      { "command": "tools/hooks/stale-tool-suggester.sh", "matcher": "bash" },
+      { "command": "tools/hooks/pre-dispatch-guide.sh",   "matcher": "agent" },
+      { "command": "tools/hooks/vertical-slice-scope-suggester.sh", "matcher": "write" }
+    ],
+    "post_tool_use": [
+      { "command": "tools/hooks/cargo-verify-on-rust-edit.sh",   "matcher": "edit" },
+      { "command": "tools/hooks/cargo-verify-on-rust-edit.sh",   "matcher": "write" },
+      { "command": "tools/hooks/spec-version-pin-suggester.sh",  "matcher": "edit" },
+      { "command": "tools/hooks/spec-version-pin-suggester.sh",  "matcher": "write" },
+      { "command": "tools/hooks/buildability-line-count.sh",     "matcher": "write" },
+      { "command": "tools/hooks/adr-orphan-detect.sh",           "matcher": "edit" },
+      { "command": "tools/hooks/adr-orphan-detect.sh",           "matcher": "write" },
+      { "command": "tools/hooks/microservice-quality-bar.sh",    "matcher": "write" },
+      { "command": "tools/hooks/vacuous-green-gate-detect.sh",   "matcher": "edit" },
+      { "command": "tools/hooks/vacuous-green-gate-detect.sh",   "matcher": "write" }
+    ]
+  }
+}'
+
+    if $DRY_RUN; then
+        dry "Would write $HERMES_HOOKS"
+    else
+        if [ -f "$HERMES_HOOKS" ] && grep -q "\"$MARKER\"" "$HERMES_HOOKS" 2>/dev/null; then
+            ok ".hermes/hooks.json already contains bootstrap hooks (idempotent)"
+        elif [ -f "$HERMES_HOOKS" ]; then
+            warn ".hermes/hooks.json exists without bootstrap marker — refusing to overwrite"
+            warn "  example written to .hermes/hooks.json.oya-bootstrap-example; merge manually"
+            echo "$HERMES_CONTENT" > "$HERMES_HOOKS.oya-bootstrap-example"
+        else
+            mkdir -p "$HERMES_DIR"
+            echo "$HERMES_CONTENT" > "$HERMES_HOOKS"
+            ok ".hermes/hooks.json written"
+        fi
+    fi
+else
+    info "Hermes not detected — skipping .hermes/hooks.json (re-run install.sh after installing Hermes CLI)"
+fi
+
 # ── Sync agent-skills ────────────────────────────────────────────────────────
 
 sync_agent_skills() {
@@ -413,6 +487,9 @@ else
     fi
     if $GEMINI_DETECTED; then
         ok "Gemini hooks installed → .gemini/settings.json"
+    fi
+    if $HERMES_DETECTED; then
+        ok "Hermes hooks installed → .hermes/hooks.json"
     fi
     SKILL_COUNT_FINAL=$(find "$REPO_ROOT/tools/agent-skills/skills" -maxdepth 1 -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ' || echo "0")
     ok "Agent skills vendored at tools/agent-skills/ ($SKILL_COUNT_FINAL skills available; see docs/bootstrap.md)"

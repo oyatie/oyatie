@@ -27,6 +27,7 @@ Options:
 | Hook entries | `.claude/settings.json` | 12 encouragement hooks for Claude Code |
 | Codex hooks (if detected) | `.codex/hooks.json` | Same hooks for Codex CLI |
 | Gemini hooks (if detected) | `.gemini/settings.json` | Same hooks for Gemini CLI (event names: SessionStart/BeforeAgent/AfterAgent/BeforeTool/AfterTool) |
+| Hermes hooks (if detected) | `.hermes/hooks.json` | Same hooks for Hermes CLI (schema mirrors Codex; revisit when Hermes ships its authoritative hook reference) |
 | CLI wrapper | `bin/oya` | `oya <subcommand>` → `cargo run -p oya-dev-cli` |
 | Shell completions | `tools/completions/{bash,zsh,fish}` | Tab-completion for all subcommands |
 | Lifecycle skills | `tools/agent-skills/` | 23 vendored skills from addyosmani/agent-skills |
@@ -35,7 +36,7 @@ If `.gemini/settings.json` already exists from prior Gemini use, install.sh refu
 
 ### What it doesn't do
 
-- No user-level state (`~/.claude`, `~/.codex`, `~/.gemini`, `~/.local/bin` are never touched)
+- No user-level state (`~/.claude`, `~/.codex`, `~/.gemini`, `~/.hermes`, `~/.local/bin` are never touched)
 - No symlinks outside the repository
 - No `~/.local/bin/oya` or similar global installs
 - No modifications to your shell profile
