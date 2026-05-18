@@ -337,6 +337,136 @@ else
     info "Hermes not detected — skipping .hermes/hooks.json (re-run install.sh after installing Hermes CLI)"
 fi
 
+# ── Link agent slash commands (Claude + Gemini) ─────────────────────────────
+#
+# For agents whose native slash-command discovery scans a project directory,
+# symlink the vendored upstream command files into that directory. Symlinks
+# (not copies) so upstream sync via .github/workflows/sync-agent-skills.yml
+# stays the single source of truth. Idempotent: skip if target already a
+# symlink to the right location; warn if a non-symlink already occupies the
+# slot (user-authored content preserved).
+
+link_agent_commands() {
+    local agent_label="$1"   # "Claude" or "Gemini"
+    local target_dir="$2"    # ".claude/commands" or ".gemini/commands"
+    local source_dir="$3"    # "tools/agent-skills/.claude/commands" etc.
+    local rel_back="$4"      # relative path back to repo root from target_dir
+
+    if [ ! -d "$REPO_ROOT/$source_dir" ]; then
+        info "$agent_label commands not vendored at $source_dir (run --sync-skills) — skipping"
+        return 0
+    fi
+
+    if $DRY_RUN; then
+        for f in "$REPO_ROOT/$source_dir"/*; do
+            [ -f "$f" ] || continue
+            dry "Would symlink $(basename "$f") → $target_dir/$(basename "$f")"
+        done
+        return 0
+    fi
+
+    mkdir -p "$REPO_ROOT/$target_dir"
+    local linked=0
+    local skipped=0
+    local conflict=0
+    for f in "$REPO_ROOT/$source_dir"/*; do
+        [ -f "$f" ] || continue
+        local name link target
+        name="$(basename "$f")"
+        link="$REPO_ROOT/$target_dir/$name"
+        target="$rel_back/$source_dir/$name"
+
+        if [ -L "$link" ]; then
+            if [ "$(readlink "$link")" = "$target" ]; then
+                skipped=$((skipped + 1))
+                continue
+            fi
+            warn "$target_dir/$name is a symlink to $(readlink "$link") — refusing to overwrite"
+            conflict=$((conflict + 1))
+            continue
+        elif [ -e "$link" ]; then
+            warn "$target_dir/$name exists (not a symlink) — refusing to clobber user content"
+            conflict=$((conflict + 1))
+            continue
+        fi
+
+        ln -s "$target" "$link"
+        linked=$((linked + 1))
+    done
+
+    if [ "$linked" -gt 0 ]; then
+        ok "$agent_label commands linked → $target_dir/ ($linked new, $skipped idempotent)"
+    elif [ "$skipped" -gt 0 ]; then
+        ok "$agent_label commands already linked ($skipped idempotent)"
+    fi
+    if [ "$conflict" -gt 0 ]; then
+        warn "$agent_label: $conflict command(s) skipped due to pre-existing content; merge manually"
+    fi
+}
+
+# Run commands for Claude (slash commands as .md files; always — Claude Code is
+# the primary surface this repo authors against)
+link_agent_commands "Claude" ".claude/commands" "tools/agent-skills/.claude/commands" "../.."
+
+# Run commands for Gemini (slash commands as .toml files; only if Gemini detected)
+if $GEMINI_DETECTED; then
+    link_agent_commands "Gemini" ".gemini/commands" "tools/agent-skills/.gemini/commands" "../.."
+fi
+
+# Link the skills directory itself for each detected agent. Each agent's native
+# skill-discovery convention varies (Claude reads project .claude/skills/<name>/
+# SKILL.md; Codex/Gemini/Hermes convention TBD). One symlink per agent is the
+# minimum-overhead way to make SKILL.md files findable at the conventional path.
+link_agent_skills() {
+    local agent_label="$1"
+    local target_dir="$2"        # ".claude/skills" etc.
+    local source_dir="$3"        # "tools/agent-skills/skills"
+    local rel_back="$4"          # relative path from target_dir parent back to repo root
+
+    if [ ! -d "$REPO_ROOT/$source_dir" ]; then
+        info "$agent_label skills not vendored at $source_dir (run --sync-skills) — skipping"
+        return 0
+    fi
+
+    local link target
+    link="$REPO_ROOT/$target_dir"
+    target="$rel_back/$source_dir"
+
+    if $DRY_RUN; then
+        dry "Would symlink $target_dir → $source_dir"
+        return 0
+    fi
+
+    if [ -L "$link" ]; then
+        if [ "$(readlink "$link")" = "$target" ]; then
+            ok "$agent_label skills already linked → $target_dir (idempotent)"
+            return 0
+        fi
+        warn "$target_dir is a symlink to $(readlink "$link") — refusing to overwrite"
+        return 0
+    elif [ -e "$link" ]; then
+        warn "$target_dir exists (not a symlink) — refusing to clobber"
+        return 0
+    fi
+
+    mkdir -p "$(dirname "$link")"
+    ln -s "$target" "$link"
+    ok "$agent_label skills linked → $target_dir"
+}
+
+# Skills for each detected agent (single symlink per agent; same skills dir
+# is the target for all of them per single-source-of-truth doctrine)
+link_agent_skills "Claude" ".claude/skills" "tools/agent-skills/skills" ".."
+if $CODEX_DETECTED; then
+    link_agent_skills "Codex"  ".codex/skills"  "tools/agent-skills/skills" ".."
+fi
+if $GEMINI_DETECTED; then
+    link_agent_skills "Gemini" ".gemini/skills" "tools/agent-skills/skills" ".."
+fi
+if $HERMES_DETECTED; then
+    link_agent_skills "Hermes" ".hermes/skills" "tools/agent-skills/skills" ".."
+fi
+
 # ── Sync agent-skills ────────────────────────────────────────────────────────
 
 sync_agent_skills() {
@@ -491,8 +621,10 @@ else
     if $HERMES_DETECTED; then
         ok "Hermes hooks installed → .hermes/hooks.json"
     fi
-    SKILL_COUNT_FINAL=$(find "$REPO_ROOT/tools/agent-skills/skills" -maxdepth 1 -type f -name '*.md' 2>/dev/null | wc -l | tr -d ' ' || echo "0")
+    SKILL_COUNT_FINAL=$(find "$REPO_ROOT/tools/agent-skills/skills" -maxdepth 1 -type d 2>/dev/null | tail -n +2 | wc -l | tr -d ' ' || echo "0")
     ok "Agent skills vendored at tools/agent-skills/ ($SKILL_COUNT_FINAL skills available; see docs/bootstrap.md)"
+    ok "Slash commands linked → .claude/commands/ + .gemini/commands/ (if detected)"
+    ok "Per-agent skills discovery → .{claude,codex,gemini,hermes}/skills/ (symlink-per-agent; single source)"
     echo ""
     echo "Next steps:"
     echo "  1. direnv allow                    (or add bin/ to PATH manually)"

@@ -139,6 +139,52 @@ else
     info ".hermes/hooks.json not present or not managed by bootstrap (skipping)"
 fi
 
+# ── Remove symlinks to vendored commands + skills ───────────────────────────
+#
+# Remove only symlinks that point back at tools/agent-skills/. User-authored
+# files at .<agent>/commands/<name> or .<agent>/skills/ are preserved.
+
+remove_agent_symlink() {
+    local label="$1"
+    local link="$2"           # path to symlink
+    local expected_prefix="$3"  # required substring of readlink target
+
+    if [ -L "$link" ]; then
+        local tgt
+        tgt="$(readlink "$link")"
+        case "$tgt" in
+            *"$expected_prefix"*)
+                if $DRY_RUN; then
+                    dry "Would remove symlink $link → $tgt ($label)"
+                else
+                    rm -f "$link"
+                    ok "Removed $label symlink: $link"
+                fi
+                REMOVED_COUNT=$((REMOVED_COUNT + 1))
+                ;;
+            *)
+                info "$link is a symlink but not to our vendored path — preserving"
+                ;;
+        esac
+    fi
+}
+
+# Per-file command symlinks (Claude + Gemini)
+for f in "$REPO_ROOT"/.claude/commands/*.md "$REPO_ROOT"/.gemini/commands/*.toml; do
+    [ -L "$f" ] || continue
+    remove_agent_symlink "command" "$f" "tools/agent-skills"
+done
+
+# Per-agent skills directory symlinks
+for agent in claude codex gemini hermes; do
+    remove_agent_symlink "$agent-skills-dir" "$REPO_ROOT/.${agent}/skills" "tools/agent-skills/skills"
+done
+
+# Clean up empty .<agent>/commands/ dirs if we created them
+for d in "$REPO_ROOT"/.claude/commands "$REPO_ROOT"/.gemini/commands; do
+    [ -d "$d" ] && rmdir "$d" 2>/dev/null || true
+done
+
 # ── Remove PATH_add bin from .envrc if we added it ──────────────────────────
 
 ENVRC="$REPO_ROOT/.envrc"

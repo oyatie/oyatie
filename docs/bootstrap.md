@@ -31,6 +31,9 @@ Options:
 | CLI wrapper | `bin/oya` | `oya <subcommand>` → `cargo run -p oya-dev-cli` |
 | Shell completions | `tools/completions/{bash,zsh,fish}` | Tab-completion for all subcommands |
 | Lifecycle skills | `tools/agent-skills/` | 23 vendored skills from addyosmani/agent-skills |
+| Slash commands (Claude) | `.claude/commands/*.md` symlinks | 7 commands: `/spec /plan /build /test /review /code-simplify /ship` |
+| Slash commands (Gemini) | `.gemini/commands/*.toml` symlinks | 7 commands (Gemini TOML format) — only created when Gemini detected |
+| Skills discovery (per agent) | `.{claude,codex,gemini,hermes}/skills/` → `tools/agent-skills/skills/` | One symlink per detected agent, single-source-of-truth: edit upstream once, propagates to all surfaces |
 
 If `.gemini/settings.json` already exists from prior Gemini use, install.sh refuses to overwrite and writes `.gemini/settings.json.oya-bootstrap-example` next to it — merge manually into your existing settings.
 
