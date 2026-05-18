@@ -34,28 +34,28 @@
       "current_path": "/specs/decision-principles.json",
       "target_path_after_md_retirement": "same (already machine-readable)",
       "migration_phase": "complete",
-      "purpose": "10 normative do-rules every contributor and agent follows. Each principle declares enforcement mode (mechanical / cultural / mechanical-stub / deferred) and cites the lanes enforcing it. Successor to docs/CONSTITUTION.md §Decision-principles — Do."
+      "purpose": "10 normative do-rules every contributor and agent follows. Each principle declares enforcement mode (mechanical / cultural / mechanical-stub / deferred) and cites the lanes enforcing it. Successor to docs/CONSTITUTION.md \u00a7Decision-principles \u2014 Do."
     },
     "forbidden_operations": {
       "kind": "spec",
       "current_path": "/specs/forbidden-operations.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "10 prohibitions with severity (critical / high / medium) + enforcement mode + lane citations. Successor to docs/CONSTITUTION.md §Prohibitions — Avoid. Companion to master-plan-sequencing.json forbidden_primitives (lower-level: tooling vs. doctrine)."
+      "purpose": "10 prohibitions with severity (critical / high / medium) + enforcement mode + lane citations. Successor to docs/CONSTITUTION.md \u00a7Prohibitions \u2014 Avoid. Companion to master-plan-sequencing.json forbidden_primitives (lower-level: tooling vs. doctrine)."
     },
     "decision_rights": {
       "kind": "spec",
       "current_path": "/specs/decision-rights.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "12-class decision-rights table (owner + escalation per class). Successor to docs/CONSTITUTION.md §Decision-rights. Per-team RACI detail still in docs/RACI-OWNERSHIP.md."
+      "purpose": "12-class decision-rights table (owner + escalation per class). Successor to docs/CONSTITUTION.md \u00a7Decision-rights. Per-team RACI detail still in docs/RACI-OWNERSHIP.md."
     },
     "governance_amendment": {
       "kind": "spec",
       "current_path": "/specs/governance-amendment.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "6-step amendment procedure for the 4-file doctrinal substrate. Declares EVT-DOCTRINE-AMENDED audit-chain event. Successor to docs/CONSTITUTION.md §Amendments."
+      "purpose": "6-step amendment procedure for the 4-file doctrinal substrate. Declares EVT-DOCTRINE-AMENDED audit-chain event. Successor to docs/CONSTITUTION.md \u00a7Amendments."
     },
     "agent_operating_contract": {
       "kind": "spec",
@@ -69,7 +69,7 @@
       "current_path": "/specs/agent-durable-goal.json",
       "target_path_after_md_retirement": "same (machine-readable from inception per ADR-0119)",
       "migration_phase": "complete",
-      "purpose": "Cross-session durable goal + 100% autonomous-Foundry contract: lifecycle phases (plan/dev/ci_cd/deploy), iteration_loops (TDD feature+bugfix prove-it), spec_contract + tdd_contract + source_driven_contract + doubt_driven_contract, review_tiering (T0-T3 by deterministic blast_radius_score), score_cards (LLM-judgment forbidden in pass/fail), pipeline (lane categories + secret_handling + rollback first-class + auto_promotion + incident_response), autonomous_foundry (8 roles + quorum_rules + conservative_default + lane_promotion_protocol + meta_agent_anomaly_watch). Companion to agent_operating_contract — that's the per-session checklist; this is the persistent ambition + non-negotiable guardrails."
+      "purpose": "Cross-session durable goal + 100% autonomous-Foundry contract: lifecycle phases (plan/dev/ci_cd/deploy), iteration_loops (TDD feature+bugfix prove-it), spec_contract + tdd_contract + source_driven_contract + doubt_driven_contract, review_tiering (T0-T3 by deterministic blast_radius_score), score_cards (LLM-judgment forbidden in pass/fail), pipeline (lane categories + secret_handling + rollback first-class + auto_promotion + incident_response), autonomous_foundry (8 roles + quorum_rules + conservative_default + lane_promotion_protocol + meta_agent_anomaly_watch). Companion to agent_operating_contract \u2014 that's the per-session checklist; this is the persistent ambition + non-negotiable guardrails."
     },
     "score_cards": {
       "kind": "spec",
@@ -139,7 +139,7 @@
       "current_path": "/specs/root-hub-pointers.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "This file itself — canonical machine-readable pointer registry. Self-reference present so every spec has a discoverable entry_point row (per OP-11 no-stubs-no-defer)."
+      "purpose": "This file itself \u2014 canonical machine-readable pointer registry. Self-reference present so every spec has a discoverable entry_point row (per OP-11 no-stubs-no-defer)."
     },
     "doc_catalog": {
       "kind": "registry",
@@ -210,14 +210,14 @@
       "current_path": "/specs/microservices/workflow.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Workflow product PRD — engine half of the ecosystem-backbone pair with prd_ontology. State-machine + DAG hybrid orchestration substrate per Bominal-ADR-0148. Canonical JSON spec via contracts/workflow_spec.v1.json."
+      "purpose": "Workflow product PRD \u2014 engine half of the ecosystem-backbone pair with prd_ontology. State-machine + DAG hybrid orchestration substrate per Bominal-ADR-0148. Canonical JSON spec via contracts/workflow_spec.v1.json."
     },
     "prd_workflow_studio": {
       "kind": "prd",
       "current_path": "/specs/microservices/workflow-studio.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Workflow Studio product PRD — visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec."
+      "purpose": "Workflow Studio product PRD \u2014 visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec."
     },
     "prd_ontology": {
       "kind": "prd",
@@ -323,12 +323,12 @@
       "current_version": "2.1.0",
       "human_companion_path": "docs/standards/multispectrum-review.md",
       "migration_phase": "complete",
-      "purpose": "Multispectrum review bar — 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
+      "purpose": "Multispectrum review bar \u2014 12 facets (F1..F13 minus F12-reserved) + 2 meta-facets (M1, M2). v2.0.0 added F8 performance + F9 compliance + meta-facets + enforcement_scopes (agentic_flow + dev_flow) + consensus_debate_protocol + alias_map. v2.1.0 added F10 reversibility + F11 observability + F13 migration + deterministic_layer_principle + scorecard_schema. Enforced mechanically by oya-check-dependency-seam sub-checks (multispectrum-evidence-attached, fixture-pair-coverage, change-class-declared) and by SessionStart hook reminder."
     },
     "pre_pr_multispectrum_checklist": {
       "kind": "template",
       "current_path": "/templates/checklists/pre-pr-multispectrum.json",
-      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template is the canonical form; markdown was duplicative human gateway)",
+      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 \u2014 JSON template is the canonical form; markdown was duplicative human gateway)",
       "migration_phase": "complete",
       "purpose": "Machine-readable pre-PR gate template. Every changeset copies + fills evidence per facet; the seam lane refuses missing/incomplete sections. Iterative fix-and-review loop in /specs/iterative-fix-loop.json."
     },
@@ -336,7 +336,7 @@
       "kind": "spec",
       "current_path": "/specs/iterative-fix-loop.json",
       "migration_phase": "complete",
-      "purpose": "Loop state machine for find→fix→re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
+      "purpose": "Loop state machine for find\u2192fix\u2192re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
     },
     "fixuptask_registry": {
       "kind": "registry",
@@ -355,56 +355,56 @@
       "current_path": "/specs/microservices/connect-suite.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Connect suite PRD — dual-context native communications shell binding Mail, Messenger, and Calendar under shared context, policy, audit, retention/legal-hold, and OpenTofu/oya-ops deployment constraints."
+      "purpose": "Connect suite PRD \u2014 dual-context native communications shell binding Mail, Messenger, and Calendar under shared context, policy, audit, retention/legal-hold, and OpenTofu/oya-ops deployment constraints."
     },
     "prd_connect_mail": {
       "kind": "prd",
       "current_path": "/specs/microservices/mail.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Mail sub-PRD — work/personal mail, retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries."
+      "purpose": "Connect Mail sub-PRD \u2014 work/personal mail, retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries."
     },
     "prd_connect_messenger": {
       "kind": "prd",
       "current_path": "/specs/microservices/messenger.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Messenger sub-PRD — personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict dual-context boundaries."
+      "purpose": "Connect Messenger sub-PRD \u2014 personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict dual-context boundaries."
     },
     "prd_connect_calendar": {
       "kind": "prd",
       "current_path": "/specs/microservices/calendar.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Calendar sub-PRD — personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-pillar-safe availability projections."
+      "purpose": "Connect Calendar sub-PRD \u2014 personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-pillar-safe availability projections."
     },
     "prd_enterprise_suite": {
       "kind": "prd",
       "current_path": "/specs/microservices/enterprise-suite.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Enterprise suite PRD — business operating system shell binding HR, Payroll, Accounting, compliance evidence, approvals, and operating intelligence under shared Workflow/Object Graph/ops constraints."
+      "purpose": "Enterprise suite PRD \u2014 business operating system shell binding HR, Payroll, Accounting, compliance evidence, approvals, and operating intelligence under shared Workflow/Object Graph/ops constraints."
     },
     "prd_enterprise_hr": {
       "kind": "prd",
       "current_path": "/specs/microservices/hr.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Enterprise HR sub-PRD — employee lifecycle, org hierarchy, attendance, leave, recruiting/performance shells, sensitive-data policy, and KR/US/EU labor-compliance evidence."
+      "purpose": "Enterprise HR sub-PRD \u2014 employee lifecycle, org hierarchy, attendance, leave, recruiting/performance shells, sensitive-data policy, and KR/US/EU labor-compliance evidence."
     },
     "prd_enterprise_payroll": {
       "kind": "prd",
       "current_path": "/specs/microservices/payroll.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Enterprise Payroll sub-PRD — KR-first payroll close, payee classes, statutory taxes/4대보험, year-end settlement, payroll-to-accounting bridge, and group close evidence."
+      "purpose": "Enterprise Payroll sub-PRD \u2014 KR-first payroll close, payee classes, statutory taxes/4\ub300\ubcf4\ud5d8, year-end settlement, payroll-to-accounting bridge, and group close evidence."
     },
     "prd_enterprise_accounting": {
       "kind": "prd",
       "current_path": "/specs/microservices/accounting.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Enterprise Accounting sub-PRD — double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, financial close workflow, and audit-ready controls."
+      "purpose": "Enterprise Accounting sub-PRD \u2014 double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, financial close workflow, and audit-ready controls."
     },
     "design_connect_shell_persona_switcher": {
       "kind": "design-system-component",
@@ -432,7 +432,7 @@
       "current_path": "/specs/design-system/catalog.json",
       "target_path_after_md_retirement": "same (machine-readable from inception)",
       "migration_phase": "complete",
-      "purpose": "Machine-readable design-system catalog for PRD template v1.5 §11f/§11g UX/frontend-component coverage."
+      "purpose": "Machine-readable design-system catalog for PRD template v1.5 \u00a711f/\u00a711g UX/frontend-component coverage."
     },
     "design_workflow_canvas": {
       "kind": "design-system-component",
@@ -516,28 +516,77 @@
       "current_path": "/specs/products/connect/anonymous.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Anonymous sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
+      "purpose": "Connect Anonymous sub-PRD \u2014 machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
     },
     "prd_connect_network": {
       "kind": "prd",
       "current_path": "/specs/products/connect/network.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Network sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
+      "purpose": "Connect Network sub-PRD \u2014 machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
     },
     "prd_connect_shorts": {
       "kind": "prd",
       "current_path": "/specs/products/connect/shorts.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Shorts sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
+      "purpose": "Connect Shorts sub-PRD \u2014 machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
     },
     "prd_connect_social": {
       "kind": "prd",
       "current_path": "/specs/products/connect/social.json",
       "target_path_after_md_retirement": "same",
       "migration_phase": "complete",
-      "purpose": "Connect Social sub-PRD — machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
+      "purpose": "Connect Social sub-PRD \u2014 machine-readable Connect product surface with context isolation, Workflow/Ontology/Foundry contracts, regional packs, UX components, risks, goals, and deterministic validation hooks."
+    },
+    "prd_anonymous": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/anonymous.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Anonymous \u00b5service PRD \u2014 Sidechat / YikYak / Blind-class pseudonymous platform with cryptographic blinding. Per ADR-0126/0135 Connect dissolution."
+    },
+    "prd_foundry": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/foundry.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Foundry \u00b5service PRD \u2014 agent runtime + supervisor + eval + evidence + guardrails + providers consolidated per ADR-0136."
+    },
+    "prd_manifest-schema": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/manifest-schema.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "manifest-schema \u00b5service PRD \u2014 landed per session 2026-05-17/18."
+    },
+    "prd_manifests-index": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/manifests-index.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "manifests-index \u00b5service PRD \u2014 landed per session 2026-05-17/18."
+    },
+    "prd_network": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/network.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Network \u00b5service PRD \u2014 LinkedIn-class professional network. Per ADR-0126/0135 Connect dissolution."
+    },
+    "prd_shorts": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/shorts.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Shorts \u00b5service PRD \u2014 TikTok / Reels / YouTube Shorts-class short-form video. Per ADR-0126/0135 Connect dissolution."
+    },
+    "prd_social": {
+      "kind": "prd",
+      "current_path": "/specs/microservices/social.json",
+      "target_path_after_md_retirement": "same (machine-readable from inception)",
+      "migration_phase": "complete",
+      "purpose": "Social \u00b5service PRD \u2014 Twitter / X / Bluesky-class general social platform. Per ADR-0126/0135 Connect dissolution."
     }
   },
   "by_kind": {
@@ -550,7 +599,7 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .master_plan_sequencing + .markdown_retirement_policy + .gitops_vcs_replacement + .multispectrum_review.",
     "step_2_context_recall": "Prefer Oya VCS / Foundry-native context once available; legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Every agent→repo state transition uses Oya VCS claim → work → verify → done → promote. Legacy grit/icm/rtk/vox/omx/omc surfaces are read/provenance/compatibility only during cutover.",
+    "step_3_oya_vcs_state_transition": "Every agent\u2192repo state transition uses Oya VCS claim \u2192 work \u2192 verify \u2192 done \u2192 promote. Legacy grit/icm/rtk/vox/omx/omc surfaces are read/provenance/compatibility only during cutover.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
     "step_5_multispectrum_evidence": "Every ChangeBundle promotion carries multispectrum evidence per /specs/multispectrum-review.json; missing or incomplete evidence blocks Oya VCS admission.",
     "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, honor /specs/gitops-vcs-replacement.json: Oya VCS owns claim coverage, ChangeBundle closeout, review/fix loops, controller rebase/merge queue, and GitOps promotion."

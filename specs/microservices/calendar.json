@@ -428,17 +428,17 @@
     {
       "id": "BP-01",
       "rule": "calendar details are never used as implicit personal-to-work inference source",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-calendar-pillar"
+      "enforced_by_lane_ref": "oya-governance-connect-calendar-pillar"
     },
     {
       "id": "BP-02",
       "rule": "Workflow handoff is explicit action card or documented tenant policy only",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-workflow-handoff"
+      "enforced_by_lane_ref": "oya-governance-connect-workflow-handoff"
     },
     {
       "id": "BP-03",
       "rule": "recurrence expansion is bounded and observable",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-calendar-scale"
+      "enforced_by_lane_ref": "oya-governance-connect-calendar-scale"
     }
   ],
   "patterns": [
@@ -462,17 +462,17 @@
     {
       "anti_pattern": "silent_calendar_mining",
       "why_forbidden": "turns scheduling into surveillance and violates consent boundary",
-      "detection_lane": "oya-foundry-fitness-connect-calendar-pillar"
+      "detection_lane": "oya-governance-connect-calendar-pillar"
     },
     {
       "anti_pattern": "unbounded_recurrence_materialization",
       "why_forbidden": "creates scale and cost runaway",
-      "detection_lane": "oya-foundry-fitness-connect-calendar-scale"
+      "detection_lane": "oya-governance-connect-calendar-scale"
     },
     {
       "anti_pattern": "workflow_handoff_without_policy_basis",
       "why_forbidden": "breaks chain-of-custody and privacy notice",
-      "detection_lane": "oya-foundry-fitness-connect-workflow-handoff"
+      "detection_lane": "oya-governance-connect-workflow-handoff"
     }
   ],
   "goals": {

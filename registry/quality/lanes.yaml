@@ -85,7 +85,7 @@ lanes:
     stage: foundation
     status: active
     owner_team: axis-foundry
-    purpose: inventory temp, home, repo-root, build-artifact, and oyatie worktree residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions
+    purpose: inventory temp, home, repo-root, build-artifact, and oyatie-worktrees residue before pipeline closeout, with explicit temp/build cleanup and owned-root exemptions
     source: specs/workspace-hygiene.json / ADR-0123
     runtime_budget_seconds: 120
     check_command: cargo run -p oya-dev-cli -- gate validate workspace-hygiene

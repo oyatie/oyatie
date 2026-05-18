@@ -451,7 +451,7 @@
       },
       "notes": "Official source-backed bar: Gmail states it blocks 99.9% of spam, malware, and dangerous links.",
       "verification_ref": "oya gate validate connect-perimeter-spam-phishing",
-      "lane_ref": "oya-foundry-fitness-connect-perimeter"
+      "lane_ref": "oya-governance-connect-perimeter"
     },
     {
       "name": "multi_identity_notification_cross_leak_count",
@@ -699,12 +699,12 @@
     {
       "anti_pattern": "third_party_platform_as_core",
       "why": "outsources product authority and weakens privacy/compliance guarantees",
-      "mitigation": "detection_lane: oya-foundry-fitness-connect-native-substrate"
+      "mitigation": "detection_lane: oya-governance-connect-native-substrate"
     },
     {
       "anti_pattern": "shared_cache_without_pillar_key",
       "why": "can leak personal/work state across context switch",
-      "mitigation": "detection_lane: oya-foundry-fitness-connect-cache-namespace"
+      "mitigation": "detection_lane: oya-governance-connect-cache-namespace"
     }
   ],
   "hyperscaler_bar": [
@@ -791,12 +791,12 @@
     {
       "id": "BP-01",
       "rule": "context_kind and ownership_pillar are immutable creation-time fields",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-pillar"
+      "planned_enforcement_ref": "oya-governance-connect-pillar"
     },
     {
       "id": "BP-02",
       "rule": "all privileged professional content disclosure requires four-eyes audit",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-disclosure"
+      "planned_enforcement_ref": "oya-governance-connect-disclosure"
     },
     {
       "id": "BP-03",
@@ -806,22 +806,22 @@
     {
       "id": "BP-04",
       "rule": "DMARC/DKIM/SPF result is stamped on every inbound artifact envelope before child-app processing",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-perimeter"
+      "planned_enforcement_ref": "oya-governance-connect-perimeter"
     },
     {
       "id": "BP-05",
       "rule": "AI-assisted features require explicit tenant opt-in and must not transmit plaintext outside the tenant DEK boundary",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-ai-privacy"
+      "planned_enforcement_ref": "oya-governance-connect-ai-privacy"
     },
     {
       "id": "BP-01",
       "rule": "context_kind and ownership_pillar are immutable creation-time fields",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-pillar"
+      "enforced_by_lane_ref": "oya-governance-connect-pillar"
     },
     {
       "id": "BP-02",
       "rule": "all privileged professional content disclosure requires four-eyes audit",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-disclosure"
+      "enforced_by_lane_ref": "oya-governance-connect-disclosure"
     },
     {
       "id": "BP-03",
@@ -865,7 +865,7 @@
     {
       "anti_pattern": "shared_cache_without_pillar_key",
       "why_forbidden": "can leak personal/work state across context switch",
-      "detection_lane": "oya-foundry-fitness-connect-cache-namespace"
+      "detection_lane": "oya-governance-connect-cache-namespace"
     },
     {
       "anti_pattern": "manual_ssh_ops_remediation",
@@ -875,17 +875,17 @@
     {
       "anti_pattern": "third_party_platform_as_core",
       "why_forbidden": "outsources product authority and weakens privacy/compliance guarantees",
-      "detection_lane": "oya-foundry-fitness-connect-native-substrate"
+      "detection_lane": "oya-governance-connect-native-substrate"
     },
     {
       "anti_pattern": "plaintext_training_signal",
       "why_forbidden": "exposes professional/personal content to model training without consent; violates GDPR lawful basis and pillar boundary",
-      "detection_lane": "oya-foundry-fitness-connect-ai-privacy"
+      "detection_lane": "oya-governance-connect-ai-privacy"
     },
     {
       "anti_pattern": "email_tracker_pixel_injection",
       "why_forbidden": "violates recipient privacy; blocked on inbound by Proton/Apple; Connect blocks injection on outbound",
-      "detection_lane": "oya-foundry-fitness-connect-perimeter"
+      "detection_lane": "oya-governance-connect-perimeter"
     }
   ],
   "goals": {

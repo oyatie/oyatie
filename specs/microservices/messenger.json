@@ -887,12 +887,12 @@
     {
       "anti_pattern": "runtime_config_trust_model",
       "why": "permits accidental switch of personal privacy into audit mode; trust model must be compile/data-model enforced",
-      "mitigation": "detection_lane: oya-foundry-fitness-connect-trust-boundary"
+      "mitigation": "detection_lane: oya-governance-connect-trust-boundary"
     },
     {
       "anti_pattern": "unlogged_professional_decrypt",
       "why": "breaks four-eyes chain-of-custody",
-      "mitigation": "detection_lane: oya-foundry-fitness-connect-disclosure"
+      "mitigation": "detection_lane: oya-governance-connect-disclosure"
     },
     {
       "anti_pattern": "spinner_only_thread_loading",
@@ -902,7 +902,7 @@
     {
       "anti_pattern": "presence_cross_pillar_exposure",
       "why": "personal availability/status must not be visible to employer; violates dual-context model",
-      "mitigation": "Presence.ownership_pillar enforced; AC-08; detection_lane: oya-foundry-fitness-connect-presence-pillar"
+      "mitigation": "Presence.ownership_pillar enforced; AC-08; detection_lane: oya-governance-connect-presence-pillar"
     },
     {
       "anti_pattern": "edit_delete_without_audit_trail",
@@ -912,7 +912,7 @@
     {
       "anti_pattern": "unbounded_large_channel_fanout",
       "why": "O(N) fan-out to 10K+ member channels causes cascade latency and cost runaway",
-      "mitigation": "tiered fan-out pattern; GA wave; detection_lane: oya-foundry-fitness-connect-realtime"
+      "mitigation": "tiered fan-out pattern; GA wave; detection_lane: oya-governance-connect-realtime"
     },
     {
       "anti_pattern": "cross_org_ediscovery_scope_expansion",
@@ -1012,47 +1012,47 @@
     {
       "id": "BP-01",
       "rule": "personal and professional trust models are separate data-model states, not runtime flags",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-trust-boundary"
+      "planned_enforcement_ref": "oya-governance-connect-trust-boundary"
     },
     {
       "id": "BP-02",
       "rule": "delivery state transitions are idempotent and replayable",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-realtime"
+      "planned_enforcement_ref": "oya-governance-connect-realtime"
     },
     {
       "id": "BP-03",
       "rule": "verified anonymity includes explicit disclosure of audit exception",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-anonymity-disclosure"
+      "planned_enforcement_ref": "oya-governance-connect-anonymity-disclosure"
     },
     {
       "id": "BP-04",
       "rule": "message edit and delete operations append to immutable audit log; original ciphertext retained per retention policy",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-messenger-audit"
+      "planned_enforcement_ref": "oya-governance-connect-messenger-audit"
     },
     {
       "id": "BP-05",
       "rule": "presence state is scoped to ownership_pillar; personal presence is never shared with work context without explicit grant",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-presence-pillar"
+      "planned_enforcement_ref": "oya-governance-connect-presence-pillar"
     },
     {
       "id": "BP-06",
       "rule": "reactions inherit parent message tenant DEK and retention policy",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-messenger-audit"
+      "planned_enforcement_ref": "oya-governance-connect-messenger-audit"
     },
     {
       "id": "BP-01",
       "rule": "personal and professional trust models are separate data-model states, not runtime flags",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-trust-boundary"
+      "enforced_by_lane_ref": "oya-governance-connect-trust-boundary"
     },
     {
       "id": "BP-02",
       "rule": "delivery state transitions are idempotent and replayable",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-realtime"
+      "enforced_by_lane_ref": "oya-governance-connect-realtime"
     },
     {
       "id": "BP-03",
       "rule": "verified anonymity includes explicit disclosure of audit exception",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-anonymity-disclosure"
+      "enforced_by_lane_ref": "oya-governance-connect-anonymity-disclosure"
     }
   ],
   "patterns": [
@@ -1091,12 +1091,12 @@
     {
       "anti_pattern": "runtime_config_trust_model",
       "why_forbidden": "permits accidental switch of personal privacy into audit mode",
-      "detection_lane": "oya-foundry-fitness-connect-trust-boundary"
+      "detection_lane": "oya-governance-connect-trust-boundary"
     },
     {
       "anti_pattern": "unlogged_professional_decrypt",
       "why_forbidden": "breaks four-eyes chain-of-custody",
-      "detection_lane": "oya-foundry-fitness-connect-disclosure"
+      "detection_lane": "oya-governance-connect-disclosure"
     },
     {
       "anti_pattern": "spinner_only_thread_loading",
@@ -1106,12 +1106,12 @@
     {
       "anti_pattern": "presence_cross_pillar_exposure",
       "why_forbidden": "personal availability visible to employer violates dual-context model",
-      "detection_lane": "oya-foundry-fitness-connect-presence-pillar"
+      "detection_lane": "oya-governance-connect-presence-pillar"
     },
     {
       "anti_pattern": "edit_delete_without_audit_trail",
       "why_forbidden": "eDiscovery requires full edit history for professional messages",
-      "detection_lane": "oya-foundry-fitness-connect-messenger-audit"
+      "detection_lane": "oya-governance-connect-messenger-audit"
     }
   ],
   "goals": {

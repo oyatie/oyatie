@@ -326,7 +326,7 @@
         "GA": 100
       },
       "verification_ref": "cargo nextest -- test_load_emit_byte_equal over corpus 100 specs",
-      "lane_ref": "oya-foundry-fitness-workflow-spec-roundtrip"
+      "lane_ref": "oya-governance-workflow-spec-roundtrip"
     },
     {
       "name": "editor_availability_slo_pct",
@@ -344,7 +344,7 @@
       "id": "R-01",
       "severity": "high",
       "risk": "spec drift between editor and engine",
-      "mitigation": "round-trip contract test on every PR via oya-foundry-fitness-workflow-spec-roundtrip lane (AC-02)"
+      "mitigation": "round-trip contract test on every PR via oya-governance-workflow-spec-roundtrip lane (AC-02)"
     },
     {
       "id": "R-02",
@@ -910,7 +910,7 @@
     {
       "id": "BP-01",
       "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec",
-      "planned_enforcement_ref": "oya-foundry-fitness-workflow-spec-roundtrip"
+      "planned_enforcement_ref": "oya-governance-workflow-spec-roundtrip"
     },
     {
       "id": "BP-02",
@@ -940,7 +940,7 @@
     {
       "id": "BP-01",
       "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec",
-      "enforced_by_lane_ref": "oya-foundry-fitness-workflow-spec-roundtrip"
+      "enforced_by_lane_ref": "oya-governance-workflow-spec-roundtrip"
     }
   ],
   "patterns": [
@@ -967,7 +967,7 @@
     {
       "name": "visual_model_above_spec_model",
       "why_forbidden": "reverses source-of-truth",
-      "detection_lane": "oya-foundry-fitness-workflow-spec-roundtrip"
+      "detection_lane": "oya-governance-workflow-spec-roundtrip"
     },
     {
       "name": "silent_merge_on_concurrent_edit",

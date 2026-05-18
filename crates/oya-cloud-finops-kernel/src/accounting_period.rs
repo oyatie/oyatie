@@ -54,19 +54,14 @@ impl PeriodCloseState {
 /// An accounting period — fiscal boundary + kind + close lifecycle.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AccountingPeriod {
-    // data_class: INTERNAL_ONLY
     /// Unique stable ID for this period (e.g. `"ap_2025_03"`, `"ap_2025_annual"`).
-    pub period_id: String,
-    // data_class: INTERNAL_ONLY
-    pub kind: AccountingPeriodKind,
-    // data_class: INTERNAL_ONLY
+    pub period_id: String, // data_class: INTERNAL_ONLY
+    pub kind: AccountingPeriodKind, // data_class: INTERNAL_ONLY
     /// Inclusive start of period in Unix milliseconds.
-    pub start_unix_ms: u64,
-    // data_class: INTERNAL_ONLY
+    pub start_unix_ms: u64, // data_class: INTERNAL_ONLY
     /// Exclusive end of period in Unix milliseconds.
-    pub end_unix_ms: u64,
-    // data_class: INTERNAL_ONLY
-    pub state: PeriodCloseState,
+    pub end_unix_ms: u64, // data_class: INTERNAL_ONLY
+    pub state: PeriodCloseState, // data_class: INTERNAL_ONLY
 }
 
 /// Errors from accounting-period operations.

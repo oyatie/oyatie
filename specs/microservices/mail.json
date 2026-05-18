@@ -542,7 +542,7 @@
       },
       "notes": "Official source-backed bar: Gmail states it blocks 99.9% of spam, malware, and dangerous links; Proton PhishGuard remains an additional qualitative benchmark.",
       "verification_ref": "oya gate validate connect-mail-spam-phishing",
-      "lane_ref": "oya-foundry-fitness-connect-perimeter"
+      "lane_ref": "oya-governance-connect-perimeter"
     },
     {
       "name": "dmarc_dkim_spf_coverage_pct",
@@ -553,7 +553,7 @@
       },
       "notes": "Every active sending domain must have DMARC policy set; industry standard from Microsoft 365 and Google Workspace",
       "verification_ref": "oya gate validate connect-mail-domain-auth",
-      "lane_ref": "oya-foundry-fitness-connect-perimeter"
+      "lane_ref": "oya-governance-connect-perimeter"
     },
     {
       "name": "deliverability_inbox_rate_pct",
@@ -564,7 +564,7 @@
       },
       "notes": "Industry baseline: new domains require warmup; reputation monitoring via postmaster APIs",
       "verification_ref": "oya gate validate connect-mail-deliverability",
-      "lane_ref": "oya-foundry-fitness-connect-deliverability"
+      "lane_ref": "oya-governance-connect-deliverability"
     }
   ],
   "risks": [
@@ -870,27 +870,27 @@
     {
       "anti_pattern": "plaintext_search_index",
       "why": "creates surveillance surface outside audit flow; Google/Microsoft encrypt-at-rest but Connect goes further with encrypted search tokens",
-      "mitigation": "encrypted/tokenized search index; detection_lane: oya-foundry-fitness-connect-mail-encryption"
+      "mitigation": "encrypted/tokenized search index; detection_lane: oya-governance-connect-mail-encryption"
     },
     {
       "anti_pattern": "org_export_personal_mail",
       "why": "violates person-pillar boundary; ADR-0215",
-      "mitigation": "detection_lane: oya-foundry-fitness-connect-pillar"
+      "mitigation": "detection_lane: oya-governance-connect-pillar"
     },
     {
       "anti_pattern": "silent_mail_to_workflow_mining",
       "why": "turns communications into surveillance/profiling",
-      "mitigation": "detection_lane: oya-foundry-fitness-connect-workflow-consent"
+      "mitigation": "detection_lane: oya-governance-connect-workflow-consent"
     },
     {
       "anti_pattern": "plaintext_training_signal",
       "why": "mail content must not escape tenant DEK boundary for AI model training; violates GDPR and pillar model",
-      "mitigation": "AC-07 + R-04; detection_lane: oya-foundry-fitness-connect-ai-privacy"
+      "mitigation": "AC-07 + R-04; detection_lane: oya-governance-connect-ai-privacy"
     },
     {
       "anti_pattern": "tracker_pixel_injection_on_outbound",
       "why": "violates recipient privacy; blocked by Apple Mail Privacy Protection and Proton on inbound; Connect prevents injection on outbound",
-      "mitigation": "AC-08; detection_lane: oya-foundry-fitness-connect-perimeter"
+      "mitigation": "AC-08; detection_lane: oya-governance-connect-perimeter"
     },
     {
       "anti_pattern": "no_dmarc_on_sending_domain",
@@ -993,47 +993,47 @@
     {
       "id": "BP-01",
       "rule": "professional mail is encrypted under tenant DEK and never plaintext-indexed",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-mail-encryption"
+      "planned_enforcement_ref": "oya-governance-connect-mail-encryption"
     },
     {
       "id": "BP-02",
       "rule": "retention expiry checks legal hold before delete",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-retention"
+      "planned_enforcement_ref": "oya-governance-connect-retention"
     },
     {
       "id": "BP-03",
       "rule": "mail-to-Workflow requires explicit user action or tenant policy basis",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-workflow-handoff"
+      "planned_enforcement_ref": "oya-governance-connect-workflow-handoff"
     },
     {
       "id": "BP-04",
       "rule": "every active sending domain must have DMARC policy set before production activation",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-perimeter"
+      "planned_enforcement_ref": "oya-governance-connect-perimeter"
     },
     {
       "id": "BP-05",
       "rule": "AI-assisted features require explicit tenant opt-in; no plaintext exits tenant DEK boundary for training",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-ai-privacy"
+      "planned_enforcement_ref": "oya-governance-connect-ai-privacy"
     },
     {
       "id": "BP-06",
       "rule": "DKIM keys are rotated at minimum every 365 days; ARC seals preserve authentication across forwarding hops",
-      "planned_enforcement_ref": "oya-foundry-fitness-connect-perimeter"
+      "planned_enforcement_ref": "oya-governance-connect-perimeter"
     },
     {
       "id": "BP-01",
       "rule": "professional mail is encrypted under tenant DEK and never plaintext-indexed",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-mail-encryption"
+      "enforced_by_lane_ref": "oya-governance-connect-mail-encryption"
     },
     {
       "id": "BP-02",
       "rule": "retention expiry checks legal hold before delete",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-retention"
+      "enforced_by_lane_ref": "oya-governance-connect-retention"
     },
     {
       "id": "BP-03",
       "rule": "mail-to-Workflow requires explicit user action or tenant policy basis",
-      "enforced_by_lane_ref": "oya-foundry-fitness-connect-workflow-handoff"
+      "enforced_by_lane_ref": "oya-governance-connect-workflow-handoff"
     }
   ],
   "patterns": [
@@ -1067,32 +1067,32 @@
     {
       "anti_pattern": "org_export_personal_mail",
       "why_forbidden": "violates person-pillar boundary",
-      "detection_lane": "oya-foundry-fitness-connect-pillar"
+      "detection_lane": "oya-governance-connect-pillar"
     },
     {
       "anti_pattern": "plaintext_mail_index",
       "why_forbidden": "creates disclosure surface outside audit flow",
-      "detection_lane": "oya-foundry-fitness-connect-mail-encryption"
+      "detection_lane": "oya-governance-connect-mail-encryption"
     },
     {
       "anti_pattern": "silent_mail_to_workflow_mining",
       "why_forbidden": "turns communications into surveillance/profiling",
-      "detection_lane": "oya-foundry-fitness-connect-workflow-consent"
+      "detection_lane": "oya-governance-connect-workflow-consent"
     },
     {
       "anti_pattern": "plaintext_training_signal",
       "why_forbidden": "mail content must not escape tenant DEK boundary for model training",
-      "detection_lane": "oya-foundry-fitness-connect-ai-privacy"
+      "detection_lane": "oya-governance-connect-ai-privacy"
     },
     {
       "anti_pattern": "no_dmarc_on_sending_domain",
       "why_forbidden": "enables domain spoofing; industry-standard requirement before production activation",
-      "detection_lane": "oya-foundry-fitness-connect-perimeter"
+      "detection_lane": "oya-governance-connect-perimeter"
     },
     {
       "anti_pattern": "tracker_pixel_injection",
       "why_forbidden": "violates recipient privacy; blocked by Proton and Apple; Connect blocks on outbound",
-      "detection_lane": "oya-foundry-fitness-connect-perimeter"
+      "detection_lane": "oya-governance-connect-perimeter"
     }
   ],
   "goals": {
