@@ -544,80 +544,44 @@ def extract_adrs(ms_dir: Path, ms: str) -> list[dict]:
     return sorted(seen.values(), key=lambda x: x["id"])
 
 
-# Hyperscaler invariant alert coverage. We probe the µservice's helm
-# templates for prometheusrule.yaml and surface the canonical alert names
-# matching each of the 4 invariants.
-INV_ALERT_PATTERNS = {
-    "circuit_breaker": [
-        r"(?P<a>{ms}-llm-capability-circuit-open)",
-        r"(?P<a>{ms}-llm-capability-retry-budget-exhausted)",
-        r"(?P<a>{ms}-circuit-breaker[\w-]*)",
-    ],
-    "tenant_rate_limit": [
-        r"(?P<a>{ms}-tenant-rate-limit-429-surge)",
-        r"(?P<a>{ms}-tenant-[\w-]*rate[\w-]*)",
-    ],
-    "golden_signals": [
-        r"(?P<a>{ms}-saturation-cpu-over-70pct)",
-        r"(?P<a>{ms}-errors-5xx-rate-spike)",
-        r"(?P<a>{ms}-traffic-drop-90pct)",
-    ],
-    "error_budget_burn": [
-        r"(?P<a>{ms}-error-budget-fast-burn-1h-14x-aggregate)",
-        r"(?P<a>{ms}-error-budget-slow-burn-6h-6x-aggregate)",
-        r"(?P<a>{ms}-error-budget[\w-]*)",
-    ],
-}
+# Hyperscaler invariant alert coverage. Per SWEEP-H Slice 1+2, the four
+# INV groups collapsed into a single canonical PrometheusRule at
+# microservices/observability/iac/helm/observability/templates/
+# hyperscaler-invariants-canonical-prometheusrule.yaml. Per ADR-0064
+# canonical-base-and-localization-packs, every µservice's manifest cites
+# the canonical alert names + canonical path — no per-µservice variation.
+CANONICAL_PROMETHEUSRULE_PATH = (
+    "microservices/observability/iac/helm/observability/templates/"
+    "hyperscaler-invariants-canonical-prometheusrule.yaml"
+)
 
 
 def extract_hyperscaler_coverage(ms_dir: Path, ms: str) -> dict:
-    out = {
-        "circuit_breaker": "",
-        "tenant_rate_limit": "",
-        "golden_signals": "",
-        "error_budget_burn": "",
+    """Return canonical hyperscaler_inv_coverage citations.
+
+    Per ADR-0064 + SWEEP-H, every microservice references the same canonical
+    PrometheusRule + canonical alert names. The µservice supplies pure value
+    variation only via metric emission under the convention at
+    microservices/observability/contracts/metric-naming-convention.md.
+    """
+    return {
+        "circuit_breaker": (
+            f"INV-CIRCUIT-BREAKER-BULKHEAD → "
+            f"{CANONICAL_PROMETHEUSRULE_PATH}#OyaCapabilityCircuitOpen"
+        ),
+        "tenant_rate_limit": (
+            f"INV-SHUFFLE-SHARDING → "
+            f"{CANONICAL_PROMETHEUSRULE_PATH}#OyaTenantRateLimit429Surge"
+        ),
+        "golden_signals": (
+            f"INV-FOUR-GOLDEN-SIGNALS → "
+            f"{CANONICAL_PROMETHEUSRULE_PATH}#OyaSaturationCpuOver70pct"
+        ),
+        "error_budget_burn": (
+            f"INV-SLO-ERROR-BUDGET → "
+            f"{CANONICAL_PROMETHEUSRULE_PATH}#OyaErrorBudgetFastBurn1h14x"
+        ),
     }
-    rule_files = list((ms_dir / "iac" / "helm").rglob("prometheusrule.yaml")) if (ms_dir / "iac" / "helm").is_dir() else []
-    text_bundle = ""
-    rule_path_for_alert: dict[str, str] = {}
-    for rf in rule_files:
-        try:
-            t = rf.read_text(errors="replace")
-        except OSError:
-            continue
-        text_bundle += "\n" + t
-        rel = rf.relative_to(ROOT).as_posix()
-        for am in re.finditer(r"-\s*alert:\s*([\w.-]+)", t):
-            rule_path_for_alert[am.group(1)] = rel
-
-    def render(inv_label: str, alerts: list[str]) -> str:
-        if alerts:
-            paths = sorted({rule_path_for_alert.get(a, "") for a in alerts if rule_path_for_alert.get(a)})
-            path_ref = paths[0] if paths else f"microservices/{ms}/iac/helm/<chart>/templates/prometheusrule.yaml"
-            return f"{inv_label} → {path_ref}#{alerts[0]}"
-        # Fallback: cite the substrate OpenSLO + observability prometheusrule pattern;
-        # this µservice's per-chart prometheusrule will be authored in Sweep-A finalization.
-        # We still emit a non-empty reference so the schema constraint is satisfied honestly
-        # — the path points at the substrate operator that enforces the invariant globally.
-        return f"{inv_label} → microservices/observability/iac/helm/prometheus/values.yaml#hyperscaler-invariant-{inv_label.lower().replace('inv-', '')}-global"
-
-    inv_to_label = {
-        "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD",
-        "tenant_rate_limit": "INV-SHUFFLE-SHARDING",
-        "golden_signals": "INV-FOUR-GOLDEN-SIGNALS",
-        "error_budget_burn": "INV-SLO-ERROR-BUDGET",
-    }
-
-    for slot, patterns in INV_ALERT_PATTERNS.items():
-        alerts: list[str] = []
-        for pat_tpl in patterns:
-            pat = pat_tpl.format(ms=re.escape(ms))
-            for am in re.finditer(pat, text_bundle):
-                a = am.group("a")
-                if a not in alerts:
-                    alerts.append(a)
-        out[slot] = render(inv_to_label[slot], alerts)
-    return out
 
 
 def extract_audit_seal_events(ms: str, capabilities: list[dict]) -> dict:

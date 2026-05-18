@@ -81,11 +81,11 @@
     },
     "hyperscaler_scorecards": {
       "status": "green",
-      "evidence": "128 scorecard files (32 µservices × AWS Well-Architected + Google SRE PRR + CIS K8s Benchmark v1.10 + SLSA L3) all green per registry/hyperscaler-scorecards/index.json aggregate"
+      "evidence": "SWEEP-H Slice 3: 128 per-µservice scorecard JSONs collapsed to 4 canonical (specs/microservices/scorecards/canonical/*.json) + 32 per-µservice overrides (microservices/<ms>/scorecards/overrides.json) per ADR-0064. scripts/resolve-scorecards.py merges canonical + overrides at audit-time; aggregate green per registry/hyperscaler-scorecards/index.json"
     },
     "machine_readable_manifests": {
       "status": "green",
-      "evidence": "32 microservices/<ms>/manifest.json validate against specs/microservices/manifest-schema.json (JSON Schema Draft 2020-12); 0/555 IPs with non-ga acceptance_status; 0/128 missing INV coverage fields"
+      "evidence": "32 microservices/<ms>/manifest.json validate against specs/microservices/manifest-schema.json (JSON Schema Draft 2020-12); 0/555 IPs with non-ga acceptance_status; 32/32 manifests cite canonical PrometheusRule path + canonical alert names in hyperscaler_inv_coverage post-SWEEP-H"
     },
     "foundry_consolidation": {
       "status": "green",
@@ -93,7 +93,11 @@
     },
     "hyperscaler_inv_overlay": {
       "status": "green",
-      "evidence": "20 µservices ship hyperscaler-conformance.md citing INV-CIRCUIT-BREAKER-BULKHEAD + INV-SHUFFLE-SHARDING + INV-FOUR-GOLDEN-SIGNALS + INV-SLO-ERROR-BUDGET from specs/hyperscaler-architecture-invariants.json; 20 prometheusrule.yaml files emit alerts on these INVs"
+      "evidence": "SWEEP-H Slice 1+2: ADR-0064 canonical-base + overlay pattern applied. ONE canonical PrometheusRule at microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml fires INV-{CIRCUIT-BREAKER-BULKHEAD,SHUFFLE-SHARDING,FOUR-GOLDEN-SIGNALS,SLO-ERROR-BUDGET} alerts across ALL µservices via label query on metric naming convention (microservices/observability/contracts/metric-naming-convention.md); 20 per-µservice prometheusrule.yaml files no longer re-declare the 4 INV groups (~2,500 lines removed); 20 per-µservice hyperscaler-conformance.md files retired in favor of canonical docs/standards/hyperscaler-invariant-conformance.md (~1,600 lines removed)"
+    },
+    "canonical_base_refactor": {
+      "status": "green",
+      "evidence": "SWEEP-H per ADR-0064: 22,000+ lines of duplicated content removed across 3 slices. Slice 1: canonical PrometheusRule + metric-naming-convention contract replace 20 per-µservice INV groups. Slice 2: docs/standards/hyperscaler-invariant-conformance.md replaces 20 per-µservice conformance overlays. Slice 3: 4 canonical scorecards + 32 overrides.json replace 128 per-µservice scorecards. scripts/resolve-scorecards.py performs canonical+overrides merge at audit-time."
     }
   },
   "overall_status": "merge-admissible-with-admin-prerequisites",
@@ -137,12 +141,38 @@
     "microservices": 33,
     "microservices_dir_file_count": 3785,
     "files_changed_total_session": 6700,
-    "scorecards": 128,
+    "scorecards": {
+      "post_sweep_h_canonical": 4,
+      "post_sweep_h_overrides": 32,
+      "post_sweep_h_total": 36,
+      "pre_sweep_h_per_microservice_scorecards": 128,
+      "note": "SWEEP-H Slice 3: 128 per-µservice scorecards collapsed to 4 canonical (specs/microservices/scorecards/canonical/) + 32 overrides (microservices/<ms>/scorecards/overrides.json) per ADR-0064; resolve-scorecards.py merges at audit-time"
+    },
+    "hyperscaler_conformance_md": {
+      "post_sweep_h": 1,
+      "post_sweep_h_canonical_path": "docs/standards/hyperscaler-invariant-conformance.md",
+      "pre_sweep_h_per_microservice": 20,
+      "note": "SWEEP-H Slice 2: 20 per-µservice hyperscaler-conformance.md files retired in favor of single canonical at docs/standards/hyperscaler-invariant-conformance.md per ADR-0064"
+    },
+    "prometheusrule_inv_groups": {
+      "post_sweep_h_canonical_groups": 4,
+      "post_sweep_h_canonical_path": "microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml",
+      "pre_sweep_h_per_microservice_groups": 80,
+      "note": "SWEEP-H Slice 1: 20 µservices × 4 INV groups (~2,500 lines) collapsed to 1 canonical PrometheusRule firing against the oya_<ms>_* metric naming convention per ADR-0064"
+    },
     "manifests": 32,
     "new_adrs": 4,
     "renamed_adrs": 1,
     "commits_on_pr_143_branch": 8,
-    "lines_added_approximate": 200000
+    "lines_added_approximate": 200000,
+    "sweep_h_line_delta": {
+      "deletions": 22133,
+      "insertions_modified": 270,
+      "canonical_files_authored_lines": 1366,
+      "overrides_files_authored_lines": 1680,
+      "net_lines_removed_approximate": 19000,
+      "note": "SWEEP-H Slice 1+2+3 combined: ~22,000 line deletions vs ~3,300 line additions in canonical + overrides; ~19,000 net lines removed via ADR-0064 canonical-base + overlay refactor"
+    }
   },
   "out_of_scope_findings": [
     {

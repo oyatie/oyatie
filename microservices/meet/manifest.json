@@ -305,10 +305,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/meet/iac/helm/meet/templates/prometheusrule.yaml#meet-llm-capability-circuit-open",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/meet/iac/helm/meet/templates/prometheusrule.yaml#meet-tenant-rate-limit-429-surge",
-    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/meet/iac/helm/meet/templates/prometheusrule.yaml#meet-saturation-cpu-over-70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/meet/iac/helm/meet/templates/prometheusrule.yaml#meet-error-budget-fast-burn-1h-14x-aggregate"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "golden_signals": "INV-FOUR-GOLDEN-SIGNALS \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET \u2192 microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,

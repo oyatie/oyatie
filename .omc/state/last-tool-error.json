@@ -1,7 +1,7 @@
 {
   "tool_name": "Bash",
-  "tool_input_preview": "{\"command\":\"rtk grep -E \\\"starting: data-class|^data class|^data-class\\\" /private/tmp/claude-501/-Users-jasonlee-oyatie/35b59b09-cdc5-4eaa-8abb-1d548b079982/tasks/b32gvqwfu.output\",\"description\":\"Find...",
-  "error": "Exit code 1",
-  "timestamp": "2026-05-18T05:00:09.816Z",
-  "retry_count": 2
+  "tool_input_preview": "{\"command\":\"rtk find microservices -path \\\"*/scorecards/aws-well-architected.json\\\" -delete && rtk find microservices -path \\\"*/scorecards/google-sre-prr.json\\\" -delete && rtk find microservices -path...",
+  "error": "Exit code 1\nrtk: rtk find does not support compound predicates or actions (e.g. -not, -exec). Use `find` directly.",
+  "timestamp": "2026-05-18T05:23:22.599Z",
+  "retry_count": 1
 }

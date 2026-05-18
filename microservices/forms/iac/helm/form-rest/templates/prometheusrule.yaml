@@ -11,6 +11,11 @@ spec:
     - name: forms-burn-rate
       interval: 60s
       rules:
+        # Per-SLO burn-rate alerts (submission-latency SLO). The aggregate
+        # INV-SLO-ERROR-BUDGET coverage lives in the canonical PrometheusRule
+        # at microservices/observability/iac/helm/observability/templates/
+        # hyperscaler-invariants-canonical-prometheusrule.yaml.
+        #
         # Fast-burn (per ADR-0114 + INV-SLO-ERROR-BUDGET burn-rate policy):
         # 1h window, 14.4x burn -> page (consumes 2% of monthly budget in 1h).
         - alert: forms-submission-fast-burn-1h-14x
@@ -26,7 +31,6 @@ spec:
             microservice: forms
             slo: submission-latency
             burn: fast-1h-14x
-            inv: INV-SLO-ERROR-BUDGET
           annotations:
             summary: "forms submission availability fast-burn (1h 14.4x)"
             runbook_url: microservices/forms/runbooks/spam-flood-throttle.md
@@ -46,102 +50,7 @@ spec:
             microservice: forms
             slo: submission-latency
             burn: slow-6h-6x
-            inv: INV-SLO-ERROR-BUDGET
           annotations:
             summary: "forms submission availability slow-burn (6h 6x)"
             runbook_url: microservices/forms/runbooks/spam-flood-throttle.md
             slo_ref: microservices/forms/slos/submission-latency.openslo.yaml
-
-    - name: forms-circuit-breaker
-      interval: 60s
-      rules:
-        # INV-CIRCUIT-BREAKER-BULKHEAD: alert when LLM/captcha/clamav circuit is open.
-        - alert: forms-llm-capability-circuit-open
-          expr: max(oya_forms_capability_circuit_state{state="open"}) > 0
-          for: 1m
-          labels:
-            severity: page
-            microservice: forms
-            inv: INV-CIRCUIT-BREAKER-BULKHEAD
-          annotations:
-            summary: "forms LLM capability circuit-breaker tripped open"
-            runbook_url: microservices/forms/runbooks/spam-flood-throttle.md
-
-        - alert: forms-llm-capability-retry-budget-exhausted
-          expr: |
-            sum(increase(oya_forms_capability_retry_budget_exhausted_total[5m])) > 0
-          for: 1m
-          labels:
-            severity: page
-            microservice: forms
-            inv: INV-CIRCUIT-BREAKER-BULKHEAD
-          annotations:
-            summary: "forms LLM capability retry budget exhausted"
-            runbook_url: microservices/forms/runbooks/spam-flood-throttle.md
-
-    - name: forms-tenant-rate-limit
-      interval: 60s
-      rules:
-        # INV-SHUFFLE-SHARDING: per-tenant 429 surge indicates rate-limit + shuffle-shard escape attempt.
-        - alert: forms-tenant-rate-limit-429-surge
-          expr: |
-            sum by (tenant_id) (
-              rate(oya_forms_response_collector_rest_responses_429_total[5m])
-            ) > 50
-          for: 5m
-          labels:
-            severity: ticket
-            microservice: forms
-            inv: INV-SHUFFLE-SHARDING
-          annotations:
-            summary: "forms tenant {{ $labels.tenant_id }} hitting 429 rate-limit > 50/s sustained"
-            runbook_url: microservices/forms/runbooks/spam-flood-throttle.md
-
-    - name: forms-golden-signals
-      interval: 60s
-      rules:
-        # INV-FOUR-GOLDEN-SIGNALS: traffic + errors + saturation (latency already
-        # covered by the burn-rate alerts above).
-        - alert: forms-saturation-cpu-over-70pct
-          expr: |
-            avg by (pod) (
-              rate(container_cpu_usage_seconds_total{pod=~"forms-.*"}[5m])
-            ) > 0.7
-          for: 10m
-          labels:
-            severity: ticket
-            microservice: forms
-            golden_signal: saturation
-            inv: INV-FOUR-GOLDEN-SIGNALS
-          annotations:
-            summary: "forms pod CPU saturation > 70% sustained 10m"
-
-        - alert: forms-errors-5xx-rate-spike
-          expr: |
-            sum(rate(oya_forms_response_collector_rest_responses_5xx_total[5m]))
-            /
-            sum(rate(oya_forms_response_collector_rest_responses_total[5m])) > 0.01
-          for: 5m
-          labels:
-            severity: page
-            microservice: forms
-            golden_signal: errors
-            inv: INV-FOUR-GOLDEN-SIGNALS
-          annotations:
-            summary: "forms 5xx rate > 1% sustained 5m"
-
-        - alert: forms-traffic-drop-90pct
-          expr: |
-            (
-              sum(rate(oya_forms_response_collector_rest_responses_total[5m]))
-              /
-              sum(rate(oya_forms_response_collector_rest_responses_total[1h] offset 1h))
-            ) < 0.1
-          for: 10m
-          labels:
-            severity: page
-            microservice: forms
-            golden_signal: traffic
-            inv: INV-FOUR-GOLDEN-SIGNALS
-          annotations:
-            summary: "forms inbound RPS dropped > 90% vs prior hour"
